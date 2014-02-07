@@ -20,15 +20,15 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2013 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-monitoring'
          xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
          xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-         xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
-         xmlns:xlink='http://www.w3.org/1999/xlink'
-         xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+         xsi:schemaLocation='http://docbook.org/ns/docbook
+                             http://docbook.org/xml/5.0/xsd/docbook.xsd'
+         xmlns:xlink='http://www.w3.org/1999/xlink'>
  <title>Monitoring, Logging, &amp; Alerts</title>
  
  <para>This chapter describes the monitoring capabilities that OpenDJ
@@ -322,6 +322,27 @@ example-20110623030000000  Backup  Waiting on start time</screen>
  result=0 nentries=1 etime=3
 [21/Jun/2011:08:01:53 +0200] UNBIND REQ conn=4 op=1 msgID=2
 [21/Jun/2011:08:01:53 +0200] DISCONNECT conn=4 reason="Client Unbind"</screen>
+
+    <para>
+     Notice that by default OpenDJ directory server logs a message
+     for the search request, and a message for the search response.<footnote>
+      <para>
+       You can also configure the access logger to combine log messages
+       by setting the property <literal>log-format:combined</literal>.
+       The setting is useful when filtering messages based on response criteria.
+       It causes the server to log one message per operation,
+       rather than one message for the request and another for the response.
+      </para>
+     </footnote>
+     The server also logs request and response messages for other operations
+     that have responses, such as bind and modify operations.
+     The server does not, however, log response messages for all operations,
+     as some operations, such as persistent searches, abandon operations,
+     unbind operations, and abandoned operations, do not have responses.
+     Here, you see also that the log message for the unbind request
+     is followed by a log message for the disconnection.
+    </para>
+
    </listitem>
    <listitem>
     <para>The <firstterm>errors log</firstterm> traces server events, error
