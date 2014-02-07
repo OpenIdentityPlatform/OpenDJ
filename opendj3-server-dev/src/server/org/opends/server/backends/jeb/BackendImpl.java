@@ -982,9 +982,7 @@ public class BackendImpl
           rootContainer.close();
           long finishTime = System.currentTimeMillis();
           long closeTime = (finishTime - startTime) / 1000;
-          LocalizableMessage msg =
-                       NOTE_JEB_IMPORT_LDIF_ROOTCONTAINER_CLOSE.get(closeTime);
-          logger.info(msg);
+          logger.info(NOTE_JEB_IMPORT_LDIF_ROOTCONTAINER_CLOSE, closeTime);
           rootContainer = null;
         }
 
@@ -1478,10 +1476,9 @@ public class BackendImpl
   /** {@inheritDoc} */
   @Override
   public void diskSpaceRestored(DiskSpaceMonitor monitor) {
-    LocalizableMessage msg = NOTE_JEB_DISK_SPACE_RESTORED.get(monitor.getFreeSpace(),
+    logger.error(NOTE_JEB_DISK_SPACE_RESTORED, monitor.getFreeSpace(),
         monitor.getDirectory().getPath(), cfg.getBackendId(),
         Math.max(monitor.getLowThreshold(), monitor.getFullThreshold()));
-    logger.error(msg);
   }
 
   private void checkDiskSpace(Operation operation) throws DirectoryException

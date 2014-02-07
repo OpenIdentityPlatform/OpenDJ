@@ -938,9 +938,7 @@ public class PluginConfigManager
           // determination.
           if (pluginArray.length == 0)
           {
-            LocalizableMessage message = WARN_CONFIG_PLUGIN_EMPTY_ELEMENT_IN_ORDER.get(
-                pluginType.getName());
-            logger.warn(message);
+            logger.warn(WARN_CONFIG_PLUGIN_EMPTY_ELEMENT_IN_ORDER, pluginType.getName());
           }
         }
         else if (token.equals("*"))
@@ -952,9 +950,7 @@ public class PluginConfigManager
             // determination.
             if (pluginArray.length == 0)
             {
-              LocalizableMessage message = WARN_CONFIG_PLUGIN_MULTIPLE_WILDCARDS_IN_ORDER.
-                  get(pluginType.getName());
-              logger.warn(message);
+              logger.warn(WARN_CONFIG_PLUGIN_MULTIPLE_WILDCARDS_IN_ORDER, pluginType.getName());
             }
           }
           else
@@ -975,9 +971,8 @@ public class PluginConfigManager
               // make the determination.
               if (pluginArray.length == 0)
               {
-                LocalizableMessage message = WARN_CONFIG_PLUGIN_LISTED_MULTIPLE_TIMES.get(
+                logger.warn(WARN_CONFIG_PLUGIN_LISTED_MULTIPLE_TIMES,
                     pluginType.getName(), token);
-                logger.warn(message);
               }
             }
 
@@ -992,9 +987,8 @@ public class PluginConfigManager
               // make the determination.
               if (pluginArray.length == 0)
               {
-                LocalizableMessage message = WARN_CONFIG_PLUGIN_LISTED_MULTIPLE_TIMES.get(
+                logger.warn(WARN_CONFIG_PLUGIN_LISTED_MULTIPLE_TIMES,
                     pluginType.getName(), token);
-                logger.warn(message);
               }
             }
 
@@ -1010,9 +1004,7 @@ public class PluginConfigManager
         // determination.
         if (pluginArray.length == 0)
         {
-          LocalizableMessage message =
-              WARN_CONFIG_PLUGIN_ORDER_NO_WILDCARD.get(pluginType.getName());
-          logger.warn(message);
+          logger.warn(WARN_CONFIG_PLUGIN_ORDER_NO_WILDCARD, pluginType.getName());
         }
       }
 
@@ -1455,11 +1447,10 @@ public class PluginConfigManager
       }
       else if (! result.continueProcessing())
       {
-        LocalizableMessage message = ERR_PLUGIN_STARTUP_PLUGIN_FAIL_ABORT.
-            get(p.getPluginEntryDN(),
+        logger.error(ERR_PLUGIN_STARTUP_PLUGIN_FAIL_ABORT,
+                p.getPluginEntryDN(),
                 result.getErrorMessage(),
                 result.getErrorMessage().ordinal());
-        logger.error(message);
         return result;
       }
     }
@@ -1493,10 +1484,7 @@ public class PluginConfigManager
       catch (Exception e)
       {
         logger.traceException(e);
-
-        LocalizableMessage message = ERR_PLUGIN_SHUTDOWN_PLUGIN_EXCEPTION.
-            get(p.getPluginEntryDN(), stackTraceToSingleLineString(e));
-        logger.error(message);
+        logger.error(ERR_PLUGIN_SHUTDOWN_PLUGIN_EXCEPTION, p.getPluginEntryDN(), stackTraceToSingleLineString(e));
       }
     }
   }
@@ -1594,23 +1582,20 @@ public class PluginConfigManager
       catch (Exception e)
       {
         logger.traceException(e);
-
-        LocalizableMessage msg = ERR_PLUGIN_POST_DISCONNECT_PLUGIN_EXCEPTION.
-            get(p.getPluginEntryDN(),
+        logger.error(ERR_PLUGIN_POST_DISCONNECT_PLUGIN_EXCEPTION,
+                p.getPluginEntryDN(),
                 clientConnection.getConnectionID(),
                 clientConnection.getClientAddress(),
                 stackTraceToSingleLineString(e));
-        logger.error(msg);
       }
 
 
       if (result == null)
       {
-        LocalizableMessage msg = ERR_PLUGIN_POST_DISCONNECT_PLUGIN_RETURNED_NULL.
-            get(p.getPluginEntryDN(),
+        logger.error(ERR_PLUGIN_POST_DISCONNECT_PLUGIN_RETURNED_NULL,
+                p.getPluginEntryDN(),
                 clientConnection.getConnectionID(),
                 clientConnection.getClientAddress());
-        logger.error(msg);
       }
       else if (! result.continuePluginProcessing())
       {
@@ -1655,9 +1640,8 @@ public class PluginConfigManager
       {
         logger.traceException(e);
 
-        LocalizableMessage message = ERR_PLUGIN_LDIF_IMPORT_PLUGIN_EXCEPTION.
-get(p.getPluginEntryDN(),
-                entry.getName(), stackTraceToSingleLineString(e));
+        LocalizableMessage message = ERR_PLUGIN_LDIF_IMPORT_PLUGIN_EXCEPTION.get(
+            p.getPluginEntryDN(), entry.getName(), stackTraceToSingleLineString(e));
         logger.error(message);
 
         return PluginResult.ImportLDIF.stopEntryProcessing(message);
@@ -2963,24 +2947,21 @@ get(p.getPluginEntryDN(),
       catch (Exception e)
       {
         logger.traceException(e);
-
-        LocalizableMessage message = ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION.
-            get(abandonOperation.getOperationType().getOperationName(),
+        logger.error(ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION,
+                abandonOperation.getOperationType().getOperationName(),
                 p.getPluginEntryDN(),
                 abandonOperation.getConnectionID(),
                 abandonOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
-        logger.error(message);
       }
 
       if (result == null)
       {
-        LocalizableMessage message = ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL.
-            get(abandonOperation.getOperationType().getOperationName(),
+        logger.error(ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL,
+                abandonOperation.getOperationType().getOperationName(),
                 p.getPluginEntryDN(),
                 abandonOperation.getConnectionID(),
                 abandonOperation.getOperationID());
-        logger.error(message);
       }
       else if (!result.continueProcessing())
       {
@@ -3048,22 +3029,19 @@ get(p.getPluginEntryDN(),
       catch (Exception e)
       {
         logger.traceException(e);
-
-        LocalizableMessage message = ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION.
-            get(addOperation.getOperationType().getOperationName(),
+        logger.error(ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION,
+                addOperation.getOperationType().getOperationName(),
                 p.getPluginEntryDN(),
                 addOperation.getConnectionID(), addOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
-        logger.error(message);
       }
 
       if (result == null)
       {
-        LocalizableMessage message = ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL.
-            get(addOperation.getOperationType().getOperationName(),
+        logger.error(ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL,
+                addOperation.getOperationType().getOperationName(),
                 p.getPluginEntryDN(),
                 addOperation.getConnectionID(), addOperation.getOperationID());
-        logger.error(message);
       }
       else if (!result.continueProcessing())
       {
@@ -3131,23 +3109,20 @@ get(p.getPluginEntryDN(),
       catch (Exception e)
       {
         logger.traceException(e);
-
-        LocalizableMessage message = ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION.
-            get(bindOperation.getOperationType().getOperationName(),
+        logger.error(ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION,
+                bindOperation.getOperationType().getOperationName(),
                 p.getPluginEntryDN(),
                 bindOperation.getConnectionID(), bindOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
-        logger.error(message);
       }
 
       if (result == null)
       {
-        LocalizableMessage message = ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL.
-            get(bindOperation.getOperationType().getOperationName(),
+        logger.error(ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL,
+                bindOperation.getOperationType().getOperationName(),
                 p.getPluginEntryDN(),
                 bindOperation.getConnectionID(),
                 bindOperation.getOperationID());
-        logger.error(message);
       }
       else if (!result.continueProcessing())
       {
@@ -3215,24 +3190,21 @@ get(p.getPluginEntryDN(),
       catch (Exception e)
       {
         logger.traceException(e);
-
-        LocalizableMessage message = ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION.
-            get(compareOperation.getOperationType().getOperationName(),
+        logger.error(ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION,
+                compareOperation.getOperationType().getOperationName(),
                 p.getPluginEntryDN(),
                 compareOperation.getConnectionID(),
                 compareOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
-        logger.error(message);
       }
 
       if (result == null)
       {
-        LocalizableMessage message = ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL.
-            get(compareOperation.getOperationType().getOperationName(),
+        logger.error(ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL,
+                compareOperation.getOperationType().getOperationName(),
                 p.getPluginEntryDN(),
                 compareOperation.getConnectionID(),
                 compareOperation.getOperationID());
-        logger.error(message);
       }
       else if (!result.continueProcessing())
       {
@@ -3300,24 +3272,21 @@ get(p.getPluginEntryDN(),
       catch (Exception e)
       {
         logger.traceException(e);
-
-        LocalizableMessage message = ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION.
-            get(deleteOperation.getOperationType().getOperationName(),
+        logger.error(ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION,
+                deleteOperation.getOperationType().getOperationName(),
                 p.getPluginEntryDN(),
                 deleteOperation.getConnectionID(),
                 deleteOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
-        logger.error(message);
       }
 
       if (result == null)
       {
-        LocalizableMessage message = ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL.
-            get(deleteOperation.getOperationType().getOperationName(),
+        logger.error(ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL,
+                deleteOperation.getOperationType().getOperationName(),
                 p.getPluginEntryDN(),
                 deleteOperation.getConnectionID(),
                 deleteOperation.getOperationID());
-        logger.error(message);
       }
       else if (!result.continueProcessing())
       {
@@ -3385,24 +3354,21 @@ get(p.getPluginEntryDN(),
       catch (Exception e)
       {
         logger.traceException(e);
-
-        LocalizableMessage message = ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION.
-            get(extendedOperation.getOperationType().getOperationName(),
+        logger.error(ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION,
+                extendedOperation.getOperationType().getOperationName(),
                 p.getPluginEntryDN(),
                 extendedOperation.getConnectionID(),
                 extendedOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
-        logger.error(message);
       }
 
       if (result == null)
       {
-        LocalizableMessage message = ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL.
-            get(extendedOperation.getOperationType().getOperationName(),
+        logger.error(ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL,
+                extendedOperation.getOperationType().getOperationName(),
                 p.getPluginEntryDN(),
                 extendedOperation.getConnectionID(),
                 extendedOperation.getOperationID());
-        logger.error(message);
       }
       else if (!result.continueProcessing())
       {
@@ -3470,24 +3436,21 @@ get(p.getPluginEntryDN(),
       catch (Exception e)
       {
         logger.traceException(e);
-
-        LocalizableMessage message = ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION.
-            get(modifyOperation.getOperationType().getOperationName(),
+        logger.error(ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION,
+                modifyOperation.getOperationType().getOperationName(),
                 p.getPluginEntryDN(),
                 modifyOperation.getConnectionID(),
                 modifyOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
-        logger.error(message);
       }
 
       if (result == null)
       {
-        LocalizableMessage message = ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL.
-            get(modifyOperation.getOperationType().getOperationName(),
+        logger.error(ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL,
+                modifyOperation.getOperationType().getOperationName(),
                 p.getPluginEntryDN(),
                 modifyOperation.getConnectionID(),
                 modifyOperation.getOperationID());
-        logger.error(message);
       }
       else if (!result.continueProcessing())
       {
@@ -3554,24 +3517,21 @@ get(p.getPluginEntryDN(),
       catch (Exception e)
       {
         logger.traceException(e);
-
-        LocalizableMessage message = ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION.
-            get(modifyDNOperation.getOperationType().getOperationName(),
+        logger.error(ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION,
+                modifyDNOperation.getOperationType().getOperationName(),
                 p.getPluginEntryDN(),
                 modifyDNOperation.getConnectionID(),
                 modifyDNOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
-        logger.error(message);
       }
 
       if (result == null)
       {
-        LocalizableMessage message = ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL.
-            get(modifyDNOperation.getOperationType().getOperationName(),
+        logger.error(ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL,
+                modifyDNOperation.getOperationType().getOperationName(),
                 p.getPluginEntryDN(),
                 modifyDNOperation.getConnectionID(),
                 modifyDNOperation.getOperationID());
-        logger.error(message);
       }
       else if (!result.continueProcessing())
       {
@@ -3639,24 +3599,21 @@ get(p.getPluginEntryDN(),
       catch (Exception e)
       {
         logger.traceException(e);
-
-        LocalizableMessage message = ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION.
-            get(searchOperation.getOperationType().getOperationName(),
+        logger.error(ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION,
+                searchOperation.getOperationType().getOperationName(),
                 p.getPluginEntryDN(),
                 searchOperation.getConnectionID(),
                 searchOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
-        logger.error(message);
       }
 
       if (result == null)
       {
-        LocalizableMessage message = ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL.
-            get(searchOperation.getOperationType().getOperationName(),
+        logger.error(ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL,
+                searchOperation.getOperationType().getOperationName(),
                 p.getPluginEntryDN(),
                 searchOperation.getConnectionID(),
                 searchOperation.getOperationID());
-        logger.error(message);
       }
       else if (!result.continueProcessing())
       {
@@ -3724,24 +3681,21 @@ get(p.getPluginEntryDN(),
       catch (Exception e)
       {
         logger.traceException(e);
-
-        LocalizableMessage message = ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION.
-            get(unbindOperation.getOperationType().getOperationName(),
+        logger.error(ERR_PLUGIN_POST_OPERATION_PLUGIN_EXCEPTION,
+                unbindOperation.getOperationType().getOperationName(),
                 p.getPluginEntryDN(),
                 unbindOperation.getConnectionID(),
                 unbindOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
-        logger.error(message);
       }
 
       if (result == null)
       {
-        LocalizableMessage message = ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL.
-            get(unbindOperation.getOperationType().getOperationName(),
+        logger.error(ERR_PLUGIN_POST_OPERATION_PLUGIN_RETURNED_NULL,
+                unbindOperation.getOperationType().getOperationName(),
                 p.getPluginEntryDN(),
                 unbindOperation.getConnectionID(),
                 unbindOperation.getOperationID());
-        logger.error(message);
       }
       else if (!result.continueProcessing())
       {
@@ -3800,22 +3754,19 @@ get(p.getPluginEntryDN(),
       catch (Exception e)
       {
         logger.traceException(e);
-
-        LocalizableMessage message = ERR_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION.
-            get(addOperation.getOperationType().getOperationName(),
+        logger.error(ERR_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION,
+                addOperation.getOperationType().getOperationName(),
                 p.getPluginEntryDN(),
                 addOperation.getConnectionID(), addOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
-        logger.error(message);
       }
 
       if (result == null)
       {
-        LocalizableMessage message = ERR_PLUGIN_POST_RESPONSE_PLUGIN_RETURNED_NULL.
-            get(addOperation.getOperationType().getOperationName(),
+        logger.error(ERR_PLUGIN_POST_RESPONSE_PLUGIN_RETURNED_NULL,
+                addOperation.getOperationType().getOperationName(),
                 p.getPluginEntryDN(),
                 addOperation.getConnectionID(), addOperation.getOperationID());
-        logger.error(message);
       }
       else if (!result.continuePluginProcessing())
       {
@@ -3864,23 +3815,20 @@ get(p.getPluginEntryDN(),
       catch (Exception e)
       {
         logger.traceException(e);
-
-        LocalizableMessage message = ERR_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION.
-            get(bindOperation.getOperationType().getOperationName(),
+        logger.error(ERR_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION,
+                bindOperation.getOperationType().getOperationName(),
                 p.getPluginEntryDN(),
                 bindOperation.getConnectionID(), bindOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
-        logger.error(message);
       }
 
       if (result == null)
       {
-        LocalizableMessage message = ERR_PLUGIN_POST_RESPONSE_PLUGIN_RETURNED_NULL.
-            get(bindOperation.getOperationType().getOperationName(),
+        logger.error(ERR_PLUGIN_POST_RESPONSE_PLUGIN_RETURNED_NULL,
+                bindOperation.getOperationType().getOperationName(),
                 p.getPluginEntryDN(),
                 bindOperation.getConnectionID(),
                 bindOperation.getOperationID());
-        logger.error(message);
       }
       else if (!result.continuePluginProcessing())
       {
@@ -3929,24 +3877,21 @@ get(p.getPluginEntryDN(),
       catch (Exception e)
       {
         logger.traceException(e);
-
-        LocalizableMessage message = ERR_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION.
-            get(compareOperation.getOperationType().getOperationName(),
+        logger.error(ERR_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION,
+                compareOperation.getOperationType().getOperationName(),
                 p.getPluginEntryDN(),
                 compareOperation.getConnectionID(),
                 compareOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
-        logger.error(message);
       }
 
       if (result == null)
       {
-        LocalizableMessage message = ERR_PLUGIN_POST_RESPONSE_PLUGIN_RETURNED_NULL.
-            get(compareOperation.getOperationType().getOperationName(),
+        logger.error(ERR_PLUGIN_POST_RESPONSE_PLUGIN_RETURNED_NULL,
+                compareOperation.getOperationType().getOperationName(),
                 p.getPluginEntryDN(),
                 compareOperation.getConnectionID(),
                 compareOperation.getOperationID());
-        logger.error(message);
       }
       else if (!result.continuePluginProcessing())
       {
@@ -3995,24 +3940,21 @@ get(p.getPluginEntryDN(),
       catch (Exception e)
       {
         logger.traceException(e);
-
-        LocalizableMessage message = ERR_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION.
-            get(deleteOperation.getOperationType().getOperationName(),
+        logger.error(ERR_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION,
+                deleteOperation.getOperationType().getOperationName(),
                 p.getPluginEntryDN(),
                 deleteOperation.getConnectionID(),
                 deleteOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
-        logger.error(message);
       }
 
       if (result == null)
       {
-        LocalizableMessage message = ERR_PLUGIN_POST_RESPONSE_PLUGIN_RETURNED_NULL.
-            get(deleteOperation.getOperationType().getOperationName(),
+        logger.error(ERR_PLUGIN_POST_RESPONSE_PLUGIN_RETURNED_NULL,
+                deleteOperation.getOperationType().getOperationName(),
                 p.getPluginEntryDN(),
                 deleteOperation.getConnectionID(),
                 deleteOperation.getOperationID());
-        logger.error(message);
       }
       else if (!result.continuePluginProcessing())
       {
@@ -4060,24 +4002,21 @@ get(p.getPluginEntryDN(),
       catch (Exception e)
       {
         logger.traceException(e);
-
-        LocalizableMessage message = ERR_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION.
-            get(extendedOperation.getOperationType().getOperationName(),
+        logger.error(ERR_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION,
+                extendedOperation.getOperationType().getOperationName(),
                 p.getPluginEntryDN(),
                 extendedOperation.getConnectionID(),
                 extendedOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
-        logger.error(message);
       }
 
       if (result == null)
       {
-        LocalizableMessage message = ERR_PLUGIN_POST_RESPONSE_PLUGIN_RETURNED_NULL.
-            get(extendedOperation.getOperationType().getOperationName(),
+        logger.error(ERR_PLUGIN_POST_RESPONSE_PLUGIN_RETURNED_NULL,
+                extendedOperation.getOperationType().getOperationName(),
                 p.getPluginEntryDN(),
                 extendedOperation.getConnectionID(),
                 extendedOperation.getOperationID());
-        logger.error(message);
       }
       else if (!result.continuePluginProcessing())
       {
@@ -4126,24 +4065,21 @@ get(p.getPluginEntryDN(),
       catch (Exception e)
       {
         logger.traceException(e);
-
-        LocalizableMessage message = ERR_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION.
-            get(modifyOperation.getOperationType().getOperationName(),
+        logger.error(ERR_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION,
+                modifyOperation.getOperationType().getOperationName(),
                 p.getPluginEntryDN(),
                 modifyOperation.getConnectionID(),
                 modifyOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
-        logger.error(message);
       }
 
       if (result == null)
       {
-        LocalizableMessage message = ERR_PLUGIN_POST_RESPONSE_PLUGIN_RETURNED_NULL.
-            get(modifyOperation.getOperationType().getOperationName(),
+        logger.error(ERR_PLUGIN_POST_RESPONSE_PLUGIN_RETURNED_NULL,
+                modifyOperation.getOperationType().getOperationName(),
                 p.getPluginEntryDN(),
                 modifyOperation.getConnectionID(),
                 modifyOperation.getOperationID());
-        logger.error(message);
       }
       else if (!result.continuePluginProcessing())
       {
@@ -4192,24 +4128,21 @@ get(p.getPluginEntryDN(),
       catch (Exception e)
       {
         logger.traceException(e);
-
-        LocalizableMessage message = ERR_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION.
-            get(modifyDNOperation.getOperationType().getOperationName(),
+        logger.error(ERR_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION,
+                modifyDNOperation.getOperationType().getOperationName(),
                 p.getPluginEntryDN(),
                 modifyDNOperation.getConnectionID(),
                 modifyDNOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
-        logger.error(message);
       }
 
       if (result == null)
       {
-        LocalizableMessage message = ERR_PLUGIN_POST_RESPONSE_PLUGIN_RETURNED_NULL.
-            get(modifyDNOperation.getOperationType().getOperationName(),
+        logger.error(ERR_PLUGIN_POST_RESPONSE_PLUGIN_RETURNED_NULL,
+                modifyDNOperation.getOperationType().getOperationName(),
                 p.getPluginEntryDN(),
                 modifyDNOperation.getConnectionID(),
                 modifyDNOperation.getOperationID());
-        logger.error(message);
       }
       else if (!result.continuePluginProcessing())
       {
@@ -4258,24 +4191,21 @@ get(p.getPluginEntryDN(),
       catch (Exception e)
       {
         logger.traceException(e);
-
-        LocalizableMessage message = ERR_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION.
-            get(searchOperation.getOperationType().getOperationName(),
+        logger.error(ERR_PLUGIN_POST_RESPONSE_PLUGIN_EXCEPTION,
+                searchOperation.getOperationType().getOperationName(),
                 p.getPluginEntryDN(),
                 searchOperation.getConnectionID(),
                 searchOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
-        logger.error(message);
       }
 
       if (result == null)
       {
-        LocalizableMessage message = ERR_PLUGIN_POST_RESPONSE_PLUGIN_RETURNED_NULL.
-            get(searchOperation.getOperationType().getOperationName(),
+        logger.error(ERR_PLUGIN_POST_RESPONSE_PLUGIN_RETURNED_NULL,
+                searchOperation.getOperationType().getOperationName(),
                 p.getPluginEntryDN(),
                 searchOperation.getConnectionID(),
                 searchOperation.getOperationID());
-        logger.error(message);
       }
       else if (!result.continuePluginProcessing())
       {
@@ -4314,13 +4244,11 @@ get(p.getPluginEntryDN(),
       catch (Exception e)
       {
         logger.traceException(e);
-
-        LocalizableMessage message = ERR_PLUGIN_POST_SYNCHRONIZATION_PLUGIN_EXCEPTION.
-            get(addOperation.getOperationType().getOperationName(),
+        logger.error(ERR_PLUGIN_POST_SYNCHRONIZATION_PLUGIN_EXCEPTION,
+                addOperation.getOperationType().getOperationName(),
                 p.getPluginEntryDN(),
                 addOperation.getConnectionID(), addOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
-        logger.error(message);
       }
     }
   }
@@ -4346,14 +4274,12 @@ get(p.getPluginEntryDN(),
       catch (Exception e)
       {
         logger.traceException(e);
-
-        LocalizableMessage message = ERR_PLUGIN_POST_SYNCHRONIZATION_PLUGIN_EXCEPTION.
-            get(deleteOperation.getOperationType().getOperationName(),
+        logger.error(ERR_PLUGIN_POST_SYNCHRONIZATION_PLUGIN_EXCEPTION,
+                deleteOperation.getOperationType().getOperationName(),
                 p.getPluginEntryDN(),
                 deleteOperation.getConnectionID(),
                 deleteOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
-        logger.error(message);
       }
     }
   }
@@ -4379,14 +4305,12 @@ get(p.getPluginEntryDN(),
       catch (Exception e)
       {
         logger.traceException(e);
-
-        LocalizableMessage message = ERR_PLUGIN_POST_SYNCHRONIZATION_PLUGIN_EXCEPTION.
-            get(modifyOperation.getOperationType().getOperationName(),
+        logger.error(ERR_PLUGIN_POST_SYNCHRONIZATION_PLUGIN_EXCEPTION,
+                modifyOperation.getOperationType().getOperationName(),
                 p.getPluginEntryDN(),
                 modifyOperation.getConnectionID(),
                 modifyOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
-        logger.error(message);
       }
     }
   }
@@ -4412,14 +4336,12 @@ get(p.getPluginEntryDN(),
       catch (Exception e)
       {
         logger.traceException(e);
-
-        LocalizableMessage message = ERR_PLUGIN_POST_SYNCHRONIZATION_PLUGIN_EXCEPTION.
-            get(modifyDNOperation.getOperationType().getOperationName(),
+        logger.error(ERR_PLUGIN_POST_SYNCHRONIZATION_PLUGIN_EXCEPTION,
+                modifyDNOperation.getOperationType().getOperationName(),
                 p.getPluginEntryDN(),
                 modifyDNOperation.getConnectionID(),
                 modifyDNOperation.getOperationID(),
                 stackTraceToSingleLineString(e));
-        logger.error(message);
       }
     }
   }
@@ -5063,4 +4985,3 @@ get(p.getPluginEntryDN(),
     skippedPreOperationPlugins.put(operation, existingList);
   }
 }
-

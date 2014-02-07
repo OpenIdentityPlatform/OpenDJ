@@ -130,8 +130,7 @@ public class GSSAPISASLMechanismHandler extends
       DirectoryServer.registerSASLMechanismHandler(SASL_MECHANISM_GSSAPI, this);
       configuration.addGSSAPIChangeListener(this);
       this.configuration = configuration;
-      LocalizableMessage msg = INFO_GSSAPI_STARTED.get();
-      logger.error(msg);
+      logger.error(INFO_GSSAPI_STARTED);
     }
     catch (UnknownHostException unhe)
     {
@@ -348,8 +347,7 @@ public class GSSAPISASLMechanismHandler extends
     }
     DirectoryServer.deregisterSASLMechanismHandler(SASL_MECHANISM_GSSAPI);
     clearProperties();
-    LocalizableMessage msg = INFO_GSSAPI_STOPPED.get();
-    logger.error(msg);
+    logger.error(INFO_GSSAPI_STOPPED.get());
   }
 
 
@@ -575,8 +573,7 @@ throws UnknownHostException, IOException, InitializationException
     DN identityMapperDN = config.getIdentityMapperDN();
     identityMapper = DirectoryServer.getIdentityMapper(identityMapperDN);
     serverFQDN = getFQDN(config);
-    LocalizableMessage msg = INFO_GSSAPI_SERVER_FQDN.get(serverFQDN);
-    logger.error(msg);
+    logger.error(INFO_GSSAPI_SERVER_FQDN, serverFQDN);
     saslProps = new HashMap<String, String>();
     saslProps.put(Sasl.QOP, getQOP(config));
     saslProps.put(Sasl.REUSE, "false");

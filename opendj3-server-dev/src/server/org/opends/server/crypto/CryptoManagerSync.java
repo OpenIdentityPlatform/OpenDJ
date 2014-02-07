@@ -495,9 +495,8 @@ public class CryptoManagerSync
       }
       catch (CryptoManagerException e)
       {
-        LocalizableMessage message = LocalizableMessage.raw("Failed to import key entry: %s",
-                                      e.getMessage());
-        logger.error(message);
+        logger.error(LocalizableMessage.raw(
+            "Failed to import key entry: %s", e.getMessage()));
       }
     }
   }
@@ -571,9 +570,8 @@ public class CryptoManagerSync
       }
       catch (CryptoManagerException e)
       {
-        LocalizableMessage message = LocalizableMessage.raw("Failed to import modified key entry: %s",
-                                      e.getMessage());
-        logger.error(message);
+        logger.error(LocalizableMessage.raw(
+            "Failed to import modified key entry: %s", e.getMessage()));
       }
     }
   }

@@ -2368,12 +2368,9 @@ public abstract class ReplicationDomain
       }
       finally
       {
-        LocalizableMessage msg = NOTE_FULL_UPDATE_ENGAGED_FROM_REMOTE_END.get(
-            getBaseDNString(), initTargetMsgReceived.getSenderID(),
-            getServerId(),
-            (ieCtx.getException() == null ? ""
-                : ieCtx.getException().getLocalizedMessage()));
-        logger.error(msg);
+        logger.error(NOTE_FULL_UPDATE_ENGAGED_FROM_REMOTE_END,
+            getBaseDNString(), initTargetMsgReceived.getSenderID(), getServerId(),
+            (ieCtx.getException() != null ? ieCtx.getException().getLocalizedMessage() : ""));
         releaseIEContext();
       } // finally
     } // finally

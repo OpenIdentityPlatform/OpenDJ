@@ -170,10 +170,8 @@ public class SMTPAlertHandler
     catch (Exception e)
     {
       logger.traceException(e);
-
-      LocalizableMessage msg = WARN_SMTPALERTHANDLER_ERROR_SENDING_MESSAGE.get(
+      logger.error(WARN_SMTPALERTHANDLER_ERROR_SENDING_MESSAGE,
           alertType, alertMessage, e.getLocalizedMessage());
-      logger.error(msg);
     }
   }
 

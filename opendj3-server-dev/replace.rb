@@ -261,8 +261,22 @@ class Replace
     :extensions => ["java"],
     :replacements =>
       [
-        /(logger\.\s*(?:trace|debug|warn|info|error)\s*\()\s*([A-Z0-9_]+)\s*\.\s*get\s*\(([^;]+)\)([^;]+)/m,
+        /(logger\.\s*(?:trace|debug|warn|info|error)\s*\()\s*([A-Z0-9_]+)\s*\.\s*get\s*\(([^;]*)\)([^;]+)/m,
         '\1\2, \3\4',
+        /(logger\.\s*(?:trace|debug|warn|info|error)\s*\()\s*([A-Z0-9_]+)\s*\.\s*get\s*\(([^;]*)\)([^;]+)/m,
+        '\1\2, \3\4',
+      ]
+  }
+
+  COLLAPSE_LOCALIZABLE_MESSAGE_TO_LOGGER_ONLY = {
+    :dirs => JAVA_DIRS,
+    :extensions => ["java"],
+    :replacements =>
+      [
+        /(?:final)?\s*LocalizableMessage\s*(\w+)\s*=\s*((?:[^;]|\r\n|\r|\n)+);\s*(logger\s*\.(?:trace|debug|warn|info|error)\s*\()\s*\1/m,
+        '\3\2',
+        /(?: |\t)+$/m,
+        '',
       ]
   }
 
@@ -279,7 +293,7 @@ class Replace
   }
 
   # List of replacements to run
-  REPLACEMENTS = [ LOGGER_AND_ARGN_TO_LOGGER_ONLY ]
+  REPLACEMENTS = [ COLLAPSE_LOCALIZABLE_MESSAGE_TO_LOGGER_ONLY, LOGGER_AND_ARGN_TO_LOGGER_ONLY ]
 
 
   ################################### Processing methods ########################################
