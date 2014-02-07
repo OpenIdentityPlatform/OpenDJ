@@ -26,6 +26,7 @@
 
 package org.forgerock.opendj.config.client;
 
+import java.io.Closeable;
 import java.util.Set;
 import java.util.SortedSet;
 
@@ -47,7 +48,7 @@ import org.forgerock.opendj.ldap.ErrorResultException;
 /**
  * Client management connection context.
  */
-public abstract class ManagementContext {
+public abstract class ManagementContext implements Closeable {
 
     /**
      * Creates a new management context.
