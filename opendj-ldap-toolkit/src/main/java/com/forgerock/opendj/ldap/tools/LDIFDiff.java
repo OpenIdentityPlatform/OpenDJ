@@ -26,8 +26,8 @@
  */
 package com.forgerock.opendj.ldap.tools;
 
-import static com.forgerock.opendj.cli.CliConstants.OPTION_LONG_OUTPUT_LDIF_FILENAME;
-import static com.forgerock.opendj.cli.CliConstants.OPTION_SHORT_OUTPUT_LDIF_FILENAME;
+import static com.forgerock.opendj.cli.ArgumentConstants.OPTION_LONG_OUTPUT_LDIF_FILENAME;
+import static com.forgerock.opendj.cli.ArgumentConstants.OPTION_SHORT_OUTPUT_LDIF_FILENAME;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import static com.forgerock.opendj.cli.Utils.filterExitCode;
 
