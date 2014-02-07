@@ -2004,9 +2004,7 @@ public final class Importer implements DiskSpaceMonitorHandler
           }
           if (!isCanceled)
           {
-            LocalizableMessage msg =
-                NOTE_JEB_IMPORT_LDIF_DN_CLOSE.get(indexMgr.getDNCount());
-            logger.error(msg);
+            logger.error(NOTE_JEB_IMPORT_LDIF_DN_CLOSE, indexMgr.getDNCount());
           }
         }
         else
@@ -3975,10 +3973,8 @@ public final class Importer implements DiskSpaceMonitorHandler
     public void diskFullThresholdReached(DiskSpaceMonitor monitor)
     {
       isCanceled = true;
-      LocalizableMessage msg =
-          ERR_REBUILD_INDEX_LACK_DISK.get(monitor.getDirectory().getPath(),
+      logger.error(ERR_REBUILD_INDEX_LACK_DISK, monitor.getDirectory().getPath(),
               monitor.getFreeSpace(), monitor.getLowThreshold());
-      logger.error(msg);
     }
 
     @Override

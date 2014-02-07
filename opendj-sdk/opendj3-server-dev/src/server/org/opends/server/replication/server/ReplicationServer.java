@@ -190,11 +190,10 @@ public final class ReplicationServer
 
   void runListen()
   {
-    LocalizableMessage listenMsg = NOTE_REPLICATION_SERVER_LISTENING.get(
+    logger.info(NOTE_REPLICATION_SERVER_LISTENING,
         getServerId(),
         listenSocket.getInetAddress().getHostAddress(),
         listenSocket.getLocalPort());
-    logger.info(listenMsg);
 
     while (!shutdown && !stopListen)
     {
@@ -432,11 +431,8 @@ public final class ReplicationServer
     } catch (DirectoryException e)
     {
       //FIXME:DirectoryException is raised by initializeECL => fix err msg
-      LocalizableMessage message =
-          LocalizableMessage
-              .raw("Directory Exception raised by ECL initialization: "
-                  + e.getMessage());
-      logger.error(message);
+      logger.error(LocalizableMessage.raw(
+          "Directory Exception raised by ECL initialization: %s", e.getMessage()));
     }
   }
 

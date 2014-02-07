@@ -1388,9 +1388,8 @@ public class ImportLDIF extends TaskTool {
       }
       catch(Exception e)
       {
-          LocalizableMessage msg = ERR_LDIFIMPORT_CANNOT_PARSE_THREAD_COUNT.get(
+          logger.error(ERR_LDIFIMPORT_CANNOT_PARSE_THREAD_COUNT,
                   threadCount.getValue(), e.getMessage());
-          logger.error(msg);
           return 1;
       }
 

@@ -670,8 +670,7 @@ public final class UpgradeTasks
         }
         else
         {
-          final LocalizableMessage msg = INFO_UPGRADE_REBUILD_INDEX_NO_BACKEND_FOUND.get();
-          logger.debug(msg);
+          logger.debug(INFO_UPGRADE_REBUILD_INDEX_NO_BACKEND_FOUND);
           logger.debug(INFO_UPGRADE_REBUILD_INDEX_DECLINED, indexesListToRebuild);
           context.notifyProgress(pnc.setProgress(100));
         }

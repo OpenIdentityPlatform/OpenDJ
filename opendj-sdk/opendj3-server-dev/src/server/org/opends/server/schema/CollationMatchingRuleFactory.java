@@ -252,10 +252,7 @@ public final class CollationMatchingRuleFactory extends
       String languageTag = mapper.getLanguageTag();
       if (nOID == null || languageTag == null)
       {
-        LocalizableMessage msg =
-            WARN_ATTR_INVALID_COLLATION_MATCHING_RULE_FORMAT
-                .get(collation);
-        logger.error(msg);
+        logger.error(WARN_ATTR_INVALID_COLLATION_MATCHING_RULE_FORMAT, collation);
         continue;
       }
 
@@ -272,12 +269,8 @@ public final class CollationMatchingRuleFactory extends
       else
       {
         // This locale is not supported by JVM.
-        LocalizableMessage msg =
-            WARN_ATTR_INVALID_COLLATION_MATCHING_RULE_LOCALE.get(
-                collation, configuration.dn().toNormalizedString(),
-                languageTag);
-
-        logger.error(msg);
+        logger.error(WARN_ATTR_INVALID_COLLATION_MATCHING_RULE_LOCALE,
+                collation, configuration.dn().toNormalizedString(), languageTag);
       }
     }
 
