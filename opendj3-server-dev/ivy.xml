@@ -53,8 +53,8 @@
     <dependency org="org.forgerock.opendj"  name="opendj-rest2ldap-servlet" rev="&opendj.sdk.version;" conf="default->master,compile" />
     <dependency org="org.forgerock.opendj"  name="opendj-slf4j-adapter"     rev="&opendj.sdk.version;" />
     <dependency org="org.forgerock.commons" name="i18n-slf4j"               rev="&i18n.version;" />
-    <dependency org="org.forgerock.opendj"  name="opendj-cli"               rev="&opendj.sdk.version;" />    
-    <dependency org="org.forgerock.opendj"  name="opendj-server2x-adapter"  rev="&opendj.sdk.version;">
+    <dependency org="org.forgerock.opendj"  name="opendj-cli"               rev="&opendj.sdk.version;" />
+    <dependency org="org.forgerock.opendj"  name="opendj-server3x-adapter"  rev="&opendj.sdk.version;">
       <exclude module="opendj-server" />
     </dependency>
     <dependency org="org.forgerock.opendj"  name="opendj-server"            rev="&opendj.sdk.version;">

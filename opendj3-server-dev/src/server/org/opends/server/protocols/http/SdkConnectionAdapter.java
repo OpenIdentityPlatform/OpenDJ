@@ -25,7 +25,7 @@
  */
 package org.opends.server.protocols.http;
 
-import static org.forgerock.opendj.adapter.server2x.Converters.*;
+import static org.forgerock.opendj.adapter.server3x.Converters.*;
 import static org.forgerock.opendj.ldap.ByteString.*;
 import java.util.LinkedHashSet;
 import java.util.concurrent.atomic.AtomicInteger;

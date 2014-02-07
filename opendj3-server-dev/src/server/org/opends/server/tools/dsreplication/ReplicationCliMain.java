@@ -327,7 +327,7 @@ public class ReplicationCliMain extends ConsoleApplication
       LocalizableMessage message =
         ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
       println(message);
-      logger.error(LocalizableMessage.raw("Complete error stack:", ae));
+      logger.error(LocalizableMessage.raw("Complete error stack:"), ae);
       returnValue = CANNOT_INITIALIZE_ARGS;
     }
 
@@ -354,7 +354,7 @@ public class ReplicationCliMain extends ConsoleApplication
         println(message);
         println();
         println(LocalizableMessage.raw(argParser.getUsage()));
-        logger.error(LocalizableMessage.raw("Complete error stack:", ae));
+        logger.error(LocalizableMessage.raw("Complete error stack:"), ae);
         returnValue = ERROR_USER_DATA;
       }
     }
@@ -875,7 +875,7 @@ public class ReplicationCliMain extends ConsoleApplication
         println();
         println(getCriticalExceptionMessage(rce));
         returnValue = rce.getErrorCode();
-        logger.error(LocalizableMessage.raw("Complete error stack:", rce));
+        logger.error(LocalizableMessage.raw("Complete error stack:"), rce);
       }
     }
     else
@@ -1009,7 +1009,7 @@ public class ReplicationCliMain extends ConsoleApplication
         getServerRepresentation(uData.getHostName(), uData.getPort());
       println();
       println(getMessageForException(ne, hostPort));
-      logger.error(LocalizableMessage.raw("Complete error stack:", ne));
+      logger.error(LocalizableMessage.raw("Complete error stack:"), ne);
     }
 
     if (ctx != null)
@@ -1030,7 +1030,7 @@ public class ReplicationCliMain extends ConsoleApplication
           println();
           println(getCriticalExceptionMessage(rce));
           returnValue = rce.getErrorCode();
-          logger.error(LocalizableMessage.raw("Complete error stack:", rce));
+          logger.error(LocalizableMessage.raw("Complete error stack:"), rce);
         }
       }
       else
@@ -3731,14 +3731,14 @@ public class ReplicationCliMain extends ConsoleApplication
     }
     catch (ADSContextException ace)
     {
-      logger.error(LocalizableMessage.raw("Complete error stack:", ace));
+      logger.error(LocalizableMessage.raw("Complete error stack:"), ace);
       throw new ReplicationCliException(
           ERR_REPLICATION_READING_ADS.get(ace.getMessage()),
           ERROR_READING_ADS, ace);
     }
     catch (TopologyCacheException tce)
     {
-      logger.error(LocalizableMessage.raw("Complete error stack:", tce));
+      logger.error(LocalizableMessage.raw("Complete error stack:"), tce);
       throw new ReplicationCliException(
           ERR_REPLICATION_READING_ADS.get(tce.getMessage()),
           ERROR_READING_TOPOLOGY_CACHE, tce);
@@ -4022,7 +4022,7 @@ public class ReplicationCliMain extends ConsoleApplication
       String hostPort = getServerRepresentation(host1, port1);
       errorMessages.add(getMessageForException(ne, hostPort));
 
-      logger.error(LocalizableMessage.raw("Complete error stack:", ne));
+      logger.error(LocalizableMessage.raw("Complete error stack:"), ne);
     }
     try
     {
@@ -4035,7 +4035,7 @@ public class ReplicationCliMain extends ConsoleApplication
       String hostPort = getServerRepresentation(host2, port2);
       errorMessages.add(getMessageForException(ne, hostPort));
 
-      logger.error(LocalizableMessage.raw("Complete error stack:", ne));
+      logger.error(LocalizableMessage.raw("Complete error stack:"), ne);
     }
 
     if (errorMessages.size() > 0)
@@ -4169,7 +4169,7 @@ public class ReplicationCliMain extends ConsoleApplication
           returnValue = rce.getErrorCode();
           println();
           println(getCriticalExceptionMessage(rce));
-          logger.error(LocalizableMessage.raw("Complete error stack:", rce));
+          logger.error(LocalizableMessage.raw("Complete error stack:"), rce);
         }
       }
       else
@@ -4240,7 +4240,7 @@ public class ReplicationCliMain extends ConsoleApplication
         getServerRepresentation(uData.getHostName(), uData.getPort());
       println();
       println(getMessageForException(ne, hostPort));
-      logger.error(LocalizableMessage.raw("Complete error stack:", ne));
+      logger.error(LocalizableMessage.raw("Complete error stack:"), ne);
     }
 
     if (ctx != null)
@@ -4312,7 +4312,7 @@ public class ReplicationCliMain extends ConsoleApplication
           returnValue = rce.getErrorCode();
           println();
           println(getCriticalExceptionMessage(rce));
-          logger.error(LocalizableMessage.raw("Complete error stack:", rce));
+          logger.error(LocalizableMessage.raw("Complete error stack:"), rce);
         }
       }
       else
@@ -4355,7 +4355,7 @@ public class ReplicationCliMain extends ConsoleApplication
         getServerRepresentation(uData.getHostName(), uData.getPort());
       println();
       println(getMessageForException(ne, hostPort));
-      logger.error(LocalizableMessage.raw("Complete error stack:", ne));
+      logger.error(LocalizableMessage.raw("Complete error stack:"), ne);
     }
 
     if (ctx != null)
@@ -4370,7 +4370,7 @@ public class ReplicationCliMain extends ConsoleApplication
         returnValue = rce.getErrorCode();
         println();
         println(getCriticalExceptionMessage(rce));
-        logger.error(LocalizableMessage.raw("Complete error stack:", rce));
+        logger.error(LocalizableMessage.raw("Complete error stack:"), rce);
       }
     }
     else
@@ -4452,7 +4452,7 @@ public class ReplicationCliMain extends ConsoleApplication
             println();
             println(getCriticalExceptionMessage(rce));
             returnValue = rce.getErrorCode();
-            logger.error(LocalizableMessage.raw("Complete error stack:", rce));
+            logger.error(LocalizableMessage.raw("Complete error stack:"), rce);
           }
         }
       }
@@ -4493,7 +4493,7 @@ public class ReplicationCliMain extends ConsoleApplication
       final String hostPort = getServerRepresentation(host, port);
       println();
       println(Utils.getMessageForException(ne, hostPort));
-      logger.error(LocalizableMessage.raw("Complete error stack:", ne));
+      logger.error(LocalizableMessage.raw("Complete error stack:"), ne);
     }
     return context;
   }
@@ -4525,7 +4525,7 @@ public class ReplicationCliMain extends ConsoleApplication
         getServerRepresentation(uData.getHostName(), uData.getPort());
       println();
       println(getMessageForException(ne, hostPort));
-      logger.error(LocalizableMessage.raw("Complete error stack:", ne));
+      logger.error(LocalizableMessage.raw("Complete error stack:"), ne);
     }
     if (ctx != null)
     {
@@ -4567,7 +4567,7 @@ public class ReplicationCliMain extends ConsoleApplication
             println();
             println(getCriticalExceptionMessage(rce));
             returnValue = rce.getErrorCode();
-            logger.error(LocalizableMessage.raw("Complete error stack:", rce));
+            logger.error(LocalizableMessage.raw("Complete error stack:"), rce);
           }
         }
       }
@@ -4612,7 +4612,7 @@ public class ReplicationCliMain extends ConsoleApplication
         getServerRepresentation(uData.getHostName(), uData.getPort());
       println();
       println(getMessageForException(ne, hostPort));
-      logger.error(LocalizableMessage.raw("Complete error stack:", ne));
+      logger.error(LocalizableMessage.raw("Complete error stack:"), ne);
     }
     if (ctx != null)
     {
@@ -4654,7 +4654,7 @@ public class ReplicationCliMain extends ConsoleApplication
             println();
             println(getCriticalExceptionMessage(rce));
             returnValue = rce.getErrorCode();
-            logger.error(LocalizableMessage.raw("Complete error stack:", rce));
+            logger.error(LocalizableMessage.raw("Complete error stack:"), rce);
           }
         }
         printlnProgress();
@@ -4701,7 +4701,7 @@ public class ReplicationCliMain extends ConsoleApplication
         getServerRepresentation(uData.getHostName(), uData.getPort());
       println();
       println(getMessageForException(ne, hostPort));
-      logger.error(LocalizableMessage.raw("Complete error stack:", ne));
+      logger.error(LocalizableMessage.raw("Complete error stack:"), ne);
     }
     if (ctx != null)
     {
@@ -4743,7 +4743,7 @@ public class ReplicationCliMain extends ConsoleApplication
             println();
             println(getCriticalExceptionMessage(rce));
             returnValue = rce.getErrorCode();
-            logger.error(LocalizableMessage.raw("Complete error stack:", rce));
+            logger.error(LocalizableMessage.raw("Complete error stack:"), rce);
           }
         }
         printlnProgress();
