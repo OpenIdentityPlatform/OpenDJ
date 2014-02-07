@@ -144,7 +144,7 @@ public class IdentityMapperConfigManager
     DN mapperDN = DirectoryServer.getProxiedAuthorizationIdentityMapperDN();
     if (mapperDN == null)
     {
-      logger.error(ERR_CONFIG_IDMAPPER_NO_PROXY_MAPPER_DN.get());
+      logger.error(ERR_CONFIG_IDMAPPER_NO_PROXY_MAPPER_DN);
     }
     else if (! identityMappers.containsKey(mapperDN))
     {

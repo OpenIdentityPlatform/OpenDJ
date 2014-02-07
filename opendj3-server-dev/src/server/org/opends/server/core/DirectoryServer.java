@@ -1004,7 +1004,7 @@ public final class DirectoryServer
     initializeJMX();
 
 
-    logger.debug(INFO_DIRECTORY_BOOTSTRAPPING.get());
+    logger.debug(INFO_DIRECTORY_BOOTSTRAPPING);
 
 
     // Perform all the bootstrapping that is shared with the client-side
@@ -8095,7 +8095,7 @@ public final class DirectoryServer
     // Log a final message indicating that the server is stopped (which should
     // be true for all practical purposes), and then shut down all the error
     // loggers.
-    logger.info(NOTE_SERVER_STOPPED.get());
+    logger.info(NOTE_SERVER_STOPPED);
 
     AccessLogger.getInstance().removeAllLogPublishers();
     ErrorLogger.getInstance().removeAllLogPublishers();

@@ -148,11 +148,11 @@ public class LoggerConfigManager implements
     // disable all debug loggers.
     if (accessPublisherCfgs.isEmpty())
     {
-      logger.warn(WARN_CONFIG_LOGGER_NO_ACTIVE_ACCESS_LOGGERS.get());
+      logger.warn(WARN_CONFIG_LOGGER_NO_ACTIVE_ACCESS_LOGGERS);
     }
     if (errorPublisherCfgs.isEmpty())
     {
-      logger.warn(WARN_CONFIG_LOGGER_NO_ACTIVE_ERROR_LOGGERS.get());
+      logger.warn(WARN_CONFIG_LOGGER_NO_ACTIVE_ERROR_LOGGERS);
     }
 
     DebugLogger.getInstance().initializeLogger(debugPublisherCfgs, serverContext);

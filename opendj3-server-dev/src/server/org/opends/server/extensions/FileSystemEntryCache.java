@@ -345,7 +345,6 @@ public class FileSystemEntryCache
               if ( !(offlineId.equals(currentId)) ) {
                 // Remove cache entries specific to this backend.
                 clearBackend(DirectoryServer.getBackend(backend));
-                // Log an error message.
                 logger.warn(WARN_FSCACHE_OFFLINE_STATE_FAIL, backend);
               }
             }
@@ -358,27 +357,15 @@ public class FileSystemEntryCache
 
         } catch (CacheIndexNotFoundException e) {
           logger.traceException(e);
-
-          // Log an error message.
-          logger.info(NOTE_FSCACHE_INDEX_NOT_FOUND.get());
-
-          // Clear the entry cache.
+          logger.info(NOTE_FSCACHE_INDEX_NOT_FOUND);
           clear();
         } catch (CacheIndexImpairedException e) {
           logger.traceException(e);
-
-          // Log an error message.
-          logger.error(ERR_FSCACHE_INDEX_IMPAIRED.get());
-
-          // Clear the entry cache.
+          logger.error(ERR_FSCACHE_INDEX_IMPAIRED);
           clear();
         } catch (Exception e) {
           logger.traceException(e);
-
-          // Log an error message.
-          logger.error(ERR_FSCACHE_CANNOT_LOAD_PERSISTENT_DATA.get());
-
-          // Clear the entry cache.
+          logger.error(ERR_FSCACHE_CANNOT_LOAD_PERSISTENT_DATA);
           clear();
         }
       }
@@ -435,9 +422,7 @@ public class FileSystemEntryCache
           }
         } catch (Exception e) {
           logger.traceException(e);
-
-          // Log an error message.
-          logger.error(ERR_FSCACHE_CANNOT_STORE_PERSISTENT_DATA.get());
+          logger.error(ERR_FSCACHE_CANNOT_STORE_PERSISTENT_DATA);
         }
 
         // Persistent state save report.
@@ -1269,9 +1254,7 @@ public class FileSystemEntryCache
       }
     } catch (Exception e) {
       logger.traceException(e);
-
-      // Log an error message.
-      logger.error(ERR_FSCACHE_CANNOT_RETRIEVE_ENTRY.get());
+      logger.error(ERR_FSCACHE_CANNOT_RETRIEVE_ENTRY);
     }
     return null;
   }
@@ -1354,11 +1337,7 @@ public class FileSystemEntryCache
       return true;
     } catch (Exception e) {
       logger.traceException(e);
-
-      // Log an error message.
-      logger.error(
-          ERR_FSCACHE_CANNOT_STORE_ENTRY.get());
-
+      logger.error(ERR_FSCACHE_CANNOT_STORE_ENTRY);
       return false;
     } finally {
       if (cacheLock.isWriteLockedByCurrentThread()) {

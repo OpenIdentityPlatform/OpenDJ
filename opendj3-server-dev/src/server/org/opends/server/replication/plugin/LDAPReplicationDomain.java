@@ -387,7 +387,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     {
       // Replication server is missing some of our changes: let's
       // send them to him.
-      logger.trace(DEBUG_GOING_TO_SEARCH_FOR_CHANGES.get());
+      logger.trace(DEBUG_GOING_TO_SEARCH_FOR_CHANGES);
 
       /*
        * Get all the changes that have not been seen by this
@@ -397,7 +397,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       {
         if (buildAndPublishMissingChanges(startCSN, broker, shutdown))
         {
-          logger.trace(DEBUG_CHANGES_SENT.get());
+          logger.trace(DEBUG_CHANGES_SENT);
           synchronized(replayOperations)
           {
             replayOperations.clear();

@@ -160,7 +160,7 @@ public class EntryCacheConfigManager
     } catch (Exception e) {
       logger.traceException(e);
 
-      logger.warn(WARN_CONFIG_ENTRYCACHE_NO_CONFIG_ENTRY.get());
+      logger.warn(WARN_CONFIG_ENTRYCACHE_NO_CONFIG_ENTRY);
       return;
     }
 
@@ -169,7 +169,7 @@ public class EntryCacheConfigManager
     // no entry cache defined below it.
     if (entryCacheBase == null)
     {
-      logger.error(WARN_CONFIG_ENTRYCACHE_NO_CONFIG_ENTRY.get());
+      logger.error(WARN_CONFIG_ENTRYCACHE_NO_CONFIG_ENTRY);
       return;
     }
 

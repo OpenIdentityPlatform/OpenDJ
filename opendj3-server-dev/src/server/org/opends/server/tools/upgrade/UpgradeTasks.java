@@ -658,7 +658,7 @@ public final class UpgradeTasks
 
           if (result == 0)
           {
-            logger.debug(INFO_UPGRADE_REBUILD_INDEX_ENDS.get());
+            logger.debug(INFO_UPGRADE_REBUILD_INDEX_ENDS);
             context.notifyProgress(pnc.setProgress(100));
           }
           else

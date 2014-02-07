@@ -760,7 +760,7 @@ public class HTTPConnectionHandler extends
 
     if (HTTPAccessLogger.getHTTPAccessLogPublishers().isEmpty())
     {
-      logger.warn(WARN_CONFIG_LOGGER_NO_ACTIVE_HTTP_ACCESS_LOGGERS.get());
+      logger.warn(WARN_CONFIG_LOGGER_NO_ACTIVE_HTTP_ACCESS_LOGGERS);
     }
 
     this.httpServer = createHttpServer();
