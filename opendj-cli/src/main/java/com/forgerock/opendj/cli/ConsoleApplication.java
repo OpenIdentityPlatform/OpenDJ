@@ -188,14 +188,14 @@ public abstract class ConsoleApplication {
      * @param msg
      *            The message.
      */
-    public final void print(final LocalizableMessage msg) {
+    public final void errPrint(final LocalizableMessage msg) {
         err.print(wrapText(msg, MAX_LINE_WIDTH));
     }
 
     /**
      * Displays a blank line to the error stream.
      */
-    public final void println() {
+    public final void errPrintln() {
         err.println();
     }
 
@@ -205,7 +205,7 @@ public abstract class ConsoleApplication {
      * @param msg
      *            The message.
      */
-    public final void println(final LocalizableMessage msg) {
+    public final void errPrintln(final LocalizableMessage msg) {
         err.println(wrapText(msg, MAX_LINE_WIDTH));
     }
 
@@ -218,7 +218,7 @@ public abstract class ConsoleApplication {
      * @param indent
      *            The number of columns to indent.
      */
-    public final void println(final LocalizableMessage msg, final int indent) {
+    public final void errPrintln(final LocalizableMessage msg, final int indent) {
         err.println(wrapText(msg, MAX_LINE_WIDTH, indent));
     }
 
@@ -228,9 +228,61 @@ public abstract class ConsoleApplication {
      * @param msg
      *            The verbose message.
      */
-    public final void printVerboseMessage(final LocalizableMessage msg) {
+    public final void errPrintVerboseMessage(final LocalizableMessage msg) {
         if (isVerbose() || isInteractive()) {
             err.println(wrapText(msg, MAX_LINE_WIDTH));
+        }
+    }
+
+    /**
+     * Displays a message to the output stream.
+     *
+     * @param msg
+     *            The message.
+     */
+    public final void print(final LocalizableMessage msg) {
+        out.print(wrapText(msg, MAX_LINE_WIDTH));
+    }
+
+    /**
+     * Displays a blank line to the output stream.
+     */
+    public final void println() {
+        out.println();
+    }
+
+    /**
+     * Displays a message to the output stream.
+     *
+     * @param msg
+     *            The message.
+     */
+    public final void println(final LocalizableMessage msg) {
+        out.println(wrapText(msg, MAX_LINE_WIDTH));
+    }
+
+    /**
+     * Displays a message to the output stream indented by the specified number
+     * of columns.
+     *
+     * @param msg
+     *            The message.
+     * @param indent
+     *            The number of columns to indent.
+     */
+    public final void println(final LocalizableMessage msg, final int indent) {
+        out.println(wrapText(msg, MAX_LINE_WIDTH, indent));
+    }
+
+    /**
+     * Displays a message to the output stream if verbose mode is enabled.
+     *
+     * @param msg
+     *            The verbose message.
+     */
+    public final void printVerboseMessage(final LocalizableMessage msg) {
+        if (isVerbose() || isInteractive()) {
+            out.println(wrapText(msg, MAX_LINE_WIDTH));
         }
     }
 
