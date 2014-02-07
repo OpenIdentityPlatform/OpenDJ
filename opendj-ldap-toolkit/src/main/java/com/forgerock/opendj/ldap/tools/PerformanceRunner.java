@@ -361,10 +361,7 @@ abstract class PerformanceRunner implements ConnectionEventListener {
         public void handleErrorResult(final ErrorResultException error) {
             failedRecentCount.getAndIncrement();
             updateStats();
-
-            if (app.isVerbose()) {
-                app.println(LocalizableMessage.raw(error.getResult().toString()));
-            }
+            app.errPrintVerboseMessage(LocalizableMessage.raw(error.getResult().toString()));
         }
 
         @Override
@@ -421,7 +418,7 @@ abstract class PerformanceRunner implements ConnectionEventListener {
                         // Ignore and check stop requested
                         continue;
                     } catch (final ErrorResultException e) {
-                        app.println(LocalizableMessage.raw(e.getResult().getDiagnosticMessage()));
+                        app.errPrintln(LocalizableMessage.raw(e.getResult().getDiagnosticMessage()));
                         if (e.getCause() != null && app.isVerbose()) {
                             e.getCause().printStackTrace(app.getErrorStream());
                         }
@@ -438,7 +435,7 @@ abstract class PerformanceRunner implements ConnectionEventListener {
                             // Ignore and check stop requested
                             continue;
                         } catch (final ErrorResultException e) {
-                            app.println(LocalizableMessage.raw(e.getResult().toString()));
+                            app.errPrintln(LocalizableMessage.raw(e.getResult().toString()));
                             if (e.getCause() != null && app.isVerbose()) {
                                 e.getCause().printStackTrace(app.getErrorStream());
                             }
@@ -782,7 +779,7 @@ abstract class PerformanceRunner implements ConnectionEventListener {
     public synchronized void handleConnectionError(final boolean isDisconnectNotification,
             final ErrorResultException error) {
         if (!stopRequested) {
-            app.println(LocalizableMessage.raw("Error occurred on one or more connections: "
+            app.errPrintln(LocalizableMessage.raw("Error occurred on one or more connections: "
                     + error.getResult()));
             if (error.getCause() != null && app.isVerbose()) {
                 error.getCause().printStackTrace(app.getErrorStream());

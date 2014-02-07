@@ -157,7 +157,7 @@ public final class LDIFSearch extends ConsoleApplication {
             argParser.setUsageArgument(showUsage, getOutputStream());
         } catch (final ArgumentException ae) {
             final LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
-            println(message);
+            errPrintln(message);
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
 
@@ -172,7 +172,7 @@ public final class LDIFSearch extends ConsoleApplication {
             }
         } catch (final ArgumentException ae) {
             final LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
-            println(message);
+            errPrintln(message);
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
 
@@ -193,7 +193,7 @@ public final class LDIFSearch extends ConsoleApplication {
                 try {
                     filters.add(Filter.valueOf(filterString));
                 } catch (final LocalizedIllegalArgumentException e) {
-                    println(e.getMessageObject());
+                    errPrintln(e.getMessageObject());
                     return ResultCode.CLIENT_SIDE_FILTER_ERROR.intValue();
                 }
             }
@@ -219,10 +219,10 @@ public final class LDIFSearch extends ConsoleApplication {
                     filters.add(ldapFilter);
                 }
             } catch (final LocalizedIllegalArgumentException e) {
-                println(e.getMessageObject());
+                errPrintln(e.getMessageObject());
                 return ResultCode.CLIENT_SIDE_FILTER_ERROR.intValue();
             } catch (final IOException e) {
-                println(LocalizableMessage.raw(e.toString()));
+                errPrintln(LocalizableMessage.raw(e.toString()));
                 return ResultCode.CLIENT_SIDE_FILTER_ERROR.intValue();
             } finally {
                 closeIfNotNull(in);
@@ -230,8 +230,8 @@ public final class LDIFSearch extends ConsoleApplication {
         }
 
         if (filters.isEmpty()) {
-            println(ERR_SEARCH_NO_FILTERS.get());
-            println(argParser.getUsageMessage());
+            errPrintln(ERR_SEARCH_NO_FILTERS.get());
+            errPrintln(argParser.getUsageMessage());
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
 
@@ -244,10 +244,10 @@ public final class LDIFSearch extends ConsoleApplication {
                             typesOnly.isPresent()).setTimeLimit(timeLimit.getIntValue())
                             .setSizeLimit(sizeLimit.getIntValue());
         } catch (final ArgumentException e) {
-            println(e.getMessageObject());
+            errPrintln(e.getMessageObject());
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         } catch (final LocalizedIllegalArgumentException e) {
-            println(e.getMessageObject());
+            errPrintln(e.getMessageObject());
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
 
@@ -265,7 +265,7 @@ public final class LDIFSearch extends ConsoleApplication {
                     final LocalizableMessage message =
                             ERR_LDIF_FILE_CANNOT_OPEN_FOR_READ.get(trailingArguments.get(0), e
                                     .getLocalizedMessage());
-                    println(message);
+                    errPrintln(message);
                     return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
                 }
             }
@@ -278,7 +278,7 @@ public final class LDIFSearch extends ConsoleApplication {
                     final LocalizableMessage message =
                             ERR_LDIF_FILE_CANNOT_OPEN_FOR_WRITE.get(outputFilename.getValue(), e
                                     .getLocalizedMessage());
-                    println(message);
+                    errPrintln(message);
                     return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
                 }
             }
@@ -299,9 +299,9 @@ public final class LDIFSearch extends ConsoleApplication {
             LDIF.copyTo(LDIF.search(sourceReader, search), outputWriter);
         } catch (final IOException e) {
             if (e instanceof LocalizableException) {
-                println(ERR_LDIFSEARCH_FAILED.get(((LocalizableException) e).getMessageObject()));
+                errPrintln(ERR_LDIFSEARCH_FAILED.get(((LocalizableException) e).getMessageObject()));
             } else {
-                println(ERR_LDIFSEARCH_FAILED.get(e.getLocalizedMessage()));
+                errPrintln(ERR_LDIFSEARCH_FAILED.get(e.getLocalizedMessage()));
             }
             return ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue();
         } finally {

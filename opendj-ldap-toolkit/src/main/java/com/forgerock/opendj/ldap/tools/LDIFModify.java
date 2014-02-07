@@ -111,7 +111,7 @@ public final class LDIFModify extends ConsoleApplication {
             argParser.setUsageArgument(showUsage, getOutputStream());
         } catch (final ArgumentException ae) {
             final LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
-            println(message);
+            errPrintln(message);
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
 
@@ -126,7 +126,7 @@ public final class LDIFModify extends ConsoleApplication {
             }
         } catch (final ArgumentException ae) {
             final LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
-            println(message);
+            errPrintln(message);
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
 
@@ -147,7 +147,7 @@ public final class LDIFModify extends ConsoleApplication {
                     final LocalizableMessage message =
                             ERR_LDIF_FILE_CANNOT_OPEN_FOR_READ.get(trailingArguments.get(0), e
                                     .getLocalizedMessage());
-                    println(message);
+                    errPrintln(message);
                     return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
                 }
             }
@@ -160,7 +160,7 @@ public final class LDIFModify extends ConsoleApplication {
                     final LocalizableMessage message =
                             ERR_LDIF_FILE_CANNOT_OPEN_FOR_READ.get(trailingArguments.get(1), e
                                     .getLocalizedMessage());
-                    println(message);
+                    errPrintln(message);
                     return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
                 }
             }
@@ -173,7 +173,7 @@ public final class LDIFModify extends ConsoleApplication {
                     final LocalizableMessage message =
                             ERR_LDIF_FILE_CANNOT_OPEN_FOR_WRITE.get(outputFilename.getValue(), e
                                     .getLocalizedMessage());
-                    println(message);
+                    errPrintln(message);
                     return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
                 }
             }
@@ -196,7 +196,7 @@ public final class LDIFModify extends ConsoleApplication {
              changes from stdin.*/
             if (sourceInputStream == changesInputStream) {
                 final LocalizableMessage message = ERR_LDIFMODIFY_MULTIPLE_USES_OF_STDIN.get();
-                println(message);
+                errPrintln(message);
                 return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
             }
 
@@ -276,7 +276,7 @@ public final class LDIFModify extends ConsoleApplication {
 
                 private void logErrorOrFail(final DecodeException e) throws DecodeException {
                     if (continueOnError.isPresent()) {
-                        println(e.getMessageObject());
+                        errPrintln(e.getMessageObject());
                     } else {
                         throw e;
                     }
@@ -286,10 +286,10 @@ public final class LDIFModify extends ConsoleApplication {
             LDIF.copyTo(LDIF.patch(sourceReader, changesReader, listener), outputWriter);
         } catch (final IOException e) {
             if (e instanceof LocalizableException) {
-                println(ERR_LDIFMODIFY_PATCH_FAILED.get(((LocalizableException) e)
+                errPrintln(ERR_LDIFMODIFY_PATCH_FAILED.get(((LocalizableException) e)
                         .getMessageObject()));
             } else {
-                println(ERR_LDIFMODIFY_PATCH_FAILED.get(e.getLocalizedMessage()));
+                errPrintln(ERR_LDIFMODIFY_PATCH_FAILED.get(e.getLocalizedMessage()));
             }
             return ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue();
         } finally {

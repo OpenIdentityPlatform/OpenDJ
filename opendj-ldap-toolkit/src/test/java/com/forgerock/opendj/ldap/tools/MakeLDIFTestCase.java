@@ -29,6 +29,7 @@ import static org.fest.assertions.Assertions.*;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import static com.forgerock.opendj.cli.Utils.MAX_LINE_WIDTH;
 import static com.forgerock.opendj.cli.Utils.wrapText;
+import static org.forgerock.util.Utils.closeSilently;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
@@ -111,7 +112,7 @@ public class MakeLDIFTestCase extends ToolsTestCase {
 
             assertThat(err.toString("UTF-8")).contains(wrapText(expectedErrOutput, MAX_LINE_WIDTH));
         } finally {
-            org.forgerock.util.Utils.closeSilently(outStream, errStream);
+            closeSilently(outStream, errStream);
         }
     }
 

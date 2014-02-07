@@ -451,7 +451,7 @@ public final class AuthRate extends ConsoleApplication {
             argParser.addArgument(scriptFriendly);
         } catch (final ArgumentException ae) {
             final LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
-            println(message);
+            errPrintln(message);
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
 
@@ -475,7 +475,7 @@ public final class AuthRate extends ConsoleApplication {
             }
         } catch (final ArgumentException ae) {
             final LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
-            println(message);
+            errPrintln(message);
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
 
@@ -499,7 +499,7 @@ public final class AuthRate extends ConsoleApplication {
             runner.dereferencesAliasesPolicy = dereferencePolicy.getTypedValue();
             runner.invalidCredPercent = invalidCredPercent.getIntValue();
         } catch (final ArgumentException ex1) {
-            println(ex1.getMessageObject());
+            errPrintln(ex1.getMessageObject());
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
 
@@ -511,7 +511,7 @@ public final class AuthRate extends ConsoleApplication {
                 String.format(runner.baseDN, data);
             }
         } catch (final Exception ex1) {
-            println(LocalizableMessage.raw("Error formatting filter or base DN: " + ex1.toString()));
+            errPrintln(LocalizableMessage.raw("Error formatting filter or base DN: " + ex1.toString()));
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
 
