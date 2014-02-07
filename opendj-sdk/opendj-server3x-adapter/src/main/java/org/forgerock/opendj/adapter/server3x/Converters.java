@@ -31,6 +31,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import org.forgerock.opendj.io.ASN1;
+import org.forgerock.opendj.io.ASN1Reader;
+import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
@@ -49,9 +52,6 @@ import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.CompareOperation;
 import org.opends.server.core.ExtendedOperation;
-import org.opends.server.protocols.asn1.ASN1;
-import org.opends.server.protocols.asn1.ASN1Exception;
-import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.ldap.LDAPFilter;
@@ -417,7 +417,6 @@ public final class Converters {
      * @return the converted value
      */
     public static Control from(final org.opends.server.types.Control control) {
-
         String oid = null;
         boolean isCritical = false;
         ByteString value = null;
@@ -640,15 +639,14 @@ public final class Converters {
      * @return the converted value
      */
     public static ByteString getCredentials(final byte[] authenticationValue) {
-        final org.opends.server.protocols.asn1.ASN1Reader reader =
-                ASN1.getReader(authenticationValue);
+        final ASN1Reader reader = ASN1.getReader(authenticationValue);
         ByteString saslCred = ByteString.empty();
         try {
             reader.readOctetStringAsString(); // Reads SASL Mechanism - RFC 4511 4.2
             if (reader.hasNextElement()) {
                 saslCred = reader.readOctetString(); // Reads credentials.
             }
-        } catch (ASN1Exception e) {
+        } catch (IOException e) {
             // Nothing to do.
         }
 
