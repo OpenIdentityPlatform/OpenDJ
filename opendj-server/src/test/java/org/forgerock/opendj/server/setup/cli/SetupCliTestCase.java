@@ -142,9 +142,9 @@ public class SetupCliTestCase extends AbstractSetupCliTestCase {
         PrintStream errStream = null;
         int resultCode = 0;
         try {
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            final ByteArrayOutputStream out = new ByteArrayOutputStream();
             outStream = new PrintStream(out);
-            ByteArrayOutputStream err = new ByteArrayOutputStream();
+            final ByteArrayOutputStream err = new ByteArrayOutputStream();
             errStream = new PrintStream(err);
 
             final SetupCli setup = new SetupCli(outStream, errStream);
@@ -154,10 +154,10 @@ public class SetupCliTestCase extends AbstractSetupCliTestCase {
                 if (expectedErrOutput != null) {
                     assertThat(out.toString("UTF-8")).contains(wrapText(expectedErrOutput, MAX_LINE_WIDTH));
                 }
+                assertThat(err.size()).isEqualTo(0);
                 assertThat(resultCode).isEqualTo(ReturnCode.SUCCESS.get());
             } else {
                 assertThat(resultCode).isNotEqualTo(ReturnCode.SUCCESS.get());
-                assertThat(out.size()).isEqualTo(0);
                 assertThat(err.size()).isGreaterThan(0);
                 final String errorMsg = err.toString("UTF-8").replaceAll(Utils.LINE_SEPARATOR, " ");
                 final String expectedMsg = expectedErrOutput.toString().replaceAll(Utils.LINE_SEPARATOR, " ");

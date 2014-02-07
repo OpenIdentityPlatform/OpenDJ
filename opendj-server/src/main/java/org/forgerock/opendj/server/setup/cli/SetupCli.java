@@ -156,7 +156,7 @@ public final class SetupCli extends ConsoleApplication {
         try {
             checkJavaVersion();
         } catch (CLIException e) {
-            println(e.getMessageObject());
+            errPrintln(e.getMessageObject());
             return ReturnCode.JAVA_VERSION_INCOMPATIBLE.get();
         }
 
@@ -165,7 +165,7 @@ public final class SetupCli extends ConsoleApplication {
             initializeArguments();
         } catch (ArgumentException e) {
             final LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(e.getMessage());
-            println(message);
+            errPrintln(message);
             return ReturnCode.CLIENT_SIDE_PARAM_ERROR.get();
         }
 
@@ -179,7 +179,7 @@ public final class SetupCli extends ConsoleApplication {
             }
         } catch (final ArgumentException e) {
             final LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(e.getMessage());
-            println(message);
+            errPrintln(message);
             return ReturnCode.CLIENT_SIDE_PARAM_ERROR.get();
         }
 
@@ -195,7 +195,7 @@ public final class SetupCli extends ConsoleApplication {
                         getMessageFromCollection(errorMessages, LINE_SEPARATOR)));
             }
         } catch (final ArgumentException e) {
-            println(e.getMessageObject());
+            errPrintln(e.getMessageObject());
             return ReturnCode.CLIENT_SIDE_PARAM_ERROR.get();
         }
 
