@@ -537,22 +537,26 @@ public class GenerateMessageFile extends Task {
 
     private Severity severity;
     private Integer id;
+    private String xmlId;
     private String formatString;
 
     /**
      * Build log reference entry for an log message.
      *
+     * @param msgPropKey
      * @param category
      * @param severity
      * @param ordinal
      * @param formatString
      */
-    public MessageRefEntry(final Category category, final Severity severity,
+    public MessageRefEntry(final String msgPropKey,
+        final Category category, final Severity severity,
         final Integer ordinal, final String formatString)
     {
       this.severity = severity;
       this.formatString = formatString;
       id = calculateId(category, severity, ordinal);
+      xmlId = getXmlId(msgPropKey);
     }
 
     private Integer calculateId(final Category category,
@@ -560,6 +564,17 @@ public class GenerateMessageFile extends Task {
     {
       // Id is equivalent to ordinal with OpenDJ3
       return new Integer(ordinal);
+    }
+
+    private String getXmlId(final String messagePropertyKey)
+    {
+        // XML IDs must be unique, and must begin with a letter ([A-Za-z])
+        // and may be followed by any number of letters, digits ([0-9]),
+        // hyphens ("-"), underscores ("_"), colons (":"), and periods (".").
+
+        final String invalidChars = "[^A-Za-z0-9\\-_:\\.]";
+        String xmlId = messagePropertyKey.replaceAll(invalidChars, "-");
+        return xmlId;
     }
 
     /**
@@ -572,7 +587,7 @@ public class GenerateMessageFile extends Task {
     public String toString()
     {
       return
-          "  <varlistentry xml:id=\"log-ref-" + id.intValue() + "\">" + EOL
+          "  <varlistentry xml:id=\"log-ref-" + xmlId + "\">" + EOL
           + "   <term>ID: " + id.intValue() + "</term>" + EOL
           + "   <listitem>" + EOL
           + "    <para>Severity: " + severity.name() + "</para>" + EOL
@@ -973,6 +988,7 @@ public class GenerateMessageFile extends Task {
                   || s.name().equalsIgnoreCase("SEVERE_ERROR")) {
                 MessageRefEntry entry =
                         new MessageRefEntry(
+                                key.toString(),
                                 c,
                                 s,
                                 globalOrdinal != null ?
