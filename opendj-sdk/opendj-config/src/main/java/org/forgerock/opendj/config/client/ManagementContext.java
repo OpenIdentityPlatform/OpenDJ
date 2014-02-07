@@ -22,8 +22,8 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
-
 package org.forgerock.opendj.config.client;
 
 import java.io.Closeable;
@@ -408,6 +408,7 @@ public abstract class ManagementContext implements Closeable {
     /**
      * Closes this management context.
      */
+    @Override
     public final void close() {
         this.getDriver().close();
     }
