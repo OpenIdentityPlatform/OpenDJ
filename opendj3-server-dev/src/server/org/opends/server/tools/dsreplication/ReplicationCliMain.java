@@ -7928,7 +7928,7 @@ public class ReplicationCliMain extends ConsoleApplication
     adminProperties.put(ADSContext.AdministratorProperty.PASSWORD,
         uData.getAdminPwd());
     adminProperties.put(ADSContext.AdministratorProperty.DESCRIPTION,
-        INFO_GLOBAL_ADMINISTRATOR_DESCRIPTION.get());
+        INFO_GLOBAL_ADMINISTRATOR_DESCRIPTION.get().toString());
     return adminProperties;
   }
 
