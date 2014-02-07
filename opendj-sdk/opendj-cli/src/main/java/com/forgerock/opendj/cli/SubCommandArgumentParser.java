@@ -28,6 +28,7 @@ package com.forgerock.opendj.cli;
 
 import static com.forgerock.opendj.util.StaticUtils.toLowerCase;
 import static com.forgerock.opendj.util.StaticUtils.EOL;
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -46,7 +47,6 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 
 import static com.forgerock.opendj.cli.CliMessages.*;
-import static com.forgerock.opendj.cli.CliConstants.*;
 import static com.forgerock.opendj.cli.Utils.*;
 
 /**

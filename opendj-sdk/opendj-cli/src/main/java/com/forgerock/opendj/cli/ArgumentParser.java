@@ -27,8 +27,7 @@
 package com.forgerock.opendj.cli;
 
 import static com.forgerock.opendj.cli.CliMessages.*;
-import static com.forgerock.opendj.cli.CliConstants.*;
-import static com.forgerock.opendj.cli.Utils.PROPERTY_SCRIPT_NAME;
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.Utils.wrapText;
 import static com.forgerock.opendj.util.StaticUtils.EOL;
 import static com.forgerock.opendj.util.StaticUtils.getBytes;
@@ -64,6 +63,27 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
  * on the command-line.
  */
 public class ArgumentParser {
+    /**
+     * The name of the OpenDJ configuration direction in the user home
+     * directory.
+     */
+    public static final String DEFAULT_OPENDJ_CONFIG_DIR = ".opendj";
+
+    /**
+     * The default properties file name.
+     */
+    public static final String DEFAULT_OPENDJ_PROPERTIES_FILE_NAME = "tools";
+
+    /**
+     * The default properties file extension.
+     */
+    public static final String DEFAULT_OPENDJ_PROPERTIES_FILE_EXTENSION = ".properties";
+
+    /**
+     * The name of a command-line script used to launch a tool.
+     */
+    public static final String PROPERTY_SCRIPT_NAME = "com.forgerock.opendj.ldap.tools.scriptName";
+
     /**
      * The argument that will be used to indicate the file properties.
      */
@@ -313,13 +333,9 @@ public class ArgumentParser {
 
         if (versionArgument != null) {
             if (shortID != null && shortID.equals(versionArgument.getShortIdentifier())) {
-                // Update the version argument to not display its short
-                // identifier.
+                // Update the version argument to not display its short identifier.
                 try {
-                    versionArgument =
-                            new BooleanArgument(OPTION_LONG_PRODUCT_VERSION, null,
-                                    OPTION_LONG_PRODUCT_VERSION, INFO_DESCRIPTION_PRODUCT_VERSION
-                                            .get());
+                    versionArgument = getVersionArgument(false);
                     this.generalArgGroup.addArgument(versionArgument);
                 } catch (final ArgumentException e) {
                     // ignore
@@ -357,6 +373,11 @@ public class ArgumentParser {
         }
         group.addArgument(argument);
         argumentGroups.add(group);
+    }
+
+    private BooleanArgument getVersionArgument(final boolean displayShortIdentifier) throws ArgumentException {
+        return new BooleanArgument(OPTION_LONG_PRODUCT_VERSION, displayShortIdentifier ? OPTION_SHORT_PRODUCT_VERSION
+                : null, OPTION_LONG_PRODUCT_VERSION, INFO_DESCRIPTION_PRODUCT_VERSION.get());
     }
 
     /**
@@ -1451,9 +1472,7 @@ public class ArgumentParser {
         this.argumentGroups.add(ioArgGroup);
 
         try {
-            versionArgument =
-                    new BooleanArgument(OPTION_LONG_PRODUCT_VERSION, OPTION_SHORT_PRODUCT_VERSION,
-                            OPTION_LONG_PRODUCT_VERSION, INFO_DESCRIPTION_PRODUCT_VERSION.get());
+            versionArgument = getVersionArgument(true);
             this.generalArgGroup.addArgument(versionArgument);
         } catch (final ArgumentException e) {
             // ignore

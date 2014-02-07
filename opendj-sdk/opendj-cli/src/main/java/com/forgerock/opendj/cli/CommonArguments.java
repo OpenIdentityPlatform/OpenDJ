@@ -25,8 +25,8 @@
  */
 package com.forgerock.opendj.cli;
 
-import static com.forgerock.opendj.cli.CliConstants.*;
 import static com.forgerock.opendj.cli.CliMessages.*;
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
 
 /**
  * This class regroup commons arguments used by the different CLI.
