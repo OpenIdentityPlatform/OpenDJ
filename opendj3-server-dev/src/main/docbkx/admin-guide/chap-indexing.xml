@@ -20,15 +20,15 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2013 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-indexing'
  xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ xsi:schemaLocation='http://docbook.org/ns/docbook
+                     http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'>
  <title>Indexing Attribute Values</title>
  <indexterm>
   <primary>Indexes</primary>
@@ -696,9 +696,16 @@ Undefined keys: [1] [2]</screen>
    to be used in search filters. The <literal>id2children</literal> and
    <literal>id2subtree</literal> are for OpenDJ's internal use.</para>
 
+   <para>
+    For an explanation of the output
+    of the <command>dbtest list-index-status</command> command, see
+    <link xlink:show="new" xlink:href="admin-guide#dbtest-1"
+          xlink:role="http://docbook.org/xlink/role/olink">dbtest(1)</link>.
+   </para>
+
    <para>If you do find the limit is too low for a certain key, you can change
    the index entry limit on a per index basis.</para>
-   
+
    <example xml:id="change-index-entry-limit">
     <title>Change Index Entry Limit</title>
     

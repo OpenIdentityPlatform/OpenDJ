@@ -20,17 +20,16 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !    
 -->
 <refentry xml:id='dbtest-1'
  xmlns='http://docbook.org/ns/docbook'
  version='5.0' xml:lang='en'
  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
- <info><copyright><year>2011-2012</year><holder>ForgeRock AS</holder></copyright></info>
+ xsi:schemaLocation='http://docbook.org/ns/docbook
+                     http://docbook.org/xml/5.0/xsd/docbook.xsd'>
+ <info><copyright><year>2011-2014</year><holder>ForgeRock AS</holder></copyright></info>
  <refmeta>
   <refentrytitle>dbtest</refentrytitle><manvolnum>1</manvolnum>
   <refmiscinfo class="software">OpenDJ</refmiscinfo>
@@ -42,9 +41,7 @@
  </refnamediv>
  <refsynopsisdiv>
   <cmdsynopsis>
-   <command>dbtest</command>
-   <command>subcommand</command>
-   <arg>options</arg>
+   <command>dbtest</command> <command>subcommand</command> <arg>options</arg>
   </cmdsynopsis>
  </refsynopsisdiv>
  <refsect1>
@@ -59,6 +56,10 @@
      <term><command>dbtest dump-database-container</command></term>
      <listitem>
       <para>Dump records from a database container</para>
+
+      <para>
+       Depending on database size, this subcommand can generate lots of output.
+      </para>
      </listitem>
     </varlistentry>
     <varlistentry>
@@ -77,6 +78,125 @@
      <term><command>dbtest list-index-status</command></term>
      <listitem>
       <para>List the status of indexes in an entry container</para>
+
+      <para>
+       When you list index status, the result is a table,
+       followed by a "Total", which is the total number of indexes,
+       followed by a list of indexes with "Undefined keys" to show
+       the values for which the number of entries exceeded the index entry limit.
+       The table has the following columns.
+      </para>
+
+      <variablelist>
+       <varlistentry>
+        <term>Index Name</term>
+        <listitem>
+         <para>
+          Name of the index,
+          which takes the form <replaceable>attr.type</replaceable>
+          for attribute indexes,
+          and vlv.<replaceable>name</replaceable> for VLV indexes.
+          Some indexes are for OpenDJ directory server's internal use.
+         </para>
+
+         <para>
+          Example: <literal>givenName.substring</literal>
+         </para>
+        </listitem>
+       </varlistentry>
+
+       <varlistentry>
+        <term>Index Type</term>
+        <listitem>
+         <para>
+          Type of the index,
+          which is <literal>Index</literal> for attribute indexes,
+          and <literal>VLVIndex</literal> for VLV indexes.
+         </para>
+        </listitem>
+       </varlistentry>
+
+       <varlistentry>
+        <term>JE Database Name</term>
+        <listitem>
+         <para>
+          Name of the Berkeley Java Edition database,
+          which reflects how OpenDJ directory server
+          organizes the data in the database.
+         </para>
+
+         <para>
+          Example: <literal>dc_example_dc_com_givenName.substring</literal>
+         </para>
+        </listitem>
+       </varlistentry>
+
+       <varlistentry>
+        <term>Index Valid</term>
+        <listitem>
+         <para>
+          This is <literal>true</literal> for valid indexes.
+          If this is <literal>false</literal>,
+          the index might be degraded.
+          Verify the index, and rebuild the index if necessary.
+         </para>
+        </listitem>
+       </varlistentry>
+
+       <varlistentry>
+        <term>Record Count</term>
+        <listitem>
+         <para>
+          Number of indexed keys.
+          Use the <command>dbtest dump-database-container</command> command
+          to see how many entry IDs correspond to each key.
+         </para>
+        </listitem>
+       </varlistentry>
+
+       <varlistentry>
+        <term>Undefined</term>
+        <listitem>
+         <para>
+          Number of keys for which there are too many values
+          to maintain an index, based on the index entry limit.
+          This is recorded as <literal>-</literal> for VLV indexes.
+         </para>
+
+         <para>
+          In other words, with the default index entry limit of 4000,
+          if every user in your large directory has a mail address
+          ending in <literal>@example.com</literal>,
+          and a substring index is maintained for <literal>mail</literal>,
+          then OpenDJ directory server does not maintain indexes for
+          keys corresponding to substrings in <literal>@example.com</literal>.
+         </para>
+
+         <para>
+          As a result, an LDAP search with the filter
+          <literal>"(mail=*@example.com)"</literal> becomes an unindexed search
+          even though a substring index exists for the mail attribute.
+          By default OpenDJ directory server does not allow unindexed searches
+          except by privileged users.
+          This is usually exactly the behavior you want
+          in order to prevent client applications for example
+          from sending searches that return every user in the directory.
+          Clients should refine their search filters instead.
+         </para>
+        </listitem>
+       </varlistentry>
+
+       <varlistentry>
+        <term>95%, 90%, 85%</term>
+        <listitem>
+         <para>
+          Number of keys for which the number of values is approaching
+          the index entry limit, having reached the specified percentage.
+          This is a measure of how full the entry ID lists are.
+         </para>
+        </listitem>
+       </varlistentry>
+      </variablelist>
      </listitem>
     </varlistentry>
      <varlistentry>
