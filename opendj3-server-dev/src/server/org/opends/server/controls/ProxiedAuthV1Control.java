@@ -34,13 +34,12 @@ import org.opends.server.api.AuthenticationPolicyState;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PasswordPolicyState;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.server.protocols.asn1.ASN1;
-import org.opends.server.protocols.asn1.ASN1Reader;
-import org.opends.server.protocols.asn1.ASN1Writer;
+import org.forgerock.opendj.io.ASN1;
+import org.forgerock.opendj.io.ASN1Reader;
+import org.forgerock.opendj.io.ASN1Writer;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.protocols.asn1.ASN1Constants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -208,7 +207,7 @@ public class ProxiedAuthV1Control
    */
   @Override
   protected void writeValue(ASN1Writer writer) throws IOException {
-    writer.writeStartSequence(UNIVERSAL_OCTET_STRING_TYPE);
+    writer.writeStartSequence(ASN1.UNIVERSAL_OCTET_STRING_TYPE);
 
     writer.writeStartSequence();
     writer.writeOctetString(rawAuthorizationDN);

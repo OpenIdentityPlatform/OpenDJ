@@ -40,11 +40,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.net.ssl.SSLException;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.admin.AdministrationConnector;
 import org.opends.server.controls.ProxiedAuthV2Control;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
-import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.ldap.AddRequestProtocolOp;
 import org.opends.server.protocols.ldap.AddResponseProtocolOp;
 import org.opends.server.protocols.ldap.ExtendedResponseProtocolOp;
@@ -56,7 +57,6 @@ import org.opends.server.tasks.ShutdownTask;
 import org.opends.server.tools.tasks.TaskTool;
 import org.opends.server.types.*;
 import org.opends.server.util.args.LDAPConnectionArgumentParser;
-import org.forgerock.opendj.ldap.ByteString;
 
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
@@ -708,16 +708,16 @@ public class StopDS
         return LDAPResultCode.CLIENT_SIDE_SERVER_DOWN;
       }
     }
-    catch (IOException ioe)
-    {
-      err.println(wrapText(ERR_STOPDS_IO_ERROR.get(ioe), MAX_LINE_WIDTH));
-      return LDAPResultCode.CLIENT_SIDE_SERVER_DOWN;
-    }
-    catch (ASN1Exception ae)
+    catch (DecodeException ae)
     {
       LocalizableMessage message = ERR_STOPDS_DECODE_ERROR.get(ae.getMessage());
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return LDAPResultCode.CLIENT_SIDE_DECODING_ERROR;
+    }
+    catch (IOException ioe)
+    {
+      err.println(wrapText(ERR_STOPDS_IO_ERROR.get(ioe), MAX_LINE_WIDTH));
+      return LDAPResultCode.CLIENT_SIDE_SERVER_DOWN;
     }
     catch (LDAPException le)
     {

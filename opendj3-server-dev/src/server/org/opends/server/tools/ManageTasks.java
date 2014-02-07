@@ -36,7 +36,7 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 
 import org.opends.server.loggers.ErrorLogger;
-import org.opends.server.protocols.asn1.ASN1Exception;
+import org.forgerock.opendj.ldap.DecodeException;
 
 import static org.opends.server.tools.ToolConstants.*;
 
@@ -419,10 +419,10 @@ public class ManageTasks extends ConsoleApplication {
    * @throws IOException if there is a problem with screen I/O
    * @throws LDAPException if there is a problem getting information
    *         out to the directory
-   * @throws ASN1Exception if there is a problem with the encoding
+   * @throws DecodeException if there is a problem with the encoding
    */
   private void printSummaryTable()
-          throws LDAPException, IOException, ASN1Exception {
+          throws LDAPException, IOException, DecodeException {
     List<TaskEntry> entries = taskClient.getTaskEntries();
     if (entries.size() > 0) {
       TableBuilder table = new TableBuilder();
@@ -465,10 +465,10 @@ public class ManageTasks extends ConsoleApplication {
    * @throws IOException if there is a problem with screen I/O
    * @throws LDAPException if there is a problem getting information
    *         out to the directory
-   * @throws ASN1Exception if there is a problem with the encoding
+   * @throws DecodeException if there is a problem with the encoding
    */
   private Menu<Void> getSummaryMenu()
-          throws LDAPException, IOException, ASN1Exception {
+          throws LDAPException, IOException, DecodeException {
     List<String> taskIds = new ArrayList<String>();
     List<Integer> cancelableIndices = new ArrayList<Integer>();
     List<TaskEntry> entries = taskClient.getTaskEntries();

@@ -41,7 +41,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.asn1.ASN1Writer;
+import org.forgerock.opendj.io.ASN1Writer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeType;

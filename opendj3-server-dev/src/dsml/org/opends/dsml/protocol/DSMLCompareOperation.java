@@ -32,7 +32,7 @@ import java.io.IOException;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.protocols.asn1.ASN1Exception;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.protocols.ldap.CompareRequestProtocolOp;
 import org.opends.server.protocols.ldap.CompareResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPMessage;
@@ -76,13 +76,13 @@ public class DSMLCompareOperation
    * @throws  LDAPException  If an error occurs while interacting with an LDAP
    *                         element.
    *
-   * @throws  ASN1Exception  If an error occurs while interacting with an ASN.1
+   * @throws  DecodeException  If an error occurs while interacting with an ASN.1
    *                         element.
    */
   public LDAPResult doOperation(ObjectFactory objFactory,
         CompareRequest compareRequest,
         List<org.opends.server.types.Control> controls)
-    throws IOException, LDAPException, ASN1Exception
+    throws IOException, LDAPException, DecodeException
   {
     LDAPResult compareResponse = objFactory.createLDAPResult();
     compareResponse.setRequestID(compareRequest.getRequestID());

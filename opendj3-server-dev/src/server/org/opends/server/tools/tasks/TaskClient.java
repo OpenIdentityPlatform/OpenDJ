@@ -45,7 +45,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.backends.task.FailedDependencyAction;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.config.ConfigConstants;
-import org.opends.server.protocols.asn1.ASN1Exception;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.protocols.ldap.AddRequestProtocolOp;
 import org.opends.server.protocols.ldap.AddResponseProtocolOp;
 import org.opends.server.protocols.ldap.DeleteRequestProtocolOp;
@@ -300,11 +300,11 @@ public class TaskClient {
    * @throws IOException if there is a stream communication problem
    * @throws LDAPException if there is a problem getting information
    *         out to the directory
-   * @throws ASN1Exception if there is a problem with the encoding
+   * @throws DecodeException if there is a problem with the encoding
    * @throws TaskClientException if there is a problem with the task entry
    */
   public synchronized TaskEntry schedule(TaskScheduleInformation information)
-          throws LDAPException, IOException, ASN1Exception, TaskClientException
+          throws LDAPException, IOException, DecodeException, TaskClientException
   {
     LDAPReader reader = connection.getLDAPReader();
     LDAPWriter writer = connection.getLDAPWriter();
@@ -356,10 +356,10 @@ public class TaskClient {
    * @throws IOException if there is a stream communication problem
    * @throws LDAPException if there is a problem getting information
    *         out to the directory
-   * @throws ASN1Exception if there is a problem with the encoding
+   * @throws DecodeException if there is a problem with the encoding
    */
   public synchronized List<TaskEntry> getTaskEntries()
-          throws LDAPException, IOException, ASN1Exception {
+          throws LDAPException, IOException, DecodeException {
     List<Entry> entries = new ArrayList<Entry>();
 
     writeSearch(new SearchRequestProtocolOp(
@@ -406,11 +406,11 @@ public class TaskClient {
    * @throws IOException if there is a stream communication problem
    * @throws LDAPException if there is a problem getting information
    *         out to the directory
-   * @throws ASN1Exception if there is a problem with the encoding
+   * @throws DecodeException if there is a problem with the encoding
    * @throws TaskClientException if there is no task with the requested id
    */
   public synchronized TaskEntry getTaskEntry(String id)
-          throws LDAPException, IOException, ASN1Exception, TaskClientException
+          throws LDAPException, IOException, DecodeException, TaskClientException
   {
     Entry entry = null;
 
@@ -455,11 +455,11 @@ public class TaskClient {
    * @throws IOException if there is a stream communication problem
    * @throws LDAPException if there is a problem getting information
    *         out to the directory
-   * @throws ASN1Exception if there is a problem with the encoding
+   * @throws DecodeException if there is a problem with the encoding
    * @throws TaskClientException if there is no task with the requested id
    */
   public synchronized void cancelTask(String id)
-          throws TaskClientException, IOException, ASN1Exception, LDAPException
+          throws TaskClientException, IOException, DecodeException, LDAPException
   {
     LDAPReader reader = connection.getLDAPReader();
     LDAPWriter writer = connection.getLDAPWriter();

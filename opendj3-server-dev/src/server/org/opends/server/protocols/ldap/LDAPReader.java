@@ -26,21 +26,19 @@
  */
 package org.opends.server.protocols.ldap;
 
-import org.opends.server.protocols.asn1.ASN1Reader;
-import org.opends.server.protocols.asn1.ASN1Exception;
+import org.forgerock.opendj.io.ASN1;
+import org.forgerock.opendj.io.ASN1Reader;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.protocols.asn1.ASN1Constants.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
-
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
-
 
 /**
  * Utility class used to decode LDAP messages from an ASN1Reader.
@@ -742,9 +740,9 @@ public class LDAPReader
         }
       }
     }
-    catch(ASN1Exception asn1e)
+    catch(IOException e)
     {
-      logger.traceException(asn1e);
+      logger.traceException(e);
     }
 
     try
@@ -1348,9 +1346,9 @@ public class LDAPReader
         }
       }
     }
-    catch(ASN1Exception asn1e)
+    catch(IOException e)
     {
-      logger.traceException(asn1e);
+      logger.traceException(e);
     }
 
     try
@@ -1440,9 +1438,9 @@ public class LDAPReader
         }
       }
     }
-    catch(ASN1Exception asn1e)
+    catch(IOException e)
     {
-      logger.traceException(asn1e);
+      logger.traceException(e);
     }
 
     try
@@ -2452,7 +2450,7 @@ public class LDAPReader
     try
     {
       if(reader.hasNextElement() &&
-          reader.peekType() == UNIVERSAL_BOOLEAN_TYPE)
+          reader.peekType() == ASN1.UNIVERSAL_BOOLEAN_TYPE)
       {
         try
         {
@@ -2467,7 +2465,7 @@ public class LDAPReader
         }
       }
       if(reader.hasNextElement() &&
-          reader.peekType() == UNIVERSAL_OCTET_STRING_TYPE)
+          reader.peekType() == ASN1.UNIVERSAL_OCTET_STRING_TYPE)
       {
         try
         {
@@ -2482,9 +2480,9 @@ public class LDAPReader
         }
       }
     }
-    catch(ASN1Exception asn1e)
+    catch(IOException e)
     {
-      logger.traceException(asn1e);
+      logger.traceException(e);
     }
 
     try

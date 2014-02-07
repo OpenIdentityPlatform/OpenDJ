@@ -34,7 +34,7 @@ import static org.opends.server.util.ServerConstants.*;
 import java.io.IOException;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.protocols.asn1.ASN1Writer;
+import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.Control;
 import org.opends.server.types.DirectoryException;

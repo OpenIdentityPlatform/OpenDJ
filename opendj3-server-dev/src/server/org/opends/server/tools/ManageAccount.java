@@ -39,7 +39,7 @@ import javax.net.ssl.SSLException;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.AdministrationConnector;
-import org.opends.server.protocols.asn1.*;
+import org.forgerock.opendj.io.*;
 import org.opends.server.protocols.ldap.ExtendedRequestProtocolOp;
 import org.opends.server.protocols.ldap.ExtendedResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPMessage;

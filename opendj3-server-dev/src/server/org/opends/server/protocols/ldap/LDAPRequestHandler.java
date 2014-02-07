@@ -48,8 +48,8 @@ import org.opends.server.api.DirectoryThread;
 import org.opends.server.api.ServerShutdownListener;
 import org.opends.server.core.DirectoryServer;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.server.protocols.asn1.ASN1ByteChannelReader;
-import org.opends.server.protocols.asn1.ASN1Exception;
+import org.forgerock.opendj.io.ASN1Reader;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDAPException;
@@ -172,7 +172,7 @@ public class LDAPRequestHandler
       {
         try
         {
-          ASN1ByteChannelReader asn1Reader = readyConnection.getASN1Reader();
+          ASN1Reader asn1Reader = readyConnection.getASN1Reader();
           boolean ldapMessageProcessed = false;
           while (true)
           {
@@ -205,7 +205,7 @@ public class LDAPRequestHandler
             }
           }
         }
-        catch (ASN1Exception e)
+        catch (DecodeException e)
         {
           logger.traceException(e);
           readyConnection.disconnect(DisconnectReason.PROTOCOL_ERROR, true,

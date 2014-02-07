@@ -28,7 +28,7 @@ package org.opends.server.protocols.ldap;
 
 import static org.testng.Assert.*;
 import org.testng.annotations.*;
-import org.opends.server.protocols.asn1.*;
+import org.forgerock.opendj.io.*;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.core.DirectoryServer;

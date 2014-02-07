@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.protocols.asn1.ASN1Exception;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.protocols.ldap.ExtendedRequestProtocolOp;
 import org.opends.server.protocols.ldap.ExtendedResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPMessage;
@@ -98,13 +98,13 @@ public class DSMLExtendedOperation
    * @throws  LDAPException  If an error occurs while interacting with an LDAP
    *                         element.
    *
-   * @throws  ASN1Exception  If an error occurs while interacting with an ASN.1
+   * @throws  DecodeException  If an error occurs while interacting with an ASN.1
    *                         element.
    */
   public ExtendedResponse doOperation(ObjectFactory objFactory,
               ExtendedRequest extendedRequest,
               List<org.opends.server.types.Control> controls)
-    throws IOException, LDAPException, ASN1Exception
+    throws IOException, LDAPException, DecodeException
   {
     ExtendedResponse extendedResponse = objFactory.createExtendedResponse();
     extendedResponse.setRequestID(extendedRequest.getRequestID());

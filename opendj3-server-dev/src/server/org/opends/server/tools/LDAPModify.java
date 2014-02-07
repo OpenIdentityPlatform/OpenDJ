@@ -42,7 +42,7 @@ import org.opends.server.controls.*;
 import org.opends.server.controls.ProxiedAuthV2Control;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.plugins.ChangeNumberControlPlugin;
-import org.opends.server.protocols.asn1.ASN1Exception;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.protocols.ldap.AddRequestProtocolOp;
 import org.opends.server.protocols.ldap.AddResponseProtocolOp;
 import org.opends.server.protocols.ldap.DeleteRequestProtocolOp;
@@ -310,7 +310,7 @@ public class LDAPModify
                                controls);
           connection.getLDAPWriter().writeMessage(message);
           responseMessage = connection.getLDAPReader().readMessage();
-        } catch(ASN1Exception ae)
+        } catch(DecodeException ae)
         {
           logger.traceException(ae);
           LocalizableMessage message = INFO_OPERATION_FAILED.get(operationType);

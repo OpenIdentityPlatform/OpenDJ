@@ -34,7 +34,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.zip.DataFormatException;
 
-import org.opends.server.protocols.asn1.ASN1Writer;
+import org.forgerock.opendj.io.ASN1Writer;
 import org.opends.server.replication.protocol.ProtocolVersion;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.util.Utils;

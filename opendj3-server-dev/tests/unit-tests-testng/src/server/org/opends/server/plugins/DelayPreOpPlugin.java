@@ -40,14 +40,12 @@ import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.config.ConfigException;
 import org.opends.server.controls.ControlDecoder;
-import org.opends.server.protocols.asn1.ASN1;
-import org.opends.server.protocols.asn1.ASN1Reader;
-import org.opends.server.protocols.asn1.ASN1Writer;
+import org.forgerock.opendj.io.ASN1;
+import org.forgerock.opendj.io.ASN1Reader;
+import org.forgerock.opendj.io.ASN1Writer;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.operation.*;
-
-import static org.opends.server.protocols.asn1.ASN1Constants.*;
 
 /**
  * This class defines a very simple pre-operation plugin that sleeps for up to
@@ -141,7 +139,7 @@ public class DelayPreOpPlugin
      */
     @Override
     protected void writeValue(ASN1Writer writer) throws IOException {
-      writer.writeStartSequence(UNIVERSAL_OCTET_STRING_TYPE);
+      writer.writeStartSequence(ASN1.UNIVERSAL_OCTET_STRING_TYPE);
       writer.writeInteger(delayDuration);
       writer.writeEndSequence();
     }

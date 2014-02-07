@@ -26,19 +26,16 @@
  */
 package org.opends.server.plugins.profiler;
 
-
-
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.opends.server.api.DirectoryThread;
-import org.opends.server.protocols.asn1.*;
-
+import org.forgerock.opendj.io.*;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 
-
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines a thread that may be used to actually perform
@@ -218,7 +215,8 @@ public class ProfilerThread
   {
     // Open the capture file for writing.  We'll use an ASN.1 writer to write
     // the data.
-    ASN1Writer writer = ASN1.getWriter(new FileOutputStream(filename));
+    FileOutputStream fos = new FileOutputStream(filename);
+    ASN1Writer writer = ASN1.getWriter(fos);
 
 
     try
@@ -254,7 +252,7 @@ public class ProfilerThread
     finally
     {
       // Make sure to close the file when we're done.
-      writer.close();
+      close(writer, fos);
     }
   }
 }

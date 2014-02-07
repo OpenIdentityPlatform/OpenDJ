@@ -29,7 +29,7 @@ package org.opends.server.protocols.ldap;
 
 import java.io.IOException;
 
-import org.opends.server.protocols.asn1.*;
+import org.forgerock.opendj.io.*;
 import org.forgerock.opendj.ldap.ByteString;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;

@@ -26,15 +26,16 @@
  */
 package org.opends.server.replication.protocol;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.zip.DataFormatException;
 
-import org.opends.server.protocols.asn1.ASN1;
-import org.opends.server.protocols.asn1.ASN1Exception;
-import org.opends.server.protocols.asn1.ASN1Reader;
-import org.opends.server.protocols.asn1.ASN1Writer;
+import org.forgerock.opendj.io.ASN1;
+import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.io.ASN1Reader;
+import org.forgerock.opendj.io.ASN1Writer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.replication.common.AssuredMode;
@@ -178,11 +179,11 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
    * @param   conn connection to use when creating the message
    * @return  the created Operation
    * @throws  LDAPException In case of LDAP decoding exception.
-   * @throws  ASN1Exception In case of ASN1 decoding exception.
+   * @throws  IOException In case of ASN1 decoding exception.
    * @throws DataFormatException In case of bad msg format.
    */
   public Operation createOperation(InternalClientConnection conn)
-      throws LDAPException, ASN1Exception, DataFormatException
+      throws LDAPException, IOException, DataFormatException
   {
     return createOperation(conn, dn);
   }
@@ -195,11 +196,11 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
    * @param   newDN the DN to use when creating the operation.
    * @return  the created Operation.
    * @throws  LDAPException In case of LDAP decoding exception.
-   * @throws  ASN1Exception In case of ASN1 decoding exception.
+   * @throws  IOException In case of ASN1 decoding exception.
    * @throws DataFormatException In case of bad msg format.
    */
   public abstract Operation createOperation(InternalClientConnection conn,
-      DN newDN) throws LDAPException, ASN1Exception, DataFormatException;
+      DN newDN) throws LDAPException, IOException, DataFormatException;
 
 
   // ============
@@ -614,10 +615,10 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
    * @param in The provided byte array.
    * @return The list of RawAttribute objects.
    * @throws LDAPException when it occurs.
-   * @throws ASN1Exception when it occurs.
+   * @throws DecodeException when it occurs.
    */
   public ArrayList<RawAttribute> decodeRawAttributes(byte[] in)
-  throws LDAPException, ASN1Exception
+  throws LDAPException, DecodeException
   {
     ArrayList<RawAttribute> rattr = new ArrayList<RawAttribute>();
     try
@@ -643,10 +644,10 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
    * @param in The provided byte array.
    * @return The list of Attribute objects.
    * @throws LDAPException when it occurs.
-   * @throws ASN1Exception when it occurs.
+   * @throws DecodeException when it occurs.
    */
   public ArrayList<Attribute> decodeAttributes(byte[] in)
-  throws LDAPException, ASN1Exception
+  throws LDAPException, DecodeException
   {
     ArrayList<Attribute> lattr = new ArrayList<Attribute>();
     try

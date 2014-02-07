@@ -39,7 +39,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.opends.server.protocols.asn1.ASN1Exception;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.protocols.ldap.DeleteRequestProtocolOp;
 import org.opends.server.protocols.ldap.DeleteResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPMessage;
@@ -188,7 +188,7 @@ public class LDAPDelete
       {
         connection.getLDAPWriter().writeMessage(message);
         responseMessage = connection.getLDAPReader().readMessage();
-      } catch(ASN1Exception ae)
+      } catch(DecodeException ae)
       {
         logger.traceException(ae);
         if (!deleteOptions.continueOnError())

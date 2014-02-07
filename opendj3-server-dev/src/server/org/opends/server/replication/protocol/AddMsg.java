@@ -35,9 +35,9 @@ import java.util.zip.DataFormatException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.AddOperationBasis;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.asn1.ASN1;
-import org.opends.server.protocols.asn1.ASN1Exception;
-import org.opends.server.protocols.asn1.ASN1Writer;
+import org.forgerock.opendj.io.ASN1;
+import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.io.ASN1Writer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.replication.common.CSN;
@@ -174,7 +174,7 @@ public class AddMsg extends LDAPUpdateMsg
   @Override
   public AddOperation createOperation(
       InternalClientConnection connection, DN newDN)
-  throws LDAPException, ASN1Exception
+  throws LDAPException, DecodeException
   {
     List<RawAttribute> attr = decodeRawAttributes(encodedAttributes);
 
@@ -520,10 +520,9 @@ public class AddMsg extends LDAPUpdateMsg
    *
    * @param name  The name of the attribute to add.
    * @param value The value of the attribute to add.
-   * @throws ASN1Exception When this Msg is not valid.
+   * @throws DecodeException When this Msg is not valid.
    */
-  public void addAttribute(String name, String value)
-         throws ASN1Exception
+  public void addAttribute(String name, String value) throws DecodeException
   {
     ByteStringBuilder byteBuilder = new ByteStringBuilder();
     byteBuilder.append(encodedAttributes);
@@ -545,10 +544,10 @@ public class AddMsg extends LDAPUpdateMsg
   /**
    * Get the attributes of this add msg.
    * @throws LDAPException In case of LDAP decoding exception
-   * @throws ASN1Exception In case of ASN1 decoding exception
+   * @throws DecodeException In case of ASN1 decoding exception
    * @return the list of attributes
    */
-  public List<Attribute> getAttributes() throws LDAPException, ASN1Exception
+  public List<Attribute> getAttributes() throws LDAPException, DecodeException
   {
     return decodeAttributes(encodedAttributes);
   }

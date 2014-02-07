@@ -40,6 +40,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn.IsolationPolicy;
 import org.opends.server.admin.std.server.ExternalChangelogDomainCfg;
@@ -51,7 +52,6 @@ import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.backends.task.Task;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.*;
-import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchListener;
 import org.opends.server.protocols.internal.InternalSearchOperation;
@@ -2435,7 +2435,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
           replayErrorMsg = message.toString();
           updateError(csn);
         }
-      } catch (ASN1Exception e)
+      } catch (DecodeException e)
       {
         replayErrorMsg = logDecodingOperationError(msg, e);
       } catch (LDAPException e)
@@ -3133,10 +3133,10 @@ private boolean solveNamingConflict(ModifyDNOperation op,
    *
    * @param msg            The conflicting Add Operation.
    *
-   * @throws ASN1Exception When an encoding error happened manipulating the
+   * @throws DecodeException When an encoding error happened manipulating the
    *                       msg.
    */
-  private void addConflict(AddMsg msg) throws ASN1Exception
+  private void addConflict(AddMsg msg) throws DecodeException
   {
     String normalizedDN = msg.getDN().toNormalizedString();
 

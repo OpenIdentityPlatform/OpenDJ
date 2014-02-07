@@ -26,7 +26,7 @@
  */
 package org.opends.server.protocols.ldap;
 
-import org.opends.server.protocols.asn1.*;
+import org.forgerock.opendj.io.*;
 import org.opends.server.types.LDAPException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;

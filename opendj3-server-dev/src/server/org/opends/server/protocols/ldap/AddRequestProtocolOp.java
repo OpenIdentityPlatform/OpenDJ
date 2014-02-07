@@ -32,7 +32,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.server.protocols.asn1.ASN1Writer;
+import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.RawAttribute;
 import org.opends.server.util.Base64;

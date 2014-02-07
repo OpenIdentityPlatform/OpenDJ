@@ -25,9 +25,6 @@
  *      Portions Copyright 2012-2014 ForgeRock AS
  */
 package org.opends.server.plugins.profiler;
-import org.forgerock.i18n.LocalizableMessage;
-
-
 
 import java.awt.BorderLayout;
 import java.awt.Container;
@@ -49,7 +46,9 @@ import javax.swing.tree.TreeSelectionModel;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 
-import org.opends.server.protocols.asn1.*;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.io.ASN1;
+import org.forgerock.opendj.io.ASN1Reader;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
@@ -220,12 +219,8 @@ public class ProfileViewer
    *
    * @throws  IOException  If a problem occurs while trying to read from the
    *                       data file.
-   *
-   * @throws  ASN1Exception  If an error occurs while trying to decode the
-   *                         contents of the file into profile stack objects.
    */
-  public void processDataFile(String filename)
-         throws IOException, ASN1Exception
+  public void processDataFile(String filename) throws IOException
   {
     // Try to open the file for reading.
     ASN1Reader reader = ASN1.getReader(new FileInputStream(filename));

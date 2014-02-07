@@ -32,9 +32,9 @@ import java.io.UnsupportedEncodingException;
 import java.util.*;
 import java.util.zip.DataFormatException;
 
-import org.opends.server.protocols.asn1.ASN1;
-import org.opends.server.protocols.asn1.ASN1Reader;
-import org.opends.server.protocols.asn1.ASN1Writer;
+import org.forgerock.opendj.io.ASN1;
+import org.forgerock.opendj.io.ASN1Reader;
+import org.forgerock.opendj.io.ASN1Writer;
 import org.opends.server.replication.common.AssuredMode;
 import org.opends.server.replication.common.ServerStatus;
 import org.forgerock.opendj.ldap.ByteSequenceReader;

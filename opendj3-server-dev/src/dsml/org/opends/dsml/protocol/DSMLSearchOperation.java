@@ -37,7 +37,7 @@ import java.util.List;
 import javax.xml.bind.JAXBElement;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.protocols.asn1.ASN1Exception;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPConstants;
 import org.opends.server.protocols.ldap.LDAPFilter;
@@ -623,7 +623,7 @@ public class DSMLSearchOperation
       while (opType != LDAPConstants.OP_TYPE_SEARCH_RESULT_DONE);
 
     }
-    catch (ASN1Exception ae)
+    catch (DecodeException ae)
     {
       ae.printStackTrace();
       throw new IOException(ae.getMessage());

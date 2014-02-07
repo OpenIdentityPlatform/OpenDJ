@@ -33,9 +33,9 @@ import java.net.Socket;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.protocols.asn1.ASN1;
-import org.opends.server.protocols.asn1.ASN1Exception;
-import org.opends.server.protocols.asn1.ASN1Reader;
+import org.forgerock.opendj.io.ASN1;
+import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.io.ASN1Reader;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.RecordingInputStream;
@@ -79,14 +79,14 @@ public class LDAPReader implements Closeable
    * @throws  IOException  If a problem occurs while attempting to read from the
    *                       input stream.
    *
-   * @throws  ASN1Exception  If a problem occurs while attempting to decode the
+   * @throws  DecodeException  If a problem occurs while attempting to decode the
    *                         data read as an ASN.1 sequence.
 
    * @throws  LDAPException  If a problem occurs while attempting to decode the
    *                         LDAP message.
    */
   public LDAPMessage readMessage()
-       throws IOException, ASN1Exception, LDAPException
+       throws IOException, DecodeException, LDAPException
   {
     debugInputStream.setRecordingEnabled(logger.isTraceEnabled());
 

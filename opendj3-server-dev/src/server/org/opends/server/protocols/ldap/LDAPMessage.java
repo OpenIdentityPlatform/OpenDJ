@@ -33,7 +33,7 @@ import java.util.List;
 import java.io.IOException;
 
 import org.opends.server.api.ProtocolElement;
-import org.opends.server.protocols.asn1.*;
+import org.forgerock.opendj.io.*;
 import org.opends.server.types.Control;
 
 import static org.opends.server.protocols.ldap.LDAPConstants.

@@ -29,6 +29,7 @@ package org.opends.server.schema;
 
 
 
+import java.io.IOException;
 import java.util.List;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 
@@ -45,16 +46,15 @@ import org.forgerock.opendj.ldap.ByteSequence;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.ResultCode;
 
-import org.opends.server.protocols.asn1.ASN1;
-import org.opends.server.protocols.asn1.ASN1Exception;
-import org.opends.server.protocols.asn1.ASN1Reader;
+import org.forgerock.opendj.io.ASN1;
+import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.io.ASN1Reader;
 
 import static org.opends.messages.SchemaMessages.*;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
-import static org.opends.server.protocols.asn1.ASN1Constants.*;
 
 
 /**
@@ -282,7 +282,7 @@ public class CertificateSyntax
     {
       // Certificate SIGNED SEQUENCE
       if (!reader.hasNextElement() ||
-          reader.peekType() != UNIVERSAL_SEQUENCE_TYPE)
+          reader.peekType() != ASN1.UNIVERSAL_SEQUENCE_TYPE)
       {
         invalidReason.append(ERR_SYNTAX_CERTIFICATE_NOTVALID.get());
         return false;
@@ -291,7 +291,7 @@ public class CertificateSyntax
 
       // CertificateContent SEQUENCE
       if (!reader.hasNextElement() ||
-          reader.peekType() != UNIVERSAL_SEQUENCE_TYPE)
+          reader.peekType() != ASN1.UNIVERSAL_SEQUENCE_TYPE)
       {
         invalidReason.append(ERR_SYNTAX_CERTIFICATE_NOTVALID.get());
         return false;
@@ -300,11 +300,11 @@ public class CertificateSyntax
 
       // Optional Version
       if (reader.hasNextElement() &&
-          reader.peekType() == (TYPE_MASK_CONTEXT | TYPE_MASK_CONSTRUCTED))
+          reader.peekType() == (ASN1.TYPE_MASK_CONTEXT | ASN1.TYPE_MASK_CONSTRUCTED))
       {
         reader.readStartExplicitTag();
         if (!reader.hasNextElement() ||
-            reader.peekType() != UNIVERSAL_INTEGER_TYPE)
+            reader.peekType() != ASN1.UNIVERSAL_INTEGER_TYPE)
         {
           invalidReason.append(ERR_SYNTAX_CERTIFICATE_NOTVALID.get());
           return false;
@@ -329,7 +329,7 @@ public class CertificateSyntax
 
       // serialNumber
       if (!reader.hasNextElement() ||
-          reader.peekType() != UNIVERSAL_INTEGER_TYPE)
+          reader.peekType() != ASN1.UNIVERSAL_INTEGER_TYPE)
       {
         invalidReason.append(ERR_SYNTAX_CERTIFICATE_NOTVALID.get());
         return false;
@@ -338,7 +338,7 @@ public class CertificateSyntax
 
       // signature AlgorithmIdentifier
       if (!reader.hasNextElement() ||
-          reader.peekType() != UNIVERSAL_SEQUENCE_TYPE)
+          reader.peekType() != ASN1.UNIVERSAL_SEQUENCE_TYPE)
       {
         invalidReason.append(ERR_SYNTAX_CERTIFICATE_NOTVALID.get());
         return false;
@@ -347,7 +347,7 @@ public class CertificateSyntax
 
       // issuer name (SEQUENCE as of X.501, 9.2)
       if (!reader.hasNextElement() ||
-          reader.peekType() != UNIVERSAL_SEQUENCE_TYPE)
+          reader.peekType() != ASN1.UNIVERSAL_SEQUENCE_TYPE)
       {
         invalidReason.append(ERR_SYNTAX_CERTIFICATE_NOTVALID.get());
         return false;
@@ -356,7 +356,7 @@ public class CertificateSyntax
 
       // validity (SEQUENCE)
       if (!reader.hasNextElement() ||
-          reader.peekType() != UNIVERSAL_SEQUENCE_TYPE)
+          reader.peekType() != ASN1.UNIVERSAL_SEQUENCE_TYPE)
       {
         invalidReason.append(ERR_SYNTAX_CERTIFICATE_NOTVALID.get());
         return false;
@@ -365,7 +365,7 @@ public class CertificateSyntax
 
       // subject name (SEQUENCE as of X.501, 9.2)
       if (!reader.hasNextElement() ||
-          reader.peekType() != UNIVERSAL_SEQUENCE_TYPE)
+          reader.peekType() != ASN1.UNIVERSAL_SEQUENCE_TYPE)
       {
         invalidReason.append(ERR_SYNTAX_CERTIFICATE_NOTVALID.get());
         return false;
@@ -374,7 +374,7 @@ public class CertificateSyntax
 
       // SubjectPublicKeyInfo (SEQUENCE)
       if (!reader.hasNextElement() ||
-          reader.peekType() != UNIVERSAL_SEQUENCE_TYPE)
+          reader.peekType() != ASN1.UNIVERSAL_SEQUENCE_TYPE)
       {
         invalidReason.append(ERR_SYNTAX_CERTIFICATE_NOTVALID.get());
         return false;
@@ -383,7 +383,7 @@ public class CertificateSyntax
 
       // OPTIONAL issuerUniqueIdentifier
       if (reader.hasNextElement() &&
-          reader.peekType() == (TYPE_MASK_CONTEXT + 1))
+          reader.peekType() == (ASN1.TYPE_MASK_CONTEXT + 1))
       {
         if (x509Version < 1)
         {
@@ -396,7 +396,7 @@ public class CertificateSyntax
 
       // OPTIONAL subjectUniqueIdentifier
       if (reader.hasNextElement() &&
-          reader.peekType() == (TYPE_MASK_CONTEXT + 2))
+          reader.peekType() == (ASN1.TYPE_MASK_CONTEXT + 2))
       {
         if (x509Version < 1)
         {
@@ -409,7 +409,7 @@ public class CertificateSyntax
 
       // OPTIONAL extensions
       if (reader.hasNextElement() &&
-          reader.peekType() == ((TYPE_MASK_CONTEXT|TYPE_MASK_CONSTRUCTED) + 3))
+          reader.peekType() == ((ASN1.TYPE_MASK_CONTEXT|ASN1.TYPE_MASK_CONSTRUCTED) + 3))
       {
         if (x509Version < 2)
         {
@@ -419,7 +419,7 @@ public class CertificateSyntax
         }
         reader.readStartExplicitTag(); // read Tag
         if (!reader.hasNextElement() ||
-            reader.peekType() != UNIVERSAL_SEQUENCE_TYPE)
+            reader.peekType() != ASN1.UNIVERSAL_SEQUENCE_TYPE)
         {
           // only valid in v3
           invalidReason.append(ERR_SYNTAX_CERTIFICATE_NOTVALID.get());
@@ -438,7 +438,7 @@ public class CertificateSyntax
 
       // AlgorithmIdentifier SEQUENCE
       if (!reader.hasNextElement() ||
-          reader.peekType() != UNIVERSAL_SEQUENCE_TYPE)
+          reader.peekType() != ASN1.UNIVERSAL_SEQUENCE_TYPE)
       {
         invalidReason.append(ERR_SYNTAX_CERTIFICATE_NOTVALID.get());
         return false;
@@ -447,7 +447,7 @@ public class CertificateSyntax
 
       // ENCRYPTED HASH BIT STRING
       if (!reader.hasNextElement() ||
-          reader.peekType() != UNIVERSAL_BIT_STRING_TYPE)
+          reader.peekType() != ASN1.UNIVERSAL_BIT_STRING_TYPE)
       {
         invalidReason.append(ERR_SYNTAX_CERTIFICATE_NOTVALID.get());
         return false;
@@ -470,10 +470,14 @@ public class CertificateSyntax
       }
       // End of the certificate
     }
-    catch (ASN1Exception e)
+    catch (DecodeException e)
     {
-      System.out.println(e.getMessageObject());
       invalidReason.append(e.getMessageObject());
+      return false;
+    }
+    catch (IOException e)
+    {
+      invalidReason.append(e.getMessage());
       return false;
     }
 

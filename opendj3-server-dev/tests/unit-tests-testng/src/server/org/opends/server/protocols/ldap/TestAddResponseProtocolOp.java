@@ -26,7 +26,7 @@
  */
 package org.opends.server.protocols.ldap;
 
-import org.opends.server.protocols.asn1.*;
+import org.forgerock.opendj.io.*;
 import static org.opends.server.util.ServerConstants.EOL;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteStringBuilder;

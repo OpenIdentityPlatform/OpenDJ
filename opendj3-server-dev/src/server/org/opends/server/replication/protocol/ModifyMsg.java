@@ -26,13 +26,13 @@
  */
 package org.opends.server.replication.protocol;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.zip.DataFormatException;
 
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyOperationBasis;
-import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.types.*;
@@ -127,7 +127,7 @@ public class ModifyMsg extends ModifyCommonMsg
    */
   @Override
   public ModifyOperation createOperation(InternalClientConnection connection,
-      DN newDN) throws LDAPException, ASN1Exception, DataFormatException
+      DN newDN) throws LDAPException, IOException, DataFormatException
   {
     if (newDN == null)
       newDN = getDN();

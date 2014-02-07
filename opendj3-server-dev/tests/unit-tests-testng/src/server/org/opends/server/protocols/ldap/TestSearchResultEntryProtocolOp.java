@@ -31,7 +31,7 @@ package org.opends.server.protocols.ldap;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.protocols.asn1.*;
+import org.forgerock.opendj.io.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.
      OP_TYPE_SEARCH_RESULT_ENTRY;
 import static org.testng.Assert.*;

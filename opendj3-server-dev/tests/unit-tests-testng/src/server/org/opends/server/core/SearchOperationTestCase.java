@@ -38,7 +38,7 @@ import org.opends.server.controls.MatchedValuesControl;
 import org.opends.server.controls.MatchedValuesFilter;
 import org.opends.server.controls.SubentriesControl;
 import org.opends.server.plugins.InvocationCounterPlugin;
-import org.opends.server.protocols.asn1.ASN1Exception;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.*;
@@ -347,7 +347,7 @@ public class SearchOperationTestCase extends OperationTestCase
   }
 
   private void bindAsManager(LDAPWriter w, org.opends.server.tools.LDAPReader r)
-       throws IOException, LDAPException, ASN1Exception, InterruptedException
+       throws IOException, LDAPException, DecodeException, InterruptedException
   {
     // Since we are going to be watching the post-response count, we need to
     // wait for the server to become idle before kicking off the next request to

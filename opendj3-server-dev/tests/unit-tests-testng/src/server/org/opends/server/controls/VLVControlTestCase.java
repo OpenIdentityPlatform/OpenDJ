@@ -28,12 +28,8 @@ package org.opends.server.controls;
 
 
 
-import static org.opends.server.util.ServerConstants.OID_SERVER_SIDE_SORT_RESPONSE_CONTROL;
-import static org.opends.server.util.ServerConstants.OID_VLV_RESPONSE_CONTROL;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertNull;
-import static org.testng.Assert.fail;
+import static org.opends.server.util.ServerConstants.*;
+import static org.testng.Assert.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,10 +40,9 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.protocols.ldap.LDAPControl;
-import org.opends.server.protocols.asn1.ASN1Writer;
-import org.opends.server.protocols.asn1.ASN1;
-import org.opends.server.protocols.asn1.ASN1Reader;
-import org.opends.server.protocols.asn1.ASN1Constants;
+import org.forgerock.opendj.io.ASN1Writer;
+import org.forgerock.opendj.io.ASN1;
+import org.forgerock.opendj.io.ASN1Reader;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
@@ -406,22 +401,22 @@ public class VLVControlTestCase
 
     ASN1Reader reader = ASN1.getReader(builder.toByteString());
     // Should start as an octet string with a nested sequence
-    assertEquals(reader.peekType(), ASN1Constants.UNIVERSAL_OCTET_STRING_TYPE);
+    assertEquals(reader.peekType(), ASN1.UNIVERSAL_OCTET_STRING_TYPE);
     reader.readStartSequence();
     // Should be an sequence start
-    assertEquals(reader.peekType(), ASN1Constants.UNIVERSAL_SEQUENCE_TYPE);
+    assertEquals(reader.peekType(), ASN1.UNIVERSAL_SEQUENCE_TYPE);
     reader.readStartSequence();
     // Should be an integer with targetPosition
-    assertEquals(reader.peekType(), ASN1Constants.UNIVERSAL_INTEGER_TYPE);
+    assertEquals(reader.peekType(), ASN1.UNIVERSAL_INTEGER_TYPE);
     assertEquals(reader.readInteger(), 0);
     // Should be an integer with contentCount
-    assertEquals(reader.peekType(), ASN1Constants.UNIVERSAL_INTEGER_TYPE);
+    assertEquals(reader.peekType(), ASN1.UNIVERSAL_INTEGER_TYPE);
     assertEquals(reader.readInteger(), 15);
     // Should be an enumerated with virtualListViewResult
-    assertEquals(reader.peekType(), ASN1Constants.UNIVERSAL_ENUMERATED_TYPE);
+    assertEquals(reader.peekType(), ASN1.UNIVERSAL_ENUMERATED_TYPE);
     assertEquals(reader.readEnumerated(), 0);
     // Should be an octet string with contextID
-    assertEquals(reader.peekType(), ASN1Constants.UNIVERSAL_OCTET_STRING_TYPE);
+    assertEquals(reader.peekType(), ASN1.UNIVERSAL_OCTET_STRING_TYPE);
     assertEquals(reader.readOctetStringAsString(), "foo");
   }
 

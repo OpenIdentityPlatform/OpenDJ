@@ -30,9 +30,7 @@ import org.forgerock.i18n.LocalizableMessage;
 
 import java.io.IOException;
 
-import org.opends.server.protocols.asn1.*;
-import static org.opends.server.protocols.asn1.ASN1Constants.
-    UNIVERSAL_OCTET_STRING_TYPE;
+import org.forgerock.opendj.io.*;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import static org.opends.messages.ProtocolMessages.*;
@@ -243,7 +241,7 @@ public class VLVResponseControl
    */
   @Override
   protected void writeValue(ASN1Writer writer) throws IOException {
-    writer.writeStartSequence(UNIVERSAL_OCTET_STRING_TYPE);
+    writer.writeStartSequence(ASN1.UNIVERSAL_OCTET_STRING_TYPE);
 
     writer.writeStartSequence();
     writer.writeInteger(targetPosition);

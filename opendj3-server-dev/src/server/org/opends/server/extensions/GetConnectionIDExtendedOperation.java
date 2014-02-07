@@ -32,10 +32,10 @@ import org.opends.server.api.ExtendedOperationHandler;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.ExtendedOperation;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.server.protocols.asn1.ASN1;
-import org.opends.server.protocols.asn1.ASN1Exception;
-import org.opends.server.protocols.asn1.ASN1Reader;
-import org.opends.server.protocols.asn1.ASN1Writer;
+import org.forgerock.opendj.io.ASN1;
+import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.io.ASN1Reader;
+import org.forgerock.opendj.io.ASN1Writer;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
@@ -118,11 +118,11 @@ public class GetConnectionIDExtendedOperation
    *
    * @return  The connection ID decoded from the provided response value.
    *
-   * @throws ASN1Exception  If an error occurs while trying to decode the
+   * @throws DecodeException  If an error occurs while trying to decode the
    *                         response value.
    */
   public static long decodeResponseValue(ByteString responseValue)
-         throws ASN1Exception
+         throws DecodeException
   {
     ASN1Reader reader = ASN1.getReader(responseValue);
     try
