@@ -28,14 +28,7 @@ package org.opends.server.protocols.ldap;
 
 
 
-import static org.opends.messages.CoreMessages.*;
-import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.core.DirectoryServer.*;
-import static org.opends.server.loggers.AccessLogger.*;
-import static org.opends.server.protocols.ldap.LDAPConstants.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-
+import java.io.Closeable;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
@@ -54,6 +47,11 @@ import javax.net.ssl.SSLException;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.io.ASN1;
+import org.forgerock.opendj.io.ASN1Writer;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.core.*;
@@ -62,15 +60,17 @@ import org.opends.server.extensions.ConnectionSecurityProvider;
 import org.opends.server.extensions.RedirectingByteChannel;
 import org.opends.server.extensions.TLSByteChannel;
 import org.opends.server.extensions.TLSCapableConnection;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.server.protocols.asn1.ASN1;
-import org.opends.server.protocols.asn1.ASN1ByteChannelReader;
-import org.opends.server.protocols.asn1.ASN1Reader;
-import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;
+
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.messages.ProtocolMessages.*;
+import static org.opends.server.core.DirectoryServer.*;
+import static org.opends.server.loggers.AccessLogger.*;
+import static org.opends.server.protocols.ldap.LDAPConstants.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 
 /**
@@ -90,13 +90,13 @@ public final class LDAPClientConnection extends ClientConnection implements
   private static final class ConnectionFinalizerJob implements Runnable
   {
     /** The client connection ASN1 reader. */
-    private final ASN1Reader asn1Reader;
+    private final ASN1ByteChannelReader asn1Reader;
 
     /** The client connection socket channel. */
     private final SocketChannel socketChannel;
 
     /** Creates a new connection finalizer job. */
-    private ConnectionFinalizerJob(ASN1Reader asn1Reader,
+    private ConnectionFinalizerJob(ASN1ByteChannelReader asn1Reader,
         SocketChannel socketChannel)
     {
       this.asn1Reader = asn1Reader;
@@ -308,7 +308,7 @@ public final class LDAPClientConnection extends ClientConnection implements
   /**
    * Thread local ASN1Writer and buffer.
    */
-  private static final class ASN1WriterHolder
+  private static final class ASN1WriterHolder implements Closeable
   {
     private final ASN1Writer writer;
     private final ByteStringBuilder buffer;
@@ -319,6 +319,14 @@ public final class LDAPClientConnection extends ClientConnection implements
       this.buffer = new ByteStringBuilder();
       this.maxBufferSize = getMaxInternalBufferSize();
       this.writer = ASN1.getWriter(buffer, maxBufferSize);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public void close() throws IOException
+    {
+      StaticUtils.close(writer);
+      buffer.clearAndTruncate(maxBufferSize, maxBufferSize);
     }
   }
 
@@ -503,9 +511,7 @@ public final class LDAPClientConnection extends ClientConnection implements
             timeoutClientChannel);
     saslChannel =
         RedirectingByteChannel.getRedirectingByteChannel(tlsChannel);
-    this.asn1Reader =
-        ASN1.getReader(saslChannel, bufferSize, connectionHandler
-            .getMaxRequestSize());
+    this.asn1Reader = new ASN1ByteChannelReader(saslChannel, bufferSize, connectionHandler.getMaxRequestSize());
 
     if (connectionHandler.useSSL())
     {
@@ -1004,7 +1010,7 @@ public final class LDAPClientConnection extends ClientConnection implements
       // Clear and reset all of the internal buffers ready for the next usage.
       // The ASN1Writer is based on a ByteStringBuilder so closing will cause
       // the internal buffers to be resized if needed.
-      close(holder.writer);
+      close(holder);
     }
  }
 

@@ -35,8 +35,8 @@ import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.core.*;
-import org.opends.server.protocols.asn1.ASN1;
-import org.opends.server.protocols.asn1.ASN1Reader;
+import org.forgerock.opendj.io.ASN1;
+import org.forgerock.opendj.io.ASN1Reader;
 import org.opends.server.protocols.ldap.*;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;

@@ -47,7 +47,7 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.server.protocols.asn1.ASN1Exception;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.*;
 import org.opends.server.schema.GeneralizedTimeSyntax;
@@ -1158,7 +1158,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
         {
           responseMessage = reader.readMessage();
         }
-        catch (final ASN1Exception e)
+        catch (final DecodeException e)
         {
           // ASN1 layer hides all underlying IO exceptions.
           if (e.getCause() instanceof SocketTimeoutException)

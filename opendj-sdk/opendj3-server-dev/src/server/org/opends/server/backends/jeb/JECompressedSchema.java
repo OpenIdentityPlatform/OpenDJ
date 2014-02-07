@@ -38,13 +38,13 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.CompressedSchema;
 import org.opends.server.core.DirectoryServer;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.server.protocols.asn1.ASN1;
-import org.opends.server.protocols.asn1.ASN1Exception;
-import org.opends.server.protocols.asn1.ASN1Reader;
-import org.opends.server.protocols.asn1.ASN1Writer;
+import org.forgerock.opendj.io.ASN1;
+import org.forgerock.opendj.io.ASN1Reader;
+import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
+import org.opends.server.util.StaticUtils;
 
 import com.sleepycat.je.Cursor;
 import com.sleepycat.je.Database;
@@ -77,13 +77,13 @@ public final class JECompressedSchema extends CompressedSchema
   private static final String DB_NAME_OC = "compressed_object_classes";
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // The compressed attribute description schema database.
+  /** The compressed attribute description schema database. */
   private Database adDatabase;
 
-  // The environment in which the databases are held.
+  /** The environment in which the databases are held. */
   private Environment environment;
 
-  // The compresesd object class set schema database.
+  /** The compressed object class set schema database. */
   private Database ocDatabase;
 
   private final ByteStringBuilder storeAttributeWriterBuffer =
@@ -134,14 +134,7 @@ public final class JECompressedSchema extends CompressedSchema
       // Ignore.
     }
 
-    try
-    {
-      adDatabase.close();
-    }
-    catch (final Exception e)
-    {
-      // Ignore.
-    }
+    StaticUtils.close(adDatabase);
 
     try
     {
@@ -152,14 +145,7 @@ public final class JECompressedSchema extends CompressedSchema
       // Ignore.
     }
 
-    try
-    {
-      ocDatabase.close();
-    }
-    catch (final Exception e)
-    {
-      // Ignore.
-    }
+    StaticUtils.close(ocDatabase);
 
     adDatabase = null;
     ocDatabase = null;
@@ -282,13 +268,11 @@ public final class JECompressedSchema extends CompressedSchema
             LockMode.READ_UNCOMMITTED);
       }
     }
-    catch (final ASN1Exception ae)
+    catch (final IOException e)
     {
-      logger.traceException(ae);
-
-      final LocalizableMessage m = ERR_JEB_COMPSCHEMA_CANNOT_DECODE_OC_TOKEN.get(ae
-          .getMessage());
-      throw new InitializationException(m, ae);
+      logger.traceException(e);
+      throw new InitializationException(
+          ERR_JEB_COMPSCHEMA_CANNOT_DECODE_OC_TOKEN.get(e.getMessage()), e);
     }
     finally
     {
@@ -321,13 +305,11 @@ public final class JECompressedSchema extends CompressedSchema
             LockMode.READ_UNCOMMITTED);
       }
     }
-    catch (final ASN1Exception ae)
+    catch (final IOException e)
     {
-      logger.traceException(ae);
-
-      final LocalizableMessage m = ERR_JEB_COMPSCHEMA_CANNOT_DECODE_AD_TOKEN.get(ae
-          .getMessage());
-      throw new InitializationException(m, ae);
+      logger.traceException(e);
+      throw new InitializationException(
+          ERR_JEB_COMPSCHEMA_CANNOT_DECODE_AD_TOKEN.get(e.getMessage()), e);
     }
     finally
     {

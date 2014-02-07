@@ -24,7 +24,6 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  *      Portions Copyright 2014 ForgeRock AS
  */
-
 package org.opends.server.tools;
 
 import java.io.BufferedOutputStream;
@@ -33,12 +32,13 @@ import java.io.IOException;
 import java.net.Socket;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.io.ASN1;
+import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.protocols.asn1.ASN1;
-import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.types.RecordingOutputStream;
 import org.opends.server.util.ServerConstants;
+import org.opends.server.util.StaticUtils;
 
 /**
  * This class defines a utility that can be used to write LDAP messages over a
@@ -97,14 +97,8 @@ public class LDAPWriter implements Closeable
       ByteString bytesRead = debugOutputStream.getRecordedBytes();
       debugOutputStream.clearRecordedBytes();
 
-      StringBuilder builder = new StringBuilder();
-      builder.append("bytes written to wire(len=");
-      builder.append(bytesRead.length());
-      builder.append("):");
-      builder.append(ServerConstants.EOL);
-      builder.append(bytesRead.toHexPlusAsciiString(4));
-
-      logger.trace(builder.toString());
+      logger.trace("bytes written to wire(len=" + bytesRead.length() + "):"
+          + ServerConstants.EOL + bytesRead.toHexPlusAsciiString(4));
     }
   }
 
@@ -114,26 +108,7 @@ public class LDAPWriter implements Closeable
   @Override
   public void close()
   {
-    try
-    {
-      asn1Writer.close();
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-    }
-
-
-    if (socket != null)
-    {
-      try
-      {
-        socket.close();
-      }
-      catch (Exception e)
-      {
-        logger.traceException(e);
-      }
-    }
+    StaticUtils.close(asn1Writer, debugOutputStream);
+    StaticUtils.close(socket);
   }
 }

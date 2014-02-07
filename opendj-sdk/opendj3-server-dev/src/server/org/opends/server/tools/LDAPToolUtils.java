@@ -33,7 +33,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.net.SocketTimeoutException;
 
-import org.opends.server.protocols.asn1.ASN1Exception;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.DN;
@@ -290,11 +290,11 @@ public class LDAPToolUtils
    * <br>
    * The code simply checks that the exception corresponds to a client side
    * time out.
-   * @param ae the asn1exception that occurred connecting to the server or
+   * @param ae the DecodeException that occurred connecting to the server or
    * handling the response from the server.
    * @return the message to be displayed to the user when an exception occurs.
    */
-  public static String getMessageForConnectionException(ASN1Exception ae)
+  public static String getMessageForConnectionException(DecodeException ae)
   {
     Throwable cause = ae.getCause();
     if (cause != null)

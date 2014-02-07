@@ -32,8 +32,7 @@ import org.testng.annotations.Test;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
-import org.opends.server.protocols.asn1.*;
-import static org.opends.server.protocols.asn1.ASN1Constants.UNIVERSAL_OCTET_STRING_TYPE;
+import org.forgerock.opendj.io.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.testng.Assert.*;
 
@@ -277,7 +276,7 @@ public class TestSearchProtocolOp extends LdapTestCase
     ASN1Writer writer = ASN1.getWriter(builder);
     writer.writeStartSequence(OP_TYPE_SEARCH_REQUEST);
     writer.writeOctetString(baseDN);
-    writer.writeNull(UNIVERSAL_OCTET_STRING_TYPE);
+    writer.writeNull(ASN1.UNIVERSAL_OCTET_STRING_TYPE);
     writer.writeInteger(dereferencePolicy.intValue());
     writer.writeInteger(sizeLimit);
     writer.writeInteger(timeLimit);
@@ -305,7 +304,7 @@ public class TestSearchProtocolOp extends LdapTestCase
     writer.writeStartSequence(OP_TYPE_SEARCH_REQUEST);
     writer.writeOctetString(baseDN);
     writer.writeInteger(scope.intValue());
-    writer.writeNull(UNIVERSAL_OCTET_STRING_TYPE);
+    writer.writeNull(ASN1.UNIVERSAL_OCTET_STRING_TYPE);
     writer.writeInteger(sizeLimit);
     writer.writeInteger(timeLimit);
     writer.writeBoolean(typesOnly);
@@ -333,7 +332,7 @@ public class TestSearchProtocolOp extends LdapTestCase
     writer.writeOctetString(baseDN);
     writer.writeInteger(scope.intValue());
     writer.writeInteger(dereferencePolicy.intValue());
-    writer.writeNull(UNIVERSAL_OCTET_STRING_TYPE);
+    writer.writeNull(ASN1.UNIVERSAL_OCTET_STRING_TYPE);
     writer.writeInteger(timeLimit);
     writer.writeBoolean(typesOnly);
     filter.write(writer);
@@ -361,7 +360,7 @@ public class TestSearchProtocolOp extends LdapTestCase
     writer.writeInteger(scope.intValue());
     writer.writeInteger(dereferencePolicy.intValue());
     writer.writeInteger(sizeLimit);
-    writer.writeNull(UNIVERSAL_OCTET_STRING_TYPE);
+    writer.writeNull(ASN1.UNIVERSAL_OCTET_STRING_TYPE);
     writer.writeBoolean(typesOnly);
     filter.write(writer);
 
@@ -389,7 +388,7 @@ public class TestSearchProtocolOp extends LdapTestCase
     writer.writeInteger(dereferencePolicy.intValue());
     writer.writeInteger(sizeLimit);
     writer.writeInteger(timeLimit);
-    writer.writeNull(UNIVERSAL_OCTET_STRING_TYPE);
+    writer.writeNull(ASN1.UNIVERSAL_OCTET_STRING_TYPE);
     filter.write(writer);
 
     writer.writeStartSequence();
@@ -417,7 +416,7 @@ public class TestSearchProtocolOp extends LdapTestCase
     writer.writeInteger(sizeLimit);
     writer.writeInteger(timeLimit);
     writer.writeBoolean(typesOnly);
-    writer.writeNull(UNIVERSAL_OCTET_STRING_TYPE);
+    writer.writeNull(ASN1.UNIVERSAL_OCTET_STRING_TYPE);
 
     writer.writeStartSequence();
     for(String attribute : attributes)

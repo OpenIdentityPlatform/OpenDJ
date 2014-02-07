@@ -32,7 +32,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.io.IOException;
 
-import org.opends.server.protocols.asn1.*;
+import org.forgerock.opendj.io.*;
 import org.opends.server.types.DN;
 import org.forgerock.opendj.ldap.ByteString;
 

@@ -26,19 +26,19 @@
  */
 package org.opends.server.replication.protocol;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.opends.server.protocols.asn1.ASN1;
-import org.opends.server.protocols.asn1.ASN1Exception;
-import org.opends.server.protocols.asn1.ASN1Reader;
-import org.opends.server.protocols.asn1.ASN1Writer;
+import org.forgerock.opendj.io.ASN1;
+import org.forgerock.opendj.io.ASN1Reader;
+import org.forgerock.opendj.io.ASN1Writer;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.plugin.EntryHistorical;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteStringBuilder;
 
 /**
  * This class holds every common code for the modify messages (mod, moddn).
@@ -99,10 +99,10 @@ public abstract class ModifyCommonMsg extends LDAPUpdateMsg {
   /**
    * Get the Modifications associated to the UpdateMsg to the provided value.
    * @throws LDAPException In case of LDAP decoding exception
-   * @throws ASN1Exception In case of ASN1 decoding exception
+   * @throws IOException In case of ASN1 decoding exception
    * @return the list of modifications
    */
-  public List<Modification> getMods() throws ASN1Exception, LDAPException
+  public List<Modification> getMods() throws IOException, LDAPException
   {
     return decodeMods(encodedMods);
   }
@@ -164,11 +164,11 @@ public abstract class ModifyCommonMsg extends LDAPUpdateMsg {
   /**
    * Decode mods from the provided byte array.
    * @param in The provided byte array.
-   * @throws ASN1Exception when occurs.
+   * @throws IOException when occurs.
    * @throws LDAPException when occurs.
    * @return The decoded mods.
    */
-  protected List<Modification> decodeMods(byte[] in) throws ASN1Exception,
+  protected List<Modification> decodeMods(byte[] in) throws IOException,
       LDAPException
   {
     List<Modification> mods = new ArrayList<Modification>();
@@ -184,11 +184,11 @@ public abstract class ModifyCommonMsg extends LDAPUpdateMsg {
    * Decode raw mods from the provided byte array.
    * @param in The provided byte array.
    * @return The decoded mods.
-   * @throws ASN1Exception when occurs.
+   * @throws IOException when occurs.
    * @throws LDAPException when occurs.
    */
   protected List<RawModification> decodeRawMods(byte[] in)
-      throws LDAPException, ASN1Exception
+      throws LDAPException, IOException
   {
     List<RawModification> ldapmods = new ArrayList<RawModification>();
     ASN1Reader asn1Reader = ASN1.getReader(in);

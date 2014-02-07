@@ -41,7 +41,7 @@ import org.opends.admin.ads.util.ConnectionUtils;
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.controls.LDAPAssertionRequestControl;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.server.protocols.asn1.ASN1Exception;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.protocols.ldap.CompareRequestProtocolOp;
 import org.opends.server.protocols.ldap.CompareResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPFilter;
@@ -248,7 +248,7 @@ public class LDAPCompare
                                               protocolOp, controls);
         connection.getLDAPWriter().writeMessage(message);
         responseMessage = connection.getLDAPReader().readMessage();
-      } catch(ASN1Exception ae)
+      } catch(DecodeException ae)
       {
         logger.traceException(ae);
         if (!compareOptions.continueOnError())

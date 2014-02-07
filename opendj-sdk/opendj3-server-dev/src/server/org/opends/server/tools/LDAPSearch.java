@@ -49,7 +49,7 @@ import com.forgerock.opendj.cli.FileBasedArgument;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.MultiChoiceArgument;
 import com.forgerock.opendj.cli.StringArgument;
-import org.opends.server.protocols.asn1.ASN1Exception;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import static org.opends.messages.ToolMessages.*;
@@ -386,7 +386,7 @@ public class LDAPSearch
 
           } while(opType != OP_TYPE_SEARCH_RESULT_DONE);
 
-        } catch(ASN1Exception ae)
+        } catch(DecodeException ae)
         {
           logger.traceException(ae);
           throw new IOException(ae.getMessage());

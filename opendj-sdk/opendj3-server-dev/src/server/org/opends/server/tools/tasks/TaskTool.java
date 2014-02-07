@@ -24,7 +24,6 @@
  *      Copyright 2007-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2012-2014 ForgeRock AS
  */
-
 package org.opends.server.tools.tasks;
 
 import com.forgerock.opendj.cli.Argument;
@@ -38,7 +37,7 @@ import static org.opends.server.util.StaticUtils.wrapText;
 import static org.opends.server.util.StaticUtils.getExceptionMessage;
 import static org.opends.server.util.ServerConstants.MAX_LINE_WIDTH;
 
-import org.opends.server.protocols.asn1.ASN1Exception;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.tools.LDAPConnection;
 import org.opends.server.tools.LDAPConnectionException;
 
@@ -369,12 +368,12 @@ public abstract class TaskTool implements TaskScheduleInformation {
         }
         if (err != null) err.println(wrapText(message, MAX_LINE_WIDTH));
         ret = 1;
-      } catch (IOException ioe) {
-        LocalizableMessage message = ERR_TASK_TOOL_IO_ERROR.get(ioe);
+      } catch (DecodeException ae) {
+        LocalizableMessage message = ERR_TASK_TOOL_DECODE_ERROR.get(ae.getMessage());
         if (err != null) err.println(wrapText(message, MAX_LINE_WIDTH));
         ret = 1;
-      } catch (ASN1Exception ae) {
-        LocalizableMessage message = ERR_TASK_TOOL_DECODE_ERROR.get(ae.getMessage());
+      } catch (IOException ioe) {
+        LocalizableMessage message = ERR_TASK_TOOL_IO_ERROR.get(ioe);
         if (err != null) err.println(wrapText(message, MAX_LINE_WIDTH));
         ret = 1;
       } catch (LDAPException le) {

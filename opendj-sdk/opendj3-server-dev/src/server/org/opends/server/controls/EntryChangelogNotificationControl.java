@@ -27,7 +27,6 @@
 package org.opends.server.controls;
 import static org.opends.messages.ProtocolMessages.ERR_ECLN_CANNOT_DECODE_VALUE;
 import static org.opends.messages.ProtocolMessages.ERR_ECLN_NO_CONTROL_VALUE;
-import static org.opends.server.protocols.asn1.ASN1Constants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.getExceptionMessage;
 
@@ -35,9 +34,9 @@ import java.io.IOException;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.server.protocols.asn1.ASN1;
-import org.opends.server.protocols.asn1.ASN1Reader;
-import org.opends.server.protocols.asn1.ASN1Writer;
+import org.forgerock.opendj.io.ASN1;
+import org.forgerock.opendj.io.ASN1Reader;
+import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.Control;
 import org.opends.server.types.DirectoryException;
@@ -133,7 +132,7 @@ public class EntryChangelogNotificationControl
    * @throws IOException If a problem occurs while writing to the stream.
    */
   public void writeValue(ASN1Writer writer) throws IOException {
-    writer.writeStartSequence(UNIVERSAL_OCTET_STRING_TYPE);
+    writer.writeStartSequence(ASN1.UNIVERSAL_OCTET_STRING_TYPE);
     writer.writeStartSequence();
     writer.writeOctetString(cookie.toString());
     writer.writeEndSequence();

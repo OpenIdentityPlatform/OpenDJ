@@ -26,31 +26,30 @@
  */
 package org.opends.server.backends.jeb;
 
-import org.forgerock.i18n.LocalizableMessage;
-
-import static org.opends.server.core.DirectoryServer.getMaxInternalBufferSize;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-
-import static org.opends.messages.JebMessages.*;
-
-import static org.forgerock.util.Utils.closeSilently;
-import com.sleepycat.je.*;
-
-import org.opends.server.types.*;
+import org.forgerock.opendj.io.ASN1;
+import org.forgerock.opendj.io.ASN1Reader;
+import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.asn1.ASN1Writer;
-import org.opends.server.protocols.asn1.ASN1;
-import org.opends.server.protocols.asn1.ASN1Reader;
-import org.opends.server.protocols.asn1.ASN1Exception;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.api.CompressedSchema;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.LDAPException;
+
+import com.sleepycat.je.*;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.zip.DataFormatException;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.InflaterOutputStream;
+
+import static org.forgerock.util.Utils.*;
+import static org.opends.messages.JebMessages.*;
+import static org.opends.server.core.DirectoryServer.*;
 
 /**
  * Represents the database containing the LDAP entries. The database key is
@@ -114,22 +113,21 @@ public class ID2Entry extends DatabaseContainer
 
     private void release()
     {
-      closeSilently(writer); // Clears encodedBuffer as well.
+      closeSilently(writer);
+      encodedBuffer.clearAndTruncate(maxBufferSize, BUFFER_INIT_SIZE);
       entryBuffer.clearAndTruncate(maxBufferSize, BUFFER_INIT_SIZE);
       compressedEntryBuffer.clearAndTruncate(maxBufferSize, BUFFER_INIT_SIZE);
     }
 
     private Entry decode(ByteString bytes, CompressedSchema compressedSchema)
-        throws DirectoryException, ASN1Exception, LDAPException,
+        throws DirectoryException, DecodeException, LDAPException,
         DataFormatException, IOException
     {
       // Get the format version.
       byte formatVersion = bytes.byteAt(0);
       if(formatVersion != JebFormat.FORMAT_VERSION)
       {
-        LocalizableMessage message =
-            ERR_JEB_INCOMPATIBLE_ENTRY_VERSION.get(formatVersion);
-        throw new ASN1Exception(message);
+        throw DecodeException.error(ERR_JEB_INCOMPATIBLE_ENTRY_VERSION.get(formatVersion));
       }
 
       // Read the ASN1 sequence.
@@ -296,7 +294,7 @@ public class ID2Entry extends DatabaseContainer
    * @param bytes A byte array containing the encoded database value.
    * @param compressedSchema The compressed schema manager to use when decoding.
    * @return The decoded entry.
-   * @throws ASN1Exception If the data is not in the expected ASN.1 encoding
+   * @throws DecodeException If the data is not in the expected ASN.1 encoding
    * format.
    * @throws LDAPException If the data is not in the expected ASN.1 encoding
    * format.
@@ -307,7 +305,7 @@ public class ID2Entry extends DatabaseContainer
    */
   public static Entry entryFromDatabase(ByteString bytes,
       CompressedSchema compressedSchema) throws DirectoryException,
-      ASN1Exception, LDAPException, DataFormatException, IOException
+      DecodeException, LDAPException, DataFormatException, IOException
   {
     EntryCodec codec = acquireEntryCodec();
     try

@@ -26,14 +26,11 @@
  */
 package org.opends.server.plugins.profiler;
 
-
-
 import java.io.IOException;
 
-import org.opends.server.protocols.asn1.*;
-
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-
+import org.forgerock.opendj.io.ASN1Reader;
+import org.forgerock.opendj.io.ASN1Writer;
 
 /**
  * This class defines a data structure that may be used to hold information
@@ -324,10 +321,9 @@ public class ProfileStack
    *                 information from.
    *
    * @return  The decoded profile stack.
-   * @throws ASN1Exception If the element could not be decoded for some reason.
-   *
+   * @throws IOException If the element could not be decoded for some reason.
    */
-  public static ProfileStack decode(ASN1Reader reader) throws ASN1Exception
+  public static ProfileStack decode(ASN1Reader reader) throws IOException
   {
     reader.readStartSequence();
 

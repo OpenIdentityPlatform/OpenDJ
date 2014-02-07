@@ -26,21 +26,22 @@
  */
 
 package org.opends.server.controls;
+
 import org.forgerock.i18n.LocalizableMessage;
-
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.protocols.asn1.*;
-import static org.opends.server.protocols.asn1.ASN1Constants.
-    UNIVERSAL_OCTET_STRING_TYPE;
-import static org.opends.server.util.ServerConstants.OID_GET_EFFECTIVE_RIGHTS;
-import org.opends.server.core.DirectoryServer;
-import static org.opends.messages.ProtocolMessages.*;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.io.ASN1;
+import org.forgerock.opendj.io.ASN1Reader;
+import org.forgerock.opendj.io.ASN1Writer;
+import org.forgerock.opendj.ldap.ByteString;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.types.*;
 
-import java.util.List;
-import java.util.LinkedList;
+import static org.opends.messages.ProtocolMessages.*;
+import static org.opends.server.util.ServerConstants.*;
+
 import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * This class partially implements the geteffectiverights control as defined
@@ -73,7 +74,7 @@ import java.io.IOException;
 public class GetEffectiveRightsRequestControl extends Control
 {
   /**
-   * ControlDecoder implentation to decode this control from a ByteString.
+   * ControlDecoder implementation to decode this control from a ByteString.
    */
   private static final class Decoder
       implements ControlDecoder<GetEffectiveRightsRequestControl>
@@ -126,7 +127,7 @@ public class GetEffectiveRightsRequestControl extends Control
             reader.readEndSequence();
           }
           reader.readEndSequence();
-        } catch (ASN1Exception e) {
+        } catch (IOException e) {
           logger.traceException(e);
 
           LocalizableMessage message =
@@ -223,7 +224,7 @@ public class GetEffectiveRightsRequestControl extends Control
    */
   @Override
   public void writeValue(ASN1Writer writer) throws IOException {
-    writer.writeStartSequence(UNIVERSAL_OCTET_STRING_TYPE);
+    writer.writeStartSequence(ASN1.UNIVERSAL_OCTET_STRING_TYPE);
 
     writer.writeStartSequence();
     if(authzDN != null)

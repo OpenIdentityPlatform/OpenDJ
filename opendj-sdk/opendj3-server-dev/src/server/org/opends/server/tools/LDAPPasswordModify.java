@@ -37,7 +37,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.controls.PasswordPolicyErrorType;
 import org.opends.server.controls.PasswordPolicyResponseControl;
 import org.opends.server.controls.PasswordPolicyWarningType;
-import org.opends.server.protocols.asn1.*;
+import org.forgerock.opendj.io.*;
 import org.opends.server.protocols.ldap.ExtendedRequestProtocolOp;
 import org.opends.server.protocols.ldap.ExtendedResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPControl;
@@ -771,20 +771,8 @@ public class LDAPPasswordModify
       LocalizableMessage message = ERR_LDAPPWMOD_CANNOT_SEND_PWMOD_REQUEST.get(e);
       err.println(wrapText(message, MAX_LINE_WIDTH));
 
-      try
-      {
-        requestMessage = new LDAPMessage(nextMessageID.getAndIncrement(),
-                                         new UnbindRequestProtocolOp());
-        writer.writeMessage(requestMessage);
-      }
-      catch (Exception e2) {}
-
-      try
-      {
-        reader.close();
-        writer.close();
-      } catch (Exception e2) {}
-
+      unbind(nextMessageID, writer);
+      close(reader, writer);
       return 1;
     }
 
@@ -800,20 +788,8 @@ public class LDAPPasswordModify
       LocalizableMessage message = ERR_LDAPPWMOD_CANNOT_READ_PWMOD_RESPONSE.get(e);
       err.println(wrapText(message, MAX_LINE_WIDTH));
 
-      try
-      {
-        requestMessage = new LDAPMessage(nextMessageID.getAndIncrement(),
-                                         new UnbindRequestProtocolOp());
-        writer.writeMessage(requestMessage);
-      }
-      catch (Exception e2) {}
-
-      try
-      {
-        reader.close();
-        writer.close();
-      } catch (Exception e2) {}
-
+      unbind(nextMessageID, writer);
+      close(reader, writer);
       return 1;
     }
 
@@ -841,20 +817,8 @@ public class LDAPPasswordModify
         err.println(wrapText(message, MAX_LINE_WIDTH));
       }
 
-      try
-      {
-        requestMessage = new LDAPMessage(nextMessageID.getAndIncrement(),
-                                         new UnbindRequestProtocolOp());
-        writer.writeMessage(requestMessage);
-      }
-      catch (Exception e) {}
-
-      try
-      {
-        reader.close();
-        writer.close();
-      } catch (Exception e) {}
-
+      unbind(nextMessageID, writer);
+      close(reader, writer);
       return resultCode;
     }
     else
@@ -944,41 +908,29 @@ public class LDAPPasswordModify
         LocalizableMessage message = ERR_LDAPPWMOD_COULD_NOT_DECODE_RESPONSE_VALUE.get(e);
         err.println(wrapText(message, MAX_LINE_WIDTH));
 
-        try
-        {
-          requestMessage = new LDAPMessage(nextMessageID.getAndIncrement(),
-                                           new UnbindRequestProtocolOp());
-          writer.writeMessage(requestMessage);
-        }
-        catch (Exception e2) {}
-
-        try
-        {
-          reader.close();
-          writer.close();
-        } catch (Exception e2) {}
-
+        unbind(nextMessageID, writer);
+        close(reader, writer);
         return 1;
       }
     }
 
 
     // Unbind from the server and close the connection.
+    unbind(nextMessageID, writer);
+    close(reader, writer);
+    return 0;
+  }
+
+  private static void unbind(AtomicInteger nextMessageID, LDAPWriter writer)
+  {
     try
     {
-      requestMessage = new LDAPMessage(nextMessageID.getAndIncrement(),
-                                       new UnbindRequestProtocolOp());
+      LDAPMessage requestMessage = new LDAPMessage(
+          nextMessageID.getAndIncrement(), new UnbindRequestProtocolOp());
       writer.writeMessage(requestMessage);
     }
     catch (Exception e) {}
-
-    try
-    {
-      reader.close();
-      writer.close();
-    } catch (Exception e) {}
-
-    return 0;
   }
+
 }
 

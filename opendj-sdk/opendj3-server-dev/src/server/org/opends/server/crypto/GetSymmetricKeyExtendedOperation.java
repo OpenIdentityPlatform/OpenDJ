@@ -36,10 +36,10 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ExtendedOperation;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.server.protocols.asn1.ASN1;
-import org.opends.server.protocols.asn1.ASN1Exception;
-import org.opends.server.protocols.asn1.ASN1Reader;
-import org.opends.server.protocols.asn1.ASN1Writer;
+import org.forgerock.opendj.io.ASN1;
+import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.io.ASN1Reader;
+import org.forgerock.opendj.io.ASN1Writer;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
@@ -129,13 +129,10 @@ public class GetSymmetricKeyExtendedOperation
       }
       reader.readEndSequence();
     }
-    catch (ASN1Exception ae)
+    catch (DecodeException e)
     {
-      logger.traceException(ae);
-
-      LocalizableMessage message = ERR_GET_SYMMETRIC_KEY_ASN1_DECODE_EXCEPTION.get(
-           ae.getMessage());
-      operation.appendErrorMessage(message);
+      logger.traceException(e);
+      operation.appendErrorMessage(ERR_GET_SYMMETRIC_KEY_ASN1_DECODE_EXCEPTION.get(e.getMessage()));
       return;
     }
     catch (Exception e)

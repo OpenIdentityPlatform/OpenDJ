@@ -69,7 +69,7 @@ import javax.xml.validation.SchemaFactory;
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.controls.ProxiedAuthV2Control;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.asn1.ASN1Exception;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.protocols.ldap.LDAPConstants;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.ldap.LDAPMessage;
@@ -300,11 +300,10 @@ public class DSMLServlet extends HttpServlet {
       LocalizableMessage m = INFO_RESULT_CLIENT_SIDE_ENCODING_ERROR.get();
       throw new LDAPConnectionException(m, CLIENT_SIDE_CONNECT_ERROR, null, le);
     }
-    catch (ASN1Exception ae)
+    catch (DecodeException ae)
     {
       LocalizableMessage m = INFO_RESULT_CLIENT_SIDE_ENCODING_ERROR.get();
-      throw new LDAPConnectionException(m, CLIENT_SIDE_CONNECT_ERROR, null,
-          ae);
+      throw new LDAPConnectionException(m, CLIENT_SIDE_CONNECT_ERROR, null, ae);
     }
     catch (IOException ie)
     {
@@ -621,7 +620,7 @@ public class DSMLServlet extends HttpServlet {
    * @return a JAXBElement that contains an ErrorResponse
    */
   private JAXBElement<ErrorResponse> createErrorResponse(Throwable t) {
-    // potential exceptions are IOException, LDAPException, ASN1Exception
+    // potential exceptions are IOException, LDAPException, DecodeException
 
     ErrorResponse errorResponse = objFactory.createErrorResponse();
     errorResponse.setMessage(String.valueOf(t));

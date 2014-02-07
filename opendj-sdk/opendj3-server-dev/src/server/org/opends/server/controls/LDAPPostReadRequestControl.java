@@ -35,10 +35,9 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.io.IOException;
 
-import org.opends.server.protocols.asn1.*;
+import org.forgerock.opendj.io.*;
 
 import static org.opends.server.plugins.LDAPADListPlugin.*;
-import static org.opends.server.protocols.asn1.ASN1Constants.*;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
@@ -193,7 +192,7 @@ public class LDAPPostReadRequestControl extends Control
   @Override
   public void writeValue(ASN1Writer writer) throws IOException
   {
-    writer.writeStartSequence(UNIVERSAL_OCTET_STRING_TYPE);
+    writer.writeStartSequence(ASN1.UNIVERSAL_OCTET_STRING_TYPE);
     {
       writer.writeStartSequence();
       if (rawAttributes != null)

@@ -30,7 +30,7 @@ package org.opends.server.core;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -43,9 +43,9 @@ import java.util.Map.Entry;
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.CompressedSchema;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.server.protocols.asn1.ASN1;
-import org.opends.server.protocols.asn1.ASN1Reader;
-import org.opends.server.protocols.asn1.ASN1Writer;
+import org.forgerock.opendj.io.ASN1;
+import org.forgerock.opendj.io.ASN1Reader;
+import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DirectoryException;
 
@@ -297,17 +297,7 @@ public final class DefaultCompressedSchema extends CompressedSchema
       }
       finally
       {
-        try
-        {
-          if (outputStream != null)
-          {
-            outputStream.close();
-          }
-        }
-        catch (final Exception e)
-        {
-          logger.traceException(e);
-        }
+        close(outputStream);
       }
     }
   }
