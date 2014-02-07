@@ -28,6 +28,7 @@ package org.forgerock.opendj.server.setup.model;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 
+import static com.forgerock.opendj.cli.CliConstants.*;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
@@ -43,16 +44,16 @@ public class ListenerSettingsTestCase extends AbstractSetupTestCase {
     @Test()
     public void testGetDefault() {
         final ListenerSettings dsSettings = new ListenerSettings();
-        assertThat(dsSettings.getAdminPort()).isEqualTo(ListenerSettings.DEFAULT_ADMIN_PORT);
-        assertThat(dsSettings.getHTTPPort()).isEqualTo(ListenerSettings.DEFAULT_HTTP_PORT);
-        assertThat(dsSettings.getJMXPort()).isEqualTo(ListenerSettings.DEFAULT_JMX_PORT);
-        assertThat(dsSettings.getLdapPort()).isEqualTo(ListenerSettings.DEFAULT_LDAP_PORT);
-        assertThat(dsSettings.getLdapsPort()).isEqualTo(ListenerSettings.DEFAULT_LDAPS_PORT);
-        assertThat(dsSettings.getSNMPPort()).isEqualTo(ListenerSettings.DEFAULT_SNMP_PORT);
-        assertThat(dsSettings.getSSLPortNumber()).isEqualTo(ListenerSettings.DEFAULT_SSL_PORT);
+        assertThat(dsSettings.getAdminPort()).isEqualTo(DEFAULT_ADMIN_PORT);
+        assertThat(dsSettings.getHTTPPort()).isEqualTo(DEFAULT_HTTP_PORT);
+        assertThat(dsSettings.getJMXPort()).isEqualTo(DEFAULT_JMX_PORT);
+        assertThat(dsSettings.getLdapPort()).isEqualTo(DEFAULT_LDAP_PORT);
+        assertThat(dsSettings.getLdapsPort()).isEqualTo(DEFAULT_LDAPS_PORT);
+        assertThat(dsSettings.getSNMPPort()).isEqualTo(DEFAULT_SNMP_PORT);
+        assertThat(dsSettings.getSSLPortNumber()).isEqualTo(DEFAULT_SSL_PORT);
 
         assertThat(dsSettings.getHostName()).isEmpty();
-        assertThat(dsSettings.getRootUserDN()).isEqualTo(ListenerSettings.DEFAULT_ROOT_USER_DN);
+        assertThat(dsSettings.getRootUserDN()).isEqualTo(DEFAULT_ROOT_USER_DN);
         assertThat(dsSettings.getPassword()).isNull();
         assertFalse(dsSettings.isSSLEnabled());
         assertThat(dsSettings.getCertificate()).isNull();
@@ -77,7 +78,7 @@ public class ListenerSettingsTestCase extends AbstractSetupTestCase {
         // Verify the new port number is different from the free socket and verify it's free.
         final int newPort = ListenerSettings.getFreeSocketPort(port);
         assertThat(newPort).isNotEqualTo(port);
-        assertTrue(Math.abs(newPort - port) % ListenerSettings.PORT_INCREMENT == 0);
+        assertTrue(Math.abs(newPort - port) % PORT_INCREMENT == 0);
 
         boundSocket.close();
     }

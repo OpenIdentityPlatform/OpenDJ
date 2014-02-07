@@ -25,6 +25,7 @@
  */
 package org.forgerock.opendj.server.setup.model;
 
+import static com.forgerock.opendj.cli.CliConstants.*;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
@@ -66,13 +67,13 @@ public class ModelTestCase extends AbstractSetupTestCase {
         ds.getListenerSettings().setPassword("password");
 
         // Verify ports
-        assertThat(dsSettings.getAdminPort()).isEqualTo(ListenerSettings.DEFAULT_ADMIN_PORT);
-        assertThat(dsSettings.getHTTPPort()).isEqualTo(ListenerSettings.DEFAULT_HTTP_PORT);
-        assertThat(dsSettings.getJMXPort()).isEqualTo(ListenerSettings.DEFAULT_JMX_PORT);
-        assertThat(dsSettings.getLdapPort()).isEqualTo(ListenerSettings.DEFAULT_LDAP_PORT);
-        assertThat(dsSettings.getLdapsPort()).isEqualTo(ListenerSettings.DEFAULT_LDAPS_PORT);
-        assertThat(dsSettings.getSNMPPort()).isEqualTo(ListenerSettings.DEFAULT_SNMP_PORT);
-        assertThat(dsSettings.getSSLPortNumber()).isEqualTo(ListenerSettings.DEFAULT_SSL_PORT);
+        assertThat(dsSettings.getAdminPort()).isEqualTo(DEFAULT_ADMIN_PORT);
+        assertThat(dsSettings.getHTTPPort()).isEqualTo(DEFAULT_HTTP_PORT);
+        assertThat(dsSettings.getJMXPort()).isEqualTo(DEFAULT_JMX_PORT);
+        assertThat(dsSettings.getLdapPort()).isEqualTo(DEFAULT_LDAP_PORT);
+        assertThat(dsSettings.getLdapsPort()).isEqualTo(DEFAULT_LDAPS_PORT);
+        assertThat(dsSettings.getSNMPPort()).isEqualTo(DEFAULT_SNMP_PORT);
+        assertThat(dsSettings.getSSLPortNumber()).isEqualTo(DEFAULT_SSL_PORT);
 
         assertFalse(ds.isService());
         assertTrue(ds.isStartingServerAfterSetup());

@@ -29,35 +29,12 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
+import static com.forgerock.opendj.cli.CliConstants.*;
 
+/**
+ * This class provides listener settings for the OpenDJ3 setup.
+ */
 class ListenerSettings {
-
-    /** Default value for incrementing port number. */
-    static final int PORT_INCREMENT = 1000;
-
-    /** Default port number for the LDAP port. */
-    static final int DEFAULT_LDAP_PORT = 389;
-
-    /** Default port number for the LDAPS port. */
-    static final int DEFAULT_LDAPS_PORT = 1636;
-
-    /** Default port number for the administrator port. */
-    static final int DEFAULT_ADMIN_PORT = 1444;
-
-    /** Default port number for the SSL Connection. */
-    static final int DEFAULT_SSL_PORT = 636;
-
-    /** Default port number for the JMX Connection handler. */
-    static final int DEFAULT_JMX_PORT = 1689;
-
-    /** Default port number for the HTTP Connection handler. */
-    static final int DEFAULT_HTTP_PORT = 8080;
-
-    /** Default port number for the SNMP Connection handler. */
-    static final int DEFAULT_SNMP_PORT = 161;
-
-    /** Default name of root user DN. */
-    static final String DEFAULT_ROOT_USER_DN = "cn=Directory Manager";
 
     private String hostName;
     private int ldapPort;

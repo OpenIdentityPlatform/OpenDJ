@@ -29,7 +29,6 @@ import static com.forgerock.opendj.cli.Utils.LINE_SEPARATOR;
 import static com.forgerock.opendj.cli.Utils.checkJavaVersion;
 import static com.forgerock.opendj.cli.CliMessages.*;
 
-
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -45,6 +44,7 @@ import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.CLIException;
+import com.forgerock.opendj.cli.CliConstants;
 import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.FileBasedArgument;
@@ -53,6 +53,7 @@ import com.forgerock.opendj.cli.ReturnCode;
 import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.cli.SubCommand;
 import com.forgerock.opendj.cli.SubCommandArgumentParser;
+import com.forgerock.opendj.cli.Utils;
 
 /**
  * This class implements the new CLI for OpenDJ3 setup.
@@ -149,7 +150,8 @@ public final class SetupCli extends ConsoleApplication {
 
     /** Create the command-line argument parser for use with this program. */
     int run(final String[] args) {
-        // TODO SetupLog.initLogFileHandler();
+        // TODO Activate logger when the instance/installation path will be resolved.
+        // SetupLog.initLogFileHandler();
 
         try {
             checkJavaVersion();
@@ -212,9 +214,9 @@ public final class SetupCli extends ConsoleApplication {
         rejectedImportFile = CommonArguments.getRejectedImportLdif();
         skippedImportFile = CommonArguments.getSkippedImportFile();
         sampleData = CommonArguments.getSampleData();
-        ldapPort = CommonArguments.getLDAPPort(389); // TODO
-        adminConnectorPort = CommonArguments.getAdminLDAPPort(1444); // TODO
-        jmxPort = CommonArguments.getJMXPort(1444); // TODO
+        ldapPort = CommonArguments.getLDAPPort(CliConstants.DEFAULT_LDAP_PORT);
+        adminConnectorPort = CommonArguments.getAdminLDAPPort(CliConstants.DEFAULT_ADMIN_PORT);
+        jmxPort = CommonArguments.getJMXPort(CliConstants.DEFAULT_JMX_PORT);
         skipPortCheck = CommonArguments.getSkipPortCheck();
         directoryManagerDN = CommonArguments.getRootDN();
         directoryManagerPwdString = CommonArguments.getRootDNPwd();
@@ -222,9 +224,9 @@ public final class SetupCli extends ConsoleApplication {
         enableWindowsService = CommonArguments.getEnableWindowsService();
         doNotStart = CommonArguments.getDoNotStart();
         enableStartTLS = CommonArguments.getEnableTLS();
-        ldapsPort = CommonArguments.getLDAPSPort(1636); // TODO
+        ldapsPort = CommonArguments.getLDAPSPort(CliConstants.DEFAULT_LDAPS_PORT);
         generateSelfSignedCertificate = CommonArguments.getGenerateSelfSigned();
-        hostName = CommonArguments.getHostName("TODO"); // TODO
+        hostName = CommonArguments.getHostName(Utils.getDefaultHostName());
         usePkcs11 = CommonArguments.getUsePKCS11Keystore();
         useJavaKeyStore = CommonArguments.getUseJavaKeyStore();
         useJCEKS = CommonArguments.getUseJCEKS();
