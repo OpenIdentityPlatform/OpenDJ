@@ -20,17 +20,16 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2013 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !    
 -->
 <refentry xml:id='dsreplication-1'
  xmlns='http://docbook.org/ns/docbook'
  version='5.0' xml:lang='en'
  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
- <info><copyright><year>2011-2013</year><holder>ForgeRock AS</holder></copyright></info>
+ xsi:schemaLocation='http://docbook.org/ns/docbook
+                     http://docbook.org/xml/5.0/xsd/docbook.xsd'>
+ <info><copyright><year>2011-2014</year><holder>ForgeRock AS</holder></copyright></info>
  <refmeta>
   <refentrytitle>dsreplication</refentrytitle><manvolnum>1</manvolnum>
   <refmiscinfo class="software">OpenDJ</refmiscinfo>
@@ -56,95 +55,7 @@
   the other using the <command>initialize</command> subcommand.</para>
  </refsect1>
  <refsect1>
-  <title>Subcommands</title>
-  <para>The following subcommands are supported.</para>
-  <variablelist>
-   <varlistentry>
-    <term><command>disable</command></term>
-    <listitem>
-     <para>Disable replication on the specified server for the provided base
-     DN and removes references in the other servers with which it is
-     replicating data.</para>
-    </listitem>
-   </varlistentry>
-   <varlistentry>
-    <term><command>enable</command></term>
-    <listitem>
-     <para>Update the configuration of the servers to replicate the data
-     under the specified base DN.  If one of the specified servers is already
-     replicating the data under the base DN with other servers, executing this
-     subcommand will update the configuration of all the servers. Thus it is
-     sufficient to execute the command line once for each server added to the
-     replication topology.</para>
-    </listitem>
-   </varlistentry>
-   <varlistentry>
-    <term><command>initialize</command></term>
-    <listitem>
-     <para>Initialize the contents of the data under the specified base DN
-     on the destination server with the contents on the source server.  This
-     operation is required after enabling replication in order replication to
-     work. <command>initialize-all</command> can also be used for this
-     purpose.</para>
-    </listitem>
-   </varlistentry>
-   <varlistentry>
-    <term><command>initialize-all</command></term>
-    <listitem>
-     <para>Initialize the contents of the data under the specified base DN
-     on all the servers whose contents are being replicated with the contents
-     on the specified server.  This operation is required after enabling
-     replication for replication to work. Run <command>initialize</command>
-     for each server to achieve the same effect.</para>
-    </listitem>
-   </varlistentry>
-   <varlistentry>
-    <term><command>post-external-initialization</command></term>
-    <listitem>
-     <para>This subcommand must be called after initializing the contents of
-     all the replicated servers using the <command>import-ldif</command>
-     command, or by copying the database. You must specify the list of base DNs
-     that have been initialized, and you must provide the credentials of any
-     of the servers that are being replicated.  See
-     <command>pre-external-initialization --help</command> for more
-     information.</para>
-    </listitem>
-   </varlistentry>
-   <varlistentry>
-    <term><command>pre-external-initialization</command></term>
-    <listitem>
-     <para>This subcommand must be called before initializing the contents
-     of all the replicated servers using the <command>import-ldif</command>
-     command, or by copying the database. You must specify the list of base DNs
-     that have been initialized, and you must provide the credentials of any
-     of the servers that are being replicated. After calling this subcommand,
-     initialize the contents of all the servers in the topology, either by
-     using the same LDIF file or by copying the database to each of the
-     servers, then call the <command>post-external-initialization</command>
-     subcommand.</para>
-    </listitem>
-   </varlistentry>
-   <varlistentry>
-    <term><command>purge-historical</command></term>
-    <listitem>
-     <para>Launch a purge processing of the historical information stored
-     in the user entries by replication. Since this processing may take a
-     while, you must specify a maximum duration.</para>
-    </listitem>
-   </varlistentry>
-   <varlistentry>
-    <term><command>status</command></term>
-    <listitem>
-     <para>Display a list with the basic replication configuration of the
-     base DNs of the servers defined in the registration information.  If
-     no base DNs are specified as parameter, information for all base DNs
-     is displayed.</para>
-    </listitem>
-   </varlistentry>
-  </variablelist>
- </refsect1>
- <refsect1>
-  <title>Options</title>
+  <title>Global Options</title>
   <para>The following options are supported.</para>
   <variablelist>
    <varlistentry>
@@ -348,6 +259,755 @@
      </listitem>
     </varlistentry>
    </variablelist>
+ </refsect1>
+ <refsect1>
+  <title>Subcommands</title>
+  <para>The following subcommands are supported.</para>
+  <variablelist>
+   <varlistentry>
+    <term><command>disable</command></term>
+    <listitem>
+     <para>Disable replication on the specified server for the provided base
+     DN and removes references in the other servers with which it is
+     replicating data.</para>
+
+     <variablelist>
+      <title>Subcommand Options</title>
+
+      <para>
+       In addition to global options, these subcommand options are supported.
+      </para>
+
+      <varlistentry>
+       <term><option>-a, --disableAll</option></term>
+       <listitem>
+        <para>
+         Disable the replication configuration on the specified server.  The
+         contents of the server are no longer replicated and the replication server
+         (changelog and replication port) is disabled if it is configured.
+        </para>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><option>-D, --bindDN {bindDN}</option></term>
+       <listitem>
+        <para>
+         DN to use to bind to the server where we want to disable replication.  This
+         option must be used when no Global Administrator has been defined on the
+         server or if the user does not want to remove references in the other
+         replicated servers.  The password provided for the Global Administrator
+         will be used when specifying this option.
+        </para>
+
+        <para>
+         Default value: cn=Directory Manager
+        </para>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><option>--disableReplicationServer</option></term>
+       <listitem>
+        <para>
+         Disable the replication server.  The replication port and change log are
+         disabled on the specified server.
+        </para>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><option>-h, --hostname {host}</option></term>
+       <listitem>
+        <para>
+         Directory server hostname or IP address
+        </para>
+
+        <para>
+         Default value: <replaceable>configured-hostname</replaceable>
+        </para>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><option>-p, --port {port}</option></term>
+       <listitem>
+        <para>
+         Directory server administration port number
+        </para>
+
+        <para>
+         Default value: <replaceable>configured-admin-port</replaceable>
+        </para>
+       </listitem>
+      </varlistentry>
+     </variablelist>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><command>enable</command></term>
+    <listitem>
+     <para>Update the configuration of the servers to replicate the data
+     under the specified base DN.  If one of the specified servers is already
+     replicating the data under the base DN with other servers, executing this
+     subcommand will update the configuration of all the servers. Thus it is
+     sufficient to execute the command line once for each server added to the
+     replication topology.</para>
+
+     <variablelist>
+      <title>Subcommand Options</title>
+
+      <para>
+       In addition to global options, these subcommand options are supported.
+      </para>
+
+
+      <varlistentry>
+       <term><option>-h, --host1 {host}</option></term>
+       <listitem>
+        <para>
+         Fully qualified host name or IP address of the first server whose contents
+         will be replicated.
+        </para>
+
+        <para>
+         Default value: <replaceable>configured-hostname</replaceable>
+        </para>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><option>-p, --port1 {port}</option></term>
+       <listitem>
+        <para>
+         Directory server administration port number of the first server whose
+         contents will be replicated.
+        </para>
+
+        <para>
+         Default value: <replaceable>configured-admin-port</replaceable>
+        </para>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><option>-D, --bindDN1 {bindDN}</option></term>
+       <listitem>
+        <para>
+         DN to use to bind to the first server whose contents will be replicated.
+         If not specified the global administrator will be used to bind.
+        </para>
+
+        <para>
+         Default value: cn=Directory Manager
+        </para>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><option>--bindPassword1 {bindPassword}</option></term>
+       <listitem>
+        <para>
+         Password to use to bind to the first server whose contents will be
+         replicated.  If no bind DN was specified for the first server the password
+         of the global administrator will be used to bind.
+        </para>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><option>--bindPasswordFile1 {bindPasswordFile}</option></term>
+       <listitem>
+        <para>
+         File containing the password to use to bind to the first server whose
+         contents will be replicated.  If no bind DN was specified for the first
+         server the password of the global administrator will be used to bind.
+        </para>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><option>-r, --replicationPort1 {port}</option></term>
+       <listitem>
+        <para>
+         Port that will be used by the replication mechanism in the first server to
+         communicate with the other servers.  You have to specify this option only
+         if replication was not previously configured in the first server.
+        </para>
+
+        <para>
+         Default value: 8989
+        </para>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><option>--secureReplication1</option></term>
+       <listitem>
+        <para>
+         Specifies whether or not the communication through the replication port of
+         the first server is encrypted or not.  This option will only be taken into
+         account the first time replication is configured on the first server.
+        </para>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><option>--noReplicationServer1</option></term>
+       <listitem>
+        <para>
+         Do not configure a replication port or change log on the first server. The
+         first server will contain replicated data but will not contain a change log
+         of modifications made to the replicated data. Note that each replicated
+         topology must contain at least two servers with a change log to avoid a
+         single point of failure.
+        </para>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><option>--onlyReplicationServer1</option></term>
+       <listitem>
+        <para>
+         Configure only a change log and replication port on the first server.  The
+         first server will not contain replicated data, but will contain a change
+         log of the modifications made to the replicated data on other servers.
+        </para>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><option>-O, --host2 {host}</option></term>
+       <listitem>
+        <para>
+         Fully qualified host name or IP address of the second server whose contents
+         will be replicated.
+        </para>
+
+        <para>
+         Default value: <replaceable>configured-hostname</replaceable>
+        </para>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><option>--port2 {port}</option></term>
+       <listitem>
+        <para>
+         Directory server administration port number of the second server whose
+         contents will be replicated.
+        </para>
+
+        <para>
+         Default value: <replaceable>configured-admin-port</replaceable>
+        </para>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><option>--bindDN2 {bindDN}</option></term>
+       <listitem>
+        <para>
+         DN to use to bind to the second server whose contents will be replicated.
+         If not specified the global administrator will be used to bind.
+        </para>
+
+        <para>
+         Default value: cn=Directory Manager
+        </para>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><option>--bindPassword2 {bindPassword}</option></term>
+       <listitem>
+        <para>
+         Password to use to bind to the second server whose contents will be
+         replicated.  If no bind DN was specified for the second server the password
+         of the global administrator will be used to bind.
+        </para>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><option>-F, --bindPasswordFile2 {bindPasswordFile}</option></term>
+       <listitem>
+        <para>
+         File containing the password to use to bind to the second server whose
+         contents will be replicated.  If no bind DN was specified for the second
+         server the password of the global administrator will be used to bind.
+        </para>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><option>-R, --replicationPort2 {port}</option></term>
+       <listitem>
+        <para>
+         Port that will be used by the replication mechanism in the second server to
+         communicate with the other servers.  You have to specify this option only
+         if replication was not previously configured in the second server.
+        </para>
+
+        <para>
+         Default value: 8989
+        </para>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><option>--secureReplication2</option></term>
+       <listitem>
+        <para>
+         Specifies whether or not the communication through the replication port of
+         the second server is encrypted or not.  This option will only be taken into
+         account the first time replication is configured on the second server.
+        </para>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><option>--noReplicationServer2</option></term>
+       <listitem>
+        <para>
+         Do not configure a replication port or change log on the second server. The
+        second server will contain replicated data but will not contain a change
+        log of modifications made to the replicated data. Note that each replicated
+        topology must contain at least two servers with a change log to avoid a
+        single point of failure.
+        </para>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><option>--onlyReplicationServer2</option></term>
+       <listitem>
+        <para>
+         Configure only a change log and replication port on the second server.  The
+         second server will not contain replicated data, but will contain a change
+         log of the modifications made to the replicated data on other servers.
+        </para>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><option>-S, --skipPortCheck</option></term>
+       <listitem>
+        <para>
+         Skip the check to determine whether the specified replication ports are
+         usable.
+        </para>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><option>--noSchemaReplication</option></term>
+       <listitem>
+        <para>
+         Do not replicate the schema between the servers.
+        </para>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><option>--useSecondServerAsSchemaSource</option></term>
+       <listitem>
+        <para>
+         Use the second server to initialize the schema of the first server.  If
+         this option nor option --noSchemaReplication are specified the schema of
+         the first server will be used to initialize the schema of the second server.
+        </para>
+       </listitem>
+      </varlistentry>
+     </variablelist>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><command>initialize</command></term>
+    <listitem>
+     <para>Initialize the contents of the data under the specified base DN
+     on the destination server with the contents on the source server.  This
+     operation is required after enabling replication in order replication to
+     work. <command>initialize-all</command> can also be used for this
+     purpose.</para>
+
+     <variablelist>
+      <title>Subcommand Options</title>
+
+      <para>
+       In addition to global options, these subcommand options are supported.
+      </para>
+
+      <varlistentry>
+       <term><option>-h, --hostSource {host}</option></term>
+       <listitem>
+        <para>
+         Fully qualified host name or IP address of the source server whose contents
+         will be used to initialize the destination server.
+        </para>
+
+        <para>
+         Default value: <replaceable>configured-hostname</replaceable>
+        </para>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><option>-p, --portSource {port}</option></term>
+       <listitem>
+        <para>
+         Directory server administration port number of the source server whose
+         contents will be used to initialize the destination server.
+        </para>
+
+        <para>
+         Default value: <replaceable>configured-admin-port</replaceable>
+        </para>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><option>-O, --hostDestination {host}</option></term>
+       <listitem>
+        <para>
+         Fully qualified host name or IP address of the destination server whose
+         contents will be initialized.
+        </para>
+
+        <para>
+         Default value: <replaceable>configured-hostname</replaceable>
+        </para>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><option>--portDestination {port}</option></term>
+       <listitem>
+        <para>
+         Directory server administration port number of the destination server whose
+         contents will be initialized.
+        </para>
+
+        <para>
+         Default value: <replaceable>configured-admin-port</replaceable>
+        </para>
+       </listitem>
+      </varlistentry>
+     </variablelist>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><command>initialize-all</command></term>
+    <listitem>
+     <para>Initialize the contents of the data under the specified base DN
+     on all the servers whose contents are being replicated with the contents
+     on the specified server.  This operation is required after enabling
+     replication for replication to work. Run <command>initialize</command>
+     for each server to achieve the same effect.</para>
+
+     <variablelist>
+      <title>Subcommand Options</title>
+
+      <para>
+       In addition to global options, these subcommand options are supported.
+      </para>
+
+      <varlistentry>
+       <term><option>-h, --hostname {host}</option></term>
+       <listitem>
+        <para>
+         Directory server hostname or IP address
+        </para>
+
+        <para>
+         Default value: <replaceable>configured-hostname</replaceable>
+        </para>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><option>-p, --port {port}</option></term>
+       <listitem>
+        <para>
+         Directory server administration port number
+        </para>
+
+        <para>
+         Default value: <replaceable>configured-admin-port</replaceable>
+        </para>
+       </listitem>
+      </varlistentry>
+     </variablelist>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><command>post-external-initialization</command></term>
+    <listitem>
+     <para>This subcommand must be called after initializing the contents of
+     all the replicated servers using the <command>import-ldif</command>
+     command, or by copying the database. You must specify the list of base DNs
+     that have been initialized, and you must provide the credentials of any
+     of the servers that are being replicated.  See
+     <command>pre-external-initialization --help</command> for more
+     information.</para>
+
+     <variablelist>
+      <title>Subcommand Options</title>
+
+      <para>
+       In addition to global options, these subcommand options are supported.
+      </para>
+
+      <varlistentry>
+       <term><option>-h, --hostname {host}</option></term>
+       <listitem>
+        <para>
+         Directory server hostname or IP address
+        </para>
+
+        <para>
+         Default value: <replaceable>configured-hostname</replaceable>
+        </para>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><option>-p, --port {port}</option></term>
+       <listitem>
+        <para>
+         Directory server administration port number
+        </para>
+
+        <para>
+         Default value: <replaceable>configured-admin-port</replaceable>
+        </para>
+       </listitem>
+      </varlistentry>
+     </variablelist>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><command>pre-external-initialization</command></term>
+    <listitem>
+     <para>This subcommand must be called before initializing the contents
+     of all the replicated servers using the <command>import-ldif</command>
+     command, or by copying the database. You must specify the list of base DNs
+     that have been initialized, and you must provide the credentials of any
+     of the servers that are being replicated. After calling this subcommand,
+     initialize the contents of all the servers in the topology, either by
+     using the same LDIF file or by copying the database to each of the
+     servers, then call the <command>post-external-initialization</command>
+     subcommand.</para>
+
+     <variablelist>
+      <title>Subcommand Options</title>
+
+      <para>
+       In addition to global options, these subcommand options are supported.
+      </para>
+
+      <varlistentry>
+       <term><option>-h, --hostname {host}</option></term>
+       <listitem>
+        <para>
+         Directory server hostname or IP address
+        </para>
+
+        <para>
+         Default value: <replaceable>configured-hostname</replaceable>
+        </para>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><option>-p, --port {port}</option></term>
+       <listitem>
+        <para>
+         Directory server administration port number
+        </para>
+
+        <para>
+         Default value: <replaceable>configured-admin-port</replaceable>
+        </para>
+       </listitem>
+      </varlistentry>
+     </variablelist>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><command>purge-historical</command></term>
+    <listitem>
+     <para>Launch a purge processing of the historical information stored
+     in the user entries by replication. Since this processing may take a
+     while, you must specify a maximum duration.</para>
+
+     <variablelist>
+      <title>Subcommand Options</title>
+
+      <para>
+       In addition to global options, these subcommand options are supported.
+      </para>
+
+      <varlistentry>
+       <term><option>-h, --hostname {host}</option></term>
+       <listitem>
+        <para>
+         Directory server hostname or IP address
+        </para>
+
+        <para>
+         Default value: <replaceable>configured-hostname</replaceable>
+        </para>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><option>-p, --port {port}</option></term>
+       <listitem>
+        <para>
+         Directory server administration port number
+        </para>
+
+        <para>
+         Default value: <replaceable>configured-admin-port</replaceable>
+        </para>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><option>--maximumDuration {maximum duration}</option></term>
+       <listitem>
+        <para>
+         This argument specifies the maximum duration the purge processing must last
+         expressed in seconds.
+        </para>
+
+        <para>
+         Default value: 3600
+        </para>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><option>-t, --start {startTime}</option></term>
+       <listitem>
+        <para>
+         Indicates the date/time at which this operation will start when scheduled
+         as a server task expressed in YYYYMMDDhhmmssZ format for UTC time or
+         YYYYMMDDhhmmss for local time.  A value of '0' will cause the task to be
+         scheduled for immediate execution.  When this option is specified the
+         operation will be scheduled to start at the specified time after which this
+         utility will exit immediately.
+        </para>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><option>--recurringTask {schedulePattern}</option></term>
+       <listitem>
+        <para>
+         Indicates the task is recurring and will be scheduled according to the
+         value argument expressed in crontab(5) compatible time/date pattern
+        </para>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><option>--completionNotify {emailAddress}</option></term>
+       <listitem>
+        <para>
+         Email address of a recipient to be notified when the task completes.  This
+         option may be specified more than once.
+        </para>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><option>--errorNotify {emailAddress}</option></term>
+       <listitem>
+        <para>
+         Email address of a recipient to be notified if an error occurs when this
+         task executes.  This option may be specified more than once.
+        </para>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><option>--dependency {taskID}</option></term>
+       <listitem>
+        <para>
+         ID of a task upon which this task depends.  A task will not start execution
+         until all its dependencies have completed execution.
+        </para>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><option>--failedDependencyAction {action}</option></term>
+       <listitem>
+        <para>
+         Action this task will take should one if its dependent tasks fail.  The
+         value must be one of PROCESS,CANCEL,DISABLE.  If not specified defaults to
+         CANCEL.
+        </para>
+       </listitem>
+      </varlistentry>
+     </variablelist>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
+    <term><command>status</command></term>
+    <listitem>
+     <para>Display a list with the basic replication configuration of the
+     base DNs of the servers defined in the registration information.  If
+     no base DNs are specified as parameter, information for all base DNs
+     is displayed.</para>
+
+     <variablelist>
+      <title>Subcommand Options</title>
+
+      <para>
+       In addition to global options, these subcommand options are supported.
+      </para>
+
+      <varlistentry>
+       <term><option>-h, --hostname {host}</option></term>
+       <listitem>
+        <para>
+         Directory server hostname or IP address
+        </para>
+
+        <para>
+         Default value: <replaceable>configured-hostname</replaceable>
+        </para>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><option>-p, --port {port}</option></term>
+       <listitem>
+        <para>
+         Directory server administration port number
+        </para>
+
+        <para>
+         Default value: <replaceable>configured-admin-port</replaceable>
+        </para>
+       </listitem>
+      </varlistentry>
+
+      <varlistentry>
+       <term><option>-s, --script-friendly</option></term>
+       <listitem>
+        <para>
+         Use script-friendly mode.
+        </para>
+       </listitem>
+      </varlistentry>
+     </variablelist>
+    </listitem>
+   </varlistentry>
+  </variablelist>
  </refsect1>
  <refsect1>
   <title>Examples</title>
