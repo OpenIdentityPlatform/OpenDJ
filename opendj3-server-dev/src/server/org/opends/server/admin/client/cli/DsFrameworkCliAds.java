@@ -36,7 +36,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.naming.NamingException;
 import javax.naming.ldap.InitialLdapContext;
 
 import org.opends.admin.ads.ADSContext;
@@ -48,6 +47,7 @@ import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.cli.SubCommand;
 
 import static org.opends.server.admin.client.cli.DsFrameworkCliReturnCode.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class is handling server group CLI.
@@ -57,7 +57,7 @@ public class DsFrameworkCliAds implements DsFrameworkCliSubCommandGroup
   /**
    * The subcommand Parser.
    */
-  DsFrameworkCliParser argParser ;
+  private DsFrameworkCliParser argParser;
 
   /**
    * The enumeration containing the different subCommand names.
@@ -74,24 +74,23 @@ public class DsFrameworkCliAds implements DsFrameworkCliSubCommandGroup
      */
     DELETE_ADS("delete-ads");
 
-    // String representation of the value.
+    /** String representation of the value. */
     private final String name;
 
-    // Private constructor.
+    /** Private constructor. */
     private SubCommandNameEnum(String name)
     {
       this.name = name;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public String toString()
     {
       return name;
     }
 
-    // A lookup table for resolving a unit from its name.
+    /** A lookup table for resolving a unit from its name. */
     private static final List<String> nameToSubCmdName ;
     static
     {
@@ -144,33 +143,29 @@ public class DsFrameworkCliAds implements DsFrameworkCliSubCommandGroup
    */
   private String groupName;
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public Set<SubCommand> getSubCommands()
   {
     return subCommands;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public boolean isHidden()
   {
-    return isHidden ;
+    return isHidden;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public String getGroupName()
   {
-    return groupName ;
+    return groupName;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public void initializeCliGroup(DsFrameworkCliParser argParser,
       BooleanArgument verboseArg)
       throws ArgumentException
@@ -205,18 +200,16 @@ public class DsFrameworkCliAds implements DsFrameworkCliSubCommandGroup
     deleteAdsSubCmd.addArgument(deleteAdsBackendNameArg);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public boolean isSubCommand(SubCommand subCmd)
   {
       return SubCommandNameEnum.isSubCommand(subCmd.getName());
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public DsFrameworkCliReturnCode performSubCommand(SubCommand subCmd,
       OutputStream outStream, OutputStream errStream)
       throws ADSContextException, ArgumentException
@@ -228,7 +221,6 @@ public class DsFrameworkCliAds implements DsFrameworkCliSubCommandGroup
 
     try
     {
-      //
       // create-ads subcommand
       if (subCmd.getName().equals(createAdsSubCmd.getName()))
       {
@@ -269,29 +261,11 @@ public class DsFrameworkCliAds implements DsFrameworkCliSubCommandGroup
     }
     catch (ADSContextException e)
     {
-      if (ctx != null)
-      {
-        try
-        {
-          ctx.close();
-        }
-        catch (NamingException x)
-        {
-        }
-      }
       throw e;
     }
-
-    // Close the connection, if needed
-    if (ctx != null)
+    finally
     {
-      try
-      {
-        ctx.close();
-      }
-      catch (NamingException x)
-      {
-      }
+      close(ctx);
     }
 
     // return part

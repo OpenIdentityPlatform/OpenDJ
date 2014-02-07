@@ -22,12 +22,11 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
-
 package org.opends.server.admin.client;
 
-
-
+import java.io.Closeable;
 import java.util.Set;
 import java.util.SortedSet;
 
@@ -45,12 +44,10 @@ import org.opends.server.admin.SetRelationDefinition;
 import org.opends.server.admin.client.spi.Driver;
 import org.opends.server.admin.std.client.RootCfgClient;
 
-
-
 /**
  * Client management connection context.
  */
-public abstract class ManagementContext {
+public abstract class ManagementContext implements Closeable {
 
   /**
    * Creates a new management context.
@@ -520,6 +517,7 @@ public abstract class ManagementContext {
   /**
    * Closes this management context.
    */
+  @Override
   public final void close() {
     this.getDriver().close();
   }

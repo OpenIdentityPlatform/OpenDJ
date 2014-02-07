@@ -36,12 +36,11 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.SortedSet;
 
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-
 import javax.naming.NamingException;
 import javax.naming.ldap.InitialLdapContext;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.guitools.controlpanel.browser.IconPool;
@@ -62,6 +61,7 @@ import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.quicksetup.util.UIKeyStore;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.tools.ConfigureWindowsService;
+import org.opends.server.util.StaticUtils;
 
 /**
  * This is the classes that is shared among all the different places in the
@@ -516,17 +516,8 @@ public class ControlPanelInfo
       desc.setStatus(status);
       if (status == ServerDescriptor.ServerStatus.STOPPING)
       {
-        if (ctx != null)
-        {
-          try
-          {
-            ctx.close();
-          }
-          catch (Throwable t)
-          {
-          }
-          this.ctx = null;
-        }
+        StaticUtils.close(ctx);
+        this.ctx = null;
         if (userDataCtx != null)
         {
           if (connectionPool.isConnectionRegistered(userDataCtx))
@@ -539,13 +530,7 @@ public class ControlPanelInfo
             {
             }
           }
-          try
-          {
-            userDataCtx.close();
-          }
-          catch (Throwable t)
-          {
-          }
+          StaticUtils.close(userDataCtx);
           userDataCtx = null;
         }
       }
@@ -819,6 +804,7 @@ public class ControlPanelInfo
 
     poolingThread = new Thread(new Runnable()
     {
+      @Override
       public void run()
       {
         try

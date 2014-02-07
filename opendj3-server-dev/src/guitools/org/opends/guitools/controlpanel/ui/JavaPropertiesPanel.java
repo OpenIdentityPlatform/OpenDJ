@@ -63,6 +63,7 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.datamodel.SortableTableModel;
 import org.opends.guitools.controlpanel.event.BrowseActionListener;
@@ -73,12 +74,12 @@ import org.opends.guitools.controlpanel.ui.renderer.AttributeCellEditor;
 import org.opends.guitools.controlpanel.ui.renderer.LDAPEntryTableCellRenderer;
 import org.opends.guitools.controlpanel.util.BackgroundTask;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.tools.JavaPropertiesTool;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.util.SetupUtils;
+import org.opends.server.util.StaticUtils;
 
 /**
  * The panel where the user can specify the java arguments and java home to be
@@ -395,6 +396,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
       Utilities.createCheckBox(INFO_CTRL_PANEL_DISPLAY_ALL_COMMAND_LINES.get());
     showAll.addActionListener(new ActionListener()
     {
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         editor.stopCellEditing();
@@ -445,6 +447,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
     final boolean isLocal = ev.getNewDescriptor().isLocal();
@@ -456,6 +459,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
         /**
          * {@inheritDoc}
          */
+        @Override
         public void run()
         {
           if (!isLocal)
@@ -631,16 +635,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
         }
         finally
         {
-          if (reader != null)
-          {
-            try
-            {
-              reader.close();
-            }
-            catch (Throwable t)
-            {
-            }
-          }
+          StaticUtils.close(reader);
         }
 
         String v = properties.getProperty("overwrite-env-java-home");
@@ -1184,6 +1179,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
      * comparison.  Returns -1 if the second element goes higher than the first
      * one.
      */
+    @Override
     public int compare(JavaArgumentsDescriptor desc1,
         JavaArgumentsDescriptor desc2)
     {
@@ -1226,6 +1222,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
     /**
      * {@inheritDoc}
      */
+    @Override
     public int getColumnCount()
     {
       return COLUMN_NAMES.length;
@@ -1234,6 +1231,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
     /**
      * {@inheritDoc}
      */
+    @Override
     public int getRowCount()
     {
       return dataArray.size();
@@ -1242,6 +1240,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
     /**
      * {@inheritDoc}
      */
+    @Override
     public Object getValueAt(int row, int col)
     {
       return dataArray.get(row)[col];
@@ -1542,16 +1541,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
       }
       finally
       {
-        if (reader != null)
-        {
-          try
-          {
-            reader.close();
-          }
-          catch (Throwable t)
-          {
-          }
-        }
+        StaticUtils.close(reader);
       }
 
       BufferedWriter writer = null;
@@ -1587,22 +1577,14 @@ public class JavaPropertiesPanel extends StatusGenericPanel
       }
       finally
       {
-        if (writer != null)
-        {
-          try
-          {
-            writer.close();
-          }
-          catch (Throwable t)
-          {
-          }
-        }
+        StaticUtils.close(writer);
       }
       SwingUtilities.invokeLater(new Runnable()
       {
         /**
          * {@inheritDoc}
          */
+        @Override
         public void run()
         {
           getProgressDialog().appendProgressHtml(Utilities.applyFont(

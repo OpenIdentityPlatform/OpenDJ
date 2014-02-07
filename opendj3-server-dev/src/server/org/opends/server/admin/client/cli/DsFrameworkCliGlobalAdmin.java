@@ -26,13 +26,12 @@
  */
 package org.opends.server.admin.client.cli;
 
-
-
 import static org.opends.messages.AdminMessages.*;
 import static org.opends.messages.DSConfigMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.admin.client.cli.DsFrameworkCliReturnCode.*;
 import static org.opends.server.tools.ToolConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -44,7 +43,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.naming.NamingException;
 import javax.naming.ldap.InitialLdapContext;
 
 import org.opends.admin.ads.ADSContext;
@@ -62,25 +60,26 @@ import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.cli.SubCommand;
 import org.opends.server.util.table.TableBuilder;
 import org.opends.server.util.table.TextTablePrinter;
+
 /**
  * This class is handling user Admin CLI.
  */
 public class DsFrameworkCliGlobalAdmin implements DsFrameworkCliSubCommandGroup
 {
   // Strings used in property help.
-  private final static LocalizableMessage DESCRIPTION_OPTIONS_TITLE =
+  private static final LocalizableMessage DESCRIPTION_OPTIONS_TITLE =
     INFO_DSCFG_HELP_DESCRIPTION_OPTION.get();
 
-  private final static LocalizableMessage DESCRIPTION_OPTIONS_READ =
+  private static final LocalizableMessage DESCRIPTION_OPTIONS_READ =
     INFO_DSCFG_HELP_DESCRIPTION_READ.get();
 
-  private final static LocalizableMessage DESCRIPTION_OPTIONS_WRITE =
+  private static final LocalizableMessage DESCRIPTION_OPTIONS_WRITE =
     INFO_DSCFG_HELP_DESCRIPTION_WRITE.get();
 
-  private final static LocalizableMessage DESCRIPTION_OPTIONS_MANDATORY =
+  private static final LocalizableMessage DESCRIPTION_OPTIONS_MANDATORY =
     INFO_DSCFG_HELP_DESCRIPTION_MANDATORY.get();
 
-  private final static LocalizableMessage DESCRIPTION_OPTIONS_SINGLE =
+  private static final LocalizableMessage DESCRIPTION_OPTIONS_SINGLE =
     INFO_DSCFG_HELP_DESCRIPTION_SINGLE_VALUED.get();
 
   /**
@@ -124,25 +123,23 @@ public class DsFrameworkCliGlobalAdmin implements DsFrameworkCliSubCommandGroup
     SET_ADMIN_USER_PROPERTIES("set-admin-user-properties");
 
 
-    // String representation of the value.
+    /** String representation of the value. */
     private final String name;
 
-    // Private constructor.
+    /** Private constructor. */
     private SubCommandNameEnum(String name)
     {
       this.name = name;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String toString()
     {
       return name;
     }
 
-    // A lookup table for resolving a unit from its name.
+    /** A lookup table for resolving a unit from its name. */
     private static final List<String> nameToSubCmdName;
     static
     {
@@ -248,33 +245,29 @@ public class DsFrameworkCliGlobalAdmin implements DsFrameworkCliSubCommandGroup
    */
   private String groupName;
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public Set<SubCommand> getSubCommands()
   {
     return subCommands;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public boolean isHidden()
   {
     return isHidden;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public String getGroupName()
   {
     return groupName;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public void initializeCliGroup(DsFrameworkCliParser argParser,
       BooleanArgument verboseArg) throws ArgumentException
   {
@@ -415,17 +408,15 @@ public class DsFrameworkCliGlobalAdmin implements DsFrameworkCliSubCommandGroup
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public boolean isSubCommand(SubCommand subCmd)
   {
     return SubCommandNameEnum.isSubCommand(subCmd.getName());
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public DsFrameworkCliReturnCode performSubCommand(SubCommand subCmd,
       OutputStream outStream, OutputStream errStream)
       throws ADSContextException, ArgumentException
@@ -629,29 +620,11 @@ public class DsFrameworkCliGlobalAdmin implements DsFrameworkCliSubCommandGroup
     }
     catch (ADSContextException e)
     {
-      if (ctx != null)
-      {
-        try
-        {
-          ctx.close();
-        }
-        catch (NamingException x)
-        {
-        }
-      }
       throw e;
     }
-
-    // Close the connection, if needed
-    if (ctx != null)
+    finally
     {
-      try
-      {
-        ctx.close();
-      }
-      catch (NamingException x)
-      {
-      }
+      close(ctx);
     }
 
     // return part
@@ -821,7 +794,7 @@ public class DsFrameworkCliGlobalAdmin implements DsFrameworkCliSubCommandGroup
     return map;
   }
 
-  //Compute the options field.
+  /** Compute the options field. */
   private String getPropertyOptionSummary(AdministratorProperty adminUserProp)
   {
     Argument arg = userAdminProperties.get(adminUserProp);

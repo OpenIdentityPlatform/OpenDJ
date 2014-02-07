@@ -39,10 +39,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.naming.NamingException;
 import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.Rdn;
-
 
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.ADSContextException;
@@ -55,6 +53,8 @@ import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.cli.SubCommand;
 
 import static org.opends.server.admin.client.cli.DsFrameworkCliReturnCode.*;
+import static org.opends.server.util.StaticUtils.*;
+
 /**
  * This class is handling server group CLI.
  */
@@ -69,12 +69,12 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
   /**
    * The subcommand Parser.
    */
-  DsFrameworkCliParser argParser ;
+  private DsFrameworkCliParser argParser ;
 
   /**
    * The verbose argument.
    */
-  BooleanArgument verboseArg ;
+  private BooleanArgument verboseArg ;
 
   /**
    * The enumeration containing the different subCommand names.
@@ -121,24 +121,23 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
      */
     REMOVE_FROM_GROUP("remove-from-group");
 
-    // String representation of the value.
+    /** String representation of the value. */
     private final String name;
 
-    // Private constructor.
+    /** Private constructor. */
     private SubCommandNameEnum(String name)
     {
       this.name = name;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public String toString()
     {
       return name;
     }
 
-    // A lookup table for resolving a unit from its name.
+    /** A lookup table for resolving a unit from its name. */
     private static final List<String> nameToSubCmdName ;
     static
     {
@@ -287,33 +286,29 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
     return attributeDisplayName.get(prop);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public Set<SubCommand> getSubCommands()
   {
     return subCommands;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public boolean isHidden()
   {
     return isHidden;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public String getGroupName()
   {
     return groupName ;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public void initializeCliGroup(DsFrameworkCliParser argParser,
       BooleanArgument verboseArg)
       throws ArgumentException
@@ -451,18 +446,16 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
         OPTION_LONG_MEMBERNAME);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public boolean isSubCommand(SubCommand subCmd)
   {
       return SubCommandNameEnum.isSubCommand(subCmd.getName());
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public DsFrameworkCliReturnCode performSubCommand(SubCommand subCmd,
       OutputStream outStream, OutputStream errStream)
       throws ADSContextException, ArgumentException
@@ -568,7 +561,7 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
           int uidLength = 0 ;
           for (ServerGroupProperty sgp : ServerGroupProperty.values())
           {
-            int cur = attributeDisplayName.get(sgp).toString().length();
+            int cur = attributeDisplayName.get(sgp).length();
             if (cur > uidLength)
             {
               uidLength = cur;
@@ -877,34 +870,15 @@ public class DsFrameworkCliServerGroup implements DsFrameworkCliSubCommandGroup
     }
     catch (ADSContextException e)
     {
-     if (ctx != null)
-     {
-       try
-       {
-         ctx.close();
-       }
-       catch (NamingException x)
-       {
-       }
-     }
      throw e;
     }
-
-    // Close the connection, if needed
-    if (ctx != null)
+    finally
     {
-      try
-      {
-        ctx.close();
-      }
-      catch (NamingException x)
-      {
-      }
+      close(ctx);
     }
 
     // return part
     return returnCode;
-
   }
 
   /**

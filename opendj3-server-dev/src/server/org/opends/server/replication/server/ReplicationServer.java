@@ -34,6 +34,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn.*;
 import org.opends.server.admin.std.server.ReplicationServerCfg;
@@ -43,7 +44,6 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.WorkflowImpl;
 import org.opends.server.core.networkgroups.NetworkGroup;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.common.*;
 import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.protocol.*;
@@ -655,16 +655,7 @@ public final class ReplicationServer
     }
 
     // shutdown the listener thread
-    try
-    {
-      if (listenSocket != null)
-      {
-        listenSocket.close();
-      }
-    } catch (IOException e)
-    {
-      // replication Server service is closing anyway.
-    }
+    close(listenSocket);
 
     // shutdown the listen thread
     if (listenThread != null)

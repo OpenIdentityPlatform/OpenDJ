@@ -27,7 +27,6 @@
 package org.opends.server.tools;
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -39,27 +38,13 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.ExistingFileBehavior;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.LDIFExportConfig;
-import org.opends.server.types.LDIFImportConfig;
-import org.opends.server.types.NullOutputStream;
-import org.opends.server.types.ObjectClass;
-import org.opends.server.types.SearchFilter;
-import org.opends.server.types.SearchScope;
+import org.opends.server.types.*;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.LDIFWriter;
-import com.forgerock.opendj.cli.ArgumentException;
-import com.forgerock.opendj.cli.ArgumentParser;
-import com.forgerock.opendj.cli.BooleanArgument;
-import com.forgerock.opendj.cli.IntegerArgument;
-import com.forgerock.opendj.cli.MultiChoiceArgument;
-import com.forgerock.opendj.cli.StringArgument;
+
+import com.forgerock.opendj.cli.*;
 
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.tools.ToolConstants.*;
@@ -336,13 +321,7 @@ public class LDIFSearch
       }
       finally
       {
-        if(in != null)
-        {
-          try
-          {
-           in.close();
-          } catch (IOException ioe) {}
-        }
+        close(in);
       }
 
       ArrayList<String> trailingArguments = argParser.getTrailingArguments();
@@ -705,11 +684,7 @@ public class LDIFSearch
     }
     catch (Exception e)
     {
-      try
-      {
-        reader.close();
-      } catch (Exception e2) {}
-
+      close(reader);
       err.println(ERR_LDIFSEARCH_CANNOT_CREATE_WRITER.get(e));
       return 1;
     }

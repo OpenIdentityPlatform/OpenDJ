@@ -26,9 +26,6 @@
  */
 package org.opends.server.types;
 
-import static org.opends.messages.UtilityMessages.*;
-import static org.opends.server.util.StaticUtils.*;
-
 import java.io.*;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -38,6 +35,10 @@ import java.util.zip.GZIPOutputStream;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.opends.server.util.StaticUtils;
+
+import static org.opends.messages.UtilityMessages.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines a data structure for holding configuration
@@ -915,7 +916,6 @@ public final class LDIFExportConfig extends OperationConfig
           return true;
         }
       }
-
       return false;
     }
 
@@ -931,16 +931,6 @@ public final class LDIFExportConfig extends OperationConfig
   public void close()
   {
     // FIXME -- Need to add code to generate a signed hash of the LDIF content.
-
-    if (writer != null) {
-      try
-      {
-        writer.close();
-      }
-      catch (Exception e)
-      {
-        logger.traceException(e);
-      }
-    }
+    StaticUtils.close(writer);
   }
 }

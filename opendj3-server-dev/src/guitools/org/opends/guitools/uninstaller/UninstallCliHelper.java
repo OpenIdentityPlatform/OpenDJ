@@ -26,8 +26,13 @@
  */
 package org.opends.guitools.uninstaller;
 
-import org.opends.server.admin.client.cli.DsFrameworkCliReturnCode;
-import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+
+import static org.forgerock.util.Utils.*;
+import static org.opends.messages.AdminToolMessages.*;
+import static org.opends.messages.QuickSetupMessages.*;
 
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.ServerDescriptor;
@@ -36,37 +41,28 @@ import org.opends.admin.ads.TopologyCacheException;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.guitools.controlpanel.datamodel.ConnectionProtocolPolicy;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.LocalizableMessageBuilder;
-
-import static org.forgerock.util.Utils.*;
-import static org.opends.messages.AdminToolMessages.*;
-import static org.opends.messages.QuickSetupMessages.*;
-
 import org.opends.quicksetup.*;
 import org.opends.quicksetup.event.ProgressUpdateEvent;
 import org.opends.quicksetup.event.ProgressUpdateListener;
 import org.opends.quicksetup.util.PlainTextProgressMessageFormatter;
 import org.opends.quicksetup.util.ServerController;
 import org.opends.quicksetup.util.Utils;
+import org.opends.server.admin.client.cli.DsFrameworkCliReturnCode;
+import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
 import org.opends.server.tools.ClientException;
 import org.opends.server.tools.ToolConstants;
 import org.opends.server.tools.dsconfig.LDAPManagementContextFactory;
 import org.opends.server.util.StaticUtils;
+import org.opends.server.util.cli.*;
+
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.CLIException;
-import org.opends.server.util.cli.ConsoleApplication;
-import org.opends.server.util.cli.LDAPConnectionConsoleInteraction;
-import org.opends.server.util.cli.Menu;
-import org.opends.server.util.cli.MenuBuilder;
-import org.opends.server.util.cli.MenuResult;
 
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.Collections;
 
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -905,17 +901,7 @@ public class UninstallCliHelper extends ConsoleApplication {
       }
       finally
       {
-        if (ctx != null)
-        {
-          try
-          {
-            ctx.close();
-          }
-          catch (Throwable t)
-          {
-            logger.info(LocalizableMessage.raw("Error closing connection: "+t, t));
-          }
-        }
+        StaticUtils.close(ctx);
       }
 
       if (!couldConnect)
@@ -984,6 +970,7 @@ public class UninstallCliHelper extends ConsoleApplication {
       /**
        * {@inheritDoc}
        */
+      @Override
       public String getInstallationPath()
       {
         return Installation.getLocal().getRootDirectory().getAbsolutePath();
@@ -991,6 +978,7 @@ public class UninstallCliHelper extends ConsoleApplication {
       /**
        * {@inheritDoc}
        */
+      @Override
       public String getInstancePath()
       {
         String installPath =  getInstallationPath();
@@ -1035,6 +1023,7 @@ public class UninstallCliHelper extends ConsoleApplication {
       /**
        * {@inheritDoc}
        */
+      @Override
       public ProgressStep getCurrentProgressStep()
       {
         return UninstallProgressStep.NOT_STARTED;
@@ -1042,6 +1031,7 @@ public class UninstallCliHelper extends ConsoleApplication {
       /**
        * {@inheritDoc}
        */
+      @Override
       public Integer getRatio(ProgressStep step)
       {
         return 0;
@@ -1049,6 +1039,7 @@ public class UninstallCliHelper extends ConsoleApplication {
       /**
        * {@inheritDoc}
        */
+      @Override
       public LocalizableMessage getSummary(ProgressStep step)
       {
         return null;
@@ -1056,6 +1047,7 @@ public class UninstallCliHelper extends ConsoleApplication {
       /**
        * {@inheritDoc}
        */
+      @Override
       public boolean isFinished()
       {
         return false;
@@ -1063,6 +1055,7 @@ public class UninstallCliHelper extends ConsoleApplication {
       /**
        * {@inheritDoc}
        */
+      @Override
       public boolean isCancellable()
       {
         return false;
@@ -1070,12 +1063,14 @@ public class UninstallCliHelper extends ConsoleApplication {
       /**
        * {@inheritDoc}
        */
+      @Override
       public void cancel()
       {
       }
       /**
        * {@inheritDoc}
        */
+      @Override
       public void run()
       {
       }
@@ -1086,6 +1081,7 @@ public class UninstallCliHelper extends ConsoleApplication {
     {
       application.addProgressUpdateListener(
           new ProgressUpdateListener() {
+            @Override
             public void progressUpdate(ProgressUpdateEvent ev) {
               System.out.print(ev.getNewLogs().toString());
               System.out.flush();
@@ -1232,17 +1228,7 @@ public class UninstallCliHelper extends ConsoleApplication {
     }
     finally
     {
-      if (ctx != null)
-      {
-        try
-        {
-          ctx.close();
-        }
-        catch (Throwable t)
-        {
-          logger.info(LocalizableMessage.raw("Error closing connection: "+t, t));
-        }
-      }
+      StaticUtils.close(ctx);
     }
     if (exceptionOccurred)
     {
@@ -1446,6 +1432,7 @@ public class UninstallCliHelper extends ConsoleApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isAdvancedMode() {
     return false;
   }
@@ -1455,8 +1442,9 @@ public class UninstallCliHelper extends ConsoleApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isInteractive() {
-    if (forceNonInteractive)
+    if (!forceNonInteractive)
     {
       return false;
     }
@@ -1481,6 +1469,7 @@ public class UninstallCliHelper extends ConsoleApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isQuiet() {
     return false;
   }
@@ -1490,6 +1479,7 @@ public class UninstallCliHelper extends ConsoleApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isScriptFriendly() {
     return false;
   }
@@ -1499,6 +1489,7 @@ public class UninstallCliHelper extends ConsoleApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isVerbose() {
     return true;
   }

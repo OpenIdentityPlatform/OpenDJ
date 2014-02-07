@@ -42,9 +42,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import javax.naming.directory.SearchControls;
@@ -59,6 +56,8 @@ import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
@@ -321,6 +320,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
 
     ActionListener actionListener = new ActionListener()
     {
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         updateComponentState();
@@ -424,6 +424,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
   }
@@ -569,6 +570,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
             // At least load the local information.
             SwingUtilities.invokeLater(new Runnable()
             {
+              @Override
               public void run()
               {
                 displayMessage(
@@ -615,6 +617,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
             }
             SwingUtilities.invokeLater(new Runnable()
             {
+              @Override
               public void run()
               {
                 displayMessage(
@@ -629,16 +632,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
             return ctx;
           } catch (Throwable t)
           {
-            if (ctx != null)
-            {
-              try
-              {
-                ctx.close();
-              }
-              catch (Throwable t1)
-              {
-              }
-            }
+            StaticUtils.close(ctx);
             throw t;
           }
         }
@@ -863,6 +857,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
         /* Simulate a click on the OK by calling in the okClicked method. */
         SwingUtilities.invokeLater(new Runnable()
         {
+          @Override
           public void run()
           {
             okClicked();
@@ -931,6 +926,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
     // sleep the pooling period before calling it.
     Thread t = new Thread(new Runnable()
     {
+      @Override
       public void run()
       {
         try
