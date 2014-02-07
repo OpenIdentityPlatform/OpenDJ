@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2014 ForgeRock AS
+  !
+-->
+<chapter xml:id='chap-update-install'
+         xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+         xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+         xsi:schemaLocation='http://docbook.org/ns/docbook
+                      http://docbook.org/xml/5.0/xsd/docbook.xsd'
+         xmlns:xlink='http://www.w3.org/1999/xlink'>
+ <title>Updating &amp; Installing OpenDJ</title>
+
+ <para>
+  ForgeRock recommends that you update
+  OpenDJ ${stableServerVersion} installations to this release.
+  If you are installing OpenDJ for the first time,
+  you can use the same installation instructions as for ${stableServerVersion}.
+ </para>
+
+ <procedure xml:id="update-software">
+  <title>To Update OpenDJ Software</title>
+
+  <step>
+   <para>
+    Download and unpack OpenDJ ${docTargetVersion} software.
+   </para>
+
+   <para>
+    Find a link to the OpenDJ download page from
+    <link xlink:show="new" xlink:href="http://forgerock.com/download-stack/" />.
+   </para>
+  </step>
+
+  <step>
+   <para>
+    Follow the instructions in the chapter on <link xlink:show="new"
+    xlink:href="http://docs.forgerock.org/en/opendj/2.6.0/install-guide/#chap-upgrade"
+    ><citetitle>Upgrading to OpenDJ ${stableServerVersion}</citetitle></link>
+    in the <citetitle>Installation Guide</citetitle>.
+   </para>
+
+   <para>
+    When upgrading from OpenDJ 2.5.0-Xpress1,
+    you no longer need to rebuild the <literal>ds-sync-hist</literal> index
+    as a separate step.
+   </para>
+  </step>
+ </procedure>
+
+ <procedure xml:id="install-software">
+  <title>To Install OpenDJ Software</title>
+
+  <step>
+   <para>
+    Download and unpack OpenDJ ${docTargetVersion} software.
+   </para>
+
+   <para>
+    Find a link to the OpenDJ download page from
+    <link xlink:show="new" xlink:href="http://forgerock.com/download-stack/" />.
+   </para>
+  </step>
+
+  <step>
+   <para>
+    Follow the instructions in the <link xlink:show="new"
+    xlink:href="http://docs.forgerock.org/en/opendj/2.6.0/install-guide/"
+    ><citetitle>OpenDJ ${stableServerVersion} Installation Guide</citetitle></link>.
+   </para>
+  </step>
+ </procedure>
+</chapter>

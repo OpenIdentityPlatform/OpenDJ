@@ -20,19 +20,25 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2013 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-before-you-install'
          xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
          xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-         xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
-         xmlns:xlink='http://www.w3.org/1999/xlink'
-         xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+         xsi:schemaLocation='http://docbook.org/ns/docbook
+                             http://docbook.org/xml/5.0/xsd/docbook.xsd'
+         xmlns:xlink='http://www.w3.org/1999/xlink'>
  <title>Before You Install OpenDJ Software</title>
 
  <para>This chapter covers requirements to consider before you run OpenDJ,
  especially before you run OpenDJ in your production environment.</para>
+
+ <note xml:id="requirements-not-changed">
+  <para>
+   These requirements have not changed since OpenDJ ${stableServerVersion}.
+  </para>
+ </note>
 
  <para>If you have a special request to support a combination not listed here,
  contact ForgeRock at <link xlink:href='mailto:info@forgerock.com'
