@@ -264,7 +264,7 @@ import static org.opends.server.util.DynamicConstants.*;
      String installDir = toCanonicalPath(DirectoryServer.getServerRoot());
      if (installDir == null)
      {
-       logger.info(NOTE_UNKNOWN_INSTALL_DIRECTORY.get());
+       logger.info(NOTE_UNKNOWN_INSTALL_DIRECTORY);
      }
      else
      {
@@ -273,7 +273,7 @@ import static org.opends.server.util.DynamicConstants.*;
      String instanceDir = toCanonicalPath(DirectoryServer.getInstanceRoot());
      if (instanceDir == null)
      {
-       logger.info(NOTE_UNKNOWN_INSTANCE_DIRECTORY.get());
+       logger.info(NOTE_UNKNOWN_INSTANCE_DIRECTORY);
      }
      else
      {

@@ -424,7 +424,7 @@ public final class ReplicationServer
             " successfully initialized");
     } catch (UnknownHostException e)
     {
-      logger.error(ERR_UNKNOWN_HOSTNAME.get());
+      logger.error(ERR_UNKNOWN_HOSTNAME);
     } catch (IOException e)
     {
       logger.error(ERR_COULD_NOT_BIND_CHANGELOG, getReplicationPort(), e.getMessage());

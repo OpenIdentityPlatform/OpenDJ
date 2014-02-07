@@ -347,7 +347,7 @@ public class GSSAPISASLMechanismHandler extends
     }
     DirectoryServer.deregisterSASLMechanismHandler(SASL_MECHANISM_GSSAPI);
     clearProperties();
-    logger.error(INFO_GSSAPI_STOPPED.get());
+    logger.error(INFO_GSSAPI_STOPPED);
   }
 
 
