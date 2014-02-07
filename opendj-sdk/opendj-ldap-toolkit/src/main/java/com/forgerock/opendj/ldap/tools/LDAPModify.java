@@ -156,20 +156,20 @@ public final class LDAPModify extends ConsoleApplication {
         private void printResult(final String operationType, final String name, final Result r) {
             if (r.getResultCode() != ResultCode.SUCCESS && r.getResultCode() != ResultCode.REFERRAL) {
                 final LocalizableMessage msg = INFO_OPERATION_FAILED.get(operationType);
-                println(msg);
-                println(ERR_TOOL_RESULT_CODE.get(r.getResultCode().intValue(), r.getResultCode()
+                errPrintln(msg);
+                errPrintln(ERR_TOOL_RESULT_CODE.get(r.getResultCode().intValue(), r.getResultCode()
                         .toString()));
                 if ((r.getDiagnosticMessage() != null) && (r.getDiagnosticMessage().length() > 0)) {
-                    println(LocalizableMessage.raw(r.getDiagnosticMessage()));
+                    errPrintln(LocalizableMessage.raw(r.getDiagnosticMessage()));
                 }
                 if (r.getMatchedDN() != null && r.getMatchedDN().length() > 0) {
-                    println(ERR_TOOL_MATCHED_DN.get(r.getMatchedDN()));
+                    errPrintln(ERR_TOOL_MATCHED_DN.get(r.getMatchedDN()));
                 }
             } else {
                 final LocalizableMessage msg = INFO_OPERATION_SUCCESSFUL.get(operationType, name);
                 println(msg);
                 if ((r.getDiagnosticMessage() != null) && (r.getDiagnosticMessage().length() > 0)) {
-                    println(LocalizableMessage.raw(r.getDiagnosticMessage()));
+                    errPrintln(LocalizableMessage.raw(r.getDiagnosticMessage()));
                 }
                 if (r.getReferralURIs() != null) {
                     for (final String uri : r.getReferralURIs()) {
@@ -186,7 +186,7 @@ public final class LDAPModify extends ConsoleApplication {
                     writer.writeEntry(control.getEntry());
                 }
             } catch (final DecodeException de) {
-                println(ERR_DECODE_CONTROL_FAILURE.get(de.getLocalizedMessage()));
+                errPrintln(ERR_DECODE_CONTROL_FAILURE.get(de.getLocalizedMessage()));
             } catch (final IOException ioe) {
                 throw new RuntimeException(ioe);
             }
@@ -199,7 +199,7 @@ public final class LDAPModify extends ConsoleApplication {
                     writer.writeEntry(control.getEntry());
                 }
             } catch (final DecodeException de) {
-                println(ERR_DECODE_CONTROL_FAILURE.get(de.getLocalizedMessage()));
+                errPrintln(ERR_DECODE_CONTROL_FAILURE.get(de.getLocalizedMessage()));
             } catch (final IOException ioe) {
                 throw new RuntimeException(ioe);
             }
@@ -350,7 +350,7 @@ public final class LDAPModify extends ConsoleApplication {
             argParser.setUsageArgument(showUsage, getOutputStream());
         } catch (final ArgumentException ae) {
             final LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
-            println(message);
+            errPrintln(message);
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
 
@@ -367,18 +367,18 @@ public final class LDAPModify extends ConsoleApplication {
             connectionFactory = connectionFactoryProvider.getAuthenticatedConnectionFactory();
         } catch (final ArgumentException ae) {
             final LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
-            println(message);
+            errPrintln(message);
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
 
         try {
             final int versionNumber = version.getIntValue();
             if (versionNumber != 2 && versionNumber != 3) {
-                println(ERR_DESCRIPTION_INVALID_VERSION.get(String.valueOf(versionNumber)));
+                errPrintln(ERR_DESCRIPTION_INVALID_VERSION.get(String.valueOf(versionNumber)));
                 return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
             }
         } catch (final ArgumentException ae) {
-            println(ERR_DESCRIPTION_INVALID_VERSION.get(String.valueOf(version.getValue())));
+            errPrintln(ERR_DESCRIPTION_INVALID_VERSION.get(String.valueOf(version.getValue())));
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
 
@@ -397,7 +397,7 @@ public final class LDAPModify extends ConsoleApplication {
                 } catch (final DecodeException de) {
                     final LocalizableMessage message =
                             ERR_TOOL_INVALID_CONTROL_STRING.get(ctrlString);
-                    println(message);
+                    errPrintln(message);
                     ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
                 }
             }
@@ -422,7 +422,7 @@ public final class LDAPModify extends ConsoleApplication {
             } catch (final LocalizedIllegalArgumentException le) {
                 final LocalizableMessage message =
                         ERR_LDAP_ASSERTION_INVALID_FILTER.get(le.getMessage());
-                println(message);
+                errPrintln(message);
                 return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
             }
         }
@@ -472,7 +472,7 @@ public final class LDAPModify extends ConsoleApplication {
                     final LocalizableMessage message =
                             ERR_LDIF_FILE_CANNOT_OPEN_FOR_READ.get(filename.getValue(), e
                                     .getLocalizedMessage());
-                    println(message);
+                    errPrintln(message);
                     return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
                 }
             } else {
@@ -491,7 +491,7 @@ public final class LDAPModify extends ConsoleApplication {
                 final LocalizableMessage message =
                         ERR_LDIF_FILE_READ_ERROR
                                 .get(filename.getValue(), ioe.getLocalizedMessage());
-                println(message);
+                errPrintln(message);
                 return ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue();
             }
         } finally {

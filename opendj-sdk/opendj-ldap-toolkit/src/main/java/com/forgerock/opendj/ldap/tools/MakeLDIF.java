@@ -106,7 +106,7 @@ public final class MakeLDIF extends ConsoleApplication {
             argParser.addArgument(showUsage);
             argParser.setUsageArgument(showUsage, getOutputStream());
         } catch (ArgumentException ae) {
-            println(ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage()));
+            errPrintln(ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage()));
             return EXIT_CODE_FAILURE;
         }
 
@@ -114,8 +114,8 @@ public final class MakeLDIF extends ConsoleApplication {
         try {
             argParser.parseArguments(args);
         } catch (ArgumentException ae) {
-            println(ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
-            println(argParser.getUsageMessage());
+            errPrintln(ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
+            errPrintln(argParser.getUsageMessage());
             return EXIT_CODE_FAILURE;
         }
 
@@ -139,7 +139,7 @@ public final class MakeLDIF extends ConsoleApplication {
 
             if (generator.hasWarnings()) {
                 for (LocalizableMessage warn : generator.getWarnings()) {
-                    println(warn);
+                    errPrintln(warn);
                 }
             }
 
@@ -147,7 +147,7 @@ public final class MakeLDIF extends ConsoleApplication {
                 try {
                     writer = new LDIFEntryWriter(new BufferedWriter(new FileWriter(new File(ldifFile.getValue()))));
                 } catch (IOException e) {
-                    println(ERR_MAKELDIF_UNABLE_TO_CREATE_LDIF.get(ldifFile.getValue(), e.getMessage()));
+                    errPrintln(ERR_MAKELDIF_UNABLE_TO_CREATE_LDIF.get(ldifFile.getValue(), e.getMessage()));
                     return EXIT_CODE_FAILURE;
                 }
             } else {
@@ -158,7 +158,7 @@ public final class MakeLDIF extends ConsoleApplication {
                 return EXIT_CODE_FAILURE;
             }
 
-            println(INFO_MAKELDIF_PROCESSING_COMPLETE.get(numberOfEntriesWritten));
+            errPrintln(INFO_MAKELDIF_PROCESSING_COMPLETE.get(numberOfEntriesWritten));
 
         } finally {
             closeIfNotNull(generator, writer);
@@ -177,7 +177,7 @@ public final class MakeLDIF extends ConsoleApplication {
         if (resourcePath.isPresent()) {
             final File resourceDir = new File(resourcePath.getValue());
             if (!resourceDir.exists()) {
-                println(ERR_MAKELDIF_NO_SUCH_RESOURCE_DIRECTORY.get(resourcePath.getValue()));
+                errPrintln(ERR_MAKELDIF_NO_SUCH_RESOURCE_DIRECTORY.get(resourcePath.getValue()));
                 generator.close();
                 return null;
             }
@@ -188,7 +188,7 @@ public final class MakeLDIF extends ConsoleApplication {
             try {
                 generator.setRandomSeed(randomSeedArg.getIntValue());
             } catch (ArgumentException ae) {
-                println(ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
+                errPrintln(ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
                 generator.close();
                 return null;
             }
@@ -205,7 +205,7 @@ public final class MakeLDIF extends ConsoleApplication {
         try {
             generator.hasNext();
         } catch (IOException e) {
-            println(ERR_MAKELDIF_EXCEPTION_DURING_PARSE.get(e.getMessage()));
+            errPrintln(ERR_MAKELDIF_EXCEPTION_DURING_PARSE.get(e.getMessage()));
             generator.close();
             return null;
         }
@@ -220,7 +220,7 @@ public final class MakeLDIF extends ConsoleApplication {
         for (final String constant : constants.getValues()) {
             final String[] chunks = constant.split("=");
             if (chunks.length != 2) {
-                println(ERR_CONSTANT_ARG_CANNOT_DECODE.get(constant));
+                errPrintln(ERR_CONSTANT_ARG_CANNOT_DECODE.get(constant));
                 return false;
             }
             generator.setConstant(chunks[0], chunks[1]);
@@ -239,15 +239,15 @@ public final class MakeLDIF extends ConsoleApplication {
                 try {
                     writer.writeEntry(entry);
                 } catch (IOException e) {
-                    println(ERR_MAKELDIF_ERROR_WRITING_LDIF.get(ldifFile.getValue(), e.getMessage()));
+                    errPrintln(ERR_MAKELDIF_ERROR_WRITING_LDIF.get(ldifFile.getValue(), e.getMessage()));
                     return false;
                 }
                 if ((++numberOfEntriesWritten % 1000) == 0) {
-                    println(INFO_MAKELDIF_PROCESSED_N_ENTRIES.get(numberOfEntriesWritten));
+                    errPrintln(INFO_MAKELDIF_PROCESSED_N_ENTRIES.get(numberOfEntriesWritten));
                 }
             }
         } catch (Exception e) {
-            println(ERR_MAKELDIF_EXCEPTION_DURING_PROCESSING.get(e.getMessage()));
+            errPrintln(ERR_MAKELDIF_EXCEPTION_DURING_PROCESSING.get(e.getMessage()));
             return false;
         }
         return true;

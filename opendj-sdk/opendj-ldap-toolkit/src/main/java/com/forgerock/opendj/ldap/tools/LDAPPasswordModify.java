@@ -174,7 +174,7 @@ public final class LDAPPasswordModify extends ConsoleApplication {
             argParser.setUsageArgument(showUsage, getOutputStream());
         } catch (final ArgumentException ae) {
             final LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
-            println(message);
+            errPrintln(message);
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
 
@@ -191,7 +191,7 @@ public final class LDAPPasswordModify extends ConsoleApplication {
             connectionFactory = connectionFactoryProvider.getAuthenticatedConnectionFactory();
         } catch (final ArgumentException ae) {
             final LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
-            println(message);
+            errPrintln(message);
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
 
@@ -199,11 +199,11 @@ public final class LDAPPasswordModify extends ConsoleApplication {
         try {
             final int versionNumber = version.getIntValue();
             if (versionNumber != 2 && versionNumber != 3) {
-                println(ERR_DESCRIPTION_INVALID_VERSION.get(String.valueOf(versionNumber)));
+                errPrintln(ERR_DESCRIPTION_INVALID_VERSION.get(String.valueOf(versionNumber)));
                 return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
             }
         } catch (final ArgumentException ae) {
-            println(ERR_DESCRIPTION_INVALID_VERSION.get(String.valueOf(version.getValue())));
+            errPrintln(ERR_DESCRIPTION_INVALID_VERSION.get(String.valueOf(version.getValue())));
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
 
@@ -215,7 +215,7 @@ public final class LDAPPasswordModify extends ConsoleApplication {
                 } catch (final DecodeException de) {
                     final LocalizableMessage message =
                             ERR_TOOL_INVALID_CONTROL_STRING.get(ctrlString);
-                    println(message);
+                    errPrintln(message);
                     ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
                 }
             }
@@ -225,7 +225,7 @@ public final class LDAPPasswordModify extends ConsoleApplication {
             final LocalizableMessage message =
                     ERR_LDAPPWMOD_CONFLICTING_ARGS.get(newPW.getLongIdentifier(), newPWFile
                             .getLongIdentifier());
-            println(message);
+            errPrintln(message);
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
 
@@ -233,7 +233,7 @@ public final class LDAPPasswordModify extends ConsoleApplication {
             final LocalizableMessage message =
                     ERR_LDAPPWMOD_CONFLICTING_ARGS.get(currentPW.getLongIdentifier(), currentPWFile
                             .getLongIdentifier());
-            println(message);
+            errPrintln(message);
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
 
@@ -267,18 +267,18 @@ public final class LDAPPasswordModify extends ConsoleApplication {
             LocalizableMessage message =
                     ERR_LDAPPWMOD_FAILED.get(e.getResult().getResultCode().intValue(), e
                             .getResult().getResultCode().toString());
-            println(message);
+            errPrintln(message);
 
             final String errorMessage = e.getResult().getDiagnosticMessage();
             if ((errorMessage != null) && (errorMessage.length() > 0)) {
                 message = ERR_LDAPPWMOD_FAILURE_ERROR_MESSAGE.get(errorMessage);
-                println(message);
+                errPrintln(message);
             }
 
             final String matchedDN = e.getResult().getMatchedDN();
             if (matchedDN != null && matchedDN.length() > 0) {
                 message = ERR_LDAPPWMOD_FAILURE_MATCHED_DN.get(matchedDN);
-                println(message);
+                errPrintln(message);
             }
             return e.getResult().getResultCode().intValue();
         }

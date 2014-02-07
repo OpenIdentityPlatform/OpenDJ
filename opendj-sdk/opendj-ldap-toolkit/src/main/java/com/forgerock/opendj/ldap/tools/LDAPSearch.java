@@ -113,7 +113,7 @@ public final class LDAPSearch extends ConsoleApplication {
                     }
                 }
             } catch (final DecodeException de) {
-                println(ERR_DECODE_CONTROL_FAILURE.get(de.getLocalizedMessage()));
+                errPrintln(ERR_DECODE_CONTROL_FAILURE.get(de.getLocalizedMessage()));
             }
 
             try {
@@ -165,7 +165,7 @@ public final class LDAPSearch extends ConsoleApplication {
                     }
                 }
             } catch (final DecodeException de) {
-                println(ERR_DECODE_CONTROL_FAILURE.get(de.getLocalizedMessage()));
+                errPrintln(ERR_DECODE_CONTROL_FAILURE.get(de.getLocalizedMessage()));
             }
 
             try {
@@ -433,7 +433,7 @@ public final class LDAPSearch extends ConsoleApplication {
             argParser.setUsageArgument(showUsage, getOutputStream());
         } catch (final ArgumentException ae) {
             final LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
-            println(message);
+            errPrintln(message);
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
 
@@ -450,7 +450,7 @@ public final class LDAPSearch extends ConsoleApplication {
             connectionFactory = connectionFactoryProvider.getAuthenticatedConnectionFactory();
         } catch (final ArgumentException ae) {
             final LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
-            println(message);
+            errPrintln(message);
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
 
@@ -469,7 +469,7 @@ public final class LDAPSearch extends ConsoleApplication {
                 try {
                     filters.add(Filter.valueOf(filterString));
                 } catch (final LocalizedIllegalArgumentException e) {
-                    println(e.getMessageObject());
+                    errPrintln(e.getMessageObject());
                     return ResultCode.CLIENT_SIDE_FILTER_ERROR.intValue();
                 }
             }
@@ -495,10 +495,10 @@ public final class LDAPSearch extends ConsoleApplication {
                     filters.add(ldapFilter);
                 }
             } catch (final LocalizedIllegalArgumentException e) {
-                println(e.getMessageObject());
+                errPrintln(e.getMessageObject());
                 return ResultCode.CLIENT_SIDE_FILTER_ERROR.intValue();
             } catch (final IOException e) {
-                println(LocalizableMessage.raw(e.toString()));
+                errPrintln(LocalizableMessage.raw(e.toString()));
                 return ResultCode.CLIENT_SIDE_FILTER_ERROR.intValue();
             } finally {
                 if (in != null) {
@@ -512,8 +512,8 @@ public final class LDAPSearch extends ConsoleApplication {
         }
 
         if (filters.isEmpty()) {
-            println(ERR_SEARCH_NO_FILTERS.get());
-            println(argParser.getUsageMessage());
+            errPrintln(ERR_SEARCH_NO_FILTERS.get());
+            errPrintln(argParser.getUsageMessage());
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
 
@@ -521,7 +521,7 @@ public final class LDAPSearch extends ConsoleApplication {
         try {
             scope = searchScope.getTypedValue();
         } catch (final ArgumentException ex1) {
-            println(ex1.getMessageObject());
+            errPrintln(ex1.getMessageObject());
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
 
@@ -531,7 +531,7 @@ public final class LDAPSearch extends ConsoleApplication {
                     Requests.newSearchRequest(DN.valueOf(baseDN.getValue()), scope, filters.get(0),
                             attributes.toArray(new String[attributes.size()]));
         } catch (final LocalizedIllegalArgumentException e) {
-            println(e.getMessageObject());
+            errPrintln(e.getMessageObject());
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
 
@@ -539,11 +539,11 @@ public final class LDAPSearch extends ConsoleApplication {
         try {
             final int versionNumber = version.getIntValue();
             if (versionNumber != 2 && versionNumber != 3) {
-                println(ERR_DESCRIPTION_INVALID_VERSION.get(String.valueOf(versionNumber)));
+                errPrintln(ERR_DESCRIPTION_INVALID_VERSION.get(String.valueOf(versionNumber)));
                 return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
             }
         } catch (final ArgumentException ae) {
-            println(ERR_DESCRIPTION_INVALID_VERSION.get(String.valueOf(version.getValue())));
+            errPrintln(ERR_DESCRIPTION_INVALID_VERSION.get(String.valueOf(version.getValue())));
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
 
@@ -557,13 +557,13 @@ public final class LDAPSearch extends ConsoleApplication {
             search.setTimeLimit(timeLimit.getIntValue());
             search.setSizeLimit(sizeLimit.getIntValue());
         } catch (final ArgumentException ex1) {
-            println(ex1.getMessageObject());
+            errPrintln(ex1.getMessageObject());
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
         try {
             search.setDereferenceAliasesPolicy(dereferencePolicy.getTypedValue());
         } catch (final ArgumentException ex1) {
-            println(ex1.getMessageObject());
+            errPrintln(ex1.getMessageObject());
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
 
@@ -575,7 +575,7 @@ public final class LDAPSearch extends ConsoleApplication {
                 } catch (final DecodeException de) {
                     final LocalizableMessage message =
                             ERR_TOOL_INVALID_CONTROL_STRING.get(ctrlString);
-                    println(message);
+                    errPrintln(message);
                     ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
                 }
             }
@@ -585,7 +585,7 @@ public final class LDAPSearch extends ConsoleApplication {
             final String authzID = effectiveRightsUser.getValue();
             if (!authzID.startsWith("dn:")) {
                 final LocalizableMessage message = ERR_EFFECTIVERIGHTS_INVALID_AUTHZID.get(authzID);
-                println(message);
+                errPrintln(message);
                 return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
             }
             final Control effectiveRightsControl =
@@ -610,14 +610,14 @@ public final class LDAPSearch extends ConsoleApplication {
 
             if (!tokenizer.hasMoreTokens()) {
                 final LocalizableMessage message = ERR_PSEARCH_MISSING_DESCRIPTOR.get();
-                println(message);
+                errPrintln(message);
                 return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
             } else {
                 final String token = tokenizer.nextToken();
                 if (!token.equals("ps")) {
                     final LocalizableMessage message =
                             ERR_PSEARCH_DOESNT_START_WITH_PS.get(String.valueOf(infoString));
-                    println(message);
+                    errPrintln(message);
                     return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
                 }
             }
@@ -651,7 +651,7 @@ public final class LDAPSearch extends ConsoleApplication {
                         } else {
                             final LocalizableMessage message =
                                     ERR_PSEARCH_INVALID_CHANGE_TYPE.get(String.valueOf(token));
-                            println(message);
+                            errPrintln(message);
                             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
                         }
                     } while (st.hasMoreTokens());
@@ -667,7 +667,7 @@ public final class LDAPSearch extends ConsoleApplication {
                 } else {
                     final LocalizableMessage message =
                             ERR_PSEARCH_INVALID_CHANGESONLY.get(String.valueOf(token));
-                    println(message);
+                    errPrintln(message);
                     return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
                 }
             }
@@ -681,7 +681,7 @@ public final class LDAPSearch extends ConsoleApplication {
                 } else {
                     final LocalizableMessage message =
                             ERR_PSEARCH_INVALID_RETURN_ECS.get(String.valueOf(token));
-                    println(message);
+                    errPrintln(message);
                     return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
                 }
             }
@@ -705,7 +705,7 @@ public final class LDAPSearch extends ConsoleApplication {
             } catch (final LocalizedIllegalArgumentException le) {
                 final LocalizableMessage message =
                         ERR_LDAP_ASSERTION_INVALID_FILTER.get(le.getMessage());
-                println(message);
+                errPrintln(message);
                 return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
             }
         }
@@ -720,7 +720,7 @@ public final class LDAPSearch extends ConsoleApplication {
                 } catch (final LocalizedIllegalArgumentException le) {
                     final LocalizableMessage message =
                             ERR_LDAP_MATCHEDVALUES_INVALID_FILTER.get(le.getMessage());
-                    println(message);
+                    errPrintln(message);
                     return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
                 }
             }
@@ -737,7 +737,7 @@ public final class LDAPSearch extends ConsoleApplication {
             } catch (final LocalizedIllegalArgumentException le) {
                 final LocalizableMessage message =
                         ERR_LDAP_SORTCONTROL_INVALID_ORDER.get(le.getMessageObject());
-                println(message);
+                errPrintln(message);
                 return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
             }
         }
@@ -747,7 +747,7 @@ public final class LDAPSearch extends ConsoleApplication {
                 final LocalizableMessage message =
                         ERR_LDAPSEARCH_VLV_REQUIRES_SORT.get(vlvDescriptor.getLongIdentifier(),
                                 sortOrder.getLongIdentifier());
-                println(message);
+                errPrintln(message);
                 return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
             }
 
@@ -762,7 +762,7 @@ public final class LDAPSearch extends ConsoleApplication {
                             assertionValue, beforeCount, afterCount, null));
                 } catch (final Exception e) {
                     final LocalizableMessage message = ERR_LDAPSEARCH_VLV_INVALID_DESCRIPTOR.get();
-                    println(message);
+                    errPrintln(message);
                     return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
                 }
             } else if (numTokens == 4) {
@@ -775,12 +775,12 @@ public final class LDAPSearch extends ConsoleApplication {
                             contentCount, beforeCount, afterCount, null));
                 } catch (final Exception e) {
                     final LocalizableMessage message = ERR_LDAPSEARCH_VLV_INVALID_DESCRIPTOR.get();
-                    println(message);
+                    errPrintln(message);
                     return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
                 }
             } else {
                 final LocalizableMessage message = ERR_LDAPSEARCH_VLV_INVALID_DESCRIPTOR.get();
-                println(message);
+                errPrintln(message);
                 return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
             }
         }
@@ -789,7 +789,7 @@ public final class LDAPSearch extends ConsoleApplication {
         if (simplePageSize.isPresent()) {
             if (filters.size() > 1) {
                 final LocalizableMessage message = ERR_PAGED_RESULTS_REQUIRES_SINGLE_FILTER.get();
-                println(message);
+                errPrintln(message);
                 return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
             }
 
@@ -799,7 +799,7 @@ public final class LDAPSearch extends ConsoleApplication {
                         .empty()));
             } catch (final ArgumentException ae) {
                 final LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
-                println(message);
+                errPrintln(message);
                 return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
             }
         }
@@ -808,11 +808,11 @@ public final class LDAPSearch extends ConsoleApplication {
          * if(!connectionOptions.useSSL() && !connectionOptions.useStartTLS()) {
          * LocalizableMessage message =
          * ERR_TOOL_SASLEXTERNAL_NEEDS_SSL_OR_TLS.get();
-         * err.println(wrapText(message, MAX_LINE_WIDTH)); return
+         * errPrintln(wrapText(message, MAX_LINE_WIDTH)); return
          * CLIENT_SIDE_PARAM_ERROR; } if(keyStorePathValue == null) {
          * LocalizableMessage message =
          * ERR_TOOL_SASLEXTERNAL_NEEDS_KEYSTORE.get();
-         * err.println(wrapText(message, MAX_LINE_WIDTH)); return
+         * errPrintln(wrapText(message, MAX_LINE_WIDTH)); return
          * CLIENT_SIDE_PARAM_ERROR; } }
          * connectionOptions.setVerbose(verbose.isPresent());
          */
@@ -858,7 +858,7 @@ public final class LDAPSearch extends ConsoleApplication {
                         }
                     }
                 } catch (final DecodeException e) {
-                    println(ERR_DECODE_CONTROL_FAILURE.get(e.getLocalizedMessage()));
+                    errPrintln(ERR_DECODE_CONTROL_FAILURE.get(e.getLocalizedMessage()));
                 }
 
                 try {
@@ -881,7 +881,7 @@ public final class LDAPSearch extends ConsoleApplication {
                         }
                     }
                 } catch (final DecodeException e) {
-                    println(ERR_DECODE_CONTROL_FAILURE.get(e.getLocalizedMessage()));
+                    errPrintln(ERR_DECODE_CONTROL_FAILURE.get(e.getLocalizedMessage()));
                 }
 
                 try {
@@ -907,18 +907,18 @@ public final class LDAPSearch extends ConsoleApplication {
                         }
                     }
                 } catch (final DecodeException e) {
-                    println(ERR_DECODE_CONTROL_FAILURE.get(e.getLocalizedMessage()));
+                    errPrintln(ERR_DECODE_CONTROL_FAILURE.get(e.getLocalizedMessage()));
                 }
 
-                println();
-                println(ERR_TOOL_RESULT_CODE.get(result.getResultCode().intValue(), result
+                errPrintln();
+                errPrintln(ERR_TOOL_RESULT_CODE.get(result.getResultCode().intValue(), result
                         .getResultCode().toString()));
                 if ((result.getDiagnosticMessage() != null)
                         && (result.getDiagnosticMessage().length() > 0)) {
-                    println(LocalizableMessage.raw(result.getDiagnosticMessage()));
+                    errPrintln(LocalizableMessage.raw(result.getDiagnosticMessage()));
                 }
                 if (result.getMatchedDN() != null && result.getMatchedDN().length() > 0) {
-                    println(ERR_TOOL_MATCHED_DN.get(result.getMatchedDN()));
+                    errPrintln(ERR_TOOL_MATCHED_DN.get(result.getMatchedDN()));
                 }
 
                 filterIndex++;

@@ -106,15 +106,15 @@ public final class LDAPCompare extends ConsoleApplication {
                 }
             } catch (final ErrorResultException ere) {
                 final LocalizableMessage msg = INFO_OPERATION_FAILED.get("COMPARE");
-                println(msg);
+                errPrintln(msg);
                 final Result r = ere.getResult();
-                println(ERR_TOOL_RESULT_CODE.get(r.getResultCode().intValue(), r.getResultCode()
+                errPrintln(ERR_TOOL_RESULT_CODE.get(r.getResultCode().intValue(), r.getResultCode()
                         .toString()));
                 if ((r.getDiagnosticMessage() != null) && (r.getDiagnosticMessage().length() > 0)) {
-                    println(LocalizableMessage.raw(r.getDiagnosticMessage()));
+                    errPrintln(LocalizableMessage.raw(r.getDiagnosticMessage()));
                 }
                 if (r.getMatchedDN() != null && r.getMatchedDN().length() > 0) {
-                    println(ERR_TOOL_MATCHED_DN.get(r.getMatchedDN()));
+                    errPrintln(ERR_TOOL_MATCHED_DN.get(r.getMatchedDN()));
                 }
                 return r.getResultCode().intValue();
             }
@@ -212,7 +212,7 @@ public final class LDAPCompare extends ConsoleApplication {
 
         } catch (final ArgumentException ae) {
             final LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
-            println(message);
+            errPrintln(message);
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
 
@@ -229,18 +229,18 @@ public final class LDAPCompare extends ConsoleApplication {
             connectionFactory = connectionFactoryProvider.getAuthenticatedConnectionFactory();
         } catch (final ArgumentException ae) {
             final LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
-            println(message);
+            errPrintln(message);
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
 
         try {
             final int versionNumber = version.getIntValue();
             if (versionNumber != 2 && versionNumber != 3) {
-                println(ERR_DESCRIPTION_INVALID_VERSION.get(String.valueOf(versionNumber)));
+                errPrintln(ERR_DESCRIPTION_INVALID_VERSION.get(String.valueOf(versionNumber)));
                 return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
             }
         } catch (final ArgumentException ae) {
-            println(ERR_DESCRIPTION_INVALID_VERSION.get(String.valueOf(version.getValue())));
+            errPrintln(ERR_DESCRIPTION_INVALID_VERSION.get(String.valueOf(version.getValue())));
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
 
@@ -249,7 +249,7 @@ public final class LDAPCompare extends ConsoleApplication {
 
         if (attrAndDNStrings.isEmpty()) {
             final LocalizableMessage message = ERR_LDAPCOMPARE_NO_ATTR.get();
-            println(message);
+            errPrintln(message);
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
 
@@ -263,14 +263,14 @@ public final class LDAPCompare extends ConsoleApplication {
 
         // If no DNs were provided, then exit with an error.
         if (dnStrings.isEmpty() && (!filename.isPresent())) {
-            println(ERR_LDAPCOMPARE_NO_DNS.get());
+            errPrintln(ERR_LDAPCOMPARE_NO_DNS.get());
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
 
         /* If trailing DNs were provided and the filename argument was also
          provided, exit with an error.*/
         if (!dnStrings.isEmpty() && filename.isPresent()) {
-            println(ERR_LDAPCOMPARE_FILENAME_AND_DNS.get());
+            errPrintln(ERR_LDAPCOMPARE_FILENAME_AND_DNS.get());
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
 
@@ -279,7 +279,7 @@ public final class LDAPCompare extends ConsoleApplication {
         if (idx == -1) {
             final LocalizableMessage message =
                     ERR_LDAPCOMPARE_INVALID_ATTR_STRING.get(attributeString);
-            println(message);
+            errPrintln(message);
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
         final String attributeType = attributeString.substring(0, idx);
@@ -292,7 +292,7 @@ public final class LDAPCompare extends ConsoleApplication {
                 try {
                     attributeVal = ByteString.valueOfBase64(base64);
                 } catch (final LocalizedIllegalArgumentException e) {
-                    println(INFO_COMPARE_CANNOT_BASE64_DECODE_ASSERTION_VALUE.get());
+                    errPrintln(INFO_COMPARE_CANNOT_BASE64_DECODE_ASSERTION_VALUE.get());
                     return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
                 }
             } else if (nextChar == '<') {
@@ -300,7 +300,7 @@ public final class LDAPCompare extends ConsoleApplication {
                     final String filePath = remainder.substring(1, remainder.length());
                     attributeVal = ByteString.wrap(readBytesFromFile(filePath));
                 } catch (final Exception e) {
-                    println(INFO_COMPARE_CANNOT_READ_ASSERTION_VALUE_FROM_FILE.get(String
+                    errPrintln(INFO_COMPARE_CANNOT_READ_ASSERTION_VALUE_FROM_FILE.get(String
                             .valueOf(e)));
                     return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
                 }
@@ -321,7 +321,7 @@ public final class LDAPCompare extends ConsoleApplication {
                 } catch (final DecodeException de) {
                     final LocalizableMessage message =
                             ERR_TOOL_INVALID_CONTROL_STRING.get(ctrlString);
-                    println(message);
+                    errPrintln(message);
                     ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
                 }
             }
@@ -346,7 +346,7 @@ public final class LDAPCompare extends ConsoleApplication {
             } catch (final LocalizedIllegalArgumentException le) {
                 final LocalizableMessage message =
                         ERR_LDAP_ASSERTION_INVALID_FILTER.get(le.getMessage());
-                println(message);
+                errPrintln(message);
                 return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
             }
         }
@@ -359,7 +359,7 @@ public final class LDAPCompare extends ConsoleApplication {
             try {
                 rdr = new BufferedReader(new FileReader(filename.getValue()));
             } catch (final FileNotFoundException t) {
-                println(ERR_LDAPCOMPARE_ERROR_READING_FILE.get(filename.getValue(), t.toString()));
+                errPrintln(ERR_LDAPCOMPARE_ERROR_READING_FILE.get(filename.getValue(), t.toString()));
                 return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
             }
         }
@@ -369,7 +369,7 @@ public final class LDAPCompare extends ConsoleApplication {
             try {
                 connection = connectionFactory.getConnection();
             } catch (final ErrorResultException ere) {
-                println(LocalizableMessage.raw(ere.getMessage()));
+                errPrintln(LocalizableMessage.raw(ere.getMessage()));
                 return ere.getResult().getResultCode().intValue();
             }
         }
@@ -395,7 +395,7 @@ public final class LDAPCompare extends ConsoleApplication {
                         }
                     }
                 } catch (final IOException ioe) {
-                    println(ERR_LDAPCOMPARE_ERROR_READING_FILE.get(filename.getValue(), ioe
+                    errPrintln(ERR_LDAPCOMPARE_ERROR_READING_FILE.get(filename.getValue(), ioe
                             .toString()));
                     return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
                 }

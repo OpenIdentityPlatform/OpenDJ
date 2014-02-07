@@ -176,17 +176,17 @@ final class Utils {
          }*/
 
         if (ere.getResult().getResultCode().intValue() >= 0) {
-            app.println(ERR_TOOL_RESULT_CODE.get(ere.getResult().getResultCode().intValue(), ere
+            app.errPrintln(ERR_TOOL_RESULT_CODE.get(ere.getResult().getResultCode().intValue(), ere
                     .getResult().getResultCode().toString()));
         }
 
         if ((ere.getResult().getDiagnosticMessage() != null)
                 && (ere.getResult().getDiagnosticMessage().length() > 0)) {
-            app.println(ERR_TOOL_ERROR_MESSAGE.get(ere.getResult().getDiagnosticMessage()));
+            app.errPrintln(ERR_TOOL_ERROR_MESSAGE.get(ere.getResult().getDiagnosticMessage()));
         }
 
         if (ere.getResult().getMatchedDN() != null && ere.getResult().getMatchedDN().length() > 0) {
-            app.println(ERR_TOOL_MATCHED_DN.get(ere.getResult().getMatchedDN()));
+            app.errPrintln(ERR_TOOL_MATCHED_DN.get(ere.getResult().getMatchedDN()));
         }
 
         if (app.isVerbose() && ere.getResult().getCause() != null) {
@@ -211,7 +211,7 @@ final class Utils {
                     app.println(message);
                 }
             } catch (final DecodeException e) {
-                app.println(ERR_DECODE_CONTROL_FAILURE.get(e.getLocalizedMessage()));
+                app.errPrintln(ERR_DECODE_CONTROL_FAILURE.get(e.getLocalizedMessage()));
             }
 
             try {
@@ -223,7 +223,7 @@ final class Utils {
                     app.println(message);
                 }
             } catch (final DecodeException e) {
-                app.println(ERR_DECODE_CONTROL_FAILURE.get(e.getLocalizedMessage()));
+                app.errPrintln(ERR_DECODE_CONTROL_FAILURE.get(e.getLocalizedMessage()));
             }
 
             try {
@@ -237,7 +237,7 @@ final class Utils {
                     app.println(message);
                 }
             } catch (final DecodeException e) {
-                app.println(ERR_DECODE_CONTROL_FAILURE.get(e.getLocalizedMessage()));
+                app.errPrintln(ERR_DECODE_CONTROL_FAILURE.get(e.getLocalizedMessage()));
             }
 
             try {
@@ -272,7 +272,7 @@ final class Utils {
                     }
                 }
             } catch (final DecodeException e) {
-                app.println(ERR_DECODE_CONTROL_FAILURE.get(e.getLocalizedMessage()));
+                app.errPrintln(ERR_DECODE_CONTROL_FAILURE.get(e.getLocalizedMessage()));
             }
         }
     }
