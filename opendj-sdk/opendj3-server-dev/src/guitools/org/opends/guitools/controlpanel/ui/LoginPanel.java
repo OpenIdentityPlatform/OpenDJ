@@ -37,9 +37,6 @@ import java.security.cert.X509Certificate;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-
 import javax.naming.NamingException;
 import javax.naming.ldap.InitialLdapContext;
 import javax.swing.JLabel;
@@ -47,6 +44,8 @@ import javax.swing.JPasswordField;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.guitools.controlpanel.datamodel.ConfigReadException;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
@@ -57,6 +56,7 @@ import org.opends.quicksetup.ui.CertificateDialog;
 import org.opends.quicksetup.util.UIKeyStore;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.types.DN;
+import org.opends.server.util.StaticUtils;
 
 /**
  * The panel that appears when the user is asked to provide authentication.
@@ -86,6 +86,7 @@ public class LoginPanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_LOGIN_PANEL_TITLE.get();
@@ -136,6 +137,7 @@ public class LoginPanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public Component getPreferredFocusComponent()
   {
     return pwd;
@@ -144,6 +146,7 @@ public class LoginPanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
   }
@@ -164,6 +167,7 @@ public class LoginPanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public void okClicked()
   {
     setPrimaryValid(dnLabel);
@@ -211,6 +215,7 @@ public class LoginPanel extends StatusGenericPanel
         /**
          * {@inheritDoc}
          */
+        @Override
         public InitialLdapContext processBackgroundTask() throws Throwable
         {
           InitialLdapContext ctx = null;
@@ -249,6 +254,7 @@ public class LoginPanel extends StatusGenericPanel
             }
             SwingUtilities.invokeLater(new Runnable()
             {
+              @Override
               public void run()
               {
                 displayMessage(
@@ -261,16 +267,7 @@ public class LoginPanel extends StatusGenericPanel
             return ctx;
           } catch (Throwable t)
           {
-            if (ctx != null)
-            {
-              try
-              {
-                ctx.close();
-              }
-              catch (Throwable t1)
-              {
-              }
-            }
+            StaticUtils.close(ctx);
             throw t;
           }
         }
@@ -278,6 +275,7 @@ public class LoginPanel extends StatusGenericPanel
         /**
          * {@inheritDoc}
          */
+        @Override
         public void backgroundTaskCompleted(InitialLdapContext ctx,
             Throwable throwable)
         {
@@ -447,6 +445,7 @@ public class LoginPanel extends StatusGenericPanel
         /* Simulate a click on the OK by calling in the okClicked method. */
         SwingUtilities.invokeLater(new Runnable()
         {
+          @Override
           public void run()
           {
             okClicked();

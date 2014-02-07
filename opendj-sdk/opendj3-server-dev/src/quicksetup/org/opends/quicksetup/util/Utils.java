@@ -28,34 +28,14 @@ package org.opends.quicksetup.util;
 
 import static org.forgerock.util.Utils.*;
 import static org.opends.messages.QuickSetupMessages.*;
-import static org.opends.server.util.DynamicConstants.SHORT_NAME;
+import static org.opends.server.util.DynamicConstants.*;
 
-import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.PrintStream;
-import java.io.PrintWriter;
-import java.io.RandomAccessFile;
+import java.io.*;
 import java.net.InetAddress;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-
-import javax.naming.AuthenticationException;
-import javax.naming.CommunicationException;
-import javax.naming.NamingEnumeration;
-import javax.naming.NamingException;
-import javax.naming.NamingSecurityException;
-import javax.naming.NoPermissionException;
+import javax.naming.*;
 import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
 import javax.naming.ldap.InitialLdapContext;
@@ -69,8 +49,10 @@ import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.SuffixDescriptor;
 import org.opends.admin.ads.TopologyCacheException;
 import org.opends.admin.ads.util.ConnectionUtils;
+import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.LocalizableMessageDescriptor;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.quicksetup.*;
 import org.opends.quicksetup.installer.AuthenticationData;
 import org.opends.quicksetup.installer.DataReplicationOptions;
@@ -687,15 +669,7 @@ public class Utils
     { /* do nothing */
     } finally
     {
-      if (raf != null)
-      {
-        try
-        {
-          raf.close();
-        } catch (IOException ex2)
-        { /* do nothing */
-        }
-      }
+      StaticUtils.close(raf);
       if (file != null)
       {
         file.delete();

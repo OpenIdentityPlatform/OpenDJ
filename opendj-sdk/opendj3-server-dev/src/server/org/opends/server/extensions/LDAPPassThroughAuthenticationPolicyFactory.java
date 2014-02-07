@@ -38,6 +38,9 @@ import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 import javax.net.ssl.*;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.
   LDAPPassThroughAuthenticationPolicyCfgDefn.MappingPolicy;
@@ -46,8 +49,6 @@ import org.opends.server.api.*;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.*;
 import org.opends.server.schema.GeneralizedTimeSyntax;
@@ -56,7 +57,7 @@ import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.tools.LDAPReader;
 import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
+import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;
 
 import static org.opends.messages.ExtensionMessages.*;
@@ -918,26 +919,8 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
         }
 
         // Close all IO resources.
-        writer.close();
-        reader.close();
-
-        try
-        {
-          ldapSocket.close();
-        }
-        catch (final IOException e)
-        {
-          logger.traceException(e);
-        }
-
-        try
-        {
-          plainSocket.close();
-        }
-        catch (final IOException e)
-        {
-          logger.traceException(e);
-        }
+        StaticUtils.close(writer, reader);
+        StaticUtils.close(ldapSocket, plainSocket);
       }
 
 
@@ -1359,37 +1342,12 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
           {
             // Connection creation failed for some reason, so clean up IO
             // resources.
-            if (reader != null)
-            {
-              reader.close();
-            }
-            if (writer != null)
-            {
-              writer.close();
-            }
-
-            if (ldapSocket != null)
-            {
-              try
-              {
-                ldapSocket.close();
-              }
-              catch (final IOException ignored)
-              {
-                // Ignore.
-              }
-            }
+            StaticUtils.close(reader, writer);
+            StaticUtils.close(ldapSocket);
 
             if (ldapSocket != plainSocket)
             {
-              try
-              {
-                plainSocket.close();
-              }
-              catch (final IOException ignored)
-              {
-                // Ignore.
-              }
+              StaticUtils.close(plainSocket);
             }
           }
         }
@@ -1792,10 +1750,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
               }
               finally
               {
-                if (connection != null)
-                {
-                  connection.close();
-                }
+                StaticUtils.close(connection);
               }
             }
 
@@ -1843,10 +1798,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
           }
           finally
           {
-            if (connection != null)
-            {
-              connection.close();
-            }
+            StaticUtils.close(connection);
           }
         }
         finally
@@ -2363,14 +2315,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
         }
         finally
         {
-          try
-          {
-            br.close();
-          }
-          catch (Exception e)
-          {
-            // Ignored.
-          }
+          StaticUtils.close(br);
         }
       }
     }

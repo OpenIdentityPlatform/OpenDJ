@@ -236,13 +236,7 @@ public class BackendImpl
       } catch (Exception e) {
         logger.traceException(e);
       } finally {
-        if (fis != null) {
-          try {
-            fis.close();
-          } catch (Exception e) {
-            logger.traceException(e);
-          }
-        }
+        close(fis);
       }
     }
 

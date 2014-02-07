@@ -27,11 +27,6 @@
 
 package org.opends.server.tools.status;
 
-import static org.opends.messages.AdminToolMessages.*;
-import static org.opends.messages.QuickSetupMessages.*;
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.quicksetup.util.Utils.*;
-
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -42,12 +37,12 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-
 import javax.naming.NamingException;
 import javax.naming.ldap.InitialLdapContext;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
@@ -60,7 +55,6 @@ import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.util.ControlPanelLog;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.admin.AdministrationConnector;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.client.cli.DsFrameworkCliReturnCode;
@@ -75,11 +69,17 @@ import org.opends.server.types.NullOutputStream;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.StaticUtils;
-import com.forgerock.opendj.cli.ArgumentException;
 import org.opends.server.util.cli.ConsoleApplication;
 import org.opends.server.util.cli.LDAPConnectionConsoleInteraction;
 import org.opends.server.util.table.TableBuilder;
 import org.opends.server.util.table.TextTablePrinter;
+
+import com.forgerock.opendj.cli.ArgumentException;
+
+import static org.opends.messages.AdminToolMessages.*;
+import static org.opends.messages.QuickSetupMessages.*;
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.quicksetup.util.Utils.*;
 
 /**
  * The class used to provide some CLI interface to display status.
@@ -369,12 +369,7 @@ class StatusCli extends ConsoleApplication
             writeStatus(controlInfo);
             return ErrorReturnCode.USER_CANCELLED_OR_DATA_ERROR.getReturnCode();
           } finally {
-            if (ctx != null) {
-              try {
-                ctx.close();
-              } catch (Throwable t) {
-              }
-            }
+            StaticUtils.close(ctx);
           }
         } else {
           bindDn = argParser.getBindDN();
@@ -417,12 +412,7 @@ class StatusCli extends ConsoleApplication
             return ErrorReturnCode.ERROR_READING_CONFIGURATION_WITH_LDAP.
               getReturnCode();
           } finally {
-            if (ctx != null) {
-              try {
-                ctx.close();
-              } catch (Throwable t) {
-              }
-            }
+            StaticUtils.close(ctx);
           }
         } else {
           // The user did not provide authentication: just display the

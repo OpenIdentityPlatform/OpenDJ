@@ -24,18 +24,16 @@
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  *      Portions Copyright 2012-2014 ForgeRock AS.
  */
-
 package org.opends.quicksetup.util;
 
-import org.forgerock.i18n.LocalizableMessage;
-import static org.opends.messages.QuickSetupMessages.*;
-
-import org.opends.quicksetup.*;
-
-
 import java.io.*;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.opends.quicksetup.*;
+import org.opends.server.util.StaticUtils;
+
+import static org.opends.messages.QuickSetupMessages.*;
 
 /**
  * Utility class for use by applications containing methods for managing
@@ -452,6 +450,7 @@ public class FileManager {
     /**
      * {@inheritDoc}
      */
+    @Override
     public FileOperation copyForChild(File child) {
       return new CopyOperation(child, destination, overwrite);
     }
@@ -468,6 +467,7 @@ public class FileManager {
     /**
      * {@inheritDoc}
      */
+    @Override
     public void apply() throws ApplicationException {
       File objectFile = getObjectFile();
       if (objectFile.isDirectory()) {
@@ -527,20 +527,7 @@ public class FileManager {
                       ReturnCode.FILE_SYSTEM_ACCESS_ERROR,
                       errMsg, null);
             } finally {
-              if (fis != null) {
-                try {
-                  fis.close();
-                } catch (IOException e) {
-                  // ignore;
-                }
-              }
-              if (fos != null) {
-                try {
-                  fos.close();
-                } catch (IOException e) {
-                  // ignore;
-                }
-              }
+              StaticUtils.close(fis, fos);
             }
           } else {
             LocalizableMessage errMsg = INFO_ERROR_COPYING_FILE.get(
@@ -589,6 +576,7 @@ public class FileManager {
     /**
      * {@inheritDoc}
      */
+    @Override
     public FileOperation copyForChild(File child) {
       return new DeleteOperation(child, deletionPolicy);
     }
@@ -596,6 +584,7 @@ public class FileManager {
     /**
      * {@inheritDoc}
      */
+    @Override
     public void apply() throws ApplicationException {
       File file = getObjectFile();
       boolean isFile = file.isFile();
@@ -682,6 +671,7 @@ public class FileManager {
     /**
      * {@inheritDoc}
      */
+    @Override
     public FileOperation copyForChild(File child) {
       return new MoveOperation(child, destination);
     }
@@ -689,6 +679,7 @@ public class FileManager {
     /**
      * {@inheritDoc}
      */
+    @Override
     public void apply() throws ApplicationException {
       File objectFile = getObjectFile();
       if (destination.exists()) {

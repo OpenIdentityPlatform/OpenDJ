@@ -27,21 +27,14 @@
 package org.opends.server.types;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.zip.GZIPInputStream;
 
 import org.opends.server.tools.makeldif.MakeLDIFInputStream;
 import org.opends.server.tools.makeldif.TemplateFile;
 import org.opends.server.util.StaticUtils;
 
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.messages.UtilityMessages.*;
-
-
 
 /**
  * This class defines a data structure for holding configuration
@@ -55,10 +48,6 @@ import static org.opends.messages.UtilityMessages.*;
 public final class LDIFImportConfig extends OperationConfig
                                     implements Closeable
 {
-  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-
-
-
 
   /**
    * The default buffer size that will be used when reading LDIF data.
@@ -405,28 +394,24 @@ public final class LDIFImportConfig extends OperationConfig
     {
       return null;
     }
-    else
+
+    reader.close();
+
+    InputStream inputStream = ldifInputStream =
+         new FileInputStream(ldifFileIterator.next());
+
+    if (isEncrypted)
     {
-      reader.close();
-
-      InputStream inputStream = ldifInputStream =
-           new FileInputStream(ldifFileIterator.next());
-
-      if (isEncrypted)
-      {
-        // FIXME -- Add support for encryption with a cipher input
-        //          stream.
-      }
-
-      if (isCompressed)
-      {
-        inputStream = new GZIPInputStream(inputStream);
-      }
-
-      reader = new BufferedReader(new InputStreamReader(inputStream),
-                                  bufferSize);
-      return reader;
+      // FIXME -- Add support for encryption with a cipher input stream.
     }
+
+    if (isCompressed)
+    {
+      inputStream = new GZIPInputStream(inputStream);
+    }
+
+    reader = new BufferedReader(new InputStreamReader(inputStream), bufferSize);
+    return reader;
   }
 
 
@@ -564,7 +549,6 @@ public final class LDIFImportConfig extends OperationConfig
       if (skipWriter != null)
       {
         StaticUtils.close(skipWriter);
-
         skipWriter = null;
       }
 
@@ -616,7 +600,6 @@ public final class LDIFImportConfig extends OperationConfig
       if (skipWriter != null)
       {
         StaticUtils.close(skipWriter);
-
         skipWriter = null;
       }
 
@@ -1312,43 +1295,10 @@ public final class LDIFImportConfig extends OperationConfig
   /**
    * Closes any resources that this import config might have open.
    */
+  @Override
   public void close()
   {
-    if (reader != null)
-    {
-      try
-      {
-        reader.close();
-      }
-      catch (Exception e)
-      {
-        logger.traceException(e);
-      }
-    }
-
-    if (rejectWriter != null)
-    {
-      try
-      {
-        rejectWriter.close();
-      }
-      catch (Exception e)
-      {
-        logger.traceException(e);
-      }
-    }
-
-    if (skipWriter != null)
-    {
-      try
-      {
-        skipWriter.close();
-      }
-      catch (Exception e)
-      {
-        logger.traceException(e);
-      }
-    }
+    StaticUtils.close(reader, rejectWriter, skipWriter);
   }
 
   /**

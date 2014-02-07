@@ -26,8 +26,6 @@
  */
 package org.opends.server.backends;
 
-
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -52,12 +50,16 @@ import java.util.zip.Deflater;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
+
 import javax.crypto.Mac;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.util.Reject;
 import org.opends.server.admin.Configuration;
-import org.opends.server.admin.std.server.SchemaBackendCfg;
 import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.server.SchemaBackendCfg;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ClientConnection;
@@ -71,7 +73,6 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SchemaConfigManager;
 import org.opends.server.core.SearchOperation;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.schema.AttributeTypeSyntax;
 import org.opends.server.schema.DITContentRuleSyntax;
 import org.opends.server.schema.DITStructureRuleSyntax;
@@ -81,12 +82,10 @@ import org.opends.server.schema.MatchingRuleUseSyntax;
 import org.opends.server.schema.NameFormSyntax;
 import org.opends.server.schema.ObjectClassSyntax;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.LDIFWriter;
-import org.forgerock.util.Reject;
 
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.ConfigMessages.*;
@@ -4029,22 +4028,7 @@ public class SchemaBackend
     }
     finally
     {
-      if (inputStream != null)
-      {
-        try
-        {
-          inputStream.close();
-        }
-        catch (Exception e)
-        {
-          logger.traceException(e);
-        }
-      }
-
-      if (outputStream != null)
-      {
-        outputStream.close();
-      }
+      close(inputStream, outputStream);
     }
   }
 
@@ -4227,14 +4211,7 @@ public class SchemaBackend
     }
     finally
     {
-      try
-      {
-        ldifWriter.close();
-      }
-      catch (Exception e)
-      {
-        logger.traceException(e);
-      }
+      close(ldifWriter);
     }
   }
 
@@ -4315,7 +4292,7 @@ public class SchemaBackend
     }
     finally
     {
-      reader.close();
+      close(reader);
     }
   }
 
@@ -4749,6 +4726,8 @@ public class SchemaBackend
     LocalizableMessage message = ERR_SCHEMA_BACKUP_ZIP_COMMENT.get(
             DynamicConstants.PRODUCT_NAME,
             backupID);
+    try
+    {
     zipStream.setComment(String.valueOf(message));
 
     if (compress)
@@ -4786,13 +4765,7 @@ public class SchemaBackend
     catch (Exception e)
     {
       logger.traceException(e);
-
-      try
-      {
-        zipStream.close();
-      } catch (Exception e2)
-      {
-    }
+      close(zipStream);
 
       message = ERR_SCHEMA_BACKUP_CANNOT_BACKUP_SCHEMA_FILE.get(commentName,
           stackTraceToSingleLineString(e));
@@ -4889,23 +4862,7 @@ public class SchemaBackend
         } catch (Exception e)
         {
           logger.traceException(e);
-
-           try
-          {
-            if (inputStream != null)
-            {
-              inputStream.close();
-            }
-          } catch (Exception e2)
-          {
-          }
-
-           try
-          {
-            zipStream.close();
-          } catch (Exception e2)
-          {
-          }
+          close(inputStream, zipStream);
 
           message = ERR_SCHEMA_BACKUP_CANNOT_BACKUP_SCHEMA_FILE.get(baseName,
               stackTraceToSingleLineString(e));
@@ -4914,23 +4871,24 @@ public class SchemaBackend
         }
       }
 
-
-    // We're done writing the file, so close the zip stream (which should also
-    // close the underlying stream).
-    try
-    {
-      zipStream.close();
     }
-    catch (Exception e)
+    finally
     {
-      logger.traceException(e);
+      // We're done writing the file, so close the zip stream
+      // (which should also close the underlying stream).
+      try
+      {
+        zipStream.close();
+      }
+      catch (Exception e)
+      {
+        logger.traceException(e);
 
-      message = ERR_SCHEMA_BACKUP_CANNOT_CLOSE_ZIP_STREAM.get(
-          filename, backupDirectory.getPath(), stackTraceToSingleLineString(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message, e);
+        message = ERR_SCHEMA_BACKUP_CANNOT_CLOSE_ZIP_STREAM.get(
+            filename, backupDirectory.getPath(), stackTraceToSingleLineString(e));
+        throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
+      }
     }
-
 
     // Get the digest or MAC bytes if appropriate.
     byte[] digestBytes = null;

@@ -27,13 +27,9 @@
 
 package org.opends.guitools.uninstaller;
 
-import org.opends.quicksetup.*;
-
-import static org.forgerock.util.Utils.*;
-import static org.opends.quicksetup.Step.FINISHED;
-import static org.opends.quicksetup.Step.PROGRESS;
-import static org.opends.quicksetup.Step.REVIEW;
-
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.ADSContextException;
 import org.opends.admin.ads.ReplicaDescriptor;
@@ -45,9 +41,8 @@ import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.admin.ads.util.PreferredConnection;
 import org.opends.guitools.uninstaller.ui.ConfirmUninstallPanel;
 import org.opends.guitools.uninstaller.ui.LoginDialog;
+import org.opends.quicksetup.*;
 import org.opends.quicksetup.ui.*;
-
-import static org.opends.quicksetup.util.Utils.*;
 import org.opends.quicksetup.util.BackgroundTask;
 import org.opends.quicksetup.util.ServerController;
 import org.opends.quicksetup.util.UIKeyStore;
@@ -67,18 +62,20 @@ import org.opends.server.admin.std.client.RootCfgClient;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.tools.ConfigureWindowsService;
 import org.opends.server.tools.ToolConstants;
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.opends.server.util.DynamicConstants;
+import org.opends.server.util.StaticUtils;
+
+import static org.forgerock.util.Utils.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
+import static org.opends.quicksetup.Step.*;
+import static org.opends.quicksetup.util.Utils.*;
 
 import java.io.*;
 import java.net.InetAddress;
 import java.net.URI;
 import java.security.cert.X509Certificate;
 import java.util.*;
-
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import java.awt.event.WindowEvent;
 
 import javax.naming.Context;
@@ -86,7 +83,6 @@ import javax.naming.NamingException;
 import javax.naming.ldap.InitialLdapContext;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
-import org.opends.server.util.DynamicConstants;
 
 /**
  * This class is in charge of performing the uninstallation of Open DS.
@@ -156,6 +152,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public LocalizableMessage getFrameTitle() {
     LocalizableMessage title = Utils.getCustomizedObject("INFO_FRAME_UNINSTALL_TITLE",
         INFO_FRAME_UNINSTALL_TITLE.get(
@@ -166,6 +163,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public UserData createUserData() {
     UninstallUserData data = new UninstallUserData();
     data.setTrustManager(super.getTrustManager());
@@ -175,6 +173,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public WizardStep getFirstWizardStep() {
     return Step.CONFIRM_UNINSTALL;
   }
@@ -182,6 +181,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public WizardStep getNextWizardStep(WizardStep step) {
     Step nextStep = null;
     if (step != null && step.equals(Step.CONFIRM_UNINSTALL)) {
@@ -197,6 +197,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public WizardStep getPreviousWizardStep(WizardStep step) {
     Step prevStep = null;
     if (step != null && step.equals(Step.PROGRESS)) {
@@ -212,6 +213,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public WizardStep getFinishedStep() {
     return Step.FINISHED;
   }
@@ -219,6 +221,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean finishOnLeft()
   {
     return false;
@@ -227,6 +230,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean canGoBack(WizardStep step) {
     return false;
   }
@@ -234,6 +238,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean canGoForward(WizardStep step) {
     return false;
   }
@@ -241,6 +246,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean canFinish(WizardStep step) {
     return step == Step.CONFIRM_UNINSTALL;
   }
@@ -255,6 +261,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public void nextClicked(WizardStep cStep, QuickSetup qs) {
     if (cStep == PROGRESS) {
       throw new IllegalStateException(
@@ -270,6 +277,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public void closeClicked(WizardStep cStep, QuickSetup qs) {
     if (cStep == PROGRESS) {
         if (isFinished()
@@ -343,6 +351,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public void quitClicked(WizardStep step, QuickSetup qs) {
     if (step == Step.PROGRESS) {
       throw new IllegalStateException(
@@ -358,6 +367,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public LocalizableMessage getCloseButtonToolTip() {
     return INFO_CLOSE_BUTTON_UNINSTALL_TOOLTIP.get();
   }
@@ -365,6 +375,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public LocalizableMessage getFinishButtonToolTip() {
     return INFO_FINISH_BUTTON_UNINSTALL_TOOLTIP.get();
   }
@@ -372,6 +383,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public LocalizableMessage getFinishButtonLabel() {
     return INFO_FINISH_BUTTON_UNINSTALL_LABEL.get();
   }
@@ -379,6 +391,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public void previousClicked(WizardStep cStep, QuickSetup qs) {
     if (cStep == PROGRESS) {
       throw new IllegalStateException(
@@ -393,6 +406,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public void notifyListeners(Integer ratio, LocalizableMessage currentPhaseSummary,
       final LocalizableMessage newLogDetail)
   {
@@ -404,6 +418,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     {
       SwingUtilities.invokeLater(new Runnable()
       {
+        @Override
         public void run()
         {
           if (startProgressDlg != null)
@@ -422,10 +437,12 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean finishClicked(final WizardStep cStep, final QuickSetup qs) {
     if (cStep == Step.CONFIRM_UNINSTALL) {
       BackgroundTask<UninstallData> worker =
         new BackgroundTask<UninstallData>() {
+        @Override
         public UninstallData processBackgroundTask() throws UserDataException {
           try {
             updateUserUninstallDataForConfirmUninstallPanel(qs);
@@ -440,6 +457,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
           }
         }
 
+        @Override
         public void backgroundTaskCompleted(UninstallData returnValue,
                                             Throwable throwable) {
           qs.getDialog().workerFinished();
@@ -560,6 +578,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public void updateUserData(WizardStep step, QuickSetup qs) {
     // do nothing;
   }
@@ -567,6 +586,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setWizardDialogState(QuickSetupDialog dlg,
                                       UserData userData,
                                       WizardStep step) {
@@ -582,8 +602,8 @@ public class Uninstaller extends GuiApplication implements CliApplication {
 
   /**
    * {@inheritDoc}
-   * @param launcher
    */
+  @Override
   public UserData createUserData(Launcher launcher)
           throws UserDataException, ApplicationException {
     parser = (UninstallerArgumentParser)launcher.getArgumentParser();
@@ -596,6 +616,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public String getInstallationPath() {
     return getInstallPathFromClasspath();
   }
@@ -603,6 +624,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public String getInstancePath() {
     return getInstancePathFromInstallPath(getInstallPathFromClasspath());
   }
@@ -614,6 +636,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
    * @return the ApplicationException that might occur during installation or
    *         <CODE>null</CODE> if no exception occurred.
    */
+  @Override
   public ApplicationException getRunError() {
     return ue;
   }
@@ -621,6 +644,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public ReturnCode getReturnCode() {
     return null;
   }
@@ -789,6 +813,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   /**
    * Actually performs the uninstall in this thread.  The thread is blocked.
    */
+  @Override
   public void run() {
     runStarted = true;
     logger.info(LocalizableMessage.raw("run of the Uninstaller started"));
@@ -983,6 +1008,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public ProgressStep getCurrentProgressStep() {
     return status;
   }
@@ -995,6 +1021,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
    * @return an integer that specifies which percentage of the whole
    *         uninstallation has been completed.
    */
+  @Override
   public Integer getRatio(ProgressStep step) {
     return hmRatio.get(step);
   }
@@ -1007,6 +1034,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
    * @return an formatted representation of the summary for the specified
    *         UninstallProgressStep.
    */
+  @Override
   public LocalizableMessage getSummary(ProgressStep step) {
     return hmSummary.get(step);
   }
@@ -1014,6 +1042,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isFinished() {
     return getCurrentProgressStep() ==
             UninstallProgressStep.FINISHED_SUCCESSFULLY
@@ -1028,6 +1057,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isCancellable() {
     return false;
   }
@@ -1035,6 +1065,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public void cancel() {
     // do nothing; not cancellable
   }
@@ -1042,6 +1073,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public void windowClosing(QuickSetupDialog dlg, WindowEvent evt) {
     if ((dlg.getDisplayedStep() == PROGRESS) ||
         (dlg.getDisplayedStep() == FINISHED)) {
@@ -1056,6 +1088,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public ButtonName getInitialFocusButtonName() {
     return ButtonName.FINISH;
   }
@@ -1063,6 +1096,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public Set<? extends WizardStep> getWizardSteps() {
     Set<WizardStep> setSteps = new HashSet<WizardStep>();
     setSteps.add(Step.CONFIRM_UNINSTALL);
@@ -1074,6 +1108,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public QuickSetupStepPanel createWizardStepPanel(WizardStep step) {
     QuickSetupStepPanel p = null;
     if (step == Step.CONFIRM_UNINSTALL) {
@@ -1217,36 +1252,28 @@ public class Uninstaller extends GuiApplication implements CliApplication {
        */
       int totalRatio = 0;
       ArrayList<Integer> cumulatedRatio = new ArrayList<Integer>();
-      for (int i = 0; i < rootFiles.length; i++) {
-        File f = rootFiles[i];
+      for (File f : rootFiles) {
         if (filter.accept(f)) {
           Installation installation = getInstallation();
           int relativeRatio;
-          if (equalsOrDescendant(rootFiles[i],
-                  installation.getLibrariesDirectory())) {
+          if (equalsOrDescendant(f, installation.getLibrariesDirectory())) {
             relativeRatio = 10;
           } else
-          if (equalsOrDescendant(rootFiles[i],
-                  installation.getBinariesDirectory())) {
+          if (equalsOrDescendant(f, installation.getBinariesDirectory())) {
             relativeRatio = 5;
           } else
-          if (equalsOrDescendant(rootFiles[i],
-                  installation.getConfigurationDirectory())) {
+          if (equalsOrDescendant(f, installation.getConfigurationDirectory())) {
             relativeRatio = 5;
           } else
-          if (equalsOrDescendant(rootFiles[i],
-                  installation.getBackupDirectory())) {
+          if (equalsOrDescendant(f, installation.getBackupDirectory())) {
             relativeRatio = 20;
           } else
-          if (equalsOrDescendant(rootFiles[i],
-                  installation.getLdifDirectory())) {
+          if (equalsOrDescendant(f, installation.getLdifDirectory())) {
             relativeRatio = 20;
-          } else if (equalsOrDescendant(rootFiles[i],
-                  installation.getDatabasesDirectory())) {
+          } else if (equalsOrDescendant(f, installation.getDatabasesDirectory())) {
             relativeRatio = 50;
           } else
-          if (equalsOrDescendant(rootFiles[i],
-                  installation.getLogsDirectory())) {
+          if (equalsOrDescendant(f, installation.getLogsDirectory())) {
             relativeRatio = 30;
           } else {
             relativeRatio = 2;
@@ -1258,12 +1285,13 @@ public class Uninstaller extends GuiApplication implements CliApplication {
         }
       }
       Iterator<Integer> it = cumulatedRatio.iterator();
-      for (int i = 0; i < rootFiles.length; i++) {
+      for (File rootFile : rootFiles)
+      {
         int beforeRatio = minRatio +
                 ((it.next() * (maxRatio - minRatio)) / totalRatio);
         hmRatio.put(UninstallProgressStep.DELETING_INSTALLATION_FILES,
                 beforeRatio);
-        deleteRecursively(rootFiles[i], filter);
+        deleteRecursively(rootFile, filter);
       }
       hmRatio.put(UninstallProgressStep.DELETING_INSTALLATION_FILES, maxRatio);
     }
@@ -1314,8 +1342,9 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       } else {
         File[] children = cfile.listFiles();
         if (children != null) {
-          for (int i = 0; i < children.length; i++) {
-            deleteRecursively(children[i], filter);
+          for (File element : children)
+          {
+            deleteRecursively(element, filter);
           }
         }
         if (filter != null) {
@@ -1397,26 +1426,27 @@ public class Uninstaller extends GuiApplication implements CliApplication {
    * required to know which are the files that can be deleted directly and which
    * not.
    */
-  class InstallationFilesToDeleteFilter implements FileFilter {
-    Installation installation = getInstallation();
-    File quicksetupFile = installation.getQuicksetupJarFile();
-    File openDSFile = installation.getOpenDSJarFile();
-    File librariesFile = installation.getLibrariesDirectory();
-    File resourcesDir = installation.getResourcesDirectory();
-    File classesDir = installation.getClassesDirectory();
-    File uninstallBatFile = installation.getUninstallBatFile();
+  private class InstallationFilesToDeleteFilter implements FileFilter {
+    private Installation installation = getInstallation();
+    private File quicksetupFile = installation.getQuicksetupJarFile();
+    private File openDSFile = installation.getOpenDSJarFile();
+    private File librariesFile = installation.getLibrariesDirectory();
+    private File resourcesDir = installation.getResourcesDirectory();
+    private File classesDir = installation.getClassesDirectory();
+    private File uninstallBatFile = installation.getUninstallBatFile();
 
-    boolean canDeleteResourcesDir =
+    private boolean canDeleteResourcesDir =
       !Utils.directoryExistsAndIsNotEmpty(resourcesDir.getAbsolutePath());
-    boolean canDeleteClassesDir =
+    private boolean canDeleteClassesDir =
       !Utils.directoryExistsAndIsNotEmpty(classesDir.getAbsolutePath());
 
 
-    File installationPath = installation.getRootDirectory();
+    private File installationPath = installation.getRootDirectory();
 
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean accept(File file) {
       UninstallUserData userData = getUninstallUserData();
       boolean[] uData = {
@@ -1490,6 +1520,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
   /**
    * {@inheritDoc}
    */
+  @Override
   public ApplicationTrustManager getTrustManager()
   {
     return getUninstallUserData().getTrustManager();
@@ -1543,6 +1574,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     final Boolean[] returnValue = new Boolean[] {Boolean.FALSE};
     Thread t = new Thread(new Runnable()
     {
+      @Override
       public void run()
       {
         try
@@ -1553,6 +1585,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
           returnValue[0] = isServerRunning;
           SwingUtilities.invokeLater(new Runnable()
           {
+            @Override
             public void run()
             {
               if (isServerRunning)
@@ -1625,6 +1658,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
 
       BackgroundTask<TopologyCache> worker = new BackgroundTask<TopologyCache>()
       {
+        @Override
         public TopologyCache processBackgroundTask() throws Throwable
         {
           logger.info(LocalizableMessage.raw("Loading Topology Cache in askForAuthentication"));
@@ -1635,6 +1669,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
           cache.reloadTopology();
           return cache;
         }
+        @Override
         public void backgroundTaskCompleted(TopologyCache returnValue,
             Throwable throwable) {
           qs.getDialog().workerFinished();
@@ -1830,6 +1865,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
         BackgroundTask<TopologyCache> worker =
           new BackgroundTask<TopologyCache>()
         {
+          @Override
           public TopologyCache processBackgroundTask() throws Throwable
           {
             logger.info(LocalizableMessage.raw("Reloading topology"));
@@ -1837,6 +1873,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
             cache.reloadTopology();
             return cache;
           }
+          @Override
           public void backgroundTaskCompleted(TopologyCache returnValue,
               Throwable throwable) {
             qs.getDialog().workerFinished();
@@ -2050,16 +2087,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       }
       finally
       {
-        if (ctx != null)
-        {
-          try
-          {
-            ctx.close();
-          }
-          catch (Throwable t)
-          {
-          }
-        }
+        StaticUtils.close(ctx);
       }
     }
   }
@@ -2128,10 +2156,10 @@ public class Uninstaller extends GuiApplication implements CliApplication {
       String[] domainNames = sync.listReplicationDomains();
       if (domainNames != null)
       {
-        for (int i=0; i<domainNames.length; i++)
+        for (String domainName : domainNames)
         {
           ReplicationDomainCfgClient domain =
-            sync.getReplicationDomain(domainNames[i]);
+            sync.getReplicationDomain(domainName);
           Set<String> replServers = domain.getReplicationServer();
           if (replServers != null)
           {
@@ -2157,7 +2185,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
               }
               else
               {
-                sync.removeReplicationDomain(domainNames[i]);
+                sync.removeReplicationDomain(domainName);
                 sync.commit();
               }
             }

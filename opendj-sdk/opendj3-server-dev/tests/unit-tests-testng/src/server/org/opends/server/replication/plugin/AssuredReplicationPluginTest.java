@@ -46,6 +46,7 @@ import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.*;
 import org.opends.server.replication.protocol.*;
 import org.opends.server.types.*;
+import org.opends.server.util.StaticUtils;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -417,25 +418,9 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
 
       shutdown = true;
 
-      // Shutdown the listener thread
-      try
-      {
-        if (listenSocket != null)
-        {
-          listenSocket.close();
-        }
-      } catch (IOException e)
-      {
-        // replication Server service is closing anyway.
-      }
-
-      /*
-       * Shutdown any current client handling code
-       */
-      if (session != null)
-      {
-        session.close();
-      }
+      // Shutdown the listener thread and any current client handling code
+      StaticUtils.close(listenSocket);
+      StaticUtils.close(session);
 
       try
       {

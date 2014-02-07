@@ -960,7 +960,7 @@ public final class Importer implements DiskSpaceMonitorHandler
     }
     finally
     {
-      StaticUtils.close(reader);
+      close(reader);
       if (!skipDNValidation)
       {
         try
@@ -1319,7 +1319,7 @@ public final class Importer implements DiskSpaceMonitorHandler
           }
           finally
           {
-            cursor.close();
+            close(cursor);
           }
         }
       }
@@ -1417,7 +1417,7 @@ public final class Importer implements DiskSpaceMonitorHandler
           }
           finally
           {
-            cursor.close();
+            close(cursor);
           }
         }
       }
@@ -2022,29 +2022,7 @@ public final class Importer implements DiskSpaceMonitorHandler
       }
       finally
       {
-        if (bufferFile != null)
-        {
-          try
-          {
-            bufferFile.close();
-          }
-          catch (IOException ignored)
-          {
-            // Ignore.
-          }
-        }
-
-        if (bufferIndexFile != null)
-        {
-          try
-          {
-            bufferIndexFile.close();
-          }
-          catch (IOException ignored)
-          {
-            // Ignore.
-          }
-        }
+        close(bufferFile, bufferIndexFile);
 
         indexMgr.getBufferFile().delete();
         indexMgr.getBufferIndexFile().delete();
@@ -2671,8 +2649,7 @@ public final class Importer implements DiskSpaceMonitorHandler
       }
       finally
       {
-        bufferStream.close();
-        bufferIndexStream.close();
+        close(bufferStream, bufferIndexStream);
         indexMgr.setBufferInfo(bufferCount, indexMgr.getBufferFile().length());
       }
       return null;
@@ -3257,7 +3234,6 @@ public final class Importer implements DiskSpaceMonitorHandler
           entriesProcessed.getAndIncrement();
         }
         flushIndexBuffers();
-        cursor.close();
       }
       catch (Exception e)
       {
@@ -3268,7 +3244,7 @@ public final class Importer implements DiskSpaceMonitorHandler
       }
       finally
       {
-        cursor.close();
+        close(cursor);
       }
       return null;
     }
@@ -4689,10 +4665,7 @@ public final class Importer implements DiskSpaceMonitorHandler
       }
       finally
       {
-        if (cursor != null)
-        {
-          cursor.close();
-        }
+        close(cursor);
       }
       return inserted;
     }
@@ -4713,9 +4686,7 @@ public final class Importer implements DiskSpaceMonitorHandler
       OperationStatus status = cursor.putCurrent(newVal);
       if (status != OperationStatus.SUCCESS)
       {
-        LocalizableMessage message =
-            LocalizableMessage.raw("Add of DN to DN cache failed.");
-        throw new JebException(message);
+        throw new JebException(LocalizableMessage.raw("Add of DN to DN cache failed."));
       }
     }
 
@@ -4768,10 +4739,7 @@ public final class Importer implements DiskSpaceMonitorHandler
       }
       finally
       {
-        if (cursor != null)
-        {
-          cursor.close();
-        }
+        close(cursor);
       }
       return dnExists;
     }

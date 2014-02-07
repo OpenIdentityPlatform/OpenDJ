@@ -24,28 +24,25 @@
  *      Copyright 2008-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2011-2014 ForgeRock AS
  */
-
 package org.opends.quicksetup.util;
 
-import org.opends.admin.ads.util.ConnectionUtils;
+import static org.opends.messages.QuickSetupMessages.*;
+import static org.opends.quicksetup.util.Utils.*;
+
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
-import static org.opends.messages.QuickSetupMessages.*;
-
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.quicksetup.*;
-
-import static org.opends.quicksetup.util.Utils.*;
 import org.opends.quicksetup.installer.InstallerHelper;
 import org.opends.server.tools.ToolConstants;
 import org.opends.server.util.SetupUtils;
+import org.opends.server.util.StaticUtils;
 
 import javax.naming.NamingException;
 import javax.naming.ldap.InitialLdapContext;
-
 import java.util.ArrayList;
 import java.util.Map;
-
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.IOException;
@@ -490,17 +487,7 @@ public class ServerController {
             }
             finally
             {
-              if (ctx != null)
-              {
-                try
-                {
-                  ctx.close();
-                }
-                catch (Throwable t)
-                {
-                  // do nothing
-                }
-              }
+              StaticUtils.close(ctx);
             }
             if (!connected)
             {
@@ -581,6 +568,7 @@ public class ServerController {
 
       isFirstLine = true;
       Thread t = new Thread(new Runnable() {
+        @Override
         public void run() {
           try {
             String line = reader.readLine();
@@ -665,6 +653,7 @@ public class ServerController {
 
       Thread t = new Thread(new Runnable()
       {
+        @Override
         public void run()
         {
           try

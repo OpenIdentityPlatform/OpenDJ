@@ -32,14 +32,15 @@ import java.io.IOException;
 import java.net.Socket;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.io.ASN1;
-import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.io.ASN1Reader;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.RecordingInputStream;
 import org.opends.server.util.ServerConstants;
+import org.opends.server.util.StaticUtils;
 
 /**
  * This class defines a utility that can be used to read LDAP messages from a
@@ -104,14 +105,8 @@ public class LDAPReader implements Closeable
       ByteString bytesRead = debugInputStream.getRecordedBytes();
       debugInputStream.clearRecordedBytes();
 
-      StringBuilder builder = new StringBuilder();
-      builder.append("bytes read from wire(len=");
-      builder.append(bytesRead.length());
-      builder.append("):");
-      builder.append(ServerConstants.EOL);
-      builder.append(bytesRead.toHexPlusAsciiString(4));
-
-      logger.trace(builder.toString());
+      logger.trace("bytes read from wire(len=" + bytesRead.length() + "):"
+          + ServerConstants.EOL + bytesRead.toHexPlusAsciiString(4));
       logger.trace(message.toString());
     }
 
@@ -124,25 +119,7 @@ public class LDAPReader implements Closeable
   @Override
   public void close()
   {
-    try
-    {
-      asn1Reader.close();
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-    }
-
-    if (socket != null)
-    {
-      try
-      {
-        socket.close();
-      }
-      catch (Exception e)
-      {
-        logger.traceException(e);
-      }
-    }
+    StaticUtils.close(asn1Reader);
+    StaticUtils.close(socket);
   }
 }

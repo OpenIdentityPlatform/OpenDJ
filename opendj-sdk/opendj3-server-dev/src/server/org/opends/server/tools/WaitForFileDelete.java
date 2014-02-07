@@ -26,27 +26,18 @@
  */
 package org.opends.server.tools;
 
-import java.io.File;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PrintStream;
-import java.io.RandomAccessFile;
+import java.io.*;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.NullOutputStream;
-import com.forgerock.opendj.cli.ArgumentException;
-import com.forgerock.opendj.cli.ArgumentParser;
-import com.forgerock.opendj.cli.BooleanArgument;
-import com.forgerock.opendj.cli.IntegerArgument;
-import com.forgerock.opendj.cli.StringArgument;
 import org.opends.server.util.cli.ConsoleApplication;
 
-import static org.opends.messages.ToolMessages.*;
+import com.forgerock.opendj.cli.*;
+
 import static org.opends.messages.CoreMessages.*;
+import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.StaticUtils.*;
-
-
 
 /**
  * This program provides a simple tool that will wait for a specified file to be
@@ -394,14 +385,7 @@ public class WaitForFileDelete extends ConsoleApplication
       }
     }
 
-    if (outputFile != null)
-    {
-      try
-      {
-        outputFile.close();
-      }
-      catch (Throwable t) {}
-    }
+    close(outputFile);
 
     if (targetFile.exists())
     {
@@ -419,6 +403,7 @@ public class WaitForFileDelete extends ConsoleApplication
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isAdvancedMode()
   {
     return false;
@@ -427,6 +412,7 @@ public class WaitForFileDelete extends ConsoleApplication
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isInteractive()
   {
     return false;
@@ -435,6 +421,7 @@ public class WaitForFileDelete extends ConsoleApplication
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isMenuDrivenMode()
   {
     return false;
@@ -443,6 +430,7 @@ public class WaitForFileDelete extends ConsoleApplication
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isQuiet()
   {
     return false;
@@ -451,6 +439,7 @@ public class WaitForFileDelete extends ConsoleApplication
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isScriptFriendly()
   {
     return false;
@@ -459,6 +448,7 @@ public class WaitForFileDelete extends ConsoleApplication
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isVerbose()
   {
     return false;

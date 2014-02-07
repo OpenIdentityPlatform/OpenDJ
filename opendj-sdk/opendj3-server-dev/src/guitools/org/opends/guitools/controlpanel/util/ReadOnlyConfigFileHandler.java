@@ -24,7 +24,6 @@
  *      Copyright 2008-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2014 ForgeRock AS
  */
-
 package org.opends.guitools.controlpanel.util;
 
 import static org.opends.messages.ConfigMessages.*;
@@ -62,13 +61,12 @@ import org.opends.server.types.LDIFImportResult;
 import org.opends.server.types.RestoreConfig;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
+import org.opends.server.util.StaticUtils;
 
 /**
  * A class used to read the configuration from a file.  This config file
  * handler does not allow to modify the configuration, only to read it.
- *
  */
-
 public class ReadOnlyConfigFileHandler extends ConfigHandler
 {
 //The mapping that holds all of the configuration entries that have been read
@@ -91,6 +89,7 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler
   /**
    * {@inheritDoc}
    */
+  @Override
   public void finalizeConfigHandler()
   {
   }
@@ -98,6 +97,7 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigEntry getConfigEntry(DN entryDN) throws ConfigException
   {
     return configEntries.get(entryDN);
@@ -106,6 +106,7 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigEntry getConfigRootEntry() throws ConfigException
   {
     return configRootEntry;
@@ -114,6 +115,7 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler
   /**
    * {@inheritDoc}
    */
+  @Override
   public String getServerRoot()
   {
     return serverRoot;
@@ -122,6 +124,7 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler
   /**
    * {@inheritDoc}
    */
+  @Override
   public String getInstanceRoot()
   {
     return instanceRoot;
@@ -130,6 +133,7 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler
   /**
    * {@inheritDoc}
    */
+  @Override
   public synchronized void initializeConfigHandler(String configFile,
       boolean checkSchema)
   throws InitializationException
@@ -246,27 +250,17 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler
     }
     catch (Throwable t)
     {
-
     }
     finally
     {
-      try
-      {
-        if (reader != null)
-        {
-          reader.close();
-        }
-      }
-      catch (Throwable t)
-      {
-        // Ignore
-      }
+      StaticUtils.close(reader);
     }
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public void writeSuccessfulStartupConfig()
   {
   }
@@ -274,6 +268,7 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler
   /**
    * {@inheritDoc}
    */
+  @Override
   public void writeUpdatedConfig() throws DirectoryException
   {
   }
@@ -281,6 +276,7 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler
   /**
    * {@inheritDoc}
    */
+  @Override
   public void addEntry(Entry arg0, AddOperation arg1)
   throws DirectoryException, CanceledOperationException
   {
@@ -289,6 +285,7 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler
   /**
    * {@inheritDoc}
    */
+  @Override
   public void configureBackend(Configuration arg0) throws ConfigException
   {
   }
@@ -296,6 +293,7 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler
   /**
    * {@inheritDoc}
    */
+  @Override
   public void createBackup(BackupConfig arg0) throws DirectoryException
   {
   }
@@ -303,6 +301,7 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler
   /**
    * {@inheritDoc}
    */
+  @Override
   public void deleteEntry(DN arg0, DeleteOperation arg1)
   throws DirectoryException, CanceledOperationException
   {
@@ -311,6 +310,7 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler
   /**
    * {@inheritDoc}
    */
+  @Override
   public void exportLDIF(LDIFExportConfig arg0) throws DirectoryException
   {
   }
@@ -318,6 +318,7 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler
   /**
    * {@inheritDoc}
    */
+  @Override
   public void finalizeBackend()
   {
   }
@@ -325,6 +326,7 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler
   /**
    * {@inheritDoc}
    */
+  @Override
   public DN[] getBaseDNs()
   {
     return baseDNs;
@@ -333,6 +335,7 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler
   /**
    * {@inheritDoc}
    */
+  @Override
   public Entry getEntry(DN entryDN)
   throws DirectoryException
   {
@@ -350,6 +353,7 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler
   /**
    * {@inheritDoc}
    */
+  @Override
   public long getEntryCount()
   {
     return configEntries.size();
@@ -358,6 +362,7 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler
   /**
    * {@inheritDoc}
    */
+  @Override
   public Set<String> getSupportedControls()
   {
     return emptyStringSet;
@@ -366,6 +371,7 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler
   /**
    * {@inheritDoc}
    */
+  @Override
   public Set<String> getSupportedFeatures()
   {
     return emptyStringSet;
@@ -374,6 +380,7 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConditionResult hasSubordinates(DN entryDN) throws DirectoryException
   {
     ConfigEntry baseEntry = configEntries.get(entryDN);
@@ -394,6 +401,7 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler
   /**
    * {@inheritDoc}
    */
+  @Override
   public LDIFImportResult importLDIF(LDIFImportConfig arg0)
   throws DirectoryException
   {
@@ -403,6 +411,7 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler
   /**
    * {@inheritDoc}
    */
+  @Override
   public void initializeBackend()
   throws ConfigException, InitializationException
   {
@@ -411,6 +420,7 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isIndexed(AttributeType arg0, IndexType arg1)
   {
     return false;
@@ -419,6 +429,7 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isLocal()
   {
     return true;
@@ -427,6 +438,7 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler
   /**
    * {@inheritDoc}
    */
+  @Override
   public long numSubordinates(DN entryDN, boolean subtree)
   throws DirectoryException
   {
@@ -455,6 +467,7 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler
   /**
    * {@inheritDoc}
    */
+  @Override
   public void preloadEntryCache() throws UnsupportedOperationException
   {
   }
@@ -462,6 +475,7 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler
   /**
    * {@inheritDoc}
    */
+  @Override
   public void removeBackup(BackupDirectory arg0, String arg1)
   throws DirectoryException
   {
@@ -470,6 +484,7 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler
   /**
    * {@inheritDoc}
    */
+  @Override
   public void renameEntry(DN arg0, Entry arg1, ModifyDNOperation arg2)
   throws DirectoryException, CanceledOperationException
   {
@@ -478,6 +493,7 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler
   /**
    * {@inheritDoc}
    */
+  @Override
   public void replaceEntry(Entry arg0, Entry arg1, ModifyOperation arg2)
   throws DirectoryException, CanceledOperationException
   {
@@ -486,6 +502,7 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler
   /**
    * {@inheritDoc}
    */
+  @Override
   public void restoreBackup(RestoreConfig arg0) throws DirectoryException
   {
   }
@@ -493,6 +510,7 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler
   /**
    * {@inheritDoc}
    */
+  @Override
   public void search(SearchOperation arg0)
   throws DirectoryException, CanceledOperationException
   {
@@ -501,6 +519,7 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean supportsBackup()
   {
     return false;
@@ -509,6 +528,7 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean supportsBackup(BackupConfig arg0, StringBuilder arg1)
   {
     return false;
@@ -517,6 +537,7 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean supportsLDIFExport()
   {
     return false;
@@ -525,6 +546,7 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean supportsLDIFImport()
   {
     return false;
@@ -533,6 +555,7 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean supportsRestore()
   {
     return false;

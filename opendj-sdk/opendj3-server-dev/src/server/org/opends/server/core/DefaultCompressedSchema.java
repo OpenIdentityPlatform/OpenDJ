@@ -26,12 +26,6 @@
  */
 package org.opends.server.core;
 
-
-
-import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -41,15 +35,17 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.api.CompressedSchema;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Reader;
 import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteString;
+import org.opends.server.api.CompressedSchema;
 import org.opends.server.types.DirectoryException;
 
-
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class provides a default implementation of a compressed schema manager
@@ -179,17 +175,7 @@ public final class DefaultCompressedSchema extends CompressedSchema
     }
     finally
     {
-      try
-      {
-        if (inputStream != null)
-        {
-          inputStream.close();
-        }
-      }
-      catch (final Exception e)
-      {
-        logger.traceException(e);
-      }
+      close(inputStream);
     }
   }
 

@@ -34,14 +34,18 @@ import java.io.PrintStream;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.opends.admin.ads.util.ConnectionUtils;
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.controls.*;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DecodeException;
+import org.opends.admin.ads.util.ConnectionUtils;
+import org.opends.server.controls.*;
 import org.opends.server.protocols.ldap.*;
+import org.opends.server.types.*;
 import org.opends.server.util.Base64;
 import org.opends.server.util.EmbeddedUtils;
 import org.opends.server.util.PasswordReader;
+
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
@@ -49,15 +53,13 @@ import com.forgerock.opendj.cli.FileBasedArgument;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.MultiChoiceArgument;
 import com.forgerock.opendj.cli.StringArgument;
-import org.forgerock.opendj.ldap.DecodeException;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
+
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
+import static org.opends.server.tools.ToolConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-import static org.opends.server.tools.ToolConstants.*;
 
 /**
  * This class provides a tool that can be used to issue search requests to the
@@ -1644,15 +1646,8 @@ public class LDAPSearch
       }
       finally
       {
-        if(in != null)
-        {
-          try
-          {
-           in.close();
-          } catch (IOException ioe) {}
-        }
+        close(in);
       }
-
     }
 
     if(filters.isEmpty())

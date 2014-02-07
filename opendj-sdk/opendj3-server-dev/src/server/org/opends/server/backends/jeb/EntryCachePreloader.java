@@ -24,14 +24,9 @@
  *      Copyright 2008 Sun Microsystems, Inc.
  *      Portions Copyright 2014 ForgeRock AS
  */
-
 package org.opends.server.backends.jeb;
-import com.sleepycat.je.Cursor;
-import com.sleepycat.je.CursorConfig;
-import com.sleepycat.je.DatabaseEntry;
-import com.sleepycat.je.DatabaseException;
-import com.sleepycat.je.LockMode;
-import com.sleepycat.je.OperationStatus;
+
+import com.sleepycat.je.*;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -43,14 +38,16 @@ import java.util.TimerTask;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.core.DirectoryServer;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-
 import org.opends.server.types.Entry;
-import org.forgerock.opendj.ldap.ByteString;
-import static org.opends.server.util.StaticUtils.*;
+
+
 import static org.opends.messages.ExtensionMessages.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines a utility that will be used to pre-load the Directory
@@ -177,6 +174,7 @@ class EntryCachePreloader
     Timer timer = new Timer();
     TimerTask progressTask = new TimerTask() {
       // Persistent state restore progress report.
+      @Override
       public void run() {
         if (processedEntries.get() > 0) {
           long freeMemory =
@@ -339,20 +337,11 @@ class EntryCachePreloader
             status = cursor.getNext(key, data, LockMode.DEFAULT);
             if (status != OperationStatus.SUCCESS) {
               // Reset cursor and continue.
-              if (cursor != null) {
-                try {
-                  cursor.close();
-                } catch (DatabaseException de) {
-                  logger.traceException(de);
-                }
-                status = OperationStatus.SUCCESS;
-                cursor = null;
-                continue;
-              }
+              close(cursor);
+              status = OperationStatus.SUCCESS;
+              cursor = null;
             } else {
-              entryQueue.put(new PreloadEntry(data.getData(),
-                key.getData()));
-              continue;
+              entryQueue.put(new PreloadEntry(data.getData(), key.getData()));
             }
           } catch (InterruptedException e) {
             return;
@@ -361,14 +350,7 @@ class EntryCachePreloader
           }
         }
       } finally {
-        // Always close cursor.
-        if (cursor != null) {
-          try {
-            cursor.close();
-          } catch (DatabaseException de) {
-            logger.traceException(de);
-          }
-        }
+        close(cursor);
       }
     }
   }
