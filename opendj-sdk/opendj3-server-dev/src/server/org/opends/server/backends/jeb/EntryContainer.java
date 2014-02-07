@@ -175,7 +175,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
   private final HashMap<AttributeType, AttributeIndex> attrIndexMap;
 
   /**
-   * The set of VLV indexes.
+   * The set of VLV (Virtual List View) indexes.
    */
   private final HashMap<String, VLVIndex> vlvIndexMap;
 
@@ -3916,5 +3916,11 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
    */
   public void unlock() {
     exclusiveLock.unlock();
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public String toString() {
+    return databasePrefix;
   }
 }
