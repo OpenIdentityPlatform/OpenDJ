@@ -32,6 +32,8 @@ import static com.forgerock.opendj.util.StaticUtils.EOL;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.StringTokenizer;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -42,11 +44,6 @@ import org.forgerock.i18n.LocalizableMessage;
 final public class Utils {
     /** Platform appropriate line separator. */
     static public final String LINE_SEPARATOR = System.getProperty("line.separator");
-
-    /**
-     * The name of a command-line script used to launch a tool.
-     */
-    public static final String PROPERTY_SCRIPT_NAME = "com.forgerock.opendj.ldap.tools.scriptName";
 
     /**
      * The column at which to wrap long lines of output in the command-line
@@ -344,6 +341,28 @@ final public class Utils {
             final String javaBin = System.getProperty("java.home") + File.separator + "bin" + File.separator + "java";
             throw new CLIException(ERR_INCOMPATIBLE_JAVA_VERSION.get("1.6", version, javaBin), null);
         }
+    }
+
+    /**
+     * Returns the default host name.
+     *
+     * @return The default host name or empty string if the host name cannot be resolved.
+     */
+    public static String getDefaultHostName() {
+        try {
+            return InetAddress.getLocalHost().getHostName();
+        } catch (UnknownHostException e) {
+            // Fails.
+        }
+        String host = System.getenv("COMPUTERNAME"); // Windows.
+        if (host != null) {
+            return host;
+        }
+        host = System.getenv("HOSTNAME"); // Unix.
+        if (host != null) {
+            return host;
+        }
+        return "";
     }
 
     // Prevent instantiation.
