@@ -25,7 +25,7 @@
  */
 package org.opends.server.protocols.http;
 
-import static org.forgerock.opendj.adapter.server2x.Converters.*;
+import static org.forgerock.opendj.adapter.server3x.Converters.*;
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.loggers.AccessLogger.*;
 import java.net.InetAddress;

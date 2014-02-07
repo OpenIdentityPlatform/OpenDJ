@@ -40,7 +40,7 @@ import javax.servlet.http.HttpServletResponseWrapper;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.json.resource.ResourceException;
-import org.forgerock.opendj.adapter.server2x.Adapters;
+import org.forgerock.opendj.adapter.server3x.Adapters;
 import org.forgerock.opendj.ldap.*;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.requests.BindRequest;
