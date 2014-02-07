@@ -20,19 +20,26 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2013 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-compatibility'
  xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ xsi:schemaLocation='http://docbook.org/ns/docbook
+                     http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'>
  <title>OpenDJ Compatibility</title>
 
  <para>This chapter covers both major changes to existing functionality, and
  also deprecated and removed functionality.</para>
+
+ <note xml:id="compatibility-not-changed">
+  <para>
+   No incompatible changes have been made since OpenDJ ${stableServerVersion}.
+   This chapter reflects changes made in version ${stableServerVersion}.
+  </para>
+ </note>
 
  <section xml:id="changed-functionality">
   <title>Important Changes to Existing Functionality</title>
@@ -42,12 +49,14 @@
 
   <itemizedlist>
    <listitem>
-    <para>The upgrade process and <command>upgrade</command> command have
-    changed to facilitate native packaging on more platforms. See
-    <link xlink:show="new" xlink:href="install-guide#chap-upgrade"
-    xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Upgrading to
-    OpenDJ <?eval ${docTargetVersion}?></citetitle></link> for
-    instructions.</para>
+    <para>
+     The upgrade process and <command>upgrade</command> command have
+     changed to facilitate native packaging on more platforms.
+     See <link xlink:show="new"
+     xlink:href="http://docs.forgerock.org/en/opendj/2.6.0/install-guide/#chap-upgrade"
+     ><citetitle>Upgrading to OpenDJ ${stableServerVersion}</citetitle></link>
+     for instructions.
+    </para>
    </listitem>
 
    <listitem>
@@ -100,9 +109,8 @@
     settings by using the <command>dsconfig</command> command. An example of
     how to change a <literal>global-aci</literal> property can be found in the
     <citetitle>Administration Guide</citetitle>, <link xlink:show="new"
-    xlink:href="admin-guide#access-control-disable-anonymous"
-    xlink:role="http://docbook.org/xlink/role/olink"><citetitle>ACI: Disable
-    Anonymous Access</citetitle></link>.</para>
+    xlink:href="http://docs.forgerock.org/en/opendj/2.6.0/admin-guide/#access-control-disable-anonymous"
+    ><citetitle>ACI: Disable Anonymous Access</citetitle></link>.</para>
    </listitem>
 
    <listitem>
@@ -131,7 +139,7 @@
  <section xml:id="deprecated-functionality">
   <title>Deprecated Functionality</title>
   
-  <para>OpenDJ <?eval ${docTargetVersion}?> makes use of new environment
+  <para>OpenDJ ${stableServerVersion} makes use of new environment
   variables aligned with the project name to use <literal>OPENDJ</literal>.
   Use of the old variables is Deprecated. The old variables are likely to be
   removed in a future release.</para>

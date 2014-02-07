@@ -20,22 +20,27 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2013 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-feedback'
  xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ xsi:schemaLocation='http://docbook.org/ns/docbook
+                     http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'>
  <title>How to Report Problems &amp; Provide Feedback</title>
 
  <para>If you have questions regarding OpenDJ which are not answered by the
  documentation, there is a mailing list which can be found at
  <link xlink:href="https://lists.forgerock.org/mailman/listinfo/opendj"
- xlink:show="new">https://lists.forgerock.org/mailman/listinfo/opendj</link>
- where you are likely to find an answer.</para>
+ xlink:show="new" /> where you are likely to find an answer.</para>
+
+ <note xml:id="feedback-not-changed">
+  <para>
+   The content of this chapter has not changed in this release.
+  </para>
+ </note>
 
  <para>If you have found issues or reproducible bugs within OpenDJ
  <?eval ${docTargetVersion}?>, report them in the <link xlink:show="new"

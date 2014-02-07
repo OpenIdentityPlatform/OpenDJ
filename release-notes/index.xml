@@ -20,13 +20,14 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2013 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !    
 -->
 <book xml:id='release-notes'
  xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xsi:schemaLocation='http://docbook.org/ns/docbook
+                     http://docbook.org/xml/5.0/xsd/docbook.xsd'
  xmlns:xlink='http://www.w3.org/1999/xlink'
  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <info>
@@ -37,7 +38,7 @@
    in Java.</para>
   </abstract>
   <copyright>
-   <year>2011-2013</year>
+   <year>2011-2014</year>
    <holder>ForgeRock AS</holder>
   </copyright>
   <authorgroup>
@@ -46,9 +47,9 @@
    </author>
   </authorgroup>
   <xinclude:include href='../legal.xml' />
-  <date><?dbtimestamp format="B d, Y"?></date>
-  <pubdate>Publication date: <?dbtimestamp format="B d, Y"?></pubdate>
-  <releaseinfo><?eval ${softwareReleaseDate}?></releaseinfo>
+  <date>${publicationDate}</date>
+  <pubdate>${publicationDate}</pubdate>
+  <releaseinfo>${softwareReleaseDate}</releaseinfo>
  </info>
 
  <toc />
@@ -81,15 +82,19 @@
   Finally, these notes list both issues fixed since the previous
   release and known issues open at the time of release.</para>
    
-  <para>See the <link xlink:role="http://docbook.org/xlink/role/olink"
-  xlink:href="install-guide#install-guide"><citetitle>Installation
-  Guide</citetitle></link> for more after you read these release notes. The
-  installation guide covers installation and upgrade for OpenDJ directory
-  server, OpenDJ REST LDAP gateway, and OpenDJ DSML gateway.</para>
+  <para>
+   See the <link xlink:show="new"
+   xlink:href="http://docs.forgerock.org/en/opendj/2.6.0/install-guide/"
+   ><citetitle>Installation Guide</citetitle></link> for more
+   after you read these release notes.
+   The installation guide covers installation and upgrade
+   for OpenDJ directory server, OpenDJ REST LDAP gateway, and OpenDJ DSML gateway.
+  </para>
  </preface>
 
  <xinclude:include href='chap-whats-new.xml' />
  <xinclude:include href='chap-before-you-install.xml' />
+ <xinclude:include href='chap-update-install.xml' />
  <xinclude:include href='chap-compatibility.xml' />
  <xinclude:include href='chap-issues.xml' />
  <xinclude:include href='chap-feedback.xml' />

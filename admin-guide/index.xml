@@ -20,14 +20,13 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2013 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !
 -->
 <book xml:id='admin-guide'
  xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
  xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <info>
   <title>OpenDJ <?eval ${docTargetVersion}?> Administration Guide</title>
@@ -36,7 +35,7 @@
    project offers open source LDAP directory services in Java.</para>
   </abstract>
   <copyright>
-   <year>2011-2013</year>
+   <year>2011-2014</year>
    <holder>ForgeRock AS</holder>
   </copyright>
   <authorgroup>
@@ -147,6 +146,7 @@
  <xinclude:include href='appendix-extended-ops.xml' />
  <xinclude:include href='appendix-l10n.xml' />
  <xinclude:include href='appendix-interface-stability.xml' />
+<!-- For 2.6.x, we deliver only release notes, so leave out the log reference.
  <xinclude:include href='../../../target/logref/log-message-reference.xml'>
   <xinclude:fallback>
    <appendix>
@@ -156,6 +156,7 @@
    </appendix>
   </xinclude:fallback>
  </xinclude:include>
+-->
 
  <index />
 </book>
