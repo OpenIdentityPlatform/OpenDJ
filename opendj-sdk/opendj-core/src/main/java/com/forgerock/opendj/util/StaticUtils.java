@@ -1483,7 +1483,12 @@ public final class StaticUtils {
             return;
         }
         if (isFullStack) {
-            buffer.append(throwable);
+            // add class name and message of the exception
+            buffer.append(throwable.getClass().getName());
+            final String message = throwable.getLocalizedMessage();
+            if (message != null && message.length() != 0) {
+                buffer.append(": ").append(message);
+            }
             // add first-level stack trace
             for (StackTraceElement e : throwable.getStackTrace()) {
                 buffer.append(" / ");
@@ -1509,16 +1514,10 @@ public final class StaticUtils {
                 throwable = throwable.getCause();
             }
             // add class name and message of the exception
-            String message = throwable.getMessage();
-            if ((message == null) || (message.length() == 0)) {
-                String className = throwable.getClass().getName();
-                try {
-                    className = className.substring(className.lastIndexOf('.') + 1);
-                } catch (Exception e) { /* ignored */
-                }
-                buffer.append(className);
-            } else {
-                buffer.append(message);
+            buffer.append(throwable.getClass().getSimpleName());
+            final String message = throwable.getLocalizedMessage();
+            if (message != null && message.length() != 0) {
+                buffer.append(": ").append(message);
             }
             // add first 20 items of the first-level stack trace
             int i = 0;
