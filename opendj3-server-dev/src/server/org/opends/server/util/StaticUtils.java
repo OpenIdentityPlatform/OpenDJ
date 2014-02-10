@@ -54,6 +54,7 @@ import org.opends.server.api.ClientConnection;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
 import org.opends.server.types.*;
+
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
 
@@ -1623,9 +1624,8 @@ public final class StaticUtils
    */
   public static String stackTraceToSingleLineString(Throwable t)
   {
-    StringBuilder buffer = new StringBuilder();
-    stackTraceToSingleLineString(buffer, t);
-    return buffer.toString();
+    return com.forgerock.opendj.util.StaticUtils.stackTraceToSingleLineString(
+        t, DynamicConstants.DEBUG_BUILD);
   }
 
 
@@ -1640,75 +1640,8 @@ public final class StaticUtils
   public static void stackTraceToSingleLineString(StringBuilder buffer,
                                                   Throwable t)
   {
-    if (t == null)
-    {
-      return;
-    }
-
-    if (DynamicConstants.DEBUG_BUILD)
-    {
-      buffer.append(t);
-
-      for (StackTraceElement e : t.getStackTrace())
-      {
-        buffer.append(" / ");
-        buffer.append(e.getFileName());
-        buffer.append(":");
-        buffer.append(e.getLineNumber());
-      }
-
-      while (t.getCause() != null)
-      {
-        t = t.getCause();
-
-        buffer.append("; caused by ");
-        buffer.append(t);
-
-        for (StackTraceElement e : t.getStackTrace())
-        {
-          buffer.append(" / ");
-          buffer.append(e.getFileName());
-          buffer.append(":");
-          buffer.append(e.getLineNumber());
-        }
-      }
-    }
-    else
-    {
-      if ((t instanceof InvocationTargetException) && (t.getCause() != null))
-      {
-        t = t.getCause();
-      }
-
-      buffer.append(t.getClass().getSimpleName());
-      final String message = t.getMessage();
-      if (message != null && message.length() != 0)
-      {
-        buffer.append(": ").append(message);
-      }
-
-      int i=0;
-      buffer.append(" (");
-      for (StackTraceElement e : t.getStackTrace())
-      {
-        if (i > 20)
-        {
-          buffer.append(" ...");
-          break;
-        }
-        else if (i > 0)
-        {
-          buffer.append(" ");
-        }
-
-        buffer.append(e.getFileName());
-        buffer.append(":");
-        buffer.append(e.getLineNumber());
-        i++;
-      }
-
-      buffer.append(")");
-    }
+    com.forgerock.opendj.util.StaticUtils.stackTraceToSingleLineString(
+        buffer, t, DynamicConstants.DEBUG_BUILD);
   }
 
 
