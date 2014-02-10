@@ -24,12 +24,13 @@
  *      Copyright 2008-2009 Sun Microsystems, Inc.
  *      Portions Copyright 2011-2014 ForgeRock AS.
  */
-package org.opends.server.api;
+package org.opends.server.loggers;
 
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.AccessLogPublisherCfg;
+import org.opends.server.api.ClientConnection;
 import org.opends.server.core.*;
 import org.opends.server.types.*;
 
@@ -408,7 +409,7 @@ public abstract class AccessLogPublisher<T extends AccessLogPublisherCfg>
    * @param searchEntry
    *          The search result entry to be logged.
    */
-  public void logSearchResultEntry(SearchOperation searchOperation,
+  void logSearchResultEntry(SearchOperation searchOperation,
       SearchResultEntry searchEntry)
   {
     // Do nothing
@@ -429,7 +430,7 @@ public abstract class AccessLogPublisher<T extends AccessLogPublisherCfg>
    * @param searchReference
    *          The search result reference to be logged.
    */
-  public void logSearchResultReference(
+  void logSearchResultReference(
       SearchOperation searchOperation,
       SearchResultReference searchReference)
   {

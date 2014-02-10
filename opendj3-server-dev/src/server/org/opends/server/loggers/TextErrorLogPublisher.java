@@ -45,7 +45,6 @@ import org.opends.messages.Severity;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.ErrorLogPublisherCfgDefn;
 import org.opends.server.admin.std.server.FileBasedErrorLogPublisherCfg;
-import org.opends.server.api.ErrorLogPublisher;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;

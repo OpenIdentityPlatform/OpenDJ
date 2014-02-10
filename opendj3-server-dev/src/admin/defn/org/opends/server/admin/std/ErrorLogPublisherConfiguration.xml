@@ -52,7 +52,7 @@
   <adm:property-override name="java-class">
     <adm:default-behavior>
       <adm:defined>
-        <adm:value>org.opends.server.api.ErrorLogPublisher</adm:value>
+        <adm:value>org.opends.server.loggers.ErrorLogPublisher</adm:value>
       </adm:defined>
     </adm:default-behavior>
   </adm:property-override>

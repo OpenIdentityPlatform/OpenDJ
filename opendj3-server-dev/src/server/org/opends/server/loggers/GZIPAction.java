@@ -57,7 +57,7 @@ class GZIPAction implements PostRotationAction
    * @param deleteOrig  Whether the source file should be deleted after
    *                    compression or not.
    */
-  public GZIPAction(String origFile, String newFile, boolean deleteOrig)
+  GZIPAction(String origFile, String newFile, boolean deleteOrig)
   {
     this.originalFile = new File(origFile);
     this.newFile = new File(newFile);

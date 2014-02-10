@@ -28,8 +28,6 @@ package org.opends.server.loggers;
 
 import java.util.Map;
 
-import org.opends.server.api.DebugLogPublisher;
-
 /**
  * Class for source-code tracing at the method level.
  *

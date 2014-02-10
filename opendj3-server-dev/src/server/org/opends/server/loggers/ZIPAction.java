@@ -39,7 +39,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
  * This class implements a post rotation action that compresses
  * the file using ZIP compression.
  */
-public class ZIPAction implements PostRotationAction
+class ZIPAction implements PostRotationAction
 {
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
@@ -57,7 +57,7 @@ public class ZIPAction implements PostRotationAction
    * @param deleteOrig  Whether the source file should be deleted after
    *                    compression or not.
    */
-  public ZIPAction(String origFile, String newFile, boolean deleteOrig)
+  ZIPAction(String origFile, String newFile, boolean deleteOrig)
   {
     this.originalFile = new File(origFile);
     this.newFile = new File(newFile);

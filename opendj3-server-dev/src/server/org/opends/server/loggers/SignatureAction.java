@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.loggers;
 
@@ -43,7 +44,7 @@ import java.io.File;
  * This class implements a post rotation action that signs
  * the file.
  */
-public class SignatureAction implements PostRotationAction
+class SignatureAction implements PostRotationAction
 {
 
   private static final String delimiter = "---------";
@@ -59,7 +60,7 @@ public class SignatureAction implements PostRotationAction
    * @param origFile    The source file name to sign.
    * @param alias       The certificate alias to use for signing.
    */
-  public SignatureAction(String origFile, String alias)
+  SignatureAction(String origFile, String alias)
   {
     this.originalFile = new File(origFile);
     this.alias = alias;
@@ -75,7 +76,7 @@ public class SignatureAction implements PostRotationAction
    * @param digestAlg   The MD5 digest algorithm to use.
    * @param alias       The certificate alias to use for signing.
    */
-  public SignatureAction(String origFile, String sigAlg, String digestAlg,
+  SignatureAction(String origFile, String sigAlg, String digestAlg,
                          String alias)
   {
     this.originalFile = new File(origFile);
@@ -277,7 +278,7 @@ public class SignatureAction implements PostRotationAction
   {
     for(int i = 0; i < bArray.length; i++)
     {
-      System.out.print(Integer.toHexString((int)bArray[i]));
+      System.out.print(Integer.toHexString(bArray[i]));
     }
     System.out.println("");
   }

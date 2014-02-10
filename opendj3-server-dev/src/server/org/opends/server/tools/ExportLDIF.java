@@ -36,8 +36,6 @@ import java.util.HashSet;
 import java.util.List;
 
 import org.opends.server.api.Backend;
-import org.opends.server.api.ErrorLogPublisher;
-import org.opends.server.api.DebugLogPublisher;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.config.ConfigException;
 
@@ -47,7 +45,9 @@ import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.extensions.ConfigFileHandler;
+import org.opends.server.loggers.DebugLogPublisher;
 import org.opends.server.loggers.DebugLogger;
+import org.opends.server.loggers.ErrorLogPublisher;
 import org.opends.server.loggers.TextDebugLogPublisher;
 import org.opends.server.loggers.TextWriter;
 import org.opends.server.loggers.TextErrorLogPublisher;

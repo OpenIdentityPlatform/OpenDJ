@@ -31,10 +31,9 @@ import org.forgerock.i18n.LocalizableMessage;
 
 import static org.opends.messages.ToolMessages.*;
 
-import org.opends.server.api.ErrorLogPublisher;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-
+import org.opends.server.loggers.ErrorLogPublisher;
 import org.opends.server.loggers.ErrorLogger;
 import org.forgerock.opendj.ldap.DecodeException;
 

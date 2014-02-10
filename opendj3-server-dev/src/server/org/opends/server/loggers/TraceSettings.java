@@ -137,7 +137,7 @@ public class TraceSettings implements
    * @param level
    *          Level for this settings.
    */
-  public TraceSettings(Level level)
+  private TraceSettings(Level level)
   {
     this(level, false, false, 0, false);
 
@@ -159,7 +159,7 @@ public class TraceSettings implements
    * @param includeCause
    *          whether to include the cause of exceptions.
    */
-  public TraceSettings(Level level, boolean noArgs,
+  TraceSettings(Level level, boolean noArgs,
       boolean noRetVal, int stackDepth, boolean includeCause)
   {
     this.level = level;
@@ -176,7 +176,7 @@ public class TraceSettings implements
    *          The debug target configuration that contains the information to
    *          use to initialize this trace setting.
    */
-  public TraceSettings(DebugTargetCfg config)
+  TraceSettings(DebugTargetCfg config)
   {
     this.level =
         Level.getLevel(config.isEnabled(), config.isDebugExceptionsOnly());

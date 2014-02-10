@@ -30,7 +30,6 @@ package org.opends.server.loggers;
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.messages.Severity;
 import org.opends.server.admin.std.server.ErrorLogPublisherCfg;
-import org.opends.server.api.ErrorLogPublisher;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.ServerContext;
 import org.opends.server.types.DN;

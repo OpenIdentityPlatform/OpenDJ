@@ -54,7 +54,7 @@ class EncryptAction implements PostRotationAction
    *                         encryption.
    * @param  encryptAlg      The encryption algorithm that should be used.
    */
-  public EncryptAction(String origFile, String newFile,
+  EncryptAction(String origFile, String newFile,
       boolean deleteOriginal, String alias, String encryptAlg)
   {
     this.originalFile = new File(origFile);

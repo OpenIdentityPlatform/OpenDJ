@@ -39,8 +39,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.opends.server.api.Backend;
-import org.opends.server.api.ErrorLogPublisher;
-import org.opends.server.api.DebugLogPublisher;
 import org.opends.server.config.ConfigException;
 
 import static org.opends.server.config.ConfigConstants.*;
@@ -49,7 +47,9 @@ import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.extensions.ConfigFileHandler;
+import org.opends.server.loggers.DebugLogPublisher;
 import org.opends.server.loggers.DebugLogger;
+import org.opends.server.loggers.ErrorLogPublisher;
 import org.opends.server.loggers.TextDebugLogPublisher;
 import org.opends.server.loggers.TextWriter;
 import org.opends.server.loggers.ErrorLogger;
@@ -57,10 +57,12 @@ import org.opends.server.loggers.TextErrorLogPublisher;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.util.BuildVersion;
+
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.CLIException;
 import com.forgerock.opendj.cli.StringArgument;
+
 import org.opends.server.util.args.LDAPConnectionArgumentParser;
 
 import static org.opends.messages.ToolMessages.*;

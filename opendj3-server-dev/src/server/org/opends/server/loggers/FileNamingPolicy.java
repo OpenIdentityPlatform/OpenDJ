@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.loggers;
 
@@ -32,7 +33,7 @@ import java.io.FilenameFilter;
  * A FileNamingPolicy is used by a MultiFileWriter to generate the
  * sequence of file names to use when writing.
  */
-public interface FileNamingPolicy
+interface FileNamingPolicy
 {
   /**
    * Initializes the policy and returns the current name to use.

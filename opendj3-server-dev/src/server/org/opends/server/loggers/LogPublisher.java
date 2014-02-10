@@ -24,7 +24,7 @@
  *      Copyright 2008-2009 Sun Microsystems, Inc.
  *      Portions Copyright 2011-2014 ForgeRock AS.
  */
-package org.opends.server.api;
+package org.opends.server.loggers;
 
 import java.io.Closeable;
 import java.util.List;

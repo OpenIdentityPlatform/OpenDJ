@@ -23,13 +23,12 @@
  *
  *      Portions Copyright 2013-2014 ForgeRock AS.
  */
-package org.opends.server.api;
+package org.opends.server.loggers;
 
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.HTTPAccessLogPublisherCfg;
-import org.opends.server.loggers.HTTPRequestInfo;
 
 /**
  * This class defines the set of methods and structures that must be implemented
