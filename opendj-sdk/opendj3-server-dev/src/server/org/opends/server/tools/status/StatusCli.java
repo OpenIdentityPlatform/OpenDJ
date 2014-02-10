@@ -57,7 +57,6 @@ import org.opends.guitools.controlpanel.util.ControlPanelLog;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.admin.AdministrationConnector;
 import org.opends.server.admin.client.ManagementContext;
-import org.opends.server.admin.client.cli.DsFrameworkCliReturnCode;
 import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
 import org.opends.server.config.ConfigException;
 import org.opends.server.tools.ClientException;
@@ -304,7 +303,7 @@ class StatusCli extends ConsoleApplication
     }
     int v = argParser.validateGlobalOptions(getErrorStream());
 
-    if (v != DsFrameworkCliReturnCode.SUCCESSFUL_NOP.getReturnCode()) {
+    if (v != ErrorReturnCode.SUCCESSFUL_NOP.getReturnCode()) {
       println(LocalizableMessage.raw(argParser.getUsage()));
       return v;
     } else {

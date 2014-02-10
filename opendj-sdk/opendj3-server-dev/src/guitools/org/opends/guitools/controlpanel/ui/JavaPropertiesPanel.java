@@ -120,7 +120,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
     String[] names =
     {
         "start-ds", "import-ldif.offline", "backup.online", "base64",
-        "create-rc-script", "dsconfig", "dsreplication", "dsframework",
+        "create-rc-script", "dsconfig", "dsreplication",
         "export-ldif.online", "import-ldif.online", "ldapcompare",
         "ldapdelete", "ldapmodify", "ldappasswordmodify", "ldapsearch",
         "list-backends", "manage-account", "manage-tasks", "restore.online",

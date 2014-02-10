@@ -27,11 +27,6 @@
 
 package org.opends.guitools.uninstaller;
 
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.messages.AdminToolMessages.*;
-import static org.opends.server.admin.client.cli.DsFrameworkCliReturnCode.*;
-import static org.opends.server.tools.ToolConstants.*;
-
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -41,11 +36,17 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.quicksetup.UserData;
 import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
 import org.opends.server.admin.client.cli.SecureConnectionCliParser;
+import org.opends.server.tools.JavaPropertiesTool.ErrorReturnCode;
 import org.opends.server.tools.ToolConstants;
+
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.StringArgument;
+
+import static org.opends.messages.AdminToolMessages.*;
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.tools.ToolConstants.*;
 
 /**
  * Class used to parse and populate the arguments of the Uninstaller.
@@ -249,6 +250,7 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
    * @return <CODE>true</CODE> if the user specified to have a verbose
    * uninstall and <CODE>false</CODE> otherwise.
    */
+  @Override
   public boolean isVerbose()
   {
     return verboseArg.isPresent();
@@ -373,6 +375,7 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
    * @param buf the LocalizableMessageBuilder to write the error messages.
    * @return return code.
    */
+  @Override
   public int validateGlobalOptions(LocalizableMessageBuilder buf)
   {
     int returnValue;
@@ -397,13 +400,13 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
           removeBackupFilesArg,
           removeLDIFFilesArg
       };
-      for (int i=0; i<removeArgs.length; i++)
+      for (BooleanArgument removeArg : removeArgs)
       {
-        if (removeArgs[i].isPresent())
+        if (removeArg.isPresent())
         {
           LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
               removeAllArg.getLongIdentifier(),
-              removeArgs[i].getLongIdentifier());
+              removeArg.getLongIdentifier());
           if (buf.length() > 0)
           {
             buf.append(EOL);
@@ -415,11 +418,11 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
     super.validateGlobalOptions(buf);
     if (buf.length() > 0)
     {
-      returnValue = CONFLICTING_ARGS.getReturnCode();
+      returnValue = ErrorReturnCode.CONFLICTING_ARGS.getReturnCode();
     }
     else
     {
-      returnValue = SUCCESSFUL_NOP.getReturnCode();
+      returnValue = ErrorReturnCode.SUCCESSFUL_NOP.getReturnCode();
     }
     return returnValue;
   }

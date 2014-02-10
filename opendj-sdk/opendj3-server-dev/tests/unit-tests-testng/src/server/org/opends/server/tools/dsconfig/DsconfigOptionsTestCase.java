@@ -30,7 +30,7 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import static org.opends.server.admin.client.cli.DsFrameworkCliReturnCode.*;
+import static org.opends.server.tools.JavaPropertiesTool.ErrorReturnCode.*;
 import static org.testng.Assert.*;
 
 /**
@@ -110,7 +110,7 @@ public class DsconfigOptionsTestCase extends DirectoryServerTestCase {
     };
     try
     {
-      assertEquals(dsconfigMain(args), CANNOT_INITIALIZE_ARGS.getReturnCode());
+      assertEquals(dsconfigMain(args), 1);
     }
     finally
     {

@@ -26,18 +26,15 @@
  */
 package org.opends.server.tools.dsconfig;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.admin.ads.util.OpendsCertificateException;
-
-import static org.opends.messages.DSConfigMessages.*;
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.admin.client.AuthenticationException;
 import org.opends.server.admin.client.AuthenticationNotSupportedException;
 import org.opends.server.admin.client.CommunicationException;
 import org.opends.server.admin.client.ManagementContext;
-import org.opends.server.admin.client.cli.DsFrameworkCliReturnCode;
 import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
 import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
 import org.opends.server.admin.client.ldap.LDAPConnection;
@@ -45,21 +42,26 @@ import org.opends.server.admin.client.ldap.LDAPManagementContext;
 import org.opends.server.config.ConfigException;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.tools.ClientException;
+import org.opends.server.tools.JavaPropertiesTool.ErrorReturnCode;
+import org.opends.server.tools.ToolConstants;
+import org.opends.server.util.cli.CommandBuilder;
+import org.opends.server.util.cli.ConsoleApplication;
+import org.opends.server.util.cli.LDAPConnectionConsoleInteraction;
+
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.SubCommandArgumentParser;
-import org.opends.server.util.cli.CommandBuilder;
-import org.opends.server.util.cli.LDAPConnectionConsoleInteraction;
-import org.opends.server.util.cli.ConsoleApplication;
+
+import java.util.LinkedHashSet;
 
 import javax.naming.NamingException;
 import javax.naming.ldap.InitialLdapContext;
 import javax.net.ssl.KeyManager;
-import javax.net.ssl.TrustManager;
-import java.util.LinkedHashSet;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLHandshakeException;
-import org.opends.server.tools.ToolConstants;
+import javax.net.ssl.TrustManager;
+
+import static org.opends.messages.DSConfigMessages.*;
 
 
 /**
@@ -96,6 +98,7 @@ public final class LDAPManagementContextFactory implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public ManagementContext getManagementContext(ConsoleApplication app)
       throws ArgumentException, ClientException
   {
@@ -114,6 +117,7 @@ public final class LDAPManagementContextFactory implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public void close()
   {
     if (context != null)
@@ -125,6 +129,7 @@ public final class LDAPManagementContextFactory implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public CommandBuilder getContextCommandBuilder()
   {
     return contextCommandBuilder;
@@ -327,6 +332,7 @@ public final class LDAPManagementContextFactory implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public void setRawArguments(String[] args) {
     this.rawArgs = args;
 
@@ -335,6 +341,7 @@ public final class LDAPManagementContextFactory implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public void registerGlobalArguments(SubCommandArgumentParser parser)
       throws ArgumentException {
     // Create the global arguments.
@@ -376,12 +383,13 @@ public final class LDAPManagementContextFactory implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public void validateGlobalArguments() throws ArgumentException {
     // Make sure that the user didn't specify any conflicting
     // arguments.
     LocalizableMessageBuilder buf = new LocalizableMessageBuilder();
     int v = secureArgsList.validateGlobalOptions(buf);
-    if (v != DsFrameworkCliReturnCode.SUCCESSFUL_NOP.getReturnCode())
+    if (v != ErrorReturnCode.SUCCESSFUL_NOP.getReturnCode())
     {
       throw new ArgumentException(buf.toMessage());
     }

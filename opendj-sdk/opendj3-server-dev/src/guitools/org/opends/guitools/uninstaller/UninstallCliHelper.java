@@ -26,14 +26,23 @@
  */
 package org.opends.guitools.uninstaller;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.net.URI;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.Set;
+
+import javax.naming.NamingException;
+import javax.naming.ldap.InitialLdapContext;
+import javax.net.ssl.TrustManager;
+
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-
-import static org.forgerock.util.Utils.*;
-import static org.opends.messages.AdminToolMessages.*;
-import static org.opends.messages.QuickSetupMessages.*;
-
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.TopologyCache;
@@ -47,9 +56,9 @@ import org.opends.quicksetup.event.ProgressUpdateListener;
 import org.opends.quicksetup.util.PlainTextProgressMessageFormatter;
 import org.opends.quicksetup.util.ServerController;
 import org.opends.quicksetup.util.Utils;
-import org.opends.server.admin.client.cli.DsFrameworkCliReturnCode;
 import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
 import org.opends.server.tools.ClientException;
+import org.opends.server.tools.JavaPropertiesTool.ErrorReturnCode;
 import org.opends.server.tools.ToolConstants;
 import org.opends.server.tools.dsconfig.LDAPManagementContextFactory;
 import org.opends.server.util.StaticUtils;
@@ -58,20 +67,9 @@ import org.opends.server.util.cli.*;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.CLIException;
 
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Set;
-import java.util.Collections;
-
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
-import java.net.URI;
-
-import javax.naming.NamingException;
-import javax.naming.ldap.InitialLdapContext;
-import javax.net.ssl.TrustManager;
+import static org.forgerock.util.Utils.*;
+import static org.opends.messages.AdminToolMessages.*;
+import static org.opends.messages.QuickSetupMessages.*;
 
 /**
  * The class used to provide some CLI interface in the uninstall.
@@ -157,7 +155,7 @@ public class UninstallCliHelper extends ConsoleApplication {
        */
       LocalizableMessageBuilder buf = new LocalizableMessageBuilder();
       int v = args.validateGlobalOptions(buf);
-      if (v != DsFrameworkCliReturnCode.SUCCESSFUL_NOP.getReturnCode())
+      if (v != ErrorReturnCode.SUCCESSFUL_NOP.getReturnCode())
       {
         throw new UserDataException(null, buf.toMessage());
       }

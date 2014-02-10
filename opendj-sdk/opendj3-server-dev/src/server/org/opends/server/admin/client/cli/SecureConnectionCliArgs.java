@@ -24,10 +24,9 @@
  *      Copyright 2007-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2011-2014 ForgeRock AS
  */
-
 package org.opends.server.admin.client.cli;
 
-import static org.opends.server.admin.client.cli.DsFrameworkCliReturnCode.*;
+import static org.opends.server.tools.JavaPropertiesTool.ErrorReturnCode.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import org.forgerock.i18n.LocalizableMessage;

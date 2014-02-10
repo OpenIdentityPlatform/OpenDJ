@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2013 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-admin-tools'
@@ -280,16 +280,6 @@
      command.</para>
     </listitem>
    </varlistentry>
-<!--
-   <varlistentry>
-    <term><link xlink:href="admin-guide#dsframework-1"
-    xlink:role="http://docbook.org/xlink/role/olink">dsframework</link></term>
-    <listitem>
-     <para>Manage server registration, server groups, and administrative
-     users.</para>
-    </listitem>
-   </varlistentry>
--->
    <varlistentry>
     <term><link xlink:href="admin-guide#dsjavaproperties-1"
     xlink:role="http://docbook.org/xlink/role/olink">dsjavaproperties</link></term>

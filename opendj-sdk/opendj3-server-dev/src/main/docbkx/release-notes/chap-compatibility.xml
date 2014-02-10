@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2013 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-compatibility'
@@ -149,9 +149,6 @@
   Use of the old variables is Deprecated. The old variables are likely to be
   removed in a future release.</para>
 
-  <para>The <command>dsframework</command> command is Deprecated and likely
-  to be removed in a future release.</para>
-
   <itemizedlist>
    <para>The following OpenDJ LDAP SDK methods are Deprecated and likely to be
    removed in a future release.</para>
@@ -167,5 +164,7 @@
   
   <para>Native packages in SVR4 format for Solaris are not provided at this
   time.</para>
+
+  <para>The <command>dsframework</command> command has been removed.</para>
  </section>
 </chapter>
