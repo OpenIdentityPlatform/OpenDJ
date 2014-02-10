@@ -19,15 +19,14 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-resource-limits'
  xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ xsi:schemaLocation='http://docbook.org/ns/docbook
+                     http://docbook.org/xml/5.0/xsd/docbook.xsd'>
  <title>Setting Resource Limits</title>
  <indexterm><primary>Resource limits</primary></indexterm>
  
@@ -166,6 +165,17 @@ ds-rlim-size-limit: 0</screen>
   eventually, you can configure OpenDJ to drop them by setting the
   global configuration property, <literal>idle-time-limit</literal>. By
   default, no idle time limit is set.</para>
+
+  <para>
+   If your network load balancer is configured to drop connections
+   that have been idle for some time,
+   make sure you set the OpenDJ idle time limit to a lower value
+   than the idle time limit for the load balancer.
+   This helps to ensure that idle connections are shut down in orderly fashion.
+   Setting the OpenDJ limit lower than the load balancer limit is
+   particularly useful with load balancers that drop idle connections
+   without cleanly closing the connection and notifying the client and server.
+  </para>
 
   <note>
    <para>OpenDJ does not enforce idle timeout for persistent searches.</para>
