@@ -199,39 +199,71 @@ public final class StaticUtilsTestCase extends UtilTestCase {
 
     @DataProvider
     public Object[][] stackTraceToSingleLineLimitedStackProvider() {
+        final String noMessageTrace = "RuntimeException (StaticUtilsTestCase.java";
+        final String messageTrace = "RuntimeException: message (StaticUtilsTestCase.java";
         return new Object[][] {
-            { new InvocationTargetException(new RuntimeException("message")), "message (StaticUtilsTestCase.java" },
-            { new RuntimeException("message"), "message (StaticUtilsTestCase.java" },
-            { new RuntimeException(""), "RuntimeException (StaticUtilsTestCase.java" },
-            { new RuntimeException(), "RuntimeException (StaticUtilsTestCase.java" },
+            { null, "" },
+            { new RuntimeException(),   noMessageTrace },
+            { new RuntimeException(""), noMessageTrace },
+            { new RuntimeException("message"), messageTrace },
+            { new InvocationTargetException(new RuntimeException()),   noMessageTrace },
+            { new InvocationTargetException(new RuntimeException("")), noMessageTrace },
+            { new InvocationTargetException(new RuntimeException("message")), messageTrace },
+            {
+                new RuntimeException(new RuntimeException("message")),
+                "RuntimeException: java.lang.RuntimeException: message (StaticUtilsTestCase.java"
+            },
+            { new RuntimeException("message", new RuntimeException()), messageTrace },
+            { new RuntimeException("message", new RuntimeException("message")), messageTrace },
         };
     }
 
     @Test(dataProvider = "stackTraceToSingleLineLimitedStackProvider")
-    public void testStackTraceToSingleLineLimitedStack(Throwable t, String expectedStartWith) {
+    public void testStackTraceToSingleLineLimitedStack1(Throwable t, String expectedStartWith) {
         final String trace = stackTraceToSingleLineString(t, false);
         assertThat(trace).startsWith(expectedStartWith);
-        assertThat(trace).endsWith("...)");
+        if (t != null) {
+            assertThat(trace).endsWith("...)");
+        }
     }
 
     @DataProvider
     public Object[][] stackTraceToSingleLineFullStackStackProvider() {
         return new Object[][] {
+            { null, "", "" },
+            { new RuntimeException(),   "java.lang.RuntimeException / StaticUtilsTestCase.java:", "" },
+            { new RuntimeException(""), "java.lang.RuntimeException / StaticUtilsTestCase.java:", "" },
+            {
+                new RuntimeException("message"),
+                "java.lang.RuntimeException: message / StaticUtilsTestCase.java:", "message"
+            },
             {
                 new InvocationTargetException(new RuntimeException("message")),
                 "java.lang.reflect.InvocationTargetException / StaticUtilsTestCase.java:", "message"
             },
             {
-                new RuntimeException("message"),
-                "java.lang.RuntimeException: message / StaticUtilsTestCase.java:", "message"
+                new RuntimeException(new RuntimeException()),
+                "java.lang.RuntimeException: java.lang.RuntimeException / StaticUtilsTestCase.java:",
+                "java.lang.RuntimeException "
             },
-            { new RuntimeException(""), "java.lang.RuntimeException:  / StaticUtilsTestCase.java:", "" },
-            { new RuntimeException(),   "java.lang.RuntimeException / StaticUtilsTestCase.java:", "" },
+            {
+                new RuntimeException(new RuntimeException("message")),
+                "java.lang.RuntimeException: java.lang.RuntimeException: message / StaticUtilsTestCase.java:",
+                "java.lang.RuntimeException: message"
+            },
+            {
+                new RuntimeException("message", new RuntimeException()),
+                "java.lang.RuntimeException: message / StaticUtilsTestCase.java:", "java.lang.RuntimeException "
+            },
+            {
+                new RuntimeException("message", new RuntimeException("message")),
+                "java.lang.RuntimeException: message / StaticUtilsTestCase.java:", "java.lang.RuntimeException: message"
+            },
         };
     }
 
     @Test(dataProvider = "stackTraceToSingleLineFullStackStackProvider")
-    public void testStackTraceToSingleLineFullStack(Exception throwable, String expectedStartWith,
+    public void testStackTraceToSingleLineFullStack1(Exception throwable, String expectedStartWith,
             String expectedContains) {
         String trace = stackTraceToSingleLineString(throwable, true);
         assertThat(trace).startsWith(expectedStartWith);
