@@ -768,9 +768,8 @@ ds-cfg-java-class: org.opends.server.loggers.TextErrorLogPublisher
 ds-cfg-enabled: true
 ds-cfg-log-file: logs/errors
 ds-cfg-log-file-permissions: 640
-ds-cfg-default-severity: severe-warning
-ds-cfg-default-severity: severe-error
-ds-cfg-default-severity: fatal-error
+ds-cfg-default-severity: warning
+ds-cfg-default-severity: error
 ds-cfg-default-severity: notice
 ds-cfg-asynchronous: false
 ds-cfg-rotation-policy: cn=7 Days Time Limit Rotation Policy,cn=Log Rotation Policies,cn=config
