@@ -30,8 +30,6 @@ package org.opends.server.tools;
 
 import org.opends.server.api.Backend;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.server.api.ErrorLogPublisher;
-import org.opends.server.api.DebugLogPublisher;
 import org.opends.server.backends.jeb.BackendImpl;
 import org.opends.server.backends.jeb.VerifyConfig;
 import org.opends.server.config.ConfigException;
@@ -39,7 +37,9 @@ import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.extensions.ConfigFileHandler;
+import org.opends.server.loggers.DebugLogPublisher;
 import org.opends.server.loggers.DebugLogger;
+import org.opends.server.loggers.ErrorLogPublisher;
 import org.opends.server.loggers.TextDebugLogPublisher;
 import org.opends.server.loggers.TextWriter;
 import org.opends.server.loggers.ErrorLogger;
@@ -47,6 +47,7 @@ import org.opends.server.loggers.TextErrorLogPublisher;
 import org.opends.server.loggers.TraceSettings;
 import org.opends.server.types.*;
 import org.opends.server.util.BuildVersion;
+
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;

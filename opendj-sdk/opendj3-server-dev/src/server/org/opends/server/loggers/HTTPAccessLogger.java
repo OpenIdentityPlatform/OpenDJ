@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013-2014 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.loggers;
 
@@ -32,7 +32,6 @@ import java.util.Collection;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.std.meta.HTTPAccessLogPublisherCfgDefn;
 import org.opends.server.admin.std.server.HTTPAccessLogPublisherCfg;
-import org.opends.server.api.HTTPAccessLogPublisher;
 
 /**
  * This class defines the wrapper that will invoke all registered HTTP access

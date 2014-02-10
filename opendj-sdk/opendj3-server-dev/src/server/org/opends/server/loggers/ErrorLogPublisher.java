@@ -24,10 +24,12 @@
  *      Copyright 2008 Sun Microsystems, Inc.
  *      Portions Copyright 2013-2014 ForgeRock AS
  */
-package org.opends.server.api;
+package org.opends.server.loggers;
 
 import java.util.HashMap;
+
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;

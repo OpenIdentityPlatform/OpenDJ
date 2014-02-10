@@ -24,7 +24,7 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  *      Portions Copyright 2012-2014 ForgeRock AS.
  */
-package org.opends.server.api;
+package org.opends.server.loggers;
 
 import java.util.HashMap;
 import java.util.List;
@@ -33,7 +33,6 @@ import java.util.TreeMap;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.DebugLogPublisherCfg;
-import org.opends.server.loggers.TraceSettings;
 
 /**
  * This class defines the set of methods and structures that must be
@@ -99,7 +98,7 @@ public abstract class DebugLogPublisher<T extends DebugLogPublisherCfg>
    *         or {@code null} if no method-level tracing is configured
    *         for the scope.
    */
-  public final Map<String,TraceSettings> getMethodSettings(
+  final Map<String,TraceSettings> getMethodSettings(
                                               String className)
   {
     if(methodTraceSettings == null)
@@ -122,7 +121,7 @@ public abstract class DebugLogPublisher<T extends DebugLogPublisherCfg>
    *
    * @return  The current trace settings for the class.
    */
-  public final TraceSettings getClassSettings(String className)
+  final TraceSettings getClassSettings(String className)
   {
     TraceSettings settings = TraceSettings.DISABLED;
 
@@ -204,7 +203,7 @@ public abstract class DebugLogPublisher<T extends DebugLogPublisherCfg>
    *          {@code null} if no trace setting is defined for that
    *          scope.
    */
-  public final TraceSettings getTraceSettings(String scope)
+  final TraceSettings getTraceSettings(String scope)
   {
     if (scope == null) {
       if(classTraceSettings != null)
@@ -254,7 +253,7 @@ public abstract class DebugLogPublisher<T extends DebugLogPublisherCfg>
    *          {@code null} if no trace setting is defined for that
    *          scope.
    */
-  public final TraceSettings removeTraceSettings(String scope)
+  final TraceSettings removeTraceSettings(String scope)
   {
     TraceSettings removedSettings = null;
     if (scope == null) {

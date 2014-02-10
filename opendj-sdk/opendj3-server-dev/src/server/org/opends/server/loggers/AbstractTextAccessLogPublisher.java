@@ -45,7 +45,6 @@ import org.opends.server.admin.std.meta.AccessLogFilteringCriteriaCfgDefn.*;
 import org.opends.server.admin.std.meta.AccessLogPublisherCfgDefn.*;
 import org.opends.server.admin.std.server.AccessLogFilteringCriteriaCfg;
 import org.opends.server.admin.std.server.AccessLogPublisherCfg;
-import org.opends.server.api.AccessLogPublisher;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.Group;
 import org.opends.server.authorization.dseecompat.PatternDN;
@@ -68,7 +67,7 @@ abstract class AbstractTextAccessLogPublisher
   /**
    * Criteria based filter.
    */
-  static final class CriteriaFilter implements Filter
+  private static final class CriteriaFilter implements Filter
   {
     private final AccessLogFilteringCriteriaCfg cfg;
     private final boolean logConnectRecords;
@@ -96,7 +95,7 @@ abstract class AbstractTextAccessLogPublisher
      * @throws ConfigException
      *           If the configuration cannot be parsed.
      */
-    CriteriaFilter(final AccessLogFilteringCriteriaCfg cfg)
+    private CriteriaFilter(final AccessLogFilteringCriteriaCfg cfg)
         throws ConfigException
     {
       this.cfg = cfg;
@@ -695,7 +694,7 @@ abstract class AbstractTextAccessLogPublisher
   /**
    * Log message filter predicate.
    */
-  static interface Filter
+  private static interface Filter
   {
     /**
      * Returns {@code true} if the provided client connect should be logged.
@@ -745,7 +744,7 @@ abstract class AbstractTextAccessLogPublisher
   /**
    * A filter which performs a logical OR over a set of sub-filters.
    */
-  static final class OrFilter implements Filter
+  private static final class OrFilter implements Filter
   {
     private final Filter[] subFilters;
 
@@ -757,7 +756,7 @@ abstract class AbstractTextAccessLogPublisher
      * @param subFilters
      *          The sub-filters.
      */
-    OrFilter(final Filter[] subFilters)
+    private OrFilter(final Filter[] subFilters)
     {
       this.subFilters = subFilters;
     }

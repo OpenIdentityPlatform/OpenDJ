@@ -35,7 +35,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.std.meta.DebugLogPublisherCfgDefn;
 import org.opends.server.admin.std.server.DebugLogPublisherCfg;
-import org.opends.server.api.DebugLogPublisher;
 
 /**
  * A logger for debug and trace logging. DebugLogger provides a debugging

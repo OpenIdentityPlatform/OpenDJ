@@ -39,7 +39,6 @@ import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
 import org.opends.server.admin.std.server.DebugTargetCfg;
 import org.opends.server.admin.std.server.FileBasedDebugLogPublisherCfg;
-import org.opends.server.api.DebugLogPublisher;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;

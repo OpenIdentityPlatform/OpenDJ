@@ -24,19 +24,15 @@
  *      Copyright 2006-2009 Sun Microsystems, Inc.
  *      Portions Copyright 2013-2014 ForgeRock AS
  */
-package org.opends.server.tools;
+package org.opends.server.loggers;
 
 import java.io.PrintStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
 import org.opends.server.admin.std.server.DebugLogPublisherCfg;
-import org.opends.server.api.DebugLogPublisher;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.ServerContext;
-import org.opends.server.loggers.DebugMessageFormatter;
-import org.opends.server.loggers.DebugStackTraceFormatter;
-import org.opends.server.loggers.TraceSettings;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
 import org.opends.server.util.ServerConstants;

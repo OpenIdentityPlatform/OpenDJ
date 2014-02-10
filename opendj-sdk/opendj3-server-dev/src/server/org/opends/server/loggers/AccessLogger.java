@@ -33,7 +33,6 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.std.meta.AccessLogPublisherCfgDefn;
 import org.opends.server.admin.std.server.AccessLogPublisherCfg;
-import org.opends.server.api.AccessLogPublisher;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.core.*;
 import org.opends.server.types.*;
@@ -87,16 +86,6 @@ public class AccessLogger extends AbstractLogger
   public static AccessLogger getInstance()
   {
     return instance;
-  }
-
-
-
-  /**
-   * Removes all existing access log publishers from the logger.
-   */
-  public synchronized static void removeAllAccessLogPublishers()
-  {
-    loggerStorage.removeAllLogPublishers();
   }
 
   /**

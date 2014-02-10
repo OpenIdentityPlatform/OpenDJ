@@ -49,53 +49,28 @@ public enum Severity {
   /**
    * The severity that will be used for informational messages.
    */
-  INFORMATION("INFO", "INFO"),
+  INFORMATION("INFO"),
 
   /**
    * The severity that will be used for warning messages.
    */
-  WARNING("WARN", "WARN"),
+  WARNING("WARN"),
 
   /**
    * The severity that will be used for warning messages.
    */
-  ERROR("ERR", "ERR"),
-
-  /**
-   * The severity that will be used for mild warning messages.
-   */
-  MILD_WARNING("MILD_WARN", "WARN"),
-
-  /**
-   * The severity that will be used for severe warning messages.
-   */
-  SEVERE_WARNING("SEVERE_WARN", "WARN"),
-
-  /**
-   * The severity that will be used for mild error messages.
-   */
-  MILD_ERROR("MILD_ERR", "ERR"),
-
-  /**
-   * The severity that will be used for severe error messages.
-   */
-  SEVERE_ERROR("SEVERE_ERR", "ERR"),
-
-  /**
-   * The severity that will be used for fatal error messages.
-   */
-  FATAL_ERROR("FATAL_ERR", "ERR"),
+  ERROR("ERR"),
 
   /**
    * The severity that will be used for debug messages.
    */
-  DEBUG("DEBUG", "DEBUG"),
+  DEBUG("DEBUG"),
 
   /**
    * The severity that will be used for important informational
    * messages.
    */
-  NOTICE("NOTE", "NOTE");
+  NOTICE("NOTE");
 
   static private Set<String> PROPERTY_KEY_FORM_VALUES_SET;
 
@@ -134,15 +109,14 @@ public enum Severity {
     return sev;
   }
 
-  private final String propertyKeyForm;
-  private final String messageDescriptorForm;
+  private final String name;
 
   /**
    * Gets the abbreviated form of this <code>Severity</code>.
    * @return String abbreviated form
    */
   public String messageDesciptorName() {
-    return messageDescriptorForm;
+    return name;
   }
 
   /**
@@ -152,12 +126,11 @@ public enum Severity {
    * @return name of this severity
    */
   public String propertyKeyFormName() {
-    return propertyKeyForm;
+    return name;
   }
 
-  private Severity(String propertyKeyForm, String messageDescriptorName) {
-    this.propertyKeyForm = propertyKeyForm;
-    this.messageDescriptorForm = messageDescriptorName;
+  private Severity(String propertyKeyForm) {
+    this.name = propertyKeyForm;
   }
 
 }

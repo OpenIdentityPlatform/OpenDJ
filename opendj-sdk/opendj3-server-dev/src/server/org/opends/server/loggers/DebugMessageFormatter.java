@@ -33,7 +33,7 @@ import java.util.*;
  * format tokens with the text value of message arguments in debug logging
  * records.
  */
-public class DebugMessageFormatter
+class DebugMessageFormatter
 {
   /**
    * Format the message format string with the provided arguments.
@@ -42,7 +42,7 @@ public class DebugMessageFormatter
    * @param msgArgs the arguments to use when replacing tokens in the message.
    * @return the formatted message string.
    */
-  public static String format(String msg, Object[] msgArgs)
+  static String format(String msg, Object[] msgArgs)
   {
     StringBuilder buffer= new StringBuilder();
     Object[] decoratedArgs = decorateMessageArgs(msgArgs);

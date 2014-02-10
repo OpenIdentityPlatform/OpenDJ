@@ -27,14 +27,15 @@
 package org.opends.server.loggers;
 
 import static org.opends.messages.ConfigMessages.*;
+
 import java.util.Collection;
+
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.messages.Severity;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.std.meta.ErrorLogPublisherCfgDefn;
 import org.opends.server.admin.std.server.ErrorLogPublisherCfg;
 import org.opends.server.api.DirectoryThread;
-import org.opends.server.api.ErrorLogPublisher;
 import org.opends.server.backends.task.Task;
 
 /**

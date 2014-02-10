@@ -74,6 +74,8 @@ import org.opends.server.crypto.CryptoManagerSync;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.extensions.JMXAlertHandler;
 import org.opends.server.loggers.*;
+import org.opends.server.loggers.DebugLogPublisher;
+import org.opends.server.loggers.ErrorLogPublisher;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.monitors.BackendMonitor;
 import org.opends.server.monitors.ConnectionHandlerMonitor;

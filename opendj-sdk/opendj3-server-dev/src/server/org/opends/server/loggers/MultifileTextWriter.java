@@ -613,7 +613,7 @@ class MultifileTextWriter
    * tries to rename the file. On failure, all subsequent log write requests
    * will throw exceptions.
    */
-  public synchronized void rotate()
+  private synchronized void rotate()
   {
     try
     {
