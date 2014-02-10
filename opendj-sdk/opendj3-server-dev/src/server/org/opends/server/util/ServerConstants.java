@@ -1169,8 +1169,6 @@ public final class ServerConstants
    */
   public static final String LOG_SEVERITY_DISABLED = "disabled";
 
-
-
   /**
    * The English name for the basic all log severity used for all log
    * severities.
@@ -1182,106 +1180,6 @@ public final class ServerConstants
    * no error message beside some specific category.
    */
   public static final String LOG_SEVERITY_NONE = "none";
-
-
-
-
-  /**
-   * The English name for the debug log category used for access control
-   * debugging.
-   */
-  public static final String DEBUG_CATEGORY_MESSAGE = "message";
-
-
-
-  /**
-   * The English name for the debug log category used for constructor debugging.
-   */
-  public static final String DEBUG_CATEGORY_CONSTRUCTOR = "constructor";
-
-
-
-  /**
-   * The English name for the debug log category used for debugging raw data
-   * read.
-   */
-  public static final String DEBUG_CATEGORY_DATA = "data";
-
-
-
-  /**
-   * The English name for the debug log category used for exception debugging.
-   */
-  public static final String DEBUG_CATEGORY_THROWN = "thrown";
-
-
-
-  /**
-   * The English name for the debug log category used for exception debugging.
-   */
-  public static final String DEBUG_CATEGORY_CAUGHT = "caught";
-
-
-
-  /**
-   * The English name for the debug log category used for method entry
-   * debugging.
-   */
-  public static final String DEBUG_CATEGORY_ENTER = "enter";
-
-
-
-  /**
-   * The English name for the debug log category used for method exit
-   * debugging.
-   */
-  public static final String DEBUG_CATEGORY_EXIT = "exit";
-
-
-
-  /**
-   * The English name for the debug log category used for debugging protocol
-   * elements.
-   */
-  public static final String DEBUG_CATEGORY_PROTOCOL = "protocol";
-
-
-
-  /**
-   * The English name for the debug log category used for raw data access
-   * from the JE database.
-   */
-  public static final String DEBUG_CATEGORY_DATABASE_ACCESS = "database-access";
-
-
-
-  /**
-   * The English name for the debug log severity used for verbose messages.
-   */
-  public static final String DEBUG_SEVERITY_VERBOSE = "verbose";
-
-
-
-  /**
-   * The English name for the debug log severity used for informational
-   * messages.
-   */
-  public static final String DEBUG_SEVERITY_INFO = "info";
-
-
-
-  /**
-   * The English name for the debug log severity used for warning messages.
-   */
-  public static final String DEBUG_SEVERITY_WARNING = "warning";
-
-
-
-  /**
-   * The English name for the debug log severity used for error messages.
-   */
-  public static final String DEBUG_SEVERITY_ERROR = "error";
-
 
 
   /**
@@ -1406,9 +1304,7 @@ public final class ServerConstants
   /**
    * The English name for the error log severity used for fatal error messages.
    */
-  public static final String ERROR_SEVERITY_FATAL = "fatal-error";
-
-
+  public static final String ERROR_SEVERITY_ERROR = "error";
 
   /**
    * The English name for the error log severity used for informational
@@ -1417,19 +1313,10 @@ public final class ServerConstants
   public static final String ERROR_SEVERITY_INFORMATIONAL = "info";
 
 
-
   /**
-   * The English name for the error log severity used for mild error messages.
+   * The English name for the error log severity used for warning messages.
    */
-  public static final String ERROR_SEVERITY_MILD_ERROR = "mild-error";
-
-
-
-  /**
-   * The English name for the error log severity used for mild warning messages.
-   */
-  public static final String ERROR_SEVERITY_MILD_WARNING = "mild-warning";
-
+  public static final String ERROR_SEVERITY_WARNING = "warning";
 
 
   /**
@@ -1437,22 +1324,6 @@ public final class ServerConstants
    * informational messages.
    */
   public static final String ERROR_SEVERITY_NOTICE = "notice";
-
-
-
-  /**
-   * The English name for the error log severity used for severe error messages.
-   */
-  public static final String ERROR_SEVERITY_SEVERE_ERROR = "severe-error";
-
-
-
-  /**
-   * The English name for the error log severity used for severe warning
-   * messages.
-   */
-  public static final String ERROR_SEVERITY_SEVERE_WARNING = "severe-warning";
-
 
 
   /**

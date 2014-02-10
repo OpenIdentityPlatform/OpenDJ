@@ -52,6 +52,16 @@ public enum Severity {
   INFORMATION("INFO", "INFO"),
 
   /**
+   * The severity that will be used for warning messages.
+   */
+  WARNING("WARN", "WARN"),
+
+  /**
+   * The severity that will be used for warning messages.
+   */
+  ERROR("ERR", "ERR"),
+
+  /**
    * The severity that will be used for mild warning messages.
    */
   MILD_WARNING("MILD_WARN", "WARN"),
@@ -85,7 +95,7 @@ public enum Severity {
    * The severity that will be used for important informational
    * messages.
    */
-  NOTICE("NOTICE", "NOTE");
+  NOTICE("NOTE", "NOTE");
 
   static private Set<String> PROPERTY_KEY_FORM_VALUES_SET;
 
