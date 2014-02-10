@@ -24,14 +24,11 @@
  *      Copyright 2010 Sun Microsystems, Inc.
  *      Portions copyright 2011-2014 ForgeRock AS.
  */
-
 package org.opends.server.core;
-
-
 
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.loggers.ErrorLogger.logError;
+import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.schema.SchemaConstants.*;
 
@@ -49,8 +46,6 @@ import org.opends.server.api.PasswordValidator;
 import org.opends.server.config.ConfigException;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
-
-
 
 /**
  * This class represents subentry password policy based on Password Policy for
@@ -123,15 +118,14 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
   /** Used when logging errors due to invalid validator reference. */
   private final AtomicBoolean isAlreadyLogged = new AtomicBoolean();
 
-
-  // Returns the global default password policy which will be used for deriving
-  // the default properties of sub-entries.
+  /**
+   * Returns the global default password policy which will be used for deriving
+   * the default properties of sub-entries.
+   */
   private PasswordPolicy getDefaultPasswordPolicy()
   {
     return DirectoryServer.getDefaultPasswordPolicy();
   }
-
-
 
   /**
    * Creates subentry password policy object from the subentry, parsing and
@@ -161,7 +155,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
       }
       for (String ocName : objectClasses.values())
       {
-        if (ocName.equalsIgnoreCase(PWD_OC_POLICY))
+        if (PWD_OC_POLICY.equalsIgnoreCase(ocName))
         {
           break;
         }
@@ -183,33 +177,32 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
     // Get known Password Policy draft attributes from the entry.
     // If any given attribute is missing or empty set its value
     // from default Password Policy configuration.
-    AttributeValue value = getAttrValue(entry, PWD_ATTR_ATTRIBUTE);
-    if ((value != null) && (value.toString().length() > 0))
+    String value = getAttrValue(entry, PWD_ATTR_ATTRIBUTE);
+    if (value != null && value.length() > 0)
     {
-      this.pPasswordAttribute = DirectoryServer.getAttributeType(value
-          .toString().toLowerCase(), false);
+      this.pPasswordAttribute =
+          DirectoryServer.getAttributeType(value.toLowerCase(), false);
       if (this.pPasswordAttribute == null)
       {
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
             ERR_PWPOLICY_UNDEFINED_PASSWORD_ATTRIBUTE.get(
-                this.passwordPolicySubentryDN.toNormalizedString(),
-                value.toString()));
+                this.passwordPolicySubentryDN.toNormalizedString(), value));
       }
 
       // Check the syntax.
       final String syntaxOID = pPasswordAttribute.getSyntaxOID();
-      if (syntaxOID.equals(SYNTAX_AUTH_PASSWORD_OID))
+      if (SYNTAX_AUTH_PASSWORD_OID.equals(syntaxOID))
       {
         pAuthPasswordSyntax = true;
       }
-      else if (syntaxOID.equals(SYNTAX_USER_PASSWORD_OID))
+      else if (SYNTAX_USER_PASSWORD_OID.equals(syntaxOID))
       {
         pAuthPasswordSyntax = false;
       }
       else
       {
         String syntax = pPasswordAttribute.getSyntax().getSyntaxName();
-        if ((syntax == null) || (syntax.length() == 0))
+        if (syntax == null || syntax.length() == 0)
         {
           syntax = syntaxOID;
         }
@@ -226,291 +219,36 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
       this.pAuthPasswordSyntax = null;
     }
 
-    value = getAttrValue(entry, PWD_ATTR_MINAGE);
-    if ((value != null) && (value.toString().length() > 0))
-    {
-      try
-      {
-        this.pMinPasswordAge = Long.parseLong(value.toString());
-        checkIntegerAttr(PWD_ATTR_MINAGE, this.pMinPasswordAge, 0,
-            Integer.MAX_VALUE);
-      }
-      catch (NumberFormatException ne)
-      {
-        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-            ERR_CONFIG_ATTR_INVALID_INT_VALUE.get(PWD_ATTR_MINAGE,
-                value.toString(), ne.getLocalizedMessage()));
-      }
-    }
-    else
-    {
-      this.pMinPasswordAge = null;
-    }
-
-    value = getAttrValue(entry, PWD_ATTR_MAXAGE);
-    if ((value != null) && (value.toString().length() > 0))
-    {
-      try
-      {
-        this.pMaxPasswordAge = Long.parseLong(value.toString());
-        checkIntegerAttr(PWD_ATTR_MAXAGE, this.pMaxPasswordAge, 0,
-            Integer.MAX_VALUE);
-      }
-      catch (NumberFormatException ne)
-      {
-        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-            ERR_CONFIG_ATTR_INVALID_INT_VALUE.get(PWD_ATTR_MAXAGE,
-                value.toString(), ne.getLocalizedMessage()));
-      }
-    }
-    else
-    {
-      this.pMaxPasswordAge = null;
-    }
-
-    value = getAttrValue(entry, PWD_ATTR_INHISTORY);
-    if ((value != null) && (value.toString().length() > 0))
-    {
-      try
-      {
-        this.pPasswordHistoryCount = Integer.parseInt(value.toString());
-        checkIntegerAttr(PWD_ATTR_INHISTORY, this.pPasswordHistoryCount, 0,
-            Integer.MAX_VALUE);
-      }
-      catch (NumberFormatException ne)
-      {
-        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-            ERR_CONFIG_ATTR_INVALID_INT_VALUE.get(PWD_ATTR_INHISTORY,
-                value.toString(), ne.getLocalizedMessage()));
-      }
-    }
-    else
-    {
-      this.pPasswordHistoryCount = null;
-    }
+    this.pMinPasswordAge = asLong(entry, PWD_ATTR_MINAGE);
+    this.pMaxPasswordAge = asLong(entry, PWD_ATTR_MAXAGE);
+    this.pPasswordHistoryCount =
+        asInteger(entry, PWD_ATTR_INHISTORY, Integer.MAX_VALUE);
 
     // This one is managed via the password validator
     // so only check if its value is acceptable.
-    value = getAttrValue(entry, PWD_ATTR_CHECKQUALITY);
-    if ((value != null) && (value.toString().length() > 0))
-    {
-      try
-      {
-        int pwdCheckQuality = Integer.parseInt(value.toString());
-        checkIntegerAttr(PWD_ATTR_CHECKQUALITY, pwdCheckQuality, 0, 2);
-      }
-      catch (NumberFormatException ne)
-      {
-        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-            ERR_CONFIG_ATTR_INVALID_INT_VALUE.get(PWD_ATTR_CHECKQUALITY,
-                value.toString(), ne.getLocalizedMessage()));
-      }
-    }
+    asInteger(entry, PWD_ATTR_CHECKQUALITY, 2);
 
     // This one is managed via the password validator
     // so only check if its value is acceptable.
-    value = getAttrValue(entry, PWD_ATTR_MINLENGTH);
-    if ((value != null) && (value.toString().length() > 0))
-    {
-      try
-      {
-        int pwdMinLength = Integer.parseInt(value.toString());
-        checkIntegerAttr(PWD_ATTR_MINLENGTH, pwdMinLength, 0,Integer.MAX_VALUE);
-      }
-      catch (NumberFormatException ne)
-      {
-        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-            ERR_CONFIG_ATTR_INVALID_INT_VALUE.get(PWD_ATTR_MINLENGTH,
-                value.toString(), ne.getLocalizedMessage()));
-      }
-    }
+    asInteger(entry, PWD_ATTR_MINLENGTH, Integer.MAX_VALUE);
 
     // This one depends on lockout failure count value
     // so only check if its value is acceptable.
-    value = getAttrValue(entry, PWD_ATTR_LOCKOUT);
-    if ((value != null) && (value.toString().length() > 0))
-    {
-      if (value.toString().equalsIgnoreCase(Boolean.TRUE.toString())
-          || value.toString().equalsIgnoreCase(Boolean.FALSE.toString()))
-      {
-        Boolean.parseBoolean(value.toString());
-      }
-      else
-      {
-        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-            ERR_CONFIG_ATTR_INVALID_BOOLEAN_VALUE.get(PWD_ATTR_LOCKOUT,
-                value.toString()));
-      }
-    }
+    asBoolean(entry, PWD_ATTR_LOCKOUT);
 
-    value = getAttrValue(entry, PWD_ATTR_EXPIREWARNING);
-    if ((value != null) && (value.toString().length() > 0))
-    {
-      try
-      {
-        this.pPasswordExpirationWarningInterval = Long.parseLong(value
-            .toString());
-        checkIntegerAttr(PWD_ATTR_EXPIREWARNING,
-            this.pPasswordExpirationWarningInterval, 0, Integer.MAX_VALUE);
-      }
-      catch (NumberFormatException ne)
-      {
-        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-            ERR_CONFIG_ATTR_INVALID_INT_VALUE.get(PWD_ATTR_EXPIREWARNING,
-                value.toString(), ne.getLocalizedMessage()));
-      }
-    }
-    else
-    {
-      this.pPasswordExpirationWarningInterval = null;
-    }
-
-    value = getAttrValue(entry, PWD_ATTR_GRACEAUTHNLIMIT);
-    if ((value != null) && (value.toString().length() > 0))
-    {
-      try
-      {
-        this.pGraceLoginCount = Integer.parseInt(value.toString());
-        checkIntegerAttr(PWD_ATTR_GRACEAUTHNLIMIT, this.pGraceLoginCount, 0,
-            Integer.MAX_VALUE);
-      }
-      catch (NumberFormatException ne)
-      {
-        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-            ERR_CONFIG_ATTR_INVALID_INT_VALUE.get(PWD_ATTR_GRACEAUTHNLIMIT,
-                value.toString(), ne.getLocalizedMessage()));
-      }
-    }
-    else
-    {
-      this.pGraceLoginCount = null;
-    }
-
-    value = getAttrValue(entry, PWD_ATTR_LOCKOUTDURATION);
-    if ((value != null) && (value.toString().length() > 0))
-    {
-      try
-      {
-        this.pLockoutDuration = Long.parseLong(value.toString());
-        checkIntegerAttr(PWD_ATTR_LOCKOUTDURATION, this.pLockoutDuration, 0,
-            Integer.MAX_VALUE);
-      }
-      catch (NumberFormatException ne)
-      {
-        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-            ERR_CONFIG_ATTR_INVALID_INT_VALUE.get(PWD_ATTR_LOCKOUTDURATION,
-                value.toString(), ne.getLocalizedMessage()));
-      }
-    }
-    else
-    {
-      this.pLockoutDuration = null;
-    }
-
-    value = getAttrValue(entry, PWD_ATTR_MAXFAILURE);
-    if ((value != null) && (value.toString().length() > 0))
-    {
-      try
-      {
-        this.pLockoutFailureCount = Integer.parseInt(value.toString());
-        checkIntegerAttr(PWD_ATTR_MAXFAILURE, this.pLockoutFailureCount, 0,
-            Integer.MAX_VALUE);
-      }
-      catch (NumberFormatException ne)
-      {
-        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-            ERR_CONFIG_ATTR_INVALID_INT_VALUE.get(PWD_ATTR_MAXFAILURE,
-                value.toString(), ne.getLocalizedMessage()));
-      }
-    }
-    else
-    {
-      this.pLockoutFailureCount = null;
-    }
-
-    value = getAttrValue(entry, PWD_ATTR_MUSTCHANGE);
-    if ((value != null) && (value.toString().length() > 0))
-    {
-      if (value.toString().equalsIgnoreCase(Boolean.TRUE.toString())
-          || value.toString().equalsIgnoreCase(Boolean.FALSE.toString()))
-      {
-        this.pForceChangeOnReset = Boolean.parseBoolean(value.toString());
-      }
-      else
-      {
-        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-            ERR_CONFIG_ATTR_INVALID_BOOLEAN_VALUE.get(PWD_ATTR_MUSTCHANGE,
-                value.toString()));
-      }
-    }
-    else
-    {
-      this.pForceChangeOnReset = null;
-    }
-
-    value = getAttrValue(entry, PWD_ATTR_ALLOWUSERCHANGE);
-    if ((value != null) && (value.toString().length() > 0))
-    {
-      if (value.toString().equalsIgnoreCase(Boolean.TRUE.toString())
-          || value.toString().equalsIgnoreCase(Boolean.FALSE.toString()))
-      {
-        this.pAllowUserPasswordChanges = Boolean.parseBoolean(value.toString());
-      }
-      else
-      {
-        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-            ERR_CONFIG_ATTR_INVALID_BOOLEAN_VALUE.get(PWD_ATTR_ALLOWUSERCHANGE,
-                value.toString()));
-      }
-    }
-    else
-    {
-      this.pAllowUserPasswordChanges = null;
-    }
-
-    value = getAttrValue(entry, PWD_ATTR_SAFEMODIFY);
-    if ((value != null) && (value.toString().length() > 0))
-    {
-      if (value.toString().equalsIgnoreCase(Boolean.TRUE.toString())
-          || value.toString().equalsIgnoreCase(Boolean.FALSE.toString()))
-      {
-        this.pPasswordChangeRequiresCurrentPassword = Boolean
-            .parseBoolean(value.toString());
-      }
-      else
-      {
-        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-            ERR_CONFIG_ATTR_INVALID_BOOLEAN_VALUE.get(PWD_ATTR_SAFEMODIFY,
-                value.toString()));
-      }
-    }
-    else
-    {
-      this.pPasswordChangeRequiresCurrentPassword = null;
-    }
-
-    value = getAttrValue(entry, PWD_ATTR_FAILURECOUNTINTERVAL);
-    if ((value != null) && (value.toString().length() > 0))
-    {
-      try
-      {
-        this.pLockoutFailureExpirationInterval = Long.parseLong(value
-            .toString());
-        checkIntegerAttr(PWD_ATTR_FAILURECOUNTINTERVAL,
-            this.pLockoutFailureExpirationInterval, 0, Integer.MAX_VALUE);
-      }
-      catch (NumberFormatException ne)
-      {
-        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-            ERR_CONFIG_ATTR_INVALID_INT_VALUE.get(
-                PWD_ATTR_FAILURECOUNTINTERVAL, value.toString(),
-                ne.getLocalizedMessage()));
-      }
-    }
-    else
-    {
-      this.pLockoutFailureExpirationInterval = null;
-    }
+    this.pPasswordExpirationWarningInterval =
+        asLong(entry, PWD_ATTR_EXPIREWARNING);
+    this.pGraceLoginCount =
+        asInteger(entry, PWD_ATTR_GRACEAUTHNLIMIT, Integer.MAX_VALUE);
+    this.pLockoutDuration = asLong(entry, PWD_ATTR_LOCKOUTDURATION);
+    this.pLockoutFailureCount =
+        asInteger(entry, PWD_ATTR_MAXFAILURE, Integer.MAX_VALUE);
+    this.pForceChangeOnReset = asBoolean(entry, PWD_ATTR_MUSTCHANGE);
+    this.pAllowUserPasswordChanges = asBoolean(entry, PWD_ATTR_ALLOWUSERCHANGE);
+    this.pPasswordChangeRequiresCurrentPassword =
+        asBoolean(entry, PWD_ATTR_SAFEMODIFY);
+    this.pLockoutFailureExpirationInterval =
+        asLong(entry, PWD_ATTR_FAILURECOUNTINTERVAL);
 
     // Now check for the pwdValidatorPolicy OC and its attribute.
     // Determine if this is a password validator policy object class.
@@ -541,6 +279,66 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
         }
       }
     }
+  }
+
+  private Boolean asBoolean(Entry entry, String attrName)
+      throws DirectoryException
+  {
+    final String value = getAttrValue(entry, attrName);
+    if (value != null && value.length() > 0)
+    {
+      if (value.equalsIgnoreCase(Boolean.TRUE.toString())
+          || value.equalsIgnoreCase(Boolean.FALSE.toString()))
+      {
+        return Boolean.valueOf(value);
+      }
+      throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+          ERR_CONFIG_ATTR_INVALID_BOOLEAN_VALUE.get(attrName, value));
+    }
+    return null;
+  }
+
+  private Integer asInteger(Entry entry, String attrName, int upperBound)
+      throws DirectoryException
+  {
+    final String value = getAttrValue(entry, attrName);
+    if (value != null && value.length() > 0)
+    {
+      try
+      {
+        final Integer result = Integer.valueOf(value);
+        checkIntegerAttr(attrName, result, 0, upperBound);
+        return result;
+      }
+      catch (NumberFormatException ne)
+      {
+        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+            ERR_CONFIG_ATTR_INVALID_INT_VALUE.get(attrName, value,
+                ne.getLocalizedMessage()));
+      }
+    }
+    return null;
+  }
+
+  private Long asLong(Entry entry, String attrName) throws DirectoryException
+  {
+    final String value = getAttrValue(entry, attrName);
+    if (value != null && value.length() > 0)
+    {
+      try
+      {
+        final Long result = Long.valueOf(value);
+        checkIntegerAttr(attrName, result, 0, Integer.MAX_VALUE);
+        return result;
+      }
+      catch (NumberFormatException ne)
+      {
+        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+            ERR_CONFIG_ATTR_INVALID_INT_VALUE.get(attrName, value,
+                ne.getLocalizedMessage()));
+      }
+    }
+    return null;
   }
 
 
@@ -585,64 +383,48 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
    *          the entry to retrieve an attribute value from.
    * @param pwdAttrName
    *          attribute name to retrieve the value for.
-   * @return <CODE>AttributeValue</CODE> or <CODE>null</CODE>.
+   * @return <CODE>String</CODE> or <CODE>null</CODE>.
    */
-  private AttributeValue getAttrValue(Entry entry, String pwdAttrName)
+  private String getAttrValue(Entry entry, String pwdAttrName)
   {
     AttributeType pwdAttrType = DirectoryServer.getAttributeType(pwdAttrName,
         true);
     List<Attribute> pwdAttrList = entry.getAttribute(pwdAttrType);
-    if ((pwdAttrList != null) && (!pwdAttrList.isEmpty()))
+    if (pwdAttrList != null && !pwdAttrList.isEmpty())
     {
       for (Attribute attr : pwdAttrList)
       {
         for (AttributeValue value : attr)
         {
-          return value;
+          return value.toString();
         }
       }
     }
     return null;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isAllowExpiredPasswordChanges()
   {
     return getDefaultPasswordPolicy().isAllowExpiredPasswordChanges();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isAllowMultiplePasswordValues()
   {
     return getDefaultPasswordPolicy().isAllowMultiplePasswordValues();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isAllowPreEncodedPasswords()
   {
     return getDefaultPasswordPolicy().isAllowPreEncodedPasswords();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isAllowUserPasswordChanges()
   {
@@ -650,22 +432,14 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
         : getDefaultPasswordPolicy().isAllowUserPasswordChanges();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isExpirePasswordsWithoutWarning()
   {
     return getDefaultPasswordPolicy().isExpirePasswordsWithoutWarning();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isForceChangeOnAdd()
   {
@@ -674,11 +448,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
     return getDefaultPasswordPolicy().isForceChangeOnAdd();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isForceChangeOnReset()
   {
@@ -686,11 +456,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
         : getDefaultPasswordPolicy().isForceChangeOnReset();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public int getGraceLoginCount()
   {
@@ -698,44 +464,28 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
         : getDefaultPasswordPolicy().getGraceLoginCount();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public long getIdleLockoutInterval()
   {
     return getDefaultPasswordPolicy().getIdleLockoutInterval();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public AttributeType getLastLoginTimeAttribute()
   {
     return getDefaultPasswordPolicy().getLastLoginTimeAttribute();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getLastLoginTimeFormat()
   {
     return getDefaultPasswordPolicy().getLastLoginTimeFormat();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public long getLockoutDuration()
   {
@@ -743,11 +493,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
         : getDefaultPasswordPolicy().getLockoutDuration();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public int getLockoutFailureCount()
   {
@@ -755,11 +501,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
         : getDefaultPasswordPolicy().getLockoutFailureCount();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public long getLockoutFailureExpirationInterval()
   {
@@ -768,11 +510,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
         : getDefaultPasswordPolicy().getLockoutFailureExpirationInterval();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public long getMaxPasswordAge()
   {
@@ -780,22 +518,14 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
         : getDefaultPasswordPolicy().getMaxPasswordAge();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public long getMaxPasswordResetAge()
   {
     return getDefaultPasswordPolicy().getMaxPasswordResetAge();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public long getMinPasswordAge()
   {
@@ -803,11 +533,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
         : getDefaultPasswordPolicy().getMinPasswordAge();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public AttributeType getPasswordAttribute()
   {
@@ -815,11 +541,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
         : getDefaultPasswordPolicy().getPasswordAttribute();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isPasswordChangeRequiresCurrentPassword()
   {
@@ -828,11 +550,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
         : getDefaultPasswordPolicy().isPasswordChangeRequiresCurrentPassword();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public long getPasswordExpirationWarningInterval()
   {
@@ -841,11 +559,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
         : getDefaultPasswordPolicy().getPasswordExpirationWarningInterval();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public int getPasswordHistoryCount()
   {
@@ -853,88 +567,56 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
         : getDefaultPasswordPolicy().getPasswordHistoryCount();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public long getPasswordHistoryDuration()
   {
     return getDefaultPasswordPolicy().getPasswordHistoryDuration();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public SortedSet<String> getPreviousLastLoginTimeFormats()
   {
     return getDefaultPasswordPolicy().getPreviousLastLoginTimeFormats();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public long getRequireChangeByTime()
   {
     return getDefaultPasswordPolicy().getRequireChangeByTime();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isRequireSecureAuthentication()
   {
     return getDefaultPasswordPolicy().isRequireSecureAuthentication();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isRequireSecurePasswordChanges()
   {
     return getDefaultPasswordPolicy().isRequireSecurePasswordChanges();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isSkipValidationForAdministrators()
   {
     return getDefaultPasswordPolicy().isSkipValidationForAdministrators();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public StateUpdateFailurePolicy getStateUpdateFailurePolicy()
   {
     return getDefaultPasswordPolicy().getStateUpdateFailurePolicy();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isAuthPasswordSyntax()
   {
@@ -942,66 +624,42 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
         : getDefaultPasswordPolicy().isAuthPasswordSyntax();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public List<PasswordStorageScheme<?>> getDefaultPasswordStorageSchemes()
   {
     return getDefaultPasswordPolicy().getDefaultPasswordStorageSchemes();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Set<String> getDeprecatedPasswordStorageSchemes()
   {
     return getDefaultPasswordPolicy().getDeprecatedPasswordStorageSchemes();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public DN getDN()
   {
     return passwordPolicySubentryDN;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isDefaultPasswordStorageScheme(String name)
   {
     return getDefaultPasswordPolicy().isDefaultPasswordStorageScheme(name);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isDeprecatedPasswordStorageScheme(String name)
   {
     return getDefaultPasswordPolicy().isDeprecatedPasswordStorageScheme(name);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Collection<PasswordValidator<?>> getPasswordValidators()
   {
@@ -1044,9 +702,8 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
       validatorName = name;
       pwPolicyName = policyName;
     }
-    /**
-     * {@inheritDoc}
-     */
+
+    /** {@inheritDoc} */
     @Override()
     public void initializePasswordValidator(PasswordValidatorCfg configuration)
         throws ConfigException
@@ -1054,9 +711,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
        // do nothing
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override()
     public boolean passwordIsAcceptable(ByteString newPassword,
                                         Set<ByteString> currentPasswords,
@@ -1076,9 +731,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Collection<AccountStatusNotificationHandler<?>>
     getAccountStatusNotificationHandlers()
@@ -1086,11 +739,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
     return getDefaultPasswordPolicy().getAccountStatusNotificationHandlers();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PasswordGenerator<?> getPasswordGenerator()
   {
