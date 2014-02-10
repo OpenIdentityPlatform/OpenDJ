@@ -170,37 +170,37 @@ final class OpenDJLoggerAdapter implements Logger {
     /** {@inheritDoc} */
     @Override
     public boolean isWarnEnabled() {
-        return ErrorLogger.isEnabledFor(name, Severity.SEVERE_WARNING);
+        return ErrorLogger.isEnabledFor(name, Severity.WARNING);
     }
 
     /** {@inheritDoc} */
     @Override
     public void warn(Marker marker, String msg) {
-        logError(marker, Severity.SEVERE_WARNING, null);
+        logError(marker, Severity.WARNING, null);
     }
 
     /** {@inheritDoc} */
     @Override
     public void warn(Marker marker, String msg, Throwable t) {
-        logError(marker, Severity.SEVERE_WARNING, t);
+        logError(marker, Severity.WARNING, t);
     }
 
     /** {@inheritDoc} */
     @Override
     public boolean isErrorEnabled() {
-        return ErrorLogger.isEnabledFor(name, Severity.FATAL_ERROR);
+        return ErrorLogger.isEnabledFor(name, Severity.ERROR);
     }
 
     /** {@inheritDoc} */
     @Override
     public void error(Marker marker, String msg) {
-        logError(marker, Severity.FATAL_ERROR, null);
+        logError(marker, Severity.ERROR, null);
     }
 
     /** {@inheritDoc} */
     @Override
     public void error(Marker marker, String msg, Throwable t) {
-        logError(marker, Severity.FATAL_ERROR, t);
+        logError(marker, Severity.ERROR, t);
     }
 
     /** {@inheritDoc} */
