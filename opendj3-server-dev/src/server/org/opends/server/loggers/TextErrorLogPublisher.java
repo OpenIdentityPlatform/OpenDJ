@@ -109,8 +109,7 @@ public class TextErrorLogPublisher
     TextErrorLogPublisher startupPublisher = new TextErrorLogPublisher();
     startupPublisher.writer = writer;
     startupPublisher.defaultSeverities.addAll(Arrays.asList(
-        Severity.FATAL_ERROR, Severity.SEVERE_ERROR, Severity.SEVERE_WARNING,
-        Severity.NOTICE));
+        Severity.ERROR, Severity.WARNING, Severity.NOTICE));
     return startupPublisher;
   }
 
@@ -187,22 +186,18 @@ public class TextErrorLogPublisher
         config.getDefaultSeverity();
     if(defSevs.isEmpty())
     {
-      defaultSeverities.add(Severity.FATAL_ERROR);
-      defaultSeverities.add(Severity.SEVERE_ERROR);
-      defaultSeverities.add(Severity.SEVERE_WARNING);
+      defaultSeverities.add(Severity.ERROR);
+      defaultSeverities.add(Severity.WARNING);
     } else
     {
       for(ErrorLogPublisherCfgDefn.DefaultSeverity defSev : defSevs)
       {
         if(defSev.toString().equalsIgnoreCase(LOG_SEVERITY_ALL))
         {
-          defaultSeverities.add(Severity.FATAL_ERROR);
-          defaultSeverities.add(Severity.INFORMATION);
-          defaultSeverities.add(Severity.MILD_ERROR);
-          defaultSeverities.add(Severity.MILD_WARNING);
+          defaultSeverities.add(Severity.ERROR);
+          defaultSeverities.add(Severity.WARNING);
           defaultSeverities.add(Severity.NOTICE);
-          defaultSeverities.add(Severity.SEVERE_ERROR);
-          defaultSeverities.add(Severity.SEVERE_WARNING);
+          defaultSeverities.add(Severity.INFORMATION);
         }
         else if (defSev.toString().equalsIgnoreCase(LOG_SEVERITY_NONE))
         {
@@ -245,13 +240,10 @@ public class TextErrorLogPublisher
               severityName = severityName.replace("-", "_").toUpperCase();
               if(severityName.equalsIgnoreCase(LOG_SEVERITY_ALL))
               {
-                severities.add(Severity.FATAL_ERROR);
-                severities.add(Severity.INFORMATION);
-                severities.add(Severity.MILD_ERROR);
-                severities.add(Severity.MILD_WARNING);
+                severities.add(Severity.ERROR);
+                severities.add(Severity.WARNING);
                 severities.add(Severity.NOTICE);
-                severities.add(Severity.SEVERE_ERROR);
-                severities.add(Severity.SEVERE_WARNING);
+                severities.add(Severity.INFORMATION);
               }
               else
               {
@@ -382,22 +374,18 @@ public class TextErrorLogPublisher
     defaultSeverities.clear();
     if(defSevs.isEmpty())
     {
-      defaultSeverities.add(Severity.FATAL_ERROR);
-      defaultSeverities.add(Severity.SEVERE_ERROR);
-      defaultSeverities.add(Severity.SEVERE_WARNING);
+      defaultSeverities.add(Severity.ERROR);
+      defaultSeverities.add(Severity.WARNING);
     } else
     {
       for(ErrorLogPublisherCfgDefn.DefaultSeverity defSev : defSevs)
       {
         if(defSev.toString().equalsIgnoreCase(LOG_SEVERITY_ALL))
         {
-          defaultSeverities.add(Severity.FATAL_ERROR);
+          defaultSeverities.add(Severity.ERROR);
+          defaultSeverities.add(Severity.WARNING);
           defaultSeverities.add(Severity.INFORMATION);
-          defaultSeverities.add(Severity.MILD_ERROR);
-          defaultSeverities.add(Severity.MILD_WARNING);
           defaultSeverities.add(Severity.NOTICE);
-          defaultSeverities.add(Severity.SEVERE_ERROR);
-          defaultSeverities.add(Severity.SEVERE_WARNING);
         }
         else if (defSev.toString().equalsIgnoreCase(LOG_SEVERITY_NONE))
         {
@@ -441,13 +429,10 @@ public class TextErrorLogPublisher
               severityName = severityName.replace("-", "_").toUpperCase();
               if(severityName.equalsIgnoreCase(LOG_SEVERITY_ALL))
               {
-                severities.add(Severity.FATAL_ERROR);
+                severities.add(Severity.ERROR);
                 severities.add(Severity.INFORMATION);
-                severities.add(Severity.MILD_ERROR);
-                severities.add(Severity.MILD_WARNING);
+                severities.add(Severity.WARNING);
                 severities.add(Severity.NOTICE);
-                severities.add(Severity.SEVERE_ERROR);
-                severities.add(Severity.SEVERE_WARNING);
               }
               else
               {
