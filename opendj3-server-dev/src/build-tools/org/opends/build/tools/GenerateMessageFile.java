@@ -983,9 +983,8 @@ public class GenerateMessageFile extends Task {
             }
 
             if (writeLogRef) {
-              // Document only FATAL_ERROR and SEVERE_ERROR messages.
-              if (s.name().equalsIgnoreCase("FATAL_ERROR")
-                  || s.name().equalsIgnoreCase("SEVERE_ERROR")) {
+              // Document only ERROR messages.
+              if (s.name().equalsIgnoreCase("ERROR")) {
                 MessageRefEntry entry =
                         new MessageRefEntry(
                                 key.toString(),
