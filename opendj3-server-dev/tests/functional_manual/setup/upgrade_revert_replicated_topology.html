@@ -22,6 +22,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2008 Sun Microsystems, Inc.
+ !      Portions Copyright 2014 ForgeRock AS
  ! -->
 <HTML>
 <title>upgrade_revert_replicated_topology</title>
@@ -262,17 +263,17 @@ version-1:</B></P>
 			completed successfully</SPAN><B><BR><BR><BR>$ grep ERROR
 			/var/tmp/opends-upgrade-57522.log<BR></B><SPAN STYLE="font-weight: medium">INFO:
 			server: [28/Jan/2008:16:52:46 +0100] category=SYNC
-			severity=SEVERE_ERROR msgID=14942294 msg=Replication server caught
+			severity=ERROR msgID=14942294 msg=Replication server caught
 			exception while listening for client connections Socket
 			closed<BR>INFO: server: [28/Jan/2008:16:52:46 +0100] category=SYNC
-			severity=SEVERE_ERROR msgID=-1 msg=Error during the changelog
+			severity=ERROR msgID=-1 msg=Error during the changelog
 			database trimming or flush process. The Changelog service is going
 			to shutdown(JE 3.2.70) Can't open a cursor Database state can't be
 			DbState.CLOSED must be DbState.OPEN (Database.java:1079
 			Database.java:369 ReplicationDB.java:365 ReplicationDB.java:315
 			ReplicationDB.java:206 DbHandler.java:408 DbHandler.java:358
 			Thread.java:619)<BR>INFO: server: [28/Jan/2008:16:52:46 +0100]
-			category=SYNC severity=SEVERE_ERROR msgID=-1 msg=Error closing the
+			category=SYNC severity=ERROR msgID=-1 msg=Error closing the
 			changelog database :(JE 3.2.70) There is 1 open Database in the
 			Environment.<BR><BR><BR></SPAN><B><BR>$ start-ds -F<BR></B><SPAN STYLE="font-weight: medium">OpenDS
 			Directory Server 1.0.0<BR>Build ID:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -422,7 +423,7 @@ version-1:</B></P>
 			completed successfully<BR><BR></SPAN><B><BR>$ grep ERROR
 			/var/tmp/opends-upgrade-28222.log<BR></B><SPAN STYLE="font-weight: medium">INFO:
 			server: [28/Jan/2008:17:14:14 +0100] category=SYNC
-			severity=SEVERE_ERROR msgID=14942294 msg=Replication server caught
+			severity=ERROR msgID=14942294 msg=Replication server caught
 			exception while listening for client connections Socket
 			closed</SPAN><B><BR><BR><BR><BR>$ start-ds -F<BR></B><SPAN STYLE="font-weight: medium">OpenDS
 			Directory Server 1.0.0<BR>Build ID:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
@@ -617,7 +618,7 @@ server:</B></P>
 			completed successfully<BR></SPAN><B><BR>$ grep ERROR
 			/var/tmp/opends-upgrade-58428.log<BR></B><SPAN STYLE="font-weight: medium">INFO:
 			server: [28/Jan/2008:18:02:58 +0100] category=SYNC
-			severity=SEVERE_ERROR msgID=14942294 msg=Replication server caught
+			severity=ERROR msgID=14942294 msg=Replication server caught
 			exception while listening for client connections Socket closed<BR><BR></SPAN><B><BR>$
 			start-ds -F<BR></B><SPAN STYLE="font-weight: medium">OpenDS
 			Directory Server 1.0.0<BR>Build ID:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;

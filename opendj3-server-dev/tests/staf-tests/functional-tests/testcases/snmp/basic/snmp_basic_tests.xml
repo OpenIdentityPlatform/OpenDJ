@@ -23,7 +23,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2008 Sun Microsystems, Inc.
- !      Portions Copyright 2012-2013 ForgeRock AS
+ !      Portions Copyright 2012-2014 ForgeRock AS
  ! -->
 <stax>
 
@@ -38,10 +38,10 @@
     #@TestResult          TODO.
   -->
   <function name="snmp_basic_001" scope="local">
-    <testcase name="getTestCaseName('SNMP Default Properties')">                     
-      <sequence> 
+    <testcase name="getTestCaseName('SNMP Default Properties')">
+      <sequence>
         <try>
-          <sequence>                
+          <sequence>
             <call function="'testCase_Preamble'"/>
             <message>
                'Test Name = %s' % STAXCurrentTestcase
@@ -55,20 +55,20 @@
               result = compare_property_table(EXPECTED_PROPERTIES,
                                               DEFAULT_PROPERTIES)
             </script>
-            
+
             <message>
               '%s' % result
-            </message>              
-              
+            </message>
+
             <call function="'checktestStringNotPresent'">
               {
               'returnString' : result ,
               'testString'   : 'ERROR'
               }
             </call>
-              
+
           </sequence>
-  
+
           <catch exception="'STAXException'" typevar="eType" var="eInfo">
             <message log="1" level="'fatal'">
               '%s: Test failed. eInfo(%s)' % (eType,eInfo)
@@ -95,8 +95,8 @@
     #@TestResult          TODO.
   -->
   <function name="snmp_basic_002" scope="local">
-    <testcase name="getTestCaseName('Check the connection handlers')">                     
-      <sequence> 
+    <testcase name="getTestCaseName('Check the connection handlers')">
+      <sequence>
         <try>
           <sequence>
 
@@ -169,7 +169,7 @@
             </if>
 
           </sequence>
-  
+
           <catch exception="'STAXException'" typevar="eType" var="eInfo">
             <message log="1" level="'fatal'">
               '%s: Test failed. eInfo(%s)' % (eType,eInfo)
@@ -196,8 +196,8 @@
     #@TestResult          TODO.
   -->
   <function name="snmp_basic_003" scope="local">
-    <testcase name="getTestCaseName('Check value of dsServerType entry')">                     
-      <sequence> 
+    <testcase name="getTestCaseName('Check value of dsServerType entry')">
+      <sequence>
         <try>
 
           <sequence>
@@ -246,7 +246,7 @@
               DEFAULT_VALUES = global_DEFAULT_VALUES.get()
               dsServerType = DEFAULT_VALUES['dsServerType.1']
             </script>
-            
+
             <if expr="dsServerType == dsServer">
               <sequence>
                 <script>
@@ -276,7 +276,7 @@
             </if>
 
           </sequence>
-  
+
           <catch exception="'STAXException'" typevar="eType" var="eInfo">
             <message log="1" level="'fatal'">
               '%s: Test failed. eInfo(%s)' % (eType,eInfo)
@@ -303,8 +303,8 @@
     #@TestResult          TODO.
   -->
   <function name="snmp_basic_004" scope="local">
-    <testcase name="getTestCaseName('Check value of dsServerDescription entry')">                     
-      <sequence> 
+    <testcase name="getTestCaseName('Check value of dsServerDescription entry')">
+      <sequence>
         <try>
 
           <sequence>
@@ -352,7 +352,7 @@
             </if>
 
           </sequence>
-  
+
           <catch exception="'STAXException'" typevar="eType" var="eInfo">
             <message log="1" level="'fatal'">
               '%s: Test failed. eInfo(%s)' % (eType,eInfo)
@@ -379,8 +379,8 @@
     #@TestResult          TODO.
   -->
   <function name="snmp_basic_005" scope="local">
-    <testcase name="getTestCaseName('Check value of dsApplIfSearchOps entry')">                     
-      <sequence> 
+    <testcase name="getTestCaseName('Check value of dsApplIfSearchOps entry')">
+      <sequence>
         <try>
 
           <sequence>
@@ -435,7 +435,7 @@
               DEFAULT_VALUES[key] = \
                 str(int(DEFAULT_VALUES[key]) + nbLoop)
             </script>
-              
+
             <call function="'testStep'">
               { 'stepMessage' : 'Check value of dsApplIfSearchOps entry' }
             </call>
@@ -469,11 +469,11 @@
               DEFAULT_VALUES = {}
               global_DEFAULT_VALUES.set({})
               DEFAULT_VALUES = create_table_fromoutput(STAXResult[0][1])
-              global_DEFAULT_VALUES.set(DEFAULT_VALUES)       
+              global_DEFAULT_VALUES.set(DEFAULT_VALUES)
             </script>
 
           </sequence>
-  
+
           <catch exception="'STAXException'" typevar="eType" var="eInfo">
             <message log="1" level="'fatal'">
               '%s: Test failed. eInfo(%s)' % (eType,eInfo)
@@ -500,8 +500,8 @@
     #@TestResult          TODO.
   -->
   <function name="snmp_basic_006" scope="local">
-    <testcase name="getTestCaseName('Check value of dsApplIfAddEntryOps entry')">                     
-      <sequence> 
+    <testcase name="getTestCaseName('Check value of dsApplIfAddEntryOps entry')">
+      <sequence>
         <try>
 
           <sequence>
@@ -564,7 +564,7 @@
               DEFAULT_VALUES['dsMasterEntries.1'] = \
                 str(int(DEFAULT_VALUES['dsMasterEntries.1']) + nbLoop)
             </script>
-            
+
             <call function="'testStep'">
               { 'stepMessage' : 'Check value of dsApplIfAddEntryOps entry' }
             </call>
@@ -602,7 +602,7 @@
             </script>
 
           </sequence>
-  
+
           <catch exception="'STAXException'" typevar="eType" var="eInfo">
             <message log="1" level="'fatal'">
               '%s: Test failed. eInfo(%s)' % (eType,eInfo)
@@ -629,8 +629,8 @@
     #@TestResult          TODO.
   -->
   <function name="snmp_basic_007" scope="local">
-    <testcase name="getTestCaseName('Check value of dsApplIfRemoveEntryOps entry')">                     
-      <sequence> 
+    <testcase name="getTestCaseName('Check value of dsApplIfRemoveEntryOps entry')">
+      <sequence>
         <try>
 
           <sequence>
@@ -682,7 +682,7 @@
               DEFAULT_VALUES['dsMasterEntries.1'] = \
                 str(int(DEFAULT_VALUES['dsMasterEntries.1']) - nbLoop)
             </script>
-            
+
             <call function="'testStep'">
               { 'stepMessage' : 'Check value of dsApplIfRemoveEntryOps entry' }
             </call>
@@ -720,7 +720,7 @@
             </script>
 
           </sequence>
-  
+
           <catch exception="'STAXException'" typevar="eType" var="eInfo">
             <message log="1" level="'fatal'">
               '%s: Test failed. eInfo(%s)' % (eType,eInfo)
@@ -747,8 +747,8 @@
     #@TestResult          TODO.
   -->
   <function name="snmp_basic_008" scope="local">
-    <testcase name="getTestCaseName('Check value of dsApplIfCompareOps entry')">                     
-      <sequence> 
+    <testcase name="getTestCaseName('Check value of dsApplIfCompareOps entry')">
+      <sequence>
         <try>
 
           <sequence>
@@ -799,7 +799,7 @@
               DEFAULT_VALUES[key] = \
                 str(int(DEFAULT_VALUES[key]) + nbLoop)
             </script>
-            
+
             <call function="'testStep'">
               { 'stepMessage' : 'Check value of dsApplIfCompareOps entry' }
             </call>
@@ -837,7 +837,7 @@
             </script>
 
           </sequence>
-  
+
           <catch exception="'STAXException'" typevar="eType" var="eInfo">
             <message log="1" level="'fatal'">
               '%s: Test failed. eInfo(%s)' % (eType,eInfo)
@@ -864,8 +864,8 @@
     #@TestResult          TODO.
   -->
   <function name="snmp_basic_009" scope="local">
-    <testcase name="getTestCaseName('Check value of dsApplIfModifyEntryOps entry')">                     
-      <sequence> 
+    <testcase name="getTestCaseName('Check value of dsApplIfModifyEntryOps entry')">
+      <sequence>
         <try>
 
           <sequence>
@@ -918,7 +918,7 @@
               DEFAULT_VALUES[key] = \
                 str(int(DEFAULT_VALUES[key]) + nbLoop)
             </script>
-            
+
             <call function="'testStep'">
               { 'stepMessage' : 'Check value of dsApplIfModifyEntryOps entry' }
             </call>
@@ -956,7 +956,7 @@
             </script>
 
           </sequence>
-  
+
           <catch exception="'STAXException'" typevar="eType" var="eInfo">
             <message log="1" level="'fatal'">
               '%s: Test failed. eInfo(%s)' % (eType,eInfo)
@@ -983,8 +983,8 @@
     #@TestResult          TODO.
   -->
   <function name="snmp_basic_010" scope="local">
-    <testcase name="getTestCaseName('Check value of dsApplIfModifyRDNOps entry')">                     
-      <sequence> 
+    <testcase name="getTestCaseName('Check value of dsApplIfModifyRDNOps entry')">
+      <sequence>
         <try>
 
           <sequence>
@@ -1085,7 +1085,7 @@
               DEFAULT_VALUES[key] = \
                 str(int(DEFAULT_VALUES[key]) + nbLoop)
             </script>
-            
+
             <call function="'testStep'">
               { 'stepMessage' : 'Check value of dsApplIfModifyRDNOps entry' }
             </call>
@@ -1123,7 +1123,7 @@
             </script>
 
           </sequence>
-  
+
           <catch exception="'STAXException'" typevar="eType" var="eInfo">
             <message log="1" level="'fatal'">
               '%s: Test failed. eInfo(%s)' % (eType,eInfo)
@@ -1150,8 +1150,8 @@
     #@TestResult          TODO.
   -->
   <function name="snmp_basic_011" scope="local">
-    <testcase name="getTestCaseName('Check that there is no error at startup')">                     
-      <sequence> 
+    <testcase name="getTestCaseName('Check that there is no error at startup')">
+      <sequence>
         <try>
 
           <sequence>
@@ -1206,7 +1206,7 @@
             <call function="'checktestStringNotPresent'">
               {
               'returnString' : returnString ,
-              'testString'   : 'category=PROTOCOL severity=SEVERE_ERROR'
+              'testString'   : 'category=PROTOCOL severity=ERROR'
               }
             </call>
 
@@ -1223,7 +1223,7 @@
               'snmpOIDs'      : oid ,
               'snmpStatus'    : 'noError'
               }
-            </call>              
+            </call>
 
             <call function="'testStep'">
               { 'stepMessage' : 'Restore the register-mbean property' }
@@ -1255,7 +1255,7 @@
             </call>
 
           </sequence>
-  
+
           <catch exception="'STAXException'" typevar="eType" var="eInfo">
             <message log="1" level="'fatal'">
               '%s: Test failed. eInfo(%s)' % (eType,eInfo)
@@ -1282,8 +1282,8 @@
     #@TestResult          TODO.
   -->
   <function name="snmp_basic_012" scope="local">
-    <testcase name="getTestCaseName('Set the register-mbean property to a wrong value')">                     
-      <sequence> 
+    <testcase name="getTestCaseName('Set the register-mbean property to a wrong value')">
+      <sequence>
         <try>
 
           <sequence>
@@ -1322,7 +1322,7 @@
               }
             </call>
           </sequence>
-  
+
           <catch exception="'STAXException'" typevar="eType" var="eInfo">
             <message log="1" level="'fatal'">
               '%s: Test failed. eInfo(%s)' % (eType,eInfo)
@@ -1356,8 +1356,8 @@
     #@TestResult          Success if output of status is correct.
   -->
   <function name="snmp_basic_013" scope="local">
-    <testcase name="getTestCaseName('Status when the server is stopped/started')">                     
-      <sequence> 
+    <testcase name="getTestCaseName('Status when the server is stopped/started')">
+      <sequence>
         <try>
 
           <sequence>
@@ -1457,7 +1457,7 @@
             </call>
 
           </sequence>
-  
+
           <catch exception="'STAXException'" typevar="eType" var="eInfo">
             <message log="1" level="'fatal'">
               '%s: Test failed. eInfo(%s)' % (eType,eInfo)
@@ -1489,8 +1489,8 @@
     #@TestResult          Success if output of status is correct.
   -->
   <function name="snmp_basic_014" scope="local">
-    <testcase name="getTestCaseName('Status when SNMP Connection Handler is disabled/enabled')">                     
-      <sequence> 
+    <testcase name="getTestCaseName('Status when SNMP Connection Handler is disabled/enabled')">
+      <sequence>
         <try>
 
           <sequence>
@@ -1608,7 +1608,7 @@
             </call>
 
           </sequence>
-  
+
           <catch exception="'STAXException'" typevar="eType" var="eInfo">
             <message log="1" level="'fatal'">
               '%s: Test failed. eInfo(%s)' % (eType,eInfo)
@@ -1647,8 +1647,8 @@
                           if the output of status is correct.
   -->
   <function name="snmp_basic_015" scope="local">
-    <testcase name="getTestCaseName('Status with a wrong opendmk-jarfile value')">                     
-      <sequence> 
+    <testcase name="getTestCaseName('Status with a wrong opendmk-jarfile value')">
+      <sequence>
         <try>
 
           <sequence>
@@ -1707,12 +1707,12 @@
 	                               % (DIRECTORY_INSTANCE_DIR, OPENDSNAME)
 	              if is_windows_platform(DIRECTORY_INSTANCE_HOST):
 	                opendmkJarFile = opendmkJarFile.replace('/', '\\')
-	
+
 	              msg1 = 'The specified OpenDMK jar file'
 	              msg2 = '\'%s\' could not be found.' % opendmkJarFile
 	              msg = '%s %s' % (msg1, msg2)
 	            </script>
-	
+
 	            <call function="'grep'">
 	              {
 	              'location'  : STAF_REMOTE_HOSTNAME ,
@@ -1722,7 +1722,7 @@
 	            </call>
               </sequence>
             </if>
-            
+
             <script>
               msg1 = 'Verify that the value set in the opendmk-jarfile'
               msg2 = 'configuration parameter of the SNMP connection handler'
@@ -1730,7 +1730,7 @@
               msg4 = 'file is accessible'
               msg = '%s %s %s %s' % (msg1, msg2, msg3, msg4)
             </script>
-            
+
             <call function="'grep'">
               {
               'location'  : STAF_REMOTE_HOSTNAME ,
@@ -1808,7 +1808,7 @@
             </call>
 
           </sequence>
-  
+
           <catch exception="'STAXException'" typevar="eType" var="eInfo">
             <message log="1" level="'fatal'">
               '%s: Test failed. eInfo(%s)' % (eType,eInfo)
@@ -1848,8 +1848,8 @@
                           if the output of status is correct.
   -->
   <function name="snmp_basic_016" scope="local">
-    <testcase name="getTestCaseName('Status with a wrong security-agent-file value')">                     
-      <sequence> 
+    <testcase name="getTestCaseName('Status with a wrong security-agent-file value')">
+      <sequence>
         <try>
 
           <sequence>
@@ -2000,7 +2000,7 @@
             </call>
 
           </sequence>
-  
+
           <catch exception="'STAXException'" typevar="eType" var="eInfo">
             <message log="1" level="'fatal'">
               '%s: Test failed. eInfo(%s)' % (eType,eInfo)
@@ -2039,8 +2039,8 @@
                           if the output of status is correct.
   -->
   <function name="snmp_basic_017" scope="local">
-    <testcase name="getTestCaseName('Status with a wrong listen-port value')">                     
-      <sequence> 
+    <testcase name="getTestCaseName('Status with a wrong listen-port value')">
+      <sequence>
         <try>
 
           <sequence>
@@ -2056,7 +2056,7 @@
 
             <if expr="skip == 0">
               <sequence>
-              
+
                 <call function="'testStep'">
                   { 'stepMessage' : 'Set the listen-port to a wrong value' }
                 </call>
@@ -2189,7 +2189,7 @@
             </if>
 
           </sequence>
-  
+
           <catch exception="'STAXException'" typevar="eType" var="eInfo">
             <message log="1" level="'fatal'">
               '%s: Test failed. eInfo(%s)' % (eType,eInfo)
