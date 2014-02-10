@@ -229,7 +229,7 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
       >attr4</replaceable>:<replaceable>filter4</replaceable> &#8230;] &#8230;]</literallayout>
       <para>Here <replaceable>op</replaceable> can be either
       <literal>add</literal> for operations creating attributes, or
-      <literal>delete</literal> for operations removing them.
+      <literal>del</literal> for operations removing them.
       Replace <replaceable>attr</replaceable> with an attribute type.
       Replace <replaceable>filter</replaceable> with an LDAP filter that
       corresponds to the <replaceable>attr</replaceable> attribute type.</para>
