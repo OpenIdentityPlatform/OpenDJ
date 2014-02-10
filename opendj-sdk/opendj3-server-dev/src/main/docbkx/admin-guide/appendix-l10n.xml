@@ -20,8 +20,8 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011 ForgeRock AS
-  !    
+  !      Copyright 2011-2014 ForgeRock AS
+  !
 -->
 <appendix xml:id='appendix-l10n'
  xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
@@ -35,13 +35,13 @@
  and to search for attribute values according to a variety of language
  specific locales. OpenDJ software is also itself localized for a smaller
  variety of languages.</para>
- 
+
  <section xml:id="supported-languages">
   <title>OpenDJ Languages</title>
   <indexterm><primary>Languages</primary></indexterm>
   <para>OpenDJ <?eval ${docTargetVersion}?> software has been localized
   in the following languages.</para>
-  
+
   <itemizedlist>
     <listitem><para>French</para></listitem>
     <listitem><para>German</para></listitem>
@@ -49,14 +49,14 @@
     <listitem><para>Simplified Chinese</para></listitem>
     <listitem><para>Spanish</para></listitem>
   </itemizedlist>
-   
+
   <note>
    <para>Certain messages have also been translated into Catalan, Korean,
    Polish, and Traditional Chinese. Some error messages including messages
-   labeled SEVERE and FATAL are provided only in English.</para>
+   labeled ERROR are provided only in English.</para>
   </note>
  </section>
- 
+
  <section xml:id="supported-locales">
   <title>Directory Support For Locales and Language Subtypes</title>
   <indexterm><primary>Locales</primary></indexterm>
@@ -64,7 +64,7 @@
   associated language and country codes, and their collation order
   object identifiers. Locale support depends on the underlying Java
   Virtual Machine.</para>
-  
+
   <variablelist>
    <varlistentry>
     <term>Albanian</term>
@@ -795,7 +795,7 @@
     </listitem>
    </varlistentry>
   </variablelist>
-  
+
   <para>OpenDJ software supports the following language subtypes.</para>
   <indexterm><primary>Language subtypes</primary></indexterm>
   <itemizedlist xml:id="supported-language-subtypes">
