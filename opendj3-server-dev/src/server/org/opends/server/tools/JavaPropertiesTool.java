@@ -27,19 +27,7 @@
 
 package org.opends.server.tools;
 
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.util.ServerConstants.EOL;
-
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.PrintStream;
+import java.io.*;
 import java.util.Enumeration;
 import java.util.Properties;
 
@@ -48,8 +36,12 @@ import org.opends.messages.ToolMessages;
 import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.types.NullOutputStream;
-import com.forgerock.opendj.cli.ArgumentException;
 import org.opends.server.util.cli.ConsoleApplication;
+
+import com.forgerock.opendj.cli.ArgumentException;
+
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.util.ServerConstants.*;
 
 /**
  * This class is used to update the scripts that are used to launch the command
@@ -89,7 +81,11 @@ public class JavaPropertiesTool extends ConsoleApplication
     /**
      * Error writing to destination file.
      */
-    ERROR_WRITING_FILE(3);
+    ERROR_WRITING_FILE(3),
+    /**
+     * Conflicting command line arguments.
+     */
+    CONFLICTING_ARGS(18);
 
     private int returnCode;
     private ErrorReturnCode(int returnCode)
@@ -432,6 +428,7 @@ public class JavaPropertiesTool extends ConsoleApplication
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isQuiet()
   {
     return argParser.quietArg.isPresent();
@@ -440,6 +437,7 @@ public class JavaPropertiesTool extends ConsoleApplication
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isInteractive()
   {
     return false;
@@ -456,6 +454,7 @@ public class JavaPropertiesTool extends ConsoleApplication
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isScriptFriendly() {
     return false;
   }
@@ -463,6 +462,7 @@ public class JavaPropertiesTool extends ConsoleApplication
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isAdvancedMode() {
     return false;
   }
@@ -471,6 +471,7 @@ public class JavaPropertiesTool extends ConsoleApplication
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isVerbose() {
     return true;
   }

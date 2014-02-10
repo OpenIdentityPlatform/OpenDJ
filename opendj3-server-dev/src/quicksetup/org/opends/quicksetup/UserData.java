@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS.
+ *      Portions copyright 2011-2014 ForgeRock AS.
  */
 package org.opends.quicksetup;
 
@@ -902,7 +902,7 @@ public class UserData
   {
     return new String[] {
       "backup.online", "base64", "create-rc-script", "dsconfig",
-      "dsreplication", "dsframework", "export-ldif.online",
+      "dsreplication", "export-ldif.online",
       "import-ldif.online", "ldapcompare", "ldapdelete",
       "ldapmodify", "ldappasswordmodify", "ldapsearch", "list-backends",
       "manage-account", "manage-tasks", "restore.online", "stop-ds",

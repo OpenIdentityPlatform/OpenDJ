@@ -27,12 +27,6 @@
 
 package org.opends.server.admin.client.cli;
 
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.admin.client.cli.DsFrameworkCliReturnCode.*;
-import static org.opends.server.tools.ToolConstants.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -41,12 +35,18 @@ import java.util.LinkedHashSet;
 
 import javax.net.ssl.KeyManager;
 
-import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.server.util.PasswordReader;
+
 import com.forgerock.opendj.cli.*;
+
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.tools.ToolConstants.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This is a commodity class that can be used to check the arguments required
@@ -371,7 +371,7 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
         buf.append(EOL);
       }
       buf.append(message);
-      ret = CONFLICTING_ARGS.getReturnCode();
+      ret = 1;
     }
 
     return ret;

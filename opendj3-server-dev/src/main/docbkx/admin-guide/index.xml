@@ -110,7 +110,6 @@
    <xinclude:include href='man-create-rc-script.xml' />
    <xinclude:include href='man-dbtest.xml' />
    <xinclude:include href='man-dsconfig.xml' />
-   <xinclude:include href='man-dsframework.xml' />
    <xinclude:include href='man-dsjavaproperties.xml' />
    <xinclude:include href='man-dsreplication.xml' />
    <xinclude:include href='man-encode-password.xml' />
