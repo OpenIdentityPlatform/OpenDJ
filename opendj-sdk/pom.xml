@@ -109,19 +109,13 @@
   <properties>
     <mavenRepoSnapshots>http://maven.forgerock.org/repo/snapshots</mavenRepoSnapshots>
     <mavenRepoReleases>http://maven.forgerock.org/repo/releases</mavenRepoReleases>
+
     <forgerockBuildToolsVersion>1.0.2</forgerockBuildToolsVersion>
-    <currentSDKversion>${project.version}</currentSDKversion>
-    <stableSDKversion>version.not.defined</stableSDKversion>
-    <currentServerVersion>2.5.0-SNAPSHOT</currentServerVersion>
-    <docTargetVersion>${project.version}</docTargetVersion><!-- Reset before final publication -->
-    <docPreviousVersion>2.6.0</docPreviousVersion>
-    <sdkDocTargetVersion>${docTargetVersion}</sdkDocTargetVersion>
-    <siteDistributionURL>scp://forgerock.org/var/www/vhosts/opendj.forgerock.org/httpdocs</siteDistributionURL>
     <i18nFrameworkVersion>1.4.2-SNAPSHOT</i18nFrameworkVersion>
     <grizzlyFrameworkVersion>2.3.6</grizzlyFrameworkVersion>
     <slf4jVersion>1.7.5</slf4jVersion>
     <forgerockRestVersion>2.1.0-SNAPSHOT</forgerockRestVersion>
-    <gaId>UA-23412190-8</gaId>
+
     <!-- OSGi bundles properties -->
     <opendj.osgi.import.additional/>
     <!--
@@ -129,11 +123,24 @@
      | it change the version policy from == + to == =+  [2.0,3) [2.0,2.1)
     -->
     <opendj.osgi.import>
-     org.forgerock.opendj.*;provide:=true,
-     org.forgerock.json.*;provide:=true,
-     ${opendj.osgi.import.additional},
-     *
+      org.forgerock.opendj.*;provide:=true,
+      org.forgerock.json.*;provide:=true,
+      ${opendj.osgi.import.additional},
+      *
     </opendj.osgi.import>
+
+    <checkstyleHeaderLocation>org/forgerock/checkstyle/opendj-java-header</checkstyleHeaderLocation>
+
+  <!-- START Documentation properties -->
+    <docTargetVersion>${project.version}</docTargetVersion><!-- Reset before final publication -->
+    <docPreviousVersion>2.6.0</docPreviousVersion>
+    <sdkDocTargetVersion>${docTargetVersion}</sdkDocTargetVersion>
+
+    <frDocPluginVersion>2.0.0</frDocPluginVersion>
+    <gaId>UA-23412190-8</gaId>
+
+    <siteDistributionURL>scp://forgerock.org/var/www/vhosts/opendj.forgerock.org/httpdocs</siteDistributionURL>
+
     <!--
       Release date and publication date are set at release build time.
         -D"releaseDate=Software release date: January 1, 1970"
@@ -144,14 +151,13 @@
     <softwareReleaseDate>${releaseDate}</softwareReleaseDate>
     <pubDate/>
     <publicationDate>${pubDate}</publicationDate>
-    <checkstyleHeaderLocation>org/forgerock/checkstyle/opendj-java-header</checkstyleHeaderLocation>
-    <frDocPluginVersion>2.0.0</frDocPluginVersion>
 
     <!-- Permit doc build to override relative locations of non DocBook content -->
     <coreDocBase>http://opendj.forgerock.org/doc/</coreDocBase>
     <configRefBase>http://opendj.forgerock.org/opendj-server/configref/</configRefBase>
     <serverJavadocBase>http://opendj.forgerock.org/opendj-server/javadoc/</serverJavadocBase>
     <sdkJavadocBase>http://opendj.forgerock.org/opendj-core/apidocs/</sdkJavadocBase>
+  <!-- END Documentation properties -->
   </properties>
   <build>
     <plugins>

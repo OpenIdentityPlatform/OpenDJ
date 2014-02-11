@@ -22,7 +22,7 @@
   !
   ! CDDL HEADER END
   !
-  !      Copyright 2011-2013 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !    
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -92,12 +92,16 @@
     <ant.home>ext/ant</ant.home>
     <BUILD_NUMBER>0</BUILD_NUMBER>
 
-    <!-- START Documentation properties -->
+    <checkstyleHeaderLocation>org/forgerock/checkstyle/opendj-java-header</checkstyleHeaderLocation>
 
+  <!-- START Documentation properties -->
     <docTargetVersion>${project.version}</docTargetVersion><!-- Reset before final publication -->
     <docPreviousVersion>2.6.0</docPreviousVersion>
     <sdkDocTargetVersion>${docTargetVersion}</sdkDocTargetVersion>
+
+    <frDocPluginVersion>2.0.0</frDocPluginVersion>
     <gaId>UA-23412190-8</gaId>
+
     <!--
       Release date and publication date are set at release build time.
         -D"releaseDate=Software release date: January 1, 1970"
@@ -108,8 +112,6 @@
     <softwareReleaseDate>${releaseDate}</softwareReleaseDate>
     <pubDate />
     <publicationDate>${pubDate}</publicationDate>
-    <checkstyleHeaderLocation>org/forgerock/checkstyle/opendj-java-header</checkstyleHeaderLocation>
-    <frDocPluginVersion>2.0.0</frDocPluginVersion>
 
     <!-- Permit doc build to override relative locations of non DocBook content -->
     <coreDocBase>http://opendj.forgerock.org/doc/</coreDocBase>
@@ -117,7 +119,7 @@
     <serverJavadocBase>http://opendj.forgerock.org/opendj-server/javadoc/</serverJavadocBase>
     <sdkJavadocBase>http://opendj.forgerock.org/opendj-ldap-sdk/apidocs/</sdkJavadocBase>
 
-    <!-- END Documentation properties -->
+  <!-- END Documentation properties -->
   </properties>
   <build>
     <directory>build</directory>
