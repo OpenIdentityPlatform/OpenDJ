@@ -38,8 +38,9 @@ import java.util.logging.Level;
 import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
-import com.forgerock.opendj.cli.CLIException;
+import com.forgerock.opendj.cli.ClientException;
 import com.forgerock.opendj.cli.CliMessages;
+import com.forgerock.opendj.cli.ReturnCode;
 
 /**
  * Creates a historical log about the setup. If file does not exist an attempt will be made to create it.
@@ -100,14 +101,15 @@ final class SetupLog {
      * Returns the print stream of the current logger.
      *
      * @return the print stream of the current logger.
-     * @throws CLIException
+     * @throws ClientException
      *             If the file defined by the logger is not found or invalid.
      */
-    static PrintStream getPrintStream() throws CLIException {
+    static PrintStream getPrintStream() throws ClientException {
         try {
             return new PrintStream(new FileOutputStream(logFile, true));
         } catch (FileNotFoundException e) {
-            throw new CLIException(CliMessages.ERR_INVALID_LOG_FILE.get(e.getMessage()));
+            throw new ClientException(ReturnCode.ERROR_UNEXPECTED,
+                    CliMessages.ERR_INVALID_LOG_FILE.get(e.getMessage()));
         }
     }
 

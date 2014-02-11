@@ -28,6 +28,7 @@ import static com.forgerock.opendj.cli.Utils.filterExitCode;
 import static com.forgerock.opendj.cli.Utils.LINE_SEPARATOR;
 import static com.forgerock.opendj.cli.Utils.checkJavaVersion;
 import static com.forgerock.opendj.cli.CliMessages.*;
+import static com.forgerock.opendj.cli.CliConstants.*;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -43,8 +44,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
-import com.forgerock.opendj.cli.CLIException;
-import com.forgerock.opendj.cli.CliConstants;
+import com.forgerock.opendj.cli.ClientException;
 import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.FileBasedArgument;
@@ -113,7 +113,7 @@ public final class SetupCli extends ConsoleApplication {
     private StringArgument usePkcs12;
     private StringArgument keyStorePassword;
     private StringArgument certNickname;
-    private IntegerArgument connectTimeout = null;
+    private IntegerArgument connectTimeout;
     private BooleanArgument acceptLicense;
 
     // Sub-commands
@@ -155,7 +155,7 @@ public final class SetupCli extends ConsoleApplication {
 
         try {
             checkJavaVersion();
-        } catch (CLIException e) {
+        } catch (ClientException e) {
             errPrintln(e.getMessageObject());
             return ReturnCode.JAVA_VERSION_INCOMPATIBLE.get();
         }
@@ -200,11 +200,26 @@ public final class SetupCli extends ConsoleApplication {
         }
 
         // Starts setup process.
+        try {
+            fillSetupSettings();
+            runSetupInstallation();
+        } catch (ClientException ex) {
+            return ex.getReturnCode();
+        } catch (Exception ex) {
+            // TODO
+            //println(Style.ERROR, LocalizableMessage.raw("...?"));
+            return ReturnCode.ERROR_UNEXPECTED.get();
+        }
         return ReturnCode.SUCCESS.get();
     }
 
+    /**
+     * Initialize setup's arguments by default.
+     *
+     * @throws ArgumentException
+     *             If an exception occurs during the initialization of the arguments.
+     */
     private void initializeArguments() throws ArgumentException {
-
         // Options.
         acceptLicense = CommonArguments.getAcceptLicense();
         cli = CommonArguments.getCLI();
@@ -214,9 +229,9 @@ public final class SetupCli extends ConsoleApplication {
         rejectedImportFile = CommonArguments.getRejectedImportLdif();
         skippedImportFile = CommonArguments.getSkippedImportFile();
         sampleData = CommonArguments.getSampleData();
-        ldapPort = CommonArguments.getLDAPPort(CliConstants.DEFAULT_LDAP_PORT);
-        adminConnectorPort = CommonArguments.getAdminLDAPPort(CliConstants.DEFAULT_ADMIN_PORT);
-        jmxPort = CommonArguments.getJMXPort(CliConstants.DEFAULT_JMX_PORT);
+        ldapPort = CommonArguments.getLDAPPort(DEFAULT_LDAP_PORT);
+        adminConnectorPort = CommonArguments.getAdminLDAPPort(DEFAULT_ADMIN_PORT);
+        jmxPort = CommonArguments.getJMXPort(DEFAULT_JMX_PORT);
         skipPortCheck = CommonArguments.getSkipPortCheck();
         directoryManagerDN = CommonArguments.getRootDN();
         directoryManagerPwdString = CommonArguments.getRootDNPwd();
@@ -224,7 +239,7 @@ public final class SetupCli extends ConsoleApplication {
         enableWindowsService = CommonArguments.getEnableWindowsService();
         doNotStart = CommonArguments.getDoNotStart();
         enableStartTLS = CommonArguments.getEnableTLS();
-        ldapsPort = CommonArguments.getLDAPSPort(CliConstants.DEFAULT_LDAPS_PORT);
+        ldapsPort = CommonArguments.getLDAPSPort(DEFAULT_LDAPS_PORT);
         generateSelfSignedCertificate = CommonArguments.getGenerateSelfSigned();
         hostName = CommonArguments.getHostName(Utils.getDefaultHostName());
         usePkcs11 = CommonArguments.getUsePKCS11Keystore();
@@ -234,7 +249,7 @@ public final class SetupCli extends ConsoleApplication {
         keyStorePassword = CommonArguments.getKeyStorePassword();
         keyStorePasswordFile = CommonArguments.getKeyStorePasswordFile();
         certNickname = CommonArguments.getCertNickName();
-        connectTimeout = CommonArguments.getConnectTimeOut(30000);
+        connectTimeout = CommonArguments.getConnectTimeOut(DEFAULT_LDAP_CONNECT_TIMEOUT);
 
         // Utility Input Output Options.
         noPrompt = CommonArguments.getNoPrompt();
@@ -475,20 +490,20 @@ public final class SetupCli extends ConsoleApplication {
             if (!generateSelfSignedCertificate.isPresent()) {
                 // Check that we have only a password.
                 if (keyStorePassword.isPresent() && keyStorePasswordFile.isPresent()) {
-                    LocalizableMessage message = ERR_TWO_CONFLICTING_ARGUMENTS.get(
+                    final LocalizableMessage message = ERR_TWO_CONFLICTING_ARGUMENTS.get(
                             keyStorePassword.getLongIdentifier(), keyStorePasswordFile.getLongIdentifier());
                     errorMessages.add(message);
                 }
 
                 // Check that we have one password in no prompt mode.
                 if (noPrompt.isPresent() && !keyStorePassword.isPresent() && !keyStorePasswordFile.isPresent()) {
-                    LocalizableMessage message = ERR_NO_KEYSTORE_PASSWORD.get(keyStorePassword.getLongIdentifier(),
-                            keyStorePasswordFile.getLongIdentifier());
+                    final LocalizableMessage message = ERR_NO_KEYSTORE_PASSWORD.get(
+                            keyStorePassword.getLongIdentifier(), keyStorePasswordFile.getLongIdentifier());
                     errorMessages.add(message);
                 }
             }
             if (noPrompt.isPresent() && !ldapsPort.isPresent() && !enableStartTLS.isPresent()) {
-                LocalizableMessage message = ERR_SSL_OR_STARTTLS_REQUIRED.get(ldapsPort.getLongIdentifier(),
+                final LocalizableMessage message = ERR_SSL_OR_STARTTLS_REQUIRED.get(ldapsPort.getLongIdentifier(),
                         enableStartTLS.getLongIdentifier());
                 errorMessages.add(message);
             }
@@ -542,5 +557,21 @@ public final class SetupCli extends ConsoleApplication {
             }
             return mb.toMessage();
         }
+    }
+
+    /**
+     * Fills the setup components according to the arguments provided by the user.
+     * @throws ArgumentException
+     */
+    private void fillSetupSettings() throws ArgumentException {
+        // TODO ...
+    }
+
+    /**
+     * Launches the setup process.
+     * @throws ClientException
+     */
+    private void runSetupInstallation() throws ClientException {
+        // TODO move that function to another class.
     }
 }

@@ -32,7 +32,7 @@ import org.forgerock.util.Reject;
 /**
  * This class provides configuration's model for the OpenDJ3 setup.
  */
-abstract class Model {
+public abstract class Model {
 
     /**
      * This enumeration is used to know what kind of server we want to set up.
@@ -122,14 +122,13 @@ abstract class Model {
     }
 
     /**
-     * Returns {@code true} if this configuration has a certificate linked to it.
-     * That generally means SSL and/or SSL are activated.
+     * Returns {@code true} if this configuration has a certificate linked to it. That generally means SSL and/or SSL
+     * are activated.
      *
      * @return {@code true} if this configuration has a certificate linked to it.
      */
     boolean isSecure() {
-        return (this.getListenerSettings() != null
-                && this.getListenerSettings().getCertificate() != null);
+        return (this.getListenerSettings() != null && this.getListenerSettings().getCertificate() != null);
     }
 
     /**
@@ -140,16 +139,14 @@ abstract class Model {
     }
 
     /**
-     * Sets the type of this server as : replication activated
-     * and this is the first server in topology.
+     * Sets the type of this server as : replication activated and this is the first server in topology.
      */
     void setFirstInTopology() {
         this.setType(Type.FIRST_IN_TOPOLOGY);
     }
 
     /**
-     * Sets the type of this server as : replication activated
-     * and this is a server in an existing topology.
+     * Sets the type of this server as : replication activated and this is a server in an existing topology.
      */
     void setInExistingTopology() {
         this.setType(Type.IN_EXISTING_TOPOLOGY);
@@ -193,68 +190,154 @@ abstract class Model {
         startingServerAfterSetup = startServerAfterSetup;
     }
 
+    /**
+     * Returns {@code true} if the directory server should start as a service.
+     *
+     * @return {@code true} if the directory server should start as a service, {@code false} otherwise.
+     */
     public boolean isService() {
         return isService;
     }
 
+    /**
+     * Sets the directory server as a service.
+     *
+     * @param isAService
+     *            {@code true} if the directory server should start as a service, {@code false} otherwise.
+     */
     public void setService(boolean isAService) {
         isService = isAService;
     }
 
+    /**
+     * Returns the instance path.
+     *
+     * @return The instance path where the binaries are installed.
+     */
     public String getInstancePath() {
         return instancePath;
     }
 
+    /**
+     * Sets the current instance path location.
+     *
+     * @param iPath
+     *            The instance path.
+     */
     public void setInstancePath(String iPath) {
         instancePath = iPath;
     }
 
+    /**
+     * Returns the license.
+     *
+     * @return The license.
+     */
     public String getLicense() {
         return license;
     }
 
+    /**
+     * Sets the license linked to this installation.
+     *
+     * @param theLicense
+     *            The license to set.
+     */
     public void setLicense(String theLicense) {
         license = theLicense;
     }
 
+    /**
+     * Returns the runtime options that apply to this installation.
+     *
+     * @return The runtime options that apply to this installation.
+     */
     public RuntimeOptions getServerRuntimeSettings() {
         return serverRuntimeSettings;
     }
 
+    /**
+     * Sets the runtime options that apply to this installation.
+     *
+     * @param settings
+     *            The runtime options that apply to this installation.
+     */
     public void setServerRuntimeOptions(RuntimeOptions settings) {
         serverRuntimeSettings = settings;
     }
 
+    /**
+     * Returns the runtime options that apply to the current import LDIF.
+     *
+     * @return The runtime options that apply to the current import LDIF.
+     */
     public RuntimeOptions getImportLdifRuntimeOptions() {
         return importLdifRuntimeSettings;
     }
 
+    /**
+     * Sets the runtime options that apply to the current import LDIF.
+     *
+     * @param settings
+     *            The runtime options that apply to the current import LDIF.
+     */
     public void setImportLdifRuntimeOptions(RuntimeOptions settings) {
         importLdifRuntimeSettings = settings;
     }
 
+    /**
+     * Returns the data configuration of this model.
+     *
+     * @return The data configuration of this model.
+     */
     public DataConfiguration getDataConfiguration() {
         return dataConfiguration;
     }
 
+    /**
+     * Sets the data configuration of this model.
+     *
+     * @param dConfiguration
+     *            The data configuration to set for this model.
+     */
     public void setDataConfiguration(DataConfiguration dConfiguration) {
         dataConfiguration = dConfiguration;
     }
 
+    /**
+     * Returns the replication configuration of this model.
+     *
+     * @return The replication configuration of this model.
+     */
     public ReplicationConfiguration getReplicationConfiguration() {
         return replicationConfiguration;
     }
 
+    /**
+     * Sets the replication configuration of this model.
+     *
+     * @param replicationConfiguration
+     *            The replication configuration to set for this model.
+     */
     public void setReplicationConfiguration(ReplicationConfiguration replicationConfiguration) {
         this.replicationConfiguration = replicationConfiguration;
     }
 
-
-
+    /**
+     * Returns the installation path of this model.
+     *
+     * @return The installation path of this model.
+     */
     public String getInstallationPath() {
         return installationPath;
     }
 
+    /**
+     * Sets the installation path of this model.
+     *
+     * @param installationPath
+     *            The installation path of this model.
+     */
     public void setInstallationPath(String installationPath) {
         this.installationPath = installationPath;
     }
@@ -262,8 +345,11 @@ abstract class Model {
     /**
      * Creates a basic data store model configuration for setup.
      */
-    static class DataStoreModel extends Model {
-        DataStoreModel() {
+    public static class DataStoreModel extends Model {
+        /**
+         * The default data store model.
+         */
+        public DataStoreModel() {
             setStandAloneDS();
             setDataConfiguration(new DataConfiguration());
             setListenerSettings(new ListenerSettings());
@@ -287,8 +373,7 @@ abstract class Model {
             if (isPartOfReplicationTopology()) {
                 Reject.ifNull(this.getReplicationConfiguration().getAdministrator(),
                         "Administrator name should not be null");
-                Reject.ifNull(this.getReplicationConfiguration().getPassword(),
-                        "Admin password should not be null");
+                Reject.ifNull(this.getReplicationConfiguration().getPassword(), "Admin password should not be null");
                 Reject.ifNull(this.getReplicationConfiguration().getGlobalAdministrator(),
                         "Global administrator should not be null");
                 Reject.ifNull(this.getReplicationConfiguration().getGlobalAdministratorPassword(),
@@ -296,8 +381,8 @@ abstract class Model {
                 if (getReplicationConfiguration().getSuffixes() == null
                         || getReplicationConfiguration().getSuffixes().size() == 0) {
                     throw new ConfigException(
-                            LocalizableMessage.raw(
-                                    "At least one base DN should be selected to replicate content with"));
+                            LocalizableMessage.raw("At least one base DN should be selected "
+                                    + "to replicate content with"));
                 }
             }
         }

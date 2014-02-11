@@ -58,7 +58,7 @@ public class ListenerSettingsTestCase extends AbstractSetupTestCase {
         assertFalse(dsSettings.isSSLEnabled());
         assertThat(dsSettings.getCertificate()).isNull();
         assertFalse(dsSettings.isTLSEnabled());
-        assertFalse(dsSettings.isJMXConnectionHandlerEnbled());
+        assertFalse(dsSettings.isJMXConnectionHandlerEnabled());
         assertFalse(dsSettings.isSNMPConnectionHandlerEnabled());
         assertTrue(dsSettings.isHTTPConnectionHandlerEnabled());
     }
