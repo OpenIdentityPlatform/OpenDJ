@@ -106,11 +106,18 @@ public class MakeLDIFTestCase extends ToolsTestCase {
 
             if (expectsResults) {
                 assertThat(out.size()).isGreaterThan(0);
+                assertThat(out.toString("UTF-8")).contains(wrapText(expectedErrOutput, MAX_LINE_WIDTH));
             } else {
-                assertThat(out.size()).isEqualTo(0);
+                if (makeLDIF.isInteractive()) {
+                    assertThat(out.size()).isGreaterThan(0);
+                    assertThat(err.size()).isEqualTo(0);
+                    assertThat(out.toString("UTF-8")).contains(wrapText(expectedErrOutput, MAX_LINE_WIDTH));
+                } else {
+                    assertThat(out.size()).isEqualTo(0);
+                    assertThat(err.size()).isGreaterThan(0);
+                    assertThat(err.toString("UTF-8")).contains(wrapText(expectedErrOutput, MAX_LINE_WIDTH));
+                }
             }
-
-            assertThat(err.toString("UTF-8")).contains(wrapText(expectedErrOutput, MAX_LINE_WIDTH));
         } finally {
             closeSilently(outStream, errStream);
         }

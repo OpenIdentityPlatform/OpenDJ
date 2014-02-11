@@ -29,6 +29,7 @@ package com.forgerock.opendj.ldap.tools;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import static com.forgerock.opendj.cli.Utils.filterExitCode;
+import static org.forgerock.util.Utils.closeSilently;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -161,7 +162,7 @@ public final class MakeLDIF extends ConsoleApplication {
             errPrintln(INFO_MAKELDIF_PROCESSING_COMPLETE.get(numberOfEntriesWritten));
 
         } finally {
-            closeIfNotNull(generator, writer);
+            closeSilently(generator, writer);
         }
 
         return EXIT_CODE_SUCCESS;

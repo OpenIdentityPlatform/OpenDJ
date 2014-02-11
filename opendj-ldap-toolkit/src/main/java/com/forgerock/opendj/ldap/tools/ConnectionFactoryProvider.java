@@ -50,7 +50,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
-import com.forgerock.opendj.cli.CLIException;
+import com.forgerock.opendj.cli.ClientException;
 import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.FileBasedArgument;
 import com.forgerock.opendj.cli.IntegerArgument;
@@ -495,7 +495,7 @@ final class ConnectionFactoryProvider {
                         app.readInput(LocalizableMessage.raw("Authentication ID:"), bindNameArg
                                 .getDefaultValue() == null ? null : "dn: "
                                 + bindNameArg.getDefaultValue());
-            } catch (CLIException e) {
+            } catch (ClientException e) {
                 throw new ArgumentException(LocalizableMessage
                         .raw("Unable to read authentication ID"), e);
             }
@@ -527,7 +527,7 @@ final class ConnectionFactoryProvider {
                 value =
                         app.readInput(LocalizableMessage.raw("Bind name:"), bindNameArg
                                 .getDefaultValue() == null ? value : bindNameArg.getDefaultValue());
-            } catch (CLIException e) {
+            } catch (ClientException e) {
                 throw new ArgumentException(LocalizableMessage.raw("Unable to read bind name"), e);
             }
         }
@@ -701,7 +701,7 @@ final class ConnectionFactoryProvider {
         if (value.length == 0 && app.isInteractive()) {
             try {
                 value = app.readPassword(LocalizableMessage.raw("Bind Password:"));
-            } catch (CLIException e) {
+            } catch (ClientException e) {
                 throw new ArgumentException(LocalizableMessage.raw("Unable to read password"), e);
             }
         }

@@ -28,6 +28,7 @@ package com.forgerock.opendj.ldap.tools;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import static com.forgerock.opendj.cli.Utils.filterExitCode;
+import static org.forgerock.util.Utils.closeSilently;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -225,7 +226,7 @@ public final class LDIFSearch extends ConsoleApplication {
                 errPrintln(LocalizableMessage.raw(e.toString()));
                 return ResultCode.CLIENT_SIDE_FILTER_ERROR.intValue();
             } finally {
-                closeIfNotNull(in);
+                closeSilently(in);
             }
         }
 
@@ -305,8 +306,8 @@ public final class LDIFSearch extends ConsoleApplication {
             }
             return ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue();
         } finally {
-            closeIfNotNull(sourceReader, outputWriter);
-            closeIfNotNull(sourceInputStream, outputStream);
+            closeSilently(sourceReader, outputWriter);
+            closeSilently(sourceInputStream, outputStream);
         }
 
         return ResultCode.SUCCESS.intValue();
