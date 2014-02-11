@@ -50,7 +50,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.util.Reject;
 
-import com.forgerock.opendj.cli.CLIException;
+import com.forgerock.opendj.cli.ClientException;
 import com.forgerock.opendj.cli.ConsoleApplication;
 
 /**
@@ -319,7 +319,7 @@ final class PromptingTrustManager implements X509TrustManager {
             String choice;
             try {
                 choice = app.readInput(promptMsg, defaultTrustMethod.getChoice().toString());
-            } catch (final CLIException e) {
+            } catch (final ClientException e) {
                 // What can we do here?
                 throw new CertificateException(exception);
             } finally {

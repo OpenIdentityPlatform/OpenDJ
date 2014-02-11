@@ -29,6 +29,7 @@ import static com.forgerock.opendj.cli.ArgumentConstants.OPTION_LONG_OUTPUT_LDIF
 import static com.forgerock.opendj.cli.ArgumentConstants.OPTION_SHORT_OUTPUT_LDIF_FILENAME;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import static com.forgerock.opendj.cli.Utils.filterExitCode;
+import static org.forgerock.util.Utils.closeSilently;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -293,8 +294,8 @@ public final class LDIFModify extends ConsoleApplication {
             }
             return ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue();
         } finally {
-            closeIfNotNull(sourceReader, changesReader, outputWriter);
-            closeIfNotNull(sourceInputStream, changesInputStream, outputStream);
+            closeSilently(sourceReader, changesReader, outputWriter);
+            closeSilently(sourceInputStream, changesInputStream, outputStream);
         }
 
         return ResultCode.SUCCESS.intValue();
