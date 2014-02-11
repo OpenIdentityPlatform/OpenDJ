@@ -33,6 +33,8 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.testng.annotations.Test;
 
 import static org.fest.assertions.Assertions.assertThat;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
 
 /**
  * Unit tests for the console application class.
@@ -80,8 +82,12 @@ public class ConsoleApplicationTestCase extends CliTestCase {
             return interactive;
         }
 
-        public void setVerbose(boolean verbose) {
-            this.verbose = verbose;
+        public void setVerbose(boolean v) {
+            verbose = v;
+        }
+
+        public void setInteractive(boolean inter) {
+            interactive = inter;
         }
     }
 
@@ -99,7 +105,7 @@ public class ConsoleApplicationTestCase extends CliTestCase {
     public void testWriteLineInErrorStream() throws UnsupportedEncodingException {
         final LocalizableMessage msg = LocalizableMessage.raw("Language is the source of misunderstandings.");
         final MockConsoleApplication ca = MockConsoleApplication.getDefault();
-        ca.errPrint(msg);
+        ca.errPrintln(msg);
         assertThat(ca.getOut()).isEmpty();
         assertThat(ca.getErr()).contains(msg.toString());
     }
@@ -133,5 +139,51 @@ public class ConsoleApplicationTestCase extends CliTestCase {
         assertThat(ca.isVerbose()).isTrue();
         assertThat(ca.getOut()).isEmpty();
         assertThat(ca.getErr()).contains(msg.toString());
+    }
+
+    /**
+     * In non interactive applications, standard messages should be displayed in the stdout(info) and errors to the
+     * stderr (warnings, errors).
+     *
+     * @throws UnsupportedEncodingException
+     */
+    @Test()
+    public void testNonInteractiveApplicationShouldNotStdoutErrors() throws UnsupportedEncodingException {
+        final LocalizableMessage msg = LocalizableMessage.raw("Language is the source of misunderstandings.");
+        final LocalizableMessage msg2 = LocalizableMessage
+                .raw("If somebody wants a sheep, that is a proof that one exists.");
+        final MockConsoleApplication ca = MockConsoleApplication.getDefault();
+
+        assertFalse(ca.isInteractive());
+        ca.errPrintln(msg);
+        assertThat(ca.getOut()).isEmpty();
+        assertThat(ca.getErr()).contains(msg.toString());
+        ca.println(msg2);
+        assertThat(ca.getOut()).contains(msg2.toString());
+        assertThat(ca.getErr()).doesNotContain(msg2.toString());
+    }
+
+    /**
+     * If an application is interactive, all messages should be redirect to the stdout. (info, warnings, errors).
+     *
+     * @throws UnsupportedEncodingException
+     */
+    @Test()
+    public void testInteractiveApplicationShouldStdoutErrors() throws UnsupportedEncodingException {
+        final LocalizableMessage msg = LocalizableMessage.raw("Language is the source of misunderstandings.");
+        final LocalizableMessage msg2 = LocalizableMessage
+                .raw("If somebody wants a sheep, that is a proof that one exists.");
+
+        final MockConsoleApplication ca = MockConsoleApplication.getDefault();
+
+        assertFalse(ca.isInteractive());
+        ca.setInteractive(true);
+        assertTrue(ca.isInteractive());
+        ca.errPrintln(msg);
+        assertThat(ca.getOut()).contains(msg.toString());
+        assertThat(ca.getErr()).isEmpty();
+        ca.println(msg2);
+        assertThat(ca.getOut()).contains(msg2.toString());
+        assertThat(ca.getErr()).isEmpty();
     }
 }

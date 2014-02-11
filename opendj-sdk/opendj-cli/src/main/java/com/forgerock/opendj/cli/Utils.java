@@ -332,14 +332,15 @@ final public class Utils {
     /**
      * Checks that the java version.
      *
-     * @throws CLIException
+     * @throws ClientException
      *             If the java version we are running on is not compatible.
      */
-    public static void checkJavaVersion() throws CLIException {
+    public static void checkJavaVersion() throws ClientException {
         final String version = System.getProperty("java.specification.version");
         if (!(Float.valueOf(version) >= 1.6)) {
             final String javaBin = System.getProperty("java.home") + File.separator + "bin" + File.separator + "java";
-            throw new CLIException(ERR_INCOMPATIBLE_JAVA_VERSION.get("1.6", version, javaBin), null);
+            throw new ClientException(ReturnCode.JAVA_VERSION_INCOMPATIBLE, ERR_INCOMPATIBLE_JAVA_VERSION.get("1.6",
+                    version, javaBin), null);
         }
     }
 

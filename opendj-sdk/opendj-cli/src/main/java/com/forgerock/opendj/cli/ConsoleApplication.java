@@ -34,7 +34,6 @@ import static com.forgerock.opendj.cli.Utils.MAX_LINE_WIDTH;
 import static com.forgerock.opendj.cli.Utils.wrapText;
 
 import java.io.BufferedReader;
-import java.io.Closeable;
 import java.io.Console;
 import java.io.EOFException;
 import java.io.IOException;
@@ -45,17 +44,17 @@ import java.io.PrintStream;
 import org.forgerock.i18n.LocalizableMessage;
 
 /**
- * This class provides an abstract base class which can be used as the basis of
- * a console-based application.
+ * This class provides an abstract base class which can be used as the basis of a console-based application.
  */
 public abstract class ConsoleApplication {
-    private final PrintStream err;
 
     private final BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
     private final InputStream in = System.in;
 
     private final PrintStream out;
+
+    private final PrintStream err;
 
     private final Console console = System.console();
 
@@ -77,27 +76,6 @@ public abstract class ConsoleApplication {
     public ConsoleApplication(PrintStream out, PrintStream err) {
         this.out = out;
         this.err = err;
-    }
-
-    /**
-     * Closes the provided {@code Closeable}s if they are not {@code null}.
-     *
-     * @param closeables
-     *          The closeables to be closed.
-     */
-    public final void closeIfNotNull(Closeable... closeables) {
-        if (closeables == null) {
-            return;
-        }
-        for (Closeable closeable : closeables) {
-            if (closeable != null) {
-                try {
-                    closeable.close();
-                } catch (Exception ignored) {
-                    // Do nothing.
-                }
-            }
-        }
     }
 
     /**
@@ -128,8 +106,8 @@ public abstract class ConsoleApplication {
     }
 
     /**
-     * Indicates whether or not the user has requested interactive behavior. The
-     * default implementation returns {@code true}.
+     * Indicates whether or not the user has requested interactive behavior. The default implementation returns
+     * {@code true}.
      *
      * @return {@code true} if the user has requested interactive behavior.
      */
@@ -138,8 +116,7 @@ public abstract class ConsoleApplication {
     }
 
     /**
-     * Indicates whether or not the user has requested quiet output. The default
-     * implementation returns {@code false}.
+     * Indicates whether or not the user has requested quiet output. The default implementation returns {@code false}.
      *
      * @return {@code true} if the user has requested quiet output.
      */
@@ -148,8 +125,8 @@ public abstract class ConsoleApplication {
     }
 
     /**
-     * Indicates whether or not the user has requested script-friendly output.
-     * The default implementation returns {@code false}.
+     * Indicates whether or not the user has requested script-friendly output. The default implementation returns
+     * {@code false}.
      *
      * @return {@code true} if the user has requested script-friendly output.
      */
@@ -158,8 +135,7 @@ public abstract class ConsoleApplication {
     }
 
     /**
-     * Indicates whether or not the user has requested verbose output. The
-     * default implementation returns {@code false}.
+     * Indicates whether or not the user has requested verbose output. The default implementation returns {@code false}.
      *
      * @return {@code true} if the user has requested verbose output.
      */
@@ -168,16 +144,15 @@ public abstract class ConsoleApplication {
     }
 
     /**
-     * Interactively prompts the user to press return to continue. This method
-     * should be called in situations where a user needs to be given a chance to
-     * read some documentation before continuing (continuing may cause the
+     * Interactively prompts the user to press return to continue. This method should be called in situations where a
+     * user needs to be given a chance to read some documentation before continuing (continuing may cause the
      * documentation to be scrolled out of view).
      */
     public final void pressReturnToContinue() {
         final LocalizableMessage msg = INFO_MENU_PROMPT_RETURN_TO_CONTINUE.get();
         try {
             readLineOfInput(msg);
-        } catch (final CLIException e) {
+        } catch (final ClientException e) {
             // Ignore the exception - applications don't care.
         }
     }
@@ -189,14 +164,14 @@ public abstract class ConsoleApplication {
      *            The message.
      */
     public final void errPrint(final LocalizableMessage msg) {
-        err.print(wrapText(msg, MAX_LINE_WIDTH));
+        getErrStream().print(wrap(msg));
     }
 
     /**
      * Displays a blank line to the error stream.
      */
     public final void errPrintln() {
-        err.println();
+        getErrStream().println();
     }
 
     /**
@@ -206,12 +181,11 @@ public abstract class ConsoleApplication {
      *            The message.
      */
     public final void errPrintln(final LocalizableMessage msg) {
-        err.println(wrapText(msg, MAX_LINE_WIDTH));
+        getErrStream().println(wrap(msg));
     }
 
     /**
-     * Displays a message to the error stream indented by the specified number
-     * of columns.
+     * Displays a message to the error stream indented by the specified number of columns.
      *
      * @param msg
      *            The message.
@@ -219,7 +193,7 @@ public abstract class ConsoleApplication {
      *            The number of columns to indent.
      */
     public final void errPrintln(final LocalizableMessage msg, final int indent) {
-        err.println(wrapText(msg, MAX_LINE_WIDTH, indent));
+        getErrStream().println(wrapText(msg, MAX_LINE_WIDTH, indent));
     }
 
     /**
@@ -229,8 +203,8 @@ public abstract class ConsoleApplication {
      *            The verbose message.
      */
     public final void errPrintVerboseMessage(final LocalizableMessage msg) {
-        if (isVerbose() || isInteractive()) {
-            err.println(wrapText(msg, MAX_LINE_WIDTH));
+        if (isVerbose()) {
+            getErrStream().println(wrap(msg));
         }
     }
 
@@ -241,7 +215,7 @@ public abstract class ConsoleApplication {
      *            The message.
      */
     public final void print(final LocalizableMessage msg) {
-        out.print(wrapText(msg, MAX_LINE_WIDTH));
+        out.print(wrap(msg));
     }
 
     /**
@@ -258,12 +232,11 @@ public abstract class ConsoleApplication {
      *            The message.
      */
     public final void println(final LocalizableMessage msg) {
-        out.println(wrapText(msg, MAX_LINE_WIDTH));
+        out.println(wrap(msg));
     }
 
     /**
-     * Displays a message to the output stream indented by the specified number
-     * of columns.
+     * Displays a message to the output stream indented by the specified number of columns.
      *
      * @param msg
      *            The message.
@@ -282,27 +255,24 @@ public abstract class ConsoleApplication {
      */
     public final void printVerboseMessage(final LocalizableMessage msg) {
         if (isVerbose() || isInteractive()) {
-            out.println(wrapText(msg, MAX_LINE_WIDTH));
+            out.println(wrap(msg));
         }
     }
 
     /**
-     * Interactively prompts (on error output) the user to provide a string
-     * value. Any non-empty string will be allowed (the empty string will
-     * indicate that the default should be used, if there is one).
+     * Interactively prompts (on error output) the user to provide a string value. Any non-empty string will be allowed
+     * (the empty string will indicate that the default should be used, if there is one).
      *
      * @param prompt
      *            The prompt to present to the user.
      * @param defaultValue
-     *            The default value to assume if the user presses ENTER without
-     *            typing anything, or {@code null} if there should not be a
-     *            default and the user must explicitly provide a value.
-     * @throws CLIException
+     *            The default value to assume if the user presses ENTER without typing anything, or {@code null} if
+     *            there should not be a default and the user must explicitly provide a value.
+     * @throws ClientException
      *             If the line of input could not be retrieved for some reason.
      * @return The string value read from the user.
      */
-    public final String readInput(LocalizableMessage prompt, final String defaultValue)
-            throws CLIException {
+    public final String readInput(LocalizableMessage prompt, final String defaultValue) throws ClientException {
         while (true) {
             if (defaultValue != null) {
                 prompt = INFO_PROMPT_SINGLE_DEFAULT.get(prompt.toString(), defaultValue);
@@ -327,13 +297,13 @@ public abstract class ConsoleApplication {
      * @param prompt
      *            The password prompt.
      * @return The password.
-     * @throws CLIException
+     * @throws ClientException
      *             If the password could not be retrieved for some reason.
      */
-    public final char[] readPassword(final LocalizableMessage prompt) throws CLIException {
+    public final char[] readPassword(final LocalizableMessage prompt) throws ClientException {
         if (console != null) {
             if (prompt != null) {
-                err.print(wrapText(prompt, MAX_LINE_WIDTH));
+                err.print(wrap(prompt));
                 err.print(" ");
             }
             try {
@@ -343,7 +313,7 @@ public abstract class ConsoleApplication {
                 }
                 return password;
             } catch (final Throwable e) {
-                throw CLIException.adaptInputException(e);
+                throw ClientException.adaptInputException(e);
             }
         } else {
             // FIXME: should go direct to char[] and avoid the String.
@@ -357,23 +327,48 @@ public abstract class ConsoleApplication {
      * @param prompt
      *            The prompt.
      * @return The line of input.
-     * @throws CLIException
+     * @throws ClientException
      *             If the line of input could not be retrieved for some reason.
      */
-    private final String readLineOfInput(final LocalizableMessage prompt) throws CLIException {
+    private final String readLineOfInput(final LocalizableMessage prompt) throws ClientException {
         if (prompt != null) {
-            err.print(wrapText(prompt, MAX_LINE_WIDTH));
+            err.print(wrap(prompt));
             err.print(" ");
         }
         try {
             final String s = reader.readLine();
             if (s == null) {
-                throw CLIException.adaptInputException(new EOFException("End of input"));
+                throw ClientException.adaptInputException(new EOFException("End of input"));
             } else {
                 return s;
             }
         } catch (final IOException e) {
-            throw CLIException.adaptInputException(e);
+            throw ClientException.adaptInputException(e);
+        }
+    }
+
+    /**
+     * Inserts line breaks into the provided buffer to wrap text at no more than the specified column width (80).
+     *
+     * @param msg
+     *            The message to wrap.
+     * @return The wrapped message.
+     */
+    private String wrap(final LocalizableMessage msg) {
+        return wrapText(msg, MAX_LINE_WIDTH);
+    }
+
+    /**
+     * Returns the error stream. Effectively, when an application is in "interactive mode" all the informations should
+     * be written in the stdout.
+     *
+     * @return The error stream that should be used with this application.
+     */
+    private PrintStream getErrStream() {
+        if (isInteractive()) {
+            return out;
+        } else {
+            return err;
         }
     }
 

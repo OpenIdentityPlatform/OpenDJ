@@ -29,8 +29,8 @@ import org.testng.annotations.Test;
 
 public class UtilsTestCase extends CliTestCase {
 
-    @Test(expectedExceptions = CLIException.class)
-    public void testInvalidJavaVersion() throws CLIException {
+    @Test(expectedExceptions = ClientException.class)
+    public void testInvalidJavaVersion() throws ClientException {
         final String original = System.getProperty("java.specification.version");
         System.setProperty("java.specification.version", "1.5");
         try {
@@ -41,7 +41,7 @@ public class UtilsTestCase extends CliTestCase {
     }
 
     @Test()
-    public void testValidJavaVersion() throws CLIException {
+    public void testValidJavaVersion() throws ClientException {
         Utils.checkJavaVersion();
     }
 }
