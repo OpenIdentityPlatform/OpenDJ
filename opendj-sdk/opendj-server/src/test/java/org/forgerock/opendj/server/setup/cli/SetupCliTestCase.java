@@ -58,6 +58,9 @@ public class SetupCliTestCase extends AbstractSetupCliTestCase {
                 "--adminConnectorPort", "4444",
                 "-D", "cn=Directory Manager", "-w", "password", "-b", "dc=example,dc=com",
                 "-a"), expectedErrOutput(LocalizableMessage.EMPTY) },
+            { args("--cli", "--doNotStart", "--ldapPort", "1389", "--adminConnectorPort", "4444",
+                    "-D", "cn=Directory Manager", "-w", "password", "-b", "dc=example,dc=com",
+                    "-a", "--ldapsPort", "1636", "--generateSelfSignedCertificate"), null },
         };
         return data;
     }
@@ -79,8 +82,13 @@ public class SetupCliTestCase extends AbstractSetupCliTestCase {
         Object[][] data = new Object[][] {
             { args("--cli", "--doNotStart", "--ldapPort", "1389", "--adminConnectorPort", "4444",
                     "-D", "cn=Directory Manager", "-w", "password", "-b", "dc=example,dc=com",
-                    "-a"),
-                null },
+                    "-a"), null },
+            { args("--cli", "--doNotStart", "--ldapPort", "1389", "--adminConnectorPort", "4444",
+                    "-D", "cn=Directory Manager", "-w", "password", "-b", "dc=example,dc=com",
+                    "-a", "--ldapsPort", "1636"), null },
+            { args("--cli", "--doNotStart", "--ldapPort", "1389", "--adminConnectorPort", "4444",
+                    "-D", "cn=Directory Manager", "-w", "password", "-b", "dc=example,dc=com",
+                    "-a", "--jmxPort", "1689"), null },
         };
         return data;
     }
@@ -158,10 +166,21 @@ public class SetupCliTestCase extends AbstractSetupCliTestCase {
                 assertThat(resultCode).isEqualTo(ReturnCode.SUCCESS.get());
             } else {
                 assertThat(resultCode).isNotEqualTo(ReturnCode.SUCCESS.get());
-                assertThat(err.size()).isGreaterThan(0);
-                final String errorMsg = err.toString("UTF-8").replaceAll(Utils.LINE_SEPARATOR, " ");
-                final String expectedMsg = expectedErrOutput.toString().replaceAll(Utils.LINE_SEPARATOR, " ");
-                assertTrue(errorMsg.contains(expectedMsg), errorMsg + "\n >---< \n" + expectedMsg);
+                String errMsg = null;
+                String expectedMsg = getUnWrappedMessage(expectedErrOutput.toString());
+                /**
+                 * If an application is interactive, all messages should be redirect to the stdout. (info, warnings,
+                 * errors). Otherwise, standard messages should be displayed in the stdout(info) and errors to the
+                 * stderr (warnings, errors).
+                 */
+                if (setup.isInteractive()) {
+                    assertThat(out.size()).isGreaterThan(0);
+                    errMsg = getUnWrappedMessage(out.toString("UTF-8"));
+                } else {
+                    assertThat(err.size()).isGreaterThan(0);
+                    errMsg = getUnWrappedMessage(err.toString("UTF-8"));
+                }
+                assertTrue(errMsg.contains(expectedMsg), errMsg + "\n >---< \n" + expectedMsg);
             }
         } finally {
             closeSilently(outStream, errStream);
@@ -176,5 +195,16 @@ public class SetupCliTestCase extends AbstractSetupCliTestCase {
     /** A message the error output is expected to contain. */
     private LocalizableMessage expectedErrOutput(LocalizableMessage val) {
         return val;
+    }
+
+    /**
+     * Returns the message to its unwrapped form.
+     *
+     * @param st
+     *            The message which need to be unwrapped.
+     * @return The unwrapped message.
+     */
+    private String getUnWrappedMessage(final String st) {
+        return st.replaceAll(Utils.LINE_SEPARATOR, " ");
     }
 }

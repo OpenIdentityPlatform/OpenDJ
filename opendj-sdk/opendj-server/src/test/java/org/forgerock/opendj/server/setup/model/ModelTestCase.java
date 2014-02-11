@@ -63,7 +63,7 @@ public class ModelTestCase extends AbstractSetupTestCase {
         assertTrue(dsSettings.isHTTPConnectionHandlerEnabled());
         assertFalse(dsSettings.isSSLEnabled());
         assertFalse(dsSettings.isTLSEnabled());
-        assertFalse(dsSettings.isJMXConnectionHandlerEnbled());
+        assertFalse(dsSettings.isJMXConnectionHandlerEnabled());
         ds.getListenerSettings().setPassword("password");
 
         // Verify ports
