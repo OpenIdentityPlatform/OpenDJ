@@ -31,6 +31,9 @@ package com.forgerock.opendj.cli;
  */
 public final class CliConstants {
 
+    /** Default value for LDAP connection timeout. */
+    public static final int DEFAULT_LDAP_CONNECT_TIMEOUT = 30000;
+
     /** Default value for incrementing port number. */
     public static final int PORT_INCREMENT = 1000;
 
