@@ -40,7 +40,7 @@ import org.opends.server.util.StaticUtils;
  * "java.util.logging.SimpleFormatter.format" parameter to the JVM. Use the
  * parameter instead of this class when JDK6 is not supported any more.
  */
-public class JdkLoggingFormater extends Formatter
+public final class JDKLoggingFormater extends Formatter
 {
 
   /** Use one formatter per thread as DateFormat is not thread-safe. */

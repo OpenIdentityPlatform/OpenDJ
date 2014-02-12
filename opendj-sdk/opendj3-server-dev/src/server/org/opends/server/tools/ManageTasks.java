@@ -33,8 +33,6 @@ import static org.opends.messages.ToolMessages.*;
 
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.ErrorLogPublisher;
-import org.opends.server.loggers.ErrorLogger;
 import org.forgerock.opendj.ldap.DecodeException;
 
 import static org.opends.server.tools.ToolConstants.*;
@@ -79,8 +77,6 @@ import org.opends.server.backends.task.TaskState;
  */
 public class ManageTasks extends ConsoleApplication {
 
-  private static ErrorLogPublisher errorLogPublisher = null;
-
   // This CLI is always using the administration connector with SSL
   private static final boolean alwaysSSL = true;
 
@@ -91,10 +87,6 @@ public class ManageTasks extends ConsoleApplication {
    */
   public static void main(String[] args) {
     int retCode = mainTaskInfo(args, System.in, System.out, System.err);
-
-    if (errorLogPublisher != null) {
-      ErrorLogger.getInstance().removeLogPublisher(errorLogPublisher);
-    }
 
     if (retCode != 0) {
       System.exit(filterExitCode(retCode));

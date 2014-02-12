@@ -35,6 +35,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.opends.messages.ToolMessages;
 import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.util.Utils;
+import org.opends.server.loggers.JDKLogging;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.util.cli.ConsoleApplication;
 
@@ -174,6 +175,8 @@ public class JavaPropertiesTool extends ConsoleApplication
     System.setProperty(Constants.CLI_JAVA_PROPERTY, "true");
 
     PrintStream err = NullOutputStream.wrapOrNullStream(errStream);
+
+    JDKLogging.disableLogging();
 
     JavaPropertiesTool tool = new JavaPropertiesTool(out, err, inStream);
 

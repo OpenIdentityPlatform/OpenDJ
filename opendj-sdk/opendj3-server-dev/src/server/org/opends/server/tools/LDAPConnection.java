@@ -34,8 +34,7 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Logger;
+import java.util.logging.Level;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.controls.AuthorizationIdentityResponseControl;
@@ -43,7 +42,7 @@ import org.opends.server.controls.PasswordExpiringControl;
 import org.opends.server.controls.PasswordPolicyErrorType;
 import org.opends.server.controls.PasswordPolicyResponseControl;
 import org.opends.server.controls.PasswordPolicyWarningType;
-import org.opends.server.loggers.JdkLoggingFormater;
+import org.opends.server.loggers.JDKLogging;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.ldap.ExtendedRequestProtocolOp;
 import org.opends.server.protocols.ldap.ExtendedResponseProtocolOp;
@@ -182,13 +181,15 @@ public class LDAPConnection
     ArrayList<Control> requestControls = new ArrayList<Control> ();
     ArrayList<Control> responseControls = new ArrayList<Control> ();
 
-    if(connectionOptions.isVerbose())
+    if (connectionOptions.isVerbose())
     {
-      Logger logger = Logger.getLogger("org.opends");
-      ConsoleHandler handler = new ConsoleHandler();
-      handler.setFormatter(new JdkLoggingFormater());
-      logger.addHandler(handler);
+      JDKLogging.enableConsoleLoggingForOpenDJ(Level.ALL);
     }
+    else
+    {
+      JDKLogging.disableLogging();
+    }
+
 
     if(connectionOptions.useStartTLS())
     {

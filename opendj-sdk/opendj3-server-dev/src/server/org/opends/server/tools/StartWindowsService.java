@@ -31,6 +31,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import java.io.OutputStream;
 import java.io.PrintStream;
 
+import org.opends.server.loggers.JDKLogging;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.util.SetupUtils;
 
@@ -84,8 +85,9 @@ public class StartWindowsService
                            OutputStream errStream)
   {
     int returnValue;
-    PrintStream out = NullOutputStream.wrapOrNullStream(outStream);
+    NullOutputStream.wrapOrNullStream(outStream);
     PrintStream err = NullOutputStream.wrapOrNullStream(errStream);
+    JDKLogging.disableLogging();
 
     String serviceName = ConfigureWindowsService.getServiceName();
     if (serviceName == null)

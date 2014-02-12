@@ -52,12 +52,13 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PasswordStorageSchemeConfigManager;
 import org.opends.server.crypto.CryptoManagerSync;
 import org.opends.server.extensions.ConfigFileHandler;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.opends.server.loggers.JDKLogging;
 import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.util.BuildVersion;
+
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
@@ -81,9 +82,6 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class EncodePassword
 {
-  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-
-
   /**
    * Processes the command-line arguments and performs the requested action.
    *
@@ -135,6 +133,7 @@ public class EncodePassword
   {
     PrintStream out = NullOutputStream.wrapOrNullStream(outStream);
     PrintStream err = NullOutputStream.wrapOrNullStream(errStream);
+    JDKLogging.disableLogging();
 
     // Define the command-line arguments that may be used with this program.
     BooleanArgument   authPasswordSyntax   = null;
@@ -798,8 +797,6 @@ public class EncodePassword
     return SUCCESS;
   }
 
-
-
   private static LocalizableMessage getOutputMessage(boolean passwordMatches)
   {
     if (passwordMatches)
@@ -851,7 +848,7 @@ public class EncodePassword
           HashSet<PluginType> pluginTypes = new HashSet<PluginType>(1);
           directoryServer.initializePlugins(pluginTypes);
           //Initialize Trust Backend.
-          initializeServerBackends(directoryServer);
+          initializeServerBackends(directoryServer, err);
           // Initialize the subentry manager.
           directoryServer.initializeSubentryManager();
           //Initialize PWD policy components.
@@ -872,7 +869,7 @@ public class EncodePassword
     return true;
   }
 
-  private static void initializeServerBackends(DirectoryServer directoryServer)
+  private static void initializeServerBackends(DirectoryServer directoryServer, PrintStream err)
   throws InitializationException, ConfigException {
     directoryServer.initializeRootDSE();
     ServerManagementContext context = ServerManagementContext.getInstance();
@@ -882,7 +879,6 @@ public class EncodePassword
       DN configEntryDN = DN.valueOf(ConfigConstants.DN_BACKEND_BASE);
       backendRoot   = DirectoryServer.getConfigEntry(configEntryDN);
     } catch (Exception e) {
-      logger.traceException(e);
       LocalizableMessage message = ERR_CONFIG_BACKEND_CANNOT_GET_CONFIG_BASE.get(
           getExceptionMessage(e));
       throw new ConfigException(message, e);
@@ -904,9 +900,9 @@ public class EncodePassword
             backendClass = DirectoryServer.loadClass(className);
             backend = (Backend) backendClass.newInstance();
           } catch (Exception e) {
-            logger.traceException(e);
-            logger.error(ERR_CONFIG_BACKEND_CANNOT_INSTANTIATE, className, backendCfg.dn(),
-                  stackTraceToSingleLineString(e));
+            LocalizableMessage msg = ERR_CONFIG_BACKEND_CANNOT_INSTANTIATE.get(className, backendCfg.dn(),
+                stackTraceToSingleLineString(e));
+            err.println(wrapText(msg, MAX_LINE_WIDTH));
             continue;
           }
           backend.setBackendID(backendID);
@@ -915,17 +911,17 @@ public class EncodePassword
             backend.configureBackend(backendCfg);
             backend.initializeBackend();
           } catch (Exception e) {
-            logger.traceException(e);
-            logger.error(ERR_CONFIG_BACKEND_CANNOT_INITIALIZE, className, backendCfg.dn(),
+            LocalizableMessage msg = ERR_CONFIG_BACKEND_CANNOT_INITIALIZE.get(className, backendCfg.dn(),
                   stackTraceToSingleLineString(e));
+            err.println(wrapText(msg, MAX_LINE_WIDTH));
           }
           try {
             DirectoryServer.registerBackend(backend);
           } catch (Exception e)
           {
-            logger.traceException(e);
-            logger.warn(WARN_CONFIG_BACKEND_CANNOT_REGISTER_BACKEND, backendCfg.getBackendId(),
+            LocalizableMessage msg = WARN_CONFIG_BACKEND_CANNOT_REGISTER_BACKEND.get(backendCfg.getBackendId(),
                   getExceptionMessage(e));
+            err.println(wrapText(msg, MAX_LINE_WIDTH));
           }
         }
       }

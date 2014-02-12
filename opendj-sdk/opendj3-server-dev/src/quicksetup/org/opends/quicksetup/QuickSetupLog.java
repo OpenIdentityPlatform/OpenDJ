@@ -34,7 +34,7 @@ import java.util.logging.Logger;
 import java.util.Date;
 import java.text.DateFormat;
 
-import org.opends.server.loggers.JdkLoggingFormater;
+import org.opends.server.loggers.JDKLogging;
 
 /**
  * Utilities for setting up QuickSetup application log.
@@ -54,7 +54,7 @@ public class QuickSetupLog {
     if (!isInitialized()) {
       logFile = file;
       fileHandler = new FileHandler(logFile.getCanonicalPath());
-      fileHandler.setFormatter(new JdkLoggingFormater());
+      fileHandler.setFormatter(JDKLogging.getFormatter());
       Logger logger = Logger.getLogger("org.opends");
       logger.addHandler(fileHandler);
       disableConsoleLogging();

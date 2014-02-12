@@ -40,12 +40,14 @@ import javax.net.ssl.SSLException;
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.AdministrationConnector;
 import org.forgerock.opendj.io.*;
+import org.opends.server.loggers.JDKLogging;
 import org.opends.server.protocols.ldap.ExtendedRequestProtocolOp;
 import org.opends.server.protocols.ldap.ExtendedResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.NullOutputStream;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
+
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
@@ -55,13 +57,16 @@ import com.forgerock.opendj.cli.MultiChoiceArgument;
 import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.cli.SubCommand;
 import com.forgerock.opendj.cli.SubCommandArgumentParser;
+
 import org.opends.server.util.args.LDAPConnectionArgumentParser;
 
 import static org.opends.server.extensions.
                    PasswordPolicyStateExtendedOperation.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.tools.ToolConstants.*;
+
 import org.opends.server.util.EmbeddedUtils;
+
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -536,6 +541,7 @@ public class ManageAccount
   {
     out = NullOutputStream.wrapOrNullStream(outStream);
     err = NullOutputStream.wrapOrNullStream(errStream);
+    JDKLogging.disableLogging();
 
     // Parse the command-line arguments provided to the program.
     int result = parseArgsAndConnect(args, initServer);

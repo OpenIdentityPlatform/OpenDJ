@@ -57,6 +57,7 @@ import org.opends.server.core.PluginConfigManager;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.loggers.ErrorLogPublisher;
 import org.opends.server.loggers.ErrorLogger;
+import org.opends.server.loggers.JDKLogging;
 import org.opends.server.loggers.TextErrorLogPublisher;
 import org.opends.server.loggers.TextWriter;
 import org.opends.server.protocols.ldap.LDAPAttribute;
@@ -184,6 +185,7 @@ public class ImportLDIF extends TaskTool {
 
     PrintStream out = NullOutputStream.wrapOrNullStream(outStream);
     PrintStream err = NullOutputStream.wrapOrNullStream(errStream);
+    JDKLogging.disableLogging();
 
     // FIXME -- Need to add a mechanism for verifying the file signature.
 

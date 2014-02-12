@@ -38,9 +38,11 @@ import java.io.PrintStream;
 
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.loggers.JDKLogging;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.SetupUtils;
+
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
@@ -197,6 +199,7 @@ public class ConfigureWindowsService
     int returnValue = 0;
     PrintStream out = NullOutputStream.wrapOrNullStream(outStream);
     PrintStream err = NullOutputStream.wrapOrNullStream(errStream);
+    JDKLogging.disableLogging();
 
 //  Define all the arguments that may be used with this program.
     LocalizableMessage toolDescription =
