@@ -48,6 +48,7 @@ import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.loggers.DebugLogPublisher;
 import org.opends.server.loggers.DebugLogger;
 import org.opends.server.loggers.ErrorLogPublisher;
+import org.opends.server.loggers.JDKLogging;
 import org.opends.server.loggers.TextDebugLogPublisher;
 import org.opends.server.loggers.TextWriter;
 import org.opends.server.loggers.TextErrorLogPublisher;
@@ -86,7 +87,6 @@ import org.opends.server.tasks.ExportTask;
 public class ExportLDIF extends TaskTool {
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-
 
   /**
    * The main method for ExportLDIF tool.
@@ -160,6 +160,7 @@ public class ExportLDIF extends TaskTool {
 
     PrintStream out = NullOutputStream.wrapOrNullStream(outStream);
     PrintStream err = NullOutputStream.wrapOrNullStream(errStream);
+    JDKLogging.disableLogging();
 
     // Create the command-line argument parser for use with this program.
     LDAPConnectionArgumentParser argParser =
@@ -306,7 +307,6 @@ public class ExportLDIF extends TaskTool {
     catch (ArgumentException ae)
     {
       LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
-
       err.println(wrapText(message, MAX_LINE_WIDTH));
       return 1;
     }
@@ -331,7 +331,6 @@ public class ExportLDIF extends TaskTool {
     catch (ArgumentException ae)
     {
       LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
-
       err.println(wrapText(message, MAX_LINE_WIDTH));
       err.println(argParser.getUsage());
       return 1;

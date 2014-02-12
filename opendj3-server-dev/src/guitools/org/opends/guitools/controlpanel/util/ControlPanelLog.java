@@ -33,7 +33,7 @@ import java.util.logging.Logger;
 import java.util.Date;
 import java.text.DateFormat;
 
-import org.opends.server.loggers.JdkLoggingFormater;
+import org.opends.server.loggers.JDKLogging;
 
 /**
  * Utilities for setting up Control Panel application log.
@@ -57,18 +57,21 @@ public class ControlPanelLog
     {
       logFile = file;
       fileHandler = new FileHandler(logFile.getCanonicalPath());
-      fileHandler.setFormatter(new JdkLoggingFormater());
-      for (String packageName : packages)
+      fileHandler.setFormatter(JDKLogging.getFormatter());
+      boolean initialLogDone = false;
+      for (String root : JDKLogging.getOpendDJLoggingRoots())
       {
-        Logger logger = Logger.getLogger(packageName);
+        Logger logger = Logger.getLogger(root);
         if (disableLoggingToConsole())
         {
           logger.setUseParentHandlers(false); // disable logging to console
         }
         logger.addHandler(fileHandler);
+        if (!initialLogDone) {
+          logger.info(getInitialLogRecord());
+          initialLogDone = true;
+        }
       }
-      Logger logger = Logger.getLogger(packages[0]);
-      logger.info(getInitialLogRecord());
     }
   }
 

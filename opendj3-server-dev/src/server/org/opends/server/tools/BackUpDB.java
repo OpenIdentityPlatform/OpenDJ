@@ -52,6 +52,7 @@ import org.opends.server.loggers.DebugLogPublisher;
 import org.opends.server.loggers.DebugLogger;
 import org.opends.server.loggers.ErrorLogPublisher;
 import org.opends.server.loggers.ErrorLogger;
+import org.opends.server.loggers.JDKLogging;
 import org.opends.server.loggers.TextDebugLogPublisher;
 import org.opends.server.loggers.TextErrorLogPublisher;
 import org.opends.server.loggers.TextWriter;
@@ -157,6 +158,7 @@ public class BackUpDB extends TaskTool
   {
     PrintStream out = NullOutputStream.wrapOrNullStream(outStream);
     PrintStream err = NullOutputStream.wrapOrNullStream(errStream);
+    JDKLogging.disableLogging();
 
     // Create the command-line argument parser for use with this program.
     LDAPConnectionArgumentParser argParser =

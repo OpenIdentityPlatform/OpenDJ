@@ -41,12 +41,13 @@ import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.extensions.ConfigFileHandler;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.opends.server.loggers.JDKLogging;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.StaticUtils;
+
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
@@ -54,6 +55,7 @@ import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.cli.SubCommand;
 import com.forgerock.opendj.cli.SubCommandArgumentParser;
+
 import org.opends.server.util.table.TableBuilder;
 import org.opends.server.util.table.TextTablePrinter;
 
@@ -72,8 +74,6 @@ import com.sleepycat.je.*;
  */
 public class DBTest
 {
-  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-
   /** The error stream which this application should use. */
   private final PrintStream err;
 
@@ -160,6 +160,7 @@ public class DBTest
   {
     this.out = NullOutputStream.wrapOrNullStream(out);
     this.err = NullOutputStream.wrapOrNullStream(err);
+    JDKLogging.disableLogging();
 
     LocalizableMessage toolDescription = INFO_DESCRIPTION_DBTEST_TOOL.get();
     this.parser = new SubCommandArgumentParser(this.getClass().getName(),
@@ -385,7 +386,6 @@ public class DBTest
     }
     catch (InitializationException e)
     {
-      logger.traceException(e);
       printMessage(e.getMessageObject());
       return 1;
     }
@@ -562,7 +562,6 @@ public class DBTest
         return 0;
       }
     } catch (Exception e) {
-      logger.traceException(e);
       printMessage(LocalizableMessage.raw(StaticUtils.stackTraceToString(e)));
       return 1;
     }
@@ -985,12 +984,12 @@ public class DBTest
           if(dc instanceof Index)
           {
             builder.appendCell(ec.getState().getIndexTrustState(null,
-                                                                ((Index)dc)));
+                                                                (dc)));
           }
           else if(dc instanceof VLVIndex)
           {
             builder.appendCell(ec.getState().getIndexTrustState(null,
-                                                               ((VLVIndex)dc)));
+                                                               (dc)));
           }
           builder.appendCell(dc.getRecordCount());
 
@@ -1718,8 +1717,7 @@ public class DBTest
     ArrayList<Backend> backendList = new ArrayList<Backend>();
     ArrayList<BackendCfg>  entryList   = new ArrayList<BackendCfg>();
     ArrayList<List<DN>> dnList = new ArrayList<List<DN>>();
-    int code = BackendToolUtils.getBackends(backendList, entryList, dnList);
-    // TODO: Throw error if return code is not 0
+    BackendToolUtils.getBackends(backendList, entryList, dnList);
 
     LinkedHashMap<LocalDBBackendCfg, BackendImpl> jeBackends =
         new LinkedHashMap<LocalDBBackendCfg, BackendImpl>();

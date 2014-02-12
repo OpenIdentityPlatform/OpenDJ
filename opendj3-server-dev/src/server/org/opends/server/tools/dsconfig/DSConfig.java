@@ -67,7 +67,6 @@ import org.opends.server.admin.Tag;
 import org.opends.server.admin.client.ManagedObjectDecodingException;
 import org.opends.server.admin.client.MissingMandatoryPropertiesException;
 import org.opends.server.admin.client.OperationRejectedException;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.tools.ClientException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.util.BuildVersion;
@@ -287,7 +286,6 @@ public final class DSConfig extends ConsoleApplication {
    * customization.
    */
   public static final String GENERIC_TYPE = "generic";
-  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   // This CLI is always using the administration connector with SSL
   private static final boolean alwaysSSL = true;
@@ -1025,7 +1023,6 @@ public final class DSConfig extends ConsoleApplication {
 
       return 1;
     } catch (Exception e) {
-      logger.traceException(e);
       println(LocalizableMessage.raw(StaticUtils.stackTraceToString(e)));
       return 1;
     }

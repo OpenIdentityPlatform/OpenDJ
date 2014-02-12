@@ -35,11 +35,13 @@ import java.io.PrintWriter;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.loggers.JDKLogging;
 import org.opends.server.types.FilePermission;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.types.OperatingSystem;
 import org.opends.server.util.EmbeddedUtils;
 import org.opends.server.util.SetupUtils;
+
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
@@ -97,6 +99,7 @@ public class CreateRCScript
                          OutputStream errStream)
   {
     PrintStream err = NullOutputStream.wrapOrNullStream(errStream);
+    JDKLogging.disableLogging();
 
     EmbeddedUtils.initializeForClientUse();
 

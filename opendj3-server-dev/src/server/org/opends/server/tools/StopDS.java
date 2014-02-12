@@ -46,6 +46,7 @@ import org.opends.server.admin.AdministrationConnector;
 import org.opends.server.controls.ProxiedAuthV2Control;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
+import org.opends.server.loggers.JDKLogging;
 import org.opends.server.protocols.ldap.AddRequestProtocolOp;
 import org.opends.server.protocols.ldap.AddResponseProtocolOp;
 import org.opends.server.protocols.ldap.ExtendedResponseProtocolOp;
@@ -182,7 +183,7 @@ public class StopDS
   {
     PrintStream out = NullOutputStream.wrapOrNullStream(outStream);
     PrintStream err = NullOutputStream.wrapOrNullStream(errStream);
-
+    JDKLogging.disableLogging();
 
     // Define all the arguments that may be used with this program.
     LocalizableMessage toolDescription = INFO_STOPDS_TOOL_DESCRIPTION.get();

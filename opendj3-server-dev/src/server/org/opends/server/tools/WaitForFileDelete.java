@@ -30,6 +30,7 @@ import java.io.*;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.loggers.JDKLogging;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.util.cli.ConsoleApplication;
 
@@ -126,6 +127,7 @@ public class WaitForFileDelete extends ConsoleApplication
     int exitCode;
     PrintStream out = NullOutputStream.wrapOrNullStream(outStream);
     PrintStream err = NullOutputStream.wrapOrNullStream(errStream);
+    JDKLogging.disableLogging();
     try
     {
       WaitForFileDelete wffd = new WaitForFileDelete(out, err, System.in);

@@ -37,6 +37,7 @@ import java.util.LinkedList;
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.ConfigFileHandler;
+import org.opends.server.loggers.JDKLogging;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.*;
 import org.opends.server.util.BuildVersion;
@@ -136,6 +137,7 @@ public class LDIFSearch
   {
     PrintStream out = NullOutputStream.wrapOrNullStream(outStream);
     PrintStream err = NullOutputStream.wrapOrNullStream(errStream);
+    JDKLogging.disableLogging();
 
     LinkedHashSet<String> scopeStrings = new LinkedHashSet<String>(4);
     scopeStrings.add(SCOPE_STRING_BASE);

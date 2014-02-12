@@ -284,7 +284,6 @@ public class LDAPDelete
     PrintStream out = NullOutputStream.wrapOrNullStream(outStream);
     PrintStream err = NullOutputStream.wrapOrNullStream(errStream);
 
-
     LDAPConnectionOptions connectionOptions = new LDAPConnectionOptions();
     LDAPDeleteOptions deleteOptions = new LDAPDeleteOptions();
     LDAPConnection connection = null;

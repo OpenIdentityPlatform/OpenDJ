@@ -28,8 +28,19 @@ package org.opends.server.tools;
 
 
 
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.tools.ToolConstants.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.opends.server.admin.std.server.BackendCfg;
 import org.opends.server.api.Backend;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.backends.jeb.BackendImpl;
 import org.opends.server.backends.jeb.VerifyConfig;
 import org.opends.server.config.ConfigException;
@@ -37,36 +48,17 @@ import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.extensions.ConfigFileHandler;
-import org.opends.server.loggers.DebugLogPublisher;
-import org.opends.server.loggers.DebugLogger;
-import org.opends.server.loggers.ErrorLogPublisher;
-import org.opends.server.loggers.TextDebugLogPublisher;
-import org.opends.server.loggers.TextWriter;
-import org.opends.server.loggers.ErrorLogger;
-import org.opends.server.loggers.TextErrorLogPublisher;
-import org.opends.server.loggers.TraceSettings;
-import org.opends.server.types.*;
+import org.opends.server.loggers.JDKLogging;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.NullOutputStream;
 import org.opends.server.util.BuildVersion;
 
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.StringArgument;
-
-import java.io.OutputStream;
-import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.opends.messages.ToolMessages.*;
-
-import org.forgerock.i18n.LocalizableMessage;
-
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-import static org.opends.server.tools.ToolConstants.*;
-
-import org.opends.server.admin.std.server.BackendCfg;
 
 
 /**
@@ -77,8 +69,6 @@ import org.opends.server.admin.std.server.BackendCfg;
  */
 public class VerifyIndex
 {
-
-  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * Processes the command-line arguments and invokes the verify process.
@@ -114,6 +104,7 @@ public class VerifyIndex
   {
     PrintStream out = NullOutputStream.wrapOrNullStream(outStream);
     PrintStream err = NullOutputStream.wrapOrNullStream(errStream);
+    JDKLogging.disableLogging();
 
     // Define the command-line arguments that may be used with this program.
     StringArgument  configClass             = null;
@@ -367,28 +358,7 @@ public class VerifyIndex
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return 1;
       }
-
-
-      try
-      {
-        ErrorLogPublisher errorLogPublisher =
-            TextErrorLogPublisher.getToolStartupTextErrorPublisher(
-            new TextWriter.STREAM(out));
-        DebugLogPublisher debugLogPublisher =
-            TextDebugLogPublisher.getStartupTextDebugPublisher(
-            new TextWriter.STREAM(out));
-        debugLogPublisher.addTraceSettings(null,
-            new TraceSettings());
-        ErrorLogger.getInstance().addLogPublisher(errorLogPublisher);
-        DebugLogger.getInstance().addLogPublisher(debugLogPublisher);
-      }
-      catch(Exception e)
-      {
-        err.println("Error installing the custom error logger: " +
-                    stackTraceToSingleLineString(e));
-      }
     }
-
 
     // Decode the base DN provided by the user.
     DN verifyBaseDN ;
@@ -398,12 +368,14 @@ public class VerifyIndex
     }
     catch (DirectoryException de)
     {
-      logger.error(ERR_CANNOT_DECODE_BASE_DN, baseDNString.getValue(), de.getMessageObject());
+      err.println(wrapText(ERR_CANNOT_DECODE_BASE_DN.get(baseDNString.getValue(),
+          de.getMessageObject()), MAX_LINE_WIDTH));
       return 1;
     }
     catch (Exception e)
     {
-      logger.error(ERR_CANNOT_DECODE_BASE_DN, baseDNString.getValue(), getExceptionMessage(e));
+      err.println(wrapText(ERR_CANNOT_DECODE_BASE_DN.get(baseDNString.getValue(),
+          getExceptionMessage(e)), MAX_LINE_WIDTH));
       return 1;
     }
 
@@ -433,7 +405,7 @@ public class VerifyIndex
           }
           else
           {
-            logger.error(ERR_MULTIPLE_BACKENDS_FOR_BASE, baseDNString.getValue());
+            err.println(wrapText(ERR_MULTIPLE_BACKENDS_FOR_BASE.get(baseDNString.getValue()), MAX_LINE_WIDTH));
             return 1;
           }
           break;
@@ -443,13 +415,13 @@ public class VerifyIndex
 
     if (backend == null)
     {
-      logger.error(ERR_NO_BACKENDS_FOR_BASE, baseDNString.getValue());
+      err.println(wrapText(ERR_NO_BACKENDS_FOR_BASE.get(baseDNString.getValue()), MAX_LINE_WIDTH));
       return 1;
     }
 
     if (!(backend instanceof BackendImpl))
     {
-      logger.error(ERR_BACKEND_NO_INDEXING_SUPPORT);
+      err.println(wrapText(ERR_BACKEND_NO_INDEXING_SUPPORT.get(), MAX_LINE_WIDTH));
       return 1;
     }
 
@@ -479,13 +451,15 @@ public class VerifyIndex
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.acquireSharedLock(lockFile, failureReason))
       {
-        logger.error(ERR_VERIFYINDEX_CANNOT_LOCK_BACKEND, backend.getBackendID(), failureReason);
+        err.println(wrapText(ERR_VERIFYINDEX_CANNOT_LOCK_BACKEND.get(backend.getBackendID(),
+            failureReason), MAX_LINE_WIDTH));
         return 1;
       }
     }
     catch (Exception e)
     {
-      logger.error(ERR_VERIFYINDEX_CANNOT_LOCK_BACKEND, backend.getBackendID(), getExceptionMessage(e));
+      err.println(wrapText(ERR_VERIFYINDEX_CANNOT_LOCK_BACKEND.get(backend.getBackendID(),
+          getExceptionMessage(e)), MAX_LINE_WIDTH));
       return 1;
     }
 
@@ -510,7 +484,8 @@ public class VerifyIndex
     }
     catch (Exception e)
     {
-      logger.error(ERR_VERIFYINDEX_ERROR_DURING_VERIFY, stackTraceToSingleLineString(e));
+      err.println(wrapText(ERR_VERIFYINDEX_ERROR_DURING_VERIFY.get(stackTraceToSingleLineString(e)),
+          MAX_LINE_WIDTH));
       returnCode = 1;
     }
 
@@ -522,14 +497,17 @@ public class VerifyIndex
       StringBuilder failureReason = new StringBuilder();
       if (! LockFileManager.releaseLock(lockFile, failureReason))
       {
-        logger.warn(WARN_VERIFYINDEX_CANNOT_UNLOCK_BACKEND, backend.getBackendID(), failureReason);
+        err.println(wrapText(WARN_VERIFYINDEX_CANNOT_UNLOCK_BACKEND.get(backend.getBackendID(),
+            failureReason), MAX_LINE_WIDTH));
       }
     }
     catch (Exception e)
     {
-      logger.warn(WARN_VERIFYINDEX_CANNOT_UNLOCK_BACKEND, backend.getBackendID(), getExceptionMessage(e));
+      err.println(wrapText(WARN_VERIFYINDEX_CANNOT_UNLOCK_BACKEND.get(backend.getBackendID(),
+          getExceptionMessage(e)), MAX_LINE_WIDTH));
     }
 
     return returnCode;
   }
 }
+

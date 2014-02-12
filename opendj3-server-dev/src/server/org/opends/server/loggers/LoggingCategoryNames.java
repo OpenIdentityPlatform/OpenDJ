@@ -66,7 +66,7 @@ class LoggingCategoryNames
     // The category used for messages associated with
     // connection and protocol handling (e.g., ASN.1 and LDAP).
     NAMES.put("org.opends.server.protocol", "PROTOCOL");
-    NAMES.put("org.forgerock.opendj.ldap.io", "PROTOCOL");
+    NAMES.put("org.forgerock.opendj.io", "PROTOCOL");
 
     // The category used for messages associated with configuration handling.
     NAMES.put("org.opends.server.config", "CONFIG");

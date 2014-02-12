@@ -47,6 +47,7 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.loggers.DebugLogPublisher;
 import org.opends.server.loggers.DebugLogger;
 import org.opends.server.loggers.ErrorLogPublisher;
+import org.opends.server.loggers.JDKLogging;
 import org.opends.server.loggers.TextDebugLogPublisher;
 import org.opends.server.loggers.TextWriter;
 import org.opends.server.loggers.ErrorLogger;
@@ -144,6 +145,7 @@ public class RebuildIndex extends TaskTool
   {
     final PrintStream out = NullOutputStream.wrapOrNullStream(outStream);
     final PrintStream err = NullOutputStream.wrapOrNullStream(errStream);
+    JDKLogging.disableLogging();
 
     // Initialize all the command-line argument types and register them with the
     // parser.

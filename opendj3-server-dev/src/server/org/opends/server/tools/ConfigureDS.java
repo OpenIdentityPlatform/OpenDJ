@@ -54,6 +54,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.extensions.SaltedSHA512PasswordStorageScheme;
+import org.opends.server.loggers.JDKLogging;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
@@ -64,6 +65,7 @@ import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.SetupUtils;
+
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
@@ -171,8 +173,6 @@ public class ConfigureDS
     }
   }
 
-
-
   /**
    * Parses the provided command-line arguments and makes the appropriate
    * changes to the Directory Server configuration.
@@ -208,6 +208,8 @@ public class ConfigureDS
     StringArgument    serverRoot;
     PrintStream out = NullOutputStream.wrapOrNullStream(outStream);
     PrintStream err = NullOutputStream.wrapOrNullStream(errStream);
+
+    JDKLogging.disableLogging();
 
     LocalizableMessage toolDescription = INFO_CONFIGDS_TOOL_DESCRIPTION.get();
     ArgumentParser argParser = new ArgumentParser(CLASS_NAME, toolDescription,
