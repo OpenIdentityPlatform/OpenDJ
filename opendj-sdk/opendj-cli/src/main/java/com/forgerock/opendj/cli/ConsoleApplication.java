@@ -30,6 +30,7 @@ package com.forgerock.opendj.cli;
 import static com.forgerock.opendj.cli.CliMessages.INFO_ERROR_EMPTY_RESPONSE;
 import static com.forgerock.opendj.cli.CliMessages.INFO_MENU_PROMPT_RETURN_TO_CONTINUE;
 import static com.forgerock.opendj.cli.CliMessages.INFO_PROMPT_SINGLE_DEFAULT;
+import static com.forgerock.opendj.cli.CliMessages.ERR_TRIES_LIMIT_REACHED;
 import static com.forgerock.opendj.cli.Utils.MAX_LINE_WIDTH;
 import static com.forgerock.opendj.cli.Utils.wrapText;
 
@@ -144,6 +145,15 @@ public abstract class ConsoleApplication {
     }
 
     /**
+     * Indicates whether or not the user has requested advanced mode.
+     *
+     * @return Returns <code>true</code> if the user has requested advanced mode.
+     */
+    public boolean isAdvancedMode() {
+        return false;
+    }
+
+    /**
      * Interactively prompts the user to press return to continue. This method should be called in situations where a
      * user needs to be given a chance to read some documentation before continuing (continuing may cause the
      * documentation to be scrolled out of view).
@@ -215,14 +225,18 @@ public abstract class ConsoleApplication {
      *            The message.
      */
     public final void print(final LocalizableMessage msg) {
-        out.print(wrap(msg));
+        if (!isQuiet()) {
+            out.print(wrap(msg));
+        }
     }
 
     /**
      * Displays a blank line to the output stream.
      */
     public final void println() {
-        out.println();
+        if (!isQuiet()) {
+            out.println();
+        }
     }
 
     /**
@@ -232,7 +246,9 @@ public abstract class ConsoleApplication {
      *            The message.
      */
     public final void println(final LocalizableMessage msg) {
-        out.println(wrap(msg));
+        if (!isQuiet()) {
+            out.println(wrap(msg));
+        }
     }
 
     /**
@@ -244,7 +260,9 @@ public abstract class ConsoleApplication {
      *            The number of columns to indent.
      */
     public final void println(final LocalizableMessage msg, final int indent) {
-        out.println(wrapText(msg, MAX_LINE_WIDTH, indent));
+        if (!isQuiet()) {
+            out.println(wrapText(msg, MAX_LINE_WIDTH, indent));
+        }
     }
 
     /**
@@ -254,7 +272,7 @@ public abstract class ConsoleApplication {
      *            The verbose message.
      */
     public final void printVerboseMessage(final LocalizableMessage msg) {
-        if (isVerbose() || isInteractive()) {
+        if (isVerbose()) {
             out.println(wrap(msg));
         }
     }
@@ -330,7 +348,7 @@ public abstract class ConsoleApplication {
      * @throws ClientException
      *             If the line of input could not be retrieved for some reason.
      */
-    private final String readLineOfInput(final LocalizableMessage prompt) throws ClientException {
+    final String readLineOfInput(final LocalizableMessage prompt) throws ClientException {
         if (prompt != null) {
             err.print(wrap(prompt));
             err.print(" ");
@@ -345,6 +363,60 @@ public abstract class ConsoleApplication {
         } catch (final IOException e) {
             throw ClientException.adaptInputException(e);
         }
+    }
+
+    /**
+     * Interactively prompts for user input and continues until valid input is provided.
+     *
+     * @param <T>
+     *            The type of decoded user input.
+     * @param prompt
+     *            The interactive prompt which should be displayed on each input attempt.
+     * @param validator
+     *            An input validator responsible for validating and decoding the user's response.
+     * @return Returns the decoded user's response.
+     * @throws ClientException
+     *             If an unexpected error occurred which prevented validation.
+     */
+    public final <T> T readValidatedInput(final LocalizableMessage prompt, final ValidationCallback<T> validator)
+            throws ClientException {
+        while (true) {
+            final String response = readLineOfInput(prompt);
+            final T value = validator.validate(this, response);
+            if (value != null) {
+                return value;
+            }
+        }
+    }
+
+    /**
+     * Interactively prompts for user input and continues until valid input is provided.
+     *
+     * @param <T>
+     *            The type of decoded user input.
+     * @param prompt
+     *            The interactive prompt which should be displayed on each input attempt.
+     * @param validator
+     *            An input validator responsible for validating and decoding the user's response.
+     * @param maxTries
+     *            The maximum number of tries that we can make.
+     * @return Returns the decoded user's response.
+     * @throws ClientException
+     *             If an unexpected error occurred which prevented validation or
+     *             if the maximum number of tries was reached.
+     */
+    public final <T> T readValidatedInput(final LocalizableMessage prompt, final ValidationCallback<T> validator,
+            final int maxTries) throws ClientException {
+        int nTries = 0;
+        while (nTries < maxTries) {
+            final String response = readLineOfInput(prompt);
+            final T value = validator.validate(this, response);
+            if (value != null) {
+                return value;
+            }
+            nTries++;
+        }
+        throw new ClientException(ReturnCode.ERROR_USER_DATA, ERR_TRIES_LIMIT_REACHED.get(maxTries));
     }
 
     /**

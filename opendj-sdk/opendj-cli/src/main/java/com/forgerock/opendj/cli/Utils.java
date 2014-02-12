@@ -26,7 +26,12 @@
  */
 package com.forgerock.opendj.cli;
 
-import static com.forgerock.opendj.cli.CliMessages.*;
+import static com.forgerock.opendj.cli.CliMessages.ERR_INCOMPATIBLE_JAVA_VERSION;
+import static com.forgerock.opendj.cli.CliMessages.INFO_TIME_IN_DAYS_HOURS_MINUTES_SECONDS;
+import static com.forgerock.opendj.cli.CliMessages.INFO_TIME_IN_HOURS_MINUTES_SECONDS;
+import static com.forgerock.opendj.cli.CliMessages.INFO_TIME_IN_MINUTES_SECONDS;
+import static com.forgerock.opendj.cli.CliMessages.INFO_TIME_IN_SECONDS;
+import com.forgerock.opendj.util.OperatingSystem;
 import static com.forgerock.opendj.util.StaticUtils.EOL;
 
 import java.io.File;
@@ -34,7 +39,10 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.StringTokenizer;
+import java.util.TimeZone;
 
 import org.forgerock.i18n.LocalizableMessage;
 
@@ -42,8 +50,30 @@ import org.forgerock.i18n.LocalizableMessage;
  * This class provides utility functions for all the client side tools.
  */
 final public class Utils {
+
     /** Platform appropriate line separator. */
     static public final String LINE_SEPARATOR = System.getProperty("line.separator");
+
+    /**
+     * The value used to display arguments that must be obfuscated (such as passwords). This does not require
+     * localization (since the output of command builder by its nature is not localized).
+     */
+    public final static String OBFUSCATED_VALUE = "******";
+
+    /**
+     * The date format string that will be used to construct and parse dates represented using generalized time. It is
+     * assumed that the provided date formatter will be set to UTC.
+     */
+    public static final String DATE_FORMAT_LOCAL_TIME = "dd/MMM/yyyy:HH:mm:ss Z";
+
+    private static final String COMMENT_SHELL_UNIX = "# ";
+    private static final String COMMENT_BATCH_WINDOWS = "rem ";
+
+    /**
+     * The String used to write comments in a shell (or batch) script.
+     */
+    public static final String SHELL_COMMENT_SEPARATOR = OperatingSystem.isWindows() ? COMMENT_BATCH_WINDOWS
+            : COMMENT_SHELL_UNIX;
 
     /**
      * The column at which to wrap long lines of output in the command-line
@@ -64,6 +94,22 @@ final public class Utils {
         MAX_LINE_WIDTH = columns - 1;
     }
 
+    /**
+     * Formats a Date to String representation in "dd/MMM/yyyy:HH:mm:ss Z".
+     *
+     * @param date
+     *            to format; null if <code>date</code> is null
+     * @return string representation of the date
+     */
+    public String formatDateTimeStringForEquivalentCommand(Date date) {
+        String timeStr = null;
+        if (date != null) {
+            SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_LOCAL_TIME);
+            dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+            timeStr = dateFormat.format(date);
+        }
+        return timeStr;
+    }
     /**
      * Filters the provided value to ensure that it is appropriate for use as an
      * exit code. Exit code values are generally only allowed to be between 0

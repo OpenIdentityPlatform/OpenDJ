@@ -123,8 +123,11 @@ public final class CommonArguments {
      *             If there is a problem with any of the parameters used to create this argument.
      */
     public static final BooleanArgument getQuiet() throws ArgumentException {
-        return new BooleanArgument(OPTION_LONG_QUIET, OPTION_SHORT_QUIET, OPTION_LONG_QUIET,
+        final BooleanArgument quiet = new BooleanArgument(OPTION_LONG_QUIET, OPTION_SHORT_QUIET, OPTION_LONG_QUIET,
                 INFO_DESCRIPTION_QUIET.get());
+        quiet.setPropertyName(OPTION_LONG_QUIET);
+        return quiet;
+
     }
 
     /**

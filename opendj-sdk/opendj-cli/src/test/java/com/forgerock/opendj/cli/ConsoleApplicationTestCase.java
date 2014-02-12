@@ -41,6 +41,10 @@ import static org.testng.Assert.assertTrue;
  */
 public class ConsoleApplicationTestCase extends CliTestCase {
 
+    final LocalizableMessage msg = LocalizableMessage.raw("Language is the source of misunderstandings.");
+    final LocalizableMessage msg2 = LocalizableMessage
+            .raw("If somebody wants a sheep, that is a proof that one exists.");
+
     /**
      * For test purposes only.
      */
@@ -49,6 +53,7 @@ public class ConsoleApplicationTestCase extends CliTestCase {
         private static ByteArrayOutputStream err;
         private boolean verbose = false;
         private boolean interactive = false;
+        private boolean quiet = false;
 
         private MockConsoleApplication(PrintStream out, PrintStream err) {
             super(out, err);
@@ -82,6 +87,12 @@ public class ConsoleApplicationTestCase extends CliTestCase {
             return interactive;
         }
 
+        /** {@inheritDoc} */
+        @Override
+        public boolean isQuiet() {
+            return quiet;
+        }
+
         public void setVerbose(boolean v) {
             verbose = v;
         }
@@ -89,12 +100,14 @@ public class ConsoleApplicationTestCase extends CliTestCase {
         public void setInteractive(boolean inter) {
             interactive = inter;
         }
+
+        public void setQuiet(boolean q) {
+            quiet = q;
+        }
     }
 
     @Test()
     public void testWriteLineInOutputStream() throws UnsupportedEncodingException {
-        final LocalizableMessage msg = LocalizableMessage
-                .raw("If somebody wants a sheep, that is a proof that one exists.");
         final MockConsoleApplication ca = MockConsoleApplication.getDefault();
         ca.print(msg);
         assertThat(ca.getOut()).contains(msg.toString());
@@ -103,7 +116,6 @@ public class ConsoleApplicationTestCase extends CliTestCase {
 
     @Test()
     public void testWriteLineInErrorStream() throws UnsupportedEncodingException {
-        final LocalizableMessage msg = LocalizableMessage.raw("Language is the source of misunderstandings.");
         final MockConsoleApplication ca = MockConsoleApplication.getDefault();
         ca.errPrintln(msg);
         assertThat(ca.getOut()).isEmpty();
@@ -112,8 +124,6 @@ public class ConsoleApplicationTestCase extends CliTestCase {
 
     @Test()
     public void testWriteOutputStreamVerbose() throws UnsupportedEncodingException {
-        final LocalizableMessage msg = LocalizableMessage
-                .raw("If somebody wants a sheep, that is a proof that one exists.");
         final MockConsoleApplication ca = MockConsoleApplication.getDefault();
         ca.printVerboseMessage(msg);
         assertThat(ca.isVerbose()).isFalse();
@@ -128,7 +138,6 @@ public class ConsoleApplicationTestCase extends CliTestCase {
 
     @Test()
     public void testWriteErrorStreamVerbose() throws UnsupportedEncodingException {
-        final LocalizableMessage msg = LocalizableMessage.raw("Language is the source of misunderstandings.");
         final MockConsoleApplication ca = MockConsoleApplication.getDefault();
         ca.errPrintVerboseMessage(msg);
         assertThat(ca.isVerbose()).isFalse();
@@ -149,9 +158,6 @@ public class ConsoleApplicationTestCase extends CliTestCase {
      */
     @Test()
     public void testNonInteractiveApplicationShouldNotStdoutErrors() throws UnsupportedEncodingException {
-        final LocalizableMessage msg = LocalizableMessage.raw("Language is the source of misunderstandings.");
-        final LocalizableMessage msg2 = LocalizableMessage
-                .raw("If somebody wants a sheep, that is a proof that one exists.");
         final MockConsoleApplication ca = MockConsoleApplication.getDefault();
 
         assertFalse(ca.isInteractive());
@@ -170,10 +176,6 @@ public class ConsoleApplicationTestCase extends CliTestCase {
      */
     @Test()
     public void testInteractiveApplicationShouldStdoutErrors() throws UnsupportedEncodingException {
-        final LocalizableMessage msg = LocalizableMessage.raw("Language is the source of misunderstandings.");
-        final LocalizableMessage msg2 = LocalizableMessage
-                .raw("If somebody wants a sheep, that is a proof that one exists.");
-
         final MockConsoleApplication ca = MockConsoleApplication.getDefault();
 
         assertFalse(ca.isInteractive());
@@ -185,5 +187,21 @@ public class ConsoleApplicationTestCase extends CliTestCase {
         ca.println(msg2);
         assertThat(ca.getOut()).contains(msg2.toString());
         assertThat(ca.getErr()).isEmpty();
+    }
+
+    /**
+     * In quiet mode, only the stderr should contain lines.
+     * @throws UnsupportedEncodingException
+     */
+    @Test()
+    public void testQuietMode() throws UnsupportedEncodingException {
+        final MockConsoleApplication ca = MockConsoleApplication.getDefault();
+        ca.setQuiet(true);
+        assertTrue(ca.isQuiet());
+        ca.println(msg);
+        ca.errPrintln(msg2);
+        assertThat(ca.getOut()).isEmpty();
+        assertThat(ca.getErr()).contains(msg2.toString());
+        assertThat(ca.getErr()).doesNotContain(msg.toString());
     }
 }
