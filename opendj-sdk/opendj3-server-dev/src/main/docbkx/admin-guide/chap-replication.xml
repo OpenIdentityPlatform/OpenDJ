@@ -20,13 +20,14 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2013 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-replication'
          xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
          xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-         xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+         xsi:schemaLocation='http://docbook.org/ns/docbook
+                             http://docbook.org/xml/5.0/xsd/docbook.xsd'
          xmlns:xlink='http://www.w3.org/1999/xlink'
          xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>Managing Data Replication</title>
@@ -737,17 +738,20 @@ for a detailed log of this operation.</screen>
    over the WAN. (By running four directory servers that also run replication
    servers and eight stand-alone directory servers, you reduce the number of
    replication connections to 14 for 12 replicas.)</para>
-   
-   <mediaobject xml:id="figure-standalone-repl">
-    <alt>Dedicated servers versus consolidated instances</alt>
-    <imageobject>
-     <imagedata fileref="images/standalone-repl.png" format="PNG"/>
-    </imageobject>
-    <textobject>
-     <para>Dedicated servers are suited to environments with large numbers
-     of replicas.</para>
-    </textobject>
-   </mediaobject>
+
+   <figure xml:id="figure-standalone-repl">
+    <title>Deployment For Multiple Data Centers</title>
+    <mediaobject>
+     <alt>Dedicated servers versus consolidated instances</alt>
+     <imageobject>
+      <imagedata fileref="images/standalone-repl.png" format="PNG"/>
+     </imageobject>
+     <textobject>
+      <para>Dedicated servers are suited to environments with large numbers
+      of replicas.</para>
+     </textobject>
+    </mediaobject>
+   </figure>
 
    <tip>
     <para>If you set up OpenDJ directory server to replicate by using the
@@ -900,6 +904,159 @@ Base DN initialized successfully.
 See
 /var/.../opends-replication-7677303986403997574.log
 for a detailed log of this operation.</screen>
+    </step>
+   </procedure>
+  </section>
+
+  <section xml:id="repl-dedicated-replica">
+   <title>Stand-alone Directory Server Replicas</title>
+   <indexterm>
+    <primary>Replication</primary>
+    <secondary>Dedicated servers</secondary>
+   </indexterm>
+
+   <para>
+    When you configure replication for an OpenDJ directory server,
+    you can give the directory server the capability
+    to handle replication traffic as well.
+    As described in <xref linkend="repl-dedicated-servers" />,
+    OpenDJ servers can also be configured to handle only replication traffic.
+   </para>
+
+   <para>
+    Alternatively you can configure an OpenDJ directory server
+    to connect to a remote replication server of either variety,
+    but to remain only a directory server itself.
+    This sort of stand-alone directory server replica is shown
+    in <xref linkend="figure-standalone-repl" />.
+   </para>
+
+   <para>
+    Furthermore, you can make this stand-alone directory server replica
+    read-only for client applications, accepting only replication updates.
+   </para>
+
+   <procedure xml:id="repl-setup-dedicated-replica">
+    <title>To Set Up a Stand-alone Directory Server Replica</title>
+
+    <para>
+     The following steps show how to configure the server
+     as a stand-alone, directory server only replica
+     of an existing replicated directory server.
+    </para>
+
+    <step>
+     <para>
+      Set up replication between other servers.
+     </para>
+    </step>
+
+    <step>
+     <para>
+      Install the directory server without configuring replication,
+      but creating at least the base entry to be replicated.
+     </para>
+    </step>
+
+    <step>
+     <para>
+      Enable replication with the appropriate
+      <option>--noReplicationServer</option> option.
+     </para>
+
+     <screen>$ dsreplication
+ enable
+ --adminUID admin
+ --adminPassword password
+ --baseDN dc=example,dc=com
+ --host1 master.example.com
+ --port1 4444 --bindDN1 "cn=Directory Manager"
+ --bindPassword1 password
+ --host2 ds-only.example.com
+ --port2 4444
+ --bindDN2 "cn=Directory Manager"
+ --bindPassword2 password
+ --noReplicationServer2
+ --trustAll
+ --no-prompt
+
+Establishing connections ..... Done.
+Checking registration information ..... Done.
+Updating remote references on server master.example.com:4444 ..... Done.
+Updating replication configuration for baseDN dc=example,dc=com
+ on server master.example.com:4444 ..... Done.
+Updating replication configuration for baseDN dc=example,dc=com
+ on server ds-only.example.com:4444 ..... Done.
+Updating replication configuration for baseDN dc=example,dc=com
+ on server master2.example.com:4444 ..... Done.
+Updating remote references on server master2.example.com:4444 ..... Done.
+Updating registration configuration
+ on server master.example.com:4444 ..... Done.
+Updating registration configuration
+ on server ds-only.example.com:4444 ..... Done.
+Updating registration configuration
+ on server master2.example.com:4444 ..... Done.
+Updating replication configuration for baseDN cn=schema
+ on server master.example.com:4444 ..... Done.
+Updating replication configuration for baseDN cn=schema
+ on server ds-only.example.com:4444 ..... Done.
+Updating replication configuration for baseDN cn=schema
+ on server master2.example.com:4444 ..... Done.
+Initializing registration information on server ds-only.example.com:4444
+ with the contents of server master.example.com:4444 ..... Done.
+Initializing schema on server ds-only.example.com:4444
+ with the contents of server master.example.com:4444 ..... Done.
+
+Replication has been successfully enabled.  Note that for replication to work
+ you must initialize the contents of the base DNs that are being replicated
+ (use dsreplication initialize to do so).
+
+See
+/var/.../opendj-replication-859181866587327450.log
+for a detailed log of this operation.</screen>
+
+     <para>
+      Here the existing server is both directory server and replication server.
+      If the existing server is a stand-alone replication server,
+      then also use the appropriate
+      <option>--onlyReplicationServer</option> option.
+     </para>
+    </step>
+
+    <step>
+     <para>
+      Initialize data on the new directory server replica.
+     </para>
+
+     <screen>$ dsreplication
+ initialize
+ --adminUID admin
+ --adminPassword password
+ --baseDN dc=example,dc=com
+ --hostSource master.example.com
+ --portSource 4444
+ --hostDestination ds-only.example.com
+ --portDestination 4444
+ --trustAll
+ --no-prompt
+
+Initializing base DN dc=example,dc=com with the contents
+ from master.example.com:4444:
+0 entries processed (0 % complete).
+176 entries processed (100 % complete).
+Base DN initialized successfully.
+
+See
+/var/.../opendj-replication-4326340645155418876.log
+for a detailed log of this operation.</screen>
+    </step>
+
+    <step>
+     <para>
+      If you want to make the directory server replica
+      read-only for client application traffic,
+      see <xref linkend="read-only-repl" />.
+     </para>
     </step>
    </procedure>
   </section>
