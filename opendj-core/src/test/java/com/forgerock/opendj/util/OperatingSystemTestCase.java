@@ -27,6 +27,8 @@ package com.forgerock.opendj.util;
 
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
+
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 /**
@@ -34,43 +36,107 @@ import org.testng.annotations.Test;
  */
 public class OperatingSystemTestCase extends UtilTestCase {
 
-    @Test()
-    public void testGetOperatingSystem() {
-        final OperatingSystem os = OperatingSystem.getOperatingSystem();
-        if (os.toString().toLowerCase().indexOf("windows") != -1) {
-            assertTrue(OperatingSystem.isWindows());
-            if (os.toString().toLowerCase().indexOf("windows 7") != -1) {
-                assertTrue(OperatingSystem.isWindows7());
-                assertFalse(OperatingSystem.isVista());
-                assertFalse(OperatingSystem.isWindows2008());
-            } else if (os.toString().toLowerCase().indexOf("vista") != -1) {
-                assertTrue(OperatingSystem.isVista());
-                assertFalse(OperatingSystem.isWindows7());
-                assertFalse(OperatingSystem.isWindows2008());
-            } else if (os.toString().toLowerCase().indexOf("server 2008") != -1) {
-                assertTrue(OperatingSystem.isWindows2008());
-                assertFalse(OperatingSystem.isWindows7());
-                assertFalse(OperatingSystem.isVista());
+    // @formatter:off
+    @DataProvider(name = "allOS")
+    Object[][] createValidArguments() throws Exception {
+        return new Object[][] {
+            { null },
+            { "" },
+            { "AIX" },
+            { "Digital Unix" },
+            { "FreeBSD" },
+            { "HP UX" },
+            { "Irix" },
+            { "Linux" },
+            { "Mac OS" },
+            { "Mac OS X" },
+            { "MPE/iX" },
+            { "Netware 4.11" },
+            { "OS/2" },
+            { "Solaris" },
+            { "Windows 2000" },
+            { "Windows Server 2008" },
+            { "Windows 95" },
+            { "Windows 98" },
+            { "Windows NT" },
+            { "Windows Vista" },
+            { "Windows 7" },
+            { "Windows XP"  },
+        };
+    }
+    // @formatter:on
+
+    @Test(dataProvider = "allOS")
+    public void testOperatingSystems(String value) throws Exception {
+        String orig = System.getProperty("os.name");
+        try {
+            if (value == null) {
+                System.clearProperty("os.name");
+            } else {
+                System.setProperty("os.name", value);
             }
-            assertFalse(OperatingSystem.isMacOS());
-            assertFalse(OperatingSystem.isUnix());
-            assertFalse(OperatingSystem.isUnixBased());
-
-        } else if (os.toString().toLowerCase().indexOf("solaris") != -1
-                || os.toString().toLowerCase().indexOf("linux") != -1
-                || os.toString().toLowerCase().indexOf("hp-ux") != -1
-                || os.toString().toLowerCase().indexOf("hpux") != -1
-                || os.toString().toLowerCase().indexOf("aix") != -1
-                || os.toString().toLowerCase().indexOf("freebsd") != -1) {
-            assertTrue(OperatingSystem.isUnix());
-            assertFalse(OperatingSystem.isMacOS());
-            assertFalse(OperatingSystem.isWindows());
-            assertTrue(OperatingSystem.isUnixBased());
-        } else if (os.toString().toLowerCase().indexOf("macos") != -1) {
-            assertTrue(OperatingSystem.isMacOS());
-            assertFalse(OperatingSystem.isUnix());
-            assertTrue(OperatingSystem.isUnixBased());
+            run();
+        } finally {
+            System.setProperty("os.name", orig);
         }
+    }
 
+    @Test()
+    private void run() {
+        final OperatingSystem os = OperatingSystem.getOperatingSystem();
+
+        if (os == OperatingSystem.WINDOWS7) {
+            assertTrue(OperatingSystem.isWindows());
+            assertTrue(OperatingSystem.isWindows7());
+            assertFalse(OperatingSystem.isVista());
+            assertFalse(OperatingSystem.isWindows2008());
+            assertFalse(OperatingSystem.isMacOS());
+            assertFalse(OperatingSystem.isUnix());
+        } else if (os == OperatingSystem.WINDOWS_VISTA) {
+            assertTrue(OperatingSystem.isWindows());
+            assertFalse(OperatingSystem.isWindows7());
+            assertTrue(OperatingSystem.isVista());
+            assertFalse(OperatingSystem.isWindows2008());
+            assertFalse(OperatingSystem.isMacOS());
+            assertFalse(OperatingSystem.isUnix());
+        } else if (os == OperatingSystem.WINDOWS_SERVER_2008) {
+            assertTrue(OperatingSystem.isWindows());
+            assertFalse(OperatingSystem.isWindows7());
+            assertFalse(OperatingSystem.isVista());
+            assertTrue(OperatingSystem.isWindows2008());
+            assertFalse(OperatingSystem.isMacOS());
+            assertFalse(OperatingSystem.isUnix());
+        } else if (os == OperatingSystem.WINDOWS) {
+            assertTrue(OperatingSystem.isWindows());
+            assertFalse(OperatingSystem.isWindows7());
+            assertFalse(OperatingSystem.isVista());
+            assertFalse(OperatingSystem.isWindows2008());
+            assertFalse(OperatingSystem.isMacOS());
+            assertFalse(OperatingSystem.isUnix());
+        } else if (os == OperatingSystem.SOLARIS
+                || os == OperatingSystem.LINUX
+                || os == OperatingSystem.HPUX
+                || os == OperatingSystem.FREEBSD
+                || os == OperatingSystem.AIX) {
+            assertNotWindows();
+            assertFalse(OperatingSystem.isMacOS());
+            assertTrue(OperatingSystem.isUnix());
+        } else if (os == OperatingSystem.MACOSX) {
+            assertNotWindows();
+            assertTrue(OperatingSystem.isMacOS());
+            assertTrue(OperatingSystem.isUnix());
+        } else {
+            assertNotWindows();
+            assertFalse(OperatingSystem.isMacOS());
+            assertFalse(OperatingSystem.isUnix());
+            assertTrue(OperatingSystem.isUnknown());
+        }
+    }
+
+    private void assertNotWindows() {
+        assertFalse(OperatingSystem.isWindows());
+        assertFalse(OperatingSystem.isWindows7());
+        assertFalse(OperatingSystem.isVista());
+        assertFalse(OperatingSystem.isWindows2008());
     }
 }

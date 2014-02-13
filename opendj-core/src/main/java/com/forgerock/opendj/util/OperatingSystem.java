@@ -27,64 +27,78 @@
 package com.forgerock.opendj.util;
 
 /**
- * This class defines an enumeration that may be used to identify the operating system on which the JVM is running.
+ * This class defines an enumeration that may be used to identify the operating system
+ * on which the JVM is running.
  */
 public enum OperatingSystem {
     /**
      * The value indicating the AIX operating system.
      */
-    AIX("AIX"),
+    AIX("AIX", false, false, true),
 
     /**
      * The value indicating the FreeBSD operating system.
      */
-    FREEBSD("FreeBSD"),
+    FREEBSD("FreeBSD", false, false, true),
 
     /**
      * The value indicating the HP-UX operating system.
      */
-    HPUX("HP-UX"),
+    HPUX("HP UX", false, false, true),
 
     /**
      * The value indicating the Linux operating system.
      */
-    LINUX("Linux"),
+    LINUX("Linux", false, false, true),
 
     /**
      * The value indicating the Mac OS X operating system.
      */
-    MACOS("Mac OS X"),
+    MACOSX("Mac OS X", false, true, true),
 
     /**
      * The value indicating the Solaris operating system.
      */
-    SOLARIS("Solaris"),
+    SOLARIS("Solaris", false, false, true),
 
     /**
      * The value indicating the Windows operating system.
      */
-    WINDOWS("Windows"),
+    WINDOWS("Windows", true, false, false),
+
+    /**
+     * The value indicating the Windows 7 operating system.
+     */
+    WINDOWS7("Windows 7", true, false, false),
+
+    /**
+     * The value indicating the Windows Vista operating system.
+     */
+    WINDOWS_VISTA("Windows Vista", true, false, false),
+
+    /**
+     * The value indicating the Windows Server 2008 operating system.
+     */
+    WINDOWS_SERVER_2008("Server 2008", true, false, false),
 
     /**
      * The value indicating the z/OS operating system.
      */
-    ZOS("z/OS"),
+    ZOS("z/OS", false, false, false),
 
     /**
      * The value indicating an unknown operating system.
      */
-    UNKNOWN("Unknown");
+    UNKNOWN("Unknown", false, false, false);
 
     // The human-readable name for this operating system.
     private String osName;
 
-    private static boolean isWindows = false;
-    private static boolean isVista = false;
-    private static boolean isWindows2008 = false;
-    private static boolean isWindows7 = false;
-    private static boolean isMacOS = false;
-    private static boolean isUnix = false;
-    private static boolean isUnixBased = false;
+    private boolean isWindows;
+    private boolean isMacOS;
+    private boolean isUnixBased;
+
+    private static OperatingSystem os;
 
     /**
      * Creates a new operating system value with the provided name.
@@ -92,8 +106,11 @@ public enum OperatingSystem {
      * @param osName
      *            The human-readable name for the operating system.
      */
-    private OperatingSystem(String osName) {
+    private OperatingSystem(String osName, boolean isWindows, boolean isMacOS, boolean isUnixBased) {
         this.osName = osName;
+        this.isWindows = isWindows;
+        this.isMacOS = isMacOS;
+        this.isUnixBased = isUnixBased;
     }
 
     /**
@@ -113,6 +130,10 @@ public enum OperatingSystem {
      * @return The operating system for the provided name.
      */
     public static OperatingSystem forName(final String osName) {
+        return os = forName2(osName);
+    }
+
+    private static OperatingSystem forName2(final String osName) {
         if (osName == null) {
             return UNKNOWN;
         }
@@ -120,45 +141,31 @@ public enum OperatingSystem {
         final String lowerName = osName.toLowerCase();
 
         if ((lowerName.indexOf("solaris") >= 0) || (lowerName.indexOf("sunos") >= 0)) {
-            isUnix = true;
-            isUnixBased = true;
             return SOLARIS;
         } else if (lowerName.indexOf("linux") >= 0) {
-            isUnix = true;
-            isUnixBased = true;
             return LINUX;
         } else if ((lowerName.indexOf("hp-ux") >= 0) || (lowerName.indexOf("hp ux") >= 0)
                 || (lowerName.indexOf("hpux") >= 0)) {
-            isUnix = true;
-            isUnixBased = true;
             return HPUX;
         } else if (lowerName.indexOf("aix") >= 0) {
-            isUnix = true;
-            isUnixBased = true;
             return AIX;
         } else if (lowerName.indexOf("windows") >= 0) {
-            isWindows = true;
-            if (lowerName.toString().indexOf("windows 7") != -1) {
-                isWindows7 = true;
+            if (lowerName.indexOf("windows 7") != -1) {
+                return WINDOWS7;
             } else if (lowerName.indexOf("vista") != -1) {
-                isVista = true;
+                return WINDOWS_VISTA;
             } else if (lowerName.indexOf("server 2008") != -1) {
-                isWindows2008 = true;
+                return WINDOWS_SERVER_2008;
             }
             return WINDOWS;
         } else if ((lowerName.indexOf("freebsd") >= 0) || (lowerName.indexOf("free bsd") >= 0)) {
-            isUnix = true;
-            isUnixBased = true;
             return FREEBSD;
-        } else if ((lowerName.indexOf("macos") >= 0) || (lowerName.indexOf("mac os") >= 0)) {
-            isMacOS = true;
-            isUnixBased = true;
-            return MACOS;
+        } else if ((lowerName.indexOf("macos x") >= 0) || (lowerName.indexOf("mac os x") >= 0)) {
+            return MACOSX;
         } else if (lowerName.indexOf("z/os") >= 0) {
             return ZOS;
-        } else {
-            return UNKNOWN;
         }
+        return UNKNOWN;
     }
 
     /**
@@ -170,17 +177,7 @@ public enum OperatingSystem {
      * @return <CODE>true</CODE> if the provided operating system is UNIX-based, or <CODE>false</CODE> if not.
      */
     public static boolean isUNIXBased(OperatingSystem os) {
-        switch (os) {
-        case SOLARIS:
-        case LINUX:
-        case HPUX:
-        case AIX:
-        case FREEBSD:
-        case MACOS:
-            return true;
-        default:
-            return false;
-        }
+        return os.isUnixBased;
     }
 
     /**
@@ -198,7 +195,7 @@ public enum OperatingSystem {
      * @return {@code true} if the underlying operating system is a Windows variant, or {@code false} if not.
      */
     public static boolean isWindows() {
-        return isWindows;
+        return os.isWindows;
     }
 
     /**
@@ -207,7 +204,7 @@ public enum OperatingSystem {
      * @return {@code true} if the underlying operating system is Windows Vista, or {@code false} if not.
      */
     public static boolean isVista() {
-        return isVista;
+        return os == WINDOWS_VISTA;
     }
 
     /**
@@ -216,7 +213,7 @@ public enum OperatingSystem {
      * @return {@code true} if the underlying operating system is Windows 2008, or {@code false} if not.
      */
     public static boolean isWindows2008() {
-        return isWindows2008;
+        return os == WINDOWS_SERVER_2008;
     }
 
     /**
@@ -225,7 +222,7 @@ public enum OperatingSystem {
      * @return {@code true} if the underlying operating system is Windows 7, or {@code false} if not.
      */
     public static boolean isWindows7() {
-        return isWindows7;
+        return os == WINDOWS7;
     }
 
     /**
@@ -234,7 +231,7 @@ public enum OperatingSystem {
      * @return {@code true} if we are running under Mac OS and {@code false} otherwise.
      */
     public static boolean isMacOS() {
-        return isMacOS;
+        return os == MACOSX;
     }
 
     /**
@@ -243,7 +240,7 @@ public enum OperatingSystem {
      * @return {@code true} if we are running under Unix and {@code false} otherwise.
      */
     public static boolean isUnix() {
-        return isUnix;
+        return os.isUnixBased;
     }
 
     /**
@@ -252,7 +249,16 @@ public enum OperatingSystem {
      * @return {@code true} if the OS is Unix based.
      */
     public static boolean isUnixBased() {
-        return isUnixBased;
+        return os.isUnixBased;
+    }
+
+    /**
+     * Returns {@code true} if the OS is Unknown.
+     *
+     * @return {@code true} if the OS is Unknown.
+     */
+    public static boolean isUnknown() {
+        return os == UNKNOWN;
     }
 
     /**
