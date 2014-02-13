@@ -95,72 +95,94 @@ public class ArgumentParser {
      */
     private BooleanArgument noPropertiesFileArgument;
 
-    // The argument that will be used to trigger the display of usage
-    // information.
+    /**
+     * The argument that will be used to trigger the display of usage
+     * information.
+     */
     private Argument usageArgument;
 
-    // The argument that will be used to trigger the display of the OpenDJ
-    // version.
+    /**
+     * The argument that will be used to trigger the display of the OpenDJ
+     * version.
+     */
     private Argument versionArgument;
 
-    // The set of unnamed trailing arguments that were provided for this
-    // parser.
+    /**
+     * The set of unnamed trailing arguments that were provided for this parser.
+     */
     private final ArrayList<String> trailingArguments;
 
-    // Indicates whether this parser will allow additional unnamed
-    // arguments at the end of the list.
+    /**
+     * Indicates whether this parser will allow additional unnamed arguments at
+     * the end of the list.
+     */
     private final boolean allowsTrailingArguments;
 
-    // Indicates whether long arguments should be treated in a
-    // case-sensitive manner.
+    /**
+     * Indicates whether long arguments should be treated in a case-sensitive
+     * manner.
+     */
     private final boolean longArgumentsCaseSensitive;
 
-    // Indicates whether the usage or version information has been
-    // displayed.
+    /**
+     * Indicates whether the usage or version information has been displayed.
+     */
     private boolean usageOrVersionDisplayed;
 
-    // Indicates whether the version argument was provided.
+    /** Indicates whether the version argument was provided. */
     private boolean versionPresent;
 
-    // The set of arguments defined for this parser, referenced by short
-    // ID.
+    /**
+     * The set of arguments defined for this parser, referenced by short ID.
+     */
     private final HashMap<Character, Argument> shortIDMap;
 
-    // The set of arguments defined for this parser, referenced by
-    // argument name.
+    /**
+     * The set of arguments defined for this parser, referenced by argument
+     * name.
+     */
     private final HashMap<String, Argument> argumentMap;
 
-    // The set of arguments defined for this parser, referenced by long
-    // ID.
+    /**
+     * The set of arguments defined for this parser, referenced by long ID.
+     */
     private final HashMap<String, Argument> longIDMap;
 
-    // The maximum number of unnamed trailing arguments that may be
-    // provided.
+    /**
+     * The maximum number of unnamed trailing arguments that may be provided.
+     */
     private final int maxTrailingArguments;
 
-    // The minimum number of unnamed trailing arguments that may be
-    // provided.
+    /**
+     * The minimum number of unnamed trailing arguments that may be provided.
+     */
     private final int minTrailingArguments;
 
-    // The total set of arguments defined for this parser.
+    /** The total set of arguments defined for this parser. */
     private final LinkedList<Argument> argumentList;
 
-    // The output stream to which usage information should be printed.
+    /** The output stream to which usage information should be printed. */
     private OutputStream usageOutputStream;
 
-    // The fully-qualified name of the Java class that should be invoked
-    // to launch the program with which this argument parser is associated.
+    /**
+     * The fully-qualified name of the Java class that should be invoked to
+     * launch the program with which this argument parser is associated.
+     */
     private final String mainClassName;
 
-    // A human-readable description for the tool, which will be included
-    // when displaying usage information.
+    /**
+     * A human-readable description for the tool, which will be included when
+     * displaying usage information.
+     */
     private final LocalizableMessage toolDescription;
 
-    // The display name that will be used for the trailing arguments in
-    // the usage information.
+    /**
+     * The display name that will be used for the trailing arguments in the
+     * usage information.
+     */
     private final String trailingArgsDisplayName;
 
-    // The raw set of command-line arguments that were provided.
+    /** The raw set of command-line arguments that were provided. */
     private String[] rawArguments;
 
     /** Set of argument groups. */
@@ -195,9 +217,9 @@ public class ArgumentParser {
     private final ArgumentGroup generalArgGroup = new ArgumentGroup(INFO_DESCRIPTION_GENERAL_ARGS
             .get(), Integer.MIN_VALUE);
 
-    private final static String INDENT = "    ";
+    private static final String INDENT = "    ";
 
-    private final static int MAX_LENGTH = 80;
+    private static final int MAX_LENGTH = 80;
 
     /**
      * Creates a new instance of this argument parser with no arguments. Unnamed
@@ -322,24 +344,21 @@ public class ArgumentParser {
     public void addArgument(final Argument argument, ArgumentGroup group) throws ArgumentException {
 
         final Character shortID = argument.getShortIdentifier();
-        if ((shortID != null) && shortIDMap.containsKey(shortID)) {
+        if (shortID != null && shortIDMap.containsKey(shortID)) {
             final String conflictingName = shortIDMap.get(shortID).getName();
-
-            final LocalizableMessage message =
-                    ERR_ARGPARSER_DUPLICATE_SHORT_ID.get(argument.getName(), String
-                            .valueOf(shortID), conflictingName);
-            throw new ArgumentException(message);
+            throw new ArgumentException(
+                    ERR_ARGPARSER_DUPLICATE_SHORT_ID.get(argument.getName(), shortID, conflictingName));
         }
 
-        if (versionArgument != null) {
-            if (shortID != null && shortID.equals(versionArgument.getShortIdentifier())) {
-                // Update the version argument to not display its short identifier.
-                try {
-                    versionArgument = getVersionArgument(false);
-                    this.generalArgGroup.addArgument(versionArgument);
-                } catch (final ArgumentException e) {
-                    // ignore
-                }
+        if (versionArgument != null
+                && shortID != null
+                && shortID.equals(versionArgument.getShortIdentifier())) {
+            // Update the version argument to not display its short identifier.
+            try {
+                versionArgument = getVersionArgument(false);
+                this.generalArgGroup.addArgument(versionArgument);
+            } catch (final ArgumentException e) {
+                // ignore
             }
         }
 
@@ -382,7 +401,7 @@ public class ArgumentParser {
 
     /**
      * Adds the provided argument to the set of arguments handled by this parser
-     * and puts the arguement in the default group.
+     * and puts the argument in the default group.
      *
      * @param argument
      *            The argument to be added.
@@ -396,7 +415,7 @@ public class ArgumentParser {
 
     /**
      * Adds the provided argument to the set of arguments handled by this parser
-     * and puts the arguement in the general group.
+     * and puts the argument in the general group.
      *
      * @param argument
      *            The argument to be added.
@@ -461,7 +480,7 @@ public class ArgumentParser {
      */
     Properties checkExternalProperties() throws ArgumentException {
         // We don't look for properties file.
-        if ((noPropertiesFileArgument != null) && (noPropertiesFileArgument.isPresent())) {
+        if (noPropertiesFileArgument != null && noPropertiesFileArgument.isPresent()) {
             return null;
         }
 
@@ -516,8 +535,7 @@ public class ArgumentParser {
             }
         } catch (final Exception e) {
             final LocalizableMessage message =
-                    ERR_ARGPARSER_CANNOT_READ_PROPERTIES_FILE.get(String
-                            .valueOf(propertiesFilePath), getExceptionMessage(e));
+                    ERR_ARGPARSER_CANNOT_READ_PROPERTIES_FILE.get(propertiesFilePath, getExceptionMessage(e));
             throw new ArgumentException(message, e);
         }
         return argumentProperties;
@@ -727,23 +745,23 @@ public class ArgumentParser {
     void getUsage(final StringBuilder buffer) {
         usageOrVersionDisplayed = true;
         final String scriptName = System.getProperty(PROPERTY_SCRIPT_NAME);
-        if ((scriptName == null) || (scriptName.length() == 0)) {
+        if (scriptName == null || scriptName.length() == 0) {
             buffer.append(INFO_ARGPARSER_USAGE_JAVA_CLASSNAME.get(mainClassName));
         } else {
             buffer.append(INFO_ARGPARSER_USAGE_JAVA_SCRIPTNAME.get(scriptName));
         }
 
         if (allowsTrailingArguments) {
+            buffer.append(" ");
             if (trailingArgsDisplayName == null) {
-                buffer.append(" " + INFO_ARGPARSER_USAGE_TRAILINGARGS.get());
+                buffer.append(INFO_ARGPARSER_USAGE_TRAILINGARGS.get());
             } else {
-                buffer.append(" ");
                 buffer.append(trailingArgsDisplayName);
             }
         }
         buffer.append(EOL);
         buffer.append(EOL);
-        if ((toolDescription != null) && (toolDescription.length() > 0)) {
+        if (toolDescription != null && toolDescription.length() > 0) {
             buffer.append(wrapText(toolDescription.toString(), MAX_LENGTH - 1));
             buffer.append(EOL);
             buffer.append(EOL);
@@ -769,9 +787,8 @@ public class ArgumentParser {
 
             final SortedSet<Argument> args = new TreeSet<Argument>(new Comparator<Argument>() {
 
-                /**
-                 * {@inheritDoc}
-                 */
+                /** {@inheritDoc} */
+                @Override
                 public int compare(final Argument o1, final Argument o2) {
                     final String s1;
                     final String s2;
@@ -807,7 +824,7 @@ public class ArgumentParser {
                 }
 
                 // Help argument should be printed at the end
-                if ((usageArgument != null) && usageArgument.getName().equals(a.getName())) {
+                if (usageArgument != null && usageArgument.getName().equals(a.getName())) {
                     helpArgument = a;
                     continue;
                 }
@@ -847,11 +864,7 @@ public class ArgumentParser {
      *         <CODE>false</CODE> otherwise.
      */
     public boolean isUsageArgumentPresent() {
-        boolean isUsageArgumentPresent = false;
-        if (usageArgument != null) {
-            isUsageArgumentPresent = usageArgument.isPresent();
-        }
-        return isUsageArgumentPresent;
+        return usageArgument != null && usageArgument.isPresent();
     }
 
     /**
@@ -905,7 +918,7 @@ public class ArgumentParser {
 
             if (inTrailingArgs) {
                 trailingArguments.add(arg);
-                if ((maxTrailingArguments > 0) && (trailingArguments.size() > maxTrailingArguments)) {
+                if (maxTrailingArguments > 0 && trailingArguments.size() > maxTrailingArguments) {
                     final LocalizableMessage message =
                             ERR_ARGPARSER_TOO_MANY_TRAILING_ARGS.get(maxTrailingArguments);
                     throw new ArgumentException(message);
@@ -989,7 +1002,7 @@ public class ArgumentParser {
 
                     // If this is the usage argument, then immediately stop and
                     // print usage information.
-                    if ((usageArgument != null) && usageArgument.getName().equals(a.getName())) {
+                    if (usageArgument != null && usageArgument.getName().equals(a.getName())) {
                         try {
                             getUsage(usageOutputStream);
                         } catch (final Exception e) {
@@ -1024,10 +1037,8 @@ public class ArgumentParser {
 
                     // If the argument already has a value, then make sure it is
                     // acceptable to have more than one.
-                    if (a.hasValue() && (!a.isMultiValued())) {
-                        final LocalizableMessage message =
-                                ERR_ARGPARSER_NOT_MULTIVALUED_FOR_LONG_ID.get(origArgName);
-                        throw new ArgumentException(message);
+                    if (a.hasValue() && !a.isMultiValued()) {
+                        throw new ArgumentException(ERR_ARGPARSER_NOT_MULTIVALUED_FOR_LONG_ID.get(origArgName));
                     }
 
                     a.addValue(argValue);
@@ -1046,8 +1057,7 @@ public class ArgumentParser {
                 // -nvalue
                 // -n value
                 if (arg.equals("-")) {
-                    final LocalizableMessage message = ERR_ARGPARSER_INVALID_DASH_AS_ARGUMENT.get();
-                    throw new ArgumentException(message);
+                    throw new ArgumentException(ERR_ARGPARSER_INVALID_DASH_AS_ARGUMENT.get());
                 }
 
                 final char argCharacter = arg.charAt(1);
@@ -1071,8 +1081,8 @@ public class ArgumentParser {
                         }
 
                         return;
-                    } else if ((argCharacter == OPTION_SHORT_PRODUCT_VERSION)
-                            && (!shortIDMap.containsKey(OPTION_SHORT_PRODUCT_VERSION))) {
+                    } else if (argCharacter == OPTION_SHORT_PRODUCT_VERSION
+                            && !shortIDMap.containsKey(OPTION_SHORT_PRODUCT_VERSION)) {
                         // "-V" will always be interpreted as requesting
                         // version information except if it's already defined
                         // (e.g
@@ -1088,17 +1098,14 @@ public class ArgumentParser {
                         return;
                     } else {
                         // There is no such argument registered.
-                        final LocalizableMessage message =
-                                ERR_ARGPARSER_NO_ARGUMENT_WITH_SHORT_ID.get(String
-                                        .valueOf(argCharacter));
-                        throw new ArgumentException(message);
+                        throw new ArgumentException(ERR_ARGPARSER_NO_ARGUMENT_WITH_SHORT_ID.get(argCharacter));
                     }
                 } else {
                     a.setPresent(true);
 
                     // If this is the usage argument, then immediately stop and
                     // print usage information.
-                    if ((usageArgument != null) && usageArgument.getName().equals(a.getName())) {
+                    if (usageArgument != null && usageArgument.getName().equals(a.getName())) {
                         try {
                             getUsage(usageOutputStream);
                         } catch (final Exception e) {
@@ -1114,10 +1121,8 @@ public class ArgumentParser {
                 if (a.needsValue()) {
                     if (argValue == null) {
                         if ((i + 1) == numArguments) {
-                            final LocalizableMessage message =
-                                    ERR_ARGPARSER_NO_VALUE_FOR_ARGUMENT_WITH_SHORT_ID.get(String
-                                            .valueOf(argCharacter));
-                            throw new ArgumentException(message);
+                            throw new ArgumentException(
+                                    ERR_ARGPARSER_NO_VALUE_FOR_ARGUMENT_WITH_SHORT_ID.get(argCharacter));
                         }
 
                         argValue = rawArguments[++i];
@@ -1125,33 +1130,23 @@ public class ArgumentParser {
 
                     final LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
                     if (!a.valueIsAcceptable(argValue, invalidReason)) {
-                        final LocalizableMessage message =
-                                ERR_ARGPARSER_VALUE_UNACCEPTABLE_FOR_SHORT_ID.get(argValue, String
-                                        .valueOf(argCharacter), invalidReason.toString());
-                        throw new ArgumentException(message);
+                        throw new ArgumentException(ERR_ARGPARSER_VALUE_UNACCEPTABLE_FOR_SHORT_ID.get(
+                                argValue, argCharacter, invalidReason));
                     }
 
                     // If the argument already has a value, then make sure it is
                     // acceptable to have more than one.
-                    if (a.hasValue() && (!a.isMultiValued())) {
-                        final LocalizableMessage message =
-                                ERR_ARGPARSER_NOT_MULTIVALUED_FOR_SHORT_ID.get(String
-                                        .valueOf(argCharacter));
-                        throw new ArgumentException(message);
+                    if (a.hasValue() && !a.isMultiValued()) {
+                        throw new ArgumentException(ERR_ARGPARSER_NOT_MULTIVALUED_FOR_SHORT_ID.get(argCharacter));
                     }
 
                     a.addValue(argValue);
                 } else {
                     if (argValue != null) {
-                        // If we've gotten here, then it means that we're in a
-                        // scenario like
-                        // "-abc" where "a" is a valid argument that doesn't
-                        // take a
-                        // value. However, this could still be valid if all
-                        // remaining
-                        // characters in the value are also valid argument
-                        // characters that
-                        // don't take values.
+                        // If we've gotten here, then it means that we're in a scenario like
+                        // "-abc" where "a" is a valid argument that doesn't take a value.
+                        // However, this could still be valid if all remaining characters
+                        // in the value are also valid argument characters that don't take values.
                         final int valueLength = argValue.length();
                         for (int j = 0; j < valueLength; j++) {
                             final char c = argValue.charAt(j);
@@ -1159,28 +1154,21 @@ public class ArgumentParser {
                             if (b == null) {
                                 // There is no such argument registered.
                                 final LocalizableMessage message =
-                                        ERR_ARGPARSER_NO_ARGUMENT_WITH_SHORT_ID.get(String
-                                                .valueOf(argCharacter));
+                                        ERR_ARGPARSER_NO_ARGUMENT_WITH_SHORT_ID.get(argCharacter);
                                 throw new ArgumentException(message);
                             } else if (b.needsValue()) {
                                 // This means we're in a scenario like "-abc"
-                                // where b is
-                                // a valid argument that takes a value. We don't
-                                // support
-                                // that.
+                                // where b is a valid argument that takes a value.
+                                // We don't support that.
                                 final LocalizableMessage message =
-                                        ERR_ARGPARSER_CANT_MIX_ARGS_WITH_VALUES
-                                                .get(String.valueOf(argCharacter), argValue, String
-                                                        .valueOf(c));
+                                        ERR_ARGPARSER_CANT_MIX_ARGS_WITH_VALUES.get(argCharacter, argValue, c);
                                 throw new ArgumentException(message);
                             } else {
                                 b.setPresent(true);
 
-                                // If this is the usage argument, then
-                                // immediately stop
-                                // and print usage information.
-                                if ((usageArgument != null)
-                                        && usageArgument.getName().equals(b.getName())) {
+                                // If this is the usage argument,
+                                // then immediately stop and print usage information.
+                                if (usageArgument != null && usageArgument.getName().equals(b.getName())) {
                                     try {
                                         getUsage(usageOutputStream);
                                     } catch (final Exception e) {
@@ -1201,20 +1189,16 @@ public class ArgumentParser {
             } else {
                 // It doesn't start with a dash and we don't allow trailing
                 // arguments, so this is illegal.
-                final LocalizableMessage message =
-                        ERR_ARGPARSER_DISALLOWED_TRAILING_ARGUMENT.get(arg);
-                throw new ArgumentException(message);
+                throw new ArgumentException(ERR_ARGPARSER_DISALLOWED_TRAILING_ARGUMENT.get(arg));
             }
         }
 
         // If we allow trailing arguments and there is a minimum number,
         // then make sure at least that many were provided.
-        if (allowsTrailingArguments && (minTrailingArguments > 0)) {
-            if (trailingArguments.size() < minTrailingArguments) {
-                final LocalizableMessage message =
-                        ERR_ARGPARSER_TOO_FEW_TRAILING_ARGUMENTS.get(minTrailingArguments);
-                throw new ArgumentException(message);
-            }
+        if (allowsTrailingArguments
+                && minTrailingArguments > 0
+                && trailingArguments.size() < minTrailingArguments) {
+            throw new ArgumentException(ERR_ARGPARSER_TOO_FEW_TRAILING_ARGUMENTS.get(minTrailingArguments));
         }
 
         // If we don't have the argumentProperties, try to load a properties
@@ -1223,49 +1207,11 @@ public class ArgumentParser {
             argumentProperties = checkExternalProperties();
         }
 
-        // Iterate through all of the arguments. For any that were not
-        // provided on the command line, see if there is an alternate default
-        // that
-        // can be used. For cases where there is not, see that argument is
-        // required.
-        for (final Argument a : argumentList) {
-            if (!a.isPresent()) {
-                // See if there is a value in the properties that can be used
-                if ((argumentProperties != null) && (a.getPropertyName() != null)) {
-                    final String value =
-                            argumentProperties.getProperty(a.getPropertyName().toLowerCase());
-                    final LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
-                    if (value != null) {
-                        Boolean addValue = true;
-                        if (!(a instanceof BooleanArgument)) {
-                            addValue = a.valueIsAcceptable(value, invalidReason);
-                        }
-                        if (addValue) {
-                            a.addValue(value);
-                            if (a.needsValue()) {
-                                a.setPresent(true);
-                            }
-                            a.setValueSetByProperty(true);
-                        }
-                    }
-                }
-            }
-
-            if ((!a.isPresent()) && a.needsValue()) {
-                // See if the argument defines a default.
-                if (a.getDefaultValue() != null) {
-                    a.addValue(a.getDefaultValue());
-                }
-
-                // If there is still no value and the argument is required, then
-                // that's a problem.
-                if ((!a.hasValue()) && a.isRequired()) {
-                    final LocalizableMessage message =
-                            ERR_ARGPARSER_NO_VALUE_FOR_REQUIRED_ARG.get(a.getName());
-                    throw new ArgumentException(message);
-                }
-            }
-        }
+        // Iterate through all of the arguments.
+        // For any that were not provided on the command line,
+        // see if there is an alternate default that can be used.
+        // For cases where there is not, see that argument is required.
+        normalizeArguments(argumentProperties, argumentList);
     }
 
     /**
@@ -1459,9 +1405,8 @@ public class ArgumentParser {
                         + DEFAULT_OPENDJ_PROPERTIES_FILE_EXTENSION);
         if (f.exists() && f.canRead()) {
             return f.getAbsolutePath();
-        } else {
-            return null;
         }
+        return null;
     }
 
     private void initGroups() {
@@ -1489,11 +1434,10 @@ public class ArgumentParser {
     }
 
     private boolean isInputOutputArgument(final Argument arg) {
-        boolean io = false;
         if (arg != null) {
             final String longId = arg.getLongIdentifier();
-            io =
-                    OPTION_LONG_VERBOSE.equals(longId) || OPTION_LONG_QUIET.equals(longId)
+            return OPTION_LONG_VERBOSE.equals(longId)
+                            || OPTION_LONG_QUIET.equals(longId)
                             || OPTION_LONG_NO_PROMPT.equals(longId)
                             || OPTION_LONG_PROP_FILE_PATH.equals(longId)
                             || OPTION_LONG_NO_PROP_FILE.equals(longId)
@@ -1502,16 +1446,16 @@ public class ArgumentParser {
                             || OPTION_LONG_ENCODING.equals(longId)
                             || OPTION_LONG_BATCH_FILE_PATH.equals(longId);
         }
-        return io;
+        return false;
     }
 
     private boolean isLdapConnectionArgument(final Argument arg) {
-        boolean ldap = false;
         if (arg != null) {
             final String longId = arg.getLongIdentifier();
-            ldap =
-                    OPTION_LONG_USE_SSL.equals(longId) || OPTION_LONG_START_TLS.equals(longId)
-                            || OPTION_LONG_HOST.equals(longId) || OPTION_LONG_PORT.equals(longId)
+            return OPTION_LONG_USE_SSL.equals(longId)
+                            || OPTION_LONG_START_TLS.equals(longId)
+                            || OPTION_LONG_HOST.equals(longId)
+                            || OPTION_LONG_PORT.equals(longId)
                             || OPTION_LONG_BINDDN.equals(longId)
                             || OPTION_LONG_BINDPWD.equals(longId)
                             || OPTION_LONG_BINDPWD_FILE.equals(longId)
@@ -1531,7 +1475,7 @@ public class ArgumentParser {
                             || OPTION_LONG_USE_SASL_EXTERNAL.equals(longId)
                             || OPTION_LONG_PROTOCOL_VERSION.equals(longId);
         }
-        return ldap;
+        return false;
     }
 
     /**
@@ -1544,8 +1488,7 @@ public class ArgumentParser {
      */
     private void printArgumentUsage(final Argument a, final StringBuilder buffer) {
         // Write a line with the short and/or long identifiers that may be
-        // used
-        // for the argument.
+        // used for the argument.
         final int indentLength = INDENT.length();
         final Character shortID = a.getShortIdentifier();
         final String longID = a.getLongIdentifier();
@@ -1577,10 +1520,8 @@ public class ArgumentParser {
                 final int lineLength = (buffer.length() - currentLength) + newBuffer.length();
                 if (lineLength > MAX_LENGTH) {
                     buffer.append(EOL);
-                    buffer.append(newBuffer.toString());
-                } else {
-                    buffer.append(newBuffer.toString());
                 }
+                buffer.append(newBuffer);
             }
 
             buffer.append(EOL);
@@ -1607,7 +1548,7 @@ public class ArgumentParser {
         buffer.append(wrapText(a.getDescription(), MAX_LENGTH, indentLength));
         buffer.append(EOL);
 
-        if (a.needsValue() && (a.getDefaultValue() != null) && (a.getDefaultValue().length() > 0)) {
+        if (a.needsValue() && a.getDefaultValue() != null && a.getDefaultValue().length() > 0) {
             buffer.append(INDENT);
             buffer.append(INFO_ARGPARSER_USAGE_DEFAULT_VALUE.get(a.getDefaultValue()).toString());
             buffer.append(EOL);

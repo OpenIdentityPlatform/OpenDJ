@@ -28,9 +28,12 @@ package com.forgerock.opendj.cli;
 
 import static com.forgerock.opendj.cli.Utils.OBFUSCATED_VALUE;
 
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 import com.forgerock.opendj.util.OperatingSystem;
 
@@ -188,26 +191,23 @@ public class CommandBuilder {
             } else if (arg instanceof FileBasedArgument) {
                 for (String value : ((FileBasedArgument) arg).getNameToValueMap().keySet()) {
                     builder.append(lineSeparator + argName + " ");
-                    if (isObfuscated(arg) && !showObfuscated) {
-                        value = OBFUSCATED_VALUE;
-                    } else {
-                        value = escapeValue(value);
-                    }
-                    builder.append(value);
+                    builder.append(getOutputValue(value, arg, showObfuscated));
                 }
             } else {
                 for (String value : arg.getValues()) {
                     builder.append(lineSeparator + argName + " ");
-                    if (isObfuscated(arg) && !showObfuscated) {
-                        value = OBFUSCATED_VALUE;
-                    } else {
-                        value = escapeValue(value);
-                    }
-                    builder.append(value);
+                    builder.append(getOutputValue(value, arg, showObfuscated));
                 }
             }
         }
         return builder.toString();
+    }
+
+    private String getOutputValue(final String value, final Argument arg, final boolean showObfuscated) {
+        if (isObfuscated(arg) && !showObfuscated) {
+            return OBFUSCATED_VALUE;
+        }
+        return escapeValue(value);
     }
 
     /**
@@ -238,9 +238,9 @@ public class CommandBuilder {
         return obfuscatedArgs.contains(argument);
     }
 
-    // Chars that require special treatment when passing them to command-line.
-    private final static char[] CHARSTOESCAPE =
-    { ' ', '\t', '\n', '|', ';', '<', '>', '(', ')', '$', '`', '\\', '"', '\'' };
+    /** Chars that require special treatment when passing them to command-line. */
+    private final static Set<Character> CHARSTOESCAPE = new TreeSet<Character>(Arrays.asList(
+        ' ', '\t', '\n', '|', ';', '<', '>', '(', ')', '$', '`', '\\', '"', '\''));
 
     /**
      * This method simply takes a value and tries to transform it (with escape or '"') characters so that it can be used
@@ -255,11 +255,7 @@ public class CommandBuilder {
         if (OperatingSystem.isUnix()) {
             for (int i = 0; i < value.length(); i++) {
                 final char c = value.charAt(i);
-                boolean charToEscapeFound = false;
-                for (int j = 0; j < CHARSTOESCAPE.length && !charToEscapeFound; j++) {
-                    charToEscapeFound = c == CHARSTOESCAPE[j];
-                }
-                if (charToEscapeFound) {
+                if (CHARSTOESCAPE.contains(c)) {
                     b.append('\\');
                 }
                 b.append(c);

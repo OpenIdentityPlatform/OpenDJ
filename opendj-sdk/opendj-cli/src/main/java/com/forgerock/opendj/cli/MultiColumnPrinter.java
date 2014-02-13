@@ -125,17 +125,17 @@ public final class MultiColumnPrinter {
     /**
      * Left ID.
      */
-    static public final int LEFT = 0;
+    public static final int LEFT = 0;
 
     /**
      * Center ID.
      */
-    static public final int CENTER = 1;
+    public static final int CENTER = 1;
 
     /**
      * Right ID.
      */
-    static public final int RIGHT = 2;
+    public static final int RIGHT = 2;
 
     private int numCol = 2;
 

@@ -221,73 +221,43 @@ public final class SetupCli extends ConsoleApplication {
      */
     private void initializeArguments() throws ArgumentException {
         // Options.
-        acceptLicense = CommonArguments.getAcceptLicense();
-        cli = CommonArguments.getCLI();
-        baseDN = CommonArguments.getBaseDN();
-        addBaseEntry = CommonArguments.getAddBaseEntry();
-        importLDIF = CommonArguments.getImportLDIF();
-        rejectedImportFile = CommonArguments.getRejectedImportLdif();
-        skippedImportFile = CommonArguments.getSkippedImportFile();
-        sampleData = CommonArguments.getSampleData();
-        ldapPort = CommonArguments.getLDAPPort(DEFAULT_LDAP_PORT);
-        adminConnectorPort = CommonArguments.getAdminLDAPPort(DEFAULT_ADMIN_PORT);
-        jmxPort = CommonArguments.getJMXPort(DEFAULT_JMX_PORT);
-        skipPortCheck = CommonArguments.getSkipPortCheck();
-        directoryManagerDN = CommonArguments.getRootDN();
-        directoryManagerPwdString = CommonArguments.getRootDNPwd();
-        directoryManagerPwdFile = CommonArguments.getRootDNPwdFile();
-        enableWindowsService = CommonArguments.getEnableWindowsService();
-        doNotStart = CommonArguments.getDoNotStart();
-        enableStartTLS = CommonArguments.getEnableTLS();
-        ldapsPort = CommonArguments.getLDAPSPort(DEFAULT_LDAPS_PORT);
-        generateSelfSignedCertificate = CommonArguments.getGenerateSelfSigned();
-        hostName = CommonArguments.getHostName(Utils.getDefaultHostName());
-        usePkcs11 = CommonArguments.getUsePKCS11Keystore();
-        useJavaKeyStore = CommonArguments.getUseJavaKeyStore();
-        useJCEKS = CommonArguments.getUseJCEKS();
-        usePkcs12 = CommonArguments.getUsePKCS12KeyStore();
-        keyStorePassword = CommonArguments.getKeyStorePassword();
-        keyStorePasswordFile = CommonArguments.getKeyStorePasswordFile();
-        certNickname = CommonArguments.getCertNickName();
+        acceptLicense = addGlobal(CommonArguments.getAcceptLicense());
+        cli = addGlobal(CommonArguments.getCLI());
+        baseDN = addGlobal(CommonArguments.getBaseDN());
+        addBaseEntry = addGlobal(CommonArguments.getAddBaseEntry());
+        importLDIF = addGlobal(CommonArguments.getImportLDIF());
+        rejectedImportFile = addGlobal(CommonArguments.getRejectedImportLdif());
+        skippedImportFile = addGlobal(CommonArguments.getSkippedImportFile());
+        sampleData = addGlobal(CommonArguments.getSampleData());
+        ldapPort = addGlobal(CommonArguments.getLDAPPort(DEFAULT_LDAP_PORT));
+        ldapsPort = addGlobal(CommonArguments.getLDAPSPort(DEFAULT_LDAPS_PORT));
+        adminConnectorPort = addGlobal(CommonArguments.getAdminLDAPPort(DEFAULT_ADMIN_PORT));
+        jmxPort = addGlobal(CommonArguments.getJMXPort(DEFAULT_JMX_PORT));
+        skipPortCheck = addGlobal(CommonArguments.getSkipPortCheck());
+        directoryManagerDN = addGlobal(CommonArguments.getRootDN());
+        directoryManagerPwdString = addGlobal(CommonArguments.getRootDNPwd());
+        directoryManagerPwdFile = addGlobal(CommonArguments.getRootDNPwdFile());
+        enableWindowsService = addGlobal(CommonArguments.getEnableWindowsService());
+        doNotStart = addGlobal(CommonArguments.getDoNotStart());
+        enableStartTLS = addGlobal(CommonArguments.getEnableTLS());
+        generateSelfSignedCertificate = addGlobal(CommonArguments.getGenerateSelfSigned());
+        hostName = addGlobal(CommonArguments.getHostName(Utils.getDefaultHostName()));
+        usePkcs11 = addGlobal(CommonArguments.getUsePKCS11Keystore());
+        useJavaKeyStore = addGlobal(CommonArguments.getUseJavaKeyStore());
+        useJCEKS = addGlobal(CommonArguments.getUseJCEKS());
+        usePkcs12 = addGlobal(CommonArguments.getUsePKCS12KeyStore());
+        keyStorePassword = addGlobal(CommonArguments.getKeyStorePassword());
+        keyStorePasswordFile = addGlobal(CommonArguments.getKeyStorePasswordFile());
+        certNickname = addGlobal(CommonArguments.getCertNickName());
         connectTimeout = CommonArguments.getConnectTimeOut(DEFAULT_LDAP_CONNECT_TIMEOUT);
 
         // Utility Input Output Options.
-        noPrompt = CommonArguments.getNoPrompt();
-        quietMode = CommonArguments.getQuiet();
-        verbose = CommonArguments.getVerbose();
-        propertiesFile = CommonArguments.getPropertiesFile();
-        noPropertiesFile = CommonArguments.getNoPropertiesFile();
-        showUsage = CommonArguments.getShowUsage();
-
-        // Register global arguments.
-        argParser.addGlobalArgument(cli);
-        argParser.addGlobalArgument(baseDN);
-        argParser.addGlobalArgument(addBaseEntry);
-        argParser.addGlobalArgument(importLDIF);
-        argParser.addGlobalArgument(rejectedImportFile);
-        argParser.addGlobalArgument(skippedImportFile);
-        argParser.addGlobalArgument(sampleData);
-        argParser.addGlobalArgument(ldapPort);
-        argParser.addGlobalArgument(adminConnectorPort);
-        argParser.addGlobalArgument(jmxPort);
-        argParser.addGlobalArgument(skipPortCheck);
-        argParser.addGlobalArgument(directoryManagerDN);
-        argParser.addGlobalArgument(directoryManagerPwdString);
-        argParser.addGlobalArgument(directoryManagerPwdFile);
-        argParser.addGlobalArgument(enableWindowsService);
-        argParser.addGlobalArgument(doNotStart);
-        argParser.addGlobalArgument(enableStartTLS);
-        argParser.addGlobalArgument(ldapsPort);
-        argParser.addGlobalArgument(generateSelfSignedCertificate);
-        argParser.addGlobalArgument(hostName);
-        argParser.addGlobalArgument(usePkcs11);
-        argParser.addGlobalArgument(useJavaKeyStore);
-        argParser.addGlobalArgument(useJCEKS);
-        argParser.addGlobalArgument(usePkcs12);
-        argParser.addGlobalArgument(keyStorePassword);
-        argParser.addGlobalArgument(keyStorePasswordFile);
-        argParser.addGlobalArgument(certNickname);
-        argParser.addGlobalArgument(connectTimeout);
+        noPrompt = addGlobal(CommonArguments.getNoPrompt());
+        quietMode = addGlobal(CommonArguments.getQuiet());
+        verbose = addGlobal(CommonArguments.getVerbose());
+        propertiesFile = addGlobal(CommonArguments.getPropertiesFile());
+        noPropertiesFile = addGlobal(CommonArguments.getNoPropertiesFile());
+        showUsage = addGlobal(CommonArguments.getShowUsage());
 
         //Sub-commands && their arguments
         final ArrayList<SubCommand> subCommandList = new ArrayList<SubCommand>(2);
@@ -312,6 +282,11 @@ public final class SetupCli extends ConsoleApplication {
         argParser.addArgument(verbose);
         argParser.addArgument(noPrompt);
         argParser.addArgument(acceptLicense);
+    }
+
+    private <A extends Argument> A addGlobal(A arg) throws ArgumentException {
+        argParser.addGlobalArgument(arg);
+        return arg;
     }
 
     /** {@inheritDoc} */
@@ -375,29 +350,26 @@ public final class SetupCli extends ConsoleApplication {
             final Set<Integer> ports = new HashSet<Integer>();
             ports.add(ldapPort.getIntValue());
 
-            if (ports.contains(adminConnectorPort.getIntValue())) {
-                errorMessages.add(ERR_PORT_ALREADY_SPECIFIED.get(adminConnectorPort.getIntValue()));
-            } else {
-                ports.add(adminConnectorPort.getIntValue());
-            }
+            checkPortArgument(adminConnectorPort, ports, errorMessages);
 
             if (jmxPort.isPresent()) {
-                if (ports.contains(jmxPort.getIntValue())) {
-                    errorMessages.add(ERR_PORT_ALREADY_SPECIFIED.get(jmxPort.getIntValue()));
-                } else {
-                    ports.add(jmxPort.getIntValue());
-                }
+                checkPortArgument(jmxPort, ports, errorMessages);
             }
             if (ldapsPort.isPresent()) {
-                if (ports.contains(ldapsPort.getIntValue())) {
-                    errorMessages.add(ERR_PORT_ALREADY_SPECIFIED.get(ldapsPort.getIntValue()));
-                } else {
-                    ports.add(ldapsPort.getIntValue());
-                }
+                checkPortArgument(ldapsPort, ports, errorMessages);
             }
         } catch (ArgumentException ae) {
             LOG.error(LocalizableMessage.raw("Unexpected error. "
                     + "Assuming that it is caused by a previous parsing issue: " + ae, ae));
+        }
+    }
+
+    private void checkPortArgument(IntegerArgument portArg, final Set<Integer> ports,
+            final Collection<LocalizableMessage> errorMessages) throws ArgumentException {
+        if (ports.contains(portArg.getIntValue())) {
+            errorMessages.add(ERR_PORT_ALREADY_SPECIFIED.get(portArg.getIntValue()));
+        } else {
+            ports.add(portArg.getIntValue());
         }
     }
 
