@@ -26,11 +26,13 @@
  */
 package org.opends.server.types;
 
-import org.forgerock.opendj.ldap.ByteString;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.schema.AttributeUsage;
 import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.EqualityMatchingRule;
@@ -39,11 +41,8 @@ import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.schema.AttributeTypeSyntax;
 
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import static org.opends.server.util.ServerConstants.*;
 import static org.forgerock.util.Reject.*;
-
-
+import static org.opends.server.util.ServerConstants.*;
 
 /**
  * This class defines a data structure for storing and interacting
@@ -399,6 +398,7 @@ public final class AttributeType
    * @return  The definition string used to create this attribute
    *          type.
    */
+  @Override
   public String getDefinition()
   {
     return definition;
@@ -428,6 +428,7 @@ public final class AttributeType
   /**
    * {@inheritDoc}
    */
+  @Override
   public AttributeType recreateFromDefinition(Schema schema)
          throws DirectoryException
   {
@@ -686,6 +687,7 @@ public final class AttributeType
    * @param  buffer  The buffer to which the information should be
    *                 appended.
    */
+  @Override
   protected void toStringContent(StringBuilder buffer)
   {
     if (superiorType != null)
@@ -749,6 +751,7 @@ public final class AttributeType
   /**
    * {@inheritDoc}
    */
+  @Override
   public int compareTo(AttributeType o) {
     return getNormalizedPrimaryNameOrOID().compareTo(
       o.getNormalizedPrimaryNameOrOID());

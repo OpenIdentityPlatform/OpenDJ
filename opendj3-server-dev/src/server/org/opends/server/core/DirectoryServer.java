@@ -51,6 +51,10 @@ import javax.management.MBeanServer;
 import javax.management.MBeanServerFactory;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.schema.AttributeUsage;
+import org.forgerock.util.Reject;
+import org.forgerock.util.Utils;
 import org.opends.server.admin.AdministrationConnector;
 import org.opends.server.admin.AdministrationDataSync;
 import org.opends.server.admin.ClassLoaderProvider;
@@ -74,7 +78,6 @@ import org.opends.server.crypto.CryptoManagerSync;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.extensions.JMXAlertHandler;
 import org.opends.server.loggers.*;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.monitors.BackendMonitor;
 import org.opends.server.monitors.ConnectionHandlerMonitor;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -83,8 +86,6 @@ import org.opends.server.schema.*;
 import org.opends.server.tools.ConfigureWindowsService;
 import org.opends.server.types.*;
 import org.opends.server.util.*;
-import org.forgerock.util.Reject;
-import org.forgerock.util.Utils;
 
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;

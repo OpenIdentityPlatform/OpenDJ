@@ -21,12 +21,13 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS
+ *      Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.types;
 
 import java.util.Arrays;
 
+import org.forgerock.opendj.ldap.schema.AttributeUsage;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.schema.OIDSyntax;
 
