@@ -615,6 +615,21 @@ public final class ArgumentConstants {
      */
     public static final String OPTION_LONG_CONNECT_TIMEOUT = "connectTimeout";
 
+    /**
+     * The value for the long option advanced.
+     */
+    public static final String OPTION_DSCFG_LONG_ADVANCED = "advanced";
+
+    /**
+     * Display the equivalent non-interactive command.
+     */
+    public static final String OPTION_LONG_DISPLAY_EQUIVALENT = "displayCommand";
+
+    /**
+     * The path where we write the equivalent non-interactive command.
+     */
+    public static final String OPTION_LONG_EQUIVALENT_COMMAND_FILE_PATH = "commandFilePath";
+
     // Prevent instantiation.
     private ArgumentConstants() {
 

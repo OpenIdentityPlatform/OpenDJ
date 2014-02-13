@@ -32,6 +32,8 @@ import java.io.UnsupportedEncodingException;
 import org.forgerock.i18n.LocalizableMessage;
 import org.testng.annotations.Test;
 
+import com.forgerock.opendj.util.OperatingSystem;
+
 import static org.fest.assertions.Assertions.assertThat;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
@@ -60,6 +62,8 @@ public class ConsoleApplicationTestCase extends CliTestCase {
         }
 
         final static MockConsoleApplication getDefault() {
+            // The console app needs the operating system.
+            OperatingSystem.getOperatingSystem();
             out = new ByteArrayOutputStream();
             final PrintStream psOut = new PrintStream(out);
             err = new ByteArrayOutputStream();
