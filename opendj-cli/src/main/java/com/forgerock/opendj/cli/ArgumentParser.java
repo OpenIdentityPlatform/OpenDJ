@@ -790,28 +790,21 @@ public class ArgumentParser {
                 /** {@inheritDoc} */
                 @Override
                 public int compare(final Argument o1, final Argument o2) {
-                    final String s1;
-                    final String s2;
-
-                    if (o1.getShortIdentifier() != null) {
-                        s1 = o1.getShortIdentifier().toString();
-                    } else {
-                        s1 = o1.getLongIdentifier();
-                    }
-
-                    if (o2.getShortIdentifier() != null) {
-                        s2 = o2.getShortIdentifier().toString();
-                    } else {
-                        s2 = o2.getLongIdentifier();
-                    }
-
+                    final String s1 = getIdentifier(o1);
+                    final String s2 = getIdentifier(o2);
                     final int res = s1.compareToIgnoreCase(s2);
                     if (res != 0) {
                         return res;
-                    } else {
-                        // Lowercase options first then uppercase.
-                        return -s1.compareTo(s2);
                     }
+                    // Lowercase options first then uppercase.
+                    return -s1.compareTo(s2);
+                }
+
+                private String getIdentifier(final Argument o1) {
+                    if (o1.getShortIdentifier() != null) {
+                        return o1.getShortIdentifier().toString();
+                    }
+                    return o1.getLongIdentifier();
                 }
 
             });
@@ -851,8 +844,7 @@ public class ArgumentParser {
         final StringBuilder buffer = new StringBuilder();
         getUsage(buffer);
 
-        // TODO: rework getUsage(OutputStream) to work with messages
-        // framework
+        // TODO: rework getUsage(OutputStream) to work with messages framework
         return LocalizableMessage.raw(buffer.toString());
     }
 
