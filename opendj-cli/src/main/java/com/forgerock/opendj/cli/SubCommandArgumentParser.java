@@ -1044,44 +1044,7 @@ public class SubCommandArgumentParser extends ArgumentParser {
      */
     private void indentAndWrap2(String indent, LocalizableMessage text, LocalizableMessageBuilder buffer) {
         int actualSize = MAX_LENGTH - indent.length() - 1;
-        if (text.length() <= actualSize) {
-            buffer.append(indent);
-            buffer.append(text);
-            buffer.append(EOL);
-        } else {
-            String s = text.toString();
-            while (s.length() > actualSize) {
-                int spacePos = s.lastIndexOf(' ', actualSize);
-                if (spacePos > 0) {
-                    buffer.append(indent);
-                    buffer.append(s.substring(0, spacePos).trim());
-                    s = s.substring(spacePos + 1).trim();
-                    buffer.append(EOL);
-                } else {
-                    // There are no spaces in the first 74 columns.
-                    // See if there is one after that point.
-                    // If so, then break there. If not, then don't break at all.
-                    spacePos = s.indexOf(' ');
-                    if (spacePos > 0) {
-                        buffer.append(indent);
-                        buffer.append(s.substring(0, spacePos).trim());
-                        s = s.substring(spacePos + 1).trim();
-                        buffer.append(EOL);
-                    } else {
-                        buffer.append(indent);
-                        buffer.append(s);
-                        s = "";
-                        buffer.append(EOL);
-                    }
-                }
-            }
-
-            if (s.length() > 0) {
-                buffer.append(indent);
-                buffer.append(s);
-                buffer.append(EOL);
-            }
-        }
+        indentAndWrap(indent, text, buffer, actualSize);
     }
 
     /**
@@ -1258,7 +1221,7 @@ public class SubCommandArgumentParser extends ArgumentParser {
                 }
                 buffer.append(sc.getName());
                 buffer.append(EOL);
-                indentAndWrap(LocalizableMessage.raw(INDENT), sc.getDescription(), buffer);
+                indentAndWrap(INDENT, sc.getDescription(), buffer);
                 buffer.append(EOL);
                 isFirst = false;
             }
@@ -1360,10 +1323,9 @@ public class SubCommandArgumentParser extends ArgumentParser {
 
         buffer.append(EOL);
 
-        indentAndWrap(LocalizableMessage.raw(INDENT), a.getDescription(), buffer);
+        indentAndWrap(INDENT, a.getDescription(), buffer);
         if (a.needsValue() && a.getDefaultValue() != null && a.getDefaultValue().length() > 0) {
-            indentAndWrap(LocalizableMessage.raw(INDENT), INFO_ARGPARSER_USAGE_DEFAULT_VALUE.get(a.getDefaultValue()),
-                    buffer);
+            indentAndWrap(INDENT, INFO_ARGPARSER_USAGE_DEFAULT_VALUE.get(a.getDefaultValue()), buffer);
         }
     }
 
@@ -1371,8 +1333,12 @@ public class SubCommandArgumentParser extends ArgumentParser {
      * Write one or more lines with the description of the argument. We will indent the description five characters and
      * try our best to wrap at or before column 79 so it will be friendly to 80-column displays.
      */
-    private void indentAndWrap(LocalizableMessage indent, LocalizableMessage text, LocalizableMessageBuilder buffer) {
+    private void indentAndWrap(String indent, LocalizableMessage text, LocalizableMessageBuilder buffer) {
         int actualSize = MAX_LENGTH - indent.length();
+        indentAndWrap(indent, text, buffer, actualSize);
+    }
+
+    private void indentAndWrap(String indent, LocalizableMessage text, LocalizableMessageBuilder buffer, int actualSize) {
         if (text.length() <= actualSize) {
             buffer.append(indent);
             buffer.append(text);
