@@ -24,7 +24,6 @@
  *      Copyright 2008-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2011-2014 ForgeRock AS
  */
-
 package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.messages.AdminToolMessages.*;
@@ -93,7 +92,7 @@ import org.opends.server.api.MatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeUsage;
+import org.forgerock.opendj.ldap.schema.AttributeUsage;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.Schema;
 import org.opends.server.util.ServerConstants;
@@ -101,7 +100,6 @@ import org.opends.server.util.StaticUtils;
 
 /**
  * The panel that displays a custom attribute definition.
- *
  */
 public class CustomAttributePanel extends SchemaElementPanel
 {

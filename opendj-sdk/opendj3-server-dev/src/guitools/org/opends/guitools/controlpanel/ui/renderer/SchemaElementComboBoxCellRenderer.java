@@ -22,8 +22,8 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
-
 package org.opends.guitools.controlpanel.ui.renderer;
 
 import static org.opends.messages.AdminToolMessages.*;
@@ -35,13 +35,12 @@ import javax.swing.JList;
 
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.MatchingRule;
-import org.opends.server.types.AttributeUsage;
+import org.forgerock.opendj.ldap.schema.AttributeUsage;
 import org.opends.server.types.CommonSchemaElements;
 import org.opends.server.types.ObjectClassType;
 
 /**
  * The cell renderer to be used to render schema elements in a combo box.
- *
  */
 public class SchemaElementComboBoxCellRenderer extends CustomListCellRenderer
 {

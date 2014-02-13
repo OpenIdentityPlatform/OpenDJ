@@ -32,6 +32,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 
+import org.forgerock.opendj.ldap.schema.AttributeUsage;
 import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.EqualityMatchingRule;
@@ -42,8 +43,6 @@ import org.opends.server.util.ServerConstants;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-
 
 /**
  * This class defines a set of tests for the
@@ -93,6 +92,7 @@ public final class TestAttributeType extends TestCommonSchemaElements {
     /**
      * {@inheritDoc}
      */
+    @Override
     protected void resetBuilder() {
       this.superiorType = null;
       this.syntax = null;
