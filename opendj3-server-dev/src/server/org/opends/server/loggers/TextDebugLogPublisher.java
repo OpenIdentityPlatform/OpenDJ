@@ -31,7 +31,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.server.ConfigurationAddListener;
@@ -52,7 +51,6 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.util.TimeThread;
 
 import static org.opends.messages.ConfigMessages.*;
-import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -73,46 +71,39 @@ public class TextDebugLogPublisher
   private FileBasedDebugLogPublisherCfg currentConfig;
 
   /**
-   * Returns an instance of the text debug log publisher that will print
-   * all messages to the provided writer. This is used to print the messages
-   * to the console when the server starts up. By default, only error level
-   * messages are printed. Special debug targets are also parsed from
-   * system properties if any are specified.
+   * Returns an instance of the text debug log publisher that will print all
+   * messages to the provided writer, based on the provided debug targets.
    *
-   * @param writer The text writer where the message will be written to.
-   * @return The instance of the text error log publisher that will print
-   * all messages to standard out.
+   * @param debugTargets
+   *          The targets defining which and how debug events are logged.
+   * @param writer
+   *          The text writer where the message will be written to.
+   * @return The instance of the text error log publisher that will print all
+   *         messages to standard out. May be {@code null} if no debug target is
+   *         valid.
    */
-  public static TextDebugLogPublisher
-      getStartupTextDebugPublisher(TextWriter writer)
+  static TextDebugLogPublisher getStartupTextDebugPublisher(List<String> debugTargets, TextWriter writer)
   {
-    TextDebugLogPublisher startupPublisher = new TextDebugLogPublisher();
-    startupPublisher.writer = writer;
-
-    Set<Map.Entry<Object, Object>> propertyEntries =
-        System.getProperties().entrySet();
-    for(Map.Entry<Object, Object> entry : propertyEntries)
+    TextDebugLogPublisher startupPublisher = null;
+    for (String value : debugTargets)
     {
-      if(((String)entry.getKey()).startsWith(PROPERTY_DEBUG_TARGET))
-      {
-        String value = (String)entry.getValue();
-        int settingsStart= value.indexOf(":");
+      int settingsStart = value.indexOf(":");
 
-        //See if the scope and settings exists
-        if(settingsStart > 0)
+      //See if the scope and settings exists
+      if (settingsStart > 0)
+      {
+        String scope = value.substring(0, settingsStart);
+        TraceSettings settings = TraceSettings.parseTraceSettings(value.substring(settingsStart + 1));
+        if (settings != null)
         {
-          String scope = value.substring(0, settingsStart);
-          TraceSettings settings =
-              TraceSettings.parseTraceSettings(
-                  value.substring(settingsStart+1));
-          if(settings != null)
-          {
-            startupPublisher.addTraceSettings(scope, settings);
+          if (startupPublisher == null) {
+            startupPublisher = new TextDebugLogPublisher();
+            startupPublisher.writer = writer;
           }
+          startupPublisher.addTraceSettings(scope, settings);
         }
       }
     }
-
     return startupPublisher;
   }
 
@@ -342,9 +333,8 @@ public class TextDebugLogPublisher
 
   private TraceSettings getDefaultSettings(FileBasedDebugLogPublisherCfg config)
   {
-    return new TraceSettings(TraceSettings.Level.getLevel(
-        false,
-        config.isDefaultDebugExceptionsOnly()),
+    return new TraceSettings(
+        TraceSettings.Level.getLevel(true, config.isDefaultDebugExceptionsOnly()),
         config.isDefaultOmitMethodEntryArguments(),
         config.isDefaultOmitMethodReturnValue(),
         config.getDefaultThrowableStackFrames(),

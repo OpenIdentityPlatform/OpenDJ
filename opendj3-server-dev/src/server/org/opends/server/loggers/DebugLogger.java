@@ -27,8 +27,11 @@
 package org.opends.server.loggers;
 
 import static org.opends.messages.ConfigMessages.*;
+import static org.opends.server.util.ServerConstants.*;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -147,6 +150,47 @@ public class DebugLogger extends AbstractLogger
       classTracers.put(tracer.getTracedClassName(), tracer);
     }
     return tracer;
+  }
+
+  /**
+   * Adds a text debug log publisher that will print all messages to the
+   * provided writer, based on debug target(s) defined through system
+   * properties.
+   * <p>
+   * It is expected that one or more system properties beginning with
+   * {@code PROPERTY_DEBUG_TARGET} are set to define the properties of the debug
+   * targets used by the publisher, otherwise no publisher is added.
+   *
+   * @param writer
+   *          The text writer where the message will be written to.
+   * @return the publisher. It may be {@code null} if no publisher is added.
+   */
+  @SuppressWarnings({ "unchecked", "rawtypes" })
+  public final TextDebugLogPublisher addPublisherIfRequired(TextWriter writer)
+  {
+    final List<String> debugTargets = getDebugTargetsFromSystemProperties();
+    TextDebugLogPublisher publisher = null;
+    if (!debugTargets.isEmpty())
+    {
+      publisher = TextDebugLogPublisher.getStartupTextDebugPublisher(debugTargets, writer);
+      if (publisher != null) {
+        addLogPublisher((DebugLogPublisher) publisher);
+      }
+    }
+    return publisher;
+  }
+
+  private List<String> getDebugTargetsFromSystemProperties()
+  {
+    final List<String> targets = new ArrayList<String>();
+    for (Map.Entry<Object, Object> entry : System.getProperties().entrySet())
+    {
+      if (((String) entry.getKey()).startsWith(PROPERTY_DEBUG_TARGET))
+      {
+        targets.add((String)entry.getValue());
+      }
+    }
+    return targets;
   }
 
   /** {@inheritDoc} */

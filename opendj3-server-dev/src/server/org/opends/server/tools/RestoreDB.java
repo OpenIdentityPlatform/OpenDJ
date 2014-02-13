@@ -47,11 +47,9 @@ import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.extensions.ConfigFileHandler;
-import org.opends.server.loggers.DebugLogPublisher;
 import org.opends.server.loggers.DebugLogger;
 import org.opends.server.loggers.ErrorLogPublisher;
 import org.opends.server.loggers.JDKLogging;
-import org.opends.server.loggers.TextDebugLogPublisher;
 import org.opends.server.loggers.TextWriter;
 import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.loggers.TextErrorLogPublisher;
@@ -468,13 +466,9 @@ public class RestoreDB extends TaskTool {
       try
       {
         ErrorLogPublisher errorLogPublisher =
-            TextErrorLogPublisher.getToolStartupTextErrorPublisher(
-            new TextWriter.STREAM(out));
-        DebugLogPublisher debugLogPublisher =
-            TextDebugLogPublisher.getStartupTextDebugPublisher(
-            new TextWriter.STREAM(out));
+            TextErrorLogPublisher.getToolStartupTextErrorPublisher(new TextWriter.STREAM(out));
         ErrorLogger.getInstance().addLogPublisher(errorLogPublisher);
-        DebugLogger.getInstance().addLogPublisher(debugLogPublisher);
+        DebugLogger.getInstance().addPublisherIfRequired(new TextWriter.STREAM(out));
       }
       catch(Exception e)
       {
