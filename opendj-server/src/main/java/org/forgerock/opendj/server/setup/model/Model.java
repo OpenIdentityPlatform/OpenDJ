@@ -91,7 +91,7 @@ public abstract class Model {
      * @return {@code true} if this configuration has a license.
      */
     public boolean hasLicense() {
-        return (this.license != null && !license.isEmpty());
+        return license != null && !license.isEmpty();
     }
 
     /**
@@ -100,7 +100,7 @@ public abstract class Model {
      * @return {@code true} if this configuration is stand alone data store.
      */
     boolean isStandAlone() {
-        return (type == Type.STANDALONE);
+        return type == Type.STANDALONE;
     }
 
     /**
@@ -109,7 +109,7 @@ public abstract class Model {
      * @return {@code true} if this configuration is a first server in a replication topology.
      */
     boolean isFirstInTopology() {
-        return (type == Type.FIRST_IN_TOPOLOGY);
+        return type == Type.FIRST_IN_TOPOLOGY;
     }
 
     /**
@@ -118,7 +118,7 @@ public abstract class Model {
      * @return {@code true} if this configuration is part of a replication topology.
      */
     boolean isPartOfReplicationTopology() {
-        return (type == Type.IN_EXISTING_TOPOLOGY);
+        return type == Type.IN_EXISTING_TOPOLOGY;
     }
 
     /**
@@ -128,7 +128,8 @@ public abstract class Model {
      * @return {@code true} if this configuration has a certificate linked to it.
      */
     boolean isSecure() {
-        return (this.getListenerSettings() != null && this.getListenerSettings().getCertificate() != null);
+        return getListenerSettings() != null
+            && getListenerSettings().getCertificate() != null;
     }
 
     /**
@@ -386,18 +387,18 @@ public abstract class Model {
                 }
             }
         }
-        if (getListenerSettings() == null) {
+        final ListenerSettings settings = getListenerSettings();
+        final DataConfiguration dataConf = getDataConfiguration();
+        if (settings == null) {
             throw new ConfigException(LocalizableMessage.raw("Invalid settings"));
         }
-        if (getDataConfiguration() == null) {
+        if (dataConf == null) {
             throw new ConfigException(LocalizableMessage.raw("Invalid data configuration"));
         }
-        if (getDataConfiguration().isImportLDIF()) {
-            if (getDataConfiguration().getLdifImportDataPath() == null) {
-                throw new ConfigException(LocalizableMessage.raw("Invalid import ldif file."));
-            }
+        if (dataConf.isImportLDIF() && dataConf.getLdifImportDataPath() == null) {
+            throw new ConfigException(LocalizableMessage.raw("Invalid import ldif file."));
         }
-        if (getListenerSettings().getPasswordFile() == null && getListenerSettings().getPassword() == null) {
+        if (settings.getPasswordFile() == null && settings.getPassword() == null) {
             throw new ConfigException(LocalizableMessage.raw("A password must be set for the root DN."));
         }
     }

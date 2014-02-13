@@ -48,10 +48,9 @@ import com.forgerock.opendj.cli.Utils;
  */
 public class SetupCliTestCase extends AbstractSetupCliTestCase {
 
-    // @formatter:off
     @DataProvider(name = "validArguments")
     Object[][] createValidArguments() throws Exception {
-        Object[][] data = new Object[][] {
+        return  new Object[][] {
             { args("--help"),
                 expectedErrOutput(INFO_SETUP_DESCRIPTION.get()) },
             { args("--cli", "create-directory-server", "--doNotStart", "--ldapPort", "1389",
@@ -62,24 +61,22 @@ public class SetupCliTestCase extends AbstractSetupCliTestCase {
                     "-D", "cn=Directory Manager", "-w", "password", "-b", "dc=example,dc=com",
                     "-a", "--ldapsPort", "1636", "--generateSelfSignedCertificate"), null },
         };
-        return data;
     }
 
     @DataProvider(name = "invalidArguments")
     Object[][] createInValidArguments() throws Exception {
-        Object[][] data = new Object[][] {
+        return new Object[][] {
             { args("-c"),
                 expectedErrOutput(
                         ERR_ERROR_PARSING_ARGS.get(ERR_SUBCMDPARSER_NO_GLOBAL_ARGUMENT_FOR_SHORT_ID.get("c"))) },
             { args("-N"), expectedErrOutput(ERR_ERROR_PARSING_ARGS.get(
                     ERR_ARGPARSER_NO_VALUE_FOR_ARGUMENT_WITH_SHORT_ID.get("N"))) },
         };
-        return data;
     }
 
     @DataProvider(name = "validPorts")
     Object[][] createValidPorts() throws Exception {
-        Object[][] data = new Object[][] {
+        return new Object[][] {
             { args("--cli", "--doNotStart", "--ldapPort", "1389", "--adminConnectorPort", "4444",
                     "-D", "cn=Directory Manager", "-w", "password", "-b", "dc=example,dc=com",
                     "-a"), null },
@@ -90,12 +87,11 @@ public class SetupCliTestCase extends AbstractSetupCliTestCase {
                     "-D", "cn=Directory Manager", "-w", "password", "-b", "dc=example,dc=com",
                     "-a", "--jmxPort", "1689"), null },
         };
-        return data;
     }
 
     @DataProvider(name = "invalidPorts")
     Object[][] createInValidPorts() throws Exception {
-        Object[][] data = new Object[][] {
+        return new Object[][] {
             { args("--cli", "--doNotStart", "--ldapPort", "1389", "--adminConnectorPort", "4444",
                     "-D", "cn=Directory Manager", "-w", "password", "-b", "dc=example,dc=com",
                     "-a", "--jmxPort", "1389"),
@@ -119,9 +115,7 @@ public class SetupCliTestCase extends AbstractSetupCliTestCase {
                         ERR_ARGPARSER_VALUE_UNACCEPTABLE_FOR_LONG_ID.get(-1, "ldapPort",
                                 ERR_INTARG_VALUE_BELOW_LOWER_BOUND.get("ldapPort", -1, 1)))) },
         };
-        return data;
     }
-    // @formatter:on
 
     @Test(dataProvider = "validArguments")
     public void testRunValidArguments(String[] arguments, LocalizableMessage expectedErrOutput) throws Exception {
@@ -166,20 +160,15 @@ public class SetupCliTestCase extends AbstractSetupCliTestCase {
                 assertThat(resultCode).isEqualTo(ReturnCode.SUCCESS.get());
             } else {
                 assertThat(resultCode).isNotEqualTo(ReturnCode.SUCCESS.get());
-                String errMsg = null;
-                String expectedMsg = getUnWrappedMessage(expectedErrOutput.toString());
                 /**
                  * If an application is interactive, all messages should be redirect to the stdout. (info, warnings,
                  * errors). Otherwise, standard messages should be displayed in the stdout(info) and errors to the
                  * stderr (warnings, errors).
                  */
-                if (setup.isInteractive()) {
-                    assertThat(out.size()).isGreaterThan(0);
-                    errMsg = getUnWrappedMessage(out.toString("UTF-8"));
-                } else {
-                    assertThat(err.size()).isGreaterThan(0);
-                    errMsg = getUnWrappedMessage(err.toString("UTF-8"));
-                }
+                ByteArrayOutputStream std = setup.isInteractive() ? out : err;
+                assertThat(std.size()).isGreaterThan(0);
+                String errMsg = getUnWrappedMessage(std.toString("UTF-8"));
+                String expectedMsg = getUnWrappedMessage(expectedErrOutput.toString());
                 assertTrue(errMsg.contains(expectedMsg), errMsg + "\n >---< \n" + expectedMsg);
             }
         } finally {

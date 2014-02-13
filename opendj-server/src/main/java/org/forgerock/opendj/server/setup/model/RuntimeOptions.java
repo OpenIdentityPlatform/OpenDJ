@@ -109,29 +109,24 @@ class RuntimeOptions {
      */
     @Override()
     public boolean equals(Object o) {
-        boolean equals = o == this;
-        if (!equals) {
-            equals = o instanceof RuntimeOptions;
-            if (equals) {
-                equals = initialMemory == ((RuntimeOptions) o).initialMemory;
-            }
-            if (equals) {
-                equals = maximumMemory == ((RuntimeOptions) o).maximumMemory;
-            }
-            if (equals) {
-                equals = additionalArguments.length == ((RuntimeOptions) o).additionalArguments.length;
-            }
-            if (equals) {
-                String[] args = ((RuntimeOptions) o).additionalArguments;
-                for (int i = 0; i < args.length; i++) {
-                    if (!args[i].equals(additionalArguments[i])) {
-                        equals = false;
-                        break;
-                    }
+        if (o == this) {
+            return true;
+        }
+        if (!(o instanceof RuntimeOptions)) {
+            return false;
+        }
+        final RuntimeOptions other = (RuntimeOptions) o;
+        if (initialMemory == other.initialMemory
+                && maximumMemory == other.maximumMemory
+                && additionalArguments.length == other.additionalArguments.length) {
+            final String[] args = other.additionalArguments;
+            for (int i = 0; i < args.length; i++) {
+                if (!args[i].equals(additionalArguments[i])) {
+                    return false;
                 }
             }
         }
-        return equals;
+        return true;
     }
 
     /**
