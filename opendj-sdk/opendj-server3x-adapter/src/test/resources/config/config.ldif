@@ -787,7 +787,7 @@ ds-cfg-enabled: true
 ds-cfg-log-file: logs/replication
 ds-cfg-log-file-permissions: 640
 ds-cfg-default-severity: none
-ds-cfg-override-severity: SYNC=INFO,MILD_ERROR,MILD_WARNING,NOTICE
+ds-cfg-override-severity: SYNC=INFO,ERROR,WARNING,NOTICE
 ds-cfg-asynchronous: false
 ds-cfg-rotation-policy: cn=7 Days Time Limit Rotation Policy,cn=Log Rotation Policies,cn=config
 ds-cfg-rotation-policy: cn=Size Limit Rotation Policy,cn=Log Rotation Policies,cn=config
