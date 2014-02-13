@@ -44,11 +44,9 @@ import com.forgerock.opendj.cli.StringArgument;
 import org.opends.server.util.args.LDAPConnectionArgumentParser;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.config.ConfigException;
-import org.opends.server.loggers.DebugLogPublisher;
 import org.opends.server.loggers.DebugLogger;
 import org.opends.server.loggers.ErrorLogPublisher;
 import org.opends.server.loggers.JDKLogging;
-import org.opends.server.loggers.TextDebugLogPublisher;
 import org.opends.server.loggers.TextWriter;
 import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.loggers.TextErrorLogPublisher;
@@ -407,11 +405,8 @@ public class RebuildIndex extends TaskTool
       final ErrorLogPublisher errorLogPublisher =
           TextErrorLogPublisher
               .getToolStartupTextErrorPublisher(new TextWriter.STREAM(out));
-      final DebugLogPublisher debugLogPublisher =
-          TextDebugLogPublisher
-              .getStartupTextDebugPublisher(new TextWriter.STREAM(out));
       ErrorLogger.getInstance().addLogPublisher(errorLogPublisher);
-      DebugLogger.getInstance().addLogPublisher(debugLogPublisher);
+      DebugLogger.getInstance().addPublisherIfRequired(new TextWriter.STREAM(out));
     }
     catch (Exception e)
     {

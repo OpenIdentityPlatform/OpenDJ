@@ -74,8 +74,6 @@ import org.opends.server.crypto.CryptoManagerSync;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.extensions.JMXAlertHandler;
 import org.opends.server.loggers.*;
-import org.opends.server.loggers.DebugLogPublisher;
-import org.opends.server.loggers.ErrorLogPublisher;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.monitors.BackendMonitor;
 import org.opends.server.monitors.ConnectionHandlerMonitor;
@@ -87,11 +85,13 @@ import org.opends.server.types.*;
 import org.opends.server.util.*;
 import org.forgerock.util.Reject;
 import org.forgerock.util.Utils;
+
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.StringArgument;
+
 import org.opends.server.workflowelement.WorkflowElement;
 import org.opends.server.workflowelement.WorkflowElementConfigManager;
 import org.opends.server.workflowelement.localbackend.*;
@@ -9188,14 +9188,11 @@ public final class DirectoryServer
     // Install the default loggers so the startup messages
     // will be printed.
     ErrorLogPublisher startupErrorLogPublisher =
-        TextErrorLogPublisher.getServerStartupTextErrorPublisher(
-            new TextWriter.STDOUT());
+        TextErrorLogPublisher.getServerStartupTextErrorPublisher(new TextWriter.STDOUT());
     ErrorLogger.getInstance().addLogPublisher(startupErrorLogPublisher);
 
     DebugLogPublisher startupDebugLogPublisher =
-        TextDebugLogPublisher.getStartupTextDebugPublisher(new TextWriter.STDOUT());
-    DebugLogger.getInstance().addLogPublisher(startupDebugLogPublisher);
-
+        DebugLogger.getInstance().addPublisherIfRequired(new TextWriter.STDOUT());
 
     // Create an environment configuration for the server and populate a number
     // of appropriate properties.
@@ -9269,7 +9266,10 @@ public final class DirectoryServer
     }
 
     ErrorLogger.getInstance().removeLogPublisher(startupErrorLogPublisher);
-    DebugLogger.getInstance().removeLogPublisher(startupDebugLogPublisher);
+    if (startupDebugLogPublisher != null)
+    {
+      DebugLogger.getInstance().removeLogPublisher(startupDebugLogPublisher);
+    }
   }
 
   /**

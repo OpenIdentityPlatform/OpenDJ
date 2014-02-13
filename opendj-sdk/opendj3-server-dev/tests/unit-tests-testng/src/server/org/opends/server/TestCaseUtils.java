@@ -475,8 +475,7 @@ public final class TestCaseUtils {
       ErrorLogger.getInstance().addLogPublisher(
             (ErrorLogPublisher) TextErrorLogPublisher.getToolStartupTextErrorPublisher(ERROR_TEXT_WRITER));
 
-      DebugLogger.getInstance().addLogPublisher(
-            (DebugLogPublisher) TextDebugLogPublisher.getStartupTextDebugPublisher(DEBUG_TEXT_WRITER));
+      DebugLogger.getInstance().addPublisherIfRequired(DEBUG_TEXT_WRITER);
 
       // Writing the buildinfo with the current version.
       final FileWriter buildInfoWriter = new FileWriter (new File(testConfigDir, "buildinfo"));

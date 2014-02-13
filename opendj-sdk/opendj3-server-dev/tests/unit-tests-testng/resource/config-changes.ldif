@@ -1434,7 +1434,7 @@ ds-cfg-ldif-file: config/ldif-backend.ldif
 dn: cn=File-Based Debug Logger,cn=Loggers,cn=config
 changetype: modify
 replace: ds-cfg-enabled
-ds-cfg-enabled: true
+ds-cfg-enabled: false
 -
 replace: ds-cfg-default-include-throwable-cause
 ds-cfg-default-include-throwable-cause: true
