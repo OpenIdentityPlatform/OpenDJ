@@ -59,7 +59,7 @@ public abstract class AbstractMatchingRule implements MatchingRule
   /**
    * {@inheritDoc}
    */
-  public abstract Collection<String> getAllNames();
+  public abstract Collection<String> getNames();
 
 
 
@@ -225,7 +225,7 @@ public abstract class AbstractMatchingRule implements MatchingRule
     buffer.append("( ");
     buffer.append(getOID());
     buffer.append(" NAME ");
-    Collection<String> names = getAllNames();
+    Collection<String> names = getNames();
     if(names.size()>1)
     {
       buffer.append("(");

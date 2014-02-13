@@ -440,7 +440,7 @@ public final class CollationMatchingRuleFactory extends
     MatchingRule matchingRule = getMatchingRule(oid);
     if (matchingRule != null)
     {
-      for (String name : matchingRule.getAllNames())
+      for (String name : matchingRule.getNames())
       {
         names.add(name);
       }
@@ -476,7 +476,7 @@ public final class CollationMatchingRuleFactory extends
     MatchingRule matchingRule = getMatchingRule(oid);
     if (matchingRule != null)
     {
-      for (String name : matchingRule.getAllNames())
+      for (String name : matchingRule.getNames())
       {
         names.add(name);
       }
@@ -516,7 +516,7 @@ public final class CollationMatchingRuleFactory extends
     Collection<String> defaultNames = new HashSet<String>();
     if (matchingRule != null)
     {
-      for (String name : matchingRule.getAllNames())
+      for (String name : matchingRule.getNames())
       {
         defaultNames.add(name);
       }
@@ -534,7 +534,7 @@ public final class CollationMatchingRuleFactory extends
     MatchingRule equalityMatchingRule = getMatchingRule(OID);
     if (equalityMatchingRule != null)
     {
-      for (String name : equalityMatchingRule.getAllNames())
+      for (String name : equalityMatchingRule.getNames())
       {
         names.add(name);
       }
@@ -570,7 +570,7 @@ public final class CollationMatchingRuleFactory extends
     MatchingRule matchingRule = getMatchingRule(oid);
     if (matchingRule != null)
     {
-      for (String name : matchingRule.getAllNames())
+      for (String name : matchingRule.getNames())
       {
         names.add(name);
       }
@@ -606,7 +606,7 @@ public final class CollationMatchingRuleFactory extends
     MatchingRule matchingRule = getMatchingRule(oid);
     if (matchingRule != null)
     {
-      for (String name : matchingRule.getAllNames())
+      for (String name : matchingRule.getNames())
       {
         names.add(name);
       }
@@ -641,7 +641,7 @@ public final class CollationMatchingRuleFactory extends
     MatchingRule matchingRule = getMatchingRule(oid);
     if (matchingRule != null)
     {
-      for (String name : matchingRule.getAllNames())
+      for (String name : matchingRule.getNames())
       {
         names.add(name);
       }
@@ -763,7 +763,7 @@ public final class CollationMatchingRuleFactory extends
      * {@inheritDoc}
      */
     @Override
-    public Collection<String> getAllNames()
+    public Collection<String> getNames()
     {
       return Collections.unmodifiableCollection(names);
     }

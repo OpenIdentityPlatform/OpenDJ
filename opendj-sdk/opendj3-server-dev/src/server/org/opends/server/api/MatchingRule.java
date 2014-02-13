@@ -63,7 +63,7 @@ public interface MatchingRule
    *
    * @return All names for this matching rule.
    */
-  Collection<String> getAllNames();
+  Collection<String> getNames();
 
 
 
