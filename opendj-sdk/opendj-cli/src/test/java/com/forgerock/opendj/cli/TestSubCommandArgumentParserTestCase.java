@@ -29,20 +29,21 @@ package com.forgerock.opendj.cli;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.fest.assertions.Assertions;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.forgerock.i18n.LocalizableMessage;
-import static com.forgerock.opendj.cli.CliMessages.*;
 
+import static com.forgerock.opendj.cli.CliMessages.*;
 
 /**
  * Unit tests for the SubCommand class.
  */
 public final class TestSubCommandArgumentParserTestCase extends CliTestCase {
 
-    // The sub-command parser.
     private SubCommandArgumentParser parser;
 
     // First sub-command.
@@ -147,5 +148,22 @@ public final class TestSubCommandArgumentParserTestCase extends CliTestCase {
     @Test(dataProvider = "invalidCommandLineArgs", expectedExceptions = ArgumentException.class)
     public void testParseArgumentsWithInvalidArgs(String[] args) throws Exception {
         parser.parseArguments(args);
+    }
+
+    @DataProvider
+    public Object[][] indentAndWrapProvider() throws Exception {
+        return new Object[][] {
+            { "test1",                  5, " ", " test1\n" },
+            { "test1 test2",            5, " ", " test1\n test2\n" },
+            { "test1 test2test3",       5, " ", " test1\n test2test3\n" },
+            { "test1 test2test3 test4", 5, " ", " test1\n test2test3\n test4\n" },
+        };
+    }
+
+    @Test(dataProvider = "indentAndWrapProvider")
+    public void testIndentAndWrap(String text, int wrapColumn, String indent, String expected) {
+        final LocalizableMessageBuilder buffer = new LocalizableMessageBuilder();
+        SubCommandArgumentParser.indentAndWrap(indent, wrapColumn, LocalizableMessage.raw(text), buffer);
+        Assertions.assertThat(buffer.toString()).isEqualTo(expected);
     }
 }
