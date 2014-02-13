@@ -1214,7 +1214,7 @@ public final class Schema
                            ResultCode.CONSTRAINT_VIOLATION, message);
           }
 
-          for(String name:matchingRule.getAllNames())
+          for(String name:matchingRule.getNames())
           {
             if (name != null)
             {
@@ -1237,7 +1237,7 @@ public final class Schema
         matchingRules.put(toLowerCase(matchingRule.getOID()),
                           matchingRule);
 
-        for(String name:matchingRule.getAllNames())
+        for(String name:matchingRule.getNames())
         {
           if (name != null)
           {
@@ -1296,7 +1296,7 @@ public final class Schema
         matchingRules.remove(toLowerCase(matchingRule.getOID()),
                              matchingRule);
 
-        for(String name:matchingRule.getAllNames())
+        for(String name:matchingRule.getNames())
         {
           if (name != null)
           {
@@ -1407,7 +1407,7 @@ public final class Schema
                          ResultCode.CONSTRAINT_VIOLATION, message);
         }
 
-       for(String name:matchingRule.getAllNames())
+       for(String name:matchingRule.getNames())
        {
         if (name != null)
         {
@@ -1430,7 +1430,7 @@ public final class Schema
       approximateMatchingRules.put(oid, matchingRule);
       matchingRules.put(oid, matchingRule);
 
-      for(String name:matchingRule.getAllNames())
+      for(String name:matchingRule.getNames())
       {
         if (name != null)
         {
@@ -1470,7 +1470,7 @@ public final class Schema
       approximateMatchingRules.remove(oid, matchingRule);
       matchingRules.remove(oid, matchingRule);
 
-      for(String name:matchingRule.getAllNames())
+      for(String name:matchingRule.getNames())
       {
         if (name != null)
         {
@@ -1579,7 +1579,7 @@ public final class Schema
                          ResultCode.CONSTRAINT_VIOLATION, message);
         }
 
-        for(String name:matchingRule.getAllNames())
+        for(String name:matchingRule.getNames())
         {
            if (name != null)
            {
@@ -1604,7 +1604,7 @@ public final class Schema
       equalityMatchingRules.put(oid, matchingRule);
       matchingRules.put(oid, matchingRule);
 
-      for(String name:matchingRule.getAllNames())
+      for(String name:matchingRule.getNames())
       {
         if (name != null)
         {
@@ -1644,7 +1644,7 @@ public final class Schema
       equalityMatchingRules.remove(oid, matchingRule);
       matchingRules.remove(oid, matchingRule);
 
-      for(String name:matchingRule.getAllNames())
+      for(String name:matchingRule.getNames())
       {
         if (name != null)
         {
@@ -1754,7 +1754,7 @@ public final class Schema
                          ResultCode.CONSTRAINT_VIOLATION, message);
         }
 
-        for(String name:matchingRule.getAllNames())
+        for(String name:matchingRule.getNames())
         {
           if (name != null)
           {
@@ -1778,7 +1778,7 @@ public final class Schema
       orderingMatchingRules.put(oid, matchingRule);
       matchingRules.put(oid, matchingRule);
 
-      for(String name:matchingRule.getAllNames())
+      for(String name:matchingRule.getNames())
       {
         if (name != null)
         {
@@ -1818,7 +1818,7 @@ public final class Schema
       orderingMatchingRules.remove(oid, matchingRule);
       matchingRules.remove(oid, matchingRule);
 
-      for(String name:matchingRule.getAllNames())
+      for(String name:matchingRule.getNames())
       {
         if (name != null)
         {
@@ -1927,7 +1927,7 @@ public final class Schema
                          ResultCode.CONSTRAINT_VIOLATION, message);
         }
 
-        for(String name:matchingRule.getAllNames())
+        for(String name:matchingRule.getNames())
         {
           if (name != null)
           {
@@ -1951,7 +1951,7 @@ public final class Schema
       substringMatchingRules.put(oid, matchingRule);
       matchingRules.put(oid, matchingRule);
 
-      for(String name:matchingRule.getAllNames())
+      for(String name:matchingRule.getNames())
       {
         if (name != null)
         {
@@ -1991,7 +1991,7 @@ public final class Schema
       substringMatchingRules.remove(oid, matchingRule);
       matchingRules.remove(oid, matchingRule);
 
-      for(String name:matchingRule.getAllNames())
+      for(String name:matchingRule.getNames())
       {
         if (name != null)
         {
@@ -2107,7 +2107,7 @@ public final class Schema
                          ResultCode.CONSTRAINT_VIOLATION, message);
         }
 
-       for(String name:matchingRule.getAllNames())
+       for(String name:matchingRule.getNames())
        {
         if (name != null)
         {
@@ -2130,7 +2130,7 @@ public final class Schema
       extensibleMatchingRules.put(oid, matchingRule);
       matchingRules.put(oid, matchingRule);
 
-      for(String name:matchingRule.getAllNames())
+      for(String name:matchingRule.getNames())
       {
         if (name != null)
         {
@@ -2170,7 +2170,7 @@ public final class Schema
       extensibleMatchingRules.remove(oid, matchingRule);
       matchingRules.remove(oid, matchingRule);
 
-      for(String name:matchingRule.getAllNames())
+      for(String name:matchingRule.getNames())
       {
         if (name != null)
         {

@@ -473,7 +473,7 @@ public final class TimeBasedMatchingRuleFactory
       * {@inheritDoc}
       */
     @Override
-    public Collection<String> getAllNames()
+    public Collection<String> getNames()
     {
       return Collections.unmodifiableList(names);
     }
@@ -572,7 +572,7 @@ public final class TimeBasedMatchingRuleFactory
      * {@inheritDoc}
      */
     @Override
-    public Collection<String> getAllNames()
+    public Collection<String> getNames()
     {
       return Collections.unmodifiableList(names);
     }
@@ -761,7 +761,7 @@ public final class TimeBasedMatchingRuleFactory
      * {@inheritDoc}
      */
     @Override
-    public Collection<String> getAllNames()
+    public Collection<String> getNames()
     {
       return Collections.singleton(getName());
     }

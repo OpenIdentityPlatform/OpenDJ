@@ -73,7 +73,7 @@ class CaseExactEqualityMatchingRule
    * {@inheritDoc}
    */
   @Override
-  public Collection<String> getAllNames()
+  public Collection<String> getNames()
   {
     return Collections.singleton(getName());
   }
