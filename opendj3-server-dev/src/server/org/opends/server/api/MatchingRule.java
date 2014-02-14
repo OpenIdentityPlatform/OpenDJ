@@ -32,6 +32,7 @@ import java.util.Collection;
 
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.types.ConditionResult;
 import org.opends.server.types.DirectoryException;
 
@@ -103,16 +104,12 @@ public interface MatchingRule
    */
   String getDescription();
 
-
-
   /**
-   * Retrieves the OID of the syntax with which this matching rule is
-   * associated.
+   * Whole class to be replaced by the equivalent SDK class.
    *
-   * @return The OID of the syntax with which this matching rule is
-   *         associated.
+   * @return SDK syntax
    */
-  String getSyntaxOID();
+  Syntax getSyntax();
 
 
 

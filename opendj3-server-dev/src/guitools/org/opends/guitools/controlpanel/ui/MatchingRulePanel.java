@@ -24,10 +24,7 @@
  *      Copyright 2008-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2014 ForgeRock AS
  */
-
 package org.opends.guitools.controlpanel.ui;
-
-import static org.opends.messages.AdminToolMessages.*;
 
 import java.awt.Component;
 import java.awt.GridBagConstraints;
@@ -42,19 +39,16 @@ import javax.swing.DefaultListModel;
 import javax.swing.JLabel;
 import javax.swing.JList;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
 import org.opends.guitools.controlpanel.ui.components.TitlePanel;
 import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.api.ApproximateMatchingRule;
-import org.opends.server.api.AttributeSyntax;
-import org.opends.server.api.EqualityMatchingRule;
-import org.opends.server.api.MatchingRule;
-import org.opends.server.api.OrderingMatchingRule;
-import org.opends.server.api.SubstringMatchingRule;
+import org.opends.server.api.*;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.Schema;
+
+import static org.opends.messages.AdminToolMessages.*;
 
 /**
  * Class displaying the contents of a matching rule.
@@ -84,6 +78,7 @@ public class MatchingRulePanel extends SchemaElementPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_MATCHING_RULE_PANEL_TITLE.get();
@@ -92,6 +87,7 @@ public class MatchingRulePanel extends SchemaElementPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public Component getPreferredFocusComponent()
   {
     return usedByAttributes;
@@ -100,6 +96,7 @@ public class MatchingRulePanel extends SchemaElementPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
   }
@@ -107,6 +104,7 @@ public class MatchingRulePanel extends SchemaElementPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public void okClicked()
   {
   }
@@ -174,6 +172,7 @@ public class MatchingRulePanel extends SchemaElementPanel
       /**
        * {@inheritDoc}
        */
+      @Override
       public void mouseClicked(MouseEvent ev)
       {
         if (ev.getClickCount() == 1)
@@ -189,6 +188,7 @@ public class MatchingRulePanel extends SchemaElementPanel
       /**
        * {@inheritDoc}
        */
+      @Override
       public void keyTyped(KeyEvent ev)
       {
         if ((ev.getKeyChar() == KeyEvent.VK_SPACE) ||
@@ -218,7 +218,7 @@ public class MatchingRulePanel extends SchemaElementPanel
     name.setText(n);
     oid.setText(matchingRule.getOID());
     AttributeSyntax<?> s = null;
-    String syntaxOID = matchingRule.getSyntaxOID();
+    String syntaxOID = matchingRule.getSyntax().getOID();
     for (AttributeSyntax<?> candidate : schema.getSyntaxes().values())
     {
       if (candidate.getOID().equals(syntaxOID))

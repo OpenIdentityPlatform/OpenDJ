@@ -32,6 +32,8 @@ import java.util.Collection;
 
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.schema.Schema;
+import org.forgerock.opendj.ldap.schema.Syntax;
 import org.opends.server.types.ConditionResult;
 import org.opends.server.types.DirectoryException;
 
@@ -49,22 +51,6 @@ import org.opends.server.types.DirectoryException;
     mayInvoke = false)
 public abstract class AbstractMatchingRule implements MatchingRule
 {
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public abstract Collection<String> getNames();
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public abstract String getOID();
-
-
 
   /**
    * {@inheritDoc}
@@ -93,27 +79,23 @@ public abstract class AbstractMatchingRule implements MatchingRule
     return getOID();
   }
 
-
-
   /**
-   * {@inheritDoc}
+   * Retrieves the OID of the syntax with which this matching rule is
+   * associated.
+   *
+   * @return The OID of the syntax with which this matching rule is
+   *         associated.
    */
-  @Override
-  public abstract String getDescription();
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
   public abstract String getSyntaxOID();
 
+  /** {@inheritDoc} */
+  @Override
+  public Syntax getSyntax()
+  {
+    return Schema.getCoreSchema().getSyntax(getSyntaxOID());
+  }
 
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isObsolete()
   {
@@ -262,7 +244,7 @@ public abstract class AbstractMatchingRule implements MatchingRule
       buffer.append(" SYNTAX ");
     }
 
-    buffer.append(getSyntaxOID());
+    buffer.append(getSyntax().getOID());
     buffer.append(" )");
   }
 }
