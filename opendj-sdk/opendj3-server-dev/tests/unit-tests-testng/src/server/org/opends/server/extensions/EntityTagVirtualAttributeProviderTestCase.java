@@ -25,15 +25,6 @@
  */
 package org.opends.server.extensions;
 
-
-
-import static java.util.Collections.singleton;
-import static java.util.Collections.singletonList;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -44,6 +35,8 @@ import java.util.TreeSet;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ConditionResult;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.EntityTagVirtualAttributeCfgDefn.ChecksumAlgorithm;
@@ -69,8 +62,6 @@ import org.opends.server.schema.DirectoryStringSyntax;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.AttributeValues;
-import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.types.ConditionResult;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 import org.opends.server.types.DereferencePolicy;
@@ -87,7 +78,9 @@ import org.opends.server.util.StaticUtils;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import static java.util.Collections.*;
 
+import static org.testng.Assert.*;
 
 /**
  * A set of test cases for the entity tag virtual attribute provider.
@@ -110,6 +103,7 @@ public class EntityTagVirtualAttributeProviderTestCase extends
 
 
 
+    @Override
     public void addChangeListener(
         final ConfigurationChangeListener<VirtualAttributeCfg> listener)
     {
@@ -119,6 +113,7 @@ public class EntityTagVirtualAttributeProviderTestCase extends
 
 
 
+    @Override
     public void addEntityTagChangeListener(
         final ConfigurationChangeListener<EntityTagVirtualAttributeCfg> listener)
     {
@@ -127,6 +122,7 @@ public class EntityTagVirtualAttributeProviderTestCase extends
 
 
 
+    @Override
     public Class<? extends EntityTagVirtualAttributeCfg> configurationClass()
     {
       // Not needed.
@@ -135,6 +131,7 @@ public class EntityTagVirtualAttributeProviderTestCase extends
 
 
 
+    @Override
     public DN dn()
     {
       // Not needed.
@@ -143,6 +140,7 @@ public class EntityTagVirtualAttributeProviderTestCase extends
 
 
 
+    @Override
     public AttributeType getAttributeType()
     {
       // Not needed.
@@ -151,6 +149,7 @@ public class EntityTagVirtualAttributeProviderTestCase extends
 
 
 
+    @Override
     public SortedSet<DN> getBaseDN()
     {
       // Not needed.
@@ -159,6 +158,7 @@ public class EntityTagVirtualAttributeProviderTestCase extends
 
 
 
+    @Override
     public ChecksumAlgorithm getChecksumAlgorithm()
     {
       return ChecksumAlgorithm.ADLER_32;
@@ -166,6 +166,7 @@ public class EntityTagVirtualAttributeProviderTestCase extends
 
 
 
+    @Override
     public ConflictBehavior getConflictBehavior()
     {
       // Not needed.
@@ -174,6 +175,7 @@ public class EntityTagVirtualAttributeProviderTestCase extends
 
 
 
+    @Override
     public SortedSet<AttributeType> getExcludedAttribute()
     {
       return excludedAttributes;
@@ -181,6 +183,7 @@ public class EntityTagVirtualAttributeProviderTestCase extends
 
 
 
+    @Override
     public SortedSet<String> getFilter()
     {
       // Not needed.
@@ -189,6 +192,7 @@ public class EntityTagVirtualAttributeProviderTestCase extends
 
 
 
+    @Override
     public SortedSet<DN> getGroupDN()
     {
       // Not needed.
@@ -197,6 +201,7 @@ public class EntityTagVirtualAttributeProviderTestCase extends
 
 
 
+    @Override
     public String getJavaClass()
     {
       // Not needed.
@@ -205,6 +210,7 @@ public class EntityTagVirtualAttributeProviderTestCase extends
 
 
 
+    @Override
     public Scope getScope()
     {
       // Not needed.
@@ -213,6 +219,7 @@ public class EntityTagVirtualAttributeProviderTestCase extends
 
 
 
+    @Override
     public boolean isEnabled()
     {
       return true;
@@ -220,6 +227,7 @@ public class EntityTagVirtualAttributeProviderTestCase extends
 
 
 
+    @Override
     public void removeChangeListener(
         final ConfigurationChangeListener<VirtualAttributeCfg> listener)
     {
@@ -229,6 +237,7 @@ public class EntityTagVirtualAttributeProviderTestCase extends
 
 
 
+    @Override
     public void removeEntityTagChangeListener(
         final ConfigurationChangeListener<EntityTagVirtualAttributeCfg> listener)
     {
@@ -547,6 +556,7 @@ public class EntityTagVirtualAttributeProviderTestCase extends
       /**
        * {@inheritDoc}
        */
+      @Override
       public void appendErrorMessage(final LocalizableMessage message)
       {
         this.message = new LocalizableMessageBuilder(message);
@@ -557,6 +567,7 @@ public class EntityTagVirtualAttributeProviderTestCase extends
       /**
        * {@inheritDoc}
        */
+      @Override
       public LocalizableMessageBuilder getErrorMessage()
       {
         return message;
@@ -567,6 +578,7 @@ public class EntityTagVirtualAttributeProviderTestCase extends
       /**
        * @return the resultCode
        */
+      @Override
       public ResultCode getResultCode()
       {
         return resultCode;
@@ -577,6 +589,7 @@ public class EntityTagVirtualAttributeProviderTestCase extends
       /**
        * {@inheritDoc}
        */
+      @Override
       public void setResultCode(final ResultCode resultCode)
       {
         this.resultCode = resultCode;

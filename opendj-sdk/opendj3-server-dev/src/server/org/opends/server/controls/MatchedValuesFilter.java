@@ -26,33 +26,31 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.controls;
-import org.forgerock.i18n.LocalizableMessage;
 
-
-
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.io.IOException;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.io.ASN1Reader;
+import org.forgerock.opendj.io.ASN1Writer;
+import org.forgerock.opendj.ldap.ByteSequence;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.util.Reject;
 import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.core.DirectoryServer;
-import org.forgerock.opendj.io.*;
 import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.forgerock.util.Reject;
-
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ByteSequence;
+
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-
-
 
 /**
  * This class defines a filter that may be used in conjunction with the matched

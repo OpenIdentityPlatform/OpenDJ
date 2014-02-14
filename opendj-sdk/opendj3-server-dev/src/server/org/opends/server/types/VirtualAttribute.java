@@ -26,16 +26,15 @@
  */
 package org.opends.server.types;
 
-import org.forgerock.opendj.ldap.ByteString;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ConditionResult;
 import org.opends.server.api.VirtualAttributeProvider;
-
-
 
 /**
  * This class defines a virtual attribute, which is a special kind of
@@ -91,6 +90,7 @@ public final class VirtualAttribute
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConditionResult approximatelyEqualTo(AttributeValue value)
   {
     return provider.approximatelyEqualTo(entry, rule, value);
@@ -101,6 +101,7 @@ public final class VirtualAttribute
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean contains(AttributeValue value)
   {
     return provider.hasValue(entry, rule, value);
@@ -122,6 +123,7 @@ public final class VirtualAttribute
   /**
    * {@inheritDoc}
    */
+  @Override
   public AttributeType getAttributeType()
   {
     return attributeType;
@@ -143,6 +145,7 @@ public final class VirtualAttribute
   /**
    * {@inheritDoc}
    */
+  @Override
   public Set<String> getOptions()
   {
     return Collections.emptySet();
@@ -167,6 +170,7 @@ public final class VirtualAttribute
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConditionResult greaterThanOrEqualTo(AttributeValue value)
   {
     return provider.greaterThanOrEqualTo(entry, rule, value);
@@ -221,6 +225,7 @@ public final class VirtualAttribute
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isVirtual()
   {
     return true;
@@ -231,6 +236,7 @@ public final class VirtualAttribute
   /**
    * {@inheritDoc}
    */
+  @Override
   public Iterator<AttributeValue> iterator()
   {
     Set<AttributeValue> values = provider.getValues(entry, rule);
@@ -242,6 +248,7 @@ public final class VirtualAttribute
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConditionResult lessThanOrEqualTo(AttributeValue value)
   {
     return provider.lessThanOrEqualTo(entry, rule, value);
@@ -252,6 +259,7 @@ public final class VirtualAttribute
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConditionResult matchesSubstring(ByteString subInitial,
       List<ByteString> subAny, ByteString subFinal)
   {
@@ -275,6 +283,7 @@ public final class VirtualAttribute
   /**
    * {@inheritDoc}
    */
+  @Override
   public int size()
   {
     if (!provider.isMultiValued())
@@ -292,6 +301,7 @@ public final class VirtualAttribute
   /**
    * {@inheritDoc}
    */
+  @Override
   public void toString(StringBuilder buffer)
   {
     buffer.append("VirtualAttribute(");

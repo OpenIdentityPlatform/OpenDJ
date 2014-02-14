@@ -31,13 +31,14 @@ import java.util.List;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.admin.std.server.
-        GoverningStructureRuleVirtualAttributeCfg;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ConditionResult;
+import org.opends.server.admin.std.server.GoverningStructureRuleVirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
+
 import static org.opends.messages.ExtensionMessages.*;
 
 /**

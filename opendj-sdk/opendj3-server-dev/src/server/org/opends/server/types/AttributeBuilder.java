@@ -26,10 +26,6 @@
  */
 package org.opends.server.types;
 
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ByteSequence;
-import static org.opends.server.util.StaticUtils.*;
-
 import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -42,13 +38,17 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteSequence;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.util.Reject;
 import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.core.DirectoryServer;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.util.Reject;
 
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class provides an interface for creating new non-virtual

@@ -33,16 +33,18 @@ import java.util.*;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ConditionResult;
 import org.opends.server.admin.std.meta.PasswordPolicyCfgDefn;
 import org.opends.server.api.*;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
+
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.schema.SchemaConstants.*;
@@ -493,7 +495,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
       return; // requested state matches current state
     }
 
-    this.isDisabled = ConditionResult.inverseOf(this.isDisabled);
+    this.isDisabled = ConditionResult.not(this.isDisabled);
 
     AttributeType type =
          DirectoryServer.getAttributeType(OP_ATTR_ACCOUNT_DISABLED, true);
@@ -1623,8 +1625,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
       return;  // requested state matches current state
     }
 
-    this.mustChangePassword =
-            ConditionResult.inverseOf(this.mustChangePassword);
+    this.mustChangePassword = ConditionResult.not(this.mustChangePassword);
 
     AttributeType type =
          DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_RESET_REQUIRED_LC);

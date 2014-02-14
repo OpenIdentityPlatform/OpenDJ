@@ -26,12 +26,8 @@
  */
 package org.opends.server.api;
 
-
-
-import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteSequence;
-
-
+import org.forgerock.opendj.ldap.ConditionResult;
 
 /**
  * This class defines the set of methods and structures that must be

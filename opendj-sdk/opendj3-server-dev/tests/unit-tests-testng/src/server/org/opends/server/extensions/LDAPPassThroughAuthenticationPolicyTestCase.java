@@ -26,10 +26,6 @@
  */
 package org.opends.server.extensions;
 
-import static org.opends.server.extensions.LDAPPassThroughAuthenticationPolicyFactory.*;
-import static org.opends.server.protocols.ldap.LDAPConstants.*;
-import static org.testng.Assert.*;
-
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -37,6 +33,10 @@ import java.util.*;
 import java.util.concurrent.*;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.io.ASN1;
+import org.forgerock.opendj.io.ASN1Writer;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.LDAPPassThroughAuthenticationPolicyCfgDefn.MappingPolicy;
@@ -49,8 +49,6 @@ import org.opends.server.extensions.LDAPPassThroughAuthenticationPolicyFactory.C
 import org.opends.server.extensions.LDAPPassThroughAuthenticationPolicyFactory.ConnectionFactory;
 import org.opends.server.extensions.LDAPPassThroughAuthenticationPolicyFactory.ConnectionPool;
 import org.opends.server.extensions.LDAPPassThroughAuthenticationPolicyFactory.LDAPConnectionFactory;
-import org.forgerock.opendj.io.ASN1;
-import org.forgerock.opendj.io.ASN1Writer;
 import org.opends.server.protocols.ldap.*;
 import org.opends.server.schema.DirectoryStringSyntax;
 import org.opends.server.schema.GeneralizedTimeSyntax;
@@ -58,13 +56,15 @@ import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.tools.LDAPReader;
 import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+
+import static org.opends.server.extensions.LDAPPassThroughAuthenticationPolicyFactory.*;
+import static org.opends.server.protocols.ldap.LDAPConstants.*;
+import static org.testng.Assert.*;
 
 /**
  * Test LDAP authentication mappingPolicy implementation.

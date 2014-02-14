@@ -26,15 +26,19 @@
  */
 package org.opends.server.backends.jeb;
 
+import java.util.*;
+
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ConditionResult;
+import org.opends.server.backends.jeb.importLDIF.ImportIDSet;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.Modification;
+import org.opends.server.util.StaticUtils;
+
 import com.sleepycat.je.*;
 
-import org.opends.server.types.*;
-import org.opends.server.util.StaticUtils;
-import org.opends.server.backends.jeb.importLDIF.ImportIDSet;
 import static org.opends.messages.JebMessages.*;
-
-import java.util.*;
 
 /**
  * Represents an index implemented by a JE database in which each key maps to

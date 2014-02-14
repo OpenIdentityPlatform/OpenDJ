@@ -26,8 +26,6 @@
  */
 package org.opends.server.backends;
 
-
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -45,6 +43,9 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLParameters;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.util.Reject;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.RootDSEBackendCfg;
@@ -59,19 +60,14 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.core.WorkflowTopologyNode;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import org.opends.server.util.LDIFWriter;
-import org.forgerock.util.Reject;
 
 import static org.opends.messages.BackendMessages.*;
-import static org.opends.messages.ConfigMessages.
-     ERR_CONFIG_BACKEND_ERROR_INTERACTING_WITH_BACKEND_ENTRY;
+import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-
-
 
 /**
  * This class defines a backend to hold the Directory Server root DSE.  It is a

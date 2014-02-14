@@ -32,13 +32,17 @@ import java.util.List;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteSequence;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ConditionResult;
 import org.opends.server.admin.std.server.VirtualAttributeCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.SearchOperation;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ByteSequence;
+import org.opends.server.types.AttributeValue;
+import org.opends.server.types.Entry;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.VirtualAttributeRule;
 
 /**
  * This class defines the set of methods and structures that must be

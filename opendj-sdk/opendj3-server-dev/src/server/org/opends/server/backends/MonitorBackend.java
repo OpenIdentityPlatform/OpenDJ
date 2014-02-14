@@ -26,18 +26,12 @@
  */
 package org.opends.server.backends;
 
-
-
-import static org.opends.messages.BackendMessages.*;
-import static org.opends.messages.ConfigMessages.*;
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.getExceptionMessage;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
-
 import java.util.*;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.util.Reject;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.MonitorBackendCfg;
@@ -46,14 +40,16 @@ import org.opends.server.api.MonitorProvider;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.*;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.TimeThread;
-import org.forgerock.util.Reject;
 
-
+import static org.opends.messages.BackendMessages.*;
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines a backend to hold Directory Server monitor entries. It
@@ -121,6 +117,7 @@ public class MonitorBackend extends Backend implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
       final MonitorBackendCfg backendCfg)
   {
@@ -563,6 +560,7 @@ public class MonitorBackend extends Backend implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
       final MonitorBackendCfg backendCfg,
       final List<LocalizableMessage> unacceptableReasons)

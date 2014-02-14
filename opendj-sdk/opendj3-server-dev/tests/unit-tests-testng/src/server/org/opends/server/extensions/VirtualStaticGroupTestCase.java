@@ -26,17 +26,12 @@
  */
 package org.opends.server.extensions;
 
-
-
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
-
+import org.forgerock.opendj.ldap.ConditionResult;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.GroupManager;
@@ -44,9 +39,11 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.types.*;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
+
 import static org.testng.Assert.*;
-
-
 
 /**
  * A set of test cases for the virtual static group implementation and the
@@ -360,7 +357,7 @@ public class VirtualStaticGroupTestCase
     VirtualStaticGroup groupImplementation = new VirtualStaticGroup();
     try
     {
-      VirtualStaticGroup groupInstance = groupImplementation.newInstance(entry);
+      groupImplementation.newInstance(entry);
     }
     finally
     {

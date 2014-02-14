@@ -37,7 +37,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.ConditionResult;
+import org.forgerock.opendj.ldap.ConditionResult;
 import org.opends.server.types.DirectoryException;
 
 import static org.opends.server.schema.SchemaConstants.*;

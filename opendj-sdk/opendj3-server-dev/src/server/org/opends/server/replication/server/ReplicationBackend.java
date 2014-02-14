@@ -33,6 +33,10 @@ import java.io.IOException;
 import java.util.*;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.util.Reject;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.admin.std.server.*;
@@ -41,7 +45,6 @@ import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.backends.jeb.BackupManager;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.*;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.replication.common.CSN;
@@ -52,9 +55,7 @@ import org.opends.server.replication.protocol.*;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.util.*;
-import org.forgerock.util.Reject;
 
 import static java.util.Collections.*;
 

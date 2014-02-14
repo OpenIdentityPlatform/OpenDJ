@@ -27,10 +27,12 @@
 
 package org.opends.server.types;
 
-import org.forgerock.opendj.ldap.ByteString;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ConditionResult;
 
 /**
  * This class defines a collective virtual attribute, which is a
@@ -55,6 +57,7 @@ public class CollectiveVirtualAttribute extends AbstractAttribute
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConditionResult approximatelyEqualTo(AttributeValue value) {
     return attribute.approximatelyEqualTo(value);
   }
@@ -62,6 +65,7 @@ public class CollectiveVirtualAttribute extends AbstractAttribute
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean contains(AttributeValue value) {
     return attribute.contains(value);
   }
@@ -69,6 +73,7 @@ public class CollectiveVirtualAttribute extends AbstractAttribute
   /**
    * {@inheritDoc}
    */
+  @Override
   public AttributeType getAttributeType() {
     return attribute.getAttributeType();
   }
@@ -76,6 +81,7 @@ public class CollectiveVirtualAttribute extends AbstractAttribute
   /**
    * {@inheritDoc}
    */
+  @Override
   public Set<String> getOptions() {
     return attribute.getOptions();
   }
@@ -83,6 +89,7 @@ public class CollectiveVirtualAttribute extends AbstractAttribute
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConditionResult greaterThanOrEqualTo(AttributeValue value) {
     return attribute.greaterThanOrEqualTo(value);
   }
@@ -90,6 +97,7 @@ public class CollectiveVirtualAttribute extends AbstractAttribute
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isVirtual() {
     return true;
   }
@@ -97,6 +105,7 @@ public class CollectiveVirtualAttribute extends AbstractAttribute
   /**
    * {@inheritDoc}
    */
+  @Override
   public Iterator<AttributeValue> iterator() {
     return attribute.iterator();
   }
@@ -104,6 +113,7 @@ public class CollectiveVirtualAttribute extends AbstractAttribute
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConditionResult lessThanOrEqualTo(AttributeValue value) {
     return attribute.lessThanOrEqualTo(value);
   }
@@ -111,6 +121,7 @@ public class CollectiveVirtualAttribute extends AbstractAttribute
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConditionResult matchesSubstring(ByteString subInitial,
           List<ByteString> subAny, ByteString subFinal) {
     return attribute.matchesSubstring(subInitial, subAny, subFinal);
@@ -119,6 +130,7 @@ public class CollectiveVirtualAttribute extends AbstractAttribute
   /**
    * {@inheritDoc}
    */
+  @Override
   public int size() {
     return attribute.size();
   }
@@ -126,6 +138,7 @@ public class CollectiveVirtualAttribute extends AbstractAttribute
   /**
    * {@inheritDoc}
    */
+  @Override
   public void toString(StringBuilder buffer) {
     attribute.toString(buffer);
   }

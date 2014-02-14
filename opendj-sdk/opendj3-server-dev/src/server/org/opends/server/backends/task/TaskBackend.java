@@ -41,6 +41,9 @@ import java.util.zip.ZipOutputStream;
 import javax.crypto.Mac;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.util.Reject;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.TaskBackendCfg;
@@ -48,10 +51,11 @@ import org.opends.server.api.Backend;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.*;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
-import org.opends.server.util.*;
-import org.forgerock.util.Reject;
+import org.opends.server.util.DynamicConstants;
+import org.opends.server.util.LDIFException;
+import org.opends.server.util.LDIFReader;
+import org.opends.server.util.LDIFWriter;
 
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.config.ConfigConstants.*;

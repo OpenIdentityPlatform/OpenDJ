@@ -28,7 +28,7 @@ package org.opends.server.api;
 
 
 
-import org.opends.server.types.ConditionResult;
+import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.ByteSequence;
 
 

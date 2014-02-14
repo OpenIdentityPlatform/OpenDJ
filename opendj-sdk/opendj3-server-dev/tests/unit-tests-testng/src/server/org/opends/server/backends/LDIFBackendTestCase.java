@@ -26,17 +26,12 @@
  */
 package org.opends.server.backends;
 
-
-
 import java.io.File;
 import java.util.UUID;
 
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
-
+import org.forgerock.opendj.ldap.ConditionResult;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.Backend;
-import org.opends.server.backends.LDIFBackend;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.AddOperation;
@@ -50,16 +45,15 @@ import org.opends.server.tasks.LdifFileWriter;
 import org.opends.server.tasks.TasksTestCase;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.tools.LDAPSearch;
-import org.opends.server.types.ConditionResult;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchScope;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
 import static org.testng.Assert.*;
-
-
 
 /**
  * A set of test cases for the LDIF backend.

@@ -25,24 +25,23 @@
  *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
-import com.sleepycat.je.*;
-import org.forgerock.i18n.LocalizableMessage;
-
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-
-
-import org.opends.server.api.OrderingMatchingRule;
-import org.opends.server.api.ApproximateMatchingRule;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.util.StaticUtils;
-import org.opends.server.util.ServerConstants;
-
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
-import static org.opends.messages.JebMessages.*;
-
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ConditionResult;
+import org.opends.server.api.ApproximateMatchingRule;
+import org.opends.server.api.OrderingMatchingRule;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.types.*;
+import org.opends.server.util.ServerConstants;
+import org.opends.server.util.StaticUtils;
+
+import com.sleepycat.je.*;
+
+import static org.opends.messages.JebMessages.*;
 
 /**
  * This class is used to run an index verification process on the backend.
@@ -1163,18 +1162,21 @@ public class VerifyJob
 
             Set<byte[]> dummySet = new AbstractSet<byte[]>()
             {
+              @Override
               public Iterator<byte[]> iterator()
               {
                 // The set is always empty.
                 return Collections.<byte[]>emptySet().iterator();
               }
 
+              @Override
               public int size()
               {
                 // The set is always empty.
                 return 0;
               }
 
+              @Override
               public boolean add(byte[] e)
               {
                 if (Arrays.equals(e, value)) {
@@ -1980,6 +1982,7 @@ public class VerifyJob
     /**
      * The action to be performed by this timer task.
      */
+    @Override
     public void run()
     {
       long latestCount = keyCount;
