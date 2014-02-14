@@ -64,14 +64,15 @@ import org.opends.server.admin.client.MissingMandatoryPropertiesException;
 import org.opends.server.admin.client.OperationRejectedException;
 import org.opends.server.admin.condition.Condition;
 import org.opends.server.admin.condition.ContainsCondition;
-import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.opends.server.tools.ClientException;
+
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
+import com.forgerock.opendj.cli.ReturnCode;
 import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.cli.SubCommand;
 import com.forgerock.opendj.cli.SubCommandArgumentParser;
-import com.forgerock.opendj.cli.CLIException;
+import com.forgerock.opendj.cli.ClientException;
+
 import org.opends.server.util.cli.CommandBuilder;
 import org.opends.server.util.cli.ConsoleApplication;
 import org.opends.server.util.cli.MenuResult;
@@ -250,14 +251,14 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
    * @throws ClientException
    *           If an unrecoverable client exception occurred whilst
    *           interacting with the server.
-   * @throws CLIException
+   * @throws ClientException
    *           If an error occurred whilst interacting with the
    *           console.
    */
   public static MenuResult<Void> modifyManagedObject(ConsoleApplication app,
-      ManagementContext context, ManagedObject<?> mo,
-      SubCommandHandler handler) throws ClientException,
-      CLIException {
+      ManagementContext context, ManagedObject<?> mo, SubCommandHandler handler)
+      throws ClientException
+  {
     ManagedObjectDefinition<?, ?> d = mo.getManagedObjectDefinition();
     LocalizableMessage ufn = d.getUserFriendlyName();
 
@@ -342,16 +343,16 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
             return MenuResult.cancel();
           }
         } else {
-          throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, e
+          throw new ClientException(ReturnCode.CONSTRAINT_VIOLATION, e
               .getMessageObject(), e);
         }
       } catch (AuthorizationException e) {
         LocalizableMessage msg = ERR_DSCFG_ERROR_MODIFY_AUTHZ.get(ufn);
-        throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS,
+        throw new ClientException(ReturnCode.INSUFFICIENT_ACCESS_RIGHTS,
             msg);
       } catch (ConcurrentModificationException e) {
         LocalizableMessage msg = ERR_DSCFG_ERROR_MODIFY_CME.get(ufn);
-        throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msg);
+        throw new ClientException(ReturnCode.CONSTRAINT_VIOLATION, msg);
       } catch (OperationRejectedException e) {
         if (app.isInteractive()) {
           // If interactive, give the user the chance to fix the
@@ -363,12 +364,12 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
             return MenuResult.cancel();
           }
         } else {
-          throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, e
+          throw new ClientException(ReturnCode.CONSTRAINT_VIOLATION, e
               .getMessageObject(), e);
         }
       } catch (CommunicationException e) {
         LocalizableMessage msg = ERR_DSCFG_ERROR_MODIFY_CE.get(ufn, e.getMessage());
-        throw new ClientException(LDAPResultCode.OTHER, msg);
+        throw new ClientException(ReturnCode.OTHER, msg);
       } catch (ManagedObjectAlreadyExistsException e) {
         // Should never happen.
         throw new IllegalStateException(e);
@@ -383,8 +384,8 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
    */
   private static MenuResult<Void> checkReferences(ConsoleApplication app,
       ManagementContext context, ManagedObject<?> mo,
-      SubCommandHandler handler) throws ClientException,
-      CLIException {
+      SubCommandHandler handler) throws ClientException
+  {
     ManagedObjectDefinition<?, ?> d = mo.getManagedObjectDefinition();
     LocalizableMessage ufn = d.getUserFriendlyName();
 
@@ -410,16 +411,16 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
               ref = context.getManagedObject(path);
             } catch (DefinitionDecodingException e) {
               LocalizableMessage msg = ERR_DSCFG_ERROR_GET_CHILD_DDE.get(rufn, rufn, rufn);
-              throw new ClientException(LDAPResultCode.OTHER, msg);
+              throw new ClientException(ReturnCode.OTHER, msg);
             } catch (ManagedObjectDecodingException e) {
               // FIXME: should not abort here. Instead, display the
               // errors (if verbose) and apply the changes to the
               // partial managed object.
               LocalizableMessage msg = ERR_DSCFG_ERROR_GET_CHILD_MODE.get(rufn);
-              throw new ClientException(LDAPResultCode.OTHER, msg, e);
+              throw new ClientException(ReturnCode.OTHER, msg, e);
             } catch (ManagedObjectNotFoundException e) {
               LocalizableMessage msg = ERR_DSCFG_ERROR_GET_CHILD_MONFE.get(rufn);
-              throw new ClientException(LDAPResultCode.NO_SUCH_OBJECT, msg);
+              throw new ClientException(ReturnCode.NO_SUCH_OBJECT, msg);
             }
 
             Condition condition = apd.getTargetIsEnabledCondition();
@@ -512,7 +513,7 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
                   } catch (ConcurrentModificationException e) {
                     LocalizableMessage msg = ERR_DSCFG_ERROR_MODIFY_CME.get(ufn);
                     throw new ClientException(
-                        LDAPResultCode.CONSTRAINT_VIOLATION, msg);
+                        ReturnCode.CONSTRAINT_VIOLATION, msg);
                   } catch (OperationRejectedException e) {
                     // Give the user the chance to fix the problems.
                     app.println();
@@ -572,10 +573,10 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
       }
     } catch (AuthorizationException e) {
       LocalizableMessage msg = ERR_DSCFG_ERROR_MODIFY_AUTHZ.get(ufn);
-      throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS, msg);
+      throw new ClientException(ReturnCode.INSUFFICIENT_ACCESS_RIGHTS, msg);
     } catch (CommunicationException e) {
       LocalizableMessage msg = ERR_DSCFG_ERROR_MODIFY_CE.get(ufn, e.getMessage());
-      throw new ClientException(LDAPResultCode.OTHER, msg);
+      throw new ClientException(ReturnCode.OTHER, msg);
     }
 
     return MenuResult.success();
@@ -693,7 +694,7 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
   @Override
   public MenuResult<Integer> run(ConsoleApplication app,
       ManagementContextFactory factory) throws ArgumentException,
-      ClientException, CLIException {
+      ClientException {
     // Get the naming argument values.
     List<String> names = getNamingArgValues(app, namingArgs);
 
@@ -713,21 +714,21 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
       result = getManagedObject(app, context, path, names);
     } catch (AuthorizationException e) {
       LocalizableMessage msg = ERR_DSCFG_ERROR_MODIFY_AUTHZ.get(ufn);
-      throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS, msg);
+      throw new ClientException(ReturnCode.INSUFFICIENT_ACCESS_RIGHTS, msg);
     } catch (DefinitionDecodingException e) {
       LocalizableMessage msg = ERR_DSCFG_ERROR_GET_CHILD_DDE.get(ufn, ufn, ufn);
-      throw new ClientException(LDAPResultCode.OTHER, msg);
+      throw new ClientException(ReturnCode.OTHER, msg);
     } catch (ManagedObjectDecodingException e) {
       // FIXME: should not abort here. Instead, display the errors (if
       // verbose) and apply the changes to the partial managed object.
       LocalizableMessage msg = ERR_DSCFG_ERROR_GET_CHILD_MODE.get(ufn);
-      throw new ClientException(LDAPResultCode.OTHER, msg, e);
+      throw new ClientException(ReturnCode.OTHER, msg, e);
     } catch (CommunicationException e) {
       LocalizableMessage msg = ERR_DSCFG_ERROR_MODIFY_CE.get(ufn, e.getMessage());
-      throw new ClientException(LDAPResultCode.OTHER, msg);
+      throw new ClientException(ReturnCode.OTHER, msg);
     } catch (ConcurrentModificationException e) {
       LocalizableMessage msg = ERR_DSCFG_ERROR_MODIFY_CME.get(ufn);
-      throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msg);
+      throw new ClientException(ReturnCode.CONSTRAINT_VIOLATION, msg);
     } catch (ManagedObjectNotFoundException e) {
       String objName = names.get(names.size() - 1);
       ArgumentException except = null;

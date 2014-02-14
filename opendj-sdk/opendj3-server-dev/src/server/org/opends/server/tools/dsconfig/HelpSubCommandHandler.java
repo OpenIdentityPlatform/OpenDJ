@@ -64,13 +64,12 @@ import org.opends.server.admin.StringPropertyDefinition;
 import org.opends.server.admin.Tag;
 import org.opends.server.admin.UndefinedDefaultBehaviorProvider;
 import org.opends.server.admin.PropertyException;
-import org.opends.server.tools.ClientException;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.cli.SubCommand;
 import com.forgerock.opendj.cli.SubCommandArgumentParser;
-import com.forgerock.opendj.cli.CLIException;
+import com.forgerock.opendj.cli.ClientException;
 import org.opends.server.util.cli.ConsoleApplication;
 import org.opends.server.util.cli.MenuResult;
 import org.opends.server.util.cli.OutputStreamConsoleApplication;
@@ -817,7 +816,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
   @Override
   public MenuResult<Integer> run(ConsoleApplication app,
       ManagementContextFactory factory) throws ArgumentException,
-      ClientException, CLIException {
+      ClientException {
 
     String categoryName = categoryArgument.getValue();
     String typeName = typeArgument.getValue();

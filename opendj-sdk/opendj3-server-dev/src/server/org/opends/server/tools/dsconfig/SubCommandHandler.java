@@ -44,6 +44,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
+
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.AbstractManagedObjectDefinition;
 import org.opends.server.admin.Configuration;
@@ -71,14 +72,16 @@ import org.opends.server.admin.client.IllegalManagedObjectNameException;
 import org.opends.server.admin.client.ManagedObject;
 import org.opends.server.admin.client.ManagedObjectDecodingException;
 import org.opends.server.admin.client.ManagementContext;
-import org.opends.server.tools.ClientException;
 import org.opends.server.util.ServerConstants;
+
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.ReturnCode;
 import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.cli.SubCommand;
-import com.forgerock.opendj.cli.CLIException;
+import com.forgerock.opendj.cli.ClientException;
+
 import org.opends.server.util.cli.CommandBuilder;
 import org.opends.server.util.cli.ConsoleApplication;
 import org.opends.server.util.cli.Menu;
@@ -115,7 +118,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
 
     // Any CLI exception that was caught when attempting to find
     // the managed object.
-    private CLIException clie;
+    private ClientException clie;
 
     private ConcurrentModificationException cme;
 
@@ -159,7 +162,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
               } else {
                 childName = sresult.getValue();
               }
-            } catch (CLIException e) {
+            } catch (ClientException e) {
               clie = e;
               result = MenuResult.quit();
               return;
@@ -281,7 +284,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
               } else {
                 childName = sresult.getValue();
               }
-            } catch (CLIException e) {
+            } catch (ClientException e) {
               clie = e;
               result = MenuResult.quit();
               return;
@@ -303,7 +306,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
               String typeUsage = getSubTypesUsage(d);
               LocalizableMessage msg = ERR_DSCFG_ERROR_SUB_TYPE_UNRECOGNIZED.get(
                   name, r.getUserFriendlyName(), typeUsage);
-              clie = new CLIException(msg);
+              clie = new ClientException(ReturnCode.TODO, msg);
               result = MenuResult.quit();
               return;
             } else {
@@ -406,7 +409,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
      *         object path, or {@link MenuResult#quit()}, or
      *         {@link MenuResult#cancel()}, if the sub-command was
      *         run interactively and the user chose to quit or cancel.
-     * @throws CLIException
+     * @throws ClientException
      *           If one of the naming arguments referenced a managed
      *           object of the wrong type.
      * @throws DefinitionDecodingException
@@ -431,7 +434,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
      */
     public MenuResult<ManagedObject<?>> find(ConsoleApplication app,
         ManagementContext context, ManagedObjectPath<?, ?> path,
-        List<String> args) throws CLIException, CommunicationException,
+        List<String> args) throws ClientException, CommunicationException,
         AuthorizationException, ConcurrentModificationException,
         DefinitionDecodingException, ManagedObjectDecodingException,
         ManagedObjectNotFoundException {
@@ -846,12 +849,12 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
    *           parsed successfully.
    * @throws ClientException
    *           If the management context could not be created.
-   * @throws CLIException
+   * @throws ClientException
    *           If a CLI exception occurred.
    */
   public abstract MenuResult<Integer> run(ConsoleApplication app,
       ManagementContextFactory factory) throws ArgumentException,
-      ClientException, CLIException;
+      ClientException;
 
 
 
@@ -971,7 +974,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
    * @throws CommunicationException
    *           If the client cannot contact the server due to an
    *           underlying communication problem.
-   * @throws CLIException
+   * @throws ClientException
    *           If one of the naming arguments referenced a managed
    *           object of the wrong type.
    * @throws ClientException
@@ -979,11 +982,11 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
    */
   protected final MenuResult<ManagedObject<?>> getManagedObject(
       ConsoleApplication app, ManagementContext context,
-      ManagedObjectPath<?, ?> path, List<String> args) throws CLIException,
+      ManagedObjectPath<?, ?> path, List<String> args) throws ClientException,
       AuthorizationException, DefinitionDecodingException,
       ManagedObjectDecodingException, CommunicationException,
-      ConcurrentModificationException, ManagedObjectNotFoundException,
-      ClientException {
+      ConcurrentModificationException, ManagedObjectNotFoundException
+  {
     ManagedObjectFinder finder = new ManagedObjectFinder();
     return finder.find(app, context, path, args);
   }
@@ -1140,7 +1143,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
    * @throws AuthorizationException
    *           If the children cannot be listed due to an authorization
    *           failure.
-   * @throws CLIException
+   * @throws ClientException
    *           If the user input can be read from the console or if
    *           there are no children.
    */
@@ -1150,7 +1153,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
       RelationDefinition<C, S> r,
       AbstractManagedObjectDefinition<? extends C, ? extends S> d)
       throws AuthorizationException, ConcurrentModificationException,
-      CommunicationException, CLIException {
+      CommunicationException, ClientException {
     if (d == null) {
       d = r.getChildDefinition();
     }

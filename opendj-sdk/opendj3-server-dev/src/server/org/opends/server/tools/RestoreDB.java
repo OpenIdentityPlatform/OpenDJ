@@ -59,7 +59,7 @@ import org.opends.server.util.BuildVersion;
 
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
-import com.forgerock.opendj.cli.CLIException;
+import com.forgerock.opendj.cli.ClientException;
 import com.forgerock.opendj.cli.StringArgument;
 
 import org.opends.server.util.args.LDAPConnectionArgumentParser;
@@ -246,7 +246,7 @@ public class RestoreDB extends TaskTool {
       err.println(argParser.getUsage());
       return 1;
     }
-    catch (CLIException ce)
+    catch (ClientException ce)
     {
       // No need to display the usage since the problem comes with a provided
       // value.

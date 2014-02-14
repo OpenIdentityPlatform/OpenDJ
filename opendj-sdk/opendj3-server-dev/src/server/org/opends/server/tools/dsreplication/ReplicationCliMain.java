@@ -66,7 +66,6 @@ import org.opends.server.admin.std.meta.
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.tasks.PurgeConflictsHistoricalTask;
-import org.opends.server.tools.ClientException;
 import org.opends.server.tools.ToolConstants;
 import org.opends.server.tools.tasks.TaskEntry;
 import org.opends.server.tools.tasks.TaskScheduleInteraction;
@@ -84,7 +83,7 @@ import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.cli.ArgumentException;
-import com.forgerock.opendj.cli.CLIException;
+import com.forgerock.opendj.cli.ClientException;
 import com.forgerock.opendj.cli.FileBasedArgument;
 import com.forgerock.opendj.cli.IntegerArgument;
 
@@ -1426,7 +1425,7 @@ public class ReplicationCliMain extends ConsoleApplication
                     suffixes.add(dn);
                   }
                 }
-                catch (CLIException ce)
+                catch (ClientException ce)
                 {
                   println(ce.getMessageObject());
                   confirmationLimitReached = true;
@@ -1517,7 +1516,7 @@ public class ReplicationCliMain extends ConsoleApplication
                   INFO_REPLICATION_PURGE_HISTORICAL_LOCAL_PROMPT.get(),
                   true, logger);
           }
-          catch (CLIException ce)
+          catch (ClientException ce)
           {
             println(ce.getMessageObject());
             cancelled = true;
@@ -1620,7 +1619,7 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         interaction.run();
       }
-      catch (CLIException ce)
+      catch (ClientException ce)
       {
         println(ce.getMessageObject());
         cancelled = true;
@@ -1779,7 +1778,7 @@ public class ReplicationCliMain extends ConsoleApplication
             cancelled = true;
           }
         }
-        catch (CLIException ce)
+        catch (ClientException ce)
         {
           println(ce.getMessageObject());
           cancelled = true;
@@ -1801,7 +1800,7 @@ public class ReplicationCliMain extends ConsoleApplication
                 INFO_REPLICATION_ENABLE_REPLICATION_SERVER1_PROMPT.get(),
                 true, logger);
           }
-          catch (CLIException ce)
+          catch (ClientException ce)
           {
             println(ce.getMessageObject());
             cancelled = true;
@@ -1857,7 +1856,7 @@ public class ReplicationCliMain extends ConsoleApplication
               askConfirmation(INFO_REPLICATION_ENABLE_SECURE1_PROMPT.get(replicationPort1),
                   false, logger);
           }
-          catch (CLIException ce)
+          catch (ClientException ce)
           {
             println(ce.getMessageObject());
             cancelled = true;
@@ -1877,7 +1876,7 @@ public class ReplicationCliMain extends ConsoleApplication
               INFO_REPLICATION_ENABLE_REPLICATION_DOMAIN1_PROMPT.get(),
               true, logger);
         }
-        catch (CLIException ce)
+        catch (ClientException ce)
         {
           println(ce.getMessageObject());
           cancelled = true;
@@ -2069,7 +2068,7 @@ public class ReplicationCliMain extends ConsoleApplication
             cancelled = true;
           }
         }
-        catch (CLIException ce)
+        catch (ClientException ce)
         {
           println(ce.getMessageObject());
           cancelled = true;
@@ -2091,7 +2090,7 @@ public class ReplicationCliMain extends ConsoleApplication
                 INFO_REPLICATION_ENABLE_REPLICATION_SERVER2_PROMPT.get(),
                 true, logger);
           }
-          catch (CLIException ce)
+          catch (ClientException ce)
           {
             println(ce.getMessageObject());
             cancelled = true;
@@ -2156,7 +2155,7 @@ public class ReplicationCliMain extends ConsoleApplication
               secureReplication2 =
                 askConfirmation(INFO_REPLICATION_ENABLE_SECURE2_PROMPT.get(replicationPort2), false, logger);
             }
-            catch (CLIException ce)
+            catch (ClientException ce)
             {
               println(ce.getMessageObject());
               cancelled = true;
@@ -2177,7 +2176,7 @@ public class ReplicationCliMain extends ConsoleApplication
               INFO_REPLICATION_ENABLE_REPLICATION_DOMAIN2_PROMPT.get(),
               true, logger);
         }
-        catch (CLIException ce)
+        catch (ClientException ce)
         {
           println(ce.getMessageObject());
           cancelled = true;
@@ -2388,7 +2387,7 @@ public class ReplicationCliMain extends ConsoleApplication
         disableAll = askConfirmation(INFO_REPLICATION_PROMPT_DISABLE_ALL.get(),
           disableAll, logger);
       }
-      catch (CLIException ce)
+      catch (ClientException ce)
       {
         println(ce.getMessageObject());
         cancelled = true;
@@ -2408,7 +2407,7 @@ public class ReplicationCliMain extends ConsoleApplication
               disableReplicationServer,
               logger);
         }
-        catch (CLIException ce)
+        catch (ClientException ce)
         {
           println(ce.getMessageObject());
           cancelled = true;
@@ -2426,7 +2425,7 @@ public class ReplicationCliMain extends ConsoleApplication
                 false,
                 logger);
       }
-      catch (CLIException ce)
+      catch (ClientException ce)
       {
         println(ce.getMessageObject());
         cancelled = true;
@@ -2457,7 +2456,7 @@ public class ReplicationCliMain extends ConsoleApplication
          INFO_REPLICATION_DISABLE_ALL_SUFFIXES_DISABLE_REPLICATION_SERVER.get(
              ConnectionUtils.getHostPort(ctx), repPort), true, logger));
         }
-        catch (CLIException ce)
+        catch (ClientException ce)
         {
           println(ce.getMessageObject());
           cancelled = true;
@@ -2489,7 +2488,7 @@ public class ReplicationCliMain extends ConsoleApplication
           cancelled = !askConfirmation(INFO_REPLICATION_CONFIRM_DISABLE_ADS.get(
               ADSContext.getAdministrationSuffixDN()), true, logger);
         }
-        catch (CLIException ce)
+        catch (ClientException ce)
         {
           println(ce.getMessageObject());
           cancelled = true;
@@ -2504,7 +2503,7 @@ public class ReplicationCliMain extends ConsoleApplication
           cancelled = !askConfirmation(
               INFO_REPLICATION_CONFIRM_DISABLE_SCHEMA.get(), true, logger);
         }
-        catch (CLIException ce)
+        catch (ClientException ce)
         {
           println(ce.getMessageObject());
           cancelled = true;
@@ -2524,7 +2523,7 @@ public class ReplicationCliMain extends ConsoleApplication
               logger);
           }
         }
-        catch (CLIException ce)
+        catch (ClientException ce)
         {
           println(ce.getMessageObject());
           cancelled = true;
@@ -2637,7 +2636,7 @@ public class ReplicationCliMain extends ConsoleApplication
                   ADSContext.getAdministrationSuffixDN(), hostPortSource), true,
                   logger);
         }
-        catch (CLIException ce)
+        catch (ClientException ce)
         {
           println(ce.getMessageObject());
           cancelled = true;
@@ -2653,7 +2652,7 @@ public class ReplicationCliMain extends ConsoleApplication
               INFO_REPLICATION_CONFIRM_INITIALIZE_ALL_GENERIC.get(
                   hostPortSource), true, logger);
         }
-        catch (CLIException ce)
+        catch (ClientException ce)
         {
           println(ce.getMessageObject());
           cancelled = true;
@@ -3114,7 +3113,7 @@ public class ReplicationCliMain extends ConsoleApplication
                   ADSContext.getAdministrationSuffixDN(), hostPortDestination,
                   hostPortSource), true, logger);
         }
-        catch (CLIException ce)
+        catch (ClientException ce)
         {
           println(ce.getMessageObject());
           cancelled = true;
@@ -3130,7 +3129,7 @@ public class ReplicationCliMain extends ConsoleApplication
               INFO_REPLICATION_CONFIRM_INITIALIZE_GENERIC.get(
                   hostPortDestination, hostPortSource), true, logger);
         }
-        catch (CLIException ce)
+        catch (ClientException ce)
         {
           println(ce.getMessageObject());
           cancelled = true;
@@ -3720,7 +3719,7 @@ public class ReplicationCliMain extends ConsoleApplication
                   get(Utils.getMessageFromCollection(exceptionMsgs,
                       Constants.LINE_SEPARATOR)), true, logger);
             }
-            catch (CLIException ce)
+            catch (ClientException ce)
             {
               println(ce.getMessageObject());
               cancelled = true;
@@ -4949,7 +4948,7 @@ public class ReplicationCliMain extends ConsoleApplication
                     suffixes.add(dn);
                   }
                 }
-                catch (CLIException ce)
+                catch (ClientException ce)
                 {
                   println(ce.getMessageObject());
                   confirmationLimitReached = true;
@@ -5130,7 +5129,7 @@ public class ReplicationCliMain extends ConsoleApplication
                     suffixes.add(dn);
                   }
                 }
-                catch (CLIException ce)
+                catch (ClientException ce)
                 {
                   println(ce.getMessageObject());
                   confirmationLimitReached = true;
@@ -5344,7 +5343,7 @@ public class ReplicationCliMain extends ConsoleApplication
                         true, logger);
                   }
                 }
-                catch (CLIException ce)
+                catch (ClientException ce)
                 {
                   println(ce.getMessageObject());
                   confirmationLimitReached = true;
@@ -5462,7 +5461,7 @@ public class ReplicationCliMain extends ConsoleApplication
                     suffixes.add(dn);
                   }
                 }
-                catch (CLIException ce)
+                catch (ClientException ce)
                 {
                   println(ce.getMessageObject());
                   confirmationLimitReached = true;
@@ -6413,7 +6412,7 @@ public class ReplicationCliMain extends ConsoleApplication
                     ReplicationCliReturnCode.USER_CANCELLED, null);
               }
             }
-            catch (CLIException ce)
+            catch (ClientException ce)
             {
               println(ce.getMessageObject());
               throw new ReplicationCliException(
@@ -6499,7 +6498,7 @@ public class ReplicationCliMain extends ConsoleApplication
                     ReplicationCliReturnCode.USER_CANCELLED, null);
               }
             }
-            catch (CLIException ce)
+            catch (ClientException ce)
             {
               println(ce.getMessageObject());
               throw new ReplicationCliException(
@@ -9320,7 +9319,7 @@ public class ReplicationCliMain extends ConsoleApplication
         returnValue = SubcommandChoice.CANCEL;
       }
     }
-    catch (CLIException ce)
+    catch (ClientException ce)
     {
       returnValue = SubcommandChoice.CANCEL;
       logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
@@ -10633,7 +10632,7 @@ public class ReplicationCliMain extends ConsoleApplication
                 ReplicationCliReturnCode.USER_CANCELLED, null);
           }
         }
-        catch (CLIException ce)
+        catch (ClientException ce)
         {
           println(ce.getMessageObject());
           throw new ReplicationCliException(

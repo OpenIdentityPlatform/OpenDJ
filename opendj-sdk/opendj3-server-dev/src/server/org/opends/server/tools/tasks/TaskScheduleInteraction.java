@@ -44,7 +44,10 @@ import org.opends.server.backends.task.FailedDependencyAction;
 import org.opends.server.backends.task.RecurringTask;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.util.StaticUtils;
-import com.forgerock.opendj.cli.CLIException;
+
+import com.forgerock.opendj.cli.ClientException;
+import com.forgerock.opendj.cli.ReturnCode;
+
 import org.opends.server.util.cli.ConsoleApplication;
 import org.opends.server.util.cli.MenuBuilder;
 import org.opends.server.util.cli.MenuResult;
@@ -120,9 +123,9 @@ public class TaskScheduleInteraction
 
   /**
    * Executes the interaction with the user.
-   * @throws CLIException if there is an error prompting the user.
+   * @throws ClientException if there is an error prompting the user.
    */
-  public void run() throws CLIException
+  public void run() throws ClientException
   {
     headerDisplayed = false;
 
@@ -179,7 +182,7 @@ public class TaskScheduleInteraction
     this.formatter = formatter;
   }
 
-  private void runFailedDependencyAction() throws CLIException
+  private void runFailedDependencyAction() throws ClientException
   {
     if (args.dependencyArg.isPresent())
     {
@@ -191,7 +194,7 @@ public class TaskScheduleInteraction
     }
   }
 
-  private void askForFailedDependencyAction() throws CLIException
+  private void askForFailedDependencyAction() throws ClientException
   {
     checkHeaderDisplay();
 
@@ -217,12 +220,12 @@ public class TaskScheduleInteraction
     }
     else
     {
-      throw new CLIException(LocalizableMessage.EMPTY);
+      throw new ClientException(ReturnCode.TODO, LocalizableMessage.EMPTY);
     }
 
   }
 
-  private void runDependency() throws CLIException
+  private void runDependency() throws ClientException
   {
     if (args.dependencyArg.isPresent())
     {
@@ -234,7 +237,7 @@ public class TaskScheduleInteraction
     }
   }
 
-  private void askForDependency() throws CLIException
+  private void askForDependency() throws ClientException
   {
     checkHeaderDisplay();
 
@@ -310,7 +313,7 @@ public class TaskScheduleInteraction
     return taskIDDefined;
   }
 
-  private void runErrorNotification() throws CLIException
+  private void runErrorNotification() throws ClientException
   {
     if (args.errorNotificationArg.isPresent())
     {
@@ -323,7 +326,7 @@ public class TaskScheduleInteraction
     }
   }
 
-  private void askForErrorNotification() throws CLIException
+  private void askForErrorNotification() throws ClientException
   {
     List<String> addresses =
       askForEmailNotification(INFO_HAS_ERROR_NOTIFICATION_PROMPT.get(),
@@ -332,7 +335,7 @@ public class TaskScheduleInteraction
   }
 
   private List<String> askForEmailNotification(LocalizableMessage hasNotificationPrompt,
-      LocalizableMessage emailAddressPrompt) throws CLIException
+      LocalizableMessage emailAddressPrompt) throws ClientException
   {
     checkHeaderDisplay();
 
@@ -366,7 +369,7 @@ public class TaskScheduleInteraction
     return addresses;
   }
 
-  private void runCompletionNotification() throws CLIException
+  private void runCompletionNotification() throws ClientException
   {
     if (args.completionNotificationArg.isPresent())
     {
@@ -379,7 +382,7 @@ public class TaskScheduleInteraction
     }
   }
 
-  private void askForCompletionNotification() throws CLIException
+  private void askForCompletionNotification() throws ClientException
   {
     List<String> addresses =
       askForEmailNotification(INFO_HAS_COMPLETION_NOTIFICATION_PROMPT.get(),
@@ -387,7 +390,7 @@ public class TaskScheduleInteraction
     uData.setNotifyUponCompletionEmailAddresses(addresses);
   }
 
-  private void runStartNowOrSchedule() throws CLIException
+  private void runStartNowOrSchedule() throws ClientException
   {
     if (args.startArg.isPresent())
     {
@@ -406,7 +409,7 @@ public class TaskScheduleInteraction
     }
   }
 
-  private void askToStartNowOrSchedule() throws CLIException
+  private void askToStartNowOrSchedule() throws ClientException
   {
     checkHeaderDisplay();
 
@@ -442,11 +445,11 @@ public class TaskScheduleInteraction
     }
     else
     {
-      throw new CLIException(LocalizableMessage.EMPTY);
+      throw new ClientException(ReturnCode.TODO, LocalizableMessage.EMPTY);
     }
   }
 
-  private void askForStartDate() throws CLIException
+  private void askForStartDate() throws ClientException
   {
     checkHeaderDisplay();
 
@@ -473,7 +476,7 @@ public class TaskScheduleInteraction
     uData.setStartDate(startDate);
   }
 
-  private void askForTaskSchedule() throws CLIException
+  private void askForTaskSchedule() throws ClientException
   {
     checkHeaderDisplay();
 

@@ -41,7 +41,7 @@ import org.opends.server.tools.SSLConnectionFactory;
 import org.opends.server.tools.SSLConnectionException;
 import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
 import com.forgerock.opendj.cli.ArgumentException;
-import com.forgerock.opendj.cli.CLIException;
+import com.forgerock.opendj.cli.ClientException;
 import org.opends.server.util.SelectableCertificateKeyManager;
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.util.ApplicationTrustManager;
@@ -364,7 +364,7 @@ public class LDAPConnectionConsoleInteraction {
       {
 
         public String validate(ConsoleApplication app, String input)
-            throws CLIException
+            throws ClientException
         {
           String ninput = input.trim();
           if (ninput.length() == 0)
@@ -397,7 +397,7 @@ public class LDAPConnectionConsoleInteraction {
         hostName = app.readValidatedInput(INFO_LDAP_CONN_PROMPT_HOST_NAME
             .get(hostName), callback);
       }
-      catch (CLIException e)
+      catch (ClientException e)
       {
         throw ArgumentExceptionFactory.unableToReadConnectionParameters(e);
       }
@@ -487,7 +487,7 @@ public class LDAPConnectionConsoleInteraction {
           throw new RuntimeException();
         }
       }
-      catch (CLIException e)
+      catch (ClientException e)
       {
         throw new RuntimeException(e);
       }
@@ -527,7 +527,7 @@ public class LDAPConnectionConsoleInteraction {
       {
 
         public Integer validate(ConsoleApplication app, String input)
-            throws CLIException
+            throws ClientException
         {
           String ninput = input.trim();
           if (ninput.length() == 0)
@@ -569,7 +569,7 @@ public class LDAPConnectionConsoleInteraction {
         }
         portNumber = app.readValidatedInput(askPortNumber, callback);
       }
-      catch (CLIException e)
+      catch (ClientException e)
       {
         throw ArgumentExceptionFactory.unableToReadConnectionParameters(e);
       }
@@ -620,7 +620,7 @@ public class LDAPConnectionConsoleInteraction {
         {
 
           public String validate(ConsoleApplication app, String input)
-              throws CLIException
+              throws ClientException
           {
             String ninput = input.trim();
             if (ninput.length() == 0)
@@ -680,7 +680,7 @@ public class LDAPConnectionConsoleInteraction {
             providedBindDN = bindDN;
           }
         }
-        catch (CLIException e)
+        catch (ClientException e)
         {
           throw ArgumentExceptionFactory
               .unableToReadConnectionParameters(e);
@@ -914,7 +914,7 @@ public class LDAPConnectionConsoleInteraction {
           throw new RuntimeException();
         }
       }
-      catch (CLIException e)
+      catch (ClientException e)
       {
         throw new RuntimeException(e);
 
@@ -933,7 +933,7 @@ public class LDAPConnectionConsoleInteraction {
       ValidationCallback<String> callback = new ValidationCallback<String>()
       {
         public String validate(ConsoleApplication app, String input)
-            throws CLIException
+            throws ClientException
         {
           String ninput = input.trim();
           if (ninput.length() == 0)
@@ -966,7 +966,7 @@ public class LDAPConnectionConsoleInteraction {
         truststorePath = app.readValidatedInput(
             INFO_LDAP_CONN_PROMPT_SECURITY_TRUSTSTORE_PATH.get(), callback);
       }
-      catch (CLIException e)
+      catch (ClientException e)
       {
         throw ArgumentExceptionFactory.unableToReadConnectionParameters(e);
       }
@@ -1110,7 +1110,7 @@ public class LDAPConnectionConsoleInteraction {
       ValidationCallback<String> callback = new ValidationCallback<String>()
       {
         public String validate(ConsoleApplication app, String input)
-            throws CLIException
+            throws ClientException
         {
           String ninput = input.trim();
           if (ninput.length() == 0)
@@ -1139,7 +1139,7 @@ public class LDAPConnectionConsoleInteraction {
         keystorePath = app.readValidatedInput(
             INFO_LDAP_CONN_PROMPT_SECURITY_KEYSTORE_PATH.get(), callback);
       }
-      catch (CLIException e)
+      catch (ClientException e)
       {
         throw ArgumentExceptionFactory.unableToReadConnectionParameters(e);
       }
@@ -1264,7 +1264,7 @@ public class LDAPConnectionConsoleInteraction {
       {
         throw ArgumentExceptionFactory.unableToReadConnectionParameters(e);
       }
-      catch (CLIException e)
+      catch (ClientException e)
       {
         throw ArgumentExceptionFactory.unableToReadConnectionParameters(e);
       }
@@ -1614,7 +1614,7 @@ public class LDAPConnectionConsoleInteraction {
               new ValidationCallback<String>()
             {
               public String validate(ConsoleApplication app, String input)
-                  throws CLIException
+                  throws ClientException
               {
                 String ninput = input.trim();
                 if (ninput.length() == 0)
@@ -1649,7 +1649,7 @@ public class LDAPConnectionConsoleInteraction {
                   INFO_LDAP_CONN_PROMPT_SECURITY_TRUSTSTORE_PATH.get(),
                   callback);
             }
-            catch (CLIException e)
+            catch (ClientException e)
             {
               return true;
             }
@@ -1709,7 +1709,7 @@ public class LDAPConnectionConsoleInteraction {
           throw new RuntimeException();
         }
       }
-      catch (CLIException cliE)
+      catch (ClientException cliE)
       {
         throw new RuntimeException(cliE);
       }

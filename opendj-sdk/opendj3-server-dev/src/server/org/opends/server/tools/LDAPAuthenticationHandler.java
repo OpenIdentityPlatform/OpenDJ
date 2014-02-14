@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import javax.security.auth.Subject;
 import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.CallbackHandler;
@@ -53,6 +54,9 @@ import javax.security.auth.login.LoginContext;
 import javax.security.sasl.Sasl;
 import javax.security.sasl.SaslClient;
 
+import com.forgerock.opendj.cli.ClientException;
+import com.forgerock.opendj.cli.ReturnCode;
+
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
@@ -62,7 +66,6 @@ import org.opends.server.protocols.ldap.BindResponseProtocolOp;
 import org.opends.server.protocols.ldap.ExtendedRequestProtocolOp;
 import org.opends.server.protocols.ldap.ExtendedResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPMessage;
-import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.Control;
 import org.opends.server.util.Base64;
@@ -310,13 +313,13 @@ public class LDAPAuthenticationHandler
       LocalizableMessage message =
           ERR_LDAPAUTH_CANNOT_SEND_SIMPLE_BIND.get(getExceptionMessage(ioe));
       throw new ClientException(
-              LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
+              ReturnCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
     }
     catch (Exception e)
     {
       LocalizableMessage message =
           ERR_LDAPAUTH_CANNOT_SEND_SIMPLE_BIND.get(getExceptionMessage(e));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_ENCODING_ERROR,
+      throw new ClientException(ReturnCode.CLIENT_SIDE_ENCODING_ERROR,
                                 message, e);
     }
 
@@ -330,7 +333,7 @@ public class LDAPAuthenticationHandler
       {
         LocalizableMessage message =
             ERR_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE.get();
-        throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN,
+        throw new ClientException(ReturnCode.CLIENT_SIDE_SERVER_DOWN,
                                   message);
       }
     }
@@ -338,7 +341,7 @@ public class LDAPAuthenticationHandler
     {
       LocalizableMessage message =
           ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(ae));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
+      throw new ClientException(ReturnCode.CLIENT_SIDE_DECODING_ERROR,
           message, ae);
     }
     catch (IOException ioe)
@@ -346,13 +349,13 @@ public class LDAPAuthenticationHandler
       LocalizableMessage message =
           ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(ioe));
       throw new ClientException(
-              LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
+          ReturnCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
     }
     catch (LDAPException le)
     {
       LocalizableMessage message =
           ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(le));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
+      throw new ClientException(ReturnCode.CLIENT_SIDE_DECODING_ERROR,
                                 message, le);
     }
     catch (Exception e)
@@ -360,7 +363,7 @@ public class LDAPAuthenticationHandler
       LocalizableMessage message =
           ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(e));
       throw new ClientException(
-              LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
+          ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
     }
 
 
@@ -397,19 +400,19 @@ public class LDAPAuthenticationHandler
         else
         {
           LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE.get(extendedResponse);
-          throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
+          throw new ClientException(ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message);
         }
 
       default:
         LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_RESPONSE.get(responseMessage.getProtocolOp());
-        throw new ClientException( LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
+        throw new ClientException( ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message);
     }
 
 
     BindResponseProtocolOp bindResponse =
          responseMessage.getBindResponseProtocolOp();
     int resultCode = bindResponse.getResultCode();
-    if (resultCode == LDAPResultCode.SUCCESS)
+    if (resultCode == ReturnCode.SUCCESS.get())
     {
       // FIXME -- Need to look for things like password expiration warning,
       // reset notice, etc.
@@ -474,7 +477,7 @@ public class LDAPAuthenticationHandler
     {
       LocalizableMessage message = ERR_LDAPAUTH_NO_SASL_MECHANISM.get();
       throw new ClientException(
-              LDAPResultCode.CLIENT_SIDE_PARAM_ERROR, message);
+          ReturnCode.CLIENT_SIDE_PARAM_ERROR, message);
     }
 
 
@@ -515,7 +518,7 @@ public class LDAPAuthenticationHandler
     {
       LocalizableMessage message = ERR_LDAPAUTH_UNSUPPORTED_SASL_MECHANISM.get(mechanism);
       throw new ClientException(
-              LDAPResultCode.CLIENT_SIDE_AUTH_UNKNOWN, message);
+          ReturnCode.CLIENT_SIDE_AUTH_UNKNOWN, message);
     }
   }
 
@@ -578,7 +581,7 @@ public class LDAPAuthenticationHandler
             if (iterator.hasNext())
             {
               LocalizableMessage message = ERR_LDAPAUTH_TRACE_SINGLE_VALUED.get();
-              throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR,
+              throw new ClientException(ReturnCode.CLIENT_SIDE_PARAM_ERROR,
                                         message);
             }
           }
@@ -587,7 +590,7 @@ public class LDAPAuthenticationHandler
         {
           LocalizableMessage message = ERR_LDAPAUTH_INVALID_SASL_PROPERTY.get(
               name, SASL_MECHANISM_ANONYMOUS);
-          throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR,
+          throw new ClientException(ReturnCode.CLIENT_SIDE_PARAM_ERROR,
                                     message);
         }
       }
@@ -621,13 +624,13 @@ public class LDAPAuthenticationHandler
       LocalizableMessage message = ERR_LDAPAUTH_CANNOT_SEND_SASL_BIND.get(
           SASL_MECHANISM_ANONYMOUS, getExceptionMessage(ioe));
       throw new ClientException(
-              LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
+              ReturnCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
     }
     catch (Exception e)
     {
       LocalizableMessage message = ERR_LDAPAUTH_CANNOT_SEND_SASL_BIND.get(
           SASL_MECHANISM_ANONYMOUS, getExceptionMessage(e));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_ENCODING_ERROR,
+      throw new ClientException(ReturnCode.CLIENT_SIDE_ENCODING_ERROR,
                                 message, e);
     }
 
@@ -641,7 +644,7 @@ public class LDAPAuthenticationHandler
       {
         LocalizableMessage message =
             ERR_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE.get();
-        throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN,
+        throw new ClientException(ReturnCode.CLIENT_SIDE_SERVER_DOWN,
                                   message);
       }
     }
@@ -649,7 +652,7 @@ public class LDAPAuthenticationHandler
     {
       LocalizableMessage message =
           ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(ae));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
+      throw new ClientException(ReturnCode.CLIENT_SIDE_DECODING_ERROR,
           message, ae);
     }
     catch (IOException ioe)
@@ -657,13 +660,13 @@ public class LDAPAuthenticationHandler
       LocalizableMessage message =
           ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(ioe));
       throw new ClientException(
-              LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
+              ReturnCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
     }
     catch (LDAPException le)
     {
       LocalizableMessage message =
           ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(le));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
+      throw new ClientException(ReturnCode.CLIENT_SIDE_DECODING_ERROR,
                                 message, le);
     }
     catch (Exception e)
@@ -671,7 +674,7 @@ public class LDAPAuthenticationHandler
       LocalizableMessage message =
           ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(e));
       throw new ClientException(
-              LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
+              ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
     }
 
 
@@ -708,19 +711,19 @@ public class LDAPAuthenticationHandler
         else
         {
           LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE.get(extendedResponse);
-          throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
+          throw new ClientException(ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message);
         }
 
       default:
         LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_RESPONSE.get(responseMessage.getProtocolOp());
-        throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
+        throw new ClientException(ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message);
     }
 
 
     BindResponseProtocolOp bindResponse =
          responseMessage.getBindResponseProtocolOp();
     int resultCode = bindResponse.getResultCode();
-    if (resultCode == LDAPResultCode.SUCCESS)
+    if (resultCode == ReturnCode.SUCCESS.get())
     {
       // FIXME -- Need to look for things like password expiration warning,
       // reset notice, etc.
@@ -801,7 +804,7 @@ public class LDAPAuthenticationHandler
       LocalizableMessage message =
           ERR_LDAPAUTH_NO_SASL_PROPERTIES.get(SASL_MECHANISM_CRAM_MD5);
       throw new ClientException(
-              LDAPResultCode.CLIENT_SIDE_PARAM_ERROR, message);
+              ReturnCode.CLIENT_SIDE_PARAM_ERROR, message);
     }
 
     Iterator<String> propertyNames = saslProperties.keySet().iterator();
@@ -821,7 +824,7 @@ public class LDAPAuthenticationHandler
           if (iterator.hasNext())
           {
             LocalizableMessage message = ERR_LDAPAUTH_AUTHID_SINGLE_VALUED.get();
-            throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR,
+            throw new ClientException(ReturnCode.CLIENT_SIDE_PARAM_ERROR,
                                       message);
           }
         }
@@ -831,7 +834,7 @@ public class LDAPAuthenticationHandler
         LocalizableMessage message = ERR_LDAPAUTH_INVALID_SASL_PROPERTY.get(
             name, SASL_MECHANISM_CRAM_MD5);
         throw new ClientException(
-                LDAPResultCode.CLIENT_SIDE_PARAM_ERROR, message);
+                ReturnCode.CLIENT_SIDE_PARAM_ERROR, message);
       }
     }
 
@@ -842,7 +845,7 @@ public class LDAPAuthenticationHandler
       LocalizableMessage message =
           ERR_LDAPAUTH_SASL_AUTHID_REQUIRED.get(SASL_MECHANISM_CRAM_MD5);
       throw new ClientException(
-              LDAPResultCode.CLIENT_SIDE_PARAM_ERROR, message);
+              ReturnCode.CLIENT_SIDE_PARAM_ERROR, message);
     }
 
 
@@ -873,13 +876,13 @@ public class LDAPAuthenticationHandler
       LocalizableMessage message = ERR_LDAPAUTH_CANNOT_SEND_INITIAL_SASL_BIND.get(
           SASL_MECHANISM_CRAM_MD5, getExceptionMessage(ioe));
       throw new ClientException(
-              LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
+              ReturnCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
     }
     catch (Exception e)
     {
       LocalizableMessage message = ERR_LDAPAUTH_CANNOT_SEND_INITIAL_SASL_BIND.get(
           SASL_MECHANISM_CRAM_MD5, getExceptionMessage(e));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_ENCODING_ERROR,
+      throw new ClientException(ReturnCode.CLIENT_SIDE_ENCODING_ERROR,
                                 message, e);
     }
 
@@ -893,7 +896,7 @@ public class LDAPAuthenticationHandler
       {
         LocalizableMessage message =
             ERR_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE.get();
-        throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN,
+        throw new ClientException(ReturnCode.CLIENT_SIDE_SERVER_DOWN,
                                   message);
       }
     }
@@ -902,7 +905,7 @@ public class LDAPAuthenticationHandler
       LocalizableMessage message =
           ERR_LDAPAUTH_CANNOT_READ_INITIAL_BIND_RESPONSE.get(
               SASL_MECHANISM_CRAM_MD5, getExceptionMessage(ae));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
+      throw new ClientException(ReturnCode.CLIENT_SIDE_DECODING_ERROR,
           message, ae);
     }
     catch (IOException ioe)
@@ -910,13 +913,13 @@ public class LDAPAuthenticationHandler
       LocalizableMessage message = ERR_LDAPAUTH_CANNOT_READ_INITIAL_BIND_RESPONSE.get(
           SASL_MECHANISM_CRAM_MD5, getExceptionMessage(ioe));
       throw new ClientException(
-              LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
+              ReturnCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
     }
     catch (LDAPException le)
     {
       LocalizableMessage message = ERR_LDAPAUTH_CANNOT_READ_INITIAL_BIND_RESPONSE.get(
           SASL_MECHANISM_CRAM_MD5, getExceptionMessage(le));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
+      throw new ClientException(ReturnCode.CLIENT_SIDE_DECODING_ERROR,
                                 message, le);
     }
     catch (Exception e)
@@ -924,7 +927,7 @@ public class LDAPAuthenticationHandler
       LocalizableMessage message = ERR_LDAPAUTH_CANNOT_READ_INITIAL_BIND_RESPONSE.get(
           SASL_MECHANISM_CRAM_MD5, getExceptionMessage(e));
       throw new ClientException(
-              LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
+              ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
     }
 
 
@@ -952,12 +955,12 @@ public class LDAPAuthenticationHandler
         else
         {
           LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE.get(extendedResponse);
-          throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
+          throw new ClientException(ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message);
         }
 
       default:
         LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_RESPONSE.get(responseMessage1.getProtocolOp());
-        throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
+        throw new ClientException(ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message);
     }
 
 
@@ -966,7 +969,7 @@ public class LDAPAuthenticationHandler
     BindResponseProtocolOp bindResponse1 =
          responseMessage1.getBindResponseProtocolOp();
     int resultCode1 = bindResponse1.getResultCode();
-    if (resultCode1 != LDAPResultCode.SASL_BIND_IN_PROGRESS)
+    if (resultCode1 != ReturnCode.SASL_BIND_IN_PROGRESS.get())
     {
       LocalizableMessage errorMessage = bindResponse1.getErrorMessage();
       if (errorMessage == null)
@@ -976,7 +979,7 @@ public class LDAPAuthenticationHandler
 
       LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_INITIAL_BIND_RESPONSE.
           get(SASL_MECHANISM_CRAM_MD5, resultCode1,
-              LDAPResultCode.toString(resultCode1), errorMessage);
+              ReturnCode.get(resultCode1), errorMessage);
       throw new LDAPException(resultCode1, errorMessage, message,
                               bindResponse1.getMatchedDN(), null);
     }
@@ -988,7 +991,7 @@ public class LDAPAuthenticationHandler
     if (serverChallenge == null)
     {
       LocalizableMessage message = ERR_LDAPAUTH_NO_CRAMMD5_SERVER_CREDENTIALS.get();
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
+      throw new LDAPException(ReturnCode.PROTOCOL_ERROR.get(), message);
     }
 
 
@@ -1017,14 +1020,14 @@ public class LDAPAuthenticationHandler
       LocalizableMessage message = ERR_LDAPAUTH_CANNOT_SEND_SECOND_SASL_BIND.get(
           SASL_MECHANISM_CRAM_MD5, getExceptionMessage(ioe));
       throw new ClientException(
-              LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
+              ReturnCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
     }
     catch (Exception e)
     {
       LocalizableMessage message = ERR_LDAPAUTH_CANNOT_SEND_SECOND_SASL_BIND.get(
           SASL_MECHANISM_CRAM_MD5, getExceptionMessage(e));
       throw new ClientException(
-              LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
+              ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
     }
 
 
@@ -1037,7 +1040,7 @@ public class LDAPAuthenticationHandler
       {
         LocalizableMessage message =
             ERR_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE.get();
-        throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN,
+        throw new ClientException(ReturnCode.CLIENT_SIDE_SERVER_DOWN,
                                   message);
       }
     }
@@ -1046,7 +1049,7 @@ public class LDAPAuthenticationHandler
       LocalizableMessage message =
           ERR_LDAPAUTH_CANNOT_READ_SECOND_BIND_RESPONSE.get(
               SASL_MECHANISM_CRAM_MD5, getExceptionMessage(ae));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
+      throw new ClientException(ReturnCode.CLIENT_SIDE_DECODING_ERROR,
           message, ae);
     }
     catch (IOException ioe)
@@ -1054,13 +1057,13 @@ public class LDAPAuthenticationHandler
       LocalizableMessage message = ERR_LDAPAUTH_CANNOT_READ_SECOND_BIND_RESPONSE.get(
           SASL_MECHANISM_CRAM_MD5, getExceptionMessage(ioe));
       throw new ClientException(
-              LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
+              ReturnCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
     }
     catch (LDAPException le)
     {
       LocalizableMessage message = ERR_LDAPAUTH_CANNOT_READ_SECOND_BIND_RESPONSE.get(
           SASL_MECHANISM_CRAM_MD5, getExceptionMessage(le));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
+      throw new ClientException(ReturnCode.CLIENT_SIDE_DECODING_ERROR,
                                 message, le);
     }
     catch (Exception e)
@@ -1068,7 +1071,7 @@ public class LDAPAuthenticationHandler
       LocalizableMessage message = ERR_LDAPAUTH_CANNOT_READ_SECOND_BIND_RESPONSE.get(
           SASL_MECHANISM_CRAM_MD5, getExceptionMessage(e));
       throw new ClientException(
-              LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
+              ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
     }
 
 
@@ -1105,19 +1108,19 @@ public class LDAPAuthenticationHandler
         else
         {
           LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE.get(extendedResponse);
-          throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
+          throw new ClientException(ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message);
         }
 
       default:
         LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_RESPONSE.get(responseMessage2.getProtocolOp());
-        throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
+        throw new ClientException(ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message);
     }
 
 
     BindResponseProtocolOp bindResponse2 =
          responseMessage2.getBindResponseProtocolOp();
     int resultCode2 = bindResponse2.getResultCode();
-    if (resultCode2 == LDAPResultCode.SUCCESS)
+    if (resultCode2 == ReturnCode.SUCCESS.get())
     {
       // FIXME -- Need to look for things like password expiration warning,
       // reset notice, etc.
@@ -1163,7 +1166,7 @@ public class LDAPAuthenticationHandler
       {
         LocalizableMessage message = ERR_LDAPAUTH_CANNOT_INITIALIZE_MD5_DIGEST.get(
             getExceptionMessage(e));
-        throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR,
+        throw new ClientException(ReturnCode.CLIENT_SIDE_LOCAL_ERROR,
                 message, e);
       }
     }
@@ -1297,7 +1300,7 @@ public class LDAPAuthenticationHandler
     {
       LocalizableMessage message =
           ERR_LDAPAUTH_NO_SASL_PROPERTIES.get(SASL_MECHANISM_DIGEST_MD5);
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR,
+      throw new ClientException(ReturnCode.CLIENT_SIDE_PARAM_ERROR,
               message);
     }
 
@@ -1318,7 +1321,7 @@ public class LDAPAuthenticationHandler
           if (iterator.hasNext())
           {
             LocalizableMessage message = ERR_LDAPAUTH_AUTHID_SINGLE_VALUED.get();
-            throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR,
+            throw new ClientException(ReturnCode.CLIENT_SIDE_PARAM_ERROR,
                                       message);
           }
         }
@@ -1335,7 +1338,7 @@ public class LDAPAuthenticationHandler
           if (iterator.hasNext())
           {
             LocalizableMessage message = ERR_LDAPAUTH_REALM_SINGLE_VALUED.get();
-            throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR,
+            throw new ClientException(ReturnCode.CLIENT_SIDE_PARAM_ERROR,
                                       message);
           }
         }
@@ -1351,7 +1354,7 @@ public class LDAPAuthenticationHandler
           if (iterator.hasNext())
           {
             LocalizableMessage message = ERR_LDAPAUTH_QOP_SINGLE_VALUED.get();
-            throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR,
+            throw new ClientException(ReturnCode.CLIENT_SIDE_PARAM_ERROR,
                                       message);
           }
 
@@ -1363,14 +1366,14 @@ public class LDAPAuthenticationHandler
           {
             // FIXME -- Add support for integrity and confidentiality.
             LocalizableMessage message = ERR_LDAPAUTH_DIGESTMD5_QOP_NOT_SUPPORTED.get(qop);
-            throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR,
+            throw new ClientException(ReturnCode.CLIENT_SIDE_PARAM_ERROR,
                                       message);
           }
           else
           {
             // This is an illegal value.
             LocalizableMessage message = ERR_LDAPAUTH_DIGESTMD5_INVALID_QOP.get(qop);
-            throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR,
+            throw new ClientException(ReturnCode.CLIENT_SIDE_PARAM_ERROR,
                                       message);
           }
         }
@@ -1386,7 +1389,7 @@ public class LDAPAuthenticationHandler
           if (iterator.hasNext())
           {
             LocalizableMessage message = ERR_LDAPAUTH_DIGEST_URI_SINGLE_VALUED.get();
-            throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR,
+            throw new ClientException(ReturnCode.CLIENT_SIDE_PARAM_ERROR,
                                       message);
           }
         }
@@ -1402,7 +1405,7 @@ public class LDAPAuthenticationHandler
           if (iterator.hasNext())
           {
             LocalizableMessage message = ERR_LDAPAUTH_AUTHZID_SINGLE_VALUED.get();
-            throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR,
+            throw new ClientException(ReturnCode.CLIENT_SIDE_PARAM_ERROR,
                                       message);
           }
         }
@@ -1411,7 +1414,7 @@ public class LDAPAuthenticationHandler
       {
         LocalizableMessage message = ERR_LDAPAUTH_INVALID_SASL_PROPERTY.get(
             name, SASL_MECHANISM_DIGEST_MD5);
-        throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR,
+        throw new ClientException(ReturnCode.CLIENT_SIDE_PARAM_ERROR,
                 message);
       }
     }
@@ -1422,7 +1425,7 @@ public class LDAPAuthenticationHandler
     {
       LocalizableMessage message =
           ERR_LDAPAUTH_SASL_AUTHID_REQUIRED.get(SASL_MECHANISM_DIGEST_MD5);
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR,
+      throw new ClientException(ReturnCode.CLIENT_SIDE_PARAM_ERROR,
               message);
     }
 
@@ -1454,13 +1457,13 @@ public class LDAPAuthenticationHandler
       LocalizableMessage message = ERR_LDAPAUTH_CANNOT_SEND_INITIAL_SASL_BIND.get(
           SASL_MECHANISM_DIGEST_MD5, getExceptionMessage(ioe));
       throw new ClientException(
-              LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
+              ReturnCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
     }
     catch (Exception e)
     {
       LocalizableMessage message = ERR_LDAPAUTH_CANNOT_SEND_INITIAL_SASL_BIND.get(
           SASL_MECHANISM_DIGEST_MD5, getExceptionMessage(e));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_ENCODING_ERROR,
+      throw new ClientException(ReturnCode.CLIENT_SIDE_ENCODING_ERROR,
                                 message, e);
     }
 
@@ -1474,7 +1477,7 @@ public class LDAPAuthenticationHandler
       {
         LocalizableMessage message =
             ERR_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE.get();
-        throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN,
+        throw new ClientException(ReturnCode.CLIENT_SIDE_SERVER_DOWN,
                                   message);
       }
     }
@@ -1483,7 +1486,7 @@ public class LDAPAuthenticationHandler
       LocalizableMessage message =
           ERR_LDAPAUTH_CANNOT_READ_INITIAL_BIND_RESPONSE.get(
               SASL_MECHANISM_DIGEST_MD5, getExceptionMessage(ae));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
+      throw new ClientException(ReturnCode.CLIENT_SIDE_DECODING_ERROR,
           message, ae);
     }
     catch (IOException ioe)
@@ -1491,13 +1494,13 @@ public class LDAPAuthenticationHandler
       LocalizableMessage message = ERR_LDAPAUTH_CANNOT_READ_INITIAL_BIND_RESPONSE.get(
           SASL_MECHANISM_DIGEST_MD5, getExceptionMessage(ioe));
       throw new ClientException(
-              LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
+              ReturnCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
     }
     catch (LDAPException le)
     {
       LocalizableMessage message = ERR_LDAPAUTH_CANNOT_READ_INITIAL_BIND_RESPONSE.get(
           SASL_MECHANISM_DIGEST_MD5, getExceptionMessage(le));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
+      throw new ClientException(ReturnCode.CLIENT_SIDE_DECODING_ERROR,
                                 message, le);
     }
     catch (Exception e)
@@ -1505,7 +1508,7 @@ public class LDAPAuthenticationHandler
       LocalizableMessage message = ERR_LDAPAUTH_CANNOT_READ_INITIAL_BIND_RESPONSE.get(
           SASL_MECHANISM_DIGEST_MD5, getExceptionMessage(e));
       throw new ClientException(
-              LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
+              ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
     }
 
 
@@ -1533,12 +1536,12 @@ public class LDAPAuthenticationHandler
         else
         {
           LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE.get(extendedResponse);
-          throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
+          throw new ClientException(ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message);
         }
 
       default:
         LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_RESPONSE.get(responseMessage1.getProtocolOp());
-        throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
+        throw new ClientException(ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message);
     }
 
 
@@ -1547,7 +1550,7 @@ public class LDAPAuthenticationHandler
     BindResponseProtocolOp bindResponse1 =
          responseMessage1.getBindResponseProtocolOp();
     int resultCode1 = bindResponse1.getResultCode();
-    if (resultCode1 != LDAPResultCode.SASL_BIND_IN_PROGRESS)
+    if (resultCode1 != ReturnCode.SASL_BIND_IN_PROGRESS.get())
     {
       LocalizableMessage errorMessage = bindResponse1.getErrorMessage();
       if (errorMessage == null)
@@ -1557,7 +1560,7 @@ public class LDAPAuthenticationHandler
 
       LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_INITIAL_BIND_RESPONSE.
           get(SASL_MECHANISM_DIGEST_MD5, resultCode1,
-              LDAPResultCode.toString(resultCode1), errorMessage);
+              ReturnCode.get(resultCode1), errorMessage);
       throw new LDAPException(resultCode1, errorMessage, message,
                               bindResponse1.getMatchedDN(), null);
     }
@@ -1570,7 +1573,7 @@ public class LDAPAuthenticationHandler
     if (serverCredentials == null)
     {
       LocalizableMessage message = ERR_LDAPAUTH_NO_DIGESTMD5_SERVER_CREDENTIALS.get();
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
+      throw new LDAPException(ReturnCode.PROTOCOL_ERROR.get(), message);
     }
 
 
@@ -1594,7 +1597,7 @@ public class LDAPAuthenticationHandler
         LocalizableMessage message =
             ERR_LDAPAUTH_DIGESTMD5_INVALID_TOKEN_IN_CREDENTIALS.get(
                     credString, pos);
-        throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
+        throw new LDAPException(ReturnCode.PROTOCOL_ERROR.get(), message);
       }
 
 
@@ -1611,7 +1614,7 @@ public class LDAPAuthenticationHandler
         {
           LocalizableMessage message =
               ERR_LDAPAUTH_DIGESTMD5_INVALID_CHARSET.get(tokenValue);
-          throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
+          throw new LDAPException(ReturnCode.PROTOCOL_ERROR.get(), message);
         }
 
         useUTF8 = true;
@@ -1659,7 +1662,7 @@ public class LDAPAuthenticationHandler
         {
           LocalizableMessage message = ERR_LDAPAUTH_REQUESTED_QOP_NOT_SUPPORTED_BY_SERVER.
               get(qop, tokenValue);
-          throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR,
+          throw new ClientException(ReturnCode.CLIENT_SIDE_PARAM_ERROR,
                                     message);
         }
       }
@@ -1677,7 +1680,7 @@ public class LDAPAuthenticationHandler
     if (nonce == null)
     {
       LocalizableMessage message = ERR_LDAPAUTH_DIGESTMD5_NO_NONCE.get();
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
+      throw new LDAPException(ReturnCode.PROTOCOL_ERROR.get(), message);
     }
 
 
@@ -1706,7 +1709,7 @@ public class LDAPAuthenticationHandler
       LocalizableMessage message = ERR_LDAPAUTH_DIGESTMD5_CANNOT_CREATE_RESPONSE_DIGEST.
           get(getExceptionMessage(e));
       throw new ClientException(
-              LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
+              ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
     }
 
 
@@ -1767,13 +1770,13 @@ public class LDAPAuthenticationHandler
       LocalizableMessage message = ERR_LDAPAUTH_CANNOT_SEND_SECOND_SASL_BIND.get(
           SASL_MECHANISM_DIGEST_MD5, getExceptionMessage(ioe));
       throw new ClientException(
-              LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
+              ReturnCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
     }
     catch (Exception e)
     {
       LocalizableMessage message = ERR_LDAPAUTH_CANNOT_SEND_SECOND_SASL_BIND.get(
           SASL_MECHANISM_DIGEST_MD5, getExceptionMessage(e));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_ENCODING_ERROR,
+      throw new ClientException(ReturnCode.CLIENT_SIDE_ENCODING_ERROR,
                                 message, e);
     }
 
@@ -1787,7 +1790,7 @@ public class LDAPAuthenticationHandler
       {
         LocalizableMessage message =
             ERR_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE.get();
-        throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN,
+        throw new ClientException(ReturnCode.CLIENT_SIDE_SERVER_DOWN,
                                   message);
       }
     }
@@ -1796,7 +1799,7 @@ public class LDAPAuthenticationHandler
       LocalizableMessage message =
           ERR_LDAPAUTH_CANNOT_READ_SECOND_BIND_RESPONSE.get(
               SASL_MECHANISM_DIGEST_MD5, getExceptionMessage(ae));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
+      throw new ClientException(ReturnCode.CLIENT_SIDE_DECODING_ERROR,
           message, ae);
     }
     catch (IOException ioe)
@@ -1804,13 +1807,13 @@ public class LDAPAuthenticationHandler
       LocalizableMessage message = ERR_LDAPAUTH_CANNOT_READ_SECOND_BIND_RESPONSE.get(
           SASL_MECHANISM_DIGEST_MD5, getExceptionMessage(ioe));
       throw new ClientException(
-              LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
+              ReturnCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
     }
     catch (LDAPException le)
     {
       LocalizableMessage message = ERR_LDAPAUTH_CANNOT_READ_SECOND_BIND_RESPONSE.get(
           SASL_MECHANISM_DIGEST_MD5, getExceptionMessage(le));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
+      throw new ClientException(ReturnCode.CLIENT_SIDE_DECODING_ERROR,
                                 message, le);
     }
     catch (Exception e)
@@ -1818,7 +1821,7 @@ public class LDAPAuthenticationHandler
       LocalizableMessage message = ERR_LDAPAUTH_CANNOT_READ_SECOND_BIND_RESPONSE.get(
           SASL_MECHANISM_DIGEST_MD5, getExceptionMessage(e));
       throw new ClientException(
-              LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
+              ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
     }
 
 
@@ -1855,19 +1858,19 @@ public class LDAPAuthenticationHandler
         else
         {
           LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE.get(extendedResponse);
-          throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
+          throw new ClientException(ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message);
         }
 
       default:
         LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_RESPONSE.get(responseMessage2.getProtocolOp());
-        throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
+        throw new ClientException(ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message);
     }
 
 
     BindResponseProtocolOp bindResponse2 =
          responseMessage2.getBindResponseProtocolOp();
     int resultCode2 = bindResponse2.getResultCode();
-    if (resultCode2 != LDAPResultCode.SUCCESS)
+    if (resultCode2 != ReturnCode.SUCCESS.get())
     {
       // FIXME -- Add support for referrals.
 
@@ -1885,14 +1888,14 @@ public class LDAPAuthenticationHandler
     if (rspAuthCreds == null)
     {
       LocalizableMessage message = ERR_LDAPAUTH_DIGESTMD5_NO_RSPAUTH_CREDS.get();
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
+      throw new LDAPException(ReturnCode.PROTOCOL_ERROR.get(), message);
     }
 
     String credStr = toLowerCase(rspAuthCreds.toString());
     if (! credStr.startsWith("rspauth="))
     {
       LocalizableMessage message = ERR_LDAPAUTH_DIGESTMD5_NO_RSPAUTH_CREDS.get();
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
+      throw new LDAPException(ReturnCode.PROTOCOL_ERROR.get(), message);
     }
 
 
@@ -1905,7 +1908,7 @@ public class LDAPAuthenticationHandler
     {
       LocalizableMessage message = ERR_LDAPAUTH_DIGESTMD5_COULD_NOT_DECODE_RSPAUTH.get(
           getExceptionMessage(e));
-      throw new LDAPException(LDAPResultCode.PROTOCOL_ERROR, message);
+      throw new LDAPException(ReturnCode.PROTOCOL_ERROR.get(), message);
     }
 
     byte[] clientRspAuth;
@@ -1921,14 +1924,14 @@ public class LDAPAuthenticationHandler
       LocalizableMessage message = ERR_LDAPAUTH_DIGESTMD5_COULD_NOT_CALCULATE_RSPAUTH.get(
           getExceptionMessage(e));
       throw new ClientException(
-              LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
+              ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message);
     }
 
     if (! Arrays.equals(serverRspAuth, clientRspAuth))
     {
       LocalizableMessage message = ERR_LDAPAUTH_DIGESTMD5_RSPAUTH_MISMATCH.get();
       throw new ClientException(
-              LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
+              ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message);
     }
 
     // FIXME -- Need to look for things like password expiration warning,
@@ -2054,7 +2057,7 @@ public class LDAPAuthenticationHandler
               // is not fine.
               LocalizableMessage message =
                   ERR_LDAPAUTH_DIGESTMD5_INVALID_CLOSING_QUOTE_POS.get((pos-2));
-              throw new LDAPException(LDAPResultCode.INVALID_CREDENTIALS,
+              throw new LDAPException(ReturnCode.INVALID_CREDENTIALS.get(),
                                       message);
             }
           }
@@ -2152,7 +2155,7 @@ public class LDAPAuthenticationHandler
       {
         LocalizableMessage message = ERR_LDAPAUTH_CANNOT_INITIALIZE_MD5_DIGEST.get(
             getExceptionMessage(e));
-        throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR,
+        throw new ClientException(ReturnCode.CLIENT_SIDE_LOCAL_ERROR,
                 message, e);
       }
     }
@@ -2411,7 +2414,7 @@ public class LDAPAuthenticationHandler
       LocalizableMessage message =
           ERR_LDAPAUTH_NO_ALLOWED_SASL_PROPERTIES.get(SASL_MECHANISM_EXTERNAL);
       throw new ClientException(
-              LDAPResultCode.CLIENT_SIDE_PARAM_ERROR, message);
+              ReturnCode.CLIENT_SIDE_PARAM_ERROR, message);
     }
 
 
@@ -2432,13 +2435,13 @@ public class LDAPAuthenticationHandler
       LocalizableMessage message = ERR_LDAPAUTH_CANNOT_SEND_SASL_BIND.get(
           SASL_MECHANISM_EXTERNAL, getExceptionMessage(ioe));
       throw new ClientException(
-              LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
+              ReturnCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
     }
     catch (Exception e)
     {
       LocalizableMessage message = ERR_LDAPAUTH_CANNOT_SEND_SASL_BIND.get(
           SASL_MECHANISM_EXTERNAL, getExceptionMessage(e));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_ENCODING_ERROR,
+      throw new ClientException(ReturnCode.CLIENT_SIDE_ENCODING_ERROR,
                                 message, e);
     }
 
@@ -2452,7 +2455,7 @@ public class LDAPAuthenticationHandler
       {
         LocalizableMessage message =
             ERR_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE.get();
-        throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN,
+        throw new ClientException(ReturnCode.CLIENT_SIDE_SERVER_DOWN,
                                   message);
       }
     }
@@ -2461,20 +2464,20 @@ public class LDAPAuthenticationHandler
       LocalizableMessage message =
           ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(e));
       throw new ClientException(
-              LDAPResultCode.CLIENT_SIDE_DECODING_ERROR, message, e);
+              ReturnCode.CLIENT_SIDE_DECODING_ERROR, message, e);
     }
     catch (IOException ioe)
     {
       LocalizableMessage message =
           ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(ioe));
       throw new ClientException(
-              LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
+              ReturnCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
     }
     catch (LDAPException le)
     {
       LocalizableMessage message =
           ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(le));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
+      throw new ClientException(ReturnCode.CLIENT_SIDE_DECODING_ERROR,
                                 message, le);
     }
     catch (Exception e)
@@ -2482,7 +2485,7 @@ public class LDAPAuthenticationHandler
       LocalizableMessage message =
           ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(e));
       throw new ClientException(
-              LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
+              ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
     }
 
 
@@ -2519,19 +2522,19 @@ public class LDAPAuthenticationHandler
         else
         {
           LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE.get(extendedResponse);
-          throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
+          throw new ClientException(ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message);
         }
 
       default:
         LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_RESPONSE.get(responseMessage.getProtocolOp());
-        throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
+        throw new ClientException(ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message);
     }
 
 
     BindResponseProtocolOp bindResponse =
          responseMessage.getBindResponseProtocolOp();
     int resultCode = bindResponse.getResultCode();
-    if (resultCode == LDAPResultCode.SUCCESS)
+    if (resultCode == ReturnCode.SUCCESS.get())
     {
       // FIXME -- Need to look for things like password expiration warning,
       // reset notice, etc.
@@ -2624,7 +2627,7 @@ public class LDAPAuthenticationHandler
       LocalizableMessage message =
           ERR_LDAPAUTH_NO_SASL_PROPERTIES.get(SASL_MECHANISM_GSSAPI);
       throw new ClientException(
-              LDAPResultCode.CLIENT_SIDE_PARAM_ERROR, message);
+              ReturnCode.CLIENT_SIDE_PARAM_ERROR, message);
     }
 
     Iterator<String> propertyNames = saslProperties.keySet().iterator();
@@ -2644,7 +2647,7 @@ public class LDAPAuthenticationHandler
           if (iterator.hasNext())
           {
             LocalizableMessage message = ERR_LDAPAUTH_AUTHID_SINGLE_VALUED.get();
-            throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR,
+            throw new ClientException(ReturnCode.CLIENT_SIDE_PARAM_ERROR,
                                       message);
           }
         }
@@ -2660,7 +2663,7 @@ public class LDAPAuthenticationHandler
           if (iterator.hasNext())
           {
             LocalizableMessage message = ERR_LDAPAUTH_AUTHZID_SINGLE_VALUED.get();
-            throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR,
+            throw new ClientException(ReturnCode.CLIENT_SIDE_PARAM_ERROR,
                                       message);
           }
         }
@@ -2676,7 +2679,7 @@ public class LDAPAuthenticationHandler
           if (iterator.hasNext())
           {
             LocalizableMessage message = ERR_LDAPAUTH_KDC_SINGLE_VALUED.get();
-            throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR,
+            throw new ClientException(ReturnCode.CLIENT_SIDE_PARAM_ERROR,
                                       message);
           }
         }
@@ -2692,7 +2695,7 @@ public class LDAPAuthenticationHandler
           if (iterator.hasNext())
           {
             LocalizableMessage message = ERR_LDAPAUTH_QOP_SINGLE_VALUED.get();
-            throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR,
+            throw new ClientException(ReturnCode.CLIENT_SIDE_PARAM_ERROR,
                                       message);
           }
 
@@ -2706,14 +2709,14 @@ public class LDAPAuthenticationHandler
             // FIXME -- Add support for integrity and confidentiality.
             LocalizableMessage message =
                 ERR_LDAPAUTH_DIGESTMD5_QOP_NOT_SUPPORTED.get(gssapiQoP);
-            throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR,
+            throw new ClientException(ReturnCode.CLIENT_SIDE_PARAM_ERROR,
                                       message);
           }
           else
           {
             // This is an illegal value.
             LocalizableMessage message = ERR_LDAPAUTH_GSSAPI_INVALID_QOP.get(gssapiQoP);
-            throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR,
+            throw new ClientException(ReturnCode.CLIENT_SIDE_PARAM_ERROR,
                                       message);
           }
         }
@@ -2729,7 +2732,7 @@ public class LDAPAuthenticationHandler
           if (iterator.hasNext())
           {
             LocalizableMessage message = ERR_LDAPAUTH_REALM_SINGLE_VALUED.get();
-            throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR,
+            throw new ClientException(ReturnCode.CLIENT_SIDE_PARAM_ERROR,
                                       message);
           }
         }
@@ -2739,7 +2742,7 @@ public class LDAPAuthenticationHandler
         LocalizableMessage message =
             ERR_LDAPAUTH_INVALID_SASL_PROPERTY.get(name, SASL_MECHANISM_GSSAPI);
         throw new ClientException(
-                LDAPResultCode.CLIENT_SIDE_PARAM_ERROR, message);
+                ReturnCode.CLIENT_SIDE_PARAM_ERROR, message);
       }
     }
 
@@ -2750,7 +2753,7 @@ public class LDAPAuthenticationHandler
       LocalizableMessage message =
           ERR_LDAPAUTH_SASL_AUTHID_REQUIRED.get(SASL_MECHANISM_GSSAPI);
       throw new ClientException(
-              LDAPResultCode.CLIENT_SIDE_PARAM_ERROR, message);
+              ReturnCode.CLIENT_SIDE_PARAM_ERROR, message);
     }
 
 
@@ -2805,7 +2808,7 @@ public class LDAPAuthenticationHandler
       LocalizableMessage message = ERR_LDAPAUTH_GSSAPI_CANNOT_CREATE_JAAS_CONFIG.get(
           getExceptionMessage(e));
       throw new ClientException(
-              LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
+              ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
     }
 
     System.setProperty(JAAS_PROPERTY_CONFIG_FILE, configFileName);
@@ -2825,7 +2828,7 @@ public class LDAPAuthenticationHandler
       LocalizableMessage message = ERR_LDAPAUTH_GSSAPI_LOCAL_AUTHENTICATION_FAILED.get(
           getExceptionMessage(e));
       throw new ClientException(
-              LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
+              ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
     }
 
     try
@@ -2846,7 +2849,7 @@ public class LDAPAuthenticationHandler
       LocalizableMessage message = ERR_LDAPAUTH_GSSAPI_REMOTE_AUTHENTICATION_FAILED.get(
               getExceptionMessage(e));
       throw new ClientException(
-              LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
+              ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
     }
 
 
@@ -2929,7 +2932,7 @@ public class LDAPAuthenticationHandler
       LocalizableMessage message =
           ERR_LDAPAUTH_NO_SASL_PROPERTIES.get(SASL_MECHANISM_PLAIN);
       throw new ClientException(
-              LDAPResultCode.CLIENT_SIDE_PARAM_ERROR, message);
+              ReturnCode.CLIENT_SIDE_PARAM_ERROR, message);
     }
 
     Iterator<String> propertyNames = saslProperties.keySet().iterator();
@@ -2949,7 +2952,7 @@ public class LDAPAuthenticationHandler
           if (iterator.hasNext())
           {
             LocalizableMessage message = ERR_LDAPAUTH_AUTHID_SINGLE_VALUED.get();
-            throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR,
+            throw new ClientException(ReturnCode.CLIENT_SIDE_PARAM_ERROR,
                                       message);
           }
         }
@@ -2965,7 +2968,7 @@ public class LDAPAuthenticationHandler
           if (iterator.hasNext())
           {
             LocalizableMessage message = ERR_LDAPAUTH_AUTHZID_SINGLE_VALUED.get();
-            throw new ClientException(LDAPResultCode.CLIENT_SIDE_PARAM_ERROR,
+            throw new ClientException(ReturnCode.CLIENT_SIDE_PARAM_ERROR,
                                       message);
           }
         }
@@ -2975,7 +2978,7 @@ public class LDAPAuthenticationHandler
         LocalizableMessage message =
             ERR_LDAPAUTH_INVALID_SASL_PROPERTY.get(name, SASL_MECHANISM_PLAIN);
         throw new ClientException(
-                LDAPResultCode.CLIENT_SIDE_PARAM_ERROR, message);
+                ReturnCode.CLIENT_SIDE_PARAM_ERROR, message);
       }
     }
 
@@ -2986,7 +2989,7 @@ public class LDAPAuthenticationHandler
       LocalizableMessage message =
           ERR_LDAPAUTH_SASL_AUTHID_REQUIRED.get(SASL_MECHANISM_PLAIN);
       throw new ClientException(
-              LDAPResultCode.CLIENT_SIDE_PARAM_ERROR, message);
+              ReturnCode.CLIENT_SIDE_PARAM_ERROR, message);
     }
 
 
@@ -3026,13 +3029,13 @@ public class LDAPAuthenticationHandler
       LocalizableMessage message = ERR_LDAPAUTH_CANNOT_SEND_SASL_BIND.get(
           SASL_MECHANISM_PLAIN, getExceptionMessage(ioe));
       throw new ClientException(
-              LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
+              ReturnCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
     }
     catch (Exception e)
     {
       LocalizableMessage message = ERR_LDAPAUTH_CANNOT_SEND_SASL_BIND.get(
           SASL_MECHANISM_PLAIN, getExceptionMessage(e));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_ENCODING_ERROR,
+      throw new ClientException(ReturnCode.CLIENT_SIDE_ENCODING_ERROR,
                                 message, e);
     }
 
@@ -3046,7 +3049,7 @@ public class LDAPAuthenticationHandler
       {
         LocalizableMessage message =
             ERR_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE.get();
-        throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN,
+        throw new ClientException(ReturnCode.CLIENT_SIDE_SERVER_DOWN,
                                   message);
       }
     }
@@ -3054,7 +3057,7 @@ public class LDAPAuthenticationHandler
     {
       LocalizableMessage message =
           ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(ae));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
+      throw new ClientException(ReturnCode.CLIENT_SIDE_DECODING_ERROR,
           message, ae);
     }
     catch (IOException ioe)
@@ -3062,13 +3065,13 @@ public class LDAPAuthenticationHandler
       LocalizableMessage message =
           ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(ioe));
       throw new ClientException(
-              LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
+              ReturnCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
     }
     catch (LDAPException le)
     {
       LocalizableMessage message =
           ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(le));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
+      throw new ClientException(ReturnCode.CLIENT_SIDE_DECODING_ERROR,
                                 message, le);
     }
     catch (Exception e)
@@ -3076,7 +3079,7 @@ public class LDAPAuthenticationHandler
       LocalizableMessage message =
           ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(e));
       throw new ClientException(
-              LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
+              ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
     }
 
 
@@ -3113,19 +3116,19 @@ public class LDAPAuthenticationHandler
         else
         {
           LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE.get(extendedResponse);
-          throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
+          throw new ClientException(ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message);
         }
 
       default:
         LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_RESPONSE.get(responseMessage.getProtocolOp());
-        throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
+        throw new ClientException(ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message);
     }
 
 
     BindResponseProtocolOp bindResponse =
          responseMessage.getBindResponseProtocolOp();
     int resultCode = bindResponse.getResultCode();
-    if (resultCode == LDAPResultCode.SUCCESS)
+    if (resultCode == ReturnCode.SUCCESS.get())
     {
       // FIXME -- Need to look for things like password expiration warning,
       // reset notice, etc.
@@ -3186,7 +3189,7 @@ public class LDAPAuthenticationHandler
     {
       LocalizableMessage message = ERR_LDAPAUTH_NONSASL_RUN_INVOCATION.get(getBacktrace());
       throw new ClientException(
-              LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
+              ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message);
     }
     else if (saslMechanism.equals(SASL_MECHANISM_GSSAPI))
     {
@@ -3211,7 +3214,7 @@ public class LDAPAuthenticationHandler
         LocalizableMessage message = ERR_LDAPAUTH_GSSAPI_CANNOT_CREATE_SASL_CLIENT.get(
             getExceptionMessage(e));
         throw new ClientException(
-                LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
+                ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
       }
 
 
@@ -3229,7 +3232,7 @@ public class LDAPAuthenticationHandler
           LocalizableMessage message = ERR_LDAPAUTH_GSSAPI_CANNOT_CREATE_INITIAL_CHALLENGE.
               get(getExceptionMessage(e));
           throw new ClientException(
-                  LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR,
+                  ReturnCode.CLIENT_SIDE_LOCAL_ERROR,
                                     message, e);
         }
       }
@@ -3255,13 +3258,13 @@ public class LDAPAuthenticationHandler
         LocalizableMessage message = ERR_LDAPAUTH_CANNOT_SEND_SASL_BIND.get(
             SASL_MECHANISM_GSSAPI, getExceptionMessage(ioe));
         throw new ClientException(
-                LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
+                ReturnCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
       }
       catch (Exception e)
       {
         LocalizableMessage message = ERR_LDAPAUTH_CANNOT_SEND_SASL_BIND.get(
             SASL_MECHANISM_GSSAPI, getExceptionMessage(e));
-        throw new ClientException(LDAPResultCode.CLIENT_SIDE_ENCODING_ERROR,
+        throw new ClientException(ReturnCode.CLIENT_SIDE_ENCODING_ERROR,
                                   message, e);
       }
 
@@ -3275,7 +3278,7 @@ public class LDAPAuthenticationHandler
         {
           LocalizableMessage message =
               ERR_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE.get();
-          throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN,
+          throw new ClientException(ReturnCode.CLIENT_SIDE_SERVER_DOWN,
                                     message);
         }
       }
@@ -3283,7 +3286,7 @@ public class LDAPAuthenticationHandler
       {
         LocalizableMessage message =
             ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(ae));
-        throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
+        throw new ClientException(ReturnCode.CLIENT_SIDE_DECODING_ERROR,
             message, ae);
       }
       catch (IOException ioe)
@@ -3291,13 +3294,13 @@ public class LDAPAuthenticationHandler
         LocalizableMessage message = ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(
             getExceptionMessage(ioe));
         throw new ClientException(
-                LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
+                ReturnCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
       }
       catch (LDAPException le)
       {
         LocalizableMessage message =
             ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(le));
-        throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
+        throw new ClientException(ReturnCode.CLIENT_SIDE_DECODING_ERROR,
                                   message, le);
       }
       catch (Exception e)
@@ -3305,7 +3308,7 @@ public class LDAPAuthenticationHandler
         LocalizableMessage message =
             ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(getExceptionMessage(e));
         throw new ClientException(
-                LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
+                ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
       }
 
 
@@ -3336,12 +3339,12 @@ public class LDAPAuthenticationHandler
           else
           {
             LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE.get(extendedResponse);
-            throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
+            throw new ClientException(ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message);
           }
 
         default:
           LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_RESPONSE.get(responseMessage.getProtocolOp());
-          throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
+          throw new ClientException(ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message);
       }
 
 
@@ -3350,7 +3353,7 @@ public class LDAPAuthenticationHandler
         BindResponseProtocolOp bindResponse =
              responseMessage.getBindResponseProtocolOp();
         int resultCode = bindResponse.getResultCode();
-        if (resultCode == LDAPResultCode.SUCCESS)
+        if (resultCode == ReturnCode.SUCCESS.get())
         {
           // We should be done after this, but we still need to look for and
           // handle the server SASL credentials.
@@ -3367,7 +3370,7 @@ public class LDAPAuthenticationHandler
               LocalizableMessage message =
                   ERR_LDAPAUTH_GSSAPI_CANNOT_VALIDATE_SERVER_CREDS.
                     get(getExceptionMessage(e));
-              throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR,
+              throw new ClientException(ReturnCode.CLIENT_SIDE_LOCAL_ERROR,
                                         message, e);
             }
           }
@@ -3378,13 +3381,13 @@ public class LDAPAuthenticationHandler
           {
             LocalizableMessage message =
                 ERR_LDAPAUTH_GSSAPI_UNEXPECTED_SUCCESS_RESPONSE.get();
-            throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR,
+            throw new ClientException(ReturnCode.CLIENT_SIDE_LOCAL_ERROR,
                                       message);
           }
 
           break;
         }
-        else if (resultCode == LDAPResultCode.SASL_BIND_IN_PROGRESS)
+        else if (resultCode == ReturnCode.SASL_BIND_IN_PROGRESS.get())
         {
           // Read the response and process the server SASL credentials.
           ByteString serverSASLCredentials =
@@ -3406,7 +3409,7 @@ public class LDAPAuthenticationHandler
           {
             LocalizableMessage message = ERR_LDAPAUTH_GSSAPI_CANNOT_VALIDATE_SERVER_CREDS.
                 get(getExceptionMessage(e));
-            throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR,
+            throw new ClientException(ReturnCode.CLIENT_SIDE_LOCAL_ERROR,
                                       message, e);
           }
 
@@ -3428,14 +3431,14 @@ public class LDAPAuthenticationHandler
           {
             LocalizableMessage message = ERR_LDAPAUTH_CANNOT_SEND_SASL_BIND.get(
                 SASL_MECHANISM_GSSAPI, getExceptionMessage(ioe));
-            throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN,
+            throw new ClientException(ReturnCode.CLIENT_SIDE_SERVER_DOWN,
                                       message, ioe);
           }
           catch (Exception e)
           {
             LocalizableMessage message = ERR_LDAPAUTH_CANNOT_SEND_SASL_BIND.get(
                 SASL_MECHANISM_GSSAPI, getExceptionMessage(e));
-            throw new ClientException(LDAPResultCode.CLIENT_SIDE_ENCODING_ERROR,
+            throw new ClientException(ReturnCode.CLIENT_SIDE_ENCODING_ERROR,
                                       message, e);
           }
 
@@ -3448,7 +3451,7 @@ public class LDAPAuthenticationHandler
             {
               LocalizableMessage message =
                   ERR_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE.get();
-              throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN,
+              throw new ClientException(ReturnCode.CLIENT_SIDE_SERVER_DOWN,
                                         message);
             }
           }
@@ -3458,27 +3461,27 @@ public class LDAPAuthenticationHandler
                 ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE
                     .get(getExceptionMessage(ae));
             throw new ClientException(
-                LDAPResultCode.CLIENT_SIDE_DECODING_ERROR, message, ae);
+                ReturnCode.CLIENT_SIDE_DECODING_ERROR, message, ae);
           }
           catch (IOException ioe)
           {
             LocalizableMessage message = ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(
                 getExceptionMessage(ioe));
-            throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN,
+            throw new ClientException(ReturnCode.CLIENT_SIDE_SERVER_DOWN,
                                       message, ioe);
           }
           catch (LDAPException le)
           {
             LocalizableMessage message = ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(
                 getExceptionMessage(le));
-            throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
+            throw new ClientException(ReturnCode.CLIENT_SIDE_DECODING_ERROR,
                                       message, le);
           }
           catch (Exception e)
           {
             LocalizableMessage message = ERR_LDAPAUTH_CANNOT_READ_BIND_RESPONSE.get(
                 getExceptionMessage(e));
-            throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR,
+            throw new ClientException(ReturnCode.CLIENT_SIDE_LOCAL_ERROR,
                                       message, e);
           }
 
@@ -3512,12 +3515,12 @@ public class LDAPAuthenticationHandler
               else
               {
                 LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_EXTENDED_RESPONSE.get(extendedResponse);
-                throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
+                throw new ClientException(ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message);
               }
 
             default:
               LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_RESPONSE.get(responseMessage.getProtocolOp());
-              throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
+              throw new ClientException(ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message);
           }
         }
         else
@@ -3535,7 +3538,7 @@ public class LDAPAuthenticationHandler
       LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_RUN_INVOCATION.get(
           saslMechanism, getBacktrace());
       throw new ClientException(
-              LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
+              ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message);
     }
 
 
@@ -3632,14 +3635,14 @@ public class LDAPAuthenticationHandler
     {
       LocalizableMessage message =
           ERR_LDAPAUTH_CANNOT_SEND_WHOAMI_REQUEST.get(getExceptionMessage(ioe));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN,
+      throw new ClientException(ReturnCode.CLIENT_SIDE_SERVER_DOWN,
               message, ioe);
     }
     catch (Exception e)
     {
       LocalizableMessage message =
           ERR_LDAPAUTH_CANNOT_SEND_WHOAMI_REQUEST.get(getExceptionMessage(e));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_ENCODING_ERROR,
+      throw new ClientException(ReturnCode.CLIENT_SIDE_ENCODING_ERROR,
                                 message, e);
     }
 
@@ -3653,7 +3656,7 @@ public class LDAPAuthenticationHandler
       {
         LocalizableMessage message =
             ERR_LDAPAUTH_CONNECTION_CLOSED_WITHOUT_BIND_RESPONSE.get();
-        throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN,
+        throw new ClientException(ReturnCode.CLIENT_SIDE_SERVER_DOWN,
                                   message);
       }
     }
@@ -3661,7 +3664,7 @@ public class LDAPAuthenticationHandler
     {
       LocalizableMessage message =
           ERR_LDAPAUTH_CANNOT_READ_WHOAMI_RESPONSE.get(getExceptionMessage(ae));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
+      throw new ClientException(ReturnCode.CLIENT_SIDE_DECODING_ERROR,
           message, ae);
     }
     catch (IOException ioe)
@@ -3669,13 +3672,13 @@ public class LDAPAuthenticationHandler
       LocalizableMessage message = ERR_LDAPAUTH_CANNOT_READ_WHOAMI_RESPONSE.get(
           getExceptionMessage(ioe));
       throw new ClientException(
-              LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
+              ReturnCode.CLIENT_SIDE_SERVER_DOWN, message, ioe);
     }
     catch (LDAPException le)
     {
       LocalizableMessage message =
           ERR_LDAPAUTH_CANNOT_READ_WHOAMI_RESPONSE.get(getExceptionMessage(le));
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_DECODING_ERROR,
+      throw new ClientException(ReturnCode.CLIENT_SIDE_DECODING_ERROR,
                                 message, le);
     }
     catch (Exception e)
@@ -3683,7 +3686,7 @@ public class LDAPAuthenticationHandler
       LocalizableMessage message =
           ERR_LDAPAUTH_CANNOT_READ_WHOAMI_RESPONSE.get(getExceptionMessage(e));
       throw new ClientException(
-              LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
+              ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message, e);
     }
 
 
@@ -3691,7 +3694,7 @@ public class LDAPAuthenticationHandler
     if (responseMessage.getProtocolOpType() != OP_TYPE_EXTENDED_RESPONSE)
     {
       LocalizableMessage message = ERR_LDAPAUTH_UNEXPECTED_RESPONSE.get(responseMessage.getProtocolOp());
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_LOCAL_ERROR, message);
+      throw new ClientException(ReturnCode.CLIENT_SIDE_LOCAL_ERROR, message);
     }
 
 
@@ -3713,7 +3716,7 @@ public class LDAPAuthenticationHandler
     // response and the value would be the authorization ID.  However, first
     // check that it was successful.  If it was not, then fail.
     int resultCode = extendedResponse.getResultCode();
-    if (resultCode != LDAPResultCode.SUCCESS)
+    if (resultCode != ReturnCode.SUCCESS.get())
     {
       LocalizableMessage message = ERR_LDAPAUTH_WHOAMI_FAILED.get();
       throw new LDAPException(resultCode, extendedResponse.getErrorMessage(),

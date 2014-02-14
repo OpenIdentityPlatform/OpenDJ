@@ -61,13 +61,13 @@ import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.admin.ads.util.OpendsCertificateException;
 import org.opends.quicksetup.util.Utils;
-import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.opends.server.tools.ClientException;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.util.PasswordReader;
 import org.opends.server.util.SetupUtils;
 import org.opends.server.util.StaticUtils;
-import com.forgerock.opendj.cli.CLIException;
+
+import com.forgerock.opendj.cli.ClientException;
+import com.forgerock.opendj.cli.ReturnCode;
 
 
 /**
@@ -221,12 +221,12 @@ public abstract class ConsoleApplication
    * @return Returns <code>true</code> if the user wishes the action to be
    *         performed, or <code>false</code> if they refused, or if an
    *         exception occurred.
-   * @throws CLIException
+   * @throws ClientException
    *           If the user's response could not be read from the console for
    *           some reason.
    */
   public final boolean confirmAction(LocalizableMessage prompt, final boolean defaultValue)
-      throws CLIException
+      throws ClientException
   {
     if (!isInteractive())
     {
@@ -364,7 +364,7 @@ public abstract class ConsoleApplication
     {
       readLineOfInput(msg);
     }
-    catch (CLIException e)
+    catch (ClientException e)
     {
       // Ignore the exception - applications don't care.
     }
@@ -603,10 +603,10 @@ public abstract class ConsoleApplication
    *          The prompt.
    * @return Returns the line of input, or <code>null</code> if the end of input
    *         has been reached.
-   * @throws CLIException
+   * @throws ClientException
    *           If the line of input could not be retrieved for some reason.
    */
-  public final String readLineOfInput(LocalizableMessage prompt) throws CLIException
+  public final String readLineOfInput(LocalizableMessage prompt) throws ClientException
   {
     if (prompt != null)
     {
@@ -618,7 +618,7 @@ public abstract class ConsoleApplication
       String s = in.readLine();
       if (s == null)
       {
-        throw CLIException
+        throw ClientException
             .adaptInputException(new EOFException("End of input"));
       }
       else
@@ -628,7 +628,7 @@ public abstract class ConsoleApplication
     }
     catch (IOException e)
     {
-      throw CLIException.adaptInputException(e);
+      throw ClientException.adaptInputException(e);
     }
   }
 
@@ -642,12 +642,12 @@ public abstract class ConsoleApplication
    * @param msgStyle
    *          The formatted style chosen.
    * @return The user's input as a string.
-   * @throws CLIException
+   * @throws ClientException
    *           If an Exception occurs during the process.
    */
   public final String readInput(final LocalizableMessage prompt,
       final String defaultValue, final Style msgStyle)
-      throws CLIException
+      throws ClientException
   {
     String answer = null;
     if (msgStyle == Style.TITLE)
@@ -664,7 +664,7 @@ public abstract class ConsoleApplication
     }
     catch (IOException e)
     {
-      throw CLIException.adaptInputException(e);
+      throw ClientException.adaptInputException(e);
     }
 
     if (msgStyle == Style.TITLE
@@ -698,12 +698,12 @@ public abstract class ConsoleApplication
    *          The default value to assume if the user presses ENTER without
    *          typing anything, or <CODE>null</CODE> if there should not be a
    *          default and the user must explicitly provide a value.
-   * @throws CLIException
+   * @throws ClientException
    *           If the line of input could not be retrieved for some reason.
    * @return The string value read from the user.
    */
   public String readInput(LocalizableMessage prompt, String defaultValue)
-      throws CLIException
+      throws ClientException
   {
     while (true)
     {
@@ -754,7 +754,7 @@ public abstract class ConsoleApplication
     {
       s = readInput(prompt, defaultValue);
     }
-    catch (CLIException ce)
+    catch (ClientException ce)
     {
       logger.warn(LocalizableMessage.raw("Error reading input: " + ce, ce));
     }
@@ -767,10 +767,10 @@ public abstract class ConsoleApplication
    * @param prompt
    *          The password prompt.
    * @return Returns the password.
-   * @throws CLIException
+   * @throws ClientException
    *           If the password could not be retrieved for some reason.
    */
-  public final String readPassword(LocalizableMessage prompt) throws CLIException
+  public final String readPassword(LocalizableMessage prompt) throws ClientException
   {
     err.print(wrapText(prompt + " ", MAX_LINE_WIDTH));
     char[] pwChars;
@@ -780,7 +780,7 @@ public abstract class ConsoleApplication
     }
     catch (Exception e)
     {
-      throw CLIException.adaptInputException(e);
+      throw ClientException.adaptInputException(e);
     }
     return new String(pwChars);
   }
@@ -803,7 +803,7 @@ public abstract class ConsoleApplication
     {
       pwd = readPassword(prompt);
     }
-    catch (CLIException ce)
+    catch (ClientException ce)
     {
       logger.warn(LocalizableMessage.raw("Error reading input: " + ce, ce));
     }
@@ -818,17 +818,17 @@ public abstract class ConsoleApplication
    * @param defaultValue
    *          The port default value.
    * @return Returns the port.
-   * @throws CLIException
+   * @throws ClientException
    *           If the port could not be retrieved for some reason.
    */
   public final int readPort(LocalizableMessage prompt, final int defaultValue)
-      throws CLIException
+      throws ClientException
   {
     ValidationCallback<Integer> callback = new ValidationCallback<Integer>()
     {
       @Override
       public Integer validate(ConsoleApplication app, String input)
-          throws CLIException
+          throws ClientException
       {
         String ninput = input.trim();
         if (ninput.length() == 0)
@@ -902,7 +902,7 @@ public abstract class ConsoleApplication
       {
         port = readPort(prompt, defaultValue);
       }
-      catch (CLIException ce)
+      catch (ClientException ce)
       {
         port = -1;
         logger.warn(LocalizableMessage.raw("Error reading input: " + ce, ce));
@@ -924,11 +924,11 @@ public abstract class ConsoleApplication
    *          An input validator responsible for validating and decoding the
    *          user's response.
    * @return Returns the decoded user's response.
-   * @throws CLIException
+   * @throws ClientException
    *           If an unexpected error occurred which prevented validation.
    */
   public final <T> T readValidatedInput(LocalizableMessage prompt,
-      ValidationCallback<T> validator) throws CLIException
+      ValidationCallback<T> validator) throws ClientException
   {
     while (true)
     {
@@ -956,12 +956,12 @@ public abstract class ConsoleApplication
    * @param maxTries
    *          The maximum number of tries that we can make.
    * @return Returns the decoded user's response.
-   * @throws CLIException
+   * @throws ClientException
    *           If an unexpected error occurred which prevented validation or if
    *           the maximum number of tries was reached.
    */
   public final <T> T readValidatedInput(LocalizableMessage prompt,
-      ValidationCallback<T> validator, int maxTries) throws CLIException
+      ValidationCallback<T> validator, int maxTries) throws ClientException
   {
     int nTries = 0;
     while (nTries < maxTries)
@@ -974,7 +974,7 @@ public abstract class ConsoleApplication
       }
       nTries++;
     }
-    throw new CLIException(ERR_TRIES_LIMIT_REACHED.get(maxTries));
+    throw new ClientException(ReturnCode.TODO, ERR_TRIES_LIMIT_REACHED.get(maxTries));
   }
 
   /**
@@ -993,12 +993,12 @@ public abstract class ConsoleApplication
    *          the Logger to be used to log the error message.
    * @return Returns <code>true</code> if the user wishes the action to be
    *         performed, or <code>false</code> if they refused.
-   * @throws CLIException
+   * @throws ClientException
    *           if the user did not provide valid answer after a certain number
    *           of tries (ConsoleApplication.CONFIRMATION_MAX_TRIES)
    */
   protected final boolean askConfirmation(LocalizableMessage prompt, boolean defaultValue,
-      LocalizedLogger logger) throws CLIException
+      LocalizedLogger logger) throws ClientException
   {
     boolean v = defaultValue;
 
@@ -1013,7 +1013,7 @@ public abstract class ConsoleApplication
         v = confirmAction(prompt, defaultValue);
         done = true;
       }
-      catch (CLIException ce)
+      catch (ClientException ce)
       {
         if (StaticUtils.hasDescriptor(ce.getMessageObject(),
             ERR_CONFIRMATION_TRIES_LIMIT_REACHED)
@@ -1031,7 +1031,7 @@ public abstract class ConsoleApplication
     if (!done)
     {
       // This means we reached the maximum number of tries
-      throw new CLIException(ERR_CONFIRMATION_TRIES_LIMIT_REACHED
+      throw new ClientException(ReturnCode.TODO, ERR_CONFIRMATION_TRIES_LIMIT_REACHED
           .get(CONFIRMATION_MAX_TRIES));
     }
     return v;
@@ -1193,7 +1193,7 @@ public abstract class ConsoleApplication
                 LocalizableMessage message =
                     ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT_NOT_TRUSTED.get(hostName, portNumber);
                 throw new ClientException(
-                    LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR, message);
+                    ReturnCode.CLIENT_SIDE_CONNECT_ERROR, message);
               }
             }
             if (e.getCause() instanceof SSLException)
@@ -1201,13 +1201,13 @@ public abstract class ConsoleApplication
               LocalizableMessage message =
                   ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT_WRONG_PORT.get(hostName, portNumber);
               throw new ClientException(
-                  LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR, message);
+                  ReturnCode.CLIENT_SIDE_CONNECT_ERROR, message);
             }
           }
           String hostPort =
               ServerDescriptor.getServerRepresentation(hostName, portNumber);
           LocalizableMessage message = Utils.getMessageForException(e, hostPort);
-          throw new ClientException(LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR,
+          throw new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR,
               message);
         }
       }
@@ -1260,12 +1260,12 @@ public abstract class ConsoleApplication
               LocalizableMessage message =
                   ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(hostName, portNumber);
               throw new ClientException(
-                  LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR, message);
+                  ReturnCode.CLIENT_SIDE_CONNECT_ERROR, message);
             }
           }
           LocalizableMessage message =
               ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(hostName, portNumber);
-          throw new ClientException(LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR,
+          throw new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR,
               message);
         }
       }
@@ -1287,7 +1287,7 @@ public abstract class ConsoleApplication
         {
           LocalizableMessage message =
               ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(hostName, portNumber);
-          throw new ClientException(LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR,
+          throw new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR,
               message);
         }
       }
@@ -1344,7 +1344,7 @@ public abstract class ConsoleApplication
     {
       s = readInput(INFO_ADMINISTRATOR_UID_PROMPT.get(), defaultValue);
     }
-    catch (CLIException ce)
+    catch (ClientException ce)
     {
       logger.warn(LocalizableMessage.raw("Error reading input: " + ce, ce));
     }
@@ -1399,7 +1399,7 @@ public abstract class ConsoleApplication
       {
         newInt = readInteger(prompt, defaultValue);
       }
-      catch (CLIException ce)
+      catch (ClientException ce)
       {
         newInt = -1;
         logger.warn(LocalizableMessage.raw("Error reading input: " + ce, ce));
@@ -1416,17 +1416,17 @@ public abstract class ConsoleApplication
    * @param defaultValue
    *          The default value.
    * @return Returns the value.
-   * @throws CLIException
+   * @throws ClientException
    *           If the value could not be retrieved for some reason.
    */
   public final int readInteger(LocalizableMessage prompt, final int defaultValue)
-      throws CLIException
+      throws ClientException
   {
     ValidationCallback<Integer> callback = new ValidationCallback<Integer>()
     {
       @Override
       public Integer validate(ConsoleApplication app, String input)
-          throws CLIException
+          throws ClientException
       {
         String ninput = input.trim();
         if (ninput.length() == 0)

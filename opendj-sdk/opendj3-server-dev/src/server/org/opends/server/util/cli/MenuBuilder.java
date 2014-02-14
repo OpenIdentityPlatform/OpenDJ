@@ -43,7 +43,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.util.table.TableBuilder;
 import org.opends.server.util.table.TablePrinter;
 import org.opends.server.util.table.TextTablePrinter;
-import com.forgerock.opendj.cli.CLIException;
+import com.forgerock.opendj.cli.ClientException;
 
 
 
@@ -87,7 +87,7 @@ public final class MenuBuilder<T> {
     /**
      * {@inheritDoc}
      */
-    public MenuResult<T> invoke(ConsoleApplication app) throws CLIException {
+    public MenuResult<T> invoke(ConsoleApplication app) throws ClientException {
       List<T> values = new ArrayList<T>();
       for (MenuCallback<T> callback : callbacks) {
         MenuResult<T> result = callback.invoke(app);
@@ -174,7 +174,7 @@ public final class MenuBuilder<T> {
     /**
      * {@inheritDoc}
      */
-    public MenuResult<T> run() throws CLIException {
+    public MenuResult<T> run() throws ClientException {
       // The validation call-back which will be used to determine the
       // action call-back.
       ValidationCallback<MenuCallback<T>> validator =
@@ -333,7 +333,7 @@ public final class MenuBuilder<T> {
     /**
      * {@inheritDoc}
      */
-    public MenuResult<T> invoke(ConsoleApplication app) throws CLIException {
+    public MenuResult<T> invoke(ConsoleApplication app) throws ClientException {
       return result;
     }
 
@@ -493,7 +493,7 @@ public final class MenuBuilder<T> {
   public void addHelpOption(final HelpCallback callback) {
     MenuCallback<T> wrapper = new MenuCallback<T>() {
 
-      public MenuResult<T> invoke(ConsoleApplication app) throws CLIException {
+      public MenuResult<T> invoke(ConsoleApplication app) throws ClientException {
         app.println();
         callback.display(app);
         return MenuResult.again();
@@ -828,7 +828,7 @@ public final class MenuBuilder<T> {
   /**
    * Sets the maximum number of tries that the user can provide an invalid
    * value in the menu. -1 for unlimited tries (the default).  If this limit is
-   * reached a CLIException will be thrown.
+   * reached a ClientException will be thrown.
    * @param nTries the maximum number of tries.
    */
   public void setMaxTries(int nTries)

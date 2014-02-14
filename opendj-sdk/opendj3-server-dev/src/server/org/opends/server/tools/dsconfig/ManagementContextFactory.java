@@ -29,7 +29,7 @@ package org.opends.server.tools.dsconfig;
 
 
 import org.opends.server.admin.client.ManagementContext;
-import org.opends.server.tools.ClientException;
+import com.forgerock.opendj.cli.ClientException;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.SubCommandArgumentParser;
 import org.opends.server.util.cli.CommandBuilder;

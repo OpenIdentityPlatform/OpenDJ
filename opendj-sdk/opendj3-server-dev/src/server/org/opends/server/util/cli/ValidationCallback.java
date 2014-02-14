@@ -26,7 +26,7 @@
  */
 package org.opends.server.util.cli;
 
-import com.forgerock.opendj.cli.CLIException;
+import com.forgerock.opendj.cli.ClientException;
 
 
 /**
@@ -50,9 +50,9 @@ public interface ValidationCallback<T> {
    *          The user input to be validated.
    * @return Returns the decoded input if the input is valid, or
    *         <code>null</code> if it is not.
-   * @throws CLIException
+   * @throws ClientException
    *           If an unexpected error occurred which prevented
    *           validation.
    */
-  T validate(ConsoleApplication app, String input) throws CLIException;
+  T validate(ConsoleApplication app, String input) throws ClientException;
 }

@@ -67,7 +67,6 @@ import org.opends.server.admin.Tag;
 import org.opends.server.admin.client.ManagedObjectDecodingException;
 import org.opends.server.admin.client.MissingMandatoryPropertiesException;
 import org.opends.server.admin.client.OperationRejectedException;
-import org.opends.server.tools.ClientException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.EmbeddedUtils;
@@ -79,7 +78,7 @@ import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.cli.SubCommand;
 import com.forgerock.opendj.cli.SubCommandArgumentParser;
 import com.forgerock.opendj.cli.ArgumentGroup;
-import com.forgerock.opendj.cli.CLIException;
+import com.forgerock.opendj.cli.ClientException;
 import org.opends.server.util.cli.CommandBuilder;
 import org.opends.server.util.cli.ConsoleApplication;
 import org.opends.server.util.cli.Menu;
@@ -123,7 +122,7 @@ public final class DSConfig extends ConsoleApplication {
      */
     @Override
     public MenuResult<Integer> invoke(ConsoleApplication app)
-    throws CLIException {
+    throws ClientException {
       try {
         MenuResult<Integer> result = handler.run(app, factory);
 
@@ -145,7 +144,7 @@ public final class DSConfig extends ConsoleApplication {
         return MenuResult.success(1);
       } catch (ClientException e) {
         app.println(e.getMessageObject());
-        return MenuResult.success(e.getExitCode());
+        return MenuResult.success(e.getReturnCode());
       }
     }
   }
@@ -253,7 +252,7 @@ public final class DSConfig extends ConsoleApplication {
      */
     @Override
     public final MenuResult<Integer> invoke(ConsoleApplication app)
-    throws CLIException {
+    throws ClientException {
       try {
         app.println();
         app.println();
@@ -265,7 +264,7 @@ public final class DSConfig extends ConsoleApplication {
         }
 
         return result;
-      } catch (CLIException e) {
+      } catch (ClientException e) {
         app.println(e.getMessageObject());
         return MenuResult.success(1);
       }
@@ -967,7 +966,7 @@ public final class DSConfig extends ConsoleApplication {
       } else {
         return result.getValue();
       }
-    } catch (CLIException e) {
+    } catch (ClientException e) {
       app.println(e.getMessageObject());
       return 1;
     }
@@ -992,9 +991,6 @@ public final class DSConfig extends ConsoleApplication {
         return 1;
       }
     } catch (ArgumentException e) {
-      println(e.getMessageObject());
-      return 1;
-    } catch (CLIException e) {
       println(e.getMessageObject());
       return 1;
     } catch (ClientException e) {

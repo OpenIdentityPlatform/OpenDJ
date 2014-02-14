@@ -37,7 +37,7 @@ import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.event.ProgressUpdateListener;
 import org.opends.quicksetup.event.ProgressUpdateEvent;
 import org.opends.server.util.StaticUtils;
-import com.forgerock.opendj.cli.CLIException;
+import com.forgerock.opendj.cli.ClientException;
 
 /**
  * Class used by Launcher to start a CLI application.
@@ -144,7 +144,7 @@ public class QuickSetupCli {
       System.err.println(StaticUtils.wrapText(uude.getLocalizedMessage(),
               Utils.getCommandLineMaxLineWidth()));
       System.err.println();
-      if (uude.getCause() instanceof CLIException)
+      if (uude.getCause() instanceof ClientException)
       {
         returnValue = ReturnCode.USER_INPUT_ERROR;
       }

@@ -26,7 +26,7 @@
  */
 package org.opends.server.util.cli;
 
-import com.forgerock.opendj.cli.CLIException;
+import com.forgerock.opendj.cli.ClientException;
 
 
 
@@ -46,9 +46,9 @@ public interface Menu<T> {
    * with the option will be invoked and its result returned.
    *
    * @return Returns the result of invoking the chosen menu call-back.
-   * @throws CLIException
+   * @throws ClientException
    *           If an I/O exception occurred or if one of the menu
    *           option call-backs failed for some reason.
    */
-  MenuResult<T> run() throws CLIException;
+  MenuResult<T> run() throws ClientException;
 }

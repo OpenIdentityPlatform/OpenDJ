@@ -39,7 +39,9 @@ import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 
 import org.opends.messages.RuntimeMessages;
-import org.opends.server.tools.ClientException;
+
+import com.forgerock.opendj.cli.ClientException;
+import com.forgerock.opendj.cli.ReturnCode;
 
 import static org.opends.messages.ToolMessages.ERR_UPGRADE_INVALID_LOG_FILE;
 
@@ -125,7 +127,7 @@ class UpgradeLog
     }
     catch (FileNotFoundException e)
     {
-      throw new ClientException(1, ERR_UPGRADE_INVALID_LOG_FILE.get(e
+      throw new ClientException(ReturnCode.ERROR_UNEXPECTED, ERR_UPGRADE_INVALID_LOG_FILE.get(e
           .getMessage()));
     }
   }

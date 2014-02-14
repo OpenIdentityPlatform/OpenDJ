@@ -34,7 +34,7 @@ import static org.opends.messages.AdminToolMessages.*;
 
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.util.StaticUtils;
-import com.forgerock.opendj.cli.CLIException;
+import com.forgerock.opendj.cli.ClientException;
 import org.opends.server.util.cli.ConsoleApplication;
 import org.opends.server.util.cli.Menu;
 import org.opends.server.util.cli.MenuBuilder;
@@ -138,7 +138,7 @@ public class CliUserInteraction extends ConsoleApplication
           throw new RuntimeException();
         }
       }
-      catch (CLIException ce)
+      catch (ClientException ce)
       {
         respInt = defInt;
         logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));

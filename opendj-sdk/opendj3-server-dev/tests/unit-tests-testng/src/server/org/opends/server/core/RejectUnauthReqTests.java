@@ -45,6 +45,7 @@ import org.opends.server.protocols.ldap.UnbindRequestProtocolOp;
 import org.opends.server.tools.*;
 import static org.testng.Assert.*;
 import static org.opends.server.util.ServerConstants.*;
+import com.forgerock.opendj.cli.ClientException;
 
 
 

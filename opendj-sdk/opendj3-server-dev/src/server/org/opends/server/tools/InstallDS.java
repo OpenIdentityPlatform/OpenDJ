@@ -73,7 +73,7 @@ import org.opends.server.util.StaticUtils;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.StringArgument;
-import com.forgerock.opendj.cli.CLIException;
+import com.forgerock.opendj.cli.ClientException;
 import org.opends.server.util.cli.ConsoleApplication;
 import org.opends.server.util.cli.Menu;
 import org.opends.server.util.cli.MenuBuilder;
@@ -605,7 +605,7 @@ public class InstallDS extends ConsoleApplication
             throw new InitializationException(LocalizableMessage.EMPTY, null);
           }
         }
-        catch (CLIException ce)
+        catch (ClientException ce)
         {
           logger.error(LocalizableMessage.raw("Unexpected error: "+ce, ce));
           throw new InitializationException(LocalizableMessage.EMPTY, null);
@@ -1041,7 +1041,7 @@ public class InstallDS extends ConsoleApplication
           dns.add(dn);
           prompted = true;
         }
-        catch (CLIException ce)
+        catch (ClientException ce)
         {
           logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
         }
@@ -1162,7 +1162,7 @@ public class InstallDS extends ConsoleApplication
             {
               portNumber = readPort(promptMsg, defaultValue);
             }
-            catch (CLIException ce)
+            catch (ClientException ce)
             {
               portNumber = -1;
               logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
@@ -1234,7 +1234,7 @@ public class InstallDS extends ConsoleApplication
         prompt = confirmAction(INFO_INSTALLDS_PROVIDE_BASE_DN_PROMPT.get(),
             true);
       }
-      catch (CLIException ce)
+      catch (ClientException ce)
       {
         prompt = true;
         logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
@@ -1297,7 +1297,7 @@ public class InstallDS extends ConsoleApplication
             importLDIFFiles.add(path);
           }
         }
-        catch (CLIException ce)
+        catch (ClientException ce)
         {
           logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
         }
@@ -1316,7 +1316,7 @@ public class InstallDS extends ConsoleApplication
               readInput(INFO_INSTALLDS_PROMPT_REJECTED_FILE.get(),
                   lastResetRejectedFile);
           }
-          catch (CLIException ce)
+          catch (ClientException ce)
           {
             logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
           }
@@ -1336,7 +1336,7 @@ public class InstallDS extends ConsoleApplication
               readInput(INFO_INSTALLDS_PROMPT_SKIPPED_FILE.get(),
                   lastResetSkippedFile);
           }
-          catch (CLIException ce)
+          catch (ClientException ce)
           {
             logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
           }
@@ -1438,7 +1438,7 @@ public class InstallDS extends ConsoleApplication
           throw new RuntimeException();
         }
       }
-      catch (CLIException ce)
+      catch (ClientException ce)
       {
         populateType = POPULATE_TYPE_BASE_ONLY;
         logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
@@ -1465,7 +1465,7 @@ public class InstallDS extends ConsoleApplication
               println(message);
             }
           }
-          catch (CLIException ce)
+          catch (ClientException ce)
           {
             logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
           }
@@ -1484,7 +1484,7 @@ public class InstallDS extends ConsoleApplication
               rejectedFile =
                 readInput(INFO_INSTALLDS_PROMPT_REJECTED_FILE.get(), null);
             }
-            catch (CLIException ce)
+            catch (ClientException ce)
             {
               logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
             }
@@ -1503,7 +1503,7 @@ public class InstallDS extends ConsoleApplication
               skippedFile =
                 readInput(INFO_INSTALLDS_PROMPT_SKIPPED_FILE.get(), null);
             }
-            catch (CLIException ce)
+            catch (ClientException ce)
             {
               logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
             }
@@ -1590,7 +1590,7 @@ public class InstallDS extends ConsoleApplication
               INFO_INSTALLDS_PROMPT_LDAPSPORT.get(), usedPorts, false);
         }
       }
-      catch (CLIException ce)
+      catch (ClientException ce)
       {
         logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
       }
@@ -1613,7 +1613,7 @@ public class InstallDS extends ConsoleApplication
         enableStartTLS = confirmAction(INFO_INSTALLDS_ENABLE_STARTTLS.get(),
             defaultValue);
       }
-      catch (CLIException ce)
+      catch (ClientException ce)
       {
         logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
       }
@@ -1732,7 +1732,7 @@ public class InstallDS extends ConsoleApplication
             throw new RuntimeException();
           }
         }
-        catch (CLIException ce)
+        catch (ClientException ce)
         {
           logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
           certType = SELF_SIGNED;
@@ -1805,7 +1805,7 @@ public class InstallDS extends ConsoleApplication
               false : lastResetEnableWindowsService;
           enableService = confirmAction(message, defaultValue);
         }
-        catch (CLIException ce)
+        catch (ClientException ce)
         {
           logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
         }
@@ -1834,7 +1834,7 @@ public class InstallDS extends ConsoleApplication
             true : lastResetStartServer;
         startServer = confirmAction(message, defaultValue);
       }
-      catch (CLIException ce)
+      catch (ClientException ce)
       {
         logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
         startServer = true;
@@ -2089,7 +2089,7 @@ public class InstallDS extends ConsoleApplication
           {
             path = readInput(pathPrompt, defaultPathValue);
           }
-          catch (CLIException ce)
+          catch (ClientException ce)
           {
             path = "";
             logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
@@ -2299,7 +2299,7 @@ public class InstallDS extends ConsoleApplication
       {
         s = readInput(prompt, String.valueOf(defaultValue));
       }
-      catch (CLIException ce)
+      catch (ClientException ce)
       {
         s = "";
         logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
@@ -2373,7 +2373,7 @@ public class InstallDS extends ConsoleApplication
             break;
           }
         }
-        catch (CLIException ce)
+        catch (ClientException ce)
         {
           logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
         }
@@ -2535,7 +2535,7 @@ public class InstallDS extends ConsoleApplication
         throw new RuntimeException();
       }
     }
-    catch (CLIException ce)
+    catch (ClientException ce)
     {
       returnValue = ConfirmCode.CANCEL;
       logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
@@ -2625,7 +2625,7 @@ public class InstallDS extends ConsoleApplication
           hostName = readInput(INFO_INSTALLDS_PROMPT_HOST_NAME.get(),
               argParser.hostNameArg.getDefaultValue());
         }
-        catch (CLIException ce)
+        catch (ClientException ce)
         {
           logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
         }

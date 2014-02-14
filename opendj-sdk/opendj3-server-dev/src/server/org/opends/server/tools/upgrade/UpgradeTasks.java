@@ -48,7 +48,10 @@ import javax.security.auth.callback.ConfirmationCallback;
 import javax.security.auth.callback.TextOutputCallback;
 
 import org.forgerock.opendj.ldap.Filter;
-import org.opends.server.tools.ClientException;
+
+import com.forgerock.opendj.cli.ClientException;
+import com.forgerock.opendj.cli.ReturnCode;
+
 import org.opends.server.tools.RebuildIndex;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.ChangeOperationType;
@@ -665,7 +668,7 @@ public final class UpgradeTasks
           {
             final LocalizableMessage msg = ERR_UPGRADE_PERFORMING_POST_TASKS_FAIL.get();
             context.notifyProgress(pnc.setProgress(-100));
-            throw new ClientException(EXIT_CODE_ERROR, msg);
+            throw new ClientException(ReturnCode.ERROR_UNEXPECTED, msg);
           }
         }
         else
@@ -872,7 +875,7 @@ public final class UpgradeTasks
     logger.error(message);
     if (!context.isIgnoreErrorsMode())
     {
-      throw new ClientException(EXIT_CODE_ERROR, message);
+      throw new ClientException(ReturnCode.ERROR_UNEXPECTED, message);
     }
   }
 

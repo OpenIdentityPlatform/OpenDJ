@@ -61,14 +61,15 @@ import org.opends.server.admin.client.ConcurrentModificationException;
 import org.opends.server.admin.client.ManagedObject;
 import org.opends.server.admin.client.ManagedObjectDecodingException;
 import org.opends.server.admin.client.ManagementContext;
-import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.opends.server.tools.ClientException;
 import org.opends.server.tools.ToolConstants;
+
 import com.forgerock.opendj.cli.ArgumentException;
+import com.forgerock.opendj.cli.ReturnCode;
 import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.cli.SubCommand;
 import com.forgerock.opendj.cli.SubCommandArgumentParser;
-import com.forgerock.opendj.cli.CLIException;
+import com.forgerock.opendj.cli.ClientException;
+
 import org.opends.server.util.cli.ConsoleApplication;
 import org.opends.server.util.cli.MenuResult;
 import org.opends.server.util.table.TableBuilder;
@@ -235,7 +236,7 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
   @Override
   public MenuResult<Integer> run(ConsoleApplication app,
       ManagementContextFactory factory) throws ArgumentException,
-      ClientException, CLIException {
+      ClientException {
     // Get the property names.
     Set<String> propertyNames = getPropertyNames();
     PropertyValuePrinter valuePrinter = new PropertyValuePrinter(getSizeUnit(),
@@ -260,22 +261,22 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
       result = getManagedObject(app, context, path, names);
     } catch (AuthorizationException e) {
       LocalizableMessage msg = ERR_DSCFG_ERROR_GET_CHILD_AUTHZ.get(ufn);
-      throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS, msg);
+      throw new ClientException(ReturnCode.INSUFFICIENT_ACCESS_RIGHTS, msg);
     } catch (DefinitionDecodingException e) {
       LocalizableMessage msg = ERR_DSCFG_ERROR_GET_CHILD_DDE.get(ufn, ufn, ufn);
-      throw new ClientException(LDAPResultCode.OTHER, msg);
+      throw new ClientException(ReturnCode.OTHER, msg);
     } catch (ManagedObjectDecodingException e) {
       LocalizableMessage msg = ERR_DSCFG_ERROR_GET_CHILD_MODE.get(ufn);
-      throw new ClientException(LDAPResultCode.OTHER, msg, e);
+      throw new ClientException(ReturnCode.OTHER, msg, e);
     } catch (CommunicationException e) {
       LocalizableMessage msg = ERR_DSCFG_ERROR_GET_CHILD_CE.get(ufn, e.getMessage());
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msg);
+      throw new ClientException(ReturnCode.CLIENT_SIDE_SERVER_DOWN, msg);
     } catch (ConcurrentModificationException e) {
       LocalizableMessage msg = ERR_DSCFG_ERROR_GET_CHILD_CME.get(ufn);
-      throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msg);
+      throw new ClientException(ReturnCode.CONSTRAINT_VIOLATION, msg);
     } catch (ManagedObjectNotFoundException e) {
        LocalizableMessage msg = ERR_DSCFG_ERROR_GET_CHILD_MONFE.get(ufn);
-      throw new ClientException(LDAPResultCode.NO_SUCH_OBJECT, msg);
+      throw new ClientException(ReturnCode.NO_SUCH_OBJECT, msg);
     }
 
     if (result.isQuit()) {
