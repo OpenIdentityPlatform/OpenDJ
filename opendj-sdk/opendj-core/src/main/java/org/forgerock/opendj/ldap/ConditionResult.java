@@ -177,7 +177,7 @@ public enum ConditionResult {
     public static ConditionResult or(final ConditionResult... results) {
         ConditionResult finalResult = FALSE;
         for (final ConditionResult result : results) {
-            finalResult = and(finalResult, result);
+            finalResult = or(finalResult, result);
             if (finalResult == TRUE) {
                 break;
             }
