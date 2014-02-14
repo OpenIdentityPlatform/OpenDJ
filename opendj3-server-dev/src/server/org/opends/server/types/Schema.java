@@ -445,7 +445,7 @@ public final class Schema
       String valueString = attributeType.getDefinition();
       ByteString rawValue = ByteString.valueOf(valueString);
       ByteString normValue =
-          normalizationMatchingRule.normalizeValue(rawValue);
+          normalizationMatchingRule.normalizeAttributeValue(rawValue);
       attributeTypeSet.add(AttributeValues.create(rawValue,
           normValue));
     }
@@ -492,7 +492,7 @@ public final class Schema
         String valueString = attributeType.getDefinition();
         ByteString rawValue = ByteString.valueOf(valueString);
         ByteString normValue =
-             normalizationMatchingRule.normalizeValue(rawValue);
+             normalizationMatchingRule.normalizeAttributeValue(rawValue);
         attributeTypeSet.remove(AttributeValues.create(rawValue,
                                                    normValue));
       }
@@ -737,7 +737,7 @@ public final class Schema
       String valueString = objectClass.getDefinition();
       ByteString rawValue = ByteString.valueOf(valueString);
       ByteString normValue =
-          normalizationMatchingRule.normalizeValue(rawValue);
+          normalizationMatchingRule.normalizeAttributeValue(rawValue);
       objectClassSet.add(AttributeValues.create(rawValue, normValue));
     }
   }
@@ -776,7 +776,7 @@ public final class Schema
         String valueString = objectClass.getDefinition();
         ByteString rawValue = ByteString.valueOf(valueString);
         ByteString normValue =
-             normalizationMatchingRule.normalizeValue(rawValue);
+             normalizationMatchingRule.normalizeAttributeValue(rawValue);
         objectClassSet.remove(AttributeValues.create(rawValue,
                                                  normValue));
       }
@@ -901,7 +901,7 @@ public final class Schema
       String valueString = syntax.toString();
       ByteString rawValue = ByteString.valueOf(valueString);
       ByteString normValue =
-          normalizationMatchingRule.normalizeValue(rawValue);
+          normalizationMatchingRule.normalizeAttributeValue(rawValue);
       syntaxSet.add(AttributeValues.create(rawValue, normValue));
     }
   }
@@ -930,7 +930,7 @@ public final class Schema
         String valueString = syntax.toString();
         ByteString rawValue = ByteString.valueOf(valueString);
         ByteString normValue =
-             normalizationMatchingRule.normalizeValue(rawValue);
+             normalizationMatchingRule.normalizeAttributeValue(rawValue);
         syntaxSet.remove(AttributeValues.create(rawValue, normValue));
       }
       catch (Exception e)
@@ -1251,7 +1251,7 @@ public final class Schema
         String valueString = matchingRule.toString();
         ByteString rawValue = ByteString.valueOf(valueString);
         ByteString normValue =
-             normalizationMatchingRule.normalizeValue(rawValue);
+             normalizationMatchingRule.normalizeAttributeValue(rawValue);
         matchingRuleSet.add(
             AttributeValues.create(rawValue, normValue));
       }
@@ -1313,7 +1313,7 @@ public final class Schema
           String valueString = matchingRule.toString();
           ByteString rawValue = ByteString.valueOf(valueString);
           ByteString normValue =
-              normalizationMatchingRule.normalizeValue(rawValue);
+              normalizationMatchingRule.normalizeAttributeValue(rawValue);
           matchingRuleSet.remove(AttributeValues.create(rawValue,
               normValue));
         }
@@ -1446,7 +1446,7 @@ public final class Schema
       String valueString = matchingRule.toString();
       ByteString rawValue = ByteString.valueOf(valueString);
       ByteString normValue =
-          normalizationMatchingRule.normalizeValue(rawValue);
+          normalizationMatchingRule.normalizeAttributeValue(rawValue);
       matchingRuleSet.add(AttributeValues.create(rawValue,
           normValue));
     }
@@ -1488,7 +1488,7 @@ public final class Schema
         String valueString = matchingRule.toString();
         ByteString rawValue = ByteString.valueOf(valueString);
         ByteString normValue =
-             normalizationMatchingRule.normalizeValue(rawValue);
+             normalizationMatchingRule.normalizeAttributeValue(rawValue);
         matchingRuleSet.remove(AttributeValues.create(rawValue,
                                                   normValue));
       }
@@ -1620,7 +1620,7 @@ public final class Schema
       String valueString = matchingRule.toString();
       ByteString rawValue = ByteString.valueOf(valueString);
       ByteString normValue =
-          normalizationMatchingRule.normalizeValue(rawValue);
+          normalizationMatchingRule.normalizeAttributeValue(rawValue);
       matchingRuleSet.add(AttributeValues.create(rawValue,
           normValue));
     }
@@ -1663,7 +1663,7 @@ public final class Schema
         String valueString = matchingRule.toString();
         ByteString rawValue = ByteString.valueOf(valueString);
         ByteString normValue =
-             normalizationMatchingRule.normalizeValue(rawValue);
+             normalizationMatchingRule.normalizeAttributeValue(rawValue);
         matchingRuleSet.remove(AttributeValues.create(rawValue,
                                                   normValue));
       }
@@ -1794,7 +1794,7 @@ public final class Schema
       String valueString = matchingRule.toString();
         ByteString rawValue = ByteString.valueOf(valueString);
         ByteString normValue =
-             normalizationMatchingRule.normalizeValue(rawValue);
+             normalizationMatchingRule.normalizeAttributeValue(rawValue);
       matchingRuleSet.add(AttributeValues.create(rawValue,
           normValue));
     }
@@ -1836,7 +1836,7 @@ public final class Schema
         String valueString = matchingRule.toString();
         ByteString rawValue = ByteString.valueOf(valueString);
         ByteString normValue =
-             normalizationMatchingRule.normalizeValue(rawValue);
+             normalizationMatchingRule.normalizeAttributeValue(rawValue);
         matchingRuleSet.remove(AttributeValues.create(rawValue,
                                                   normValue));
       }
@@ -1967,7 +1967,7 @@ public final class Schema
       String valueString = matchingRule.toString();
         ByteString rawValue = ByteString.valueOf(valueString);
         ByteString normValue =
-             normalizationMatchingRule.normalizeValue(rawValue);
+             normalizationMatchingRule.normalizeAttributeValue(rawValue);
       matchingRuleSet.add(AttributeValues.create(rawValue,
           normValue));
     }
@@ -2009,7 +2009,7 @@ public final class Schema
         String valueString = matchingRule.toString();
         ByteString rawValue = ByteString.valueOf(valueString);
         ByteString normValue =
-             normalizationMatchingRule.normalizeValue(rawValue);
+             normalizationMatchingRule.normalizeAttributeValue(rawValue);
         matchingRuleSet.remove(AttributeValues.create(rawValue,
                                                   normValue));
       }
@@ -2145,7 +2145,7 @@ public final class Schema
       // that would kill performance.
       String valueString = matchingRule.toString();
       ByteString rawValue  = ByteString.valueOf(valueString);
-      ByteString normValue = normalizationMatchingRule.normalizeValue(
+      ByteString normValue = normalizationMatchingRule.normalizeAttributeValue(
                                   rawValue);
       matchingRuleSet.add(
           AttributeValues.create(rawValue, normValue));
@@ -2188,7 +2188,7 @@ public final class Schema
         String valueString = matchingRule.toString();
         ByteString rawValue = ByteString.valueOf(valueString);
         ByteString normValue =
-            normalizationMatchingRule.normalizeValue(rawValue);
+            normalizationMatchingRule.normalizeAttributeValue(rawValue);
         matchingRuleSet.remove(AttributeValues.create(rawValue,
             normValue));
       }
@@ -2318,7 +2318,7 @@ public final class Schema
       String valueString = matchingRuleUse.getDefinition();
       ByteString rawValue = ByteString.valueOf(valueString);
       ByteString normValue =
-          normalizationMatchingRule.normalizeValue(rawValue);
+          normalizationMatchingRule.normalizeAttributeValue(rawValue);
       matchingRuleUseSet.add(AttributeValues.create(rawValue,
           normValue));
     }
@@ -2350,7 +2350,7 @@ public final class Schema
         String valueString = matchingRuleUse.getDefinition();
         ByteString rawValue = ByteString.valueOf(valueString);
         ByteString normValue =
-             normalizationMatchingRule.normalizeValue(rawValue);
+             normalizationMatchingRule.normalizeAttributeValue(rawValue);
         matchingRuleUseSet.remove(AttributeValues.create(rawValue,
                                                      normValue));
       }
@@ -2479,7 +2479,7 @@ public final class Schema
       String valueString = ditContentRule.getDefinition();
       ByteString rawValue = ByteString.valueOf(valueString);
       ByteString normValue =
-          normalizationMatchingRule.normalizeValue(rawValue);
+          normalizationMatchingRule.normalizeAttributeValue(rawValue);
       ditContentRuleSet.add(AttributeValues.create(rawValue,
           normValue));
     }
@@ -2510,7 +2510,7 @@ public final class Schema
         String valueString = ditContentRule.getDefinition();
         ByteString rawValue = ByteString.valueOf(valueString);
         ByteString normValue =
-             normalizationMatchingRule.normalizeValue(rawValue);
+             normalizationMatchingRule.normalizeAttributeValue(rawValue);
         ditContentRuleSet.remove(AttributeValues.create(rawValue,
                                                     normValue));
       }
@@ -2708,7 +2708,7 @@ public final class Schema
       String valueString = ditStructureRule.getDefinition();
       ByteString rawValue = ByteString.valueOf(valueString);
       ByteString normValue =
-          normalizationMatchingRule.normalizeValue(rawValue);
+          normalizationMatchingRule.normalizeAttributeValue(rawValue);
       ditStructureRuleSet.add(AttributeValues.create(rawValue,
                                                  normValue));
     }
@@ -2742,7 +2742,7 @@ public final class Schema
         String valueString = ditStructureRule.getDefinition();
         ByteString rawValue = ByteString.valueOf(valueString);
         ByteString normValue =
-             normalizationMatchingRule.normalizeValue(rawValue);
+             normalizationMatchingRule.normalizeAttributeValue(rawValue);
         ditStructureRuleSet.remove(AttributeValues.create(rawValue,
                                                       normValue));
       }
@@ -2961,7 +2961,7 @@ public final class Schema
       String valueString = nameForm.getDefinition();
       ByteString rawValue = ByteString.valueOf(valueString);
       ByteString normValue =
-          normalizationMatchingRule.normalizeValue(rawValue);
+          normalizationMatchingRule.normalizeAttributeValue(rawValue);
       nameFormSet.add(AttributeValues.create(rawValue, normValue));
     }
   }
@@ -3005,7 +3005,7 @@ public final class Schema
         String valueString = nameForm.getDefinition();
         ByteString rawValue = ByteString.valueOf(valueString);
         ByteString normValue =
-             normalizationMatchingRule.normalizeValue(rawValue);
+             normalizationMatchingRule.normalizeAttributeValue(rawValue);
         nameFormSet.remove(AttributeValues.create(rawValue,
             normValue));
       }

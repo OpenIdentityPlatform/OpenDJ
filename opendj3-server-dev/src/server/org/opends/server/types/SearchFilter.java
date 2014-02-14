@@ -2088,7 +2088,7 @@ public final class SearchFilter
         else
         {
           value = AttributeValues.create(userValue,
-                                     mr.normalizeValue(userValue));
+                                     mr.normalizeAttributeValue(userValue));
         }
       }
     }
@@ -3363,7 +3363,7 @@ public final class SearchFilter
             try
             {
               ByteString nv =
-                   matchingRule.normalizeValue(v.getValue());
+                   matchingRule.normalizeAttributeValue(v.getValue());
               ConditionResult r =
                    matchingRule.valuesMatch(nv, normalizedValue);
               switch (r)
@@ -3406,7 +3406,7 @@ public final class SearchFilter
             try
             {
               ByteString nv =
-                   matchingRule.normalizeValue(v.getValue());
+                   matchingRule.normalizeAttributeValue(v.getValue());
               ConditionResult r =
                    matchingRule.valuesMatch(nv, normalizedValue);
               switch (r)
@@ -3444,7 +3444,7 @@ public final class SearchFilter
       {
         try
         {
-          ByteString nv = matchingRule.normalizeValue(v.getValue());
+          ByteString nv = matchingRule.normalizeAttributeValue(v.getValue());
           ConditionResult r =
                matchingRule.valuesMatch(nv, normalizedValue);
           switch (r)
@@ -3486,7 +3486,7 @@ public final class SearchFilter
             try
             {
               ByteString nv =
-                   matchingRule.normalizeValue(v.getValue());
+                   matchingRule.normalizeAttributeValue(v.getValue());
               ConditionResult r =
                    matchingRule.valuesMatch(nv, normalizedValue);
               switch (r)
@@ -3541,7 +3541,7 @@ public final class SearchFilter
             {
               AttributeValue v = rdn.getAttributeValue(i);
               ByteString nv =
-                   matchingRule.normalizeValue(v.getValue());
+                   matchingRule.normalizeAttributeValue(v.getValue());
               ConditionResult r =
                    matchingRule.valuesMatch(nv, normalizedValue);
               switch (r)
@@ -3837,8 +3837,8 @@ outerComponentLoop:
               try
               {
                 ConditionResult cr = mr.valuesMatch(
-                     mr.normalizeValue(assertionValue.getValue()),
-                     mr.normalizeValue(f.assertionValue.getValue()));
+                     mr.normalizeAttributeValue(assertionValue.getValue()),
+                     mr.normalizeAttributeValue(f.assertionValue.getValue()));
                 if (cr != ConditionResult.TRUE)
                 {
                   return false;

@@ -1328,7 +1328,7 @@ public class MatchedValuesFilter
                  new ArrayList<ByteSequence>(normalizedSubAny);
 
             return substringMatchingRule.valueMatchesSubstring(
-                 substringMatchingRule.normalizeValue(value.getValue()),
+                 substringMatchingRule.normalizeAttributeValue(value.getValue()),
                  normalizedSubInitial,
                  normalizedSubAnyBS, normalizedSubFinal);
           }
@@ -1354,7 +1354,7 @@ public class MatchedValuesFilter
           {
             return (orderingMatchingRule.compareValues(
                          assertionValue.getNormalizedValue(),
-                         orderingMatchingRule.normalizeValue(
+                         orderingMatchingRule.normalizeAttributeValue(
                          value.getValue())) >= 0);
           }
           catch (Exception e)
@@ -1379,7 +1379,7 @@ public class MatchedValuesFilter
           {
             return (orderingMatchingRule.compareValues(
                          assertionValue.getNormalizedValue(),
-                         orderingMatchingRule.normalizeValue(
+                         orderingMatchingRule.normalizeAttributeValue(
                          value.getValue())) <= 0);
           }
           catch (Exception e)
@@ -1407,10 +1407,10 @@ public class MatchedValuesFilter
         {
           try
           {
-            ByteString nv1 =  approximateMatchingRule.normalizeValue(
+            ByteString nv1 =  approximateMatchingRule.normalizeAttributeValue(
                     assertionValue.getNormalizedValue());
-            ByteString nv2 =  approximateMatchingRule.normalizeValue(
-                    approximateMatchingRule.normalizeValue(value.getValue()));
+            ByteString nv2 =  approximateMatchingRule.normalizeAttributeValue(
+                    value.getValue());
 
             return approximateMatchingRule.approximatelyMatch(nv1, nv2);
           }
@@ -1443,9 +1443,9 @@ public class MatchedValuesFilter
           try
           {
             ByteString nv1 =
-                 matchingRule.normalizeValue(value.getValue());
+                 matchingRule.normalizeAttributeValue(value.getValue());
             ByteString nv2 =
-                 matchingRule.normalizeValue(assertionValue.getValue());
+                 matchingRule.normalizeAttributeValue(assertionValue.getValue());
 
             return (matchingRule.valuesMatch(nv1, nv2) == ConditionResult.TRUE);
           }

@@ -863,7 +863,7 @@ public final class CollationMatchingRuleFactory extends
      * {@inheritDoc}
      */
     @Override
-    public ByteString normalizeValue(ByteSequence value)
+    public ByteString normalizeAttributeValue(ByteSequence value)
         throws DirectoryException
     {
       CollationKey key = collator.getCollationKey(value.toString());
@@ -900,7 +900,7 @@ public final class CollationMatchingRuleFactory extends
     {
       // Normalize the assertion value.
       return factory.createExactMatchQuery(indexer
-          .getExtensibleIndexID(), normalizeValue(assertionValue));
+          .getExtensibleIndexID(), normalizeAttributeValue(assertionValue));
     }
 
 
@@ -959,7 +959,7 @@ public final class CollationMatchingRuleFactory extends
      * {@inheritDoc}
      */
     @Override
-    public ByteString normalizeValue(ByteSequence value)
+    public ByteString normalizeAttributeValue(ByteSequence value)
         throws DirectoryException
     {
       CollationKey key = collator.getCollationKey(value.toString());
@@ -1711,7 +1711,7 @@ public final class CollationMatchingRuleFactory extends
      * {@inheritDoc}
      */
     @Override
-    public ByteString normalizeValue(ByteSequence value)
+    public ByteString normalizeAttributeValue(ByteSequence value)
         throws DirectoryException
     {
       CollationKey key = collator.getCollationKey(value.toString());
@@ -1805,7 +1805,7 @@ public final class CollationMatchingRuleFactory extends
     {
       return factory.createRangeMatchQuery(indexer
           .getExtensibleIndexID(), ByteString.empty(),
-          normalizeValue(assertionValue), false, false);
+          normalizeAttributeValue(assertionValue), false, false);
     }
   }
 
@@ -1874,7 +1874,7 @@ public final class CollationMatchingRuleFactory extends
       // Read the range: lower < keys <= upper.
       return factory.createRangeMatchQuery(indexer
           .getExtensibleIndexID(), ByteString.empty(),
-          normalizeValue(assertionValue), false, true);
+          normalizeAttributeValue(assertionValue), false, true);
     }
   }
 
@@ -1941,7 +1941,7 @@ public final class CollationMatchingRuleFactory extends
         IndexQueryFactory<T> factory) throws DirectoryException
     {
       return factory.createRangeMatchQuery(indexer
-          .getExtensibleIndexID(), normalizeValue(assertionValue),
+          .getExtensibleIndexID(), normalizeAttributeValue(assertionValue),
           ByteString.empty(), false, false);
     }
   }
@@ -2010,7 +2010,7 @@ public final class CollationMatchingRuleFactory extends
     {
       // Read the range: lower <= keys < upper.
       return factory.createRangeMatchQuery(indexer
-          .getExtensibleIndexID(), normalizeValue(assertionValue),
+          .getExtensibleIndexID(), normalizeAttributeValue(assertionValue),
           ByteString.empty(), true, false);
     }
   }
@@ -2065,7 +2065,7 @@ public final class CollationMatchingRuleFactory extends
       ByteString key;
       try
       {
-        key = matchingRule.normalizeValue(value.getValue());
+        key = matchingRule.normalizeAttributeValue(value.getValue());
         keys.add(key.toByteArray());
       }
       catch (DirectoryException de)

@@ -128,7 +128,7 @@ class BitStringEqualityMatchingRule
    *                              the associated attribute syntax.
    */
   @Override
-  public ByteString normalizeValue(ByteSequence value)
+  public ByteString normalizeAttributeValue(ByteSequence value)
          throws DirectoryException
   {
     String valueString = value.toString().toUpperCase();

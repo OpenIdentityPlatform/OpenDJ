@@ -1766,7 +1766,7 @@ public class VerifyJob
                  attr.getAttributeType().getOrderingMatchingRule();
 
             normalizedBytes =
-                 orderingRule.normalizeValue(value.getValue()).toByteArray();
+                 orderingRule.normalizeAttributeValue(value.getValue()).toByteArray();
 
             DatabaseEntry key = new DatabaseEntry(normalizedBytes);
             try
@@ -1809,7 +1809,7 @@ public class VerifyJob
                 attr.getAttributeType().getApproximateMatchingRule();
 
             normalizedBytes =
-                approximateRule.normalizeValue(value.getValue()).toByteArray();
+                approximateRule.normalizeAttributeValue(value.getValue()).toByteArray();
 
             DatabaseEntry key = new DatabaseEntry(normalizedBytes);
             try

@@ -119,7 +119,7 @@ public class HistoricalCsnOrderingMatchingRule
    * {@inheritDoc}
    */
   @Override
-  public ByteString normalizeValue(ByteSequence value)
+  public ByteString normalizeAttributeValue(ByteSequence value)
       throws DirectoryException
   {
     /*

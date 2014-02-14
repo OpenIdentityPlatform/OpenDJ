@@ -139,9 +139,9 @@ public final class StringPrepProfileTestCase
     //Take any caseExact matching rule.
     EqualityMatchingRule rule = new CaseExactIA5EqualityMatchingRule();
     ByteString normalizedValue1 =
-      rule.normalizeValue(ByteString.valueOf(value1));
+      rule.normalizeAttributeValue(ByteString.valueOf(value1));
     ByteString normalizedValue2 =
-      rule.normalizeValue(ByteString.valueOf(value2));
+      rule.normalizeAttributeValue(ByteString.valueOf(value2));
 
     Boolean liveResult = rule.areEqual(normalizedValue1, normalizedValue2);
     assertEquals(result, liveResult);
@@ -175,9 +175,9 @@ public final class StringPrepProfileTestCase
     //Take any caseExact matching rule.
     EqualityMatchingRule rule = new CaseIgnoreEqualityMatchingRule();
     ByteString normalizedValue1 =
-      rule.normalizeValue(ByteString.valueOf(value1));
+      rule.normalizeAttributeValue(ByteString.valueOf(value1));
     ByteString normalizedValue2 =
-      rule.normalizeValue(ByteString.valueOf(value2));
+      rule.normalizeAttributeValue(ByteString.valueOf(value2));
 
     Boolean liveResult = rule.areEqual(normalizedValue1, normalizedValue2);
     assertEquals(result, liveResult);

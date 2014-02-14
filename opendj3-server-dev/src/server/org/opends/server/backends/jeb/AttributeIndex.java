@@ -1095,7 +1095,7 @@ public class AttributeIndex
       // Use the ordering matching rule to normalize the value.
       OrderingMatchingRule orderingRule =
            filter.getAttributeType().getOrderingMatchingRule();
-      byte[] lower = orderingRule.normalizeValue(
+      byte[] lower = orderingRule.normalizeAttributeValue(
            filter.getAssertionValue().getValue()).toByteArray();
 
       // Set the upper bound to 0 to search all keys greater then the lower
@@ -1183,7 +1183,7 @@ public class AttributeIndex
       // Use the ordering matching rule to normalize the value.
       OrderingMatchingRule orderingRule =
            filter.getAttributeType().getOrderingMatchingRule();
-      byte[] upper = orderingRule.normalizeValue(
+      byte[] upper = orderingRule.normalizeAttributeValue(
            filter.getAssertionValue().getValue()).toByteArray();
 
       if(debugBuffer != null)
@@ -1438,11 +1438,11 @@ public class AttributeIndex
 
       // Set the lower bound for a range search.
       byte[] lower =
-          orderingRule.normalizeValue(lowerValue.getValue()).toByteArray();
+          orderingRule.normalizeAttributeValue(lowerValue.getValue()).toByteArray();
 
       // Set the upper bound for a range search.
       byte[] upper =
-          orderingRule.normalizeValue(upperValue.getValue()).toByteArray();
+          orderingRule.normalizeAttributeValue(upperValue.getValue()).toByteArray();
 
       // Read the range: lower <= keys <= upper.
       return orderingIndex.readRange(lower, upper, true, true);
@@ -1534,7 +1534,7 @@ public class AttributeIndex
           approximateFilter.getAttributeType().getApproximateMatchingRule();
       // Make a key from the normalized assertion value.
       byte[] keyBytes =
-           approximateMatchingRule.normalizeValue(
+           approximateMatchingRule.normalizeAttributeValue(
                approximateFilter.getAssertionValue().getValue()).toByteArray();
       DatabaseEntry key = new DatabaseEntry(keyBytes);
 

@@ -168,7 +168,7 @@ public final class AttributeBuilder
       try
       {
         normalizedValue =
-          matchingRule.normalizeValue(value.getValue());
+          matchingRule.normalizeAttributeValue(value.getValue());
       }
       catch (Exception e)
       {
@@ -184,7 +184,7 @@ public final class AttributeBuilder
       {
         try
         {
-          ByteString nv = matchingRule.normalizeValue(v.getValue());
+          ByteString nv = matchingRule.normalizeAttributeValue(v.getValue());
           if (matchingRule.approximatelyMatch(nv, normalizedValue))
           {
             return ConditionResult.TRUE;
@@ -268,8 +268,7 @@ public final class AttributeBuilder
       ByteString normalizedValue;
       try
       {
-        normalizedValue =
-                matchingRule.normalizeValue(value.getValue());
+        normalizedValue = matchingRule.normalizeAttributeValue(value.getValue());
       }
       catch (Exception e)
       {
@@ -285,8 +284,7 @@ public final class AttributeBuilder
       {
         try
         {
-          ByteString nv =
-                  matchingRule.normalizeValue(v.getValue());
+          ByteString nv = matchingRule.normalizeAttributeValue(v.getValue());
           int comparisonResult = matchingRule
               .compareValues(nv, normalizedValue);
           if (comparisonResult >= 0)
@@ -349,8 +347,7 @@ public final class AttributeBuilder
       ByteString normalizedValue;
       try
       {
-        normalizedValue =
-                matchingRule.normalizeValue(value.getValue());
+        normalizedValue = matchingRule.normalizeAttributeValue(value.getValue());
       }
       catch (Exception e)
       {
@@ -366,7 +363,7 @@ public final class AttributeBuilder
       {
         try
         {
-          ByteString nv = matchingRule.normalizeValue(v.getValue());
+          ByteString nv = matchingRule.normalizeAttributeValue(v.getValue());
           int comparisonResult = matchingRule
               .compareValues(nv, normalizedValue);
           if (comparisonResult <= 0)
@@ -482,7 +479,7 @@ public final class AttributeBuilder
         {
           if (matchingRule.valueMatchesSubstring(
               attributeType.getSubstringMatchingRule().
-                    normalizeValue(value.getValue()),
+                    normalizeAttributeValue(value.getValue()),
               normalizedSubInitial,
               normalizedSubAny,
               normalizedSubFinal))

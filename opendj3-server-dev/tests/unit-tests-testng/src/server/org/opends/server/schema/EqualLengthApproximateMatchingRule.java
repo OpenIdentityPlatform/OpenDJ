@@ -121,7 +121,7 @@ class EqualLengthApproximateMatchingRule
    *                              the associated attribute syntax.
    */
   @Override
-  public ByteString normalizeValue(ByteSequence value)
+  public ByteString normalizeAttributeValue(ByteSequence value)
          throws DirectoryException
   {
     // Any value is acceptable, so we can just return a copy of the

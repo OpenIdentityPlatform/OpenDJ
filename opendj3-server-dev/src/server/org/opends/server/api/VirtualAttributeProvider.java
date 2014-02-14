@@ -556,7 +556,7 @@ public abstract class VirtualAttributeProvider
     ByteString normalizedValue;
     try
     {
-      normalizedValue = matchingRule.normalizeValue(value.getValue());
+      normalizedValue = matchingRule.normalizeAttributeValue(value.getValue());
     }
     catch (Exception e)
     {
@@ -572,7 +572,7 @@ public abstract class VirtualAttributeProvider
     {
       try
       {
-        ByteString nv = matchingRule.normalizeValue(v.getValue());
+        ByteString nv = matchingRule.normalizeAttributeValue(v.getValue());
         if (matchingRule.approximatelyMatch(nv, normalizedValue))
         {
           return ConditionResult.TRUE;

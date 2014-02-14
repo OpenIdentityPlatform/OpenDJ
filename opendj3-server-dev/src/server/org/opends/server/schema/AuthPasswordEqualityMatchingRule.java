@@ -130,7 +130,7 @@ class AuthPasswordEqualityMatchingRule
    *                              the associated attribute syntax.
    */
   @Override
-  public ByteString normalizeValue(ByteSequence value)
+  public ByteString normalizeAttributeValue(ByteSequence value)
          throws DirectoryException
   {
     // We will not alter the value in any way.

@@ -180,7 +180,7 @@ public final class AttributeValues
               ResultCode.INAPPROPRIATE_MATCHING, message);
         }
 
-        normalizedValue = equalityMatchingRule.normalizeValue(value);
+        normalizedValue = equalityMatchingRule.normalizeAttributeValue(value);
       }
 
       return normalizedValue;

@@ -127,7 +127,7 @@ class TelephoneNumberSubstringMatchingRule
    *                              the associated attribute syntax.
    */
   @Override
-  public ByteString normalizeValue(ByteSequence value)
+  public ByteString normalizeAttributeValue(ByteSequence value)
          throws DirectoryException
   {
     String valueString = value.toString();
@@ -169,7 +169,7 @@ class TelephoneNumberSubstringMatchingRule
   {
     // In this case, the logic used to normalize a substring is identical to the
     // logic used to normalize a full value.
-    ByteString value = normalizeValue(substring);
+    ByteString value = normalizeAttributeValue(substring);
     if (value.length() == 0)
     {
       throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,

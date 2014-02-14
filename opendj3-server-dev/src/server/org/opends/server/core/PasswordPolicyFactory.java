@@ -343,7 +343,7 @@ public final class PasswordPolicyFactory implements
           }
           else
           {
-            valueString = syntax.getEqualityMatchingRule().normalizeValue(
+            valueString = syntax.getEqualityMatchingRule().normalizeAttributeValue(
                 valueString);
             requireChangeByTime = GeneralizedTimeSyntax
                 .decodeGeneralizedTimeValue(valueString);

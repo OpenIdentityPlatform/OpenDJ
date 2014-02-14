@@ -150,9 +150,9 @@ public class ApproximatematchingRule extends SchemaTestCase
 
     // normalize the 2 provided values
     ByteString normalizedValue1 =
-      ruleInstance.normalizeValue(ByteString.valueOf(value1));
+      ruleInstance.normalizeAttributeValue(ByteString.valueOf(value1));
     ByteString normalizedValue2 =
-      ruleInstance.normalizeValue(ByteString.valueOf(value2));
+      ruleInstance.normalizeAttributeValue(ByteString.valueOf(value2));
 
     // check that the approximatelyMatch return the expected result.
     Boolean liveResult = ruleInstance.approximatelyMatch(normalizedValue1,
