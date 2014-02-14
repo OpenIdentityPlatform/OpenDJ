@@ -26,58 +26,39 @@
  */
 package org.opends.guitools.controlpanel.ui;
 
-import static org.opends.messages.AdminToolMessages.*;
-
 import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.opendj.ldap.schema.AttributeUsage;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.event.ConfigurationChangeEvent;
-import org.opends.guitools.controlpanel.event.
- ConfigurationElementCreatedListener;
+import org.opends.guitools.controlpanel.event.ConfigurationElementCreatedListener;
 import org.opends.guitools.controlpanel.task.NewSchemaElementsTask;
 import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.ui.components.BasicExpander;
-import
-org.opends.guitools.controlpanel.ui.renderer.SchemaElementComboBoxCellRenderer;
+import org.opends.guitools.controlpanel.ui.renderer.SchemaElementComboBoxCellRenderer;
 import org.opends.guitools.controlpanel.util.LowerCaseComparator;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.LocalizableMessageBuilder;
-import org.opends.server.api.ApproximateMatchingRule;
-import org.opends.server.api.AttributeSyntax;
-import org.opends.server.api.EqualityMatchingRule;
-import org.opends.server.api.MatchingRule;
-import org.opends.server.api.OrderingMatchingRule;
-import org.opends.server.api.SubstringMatchingRule;
+import org.opends.server.api.*;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.types.AttributeType;
-import org.forgerock.opendj.ldap.schema.AttributeUsage;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.Schema;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
+
+import static org.opends.messages.AdminToolMessages.*;
 
 /**
  * The panel displayed when the user wants to define a new attribute in the
@@ -164,6 +145,7 @@ public class NewAttributePanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_NEW_ATTRIBUTE_PANEL_TITLE.get();
@@ -172,6 +154,7 @@ public class NewAttributePanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public Component getPreferredFocusComponent()
   {
     return name;
@@ -180,6 +163,7 @@ public class NewAttributePanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
     ArrayList<AttributeSyntax<?>> newSyntaxes =
@@ -328,6 +312,7 @@ public class NewAttributePanel extends StatusGenericPanel
       /**
        * {@inheritDoc}
        */
+      @Override
       public void run()
       {
         setEnabledOK(!error[0]);
@@ -374,6 +359,7 @@ public class NewAttributePanel extends StatusGenericPanel
   /**
    * {@inheritDoc}
    */
+  @Override
   public void okClicked()
   {
     ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
@@ -545,13 +531,10 @@ public class NewAttributePanel extends StatusGenericPanel
 
     for (MatchingRule rule : schema.getMatchingRules().values())
     {
-      String n = rule.getName();
-      if (n != null)
+      String n = rule.getNameOrOID();
+      if (n != null && n.equalsIgnoreCase(name))
       {
-        if (n.equalsIgnoreCase(name))
-        {
-          return INFO_CTRL_PANEL_TYPE_MATCHING_RULE.get();
-        }
+        return INFO_CTRL_PANEL_TYPE_MATCHING_RULE.get();
       }
     }
 
@@ -671,6 +654,7 @@ public class NewAttributePanel extends StatusGenericPanel
         /**
          * {@inheritDoc}
          */
+        @Override
         public void stateChanged(ChangeEvent e)
         {
           p.setVisible(expander.isSelected());
@@ -687,6 +671,7 @@ public class NewAttributePanel extends StatusGenericPanel
       /**
        * {@inheritDoc}
        */
+      @Override
       public void itemStateChanged(ItemEvent ev)
       {
         if (ev.getStateChange() == ItemEvent.SELECTED)

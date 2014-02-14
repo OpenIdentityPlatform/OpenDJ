@@ -28,18 +28,18 @@ package org.opends.server.schema;
 
 
 
-import static org.opends.server.schema.SchemaConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-
 import java.util.Collection;
 import java.util.Collections;
-import org.forgerock.i18n.LocalizableMessage;
 
-import org.opends.server.api.SubstringMatchingRule;
+import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
+import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.ResultCode;
+
+import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 
 
@@ -69,23 +69,8 @@ class TelephoneNumberSubstringMatchingRule
   @Override
   public Collection<String> getNames()
   {
-    return Collections.singleton(getName());
+    return Collections.singleton(SMR_TELEPHONE_NAME);
   }
-
-
-
-  /**
-   * Retrieves the common name for this matching rule.
-   *
-   * @return  The common name for this matching rule, or <CODE>null</CODE> if
-   * it does not have a name.
-   */
-  @Override
-  public String getName()
-  {
-    return SMR_TELEPHONE_NAME;
-  }
-
 
 
   /**

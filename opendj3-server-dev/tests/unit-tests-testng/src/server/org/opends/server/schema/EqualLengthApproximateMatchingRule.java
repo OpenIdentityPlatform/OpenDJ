@@ -28,15 +28,15 @@ package org.opends.server.schema;
 
 
 
-import static org.opends.server.schema.SchemaConstants.*;
-
 import java.util.Collection;
 import java.util.Collections;
 
-import org.opends.server.api.ApproximateMatchingRule;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
+import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.types.DirectoryException;
+
+import static org.opends.server.schema.SchemaConstants.*;
 
 
 
@@ -64,23 +64,8 @@ class EqualLengthApproximateMatchingRule
   @Override
   public Collection<String> getNames()
   {
-    return Collections.singleton(getName());
+    return Collections.singleton("equalLengthApproximateMatch");
   }
-
-
-
-  /**
-   * Retrieves the common name for this matching rule.
-   *
-   * @return  The common name for this matching rule, or <CODE>null</CODE> if
-   * it does not have a name.
-   */
-  @Override
-  public String getName()
-  {
-    return "equalLengthApproximateMatch";
-  }
-
 
 
   /**

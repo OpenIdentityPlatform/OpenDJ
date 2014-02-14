@@ -209,7 +209,7 @@ public class MatchingRulePanel extends SchemaElementPanel
    */
   public void update(MatchingRule matchingRule, Schema schema)
   {
-    String n = matchingRule.getName();
+    String n = matchingRule.getNameOrOID();
     if (n == null)
     {
       n = NOT_APPLICABLE.toString();

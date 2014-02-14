@@ -28,24 +28,24 @@ package org.opends.server.schema;
 
 
 
-import static org.opends.messages.SchemaMessages.*;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import static org.opends.server.schema.SchemaConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-import static org.opends.server.schema.StringPrepProfile.*;
-
 import java.util.Collection;
 import java.util.Collections;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteSequence;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.api.AbstractMatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.core.DirectoryServer;
-import org.forgerock.opendj.ldap.ByteSequence;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.ResultCode;
 import org.opends.server.util.StaticUtils;
+
+import static org.opends.messages.SchemaMessages.*;
+import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.server.schema.StringPrepProfile.*;
+import static org.opends.server.util.StaticUtils.*;
 
 
 
@@ -86,23 +86,8 @@ public class NumericStringOrderingMatchingRule
   @Override
   public Collection<String> getNames()
   {
-    return Collections.singleton(getName());
+    return Collections.singleton(OMR_NUMERIC_STRING_NAME);
   }
-
-
-
-  /**
-   * Retrieves the common name for this matching rule.
-   *
-   * @return  The common name for this matching rule, or <CODE>null</CODE> if
-   * it does not have a name.
-   */
-  @Override
-  public String getName()
-  {
-    return OMR_NUMERIC_STRING_NAME;
-  }
-
 
 
   /**
@@ -219,6 +204,7 @@ public class NumericStringOrderingMatchingRule
    *          ascending order, or zero if there is no difference between the
    *          values with regard to ordering.
    */
+  @Override
   public int compareValues(ByteSequence value1, ByteSequence value2)
   {
     return value1.compareTo(value2);
@@ -239,6 +225,7 @@ public class NumericStringOrderingMatchingRule
    *          order, or zero if there is no difference between the values with
    *          regard to ordering.
    */
+  @Override
   public int compare(byte[] b1, byte[] b2)
   {
     return StaticUtils.compare(b1, b2);

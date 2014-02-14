@@ -28,21 +28,21 @@ package org.opends.server.schema;
 
 
 
-import static org.opends.messages.SchemaMessages.*;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import static org.opends.server.schema.SchemaConstants.*;
-
 import java.util.Collection;
 import java.util.Collections;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.api.SubstringMatchingRule;
-import org.opends.server.core.DirectoryServer;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
+import org.opends.server.api.SubstringMatchingRule;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.ResultCode;
 import org.opends.server.util.ServerConstants;
+
+import static org.opends.messages.SchemaMessages.*;
+import static org.opends.server.schema.SchemaConstants.*;
 
 
 
@@ -74,23 +74,8 @@ class CaseExactIA5SubstringMatchingRule
   @Override
   public Collection<String> getNames()
   {
-    return Collections.singleton(getName());
+    return Collections.singleton(SMR_CASE_EXACT_IA5_NAME);
   }
-
-
-
-  /**
-   * Retrieves the common name for this matching rule.
-   *
-   * @return  The common name for this matching rule, or <CODE>null</CODE> if
-   * it does not have a name.
-   */
-  @Override
-  public String getName()
-  {
-    return SMR_CASE_EXACT_IA5_NAME;
-  }
-
 
 
   /**

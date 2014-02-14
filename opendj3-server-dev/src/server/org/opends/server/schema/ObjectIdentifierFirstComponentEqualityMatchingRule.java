@@ -28,23 +28,23 @@ package org.opends.server.schema;
 
 
 
-import static org.opends.server.schema.SchemaConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-
 import java.util.Collection;
 import java.util.Collections;
 
+import org.forgerock.opendj.ldap.ByteSequence;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.AttributeType;
-import org.forgerock.opendj.ldap.ByteSequence;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.NameForm;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.util.ServerConstants;
+
+import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 
 
@@ -75,23 +75,8 @@ class ObjectIdentifierFirstComponentEqualityMatchingRule
   @Override
   public Collection<String> getNames()
   {
-    return Collections.singleton(getName());
+    return Collections.singleton(EMR_OID_FIRST_COMPONENT_NAME);
   }
-
-
-
-  /**
-   * Retrieves the common name for this matching rule.
-   *
-   * @return  The common name for this matching rule, or <CODE>null</CODE> if
-   * it does not have a name.
-   */
-  @Override
-  public String getName()
-  {
-    return EMR_OID_FIRST_COMPONENT_NAME;
-  }
-
 
 
   /**
