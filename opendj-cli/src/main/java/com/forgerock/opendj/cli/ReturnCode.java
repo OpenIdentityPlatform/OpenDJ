@@ -92,13 +92,56 @@ public enum ReturnCode {
      */
     JAVA_VERSION_INCOMPATIBLE(8),
     /**
+     * The LDAP result code for operations that fail because a defined constraint
+     * has been violated.
+     */
+    CONSTRAINT_VIOLATION(19),
+    /**
+     * The LDAP result code for operations that fail because a targeted entry does
+     * not exist.
+     */
+    NO_SUCH_OBJECT(32),
+    /**
+     * The LDAP result code for operations that fail because the client does not
+     * have permission to perform the requested operation.
+     */
+    INSUFFICIENT_ACCESS_RIGHTS(50),
+    /**
+     * The LDAP result code for operations that fail because the requested
+     * operation would have resulted in an entry that conflicts with one that
+     * already exists.
+     */
+    ENTRY_ALREADY_EXISTS(68),
+    /**
+     * The LDAP result code for use in cases in which none of the other defined
+     * result codes are appropriate.
+     */
+    OTHER(80),
+    /**
+     * The client-side result code that indicates that a previously-established
+     * connection to the server was lost.  This is for client-side use only and
+     * should never be transferred over protocol.
+     */
+    CLIENT_SIDE_SERVER_DOWN(81),
+    /**
+     * The client-side result code that indicates that the client was not able to
+     * establish a connection to the server.  This is for client-side use only and
+     * should never be transferred over protocol.
+     */
+    CLIENT_SIDE_CONNECT_ERROR(91),
+    /**
      * The client-side result code that indicates that there was a problem with one or more of the parameters provided
      * by the user.
      * <PRE>
      * Code value of 89.
      * </PRE>
      */
-    CLIENT_SIDE_PARAM_ERROR(89);
+    CLIENT_SIDE_PARAM_ERROR(89),
+
+    /**
+     * TODO to review.
+     */
+    TODO(99);
 
     private int returnCode;
 
