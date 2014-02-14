@@ -26,16 +26,6 @@
  */
 package org.opends.server.core;
 
-import static org.opends.messages.ConfigMessages.*;
-import static org.opends.messages.CoreMessages.*;
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.schema.SchemaConstants.*;
-import static org.opends.server.util.DynamicConstants.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-import static org.forgerock.util.Reject.*;
-
 import java.io.*;
 import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
@@ -53,6 +43,7 @@ import javax.management.MBeanServerFactory;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.schema.AttributeUsage;
+import org.forgerock.opendj.ldap.schema.ObjectClassType;
 import org.forgerock.util.Reject;
 import org.forgerock.util.Utils;
 import org.opends.server.admin.AdministrationConnector;
@@ -86,6 +77,9 @@ import org.opends.server.schema.*;
 import org.opends.server.tools.ConfigureWindowsService;
 import org.opends.server.types.*;
 import org.opends.server.util.*;
+import org.opends.server.workflowelement.WorkflowElement;
+import org.opends.server.workflowelement.WorkflowElementConfigManager;
+import org.opends.server.workflowelement.localbackend.LocalBackendWorkflowElement;
 
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
@@ -93,9 +87,15 @@ import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.StringArgument;
 
-import org.opends.server.workflowelement.WorkflowElement;
-import org.opends.server.workflowelement.WorkflowElementConfigManager;
-import org.opends.server.workflowelement.localbackend.*;
+import static org.forgerock.util.Reject.*;
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.server.util.DynamicConstants.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines the core of the Directory Server.  It manages the startup

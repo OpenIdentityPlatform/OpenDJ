@@ -60,7 +60,7 @@ import org.opends.server.types.AttributeValue;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ObjectClass;
-import org.opends.server.types.ObjectClassType;
+import org.forgerock.opendj.ldap.schema.ObjectClassType;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.types.RDN;
 import org.opends.server.types.Schema;

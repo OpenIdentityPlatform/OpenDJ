@@ -26,11 +26,6 @@
  */
 package org.opends.server.types;
 
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ByteSequence;
-import org.forgerock.opendj.ldap.ByteStringBuilder;
-import org.forgerock.opendj.ldap.ByteSequenceReader;
-
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.*;
@@ -38,6 +33,12 @@ import java.util.concurrent.locks.Lock;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteSequence;
+import org.forgerock.opendj.ldap.ByteSequenceReader;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.forgerock.opendj.ldap.schema.ObjectClassType;
 import org.opends.server.api.AttributeValueDecoder;
 import org.opends.server.api.CompressedSchema;
 import org.opends.server.api.ProtocolElement;
@@ -45,7 +46,6 @@ import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PluginConfigManager;
 import org.opends.server.core.SubentryManager;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.SubEntry.CollectiveConflictBehavior;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFWriter;

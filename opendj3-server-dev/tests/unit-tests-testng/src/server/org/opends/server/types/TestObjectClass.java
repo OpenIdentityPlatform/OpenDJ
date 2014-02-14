@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.forgerock.opendj.ldap.schema.ObjectClassType;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.util.ServerConstants;
@@ -42,8 +43,6 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-
 
 /**
  * This class defines a set of tests for the
@@ -73,6 +72,7 @@ public final class TestObjectClass extends TestCommonSchemaElements {
     /**
      * {@inheritDoc}
      */
+    @Override
     protected void resetBuilder() {
       this.superior = null;
       this.objectClassType = ObjectClassType.STRUCTURAL;
