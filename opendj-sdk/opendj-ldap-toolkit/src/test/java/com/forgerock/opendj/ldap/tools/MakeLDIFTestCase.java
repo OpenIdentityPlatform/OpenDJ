@@ -36,19 +36,11 @@ import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import com.forgerock.opendj.util.OperatingSystem;
-
 @SuppressWarnings("javadoc")
 public class MakeLDIFTestCase extends ToolsTestCase {
-
-    @BeforeClass
-    public void getOperatingSystem() {
-        OperatingSystem.getOperatingSystem();
-    }
 
     @DataProvider(name = "validArguments")
     Object[][] createValidArguments() throws Exception {

@@ -99,6 +99,9 @@ public enum OperatingSystem {
     private boolean isUnixBased;
 
     private static OperatingSystem os;
+    static {
+        OperatingSystem.getOperatingSystem();
+    }
 
     /**
      * Creates a new operating system value with the provided name.
