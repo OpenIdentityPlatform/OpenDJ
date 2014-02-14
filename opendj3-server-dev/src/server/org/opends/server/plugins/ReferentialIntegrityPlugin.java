@@ -1253,7 +1253,7 @@ public class ReferentialIntegrityPlugin
           == CheckReferencesScopeCriteria.NAMING_CONTEXT)
         {
           if (valueEntryDN.matchesBaseAndScope(entryBaseDN,
-            SearchScope.SUBORDINATE_SUBTREE))
+            SearchScope.SUBORDINATES))
           {
             return PluginResult.PreOperation.stopProcessing(
                   ResultCode.CONSTRAINT_VIOLATION,
@@ -1325,7 +1325,7 @@ public class ReferentialIntegrityPlugin
 
     for (DN baseDN : baseDNs)
     {
-      if (dn.matchesBaseAndScope(baseDN, SearchScope.SUBORDINATE_SUBTREE))
+      if (dn.matchesBaseAndScope(baseDN, SearchScope.SUBORDINATES))
       {
         namingContext = baseDN;
         break;

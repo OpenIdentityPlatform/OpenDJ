@@ -1006,7 +1006,7 @@ public class CryptoManagerImpl
              instanceKeyID + ")";
         InternalSearchOperation internalSearch =
              internalConnection.processSearch(
-                  serversDN, SearchScope.SUBORDINATE_SUBTREE,
+                  serversDN, SearchScope.SUBORDINATES,
                   SearchFilter.createFilterFromString(filter));
         if (internalSearch.getResultCode() != ResultCode.SUCCESS)
           continue;

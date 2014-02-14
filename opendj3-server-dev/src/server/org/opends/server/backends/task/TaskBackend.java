@@ -860,7 +860,7 @@ public class TaskBackend
           searchScheduledTasks  = true;
           searchRecurringTasks  = true;
           break;
-        case SUBORDINATE_SUBTREE:
+        case SUBORDINATES:
           searchScheduledParent = true;
           searchRecurringParent = true;
           searchScheduledTasks  = true;
@@ -882,7 +882,7 @@ public class TaskBackend
           searchScheduledParent = true;
           searchScheduledTasks  = true;
           break;
-        case SUBORDINATE_SUBTREE:
+        case SUBORDINATES:
           searchScheduledTasks  = true;
           break;
       }
@@ -901,7 +901,7 @@ public class TaskBackend
           searchRecurringParent = true;
           searchRecurringTasks  = true;
           break;
-        case SUBORDINATE_SUBTREE:
+        case SUBORDINATES:
           searchRecurringTasks  = true;
           break;
       }

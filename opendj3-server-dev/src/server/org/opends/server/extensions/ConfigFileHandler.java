@@ -1624,7 +1624,7 @@ public class ConfigFileHandler
         break;
 
 
-      case SUBORDINATE_SUBTREE:
+      case SUBORDINATES:
         // We are not interested in the base entry, but we want to check out all
         // of its children.  Use a recursive process to achieve this.
         for (ConfigEntry child : baseEntry.getChildren().values())

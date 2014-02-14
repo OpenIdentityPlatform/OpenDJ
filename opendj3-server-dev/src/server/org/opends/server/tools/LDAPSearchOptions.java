@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.tools;
 
@@ -130,7 +131,7 @@ public class LDAPSearchOptions extends LDAPToolOptions
         searchScope = WHOLE_SUBTREE;
       } else if (scope.equalsIgnoreCase("subordinate"))
       {
-        searchScope = SUBORDINATE_SUBTREE;
+        searchScope = SUBORDINATES;
       } else
       {
         err.println(ERR_SEARCH_INVALID_SEARCH_SCOPE.get(scope));

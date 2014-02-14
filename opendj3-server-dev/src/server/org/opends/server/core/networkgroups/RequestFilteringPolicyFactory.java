@@ -278,7 +278,7 @@ public final class RequestFilteringPolicyFactory implements
             allowRequest =
                 allowedSearchScopes.contains(AllowedSearchScopes.SUB);
             break;
-          case SUBORDINATE_SUBTREE:
+          case SUBORDINATES:
             allowRequest =
                 allowedSearchScopes
                     .contains(AllowedSearchScopes.CHILDREN);

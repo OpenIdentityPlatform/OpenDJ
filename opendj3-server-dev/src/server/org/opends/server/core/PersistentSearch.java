@@ -282,7 +282,7 @@ public final class PersistentSearch
         return;
       }
       break;
-    case SUBORDINATE_SUBTREE:
+    case SUBORDINATES:
       if (baseDN.equals(entry.getName()) || (!baseDN.isAncestorOf(
           entry.getName())))
       {
@@ -390,7 +390,7 @@ public final class PersistentSearch
         return;
       }
       break;
-    case SUBORDINATE_SUBTREE:
+    case SUBORDINATES:
       if (baseDN.equals(entry.getName()) || (!baseDN.isAncestorOf(
           entry.getName())))
       {
@@ -514,7 +514,7 @@ public final class PersistentSearch
         return;
       }
       break;
-    case SUBORDINATE_SUBTREE:
+    case SUBORDINATES:
       if (baseDN.equals(oldEntry.getName())
           || (!baseDN.isAncestorOf(oldEntry.getName())))
       {
@@ -639,7 +639,7 @@ public final class PersistentSearch
       }
 
       break;
-    case SUBORDINATE_SUBTREE:
+    case SUBORDINATES:
       oldMatches = ((!baseDN.equals(oldDN)) && baseDN.isAncestorOf(oldDN));
       newMatches = ((!baseDN.equals(entry.getName())) && baseDN
           .isAncestorOf(entry.getName()));

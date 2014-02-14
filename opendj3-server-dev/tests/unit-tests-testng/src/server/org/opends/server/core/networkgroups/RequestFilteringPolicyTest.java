@@ -184,19 +184,19 @@ public class RequestFilteringPolicyTest extends DirectoryServerTestCase {
       {scopes_all, SearchScope.BASE_OBJECT, true},
       {scope_base, SearchScope.BASE_OBJECT, true},
       {scope_base, SearchScope.SINGLE_LEVEL, false},
-      {scope_base, SearchScope.SUBORDINATE_SUBTREE, false},
+      {scope_base, SearchScope.SUBORDINATES, false},
       {scope_base, SearchScope.WHOLE_SUBTREE, false},
       {scope_children, SearchScope.BASE_OBJECT, false},
       {scope_children, SearchScope.SINGLE_LEVEL, false},
-      {scope_children, SearchScope.SUBORDINATE_SUBTREE, true},
+      {scope_children, SearchScope.SUBORDINATES, true},
       {scope_children, SearchScope.WHOLE_SUBTREE, false},
       {scope_one, SearchScope.BASE_OBJECT, false},
       {scope_one, SearchScope.SINGLE_LEVEL, true},
-      {scope_one, SearchScope.SUBORDINATE_SUBTREE, false},
+      {scope_one, SearchScope.SUBORDINATES, false},
       {scope_one, SearchScope.WHOLE_SUBTREE, false},
       {scope_sub, SearchScope.BASE_OBJECT, false},
       {scope_sub, SearchScope.SINGLE_LEVEL, false},
-      {scope_sub, SearchScope.SUBORDINATE_SUBTREE, false},
+      {scope_sub, SearchScope.SUBORDINATES, false},
       {scope_sub, SearchScope.WHOLE_SUBTREE, true}
     };
 

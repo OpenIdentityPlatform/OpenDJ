@@ -322,7 +322,7 @@ public class UserDN implements KeywordBindRule {
             DN parent=evalCtx.getClientDN().parent();
             if((parent != null) && !parent.equals(urlDN))
                 return EnumEvalResult.FALSE;
-        } else if(scope == SearchScope.SUBORDINATE_SUBTREE) {
+        } else if(scope == SearchScope.SUBORDINATES) {
             DN userDN = evalCtx.getClientDN();
             if ((userDN.size() <= urlDN.size()) ||
                  !userDN.isDescendantOf(urlDN)) {

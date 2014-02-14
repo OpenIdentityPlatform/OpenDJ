@@ -1935,7 +1935,7 @@ public class LDAPReader
           scope = SearchScope.WHOLE_SUBTREE;
           break;
         case SCOPE_SUBORDINATE_SUBTREE:
-          scope = SearchScope.SUBORDINATE_SUBTREE;
+          scope = SearchScope.SUBORDINATES;
           break;
         default:
           LocalizableMessage message =

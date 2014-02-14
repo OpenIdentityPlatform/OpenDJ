@@ -1522,7 +1522,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
               isInScope = true;
             }
           }
-          else if (searchScope == SearchScope.SUBORDINATE_SUBTREE)
+          else if (searchScope == SearchScope.SUBORDINATES)
           {
             if ((entryDN.size() >
             aBaseDN.size()) &&

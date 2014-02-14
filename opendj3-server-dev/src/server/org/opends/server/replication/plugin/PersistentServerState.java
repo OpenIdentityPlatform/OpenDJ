@@ -235,7 +235,7 @@ public class PersistentServerState
       attributes.add(REPLICATION_STATE);
       InternalSearchOperation op =
           conn.processSearch(DN.valueOf("cn=config"),
-          SearchScope.SUBORDINATE_SUBTREE,
+          SearchScope.SUBORDINATES,
           DereferencePolicy.NEVER_DEREF_ALIASES,
           1, 0, false, filter, attributes);
 

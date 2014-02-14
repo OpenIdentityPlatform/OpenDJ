@@ -22,13 +22,12 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.core;
 
-
 import org.opends.server.types.DN;
 import org.opends.server.types.SearchScope;
-
 
 /**
  * This class is the base class used to build the workflow topology.
@@ -123,7 +122,7 @@ public abstract class WorkflowTopology implements Workflow
       return null;
     case SINGLE_LEVEL:
       return SearchScope.BASE_OBJECT;
-    case SUBORDINATE_SUBTREE:
+    case SUBORDINATES:
     case WHOLE_SUBTREE:
       return SearchScope.WHOLE_SUBTREE;
     default:

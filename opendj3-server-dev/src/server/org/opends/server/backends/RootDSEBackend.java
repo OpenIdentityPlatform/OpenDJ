@@ -1138,7 +1138,7 @@ public class RootDSEBackend
 
 
       case WHOLE_SUBTREE:
-      case SUBORDINATE_SUBTREE:
+      case SUBORDINATES:
         if (subordinateBaseDNs == null)
         {
           baseMap = DirectoryServer.getPublicNamingContexts();

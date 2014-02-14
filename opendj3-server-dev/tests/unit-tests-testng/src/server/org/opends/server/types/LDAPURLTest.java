@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS
+ *      Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -190,8 +190,8 @@ public class LDAPURLTest extends TypesTestCase
       { "base", SearchScope.BASE_OBJECT },
       { "one", SearchScope.SINGLE_LEVEL },
       { "sub", SearchScope.WHOLE_SUBTREE },
-      { "subord", SearchScope.SUBORDINATE_SUBTREE },
-      { "subordinate", SearchScope.SUBORDINATE_SUBTREE },
+      { "subord", SearchScope.SUBORDINATES },
+      { "subordinate", SearchScope.SUBORDINATES },
     };
   }
 

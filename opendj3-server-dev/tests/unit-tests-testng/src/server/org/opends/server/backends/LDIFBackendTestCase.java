@@ -651,7 +651,7 @@ public class LDIFBackendTestCase
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
-         conn.processSearch("o=ldif", SearchScope.SUBORDINATE_SUBTREE,
+         conn.processSearch("o=ldif", SearchScope.SUBORDINATES,
                             "(uid=user.1)");
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertEquals(searchOperation.getSearchEntries().size(), 1);
