@@ -1011,18 +1011,11 @@ public class ConfigFileHandler
          throws DirectoryException
   {
     ConfigEntry baseEntry = configEntries.get(entryDN);
-    if(baseEntry == null)
+    if (baseEntry != null)
     {
-      return ConditionResult.UNDEFINED;
+      return ConditionResult.valueOf(baseEntry.hasChildren());
     }
-    else if(baseEntry.hasChildren())
-    {
-      return ConditionResult.TRUE;
-    }
-    else
-    {
-      return ConditionResult.FALSE;
-    }
+    return ConditionResult.UNDEFINED;
   }
 
 

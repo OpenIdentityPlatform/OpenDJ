@@ -34,10 +34,10 @@ import java.util.Collections;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ConditionResult;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.core.DirectoryServer;
-import org.forgerock.opendj.ldap.ConditionResult;
 import org.opends.server.types.DirectoryException;
 
 import static org.opends.server.schema.SchemaConstants.*;
@@ -182,17 +182,9 @@ class UserPasswordEqualityMatchingRule
       return ConditionResult.FALSE;
     }
 
-
     // We support the scheme, so make the determination.
-    if (storageScheme.passwordMatches(assertionValue,
-        ByteString.valueOf(userPWComponents[1])))
-    {
-      return ConditionResult.TRUE;
-    }
-    else
-    {
-      return ConditionResult.FALSE;
-    }
+    return ConditionResult.valueOf(storageScheme.passwordMatches(
+        assertionValue, ByteString.valueOf(userPWComponents[1])));
   }
 
 

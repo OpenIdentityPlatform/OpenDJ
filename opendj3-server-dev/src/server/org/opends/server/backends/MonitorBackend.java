@@ -496,22 +496,13 @@ public class MonitorBackend extends Backend implements
       throws DirectoryException
   {
     final NavigableMap<DN, MonitorProvider<?>> dit = getDIT();
-    if (!dit.containsKey(entryDN))
-    {
-      return ConditionResult.UNDEFINED;
-    }
-    else
+    if (dit.containsKey(entryDN))
     {
       final DN nextDN = dit.higherKey(entryDN);
-      if (nextDN == null || !nextDN.isDescendantOf(entryDN))
-      {
-        return ConditionResult.FALSE;
-      }
-      else
-      {
-        return ConditionResult.TRUE;
-      }
+      return ConditionResult.valueOf(
+          nextDN != null && nextDN.isDescendantOf(entryDN));
     }
+    return ConditionResult.UNDEFINED;
   }
 
 

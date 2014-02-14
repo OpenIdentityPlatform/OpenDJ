@@ -931,19 +931,11 @@ public class Index extends DatabaseContainer
     {
       EntryIDSet entryIDList =
            new EntryIDSet(key.getData(), data.getData());
-
       if (!entryIDList.isDefined())
       {
         return ConditionResult.UNDEFINED;
       }
-      else if (entryIDList.contains(entryID))
-      {
-        return ConditionResult.TRUE;
-      }
-      else
-      {
-        return ConditionResult.FALSE;
-      }
+      return ConditionResult.valueOf(entryIDList.contains(entryID));
     }
     else
     {

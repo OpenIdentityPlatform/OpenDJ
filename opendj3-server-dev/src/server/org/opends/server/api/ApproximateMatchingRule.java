@@ -26,11 +26,8 @@
  */
 package org.opends.server.api;
 
-
-
-import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.ByteSequence;
-
+import org.forgerock.opendj.ldap.ConditionResult;
 
 /**
  * This class defines the set of methods and structures that must be
@@ -86,14 +83,8 @@ public abstract class ApproximateMatchingRule
   public ConditionResult valuesMatch(ByteSequence attributeValue,
                                      ByteSequence assertionValue)
   {
-    if (approximatelyMatch(attributeValue, assertionValue))
-    {
-      return ConditionResult.TRUE;
-    }
-    else
-    {
-      return ConditionResult.FALSE;
-    }
+    return ConditionResult.valueOf(
+        approximatelyMatch(attributeValue, assertionValue));
   }
 }
 

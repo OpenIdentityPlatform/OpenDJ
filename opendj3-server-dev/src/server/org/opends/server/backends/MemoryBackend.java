@@ -35,6 +35,9 @@ import java.util.LinkedList;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.util.Reject;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.std.server.MemoryBackendCfg;
 import org.opends.server.api.Backend;
@@ -46,11 +49,9 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SearchOperation;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
-import org.forgerock.opendj.ldap.ConditionResult;
 import org.opends.server.types.Control;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
@@ -67,7 +68,6 @@ import org.opends.server.types.SearchScope;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.LDIFWriter;
-import org.forgerock.util.Reject;
 
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -318,14 +318,7 @@ public class MemoryBackend
     {
       return ConditionResult.UNDEFINED;
     }
-    else if(ret == 0)
-    {
-      return ConditionResult.FALSE;
-    }
-    else
-    {
-      return ConditionResult.TRUE;
-    }
+    return ConditionResult.valueOf(ret != 0);
   }
 
   /**

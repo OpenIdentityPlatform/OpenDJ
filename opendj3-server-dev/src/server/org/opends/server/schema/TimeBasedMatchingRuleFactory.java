@@ -473,15 +473,7 @@ public final class TimeBasedMatchingRuleFactory
         ByteSequence assertionValue)
     {
       int ret = compareValues(attributeValue, assertionValue);
-
-      if (ret > 0)
-      {
-        return ConditionResult.TRUE;
-      }
-      else
-      {
-        return ConditionResult.FALSE;
-      }
+      return ConditionResult.valueOf(ret > 0);
     }
 
 
@@ -561,15 +553,7 @@ public final class TimeBasedMatchingRuleFactory
         ByteSequence assertionValue)
     {
       int ret = compareValues(attributeValue, assertionValue);
-
-      if (ret < 0)
-      {
-        return ConditionResult.TRUE;
-      }
-      else
-      {
-        return ConditionResult.FALSE;
-      }
+      return ConditionResult.valueOf(ret < 0);
     }
 
 
@@ -1048,37 +1032,16 @@ public final class TimeBasedMatchingRuleFactory
       int assertMonth = bb.getInt(16);
       int assertYear = bb.getInt(20);
 
-      if(assertSecond != -1 && assertSecond !=second)
+      if ((assertSecond != -1 && assertSecond != second)
+          || (assertMinute != -1 && assertMinute != minute)
+          || (assertHour != -1 && assertHour != hour)
+          // All the non-zero values should match.
+          || (assertDate != 0 && assertDate != date)
+          || (assertMonth != -1 && assertMonth != month)
+          || (assertYear != 0 && assertYear != year))
       {
         return ConditionResult.FALSE;
       }
-
-      if(assertMinute !=-1 && assertMinute !=minute)
-      {
-        return ConditionResult.FALSE;
-      }
-
-      if(assertHour !=-1 && assertHour !=hour)
-      {
-        return ConditionResult.FALSE;
-      }
-
-      //All the non-zero values should match.
-      if(assertDate !=0 && assertDate != date)
-      {
-        return ConditionResult.FALSE;
-      }
-
-      if(assertMonth !=-1 && assertMonth != month)
-      {
-        return ConditionResult.FALSE;
-      }
-
-      if(assertYear !=0 && assertYear != year)
-      {
-        return ConditionResult.FALSE;
-      }
-
      return ConditionResult.TRUE;
     }
 

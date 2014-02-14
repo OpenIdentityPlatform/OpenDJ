@@ -82,14 +82,7 @@ public abstract class EqualityMatchingRule
   public ConditionResult valuesMatch(ByteSequence attributeValue,
                                      ByteSequence assertionValue)
   {
-    if (areEqual(attributeValue, assertionValue))
-    {
-      return ConditionResult.TRUE;
-    }
-    else
-    {
-      return ConditionResult.FALSE;
-    }
+    return ConditionResult.valueOf(areEqual(attributeValue, assertionValue));
   }
 
 

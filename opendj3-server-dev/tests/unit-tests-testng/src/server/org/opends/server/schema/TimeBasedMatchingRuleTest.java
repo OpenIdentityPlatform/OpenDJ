@@ -339,8 +339,7 @@ public final class TimeBasedMatchingRuleTest
     MatchingRule partialTimeRule = DirectoryServer.getMatchingRule(
             EXT_PARTIAL_DATE_TIME_NAME.toLowerCase());
     ByteString str = partialTimeRule.normalizeAssertionValue(ByteString.valueOf(assertionValue));
-    assertTrue(partialTimeRule.valuesMatch(ByteString.valueOf(attributeValue), str) ==
-            ConditionResult.TRUE);
+    assertEquals(partialTimeRule.valuesMatch(ByteString.valueOf(attributeValue), str), ConditionResult.TRUE);
   }
 
 
