@@ -48,15 +48,6 @@ import org.opends.server.types.DirectoryException;
     mayInvoke = false)
 public interface MatchingRule
 {
-  /**
-   * Retrieves the common name for this matching rule.
-   *
-   * @return The common name for this matching rule, or {@code null}
-   *         if it does not have a name.
-   */
-  String getName();
-
-
 
   /**
    * Retrieves all names for this matching rule.

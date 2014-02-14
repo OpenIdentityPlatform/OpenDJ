@@ -26,10 +26,10 @@
  */
 package org.opends.server.schema;
 
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.AcceptRejectWarn;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.ConditionResult;
 import org.opends.server.types.DirectoryException;
 import org.testng.annotations.DataProvider;
@@ -127,18 +127,14 @@ public abstract class EqualityMatchingRuleTest extends SchemaTestCase
     EqualityMatchingRule rule = getRule();
 
     // normalize the 2 provided values
-    boolean success = false;
     try
     {
       rule.normalizeValue(ByteString.valueOf(value));
-    } catch (DirectoryException e) {
-      success = true;
+      fail("The matching rule : " + rule.getNameOrOID()
+          + " should detect that value \"" + value + "\" is invalid");
     }
-
-    if (!success)
+    catch (DirectoryException ignored)
     {
-      fail("The matching rule : " + rule.getName() +
-           " should detect that value \"" + value + "\" is invalid");
     }
   }
 

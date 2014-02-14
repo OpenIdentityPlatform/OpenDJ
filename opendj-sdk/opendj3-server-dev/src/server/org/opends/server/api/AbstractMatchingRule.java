@@ -49,16 +49,11 @@ import org.opends.server.types.DirectoryException;
     mayInvoke = false)
 public abstract class AbstractMatchingRule implements MatchingRule
 {
-  /**
-   * {@inheritDoc}
-   */
-  public abstract String getName();
-
-
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public abstract Collection<String> getNames();
 
 
@@ -66,6 +61,7 @@ public abstract class AbstractMatchingRule implements MatchingRule
   /**
    * {@inheritDoc}
    */
+  @Override
   public abstract String getOID();
 
 
@@ -73,6 +69,7 @@ public abstract class AbstractMatchingRule implements MatchingRule
   /**
    * {@inheritDoc}
    */
+  @Override
   public ByteString normalizeAssertionValue(ByteSequence value)
       throws DirectoryException
   {
@@ -85,17 +82,15 @@ public abstract class AbstractMatchingRule implements MatchingRule
   /**
    * {@inheritDoc}
    */
+  @Override
   public final String getNameOrOID()
   {
-    String name = getName();
-    if ((name == null) || (name.length() == 0))
+    Collection<String> names = getNames();
+    if (names != null && !names.isEmpty())
     {
-      return getOID();
+      return names.iterator().next();
     }
-    else
-    {
-      return name;
-    }
+    return getOID();
   }
 
 
@@ -103,6 +98,7 @@ public abstract class AbstractMatchingRule implements MatchingRule
   /**
    * {@inheritDoc}
    */
+  @Override
   public abstract String getDescription();
 
 
@@ -110,6 +106,7 @@ public abstract class AbstractMatchingRule implements MatchingRule
   /**
    * {@inheritDoc}
    */
+  @Override
   public abstract String getSyntaxOID();
 
 
@@ -117,6 +114,7 @@ public abstract class AbstractMatchingRule implements MatchingRule
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isObsolete()
   {
     return false;
@@ -127,6 +125,7 @@ public abstract class AbstractMatchingRule implements MatchingRule
   /**
    * {@inheritDoc}
    */
+  @Override
   public abstract ByteString normalizeValue(ByteSequence value)
       throws DirectoryException;
 
@@ -135,6 +134,7 @@ public abstract class AbstractMatchingRule implements MatchingRule
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConditionResult valuesMatch(
       ByteSequence attributeValue, ByteSequence assertionValue)
   {
@@ -220,6 +220,7 @@ public abstract class AbstractMatchingRule implements MatchingRule
   /**
    * {@inheritDoc}
    */
+  @Override
   public final void toString(StringBuilder buffer)
   {
     buffer.append("( ");
@@ -237,10 +238,10 @@ public abstract class AbstractMatchingRule implements MatchingRule
       }
      buffer.append(" )");
     }
-    else
+    else if (names.size() == 1)
     {
       buffer.append('\'');
-      buffer.append(getName());
+      buffer.append(names.iterator().next());
       buffer.append('\'');
     }
 

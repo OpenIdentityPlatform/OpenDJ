@@ -35,27 +35,28 @@ import java.math.BigInteger;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
-import javax.security.auth.x500.X500Principal;
-import static org.opends.messages.SchemaMessages.*;
-import static org.opends.server.schema.SchemaConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-
 import java.util.Collection;
 import java.util.Collections;
 
+import javax.security.auth.x500.X500Principal;
+
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.api.EqualityMatchingRule;
-import org.opends.server.core.DirectoryServer;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.server.protocols.asn1.GSERException;
-import org.opends.server.protocols.asn1.GSERParser;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.opends.server.api.EqualityMatchingRule;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.protocols.asn1.GSERException;
+import org.opends.server.protocols.asn1.GSERParser;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.ResultCode;
 import org.opends.server.util.StaticUtils;
+
+import static org.opends.messages.SchemaMessages.*;
+import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 
 
@@ -101,22 +102,10 @@ class CertificateExactMatchingRule
   /**
    * {@inheritDoc}
    */
+  @Override
   public Collection<String> getNames()
   {
-    return Collections.singleton(getName());
-  }
-
-
-
-  /**
-   * Retrieves the common name for this matching rule.
-   *
-   * @return  The common name for this matching rule, or <CODE>null</CODE> if
-   * it does not have a name.
-   */
-  public String getName()
-  {
-    return EMR_CERTIFICATE_EXACT_NAME;
+    return Collections.singleton(EMR_CERTIFICATE_EXACT_NAME);
   }
 
 
@@ -126,6 +115,7 @@ class CertificateExactMatchingRule
    *
    * @return  The OID for this matching rule.
    */
+  @Override
   public String getOID()
   {
     return EMR_CERTIFICATE_EXACT_OID;
@@ -139,6 +129,7 @@ class CertificateExactMatchingRule
    * @return  The description for this matching rule, or <CODE>null</CODE> if
    *          there is none.
    */
+  @Override
   public String getDescription()
   {
     return EMR_CERTIFICATE_EXACT_DESCRIPTION;
@@ -152,6 +143,7 @@ class CertificateExactMatchingRule
    *
    * @return  The OID of the syntax with which this matching rule is associated.
    */
+  @Override
   public String getSyntaxOID()
   {
     return SYNTAX_CERTIFICATE_EXACT_ASSERTION_OID;
@@ -170,6 +162,7 @@ class CertificateExactMatchingRule
    * @throws  DirectoryException  If the provided value is invalid according to
    *                              the associated attribute syntax.
    */
+  @Override
   public ByteString normalizeValue(ByteSequence value)
          throws DirectoryException
   {
@@ -241,6 +234,7 @@ class CertificateExactMatchingRule
   /**
    * {@inheritDoc}
    */
+  @Override
   public ByteString normalizeAssertionValue(ByteSequence value)
          throws DirectoryException
   {

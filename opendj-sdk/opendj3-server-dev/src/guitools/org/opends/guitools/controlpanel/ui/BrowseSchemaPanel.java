@@ -1576,7 +1576,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
         String oid = matchingRule.getOID();
         values.add(oid);
 
-        String name = matchingRule.getName();
+        String name = matchingRule.getNameOrOID();
         if (name != null)
         {
           values.add(name);

@@ -82,19 +82,7 @@ public class HistoricalCsnOrderingMatchingRule
    */
   public Collection<String> getNames()
   {
-    return Collections.singleton(getName());
-  }
-
-
-
-  /**
-   * Get the name of this class.
-   * @return name of the class in String form
-   */
-  @Override
-  public String getName()
-  {
-    return "historicalCsnOrderingMatch";
+    return Collections.singleton("historicalCsnOrderingMatch");
   }
 
   /**

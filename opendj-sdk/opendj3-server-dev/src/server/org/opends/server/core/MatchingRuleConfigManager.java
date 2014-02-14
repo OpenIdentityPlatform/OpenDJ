@@ -270,7 +270,7 @@ public class MatchingRuleConfigManager
           {
             LocalizableMessage message =
                     WARN_CONFIG_SCHEMA_CANNOT_DELETE_MR_IN_USE_BY_AT.get(
-                            matchingRule.getName(),
+                            matchingRule.getNameOrOID(),
                             at.getNameOrOID());
             unacceptableReasons.add(message);
 
@@ -283,8 +283,7 @@ public class MatchingRuleConfigManager
           {
             LocalizableMessage message =
                     WARN_CONFIG_SCHEMA_CANNOT_DELETE_MR_IN_USE_BY_AT.get(
-                            matchingRule.getName(),
-                            at.getNameOrOID());
+                            matchingRule.getNameOrOID(), at.getNameOrOID());
             unacceptableReasons.add(message);
 
             configAcceptable = false;
@@ -296,8 +295,7 @@ public class MatchingRuleConfigManager
           {
             LocalizableMessage message =
                     WARN_CONFIG_SCHEMA_CANNOT_DELETE_MR_IN_USE_BY_AT.get(
-                            matchingRule.getName(),
-                            at.getNameOrOID());
+                            matchingRule.getNameOrOID(), at.getNameOrOID());
             unacceptableReasons.add(message);
 
             configAcceptable = false;
@@ -309,8 +307,7 @@ public class MatchingRuleConfigManager
           {
             LocalizableMessage message =
                     WARN_CONFIG_SCHEMA_CANNOT_DELETE_MR_IN_USE_BY_AT.get(
-                            matchingRule.getName(),
-                            at.getNameOrOID());
+                            matchingRule.getNameOrOID(), at.getNameOrOID());
             unacceptableReasons.add(message);
 
             configAcceptable = false;
@@ -325,8 +322,7 @@ public class MatchingRuleConfigManager
           {
             LocalizableMessage message =
                     WARN_CONFIG_SCHEMA_CANNOT_DELETE_MR_IN_USE_BY_MRU.get(
-                            matchingRule.getName(),
-                            mru.getName());
+                            matchingRule.getNameOrOID(), mru.getName());
             unacceptableReasons.add(message);
 
             configAcceptable = false;
@@ -412,8 +408,7 @@ public class MatchingRuleConfigManager
             {
               LocalizableMessage message =
                       WARN_CONFIG_SCHEMA_CANNOT_DISABLE_MR_IN_USE_BY_AT.get(
-                              matchingRule.getName(),
-                              at.getNameOrOID());
+                              matchingRule.getNameOrOID(), at.getNameOrOID());
               unacceptableReasons.add(message);
 
               configAcceptable = false;
@@ -425,8 +420,7 @@ public class MatchingRuleConfigManager
             {
               LocalizableMessage message =
                       WARN_CONFIG_SCHEMA_CANNOT_DISABLE_MR_IN_USE_BY_AT.get(
-                              matchingRule.getName(),
-                              at.getNameOrOID());
+                              matchingRule.getNameOrOID(), at.getNameOrOID());
               unacceptableReasons.add(message);
 
               configAcceptable = false;
@@ -438,8 +432,7 @@ public class MatchingRuleConfigManager
             {
               LocalizableMessage message =
                       WARN_CONFIG_SCHEMA_CANNOT_DISABLE_MR_IN_USE_BY_AT.get(
-                              matchingRule.getName(),
-                              at.getNameOrOID());
+                              matchingRule.getNameOrOID(), at.getNameOrOID());
               unacceptableReasons.add(message);
 
               configAcceptable = false;
@@ -451,7 +444,7 @@ public class MatchingRuleConfigManager
             {
               LocalizableMessage message =
                       WARN_CONFIG_SCHEMA_CANNOT_DISABLE_MR_IN_USE_BY_AT
-                      .get(matchingRule.getName(), at.getNameOrOID());
+                      .get(matchingRule.getNameOrOID(), at.getNameOrOID());
               unacceptableReasons.add(message);
 
               configAcceptable = false;
@@ -466,7 +459,7 @@ public class MatchingRuleConfigManager
             {
               LocalizableMessage message =
                       WARN_CONFIG_SCHEMA_CANNOT_DISABLE_MR_IN_USE_BY_MRU.get(
-                              matchingRule.getName(), mru.getName());
+                              matchingRule.getNameOrOID(), mru.getName());
               unacceptableReasons.add(message);
 
               configAcceptable = false;

@@ -2350,18 +2350,14 @@ public class Utilities
    */
   public static String getMatchingRuleText(MatchingRule matchingRule)
   {
-    String returnValue;
-    String name = matchingRule.getName();
+    String nameOrOID = matchingRule.getNameOrOID();
     String oid = matchingRule.getOID();
-    if (name == null)
+    if (!nameOrOID.equals(oid))
     {
-      returnValue = oid;
+      // This is the name only
+      return nameOrOID + " - " + oid;
     }
-    else
-    {
-      returnValue = name+" - "+oid;
-    }
-    return returnValue;
+    return oid;
   }
 
   /**

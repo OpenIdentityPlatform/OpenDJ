@@ -22,16 +22,14 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.schema;
 
-
-
 import java.util.Collection;
 import java.util.Collections;
+
 import static org.opends.server.schema.SchemaConstants.*;
-
-
 
 /**
  * This class implements the keywordMatch matching rule defined in X.520.  That
@@ -54,25 +52,11 @@ class KeywordEqualityMatchingRule
   /**
    * {@inheritDoc}
    */
+  @Override
   public Collection<String> getNames()
   {
-    return Collections.singleton(getName());
+    return Collections.singleton(EMR_KEYWORD_NAME);
   }
-
-
-
-  /**
-   * Retrieves the common name for this matching rule.
-   *
-   * @return  The common name for this matching rule, or <CODE>null</CODE> if
-   * it does not have a name.
-   */
-  @Override
-  public String getName()
-  {
-    return EMR_KEYWORD_NAME;
-  }
-
 
 
   /**

@@ -29,44 +29,31 @@ package org.opends.server.schema;
 
 
 
-import static org.opends.messages.ConfigMessages.*;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import static org.opends.messages.CoreMessages.*;
-import static org.opends.messages.SchemaMessages.*;
-import static org.opends.server.schema.SchemaConstants.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-
 import java.nio.CharBuffer;
 import java.text.CollationKey;
 import java.text.Collator;
 import java.util.*;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteSequence;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.std.meta.
-  CollationMatchingRuleCfgDefn.MatchingRuleType;
+import org.opends.server.admin.std.meta.CollationMatchingRuleCfgDefn.MatchingRuleType;
 import org.opends.server.admin.std.server.CollationMatchingRuleCfg;
-import org.opends.server.api.AbstractMatchingRule;
-import org.opends.server.api.ExtensibleIndexer;
-import org.opends.server.api.ExtensibleMatchingRule;
-import org.opends.server.api.IndexQueryFactory;
-import org.opends.server.api.MatchingRule;
-import org.opends.server.api.MatchingRuleFactory;
-import org.opends.server.api.OrderingMatchingRule;
+import org.opends.server.api.*;
 import org.opends.server.backends.jeb.AttributeIndex;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.AttributeValue;
-import org.forgerock.opendj.ldap.ByteSequence;
-import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.types.ConditionResult;
-import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.IndexConfig;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.ResultCode;
+import org.opends.server.types.*;
 import org.opends.server.util.StaticUtils;
+
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.messages.SchemaMessages.*;
+import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 
 
@@ -746,19 +733,6 @@ public final class CollationMatchingRuleFactory extends
     }
 
 
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String getName()
-    {
-      //This is called when there is only 1 name.
-      return names.iterator().next();
-    }
-
-
-
     /**
      * {@inheritDoc}
      */
@@ -945,6 +919,7 @@ public final class CollationMatchingRuleFactory extends
     /**
      * {@inheritDoc}
      */
+    @Override
     public int compareValues(ByteSequence value1, ByteSequence value2)
     {
       return value1.compareTo(value2);

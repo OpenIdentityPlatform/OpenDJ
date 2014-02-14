@@ -26,34 +26,26 @@
  *      Portions Copyright 2014 Manuel Gaupp
  */
 package org.opends.server.backends.jeb;
-import org.forgerock.i18n.LocalizableMessage;
-
 import java.util.*;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn;
+import org.opends.server.admin.std.server.LocalDBIndexCfg;
+import org.opends.server.api.*;
+import org.opends.server.config.ConfigException;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.monitors.DatabaseEnvironmentMonitor;
+import org.opends.server.types.*;
+import org.opends.server.util.StaticUtils;
 
 import com.sleepycat.je.*;
 
-import org.opends.server.api.SubstringMatchingRule;
-import org.opends.server.api.OrderingMatchingRule;
-import org.opends.server.api.ApproximateMatchingRule;
-
-import org.opends.server.monitors.DatabaseEnvironmentMonitor;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.admin.std.server.LocalDBIndexCfg;
-import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn;
-import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.api.EqualityMatchingRule;
-import org.opends.server.api.ExtensibleIndexer;
-import org.opends.server.api.ExtensibleMatchingRule;
-import org.opends.server.api.IndexQueryFactory;
-import org.opends.server.config.ConfigException;
 import static org.opends.messages.JebMessages.*;
 import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.toLowerCase;
-
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.util.StaticUtils;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * Class representing an attribute index.
@@ -1479,6 +1471,7 @@ public class AttributeIndex
      *         first argument is less than, equal to, or greater than the
      *         second.
      */
+    @Override
     public int compare(byte[] a, byte[] b)
     {
       int i;
@@ -1729,6 +1722,7 @@ public class AttributeIndex
   /**
    * {@inheritDoc}
    */
+  @Override
   public synchronized boolean isConfigurationChangeAcceptable(
       LocalDBIndexCfg cfg,
       List<LocalizableMessage> unacceptableReasons)
@@ -1788,6 +1782,7 @@ public class AttributeIndex
   /**
    * {@inheritDoc}
    */
+  @Override
   public synchronized ConfigChangeResult applyConfigurationChange(
       LocalDBIndexCfg cfg)
   {
@@ -2591,8 +2586,9 @@ public class AttributeIndex
      */
     EqualityMatchingRule eqRule =
             indexConfig.getAttribute().getEqualityMatchingRule();
-    if(nOID ==null || nOID.equals(eqRule.getOID()) ||
-            nOID.equalsIgnoreCase(eqRule.getName()))
+    if (nOID == null
+        || nOID.equals(eqRule.getOID())
+        || nOID.equalsIgnoreCase(eqRule.getNameOrOID()))
     {
       //No matching rule is defined; use the default equality matching rule.
       if(equalityIndex == null)
@@ -2980,7 +2976,8 @@ public class AttributeIndex
      * Returns the length of the substring.
      * @return the length of the substring.
      */
-   public int getSubstringLength()
+   @Override
+  public int getSubstringLength()
    {
      return substringLength;
    }

@@ -29,38 +29,25 @@ package org.opends.server.schema;
 
 
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.LinkedHashMap;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedList;
+import java.util.*;
 import java.util.regex.Pattern;
 
-import org.opends.server.admin.std.server.AttributeSyntaxCfg;
-import org.opends.server.api.ApproximateMatchingRule;
-import org.opends.server.api.AttributeSyntax;
-import org.opends.server.api.EqualityMatchingRule;
-import org.opends.server.api.SubstringMatchingRule;
-import org.opends.server.core.DirectoryServer;
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.i18n.LocalizableMessageBuilder;
-import org.opends.server.api.AbstractMatchingRule;
-import org.opends.server.api.OrderingMatchingRule;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteSequence;
+import org.forgerock.opendj.ldap.ByteString;
+import org.opends.server.admin.std.server.AttributeSyntaxCfg;
+import org.opends.server.api.*;
 import org.opends.server.config.ConfigException;
-import org.opends.server.types.CommonSchemaElements;
-import org.opends.server.types.DirectoryException;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.types.*;
 
+import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.schema.StringPrepProfile.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-import static org.opends.messages.SchemaMessages.*;
 
 /**
  * This class defines the LDAP syntax description syntax, which is used to
@@ -920,6 +907,7 @@ public class LDAPSyntaxDescriptionSyntax
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isHumanReadable()
   {
     return true;
@@ -1549,6 +1537,7 @@ public class LDAPSyntaxDescriptionSyntax
       /**
       * {@inheritDoc}
       */
+      @Override
       public int compare(byte[] arg0, byte[] arg1)
       {
         return compareValues(ByteString.wrap(arg0),ByteString.wrap(arg1));
@@ -1559,6 +1548,7 @@ public class LDAPSyntaxDescriptionSyntax
       /**
       * {@inheritDoc}
       */
+      @Override
       public int compareValues(ByteSequence value1, ByteSequence value2)
       {
         LinkedList<ByteSequence> enumValues = syntax.getEnumValues();
@@ -1571,20 +1561,9 @@ public class LDAPSyntaxDescriptionSyntax
        * {@inheritDoc}
        */
       @Override
-      public String getName()
-      {
-        return name;
-      }
-
-
-
-       /**
-       * {@inheritDoc}
-       */
-      @Override
       public Collection<String> getNames()
       {
-        return Collections.singleton(getName());
+        return Collections.singleton(name);
       }
 
 

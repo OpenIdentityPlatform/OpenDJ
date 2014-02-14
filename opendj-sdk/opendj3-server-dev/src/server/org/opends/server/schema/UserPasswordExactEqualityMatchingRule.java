@@ -28,16 +28,16 @@ package org.opends.server.schema;
 
 
 
-import static org.opends.server.schema.SchemaConstants.*;
-
 import java.util.Collection;
 import java.util.Collections;
 
-import org.opends.server.api.EqualityMatchingRule;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
+import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.util.StaticUtils;
+
+import static org.opends.server.schema.SchemaConstants.*;
 
 
 
@@ -65,23 +65,8 @@ class UserPasswordExactEqualityMatchingRule
   @Override
   public Collection<String> getNames()
   {
-    return Collections.singleton(getName());
+    return Collections.singleton(EMR_USER_PASSWORD_EXACT_NAME);
   }
-
-
-
-  /**
-   * Retrieves the common name for this matching rule.
-   *
-   * @return  The common name for this matching rule, or <CODE>null</CODE> if
-   * it does not have a name.
-   */
-  @Override
-  public String getName()
-  {
-    return EMR_USER_PASSWORD_EXACT_NAME;
-  }
-
 
 
   /**
