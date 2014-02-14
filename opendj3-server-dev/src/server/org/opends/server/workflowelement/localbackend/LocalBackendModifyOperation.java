@@ -1387,7 +1387,7 @@ public class LocalBackendModifyOperation
         {
           if (!syntax.valueIsAcceptable(v.getValue(), invalidReason))
           {
-            if (!syntax.isHumanReadable() || syntax.isBinary())
+            if (!syntax.isHumanReadable() || syntax.isBEREncodingRequired())
             {
               // Value is not human-readable
               throw newDirectoryException(currentEntry,
@@ -1414,7 +1414,7 @@ public class LocalBackendModifyOperation
             // FIXME remove next line of code. According to Matt, since this is
             // just a warning, the code should not set the resultCode
             setResultCode(ResultCode.INVALID_ATTRIBUTE_SYNTAX);
-            if (!syntax.isHumanReadable() || syntax.isBinary())
+            if (!syntax.isHumanReadable() || syntax.isBEREncodingRequired())
             {
               // Value is not human-readable
               logger.error(ERR_MODIFY_ADD_INVALID_SYNTAX_NO_VALUE, entryDN, attr.getName(), invalidReason);
@@ -1591,7 +1591,7 @@ public class LocalBackendModifyOperation
         {
           if (!syntax.valueIsAcceptable(v.getValue(), invalidReason))
           {
-            if (!syntax.isHumanReadable() || syntax.isBinary())
+            if (!syntax.isHumanReadable() || syntax.isBEREncodingRequired())
             {
               // Value is not human-readable
               throw newDirectoryException(currentEntry,
@@ -1616,7 +1616,7 @@ public class LocalBackendModifyOperation
           if (!syntax.valueIsAcceptable(v.getValue(), invalidReason))
           {
             setResultCode(ResultCode.INVALID_ATTRIBUTE_SYNTAX);
-            if (!syntax.isHumanReadable() || syntax.isBinary())
+            if (!syntax.isHumanReadable() || syntax.isBEREncodingRequired())
             {
               // Value is not human-readable
               logger.error(ERR_MODIFY_REPLACE_INVALID_SYNTAX_NO_VALUE,

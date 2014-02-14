@@ -1054,7 +1054,7 @@ public class LocalBackendAddOperation
             if (!syntax.valueIsAcceptable(v.getValue(), invalidReason))
             {
               LocalizableMessage message;
-              if (!syntax.isHumanReadable() || syntax.isBinary())
+              if (!syntax.isHumanReadable() || syntax.isBEREncodingRequired())
               {
                 // Value is not human-readable
                 message = WARN_ADD_OP_INVALID_SYNTAX_NO_VALUE.

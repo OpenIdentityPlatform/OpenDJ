@@ -219,7 +219,7 @@ public abstract class AttributeSyntax<T extends AttributeSyntaxCfg>
    *
    * @return {@code true} if this syntax required BER encoding.
    */
-  public abstract boolean isBinary();
+  public abstract boolean isBEREncodingRequired();
 
 
 
