@@ -1137,7 +1137,7 @@ public class NodeRefresher extends AbstractNodeTask {
       case WHOLE_SUBTREE:
         scope = SearchControls.SUBTREE_SCOPE;
         break;
-      case SUBORDINATE_SUBTREE:
+      case SUBORDINATES:
         scope = SearchControls.ONELEVEL_SCOPE;
         break;
       case SINGLE_LEVEL:

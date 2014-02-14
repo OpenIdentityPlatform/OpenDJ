@@ -4119,7 +4119,7 @@ public class SchemaBackend
     // match anything since there isn't anything below the schema.
     SearchScope scope = searchOperation.getScope();
     if ((scope == SearchScope.SINGLE_LEVEL) ||
-        (scope == SearchScope.SUBORDINATE_SUBTREE))
+        (scope == SearchScope.SUBORDINATES))
     {
       return;
     }

@@ -75,7 +75,7 @@ public enum SearchScope
    * below the entry specified as the search base (but not the search
    * base entry itself) should be considered candidates for matching.
    */
-  SUBORDINATE_SUBTREE(LDAPConstants.SCOPE_SUBORDINATE_SUBTREE);
+  SUBORDINATES(LDAPConstants.SCOPE_SUBORDINATE_SUBTREE);
 
 
 

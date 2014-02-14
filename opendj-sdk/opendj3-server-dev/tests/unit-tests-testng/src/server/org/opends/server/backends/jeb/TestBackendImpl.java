@@ -591,7 +591,7 @@ public class TestBackendImpl extends JebTestCase {
         "ou=People,dc=test,dc=com");
 
     search = conn.processSearch(DN.valueOf("dc=test,dc=com"),
-        SearchScope.SUBORDINATE_SUBTREE,
+        SearchScope.SUBORDINATES,
         LDAPFilter.decode("(objectClass=*)").toSearchFilter());
     result = search.getSearchEntries();
 
@@ -1294,16 +1294,12 @@ public class TestBackendImpl extends JebTestCase {
 
     InternalSearchOperation search =
         conn.processSearch(DN.valueOf("dc=test,dc=com"),
-
-                           SearchScope.SUBORDINATE_SUBTREE,
-
+                           SearchScope.SUBORDINATES,
                            DereferencePolicy.NEVER_DEREF_ALIASES,
                            0,
                            0,
                            false,
-
-                           LDAPFilter.decode("(givenName~=Aaccf)").
-                               toSearchFilter(),
+                           LDAPFilter.decode("(givenName~=Aaccf)").toSearchFilter(),
                            attribs);
 
     List<SearchResultEntry> result = search.getSearchEntries();
@@ -1476,7 +1472,7 @@ public class TestBackendImpl extends JebTestCase {
 
     InternalSearchOperation search =
         conn.processSearch(DN.valueOf("dc=test,dc=com"),
-            SearchScope.SUBORDINATE_SUBTREE,
+            SearchScope.SUBORDINATES,
             DereferencePolicy.NEVER_DEREF_ALIASES,
             0,
             0,

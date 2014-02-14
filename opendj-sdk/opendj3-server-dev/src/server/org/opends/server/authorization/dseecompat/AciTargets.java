@@ -404,7 +404,7 @@ public class AciTargets {
         else if(expression.equalsIgnoreCase("subtree"))
             return SearchScope.WHOLE_SUBTREE;
         else if(expression.equalsIgnoreCase("subordinate"))
-            return SearchScope.SUBORDINATE_SUBTREE;
+            return SearchScope.SUBORDINATES;
         else {
             LocalizableMessage message =
                 WARN_ACI_SYNTAX_INVALID_TARGETSCOPE_EXPRESSION.get(expression);
@@ -611,7 +611,7 @@ public class AciTargets {
             if(!entryDN.isDescendantOf(targetDN))
                 return false;
             break;
-        case SUBORDINATE_SUBTREE:
+        case SUBORDINATES:
             if ((entryDN.size() <= targetDN.size()) ||
                  !entryDN.isDescendantOf(targetDN)) {
               return false;

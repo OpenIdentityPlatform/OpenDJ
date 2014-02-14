@@ -561,7 +561,7 @@ public class GenerationIdTest extends ReplicationTestCase
     {
       Thread.sleep(10);
       searchOperation = connection.processSearch(
-          "dc=replicationchanges", SearchScope.SUBORDINATE_SUBTREE, "(objectclass=*)");
+          "dc=replicationchanges", SearchScope.SUBORDINATES, "(objectclass=*)");
     }
     while (System.currentTimeMillis() - start <= timeout
         && searchOperation.getResultCode() != ResultCode.SUCCESS

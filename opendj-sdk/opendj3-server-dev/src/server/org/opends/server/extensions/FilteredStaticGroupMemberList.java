@@ -185,7 +185,7 @@ public class FilteredStaticGroupMemberList
             }
             break;
 
-          case SUBORDINATE_SUBTREE:
+          case SUBORDINATES:
             if (baseDN.equals(nextDN) || (! baseDN.isAncestorOf(nextDN)))
             {
               continue;

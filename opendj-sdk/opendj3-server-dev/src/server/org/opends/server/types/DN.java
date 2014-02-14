@@ -488,7 +488,7 @@ public final class DN implements Comparable<DN>, Serializable
         // This DN must be a descendant of the provided base DN.
         return isDescendantOf(baseDN);
 
-      case SUBORDINATE_SUBTREE:
+      case SUBORDINATES:
         // This DN must be a descendant of the provided base DN, but
         // not equal to it.
         return ((! equals(baseDN)) && isDescendantOf(baseDN));

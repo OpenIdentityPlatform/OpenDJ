@@ -479,7 +479,7 @@ public class LDIFSearch
       }
       else if (scopeStr.equals(SCOPE_STRING_SUBORDINATE))
       {
-        searchScope = SearchScope.SUBORDINATE_SUBTREE;
+        searchScope = SearchScope.SUBORDINATES;
       }
       else
       {

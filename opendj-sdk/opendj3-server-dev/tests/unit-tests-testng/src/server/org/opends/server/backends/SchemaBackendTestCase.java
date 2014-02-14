@@ -373,7 +373,7 @@ public class SchemaBackendTestCase extends BackendTestCase
          InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
          conn.processSearch(DN.valueOf("cn=schema"),
-              SearchScope.SUBORDINATE_SUBTREE,
+              SearchScope.SUBORDINATES,
               SearchFilter.createFilterFromString(filterString));
     assertNotNull(searchOperation);
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);

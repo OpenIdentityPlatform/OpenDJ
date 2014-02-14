@@ -547,7 +547,7 @@ public final class LDAPURL
     else if (scopeString.equals("subord") ||
              scopeString.equals("subordinate"))
     {
-      scope = SearchScope.SUBORDINATE_SUBTREE;
+      scope = SearchScope.SUBORDINATES;
     }
     else
     {
@@ -1583,7 +1583,7 @@ outerExtLoop:
       case WHOLE_SUBTREE:
         buffer.append("sub");
         break;
-      case SUBORDINATE_SUBTREE:
+      case SUBORDINATES:
         buffer.append("subordinate");
         break;
     }
