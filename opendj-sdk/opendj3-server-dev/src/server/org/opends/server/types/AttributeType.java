@@ -510,7 +510,7 @@ public final class AttributeType
    */
   public boolean isBinary()
   {
-    return syntax.isBinary();
+    return syntax.isBEREncodingRequired();
   }
 
 

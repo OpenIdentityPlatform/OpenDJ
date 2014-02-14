@@ -302,7 +302,7 @@ public class JPEGSyntax
   /**
    * {@inheritDoc}
    */
-  public boolean isBinary()
+  public boolean isBEREncodingRequired()
   {
     return false;
   }

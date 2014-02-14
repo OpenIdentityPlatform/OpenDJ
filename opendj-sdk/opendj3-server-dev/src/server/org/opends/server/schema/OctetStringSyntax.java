@@ -231,7 +231,7 @@ public class OctetStringSyntax
   /**
    * {@inheritDoc}
    */
-  public boolean isBinary()
+  public boolean isBEREncodingRequired()
   {
     return false;
   }

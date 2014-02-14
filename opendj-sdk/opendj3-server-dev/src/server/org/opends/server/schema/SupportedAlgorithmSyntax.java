@@ -235,7 +235,7 @@ public class SupportedAlgorithmSyntax
   /**
    * {@inheritDoc}
    */
-  public boolean isBinary()
+  public boolean isBEREncodingRequired()
   {
     return true;
   }

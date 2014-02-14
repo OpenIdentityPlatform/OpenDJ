@@ -293,7 +293,7 @@ public class OtherMailboxSyntax
   /**
    * {@inheritDoc}
    */
-  public boolean isBinary()
+  public boolean isBEREncodingRequired()
   {
     return false;
   }

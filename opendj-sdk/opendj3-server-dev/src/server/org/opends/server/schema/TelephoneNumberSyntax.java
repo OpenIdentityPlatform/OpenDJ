@@ -383,7 +383,7 @@ public class TelephoneNumberSyntax
   /**
    * {@inheritDoc}
    */
-  public boolean isBinary()
+  public boolean isBEREncodingRequired()
   {
     return false;
   }

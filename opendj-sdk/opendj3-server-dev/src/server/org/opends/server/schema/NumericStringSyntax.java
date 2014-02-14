@@ -258,7 +258,7 @@ public class NumericStringSyntax
   /**
    * {@inheritDoc}
    */
-  public boolean isBinary()
+  public boolean isBEREncodingRequired()
   {
     return false;
   }

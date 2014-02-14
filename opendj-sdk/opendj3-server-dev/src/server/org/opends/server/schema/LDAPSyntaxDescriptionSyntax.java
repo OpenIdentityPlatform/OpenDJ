@@ -897,7 +897,7 @@ public class LDAPSyntaxDescriptionSyntax
    * {@inheritDoc}
    */
   @Override
-  public boolean isBinary()
+  public boolean isBEREncodingRequired()
   {
     return false;
   }

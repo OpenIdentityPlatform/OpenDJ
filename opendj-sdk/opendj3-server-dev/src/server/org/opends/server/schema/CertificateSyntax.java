@@ -490,7 +490,7 @@ public class CertificateSyntax
   /**
    * {@inheritDoc}
    */
-  public boolean isBinary()
+  public boolean isBEREncodingRequired()
   {
     return true;
   }
