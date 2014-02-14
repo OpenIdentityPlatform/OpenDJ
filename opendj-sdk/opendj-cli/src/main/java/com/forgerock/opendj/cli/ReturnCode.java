@@ -24,6 +24,9 @@
  */
 package com.forgerock.opendj.cli;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * List of return codes used by CLIs.
  */
@@ -50,6 +53,10 @@ public enum ReturnCode {
      */
     ERROR_USER_DATA(2),
     /**
+     * The LDAP result code for operations that fail due to a protocol error.
+     */
+    PROTOCOL_ERROR(2),
+    /**
      * Error server already installed.
      * <PRE>
      * Code value of 3.
@@ -71,7 +78,7 @@ public enum ReturnCode {
      */
     ERROR_PASSWORD_LIMIT(5),
     /**
-     * The user cancelled the setup.
+     * The user cancelled the process.
      * <PRE>
      * Code value of 6.
      * </PRE>
@@ -85,12 +92,22 @@ public enum ReturnCode {
      */
     ERROR_LICENSE_NOT_ACCEPTED(7),
     /**
+     * The LDAP result code for operations that fail because the requested
+     * authentication method is not supported.
+     */
+    AUTH_METHOD_NOT_SUPPORTED(7),
+    /**
      * Incompatible java version.
      * <PRE>
      * Code value of 8.
      * </PRE>
      */
     JAVA_VERSION_INCOMPATIBLE(8),
+    /**
+     * The LDAP result code used for multi-stage SASL bind operations that are not
+     * yet complete.
+     */
+    SASL_BIND_IN_PROGRESS(14),
     /**
      * The LDAP result code for operations that fail because a defined constraint
      * has been violated.
@@ -101,6 +118,12 @@ public enum ReturnCode {
      * not exist.
      */
     NO_SUCH_OBJECT(32),
+    /**
+     * The LDAP result code for operations that fail because the user supplied
+     * invalid credentials for an authentication attempt.
+     */
+    INVALID_CREDENTIALS(49),
+
     /**
      * The LDAP result code for operations that fail because the client does not
      * have permission to perform the requested operation.
@@ -124,6 +147,30 @@ public enum ReturnCode {
      */
     CLIENT_SIDE_SERVER_DOWN(81),
     /**
+     * The client-side result code that indicates that a local error occurred that
+     * had nothing to do with interaction with the server.  This is for
+     * client-side use only and should never be transferred over protocol.
+     */
+    CLIENT_SIDE_LOCAL_ERROR(82),
+    /**
+     * The client-side result code that indicates that an error occurred while
+     * encoding a request to send to the server.  This is for client-side use only
+     * and should never be transferred over protocol.
+     */
+    CLIENT_SIDE_ENCODING_ERROR(83),
+    /**
+     * The client-side result code that indicates that an error occurred while
+     * decoding a response from the server.  This is for client-side use only and
+     * should never be transferred over protocol.
+     */
+    CLIENT_SIDE_DECODING_ERROR(84),
+    /**
+     * The client-side result code that indicates that the user requested an
+     * unknown or unsupported authentication mechanism.  This is for client-side
+     * use only and should never be transferred over protocol.
+     */
+    CLIENT_SIDE_AUTH_UNKNOWN(86),
+    /**
      * The client-side result code that indicates that the client was not able to
      * establish a connection to the server.  This is for client-side use only and
      * should never be transferred over protocol.
@@ -144,6 +191,12 @@ public enum ReturnCode {
     TODO(99);
 
     private int returnCode;
+    private static final Map<Integer, String> RETURNCODE = new HashMap<Integer, String>();
+    static {
+        for (final ReturnCode rc : ReturnCode.values()) {
+            RETURNCODE.put(rc.get(), rc.name());
+        }
+    }
 
     private ReturnCode(int returnCode) {
         this.returnCode = returnCode;
@@ -156,5 +209,16 @@ public enum ReturnCode {
      */
     public int get() {
         return returnCode;
+    }
+
+    /**
+     * Retrieves a string representation of the return code.
+     *
+     * @param code
+     *            The code value for which to obtain the string representation.
+     * @return The string representation of the return code.
+     */
+    public static String get(int code) {
+        return RETURNCODE.get(code);
     }
 }
