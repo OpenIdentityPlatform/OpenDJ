@@ -3094,28 +3094,15 @@ public final class SearchFilter
 
     // See if the entry has an attribute with the requested type.
     // If so, then it's a match.  If not, then it's not a match.
-    if (entry.hasAttribute(attributeType, attributeOptions))
+    ConditionResult result = ConditionResult.valueOf(
+        entry.hasAttribute(attributeType, attributeOptions));
+    if (logger.isTraceEnabled())
     {
-      if (logger.isTraceEnabled())
-      {
-        logger.trace(
-            "Returning TRUE for presence component %s in " +
-            "filter %s for entry %s",
-            this, completeFilter, entry.getName());
-      }
-      return ConditionResult.TRUE;
+      logger.trace(
+          "Returning %s for presence component %s in filter %s for entry %s",
+          result, this, completeFilter, entry.getName());
     }
-    else
-    {
-      if (logger.isTraceEnabled())
-      {
-        logger.trace(
-            "Returning FALSE for presence component %s in " +
-            "filter %s for entry %s",
-            this, completeFilter, entry.getName());
-      }
-      return ConditionResult.FALSE;
-    }
+    return result;
   }
 
 

@@ -26,14 +26,13 @@
  */
 package org.opends.guitools.controlpanel.util;
 
-import static org.opends.messages.ConfigMessages.*;
-
 import java.io.File;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ConditionResult;
 import org.opends.server.admin.Configuration;
 import org.opends.server.api.ConfigHandler;
 import org.opends.server.config.ConfigEntry;
@@ -48,7 +47,6 @@ import org.opends.server.types.AttributeType;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
 import org.opends.server.types.CanceledOperationException;
-import org.forgerock.opendj.ldap.ConditionResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryEnvironmentConfig;
 import org.opends.server.types.DirectoryException;
@@ -62,6 +60,8 @@ import org.opends.server.types.RestoreConfig;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.StaticUtils;
+
+import static org.opends.messages.ConfigMessages.*;
 
 /**
  * A class used to read the configuration from a file.  This config file
@@ -384,18 +384,11 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler
   public ConditionResult hasSubordinates(DN entryDN) throws DirectoryException
   {
     ConfigEntry baseEntry = configEntries.get(entryDN);
-    if(baseEntry == null)
+    if (baseEntry != null)
     {
-      return ConditionResult.UNDEFINED;
+      return ConditionResult.valueOf(baseEntry.hasChildren());
     }
-    else if(baseEntry.hasChildren())
-    {
-      return ConditionResult.TRUE;
-    }
-    else
-    {
-      return ConditionResult.FALSE;
-    }
+    return ConditionResult.UNDEFINED;
   }
 
   /**

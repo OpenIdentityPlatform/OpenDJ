@@ -27,10 +27,10 @@
 package org.opends.server.schema;
 
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ConditionResult;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.AcceptRejectWarn;
-import org.forgerock.opendj.ldap.ConditionResult;
 import org.opends.server.types.DirectoryException;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -166,11 +166,7 @@ public abstract class EqualityMatchingRuleTest extends SchemaTestCase
 
     ConditionResult liveResult =
       rule.valuesMatch(normalizedValue1, normalizedValue2);
-    if (result == true)
-      assertEquals(ConditionResult.TRUE, liveResult);
-    else
-      assertEquals(ConditionResult.FALSE, liveResult);
-
+    assertEquals(liveResult, ConditionResult.valueOf(result));
   }
 
 }

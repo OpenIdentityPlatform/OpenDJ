@@ -1902,16 +1902,17 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
    */
   public boolean isPasswordExpired()
   {
-    if ((isPasswordExpired == null) ||
-        (isPasswordExpired == ConditionResult.UNDEFINED))
-    {
-      getPasswordExpirationTime();
-    }
-
+    refreshIfUndefined(isPasswordExpired);
     return isPasswordExpired == ConditionResult.TRUE;
   }
 
-
+  private void refreshIfUndefined(ConditionResult cond)
+  {
+    if (cond == null || cond == ConditionResult.UNDEFINED)
+    {
+      getPasswordExpirationTime();
+    }
+  }
 
   /**
    * Indicates whether the user's last password change was within the minimum
@@ -1986,12 +1987,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
    */
   public boolean mayUseGraceLogin()
   {
-    if ((mayUseGraceLogin == null) ||
-        (mayUseGraceLogin == ConditionResult.UNDEFINED))
-    {
-      getPasswordExpirationTime();
-    }
-
+    refreshIfUndefined(mayUseGraceLogin);
     return mayUseGraceLogin == ConditionResult.TRUE;
   }
 
@@ -2007,11 +2003,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
    */
   public boolean shouldWarn()
   {
-    if ((shouldWarn == null) || (shouldWarn == ConditionResult.UNDEFINED))
-    {
-      getPasswordExpirationTime();
-    }
-
+    refreshIfUndefined(shouldWarn);
     return shouldWarn == ConditionResult.TRUE;
   }
 
@@ -2026,12 +2018,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
    */
   public boolean isFirstWarning()
   {
-    if ((isFirstWarning == null) ||
-        (isFirstWarning == ConditionResult.UNDEFINED))
-    {
-      getPasswordExpirationTime();
-    }
-
+    refreshIfUndefined(isFirstWarning);
     return isFirstWarning == ConditionResult.TRUE;
   }
 

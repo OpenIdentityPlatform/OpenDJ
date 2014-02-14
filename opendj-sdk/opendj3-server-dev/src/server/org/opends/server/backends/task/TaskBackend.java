@@ -376,14 +376,7 @@ public class TaskBackend
     {
       return ConditionResult.UNDEFINED;
     }
-    else if(ret == 0)
-    {
-      return ConditionResult.FALSE;
-    }
-    else
-    {
-      return ConditionResult.TRUE;
-    }
+    return ConditionResult.valueOf(ret != 0);
   }
 
 

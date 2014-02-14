@@ -181,18 +181,11 @@ class AuthPasswordEqualityMatchingRule
       return ConditionResult.FALSE;
     }
 
-
     // We support the scheme, so make the determination.
-    if (storageScheme.authPasswordMatches(assertionValue,
+    return ConditionResult.valueOf(
+        storageScheme.authPasswordMatches(assertionValue,
                                           authPWComponents[1].toString(),
-                                          authPWComponents[2].toString()))
-    {
-      return ConditionResult.TRUE;
-    }
-    else
-    {
-      return ConditionResult.FALSE;
-    }
+                                          authPWComponents[2].toString()));
   }
 
 

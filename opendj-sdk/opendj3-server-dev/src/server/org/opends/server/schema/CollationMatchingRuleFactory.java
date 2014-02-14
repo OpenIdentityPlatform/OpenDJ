@@ -875,14 +875,7 @@ public final class CollationMatchingRuleFactory extends
     public ConditionResult valuesMatch(ByteSequence attributeValue,
         ByteSequence assertionValue)
     {
-      if (assertionValue.equals(attributeValue))
-      {
-        return ConditionResult.TRUE;
-      }
-      else
-      {
-        return ConditionResult.FALSE;
-      }
+      return ConditionResult.valueOf(assertionValue.equals(attributeValue));
     }
 
 
@@ -1779,15 +1772,7 @@ public final class CollationMatchingRuleFactory extends
         ByteSequence assertionValue)
     {
       int ret = attributeValue.compareTo(assertionValue);
-
-      if (ret < 0)
-      {
-        return ConditionResult.TRUE;
-      }
-      else
-      {
-        return ConditionResult.FALSE;
-      }
+      return ConditionResult.valueOf(ret < 0);
     }
 
 
@@ -1847,15 +1832,7 @@ public final class CollationMatchingRuleFactory extends
         ByteSequence assertionValue)
     {
       int ret = attributeValue.compareTo(assertionValue);
-
-      if (ret <= 0)
-      {
-        return ConditionResult.TRUE;
-      }
-      else
-      {
-        return ConditionResult.FALSE;
-      }
+      return ConditionResult.valueOf(ret <= 0);
     }
 
 
@@ -1916,15 +1893,7 @@ public final class CollationMatchingRuleFactory extends
         ByteSequence assertionValue)
     {
       int ret = attributeValue.compareTo(assertionValue);
-
-      if (ret > 0)
-      {
-        return ConditionResult.TRUE;
-      }
-      else
-      {
-        return ConditionResult.FALSE;
-      }
+      return ConditionResult.valueOf(ret > 0);
     }
 
 
@@ -1984,15 +1953,7 @@ public final class CollationMatchingRuleFactory extends
         ByteSequence assertionValue)
     {
       int ret = attributeValue.compareTo(assertionValue);
-
-      if (ret >= 0)
-      {
-        return ConditionResult.TRUE;
-      }
-      else
-      {
-        return ConditionResult.FALSE;
-      }
+      return ConditionResult.valueOf(ret >= 0);
     }
 
 
