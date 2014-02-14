@@ -26,7 +26,6 @@
  */
 package org.opends.server.types;
 
-import org.forgerock.opendj.ldap.ByteString;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -36,13 +35,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.schema.ObjectClassType;
 import org.opends.server.schema.ObjectClassSyntax;
 
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import static org.opends.server.util.ServerConstants.*;
 import static org.forgerock.util.Reject.*;
-
-
+import static org.opends.server.util.ServerConstants.*;
 
 /**
  * This class defines a data structure for storing and interacting
@@ -276,6 +275,7 @@ public final class ObjectClass
    *
    * @return  The definition string used to create this objectclass.
    */
+  @Override
   public String getDefinition()
   {
     return definition;
@@ -309,6 +309,7 @@ public final class ObjectClass
   /**
    * {@inheritDoc}
    */
+  @Override
   public ObjectClass recreateFromDefinition(Schema schema)
          throws DirectoryException
   {
@@ -520,6 +521,7 @@ public final class ObjectClass
    * @param  buffer  The buffer to which the information should be
    *                 appended.
    */
+  @Override
   protected void toStringContent(StringBuilder buffer) {
 
     if (!superiorClasses.isEmpty()) {

@@ -77,7 +77,7 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.ObjectClass;
-import org.opends.server.types.ObjectClassType;
+import org.forgerock.opendj.ldap.schema.ObjectClassType;
 import org.opends.server.types.Schema;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;

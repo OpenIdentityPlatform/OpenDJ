@@ -37,7 +37,7 @@ import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.MatchingRule;
 import org.forgerock.opendj.ldap.schema.AttributeUsage;
 import org.opends.server.types.CommonSchemaElements;
-import org.opends.server.types.ObjectClassType;
+import org.forgerock.opendj.ldap.schema.ObjectClassType;
 
 /**
  * The cell renderer to be used to render schema elements in a combo box.

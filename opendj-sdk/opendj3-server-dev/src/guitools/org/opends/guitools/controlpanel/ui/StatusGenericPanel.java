@@ -100,7 +100,7 @@ import org.forgerock.i18n.LocalizableMessageDescriptor;
 import org.opends.quicksetup.ui.CustomHTMLEditorKit;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.ObjectClass;
-import org.opends.server.types.ObjectClassType;
+import org.forgerock.opendj.ldap.schema.ObjectClassType;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.util.ServerConstants;
 

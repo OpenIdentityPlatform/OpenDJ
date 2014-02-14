@@ -25,15 +25,17 @@
  *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.schema;
-import org.forgerock.i18n.LocalizableMessage;
-
-
 
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteSequence;
+import org.forgerock.opendj.ldap.schema.ObjectClassType;
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
 import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.AttributeSyntax;
@@ -42,16 +44,11 @@ import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteSequence;
+
 import static org.opends.messages.SchemaMessages.*;
-import org.forgerock.i18n.LocalizableMessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-
-
 
 /**
  * This class implements the name form description syntax, which is used to
@@ -92,6 +89,7 @@ public class NameFormSyntax
   /**
    * {@inheritDoc}
    */
+  @Override
   public void initializeSyntax(AttributeSyntaxCfg configuration)
          throws ConfigException, InitializationException
   {
@@ -128,6 +126,7 @@ public class NameFormSyntax
   /**
    * {@inheritDoc}
    */
+  @Override
   public String getSyntaxName()
   {
     return SYNTAX_NAME_FORM_NAME;
@@ -138,6 +137,7 @@ public class NameFormSyntax
   /**
    * {@inheritDoc}
    */
+  @Override
   public String getOID()
   {
     return SYNTAX_NAME_FORM_OID;
@@ -148,6 +148,7 @@ public class NameFormSyntax
   /**
    * {@inheritDoc}
    */
+  @Override
   public String getDescription()
   {
     return SYNTAX_NAME_FORM_DESCRIPTION;
@@ -158,6 +159,7 @@ public class NameFormSyntax
   /**
    * {@inheritDoc}
    */
+  @Override
   public EqualityMatchingRule getEqualityMatchingRule()
   {
     return defaultEqualityMatchingRule;
@@ -168,6 +170,7 @@ public class NameFormSyntax
   /**
    * {@inheritDoc}
    */
+  @Override
   public OrderingMatchingRule getOrderingMatchingRule()
   {
     return defaultOrderingMatchingRule;
@@ -178,6 +181,7 @@ public class NameFormSyntax
   /**
    * {@inheritDoc}
    */
+  @Override
   public SubstringMatchingRule getSubstringMatchingRule()
   {
     return defaultSubstringMatchingRule;
@@ -188,6 +192,7 @@ public class NameFormSyntax
   /**
    * {@inheritDoc}
    */
+  @Override
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
     // There is no approximate matching rule by default.
@@ -199,6 +204,7 @@ public class NameFormSyntax
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean valueIsAcceptable(ByteSequence value,
                                    LocalizableMessageBuilder invalidReason)
   {
@@ -1268,6 +1274,7 @@ public class NameFormSyntax
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isBinary()
   {
     return false;
@@ -1278,6 +1285,7 @@ public class NameFormSyntax
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isHumanReadable()
   {
     return true;
