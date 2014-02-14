@@ -315,6 +315,40 @@ public final class Upgrade
     register("2.7.0.10215",
         copySchemaFile("03-pwpolicyextension.ldif"));
 
+    register("3.0.0.10214",
+        modifyConfigEntry(INFO_UPGRADE_TASK_10214_1_SUMMARY.get(),
+          "(ds-cfg-java-class=org.opends.server.loggers.debug.TextDebugLogPublisher)",
+          "delete:ds-cfg-java-class",
+          "-",
+          "add:ds-cfg-java-class",
+          "ds-cfg-java-class: org.opends.server.loggers.TextDebugLogPublisher"));
+
+    register("3.0.0.10232",
+        modifyConfigEntry(INFO_UPGRADE_TASK_10232_1_SUMMARY.get(),
+          "(objectclass=ds-cfg-file-based-debug-log-publisher)",
+          "delete:ds-cfg-default-debug-level"));
+
+    register("3.0.0.10329",
+        modifyConfigEntry(INFO_UPGRADE_TASK_10329_1_SUMMARY.get(),
+            "&(objectclass=ds-cfg-file-based-error-log-publisher)(cn=File-Based Error Logger)",
+            "delete:ds-cfg-default-severity",
+            "ds-cfg-default-severity: severe-warning",
+            "ds-cfg-default-severity: severe-error",
+            "ds-cfg-default-severity: fatal-error",
+            "-",
+            "add:ds-cfg-default-severity",
+            "ds-cfg-default-severity: error",
+            "ds-cfg-default-severity: warning"
+            ));
+
+    register("3.0.0.10339",
+        modifyConfigEntry(INFO_UPGRADE_TASK_10339_1_SUMMARY.get(),
+            "&(objectclass=ds-cfg-file-based-error-log-publisher)(cn=Replication Repair Logger)",
+            "delete:ds-cfg-override-severity",
+             "-",
+             "add:ds-cfg-override-severity",
+             "ds-cfg-override-severity: SYNC=INFO,ERROR,WARNING,NOTICE"));
+
     /*
      * All upgrades will refresh the server configuration schema and generate
      * a new upgrade folder.

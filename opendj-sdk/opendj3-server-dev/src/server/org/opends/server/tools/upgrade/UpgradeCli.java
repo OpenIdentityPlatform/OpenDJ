@@ -401,16 +401,16 @@ public final class UpgradeCli extends ConsoleApplication implements
         {
         case TITLE_CALLBACK:
           println(Style.TITLE, LocalizableMessage.raw(fnc.getMessage()), 0);
-          logger.debug(LocalizableMessage.raw(fnc.getMessage()));
+          logger.info(LocalizableMessage.raw(fnc.getMessage()));
           break;
         case SUBTITLE_CALLBACK:
           println(Style.SUBTITLE, LocalizableMessage.raw(fnc.getMessage()),
               4);
-          logger.debug(LocalizableMessage.raw(fnc.getMessage()));
+          logger.info(LocalizableMessage.raw(fnc.getMessage()));
           break;
         case NOTICE_CALLBACK:
           println(Style.NOTICE, LocalizableMessage.raw(fnc.getMessage()), 1);
-          logger.debug(LocalizableMessage.raw(fnc.getMessage()));
+          logger.info(LocalizableMessage.raw(fnc.getMessage()));
           break;
         case ERROR_CALLBACK:
           println(Style.ERROR, LocalizableMessage.raw(fnc.getMessage()), 1);
