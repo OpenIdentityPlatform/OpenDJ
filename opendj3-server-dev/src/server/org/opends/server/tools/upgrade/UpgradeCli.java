@@ -49,14 +49,13 @@ import javax.security.auth.callback.TextOutputCallback;
 import javax.security.auth.callback.UnsupportedCallbackException;
 
 import org.opends.server.extensions.ConfigFileHandler;
-import org.opends.server.tools.ClientException;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.cli.SubCommandArgumentParser;
-import com.forgerock.opendj.cli.CLIException;
+import com.forgerock.opendj.cli.ClientException;
 import org.opends.server.util.cli.ConsoleApplication;
 
 /**
@@ -364,7 +363,7 @@ public final class UpgradeCli extends ConsoleApplication implements
     }
     catch (ClientException ex)
     {
-      return ex.getExitCode();
+      return ex.getReturnCode();
     }
     catch (Exception ex)
     {
@@ -496,7 +495,7 @@ public final class UpgradeCli extends ConsoleApplication implements
                   readInput(LocalizableMessage.raw(prompt), defaultOption,
                       Style.SUBTITLE);
             }
-            catch (CLIException e)
+            catch (ClientException e)
             {
               logger.error(LocalizableMessage.raw(e.getMessage()));
               break;

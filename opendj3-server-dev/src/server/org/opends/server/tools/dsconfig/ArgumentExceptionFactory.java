@@ -41,9 +41,12 @@ import org.opends.server.admin.client.IllegalManagedObjectNameException;
 import org.opends.server.admin.client.ManagedObjectDecodingException;
 import org.opends.server.admin.client.MissingMandatoryPropertiesException;
 import org.opends.server.admin.client.OperationRejectedException;
+
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
-import com.forgerock.opendj.cli.CLIException;
+import com.forgerock.opendj.cli.ClientException;
+import com.forgerock.opendj.cli.ReturnCode;
+
 import org.opends.server.util.cli.ConsoleApplication;
 import org.opends.server.util.table.TableBuilder;
 import org.opends.server.util.table.TextTablePrinter;
@@ -57,16 +60,16 @@ import org.opends.server.util.table.TextTablePrinter;
 public final class ArgumentExceptionFactory {
 
   /**
-   * Creates a CLI exception from an illegal managed object name
+   * Creates a ClientException exception from an illegal managed object name
    * exception.
    *
    * @param e
    *          The illegal managed object name exception.
    * @param d
    *          The managed object definition.
-   * @return Returns a CLI exception.
+   * @return Returns a ClientException exception.
    */
-  public static CLIException adaptIllegalManagedObjectNameException(
+  public static ClientException adaptIllegalManagedObjectNameException(
       IllegalManagedObjectNameException e,
       AbstractManagedObjectDefinition<?, ?> d) {
     String illegalName = e.getIllegalName();
@@ -75,11 +78,11 @@ public final class ArgumentExceptionFactory {
     if (illegalName.length() == 0) {
       LocalizableMessage message =
           ERR_DSCFG_ERROR_ILLEGAL_NAME_EMPTY.get(d.getUserFriendlyPluralName());
-      return new CLIException(message);
+      return new ClientException(ReturnCode.ERROR_USER_DATA, message);
     } else if (illegalName.trim().length() == 0) {
       LocalizableMessage message =
           ERR_DSCFG_ERROR_ILLEGAL_NAME_BLANK.get(d.getUserFriendlyPluralName());
-      return new CLIException(message);
+      return new ClientException(ReturnCode.ERROR_USER_DATA, message);
     } else if (pd != null) {
       try {
         pd.decodeValue(illegalName);
@@ -90,13 +93,13 @@ public final class ArgumentExceptionFactory {
 
         LocalizableMessage message = ERR_DSCFG_ERROR_ILLEGAL_NAME_SYNTAX.get(
             illegalName, d.getUserFriendlyName(), syntax);
-        return new CLIException(message);
+        return new ClientException(ReturnCode.ERROR_USER_DATA, message);
       }
     }
 
     LocalizableMessage message = ERR_DSCFG_ERROR_ILLEGAL_NAME_UNKNOWN.get(
         illegalName, d.getUserFriendlyName());
-    return new CLIException(message);
+    return new ClientException(ReturnCode.ERROR_USER_DATA, message);
   }
 
 
@@ -640,13 +643,13 @@ public final class ArgumentExceptionFactory {
    *          The definition of the managed object that was retrieved.
    *
    * @param subcommandName the sub-command name.
-   * @return Returns a CLI exception.
+   * @return Returns a Client exception.
    */
-  public static CLIException wrongManagedObjectType(RelationDefinition<?, ?> r,
+  public static ClientException wrongManagedObjectType(RelationDefinition<?, ?> r,
       ManagedObjectDefinition<?, ?> d, String subcommandName) {
     LocalizableMessage msg = ERR_DSCFG_ERROR_TYPE_UNRECOGNIZED_FOR_SUBCOMMAND.get(
         d.getUserFriendlyName(), subcommandName);
-    return new CLIException(msg);
+    return new ClientException(ReturnCode.ERROR_USER_DATA, msg);
   }
 
 

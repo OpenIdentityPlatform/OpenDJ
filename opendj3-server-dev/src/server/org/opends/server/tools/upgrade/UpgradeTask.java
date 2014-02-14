@@ -21,12 +21,12 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS
+ *      Copyright 2013-2014 ForgeRock AS
  */
 
 package org.opends.server.tools.upgrade;
 
-import org.opends.server.tools.ClientException;
+import com.forgerock.opendj.cli.ClientException;
 
 /**
  * An upgrade task.

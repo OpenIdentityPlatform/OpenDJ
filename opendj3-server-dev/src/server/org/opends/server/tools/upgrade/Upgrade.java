@@ -46,7 +46,10 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import javax.security.auth.callback.ConfirmationCallback;
 
 import org.opends.server.core.LockFileManager;
-import org.opends.server.tools.ClientException;
+
+import com.forgerock.opendj.cli.ClientException;
+import com.forgerock.opendj.cli.ReturnCode;
+
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.StaticUtils;
 
@@ -452,7 +455,7 @@ public final class Upgrade
     {
       final LocalizableMessage message = INFO_UPGRADE_ABORTED_BY_USER.get();
       context.notify(message, WARNING);
-      throw new ClientException(EXIT_CODE_ERROR, message);
+      throw new ClientException(ReturnCode.ERROR_UNEXPECTED, message);
     }
 
     try
@@ -503,7 +506,7 @@ public final class Upgrade
     {
       final LocalizableMessage message = ERR_UPGRADE_TASKS_FAIL.get(e.getMessage());
       context.notify(message, ERROR_CALLBACK);
-      throw new ClientException(EXIT_CODE_ERROR, message);
+      throw new ClientException(ReturnCode.ERROR_UNEXPECTED, message);
     }
     finally
     {
@@ -576,7 +579,7 @@ public final class Upgrade
       {
         final LocalizableMessage message = ERR_UPGRADE_REQUIRES_SERVER_OFFLINE.get();
         context.notify(message, NOTICE_CALLBACK);
-        throw new ClientException(EXIT_CODE_ERROR, message);
+        throw new ClientException(ReturnCode.ERROR_UNEXPECTED, message);
       }
     }
     finally
@@ -605,7 +608,7 @@ public final class Upgrade
       final LocalizableMessage message =
           ERR_UPGRADE_VERSION_UP_TO_DATE.get(context.getToVersion());
       context.notify(message, NOTICE_CALLBACK);
-      throw new ClientException(EXIT_CODE_SUCCESS, message);
+      throw new ClientException(ReturnCode.SUCCESS, message);
     }
 
     // The upgrade only supports version >= 2.4.5.
@@ -614,7 +617,7 @@ public final class Upgrade
       final LocalizableMessage message = INFO_UPGRADE_VERSION_IS_NOT_SUPPORTED.get(
               UPGRADESUPPORTSVERSIONFROM, UPGRADESUPPORTSVERSIONFROM);
       context.notify(message, NOTICE_CALLBACK);
-      throw new ClientException(EXIT_CODE_ERROR, message);
+      throw new ClientException(ReturnCode.ERROR_UNEXPECTED, message);
     }
   }
 
@@ -648,7 +651,7 @@ public final class Upgrade
     {
       final LocalizableMessage message = LocalizableMessage.raw(e.getMessage());
       context.notify(message, ERROR_CALLBACK);
-      throw new ClientException(EXIT_CODE_ERROR, message);
+      throw new ClientException(ReturnCode.ERROR_UNEXPECTED, message);
     }
     finally
     {

@@ -57,7 +57,6 @@ import org.opends.quicksetup.util.PlainTextProgressMessageFormatter;
 import org.opends.quicksetup.util.ServerController;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
-import org.opends.server.tools.ClientException;
 import org.opends.server.tools.JavaPropertiesTool.ErrorReturnCode;
 import org.opends.server.tools.ToolConstants;
 import org.opends.server.tools.dsconfig.LDAPManagementContextFactory;
@@ -65,7 +64,7 @@ import org.opends.server.util.StaticUtils;
 import org.opends.server.util.cli.*;
 
 import com.forgerock.opendj.cli.ArgumentException;
-import com.forgerock.opendj.cli.CLIException;
+import com.forgerock.opendj.cli.ClientException;
 
 import static org.forgerock.util.Utils.*;
 import static org.opends.messages.AdminToolMessages.*;
@@ -364,7 +363,7 @@ public class UninstallCliHelper extends ConsoleApplication {
         throw new RuntimeException();
       }
     }
-    catch (CLIException ce)
+    catch (ClientException ce)
     {
       logger.warn(LocalizableMessage.raw("Error reading input: "+ce, ce));
       throw new UserDataException(null, ce.getMessageObject(), ce);
@@ -424,7 +423,7 @@ public class UninstallCliHelper extends ConsoleApplication {
             }
           }
         }
-        catch (CLIException ce)
+        catch (ClientException ce)
         {
           throw new UserDataException(null, ce.getMessageObject(), ce);
         }
@@ -572,7 +571,7 @@ public class UninstallCliHelper extends ConsoleApplication {
               cancelled = !confirmToStopServer();
             }
           }
-          catch (CLIException ce)
+          catch (ClientException ce)
           {
             throw new UserDataException(null, ce.getMessageObject(), ce);
           }
@@ -634,7 +633,7 @@ public class UninstallCliHelper extends ConsoleApplication {
               cancelled = !confirmDeleteFiles();
             }
           }
-          catch (CLIException ce)
+          catch (ClientException ce)
           {
             throw new UserDataException(null, ce.getMessageObject(), ce);
           }
@@ -688,7 +687,7 @@ public class UninstallCliHelper extends ConsoleApplication {
                 userData.getStopServer()));
           }
         }
-        catch (CLIException ce)
+        catch (ClientException ce)
         {
           throw new UserDataException(null, ce.getMessageObject(), ce);
         }
@@ -704,7 +703,7 @@ public class UninstallCliHelper extends ConsoleApplication {
           {
             cancelled = !confirmDeleteFiles();
           }
-          catch (CLIException ce)
+          catch (ClientException ce)
           {
             throw new UserDataException(null, ce.getMessageObject(), ce);
           }
@@ -719,9 +718,9 @@ public class UninstallCliHelper extends ConsoleApplication {
    *  Ask for confirmation to stop server.
    *  @return <CODE>true</CODE> if the user wants to continue and stop the
    *  server.  <CODE>false</CODE> otherwise.
-   *  @throws CLIException if the user reached the confirmation limit.
+   *  @throws ClientException if the user reached the confirmation limit.
    */
-  private boolean confirmToStopServer() throws CLIException
+  private boolean confirmToStopServer() throws ClientException
   {
     return askConfirmation(INFO_CLI_UNINSTALL_CONFIRM_STOP.get(), true, logger);
   }
@@ -730,9 +729,9 @@ public class UninstallCliHelper extends ConsoleApplication {
    *  Ask for confirmation to delete files.
    *  @return <CODE>true</CODE> if the user wants to continue and delete the
    *  files.  <CODE>false</CODE> otherwise.
-   *  @throws CLIException if the user reached the confirmation limit.
+   *  @throws ClientException if the user reached the confirmation limit.
    */
-  private boolean confirmDeleteFiles() throws CLIException
+  private boolean confirmDeleteFiles() throws ClientException
   {
     return askConfirmation(INFO_CLI_UNINSTALL_CONFIRM_DELETE_FILES.get(), true,
         logger);
@@ -742,9 +741,9 @@ public class UninstallCliHelper extends ConsoleApplication {
    *  Ask for confirmation to update configuration on remote servers.
    *  @return <CODE>true</CODE> if the user wants to continue and stop the
    *  server.  <CODE>false</CODE> otherwise.
-   *  @throws CLIException if the user reached the confirmation limit.
+   *  @throws ClientException if the user reached the confirmation limit.
    */
-  private boolean confirmToUpdateRemote() throws CLIException
+  private boolean confirmToUpdateRemote() throws ClientException
   {
     return askConfirmation(INFO_CLI_UNINSTALL_CONFIRM_UPDATE_REMOTE.get(), true,
         logger);
@@ -754,9 +753,9 @@ public class UninstallCliHelper extends ConsoleApplication {
    *  Ask for confirmation to update configuration on remote servers.
    *  @return <CODE>true</CODE> if the user wants to continue and stop the
    *  server.  <CODE>false</CODE> otherwise.
-   *  @throws CLIException if the user reached the confirmation limit.
+   *  @throws ClientException if the user reached the confirmation limit.
    */
-  private boolean confirmToUpdateRemoteAndStart() throws CLIException
+  private boolean confirmToUpdateRemoteAndStart() throws ClientException
   {
     return askConfirmation(
         INFO_CLI_UNINSTALL_CONFIRM_UPDATE_REMOTE_AND_START.get(), true, logger);
@@ -766,9 +765,9 @@ public class UninstallCliHelper extends ConsoleApplication {
    *  Ask for confirmation to provide again authentication.
    *  @return <CODE>true</CODE> if the user wants to provide authentication
    *  again.  <CODE>false</CODE> otherwise.
-   *  @throws CLIException if the user reached the confirmation limit.
+   *  @throws ClientException if the user reached the confirmation limit.
    */
-  private boolean promptToProvideAuthenticationAgain() throws CLIException
+  private boolean promptToProvideAuthenticationAgain() throws ClientException
   {
     return askConfirmation(
         INFO_UNINSTALL_CONFIRM_PROVIDE_AUTHENTICATION_AGAIN.get(), true, logger);
@@ -913,7 +912,7 @@ public class UninstallCliHelper extends ConsoleApplication {
             pwd = null;
           }
         }
-        catch (CLIException ce)
+        catch (ClientException ce)
         {
           throw new UserDataException(null, ce.getMessageObject(), ce);
         }
@@ -952,7 +951,7 @@ public class UninstallCliHelper extends ConsoleApplication {
       s = readInput(INFO_UNINSTALL_CLI_REFERENCED_HOSTNAME_PROMPT.get(),
           defaultHostName);
     }
-    catch (CLIException ce)
+    catch (ClientException ce)
     {
       logger.warn(LocalizableMessage.raw("Error reading input: %s", ce), ce);
     }
@@ -1262,7 +1261,7 @@ public class UninstallCliHelper extends ConsoleApplication {
               ERR_UNINSTALL_NOT_UPDATE_REMOTE_PROMPT.get(),
               false, logger);
         }
-        catch (CLIException ce)
+        catch (ClientException ce)
         {
           throw new UserDataException(null, ce.getMessageObject(), ce);
         }
@@ -1376,7 +1375,7 @@ public class UninstallCliHelper extends ConsoleApplication {
                 Utils.getMessageFromCollection(exceptionMsgs,
                   Constants.LINE_SEPARATOR)), true, logger);
         }
-        catch (CLIException ce)
+        catch (ClientException ce)
         {
           throw new UserDataException(null, ce.getMessageObject(), ce);
         }

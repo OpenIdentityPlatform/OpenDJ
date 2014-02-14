@@ -49,14 +49,15 @@ import org.opends.server.admin.client.ManagedObject;
 import org.opends.server.admin.client.ManagedObjectDecodingException;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.client.OperationRejectedException;
-import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.opends.server.tools.ClientException;
+
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.ReturnCode;
 import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.cli.SubCommand;
 import com.forgerock.opendj.cli.SubCommandArgumentParser;
-import com.forgerock.opendj.cli.CLIException;
+import com.forgerock.opendj.cli.ClientException;
+
 import org.opends.server.util.cli.ConsoleApplication;
 import org.opends.server.util.cli.MenuResult;
 import org.opends.server.util.table.TableBuilder;
@@ -225,7 +226,7 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
   @Override
   public MenuResult<Integer> run(ConsoleApplication app,
       ManagementContextFactory factory) throws ArgumentException,
-      ClientException, CLIException {
+      ClientException {
     // Get the naming argument values.
     List<String> names = getNamingArgValues(app, namingArgs);
 
@@ -241,21 +242,21 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
       result = getManagedObject(app, context, path, names);
     } catch (AuthorizationException e) {
       LocalizableMessage msg = ERR_DSCFG_ERROR_DELETE_AUTHZ.get(ufn);
-      throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS, msg);
+      throw new ClientException(ReturnCode.INSUFFICIENT_ACCESS_RIGHTS, msg);
     } catch (DefinitionDecodingException e) {
       LocalizableMessage pufn = path.getManagedObjectDefinition().getUserFriendlyName();
       LocalizableMessage msg = ERR_DSCFG_ERROR_GET_PARENT_DDE.get(pufn, pufn, pufn);
-      throw new ClientException(LDAPResultCode.OTHER, msg);
+      throw new ClientException(ReturnCode.OTHER, msg);
     } catch (ManagedObjectDecodingException e) {
       LocalizableMessage pufn = path.getManagedObjectDefinition().getUserFriendlyName();
       LocalizableMessage msg = ERR_DSCFG_ERROR_GET_PARENT_MODE.get(pufn);
-      throw new ClientException(LDAPResultCode.OTHER, msg, e);
+      throw new ClientException(ReturnCode.OTHER, msg, e);
     } catch (CommunicationException e) {
       LocalizableMessage msg = ERR_DSCFG_ERROR_DELETE_CE.get(ufn, e.getMessage());
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msg);
+      throw new ClientException(ReturnCode.CLIENT_SIDE_SERVER_DOWN, msg);
     } catch (ConcurrentModificationException e) {
       LocalizableMessage msg = ERR_DSCFG_ERROR_DELETE_CME.get(ufn);
-      throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msg);
+      throw new ClientException(ReturnCode.CONSTRAINT_VIOLATION, msg);
     } catch (ManagedObjectNotFoundException e) {
       // Ignore the error if the deletion is being forced.
       if (!forceArgument.isPresent()) {
@@ -266,7 +267,7 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
           app.printVerboseMessage(msg);
           return MenuResult.cancel();
         } else {
-          throw new ClientException(LDAPResultCode.NO_SUCH_OBJECT, msg);
+          throw new ClientException(ReturnCode.NO_SUCH_OBJECT, msg);
         }
       } else {
         return MenuResult.success(0);
@@ -351,7 +352,7 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
       }
     } catch (AuthorizationException e) {
       LocalizableMessage msg = ERR_DSCFG_ERROR_DELETE_AUTHZ.get(ufn);
-      throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS, msg);
+      throw new ClientException(ReturnCode.INSUFFICIENT_ACCESS_RIGHTS, msg);
     } catch (OperationRejectedException e) {
       LocalizableMessage msg;
       if (e.getMessages().size() == 1) {
@@ -378,21 +379,21 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
         builder.print(printer);
         return MenuResult.cancel();
       } else {
-        throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION,
+        throw new ClientException(ReturnCode.CONSTRAINT_VIOLATION,
             msg, e);
       }
     } catch (ManagedObjectNotFoundException e) {
       // Ignore the error if the deletion is being forced.
       if (!forceArgument.isPresent()) {
         LocalizableMessage msg = ERR_DSCFG_ERROR_DELETE_MONFE.get(ufn);
-        throw new ClientException(LDAPResultCode.NO_SUCH_OBJECT, msg);
+        throw new ClientException(ReturnCode.NO_SUCH_OBJECT, msg);
       }
     } catch (ConcurrentModificationException e) {
       LocalizableMessage msg = ERR_DSCFG_ERROR_DELETE_CME.get(ufn);
-      throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msg);
+      throw new ClientException(ReturnCode.CONSTRAINT_VIOLATION, msg);
     } catch (CommunicationException e) {
       LocalizableMessage msg = ERR_DSCFG_ERROR_DELETE_CE.get(ufn, e.getMessage());
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msg);
+      throw new ClientException(ReturnCode.CLIENT_SIDE_SERVER_DOWN, msg);
     }
 
     // Add the naming arguments if they were provided.
@@ -414,7 +415,7 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
 
 
   // Confirm deletion.
-  private boolean confirmDeletion(ConsoleApplication app) throws CLIException {
+  private boolean confirmDeletion(ConsoleApplication app) throws ClientException {
     if (app.isInteractive()) {
       LocalizableMessage prompt = INFO_DSCFG_CONFIRM_DELETE.get(relation
           .getUserFriendlyName());

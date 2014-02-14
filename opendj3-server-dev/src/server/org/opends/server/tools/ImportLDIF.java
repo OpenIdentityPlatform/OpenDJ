@@ -83,7 +83,7 @@ import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.StringArgument;
-import com.forgerock.opendj.cli.CLIException;
+import com.forgerock.opendj.cli.ClientException;
 
 
 
@@ -431,7 +431,7 @@ public class ImportLDIF extends TaskTool {
       err.println(argParser.getUsage());
       return 1;
     }
-    catch (CLIException ce)
+    catch (ClientException ce)
     {
       // No need to display the usage since the problem comes with a provided
       // value.

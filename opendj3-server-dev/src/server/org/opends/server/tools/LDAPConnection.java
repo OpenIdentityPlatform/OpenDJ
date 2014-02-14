@@ -54,6 +54,7 @@ import org.opends.server.types.Control;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.LDAPException;
 
+import com.forgerock.opendj.cli.ClientException;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
@@ -453,7 +454,7 @@ public class LDAPConnection
     } catch(ClientException ce)
     {
       logger.traceException(ce);
-      throw new LDAPConnectionException(ce.getMessageObject(), ce.getExitCode(),
+      throw new LDAPConnectionException(ce.getMessageObject(), ce.getReturnCode(),
                                         null, ce);
     } catch (LDAPException le) {
         throw new LDAPConnectionException(le.getMessageObject(),

@@ -31,7 +31,7 @@ import com.forgerock.opendj.cli.ArgumentGroup;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.StringArgument;
-import com.forgerock.opendj.cli.CLIException;
+import com.forgerock.opendj.cli.ClientException;
 
 import static org.opends.server.util.StaticUtils.wrapText;
 import static org.opends.server.util.StaticUtils.getExceptionMessage;
@@ -175,10 +175,10 @@ public abstract class TaskTool implements TaskScheduleInformation {
    * been called.
    *
    * @throws ArgumentException if there is a problem with the arguments.
-   * @throws CLIException if there is a problem with one of the values provided
+   * @throws ClientException if there is a problem with one of the values provided
    * by the user.
    */
-  protected void validateTaskArgs() throws ArgumentException, CLIException
+  protected void validateTaskArgs() throws ArgumentException, ClientException
   {
     if (processAsTask())
     {

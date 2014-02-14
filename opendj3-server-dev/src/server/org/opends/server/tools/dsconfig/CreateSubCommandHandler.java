@@ -77,15 +77,16 @@ import org.opends.server.admin.client.MissingMandatoryPropertiesException;
 import org.opends.server.admin.client.OperationRejectedException;
 import org.opends.server.admin.condition.Condition;
 import org.opends.server.admin.condition.ContainsCondition;
-import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.opends.server.tools.ClientException;
 import org.opends.server.tools.ToolConstants;
+
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
+import com.forgerock.opendj.cli.ReturnCode;
 import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.cli.SubCommand;
 import com.forgerock.opendj.cli.SubCommandArgumentParser;
-import com.forgerock.opendj.cli.CLIException;
+import com.forgerock.opendj.cli.ClientException;
+
 import org.opends.server.util.cli.ConsoleApplication;
 import org.opends.server.util.cli.HelpCallback;
 import org.opends.server.util.cli.MenuBuilder;
@@ -473,15 +474,12 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
    * @throws ClientException
    *           If an unrecoverable client exception occurred whilst
    *           interacting with the server.
-   * @throws CLIException
-   *           If an error occurred whilst interacting with the
-   *           console.
    */
   public static <C extends ConfigurationClient, S extends Configuration>
       MenuResult<String> createManagedObject(
       ConsoleApplication app, ManagementContext context,
       ManagedObject<?> parent, InstantiableRelationDefinition<C, S> rd)
-      throws ClientException, CLIException {
+      throws ClientException {
     return createManagedObject(app, context, parent, rd, null);
   }
 
@@ -512,7 +510,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
    * @throws ClientException
    *           If an unrecoverable client exception occurred whilst
    *           interacting with the server.
-   * @throws CLIException
+   * @throws ClientException
    *           If an error occurred whilst interacting with the
    *           console.
    */
@@ -521,7 +519,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
       ConsoleApplication app, ManagementContext context,
       ManagedObject<?> parent, InstantiableRelationDefinition<C, S> rd,
       SubCommandHandler handler)
-      throws ClientException, CLIException {
+      throws ClientException {
     AbstractManagedObjectDefinition<C, S> d = rd.getChildDefinition();
 
     // First determine what type of component the user wants to create.
@@ -562,9 +560,9 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
   // Check that any referenced components are enabled if
   // required.
   private static MenuResult<Void> checkReferences(ConsoleApplication app,
-      ManagementContext context, ManagedObject<?> mo,
-      SubCommandHandler handler) throws ClientException,
-      CLIException {
+      ManagementContext context, ManagedObject<?> mo, SubCommandHandler handler)
+      throws ClientException, ClientException
+  {
     ManagedObjectDefinition<?, ?> d = mo.getManagedObjectDefinition();
     LocalizableMessage ufn = d.getUserFriendlyName();
 
@@ -590,16 +588,16 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
               ref = context.getManagedObject(path);
             } catch (DefinitionDecodingException e) {
               LocalizableMessage msg = ERR_DSCFG_ERROR_GET_CHILD_DDE.get(rufn, rufn, rufn);
-              throw new ClientException(LDAPResultCode.OTHER, msg);
+              throw new ClientException(ReturnCode.OTHER, msg);
             } catch (ManagedObjectDecodingException e) {
               // FIXME: should not abort here. Instead, display the
               // errors (if verbose) and apply the changes to the
               // partial managed object.
               LocalizableMessage msg = ERR_DSCFG_ERROR_GET_CHILD_MODE.get(rufn);
-              throw new ClientException(LDAPResultCode.OTHER, msg, e);
+              throw new ClientException(ReturnCode.OTHER, msg, e);
             } catch (ManagedObjectNotFoundException e) {
               LocalizableMessage msg = ERR_DSCFG_ERROR_GET_CHILD_MONFE.get(rufn);
-              throw new ClientException(LDAPResultCode.NO_SUCH_OBJECT, msg);
+              throw new ClientException(ReturnCode.NO_SUCH_OBJECT, msg);
             }
 
             Condition condition = apd.getTargetIsEnabledCondition();
@@ -637,7 +635,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
                   } catch (ConcurrentModificationException e) {
                     LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_CME.get(ufn);
                     throw new ClientException(
-                        LDAPResultCode.CONSTRAINT_VIOLATION, msg);
+                        ReturnCode.CONSTRAINT_VIOLATION, msg);
                   } catch (OperationRejectedException e) {
                     // Give the user the chance to fix the problems.
                     app.println();
@@ -697,10 +695,10 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
       }
     } catch (AuthorizationException e) {
       LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_AUTHZ.get(ufn);
-      throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS, msg);
+      throw new ClientException(ReturnCode.INSUFFICIENT_ACCESS_RIGHTS, msg);
     } catch (CommunicationException e) {
       LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_CE.get(ufn, e.getMessage());
-      throw new ClientException(LDAPResultCode.OTHER, msg);
+      throw new ClientException(ReturnCode.OTHER, msg);
     }
 
     return MenuResult.success();
@@ -711,8 +709,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
   // Commit a new managed object's configuration.
   private static MenuResult<Void> commitManagedObject(ConsoleApplication app,
       ManagementContext context, ManagedObject<?> mo, SubCommandHandler handler)
-      throws ClientException,
-      CLIException {
+      throws ClientException {
     ManagedObjectDefinition<?, ?> d = mo.getManagedObjectDefinition();
     LocalizableMessage ufn = d.getUserFriendlyName();
 
@@ -792,16 +789,16 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
             return MenuResult.cancel();
           }
         } else {
-          throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, e
+          throw new ClientException(ReturnCode.CONSTRAINT_VIOLATION, e
               .getMessageObject(), e);
         }
       } catch (AuthorizationException e) {
         LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_AUTHZ.get(ufn);
-        throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS,
+        throw new ClientException(ReturnCode.INSUFFICIENT_ACCESS_RIGHTS,
             msg);
       } catch (ConcurrentModificationException e) {
         LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_CME.get(ufn);
-        throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msg);
+        throw new ClientException(ReturnCode.CONSTRAINT_VIOLATION, msg);
       } catch (OperationRejectedException e) {
         if (app.isInteractive()) {
           // If interactive, give the user the chance to fix the
@@ -813,7 +810,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
             return MenuResult.cancel();
           }
         } else {
-          throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, e
+          throw new ClientException(ReturnCode.CONSTRAINT_VIOLATION, e
               .getMessageObject(), e);
         }
       } catch (CommunicationException e) {
@@ -823,7 +820,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
           app.printVerboseMessage(msg);
           return MenuResult.cancel();
         } else {
-          throw new ClientException(LDAPResultCode.OTHER, msg);
+          throw new ClientException(ReturnCode.OTHER, msg);
         }
       } catch (ManagedObjectAlreadyExistsException e) {
         LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_MOAEE.get(ufn);
@@ -832,7 +829,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
           app.printVerboseMessage(msg);
           return MenuResult.cancel();
         } else {
-          throw new ClientException(LDAPResultCode.ENTRY_ALREADY_EXISTS, msg);
+          throw new ClientException(ReturnCode.ENTRY_ALREADY_EXISTS, msg);
         }
       }
     }
@@ -846,12 +843,12 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
       ConsoleApplication app, final ManagedObject<?> parent,
       final InstantiableRelationDefinition<C, S> irelation,
       final ManagedObjectDefinition<? extends C, ? extends S> d,
-      final List<PropertyException> exceptions) throws CLIException {
+      final List<PropertyException> exceptions) throws ClientException {
     ValidationCallback<ManagedObject<? extends C>> validator =
       new ValidationCallback<ManagedObject<? extends C>>() {
 
       public ManagedObject<? extends C> validate(ConsoleApplication app,
-          String input) throws CLIException {
+          String input) throws ClientException {
         ManagedObject<? extends C> child;
 
         // First attempt to create the child, this will guarantee that
@@ -859,7 +856,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
         try {
           child = parent.createChild(irelation, d, input, exceptions);
         } catch (IllegalManagedObjectNameException e) {
-          CLIException ae = ArgumentExceptionFactory
+          ClientException ae = ArgumentExceptionFactory
               .adaptIllegalManagedObjectNameException(e, d);
           app.println();
           app.println(ae.getMessageObject());
@@ -875,15 +872,15 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
         } catch (AuthorizationException e) {
           LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_AUTHZ.get(irelation
               .getUserFriendlyName());
-          throw new CLIException(msg);
+          throw new ClientException(ReturnCode.ERROR_USER_DATA, msg);
         } catch (ConcurrentModificationException e) {
           LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_CME.get(irelation
               .getUserFriendlyName());
-          throw new CLIException(msg);
+          throw new ClientException(ReturnCode.TODO, msg);
         } catch (CommunicationException e) {
           LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_CE.get(irelation
               .getUserFriendlyName(), e.getMessage());
-          throw new CLIException(msg);
+          throw new ClientException(ReturnCode.TODO, msg);
         } catch (DefinitionDecodingException e) {
           // Do nothing.
         } catch (ManagedObjectDecodingException e) {
@@ -949,7 +946,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
       MenuResult<ManagedObjectDefinition<? extends C, ? extends S>>
       getTypeInteractively(ConsoleApplication app,
           AbstractManagedObjectDefinition<C, S> d,
-          Set<String> prohibitedTypes) throws CLIException {
+          Set<String> prohibitedTypes) throws ClientException {
     // First get the list of available of sub-types.
     List<ManagedObjectDefinition<? extends C, ? extends S>> filteredTypes =
       new LinkedList<ManagedObjectDefinition<? extends C,? extends S>>(
@@ -1153,7 +1150,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
   @Override
   public MenuResult<Integer> run(ConsoleApplication app,
       ManagementContextFactory factory) throws ArgumentException,
-      ClientException, CLIException {
+      ClientException {
     LocalizableMessage ufn = relation.getUserFriendlyName();
 
     // Get the naming argument values.
@@ -1173,22 +1170,22 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
       result = getManagedObject(app, context, path, names);
     } catch (AuthorizationException e) {
       LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_AUTHZ.get(ufn);
-      throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS, msg);
+      throw new ClientException(ReturnCode.INSUFFICIENT_ACCESS_RIGHTS, msg);
     } catch (DefinitionDecodingException e) {
       LocalizableMessage pufn = path.getManagedObjectDefinition().getUserFriendlyName();
       LocalizableMessage msg = ERR_DSCFG_ERROR_GET_PARENT_DDE.get(pufn, pufn, pufn);
-      throw new ClientException(LDAPResultCode.OTHER, msg);
+      throw new ClientException(ReturnCode.OTHER, msg);
     } catch (ManagedObjectDecodingException e) {
       LocalizableMessage pufn = path.getManagedObjectDefinition().getUserFriendlyName();
       LocalizableMessage msg = ERR_DSCFG_ERROR_GET_PARENT_MODE.get(pufn);
-      throw new ClientException(LDAPResultCode.OTHER, msg, e);
+      throw new ClientException(ReturnCode.OTHER, msg, e);
     } catch (CommunicationException e) {
       LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_CE.get(ufn, e
           .getMessage());
-      throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msg);
+      throw new ClientException(ReturnCode.CLIENT_SIDE_SERVER_DOWN, msg);
     } catch (ConcurrentModificationException e) {
       LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_CME.get(ufn);
-      throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msg);
+      throw new ClientException(ReturnCode.CONSTRAINT_VIOLATION, msg);
     } catch (ManagedObjectNotFoundException e) {
       LocalizableMessage pufn = path.getManagedObjectDefinition().getUserFriendlyName();
       LocalizableMessage msg = ERR_DSCFG_ERROR_GET_PARENT_MONFE.get(pufn);
@@ -1197,7 +1194,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
         app.printVerboseMessage(msg);
         return MenuResult.cancel();
       } else {
-        throw new ClientException(LDAPResultCode.NO_SUCH_OBJECT, msg);
+        throw new ClientException(ReturnCode.NO_SUCH_OBJECT, msg);
       }
     }
 
@@ -1231,19 +1228,19 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
       catch (AuthorizationException e)
       {
         LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_AUTHZ.get(ufn);
-        throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS,
+        throw new ClientException(ReturnCode.INSUFFICIENT_ACCESS_RIGHTS,
             msg);
       }
       catch (ConcurrentModificationException e)
       {
         LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_CME.get(ufn);
-        throw new ClientException(LDAPResultCode.CONSTRAINT_VIOLATION, msg);
+        throw new ClientException(ReturnCode.CONSTRAINT_VIOLATION, msg);
       }
       catch (CommunicationException e)
       {
         LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_CE.get(ufn, e
             .getMessage());
-        throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN, msg);
+        throw new ClientException(ReturnCode.CLIENT_SIDE_SERVER_DOWN, msg);
       }
     } else {
       // No prohibited types.

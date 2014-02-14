@@ -29,7 +29,6 @@ package org.opends.server.tools.upgrade;
 
 
 import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.tools.upgrade.Upgrade.EXIT_CODE_ERROR;
 
 import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.CallbackHandler;
@@ -37,7 +36,10 @@ import javax.security.auth.callback.ConfirmationCallback;
 import javax.security.auth.callback.TextOutputCallback;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.tools.ClientException;
+
+import com.forgerock.opendj.cli.ClientException;
+import com.forgerock.opendj.cli.ReturnCode;
+
 import org.opends.server.types.InitializationException;
 import org.opends.server.util.BuildVersion;
 
@@ -286,7 +288,7 @@ public final class UpgradeContext
     }
     catch (final Exception e)
     {
-      throw new ClientException(EXIT_CODE_ERROR,
+      throw new ClientException(ReturnCode.ERROR_UNEXPECTED,
           ERR_UPGRADE_DISPLAY_NOTIFICATION_ERROR.get(e.getMessage()));
     }
   }
@@ -313,7 +315,7 @@ public final class UpgradeContext
     }
     catch (final Exception e)
     {
-      throw new ClientException(EXIT_CODE_ERROR,
+      throw new ClientException(ReturnCode.ERROR_UNEXPECTED,
           ERR_UPGRADE_DISPLAY_NOTIFICATION_ERROR.get(e.getMessage()));
     }
   }
@@ -337,7 +339,7 @@ public final class UpgradeContext
     }
     catch (final Exception e)
     {
-      throw new ClientException(EXIT_CODE_ERROR,
+      throw new ClientException(ReturnCode.ERROR_UNEXPECTED,
           ERR_UPGRADE_DISPLAY_NOTIFICATION_ERROR.get(e.getMessage()));
     }
   }
@@ -367,7 +369,7 @@ public final class UpgradeContext
     }
     catch (final Exception e)
     {
-      throw new ClientException(EXIT_CODE_ERROR,
+      throw new ClientException(ReturnCode.ERROR_UNEXPECTED,
           ERR_UPGRADE_DISPLAY_CONFIRM_ERROR.get(e.getMessage()));
     }
     return confirmYNCallback.getSelectedIndex();

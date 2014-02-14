@@ -26,7 +26,7 @@
  */
 package org.opends.server.util.cli;
 
-import com.forgerock.opendj.cli.CLIException;
+import com.forgerock.opendj.cli.ClientException;
 
 
 /**
@@ -46,8 +46,8 @@ public interface MenuCallback<T> {
    * @param app
    *          The application console.
    * @return Returns the result of invoking the menu call-back.
-   * @throws CLIException
+   * @throws ClientException
    *           If the menu call-back fails for some reason.
    */
-  MenuResult<T> invoke(ConsoleApplication app) throws CLIException;
+  MenuResult<T> invoke(ConsoleApplication app) throws ClientException;
 }

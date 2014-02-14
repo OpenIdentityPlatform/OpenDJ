@@ -69,10 +69,11 @@ import org.opends.server.admin.client.CommunicationException;
 import org.opends.server.admin.client.ManagedObject;
 import org.opends.server.admin.client.ManagedObjectDecodingException;
 import org.opends.server.admin.client.ManagementContext;
-import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.opends.server.tools.ClientException;
 import org.forgerock.util.Reject;
-import com.forgerock.opendj.cli.CLIException;
+
+import com.forgerock.opendj.cli.ClientException;
+import com.forgerock.opendj.cli.ReturnCode;
+
 import org.opends.server.util.cli.HelpCallback;
 import org.opends.server.util.cli.Menu;
 import org.opends.server.util.cli.MenuBuilder;
@@ -114,7 +115,7 @@ final class PropertyValueEditor {
      * {@inheritDoc}
      */
     public MenuResult<String> invoke(ConsoleApplication app)
-        throws CLIException {
+        throws ClientException {
       try {
         // First get the parent managed object.
         InstantiableRelationDefinition<?, ?> rd = pd.getRelationDefinition();
@@ -126,21 +127,21 @@ final class PropertyValueEditor {
           parent = context.getManagedObject(path);
         } catch (AuthorizationException e) {
           LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_AUTHZ.get(ufn);
-          throw new ClientException(LDAPResultCode.INSUFFICIENT_ACCESS_RIGHTS,
+          throw new ClientException(ReturnCode.INSUFFICIENT_ACCESS_RIGHTS,
               msg);
         } catch (DefinitionDecodingException e) {
           LocalizableMessage pufn = path.getManagedObjectDefinition()
               .getUserFriendlyName();
           LocalizableMessage msg = ERR_DSCFG_ERROR_GET_PARENT_DDE.get(pufn, pufn, pufn);
-          throw new ClientException(LDAPResultCode.OTHER, msg);
+          throw new ClientException(ReturnCode.OTHER, msg);
         } catch (ManagedObjectDecodingException e) {
           LocalizableMessage pufn = path.getManagedObjectDefinition()
               .getUserFriendlyName();
           LocalizableMessage msg = ERR_DSCFG_ERROR_GET_PARENT_MODE.get(pufn);
-          throw new ClientException(LDAPResultCode.OTHER, msg, e);
+          throw new ClientException(ReturnCode.OTHER, msg, e);
         } catch (CommunicationException e) {
           LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_CE.get(ufn, e.getMessage());
-          throw new ClientException(LDAPResultCode.CLIENT_SIDE_SERVER_DOWN,
+          throw new ClientException(ReturnCode.CLIENT_SIDE_SERVER_DOWN,
               msg);
         } catch (ManagedObjectNotFoundException e) {
           LocalizableMessage pufn = path.getManagedObjectDefinition()
@@ -151,7 +152,7 @@ final class PropertyValueEditor {
             app.printVerboseMessage(msg);
             return MenuResult.cancel();
           } else {
-            throw new ClientException(LDAPResultCode.NO_SUCH_OBJECT, msg);
+            throw new ClientException(ReturnCode.NO_SUCH_OBJECT, msg);
           }
         }
 
@@ -421,7 +422,7 @@ final class PropertyValueEditor {
       MenuCallback<Void> {
 
     // Any exception that was caught during processing.
-    private CLIException e = null;
+    private ClientException e = null;
 
     // The managed object being edited.
     private final ManagedObject<?> mo;
@@ -444,7 +445,7 @@ final class PropertyValueEditor {
      * {@inheritDoc}
      */
     public MenuResult<Void> invoke(ConsoleApplication app)
-        throws CLIException {
+        throws ClientException {
       displayPropertyHeader(app, pd);
 
       MenuResult<Void> result = pd.accept(this, null);
@@ -484,13 +485,13 @@ final class PropertyValueEditor {
       try {
         values.addAll(Arrays.asList(context.listManagedObjects(path, rd)));
       } catch (AuthorizationException e) {
-        this.e = new CLIException(e.getMessageObject());
+        this.e = new ClientException(ReturnCode.TODO, e.getMessageObject());
         return MenuResult.quit();
       } catch (ManagedObjectNotFoundException e) {
-        this.e = new CLIException(e.getMessageObject());
+        this.e = new ClientException(ReturnCode.TODO, e.getMessageObject());
         return MenuResult.cancel();
       } catch (CommunicationException e) {
-        this.e = new CLIException(e.getMessageObject());
+        this.e = new ClientException(ReturnCode.TODO, e.getMessageObject());
         return MenuResult.quit();
       }
 
@@ -528,7 +529,7 @@ final class PropertyValueEditor {
               oldValues);
           return MenuResult.success();
         }
-      } catch (CLIException e) {
+      } catch (ClientException e) {
         this.e = e;
         return MenuResult.cancel();
       }
@@ -577,7 +578,7 @@ final class PropertyValueEditor {
               oldValues);
           return MenuResult.success();
         }
-      } catch (CLIException e) {
+      } catch (ClientException e) {
         this.e = e;
         return MenuResult.cancel();
       }
@@ -634,7 +635,7 @@ final class PropertyValueEditor {
           registerModification(d, new TreeSet<E>(newValues), oldValues);
           return MenuResult.success();
         }
-      } catch (CLIException e) {
+      } catch (ClientException e) {
         this.e = e;
         return MenuResult.cancel();
       }
@@ -660,7 +661,7 @@ final class PropertyValueEditor {
         isLastChoiceReset = false;
         registerModification(d, values, oldValues);
         return MenuResult.success();
-      } catch (CLIException e) {
+      } catch (ClientException e) {
         this.e = e;
         return MenuResult.cancel();
       }
@@ -678,7 +679,7 @@ final class PropertyValueEditor {
       implements MenuCallback<Boolean> {
 
     // Any exception that was caught during processing.
-    private CLIException e = null;
+    private ClientException e = null;
 
     // The managed object being edited.
     private final ManagedObject<?> mo;
@@ -703,7 +704,7 @@ final class PropertyValueEditor {
      * {@inheritDoc}
      */
     public MenuResult<Boolean> invoke(ConsoleApplication app)
-        throws CLIException {
+        throws ClientException {
       displayPropertyHeader(app, pd);
 
       MenuResult<Boolean> result = pd.accept(this, null);
@@ -753,13 +754,13 @@ final class PropertyValueEditor {
         try {
           values.addAll(Arrays.asList(context.listManagedObjects(path, rd)));
         } catch (AuthorizationException e) {
-          this.e = new CLIException(e.getMessageObject());
+          this.e = new ClientException(ReturnCode.TODO, e.getMessageObject());
           return MenuResult.quit();
         } catch (ManagedObjectNotFoundException e) {
-          this.e = new CLIException(e.getMessageObject());
+          this.e = new ClientException(ReturnCode.TODO, e.getMessageObject());
           return MenuResult.cancel();
         } catch (CommunicationException e) {
-          this.e = new CLIException(e.getMessageObject());
+          this.e = new ClientException(ReturnCode.TODO, e.getMessageObject());
           return MenuResult.quit();
         }
 
@@ -770,7 +771,7 @@ final class PropertyValueEditor {
           addCallback = new MenuCallback<Boolean>() {
 
             public MenuResult<Boolean> invoke(ConsoleApplication app)
-                throws CLIException {
+                throws ClientException {
               MenuBuilder<String> builder = new MenuBuilder<String>(app);
 
               builder.setPrompt(INFO_EDITOR_PROMPT_SELECT_COMPONENTS_ADD
@@ -832,7 +833,7 @@ final class PropertyValueEditor {
         MenuCallback<Boolean> removeCallback = new MenuCallback<Boolean>() {
 
           public MenuResult<Boolean> invoke(ConsoleApplication app)
-              throws CLIException {
+              throws ClientException {
             MenuBuilder<String> builder = new MenuBuilder<String>(app);
 
             builder.setPrompt(INFO_EDITOR_PROMPT_SELECT_COMPONENTS_REMOVE
@@ -923,7 +924,7 @@ final class PropertyValueEditor {
           addCallback = new MenuCallback<Boolean>() {
 
             public MenuResult<Boolean> invoke(ConsoleApplication app)
-                throws CLIException {
+                throws ClientException {
               MenuBuilder<T> builder = new MenuBuilder<T>(app);
 
               builder.setPrompt(INFO_EDITOR_PROMPT_SELECT_VALUES_ADD.get());
@@ -979,7 +980,7 @@ final class PropertyValueEditor {
         MenuCallback<Boolean> removeCallback = new MenuCallback<Boolean>() {
 
           public MenuResult<Boolean> invoke(ConsoleApplication app)
-              throws CLIException {
+              throws ClientException {
             MenuBuilder<T> builder = new MenuBuilder<T>(app);
 
             builder.setPrompt(INFO_EDITOR_PROMPT_SELECT_VALUES_REMOVE.get());
@@ -1066,7 +1067,7 @@ final class PropertyValueEditor {
         MenuCallback<Boolean> addCallback = new MenuCallback<Boolean>() {
 
           public MenuResult<Boolean> invoke(ConsoleApplication app)
-              throws CLIException {
+              throws ClientException {
             app.println();
             SortedSet<T> previousValues = new TreeSet<T>(currentValues);
             readPropertyValues(app, mo.getManagedObjectDefinition(), d,
@@ -1083,7 +1084,7 @@ final class PropertyValueEditor {
         MenuCallback<Boolean> removeCallback = new MenuCallback<Boolean>() {
 
           public MenuResult<Boolean> invoke(ConsoleApplication app)
-              throws CLIException {
+              throws ClientException {
             MenuBuilder<T> builder = new MenuBuilder<T>(app);
 
             builder.setPrompt(INFO_EDITOR_PROMPT_SELECT_VALUES_REMOVE.get());
@@ -1341,7 +1342,7 @@ final class PropertyValueEditor {
           MenuCallback<Boolean> callback = new MenuCallback<Boolean>() {
 
             public MenuResult<Boolean> invoke(ConsoleApplication app)
-                throws CLIException {
+                throws ClientException {
               isLastChoiceReset = false;
               currentValues.clear();
               app.println();
@@ -1360,7 +1361,7 @@ final class PropertyValueEditor {
         MenuCallback<Boolean> callback = new MenuCallback<Boolean>() {
 
           public MenuResult<Boolean> invoke(ConsoleApplication app)
-              throws CLIException {
+              throws ClientException {
             currentValues.clear();
             currentValues.addAll(defaultValues);
             isLastChoiceReset = true;
@@ -1379,7 +1380,7 @@ final class PropertyValueEditor {
         MenuCallback<Boolean> callback = new MenuCallback<Boolean>() {
 
           public MenuResult<Boolean> invoke(ConsoleApplication app)
-              throws CLIException {
+              throws ClientException {
             currentValues.clear();
             currentValues.addAll(oldValues);
             isLastChoiceReset = false;
@@ -1403,7 +1404,7 @@ final class PropertyValueEditor {
       try {
         app.println();
         result = menu.run();
-      } catch (CLIException e) {
+      } catch (ClientException e) {
         this.e = e;
         return null;
       }
@@ -1480,7 +1481,7 @@ final class PropertyValueEditor {
       MenuCallback<Boolean> {
 
     // Any exception that was caught during processing.
-    private CLIException e = null;
+    private ClientException e = null;
 
     // The managed object being edited.
     private final ManagedObject<?> mo;
@@ -1503,7 +1504,7 @@ final class PropertyValueEditor {
      * {@inheritDoc}
      */
     public MenuResult<Boolean> invoke(ConsoleApplication app)
-        throws CLIException {
+        throws ClientException {
       MenuResult<Boolean> result = pd.accept(this, null);
       if (e != null) {
         throw e;
@@ -1554,7 +1555,7 @@ final class PropertyValueEditor {
       boolean result;
       try {
         result = app.confirmAction(INFO_EDITOR_PROMPT_READ_ONLY.get(), false);
-      } catch (CLIException e) {
+      } catch (ClientException e) {
         this.e = e;
         return null;
       }
@@ -1581,7 +1582,7 @@ final class PropertyValueEditor {
       implements MenuCallback<Boolean> {
 
     // Any exception that was caught during processing.
-    private CLIException e = null;
+    private ClientException e = null;
 
     // The managed object being edited.
     private final ManagedObject<?> mo;
@@ -1606,7 +1607,7 @@ final class PropertyValueEditor {
      * {@inheritDoc}
      */
     public MenuResult<Boolean> invoke(ConsoleApplication app)
-        throws CLIException {
+        throws ClientException {
       displayPropertyHeader(app, pd);
 
       MenuResult<Boolean> result = pd.accept(this, null);
@@ -1651,13 +1652,13 @@ final class PropertyValueEditor {
       try {
         values.addAll(Arrays.asList(context.listManagedObjects(path, rd)));
       } catch (AuthorizationException e) {
-        this.e = new CLIException(e.getMessageObject());
+        this.e = new ClientException(ReturnCode.TODO, e.getMessageObject());
         return MenuResult.quit();
       } catch (ManagedObjectNotFoundException e) {
-        this.e = new CLIException(e.getMessageObject());
+        this.e = new ClientException(ReturnCode.TODO, e.getMessageObject());
         return MenuResult.cancel();
       } catch (CommunicationException e) {
-        this.e = new CLIException(e.getMessageObject());
+        this.e = new ClientException(ReturnCode.TODO, e.getMessageObject());
         return MenuResult.quit();
       }
 
@@ -1836,7 +1837,7 @@ final class PropertyValueEditor {
           new MenuCallback<T>() {
 
             public MenuResult<T> invoke(ConsoleApplication app)
-                throws CLIException {
+                throws ClientException {
               app.println();
               Set<T> values = readPropertyValues(app, mo
                   .getManagedObjectDefinition(), d);
@@ -1958,7 +1959,7 @@ final class PropertyValueEditor {
       try {
         app.println();
         result = menu.run();
-      } catch (CLIException e) {
+      } catch (ClientException e) {
         this.e = e;
         return null;
       }
@@ -2121,7 +2122,7 @@ final class PropertyValueEditor {
   // Read new values for a property.
   private static <T> SortedSet<T> readPropertyValues(ConsoleApplication app,
       ManagedObjectDefinition<?, ?> d, PropertyDefinition<T> pd)
-      throws CLIException {
+      throws ClientException {
     SortedSet<T> values = new TreeSet<T>(pd);
     readPropertyValues(app, d, pd, values);
     return values;
@@ -2132,7 +2133,7 @@ final class PropertyValueEditor {
   // Add values to a property.
   private static <T> void readPropertyValues(ConsoleApplication app,
       ManagedObjectDefinition<?, ?> d, PropertyDefinition<T> pd,
-      SortedSet<T> values) throws CLIException {
+      SortedSet<T> values) throws ClientException {
     // Make sure there is at least one value if mandatory and empty.
     if (values.isEmpty()) {
       while (true) {
@@ -2260,13 +2261,13 @@ final class PropertyValueEditor {
    *         {@code MenuResult.cancel()} if the user to chose to
    *         cancel any changes, or {@code MenuResult.quit()} if the
    *         user chose to quit the application.
-   * @throws CLIException
+   * @throws ClientException
    *           If the user input could not be retrieved for some
    *           reason.
    */
   public MenuResult<Void> edit(ManagedObject<?> mo,
       Collection<PropertyDefinition<?>> c, boolean isCreate)
-      throws CLIException {
+      throws ClientException {
 
     // Get values for this missing mandatory property.
     for (PropertyDefinition<?> pd : c) {

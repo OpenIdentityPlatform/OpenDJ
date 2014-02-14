@@ -51,7 +51,7 @@ import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentGroup;
 import com.forgerock.opendj.cli.BooleanArgument;
-import com.forgerock.opendj.cli.CLIException;
+import com.forgerock.opendj.cli.ClientException;
 import com.forgerock.opendj.cli.FileBasedArgument;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.StringArgument;
@@ -1915,7 +1915,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
         taskArgs.validateArgs();
       }
     }
-    catch (CLIException ce)
+    catch (ClientException ce)
     {
       addMessage(buf, ce.getMessageObject());
     }

@@ -42,10 +42,12 @@ import org.opends.server.backends.task.FailedDependencyAction;
 import org.opends.server.backends.task.RecurringTask;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.util.StaticUtils;
+
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
+import com.forgerock.opendj.cli.ReturnCode;
 import com.forgerock.opendj.cli.StringArgument;
-import com.forgerock.opendj.cli.CLIException;
+import com.forgerock.opendj.cli.ClientException;
 
 /**
  * A class that contains all the arguments related to the task scheduling.
@@ -173,11 +175,11 @@ public class TaskScheduleArgs
    * to be launched as a task, the method {@link #validateArgsIfOffline()}
    * should be called instead of this method.
    * @throws ArgumentException if there is a problem with the arguments.
-   * @throws CLIException if there is a problem with one of the values provided
+   * @throws ClientException if there is a problem with one of the values provided
    * by the user.
    */
-  public void validateArgs()
-  throws ArgumentException, CLIException {
+  public void validateArgs() throws ArgumentException, ClientException
+  {
     if (startArg.isPresent() && !NOW.equals(startArg.getValue())) {
       try {
         Date date = StaticUtils.parseDateTimeString(startArg.getValue());
@@ -185,7 +187,7 @@ public class TaskScheduleArgs
         Date currentDate = new Date(System.currentTimeMillis());
         if (currentDate.after(date))
         {
-          throw new CLIException(ERR_START_DATETIME_ALREADY_PASSED.get(
+          throw new ClientException(ReturnCode.ERROR_USER_DATA, ERR_START_DATETIME_ALREADY_PASSED.get(
               startArg.getValue()));
         }
       } catch (ParseException pe) {
@@ -251,11 +253,10 @@ public class TaskScheduleArgs
    * This method covers all the checks done by {@link #validateArgs()}, so it
    * is not necessary to call that method if this method is being called.
    * @throws ArgumentException if there is a problem with the arguments.
-   * @throws CLIException if there is a problem with one of the values provided
+   * @throws ClientException if there is a problem with one of the values provided
    * by the user.
    */
-  public void validateArgsIfOffline()
-  throws ArgumentException, CLIException
+  public void validateArgsIfOffline() throws ArgumentException, ClientException
   {
     Argument[] incompatibleArgs = {startArg, recurringArg,
         completionNotificationArg,

@@ -48,7 +48,7 @@ import static org.opends.server.util.StaticUtils.filterExitCode;
 
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
-import com.forgerock.opendj.cli.CLIException;
+import com.forgerock.opendj.cli.ClientException;
 import com.forgerock.opendj.cli.StringArgument;
 
 import org.opends.server.util.args.LDAPConnectionArgumentParser;
@@ -532,7 +532,7 @@ public class ManageTasks extends ConsoleApplication {
      * {@inheritDoc}
      */
     @Override
-    public MenuResult<Void> invoke(ConsoleApplication app) throws CLIException {
+    public MenuResult<Void> invoke(ConsoleApplication app) throws ClientException {
       return invoke((ManageTasks)app);
     }
 
@@ -541,10 +541,10 @@ public class ManageTasks extends ConsoleApplication {
      *
      * @param app this console application
      * @return MessageResult result of task
-     * @throws CLIException if there is a problem
+     * @throws ClientException if there is a problem
      */
     protected abstract MenuResult<Void> invoke(ManageTasks app)
-            throws CLIException;
+            throws ClientException;
 
   }
 
@@ -571,7 +571,7 @@ public class ManageTasks extends ConsoleApplication {
      */
     @Override
     public MenuResult<TaskEntry> invoke(ConsoleApplication app)
-            throws CLIException
+            throws ClientException
     {
       return invoke((ManageTasks)app);
     }
@@ -580,7 +580,7 @@ public class ManageTasks extends ConsoleApplication {
      * {@inheritDoc}
      */
     protected abstract MenuResult<TaskEntry> invoke(ManageTasks app)
-            throws CLIException;
+            throws ClientException;
 
   }
 
@@ -591,7 +591,7 @@ public class ManageTasks extends ConsoleApplication {
 
     @Override
     public MenuResult<Void> invoke(ManageTasks app)
-            throws CLIException
+            throws ClientException
     {
       // Since the summary table is reprinted every time the
       // user enters the top level this task just returns
@@ -620,7 +620,7 @@ public class ManageTasks extends ConsoleApplication {
      * {@inheritDoc}
      */
     @Override
-    public MenuResult<Void> invoke(ManageTasks app) throws CLIException {
+    public MenuResult<Void> invoke(ManageTasks app) throws ClientException {
       MenuResult<TaskEntry> res = new PrintTaskInfo(taskId).invoke(app);
       TaskEntry taskEntry = res.getValue();
       if (taskEntry != null) {
@@ -688,7 +688,7 @@ public class ManageTasks extends ConsoleApplication {
      */
     @Override
     public MenuResult<TaskEntry> invoke(ManageTasks app)
-            throws CLIException
+            throws ClientException
     {
       LocalizableMessage m;
       TaskEntry taskEntry;
@@ -881,7 +881,7 @@ public class ManageTasks extends ConsoleApplication {
      */
     @Override
     protected MenuResult<TaskEntry> invoke(ManageTasks app)
-            throws CLIException
+            throws ClientException
     {
       TaskEntry taskEntry = null;
       try {
@@ -942,7 +942,7 @@ public class ManageTasks extends ConsoleApplication {
      */
     @Override
     public MenuResult<Void> invoke(ManageTasks app)
-            throws CLIException
+            throws ClientException
     {
       if (taskIds != null && taskIds.size() > 0) {
         if (cancelableIndices != null && cancelableIndices.size() > 0) {
@@ -1015,7 +1015,7 @@ public class ManageTasks extends ConsoleApplication {
      */
     @Override
     public MenuResult<TaskEntry> invoke(ManageTasks app)
-            throws CLIException
+            throws ClientException
     {
       try {
         TaskEntry entry = app.getTaskClient().getTaskEntry(taskId);

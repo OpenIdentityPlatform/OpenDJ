@@ -40,8 +40,9 @@ import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
 import org.opends.server.admin.client.ldap.LDAPConnection;
 import org.opends.server.admin.client.ldap.LDAPManagementContext;
 import org.opends.server.config.ConfigException;
-import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.opends.server.tools.ClientException;
+
+import com.forgerock.opendj.cli.ClientException;
+
 import org.opends.server.tools.JavaPropertiesTool.ErrorReturnCode;
 import org.opends.server.tools.ToolConstants;
 import org.opends.server.util.cli.CommandBuilder;
@@ -50,6 +51,7 @@ import org.opends.server.util.cli.LDAPConnectionConsoleInteraction;
 
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
+import com.forgerock.opendj.cli.ReturnCode;
 import com.forgerock.opendj.cli.SubCommandArgumentParser;
 
 import java.util.LinkedHashSet;
@@ -221,19 +223,19 @@ public final class LDAPManagementContextFactory implements
                   LocalizableMessage message =
                     ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT_NOT_TRUSTED.get(hostName, portNumber);
                   throw new ClientException(
-                    LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR, message);
+                    ReturnCode.CLIENT_SIDE_CONNECT_ERROR, message);
                 }
               }
               if (e.getRootCause() instanceof SSLException) {
                 LocalizableMessage message =
                   ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT_WRONG_PORT.get(hostName, portNumber);
                 throw new ClientException(
-                  LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR, message);
+                    ReturnCode.CLIENT_SIDE_CONNECT_ERROR, message);
               }
             }
             LocalizableMessage message = ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(hostName, portNumber);
             throw new ClientException(
-              LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR, message);
+                ReturnCode.CLIENT_SIDE_CONNECT_ERROR, message);
           }
         }
       }
@@ -284,13 +286,13 @@ public final class LDAPManagementContextFactory implements
                 LocalizableMessage message = ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(
                     hostName, portNumber);
                 throw new ClientException(
-                    LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR, message);
+                    ReturnCode.CLIENT_SIDE_CONNECT_ERROR, message);
               }
             }
             LocalizableMessage message = ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(
                 hostName, portNumber);
             throw new ClientException(
-                LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR, message);
+                ReturnCode.CLIENT_SIDE_CONNECT_ERROR, message);
           }
         }
       }
@@ -306,21 +308,21 @@ public final class LDAPManagementContextFactory implements
         {
           LocalizableMessage message = ERR_DSCFG_ERROR_LDAP_SIMPLE_BIND_NOT_SUPPORTED
               .get();
-          throw new ClientException(LDAPResultCode.AUTH_METHOD_NOT_SUPPORTED,
+          throw new ClientException(ReturnCode.AUTH_METHOD_NOT_SUPPORTED,
               message);
         }
         catch (AuthenticationException e)
         {
           LocalizableMessage message = ERR_DSCFG_ERROR_LDAP_SIMPLE_BIND_FAILED
               .get(bindDN);
-          throw new ClientException(LDAPResultCode.INVALID_CREDENTIALS,
+          throw new ClientException(ReturnCode.INVALID_CREDENTIALS,
               message);
         }
         catch (CommunicationException e)
         {
           LocalizableMessage message = ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(
               hostName, portNumber);
-          throw new ClientException(LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR,
+          throw new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR,
               message);
         }
       }
