@@ -25,15 +25,13 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.api;
-import org.forgerock.i18n.LocalizableMessage;
-
-
-
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ConditionResult;
 import org.opends.server.admin.Configuration;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
@@ -58,7 +56,6 @@ import org.opends.server.types.LDIFImportResult;
 import org.opends.server.types.RestoreConfig;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.WritabilityMode;
-import org.opends.server.types.ConditionResult;
 
 import static org.opends.messages.BackendMessages.*;
 

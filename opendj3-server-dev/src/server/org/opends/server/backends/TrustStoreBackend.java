@@ -26,13 +26,6 @@
  */
 package org.opends.server.backends;
 
-
-
-import static org.opends.messages.BackendMessages.*;
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -61,6 +54,10 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.util.Reject;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.TrustStoreBackendCfg;
@@ -72,14 +69,15 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.SearchOperation;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
+import org.opends.server.types.FilePermission;
 import org.opends.server.util.CertificateManager;
 import org.opends.server.util.SetupUtils;
-import org.forgerock.util.Reject;
 
-
+import static org.opends.messages.BackendMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines a backend used to provide an LDAP view of public keys
@@ -945,6 +943,7 @@ public class TrustStoreBackend
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
        TrustStoreBackendCfg configuration, List<LocalizableMessage> unacceptableReasons)
   {
@@ -1065,6 +1064,7 @@ public class TrustStoreBackend
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(TrustStoreBackendCfg cfg)
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;

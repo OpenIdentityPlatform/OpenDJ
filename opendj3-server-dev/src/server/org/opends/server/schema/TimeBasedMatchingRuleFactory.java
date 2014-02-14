@@ -36,6 +36,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.forgerock.opendj.ldap.ConditionResult;
 import org.opends.server.admin.std.server.MatchingRuleCfg;
 import org.opends.server.api.*;
 import org.opends.server.config.ConfigException;

@@ -24,10 +24,7 @@
  *      Copyright 2008-2009 Sun Microsystems, Inc.
  *      Portions Copyright 2012-2014 ForgeRock AS
  */
-
 package org.opends.server.schema;
-
-
 
 import java.nio.CharBuffer;
 import java.text.CollationKey;
@@ -38,6 +35,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ConditionResult;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.CollationMatchingRuleCfgDefn.MatchingRuleType;
 import org.opends.server.admin.std.server.CollationMatchingRuleCfg;
@@ -54,8 +52,6 @@ import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-
-
 
 /**
  * This class is a factory class for Collation matching rules. It

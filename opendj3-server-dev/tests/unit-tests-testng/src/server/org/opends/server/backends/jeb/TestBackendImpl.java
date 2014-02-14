@@ -26,12 +26,9 @@
  */
 package org.opends.server.backends.jeb;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.opends.server.types.ConditionResult.*;
-import static org.testng.Assert.*;
-
 import java.util.*;
 
+import org.forgerock.opendj.ldap.ConditionResult;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.LocalDBBackendCfgDefn;
@@ -53,6 +50,10 @@ import org.testng.annotations.Test;
 
 import com.sleepycat.je.DatabaseEntry;
 import com.sleepycat.je.LockMode;
+
+import static org.assertj.core.api.Assertions.*;
+import static org.forgerock.opendj.ldap.ConditionResult.*;
+import static org.testng.Assert.*;
 
 /**
  * BackendImpl Tester.

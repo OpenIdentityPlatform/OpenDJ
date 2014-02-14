@@ -25,9 +25,6 @@
  *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.extensions;
-import org.forgerock.i18n.LocalizableMessage;
-
-
 
 import java.util.Collection;
 import java.util.Collections;
@@ -35,6 +32,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ConditionResult;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.MemberVirtualAttributeCfg;
 import org.opends.server.api.Group;
@@ -44,8 +45,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.AttributeValues;
-import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.types.ConditionResult;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
@@ -54,10 +53,6 @@ import org.opends.server.types.MemberList;
 import org.opends.server.types.MembershipException;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.VirtualAttributeRule;
-
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-
-
 
 /**
  * This class implements a virtual attribute provider that works in conjunction
@@ -347,6 +342,7 @@ public class MemberVirtualAttributeProvider
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
                       MemberVirtualAttributeCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -360,6 +356,7 @@ public class MemberVirtualAttributeProvider
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
                                  MemberVirtualAttributeCfg configuration)
   {

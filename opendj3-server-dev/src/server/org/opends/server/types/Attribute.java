@@ -26,13 +26,13 @@
  */
 package org.opends.server.types;
 
-import org.forgerock.opendj.ldap.ByteString;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ConditionResult;
 
 /**
  * This class defines a data structure for storing and interacting
@@ -110,6 +110,7 @@ public interface Attribute extends Iterable<AttributeValue>
    *         attribute that is equal to this attribute, or
    *         <CODE>false</CODE> if not.
    */
+  @Override
   boolean equals(Object o);
 
 
@@ -191,6 +192,7 @@ public interface Attribute extends Iterable<AttributeValue>
    *
    * @return The hash code for this attribute.
    */
+  @Override
   int hashCode();
 
 
@@ -246,6 +248,7 @@ public interface Attribute extends Iterable<AttributeValue>
    *
    * @return An iterator over the attribute values in this attribute.
    */
+  @Override
   Iterator<AttributeValue> iterator();
 
 
@@ -313,6 +316,7 @@ public interface Attribute extends Iterable<AttributeValue>
    *
    * @return A one-line string representation of this attribute.
    */
+  @Override
   String toString();
 
 

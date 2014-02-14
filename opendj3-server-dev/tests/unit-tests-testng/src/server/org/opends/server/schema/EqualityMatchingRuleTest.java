@@ -30,7 +30,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.AcceptRejectWarn;
-import org.opends.server.types.ConditionResult;
+import org.forgerock.opendj.ldap.ConditionResult;
 import org.opends.server.types.DirectoryException;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;

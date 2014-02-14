@@ -50,7 +50,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
-import org.opends.server.types.ConditionResult;
+import org.forgerock.opendj.ldap.ConditionResult;
 import org.opends.server.types.Control;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;

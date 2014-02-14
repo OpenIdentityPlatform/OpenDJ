@@ -27,11 +27,6 @@
  */
 package org.opends.server.types;
 
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ByteStringBuilder;
-import org.forgerock.i18n.LocalizableMessage;
-
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -41,15 +36,18 @@ import java.util.LinkedHashSet;
 import java.util.Collection;
 import java.util.Collections;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.forgerock.opendj.ldap.ConditionResult;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.core.DirectoryServer;
 
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.util.ServerConstants.*;
-
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines a data structure for storing and interacting
@@ -835,9 +833,9 @@ public final class SearchFilter
     {
       boolean hasEscape = false;
       byte[] valueBytes = getBytes(valueStr);
-      for (int i=0; i < valueBytes.length; i++)
+      for (byte valueByte : valueBytes)
       {
-        if (valueBytes[i] == 0x5C) // The backslash character
+        if (valueByte == 0x5C) // The backslash character
         {
           hasEscape = true;
           break;
@@ -1889,9 +1887,9 @@ public final class SearchFilter
     byte[] valueBytes = getBytes(filterString.substring(equalPos+1,
                                                         endPos));
     boolean hasEscape = false;
-    for (int i=0; i < valueBytes.length; i++)
+    for (byte valueByte : valueBytes)
     {
-      if (valueBytes[i] == 0x5C)
+      if (valueByte == 0x5C)
       {
         hasEscape = true;
         break;
@@ -3590,6 +3588,7 @@ public final class SearchFilter
    * @return  <CODE>true</CODE> if the provide object is equal to this
    *          search filter, or <CODE>false</CODE> if it is not.
    */
+  @Override
   public boolean equals(Object o)
   {
     if (o == null)
@@ -3915,6 +3914,7 @@ outerComponentLoop:
    *
    * @return  The hash code for this search filter.
    */
+  @Override
   public int hashCode()
   {
     switch (filterType)
@@ -4037,6 +4037,7 @@ outerComponentLoop:
    *
    * @return  A string representation of this search filter.
    */
+  @Override
   public String toString()
   {
     StringBuilder buffer = new StringBuilder();

@@ -29,19 +29,19 @@ package org.opends.server.api;
 
 
 
-import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.config.ConfigConstants.OP_ATTR_ACCOUNT_DISABLED;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
-import static org.opends.server.util.StaticUtils.toLowerCase;
-
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.core.DirectoryServer;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ConditionResult;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
+
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 
 

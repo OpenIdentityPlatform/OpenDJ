@@ -32,8 +32,8 @@ import java.util.Collection;
 
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.schema.Syntax;
-import org.opends.server.types.ConditionResult;
 import org.opends.server.types.DirectoryException;
 
 

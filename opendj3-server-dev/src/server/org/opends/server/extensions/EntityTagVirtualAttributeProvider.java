@@ -27,22 +27,23 @@ package org.opends.server.extensions;
 
 
 
-import static org.opends.messages.ExtensionMessages.*;
-
 import java.util.*;
 import java.util.zip.Adler32;
 import java.util.zip.CRC32;
 import java.util.zip.Checksum;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ConditionResult;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.EntityTagVirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.util.StaticUtils;
+
+import static org.opends.messages.ExtensionMessages.*;
 
 
 
@@ -65,6 +66,7 @@ public final class EntityTagVirtualAttributeProvider extends
     /**
      * {@inheritDoc}
      */
+    @Override
     public int compare(final Attribute a1, final Attribute a2)
     {
       return a1.getNameWithOptions().compareTo(a2.getNameWithOptions());
@@ -89,6 +91,7 @@ public final class EntityTagVirtualAttributeProvider extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
       final EntityTagVirtualAttributeCfg configuration)
   {
@@ -193,6 +196,7 @@ public final class EntityTagVirtualAttributeProvider extends
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
       final EntityTagVirtualAttributeCfg configuration,
       final List<LocalizableMessage> unacceptableReasons)
