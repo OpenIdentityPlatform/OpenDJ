@@ -1605,7 +1605,7 @@ public class LDAPSyntaxDescriptionSyntax
        * {@inheritDoc}
        */
       @Override
-      public ByteString normalizeValue(ByteSequence value)
+      public ByteString normalizeAttributeValue(ByteSequence value)
               throws DirectoryException
       {
         StringBuilder buffer = new StringBuilder();

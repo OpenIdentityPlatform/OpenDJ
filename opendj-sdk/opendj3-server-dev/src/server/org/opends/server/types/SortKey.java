@@ -206,14 +206,14 @@ public final class SortKey
         if (ascending)
         {
           return orderingRule.compareValues(
-                      orderingRule.normalizeValue(value1.getValue()),
-                      orderingRule.normalizeValue(value2.getValue()));
+                      orderingRule.normalizeAttributeValue(value1.getValue()),
+                      orderingRule.normalizeAttributeValue(value2.getValue()));
         }
         else
         {
           return orderingRule.compareValues(
-                      orderingRule.normalizeValue(value2.getValue()),
-                      orderingRule.normalizeValue(value1.getValue()));
+                      orderingRule.normalizeAttributeValue(value2.getValue()),
+                      orderingRule.normalizeAttributeValue(value1.getValue()));
         }
       }
       catch (Exception e)

@@ -86,7 +86,7 @@ public abstract class SubstringMatchingRuleTest extends SchemaTestCase
 
     // normalize the 2 provided values and check that they are equals
     ByteString normalizedValue =
-      rule.normalizeValue(ByteString.valueOf(value));
+      rule.normalizeAttributeValue(ByteString.valueOf(value));
 
     StringBuilder printableMiddleSubs = new StringBuilder();
     List<ByteSequence> middleList =
@@ -121,10 +121,10 @@ public abstract class SubstringMatchingRuleTest extends SchemaTestCase
 
     // normalize the 2 provided values and check that they are equals
     ByteString normalizedValue =
-      rule.normalizeValue(ByteString.valueOf(value));
+      rule.normalizeAttributeValue(ByteString.valueOf(value));
 
     ByteString normalizedInitial =
-      rule.normalizeValue(ByteString.valueOf(initial));
+      rule.normalizeAttributeValue(ByteString.valueOf(initial));
     Boolean liveResult = rule.valueMatchesSubstring(
         normalizedValue, normalizedInitial, null, null);
     if (result != liveResult)
@@ -147,10 +147,10 @@ public abstract class SubstringMatchingRuleTest extends SchemaTestCase
 
     // normalize the 2 provided values and check that they are equals
     ByteString normalizedValue =
-      rule.normalizeValue(ByteString.valueOf(value));
+      rule.normalizeAttributeValue(ByteString.valueOf(value));
 
     ByteString normalizedFinal =
-      rule.normalizeValue(ByteString.valueOf(finalValue));
+      rule.normalizeAttributeValue(ByteString.valueOf(finalValue));
     Boolean liveResult = rule.valueMatchesSubstring(
         normalizedValue, null, null, normalizedFinal);
     if (result != liveResult)

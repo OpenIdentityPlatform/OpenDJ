@@ -132,7 +132,7 @@ class IntegerFirstComponentEqualityMatchingRule
    *                              the associated attribute syntax.
    */
   @Override
-  public ByteString normalizeValue(ByteSequence value)
+  public ByteString normalizeAttributeValue(ByteSequence value)
          throws DirectoryException
   {
     StringBuilder buffer = new StringBuilder();

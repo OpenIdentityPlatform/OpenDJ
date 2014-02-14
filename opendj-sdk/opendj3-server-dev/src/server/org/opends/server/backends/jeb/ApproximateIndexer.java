@@ -165,7 +165,7 @@ public class ApproximateIndexer extends Indexer
         try
         {
           byte[] keyBytes =
-               approximateRule.normalizeValue(value.getValue()).toByteArray();
+               approximateRule.normalizeAttributeValue(value.getValue()).toByteArray();
 
           keys.add(keyBytes);
         }
@@ -201,8 +201,8 @@ public class ApproximateIndexer extends Indexer
       {
         try
         {
-          byte[] keyBytes =
-              approximateRule.normalizeValue(value.getValue()).toByteArray();
+          byte[] keyBytes = approximateRule
+              .normalizeAttributeValue(value.getValue()).toByteArray();
 
           Boolean cInsert = modifiedKeys.get(keyBytes);
           if(cInsert == null)

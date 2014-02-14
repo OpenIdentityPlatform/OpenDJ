@@ -163,7 +163,7 @@ class CertificateExactMatchingRule
    *                              the associated attribute syntax.
    */
   @Override
-  public ByteString normalizeValue(ByteSequence value)
+  public ByteString normalizeAttributeValue(ByteSequence value)
          throws DirectoryException
   {
     // The normalized form of this value is the GSER encoded ....
@@ -260,7 +260,7 @@ class CertificateExactMatchingRule
       // Assume the assertion value is a certificate and parse issuer and serial
       // number. If the value is not even a certificate then the raw bytes will
       // be returned.
-      return normalizeValue(value);
+      return normalizeAttributeValue(value);
     }
 
     try

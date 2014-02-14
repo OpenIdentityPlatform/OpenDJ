@@ -142,7 +142,7 @@ public class UUIDOrderingMatchingRule
    *                              the associated attribute syntax.
    */
   @Override
-  public ByteString normalizeValue(ByteSequence value)
+  public ByteString normalizeAttributeValue(ByteSequence value)
          throws DirectoryException
   {
     if (value.length() != 36)

@@ -184,7 +184,7 @@ public class CertificateExactMatchingRuleTest extends SchemaTestCase
 
     // normalize the 2 provided values and check that they are equals
     ByteString normalizedAttributeValue =
-      rule.normalizeValue(attributeValue);
+      rule.normalizeAttributeValue(attributeValue);
     ByteString normalizedAssertionValue =
       rule.normalizeAssertionValue(assertionValue);
 

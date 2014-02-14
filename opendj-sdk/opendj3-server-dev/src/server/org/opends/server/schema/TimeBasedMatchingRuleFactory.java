@@ -162,7 +162,7 @@ public final class TimeBasedMatchingRuleFactory
       * {@inheritDoc}
       */
     @Override
-    public ByteString normalizeValue(ByteSequence value)
+    public ByteString normalizeAttributeValue(ByteSequence value)
             throws DirectoryException
     {
       try
@@ -636,7 +636,7 @@ public final class TimeBasedMatchingRuleFactory
       ByteString key;
       try
       {
-        key = matchingRule.normalizeValue(value.getValue());
+        key = matchingRule.normalizeAttributeValue(value.getValue());
         keys.add(key.toByteArray());
       }
       catch (DirectoryException de)

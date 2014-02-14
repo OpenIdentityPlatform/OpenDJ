@@ -65,9 +65,9 @@ public abstract class OrderingMatchingRuleTest extends SchemaTestCase
     // ruleInstance.initializeMatchingRule(configEntry);
 
     ByteString normalizedValue1 =
-      ruleInstance.normalizeValue(ByteString.valueOf(value1));
+      ruleInstance.normalizeAttributeValue(ByteString.valueOf(value1));
     ByteString normalizedValue2 =
-      ruleInstance.normalizeValue(ByteString.valueOf(value2));
+      ruleInstance.normalizeAttributeValue(ByteString.valueOf(value2));
     int res = ruleInstance.compareValues(normalizedValue1, normalizedValue2);
     if (result == 0)
     {
@@ -124,7 +124,7 @@ public abstract class OrderingMatchingRuleTest extends SchemaTestCase
     // normalize the 2 provided values
     try
     {
-      ruleInstance.normalizeValue(ByteString.valueOf(value));
+      ruleInstance.normalizeAttributeValue(ByteString.valueOf(value));
     } catch (DirectoryException e) {
       // that's the expected path : the matching rule has detected that
       // the value is incorrect.
@@ -151,7 +151,7 @@ public abstract class OrderingMatchingRuleTest extends SchemaTestCase
     // normalize the 2 provided values
     try
     {
-      ruleInstance.normalizeValue(ByteString.valueOf(value));
+      ruleInstance.normalizeAttributeValue(ByteString.valueOf(value));
     } catch (Exception e)
     {
       fail(ruleInstance + " in warn mode should not reject value " + value + e);

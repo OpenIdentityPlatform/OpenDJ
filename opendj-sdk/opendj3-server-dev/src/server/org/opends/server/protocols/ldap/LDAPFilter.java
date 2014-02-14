@@ -1954,7 +1954,7 @@ public class LDAPFilter
         }
         else
         {
-          ByteString normalizedValue = mr.normalizeValue(assertionValue);
+          ByteString normalizedValue = mr.normalizeAttributeValue(assertionValue);
           value = AttributeValues.create(assertionValue,
               normalizedValue);
         }

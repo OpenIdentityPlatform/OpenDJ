@@ -60,7 +60,7 @@ public abstract class AbstractMatchingRule implements MatchingRule
       throws DirectoryException
   {
     // Default implementation is to use attribute value normalization.
-    return normalizeValue(value);
+    return normalizeAttributeValue(value);
   }
 
 
@@ -101,17 +101,6 @@ public abstract class AbstractMatchingRule implements MatchingRule
   {
     return false;
   }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public abstract ByteString normalizeValue(ByteSequence value)
-      throws DirectoryException;
-
-
 
   /**
    * {@inheritDoc}

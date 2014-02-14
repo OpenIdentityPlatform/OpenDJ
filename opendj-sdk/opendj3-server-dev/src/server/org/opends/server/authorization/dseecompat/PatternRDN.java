@@ -310,7 +310,7 @@ public class PatternRDN
       else
       {
         ByteString thisNormValue =
-            type.getEqualityMatchingRule().normalizeValue(pattern.get(0));
+            type.getEqualityMatchingRule().normalizeAttributeValue(pattern.get(0));
         ByteString thatNormValue = value.getNormalizedValue();
         EqualityMatchingRule mr = type.getEqualityMatchingRule();
         return mr.areEqual(thisNormValue, thatNormValue);

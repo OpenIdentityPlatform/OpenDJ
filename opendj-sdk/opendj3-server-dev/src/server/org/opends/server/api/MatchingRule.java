@@ -139,7 +139,7 @@ public interface MatchingRule
    *           If the provided value is invalid according to the
    *           associated attribute syntax.
    */
-  ByteString normalizeValue(ByteSequence value)
+  ByteString normalizeAttributeValue(ByteSequence value)
       throws DirectoryException;
 
 
