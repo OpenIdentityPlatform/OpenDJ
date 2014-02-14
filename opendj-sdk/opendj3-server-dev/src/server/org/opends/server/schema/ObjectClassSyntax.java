@@ -1483,8 +1483,7 @@ public class ObjectClassSyntax
   /**
    * {@inheritDoc}
    */
-  @Override
-  public boolean isBinary()
+  public boolean isBEREncodingRequired()
   {
     return false;
   }
