@@ -50,6 +50,7 @@ import javax.net.ssl.X509ExtendedKeyManager;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.util.Reject;
 import org.opends.admin.ads.ADSContext;
@@ -1172,8 +1173,7 @@ public class CryptoManagerImpl
       Attribute attribute = Attributes.create(
           ConfigConstants.ATTR_CRYPTO_SYMMETRIC_KEY, symmetricKey);
       modifications.add(
-              new Modification(ModificationType.ADD, attribute,
-                      false));
+          new Modification(ModificationType.ADD, attribute, false));
       ModifyOperation internalModify =
               internalConnection.processModify(entry.getName(),
                       modifications);

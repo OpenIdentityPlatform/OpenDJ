@@ -27,13 +27,14 @@
 package org.opends.server.replication;
 
 import java.io.File;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.assertj.core.api.Assertions;
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ModificationType;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.server.SynchronizationProviderCfg;
 import org.opends.server.api.SynchronizationProvider;

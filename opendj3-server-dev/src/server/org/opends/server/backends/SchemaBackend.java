@@ -57,6 +57,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.ObjectClassType;
 import org.forgerock.util.Reject;
@@ -1136,7 +1137,7 @@ public class SchemaBackend
       // replacement of that existing element.
       Attribute a = m.getAttribute();
       AttributeType at = a.getAttributeType();
-      switch (m.getModificationType())
+      switch (m.getModificationType().asEnum())
       {
         case ADD:
           if (at.equals(attributeTypesType))

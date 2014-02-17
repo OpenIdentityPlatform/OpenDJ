@@ -26,18 +26,12 @@
  */
 package org.opends.server.util;
 
-import static org.forgerock.util.Reject.*;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 import org.opends.server.types.DN;
 import org.opends.server.types.RawModification;
 
-
+import static org.forgerock.util.Reject.*;
 
 /**
  * This class defines a data structure for a change record entry for
@@ -97,6 +91,7 @@ public final class ModifyChangeRecordEntry extends ChangeRecordEntry
    *
    * @return  The name of the change operation type.
    */
+  @Override
   public ChangeOperationType getChangeOperationType()
   {
     return ChangeOperationType.MODIFY;
@@ -119,7 +114,7 @@ public final class ModifyChangeRecordEntry extends ChangeRecordEntry
     while (iterator.hasNext())
     {
       RawModification mod = iterator.next();
-      buffer.append(mod.getModificationType().getLDIFName());
+      buffer.append(mod.getModificationType());
       buffer.append(" ");
       buffer.append(mod.getAttribute().getAttributeType());
 

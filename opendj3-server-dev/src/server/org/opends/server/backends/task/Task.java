@@ -26,13 +26,6 @@
  */
 package org.opends.server.backends.task;
 
-
-
-import static org.opends.messages.BackendMessages.*;
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -48,15 +41,19 @@ import java.util.concurrent.locks.Lock;
 import javax.mail.MessagingException;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ModificationType;
 import org.opends.messages.Severity;
 import org.opends.server.core.DirectoryServer;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import org.opends.server.util.EMailMessage;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;
 
-
+import static org.opends.messages.BackendMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines a task that may be executed by the task backend within the
@@ -1030,6 +1027,7 @@ public abstract class Task
    *          task, or zero if there is no difference with regard to their
    *          order.
    */
+  @Override
   public final int compareTo(Task task)
   {
     if (completionTime > 0)

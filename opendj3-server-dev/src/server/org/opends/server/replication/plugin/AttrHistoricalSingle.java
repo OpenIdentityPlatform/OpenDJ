@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -30,6 +30,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.forgerock.opendj.ldap.ModificationType;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.types.*;
 
@@ -95,7 +96,7 @@ public class AttrHistoricalSingle extends AttrHistorical
       newValue = modAttr.iterator().next();
     }
 
-    switch (mod.getModificationType())
+    switch (mod.getModificationType().asEnum())
     {
     case DELETE:
       this.addTime = null;
@@ -149,7 +150,7 @@ public class AttrHistoricalSingle extends AttrHistorical
       newValue = modAttr.iterator().next();
     }
 
-    switch (mod.getModificationType())
+    switch (mod.getModificationType().asEnum())
     {
     case DELETE:
       if (csn.isNewerThan(addTime))

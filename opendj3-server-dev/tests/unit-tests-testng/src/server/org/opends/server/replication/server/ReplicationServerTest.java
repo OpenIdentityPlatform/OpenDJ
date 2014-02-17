@@ -34,11 +34,12 @@ import java.net.SocketTimeoutException;
 import java.util.*;
 
 import org.assertj.core.api.Assertions;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ModificationType;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperationBasis;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.replication.ReplicationTestCase;
@@ -63,10 +64,10 @@ import org.testng.annotations.Test;
 
 import static java.util.Collections.*;
 
+import static org.forgerock.opendj.ldap.SearchScope.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.replication.protocol.OperationContext.*;
 import static org.opends.server.types.ResultCode.*;
-import static org.forgerock.opendj.ldap.SearchScope.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;

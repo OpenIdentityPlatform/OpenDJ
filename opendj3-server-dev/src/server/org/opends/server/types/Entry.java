@@ -1639,7 +1639,7 @@ public class Entry
         ocs.put(oc, ocName);
       }
 
-      switch (mod.getModificationType())
+      switch (mod.getModificationType().asEnum())
       {
         case ADD:
           for (ObjectClass oc : ocs.keySet())
@@ -1689,7 +1689,7 @@ public class Entry
       return;
     }
 
-    switch (mod.getModificationType())
+    switch (mod.getModificationType().asEnum())
     {
       case ADD:
         List<AttributeValue> duplicateValues = new LinkedList<AttributeValue>();

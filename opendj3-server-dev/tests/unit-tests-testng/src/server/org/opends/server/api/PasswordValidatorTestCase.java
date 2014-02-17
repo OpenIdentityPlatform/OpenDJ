@@ -51,7 +51,7 @@ import org.opends.server.tools.LDAPPasswordModify;
 import org.opends.server.tools.LDAPWriter;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.Entry;
-import org.opends.server.types.ModificationType;
+import org.forgerock.opendj.ldap.ModificationType;
 import org.opends.server.types.RawModification;
 import org.opends.server.types.ResultCode;
 

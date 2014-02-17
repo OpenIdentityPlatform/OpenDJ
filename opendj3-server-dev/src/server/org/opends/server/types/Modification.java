@@ -22,10 +22,11 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.types;
 
-
+import org.forgerock.opendj.ldap.ModificationType;
 
 /**
  * This class defines a data structure for storing and interacting
@@ -194,6 +195,7 @@ public final class Modification
    *          modification that is equal to this modification, or
    *          <CODE>false</CODE> if not.
    */
+  @Override
   public boolean equals(Object o)
   {
     if (this == o)
@@ -224,6 +226,7 @@ public final class Modification
    *
    * @return  The hash code for this modification.
    */
+  @Override
   public int hashCode()
   {
     return attribute.hashCode();
@@ -236,6 +239,7 @@ public final class Modification
    *
    * @return  A one-line string representation of this modification.
    */
+  @Override
   public String toString()
   {
     StringBuilder buffer = new StringBuilder();

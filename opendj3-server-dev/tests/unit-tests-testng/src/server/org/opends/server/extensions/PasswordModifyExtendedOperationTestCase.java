@@ -26,38 +26,30 @@
  */
 package org.opends.server.extensions;
 
-
-
 import java.util.ArrayList;
 import java.util.List;
 
+import org.forgerock.opendj.io.ASN1;
+import org.forgerock.opendj.io.ASN1Writer;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.forgerock.opendj.ldap.ModificationType;
+import org.opends.server.TestCaseUtils;
+import org.opends.server.admin.server.AdminTestCaseUtils;
+import org.opends.server.admin.std.meta.PasswordModifyExtendedOperationHandlerCfgDefn;
+import org.opends.server.admin.std.server.PasswordModifyExtendedOperationHandlerCfg;
+import org.opends.server.config.ConfigException;
+import org.opends.server.core.*;
+import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.tools.LDAPPasswordModify;
+import org.opends.server.types.*;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import org.opends.server.TestCaseUtils;
-import org.opends.server.admin.server.AdminTestCaseUtils;
-import org.opends.server.admin.std.server.PasswordModifyExtendedOperationHandlerCfg;
-import org.opends.server.admin.std.meta.PasswordModifyExtendedOperationHandlerCfgDefn;
-import org.opends.server.config.ConfigException;
-import org.opends.server.core.AddOperation;
-import org.opends.server.core.BindOperation;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.ExtendedOperation;
-import org.opends.server.core.ModifyOperation;
-import org.opends.server.protocols.internal.InternalClientConnection;
-import org.forgerock.opendj.io.ASN1;
-import org.forgerock.opendj.io.ASN1Writer;
-import org.opends.server.tools.LDAPPasswordModify;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ByteStringBuilder;
-import static org.testng.Assert.*;
-
 import static org.opends.server.extensions.ExtensionsConstants.*;
 import static org.opends.server.util.ServerConstants.*;
-
-
+import static org.testng.Assert.*;
 
 /**
  * A set of test cases for the password modify extended operation.

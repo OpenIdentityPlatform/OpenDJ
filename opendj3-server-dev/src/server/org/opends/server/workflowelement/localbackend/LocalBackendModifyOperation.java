@@ -26,11 +26,6 @@
  */
 package org.opends.server.workflowelement.localbackend;
 
-import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -38,21 +33,27 @@ import java.util.concurrent.locks.Lock;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.util.Reject;
+import org.forgerock.util.Utils;
 import org.opends.server.api.*;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.controls.*;
 import org.opends.server.core.*;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.operation.PostOperationModifyOperation;
 import org.opends.server.types.operation.PostResponseModifyOperation;
 import org.opends.server.types.operation.PostSynchronizationModifyOperation;
 import org.opends.server.types.operation.PreOperationModifyOperation;
-import org.forgerock.util.Reject;
-import org.forgerock.util.Utils;
+
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines an operation used to modify an entry in a local backend
@@ -890,7 +891,7 @@ public class LocalBackendModifyOperation
               .getPasswordAttribute());
       if (!isPassword )
       {
-        switch (m.getModificationType())
+        switch (m.getModificationType().asEnum())
         {
           case ADD:
             processInitialAddSchema(a);
@@ -999,7 +1000,7 @@ public class LocalBackendModifyOperation
           {
             if (a.hasOptions())
             {
-              switch (m.getModificationType())
+              switch (m.getModificationType().asEnum())
               {
               case REPLACE:
                 if (!a.isEmpty())
@@ -1055,7 +1056,7 @@ public class LocalBackendModifyOperation
           // password values (increment doesn't make any sense for passwords).
           // Then perform the appropriate type of processing for that kind of
           // modification.
-          switch (m.getModificationType())
+          switch (m.getModificationType().asEnum())
           {
           case ADD:
           case REPLACE:
@@ -1077,7 +1078,7 @@ public class LocalBackendModifyOperation
           a = m.getAttribute();
         }
 
-        switch (m.getModificationType())
+        switch (m.getModificationType().asEnum())
         {
         case ADD:
           processInitialAddSchema(a);

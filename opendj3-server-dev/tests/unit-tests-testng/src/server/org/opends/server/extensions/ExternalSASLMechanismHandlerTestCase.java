@@ -28,8 +28,6 @@ package org.opends.server.extensions;
 
 
 
-import static org.testng.Assert.*;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.net.Socket;
@@ -37,6 +35,8 @@ import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ModificationType;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.ExternalSASLMechanismHandlerCfgDefn;
@@ -49,15 +49,16 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.BindRequestProtocolOp;
 import org.opends.server.protocols.ldap.BindResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPMessage;
-import org.opends.server.tools.LDAPSearch;
 import org.opends.server.tools.LDAPReader;
+import org.opends.server.tools.LDAPSearch;
 import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.util.Base64;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+
+import static org.testng.Assert.*;
 
 
 

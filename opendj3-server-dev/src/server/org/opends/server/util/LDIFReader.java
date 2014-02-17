@@ -26,10 +26,6 @@
  */
 package org.opends.server.util;
 
-import static org.opends.messages.UtilityMessages.*;
-import static org.opends.server.util.StaticUtils.*;
-import static org.forgerock.util.Reject.*;
-
 import java.io.*;
 import java.net.URL;
 import java.util.*;
@@ -37,6 +33,10 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.forgerock.opendj.ldap.ModificationType;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.backends.jeb.EntryID;
 import org.opends.server.backends.jeb.RootContainer;
@@ -44,12 +44,13 @@ import org.opends.server.backends.jeb.importLDIF.Importer;
 import org.opends.server.backends.jeb.importLDIF.Suffix;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PluginConfigManager;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ByteStringBuilder;
+
+import static org.forgerock.util.Reject.*;
+import static org.opends.messages.UtilityMessages.*;
+import static org.opends.server.util.StaticUtils.*;
 
 
 /**

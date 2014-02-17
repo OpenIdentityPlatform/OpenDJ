@@ -45,7 +45,7 @@ import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
-import org.opends.server.types.ModificationType;
+import org.forgerock.opendj.ldap.ModificationType;
 import org.opends.server.types.OperationType;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.types.operation.PreParseAddOperation;

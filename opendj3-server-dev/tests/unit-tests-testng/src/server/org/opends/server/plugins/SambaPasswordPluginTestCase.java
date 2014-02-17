@@ -27,34 +27,27 @@
 
 package org.opends.server.plugins;
 
-
-
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertTrue;
-import static org.opends.server.plugins.SambaPasswordPlugin.MD4MessageDigest;
-import static org.opends.server.util.StaticUtils.bytesToHexNoSpace;
-import static org.opends.server.util.StaticUtils.toLowerCase;
-
 import java.util.LinkedList;
 import java.util.List;
 
+import org.forgerock.opendj.io.ASN1;
+import org.forgerock.opendj.io.ASN1Writer;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.forgerock.opendj.ldap.ModificationType;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ExtendedOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.extensions.ExtensionsConstants;
+import org.opends.server.plugins.SambaPasswordPlugin.MD4MessageDigest;
 import org.opends.server.plugins.SambaPasswordPlugin.TimeStampProvider;
-import org.forgerock.opendj.io.ASN1;
-import org.forgerock.opendj.io.ASN1Writer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.util.ServerConstants;
 import org.testng.annotations.*;
 
-
+import static org.opends.server.util.StaticUtils.*;
+import static org.testng.Assert.*;
 
 /**
  * Unit tests for the Samba password synchronization plugin.
@@ -680,6 +673,7 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
 
     TimeStampProvider testTimeStampProvider = new TimeStampProvider()
     {
+      @Override
       public long getCurrentTime()
       {
         return 1339012789L;
@@ -760,6 +754,7 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
 
     TimeStampProvider testTimeStampProvider = new TimeStampProvider()
     {
+      @Override
       public long getCurrentTime()
       {
         return 1339012789L;

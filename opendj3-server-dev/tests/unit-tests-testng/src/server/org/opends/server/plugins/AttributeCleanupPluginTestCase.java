@@ -26,13 +26,13 @@
  */
 package org.opends.server.plugins;
 
-import static org.testng.Assert.*;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ModificationType;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.AttributeCleanupPluginCfgDefn;
@@ -44,10 +44,11 @@ import org.opends.server.core.AddOperationBasis;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+
+import static org.testng.Assert.*;
 
 /**
  * Tests for the attribute cleanup plugin.
@@ -566,12 +567,11 @@ public class AttributeCleanupPluginTestCase extends PluginTestCase
      * modifications is 2 and that the '*TimeStamp' modifications are
      * removed.
      */
-    PluginResult.PreParse res = plugin.doPreParse(modifyOperation);
+    plugin.doPreParse(modifyOperation);
 
     assertTrue(modifyOperation.getRawModifications().size() == 2);
 
     rawMods = modifyOperation.getRawModifications();
-
     assertNotNull(rawMods);
 
     for(RawModification rawMod : rawMods )

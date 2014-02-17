@@ -32,6 +32,8 @@ import java.util.concurrent.locks.Lock;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ModificationType;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ChangeNotificationListener;
 import org.opends.server.api.ClientConnection;
@@ -39,7 +41,6 @@ import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.controls.*;
 import org.opends.server.core.*;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.PostOperationModifyDNOperation;
 import org.opends.server.types.operation.PostResponseModifyDNOperation;
@@ -837,7 +838,7 @@ public class LocalBackendModifyDNOperation
       Modification m = modifications.get(i);
       Attribute    a = m.getAttribute();
 
-      switch (m.getModificationType())
+      switch (m.getModificationType().asEnum())
       {
         case ADD:
           List<AttributeValue> duplicateValues =

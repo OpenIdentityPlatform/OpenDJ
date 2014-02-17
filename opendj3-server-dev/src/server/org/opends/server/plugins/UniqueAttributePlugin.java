@@ -240,7 +240,7 @@ public class UniqueAttributePlugin
         continue;
       }
 
-      switch (m.getModificationType())
+      switch (m.getModificationType().asEnum())
       {
         case ADD:
         case REPLACE:
@@ -452,7 +452,7 @@ public class UniqueAttributePlugin
         continue;
       }
 
-      switch (m.getModificationType())
+      switch (m.getModificationType().asEnum())
       {
         case ADD:
         case REPLACE:
@@ -876,7 +876,7 @@ public class UniqueAttributePlugin
         continue;
       }
 
-      switch (m.getModificationType())
+      switch (m.getModificationType().asEnum())
       {
         case ADD:
         case REPLACE:

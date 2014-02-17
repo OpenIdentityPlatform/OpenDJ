@@ -22,20 +22,17 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
 
-
-
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.Modification;
-import org.opends.server.types.ModificationType;
+import org.forgerock.opendj.ldap.ModificationType;
 import org.opends.server.types.RawAttribute;
 import org.opends.server.types.RawModification;
 
 import static org.opends.server.util.ServerConstants.*;
-
-
 
 /**
  * This class defines the data structures and methods to use when interacting

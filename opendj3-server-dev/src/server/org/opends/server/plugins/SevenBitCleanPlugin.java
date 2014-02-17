@@ -286,7 +286,7 @@ public final class SevenBitCleanPlugin
     {
       for (RawModification m : modifyOperation.getRawModifications())
       {
-        switch (m.getModificationType())
+        switch (m.getModificationType().asEnum())
         {
           case ADD:
           case REPLACE:

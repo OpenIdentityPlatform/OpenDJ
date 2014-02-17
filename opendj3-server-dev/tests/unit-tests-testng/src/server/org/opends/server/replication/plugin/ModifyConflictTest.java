@@ -26,10 +26,6 @@
  */
 package org.opends.server.replication.plugin;
 
-import static org.opends.server.TestCaseUtils.*;
-import static org.opends.server.replication.protocol.OperationContext.*;
-import static org.testng.Assert.*;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -37,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.forgerock.opendj.ldap.ModificationType;
 import org.opends.server.core.AddOperationBasis;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperationBasis;
@@ -50,6 +47,10 @@ import org.opends.server.types.*;
 import org.opends.server.workflowelement.localbackend.LocalBackendAddOperation;
 import org.opends.server.workflowelement.localbackend.LocalBackendModifyOperation;
 import org.testng.annotations.Test;
+
+import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.replication.protocol.OperationContext.*;
+import static org.testng.Assert.*;
 
 /**
  * Test the conflict resolution for modify operations As a consequence,
