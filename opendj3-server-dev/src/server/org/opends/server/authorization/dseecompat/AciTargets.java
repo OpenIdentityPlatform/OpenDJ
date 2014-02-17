@@ -35,7 +35,7 @@ import java.util.regex.Pattern;
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
-import org.opends.server.types.SearchScope;
+import org.forgerock.opendj.ldap.SearchScope;
 
 /**
  * This class represents target part of an ACI's syntax. This is the part
@@ -592,7 +592,7 @@ public class AciTargets {
                 targetDN=targets.getTarget().getDN();
         }
         //Check if the scope is correct.
-        switch(targets.getTargetScope()) {
+        switch(targets.getTargetScope().asEnum()) {
         case BASE_OBJECT:
             if(!targetDN.equals(entryDN))
                 return false;

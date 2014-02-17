@@ -26,22 +26,23 @@
  */
 package org.opends.server.extensions;
 
-import org.testng.annotations.BeforeMethod;
-import org.opends.server.schema.GeneralizedTimeSyntax;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
-
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.types.*;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+
 import static org.testng.Assert.*;
 
 public class PasswordExpirationTimeVirtualAttributeProviderTestCase

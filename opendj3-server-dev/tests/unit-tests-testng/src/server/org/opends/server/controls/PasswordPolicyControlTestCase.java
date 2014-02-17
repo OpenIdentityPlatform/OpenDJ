@@ -26,28 +26,23 @@
  */
 package org.opends.server.controls;
 
-
-
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.SearchScope;
+import org.opends.server.TestCaseUtils;
+import org.opends.server.protocols.ldap.*;
+import org.opends.server.types.*;
+import org.opends.server.util.StaticUtils;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import org.opends.server.TestCaseUtils;
-import org.opends.server.protocols.ldap.*;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.util.StaticUtils;
-
-import static org.testng.Assert.*;
-
 import static org.opends.server.util.ServerConstants.*;
-
-
+import static org.testng.Assert.*;
 
 /**
  * This class contains test cases that verify the appropriate handling of the

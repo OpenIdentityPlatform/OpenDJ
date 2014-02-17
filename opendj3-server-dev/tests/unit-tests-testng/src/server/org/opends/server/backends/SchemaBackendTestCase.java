@@ -29,6 +29,7 @@ package org.opends.server.backends;
 import java.io.File;
 import java.util.Map;
 
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.*;

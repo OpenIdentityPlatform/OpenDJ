@@ -25,9 +25,6 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.extensions;
-import org.forgerock.i18n.LocalizableMessage;
-
-
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -37,6 +34,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.ExactMatchIdentityMapperCfg;
 import org.opends.server.admin.std.server.IdentityMapperCfg;
@@ -47,8 +46,8 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.types.*;
-import static org.opends.messages.ExtensionMessages.*;
 
+import static org.opends.messages.ExtensionMessages.*;
 
 /**
  * This class provides an implementation of a Directory Server identity mapper
@@ -95,6 +94,7 @@ public class ExactMatchIdentityMapper
   /**
    * {@inheritDoc}
    */
+  @Override
   public void initializeIdentityMapper(
                    ExactMatchIdentityMapperCfg configuration)
          throws ConfigException, InitializationException
@@ -142,6 +142,7 @@ public class ExactMatchIdentityMapper
   /**
    * Performs any finalization that may be necessary for this identity mapper.
    */
+  @Override
   public void finalizeIdentityMapper()
   {
     currentConfig.removeExactMatchChangeListener(this);
@@ -164,6 +165,7 @@ public class ExactMatchIdentityMapper
    *                              multiple user entries that could map to the
    *                              provided ID.
    */
+  @Override
   public Entry getEntryForID(String id)
          throws DirectoryException
   {
@@ -294,6 +296,7 @@ public class ExactMatchIdentityMapper
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
                       ExactMatchIdentityMapperCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -330,6 +333,7 @@ public class ExactMatchIdentityMapper
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
               ExactMatchIdentityMapperCfg configuration)
   {

@@ -42,7 +42,7 @@ import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.types.Control;
 import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchScope;
+import org.forgerock.opendj.ldap.SearchScope;
 
 import static org.testng.Assert.*;
 

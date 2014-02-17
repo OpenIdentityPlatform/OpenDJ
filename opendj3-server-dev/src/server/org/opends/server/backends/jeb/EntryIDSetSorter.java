@@ -25,25 +25,25 @@
  *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
-import org.forgerock.i18n.LocalizableMessage;
 
-
-
-import java.util.Map;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.TreeMap;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.controls.VLVRequestControl;
 import org.opends.server.controls.VLVResponseControl;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.*;
-import static org.opends.messages.JebMessages.*;
-import static org.opends.server.util.StaticUtils.*;
+
 import com.sleepycat.je.LockMode;
 
+import static org.opends.messages.JebMessages.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class provides a mechanism for sorting the contents of an entry ID set

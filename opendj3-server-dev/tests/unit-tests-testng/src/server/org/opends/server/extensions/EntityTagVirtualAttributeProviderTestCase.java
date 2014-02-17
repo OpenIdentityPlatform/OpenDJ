@@ -72,7 +72,7 @@ import org.opends.server.types.RawAttribute;
 import org.opends.server.types.RawModification;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
-import org.opends.server.types.SearchScope;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.types.VirtualAttributeRule;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.BeforeClass;

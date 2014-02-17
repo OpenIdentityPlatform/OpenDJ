@@ -24,39 +24,39 @@
  *      Copyright 2006-2009 Sun Microsystems, Inc.
  *      Portions Copyright 2014 ForgeRock AS
  */
-
-
 package org.opends.server.protocols.ldap;
 
-import org.testng.annotations.Test;
-import org.opends.server.types.*;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+
+import org.forgerock.opendj.io.ASN1;
+import org.forgerock.opendj.io.ASN1Reader;
+import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
-import org.forgerock.opendj.io.*;
+import org.forgerock.opendj.ldap.SearchScope;
+import org.opends.server.types.DereferencePolicy;
+import org.opends.server.types.LDAPException;
+import org.testng.annotations.Test;
+
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.testng.Assert.*;
-
-import java.util.LinkedHashSet;
-import java.util.Arrays;
 
 /**
  * Test class for LDAP Search protocol operation classes.
  */
 public class TestSearchProtocolOp extends LdapTestCase
 {
-    ByteString baseDN = ByteString.valueOf("dc=example,dc=COM");
-    SearchScope scope = SearchScope.WHOLE_SUBTREE;
-    DereferencePolicy dereferencePolicy = DereferencePolicy.DEREF_IN_SEARCHING;
-    int sizeLimit = Integer.MAX_VALUE;
-    int timeLimit = Integer.MAX_VALUE;
-    boolean typesOnly = true;
-    LDAPFilter filter;
-    String[] attrArray = new String[]
-         {
-              "description", "cn", "cn;optionA"
-         };
-    LinkedHashSet<String> attributes =
-         new LinkedHashSet<String>(Arrays.asList(attrArray));
+  private ByteString baseDN = ByteString.valueOf("dc=example,dc=COM");
+  private SearchScope scope = SearchScope.WHOLE_SUBTREE;
+  private DereferencePolicy dereferencePolicy =
+      DereferencePolicy.DEREF_IN_SEARCHING;
+  private int sizeLimit = Integer.MAX_VALUE;
+  private int timeLimit = Integer.MAX_VALUE;
+  private boolean typesOnly = true;
+  private LDAPFilter filter;
+  private LinkedHashSet<String> attributes = new LinkedHashSet<String>(
+      Arrays.asList("description", "cn", "cn;optionA"));
 
   public TestSearchProtocolOp() throws Exception
   {

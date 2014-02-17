@@ -26,22 +26,22 @@
  */
 package org.opends.server.types;
 
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ByteStringBuilder;
-import org.forgerock.opendj.ldap.ByteSequenceReader;
-
 import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.core.DirectoryServer;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteSequenceReader;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.forgerock.opendj.ldap.SearchScope;
+import org.opends.server.core.DirectoryServer;
 
+import static org.forgerock.util.Reject.*;
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-import static org.forgerock.util.Reject.*;
 
 /**
  * This class defines a data structure for storing and interacting
@@ -474,7 +474,7 @@ public final class DN implements Comparable<DN>, Serializable
    */
   public boolean matchesBaseAndScope(DN baseDN, SearchScope scope)
   {
-    switch (scope)
+    switch (scope.asEnum())
     {
       case BASE_OBJECT:
         // The base DN must equal this DN.

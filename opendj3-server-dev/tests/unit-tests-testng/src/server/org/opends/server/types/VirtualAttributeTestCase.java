@@ -31,6 +31,7 @@ import java.util.LinkedHashSet;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn.ConflictBehavior;
 import org.opends.server.extensions.EntryDNVirtualAttributeProvider;
@@ -51,7 +52,7 @@ public class VirtualAttributeTestCase
   // The virtual attribute instance that will be used for all the testing.
   private VirtualAttribute virtualAttribute;
 
-  // The virutal attribute rule that will be used for the testing.
+  // The virtual attribute rule that will be used for the testing.
   private VirtualAttributeRule virtualAttributeRule;
 
 

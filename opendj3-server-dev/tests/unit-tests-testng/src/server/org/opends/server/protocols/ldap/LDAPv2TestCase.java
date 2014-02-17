@@ -26,24 +26,20 @@
  */
 package org.opends.server.protocols.ldap ;
 
-
-
 import java.net.Socket;
 import java.util.ArrayList;
 
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
-
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.*;
 import org.opends.server.util.StaticUtils;
-import org.forgerock.opendj.ldap.ByteString;
-import static org.testng.Assert.*;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
 import static org.opends.server.util.ServerConstants.*;
-
-
+import static org.testng.Assert.*;
 
 /**
  * This class provides a number of tests to ensure that the server interacts

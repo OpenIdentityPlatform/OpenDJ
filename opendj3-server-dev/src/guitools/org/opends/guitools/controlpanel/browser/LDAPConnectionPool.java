@@ -22,8 +22,8 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
-
 package org.opends.guitools.controlpanel.browser;
 
 import java.util.ArrayList;
@@ -40,7 +40,7 @@ import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.guitools.controlpanel.event.ReferralAuthenticationListener;
 import org.opends.server.types.DN;
 import org.opends.server.types.LDAPURL;
-import org.opends.server.types.SearchScope;
+import org.forgerock.opendj.ldap.SearchScope;
 
 /**
  * An LDAPConnectionPool is a pool of LDAPConnection.

@@ -24,37 +24,34 @@
  *      Copyright 2008-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2014 ForgeRock AS
  */
-
 package org.opends.server.crypto;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.SearchScope;
+import org.opends.admin.ads.ADSContext;
 import org.opends.server.api.Backend;
 import org.opends.server.api.BackendInitializationListener;
 import org.opends.server.api.ChangeNotificationListener;
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.opends.server.config.ConfigConstants;
+import org.opends.server.controls.EntryChangeNotificationControl;
+import org.opends.server.controls.PersistentSearchChangeType;
+import org.opends.server.core.AddOperation;
+import org.opends.server.core.DeleteOperation;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.PostResponseAddOperation;
 import org.opends.server.types.operation.PostResponseDeleteOperation;
 import org.opends.server.types.operation.PostResponseModifyOperation;
 import org.opends.server.types.operation.PostResponseModifyDNOperation;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
-import static org.opends.server.util.ServerConstants.OC_TOP;
-import static org.opends.server.util.ServerConstants.
-     OID_ENTRY_CHANGE_NOTIFICATION;
-import org.opends.server.config.ConfigConstants;
-import static org.opends.server.config.ConfigConstants.OC_CRYPTO_INSTANCE_KEY;
-import static org.opends.server.config.ConfigConstants.OC_CRYPTO_CIPHER_KEY;
-import static org.opends.server.config.ConfigConstants.OC_CRYPTO_MAC_KEY;
-import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.protocols.ldap.LDAPControl;
-import org.opends.server.controls.PersistentSearchChangeType;
-import org.opends.server.controls.EntryChangeNotificationControl;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.DeleteOperation;
-import org.opends.server.core.AddOperation;
+
 import static org.opends.messages.CoreMessages.*;
-import org.opends.admin.ads.ADSContext;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.util.LinkedHashSet;
 import java.util.ArrayList;
@@ -235,6 +232,7 @@ public class CryptoManagerSync
   /**
    * {@inheritDoc}
    */
+  @Override
   public void performBackendInitializationProcessing(Backend backend)
   {
     DN[] baseDNs = backend.getBaseDNs();
@@ -253,6 +251,7 @@ public class CryptoManagerSync
   /**
    * {@inheritDoc}
    */
+  @Override
   public void performBackendFinalizationProcessing(Backend backend)
   {
     // No implementation required.
@@ -473,6 +472,7 @@ public class CryptoManagerSync
   /**
    * {@inheritDoc}
    */
+  @Override
   public void handleAddOperation(PostResponseAddOperation addOperation,
                                  Entry entry)
   {
@@ -522,6 +522,7 @@ public class CryptoManagerSync
   /**
    * {@inheritDoc}
    */
+  @Override
   public void handleDeleteOperation(PostResponseDeleteOperation deleteOperation,
                                     Entry entry)
   {
@@ -548,6 +549,7 @@ public class CryptoManagerSync
   /**
    * {@inheritDoc}
    */
+  @Override
   public void handleModifyOperation(PostResponseModifyOperation modifyOperation,
                                     Entry oldEntry, Entry newEntry)
   {
@@ -623,6 +625,7 @@ public class CryptoManagerSync
   /**
    * {@inheritDoc}
    */
+  @Override
   public void handleModifyDNOperation(
        PostResponseModifyDNOperation modifyDNOperation, Entry oldEntry,
        Entry newEntry)

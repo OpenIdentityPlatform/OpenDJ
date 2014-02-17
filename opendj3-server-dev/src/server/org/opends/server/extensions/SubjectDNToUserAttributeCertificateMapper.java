@@ -26,31 +26,30 @@
  */
 package org.opends.server.extensions;
 
-
-
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+
 import javax.security.auth.x500.X500Principal;
-import static org.opends.messages.ExtensionMessages.*;
+
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.CertificateMapperCfg;
-import org.opends.server.admin.std.server
-    .SubjectDNToUserAttributeCertificateMapperCfg;
+import org.opends.server.admin.std.server.SubjectDNToUserAttributeCertificateMapperCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.CertificateMapper;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.types.*;
 
-
+import static org.opends.messages.ExtensionMessages.*;
 
 /**
  * This class implements a very simple Directory Server certificate mapper that

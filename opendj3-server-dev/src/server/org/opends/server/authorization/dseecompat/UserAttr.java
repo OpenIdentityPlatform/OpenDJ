@@ -26,17 +26,18 @@
  */
 package org.opends.server.authorization.dseecompat;
 
-import static org.opends.messages.AccessControlMessages.*;
-
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.types.*;
+
+import static org.opends.messages.AccessControlMessages.*;
 
 /*
  * TODO Evaluate making this class more efficient.

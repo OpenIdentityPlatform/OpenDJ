@@ -26,8 +26,6 @@
  */
 package org.opends.server.types.operation;
 
-
-
 import java.util.List;
 import java.util.Set;
 
@@ -37,11 +35,9 @@ import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.RawFilter;
-import org.opends.server.types.SearchScope;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchResultReference;
-
-
 
 /**
  * This class defines a set of methods that are available for use by

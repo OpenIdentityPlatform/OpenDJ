@@ -29,10 +29,13 @@ package org.opends.server.controls;
 import java.util.*;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.TestCaseUtils;
-import org.opends.server.core.ModifyOperation;
 import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Writer;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.forgerock.opendj.ldap.SearchScope;
+import org.opends.server.TestCaseUtils;
+import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPAttribute;
@@ -41,8 +44,6 @@ import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.protocols.ldap.LDAPReader;
 import org.opends.server.tools.LDAPSearch;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 

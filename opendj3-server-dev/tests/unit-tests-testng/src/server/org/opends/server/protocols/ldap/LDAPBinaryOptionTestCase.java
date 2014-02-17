@@ -24,33 +24,36 @@
  *      Copyright  2008 Sun Microsystems, Inc.
  *      Portions Copyright 2012-2014 ForgeRock AS
  */
-
 package org.opends.server.protocols.ldap;
 
-
 import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.File;
+import java.io.FileReader;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.Backend;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.tools.*;
+import org.opends.server.tools.LDAPModify;
+import org.opends.server.tools.LDAPSearch;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.util.Base64;
 import org.opends.server.util.StaticUtils;
-import org.testng.annotations.*;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
+
 import static org.testng.Assert.*;
 
-/*
- * This class defines a set of testcases for testing the ;binary transfer
- * option functionality across different protocol versions of LDAP.
+/**
+ * This class defines a set of test cases for testing the binary transfer option
+ * functionality across different protocol versions of LDAP.
  */
 public class LDAPBinaryOptionTestCase extends LdapTestCase {
   // Exported LDIF file.

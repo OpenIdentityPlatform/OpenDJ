@@ -29,19 +29,16 @@ package org.opends.server.types;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 
+import org.forgerock.opendj.ldap.SearchScope;
+import org.opends.server.TestCaseUtils;
+import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn.ConflictBehavior;
+import org.opends.server.extensions.EntryDNVirtualAttributeProvider;
+import org.opends.server.protocols.internal.InternalClientConnection;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import org.opends.server.TestCaseUtils;
-import org.opends.server.admin.std.meta.
-            VirtualAttributeCfgDefn.ConflictBehavior;
-import org.opends.server.extensions.EntryDNVirtualAttributeProvider;
-import org.opends.server.protocols.internal.InternalClientConnection;
-
 import static org.testng.Assert.*;
-
-
 
 /**
  * This class provides a set of test cases for virtual attribute rules, which

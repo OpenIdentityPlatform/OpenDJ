@@ -29,11 +29,11 @@ package org.opends.server.tools;
 import java.io.PrintStream;
 
 import org.opends.server.types.DereferencePolicy;
-import org.opends.server.types.SearchScope;
+import org.forgerock.opendj.ldap.SearchScope;
 
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.types.DereferencePolicy.*;
-import static org.opends.server.types.SearchScope.*;
+import static org.forgerock.opendj.ldap.SearchScope.*;
 
 
 

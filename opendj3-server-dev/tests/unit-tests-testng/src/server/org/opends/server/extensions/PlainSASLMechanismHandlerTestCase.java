@@ -26,12 +26,9 @@
  */
 package org.opends.server.extensions;
 
-
-
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
-
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.SASLMechanismHandler;
 import org.opends.server.core.AddOperation;
@@ -42,12 +39,14 @@ import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.tools.LDAPSearch;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.opends.server.types.AuthenticationInfo;
+import org.opends.server.types.Entry;
+import org.opends.server.types.ResultCode;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
+
 import static org.testng.Assert.*;
-
-
 
 /**
  * A set of test cases for the PLAIN SASL mechanism handler.

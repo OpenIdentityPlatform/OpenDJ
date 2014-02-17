@@ -27,8 +27,6 @@
 
 package org.opends.guitools.controlpanel.browser;
 
-import static org.opends.messages.AdminToolMessages.*;
-
 import java.util.ArrayList;
 import java.util.Set;
 
@@ -44,6 +42,7 @@ import javax.naming.ldap.LdapName;
 import javax.swing.SwingUtilities;
 import javax.swing.tree.TreeNode;
 
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.messages.AdminToolMessages;
@@ -53,7 +52,8 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.LDAPURL;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.types.RDN;
-import org.opends.server.types.SearchScope;
+
+import static org.opends.messages.AdminToolMessages.*;
 
 /**
  * The class that is in charge of doing the LDAP searches required to update a
@@ -301,6 +301,7 @@ public class NodeRefresher extends AbstractNodeTask {
         {
           SwingUtilities.invokeLater(new Runnable()
           {
+            @Override
             public void run()
             {
               controller.expandNode(node);
@@ -890,6 +891,7 @@ public class NodeRefresher extends AbstractNodeTask {
                 {
                   SwingUtilities.invokeAndWait(new Runnable()
                   {
+                    @Override
                     public void run()
                     {
                       for (int i=0; i<getNode().getChildCount(); i++)
@@ -1129,7 +1131,7 @@ public class NodeRefresher extends AbstractNodeTask {
     int scope;
     if (url.getScope() != null)
     {
-      switch (url.getScope())
+      switch (url.getScope().asEnum())
       {
       case BASE_OBJECT:
         scope = SearchControls.OBJECT_SCOPE;

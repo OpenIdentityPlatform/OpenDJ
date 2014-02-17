@@ -27,7 +27,7 @@
 package org.opends.server.core;
 
 import org.opends.server.types.DN;
-import org.opends.server.types.SearchScope;
+import org.forgerock.opendj.ldap.SearchScope;
 
 /**
  * This class is the base class used to build the workflow topology.
@@ -113,10 +113,9 @@ public abstract class WorkflowTopology implements Workflow
    */
 
   protected SearchScope elaborateScopeForSearchInSubordinates(
-      SearchScope currentScope
-      )
+      SearchScope currentScope)
   {
-    switch (currentScope)
+    switch (currentScope.asEnum())
     {
     case BASE_OBJECT:
       return null;

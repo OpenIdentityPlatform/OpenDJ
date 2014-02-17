@@ -54,7 +54,7 @@ import org.testng.annotations.Test;
 @Test(groups = { "precommit", "jeb" }, sequential = true)
 public abstract class JebTestCase extends DirectoryServerTestCase {
     private TreeMap<DN,Entry> entryTreeMap = new TreeMap<DN,Entry>();
-    int numEntries;
+    private int numEntries;
 
     /**
      * This method takes an MakeLDIF template and a number of entries to create
@@ -83,11 +83,7 @@ public abstract class JebTestCase extends DirectoryServerTestCase {
         for(int i =0; i<numEntries;i++) {
             Entry entry = reader.readEntry(false);
             entryTreeMap.put(entry.getName(), entry);
-            AddOperation addOperation =
-                connection.processAdd(entry.getName(),
-                        entry.getObjectClasses(),
-                        entry.getUserAttributes(),
-                        entry.getOperationalAttributes());
+            AddOperation addOperation = connection.processAdd(entry);
             assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS,
             "Add of this entry was not successful");
         }

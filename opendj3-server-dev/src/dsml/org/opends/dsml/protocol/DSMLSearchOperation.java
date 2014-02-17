@@ -51,7 +51,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.RawFilter;
-import org.opends.server.types.SearchScope;
+import org.forgerock.opendj.ldap.SearchScope;
 import static org.opends.messages.ProtocolMessages.*;
 
 

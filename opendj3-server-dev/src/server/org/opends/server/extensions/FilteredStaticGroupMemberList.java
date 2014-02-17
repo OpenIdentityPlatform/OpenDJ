@@ -25,14 +25,15 @@
  *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.extensions;
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.i18n.LocalizableMessage;
 
-
-
-import java.util.Iterator;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Set;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.SearchScope;
 
 import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.DirectoryException;
@@ -41,13 +42,9 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.MemberList;
 import org.opends.server.types.MembershipException;
 import org.opends.server.types.SearchFilter;
-import org.opends.server.types.SearchScope;
 
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import static org.opends.messages.ExtensionMessages.*;
 import static org.forgerock.util.Reject.*;
-
-
+import static org.opends.messages.ExtensionMessages.*;
 
 /**
  * This class provides an implementation of the {@code MemberList} class that
@@ -169,7 +166,7 @@ public class FilteredStaticGroupMemberList
       // based on base DN and scope.
       if (baseDN != null)
       {
-        switch (scope)
+        switch (scope.asEnum())
         {
           case BASE_OBJECT:
             if (! baseDN.equals(nextDN))

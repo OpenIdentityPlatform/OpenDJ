@@ -25,32 +25,33 @@
  *      Portions copyright 2011 profiq s.r.o.
  *      Portions Copyright 2014 ForgeRock AS
  */
-
 package org.opends.server.plugins;
 
-import org.testng.annotations.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.admin.server.AdminTestCaseUtils;
+import org.opends.server.admin.std.meta.ReferentialIntegrityPluginCfgDefn;
+import org.opends.server.admin.std.server.ReferentialIntegrityPluginCfg;
+import org.opends.server.api.Group;
+import org.opends.server.api.plugin.PluginType;
 import org.opends.server.config.ConfigException;
 import org.opends.server.controls.SubtreeDeleteControl;
-import org.opends.server.admin.std.server.ReferentialIntegrityPluginCfg;
-import org.opends.server.admin.std.meta.ReferentialIntegrityPluginCfgDefn;
-import org.opends.server.admin.server.AdminTestCaseUtils;
-import org.opends.server.api.plugin.PluginType;
-import org.opends.server.api.Group;
-import static org.testng.Assert.assertEquals;
 import org.opends.server.core.*;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.types.*;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.HashSet;
+import org.testng.annotations.*;
+
+import static org.testng.Assert.*;
 
 /**
  * Unit test to test Referential Integrity plugin.
  */
-
 public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
 
   //Config DNs and attributes.

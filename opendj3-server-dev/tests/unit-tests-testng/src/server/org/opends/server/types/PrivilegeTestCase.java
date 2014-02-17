@@ -26,7 +26,6 @@
  */
 package org.opends.server.types;
 
-import org.forgerock.opendj.ldap.ByteString;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -34,6 +33,8 @@ import java.net.Socket;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArraySet;
 
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.GlobalCfgDefn.DisabledPrivilege;
 import org.opends.server.admin.std.meta.RootDNCfgDefn;

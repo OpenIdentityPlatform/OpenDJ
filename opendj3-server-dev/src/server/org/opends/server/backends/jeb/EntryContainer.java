@@ -27,17 +27,15 @@
  */
 package org.opends.server.backends.jeb;
 
-import static org.opends.messages.JebMessages.*;
-import static org.opends.server.util.StaticUtils.*;
-
-import com.sleepycat.je.*;
-
 import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
@@ -51,12 +49,15 @@ import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.config.ConfigException;
 import org.opends.server.controls.*;
 import org.opends.server.core.*;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
+
+import com.sleepycat.je.*;
+
+import static org.opends.messages.JebMessages.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * Storage container for LDAP entries.  Each base DN of a JE backend is given

@@ -26,15 +26,6 @@
  */
 package org.opends.server.protocols.jmx;
 
-
-
-import static org.opends.messages.ProtocolMessages.*;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.fail;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -42,8 +33,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
 
-import org.opends.server.TestCaseUtils;
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.SearchScope;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskBackend;
 import org.opends.server.backends.task.TaskState;
@@ -61,17 +54,17 @@ import org.opends.server.core.ModifyDNOperationBasis;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.core.SchemaConfigManager;
-import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-
+import static org.opends.messages.ProtocolMessages.*;
+import static org.testng.Assert.*;
 
 /**
  * This class provides a set of test cases for the Directory Server JMX
@@ -97,6 +90,7 @@ public class JmxPrivilegeTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
+  @Override
   @BeforeClass(alwaysRun = true)
   public void setUp()
          throws Exception

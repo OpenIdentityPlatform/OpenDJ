@@ -26,14 +26,12 @@
  */
 package org.opends.server.types.operation;
 
-
-
 import java.util.List;
 import java.util.Set;
 
-import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
-
+import org.forgerock.opendj.ldap.SearchScope;
+import org.opends.server.types.*;
 
 /**
  * This class defines a set of methods that are available for use by

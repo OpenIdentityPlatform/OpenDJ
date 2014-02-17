@@ -27,12 +27,13 @@
 package org.opends.server.replication.plugin;
 
 import java.util.ArrayList;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -42,7 +43,7 @@ import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
+
 import static org.opends.messages.ReplicationMessages.*;
 
 /**
@@ -375,7 +376,6 @@ public class PersistentServerState
    * and an ordering index for historical attribute
    */
   public final void checkAndUpdateServerState() {
-    LocalizableMessage message;
     InternalSearchOperation op;
     CSN serverStateMaxCsn;
     CSN dbMaxCsn;

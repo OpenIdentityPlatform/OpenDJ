@@ -35,14 +35,14 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.security.MessageDigest;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.zip.Deflater;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import javax.crypto.Mac;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -50,6 +50,7 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.util.Utils;
 import org.opends.server.admin.Configuration;
 import org.opends.server.api.AlertGenerator;
@@ -1590,7 +1591,7 @@ public class ConfigFileHandler
     // accordingly.  Also get the filter since we will need it in all cases.
     SearchScope  scope  = searchOperation.getScope();
     SearchFilter filter = searchOperation.getFilter();
-    switch (scope)
+    switch (scope.asEnum())
     {
       case BASE_OBJECT:
         // We are only interested in the base entry itself.  See if it matches

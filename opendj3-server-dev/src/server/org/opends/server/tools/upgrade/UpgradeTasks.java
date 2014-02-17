@@ -26,13 +26,6 @@
 
 package org.opends.server.tools.upgrade;
 
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.tools.upgrade.FileManager.copy;
-import static org.opends.server.tools.upgrade.Installation
-.CURRENT_CONFIG_FILE_NAME;
-import static org.opends.server.tools.upgrade.Upgrade.*;
-import static org.opends.server.tools.upgrade.UpgradeUtils.*;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -41,20 +34,23 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-
 import javax.security.auth.callback.ConfirmationCallback;
 import javax.security.auth.callback.TextOutputCallback;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.Filter;
+import org.opends.server.tools.RebuildIndex;
+import org.opends.server.util.BuildVersion;
+import org.opends.server.util.ChangeOperationType;
 
 import com.forgerock.opendj.cli.ClientException;
 import com.forgerock.opendj.cli.ReturnCode;
 
-import org.opends.server.tools.RebuildIndex;
-import org.opends.server.util.BuildVersion;
-import org.opends.server.util.ChangeOperationType;
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.tools.upgrade.FileManager.*;
+import static org.opends.server.tools.upgrade.Installation.*;
+import static org.opends.server.tools.upgrade.UpgradeUtils.*;
 
 /**
  * Factory methods for create new upgrade tasks.

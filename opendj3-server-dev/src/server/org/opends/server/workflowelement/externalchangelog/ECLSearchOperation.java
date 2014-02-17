@@ -30,12 +30,14 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.controls.*;
 import org.opends.server.core.*;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.MultiDomainServerState;
 import org.opends.server.replication.plugin.MultimasterReplication;
@@ -43,7 +45,6 @@ import org.opends.server.replication.protocol.*;
 import org.opends.server.replication.server.ECLServerHandler;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.operation.PostOperationSearchOperation;
 import org.opends.server.types.operation.PreOperationSearchOperation;
 import org.opends.server.types.operation.SearchEntrySearchOperation;
@@ -52,10 +53,8 @@ import org.opends.server.util.ServerConstants;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.replication.protocol.StartECLSessionMsg
-.ECLRequestType.*;
-import static org.opends.server.replication.protocol.StartECLSessionMsg
-.Persistent.*;
+import static org.opends.server.replication.protocol.StartECLSessionMsg.ECLRequestType.*;
+import static org.opends.server.replication.protocol.StartECLSessionMsg.Persistent.*;
 import static org.opends.server.util.LDIFWriter.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
