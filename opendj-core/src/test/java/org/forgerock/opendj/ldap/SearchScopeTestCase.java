@@ -25,18 +25,26 @@
  */
 package org.forgerock.opendj.ldap;
 
+import java.util.Iterator;
+
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
+
 import static org.fest.assertions.Assertions.*;
 import static org.testng.Assert.*;
-
-import org.testng.annotations.Test;
 
 @SuppressWarnings("javadoc")
 public class SearchScopeTestCase extends SdkTestCase {
 
     @Test
     public void valueOfInt() {
-        assertNull(SearchScope.valueOf(-1));
-        assertNull(SearchScope.valueOf(Integer.MAX_VALUE));
+        final SearchScope unkown1 = SearchScope.valueOf(-1);
+        assertEquals(unkown1.intValue(), -1);
+        assertEquals(unkown1.asEnum(), SearchScope.Enum.UNKNOWN);
+        final SearchScope unknownMax = SearchScope.valueOf(Integer.MAX_VALUE);
+        assertEquals(unknownMax.intValue(), Integer.MAX_VALUE);
+        assertEquals(unknownMax.asEnum(), SearchScope.Enum.UNKNOWN);
+
         assertEquals(SearchScope.valueOf(0), SearchScope.BASE_OBJECT);
         assertEquals(SearchScope.valueOf(1), SearchScope.SINGLE_LEVEL);
         assertEquals(SearchScope.valueOf(2), SearchScope.WHOLE_SUBTREE);
@@ -57,5 +65,33 @@ public class SearchScopeTestCase extends SdkTestCase {
         assertThat(SearchScope.values()).containsExactly(SearchScope.BASE_OBJECT,
             SearchScope.SINGLE_LEVEL, SearchScope.WHOLE_SUBTREE,
             SearchScope.SUBORDINATES);
+    }
+
+    @DataProvider
+    public Iterator<Object[]> valuesDataProvider() {
+        return new DataProviderIterator(SearchScope.values());
+    }
+
+    @Test(dataProvider = "valuesDataProvider")
+    public void valueOfInt(SearchScope val) throws Exception {
+        assertSame(SearchScope.valueOf(val.intValue()), val, val.toString());
+    }
+
+    @Test
+    public void valueOfIntUnknown() throws Exception {
+        int intValue = -1;
+        SearchScope unknown = SearchScope.valueOf(intValue);
+        assertSame(unknown.intValue(), intValue);
+        assertSame(unknown.asEnum(), SearchScope.Enum.UNKNOWN);
+    }
+
+    @Test(dataProvider = "valuesDataProvider")
+    public void valueOfString(SearchScope val) throws Exception {
+        assertSame(SearchScope.valueOf(val.toString()), val);
+    }
+
+    @Test
+    public void valueOfStringUnknown() throws Exception {
+        assertNull(SearchScope.valueOf("unknown"));
     }
 }

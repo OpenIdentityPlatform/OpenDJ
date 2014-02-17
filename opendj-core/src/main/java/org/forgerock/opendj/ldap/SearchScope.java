@@ -42,6 +42,26 @@ import java.util.List;
  *      Scope for LDAP </a>
  */
 public final class SearchScope {
+
+    /**
+     * Contains equivalent values for the SearchScope values.
+     * This allows easily using SearchScope values with switch statements.
+     */
+    public static enum Enum {
+        //@Checkstyle:off
+        /** @see SearchScope#BASE_OBJECT */
+        BASE_OBJECT,
+        /** @see SearchScope#SINGLE_LEVEL */
+        SINGLE_LEVEL,
+        /** @see SearchScope#WHOLE_SUBTREE */
+        WHOLE_SUBTREE,
+        /** @see SearchScope#SUBORDINATES */
+        SUBORDINATES,
+        /** Used for unknown search scopes. */
+        UNKNOWN;
+        //@Checkstyle:on
+    }
+
     private static final SearchScope[] ELEMENTS = new SearchScope[4];
 
     private static final List<SearchScope> IMMUTABLE_ELEMENTS = Collections.unmodifiableList(Arrays
@@ -50,26 +70,26 @@ public final class SearchScope {
     /**
      * The scope is constrained to the search base entry.
      */
-    public static final SearchScope BASE_OBJECT = register(0, "base");
+    public static final SearchScope BASE_OBJECT = register(0, "base", Enum.BASE_OBJECT);
 
     /**
      * The scope is constrained to the immediate subordinates of the search base
      * entry.
      */
-    public static final SearchScope SINGLE_LEVEL = register(1, "one");
+    public static final SearchScope SINGLE_LEVEL = register(1, "one", Enum.SINGLE_LEVEL);
 
     /**
      * The scope is constrained to the search base entry and to all its
      * subordinates.
      */
-    public static final SearchScope WHOLE_SUBTREE = register(2, "sub");
+    public static final SearchScope WHOLE_SUBTREE = register(2, "sub", Enum.WHOLE_SUBTREE);
 
     /**
      * The scope is constrained to all the subordinates of the search base
      * entry, but does not include the search base entry itself (as wholeSubtree
      * does).
      */
-    public static final SearchScope SUBORDINATES = register(3, "subordinates");
+    public static final SearchScope SUBORDINATES = register(3, "subordinates", Enum.SUBORDINATES);
 
     /**
      * Returns the search scope having the specified integer value as defined in
@@ -81,10 +101,14 @@ public final class SearchScope {
      *         associated with {@code intValue}.
      */
     public static SearchScope valueOf(final int intValue) {
-        if (intValue < 0 || intValue >= ELEMENTS.length) {
-            return null;
+        SearchScope result = null;
+        if (0 <= intValue && intValue < ELEMENTS.length) {
+            result = ELEMENTS[intValue];
         }
-        return ELEMENTS[intValue];
+        if (result == null) {
+            result = new SearchScope(intValue, "unknown(" + intValue + ")", Enum.UNKNOWN);
+        }
+        return result;
     }
 
     /**
@@ -127,10 +151,12 @@ public final class SearchScope {
      *            section 4.5.1.2.
      * @param name
      *            The name of the search scope as defined in RFC 4516.
+     * @param searchScopeEnum
+     *            The enum equivalent for this search scope
      * @return The new search scope.
      */
-    private static SearchScope register(final int intValue, final String name) {
-        final SearchScope t = new SearchScope(intValue, name);
+    private static SearchScope register(final int intValue, final String name, Enum searchScopeEnum) {
+        final SearchScope t = new SearchScope(intValue, name, searchScopeEnum);
         ELEMENTS[intValue] = t;
         return t;
     }
@@ -139,10 +165,13 @@ public final class SearchScope {
 
     private final String name;
 
+    private final Enum searchScopeEnum;
+
     // Prevent direct instantiation.
-    private SearchScope(final int intValue, final String name) {
+    private SearchScope(final int intValue, final String name, Enum searchScopeEnum) {
         this.intValue = intValue;
         this.name = name;
+        this.searchScopeEnum = searchScopeEnum;
     }
 
     /**
@@ -175,6 +204,16 @@ public final class SearchScope {
      */
     public int intValue() {
         return intValue;
+    }
+
+    /**
+     * Returns the enum equivalent for this search scope.
+     *
+     * @return The enum equivalent for this search scope when a known mapping exists,
+     *         or {@link Enum#UNKNOWN} if this is an unknown search scope.
+     */
+    public Enum asEnum() {
+        return this.searchScopeEnum;
     }
 
     /**

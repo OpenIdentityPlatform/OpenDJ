@@ -23,7 +23,6 @@
  *
  *      Copyright 2009 Sun Microsystems, Inc.
  */
-
 package org.forgerock.opendj.ldap;
 
 import java.util.Arrays;
@@ -40,6 +39,26 @@ import java.util.List;
  *      Directory Access Protocol (LDAP) Modify-Increment Extension </a>
  */
 public final class ModificationType {
+
+    /**
+     * Contains equivalent values for the ModificationType values.
+     * This allows easily using ModificationType values with switch statements.
+     */
+    public static enum Enum {
+        //@Checkstyle:off
+        /** @see ModificationType#ADD */
+        ADD,
+        /** @see ModificationType#DELETE */
+        DELETE,
+        /** @see ModificationType#REPLACE */
+        REPLACE,
+        /** @see ModificationType#INCREMENT */
+        INCREMENT,
+        /** Used for unknown modification types. */
+        UNKNOWN;
+        //@Checkstyle:on
+    }
+
     private static final ModificationType[] ELEMENTS = new ModificationType[4];
 
     private static final List<ModificationType> IMMUTABLE_ELEMENTS = Collections
@@ -49,14 +68,14 @@ public final class ModificationType {
      * Add the values listed in the modification to the attribute, creating the
      * attribute if necessary.
      */
-    public static final ModificationType ADD = register(0, "add");
+    public static final ModificationType ADD = register(0, "add", Enum.ADD);
 
     /**
      * Delete the values listed in the modification from the attribute. If no
      * values are listed, or if all current values of the attribute are listed,
      * the entire attribute is removed.
      */
-    public static final ModificationType DELETE = register(1, "delete");
+    public static final ModificationType DELETE = register(1, "delete", Enum.DELETE);
 
     /**
      * Replace all existing values of the attribute with the new values listed
@@ -64,13 +83,13 @@ public final class ModificationType {
      * A replace with no listed values will delete the entire attribute if it
      * exists, and it is ignored if the attribute does not exist.
      */
-    public static final ModificationType REPLACE = register(2, "replace");
+    public static final ModificationType REPLACE = register(2, "replace", Enum.REPLACE);
 
     /**
      * Increment all existing values of the attribute by the amount specified in
      * the modification value.
      */
-    public static final ModificationType INCREMENT = register(3, "increment");
+    public static final ModificationType INCREMENT = register(3, "increment", Enum.INCREMENT);
 
     /**
      * Returns the modification change type having the specified integer value
@@ -82,10 +101,14 @@ public final class ModificationType {
      *         modification change type associated with {@code intValue}.
      */
     public static ModificationType valueOf(final int intValue) {
-        if (intValue < 0 || intValue >= ELEMENTS.length) {
-            return null;
+        ModificationType result = null;
+        if (0 <= intValue && intValue < ELEMENTS.length) {
+            result = ELEMENTS[intValue];
         }
-        return ELEMENTS[intValue];
+        if (result == null) {
+            result = new ModificationType(intValue, "unknown(" + intValue + ")", Enum.UNKNOWN);
+        }
+        return result;
     }
 
     /**
@@ -109,10 +132,12 @@ public final class ModificationType {
      *            in RFC 4511 section 4.6.
      * @param name
      *            The name of the modification change type.
+     * @param modificationTypeEnum
+     *            The enum equivalent for this modification type
      * @return The new modification change type.
      */
-    private static ModificationType register(final int intValue, final String name) {
-        final ModificationType t = new ModificationType(intValue, name);
+    private static ModificationType register(final int intValue, final String name, final Enum modificationTypeEnum) {
+        final ModificationType t = new ModificationType(intValue, name, modificationTypeEnum);
         ELEMENTS[intValue] = t;
         return t;
     }
@@ -121,10 +146,13 @@ public final class ModificationType {
 
     private final String name;
 
+    private final Enum modificationTypeEnum;
+
     // Prevent direct instantiation.
-    private ModificationType(final int intValue, final String name) {
+    private ModificationType(final int intValue, final String name, final Enum modificationTypeEnum) {
         this.intValue = intValue;
         this.name = name;
+        this.modificationTypeEnum = modificationTypeEnum;
     }
 
     /**
@@ -157,6 +185,16 @@ public final class ModificationType {
      */
     public int intValue() {
         return intValue;
+    }
+
+    /**
+     * Returns the enum equivalent for this modification type.
+     *
+     * @return The enum equivalent for this modification type when a known mapping exists,
+     *         or {@link Enum#UNKNOWN} if this is an unknown modification type.
+     */
+    public Enum asEnum() {
+        return this.modificationTypeEnum;
     }
 
     /**
