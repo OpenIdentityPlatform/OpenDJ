@@ -50,6 +50,7 @@ import org.opends.server.api.*;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
+import org.opends.server.core.ServerContext;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.*;
 import org.opends.server.schema.GeneralizedTimeSyntax;
@@ -2162,6 +2163,8 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
   // The provider which should be used by policies to create LDAP connections.
   private final Provider provider;
 
+  private ServerContext serverContext;
+
   /**
    * The default LDAP connection factory provider.
    */
@@ -2390,7 +2393,16 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
     this(DEFAULT_PROVIDER);
   }
 
-
+  /**
+   * Sets the server context.
+   *
+   * @param serverContext
+   *            The server context.
+   */
+  @Override
+  public void setServerContext(ServerContext serverContext) {
+    this.serverContext = serverContext;
+  }
 
   /**
    * Package private constructor allowing unit tests to provide mock connection

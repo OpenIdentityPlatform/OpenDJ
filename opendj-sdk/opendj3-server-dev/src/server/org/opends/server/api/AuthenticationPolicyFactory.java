@@ -33,6 +33,7 @@ import java.util.List;
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.AuthenticationPolicyCfg;
 import org.opends.server.config.ConfigException;
+import org.opends.server.core.ServerContext;
 import org.opends.server.types.InitializationException;
 
 
@@ -82,4 +83,14 @@ public interface AuthenticationPolicyFactory<T extends AuthenticationPolicyCfg>
    */
   boolean isConfigurationAcceptable(T configuration,
       List<LocalizableMessage> unacceptableReasons);
+
+
+  /**
+   * Sets the server context.
+   *
+   * @param serverContext
+   *            The server context.
+   */
+  void setServerContext(final ServerContext serverContext);
+
 }

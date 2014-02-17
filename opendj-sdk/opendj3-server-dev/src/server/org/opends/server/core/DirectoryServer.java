@@ -756,6 +756,13 @@ public final class DirectoryServer
       return DirectoryServer.getServerRoot();
     }
 
+    /** {@inheritDoc} */
+    @Override
+    public Schema getSchema()
+    {
+      return directoryServer.schema;
+    }
+
   }
 
 
@@ -1607,6 +1614,7 @@ public final class DirectoryServer
     defaultBooleanSyntax = initAndRegister(new BooleanSyntax());
     defaultStringSyntax = initAndRegister(new DirectoryStringSyntax());
     defaultSyntax = defaultStringSyntax;
+    schema.registerDefaultSyntax(defaultSyntax);
     defaultDNSyntax = initAndRegister(new DistinguishedNameSyntax());
     initAndRegister(new IA5StringSyntax());
     defaultIntegerSyntax = initAndRegister(new IntegerSyntax());
@@ -1623,7 +1631,7 @@ public final class DirectoryServer
     try
     {
       syntax.initializeSyntax(null);
-      registerAttributeSyntax(syntax, true);
+      directoryServer.schema.registerSyntax(syntax, true);
     }
     catch (Exception e)
     {
@@ -1761,7 +1769,7 @@ public final class DirectoryServer
   {
     // Create the schema configuration manager, and initialize the schema from
     // the configuration.
-    schemaConfigManager = new SchemaConfigManager();
+    schemaConfigManager = new SchemaConfigManager(serverContext);
     schema = schemaConfigManager.getSchema();
 
     schemaConfigManager.initializeMatchingRules();
@@ -2658,7 +2666,7 @@ public final class DirectoryServer
 
 
     // Initialize all the authentication policies.
-    authenticationPolicyConfigManager = new PasswordPolicyConfigManager();
+    authenticationPolicyConfigManager = new PasswordPolicyConfigManager(serverContext);
     authenticationPolicyConfigManager.initializeAuthenticationPolicies();
   }
 
@@ -3804,69 +3812,6 @@ public final class DirectoryServer
   {
     return directoryServer.schema.getSyntaxSet();
   }
-
-
-
-  /**
-   * Retrieves the requested attribute syntax.
-   *
-   * @param  oid           The OID of the syntax to retrieve.
-   * @param  allowDefault  Indicates whether to return the default attribute
-   *                       syntax if the requested syntax is unknown.
-   *
-   * @return  The requested attribute syntax, the default syntax if the
-   *          requested syntax is unknown and the caller has indicated that the
-   *          default is acceptable, or <CODE>null</CODE> otherwise.
-   */
-  public static AttributeSyntax getAttributeSyntax(String oid,
-                                                   boolean allowDefault)
-  {
-    AttributeSyntax syntax = directoryServer.schema.getSyntax(oid);
-    if (syntax == null && allowDefault)
-    {
-      return getDefaultAttributeSyntax();
-    }
-
-    return syntax;
-  }
-
-
-
-  /**
-   * Registers the provided attribute syntax with the Directory Server.
-   *
-   * @param  syntax             The attribute syntax to register with the
-   *                            Directory Server.
-   * @param  overwriteExisting  Indicates whether to overwrite an existing
-   *                            mapping if there are any conflicts (i.e.,
-   *                            another attribute syntax with the same OID or
-   *                            name).
-   *
-   * @throws  DirectoryException  If a conflict is encountered and the
-   *                              <CODE>overwriteExisting</CODE> flag is set to
-   *                              <CODE>false</CODE>
-   */
-  public static void registerAttributeSyntax(AttributeSyntax syntax,
-                                             boolean overwriteExisting)
-         throws DirectoryException
-  {
-    directoryServer.schema.registerSyntax(syntax, overwriteExisting);
-  }
-
-
-
-  /**
-   * Deregisters the provided attribute syntax with the Directory Server.
-   *
-   * @param  syntax  The attribute syntax to deregister with the Directory
-   *                 Server.
-   */
-  public static void deregisterAttributeSyntax(AttributeSyntax syntax)
-  {
-    directoryServer.schema.deregisterSyntax(syntax);
-  }
-
-
 
   /**
    * Retrieves the default attribute syntax that should be used for attributes

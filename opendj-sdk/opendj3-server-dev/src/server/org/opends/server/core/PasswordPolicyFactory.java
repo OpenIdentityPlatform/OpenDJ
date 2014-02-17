@@ -103,7 +103,7 @@ public final class PasswordPolicyFactory implements
     // passwords.
     private long requireChangeByTime;
 
-
+    private final ServerContext serverContext;
 
     /**
      * {@inheritDoc}
@@ -124,7 +124,7 @@ public final class PasswordPolicyFactory implements
       ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
       try
       {
-        updateConfiguration(configuration, this);
+        updateConfiguration(configuration, true);
         return new ConfigChangeResult(ResultCode.SUCCESS, false, messages);
       }
       catch (ConfigException ce)
@@ -158,7 +158,7 @@ public final class PasswordPolicyFactory implements
     {
       try
       {
-        updateConfiguration(configuration, null);
+        updateConfiguration(configuration, false);
       }
       catch (ConfigException ce)
       {
@@ -192,10 +192,11 @@ public final class PasswordPolicyFactory implements
      * Creates a new password policy based on the configuration contained in the
      * provided configuration entry. Any parameters not included in the provided
      * configuration entry will be assigned server-wide default values.
-     *
+     * @param serverContext TODO
      * @param configuration
      *          The configuration with the information to use to initialize this
      *          password policy.
+     *
      * @throws ConfigException
      *           If the provided entry does not contain a valid password policy
      *           configuration.
@@ -203,16 +204,17 @@ public final class PasswordPolicyFactory implements
      *           If an error occurs while initializing the password policy that
      *           is not related to the server configuration.
      */
-    private PasswordPolicyImpl(PasswordPolicyCfg configuration)
+    private PasswordPolicyImpl(ServerContext serverContext, PasswordPolicyCfg configuration)
         throws ConfigException, InitializationException
     {
-      updateConfiguration(configuration, this);
+      this.serverContext = serverContext;
+      updateConfiguration(configuration, true);
     }
 
 
 
-    private static void updateConfiguration(PasswordPolicyCfg configuration,
-        PasswordPolicyImpl policy) throws ConfigException,
+    private void updateConfiguration(PasswordPolicyCfg configuration,
+        boolean applyChanges) throws ConfigException,
         InitializationException
     {
       final DN configEntryDN = configuration.dn();
@@ -333,8 +335,8 @@ public final class PasswordPolicyFactory implements
         {
           ByteString valueString = ByteString.valueOf(requireChangeBy);
 
-          GeneralizedTimeSyntax syntax = (GeneralizedTimeSyntax) DirectoryServer
-              .getAttributeSyntax(SYNTAX_GENERALIZED_TIME_OID, false);
+          GeneralizedTimeSyntax syntax = (GeneralizedTimeSyntax)
+              serverContext.getSchema().getSyntax(SYNTAX_GENERALIZED_TIME_OID, false);
 
           if (syntax == null)
           {
@@ -428,16 +430,16 @@ public final class PasswordPolicyFactory implements
 
       // If we've got this far then the configuration is good and we can commit
       // the changes if required.
-      if (policy != null)
+      if (applyChanges)
       {
-        policy.configuration = configuration;
-        policy.authPasswordSyntax = authPasswordSyntax;
-        policy.defaultStorageSchemes = defaultStorageSchemes;
-        policy.deprecatedStorageSchemes = deprecatedStorageSchemes;
-        policy.notificationHandlers = notificationHandlers;
-        policy.passwordGenerator = passwordGenerator;
-        policy.passwordValidators = passwordValidators;
-        policy.requireChangeByTime = requireChangeByTime;
+        this.configuration = configuration;
+        this.authPasswordSyntax = authPasswordSyntax;
+        this.defaultStorageSchemes = defaultStorageSchemes;
+        this.deprecatedStorageSchemes = deprecatedStorageSchemes;
+        this.notificationHandlers = notificationHandlers;
+        this.passwordGenerator = passwordGenerator;
+        this.passwordValidators = passwordValidators;
+        this.requireChangeByTime = requireChangeByTime;
       }
     }
 
@@ -1148,7 +1150,7 @@ public final class PasswordPolicyFactory implements
 
   }
 
-
+  private ServerContext serverContext;
 
   /**
    * Default constructor instantiated from authentication policy config manager.
@@ -1158,7 +1160,16 @@ public final class PasswordPolicyFactory implements
     // Nothing to do .
   }
 
-
+  /**
+   * Sets the server context.
+   *
+   * @param serverContext
+   *            The server context.
+   */
+  @Override
+  public void setServerContext(final ServerContext serverContext) {
+    this.serverContext = serverContext;
+  }
 
   /**
    * {@inheritDoc}
@@ -1168,7 +1179,7 @@ public final class PasswordPolicyFactory implements
       final PasswordPolicyCfg configuration) throws ConfigException,
       InitializationException
   {
-    PasswordPolicyImpl policy = new PasswordPolicyImpl(configuration);
+    PasswordPolicyImpl policy = new PasswordPolicyImpl(serverContext, configuration);
     configuration.addPasswordPolicyChangeListener(policy);
     return policy;
   }
@@ -1185,7 +1196,7 @@ public final class PasswordPolicyFactory implements
   {
     try
     {
-      new PasswordPolicyImpl(configuration);
+      new PasswordPolicyImpl(null, configuration);
     }
     catch (final ConfigException ce)
     {

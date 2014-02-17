@@ -418,29 +418,6 @@ public final class DirectoryConfig
     return DirectoryServer.getAttributeSyntaxes();
   }
 
-
-
-  /**
-   * Retrieves the requested attribute syntax.
-   *
-   * @param  oid           The OID of the syntax to retrieve.
-   * @param  allowDefault  Indicates whether to return the default
-   *                       attribute syntax if the requested syntax is
-   *                       unknown.
-   *
-   * @return  The requested attribute syntax, the default syntax if
-   *          the requested syntax is unknown and the caller has
-   *          indicated that the default is acceptable, or
-   *          <CODE>null</CODE> otherwise.
-   */
-  public static AttributeSyntax
-       getAttributeSyntax(String oid, boolean allowDefault)
-  {
-    return DirectoryServer.getAttributeSyntax(oid, allowDefault);
-  }
-
-
-
   /**
    * Retrieves the default attribute syntax that should be used for
    * attributes that are not defined in the server schema.

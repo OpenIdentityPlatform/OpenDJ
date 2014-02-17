@@ -64,11 +64,17 @@ public class SchemaConfigManager
   /** The schema that has been parsed from the server configuration. */
   private Schema schema;
 
+  private final ServerContext serverContext;
+
   /**
    * Creates a new instance of this schema config manager.
+   *
+   * @param serverContext
+   *            The server context.
    */
-  public SchemaConfigManager()
+  public SchemaConfigManager(ServerContext serverContext)
   {
+    this.serverContext = serverContext;
     schema = new Schema();
   }
 
@@ -147,7 +153,7 @@ public class SchemaConfigManager
          throws ConfigException, InitializationException
   {
     AttributeSyntaxConfigManager syntaxConfigManager =
-         new AttributeSyntaxConfigManager();
+         new AttributeSyntaxConfigManager(serverContext);
     syntaxConfigManager.initializeAttributeSyntaxes();
   }
 
