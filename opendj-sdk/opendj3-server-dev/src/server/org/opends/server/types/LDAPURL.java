@@ -32,8 +32,9 @@ import java.util.LinkedList;
 import java.util.StringTokenizer;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.core.DirectoryServer;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.SearchScope;
+import org.opends.server.core.DirectoryServer;
 
 import static org.opends.messages.UtilityMessages.*;
 import static org.opends.server.types.ResultCode.*;
@@ -1256,8 +1257,8 @@ public final class LDAPURL
       scope = SearchScope.BASE_OBJECT;
     }
 
-    return (entry.matchesBaseAndScope(getBaseDN(), scope) &&
-            getFilter().matchesEntry(entry));
+    return entry.matchesBaseAndScope(getBaseDN(), scope)
+        && getFilter().matchesEntry(entry);
   }
 
 
@@ -1572,7 +1573,7 @@ outerExtLoop:
     }
 
     buffer.append("?");
-    switch (scope)
+    switch (scope.asEnum())
     {
       case BASE_OBJECT:
         buffer.append("base");

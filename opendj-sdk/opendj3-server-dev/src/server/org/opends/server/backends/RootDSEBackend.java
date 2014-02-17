@@ -1100,7 +1100,7 @@ public class RootDSEBackend
 
 
     SearchFilter filter = searchOperation.getFilter();
-    switch (searchOperation.getScope())
+    switch (searchOperation.getScope().asEnum())
     {
       case BASE_OBJECT:
         Entry dseEntry = getRootDSE(searchOperation.getClientConnection());

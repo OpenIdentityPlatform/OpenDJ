@@ -46,7 +46,7 @@ import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
-import org.opends.server.types.SearchScope;
+import org.forgerock.opendj.ldap.SearchScope;
 
 import static org.opends.messages.ExtensionMessages.*;
 

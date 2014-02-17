@@ -26,21 +26,14 @@
  */
 package org.opends.server.core.networkgroups;
 
-
-
-import static org.opends.messages.ConfigMessages.*;
-import static org.opends.messages.CoreMessages.*;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.std.meta.
-  RequestFilteringQOSPolicyCfgDefn.AllowedOperations;
-import org.opends.server.admin.std.meta.
-  RequestFilteringQOSPolicyCfgDefn.AllowedSearchScopes;
+import org.opends.server.admin.std.meta.RequestFilteringQOSPolicyCfgDefn.AllowedOperations;
+import org.opends.server.admin.std.meta.RequestFilteringQOSPolicyCfgDefn.AllowedSearchScopes;
 import org.opends.server.admin.std.server.RequestFilteringQOSPolicyCfg;
 import org.opends.server.api.QOSPolicyFactory;
 import org.opends.server.config.ConfigException;
@@ -59,7 +52,8 @@ import org.opends.server.types.operation.PreParseModifyOperation;
 import org.opends.server.types.operation.PreParseOperation;
 import org.opends.server.types.operation.PreParseSearchOperation;
 
-
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.messages.CoreMessages.*;
 
 /**
  * This class defines a factory for creating user configurable request
@@ -114,6 +108,7 @@ public final class RequestFilteringPolicyFactory implements
     /**
      * {@inheritDoc}
      */
+    @Override
     public ConfigChangeResult applyConfigurationChange(
         RequestFilteringQOSPolicyCfg configuration)
     {
@@ -133,6 +128,7 @@ public final class RequestFilteringPolicyFactory implements
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean isConfigurationChangeAcceptable(
         RequestFilteringQOSPolicyCfg configuration,
         List<LocalizableMessage> unacceptableReasons)
@@ -264,7 +260,7 @@ public final class RequestFilteringPolicyFactory implements
         // Check the search scope
         if (!allowedSearchScopes.isEmpty())
         {
-          switch (searchOp.getScope())
+          switch (searchOp.getScope().asEnum())
           {
           case BASE_OBJECT:
             allowRequest =
@@ -642,6 +638,7 @@ public final class RequestFilteringPolicyFactory implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public RequestFilteringPolicy createQOSPolicy(
       RequestFilteringQOSPolicyCfg configuration)
       throws ConfigException, InitializationException
@@ -662,6 +659,7 @@ public final class RequestFilteringPolicyFactory implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationAcceptable(
       RequestFilteringQOSPolicyCfg configuration,
       List<LocalizableMessage> unacceptableReasons)

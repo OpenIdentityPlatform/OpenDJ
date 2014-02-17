@@ -72,7 +72,7 @@ import org.opends.server.types.ModificationType;
 import org.opends.server.types.RawAttribute;
 import org.opends.server.types.RawModification;
 import org.opends.server.types.SearchResultEntry;
-import org.opends.server.types.SearchScope;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.util.StaticUtils;
 
 /**

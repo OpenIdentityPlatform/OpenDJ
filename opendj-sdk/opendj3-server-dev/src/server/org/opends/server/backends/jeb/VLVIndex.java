@@ -25,39 +25,35 @@
  *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
-import org.forgerock.i18n.LocalizableMessage;
-
-import com.sleepycat.je.*;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ByteStringBuilder;
-import org.forgerock.opendj.ldap.ByteSequence;
-import org.opends.server.admin.std.server.LocalDBVLVIndexCfg;
-import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.SearchOperation;
-import static org.opends.messages.JebMessages.
-    NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD;
-import static org.opends.messages.JebMessages.
-    ERR_ENTRYIDSORTER_NEGATIVE_START_POS;
-import static org.opends.messages.JebMessages.
-    ERR_JEB_CONFIG_VLV_INDEX_UNDEFINED_ATTR;
-import static org.opends.messages.JebMessages.
-    ERR_JEB_CONFIG_VLV_INDEX_BAD_FILTER;
-
-
-import org.opends.server.util.StaticUtils;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
-import org.opends.server.api.OrderingMatchingRule;
-import org.opends.server.config.ConfigException;
-import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.opends.server.controls.VLVRequestControl;
-import org.opends.server.controls.VLVResponseControl;
-import org.opends.server.controls.ServerSideSortRequestControl;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.forgerock.opendj.ldap.ByteSequence;
+import org.forgerock.opendj.ldap.SearchScope.Enum;
+import org.forgerock.opendj.ldap.SearchScope;
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.meta.LocalDBVLVIndexCfgDefn.Scope;
+import org.opends.server.admin.std.server.LocalDBVLVIndexCfg;
+import org.opends.server.api.OrderingMatchingRule;
+import org.opends.server.config.ConfigException;
+import org.opends.server.controls.ServerSideSortRequestControl;
+import org.opends.server.controls.VLVRequestControl;
+import org.opends.server.controls.VLVResponseControl;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.SearchOperation;
+import org.opends.server.protocols.ldap.LDAPResultCode;
+import org.opends.server.types.*;
+import org.opends.server.util.StaticUtils;
+
+import com.sleepycat.je.*;
+
+import static org.opends.messages.JebMessages.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class represents a VLV index. Each database record is a sorted list
@@ -125,7 +121,7 @@ public class VLVIndex extends DatabaseContainer
    * @param config           The VLV index config object to use for this VLV
    *                         index.
    * @param state            The state database to persist vlvIndex state info.
-   * @param env              The JE Environemnt
+   * @param env              The JE Environment
    * @param entryContainer   The database entryContainer holding this vlvIndex.
    * @throws com.sleepycat.je.DatabaseException
    *          If an error occurs in the JE database.
@@ -141,7 +137,7 @@ public class VLVIndex extends DatabaseContainer
 
     this.config = config;
     this.baseDN = config.getBaseDN();
-    this.scope = SearchScope.valueOf(config.getScope().name());
+    this.scope = valueOf(config.getScope());
     this.sortedSetCapacity = config.getMaxBlockSize();
 
     try
@@ -235,6 +231,19 @@ public class VLVIndex extends DatabaseContainer
 
     this.count = new AtomicInteger(0);
     this.config.addChangeListener(this);
+  }
+
+  private SearchScope valueOf(Scope cfgScope)
+  {
+    final Enum toFind = SearchScope.Enum.valueOf(cfgScope.name());
+    for (SearchScope scope : SearchScope.values())
+    {
+      if (scope.asEnum() == toFind)
+      {
+        return scope;
+      }
+    }
+    return null;
   }
 
   /**
@@ -1580,7 +1589,6 @@ public class VLVIndex extends DatabaseContainer
 
     for (AttributeValue v : values)
     {
-      byte[] vBytes;
       if(v == null)
       {
         builder.appendBERLength(0);
@@ -1689,6 +1697,7 @@ public class VLVIndex extends DatabaseContainer
   /**
    * {@inheritDoc}
    */
+  @Override
   public synchronized boolean isConfigurationChangeAcceptable(
       LocalDBVLVIndexCfg cfg,
       List<LocalizableMessage> unacceptableReasons)
@@ -1755,6 +1764,7 @@ public class VLVIndex extends DatabaseContainer
   /**
    * {@inheritDoc}
    */
+  @Override
   public synchronized ConfigChangeResult applyConfigurationChange(
       LocalDBVLVIndexCfg cfg)
   {

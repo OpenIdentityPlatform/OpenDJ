@@ -24,24 +24,26 @@
  *      Copyright 2008 Sun Microsystems, Inc.
  *      Portions Copyright 2014 ForgeRock AS
  */
-
 package org.opends.server.crypto;
 
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
-import org.opends.server.TestCaseUtils;
-import org.opends.server.schema.DirectoryStringSyntax;
-import org.opends.server.config.ConfigConstants;
-import org.opends.server.types.*;
+import java.util.LinkedHashSet;
+
 import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.core.ExtendedOperation;
+import org.forgerock.opendj.ldap.SearchScope;
+import org.opends.admin.ads.ADSContext;
+import org.opends.server.TestCaseUtils;
+import org.opends.server.config.ConfigConstants;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.util.ServerConstants;
+import org.opends.server.core.ExtendedOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.admin.ads.ADSContext;
+import org.opends.server.schema.DirectoryStringSyntax;
+import org.opends.server.types.*;
+import org.opends.server.util.ServerConstants;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
+
 import static org.testng.Assert.*;
-import java.util.LinkedHashSet;
 
 /**
  * A set of test cases for the symmetric key extended operation.

@@ -26,66 +26,70 @@
  */
 package org.opends.server.backends.jeb;
 
-import org.opends.server.TestCaseUtils;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.TreeSet;
+
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.DirectoryServerTestCase;
-import static org.opends.server.util.ServerConstants.OID_SERVER_SIDE_SORT_RESPONSE_CONTROL;
-import static org.opends.server.util.ServerConstants.OID_VLV_RESPONSE_CONTROL;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.controls.ServerSideSortRequestControl;
-import org.opends.server.controls.VLVRequestControl;
 import org.opends.server.controls.ServerSideSortResponseControl;
+import org.opends.server.controls.VLVRequestControl;
 import org.opends.server.controls.VLVResponseControl;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.protocols.ldap.LDAPControl;
-import org.opends.server.core.DirectoryServer;
+import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-import org.testng.annotations.AfterClass;
+
+import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
-import java.util.*;
 
 public class TestVLVIndex extends DirectoryServerTestCase {
-  SortOrder sortOrder;
+  private SortOrder sortOrder;
 
-  private  String beID="indexRoot";
+  private String beID="indexRoot";
   private BackendImpl be;
 
   // The DN for "Aaccf Johnson"
-  DN aaccfJohnsonDN;
+  private DN aaccfJohnsonDN;
 
   // The DN for "Aaron Zimmerman"
-  DN aaronZimmermanDN;
+  private DN aaronZimmermanDN;
 
   // The DN for "Albert Smith"
-  DN albertSmithDN;
+  private DN albertSmithDN;
 
   // The DN for "Albert Zimmerman"
-  DN albertZimmermanDN;
+  private DN albertZimmermanDN;
 
   // The DN for "lowercase mcgee"
-  DN lowercaseMcGeeDN;
+  private DN lowercaseMcGeeDN;
 
   // The DN for "Mararet Jones"
-  DN margaretJonesDN;
+  private DN margaretJonesDN;
 
   // The DN for "Mary Jones"
-  DN maryJonesDN;
+  private DN maryJonesDN;
 
   // The DN for "Sam Zweck"
-  DN samZweckDN;
+  private DN samZweckDN;
 
   // The DN for "Zorro"
-  DN zorroDN;
+  private DN zorroDN;
 
   // The DN for suffix
-  DN suffixDN;
+  private DN suffixDN;
 
-  TreeSet<SortValues> expectedSortedValues;
+  private TreeSet<SortValues> expectedSortedValues;
 
-  List<Entry> entries;
+  private List<Entry> entries;
 
   @BeforeClass
   public void setUp() throws Exception {

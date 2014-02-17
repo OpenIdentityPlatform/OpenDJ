@@ -50,6 +50,7 @@ import javax.net.ssl.X509ExtendedKeyManager;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.util.Reject;
 import org.opends.admin.ads.ADSContext;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -1030,6 +1031,7 @@ public class CryptoManagerImpl
                new LDAPConnectionOptions();
           PrintStream nullPrintStream =
                new PrintStream(new OutputStream() {
+                 @Override
                  public void write ( int b ) { }
                });
           LDAPConnection connection =

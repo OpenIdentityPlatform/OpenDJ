@@ -26,31 +26,32 @@
  */
 package org.opends.server.core;
 
-import static org.opends.server.util.ServerConstants.*;
-import static org.testng.Assert.*;
-
 import java.io.IOException;
 import java.net.Socket;
 import java.util.*;
 
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.controls.MatchedValuesControl;
 import org.opends.server.controls.MatchedValuesFilter;
 import org.opends.server.controls.SubentriesControl;
 import org.opends.server.plugins.InvocationCounterPlugin;
-import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.*;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+
+import static org.opends.server.util.ServerConstants.*;
+import static org.testng.Assert.*;
 
 @SuppressWarnings("javadoc")
 public class SearchOperationTestCase extends OperationTestCase

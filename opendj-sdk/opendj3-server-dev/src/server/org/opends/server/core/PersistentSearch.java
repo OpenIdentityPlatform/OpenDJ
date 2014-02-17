@@ -43,7 +43,7 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
-import org.opends.server.types.SearchScope;
+import org.forgerock.opendj.ldap.SearchScope;
 
 
 
@@ -262,7 +262,7 @@ public final class PersistentSearch
     }
 
     // Make sure that the entry is within our target scope.
-    switch (scope)
+    switch (scope.asEnum())
     {
     case BASE_OBJECT:
       if (!baseDN.equals(entry.getName()))
@@ -370,7 +370,7 @@ public final class PersistentSearch
     }
 
     // Make sure that the entry is within our target scope.
-    switch (scope)
+    switch (scope.asEnum())
     {
     case BASE_OBJECT:
       if (!baseDN.equals(entry.getName()))
@@ -494,7 +494,7 @@ public final class PersistentSearch
     }
 
     // Make sure that the entry is within our target scope.
-    switch (scope)
+    switch (scope.asEnum())
     {
     case BASE_OBJECT:
       if (!baseDN.equals(oldEntry.getName()))
@@ -607,7 +607,7 @@ public final class PersistentSearch
     boolean oldMatches = false;
     boolean newMatches = false;
 
-    switch (scope)
+    switch (scope.asEnum())
     {
     case BASE_OBJECT:
       oldMatches = baseDN.equals(oldDN);

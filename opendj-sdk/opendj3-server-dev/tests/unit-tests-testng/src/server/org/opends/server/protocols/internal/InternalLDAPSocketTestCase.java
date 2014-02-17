@@ -26,10 +26,10 @@
  */
 package org.opends.server.protocols.internal;
 
-
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.LinkedHashSet;
+
 import javax.naming.Context;
 import javax.naming.NamingEnumeration;
 import javax.naming.directory.Attribute;
@@ -41,21 +41,19 @@ import javax.naming.directory.InitialDirContext;
 import javax.naming.directory.ModificationItem;
 import javax.naming.directory.SearchControls;
 
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
-
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.ldap.*;
 import org.opends.server.tools.LDAPReader;
 import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
-import static org.testng.Assert.*;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
 import static org.opends.server.util.ServerConstants.*;
-
-
+import static org.testng.Assert.*;
 
 /**
  * This class provides a number of tests to cover the internal LDAP socket

@@ -26,16 +26,11 @@
  */
 package org.opends.server.extensions;
 
+import java.util.*;
 
-
-import java.util.ArrayList;
-import static org.testng.Assert.*;
-
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-
-import java.util.List;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn;
 import org.opends.server.core.DeleteOperation;
@@ -47,8 +42,6 @@ import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.AttributeValues;
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ConditionResult;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 import org.opends.server.types.DereferencePolicy;
@@ -56,14 +49,13 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchResultEntry;
-import org.opends.server.types.SearchScope;
 import org.opends.server.types.VirtualAttributeRule;
 import org.opends.server.workflowelement.localbackend.LocalBackendSearchOperation;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-
+import static org.testng.Assert.*;
 
 /**
  * A set of test cases for the isMemberOf virtual attribute provider.

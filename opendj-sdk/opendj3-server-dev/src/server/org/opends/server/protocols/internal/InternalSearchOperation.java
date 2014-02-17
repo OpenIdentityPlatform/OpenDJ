@@ -30,10 +30,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.core.SearchOperationBasis;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
 
 /**
  * This class defines a subclass of the core search operation that is

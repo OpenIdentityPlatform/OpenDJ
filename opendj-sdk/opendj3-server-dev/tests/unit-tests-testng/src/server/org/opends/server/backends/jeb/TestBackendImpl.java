@@ -29,6 +29,7 @@ package org.opends.server.backends.jeb;
 import java.util.*;
 
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.LocalDBBackendCfgDefn;

@@ -26,13 +26,13 @@
  */
 package org.opends.server.core;
 
-
-
-import org.opends.server.api.ClientConnection;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.SearchScope;
+import org.opends.server.api.ClientConnection;
 import org.opends.server.api.Backend;
 import org.opends.server.api.BackendInitializationListener;
 import org.opends.server.api.DITCacheMap;
@@ -43,7 +43,6 @@ import org.opends.server.api.plugin.PluginResult.PostOperation;
 import org.opends.server.api.plugin.PluginResult.PreOperation;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.controls.SubentriesControl;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.types.*;
@@ -59,14 +58,11 @@ import org.opends.server.types.operation.PreOperationAddOperation;
 import org.opends.server.types.operation.PreOperationDeleteOperation;
 import org.opends.server.types.operation.PreOperationModifyDNOperation;
 import org.opends.server.types.operation.PreOperationModifyOperation;
-import org.opends.server.workflowelement.localbackend.
-            LocalBackendSearchOperation;
+import org.opends.server.workflowelement.localbackend.LocalBackendSearchOperation;
 
 import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.config.ConfigConstants.*;
-
-
+import static org.opends.server.util.ServerConstants.*;
 
 /**
  * This class provides a mechanism for interacting with subentries defined in
@@ -303,6 +299,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
    * {@inheritDoc}  In this case, the server will search the backend to find
    * all subentries that it may contain and register them with this manager.
    */
+  @Override
   public void performBackendInitializationProcessing(Backend backend)
   {
     InternalClientConnection conn =
@@ -619,6 +616,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
    * {@inheritDoc}  In this case, the server will de-register
    * all subentries associated with the provided backend.
    */
+  @Override
   public void performBackendFinalizationProcessing(Backend backend)
   {
     lock.writeLock().lock();

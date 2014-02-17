@@ -26,12 +26,11 @@
  */
 package org.opends.server.core;
 
-
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.core.networkgroups.NetworkGroupNamingContexts;
 import org.opends.server.types.*;
-
 
 /**
  * This class implements the workflow node that handles the root DSE entry.
@@ -74,6 +73,7 @@ public class RootDseWorkflowTopology extends WorkflowTopology
    * @throws CanceledOperationException if this operation should
    * be cancelled.
    */
+  @Override
   public void execute(Operation operation)
       throws CanceledOperationException {
     // Execute the operation.

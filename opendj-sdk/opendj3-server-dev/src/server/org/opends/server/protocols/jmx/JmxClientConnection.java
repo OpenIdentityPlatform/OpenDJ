@@ -28,7 +28,8 @@ package org.opends.server.protocols.jmx;
 
 import java.net.InetAddress;
 import java.util.*;
-import java.util.concurrent.atomic.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import javax.management.Notification;
 import javax.management.NotificationListener;
@@ -36,17 +37,19 @@ import javax.management.remote.JMXConnectionNotification;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
-import org.opends.server.api.*;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.SearchScope;
+import org.opends.server.api.ClientConnection;
+import org.opends.server.api.ConnectionHandler;
 import org.opends.server.core.*;
 import org.opends.server.core.networkgroups.NetworkGroup;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.internal.InternalSearchListener;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
-import static org.opends.messages.ProtocolMessages.*;
 
+import static org.opends.messages.ProtocolMessages.*;
 
 /**
  * This class defines the set of methods and structures that must be implemented

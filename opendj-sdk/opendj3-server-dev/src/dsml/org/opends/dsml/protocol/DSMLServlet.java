@@ -84,7 +84,7 @@ import org.opends.server.tools.SSLConnectionFactory;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.LDAPException;
-import org.opends.server.types.SearchScope;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.util.Base64;
 
 import org.w3c.dom.Document;

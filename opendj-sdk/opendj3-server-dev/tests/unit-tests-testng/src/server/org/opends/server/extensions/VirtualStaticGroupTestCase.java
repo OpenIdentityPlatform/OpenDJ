@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.GroupManager;

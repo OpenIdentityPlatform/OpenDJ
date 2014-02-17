@@ -25,6 +25,7 @@
  *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.tools;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.OutputStream;
@@ -35,6 +36,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.loggers.JDKLogging;
@@ -51,8 +53,6 @@ import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.tools.ToolConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-
-
 
 /**
  * This class provides a program that may be used to search LDIF files.  It is

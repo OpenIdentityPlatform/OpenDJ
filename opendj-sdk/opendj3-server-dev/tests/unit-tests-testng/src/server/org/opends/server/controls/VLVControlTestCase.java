@@ -26,30 +26,27 @@
  */
 package org.opends.server.controls;
 
-
-
-import static org.opends.server.util.ServerConstants.*;
-import static org.testng.Assert.*;
-
 import java.util.ArrayList;
 import java.util.List;
 
+import org.forgerock.opendj.io.ASN1;
+import org.forgerock.opendj.io.ASN1Reader;
+import org.forgerock.opendj.io.ASN1Writer;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.protocols.ldap.LDAPControl;
-import org.forgerock.opendj.io.ASN1Writer;
-import org.forgerock.opendj.io.ASN1;
-import org.forgerock.opendj.io.ASN1Reader;
+import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-
+import static org.opends.server.util.ServerConstants.*;
+import static org.testng.Assert.*;
 
 /**
  * This class contains a number of test cases for the virtual list view request

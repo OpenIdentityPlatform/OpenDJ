@@ -51,7 +51,7 @@ import org.opends.server.types.LDAPURL;
 import org.opends.server.types.MemberList;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.SearchFilter;
-import org.opends.server.types.SearchScope;
+import org.forgerock.opendj.ldap.SearchScope;
 
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.config.ConfigConstants.*;

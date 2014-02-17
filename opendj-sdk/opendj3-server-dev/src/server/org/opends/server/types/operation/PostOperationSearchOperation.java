@@ -34,7 +34,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.DN;
 import org.opends.server.types.RawFilter;
-import org.opends.server.types.SearchScope;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.types.SearchFilter;
 
 

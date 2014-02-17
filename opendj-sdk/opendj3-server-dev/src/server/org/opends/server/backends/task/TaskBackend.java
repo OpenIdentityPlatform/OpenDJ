@@ -43,6 +43,7 @@ import javax.crypto.Mac;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.util.Reject;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -844,7 +845,7 @@ public class TaskBackend
 
     if (baseDN.equals(taskRootDN))
     {
-      switch (searchScope)
+      switch (searchScope.asEnum())
       {
         case BASE_OBJECT:
           searchRoot = true;
@@ -870,7 +871,7 @@ public class TaskBackend
     }
     else if (baseDN.equals(scheduledTaskParentDN))
     {
-      switch (searchScope)
+      switch (searchScope.asEnum())
       {
         case BASE_OBJECT:
           searchScheduledParent = true;
@@ -889,7 +890,7 @@ public class TaskBackend
     }
     else if (baseDN.equals(recurringTaskParentDN))
     {
-      switch (searchScope)
+      switch (searchScope.asEnum())
       {
         case BASE_OBJECT:
           searchRecurringParent = true;

@@ -26,28 +26,25 @@
  */
 package org.opends.server.extensions;
 
-import org.opends.server.types.*;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+
 import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.TestCaseUtils;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.DirectoryServerTestCase;
+import org.opends.server.TestCaseUtils;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPControl;
-
-import static org.opends.server.util.ServerConstants.OID_REAL_ATTRS_ONLY;
-import static org.opends.server.util.ServerConstants.OID_VIRTUAL_ATTRS_ONLY;
-
-import org.opends.server.core.DirectoryServer;
+import org.opends.server.types.*;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertEquals;
-
-import java.util.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.testng.Assert.*;
 
 @SuppressWarnings("javadoc")
 public class NumSubordinatesVirtualAttributeProviderTestCase extends DirectoryServerTestCase {

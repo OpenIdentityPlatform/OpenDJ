@@ -60,7 +60,7 @@ import org.opends.server.types.ModificationType;
 import org.opends.server.types.RDN;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
-import org.opends.server.types.SearchScope;
+import org.forgerock.opendj.ldap.SearchScope;
 
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;

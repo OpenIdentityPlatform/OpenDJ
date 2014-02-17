@@ -26,8 +26,6 @@
  */
 package org.opends.server.extensions;
 
-
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -39,9 +37,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.std.server.RegularExpressionIdentityMapperCfg;
 import org.opends.server.admin.std.server.IdentityMapperCfg;
+import org.opends.server.admin.std.server.RegularExpressionIdentityMapperCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.IdentityMapper;
 import org.opends.server.config.ConfigException;
@@ -49,9 +49,8 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.types.*;
-import static org.opends.messages.ExtensionMessages.*;
-import org.forgerock.i18n.LocalizableMessage;
 
+import static org.opends.messages.ExtensionMessages.*;
 
 /**
  * This class provides an implementation of a Directory Server identity mapper
@@ -105,6 +104,7 @@ public class RegularExpressionIdentityMapper
   /**
    * {@inheritDoc}
    */
+  @Override
   public void initializeIdentityMapper(
                    RegularExpressionIdentityMapperCfg configuration)
          throws ConfigException, InitializationException
@@ -318,6 +318,7 @@ public class RegularExpressionIdentityMapper
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
                       RegularExpressionIdentityMapperCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -367,6 +368,7 @@ public class RegularExpressionIdentityMapper
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
               RegularExpressionIdentityMapperCfg configuration)
   {

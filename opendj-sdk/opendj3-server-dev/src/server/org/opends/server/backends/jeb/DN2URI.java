@@ -26,13 +26,13 @@
  */
 package org.opends.server.backends.jeb;
 
-
 import java.io.UnsupportedEncodingException;
 import java.util.*;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.types.*;
@@ -42,6 +42,7 @@ import com.sleepycat.je.*;
 
 import static org.opends.messages.JebMessages.*;
 import static org.opends.server.util.ServerConstants.*;
+
 /**
  * This class represents the referral database which contains URIs from referral
  * entries.  The key is the DN of the referral entry and the value is that of a

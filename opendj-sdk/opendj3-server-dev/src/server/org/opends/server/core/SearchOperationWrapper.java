@@ -29,9 +29,10 @@ package org.opends.server.core;
 import java.util.List;
 import java.util.Set;
 
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.controls.MatchedValuesControl;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
 
 /**
  * This abstract class wraps/decorates a given search operation.

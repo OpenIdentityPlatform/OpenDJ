@@ -22,10 +22,9 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.extensions;
-
-
 
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -42,9 +41,7 @@ import org.opends.server.types.LDAPURL;
 import org.opends.server.types.MemberList;
 import org.opends.server.types.MembershipException;
 import org.opends.server.types.SearchFilter;
-import org.opends.server.types.SearchScope;
-
-
+import org.forgerock.opendj.ldap.SearchScope;
 
 /**
  * This class defines a mechanism that may be used to iterate over the

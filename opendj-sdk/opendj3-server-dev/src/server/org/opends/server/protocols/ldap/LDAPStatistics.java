@@ -553,7 +553,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
         searchRequests.getAndIncrement();
         SearchRequestProtocolOp s = (SearchRequestProtocolOp)message
             .getProtocolOp();
-        switch (s.getScope())
+        switch (s.getScope().asEnum())
         {
         case BASE_OBJECT:
             // we don't count base object searches as

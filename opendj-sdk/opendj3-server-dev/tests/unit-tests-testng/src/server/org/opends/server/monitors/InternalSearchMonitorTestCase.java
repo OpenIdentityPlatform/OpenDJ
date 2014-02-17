@@ -26,23 +26,23 @@
  */
 package org.opends.server.monitors;
 
-
-
 import java.util.ArrayList;
 
+import org.forgerock.opendj.ldap.SearchScope;
+import org.opends.server.types.DN;
+import org.opends.server.types.ResultCode;
+import org.opends.server.types.SearchFilter;
+import org.opends.server.types.SearchResultEntry;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.testng.annotations.AfterClass;
-
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.types.*;
+
 import static org.testng.Assert.*;
-
-
 
 /**
  * Interacts with the Directory Server monitor providers by retrieving the
@@ -51,7 +51,7 @@ import static org.testng.Assert.*;
 public class InternalSearchMonitorTestCase
        extends MonitorTestCase
 {
-  static TestMonitorProvider testMonitorProvider = new TestMonitorProvider();
+  private static TestMonitorProvider testMonitorProvider = new TestMonitorProvider();
 
   /**
    * Ensures that the Directory Server is started.

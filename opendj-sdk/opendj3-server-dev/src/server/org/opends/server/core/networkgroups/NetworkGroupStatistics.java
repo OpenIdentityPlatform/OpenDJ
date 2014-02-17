@@ -38,7 +38,7 @@ import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.InitializationException;
 
-import org.opends.server.types.SearchScope;
+import org.forgerock.opendj.ldap.SearchScope;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.messages.ProtocolMessages.*;
 

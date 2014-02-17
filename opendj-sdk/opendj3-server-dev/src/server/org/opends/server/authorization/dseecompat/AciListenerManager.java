@@ -24,34 +24,30 @@
  *      Copyright 2008-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2011-2014 ForgeRock AS
  */
-
 package org.opends.server.authorization.dseecompat;
-
-
-
-import org.forgerock.i18n.LocalizableMessage;
-
-import org.opends.server.workflowelement.localbackend.*;
-import org.opends.server.api.BackendInitializationListener;
-import org.opends.server.api.Backend;
-import org.opends.server.api.AlertGenerator;
-import org.opends.server.api.plugin.InternalDirectoryServerPlugin;
-import org.opends.server.api.plugin.PluginResult;
-import org.opends.server.api.plugin.PluginType;
-import org.opends.server.api.plugin.PluginResult.PostOperation;
-import org.opends.server.types.operation.*;
-import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.protocols.ldap.LDAPControl;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.server.types.*;
-import static org.opends.messages.AccessControlMessages.*;
-import org.opends.server.core.DirectoryServer;
-import static org.opends.server.util.ServerConstants.*;
 
 import java.util.*;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.SearchScope;
+import org.opends.server.api.AlertGenerator;
+import org.opends.server.api.Backend;
+import org.opends.server.api.BackendInitializationListener;
+import org.opends.server.api.plugin.InternalDirectoryServerPlugin;
+import org.opends.server.api.plugin.PluginResult;
+import org.opends.server.api.plugin.PluginResult.PostOperation;
+import org.opends.server.api.plugin.PluginType;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.ldap.LDAPControl;
+import org.opends.server.types.*;
+import org.opends.server.types.operation.*;
+import org.opends.server.workflowelement.localbackend.LocalBackendSearchOperation;
 
+import static org.opends.messages.AccessControlMessages.*;
+import static org.opends.server.util.ServerConstants.*;
 
 /**
  * The AciListenerManager updates an ACI list after each modification
@@ -96,6 +92,7 @@ public class AciListenerManager implements
     /**
      * {@inheritDoc}
      */
+    @Override
     public void doPostSynchronization(
         PostSynchronizationAddOperation addOperation)
     {
@@ -111,6 +108,7 @@ public class AciListenerManager implements
     /**
      * {@inheritDoc}
      */
+    @Override
     public void doPostSynchronization(
         PostSynchronizationDeleteOperation deleteOperation)
     {
@@ -126,6 +124,7 @@ public class AciListenerManager implements
     /**
      * {@inheritDoc}
      */
+    @Override
     public void doPostSynchronization(
         PostSynchronizationModifyDNOperation modifyDNOperation)
     {
@@ -141,6 +140,7 @@ public class AciListenerManager implements
     /**
      * {@inheritDoc}
      */
+    @Override
     public void doPostSynchronization(
         PostSynchronizationModifyOperation modifyOperation)
     {
@@ -157,6 +157,7 @@ public class AciListenerManager implements
     /**
      * {@inheritDoc}
      */
+    @Override
     public PostOperation doPostOperation(
         PostOperationAddOperation addOperation)
     {
@@ -176,6 +177,7 @@ public class AciListenerManager implements
     /**
      * {@inheritDoc}
      */
+    @Override
     public PostOperation doPostOperation(
         PostOperationDeleteOperation deleteOperation)
     {
@@ -195,6 +197,7 @@ public class AciListenerManager implements
     /**
      * {@inheritDoc}
      */
+    @Override
     public PostOperation doPostOperation(
         PostOperationModifyDNOperation modifyDNOperation)
     {
@@ -215,6 +218,7 @@ public class AciListenerManager implements
     /**
      * {@inheritDoc}
      */
+    @Override
     public PostOperation doPostOperation(
         PostOperationModifyOperation modifyOperation)
     {
@@ -412,6 +416,7 @@ public class AciListenerManager implements
    * find all aci attribute type values that it may contain and add them
    * to the ACI list.
    */
+  @Override
   public void performBackendInitializationProcessing(Backend backend)
   {
     // Check to make sure that the backend has a presence index defined
@@ -485,6 +490,7 @@ public class AciListenerManager implements
    * attribute type values associated with entries in the provided
    * backend.
    */
+  @Override
   public void performBackendFinalizationProcessing(Backend backend)
   {
     aciList.removeAci(backend);
@@ -499,6 +505,7 @@ public class AciListenerManager implements
    * @return The fully-qualified name of the Java class for this alert
    *         generator implementation.
    */
+  @Override
   public String getClassName()
   {
     return CLASS_NAME;
@@ -513,6 +520,7 @@ public class AciListenerManager implements
    * @return The DN of the configuration entry containing the Access
    *         Control configuration information.
    */
+  @Override
   public DN getComponentEntryDN()
   {
     return this.configurationDN;
@@ -530,6 +538,7 @@ public class AciListenerManager implements
    * @return Information about the set of alerts that this generator may
    *         produce.
    */
+  @Override
   public LinkedHashMap<String, String> getAlerts()
   {
     LinkedHashMap<String, String> alerts =

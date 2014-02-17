@@ -26,15 +26,18 @@
  */
 package org.opends.server.protocols.ldap;
 
-import org.forgerock.opendj.io.ASN1;
-import org.forgerock.opendj.io.ASN1Reader;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.io.ASN1;
+import org.forgerock.opendj.io.ASN1Reader;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.SearchScope;
+import org.opends.server.types.*;
+
 import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
+import static org.opends.server.protocols.ldap.LDAPResultCode.*;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;

@@ -26,15 +26,16 @@
  */
 package org.opends.server.authorization.dseecompat;
 
-import static org.opends.messages.AccessControlMessages.*;
-
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
+
+import static org.opends.messages.AccessControlMessages.*;
 
 /**
  * This class represents the userdn keyword in a bind rule.

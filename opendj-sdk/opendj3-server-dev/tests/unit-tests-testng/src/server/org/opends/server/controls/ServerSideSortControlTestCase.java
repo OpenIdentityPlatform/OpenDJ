@@ -48,7 +48,7 @@ import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;
-import org.opends.server.types.SearchScope;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.types.SortKey;
 import org.opends.server.types.SortOrder;
 import org.testng.annotations.BeforeClass;

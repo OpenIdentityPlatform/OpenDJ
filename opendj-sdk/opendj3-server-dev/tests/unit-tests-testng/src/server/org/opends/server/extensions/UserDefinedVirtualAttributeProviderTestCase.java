@@ -26,14 +26,10 @@
  */
 package org.opends.server.extensions;
 
-
-
 import java.util.LinkedHashSet;
 import java.util.List;
 
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
-
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
@@ -41,9 +37,10 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.types.*;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
+
 import static org.testng.Assert.*;
-
-
 
 /**
  * A set of test cases for the user-defined virtual attribute provider.

@@ -24,26 +24,25 @@
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  *      Portions Copyright 2014 ForgeRock AS
  */
-
-
 package org.opends.server.tasks;
 
-import org.testng.annotations.Test;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.fail;
+import java.util.ArrayList;
+
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.DirectoryServerTestCase;
-import org.opends.server.schema.DirectoryStringSyntax;
-import static org.opends.server.config.ConfigConstants.
-     ATTR_TASK_COMPLETION_TIME;
-import static org.opends.server.config.ConfigConstants.ATTR_TASK_STATE;
-import static org.opends.server.config.ConfigConstants.ATTR_TASK_LOG_MESSAGES;
+import org.opends.server.backends.task.Task;
+import org.opends.server.backends.task.TaskBackend;
+import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.backends.task.*;
+import org.opends.server.schema.DirectoryStringSyntax;
 import org.opends.server.types.*;
-import java.util.ArrayList;
+import org.testng.annotations.Test;
+
+import static org.opends.server.config.ConfigConstants.*;
+import static org.testng.Assert.*;
 
 /**
  * A base class for all tasks test cases.
