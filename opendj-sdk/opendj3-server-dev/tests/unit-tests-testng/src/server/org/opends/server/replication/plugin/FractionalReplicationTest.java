@@ -35,6 +35,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ModificationType;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;

@@ -31,6 +31,7 @@ import java.util.zip.DataFormatException;
 
 import org.assertj.core.api.Assertions;
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ModificationType;
 import org.opends.server.controls.SubtreeDeleteControl;
 import org.opends.server.core.*;
 import org.opends.server.protocols.internal.InternalClientConnection;

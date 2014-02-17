@@ -32,6 +32,7 @@ import java.util.concurrent.locks.Lock;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.admin.std.server.DseeCompatAccessControlHandlerCfg;
 import org.opends.server.api.AccessControlHandler;
@@ -863,7 +864,7 @@ public final class AciHandler extends
         for (AttributeValue v : modAttr)
         {
           container.setCurrentAttributeType(modAttrType);
-          switch (m.getModificationType())
+          switch (m.getModificationType().asEnum())
           {
           case ADD:
           case REPLACE:

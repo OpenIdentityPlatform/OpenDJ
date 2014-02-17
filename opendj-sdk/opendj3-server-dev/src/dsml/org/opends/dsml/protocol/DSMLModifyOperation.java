@@ -43,7 +43,7 @@ import org.opends.server.protocols.ldap.ProtocolOp;
 import org.opends.server.tools.LDAPConnection;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.LDAPException;
-import org.opends.server.types.ModificationType;
+import org.forgerock.opendj.ldap.ModificationType;
 import org.opends.server.types.RawModification;
 
 

@@ -26,15 +26,13 @@
  */
 package org.opends.server.core;
 
-import static org.opends.server.protocols.ldap.LDAPConstants.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.testng.Assert.*;
-
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ModificationType;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.plugins.DisconnectClientPlugin;
 import org.opends.server.plugins.InvocationCounterPlugin;
@@ -44,10 +42,13 @@ import org.opends.server.protocols.ldap.*;
 import org.opends.server.tools.*;
 import org.opends.server.tools.LDAPReader;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+
+import static org.opends.server.protocols.ldap.LDAPConstants.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.testng.Assert.*;
 
 /**
  * A set of test cases for bind operations

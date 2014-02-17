@@ -26,11 +26,6 @@
  */
 package org.opends.server.types;
 
-import org.forgerock.opendj.ldap.ByteString;
-import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.protocols.ldap.LDAPConstants.*;
-import static org.opends.server.protocols.ldap.LDAPResultCode.*;
-
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -38,9 +33,13 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.io.ASN1Reader;
 import org.forgerock.opendj.io.ASN1Writer;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ModificationType;
 import org.opends.server.protocols.ldap.LDAPModification;
 
-
+import static org.opends.messages.ProtocolMessages.*;
+import static org.opends.server.protocols.ldap.LDAPConstants.*;
+import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 
 /**
  * This class defines the data structures and methods to use when
@@ -346,6 +345,7 @@ public abstract class RawModification
    *
    * @return  A string representation of this modification.
    */
+  @Override
   public String toString()
   {
     StringBuilder buffer = new StringBuilder();

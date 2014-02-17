@@ -58,7 +58,7 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.MemberList;
 import org.opends.server.types.MembershipException;
 import org.opends.server.types.Modification;
-import org.opends.server.types.ModificationType;
+import org.forgerock.opendj.ldap.ModificationType;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchFilter;

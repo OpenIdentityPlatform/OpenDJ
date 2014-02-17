@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -30,6 +30,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.forgerock.opendj.ldap.ModificationType;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.types.*;
 
@@ -258,7 +259,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
     {
       // the attribute was modified after this change -> conflict
 
-      switch (m.getModificationType())
+      switch (m.getModificationType().asEnum())
       {
       case DELETE:
         if (csn.isOlderThan(getDeleteTime()))
@@ -353,7 +354,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
     Attribute modAttr = mod.getAttribute();
     AttributeType type = modAttr.getAttributeType();
 
-    switch (mod.getModificationType())
+    switch (mod.getModificationType().asEnum())
     {
     case DELETE:
       if (modAttr.isEmpty())

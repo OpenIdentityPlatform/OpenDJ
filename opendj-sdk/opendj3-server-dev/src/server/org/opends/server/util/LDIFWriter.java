@@ -35,12 +35,13 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ByteSequence;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.tools.makeldif.TemplateEntry;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ByteSequence;
-import static org.opends.server.util.StaticUtils.*;
+
 import static org.forgerock.util.Reject.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class provides a mechanism for writing entries in LDIF form to a file or
@@ -323,7 +324,7 @@ outerLoop:
         RawAttribute a = m.getAttribute();
         String attrName = a.getAttributeType();
         StringBuilder modTypeLine = new StringBuilder();
-        modTypeLine.append(m.getModificationType().getLDIFName());
+        modTypeLine.append(m.getModificationType());
         modTypeLine.append(": ");
         modTypeLine.append(attrName);
         writeLDIFLine(modTypeLine, writer, wrapLines, wrapColumn);
@@ -578,7 +579,7 @@ outerLoop:
       String  name = nameBuffer.toString();
 
       StringBuilder modTypeLine = new StringBuilder();
-      modTypeLine.append(m.getModificationType().getLDIFName());
+      modTypeLine.append(m.getModificationType());
       modTypeLine.append(": ");
       modTypeLine.append(name);
       writeLDIFLine(modTypeLine, writer, wrapLines, wrapColumn);

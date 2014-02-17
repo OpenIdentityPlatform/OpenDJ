@@ -461,7 +461,7 @@ public final class TextAuditLogPublisher extends
         buffer.append(EOL);
       }
 
-      switch (mod.getModificationType())
+      switch (mod.getModificationType().asEnum())
       {
       case ADD:
         buffer.append("add: ");

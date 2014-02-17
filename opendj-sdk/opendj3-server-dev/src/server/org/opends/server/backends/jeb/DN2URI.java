@@ -289,7 +289,7 @@ public class DN2URI extends DatabaseContainer
       if (modAttrType.equals(referralType))
       {
         Attribute a = mod.getAttribute();
-        switch (mod.getModificationType())
+        switch (mod.getModificationType().asEnum())
         {
           case ADD:
             if (a != null)

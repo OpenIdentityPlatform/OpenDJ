@@ -34,6 +34,7 @@ import java.util.*;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.GlobalCfgDefn.DisabledPrivilege;

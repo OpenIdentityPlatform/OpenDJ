@@ -32,6 +32,7 @@ import java.util.*;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.plugin.PluginResult;
@@ -777,7 +778,7 @@ public class ECLSearchOperation
           }
 
           String attrName = a.getNameWithOptions();
-          builder.append(m.getModificationType().getLDIFName());
+          builder.append(m.getModificationType());
           builder.append(": ");
           builder.append(attrName);
           builder.append('\n');

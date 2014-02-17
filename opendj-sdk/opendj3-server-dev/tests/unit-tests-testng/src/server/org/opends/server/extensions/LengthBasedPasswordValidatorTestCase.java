@@ -49,7 +49,7 @@ import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.Modification;
-import org.opends.server.types.ModificationType;
+import org.forgerock.opendj.ldap.ModificationType;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;

@@ -26,8 +26,6 @@
  */
 package org.opends.server.authorization.dseecompat;
 
-import static org.opends.server.util.ServerConstants.*;
-
 import java.io.*;
 import java.util.*;
 
@@ -38,6 +36,7 @@ import javax.naming.directory.DirContext;
 import javax.naming.directory.InitialDirContext;
 import javax.naming.directory.ModificationItem;
 
+import org.forgerock.opendj.ldap.ModificationType;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.config.ConfigConstants;
@@ -54,6 +53,8 @@ import org.testng.Reporter;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+
+import static org.opends.server.util.ServerConstants.*;
 
 @SuppressWarnings("javadoc")
 @Test(groups = {"precommit", "dseecompat"}, sequential = true)

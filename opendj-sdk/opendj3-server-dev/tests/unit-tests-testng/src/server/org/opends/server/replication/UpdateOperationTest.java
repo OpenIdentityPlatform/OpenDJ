@@ -27,13 +27,14 @@
 package org.opends.server.replication;
 
 import java.net.SocketTimeoutException;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import org.assertj.core.api.Assertions;
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ModificationType;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;

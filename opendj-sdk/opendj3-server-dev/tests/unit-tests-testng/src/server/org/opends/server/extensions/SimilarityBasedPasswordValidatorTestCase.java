@@ -46,7 +46,7 @@ import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.Modification;
-import org.opends.server.types.ModificationType;
+import org.forgerock.opendj.ldap.ModificationType;
 import static org.testng.Assert.*;
 import org.opends.server.admin.std.meta.SimilarityBasedPasswordValidatorCfgDefn;
 import org.opends.server.admin.std.server.SimilarityBasedPasswordValidatorCfg;

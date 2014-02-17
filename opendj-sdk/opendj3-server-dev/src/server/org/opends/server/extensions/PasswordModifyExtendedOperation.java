@@ -32,10 +32,16 @@ import java.util.concurrent.locks.Lock;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.io.ASN1;
+import org.forgerock.opendj.io.ASN1Reader;
+import org.forgerock.opendj.io.ASN1Writer;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.forgerock.opendj.ldap.ModificationType;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.ExtendedOperationHandlerCfg;
-import org.opends.server.admin.std.server.
-            PasswordModifyExtendedOperationHandlerCfg;
+import org.opends.server.admin.std.server.PasswordModifyExtendedOperationHandlerCfg;
 import org.opends.server.api.*;
 import org.opends.server.config.ConfigException;
 import org.opends.server.controls.PasswordPolicyErrorType;
@@ -45,16 +51,11 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ExtendedOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.PasswordPolicyState;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.io.ASN1;
-import org.forgerock.opendj.io.ASN1Reader;
-import org.forgerock.opendj.io.ASN1Writer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ByteStringBuilder;
+
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.extensions.ExtensionsConstants.*;

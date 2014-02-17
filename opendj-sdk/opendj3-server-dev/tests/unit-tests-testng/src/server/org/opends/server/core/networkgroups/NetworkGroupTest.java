@@ -29,6 +29,7 @@ package org.opends.server.core.networkgroups;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;

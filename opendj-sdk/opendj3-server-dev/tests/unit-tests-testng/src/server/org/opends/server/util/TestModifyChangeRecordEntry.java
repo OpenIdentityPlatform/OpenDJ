@@ -36,7 +36,7 @@ import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.DN;
-import org.opends.server.types.ModificationType;
+import org.forgerock.opendj.ldap.ModificationType;
 import org.opends.server.types.RawModification;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;

@@ -34,8 +34,9 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.opends.server.TestCaseUtils;
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ModificationType;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
 import org.testng.Assert;
