@@ -73,13 +73,17 @@ public class AttributeSyntaxConfigManager
   // attribute syntaxes.
   private ConcurrentHashMap<DN,AttributeSyntax> syntaxes;
 
-
+  private final ServerContext serverContext;
 
   /**
    * Creates a new instance of this attribute syntax config manager.
+   *
+   * @param serverContext
+   *            The server context, that contains the schema.
    */
-  public AttributeSyntaxConfigManager()
+  public AttributeSyntaxConfigManager(final ServerContext serverContext)
   {
+    this.serverContext = serverContext;
     syntaxes = new ConcurrentHashMap<DN,AttributeSyntax>();
   }
 
@@ -130,7 +134,7 @@ public class AttributeSyntaxConfigManager
 
           try
           {
-            DirectoryServer.registerAttributeSyntax(syntax, false);
+            serverContext.getSchema().registerSyntax(syntax, false);
             syntaxes.put(syntaxConfiguration.dn(), syntax);
           }
           catch (DirectoryException de)
@@ -207,7 +211,7 @@ public class AttributeSyntaxConfigManager
 
       try
       {
-        DirectoryServer.registerAttributeSyntax(syntax, false);
+        serverContext.getSchema().registerSyntax(syntax, false);
         syntaxes.put(configuration.dn(), syntax);
       }
       catch (DirectoryException de)
@@ -282,7 +286,7 @@ public class AttributeSyntaxConfigManager
     AttributeSyntax syntax = syntaxes.remove(configuration.dn());
     if (syntax != null)
     {
-      DirectoryServer.deregisterAttributeSyntax(syntax);
+      serverContext.getSchema().deregisterSyntax(syntax);
       syntax.finalizeSyntax();
     }
 
@@ -363,7 +367,7 @@ public class AttributeSyntaxConfigManager
     {
       if (existingSyntax != null)
       {
-        DirectoryServer.deregisterAttributeSyntax(existingSyntax);
+        serverContext.getSchema().deregisterSyntax(existingSyntax);
 
         AttributeSyntax syntax = syntaxes.remove(configuration.dn());
         if (syntax != null)
@@ -399,7 +403,7 @@ public class AttributeSyntaxConfigManager
 
       try
       {
-        DirectoryServer.registerAttributeSyntax(syntax, false);
+        serverContext.getSchema().registerSyntax(syntax, false);
         syntaxes.put(configuration.dn(), syntax);
       }
       catch (DirectoryException de)

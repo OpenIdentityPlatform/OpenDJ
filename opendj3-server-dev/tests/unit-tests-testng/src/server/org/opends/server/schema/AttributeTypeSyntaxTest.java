@@ -159,7 +159,7 @@ public class AttributeTypeSyntaxTest extends AttributeSyntaxTest
     // server.
     AttributeTypeSyntax attrTypeSyntax =
       (AttributeTypeSyntax)
-      DirectoryServer.getAttributeSyntax("1.3.6.1.4.1.1466.115.121.1.3", false);
+      DirectoryServer.getSchema().getSyntax("1.3.6.1.4.1.1466.115.121.1.3", false);
     assertNotNull(attrTypeSyntax);
 
 

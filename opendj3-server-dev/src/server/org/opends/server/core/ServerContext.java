@@ -25,6 +25,8 @@
  */
 package org.opends.server.core;
 
+import org.opends.server.types.Schema;
+
 /**
  * Context for the server, giving access to global properties of the server.
  */
@@ -44,5 +46,12 @@ public interface ServerContext
    * @return the server root directory
    */
   public String getServerRoot();
+
+  /**
+   * Returns the schema of the server.
+   *
+   * @return the schema
+   */
+  public Schema getSchema();
 
 }

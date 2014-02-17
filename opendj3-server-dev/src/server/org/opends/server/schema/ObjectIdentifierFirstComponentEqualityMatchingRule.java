@@ -276,10 +276,10 @@ class ObjectIdentifierFirstComponentEqualityMatchingRule
       }
     }
 
-    AttributeSyntax syntax1 = DirectoryServer.getAttributeSyntax(oid, false);
+    AttributeSyntax syntax1 = DirectoryServer.getSchema().getSyntax(oid, false);
     if (syntax1 != null)
     {
-      AttributeSyntax syntax2 = DirectoryServer.getAttributeSyntax(value2String,
+      AttributeSyntax syntax2 = DirectoryServer.getSchema().getSyntax(value2String,
                                                                    false);
       if (syntax2 == null)
       {

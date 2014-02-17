@@ -39,6 +39,7 @@ import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.opends.server.admin.std.server.DirectoryStringAttributeSyntaxCfg;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
@@ -117,6 +118,11 @@ public final class Schema
    * the syntax and the syntax itself.
    */
   private ConcurrentHashMap<String,AttributeSyntax<?>> syntaxes;
+
+  /**
+   * The default attribute syntax to use for attributes with no defined syntax.
+   */
+  private AttributeSyntax<DirectoryStringAttributeSyntaxCfg> defaultSyntax;
 
   /**
    * The entire set of matching rules for this schema, mapped between the
@@ -836,7 +842,28 @@ public final class Schema
     return syntaxes.containsKey(lowerName);
   }
 
+  /**
+   * Retrieves the requested attribute syntax.
+   *
+   * @param oid
+   *          The OID of the syntax to retrieve.
+   * @param allowDefault
+   *          Indicates whether to return the default attribute syntax if the
+   *          requested syntax is unknown.
+   * @return The requested attribute syntax, the default syntax if the requested
+   *         syntax is unknown and the caller has indicated that the default is
+   *         acceptable, or <CODE>null</CODE> otherwise.
+   */
+  public AttributeSyntax getSyntax(String oid, boolean allowDefault)
+  {
+    AttributeSyntax syntax = getSyntax(oid);
+    if (syntax == null && allowDefault)
+    {
+      return getDefaultSyntax();
+    }
 
+    return syntax;
+  }
 
   /**
    * Retrieves the attribute syntax definition with the OID.
@@ -850,6 +877,32 @@ public final class Schema
   public AttributeSyntax<?> getSyntax(String lowerName)
   {
     return syntaxes.get(lowerName);
+  }
+
+  /**
+   * Retrieves the default attribute syntax that should be used for attributes
+   * that are not defined in the server schema.
+   *
+   * @return  The default attribute syntax that should be used for attributes
+   *          that are not defined in the server schema.
+   */
+  public AttributeSyntax getDefaultSyntax()
+  {
+    return defaultSyntax;
+  }
+
+
+
+  /**
+   * Registers the defaut syntax for this schema.
+   *
+   * @param defaultSyntax
+   *            The defautl syntax to use.
+   */
+  public void registerDefaultSyntax(
+      AttributeSyntax<DirectoryStringAttributeSyntaxCfg> defaultSyntax)
+  {
+    this.defaultSyntax = defaultSyntax;
   }
 
 

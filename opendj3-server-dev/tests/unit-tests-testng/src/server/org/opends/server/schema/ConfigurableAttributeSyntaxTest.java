@@ -115,7 +115,7 @@ public class ConfigurableAttributeSyntaxTest extends SchemaTestCase
               config.getEntry());
 
     TelephoneNumberSyntax syntax =
-         (TelephoneNumberSyntax) DirectoryServer.getAttributeSyntax(oid, false);
+         (TelephoneNumberSyntax) DirectoryServer.getSchema().getSyntax(oid, false);
 
     // apply the configuration.
     ArrayList<LocalizableMessage> unacceptableReasons = new ArrayList<LocalizableMessage>();

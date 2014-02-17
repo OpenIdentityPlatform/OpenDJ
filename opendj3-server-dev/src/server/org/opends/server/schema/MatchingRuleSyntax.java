@@ -546,8 +546,7 @@ public class MatchingRuleSyntax
 
         // See if the server recognizes that syntax.  If not, then log a
         // warning.
-        syntax = DirectoryServer.getAttributeSyntax(oidBuffer.toString(),
-                                                    false);
+        syntax = DirectoryServer.getSchema().getSyntax(oidBuffer.toString(), false);
         if (syntax == null)
         {
           logger.error(ERR_ATTR_SYNTAX_MR_UNKNOWN_SYNTAX, valueStr, oidBuffer);

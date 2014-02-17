@@ -66,14 +66,17 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-
+  private final ServerContext serverContext;
 
   /**
    * Creates a new instance of this password policy config manager.
+   *
+   * @param serverContext
+   *            The server context.
    */
-  public PasswordPolicyConfigManager()
+  public PasswordPolicyConfigManager(ServerContext serverContext)
   {
-    // Nothing to do.
+    this.serverContext = serverContext;
   }
 
 
@@ -441,7 +444,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
 
   // Creates and registers the provided authentication policy
   // configuration.
-  private static void createAuthenticationPolicy(
+  private void createAuthenticationPolicy(
       AuthenticationPolicyCfg policyConfiguration) throws ConfigException,
       InitializationException
   {
@@ -469,6 +472,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
     {
       theClass = pd.loadClass(className, AuthenticationPolicyFactory.class);
       factory = (AuthenticationPolicyFactory<?>) theClass.newInstance();
+      factory.setServerContext(serverContext);
     }
     catch (Exception e)
     {
@@ -522,7 +526,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
 
   // Determines whether or not the new authentication policy configuration's
   // implementation class is acceptable.
-  private static boolean isAuthenticationPolicyConfigurationAcceptable(
+  private boolean isAuthenticationPolicyConfigurationAcceptable(
       AuthenticationPolicyCfg policyConfiguration,
       List<LocalizableMessage> unacceptableReasons)
   {
@@ -552,6 +556,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
 
       theClass = pd.loadClass(className, AuthenticationPolicyFactory.class);
       factory = (AuthenticationPolicyFactory<?>) theClass.newInstance();
+      factory.setServerContext(serverContext);
 
       // Determine the initialization method to use: it must take a
       // single parameter which is the exact type of the configuration
