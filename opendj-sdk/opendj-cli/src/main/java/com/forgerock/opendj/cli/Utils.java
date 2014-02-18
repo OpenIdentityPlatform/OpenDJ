@@ -26,12 +26,10 @@
  */
 package com.forgerock.opendj.cli;
 
-import static com.forgerock.opendj.cli.CliMessages.ERR_INCOMPATIBLE_JAVA_VERSION;
-import static com.forgerock.opendj.cli.CliMessages.INFO_TIME_IN_DAYS_HOURS_MINUTES_SECONDS;
-import static com.forgerock.opendj.cli.CliMessages.INFO_TIME_IN_HOURS_MINUTES_SECONDS;
-import static com.forgerock.opendj.cli.CliMessages.INFO_TIME_IN_MINUTES_SECONDS;
-import static com.forgerock.opendj.cli.CliMessages.INFO_TIME_IN_SECONDS;
+import static com.forgerock.opendj.cli.CliMessages.*;
+
 import com.forgerock.opendj.util.OperatingSystem;
+
 import static com.forgerock.opendj.util.StaticUtils.EOL;
 
 import java.io.File;
@@ -39,10 +37,18 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.security.GeneralSecurityException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
+
+import javax.naming.AuthenticationException;
+import javax.naming.CommunicationException;
+import javax.naming.NamingException;
+import javax.naming.NamingSecurityException;
+import javax.naming.NoPermissionException;
+import javax.net.ssl.SSLHandshakeException;
 
 import org.forgerock.i18n.LocalizableMessage;
 
@@ -52,7 +58,7 @@ import org.forgerock.i18n.LocalizableMessage;
 final public class Utils {
 
     /** Platform appropriate line separator. */
-    static public final String LINE_SEPARATOR = System.getProperty("line.separator");
+    public static final String LINE_SEPARATOR = System.getProperty("line.separator");
 
     /**
      * The value used to display arguments that must be obfuscated (such as passwords). This does not require
@@ -61,10 +67,27 @@ final public class Utils {
     public final static String OBFUSCATED_VALUE = "******";
 
     /**
+     * The maximum number of times we try to confirm.
+     */
+    public final static int CONFIRMATION_MAX_TRIES = 5;
+
+    /**
      * The date format string that will be used to construct and parse dates represented using generalized time. It is
      * assumed that the provided date formatter will be set to UTC.
      */
     public static final String DATE_FORMAT_LOCAL_TIME = "dd/MMM/yyyy:HH:mm:ss Z";
+
+    /**
+     * Returns the message to be displayed in the file with the equivalent command-line with information about the
+     * current time.
+     *
+     * @return the message to be displayed in the file with the equivalent command-line with information about the
+     *         current time.
+     */
+    public static String getCurrentOperationDateMessage() {
+        String date = formatDateTimeStringForEquivalentCommand(new Date());
+        return INFO_OPERATION_START_TIME_MESSAGE.get(date).toString();
+    }
 
     private static final String COMMENT_SHELL_UNIX = "# ";
     private static final String COMMENT_BATCH_WINDOWS = "rem ";
@@ -79,8 +102,7 @@ final public class Utils {
      * The column at which to wrap long lines of output in the command-line
      * tools.
      */
-    static public final int MAX_LINE_WIDTH;
-
+    public static final int MAX_LINE_WIDTH;
     static {
         int columns = 80;
         try {
@@ -98,18 +120,18 @@ final public class Utils {
      * Formats a Date to String representation in "dd/MMM/yyyy:HH:mm:ss Z".
      *
      * @param date
-     *            to format; null if <code>date</code> is null
-     * @return string representation of the date
+     *            The date to format; null if <code>date</code> is null.
+     * @return A string representation of the date.
      */
-    public String formatDateTimeStringForEquivalentCommand(Date date) {
-        String timeStr = null;
+    public static String formatDateTimeStringForEquivalentCommand(final Date date) {
         if (date != null) {
-            SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_LOCAL_TIME);
+            final SimpleDateFormat dateFormat = new SimpleDateFormat(DATE_FORMAT_LOCAL_TIME);
             dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-            timeStr = dateFormat.format(date);
+            return dateFormat.format(date);
         }
-        return timeStr;
+        return null;
     }
+
     /**
      * Filters the provided value to ensure that it is appropriate for use as an
      * exit code. Exit code values are generally only allowed to be between 0
@@ -410,6 +432,61 @@ final public class Utils {
             return host;
         }
         return "";
+    }
+
+    /**
+     * Tells whether the provided Throwable was caused because of a problem with a certificate while trying to establish
+     * a connection.
+     *
+     * @param t
+     *            The Throwable to analyze.
+     * @return <CODE>true</CODE> if the provided Throwable was caused because of a problem with a certificate while
+     *         trying to establish a connection and <CODE>false</CODE> otherwise.
+     */
+    public static boolean isCertificateException(Throwable t) {
+        boolean returnValue = false;
+
+        while (!returnValue && (t != null)) {
+            returnValue = (t instanceof SSLHandshakeException) || (t instanceof GeneralSecurityException);
+            t = t.getCause();
+        }
+
+        return returnValue;
+    }
+
+    /**
+     * Returns a message object for the given NamingException.
+     *
+     * @param ne
+     *            The NamingException.
+     * @param hostPort
+     *            The hostPort representation of the server we were contacting when the NamingException occurred.
+     * @return A message object for the given NamingException.
+     */
+    public static LocalizableMessage getMessageForException(NamingException ne, String hostPort) {
+        LocalizableMessage msg;
+        String arg;
+        if (ne.getLocalizedMessage() != null) {
+            arg = ne.getLocalizedMessage();
+        } else if (ne.getExplanation() != null) {
+            arg = ne.getExplanation();
+        } else {
+            arg = ne.toString(true);
+        }
+        if (Utils.isCertificateException(ne)) {
+            msg = INFO_ERROR_READING_CONFIG_LDAP_CERTIFICATE_SERVER.get(hostPort, arg);
+        } else if (ne instanceof AuthenticationException) {
+            msg = INFO_CANNOT_CONNECT_TO_REMOTE_AUTHENTICATION.get(hostPort, arg);
+        } else if (ne instanceof NoPermissionException) {
+            msg = INFO_CANNOT_CONNECT_TO_REMOTE_PERMISSIONS.get(hostPort, arg);
+        } else if (ne instanceof NamingSecurityException) {
+            msg = INFO_CANNOT_CONNECT_TO_REMOTE_PERMISSIONS.get(hostPort, arg);
+        } else if (ne instanceof CommunicationException) {
+            msg = ERR_CANNOT_CONNECT_TO_REMOTE_COMMUNICATION.get(hostPort, arg);
+        } else {
+            msg = INFO_CANNOT_CONNECT_TO_REMOTE_GENERIC.get(hostPort, arg);
+        }
+        return msg;
     }
 
     // Prevent instantiation.

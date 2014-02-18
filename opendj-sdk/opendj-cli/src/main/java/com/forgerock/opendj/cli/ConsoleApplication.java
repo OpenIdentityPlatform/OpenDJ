@@ -27,12 +27,11 @@
  */
 package com.forgerock.opendj.cli;
 
-import static com.forgerock.opendj.cli.CliMessages.INFO_ERROR_EMPTY_RESPONSE;
-import static com.forgerock.opendj.cli.CliMessages.INFO_MENU_PROMPT_RETURN_TO_CONTINUE;
-import static com.forgerock.opendj.cli.CliMessages.INFO_PROMPT_SINGLE_DEFAULT;
-import static com.forgerock.opendj.cli.CliMessages.ERR_TRIES_LIMIT_REACHED;
+import static com.forgerock.opendj.cli.CliMessages.*;
 import static com.forgerock.opendj.cli.Utils.MAX_LINE_WIDTH;
+import static com.forgerock.opendj.cli.Utils.CONFIRMATION_MAX_TRIES;
 import static com.forgerock.opendj.cli.Utils.wrapText;
+import static com.forgerock.opendj.util.StaticUtils.EOL;
 
 import java.io.BufferedReader;
 import java.io.Console;
@@ -43,6 +42,7 @@ import java.io.InputStreamReader;
 import java.io.PrintStream;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 /**
  * This class provides an abstract base class which can be used as the basis of a console-based application.
@@ -58,6 +58,36 @@ public abstract class ConsoleApplication {
     private final PrintStream err;
 
     private final Console console = System.console();
+
+    /**
+     * Defines the different line styles for output.
+     */
+    public enum Style {
+        /**
+         * Defines a title.
+         */
+        TITLE,
+        /**
+         * Defines a subtitle.
+         */
+        SUBTITLE,
+        /**
+         * Defines a notice.
+         */
+        NOTICE,
+        /**
+         * Defines a normal line.
+         */
+        NORMAL,
+        /**
+         * Defines an error.
+         */
+        ERROR,
+        /**
+         * Defines a warning.
+         */
+        WARNING
+    }
 
     /**
      * Creates a new console application instance.
@@ -150,6 +180,17 @@ public abstract class ConsoleApplication {
      * @return Returns <code>true</code> if the user has requested advanced mode.
      */
     public boolean isAdvancedMode() {
+        return false;
+    }
+
+    /**
+     * Indicates whether or not this console application is running in its menu-driven mode. This can be used to dictate
+     * whether output should go to the error stream or not. In addition, it may also dictate whether or not sub-menus
+     * should display a cancel option as well as a quit option.
+     *
+     * @return Returns <code>true</code> if this console application is running in its menu-driven mode.
+     */
+    public boolean isMenuDrivenMode() {
         return false;
     }
 
@@ -266,6 +307,92 @@ public abstract class ConsoleApplication {
     }
 
     /**
+     * Prints a progress bar on the same output stream line if not in quiet mode.
+     *
+     * <pre>
+     * Like
+     *   msg......   50%
+     *   if progress is up to 100 :
+     *   msg.....................  100%
+     *   if progress is < 0 :
+     *   msg....  FAIL
+     *   msg.....................  FAIL
+     * </pre>
+     *
+     * @param linePos
+     *            The progress bar starts at this position on the line.
+     * @param progress
+     *            The current percentage progress to print.
+     */
+    public final void printProgressBar(final int linePos, final int progress) {
+        if (!isQuiet()) {
+            final int spacesLeft = MAX_LINE_WIDTH - linePos - 10;
+            StringBuilder bar = new StringBuilder();
+            if (progress != 0) {
+                for (int i = 0; i < 50; i++) {
+                    if ((i < (Math.abs(progress) / 2)) && (bar.length() < spacesLeft)) {
+                        bar.append(".");
+                    }
+                }
+            }
+            bar.append(".   ");
+            if (progress >= 0) {
+                bar.append(progress).append("%     ");
+            } else {
+                bar.append("FAIL");
+            }
+            final int endBuilder = linePos + bar.length();
+            for (int i = 0; i < endBuilder; i++) {
+                bar.append("\b");
+            }
+            if (progress >= 100 || progress < 0) {
+                bar.append(EOL);
+            }
+            out.print(bar.toString());
+        }
+    }
+
+    /**
+     * Print a line with EOL in the output stream.
+     *
+     * @param msgStyle
+     *            The type of formatted output desired.
+     * @param msg
+     *            The message to display in normal mode.
+     * @param indent
+     *            The indentation.
+     */
+    public final void println(final Style msgStyle, final LocalizableMessage msg, final int indent) {
+        if (!isQuiet()) {
+            switch (msgStyle) {
+            case TITLE:
+                out.println();
+                out.println(">>>> " + wrapText(msg, MAX_LINE_WIDTH, indent));
+                out.println();
+                break;
+            case SUBTITLE:
+                out.println(wrapText(msg, MAX_LINE_WIDTH, indent));
+                out.println();
+                break;
+            case NOTICE:
+                out.println(wrapText("* " + msg, MAX_LINE_WIDTH, indent));
+                break;
+            case ERROR:
+                out.println();
+                out.println(wrapText("** " + msg, MAX_LINE_WIDTH, indent));
+                out.println();
+                break;
+            case WARNING:
+                out.println(wrapText("[!] " + msg, MAX_LINE_WIDTH, indent));
+                break;
+            default:
+                out.println(wrapText(msg, MAX_LINE_WIDTH, indent));
+                break;
+            }
+        }
+    }
+
+    /**
      * Displays a message to the output stream if verbose mode is enabled.
      *
      * @param msg
@@ -291,11 +418,38 @@ public abstract class ConsoleApplication {
      * @return The string value read from the user.
      */
     public final String readInput(LocalizableMessage prompt, final String defaultValue) throws ClientException {
+        return readInput(prompt, defaultValue, null);
+    }
+
+    /**
+     * Interactively prompts (on error output) the user to provide a string value. Any non-empty string will be allowed
+     * (the empty string will indicate that the default should be used, if there is one).
+     *
+     * @param prompt
+     *            The prompt to present to the user.
+     * @param defaultValue
+     *            The default value to assume if the user presses ENTER without typing anything, or {@code null} if
+     *            there should not be a default and the user must explicitly provide a value.
+     * @param msgStyle
+     *            The formatted style chosen.
+     * @throws ClientException
+     *             If the line of input could not be retrieved for some reason.
+     * @return The string value read from the user.
+     */
+    public final String readInput(LocalizableMessage prompt, final String defaultValue, final Style msgStyle)
+            throws ClientException {
+        if (msgStyle != null && msgStyle == Style.TITLE) {
+            println();
+        }
         while (true) {
             if (defaultValue != null) {
                 prompt = INFO_PROMPT_SINGLE_DEFAULT.get(prompt.toString(), defaultValue);
             }
             final String response = readLineOfInput(prompt);
+
+            if (msgStyle != null && (msgStyle == Style.TITLE || msgStyle == Style.SUBTITLE)) {
+                println();
+            }
 
             if ("".equals(response)) {
                 if (defaultValue == null) {
@@ -321,8 +475,8 @@ public abstract class ConsoleApplication {
     public final char[] readPassword(final LocalizableMessage prompt) throws ClientException {
         if (console != null) {
             if (prompt != null) {
-                err.print(wrap(prompt));
-                err.print(" ");
+                out.print(wrap(prompt));
+                out.print(" ");
             }
             try {
                 final char[] password = console.readPassword();
@@ -348,10 +502,10 @@ public abstract class ConsoleApplication {
      * @throws ClientException
      *             If the line of input could not be retrieved for some reason.
      */
-    final String readLineOfInput(final LocalizableMessage prompt) throws ClientException {
+    public final String readLineOfInput(final LocalizableMessage prompt) throws ClientException {
         if (prompt != null) {
-            err.print(wrap(prompt));
-            err.print(" ");
+            out.print(wrap(prompt));
+            out.print(" ");
         }
         try {
             final String s = reader.readLine();
@@ -363,6 +517,49 @@ public abstract class ConsoleApplication {
         } catch (final IOException e) {
             throw ClientException.adaptInputException(e);
         }
+    }
+
+    /**
+     * Interactively retrieves a port value from the console.
+     *
+     * @param prompt
+     *            The port prompt.
+     * @param defaultValue
+     *            The port default value.
+     * @return Returns the port.
+     * @throws ClientException
+     *             If the port could not be retrieved for some reason.
+     */
+    public final int readPort(LocalizableMessage prompt, final int defaultValue) throws ClientException {
+        final ValidationCallback<Integer> callback = new ValidationCallback<Integer>() {
+            @Override
+            public Integer validate(ConsoleApplication app, String input) throws ClientException {
+                final String ninput = input.trim();
+                if (ninput.length() == 0) {
+                    return defaultValue;
+                } else {
+                    try {
+                        int i = Integer.parseInt(ninput);
+                        if (i < 1 || i > 65535) {
+                            throw new NumberFormatException();
+                        }
+                        return i;
+                    } catch (NumberFormatException e) {
+                        // Try again...
+                        app.println();
+                        app.println(ERR_BAD_PORT_NUMBER.get(ninput));
+                        app.println();
+                        return null;
+                    }
+                }
+            }
+
+        };
+        if (defaultValue != -1) {
+            prompt = INFO_PROMPT_SINGLE_DEFAULT.get(prompt, defaultValue);
+        }
+
+        return readValidatedInput(prompt, callback, CONFIRMATION_MAX_TRIES);
     }
 
     /**
@@ -402,8 +599,8 @@ public abstract class ConsoleApplication {
      *            The maximum number of tries that we can make.
      * @return Returns the decoded user's response.
      * @throws ClientException
-     *             If an unexpected error occurred which prevented validation or
-     *             if the maximum number of tries was reached.
+     *             If an unexpected error occurred which prevented validation or if the maximum number of tries was
+     *             reached.
      */
     public final <T> T readValidatedInput(final LocalizableMessage prompt, final ValidationCallback<T> validator,
             final int maxTries) throws ClientException {
@@ -432,7 +629,7 @@ public abstract class ConsoleApplication {
 
     /**
      * Returns the error stream. Effectively, when an application is in "interactive mode" all the informations should
-     * be written in the stdout.
+     * be written in the STDout.
      *
      * @return The error stream that should be used with this application.
      */
@@ -444,4 +641,124 @@ public abstract class ConsoleApplication {
         }
     }
 
+    /**
+     * Commodity method that interactively confirms whether a user wishes to perform an action. If
+     * the application is non-interactive, then the provided default is returned automatically. If there is an error an
+     * error message is logged to the provided Logger and the default value is returned.
+     *
+     * @param prompt
+     *            The prompt describing the action.
+     * @param defaultValue
+     *            The default value for the confirmation message. This will be returned if the application is
+     *            non-interactive or if the user just presses return.
+     * @param logger
+     *            the Logger to be used to log the error message.
+     * @return Returns <code>true</code> if the user wishes the action to be performed, or <code>false</code> if they
+     *         refused.
+     * @throws ClientException
+     *             if the user did not provide valid answer after a certain number of tries
+     *             (ConsoleApplication.CONFIRMATION_MAX_TRIES)
+     */
+    protected final boolean askConfirmation(LocalizableMessage prompt, boolean defaultValue, LocalizedLogger logger)
+            throws ClientException {
+        boolean v = defaultValue;
+
+        boolean done = false;
+        int nTries = 0;
+
+        while (!done && (nTries < CONFIRMATION_MAX_TRIES)) {
+            nTries++;
+            try {
+                v = confirmAction(prompt, defaultValue);
+                done = true;
+            } catch (ClientException ce) {
+                if (ce.getMessageObject().toString().contains(ERR_CONFIRMATION_TRIES_LIMIT_REACHED.get(nTries))) {
+                    throw ce;
+                }
+                logger.warn(LocalizableMessage.raw("Error reading input: " + ce, ce));
+                // Try again...
+                println();
+            }
+        }
+
+        if (!done) {
+            // This means we reached the maximum number of tries
+            throw new ClientException(ReturnCode.ERROR_USER_DATA,
+                    ERR_CONFIRMATION_TRIES_LIMIT_REACHED.get(CONFIRMATION_MAX_TRIES));
+        }
+        return v;
+    }
+
+    /**
+     * Interactively confirms whether a user wishes to perform an action.
+     * If the application is non-interactive, then the provided default is returned automatically.
+     *
+     * @param prompt
+     *            The prompt describing the action.
+     * @param defaultValue
+     *            The default value for the confirmation message. This will be returned if the application is
+     *            non-interactive or if the user just presses return.
+     * @return Returns <code>true</code> if the user wishes the action to be performed, or <code>false</code> if they
+     *         refused, or if an exception occurred.
+     * @throws ClientException
+     *             If the user's response could not be read from the console for some reason.
+     */
+    public final boolean confirmAction(LocalizableMessage prompt, final boolean defaultValue) throws ClientException {
+        if (!isInteractive()) {
+            return defaultValue;
+        }
+
+        final LocalizableMessage yes = INFO_GENERAL_YES.get();
+        final LocalizableMessage no = INFO_GENERAL_NO.get();
+        final LocalizableMessage errMsg = ERR_CONSOLE_APP_CONFIRM.get(yes, no);
+        prompt = INFO_MENU_PROMPT_CONFIRM.get(prompt, yes, no, defaultValue ? yes : no);
+
+        ValidationCallback<Boolean> validator = new ValidationCallback<Boolean>() {
+
+            @Override
+            public Boolean validate(ConsoleApplication app, String input) {
+                String ninput = input.toLowerCase().trim();
+                if (ninput.length() == 0) {
+                    return defaultValue;
+                } else if (no.toString().toLowerCase().startsWith(ninput)) {
+                    return false;
+                } else if (yes.toString().toLowerCase().startsWith(ninput)) {
+                    return true;
+                } else {
+                    // Try again...
+                    app.println();
+                    app.println(errMsg);
+                    app.println();
+                }
+
+                return null;
+            }
+        };
+
+        return readValidatedInput(prompt, validator, CONFIRMATION_MAX_TRIES);
+    }
+
+    /**
+     * Commodity method used to repeatedly ask the user to provide a port value.
+     *
+     * @param prompt
+     *            the prompt message.
+     * @param defaultValue
+     *            the default value of the port to be proposed to the user.
+     * @param logger
+     *            the logger where the errors will be written.
+     * @return the port value provided by the user.
+     */
+    protected int askPort(LocalizableMessage prompt, int defaultValue, LocalizedLogger logger) {
+        int port = -1;
+        while (port == -1) {
+            try {
+                port = readPort(prompt, defaultValue);
+            } catch (ClientException ce) {
+                port = -1;
+                logger.warn(LocalizableMessage.raw("Error reading input: " + ce, ce));
+            }
+        }
+        return port;
+    }
 }

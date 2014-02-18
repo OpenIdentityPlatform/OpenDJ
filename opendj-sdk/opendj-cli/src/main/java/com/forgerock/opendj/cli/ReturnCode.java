@@ -104,6 +104,10 @@ public enum ReturnCode {
      */
     JAVA_VERSION_INCOMPATIBLE(8),
     /**
+     * Application specific error.
+     */
+    APPLICATION_ERROR(10),
+    /**
      * The LDAP result code used for multi-stage SASL bind operations that are not
      * yet complete.
      */
