@@ -348,7 +348,7 @@ public class TextDebugLogPublisher
   public boolean isConfigurationAddAcceptable(DebugTargetCfg config,
                                               List<LocalizableMessage> unacceptableReasons)
   {
-    return getTraceSettings(config.getDebugScope()) == null;
+    return !hasTraceSettings(config.getDebugScope());
   }
 
   /**

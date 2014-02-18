@@ -29,6 +29,7 @@ package org.opends.server.tools.dsconfig;
 
 
 import java.io.BufferedReader;
+
 import static org.opends.messages.DSConfigMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.tools.ToolConstants.*;
@@ -67,6 +68,7 @@ import org.opends.server.admin.Tag;
 import org.opends.server.admin.client.ManagedObjectDecodingException;
 import org.opends.server.admin.client.MissingMandatoryPropertiesException;
 import org.opends.server.admin.client.OperationRejectedException;
+import org.opends.server.loggers.JDKLogging;
 import org.opends.server.types.InitializationException;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.EmbeddedUtils;
@@ -330,6 +332,7 @@ public final class DSConfig extends ConsoleApplication {
    */
   public static int main(String[] args, boolean initializeServer,
       OutputStream outStream, OutputStream errStream) {
+    JDKLogging.disableLogging();
     DSConfig app = new DSConfig(System.in, outStream, errStream,
         new LDAPManagementContextFactory(alwaysSSL));
     app.sessionStartTime = System.currentTimeMillis();

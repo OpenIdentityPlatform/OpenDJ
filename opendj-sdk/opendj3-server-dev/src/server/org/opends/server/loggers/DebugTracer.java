@@ -28,6 +28,8 @@ package org.opends.server.loggers;
 
 import java.util.Map;
 
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+
 /**
  * Class for source-code tracing at the method level.
  *
@@ -285,12 +287,11 @@ class DebugTracer
    */
   static boolean isLoggingStackTraceElement(StackTraceElement trace)
   {
-    return false;
-//    String name = trace.getClassName();
-//    return name.startsWith(Thread.class.getName())
-//        || name.startsWith(DebugTracer.class.getName())
-//        || name.startsWith(OpenDJLoggerAdapter.class.getName())
-//        || name.startsWith(LocalizedLogger.class.getName());
+    String name = trace.getClassName();
+    return name.startsWith(Thread.class.getName())
+        || name.startsWith(DebugTracer.class.getName())
+        || name.startsWith(OpenDJLoggerAdapter.class.getName())
+        || name.startsWith(LocalizedLogger.class.getName());
   }
 
   /** Indicates if there is something to log. */
