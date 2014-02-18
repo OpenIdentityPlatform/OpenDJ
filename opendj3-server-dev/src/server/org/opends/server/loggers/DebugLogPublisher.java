@@ -116,43 +116,43 @@ public abstract class DebugLogPublisher<T extends DebugLogPublisherCfg>
   /**
    * Get the trace settings for a specified class.
    *
-   * @param  className  The fully-qualified name of the class for
-   *                    which to get the trace levels.
-   *
-   * @return  The current trace settings for the class.
+   * @param className
+   *          The fully-qualified name of the class for which to get the trace
+   *          levels.
+   * @return The current trace settings for the class.
    */
   final TraceSettings getClassSettings(String className)
   {
-    TraceSettings settings = TraceSettings.DISABLED;
-
-    // If we're not enabled, trace level is DISABLED.
-    if (classTraceSettings != null) {
-      // Find most specific trace setting which covers this
-      // fully qualified class name
+    TraceSettings settings = null;
+    if (classTraceSettings != null)
+    {
+      // Find most specific trace setting
+      // which covers this fully qualified class name
       // Search up the hierarchy for a match.
-      String searchName= className;
-      Object value= null;
-      value= classTraceSettings.get(searchName);
-      while (value == null && searchName != null) {
-        int clipPoint= searchName.lastIndexOf('$');
-        if (clipPoint == -1) clipPoint= searchName.lastIndexOf('.');
-        if (clipPoint != -1) {
-          searchName= searchName.substring(0, clipPoint);
-          value= classTraceSettings.get(searchName);
+      String searchName = className;
+      settings = classTraceSettings.get(searchName);
+      while (settings == null && searchName != null)
+      {
+        int clipPoint = searchName.lastIndexOf('$');
+        if (clipPoint == -1)
+          clipPoint = searchName.lastIndexOf('.');
+        if (clipPoint != -1)
+        {
+          searchName = searchName.substring(0, clipPoint);
+          settings = classTraceSettings.get(searchName);
         }
-        else {
-          searchName= null;
+        else
+        {
+          searchName = null;
         }
       }
-
-      // Use global settings, if nothing more specific was found.
-      if (value == null) value= classTraceSettings.get(GLOBAL);
-
-      if (value != null) {
-        settings= (TraceSettings)value;
+      // Try global settings
+      // only if no specific target is defined
+      if (settings == null && classTraceSettings.size()==1) {
+        settings = classTraceSettings.get(GLOBAL);
       }
     }
-    return settings;
+    return settings == null ? TraceSettings.DISABLED : settings;
   }
 
 
@@ -169,8 +169,7 @@ public abstract class DebugLogPublisher<T extends DebugLogPublisherCfg>
    *                   global scope.
    * @param  settings  The trace settings for the specified scope.
    */
-  public final void addTraceSettings(String scope,
-                                     TraceSettings settings)
+  public final void addTraceSettings(String scope, TraceSettings settings)
   {
     if (scope == null) {
       setClassSettings(GLOBAL, settings);
@@ -188,55 +187,38 @@ public abstract class DebugLogPublisher<T extends DebugLogPublisherCfg>
     }
   }
 
-
-
   /**
-   * Determine whether a trace setting is already defined for a
-   * particular scope.
+   * Determine whether a trace setting is already defined for a particular
+   * scope.
    *
-   * @param  scope  The scope for which to make the determination.
-   *                This should be a fully-qualified class name, or
-   *                {@code null} to make the determination for the
-   *                global scope.
-   *
-   * @return  The trace settings for the specified scope, or
-   *          {@code null} if no trace setting is defined for that
-   *          scope.
+   * @param scope
+   *          The scope for which to make the determination. This should be a
+   *          fully-qualified class name.
+   * @return {@code true} if a trace settings is defined for the specified
+   *         scope, {@code false} otherwise.
    */
-  final TraceSettings getTraceSettings(String scope)
+  final boolean hasTraceSettings(String scope)
   {
-    if (scope == null) {
-      if(classTraceSettings != null)
+    int methodPt = scope.lastIndexOf('#');
+    if (methodPt != -1)
+    {
+      String methodName = scope.substring(methodPt + 1);
+      scope = scope.substring(0, methodPt);
+      if (methodTraceSettings != null)
       {
-        return classTraceSettings.get(GLOBAL);
-      }
-      return null;
-    }
-    else {
-      int methodPt= scope.lastIndexOf('#');
-      if (methodPt != -1) {
-        String methodName= scope.substring(methodPt+1);
-        scope= scope.substring(0, methodPt);
-        if(methodTraceSettings != null)
+        Map<String, TraceSettings> methodLevels =
+            methodTraceSettings.get(scope);
+        if (methodLevels != null)
         {
-          Map<String, TraceSettings> methodLevels =
-              methodTraceSettings.get(scope);
-          if(methodLevels != null)
-          {
-            return methodLevels.get(methodName);
-          }
-          return null;
+          return methodLevels.containsKey(methodName);
         }
-        return null;
-      }
-      else {
-        if(classTraceSettings != null)
-        {
-          return classTraceSettings.get(scope);
-        }
-        return null;
       }
     }
+    else if (classTraceSettings != null)
+    {
+      return classTraceSettings.containsKey(scope);
+    }
+    return false;
   }
 
 
@@ -292,8 +274,6 @@ public abstract class DebugLogPublisher<T extends DebugLogPublisherCfg>
     return removedSettings;
   }
 
-
-
   /**
    * Set the trace settings for a class.
    *
@@ -303,9 +283,10 @@ public abstract class DebugLogPublisher<T extends DebugLogPublisherCfg>
   private synchronized final void setClassSettings(String className,
                                        TraceSettings settings)
   {
-    if(classTraceSettings == null) classTraceSettings =
-        new HashMap<String, TraceSettings>();
-
+    if (classTraceSettings == null)
+    {
+      classTraceSettings = new HashMap<String, TraceSettings>();
+    }
     classTraceSettings.put(className, settings);
   }
 
@@ -319,18 +300,17 @@ public abstract class DebugLogPublisher<T extends DebugLogPublisherCfg>
    * @param  settings    The trace settings for the method.
    */
   private synchronized final void setMethodSettings(String className,
-                                       String methodName,
-                                       TraceSettings settings)
+      String methodName, TraceSettings settings)
   {
-    if (methodTraceSettings == null) methodTraceSettings =
-        new HashMap<String, Map<String, TraceSettings>>();
-    Map<String, TraceSettings> methodLevels=
-        methodTraceSettings.get(className);
-    if (methodLevels == null) {
-      methodLevels= new TreeMap<String, TraceSettings>();
+    if (methodTraceSettings == null) {
+      methodTraceSettings = new HashMap<String, Map<String, TraceSettings>>();
+    }
+    Map<String, TraceSettings> methodLevels = methodTraceSettings.get(className);
+    if (methodLevels == null)
+    {
+      methodLevels = new TreeMap<String, TraceSettings>();
       methodTraceSettings.put(className, methodLevels);
     }
-
     methodLevels.put(methodName, settings);
   }
 
