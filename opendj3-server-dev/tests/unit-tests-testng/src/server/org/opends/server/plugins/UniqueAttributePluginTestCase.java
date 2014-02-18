@@ -43,6 +43,7 @@ import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.testng.annotations.*;
 
 import static org.testng.Assert.*;

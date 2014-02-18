@@ -26,17 +26,13 @@
  */
 package org.opends.server.types;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
-
-
-
+import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.api.EqualityMatchingRule;
 
 import static org.opends.messages.CoreMessages.*;
-import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.api.EqualityMatchingRule;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-
-
 
 /**
  * This class contains various methods for manipulating
@@ -167,6 +163,7 @@ public final class AttributeValues
     /**
      * {@inheritDoc}
      */
+    @Override
     public ByteString getNormalizedValue() throws DirectoryException
     {
       if (normalizedValue == null)
@@ -191,6 +188,7 @@ public final class AttributeValues
     /**
      * {@inheritDoc}
      */
+    @Override
     public ByteString getValue()
     {
       return value;
@@ -201,6 +199,7 @@ public final class AttributeValues
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean equals(Object o)
     {
       if (this == o)
@@ -231,6 +230,7 @@ public final class AttributeValues
     /**
      * {@inheritDoc}
      */
+    @Override
     public int hashCode()
     {
       EqualityMatchingRule equalityMatchingRule = attributeType
@@ -263,6 +263,7 @@ public final class AttributeValues
     /**
      * {@inheritDoc}
      */
+    @Override
     public String toString()
     {
       if (value == null)
@@ -280,6 +281,7 @@ public final class AttributeValues
     /**
      * {@inheritDoc}
      */
+    @Override
     public void toString(StringBuilder buffer)
     {
       buffer.append(value.toString());
@@ -322,6 +324,7 @@ public final class AttributeValues
     /**
      * {@inheritDoc}
      */
+    @Override
     public ByteString getNormalizedValue()
     {
       return normalizedValue;
@@ -332,6 +335,7 @@ public final class AttributeValues
     /**
      * {@inheritDoc}
      */
+    @Override
     public ByteString getValue()
     {
       return value;
@@ -342,6 +346,7 @@ public final class AttributeValues
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean equals(Object o)
     {
       if (this == o)
@@ -372,6 +377,7 @@ public final class AttributeValues
     /**
      * {@inheritDoc}
      */
+    @Override
     public int hashCode()
     {
       return normalizedValue.hashCode();
@@ -382,6 +388,7 @@ public final class AttributeValues
     /**
      * {@inheritDoc}
      */
+    @Override
     public String toString()
     {
       if (value == null)
@@ -399,6 +406,7 @@ public final class AttributeValues
     /**
      * {@inheritDoc}
      */
+    @Override
     public void toString(StringBuilder buffer)
     {
       buffer.append(value.toString());

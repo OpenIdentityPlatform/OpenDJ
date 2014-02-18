@@ -71,6 +71,7 @@ import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.types.FilePermission;
 import org.opends.server.util.CertificateManager;
 import org.opends.server.util.SetupUtils;

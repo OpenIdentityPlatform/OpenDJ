@@ -36,25 +36,23 @@ import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Reader;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import static org.testng.Assert.*;
 
+@SuppressWarnings("javadoc")
 public class TestBindResponseProtocolOp  extends LdapTestCase {
 
     private static LocalizableMessage message = LocalizableMessage.raw("This is a message");
-    private static LocalizableMessage message2 = LocalizableMessage.raw("This is a second message");
     ResultCode        okCode          = ResultCode.SUCCESS;
     ResultCode  busyCode = ResultCode.BUSY;
     ResultCode invalidSyntaxCode = ResultCode.INVALID_ATTRIBUTE_SYNTAX;
     private static String dn = "cn=dn, dc=example,dc=com";
-    private static String dn2 = "cn=dn2, dc=example,dc=com";
     private static String saslCreds = "sasl credentials";
-    private static String saslCreds2 = "sasl2 credentials";
     private static String url = "ldap://somewhere.example.com";
-    private static String url2 = "ldap://somewhere2.example.com";
 
     /**
      * Once-only initialization.
@@ -79,7 +77,7 @@ public class TestBindResponseProtocolOp  extends LdapTestCase {
         ByteString serverSASLCredentials =
             ByteString.valueOf(saslCreds);
         BindResponseProtocolOp r =
-            new BindResponseProtocolOp(okCode.getIntValue(),
+            new BindResponseProtocolOp(okCode.intValue(),
                     message, responseDn, referralURLs,
                     serverSASLCredentials);
         toString(r);
@@ -108,7 +106,7 @@ public class TestBindResponseProtocolOp  extends LdapTestCase {
       ByteStringBuilder bsb = new ByteStringBuilder();
       ASN1Writer writer = ASN1.getWriter(bsb);
       writer.writeStartSequence(OP_TYPE_BIND_RESPONSE);
-      writer.writeInteger(okCode.getIntValue());
+      writer.writeInteger(okCode.intValue());
       writer.writeOctetString(responseDn.toString());
       writer.writeOctetString(message.toString());
       writer.writeBoolean(true);
@@ -119,7 +117,7 @@ public class TestBindResponseProtocolOp  extends LdapTestCase {
 
       assertTrue(protocolOp instanceof BindResponseProtocolOp);
       BindResponseProtocolOp bindResponse = (BindResponseProtocolOp)protocolOp;
-      assertTrue(bindResponse.getResultCode() == okCode.getIntValue());
+      assertTrue(bindResponse.getResultCode() == okCode.intValue());
       assertTrue(bindResponse.getMatchedDN().toNormalizedString().equals(responseDn.toNormalizedString()));
       assertTrue(bindResponse.getErrorMessage().toString().equals(message.toString()));
       assertNull(bindResponse.getReferralURLs());
@@ -153,7 +151,7 @@ public class TestBindResponseProtocolOp  extends LdapTestCase {
       ByteStringBuilder bsb = new ByteStringBuilder();
       ASN1Writer writer = ASN1.getWriter(bsb);
       writer.writeStartSequence(OP_TYPE_BIND_RESPONSE);
-      writer.writeInteger(okCode.getIntValue());
+      writer.writeInteger(okCode.intValue());
       writer.writeOctetString(responseDn.toString());
       writer.writeOctetString(message.toString());
       writer.writeInteger(Long.MAX_VALUE);
@@ -166,7 +164,7 @@ public class TestBindResponseProtocolOp  extends LdapTestCase {
 
       assertTrue(protocolOp instanceof BindResponseProtocolOp);
       BindResponseProtocolOp bindResponse = (BindResponseProtocolOp)protocolOp;
-      assertTrue(bindResponse.getResultCode() == okCode.getIntValue());
+      assertTrue(bindResponse.getResultCode() == okCode.intValue());
       assertTrue(bindResponse.getMatchedDN().toNormalizedString().equals(responseDn.toNormalizedString()));
       assertTrue(bindResponse.getErrorMessage().toString().equals(message.toString()));
       assertNull(bindResponse.getReferralURLs());
@@ -182,14 +180,13 @@ public class TestBindResponseProtocolOp  extends LdapTestCase {
             ByteString.valueOf(saslCreds);
 
         BindResponseProtocolOp saslOkResp =
-            new BindResponseProtocolOp(okCode.getIntValue(),
+            new BindResponseProtocolOp(okCode.intValue(),
                     message, responseDn, referralURLs,
                     serverSASLCredentials);
         BindResponseProtocolOp busyResp =
-            new BindResponseProtocolOp(busyCode.getIntValue());
+            new BindResponseProtocolOp(busyCode.intValue());
         BindResponseProtocolOp invalidSyntaxResp =
-            new BindResponseProtocolOp(invalidSyntaxCode.getIntValue(),
-                                                              message);
+            new BindResponseProtocolOp(invalidSyntaxCode.intValue(), message);
 
         ByteStringBuilder saslOkBuilder = new ByteStringBuilder();
         ASN1Writer saslOkWriter = ASN1.getWriter(saslOkBuilder);

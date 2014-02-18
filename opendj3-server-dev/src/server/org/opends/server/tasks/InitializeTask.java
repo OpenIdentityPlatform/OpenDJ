@@ -38,6 +38,7 @@ import org.opends.server.backends.task.TaskState;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.plugin.LDAPReplicationDomain;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 
 /**
  * This class provides an implementation of a Directory Server task that can

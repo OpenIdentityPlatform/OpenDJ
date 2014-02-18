@@ -27,13 +27,11 @@
 package org.opends.server.types;
 
 import java.util.List;
-import org.forgerock.i18n.LocalizableMessage;
-
-
-
 import java.util.Map;
 import java.util.Set;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.AttributeSyntax;
@@ -51,10 +49,9 @@ import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 
-
 /**
  * This interface defines a set of methods that may be used by
- * third-party code to obtatin information about the core Directory
+ * third-party code to obtain information about the core Directory
  * Server configuration and the instances of various kinds of
  * components that have registered themselves with the server.
  * <BR><BR>

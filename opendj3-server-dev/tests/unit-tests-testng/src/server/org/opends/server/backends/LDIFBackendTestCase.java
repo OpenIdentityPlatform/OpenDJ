@@ -48,7 +48,7 @@ import org.opends.server.tools.LDAPSearch;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-import org.opends.server.types.ResultCode;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -189,7 +189,7 @@ public class LDIFBackendTestCase
       "-f", subtreeDeletePath
     };
     resultCode = LDAPModify.mainModify(args, false, System.out, System.err);
-    assertEquals(resultCode, ResultCode.NOT_ALLOWED_ON_NONLEAF.getIntValue());
+    assertEquals(resultCode, ResultCode.NOT_ALLOWED_ON_NONLEAF.intValue());
 
 
     // Verify that the subtree delete will succeed if we include the subtree

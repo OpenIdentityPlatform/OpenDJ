@@ -43,6 +43,7 @@ import org.opends.server.core.DirectoryServer;
 
 
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.messages.SchemaMessages.*;

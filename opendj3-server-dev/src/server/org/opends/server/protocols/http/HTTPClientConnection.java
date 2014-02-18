@@ -78,7 +78,7 @@ import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.IntermediateResponse;
 import org.opends.server.types.Operation;
 import org.opends.server.types.OperationType;
-import org.opends.server.types.ResultCode;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
 
@@ -427,7 +427,7 @@ final class HTTPClientConnection extends ClientConnection implements
 
   private ProtocolOp toResponseProtocolOp(Operation operation)
   {
-    final int resultCode = operation.getResultCode().getIntValue();
+    final int resultCode = operation.getResultCode().intValue();
     if (operation instanceof AddOperation)
     {
       return new AddResponseProtocolOp(resultCode);
@@ -681,7 +681,7 @@ final class HTTPClientConnection extends ClientConnection implements
       final Operation operation = previousValue.operation;
       if (operation.getOperationType() == OperationType.ABANDON)
       {
-        if (keepStats && operation.getResultCode() == ResultCode.CANCELED)
+        if (keepStats && operation.getResultCode() == ResultCode.CANCELLED)
         {
           statTracker.updateAbandonedOperation();
         }

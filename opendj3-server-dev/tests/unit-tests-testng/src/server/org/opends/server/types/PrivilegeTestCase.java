@@ -35,6 +35,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.GlobalCfgDefn.DisabledPrivilege;
@@ -57,8 +58,8 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.forgerock.opendj.ldap.ResultCode.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
-import static org.opends.server.types.ResultCode.*;
 import static org.testng.Assert.*;
 
 /**

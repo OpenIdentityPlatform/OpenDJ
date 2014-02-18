@@ -47,6 +47,7 @@ import org.opends.server.tools.LDAPModify;
 import org.opends.server.tools.LDAPReader;
 import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.AfterMethod;
@@ -1957,7 +1958,7 @@ public class AddOperationTestCase
                                                     LocalizableMessage.raw("testCancelBeforeStartup"));
     addOperation.abort(cancelRequest);
     addOperation.run();
-    assertEquals(addOperation.getResultCode(), ResultCode.CANCELED);
+    assertEquals(addOperation.getResultCode(), ResultCode.CANCELLED);
   }
 
   /**

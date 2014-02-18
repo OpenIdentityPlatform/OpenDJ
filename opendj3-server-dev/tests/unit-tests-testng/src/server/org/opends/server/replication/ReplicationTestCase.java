@@ -54,6 +54,7 @@ import org.opends.server.replication.server.changelog.je.JEChangelogDB;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.schema.IntegerSyntax;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -62,7 +63,7 @@ import static org.forgerock.opendj.ldap.SearchScope.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.schema.DirectoryStringSyntax.*;
-import static org.opends.server.types.ResultCode.*;
+import static org.forgerock.opendj.ldap.ResultCode.*;
 import static org.testng.Assert.*;
 
 /**
@@ -273,7 +274,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
 
     DeleteOperation op = connection.processDelete(dn);
     assertTrue(op.getResultCode() == SUCCESS || op.getResultCode() == NO_SUCH_OBJECT,
-        "Delete entry " + dn + " failed: " + op.getResultCode().getResultCodeName());
+        "Delete entry " + dn + " failed: " + op.getResultCode());
   }
 
   /**

@@ -48,6 +48,7 @@ import org.opends.server.controls.LDAPPreReadResponseControl;
 import org.opends.server.core.*;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.workflowelement.LeafWorkflowElement;
 
 import static org.opends.messages.CoreMessages.*;

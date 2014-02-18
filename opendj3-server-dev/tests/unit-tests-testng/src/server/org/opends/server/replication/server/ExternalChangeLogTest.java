@@ -65,6 +65,7 @@ import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.tools.LDAPSearch;
 import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.TimeThread;
 import org.opends.server.workflowelement.externalchangelog.ECLSearchOperation;
@@ -77,7 +78,7 @@ import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.controls.PersistentSearchChangeType.*;
 import static org.opends.server.replication.protocol.OperationContext.*;
-import static org.opends.server.types.ResultCode.*;
+import static org.forgerock.opendj.ldap.ResultCode.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
 
@@ -1878,7 +1879,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   private void assertSuccessful(LDAPMessage message)
   {
     SearchResultDoneProtocolOp doneOp = message.getSearchResultDoneProtocolOp();
-    assertEquals(doneOp.getResultCode(), ResultCode.SUCCESS.getIntValue(),
+    assertEquals(doneOp.getResultCode(), ResultCode.SUCCESS.intValue(),
         doneOp.getErrorMessage().toString());
   }
 

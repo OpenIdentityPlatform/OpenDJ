@@ -41,7 +41,7 @@ import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
-import org.opends.server.types.ResultCode;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.types.SearchFilter;
 import org.forgerock.opendj.ldap.SearchScope;
 
@@ -217,7 +217,7 @@ public final class PersistentSearch
       }
     }
 
-    return new CancelResult(ResultCode.CANCELED, null);
+    return new CancelResult(ResultCode.CANCELLED, null);
   }
 
 

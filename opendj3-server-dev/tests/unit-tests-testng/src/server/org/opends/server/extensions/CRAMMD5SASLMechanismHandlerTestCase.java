@@ -47,6 +47,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.tools.LDAPSearch;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ByteString;
 import static org.testng.Assert.*;
 
@@ -75,7 +76,7 @@ public class CRAMMD5SASLMechanismHandlerTestCase
 
 
   /**
-   * Retrieves a set of invvalid configuration entries.
+   * Retrieves a set of invalid configuration entries.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */

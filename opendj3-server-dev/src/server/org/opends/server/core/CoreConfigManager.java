@@ -38,6 +38,7 @@ import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.api.AuthenticationPolicy;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 

@@ -51,7 +51,7 @@ import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.loggers.HTTPAccessLogger;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.InitializationException;
-import org.opends.server.types.ResultCode;
+import org.forgerock.opendj.ldap.ResultCode;
 
 
 /**

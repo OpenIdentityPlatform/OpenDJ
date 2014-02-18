@@ -33,11 +33,12 @@ import java.util.StringTokenizer;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.core.DirectoryServer;
 
+import static org.forgerock.opendj.ldap.ResultCode.*;
 import static org.opends.messages.UtilityMessages.*;
-import static org.opends.server.types.ResultCode.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**

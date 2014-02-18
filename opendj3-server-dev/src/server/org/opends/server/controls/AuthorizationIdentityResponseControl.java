@@ -31,6 +31,7 @@ import org.forgerock.i18n.LocalizableMessage;
 
 import org.forgerock.opendj.io.ASN1Writer;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ByteString;
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -48,7 +49,7 @@ public class AuthorizationIdentityResponseControl
        extends Control
 {
   /**
-   * ControlDecoder implentation to decode this control from a ByteString.
+   * ControlDecoder implementation to decode this control from a ByteString.
    */
   private final static class Decoder
       implements ControlDecoder<AuthorizationIdentityResponseControl>

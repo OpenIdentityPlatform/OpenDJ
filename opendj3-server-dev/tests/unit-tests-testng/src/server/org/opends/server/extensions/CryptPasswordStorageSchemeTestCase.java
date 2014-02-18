@@ -38,7 +38,6 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.CryptPasswordStorageSchemeCfgDefn;
 import org.opends.server.admin.std.server.CryptPasswordStorageSchemeCfg;
-import org.opends.server.config.ConfigEntry;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.PasswordPolicy;
@@ -52,7 +51,7 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 import org.forgerock.opendj.ldap.ModificationType;
-import org.opends.server.types.ResultCode;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -64,13 +63,6 @@ import org.testng.annotations.Test;
 public class CryptPasswordStorageSchemeTestCase
        extends ExtensionsTestCase
 {
-  // The configuration entry for this password storage scheme.
-  private ConfigEntry configEntry;
-
-  // The string representation of the DN of the configuration entry for this
-  // password storage scheme.
-  private static final String configDNString =
-          "cn=Crypt,cn=Password Storage Schemes,cn=config";
 
   // Names of all the crypt algorithms we want to test.
   private static final String[] names = { "unix", "md5", "sha256", "sha512" };
@@ -82,7 +74,6 @@ public class CryptPasswordStorageSchemeTestCase
   public CryptPasswordStorageSchemeTestCase()
   {
     super();
-    this.configEntry    = null;
   }
 
 
@@ -91,12 +82,9 @@ public class CryptPasswordStorageSchemeTestCase
    * tests.
    */
   @BeforeClass()
-  public void startServer()
-         throws Exception
+  public void startServer() throws Exception
   {
     TestCaseUtils.startServer();
-
-    configEntry = DirectoryServer.getConfigEntry(DN.valueOf(configDNString));
   }
 
 

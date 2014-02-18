@@ -27,15 +27,17 @@
 
 package org.opends.server.types;
 
-import org.forgerock.i18n.LocalizableMessage;
-import java.util.List;
 import java.util.ArrayList;
-import java.util.Set;
 import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.core.DirectoryServer;
 
-import static org.opends.server.util.ServerConstants.*;
 import static org.opends.messages.SchemaMessages.*;
+import static org.opends.server.util.ServerConstants.*;
 
 /**
  * This class represents RFC 3672 subentries and RFC 3671
@@ -43,7 +45,7 @@ import static org.opends.messages.SchemaMessages.*;
  */
 public class SubEntry {
   /**
-   * Defines the set of permissable values for the conflict behavior.
+   * Defines the set of permissible values for the conflict behavior.
    * Specifies the behavior that the server is to exhibit for entries
    * that already contain one or more real values for the associated
    * collective attribute.
@@ -229,8 +231,8 @@ public class SubEntry {
       }
     }
 
-    // Check that the subtree spec is flaged as valid. If it is not
-    // that means all parsers have failed and it is ivalid syntax.
+    // Check that the subtree spec is flagged as valid. If it is not
+    // that means all parsers have failed and it is invalid syntax.
     if (!isValidSpec)
     {
       LocalizableMessage message =

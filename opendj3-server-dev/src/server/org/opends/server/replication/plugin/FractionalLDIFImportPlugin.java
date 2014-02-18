@@ -40,6 +40,7 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.plugin.LDAPReplicationDomain.*;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.replication.plugin.LDAPReplicationDomain.*;
 

@@ -55,6 +55,7 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.*;
 import org.opends.server.extensions.DiskSpaceMonitor;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.RuntimeInformation;
 
 import com.sleepycat.je.DatabaseException;

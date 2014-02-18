@@ -44,7 +44,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ConfigChangeResult;
 
 
-import org.opends.server.types.ResultCode;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ByteSequence;
 
 import static org.opends.messages.SchemaMessages.*;

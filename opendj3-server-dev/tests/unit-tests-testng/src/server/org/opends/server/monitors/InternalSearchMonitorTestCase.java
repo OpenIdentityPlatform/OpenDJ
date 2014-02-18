@@ -30,7 +30,7 @@ import java.util.ArrayList;
 
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.types.DN;
-import org.opends.server.types.ResultCode;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.types.SearchFilter;
 import org.opends.server.types.SearchResultEntry;
 import org.testng.annotations.AfterClass;

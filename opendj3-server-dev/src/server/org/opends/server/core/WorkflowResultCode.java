@@ -25,12 +25,10 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.core;
+
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
-
-
-import org.opends.server.types.ResultCode;
-
+import org.forgerock.opendj.ldap.ResultCode;
 
 /**
  * This class implements the workflow result code. The workflow result code
@@ -134,14 +132,14 @@ public class WorkflowResultCode
     {
       // Elaborate the new result code (see table in the description header).
 
-      switch (newResultCode)
+      switch (newResultCode.asEnum())
       {
       case SUCCESS:
         //
         // Received SUCCESS
         // ----------------
         //
-        switch (resultCode)
+        switch (resultCode.asEnum())
         {
           case NO_SUCH_OBJECT:
             resultCode = ResultCode.SUCCESS;
@@ -169,7 +167,7 @@ public class WorkflowResultCode
         // Received REFERRAL
         // -----------------
         //
-        switch (resultCode)
+        switch (resultCode.asEnum())
         {
           case REFERRAL:
             resultCode = ResultCode.SUCCESS;
@@ -191,7 +189,7 @@ public class WorkflowResultCode
         // Received other result codes
         // ---------------------------
         //
-        switch (resultCode)
+        switch (resultCode.asEnum())
         {
           case REFERRAL:
             resultCode = newResultCode;

@@ -54,7 +54,7 @@ import org.opends.server.types.ExistingFileBehavior;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.Operation;
 import org.opends.server.types.Privilege;
-import org.opends.server.types.ResultCode;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.types.SearchFilter;
 
 import java.io.File;

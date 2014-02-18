@@ -47,6 +47,7 @@ import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.tools.LDAPDelete;
 import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.workflowelement.localbackend.LocalBackendDeleteOperation;
@@ -710,7 +711,7 @@ public class DeleteOperationTestCase extends OperationTestCase
                                                     LocalizableMessage.raw("testCancelBeforeStartup"));
     deleteOperation.abort(cancelRequest);
     deleteOperation.run();
-    assertEquals(deleteOperation.getResultCode(), ResultCode.CANCELED);
+    assertEquals(deleteOperation.getResultCode(), ResultCode.CANCELLED);
   }
 
   /**

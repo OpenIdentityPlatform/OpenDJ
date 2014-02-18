@@ -38,7 +38,7 @@ import org.opends.server.admin.std.server.FileCountLogRetentionPolicyCfg;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.ResultCode;
+import org.forgerock.opendj.ldap.ResultCode;
 
 
 /**

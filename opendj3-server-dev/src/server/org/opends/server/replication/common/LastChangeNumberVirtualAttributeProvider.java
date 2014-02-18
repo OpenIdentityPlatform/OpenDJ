@@ -39,6 +39,7 @@ import org.opends.server.core.SearchOperation;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.workflowelement.externalchangelog.ECLWorkflowElement;
 

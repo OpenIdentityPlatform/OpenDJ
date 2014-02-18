@@ -27,6 +27,7 @@
 package org.opends.server.types;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ResultCode;
 
 
 /**
@@ -95,6 +96,7 @@ public class CancelResult
    *
    * @return  A string representation of this cancel result.
    */
+  @Override
   public final String toString()
   {
     return String.valueOf(resultCode);

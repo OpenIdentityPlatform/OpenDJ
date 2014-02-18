@@ -40,7 +40,7 @@ import org.opends.server.types.Attributes;
 import org.opends.server.types.DN;
 import org.opends.server.types.Modification;
 import org.forgerock.opendj.ldap.ModificationType;
-import org.opends.server.types.ResultCode;
+import org.forgerock.opendj.ldap.ResultCode;
 
 import static org.testng.Assert.*;
 

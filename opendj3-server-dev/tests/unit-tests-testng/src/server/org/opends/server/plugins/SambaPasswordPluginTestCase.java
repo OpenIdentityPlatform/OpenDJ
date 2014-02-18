@@ -43,6 +43,7 @@ import org.opends.server.plugins.SambaPasswordPlugin.MD4MessageDigest;
 import org.opends.server.plugins.SambaPasswordPlugin.TimeStampProvider;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.ServerConstants;
 import org.testng.annotations.*;
 

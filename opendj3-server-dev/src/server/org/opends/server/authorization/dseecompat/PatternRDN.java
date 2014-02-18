@@ -29,6 +29,7 @@ package org.opends.server.authorization.dseecompat;
 import org.forgerock.i18n.LocalizableMessage;
 
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.api.EqualityMatchingRule;

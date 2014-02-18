@@ -29,6 +29,7 @@ package org.opends.server.types;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ResultCode;
 
 /**
  * This class defines an exception that may be thrown if a problem

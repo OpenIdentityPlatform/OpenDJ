@@ -51,6 +51,7 @@ import org.opends.server.controls.*;
 import org.opends.server.core.*;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
 
@@ -956,7 +957,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
         {
           searchOperation.addResponseControl(
               new ServerSideSortResponseControl(
-                  de.getResultCode().getIntValue(), null));
+                  de.getResultCode().intValue(), null));
 
           if (sortRequest.isCritical())
           {
@@ -1063,7 +1064,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
           {
             searchOperation.addResponseControl(
                 new ServerSideSortResponseControl(
-                    de.getResultCode().getIntValue(), null));
+                    de.getResultCode().intValue(), null));
 
             if (sortRequest.isCritical())
             {

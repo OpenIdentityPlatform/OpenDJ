@@ -35,7 +35,7 @@ import org.opends.server.core.AddOperation;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-import org.opends.server.types.ResultCode;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;

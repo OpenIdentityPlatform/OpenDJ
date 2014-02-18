@@ -36,6 +36,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Reader;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ByteString;
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -126,7 +127,7 @@ public class CancelExtendedOperation
 
     // Update the result of the extended operation and return.
     ResultCode resultCode = cancelResult.getResultCode();
-    operation.setResultCode(resultCode == ResultCode.CANCELED
+    operation.setResultCode(resultCode == ResultCode.CANCELLED
                                 ? ResultCode.SUCCESS : resultCode);
     operation.appendErrorMessage(cancelResult.getResponseMessage());
   }

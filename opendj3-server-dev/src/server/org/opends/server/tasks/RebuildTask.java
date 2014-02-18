@@ -43,7 +43,7 @@ import org.opends.server.types.InitializationException;
 
 import org.opends.server.types.Operation;
 import org.opends.server.types.Privilege;
-import org.opends.server.types.ResultCode;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
 import org.opends.server.api.ClientConnection;

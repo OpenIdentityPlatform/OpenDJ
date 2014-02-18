@@ -25,6 +25,7 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.controls;
+
 import org.forgerock.i18n.LocalizableMessage;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -33,6 +34,7 @@ import static org.opends.server.util.ServerConstants.OID_PAGED_RESULTS_CONTROL;
 
 import org.forgerock.opendj.io.*;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ByteString;
 import java.io.IOException;
 
@@ -43,18 +45,19 @@ import java.io.IOException;
  * The searchControlValue is an OCTET STRING wrapping the BER-encoded
  * version of the following SEQUENCE:
  *
+ * <pre>
  * realSearchControlValue ::= SEQUENCE {
  *         size            INTEGER (0..maxInt),
  *                                 -- requested page size from client
  *                                 -- result set size estimate from server
  *         cookie          OCTET STRING
  * }
- *
+ * </pre>
  */
 public class PagedResultsControl extends Control
 {
   /**
-   * ControlDecoder implentation to decode this control from a ByteString.
+   * ControlDecoder implementation to decode this control from a ByteString.
    */
   private final static class Decoder
       implements ControlDecoder<PagedResultsControl>

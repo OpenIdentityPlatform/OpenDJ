@@ -31,6 +31,7 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.core.networkgroups.NetworkGroupNamingContexts;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 
 /**
  * This class implements the workflow node that handles the root DSE entry.

@@ -29,7 +29,7 @@ package org.opends.server.loggers;
 
 
 import static org.opends.messages.ConfigMessages.*;
-import static org.opends.server.types.ResultCode.*;
+import static org.forgerock.opendj.ldap.ResultCode.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -44,6 +44,7 @@ import org.opends.server.admin.std.server.FileBasedAuditLogPublisherCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.*;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.opends.server.util.Base64;
 import org.opends.server.util.StaticUtils;

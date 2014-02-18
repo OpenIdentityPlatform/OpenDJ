@@ -33,7 +33,10 @@ import org.opends.server.admin.std.server.AccessControlHandlerCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.*;
 import org.opends.server.types.*;
-import org.opends.server.workflowelement.localbackend.*;
+import org.opends.server.workflowelement.localbackend.LocalBackendAddOperation;
+import org.opends.server.workflowelement.localbackend.LocalBackendCompareOperation;
+import org.opends.server.workflowelement.localbackend.LocalBackendDeleteOperation;
+import org.opends.server.workflowelement.localbackend.LocalBackendModifyOperation;
 
 /**
  * This class defines the set of methods and structures that must be

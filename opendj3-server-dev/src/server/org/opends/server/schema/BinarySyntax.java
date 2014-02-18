@@ -26,21 +26,19 @@
  */
 package org.opends.server.schema;
 
-
-
-import org.opends.server.admin.std.server.AttributeSyntaxCfg;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteSequence;
+import org.forgerock.opendj.ldap.ByteString;
+import org.opends.server.admin.std.server.AttributeSyntaxCfg;
 import org.opends.server.api.*;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ByteSequence;
+import org.opends.server.types.AttributeValue;
+import org.opends.server.types.DirectoryException;
+
 import static org.opends.messages.SchemaMessages.*;
-import org.forgerock.i18n.LocalizableMessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
-
-
 
 /**
  * This class defines the binary attribute syntax, which is essentially a byte
@@ -73,6 +71,7 @@ public class BinarySyntax
     /**
      * {@inheritDoc}
      */
+    @Override
     public ByteString decode(AttributeValue value) throws DirectoryException {
       // Make sure that the value is valid.
       value.getNormalizedValue();
@@ -98,6 +97,7 @@ public class BinarySyntax
   /**
    * {@inheritDoc}
    */
+  @Override
   public void initializeSyntax(AttributeSyntaxCfg configuration)
          throws ConfigException
   {
@@ -130,6 +130,7 @@ public class BinarySyntax
    *
    * @return  The common name for this attribute syntax.
    */
+  @Override
   public String getSyntaxName()
   {
     return SYNTAX_BINARY_NAME;
@@ -142,6 +143,7 @@ public class BinarySyntax
    *
    * @return  The OID for this attribute syntax.
    */
+  @Override
   public String getOID()
   {
     return SYNTAX_BINARY_OID;
@@ -154,6 +156,7 @@ public class BinarySyntax
    *
    * @return  A description for this attribute syntax.
    */
+  @Override
   public String getDescription()
   {
     return SYNTAX_BINARY_DESCRIPTION;
@@ -169,6 +172,7 @@ public class BinarySyntax
    *          attributes with this syntax, or <CODE>null</CODE> if equality
    *          matches will not be allowed for this type by default.
    */
+  @Override
   public EqualityMatchingRule getEqualityMatchingRule()
   {
     return defaultEqualityMatchingRule;
@@ -184,6 +188,7 @@ public class BinarySyntax
    *          attributes with this syntax, or <CODE>null</CODE> if ordering
    *          matches will not be allowed for this type by default.
    */
+  @Override
   public OrderingMatchingRule getOrderingMatchingRule()
   {
     return defaultOrderingMatchingRule;
@@ -199,6 +204,7 @@ public class BinarySyntax
    *          attributes with this syntax, or <CODE>null</CODE> if substring
    *          matches will not be allowed for this type by default.
    */
+  @Override
   public SubstringMatchingRule getSubstringMatchingRule()
   {
     return defaultSubstringMatchingRule;
@@ -214,6 +220,7 @@ public class BinarySyntax
    *          attributes with this syntax, or <CODE>null</CODE> if approximate
    *          matches will not be allowed for this type by default.
    */
+  @Override
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
     // There is no approximate matching rule by default.
@@ -234,6 +241,7 @@ public class BinarySyntax
    * @return  <CODE>true</CODE> if the provided value is acceptable for use with
    *          this syntax, or <CODE>false</CODE> if not.
    */
+  @Override
   public boolean valueIsAcceptable(ByteSequence value,
                                    LocalizableMessageBuilder invalidReason)
   {
@@ -246,6 +254,7 @@ public class BinarySyntax
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isBEREncodingRequired()
   {
     return false;
@@ -256,6 +265,7 @@ public class BinarySyntax
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isHumanReadable()
   {
     return false;

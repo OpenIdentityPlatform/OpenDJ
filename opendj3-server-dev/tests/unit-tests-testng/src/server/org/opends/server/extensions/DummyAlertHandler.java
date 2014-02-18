@@ -38,7 +38,7 @@ import org.opends.server.api.AlertHandler;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.InitializationException;
-import org.opends.server.types.ResultCode;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.i18n.LocalizableMessage;
 
 

@@ -181,7 +181,6 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
 
   private ProtocolOp toRequestProtocolOp(Operation operation)
   {
-    operation.getResultCode().getIntValue();
     if (operation instanceof AbandonOperation)
     {
       final AbandonOperation op = (AbandonOperation) operation;

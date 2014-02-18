@@ -46,7 +46,7 @@ import org.opends.server.core.networkgroups.NetworkGroup;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.ResultCode;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.workflowelement.WorkflowElement;
 
 

@@ -53,7 +53,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.Entry;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.opends.server.types.RawModification;
-import org.opends.server.types.ResultCode;
+import org.forgerock.opendj.ldap.ResultCode;
 
 import static org.testng.Assert.*;
 

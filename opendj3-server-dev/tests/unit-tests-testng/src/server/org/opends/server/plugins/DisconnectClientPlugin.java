@@ -85,7 +85,7 @@ public class DisconnectClientPlugin
   public static class DisconnectClientControl extends Control
   {
     /**
-     * ControlDecoder implentation to decode this control from a ByteString.
+     * ControlDecoder implementation to decode this control from a ByteString.
      */
     private final static class Decoder
         implements ControlDecoder<DisconnectClientControl>

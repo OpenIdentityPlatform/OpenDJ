@@ -25,8 +25,6 @@
  *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.loggers;
-import static org.opends.messages.ConfigMessages.*;
-
 import java.util.Collection;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -35,8 +33,11 @@ import org.opends.server.admin.std.meta.AccessLogPublisherCfgDefn;
 import org.opends.server.admin.std.server.AccessLogPublisherCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.core.*;
-import org.opends.server.types.*;
+import org.opends.server.types.DisconnectReason;
+import org.opends.server.types.SearchResultEntry;
+import org.opends.server.types.SearchResultReference;
 
+import static org.opends.messages.ConfigMessages.*;
 
 /**
  * This class defines the wrapper that will invoke all registered access loggers

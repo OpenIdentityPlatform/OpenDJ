@@ -66,6 +66,7 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.types.operation.SubordinateModifyDNOperation;
 import org.opends.server.types.operation.PostOperationModifyDNOperation;
 import org.opends.server.types.operation.PostOperationDeleteOperation;
@@ -702,7 +703,7 @@ public class ReferentialIntegrityPlugin
          SearchScope.WHOLE_SUBTREE, DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0,
          false, SearchFilter.createORFilter(componentFilters), null);
 
-    switch (operation.getResultCode())
+    switch (operation.getResultCode().asEnum())
     {
       case SUCCESS:
         break;

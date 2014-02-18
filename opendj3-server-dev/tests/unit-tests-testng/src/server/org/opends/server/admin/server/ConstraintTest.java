@@ -47,7 +47,7 @@ import org.opends.server.core.AddOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.Entry;
-import org.opends.server.types.ResultCode;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -475,7 +475,7 @@ public final class ConstraintTest extends AdminTestCase {
       };
 
       int result = TestCaseUtils.applyModifications(true, changes);
-      Assert.assertEquals(result, ResultCode.SUCCESS.getIntValue());
+      Assert.assertEquals(result, ResultCode.SUCCESS.intValue());
     } finally {
       TestCfg.removeConstraint(constraint);
       try {
@@ -522,8 +522,7 @@ public final class ConstraintTest extends AdminTestCase {
       };
 
       int result = TestCaseUtils.applyModifications(true, changes);
-      Assert
-          .assertEquals(result, ResultCode.UNWILLING_TO_PERFORM.getIntValue());
+      Assert.assertEquals(result, ResultCode.UNWILLING_TO_PERFORM.intValue());
     } finally {
       TestCfg.removeConstraint(constraint);
       try {

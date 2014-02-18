@@ -30,14 +30,15 @@ import java.util.*;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.util.Reject;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.controls.ControlDecoder;
 import org.opends.server.core.DirectoryServer;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.operation.PostResponseOperation;
 import org.opends.server.types.operation.PreParseOperation;
-import org.forgerock.util.Reject;
 
 /**
  * This class defines a generic operation that may be processed by the

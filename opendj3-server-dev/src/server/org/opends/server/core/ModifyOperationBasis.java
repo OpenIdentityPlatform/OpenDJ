@@ -39,6 +39,7 @@ import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.operation.PostResponseModifyOperation;
 import org.opends.server.types.operation.PreParseModifyOperation;
@@ -441,8 +442,8 @@ public class ModifyOperationBasis
     {
       logger.traceException(coe);
 
-      setResultCode(ResultCode.CANCELED);
-      cancelResult = new CancelResult(ResultCode.CANCELED, null);
+      setResultCode(ResultCode.CANCELLED);
+      cancelResult = new CancelResult(ResultCode.CANCELLED, null);
 
       appendErrorMessage(coe.getCancelRequest().getCancelReason());
     }
@@ -455,7 +456,7 @@ public class ModifyOperationBasis
       logModifyResponse(this);
 
       if(cancelRequest == null || cancelResult == null ||
-          cancelResult.getResultCode() != ResultCode.CANCELED ||
+          cancelResult.getResultCode() != ResultCode.CANCELLED ||
           cancelRequest.notifyOriginalRequestor() ||
           DirectoryServer.notifyAbandonedOperations())
       {

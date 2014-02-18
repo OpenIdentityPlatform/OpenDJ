@@ -26,20 +26,22 @@
  */
 package org.opends.server.core;
 
-import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.loggers.AccessLogger.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.core.networkgroups.NetworkGroup;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.operation.PostResponseModifyDNOperation;
 import org.opends.server.types.operation.PreParseModifyDNOperation;
-import org.opends.server.workflowelement.localbackend.*;
+import org.opends.server.workflowelement.localbackend.LocalBackendModifyDNOperation;
+
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.loggers.AccessLogger.*;
 
 /**
  * This class defines an operation that may be used to alter the DN of an entry
@@ -545,8 +547,8 @@ public class ModifyDNOperationBasis
     {
       logger.traceException(coe);
 
-      setResultCode(ResultCode.CANCELED);
-      cancelResult = new CancelResult(ResultCode.CANCELED, null);
+      setResultCode(ResultCode.CANCELLED);
+      cancelResult = new CancelResult(ResultCode.CANCELLED, null);
 
       appendErrorMessage(coe.getCancelRequest().getCancelReason());
     }
@@ -559,7 +561,7 @@ public class ModifyDNOperationBasis
       logModifyDNResponse(this);
 
       if(cancelRequest == null || cancelResult == null ||
-          cancelResult.getResultCode() != ResultCode.CANCELED ||
+          cancelResult.getResultCode() != ResultCode.CANCELLED ||
           cancelRequest.notifyOriginalRequestor() ||
           DirectoryServer.notifyAbandonedOperations())
       {

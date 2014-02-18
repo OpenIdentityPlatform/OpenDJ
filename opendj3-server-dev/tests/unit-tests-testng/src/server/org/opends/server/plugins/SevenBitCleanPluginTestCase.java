@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.plugins;
 
@@ -31,7 +32,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import org.opends.server.TestCaseUtils;
-import org.opends.server.types.ResultCode;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.tools.LDAPModify;
 
 import static org.testng.Assert.*;
@@ -246,7 +247,7 @@ public class SevenBitCleanPluginTestCase
       };
 
       assertEquals(LDAPModify.mainModify(args, false, System.out, System.err),
-                  ResultCode.CONSTRAINT_VIOLATION.getIntValue());
+                  ResultCode.CONSTRAINT_VIOLATION.intValue());
     }
     finally
     {
@@ -411,7 +412,7 @@ public class SevenBitCleanPluginTestCase
       };
 
       assertEquals(LDAPModify.mainModify(args, false, System.out, System.err),
-                  ResultCode.CONSTRAINT_VIOLATION.getIntValue());
+                  ResultCode.CONSTRAINT_VIOLATION.intValue());
     }
     finally
     {
@@ -639,7 +640,7 @@ public class SevenBitCleanPluginTestCase
       };
 
       assertEquals(LDAPModify.mainModify(args, false, System.out, System.err),
-                  ResultCode.CONSTRAINT_VIOLATION.getIntValue());
+                  ResultCode.CONSTRAINT_VIOLATION.intValue());
     }
     finally
     {

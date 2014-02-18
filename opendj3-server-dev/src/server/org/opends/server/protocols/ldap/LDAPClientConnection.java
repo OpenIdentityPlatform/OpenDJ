@@ -61,6 +61,7 @@ import org.opends.server.extensions.RedirectingByteChannel;
 import org.opends.server.extensions.TLSByteChannel;
 import org.opends.server.extensions.TLSCapableConnection;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;
 
@@ -807,25 +808,25 @@ public final class LDAPClientConnection extends ClientConnection implements
     {
     case ADD:
       protocolOp =
-          new AddResponseProtocolOp(resultCode.getIntValue(),
+          new AddResponseProtocolOp(resultCode.intValue(),
               errorMessage.toMessage(), matchedDN, referralURLs);
       break;
     case BIND:
       ByteString serverSASLCredentials =
           ((BindOperationBasis) operation).getServerSASLCredentials();
       protocolOp =
-          new BindResponseProtocolOp(resultCode.getIntValue(),
+          new BindResponseProtocolOp(resultCode.intValue(),
               errorMessage.toMessage(), matchedDN, referralURLs,
               serverSASLCredentials);
       break;
     case COMPARE:
       protocolOp =
-          new CompareResponseProtocolOp(resultCode.getIntValue(),
+          new CompareResponseProtocolOp(resultCode.intValue(),
               errorMessage.toMessage(), matchedDN, referralURLs);
       break;
     case DELETE:
       protocolOp =
-          new DeleteResponseProtocolOp(resultCode.getIntValue(),
+          new DeleteResponseProtocolOp(resultCode.intValue(),
               errorMessage.toMessage(), matchedDN, referralURLs);
       break;
     case EXTENDED:
@@ -839,23 +840,23 @@ public final class LDAPClientConnection extends ClientConnection implements
 
       ExtendedOperationBasis extOp = (ExtendedOperationBasis) operation;
       protocolOp =
-          new ExtendedResponseProtocolOp(resultCode.getIntValue(),
+          new ExtendedResponseProtocolOp(resultCode.intValue(),
               errorMessage.toMessage(), matchedDN, referralURLs, extOp
                   .getResponseOID(), extOp.getResponseValue());
       break;
     case MODIFY:
       protocolOp =
-          new ModifyResponseProtocolOp(resultCode.getIntValue(),
+          new ModifyResponseProtocolOp(resultCode.intValue(),
               errorMessage.toMessage(), matchedDN, referralURLs);
       break;
     case MODIFY_DN:
       protocolOp =
-          new ModifyDNResponseProtocolOp(resultCode.getIntValue(),
+          new ModifyDNResponseProtocolOp(resultCode.intValue(),
               errorMessage.toMessage(), matchedDN, referralURLs);
       break;
     case SEARCH:
       protocolOp =
-          new SearchResultDoneProtocolOp(resultCode.getIntValue(),
+          new SearchResultDoneProtocolOp(resultCode.intValue(),
               errorMessage.toMessage(), matchedDN, referralURLs);
       break;
     default:
@@ -1103,8 +1104,7 @@ public final class LDAPClientConnection extends ClientConnection implements
           resultCode = LDAPResultCode.UNAVAILABLE;
           break;
         case SERVER_ERROR:
-          resultCode =
-              DirectoryServer.getServerErrorResultCode().getIntValue();
+          resultCode = DirectoryServer.getServerErrorResultCode().intValue();
           break;
         case ADMIN_LIMIT_EXCEEDED:
         case IDLE_TIME_LIMIT_EXCEEDED:
@@ -1304,8 +1304,7 @@ public final class LDAPClientConnection extends ClientConnection implements
 
     if (operation.getOperationType() == OperationType.ABANDON)
     {
-      if (keepStats
-          && (operation.getResultCode() == ResultCode.CANCELED))
+      if (keepStats && operation.getResultCode() == ResultCode.CANCELLED)
       {
         statTracker.updateAbandonedOperation();
       }
@@ -1829,7 +1828,7 @@ public final class LDAPClientConnection extends ClientConnection implements
       logger.traceException(de);
 
       AddResponseProtocolOp responseOp =
-          new AddResponseProtocolOp(de.getResultCode().getIntValue(),
+          new AddResponseProtocolOp(de.getResultCode().intValue(),
               de.getMessageObject(), de.getMatchedDN(), de
                   .getReferralURLs());
 
@@ -1951,7 +1950,7 @@ public final class LDAPClientConnection extends ClientConnection implements
       logger.traceException(de);
 
       BindResponseProtocolOp responseOp =
-          new BindResponseProtocolOp(de.getResultCode().getIntValue(),
+          new BindResponseProtocolOp(de.getResultCode().intValue(),
               de.getMessageObject(), de.getMatchedDN(), de
                   .getReferralURLs());
 
@@ -2022,9 +2021,8 @@ public final class LDAPClientConnection extends ClientConnection implements
       logger.traceException(de);
 
       CompareResponseProtocolOp responseOp =
-          new CompareResponseProtocolOp(de.getResultCode()
-              .getIntValue(), de.getMessageObject(), de.getMatchedDN(),
-              de.getReferralURLs());
+          new CompareResponseProtocolOp(de.getResultCode().intValue(),
+              de.getMessageObject(), de.getMatchedDN(), de.getReferralURLs());
 
       sendLDAPMessage(new LDAPMessage(message.getMessageID(),
           responseOp, compareOp.getResponseControls()));
@@ -2083,7 +2081,7 @@ public final class LDAPClientConnection extends ClientConnection implements
 
       DeleteResponseProtocolOp responseOp =
           new DeleteResponseProtocolOp(
-              de.getResultCode().getIntValue(), de.getMessageObject(),
+              de.getResultCode().intValue(), de.getMessageObject(),
               de.getMatchedDN(), de.getReferralURLs());
 
       sendLDAPMessage(new LDAPMessage(message.getMessageID(),
@@ -2147,9 +2145,8 @@ public final class LDAPClientConnection extends ClientConnection implements
       logger.traceException(de);
 
       ExtendedResponseProtocolOp responseOp =
-          new ExtendedResponseProtocolOp(de.getResultCode()
-              .getIntValue(), de.getMessageObject(), de.getMatchedDN(),
-              de.getReferralURLs());
+          new ExtendedResponseProtocolOp(de.getResultCode().intValue(),
+              de.getMessageObject(), de.getMatchedDN(), de.getReferralURLs());
 
       sendLDAPMessage(new LDAPMessage(message.getMessageID(),
           responseOp, extendedOp.getResponseControls()));
@@ -2208,7 +2205,7 @@ public final class LDAPClientConnection extends ClientConnection implements
 
       ModifyResponseProtocolOp responseOp =
           new ModifyResponseProtocolOp(
-              de.getResultCode().getIntValue(), de.getMessageObject(),
+              de.getResultCode().intValue(), de.getMessageObject(),
               de.getMatchedDN(), de.getReferralURLs());
 
       sendLDAPMessage(new LDAPMessage(message.getMessageID(),
@@ -2269,9 +2266,8 @@ public final class LDAPClientConnection extends ClientConnection implements
       logger.traceException(de);
 
       ModifyDNResponseProtocolOp responseOp =
-          new ModifyDNResponseProtocolOp(de.getResultCode()
-              .getIntValue(), de.getMessageObject(), de.getMatchedDN(),
-              de.getReferralURLs());
+          new ModifyDNResponseProtocolOp(de.getResultCode().intValue(),
+              de.getMessageObject(), de.getMatchedDN(), de.getReferralURLs());
 
       sendLDAPMessage(new LDAPMessage(message.getMessageID(),
           responseOp, modifyDNOp.getResponseControls()));
@@ -2332,9 +2328,8 @@ public final class LDAPClientConnection extends ClientConnection implements
       logger.traceException(de);
 
       SearchResultDoneProtocolOp responseOp =
-          new SearchResultDoneProtocolOp(de.getResultCode()
-              .getIntValue(), de.getMessageObject(), de.getMatchedDN(),
-              de.getReferralURLs());
+          new SearchResultDoneProtocolOp(de.getResultCode().intValue(),
+              de.getMessageObject(), de.getMatchedDN(), de.getReferralURLs());
 
       sendLDAPMessage(new LDAPMessage(message.getMessageID(),
           responseOp, searchOp.getResponseControls()));

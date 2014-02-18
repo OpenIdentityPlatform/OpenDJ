@@ -39,6 +39,7 @@ import org.opends.server.api.ExtendedOperationHandler;
 import org.opends.server.api.plugin.PluginResult;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.operation.PostOperationExtendedOperation;
 import org.opends.server.types.operation.PostResponseExtendedOperation;
@@ -422,8 +423,8 @@ public class ExtendedOperationBasis
     {
       logger.traceException(coe);
 
-      setResultCode(ResultCode.CANCELED);
-      cancelResult = new CancelResult(ResultCode.CANCELED, null);
+      setResultCode(ResultCode.CANCELLED);
+      cancelResult = new CancelResult(ResultCode.CANCELLED, null);
 
       appendErrorMessage(coe.getCancelRequest().getCancelReason());
     }
@@ -437,7 +438,7 @@ public class ExtendedOperationBasis
 
       // Send the response to the client.
       if(cancelRequest == null || cancelResult == null ||
-          cancelResult.getResultCode() != ResultCode.CANCELED ||
+          cancelResult.getResultCode() != ResultCode.CANCELLED ||
           cancelRequest.notifyOriginalRequestor() ||
           DirectoryServer.notifyAbandonedOperations())
       {

@@ -38,7 +38,7 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.api.TestTaskListener;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ObjectClass;
-import org.opends.server.types.ResultCode;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.backends.task.TaskState;
 
 import static org.testng.Assert.*;

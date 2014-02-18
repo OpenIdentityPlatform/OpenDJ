@@ -38,6 +38,7 @@ import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.core.networkgroups.NetworkGroup;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.operation.PreParseBindOperation;
 import org.opends.server.workflowelement.localbackend.LocalBackendBindOperation;
@@ -734,7 +735,7 @@ public class BindOperationBasis
       // This shouldn't happen for bind operations. Just cancel anyways
       logger.traceException(coe);
 
-      setResultCode(ResultCode.CANCELED);
+      setResultCode(ResultCode.CANCELLED);
 
       appendErrorMessage(cancelRequest.getCancelReason());
     }

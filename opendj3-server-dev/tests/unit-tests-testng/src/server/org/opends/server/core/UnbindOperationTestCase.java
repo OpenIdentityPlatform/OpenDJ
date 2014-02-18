@@ -34,7 +34,7 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.CancelRequest;
 import org.opends.server.types.Control;
 import org.opends.server.types.Operation;
-import org.opends.server.types.ResultCode;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.testng.annotations.Test;
 
 import static org.opends.server.protocols.internal.InternalClientConnection.*;

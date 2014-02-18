@@ -26,21 +26,17 @@
  */
 package org.opends.server.types;
 
-import org.forgerock.i18n.LocalizableMessage;
-
-
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.core.DirectoryServer;
 
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.messages.UtilityMessages.*;
-
-
 
 /**
  * This class provides a mechanism for setting file permissions in a
@@ -1147,6 +1143,7 @@ public class FilePermission
    *
    * @return  A string representation of this file permission.
    */
+  @Override
   public String toString()
   {
     StringBuilder buffer = new StringBuilder();

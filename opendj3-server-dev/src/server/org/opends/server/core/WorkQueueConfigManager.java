@@ -27,8 +27,6 @@
 package org.opends.server.core;
 import org.forgerock.i18n.LocalizableMessage;
 
-
-
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,13 +41,10 @@ import org.opends.server.api.WorkQueue;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.InitializationException;
-import org.opends.server.types.ResultCode;
+import org.forgerock.opendj.ldap.ResultCode;
 
 import static org.opends.messages.ConfigMessages.*;
-
 import static org.opends.server.util.StaticUtils.*;
-
-
 
 /**
  * This class defines a utility that will be used to manage the Directory Server

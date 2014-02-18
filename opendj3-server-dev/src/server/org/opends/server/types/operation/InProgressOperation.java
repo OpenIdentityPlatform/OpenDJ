@@ -32,6 +32,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import java.util.List;
 
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 
 

@@ -40,6 +40,7 @@ import org.opends.server.api.plugin.*;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.opends.server.types.operation.PreParseAddOperation;

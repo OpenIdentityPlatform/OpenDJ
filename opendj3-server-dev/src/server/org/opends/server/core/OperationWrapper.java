@@ -34,6 +34,7 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.controls.ControlDecoder;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 
 /**
  * This abstract class is a generic operation wrapper intended to be subclassed
