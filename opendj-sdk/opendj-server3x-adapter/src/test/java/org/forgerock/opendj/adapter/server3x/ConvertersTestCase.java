@@ -39,6 +39,7 @@ import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.LinkedAttribute;
 import org.forgerock.opendj.ldap.Modification;
 import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.controls.Control;
 import org.forgerock.opendj.ldap.controls.GenericControl;
 import org.forgerock.opendj.ldap.controls.PersistentSearchChangeType;
@@ -71,7 +72,6 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.FilterType;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.Operation;
-import org.opends.server.types.ResultCode;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
 import org.testng.annotations.AfterGroups;
@@ -158,21 +158,6 @@ public class ConvertersTestCase extends ForgeRockTestCase {
 
         org.opends.server.types.RDN srvRDN = to(sdkRDN);
         assertThat(srvRDN.toString()).isEqualTo(rdnString);
-    }
-
-    /**
-     * Converts a SDK DereferenceAliasesPolicy to an LDAP dereferencePolicy.
-     *
-     * @throws DirectoryException
-     */
-    @Test()
-    public final void testToDeferencePolicy() {
-        org.forgerock.opendj.ldap.DereferenceAliasesPolicy sdkDeferenceAliasesPolicy =
-                org.forgerock.opendj.ldap.DereferenceAliasesPolicy.ALWAYS;
-
-        org.opends.server.types.DereferencePolicy dereferencePolicy = to(sdkDeferenceAliasesPolicy);
-        assertThat(dereferencePolicy).isEqualTo(
-                org.opends.server.types.DereferencePolicy.DEREF_ALWAYS);
     }
 
     /**

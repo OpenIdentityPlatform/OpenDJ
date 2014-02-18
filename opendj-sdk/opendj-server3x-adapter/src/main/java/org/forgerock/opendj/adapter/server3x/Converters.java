@@ -39,7 +39,6 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.DecodeException;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.LinkedAttribute;
 import org.forgerock.opendj.ldap.RDN;
@@ -58,7 +57,6 @@ import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeValue;
-import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.Operation;
 
@@ -94,19 +92,6 @@ public final class Converters {
             return searchResultEntry;
         }
         return null;
-    }
-
-    /**
-     * Converts from OpenDJ LDAP SDK {@link DereferenceAliasesPolicy} to OpenDJ
-     * server {@link DereferencePolicy}.
-     *
-     * @param dereferenceAliasesPolicy
-     *          value to convert
-     * @return the converted value
-     */
-    public static org.opends.server.types.DereferencePolicy to(
-            final DereferenceAliasesPolicy dereferenceAliasesPolicy) {
-        return DereferencePolicy.values()[dereferenceAliasesPolicy.intValue()];
     }
 
     /**
@@ -562,7 +547,7 @@ public final class Converters {
     }
 
     private static Result newSDKResult(final Operation operation) {
-        ResultCode rc = getResultCode(operation);
+        ResultCode rc = operation.getResultCode();
         if (operation instanceof BindOperation) {
             return Responses.newBindResult(rc);
         } else if (operation instanceof CompareOperation) {
@@ -571,18 +556,6 @@ public final class Converters {
             return Responses.newGenericExtendedResult(rc);
         }
         return Responses.newResult(rc);
-    }
-
-    /**
-     * Returns the OpenDJ LDAP SDK {@link ResultCode} extracted out of the OpenDJ
-     * server {@link Operation}.
-     *
-     * @param operation
-     *          value to convert
-     * @return the converted value
-     */
-    public static ResultCode getResultCode(final Operation operation) {
-        return ResultCode.valueOf(operation.getResultCode().getIntValue());
     }
 
     /**

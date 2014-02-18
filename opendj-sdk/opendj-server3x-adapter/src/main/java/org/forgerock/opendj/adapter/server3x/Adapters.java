@@ -226,10 +226,9 @@ public final class Adapters {
 
                 final InternalSearchOperation internalSO =
                         icc.processSearch(valueOf(request.getName()), request.getScope(),
-                                to(request.getDereferenceAliasesPolicy()), request.getSizeLimit(),
-                                request.getTimeLimit(), request.isTypesOnly(), to(request
-                                        .getFilter()), new LinkedHashSet<String>(request
-                                        .getAttributes()), to(request.getControls()),
+                                request.getDereferenceAliasesPolicy(), request.getSizeLimit(),
+                                request.getTimeLimit(), request.isTypesOnly(), to(request.getFilter()),
+                                new LinkedHashSet<String>(request.getAttributes()), to(request.getControls()),
                                 internalSearchListener);
 
                 return getResponseResult(internalSO);
@@ -294,7 +293,7 @@ public final class Adapters {
 
                 } catch (DecodeException e) {
                     return request.getResultDecoder().newExtendedErrorResult(
-                            ResultCode.valueOf(extendedOperation.getResultCode().getIntValue()),
+                            extendedOperation.getResultCode(),
                             (extendedOperation.getMatchedDN() != null ? extendedOperation
                                     .getMatchedDN().toString() : null),
                             extendedOperation.getErrorMessage().toString());
@@ -313,10 +312,9 @@ public final class Adapters {
                 final CompareOperation compareOperation =
                         icc.processCompare(valueOf(request.getName()),
                                 request.getAttributeDescription().toString(),
-                                valueOf(request.getAssertionValueAsString()), to(request.getControls()));
+                                request.getAssertionValue(), to(request.getControls()));
 
-                CompareResult result =
-                        Responses.newCompareResult(getResultCode(compareOperation));
+                CompareResult result = Responses.newCompareResult(compareOperation.getResultCode());
                 result = getResponseResult(compareOperation, result);
                 return result;
             }
@@ -350,7 +348,7 @@ public final class Adapters {
                                         ((SASLBindRequest) request).getSASLMechanism(),
                                         getCredentials(genericBindRequest.getAuthenticationValue()),
                                         to(request.getControls()));
-                    } while (bindOperation.getResultCode() == org.opends.server.types.ResultCode.SASL_BIND_IN_PROGRESS);
+                    } while (bindOperation.getResultCode() == ResultCode.SASL_BIND_IN_PROGRESS);
 
                     bindClient.dispose();
 
@@ -358,8 +356,7 @@ public final class Adapters {
                     throw ErrorResultException.newErrorResult(Responses
                             .newResult(ResultCode.AUTH_METHOD_NOT_SUPPORTED));
                 }
-                BindResult result =
-                        Responses.newBindResult(getResultCode(bindOperation));
+                BindResult result = Responses.newBindResult(bindOperation.getResultCode());
                 result.setServerSASLCredentials(bindOperation.getSASLCredentials());
 
                 if (result.isSuccess()) {
