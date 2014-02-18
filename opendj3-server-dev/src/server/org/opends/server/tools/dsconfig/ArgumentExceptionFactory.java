@@ -47,9 +47,9 @@ import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ClientException;
 import com.forgerock.opendj.cli.ReturnCode;
 
-import org.opends.server.util.cli.ConsoleApplication;
-import org.opends.server.util.table.TableBuilder;
-import org.opends.server.util.table.TextTablePrinter;
+import com.forgerock.opendj.cli.ConsoleApplication;
+import com.forgerock.opendj.cli.TableBuilder;
+import com.forgerock.opendj.cli.TextTablePrinter;
 
 
 
@@ -293,6 +293,18 @@ public final class ArgumentExceptionFactory {
     return new ArgumentException(msg);
   }
 
+  /**
+   * Creates an argument exception which should be used when the
+   * client has not specified a bind password.
+   *
+   * @param bindDN
+   *          The name of the user requiring a password.
+   * @return Returns an argument exception.
+   */
+  public static ArgumentException missingBindPassword(char[] bindDN) {
+    LocalizableMessage msg = ERR_DSCFG_ERROR_NO_PASSWORD.get(bindDN);
+    return new ArgumentException(msg);
+  }
 
 
   /**

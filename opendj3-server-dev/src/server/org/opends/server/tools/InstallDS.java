@@ -32,11 +32,13 @@ import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.messages.UtilityMessages.*;
+import static com.forgerock.opendj.cli.Utils.CONFIRMATION_MAX_TRIES;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.security.KeyStoreException;
@@ -70,14 +72,15 @@ import org.opends.server.types.NullOutputStream;
 import org.opends.server.util.CertificateManager;
 import org.opends.server.util.SetupUtils;
 import org.opends.server.util.StaticUtils;
+
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.cli.ClientException;
-import org.opends.server.util.cli.ConsoleApplication;
-import org.opends.server.util.cli.Menu;
-import org.opends.server.util.cli.MenuBuilder;
-import org.opends.server.util.cli.MenuResult;
+import com.forgerock.opendj.cli.ConsoleApplication;
+import com.forgerock.opendj.cli.Menu;
+import com.forgerock.opendj.cli.MenuBuilder;
+import com.forgerock.opendj.cli.MenuResult;
 
 /**
  * This class provides a very simple mechanism for installing the OpenDS
@@ -247,7 +250,7 @@ public class InstallDS extends ConsoleApplication
    */
   public InstallDS(PrintStream out, PrintStream err, InputStream in)
   {
-    super(in, out, err);
+    super(out, err);
   }
 
   /**
@@ -411,7 +414,8 @@ public class InstallDS extends ConsoleApplication
         println(QuickSetupMessages.
             INFO_LICENSE_DETAILS_CLI_LABEL.get());
 
-        BufferedReader in = getInputStream();
+        BufferedReader in = new BufferedReader(new InputStreamReader(getInputStream()));
+
         // No-prompt arg automatically rejects the license.
         if (!argParser.noPromptArg.isPresent())
         {
@@ -476,6 +480,18 @@ public class InstallDS extends ConsoleApplication
         else
         {
           initializeUserDataWithParser(uData);
+        }
+      }
+      catch (ClientException ce)
+      {
+        println(ce.getMessageObject());
+        if (isPasswordTriesError(ce.getMessageObject()))
+        {
+          return ErrorReturnCode.ERROR_PASSWORD_LIMIT.getReturnCode();
+        }
+        else
+        {
+          return ErrorReturnCode.ERROR_USER_DATA.getReturnCode();
         }
       }
       catch (UserDataException ude)
@@ -544,11 +560,11 @@ public class InstallDS extends ConsoleApplication
           public void progressUpdate(ProgressUpdateEvent ev) {
             if (ev.getNewLogs() != null)
             {
-              printProgress(ev.getNewLogs());
+              print(ev.getNewLogs());
             }
           }
         });
-    printlnProgress();
+    println();
 
     installer.run();
 
@@ -570,9 +586,9 @@ public class InstallDS extends ConsoleApplication
           Installation.UNIX_BINARIES_PATH_RELATIVE);
       cmd = Utils.getPath(binDir, Installation.UNIX_STATUSCLI_FILE_NAME);
     }
-    printlnProgress();
-    printProgress(INFO_INSTALLDS_STATUS_COMMAND_LINE.get(cmd));
-    printlnProgress();
+    println();
+    println(INFO_INSTALLDS_STATUS_COMMAND_LINE.get(cmd));
+    println();
 
     if (ue != null)
     {
@@ -706,7 +722,7 @@ public class InstallDS extends ConsoleApplication
       errorMessages.add(message);
     }
     uData.setDirectoryManagerDn(dmDN);
-    uData.setDirectoryManagerPwd(argParser.getDirectoryManagerPassword());
+    uData.setDirectoryManagerPwd(String.valueOf(argParser.getDirectoryManagerPassword()));
 
     // Check the validity of the base DNs
     List<String> baseDNs = argParser.baseDNArg.getValues();
@@ -929,8 +945,9 @@ public class InstallDS extends ConsoleApplication
    * @param uData the UserData object to be updated.
    * @throws UserDataException if the user did not manage to provide the
    * keystore password after a certain number of tries.
+   * @throws ClientException if something went wrong when reading inputs.
    */
-  private void promptIfRequired(UserData uData) throws UserDataException
+  private void promptIfRequired(UserData uData) throws UserDataException, ClientException
   {
     uData.setQuiet(isQuiet());
     uData.setVerbose(isVerbose());
@@ -951,16 +968,17 @@ public class InstallDS extends ConsoleApplication
    * not valid, it prompts the user to provide it.
    * @param uData the UserData object to be updated.
    * @throws UserDataException if something went wrong checking the data.
+   * @throws ClientException if something went wrong checking passwords.
    */
   private void promptIfRequiredForDirectoryManager(UserData uData)
-  throws UserDataException
+  throws UserDataException, ClientException
   {
     LinkedList<String> dns = promptIfRequiredForDNs(
         argParser.directoryManagerDNArg, INFO_INSTALLDS_PROMPT_ROOT_DN.get(),
         true);
     uData.setDirectoryManagerDn(dns.getFirst());
 
-    String pwd = argParser.getDirectoryManagerPassword();
+    char[] pwd = argParser.getDirectoryManagerPassword();
     int nTries = 0;
     while (pwd == null)
     {
@@ -969,12 +987,12 @@ public class InstallDS extends ConsoleApplication
         throw new UserDataException(null,
             ERR_TRIES_LIMIT_REACHED.get(CONFIRMATION_MAX_TRIES));
       }
-      String pwd1 = null;
+      char[] pwd1 = null;
       // Prompt for password and confirm.
 
       while (pwd1 == null)
       {
-        pwd1 = readPassword(INFO_INSTALLDS_PROMPT_ROOT_PASSWORD.get(), logger);
+        pwd1 = readPassword(INFO_INSTALLDS_PROMPT_ROOT_PASSWORD.get());
         if ((pwd1 == null) || "".equals(pwd1))
         {
           pwd1 = null;
@@ -983,8 +1001,8 @@ public class InstallDS extends ConsoleApplication
           println();
         }
       }
-      String pwd2 =
-        readPassword(INFO_INSTALLDS_PROMPT_CONFIRM_ROOT_PASSWORD.get(), logger);
+      char[] pwd2 =
+        readPassword(INFO_INSTALLDS_PROMPT_CONFIRM_ROOT_PASSWORD.get());
 
       if (pwd1.equals(pwd2))
       {
@@ -998,7 +1016,7 @@ public class InstallDS extends ConsoleApplication
 
       nTries++;
     }
-    uData.setDirectoryManagerPwd(pwd);
+    uData.setDirectoryManagerPwd(String.valueOf(pwd));
   }
 
   /**
@@ -1558,9 +1576,10 @@ public class InstallDS extends ConsoleApplication
    * @throws UserDataException
    *           if the user did not manage to provide the keystore password after
    *           a certain number of tries.
+   * @throws ClientException If an error occurs when reading inputs.
    */
   private SecurityOptions promptIfRequiredForSecurityData(UserData uData)
-  throws UserDataException
+  throws UserDataException, ClientException
   {
     // Check that the security data provided is valid.
     boolean enableSSL = false;
@@ -2008,10 +2027,11 @@ public class InstallDS extends ConsoleApplication
    * parameters (or to what the user provided after being prompted).
    * @throws UserDataException if the user did not manage to provide the
    * keystore password after a certain number of tries.
+   * @throws ClientException
    */
   private SecurityOptions createSecurityOptionsPrompting(
       SecurityOptions.CertificateType type, boolean enableSSL,
-      boolean enableStartTLS, int ldapsPort) throws UserDataException
+      boolean enableStartTLS, int ldapsPort) throws UserDataException, ClientException
   {
     SecurityOptions securityOptions;
     String path;
@@ -2125,8 +2145,7 @@ public class InstallDS extends ConsoleApplication
             throw new UserDataException(null,
                 ERR_INSTALLDS_TOO_MANY_KEYSTORE_PASSWORD_TRIES.get(LIMIT_KEYSTORE_PASSWORD_PROMPT));
           }
-          pwd = readPassword(
-                INFO_INSTALLDS_PROMPT_KEYSTORE_PASSWORD.get(), logger);
+          pwd = String.valueOf(readPassword(INFO_INSTALLDS_PROMPT_KEYSTORE_PASSWORD.get()));
           nPasswordPrompts ++;
         }
       }

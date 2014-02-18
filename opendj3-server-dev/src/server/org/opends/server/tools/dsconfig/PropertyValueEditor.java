@@ -74,14 +74,14 @@ import org.forgerock.util.Reject;
 import com.forgerock.opendj.cli.ClientException;
 import com.forgerock.opendj.cli.ReturnCode;
 
-import org.opends.server.util.cli.HelpCallback;
-import org.opends.server.util.cli.Menu;
-import org.opends.server.util.cli.MenuBuilder;
-import org.opends.server.util.cli.MenuCallback;
-import org.opends.server.util.cli.MenuResult;
-import org.opends.server.util.table.TableBuilder;
-import org.opends.server.util.table.TextTablePrinter;
-import org.opends.server.util.cli.ConsoleApplication;
+import com.forgerock.opendj.cli.HelpCallback;
+import com.forgerock.opendj.cli.Menu;
+import com.forgerock.opendj.cli.MenuBuilder;
+import com.forgerock.opendj.cli.MenuCallback;
+import com.forgerock.opendj.cli.MenuResult;
+import com.forgerock.opendj.cli.TableBuilder;
+import com.forgerock.opendj.cli.TextTablePrinter;
+import com.forgerock.opendj.cli.ConsoleApplication;
 
 
 
@@ -2001,10 +2001,10 @@ final class PropertyValueEditor {
     app.println();
     app.println(INFO_EDITOR_HEADING_CONFIGURE_PROPERTY.get(pd.getName()));
     app.println();
-    app.printErrln(pd.getSynopsis(), 4);
+    app.errPrintln(pd.getSynopsis(), 4);
     if (pd.getDescription() != null) {
       app.println();
-      app.printErrln(pd.getDescription(), 4);
+      app.errPrintln(pd.getDescription(), 4);
     }
   }
 

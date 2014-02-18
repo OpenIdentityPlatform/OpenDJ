@@ -82,13 +82,13 @@ import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.cli.SubCommand;
 import com.forgerock.opendj.cli.ClientException;
 
-import org.opends.server.util.cli.CommandBuilder;
-import org.opends.server.util.cli.ConsoleApplication;
-import org.opends.server.util.cli.Menu;
-import org.opends.server.util.cli.MenuBuilder;
-import org.opends.server.util.cli.MenuResult;
-import org.opends.server.util.table.TabSeparatedTablePrinter;
-import org.opends.server.util.table.TablePrinter;
+import com.forgerock.opendj.cli.CommandBuilder;
+import com.forgerock.opendj.cli.ConsoleApplication;
+import com.forgerock.opendj.cli.Menu;
+import com.forgerock.opendj.cli.MenuBuilder;
+import com.forgerock.opendj.cli.MenuResult;
+import com.forgerock.opendj.cli.TabSeparatedTablePrinter;
+import com.forgerock.opendj.cli.TablePrinter;
 
 
 

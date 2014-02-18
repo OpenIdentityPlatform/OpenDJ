@@ -36,6 +36,9 @@ import static org.opends.server.tools.ToolConstants.*;
 import static org.opends.server.tools.dsconfig.ArgumentExceptionFactory.*;
 import static org.opends.server.util.ServerConstants.PROPERTY_SCRIPT_NAME;
 import static org.opends.server.util.StaticUtils.*;
+import static com.forgerock.opendj.cli.Utils.formatDateTimeStringForEquivalentCommand;
+import static com.forgerock.opendj.cli.Utils.SHELL_COMMENT_SEPARATOR;
+import static com.forgerock.opendj.cli.Utils.getCurrentOperationDateMessage;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -44,6 +47,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -74,6 +78,7 @@ import org.opends.server.util.BuildVersion;
 import org.opends.server.util.EmbeddedUtils;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
+
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.StringArgument;
@@ -81,13 +86,12 @@ import com.forgerock.opendj.cli.SubCommand;
 import com.forgerock.opendj.cli.SubCommandArgumentParser;
 import com.forgerock.opendj.cli.ArgumentGroup;
 import com.forgerock.opendj.cli.ClientException;
-import org.opends.server.util.cli.CommandBuilder;
-import org.opends.server.util.cli.ConsoleApplication;
-import org.opends.server.util.cli.Menu;
-import org.opends.server.util.cli.MenuBuilder;
-import org.opends.server.util.cli.MenuCallback;
-import org.opends.server.util.cli.MenuResult;
-import org.opends.server.util.cli.OutputStreamConsoleApplication;
+import com.forgerock.opendj.cli.CommandBuilder;
+import com.forgerock.opendj.cli.ConsoleApplication;
+import com.forgerock.opendj.cli.Menu;
+import com.forgerock.opendj.cli.MenuBuilder;
+import com.forgerock.opendj.cli.MenuCallback;
+import com.forgerock.opendj.cli.MenuResult;
 
 
 
@@ -430,7 +434,7 @@ public final class DSConfig extends ConsoleApplication {
    */
   private DSConfig(InputStream in, OutputStream out, OutputStream err,
       ManagementContextFactory factory) {
-    super(in, out, err);
+    super(new PrintStream(out), new PrintStream(err));
 
     this.parser = new SubCommandArgumentParser(this.getClass().getName(),
         INFO_CONFIGDS_TOOL_DESCRIPTION.get(), false);
@@ -862,8 +866,8 @@ public final class DSConfig extends ConsoleApplication {
 
   // Run the top-level interactive console.
   private int runInteractiveMode() {
-    // In interactive mode, redirect all output to stdout.
-    ConsoleApplication app = new OutputStreamConsoleApplication(this);
+
+    ConsoleApplication app = this;
 
     // Build menu structure.
     Comparator<RelationDefinition<?, ?>> c =
@@ -1256,7 +1260,7 @@ public final class DSConfig extends ConsoleApplication {
           fileArguments[ii] = fileArguments[ii].replace("##", " ");
         }
 
-        printlnBatchProgress(displayCommand);
+        errPrintln(LocalizableMessage.raw(displayCommand));
 
         // Append initial arguments to the file line
         List<String> allArguments = new ArrayList<String>();
@@ -1270,7 +1274,7 @@ public final class DSConfig extends ConsoleApplication {
           reader.close();
           System.exit(filterExitCode(exitCode));
         }
-        printlnBatchProgress("");
+        errPrintln();
       }
       reader.close();
 

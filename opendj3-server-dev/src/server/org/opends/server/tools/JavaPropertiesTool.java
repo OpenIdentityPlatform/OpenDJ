@@ -37,7 +37,7 @@ import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.loggers.JDKLogging;
 import org.opends.server.types.NullOutputStream;
-import org.opends.server.util.cli.ConsoleApplication;
+import com.forgerock.opendj.cli.ConsoleApplication;
 
 import com.forgerock.opendj.cli.ArgumentException;
 
@@ -121,7 +121,7 @@ public class JavaPropertiesTool extends ConsoleApplication
    */
   public JavaPropertiesTool(PrintStream out, PrintStream err, InputStream in)
   {
-    super(in, out, err);
+    super(out, err);
   }
 
   /**
@@ -335,17 +335,17 @@ public class JavaPropertiesTool extends ConsoleApplication
     File f2 = new File(argParser.destinationFileArg.getDefaultValue());
     if (f1.equals(f2))
     {
-      printProgress(INFO_JAVAPROPERTIES_SUCCESSFUL.get(
+      print(INFO_JAVAPROPERTIES_SUCCESSFUL.get(
           argParser.propertiesFileArg.getValue()));
     }
     else
     {
-      printProgress(INFO_JAVAPROPERTIES_SUCCESSFUL_NON_DEFAULT.get(
+      print(INFO_JAVAPROPERTIES_SUCCESSFUL_NON_DEFAULT.get(
           argParser.destinationFileArg.getValue(),
           argParser.propertiesFileArg.getValue(),
           argParser.destinationFileArg.getDefaultValue()));
     }
-    printlnProgress();
+    println();
 
 
     return ErrorReturnCode.SUCCESSFUL.getReturnCode();

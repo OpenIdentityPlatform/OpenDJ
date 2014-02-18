@@ -37,6 +37,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import javax.naming.NamingException;
+import javax.naming.NoPermissionException;
 import javax.naming.ldap.InitialLdapContext;
 import javax.net.ssl.TrustManager;
 
@@ -48,6 +49,7 @@ import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.TopologyCache;
 import org.opends.admin.ads.TopologyCacheException;
 import org.opends.admin.ads.util.ApplicationTrustManager;
+import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.guitools.controlpanel.datamodel.ConnectionProtocolPolicy;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.quicksetup.*;
@@ -61,14 +63,21 @@ import org.opends.server.tools.JavaPropertiesTool.ErrorReturnCode;
 import org.opends.server.tools.ToolConstants;
 import org.opends.server.tools.dsconfig.LDAPManagementContextFactory;
 import org.opends.server.util.StaticUtils;
-import org.opends.server.util.cli.*;
+
+import com.forgerock.opendj.cli.ConsoleApplication;
+
+import org.opends.server.util.cli.LDAPConnectionConsoleInteraction;
 
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ClientException;
+import com.forgerock.opendj.cli.Menu;
+import com.forgerock.opendj.cli.MenuBuilder;
+import com.forgerock.opendj.cli.MenuResult;
 
 import static org.forgerock.util.Utils.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
+import static com.forgerock.opendj.cli.Utils.CONFIRMATION_MAX_TRIES;
 
 /**
  * The class used to provide some CLI interface in the uninstall.
@@ -102,7 +111,7 @@ public class UninstallCliHelper extends ConsoleApplication {
    */
   public UninstallCliHelper()
   {
-    super(System.in, System.out, System.err);
+    // Nothing to do.
   }
 
   /**
@@ -1091,12 +1100,12 @@ public class UninstallCliHelper extends ConsoleApplication {
     {
       if (!supressOutput)
       {
-        printlnProgress();
+        println();
       }
       controller.startServer(supressOutput);
       if (!supressOutput)
       {
-        printlnProgress();
+        println();
       }
       serverStarted = Installation.getLocal().getStatus().isServerRunning();
       logger.info(LocalizableMessage.raw("server started successfully. serverStarted: "+
@@ -1116,6 +1125,61 @@ public class UninstallCliHelper extends ConsoleApplication {
       throw new IllegalStateException("Unexpected error: "+t, t);
     }
     return serverStarted;
+  }
+
+  /**
+   * Returns an InitialLdapContext using the provided parameters. We try to
+   * guarantee that the connection is able to read the configuration.
+   *
+   * @param host
+   *          the host name.
+   * @param port
+   *          the port to connect.
+   * @param useSSL
+   *          whether to use SSL or not.
+   * @param useStartTLS
+   *          whether to use StartTLS or not.
+   * @param bindDn
+   *          the bind dn to be used.
+   * @param pwd
+   *          the password.
+   * @param connectTimeout
+   *          the timeout in milliseconds to connect to the server.
+   * @param trustManager
+   *          the trust manager.
+   * @return an InitialLdapContext connected.
+   * @throws NamingException
+   *           if there was an error establishing the connection.
+   */
+  private InitialLdapContext createAdministrativeContext(String host,
+      int port, boolean useSSL, boolean useStartTLS, String bindDn, String pwd,
+      int connectTimeout, ApplicationTrustManager trustManager)
+      throws NamingException
+  {
+    InitialLdapContext ctx;
+    String ldapUrl = ConnectionUtils.getLDAPUrl(host, port, useSSL);
+    if (useSSL)
+    {
+      ctx =
+          Utils.createLdapsContext(ldapUrl, bindDn, pwd, connectTimeout, null,
+              trustManager);
+    }
+    else if (useStartTLS)
+    {
+      ctx =
+          Utils.createStartTLSContext(ldapUrl, bindDn, pwd, connectTimeout,
+              null, trustManager, null);
+    }
+    else
+    {
+      ctx = Utils.createLdapContext(ldapUrl, bindDn, pwd, connectTimeout, null);
+    }
+    if (!ConnectionUtils.connectedAsAdministrativeUser(ctx))
+    {
+      throw new NoPermissionException(ERR_NOT_ADMINISTRATIVE_USER.get()
+          .toString());
+    }
+    return ctx;
   }
 
   /**

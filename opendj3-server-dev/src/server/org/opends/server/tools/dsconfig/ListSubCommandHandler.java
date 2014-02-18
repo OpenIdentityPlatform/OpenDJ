@@ -62,11 +62,11 @@ import com.forgerock.opendj.cli.SubCommand;
 import com.forgerock.opendj.cli.SubCommandArgumentParser;
 import com.forgerock.opendj.cli.ClientException;
 
-import org.opends.server.util.cli.ConsoleApplication;
-import org.opends.server.util.cli.MenuResult;
-import org.opends.server.util.table.TableBuilder;
-import org.opends.server.util.table.TablePrinter;
-import org.opends.server.util.table.TextTablePrinter;
+import com.forgerock.opendj.cli.ConsoleApplication;
+import com.forgerock.opendj.cli.MenuResult;
+import com.forgerock.opendj.cli.TableBuilder;
+import com.forgerock.opendj.cli.TablePrinter;
+import com.forgerock.opendj.cli.TextTablePrinter;
 
 
 

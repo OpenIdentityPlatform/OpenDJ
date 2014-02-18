@@ -77,7 +77,7 @@ import org.opends.server.types.OpenDsException;
 import org.opends.server.types.Schema;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.ServerConstants;
-import org.opends.server.util.cli.CommandBuilder;
+import com.forgerock.opendj.cli.CommandBuilder;
 
 /**
  * Panel that appears when the user defines a new index.

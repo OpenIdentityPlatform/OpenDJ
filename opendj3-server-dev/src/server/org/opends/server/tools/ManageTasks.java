@@ -52,18 +52,23 @@ import com.forgerock.opendj.cli.ClientException;
 import com.forgerock.opendj.cli.StringArgument;
 
 import org.opends.server.util.args.LDAPConnectionArgumentParser;
-import org.opends.server.util.cli.ConsoleApplication;
+
+import com.forgerock.opendj.cli.ConsoleApplication;
+
 import org.opends.server.util.cli.LDAPConnectionConsoleInteraction;
-import org.opends.server.util.cli.Menu;
-import org.opends.server.util.cli.MenuBuilder;
-import org.opends.server.util.cli.MenuCallback;
-import org.opends.server.util.cli.MenuResult;
+
+import com.forgerock.opendj.cli.Menu;
+import com.forgerock.opendj.cli.MenuBuilder;
+import com.forgerock.opendj.cli.MenuCallback;
+import com.forgerock.opendj.cli.MenuResult;
+
 import org.opends.server.util.table.TableBuilder;
 import org.opends.server.util.table.TextTablePrinter;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintStream;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
@@ -180,8 +185,9 @@ public class ManageTasks extends ConsoleApplication {
    * @param err              The output stream to use for standard error, or
    *                         {@code null} if standard error is not needed.
    */
-  public ManageTasks(InputStream in, OutputStream out, OutputStream err) {
-    super(in, out, err);
+  public ManageTasks(InputStream in, OutputStream out, OutputStream err)
+  {
+    super(new PrintStream(out), new PrintStream(err));
   }
 
   /**

@@ -68,10 +68,10 @@ import org.opends.server.types.NullOutputStream;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.StaticUtils;
-import org.opends.server.util.cli.ConsoleApplication;
+import com.forgerock.opendj.cli.ConsoleApplication;
 import org.opends.server.util.cli.LDAPConnectionConsoleInteraction;
-import org.opends.server.util.table.TableBuilder;
-import org.opends.server.util.table.TextTablePrinter;
+import com.forgerock.opendj.cli.TableBuilder;
+import com.forgerock.opendj.cli.TextTablePrinter;
 
 import com.forgerock.opendj.cli.ArgumentException;
 
@@ -175,7 +175,7 @@ class StatusCli extends ConsoleApplication
    */
   public StatusCli(PrintStream out, PrintStream err, InputStream in)
   {
-    super(in, out, err);
+    super(out, err);
   }
 
   /**

@@ -108,7 +108,7 @@ import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.SetupUtils;
-import org.opends.server.util.cli.CommandBuilder;
+import com.forgerock.opendj.cli.CommandBuilder;
 
 /**
  * The class that appears when the user clicks on 'New Base DN'.

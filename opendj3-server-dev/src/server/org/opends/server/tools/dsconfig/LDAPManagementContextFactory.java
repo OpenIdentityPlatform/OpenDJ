@@ -45,8 +45,8 @@ import com.forgerock.opendj.cli.ClientException;
 
 import org.opends.server.tools.JavaPropertiesTool.ErrorReturnCode;
 import org.opends.server.tools.ToolConstants;
-import org.opends.server.util.cli.CommandBuilder;
-import org.opends.server.util.cli.ConsoleApplication;
+import com.forgerock.opendj.cli.CommandBuilder;
+import com.forgerock.opendj.cli.ConsoleApplication;
 import org.opends.server.util.cli.LDAPConnectionConsoleInteraction;
 
 import com.forgerock.opendj.cli.Argument;

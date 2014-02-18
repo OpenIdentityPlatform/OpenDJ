@@ -30,6 +30,8 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.quicksetup.util.PlainTextProgressMessageFormatter;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
 
+import com.forgerock.opendj.cli.ConsoleApplication;
+
 /**
  * Class used to add points periodically to the end of the output.
  *
@@ -98,7 +100,7 @@ public class PointAdder implements Runnable
     }
     else
     {
-      app.printProgress(mb.toMessage());
+      app.print(mb.toMessage());
     }
     t = new Thread(this);
     t.start();
@@ -141,7 +143,7 @@ public class PointAdder implements Runnable
         }
         else
         {
-          app.printProgress(formatter.getFormattedPoint());
+          app.print(formatter.getFormattedPoint());
         }
       }
       catch (Throwable t)

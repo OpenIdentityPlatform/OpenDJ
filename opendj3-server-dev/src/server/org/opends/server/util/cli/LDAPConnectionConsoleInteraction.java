@@ -42,6 +42,13 @@ import org.opends.server.tools.SSLConnectionException;
 import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ClientException;
+import com.forgerock.opendj.cli.CommandBuilder;
+import com.forgerock.opendj.cli.ConsoleApplication;
+import com.forgerock.opendj.cli.Menu;
+import com.forgerock.opendj.cli.MenuBuilder;
+import com.forgerock.opendj.cli.MenuResult;
+import com.forgerock.opendj.cli.ValidationCallback;
+
 import org.opends.server.util.SelectableCertificateKeyManager;
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.util.ApplicationTrustManager;
@@ -77,7 +84,7 @@ public class LDAPConnectionConsoleInteraction {
   private String providedBindDN;
   private String adminUID;
   private String providedAdminUID;
-  private String bindPassword;
+  private char[] bindPassword;
   private KeyManager keyManager;
   private ApplicationTrustManager trustManager;
   // Boolean that tells if we ask for bind DN or admin UID in the same prompt.
@@ -109,13 +116,13 @@ public class LDAPConnectionConsoleInteraction {
 
   private String keystorePath;
 
-  private String keystorePassword;
+  private char[] keystorePassword;
 
   private String certifNickname;
 
   private String truststorePath;
 
-  private String truststorePassword;
+  private char[] truststorePassword;
 
   // The timeout to be used to connect
   private int connectTimeout;
@@ -288,7 +295,7 @@ public class LDAPConnectionConsoleInteraction {
                                           SecureConnectionCliArgs secureArgs) {
     this.app = app;
     this.secureArgsList = secureArgs;
-    this.commandBuilder = new CommandBuilder(null);
+    this.commandBuilder = new CommandBuilder(null, null);
     this.useSSL = secureArgs.useSSL();
     this.useStartTLS = secureArgs.useStartTLS();
     this.trustAll = secureArgs.trustAllArg.isPresent();
@@ -728,13 +735,16 @@ public class LDAPConnectionConsoleInteraction {
     }
 
     boolean addedPasswordFileArgument = false;
-    bindPassword = secureArgsList.bindPasswordArg.getValue();
+    if (secureArgsList.bindPasswordArg.isPresent())
+    {
+      bindPassword = secureArgsList.bindPasswordArg.getValue().toCharArray();
+    }
     if (keyManager == null)
     {
       if (secureArgsList.bindPasswordFileArg.isPresent())
       {
         // Read from file if it exists.
-        bindPassword = secureArgsList.bindPasswordFileArg.getValue();
+        bindPassword = secureArgsList.bindPasswordFileArg.getValue().toCharArray();
 
         if (bindPassword == null)
         {
@@ -793,7 +803,7 @@ public class LDAPConnectionConsoleInteraction {
         }
       }
       copySecureArgsList.bindPasswordArg.clearValues();
-      copySecureArgsList.bindPasswordArg.addValue(bindPassword);
+      copySecureArgsList.bindPasswordArg.addValue(String.valueOf(bindPassword));
       if (!addedPasswordFileArgument)
       {
         commandBuilder.addObfuscatedArgument(
@@ -982,14 +992,16 @@ public class LDAPConnectionConsoleInteraction {
     // Then the truststore password.
     //  As the most common case is to have no password for truststore,
     // we don't ask it in the interactive mode.
-    truststorePassword = secureArgsList.trustStorePasswordArg
-        .getValue();
-
+    if (secureArgsList.trustStorePasswordArg.isPresent())
+    {
+      truststorePassword =
+          secureArgsList.trustStorePasswordArg.getValue().toCharArray();
+    }
     if (secureArgsList.trustStorePasswordFileArg.isPresent())
     {
       // Read from file if it exists.
       truststorePassword = secureArgsList.trustStorePasswordFileArg
-          .getValue();
+          .getValue().toCharArray();
     }
     if ((truststorePassword !=  null) && (truststorePassword.equals("-")))
     {
@@ -1025,7 +1037,7 @@ public class LDAPConnectionConsoleInteraction {
         FileInputStream fos = new FileInputStream(truststorePath);
         if (truststorePassword != null)
         {
-          truststore.load(fos, truststorePassword.toCharArray());
+          truststore.load(fos, truststorePassword);
         }
         else
         {
@@ -1052,7 +1064,7 @@ public class LDAPConnectionConsoleInteraction {
         // Only add the trust store password if there is one AND if the user
         // specified a trust store path.
         copySecureArgsList.trustStorePasswordArg.clearValues();
-        copySecureArgsList.trustStorePasswordArg.addValue(truststorePassword);
+        copySecureArgsList.trustStorePasswordArg.addValue(String.valueOf(truststorePassword));
         commandBuilder.addObfuscatedArgument(
             copySecureArgsList.trustStorePasswordArg);
       }
@@ -1161,12 +1173,12 @@ public class LDAPConnectionConsoleInteraction {
     }
 
     // Then the keystore password.
-    keystorePassword = secureArgsList.keyStorePasswordArg.getValue();
+    keystorePassword = secureArgsList.keyStorePasswordArg.getValue().toCharArray();
 
     if (secureArgsList.keyStorePasswordFileArg.isPresent())
     {
       // Read from file if it exists.
-      keystorePassword = secureArgsList.keyStorePasswordFileArg.getValue();
+      keystorePassword = secureArgsList.keyStorePasswordFileArg.getValue().toCharArray();
 
       if (keystorePassword == null)
       {
@@ -1204,7 +1216,7 @@ public class LDAPConnectionConsoleInteraction {
     {
       FileInputStream fos = new FileInputStream(keystorePath);
       keystore = KeyStore.getInstance(KeyStore.getDefaultType());
-      keystore.load(fos, keystorePassword.toCharArray());
+      keystore.load(fos, keystorePassword);
       fos.close();
       aliasesEnum = keystore.aliases();
     }
@@ -1272,7 +1284,7 @@ public class LDAPConnectionConsoleInteraction {
 
     // We'we got all the information to get the keys manager
     ApplicationKeyManager akm = new ApplicationKeyManager(keystore,
-        keystorePassword.toCharArray());
+        keystorePassword);
 
 
     if (secureArgsList.keyStorePasswordFileArg.isPresent())
@@ -1286,7 +1298,7 @@ public class LDAPConnectionConsoleInteraction {
     else if (keystorePassword != null)
     {
       copySecureArgsList.keyStorePasswordArg.clearValues();
-      copySecureArgsList.keyStorePasswordArg.addValue(keystorePassword);
+      copySecureArgsList.keyStorePasswordArg.addValue(String.valueOf(keystorePassword));
       commandBuilder.addObfuscatedArgument(
           copySecureArgsList.keyStorePasswordArg);
     }
@@ -1416,7 +1428,7 @@ public class LDAPConnectionConsoleInteraction {
    * @return bind password for connections
    */
   public String getBindPassword() {
-    return this.bindPassword;
+    return String.valueOf(this.bindPassword);
   }
 
   /**
@@ -1655,7 +1667,7 @@ public class LDAPConnectionConsoleInteraction {
             }
 
             // Read the password from the stdin.
-            String truststorePassword;
+            char[] truststorePassword;
             try
             {
               app.println();
@@ -1679,7 +1691,7 @@ public class LDAPConnectionConsoleInteraction {
               {
                 fis = null;
               }
-              ts.load(fis, truststorePassword.toCharArray());
+              ts.load(fis, truststorePassword);
               if (fis != null)
               {
                 fis.close();
@@ -1690,7 +1702,7 @@ public class LDAPConnectionConsoleInteraction {
                 ts.setCertificateEntry(alias, chain[i]);
               }
               FileOutputStream fos = new FileOutputStream(truststorePath);
-              ts.store(fos, truststorePassword.toCharArray());
+              ts.store(fos, truststorePassword);
               if (fos != null)
               {
                 fos.close();
@@ -1737,9 +1749,10 @@ public class LDAPConnectionConsoleInteraction {
    if (this.useSSL) {
      options.setUseSSL(true);
      SSLConnectionFactory sslConnectionFactory = new SSLConnectionFactory();
-     sslConnectionFactory.init(getTrustManager() == null, keystorePath,
-                               keystorePassword, certifNickname,
-                               truststorePath, truststorePassword);
+      sslConnectionFactory.init(getTrustManager() == null, String
+          .valueOf(keystorePath), String.valueOf(keystorePassword), String
+          .valueOf(certifNickname), String.valueOf(truststorePath), String
+          .valueOf(truststorePassword));
      options.setSSLConnectionFactory(sslConnectionFactory);
    } else {
      options.setUseSSL(false);

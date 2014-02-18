@@ -87,11 +87,11 @@ import com.forgerock.opendj.cli.SubCommand;
 import com.forgerock.opendj.cli.SubCommandArgumentParser;
 import com.forgerock.opendj.cli.ClientException;
 
-import org.opends.server.util.cli.ConsoleApplication;
-import org.opends.server.util.cli.HelpCallback;
-import org.opends.server.util.cli.MenuBuilder;
-import org.opends.server.util.cli.MenuResult;
-import org.opends.server.util.cli.ValidationCallback;
+import com.forgerock.opendj.cli.ConsoleApplication;
+import com.forgerock.opendj.cli.HelpCallback;
+import com.forgerock.opendj.cli.MenuBuilder;
+import com.forgerock.opendj.cli.MenuResult;
+import com.forgerock.opendj.cli.ValidationCallback;
 import org.opends.server.util.table.TableBuilder;
 import org.opends.server.util.table.TextTablePrinter;
 
@@ -908,11 +908,11 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
       app.println(INFO_DSCFG_CREATE_NAME_PROMPT_NAMING.get(ufn, pd.getName()));
 
       app.println();
-      app.printErrln(pd.getSynopsis(), 4);
+      app.errPrintln(pd.getSynopsis(), 4);
 
       if (pd.getDescription() != null) {
         app.println();
-        app.printErrln(pd.getDescription(), 4);
+        app.errPrintln(pd.getDescription(), 4);
       }
 
       PropertyDefinitionUsageBuilder b =
