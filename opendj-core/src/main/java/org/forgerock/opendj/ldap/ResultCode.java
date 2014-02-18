@@ -204,7 +204,7 @@ public final class ResultCode {
      * not yet been determined.
      * <p>
      * Despite not being a standard result code, it is an implementation of the
-     * null object design pattern for this type. 
+     * null object design pattern for this type.
      */
     public static final ResultCode UNDEFINED = registerErrorResultCode(-1,
             INFO_RESULT_UNDEFINED.get(), Enum.UNDEFINED);
