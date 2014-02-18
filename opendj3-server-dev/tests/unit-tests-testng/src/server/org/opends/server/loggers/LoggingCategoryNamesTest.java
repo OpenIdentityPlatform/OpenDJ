@@ -73,4 +73,13 @@ public class LoggingCategoryNamesTest extends DirectoryServerTestCase
   {
     assertEquals(LoggingCategoryNames.getCategoryName(classname), classname);
   }
+
+  @Test
+  public void testSubPackages() throws Exception
+  {
+    assertEquals(LoggingCategoryNames.getCategoryName("org.opends.server.backends.jeb.foo"), "JEB");
+    assertEquals(LoggingCategoryNames.getCategoryName("org.opends.server.backends.jeb"), "JEB");
+    assertEquals(LoggingCategoryNames.getCategoryName("org.opends.server.backends"), "BACKEND");
+    assertEquals(LoggingCategoryNames.getCategoryName("org.opends.server"), "org.opends.server");
+  }
 }

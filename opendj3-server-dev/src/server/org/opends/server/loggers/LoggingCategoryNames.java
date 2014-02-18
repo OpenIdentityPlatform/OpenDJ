@@ -48,12 +48,6 @@ class LoggingCategoryNames
 
   static
   {
-    // catch all categories used when nothing else matches.
-    // FIXME catch all does not work with current code.
-    // Maybe should we use a trie data structure instead of a NavigableMap?
-    // NAMES.put("org.opends", "CORE");
-    // NAMES.put("org.forgerock.opendj", "CORE");
-
     // The category used for messages associated with the core server.
     NAMES.put("org.opends.server.core", "CORE");
     NAMES.put("org.forgerock.opendj.ldap", "CORE");
