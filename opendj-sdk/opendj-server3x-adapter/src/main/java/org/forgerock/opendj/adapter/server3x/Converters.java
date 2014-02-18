@@ -142,22 +142,6 @@ public final class Converters {
     }
 
     /**
-     * Converts from OpenDJ LDAP SDK {@link org.forgerock.opendj.ldap.SearchScope}
-     * to OpenDJ server {@link org.opends.server.types.SearchScope}.
-     *
-     * @param searchScope
-     *          value to convert
-     * @return the converted value
-     */
-    public static org.opends.server.types.SearchScope to(
-            final org.forgerock.opendj.ldap.SearchScope searchScope) {
-        if (searchScope == null) {
-            return null;
-        }
-        return org.opends.server.types.SearchScope.values()[searchScope.intValue()];
-    }
-
-    /**
      * Converts from OpenDJ LDAP SDK {@link org.forgerock.opendj.ldap.Filter} to
      * OpenDJ server {@link org.opends.server.types.RawFilter}.
      *
@@ -268,7 +252,7 @@ public final class Converters {
      */
     public static org.opends.server.types.RawModification to(
             final org.forgerock.opendj.ldap.Modification modification) {
-        return new LDAPModification(to(modification.getModificationType()), to(modification
+        return new LDAPModification(modification.getModificationType(), to(modification
                 .getAttribute()));
     }
 
@@ -340,7 +324,7 @@ public final class Converters {
      */
     public static org.opends.server.types.Modification toModification(
             final org.forgerock.opendj.ldap.Modification modification) {
-        return new org.opends.server.types.Modification(to(modification.getModificationType()),
+        return new org.opends.server.types.Modification(modification.getModificationType(),
             toAttribute(modification.getAttribute()));
     }
 
@@ -362,36 +346,6 @@ public final class Converters {
             toListOfModifications.add(toModification(m));
         }
         return toListOfModifications;
-    }
-
-    /**
-     * Converts from OpenDJ LDAP SDK
-     * {@link org.forgerock.opendj.ldap.ModificationType} to OpenDJ server
-     * {@link org.opends.server.types.ModificationType}.
-     *
-     * @param modificationType
-     *          value to convert
-     * @return the converted value
-     */
-    public static org.opends.server.types.ModificationType to(
-            final org.forgerock.opendj.ldap.ModificationType modificationType) {
-        return org.opends.server.types.ModificationType.values()[modificationType.intValue()];
-    }
-
-    /**
-     * Converts from OpenDJ server {@link org.opends.server.types.SearchScope}. to
-     * OpenDJ LDAP SDK {@link org.forgerock.opendj.ldap.SearchScope}.
-     *
-     * @param searchScope
-     *          value to convert
-     * @return the converted value
-     */
-    public static org.forgerock.opendj.ldap.SearchScope from(
-            final org.opends.server.types.SearchScope searchScope) {
-        if (searchScope == null) {
-            return null;
-        }
-        return org.forgerock.opendj.ldap.SearchScope.values().get(searchScope.intValue());
     }
 
     /**
