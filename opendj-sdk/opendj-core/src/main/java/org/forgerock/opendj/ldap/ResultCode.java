@@ -24,12 +24,13 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  *      Portions copyright 2013 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldap;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import org.forgerock.i18n.LocalizableMessage;
 
@@ -54,6 +55,8 @@ public final class ResultCode {
      */
     public static enum Enum {
         //@Checkstyle:off
+        /** @see ResultCode#UNDEFINED */
+        UNDEFINED,
         /** @see ResultCode#SUCCESS */
         SUCCESS,
         /** @see ResultCode#OPERATIONS_ERROR */
@@ -191,10 +194,20 @@ public final class ResultCode {
         //@Checkstyle:on
     }
 
-    private static final ResultCode[] ELEMENTS = new ResultCode[16655];
+    private static final Map<Integer, ResultCode> ELEMENTS = new LinkedHashMap<Integer, ResultCode>();
 
-    private static final List<ResultCode> IMMUTABLE_ELEMENTS = Collections.unmodifiableList(Arrays
-            .asList(ELEMENTS));
+    private static final List<ResultCode> IMMUTABLE_ELEMENTS = Collections.unmodifiableList(new ArrayList<ResultCode>(
+            ELEMENTS.values()));
+
+    /**
+     * The result code that should only be used if the actual result code has
+     * not yet been determined.
+     * <p>
+     * Despite not being a standard result code, it is an implementation of the
+     * null object design pattern for this type. 
+     */
+    public static final ResultCode UNDEFINED = registerErrorResultCode(-1,
+            INFO_RESULT_UNDEFINED.get(), Enum.UNDEFINED);
 
     /**
      * The result code that indicates that the operation completed successfully.
@@ -846,10 +859,7 @@ public final class ResultCode {
      * @return The result code.
      */
     public static ResultCode valueOf(final int intValue) {
-        ResultCode result = null;
-        if (0 <= intValue && intValue < ELEMENTS.length) {
-            result = ELEMENTS[intValue];
-        }
+        ResultCode result = ELEMENTS.get(intValue);
         if (result == null) {
             result = new ResultCode(
                 intValue, LocalizableMessage.raw("unknown(" + intValue + ")"), true, Enum.UNKNOWN);
@@ -883,7 +893,7 @@ public final class ResultCode {
     private static ResultCode registerErrorResultCode(final int intValue,
             final LocalizableMessage name, final Enum resultCodeEnum) {
         final ResultCode t = new ResultCode(intValue, name, true, resultCodeEnum);
-        ELEMENTS[intValue] = t;
+        ELEMENTS.put(intValue, t);
         return t;
     }
 
@@ -902,7 +912,7 @@ public final class ResultCode {
     private static ResultCode registerSuccessResultCode(final int intValue,
             final LocalizableMessage name, final Enum resultCodeEnum) {
         final ResultCode t = new ResultCode(intValue, name, false, resultCodeEnum);
-        ELEMENTS[intValue] = t;
+        ELEMENTS.put(intValue, t);
         return t;
     }
 

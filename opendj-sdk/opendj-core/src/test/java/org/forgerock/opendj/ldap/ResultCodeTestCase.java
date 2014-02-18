@@ -26,7 +26,6 @@ package org.forgerock.opendj.ldap;
 
 import java.util.EnumSet;
 import java.util.Iterator;
-import java.util.LinkedList;
 
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -39,13 +38,7 @@ public class ResultCodeTestCase extends SdkTestCase {
 
     @DataProvider
     public Iterator<Object[]> valuesDataProvider() {
-        final LinkedList<ResultCode> values = new LinkedList<ResultCode>(ResultCode.values());
-        for (Iterator<ResultCode> iter = values.iterator(); iter.hasNext();) {
-            if (iter.next() == null) {
-                iter.remove();
-            }
-        }
-        return new DataProviderIterator(values);
+        return new DataProviderIterator(ResultCode.values());
     }
 
     @Test(dataProvider = "valuesDataProvider")
@@ -55,8 +48,16 @@ public class ResultCodeTestCase extends SdkTestCase {
 
     @Test
     public void valueOfIntUnknown() throws Exception {
-        int intValue = -1;
-        ResultCode unknown = ResultCode.valueOf(intValue);
+        int intValue;
+        ResultCode unknown;
+
+        intValue = -2;
+        unknown = ResultCode.valueOf(intValue);
+        assertSame(unknown.intValue(), intValue);
+        assertSame(unknown.asEnum(), ResultCode.Enum.UNKNOWN);
+
+        intValue = Integer.MAX_VALUE;
+        unknown = ResultCode.valueOf(intValue);
         assertSame(unknown.intValue(), intValue);
         assertSame(unknown.asEnum(), ResultCode.Enum.UNKNOWN);
     }
