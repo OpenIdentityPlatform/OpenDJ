@@ -28,7 +28,6 @@ package org.forgerock.opendj.adapter.server3x;
 import static org.fest.assertions.Assertions.*;
 import static org.forgerock.opendj.adapter.server3x.Converters.*;
 import static org.mockito.Mockito.*;
-import static org.testng.Assert.*;
 
 import java.net.InetAddress;
 import java.util.Iterator;
@@ -364,13 +363,13 @@ public class ConvertersTestCase extends ForgeRockTestCase {
         Modification mod = new Modification(ModificationType.ADD, attribute);
 
         org.opends.server.types.RawModification srvModification = to(mod);
-        assertThat(srvModification.getModificationType().toString()).isEqualTo("Add");
+        assertThat(srvModification.getModificationType()).isEqualTo(ModificationType.ADD);
         assertThat(srvModification.getAttribute().getAttributeType()).isEqualTo("test");
         assertThat(srvModification.getAttribute().getValues().size()).isEqualTo(2);
 
         mod = new Modification(ModificationType.INCREMENT, attribute);
         srvModification = to(mod);
-        assertThat(srvModification.getModificationType().toString()).isEqualTo("Increment");
+        assertThat(srvModification.getModificationType()).isEqualTo(ModificationType.INCREMENT);
     }
 
     @Test
@@ -382,13 +381,13 @@ public class ConvertersTestCase extends ForgeRockTestCase {
         Modification mod = new Modification(ModificationType.ADD, attribute);
 
         org.opends.server.types.Modification srvModification = toModification(mod);
-        assertThat(srvModification.getModificationType().toString()).isEqualTo("Add");
+        assertThat(srvModification.getModificationType()).isEqualTo(ModificationType.ADD);
         assertThat(srvModification.getAttribute().getAttributeType().getNameOrOID()).isEqualTo("test");
         assertThat(srvModification.getAttribute().size()).isEqualTo(2);
 
         mod = new Modification(ModificationType.INCREMENT, attribute);
         srvModification = toModification(mod);
-        assertThat(srvModification.getModificationType().toString()).isEqualTo("Increment");
+        assertThat(srvModification.getModificationType()).isEqualTo(ModificationType.INCREMENT);
     }
 
     /**
@@ -517,26 +516,6 @@ public class ConvertersTestCase extends ForgeRockTestCase {
 
         assertThat(getCredentials(genericBindRequest.getAuthenticationValue())).isEqualTo(
                 ByteString.empty());
-    }
-
-    @Test
-    public static void testToSearchScope() {
-        org.opends.server.types.SearchScope[] expected = org.opends.server.types.SearchScope.values();
-        List<org.forgerock.opendj.ldap.SearchScope> actual = org.forgerock.opendj.ldap.SearchScope.values();
-        for (int i = 0; i < expected.length; i++) {
-            assertEquals(to(actual.get(i)), expected[i]);
-        }
-        assertNull(to((org.forgerock.opendj.ldap.SearchScope) null));
-    }
-
-    @Test
-    public static void testFromSearchScope() {
-        org.opends.server.types.SearchScope[] actual = org.opends.server.types.SearchScope.values();
-        List<org.forgerock.opendj.ldap.SearchScope> expected = org.forgerock.opendj.ldap.SearchScope.values();
-        for (int i = 0; i < actual.length; i++) {
-            assertEquals(from(actual[i]), expected.get(i));
-        }
-        assertNull(from((org.opends.server.types.SearchScope) null));
     }
 
     @DataProvider(name = "operation result type")

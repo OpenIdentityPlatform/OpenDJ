@@ -225,7 +225,7 @@ public final class Adapters {
                 };
 
                 final InternalSearchOperation internalSO =
-                        icc.processSearch(valueOf(request.getName()), to(request.getScope()),
+                        icc.processSearch(valueOf(request.getName()), request.getScope(),
                                 to(request.getDereferenceAliasesPolicy()), request.getSizeLimit(),
                                 request.getTimeLimit(), request.isTypesOnly(), to(request
                                         .getFilter()), new LinkedHashSet<String>(request
