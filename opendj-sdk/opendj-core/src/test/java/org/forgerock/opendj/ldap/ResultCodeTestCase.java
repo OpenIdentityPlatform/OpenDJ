@@ -53,13 +53,13 @@ public class ResultCodeTestCase extends SdkTestCase {
 
         intValue = -2;
         unknown = ResultCode.valueOf(intValue);
-        assertSame(unknown.intValue(), intValue);
-        assertSame(unknown.asEnum(), ResultCode.Enum.UNKNOWN);
+        assertEquals(unknown.intValue(), intValue);
+        assertEquals(unknown.asEnum(), ResultCode.Enum.UNKNOWN);
 
         intValue = Integer.MAX_VALUE;
         unknown = ResultCode.valueOf(intValue);
-        assertSame(unknown.intValue(), intValue);
-        assertSame(unknown.asEnum(), ResultCode.Enum.UNKNOWN);
+        assertEquals(unknown.intValue(), intValue);
+        assertEquals(unknown.asEnum(), ResultCode.Enum.UNKNOWN);
     }
 
     @Test(dataProvider = "valuesDataProvider")
