@@ -30,7 +30,7 @@ import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
-import org.opends.server.types.DereferencePolicy;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.opends.server.types.Entry;
 import org.opends.server.types.SearchFilter;
 import org.forgerock.opendj.ldap.SearchScope;
@@ -75,7 +75,7 @@ class ExtensionTestUtils
         InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
         conn.processSearch(entryDN, SearchScope.BASE_OBJECT,
-            DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false, filter,
+            DereferenceAliasesPolicy.NEVER, 0, 0, false, filter,
             attrList);
     assertEquals(searchOperation.getSearchEntries().size(), 1);
 
@@ -96,7 +96,7 @@ class ExtensionTestUtils
         InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
         conn.processSearch(entryDN, SearchScope.BASE_OBJECT,
-            DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false, filter,
+            DereferenceAliasesPolicy.NEVER, 0, 0, false, filter,
             attrList);
     assertEquals(searchOperation.getSearchEntries().size(), 1);
 
@@ -117,7 +117,7 @@ class ExtensionTestUtils
         InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
         conn.processSearch(entryDN, SearchScope.BASE_OBJECT,
-            DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false, filter,
+            DereferenceAliasesPolicy.NEVER, 0, 0, false, filter,
             attrList);
     assertEquals(searchOperation.getSearchEntries().size(), 1);
 
@@ -138,7 +138,7 @@ class ExtensionTestUtils
         InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
         conn.processSearch(entryDN, SearchScope.BASE_OBJECT,
-            DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false, filter,
+            DereferenceAliasesPolicy.NEVER, 0, 0, false, filter,
             attrList);
     assertEquals(searchOperation.getSearchEntries().size(), 1);
 
@@ -159,7 +159,7 @@ class ExtensionTestUtils
         InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
         conn.processSearch(entryDN, SearchScope.BASE_OBJECT,
-            DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false, filter,
+            DereferenceAliasesPolicy.NEVER, 0, 0, false, filter,
             attrList);
     assertEquals(searchOperation.getSearchEntries().size(), 1);
 

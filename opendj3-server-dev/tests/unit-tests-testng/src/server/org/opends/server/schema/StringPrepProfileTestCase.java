@@ -38,7 +38,7 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.types.DereferencePolicy;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.types.SearchResultEntry;
 import org.forgerock.opendj.ldap.SearchScope;
@@ -105,7 +105,7 @@ public final class StringPrepProfileTestCase
         null,
         ByteString.valueOf("dc=  example,dc=com"),
         SearchScope.WHOLE_SUBTREE,
-        DereferencePolicy.NEVER_DEREF_ALIASES,
+        DereferenceAliasesPolicy.NEVER,
         Integer.MAX_VALUE,
         Integer.MAX_VALUE,
         false,

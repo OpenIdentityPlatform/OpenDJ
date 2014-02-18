@@ -26,22 +26,23 @@
  */
 package org.opends.server.protocols.ldap;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Reader;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.types.*;
 
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
 
 /**
  * Utility class used to decode LDAP messages from an ASN1Reader.
@@ -1959,23 +1960,17 @@ public class LDAPReader
     }
 
 
-    DereferencePolicy dereferencePolicy;
+    DereferenceAliasesPolicy dereferencePolicy;
     try
     {
       int derefValue = (int)reader.readInteger();
       switch (derefValue)
       {
         case DEREF_NEVER:
-          dereferencePolicy = DereferencePolicy.NEVER_DEREF_ALIASES;
-          break;
         case DEREF_IN_SEARCHING:
-          dereferencePolicy = DereferencePolicy.DEREF_IN_SEARCHING;
-          break;
         case DEREF_FINDING_BASE:
-          dereferencePolicy = DereferencePolicy.DEREF_FINDING_BASE_OBJECT;
-          break;
         case DEREF_ALWAYS:
-          dereferencePolicy = DereferencePolicy.DEREF_ALWAYS;
+          dereferencePolicy = DereferenceAliasesPolicy.valueOf(derefValue);
           break;
         default:
           LocalizableMessage message =

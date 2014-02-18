@@ -29,6 +29,7 @@ package org.opends.server.core;
 import java.util.ArrayList;
 
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
@@ -227,7 +228,7 @@ public class WorkflowConfigurationTest extends UtilTestCase
        new ArrayList<Control>(),
        ByteString.valueOf(baseDN),
        scope,
-       DereferencePolicy.NEVER_DEREF_ALIASES,
+       DereferenceAliasesPolicy.NEVER,
        Integer.MAX_VALUE,
        Integer.MAX_VALUE,
        false,

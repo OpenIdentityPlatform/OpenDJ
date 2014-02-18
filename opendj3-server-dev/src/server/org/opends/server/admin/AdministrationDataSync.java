@@ -42,7 +42,7 @@ import org.opends.server.types.AttributeType;
 import org.opends.server.types.Attributes;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DN;
-import org.opends.server.types.DereferencePolicy;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDAPException;
@@ -308,7 +308,7 @@ public final class AdministrationDataSync
     attributes.add(attrName);
     InternalSearchOperation search = internalConnection.processSearch(
         ByteString.valueOf(baseDN), SearchScope.BASE_OBJECT,
-        DereferencePolicy.DEREF_ALWAYS, 0, 0, false, filter, attributes);
+        DereferenceAliasesPolicy.ALWAYS, 0, 0, false, filter, attributes);
 
     if ((search.getResultCode() != ResultCode.SUCCESS))
     {

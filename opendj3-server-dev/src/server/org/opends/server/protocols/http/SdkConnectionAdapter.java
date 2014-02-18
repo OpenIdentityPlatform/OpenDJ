@@ -438,7 +438,7 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
     SearchOperationBasis operation =
         new SearchOperationBasis(clientConnection, messageID, messageID,
             to(request.getControls()), valueOf(request.getName()),
-            request.getScope(), to(request.getDereferenceAliasesPolicy()),
+            request.getScope(), request.getDereferenceAliasesPolicy(),
             request.getSizeLimit(), request.getTimeLimit(),
             request.isTypesOnly(), to(request.getFilter()),
             new LinkedHashSet<String>(request.getAttributes()));

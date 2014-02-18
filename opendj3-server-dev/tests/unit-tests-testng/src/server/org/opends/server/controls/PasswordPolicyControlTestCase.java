@@ -37,7 +37,7 @@ import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.protocols.ldap.*;
 import org.opends.server.types.Control;
-import org.opends.server.types.DereferencePolicy;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.opends.server.types.RawAttribute;
 import org.opends.server.types.RawModification;
 import org.opends.server.util.StaticUtils;
@@ -1580,7 +1580,7 @@ public class PasswordPolicyControlTestCase
       SearchRequestProtocolOp searchRequest =
            new SearchRequestProtocolOp(ByteString.valueOf("o=test"),
                                        SearchScope.BASE_OBJECT,
-                                       DereferencePolicy.NEVER_DEREF_ALIASES, 0,
+                                       DereferenceAliasesPolicy.NEVER, 0,
                                        0, false,
                                        LDAPFilter.decode("(objectClass=*)"),
                                        new LinkedHashSet<String>());

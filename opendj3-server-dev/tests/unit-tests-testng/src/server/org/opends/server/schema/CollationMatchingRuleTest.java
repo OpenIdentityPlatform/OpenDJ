@@ -24,8 +24,6 @@
  *      Copyright 2008-2009 Sun Microsystems, Inc.
  *      Portions Copyright 2014 ForgeRock AS
  */
-
-
 package org.opends.server.schema;
 
 import java.util.ArrayList;
@@ -43,7 +41,7 @@ import org.opends.server.tools.LDAPModify;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
-import org.opends.server.types.DereferencePolicy;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.opends.server.types.Entry;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.types.SearchFilter;
@@ -51,7 +49,6 @@ import org.opends.server.types.SearchResultEntry;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-
 
 /**
  * This Test Class tests various collation matching rules.
@@ -131,7 +128,7 @@ public final class CollationMatchingRuleTest
               null,
               ByteString.valueOf("uid=user,o=test"),
               SearchScope.WHOLE_SUBTREE,
-              DereferencePolicy.NEVER_DEREF_ALIASES,
+              DereferenceAliasesPolicy.NEVER,
               Integer.MAX_VALUE,
               Integer.MAX_VALUE,
               false,
@@ -168,7 +165,7 @@ public final class CollationMatchingRuleTest
               null,
               ByteString.valueOf("uid=user,o=test"),
               SearchScope.WHOLE_SUBTREE,
-              DereferencePolicy.NEVER_DEREF_ALIASES,
+              DereferenceAliasesPolicy.NEVER,
               Integer.MAX_VALUE,
               Integer.MAX_VALUE,
               false,
@@ -204,12 +201,11 @@ public final class CollationMatchingRuleTest
               null,
               ByteString.valueOf("uid=user,o=test"),
               SearchScope.WHOLE_SUBTREE,
-              DereferencePolicy.NEVER_DEREF_ALIASES,
+              DereferenceAliasesPolicy.NEVER,
               Integer.MAX_VALUE,
               Integer.MAX_VALUE,
               false,
-              LDAPFilter.
-              decode("departmentnumber:1.3.6.1.4.1.42.2.27.9.4.49.1.1:=abc120"),
+              LDAPFilter.decode("departmentnumber:1.3.6.1.4.1.42.2.27.9.4.49.1.1:=abc120"),
               null, null);
 
     searchOperation.run();
@@ -242,12 +238,11 @@ public final class CollationMatchingRuleTest
               null,
               ByteString.valueOf("uid=user,o=test"),
               SearchScope.WHOLE_SUBTREE,
-              DereferencePolicy.NEVER_DEREF_ALIASES,
+              DereferenceAliasesPolicy.NEVER,
               Integer.MAX_VALUE,
               Integer.MAX_VALUE,
               false,
-              LDAPFilter.
-              decode("carLicense:fr.2:=ebe2"),
+              LDAPFilter.decode("carLicense:fr.2:=ebe2"),
               null, null);
 
     searchOperation.run();
@@ -280,12 +275,11 @@ public final class CollationMatchingRuleTest
               null,
               ByteString.valueOf("uid=user,o=test"),
               SearchScope.WHOLE_SUBTREE,
-              DereferencePolicy.NEVER_DEREF_ALIASES,
+              DereferenceAliasesPolicy.NEVER,
               Integer.MAX_VALUE,
               Integer.MAX_VALUE,
               false,
-              LDAPFilter.
-              decode("carLicense:fr.5:=ebe1"),
+              LDAPFilter.decode("carLicense:fr.5:=ebe1"),
               null, null);
 
     searchOperation.run();
@@ -318,12 +312,11 @@ public final class CollationMatchingRuleTest
               null,
               ByteString.valueOf("uid=user,o=test"),
               SearchScope.WHOLE_SUBTREE,
-              DereferencePolicy.NEVER_DEREF_ALIASES,
+              DereferenceAliasesPolicy.NEVER,
               Integer.MAX_VALUE,
               Integer.MAX_VALUE,
               false,
-              LDAPFilter.
-              decode("departmentnumber:es.4:=abc111"),
+              LDAPFilter.decode("departmentnumber:es.4:=abc111"),
               null, null);
 
     searchOperation.run();
@@ -359,12 +352,11 @@ public final class CollationMatchingRuleTest
               null,
               ByteString.valueOf("uid=user,o=test"),
               SearchScope.WHOLE_SUBTREE,
-              DereferencePolicy.NEVER_DEREF_ALIASES,
+              DereferenceAliasesPolicy.NEVER,
               Integer.MAX_VALUE,
               Integer.MAX_VALUE,
               false,
-              LDAPFilter.
-              decode("sn:en.6:=*u*bec"),
+              LDAPFilter.decode("sn:en.6:=*u*bec"),
               null, null);
 
     searchOperation.run();
@@ -478,7 +470,7 @@ public final class CollationMatchingRuleTest
          new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                   InternalClientConnection.nextMessageID(), requestControls,
                   DN.valueOf("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
-                  DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                  DereferenceAliasesPolicy.NEVER, 0, 0, false,
                   SearchFilter.createFilterFromString(searchFilter),
                   null, null);
 

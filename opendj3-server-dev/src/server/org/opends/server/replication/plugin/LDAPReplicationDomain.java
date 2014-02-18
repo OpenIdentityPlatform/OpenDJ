@@ -41,7 +41,9 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn.IsolationPolicy;
@@ -68,19 +70,18 @@ import org.opends.server.replication.service.ReplicationDomain;
 import org.opends.server.tasks.PurgeConflictsHistoricalTask;
 import org.opends.server.tasks.TaskUtils;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.types.operation.*;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.TimeThread;
 import org.opends.server.workflowelement.externalchangelog.ECLWorkflowElement;
 import org.opends.server.workflowelement.localbackend.LocalBackendModifyOperation;
 
+import static org.forgerock.opendj.ldap.ResultCode.*;
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.replication.plugin.EntryHistorical.*;
 import static org.opends.server.replication.protocol.OperationContext.*;
 import static org.opends.server.replication.service.ReplicationMonitor.*;
-import static org.forgerock.opendj.ldap.ResultCode.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -656,7 +657,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     attributes.add(REPLICATION_FRACTIONAL_INCLUDE);
     InternalSearchOperation search = conn.processSearch(asn1BaseDn,
       SearchScope.BASE_OBJECT,
-      DereferencePolicy.DEREF_ALWAYS, 0, 0, false,
+      DereferenceAliasesPolicy.ALWAYS, 0, 0, false,
       filter, attributes);
     if (search.getResultCode() != ResultCode.SUCCESS
         && search.getResultCode() != ResultCode.NO_SUCH_OBJECT)
@@ -2129,7 +2130,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
      InternalSearchOperation searchOp =  conn.processSearch(
        ByteString.valueOf(getBaseDNString()),
        SearchScope.WHOLE_SUBTREE,
-       DereferencePolicy.NEVER_DEREF_ALIASES,
+       DereferenceAliasesPolicy.NEVER,
        0, 0, false, filter,
        USER_AND_REPL_OPERATIONAL_ATTRS, null);
 
@@ -2548,7 +2549,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       Set<String> attrs = new LinkedHashSet<String>(1);
       attrs.add(ENTRYUUID_ATTRIBUTE_NAME);
       InternalSearchOperation search = conn.processSearch(dn,
-            SearchScope.BASE_OBJECT, DereferencePolicy.NEVER_DEREF_ALIASES,
+            SearchScope.BASE_OBJECT, DereferenceAliasesPolicy.NEVER,
             0, 0, false,
             SearchFilter.createFilterFromString("(objectclass=*)"),
             attrs);
@@ -3004,7 +3005,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
 
       InternalSearchOperation op =
           conn.processSearch(entryDN, SearchScope.SINGLE_LEVEL,
-              DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+              DereferenceAliasesPolicy.NEVER, 0, 0, false,
               SearchFilter.createFilterFromString("(objectClass=*)"),
               attrs);
 
@@ -3393,7 +3394,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     final String filter = "(objectclass=*)";
     InternalSearchOperation search = conn.processSearch(getBaseDNString(),
         SearchScope.BASE_OBJECT,
-        DereferencePolicy.DEREF_ALWAYS, 0, 0, false,
+        DereferenceAliasesPolicy.ALWAYS, 0, 0, false,
         filter,attributes);
     if (search.getResultCode() == ResultCode.NO_SUCH_OBJECT)
     {
@@ -3401,7 +3402,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       // in the config entry.
       search = conn.processSearch(config.dn().toString(),
           SearchScope.BASE_OBJECT,
-          DereferencePolicy.DEREF_ALWAYS, 0, 0, false,
+          DereferenceAliasesPolicy.ALWAYS, 0, 0, false,
           filter,attributes);
     }
 
@@ -4344,7 +4345,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     return conn.processSearch(
       ByteString.valueOf(baseDN.toString()),
       SearchScope.WHOLE_SUBTREE,
-      DereferencePolicy.NEVER_DEREF_ALIASES,
+      DereferenceAliasesPolicy.NEVER,
       0, 0, false, filter,
       USER_AND_REPL_OPERATIONAL_ATTRS,
       resultListener);
@@ -5116,7 +5117,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
      InternalSearchOperation searchOp = conn.processSearch(
          ByteString.valueOf(getBaseDNString()),
          SearchScope.WHOLE_SUBTREE,
-         DereferencePolicy.NEVER_DEREF_ALIASES,
+         DereferenceAliasesPolicy.NEVER,
          0, 0, false, filter,
          USER_AND_REPL_OPERATIONAL_ATTRS, null);
 

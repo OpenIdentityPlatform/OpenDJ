@@ -33,6 +33,7 @@ import java.util.List;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.core.DirectoryServer;
@@ -190,7 +191,7 @@ public class PersistentServerState
       attributes.add(REPLICATION_STATE);
       InternalSearchOperation search = conn.processSearch(baseDn,
           SearchScope.BASE_OBJECT,
-          DereferencePolicy.NEVER_DEREF_ALIASES,
+          DereferenceAliasesPolicy.NEVER,
           0, 0, false, filter, attributes);
       if (((search.getResultCode() != ResultCode.SUCCESS)) &&
           ((search.getResultCode() != ResultCode.NO_SUCH_OBJECT)))
@@ -239,7 +240,7 @@ public class PersistentServerState
       InternalSearchOperation op =
           conn.processSearch(DN.valueOf("cn=config"),
           SearchScope.SUBORDINATES,
-          DereferencePolicy.NEVER_DEREF_ALIASES,
+          DereferenceAliasesPolicy.NEVER,
           1, 0, false, filter, attributes);
 
       if (op.getResultCode() == ResultCode.SUCCESS)

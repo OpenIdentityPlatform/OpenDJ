@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.TreeSet;
 
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
@@ -52,6 +53,7 @@ import org.testng.annotations.Test;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
+@SuppressWarnings("javadoc")
 public class TestVLVIndex extends DirectoryServerTestCase {
   private SortOrder sortOrder;
 
@@ -379,7 +381,7 @@ public class TestVLVIndex extends DirectoryServerTestCase {
         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                                     InternalClientConnection.nextMessageID(), requestControls,
                                     DN.valueOf("dc=vlvtest,dc=com"), SearchScope.WHOLE_SUBTREE,
-                                    DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                                    DereferenceAliasesPolicy.NEVER, 0, 0, false,
                                     SearchFilter.createFilterFromString("(objectClass=*)"),
                                     null, null);
 
@@ -467,7 +469,7 @@ public class TestVLVIndex extends DirectoryServerTestCase {
         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                                     InternalClientConnection.nextMessageID(), requestControls,
                                     DN.valueOf("dc=vlvtest,dc=com"), SearchScope.WHOLE_SUBTREE,
-                                    DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                                    DereferenceAliasesPolicy.NEVER, 0, 0, false,
                                     SearchFilter.createFilterFromString("(objectClass=*)"),
                                     null, null);
 
@@ -555,7 +557,7 @@ public class TestVLVIndex extends DirectoryServerTestCase {
         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                                     InternalClientConnection.nextMessageID(), requestControls,
                                     DN.valueOf("dc=vlvtest,dc=com"), SearchScope.WHOLE_SUBTREE,
-                                    DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                                    DereferenceAliasesPolicy.NEVER, 0, 0, false,
                                     SearchFilter.createFilterFromString("(objectClass=*)"),
                                     null, null);
 
@@ -642,7 +644,7 @@ public class TestVLVIndex extends DirectoryServerTestCase {
         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                                     InternalClientConnection.nextMessageID(), requestControls,
                                     DN.valueOf("dc=vlvtest,dc=com"), SearchScope.WHOLE_SUBTREE,
-                                    DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                                    DereferenceAliasesPolicy.NEVER, 0, 0, false,
                                     SearchFilter.createFilterFromString("(objectClass=*)"),
                                     null, null);
 
@@ -696,7 +698,7 @@ public class TestVLVIndex extends DirectoryServerTestCase {
         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                                     InternalClientConnection.nextMessageID(), requestControls,
                                     DN.valueOf("dc=vlvtest,dc=com"), SearchScope.WHOLE_SUBTREE,
-                                    DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                                    DereferenceAliasesPolicy.NEVER, 0, 0, false,
                                     SearchFilter.createFilterFromString("(objectClass=*)"),
                                     null, null);
 
@@ -749,7 +751,7 @@ public class TestVLVIndex extends DirectoryServerTestCase {
         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                                     InternalClientConnection.nextMessageID(), requestControls,
                                     DN.valueOf("dc=vlvtest,dc=com"), SearchScope.WHOLE_SUBTREE,
-                                    DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                                    DereferenceAliasesPolicy.NEVER, 0, 0, false,
                                     SearchFilter.createFilterFromString("(objectClass=*)"),
                                     null, null);
 
@@ -817,7 +819,7 @@ public class TestVLVIndex extends DirectoryServerTestCase {
         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                                     InternalClientConnection.nextMessageID(), requestControls,
                                     DN.valueOf("dc=vlvtest,dc=com"), SearchScope.WHOLE_SUBTREE,
-                                    DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                                    DereferenceAliasesPolicy.NEVER, 0, 0, false,
                                     SearchFilter.createFilterFromString("(objectClass=*)"),
                                     null, null);
 
@@ -905,7 +907,7 @@ public class TestVLVIndex extends DirectoryServerTestCase {
         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                                     InternalClientConnection.nextMessageID(), requestControls,
                                     DN.valueOf("dc=vlvtest,dc=com"), SearchScope.WHOLE_SUBTREE,
-                                    DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                                    DereferenceAliasesPolicy.NEVER, 0, 0, false,
                                     SearchFilter.createFilterFromString("(objectClass=*)"),
                                     null, null);
 
@@ -994,7 +996,7 @@ public class TestVLVIndex extends DirectoryServerTestCase {
         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                                     InternalClientConnection.nextMessageID(), requestControls,
                                     DN.valueOf("dc=vlvtest,dc=com"), SearchScope.WHOLE_SUBTREE,
-                                    DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                                    DereferenceAliasesPolicy.NEVER, 0, 0, false,
                                     SearchFilter.createFilterFromString("(objectClass=*)"),
                                     null, null);
 
@@ -1083,7 +1085,7 @@ public class TestVLVIndex extends DirectoryServerTestCase {
         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                                     InternalClientConnection.nextMessageID(), requestControls,
                                     DN.valueOf("dc=vlvtest,dc=com"), SearchScope.WHOLE_SUBTREE,
-                                    DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                                    DereferenceAliasesPolicy.NEVER, 0, 0, false,
                                     SearchFilter.createFilterFromString("(objectClass=*)"),
                                     null, null);
 
@@ -1172,7 +1174,7 @@ public class TestVLVIndex extends DirectoryServerTestCase {
         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                                     InternalClientConnection.nextMessageID(), requestControls,
                                     DN.valueOf("dc=vlvtest,dc=com"), SearchScope.WHOLE_SUBTREE,
-                                    DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                                    DereferenceAliasesPolicy.NEVER, 0, 0, false,
                                     SearchFilter.createFilterFromString("(objectClass=*)"),
                                     null, null);
 
@@ -1261,7 +1263,7 @@ public class TestVLVIndex extends DirectoryServerTestCase {
         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                                     InternalClientConnection.nextMessageID(), requestControls,
                                     DN.valueOf("dc=vlvtest,dc=com"), SearchScope.WHOLE_SUBTREE,
-                                    DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                                    DereferenceAliasesPolicy.NEVER, 0, 0, false,
                                     SearchFilter.createFilterFromString("(objectClass=*)"),
                                     null, null);
 

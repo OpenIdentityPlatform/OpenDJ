@@ -66,7 +66,7 @@ import org.opends.server.protocols.ldap.SearchRequestProtocolOp;
 import org.opends.server.protocols.ldap.SearchResultDoneProtocolOp;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
-import org.opends.server.types.DereferencePolicy;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.opends.server.types.Entry;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.opends.server.types.RawAttribute;
@@ -663,7 +663,7 @@ public class CancelExtendedOperationTestCase
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(ByteString.valueOf("o=test"),
                                      SearchScope.BASE_OBJECT,
-                                     DereferencePolicy.NEVER_DEREF_ALIASES, 0,
+                                     DereferenceAliasesPolicy.NEVER, 0,
                                      0, false,
                                      LDAPFilter.decode("(match=false)"),
                                      new LinkedHashSet<String>());

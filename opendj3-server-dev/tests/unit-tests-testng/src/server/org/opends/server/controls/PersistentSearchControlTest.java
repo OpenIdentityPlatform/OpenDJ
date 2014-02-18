@@ -33,6 +33,7 @@ import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
@@ -556,7 +557,7 @@ public class PersistentSearchControlTest extends ControlsTestCase
       controls.add(persSearchControl);
     final InternalSearchOperation search =
         conn.processSearch("o=test", SearchScope.BASE_OBJECT,
-            DereferencePolicy.NEVER_DEREF_ALIASES, 0, // Size limit
+            DereferenceAliasesPolicy.NEVER, 0, // Size limit
             0, // Time limit
             true, // Types only
             "(objectClass=*)", attributes, controls, null);

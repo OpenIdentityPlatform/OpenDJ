@@ -31,6 +31,7 @@ import java.util.LinkedHashSet;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
@@ -827,7 +828,7 @@ public class InternalClientConnectionTestCase
          InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
          conn.processSearch(ByteString.valueOf(""), SearchScope.BASE_OBJECT,
-                            DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                            DereferenceAliasesPolicy.NEVER, 0, 0, false,
                             LDAPFilter.decode("(objectClass=*)"),
                             new LinkedHashSet<String>());
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
@@ -855,7 +856,7 @@ public class InternalClientConnectionTestCase
          InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
          conn.processSearch(ByteString.valueOf(""), SearchScope.BASE_OBJECT,
-                            DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                            DereferenceAliasesPolicy.NEVER, 0, 0, false,
                             LDAPFilter.decode("(objectClass=*)"),
                             new LinkedHashSet<String>(), searchListener);
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
@@ -901,7 +902,7 @@ public class InternalClientConnectionTestCase
          InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
          conn.processSearch(DN.rootDN(), SearchScope.BASE_OBJECT,
-              DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+              DereferenceAliasesPolicy.NEVER, 0, 0, false,
               SearchFilter.createFilterFromString("(objectClass=*)"),
               new LinkedHashSet<String>());
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
@@ -929,7 +930,7 @@ public class InternalClientConnectionTestCase
          InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
          conn.processSearch(DN.rootDN(), SearchScope.BASE_OBJECT,
-              DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+              DereferenceAliasesPolicy.NEVER, 0, 0, false,
               SearchFilter.createFilterFromString("(objectClass=*)"),
               new LinkedHashSet<String>(), searchListener);
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);

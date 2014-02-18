@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.controls.MatchedValuesControl;
 import org.opends.server.types.*;
@@ -98,7 +99,7 @@ public interface SearchOperation extends Operation
    *
    * @return  The alias dereferencing policy for this search operation.
    */
-  public abstract DereferencePolicy getDerefPolicy();
+  public abstract DereferenceAliasesPolicy getDerefPolicy();
 
   /**
    * Specifies the alias dereferencing policy for this search operation.  This
@@ -107,7 +108,7 @@ public interface SearchOperation extends Operation
    * @param  derefPolicy  The alias dereferencing policy for this search
    *                      operation.
    */
-  public abstract void setDerefPolicy(DereferencePolicy derefPolicy);
+  public abstract void setDerefPolicy(DereferenceAliasesPolicy derefPolicy);
 
   /**
    * Retrieves the size limit for this search operation.

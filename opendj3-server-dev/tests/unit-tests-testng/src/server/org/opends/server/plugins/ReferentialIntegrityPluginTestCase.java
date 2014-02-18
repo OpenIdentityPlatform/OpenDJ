@@ -32,6 +32,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
@@ -1180,7 +1181,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
             InternalClientConnection.getRootConnection();
     InternalSearchOperation operation = conn.processSearch(DN.valueOf(entryDN),
             SearchScope.BASE_OBJECT,
-            DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+            DereferenceAliasesPolicy.NEVER, 0, 0, false,
             SearchFilter.createFilterFromString(filterStr),
             null);
     for (SearchResultEntry entry : operation.getSearchEntries()) {

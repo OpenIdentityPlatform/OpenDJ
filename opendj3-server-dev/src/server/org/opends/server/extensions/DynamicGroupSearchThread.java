@@ -37,7 +37,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchListener;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.types.DereferencePolicy;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.LDAPURL;
@@ -126,7 +126,7 @@ public class DynamicGroupSearchThread
     {
       InternalSearchOperation searchOperation =
            conn.processSearch(baseDNs[searchCounter], SearchScope.WHOLE_SUBTREE,
-                              DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0,
+                              DereferenceAliasesPolicy.NEVER, 0, 0,
                               false, searchFilters[searchCounter], attributes,
                               this);
 

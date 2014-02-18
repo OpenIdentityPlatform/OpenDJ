@@ -31,6 +31,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
@@ -47,8 +48,9 @@ import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
 
+@SuppressWarnings("javadoc")
 public class HasSubordinatesVirtualAttributeProviderTestCase extends DirectoryServerTestCase {
-      // The attribute type for the hasSubordinates attribute.
+  // The attribute type for the hasSubordinates attribute.
   private AttributeType hasSubordinatesType;
 
   private List<Entry> entries;
@@ -361,7 +363,7 @@ public class HasSubordinatesVirtualAttributeProviderTestCase extends DirectorySe
          InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
          conn.processSearch(entryDN, SearchScope.BASE_OBJECT,
-                            DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                            DereferenceAliasesPolicy.NEVER, 0, 0, false,
                             filter, attrList);
     assertEquals(searchOperation.getSearchEntries().size(), 1);
 
@@ -394,7 +396,7 @@ public class HasSubordinatesVirtualAttributeProviderTestCase extends DirectorySe
          InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
          conn.processSearch(entryDN, SearchScope.BASE_OBJECT,
-                            DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                            DereferenceAliasesPolicy.NEVER, 0, 0, false,
                             filter, attrList);
     assertEquals(searchOperation.getSearchEntries().size(), 0);
   }
@@ -428,7 +430,7 @@ public class HasSubordinatesVirtualAttributeProviderTestCase extends DirectorySe
          new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                                      InternalClientConnection.nextMessageID(), requestControls,
                                      entryDN, SearchScope.BASE_OBJECT,
-                                     DereferencePolicy.NEVER_DEREF_ALIASES, 0,
+                                     DereferenceAliasesPolicy.NEVER, 0,
                                      0, false, filter, attrList, null);
     searchOperation.run();
     assertEquals(searchOperation.getSearchEntries().size(), 1);
@@ -468,7 +470,7 @@ public class HasSubordinatesVirtualAttributeProviderTestCase extends DirectorySe
          new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                                      InternalClientConnection.nextMessageID(), requestControls,
                                      entryDN, SearchScope.BASE_OBJECT,
-                                     DereferencePolicy.NEVER_DEREF_ALIASES, 0,
+                                     DereferenceAliasesPolicy.NEVER, 0,
                                      0, false, filter, attrList, null);
     searchOperation.run();
     assertEquals(searchOperation.getSearchEntries().size(), 1);

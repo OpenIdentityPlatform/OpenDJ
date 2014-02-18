@@ -31,6 +31,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -210,7 +211,7 @@ public class UserAttr implements KeywordBindRule {
         InternalSearchOperation op =
                 conn.processSearch(evalCtx.getClientDN(),
                         SearchScope.BASE_OBJECT,
-                        DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                        DereferenceAliasesPolicy.NEVER, 0, 0, false,
                         filter, null);
         LinkedList<SearchResultEntry> result = op.getSearchEntries();
         if (!result.isEmpty()) {
@@ -346,7 +347,7 @@ public class UserAttr implements KeywordBindRule {
                         InternalClientConnection.getRootConnection();
                 InternalSearchOperation op = conn.processSearch(pDN,
                         SearchScope.BASE_OBJECT,
-                        DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                        DereferenceAliasesPolicy.NEVER, 0, 0, false,
                         filter, reqAttrs);
                 LinkedList<SearchResultEntry> result =
                         op.getSearchEntries();

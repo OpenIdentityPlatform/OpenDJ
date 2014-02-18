@@ -32,6 +32,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
@@ -53,6 +54,7 @@ import org.testng.annotations.Test;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
+@SuppressWarnings("javadoc")
 public class SubentryManagerTestCase extends CoreTestCase
 {
   private static final String SUFFIX = "dc=example,dc=com";
@@ -432,7 +434,7 @@ public class SubentryManagerTestCase extends CoreTestCase
               new ArrayList<Control>(),
               ByteString.valueOf(testEntry.getName().toString()),
               SearchScope.BASE_OBJECT,
-              DereferencePolicy.NEVER_DEREF_ALIASES,
+              DereferenceAliasesPolicy.NEVER,
               Integer.MAX_VALUE,
               Integer.MAX_VALUE,
               false,

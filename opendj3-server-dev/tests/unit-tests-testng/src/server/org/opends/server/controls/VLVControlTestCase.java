@@ -34,6 +34,7 @@ import org.forgerock.opendj.io.ASN1Reader;
 import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
@@ -63,31 +64,31 @@ public class VLVControlTestCase
   private AttributeType snType;
 
   // The DN for "Aaccf Johnson"
-  DN aaccfJohnsonDN;
+  private DN aaccfJohnsonDN;
 
   // The DN for "Aaron Zimmerman"
-  DN aaronZimmermanDN;
+  private DN aaronZimmermanDN;
 
   // The DN for "Albert Smith"
-  DN albertSmithDN;
+  private DN albertSmithDN;
 
   // The DN for "Albert Zimmerman"
-  DN albertZimmermanDN;
+  private DN albertZimmermanDN;
 
   // The DN for "lowercase mcgee"
-  DN lowercaseMcGeeDN;
+  private DN lowercaseMcGeeDN;
 
   // The DN for "Mararet Jones"
-  DN margaretJonesDN;
+  private DN margaretJonesDN;
 
   // The DN for "Mary Jones"
-  DN maryJonesDN;
+  private DN maryJonesDN;
 
   // The DN for "Sam Zweck"
-  DN samZweckDN;
+  private DN samZweckDN;
 
   // The DN for "Zorro"
-  DN zorroDN;
+  private DN zorroDN;
 
 
 
@@ -507,7 +508,7 @@ public class VLVControlTestCase
          new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                   InternalClientConnection.nextMessageID(), requestControls,
                   DN.valueOf("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
-                  DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                  DereferenceAliasesPolicy.NEVER, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
                   null, null);
 
@@ -600,7 +601,7 @@ public class VLVControlTestCase
          new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                   InternalClientConnection.nextMessageID(), requestControls,
                   DN.valueOf("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
-                  DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                  DereferenceAliasesPolicy.NEVER, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
                   null, null);
 
@@ -693,7 +694,7 @@ public class VLVControlTestCase
          new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                   InternalClientConnection.nextMessageID(), requestControls,
                   DN.valueOf("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
-                  DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                  DereferenceAliasesPolicy.NEVER, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
                   null, null);
 
@@ -785,7 +786,7 @@ public class VLVControlTestCase
          new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                   InternalClientConnection.nextMessageID(), requestControls,
                   DN.valueOf("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
-                  DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                  DereferenceAliasesPolicy.NEVER, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
                   null, null);
 
@@ -843,7 +844,7 @@ public class VLVControlTestCase
          new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                   InternalClientConnection.nextMessageID(), requestControls,
                   DN.valueOf("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
-                  DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                  DereferenceAliasesPolicy.NEVER, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
                   null, null);
 
@@ -900,7 +901,7 @@ public class VLVControlTestCase
          new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                   InternalClientConnection.nextMessageID(), requestControls,
                   DN.valueOf("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
-                  DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                  DereferenceAliasesPolicy.NEVER, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
                   null, null);
 
@@ -972,7 +973,7 @@ public class VLVControlTestCase
          new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                   InternalClientConnection.nextMessageID(), requestControls,
                   DN.valueOf("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
-                  DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                  DereferenceAliasesPolicy.NEVER, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
                   null, null);
 
@@ -1064,7 +1065,7 @@ public class VLVControlTestCase
          new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                   InternalClientConnection.nextMessageID(), requestControls,
                   DN.valueOf("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
-                  DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                  DereferenceAliasesPolicy.NEVER, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
                   null, null);
 
@@ -1158,7 +1159,7 @@ public class VLVControlTestCase
          new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                   InternalClientConnection.nextMessageID(), requestControls,
                   DN.valueOf("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
-                  DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                  DereferenceAliasesPolicy.NEVER, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
                   null, null);
 
@@ -1252,7 +1253,7 @@ public class VLVControlTestCase
          new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                   InternalClientConnection.nextMessageID(), requestControls,
                   DN.valueOf("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
-                  DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                  DereferenceAliasesPolicy.NEVER, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
                   null, null);
 
@@ -1346,7 +1347,7 @@ public class VLVControlTestCase
          new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                   InternalClientConnection.nextMessageID(), requestControls,
                   DN.valueOf("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
-                  DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                  DereferenceAliasesPolicy.NEVER, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
                   null, null);
 
@@ -1440,7 +1441,7 @@ public class VLVControlTestCase
          new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                   InternalClientConnection.nextMessageID(), requestControls,
                   DN.valueOf("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
-                  DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                  DereferenceAliasesPolicy.NEVER, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
                   null, null);
 

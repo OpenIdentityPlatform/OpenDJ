@@ -34,6 +34,7 @@ import java.util.Set;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn;
@@ -271,7 +272,7 @@ public class EntryDNVirtualAttributeProviderTestCase
          InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
          conn.processSearch(entryDN, SearchScope.BASE_OBJECT,
-                            DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                            DereferenceAliasesPolicy.NEVER, 0, 0, false,
                             filter, attrList);
     assertEquals(searchOperation.getSearchEntries().size(), 1);
 
@@ -304,7 +305,7 @@ public class EntryDNVirtualAttributeProviderTestCase
          InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
          conn.processSearch(entryDN, SearchScope.BASE_OBJECT,
-                            DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                            DereferenceAliasesPolicy.NEVER, 0, 0, false,
                             filter, attrList);
     assertEquals(searchOperation.getSearchEntries().size(), 0);
   }
@@ -339,7 +340,7 @@ public class EntryDNVirtualAttributeProviderTestCase
          new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                                      InternalClientConnection.nextMessageID(), requestControls,
                                      entryDN, SearchScope.BASE_OBJECT,
-                                     DereferencePolicy.NEVER_DEREF_ALIASES, 0,
+                                     DereferenceAliasesPolicy.NEVER, 0,
                                      0, false, filter, attrList, null);
     searchOperation.run();
     assertEquals(searchOperation.getSearchEntries().size(), 1);
@@ -379,7 +380,7 @@ public class EntryDNVirtualAttributeProviderTestCase
          new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                                      InternalClientConnection.nextMessageID(), requestControls,
                                      entryDN, SearchScope.BASE_OBJECT,
-                                     DereferencePolicy.NEVER_DEREF_ALIASES, 0,
+                                     DereferenceAliasesPolicy.NEVER, 0,
                                      0, false, filter, attrList, null);
     searchOperation.run();
     assertEquals(searchOperation.getSearchEntries().size(), 1);
@@ -933,7 +934,7 @@ public class EntryDNVirtualAttributeProviderTestCase
                                      InternalClientConnection.nextMessageID(), null,
                                      DN.valueOf("o=test"),
                                      SearchScope.WHOLE_SUBTREE,
-                                     DereferencePolicy.NEVER_DEREF_ALIASES, 0,
+                                     DereferenceAliasesPolicy.NEVER, 0,
                                      0, false, filter, null, null);
     // This attribute is searchable for either pre-indexed or not
     assertEquals(provider.isSearchable(rule, searchOperation, false),
@@ -986,7 +987,7 @@ public class EntryDNVirtualAttributeProviderTestCase
                                      InternalClientConnection.nextMessageID(), null,
                                      DN.valueOf("o=test"),
                                      SearchScope.WHOLE_SUBTREE,
-                                     DereferencePolicy.NEVER_DEREF_ALIASES, 0,
+                                     DereferenceAliasesPolicy.NEVER, 0,
                                      0, false, filter, null, null);
     LocalBackendSearchOperation localSearch =
       new LocalBackendSearchOperation(searchOperation);

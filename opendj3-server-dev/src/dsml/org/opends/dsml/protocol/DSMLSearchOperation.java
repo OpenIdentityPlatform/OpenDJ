@@ -48,7 +48,7 @@ import org.opends.server.protocols.ldap.SearchResultDoneProtocolOp;
 import org.opends.server.protocols.ldap.SearchResultEntryProtocolOp;
 import org.opends.server.tools.LDAPConnection;
 import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.types.DereferencePolicy;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.RawFilter;
 import org.forgerock.opendj.ldap.SearchScope;
@@ -495,19 +495,19 @@ public class DSMLSearchOperation
 
     LDAPFilter filter = createFilter(searchRequest.getFilter());
 
-    DereferencePolicy derefPolicy = DereferencePolicy.NEVER_DEREF_ALIASES;
+    DereferenceAliasesPolicy derefPolicy = DereferenceAliasesPolicy.NEVER;
     String derefStr = searchRequest.getDerefAliases().toLowerCase();
     if (derefStr.equals("derefinsearching"))
     {
-      derefPolicy = DereferencePolicy.DEREF_IN_SEARCHING;
+      derefPolicy = DereferenceAliasesPolicy.IN_SEARCHING;
     }
     else if (derefStr.equals("dereffindingbaseobj"))
     {
-      derefPolicy = DereferencePolicy.DEREF_FINDING_BASE_OBJECT;
+      derefPolicy = DereferenceAliasesPolicy.FINDING_BASE;
     }
     else if (derefStr.equals("derefalways"))
     {
-      derefPolicy = DereferencePolicy.DEREF_ALWAYS;
+      derefPolicy = DereferenceAliasesPolicy.ALWAYS;
     }
 
     SearchScope scope = SearchScope.WHOLE_SUBTREE;

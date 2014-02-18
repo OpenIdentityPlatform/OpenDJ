@@ -35,7 +35,7 @@ import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.Control;
-import org.opends.server.types.DereferencePolicy;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.opends.server.types.RawAttribute;
 import org.opends.server.types.RawModification;
 import org.opends.server.util.StaticUtils;
@@ -481,7 +481,7 @@ public class LDAPv2TestCase
       SearchRequestProtocolOp searchRequest =
            new SearchRequestProtocolOp(ByteString.empty(),
                     SearchScope.BASE_OBJECT,
-                    DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                    DereferenceAliasesPolicy.NEVER, 0, 0, false,
                     LDAPFilter.decode("(objectClass=*)"), null);
       ArrayList<Control> controls = new ArrayList<Control>(1);
       controls.add(new LDAPControl(OID_MANAGE_DSAIT_CONTROL, true));

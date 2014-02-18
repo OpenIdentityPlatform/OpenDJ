@@ -50,7 +50,7 @@ import org.opends.server.protocols.ldap.*;
 import org.opends.server.tools.LDAPReader;
 import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.DN;
-import org.opends.server.types.DereferencePolicy;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.opends.server.types.RawAttribute;
 import org.opends.server.types.RawModification;
 import org.testng.annotations.BeforeClass;
@@ -600,7 +600,7 @@ public class InternalLDAPSocketTestCase
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(ByteString.valueOf("o=test"),
                                      SearchScope.BASE_OBJECT,
-                                     DereferencePolicy.NEVER_DEREF_ALIASES,
+                                     DereferenceAliasesPolicy.NEVER,
                                      0, 0, false,
                                      LDAPFilter.decode("(objectClass=*)"),
                                      new LinkedHashSet<String>());

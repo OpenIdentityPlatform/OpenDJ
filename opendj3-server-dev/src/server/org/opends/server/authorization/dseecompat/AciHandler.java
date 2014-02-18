@@ -32,7 +32,9 @@ import java.util.concurrent.locks.Lock;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.admin.std.server.DseeCompatAccessControlHandlerCfg;
 import org.opends.server.api.AccessControlHandler;
@@ -46,7 +48,6 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.workflowelement.localbackend.*;
 
 import static org.opends.messages.AccessControlMessages.*;
@@ -1196,7 +1197,7 @@ public final class AciHandler extends
               conn, InternalClientConnection.nextOperationID(),
               InternalClientConnection.nextMessageID(),
               null, baseDN, SearchScope.WHOLE_SUBTREE,
-              DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+              DereferenceAliasesPolicy.NEVER, 0, 0, false,
               SearchFilter.createFilterFromString("aci=*"), requestAttrs, null);
         LocalBackendSearchOperation localSearch =
               new LocalBackendSearchOperation(internalSearch);

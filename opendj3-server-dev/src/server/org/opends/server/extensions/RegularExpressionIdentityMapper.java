@@ -38,6 +38,7 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.IdentityMapperCfg;
@@ -234,7 +235,7 @@ public class RegularExpressionIdentityMapper
     {
       InternalSearchOperation internalSearch =
            conn.processSearch(baseDN, SearchScope.WHOLE_SUBTREE,
-                              DereferencePolicy.NEVER_DEREF_ALIASES, 1, 10,
+                              DereferenceAliasesPolicy.NEVER, 1, 10,
                               false, filter, requestedAttributes);
 
       switch (internalSearch.getResultCode().asEnum())

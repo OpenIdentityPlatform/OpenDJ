@@ -35,6 +35,7 @@ import java.util.*;
 
 import org.assertj.core.api.Assertions;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.SynchronizationProvider;
@@ -1313,7 +1314,7 @@ public class ReplicationServerTest extends ReplicationTestCase
        //Test the group membership control causes search to be skipped.
        InternalSearchOperation internalSearch =
           connection.processSearch(baseDN, WHOLE_SUBTREE,
-              DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false, filter, null,
+              DereferenceAliasesPolicy.NEVER, 0, 0, false, filter, null,
               requestControls, null);
        assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
        assertTrue(internalSearch.getSearchEntries().isEmpty());
@@ -1373,7 +1374,7 @@ public class ReplicationServerTest extends ReplicationTestCase
        debugInfo("Query / 1 attrib");
 
       op = connection.processSearch("dc=replicationChanges",
-             WHOLE_SUBTREE, DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+             WHOLE_SUBTREE, DereferenceAliasesPolicy.NEVER, 0, 0, false,
               "(changetype=moddn)", singleton("newrdn"));
        assertEquals(op.getResultCode(), ResultCode.SUCCESS);
        assertEquals(op.getSearchEntries().size(), 1);
@@ -1390,7 +1391,7 @@ public class ReplicationServerTest extends ReplicationTestCase
        debugInfo("Query / All attribs");
 
       op = connection.processSearch("dc=replicationChanges",
-             WHOLE_SUBTREE, DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+             WHOLE_SUBTREE, DereferenceAliasesPolicy.NEVER, 0, 0, false,
               "(changetype=*)", singleton("*"));
        assertEquals(op.getResultCode(), ResultCode.SUCCESS);
        assertEquals(op.getSearchEntries().size(), 5);

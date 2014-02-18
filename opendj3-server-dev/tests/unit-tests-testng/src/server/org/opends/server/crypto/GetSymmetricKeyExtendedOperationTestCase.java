@@ -29,6 +29,7 @@ package org.opends.server.crypto;
 import java.util.LinkedHashSet;
 
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.admin.ads.ADSContext;
 import org.opends.server.TestCaseUtils;
@@ -113,7 +114,7 @@ public class GetSymmetricKeyExtendedOperationTestCase
     InternalSearchOperation searchOp = icc.processSearch(
             baseDN,
             SearchScope.SINGLE_LEVEL,
-            DereferencePolicy.NEVER_DEREF_ALIASES,
+            DereferenceAliasesPolicy.NEVER,
             /* size limit */ 0, /* time limit */ 0,
             /* types only */ false,
             SearchFilter.createFilterFromString(searchFilter),

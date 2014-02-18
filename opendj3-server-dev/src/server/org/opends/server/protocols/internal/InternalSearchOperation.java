@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.core.SearchOperationBasis;
@@ -99,7 +100,7 @@ public final class InternalSearchOperation
               ClientConnection internalConnection,
               long operationID, int messageID,
               List<Control> requestControls, ByteString rawBaseDN,
-              SearchScope scope, DereferencePolicy derefPolicy,
+              SearchScope scope, DereferenceAliasesPolicy derefPolicy,
               int sizeLimit, int timeLimit, boolean typesOnly,
               RawFilter rawFilter, Set<String> attributes,
               InternalSearchListener searchListener)
@@ -164,7 +165,7 @@ public final class InternalSearchOperation
               ClientConnection internalConnection,
               long operationID, int messageID,
               List<Control> requestControls, DN baseDN,
-              SearchScope scope, DereferencePolicy derefPolicy,
+              SearchScope scope, DereferenceAliasesPolicy derefPolicy,
               int sizeLimit, int timeLimit, boolean typesOnly,
               SearchFilter filter, Set<String> attributes,
               InternalSearchListener searchListener)

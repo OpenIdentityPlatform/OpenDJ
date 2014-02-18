@@ -28,11 +28,11 @@ package org.opends.server.tools;
 
 import java.io.PrintStream;
 
-import org.opends.server.types.DereferencePolicy;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.SearchScope;
 
 import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.types.DereferencePolicy.*;
+import static org.forgerock.opendj.ldap.DereferenceAliasesPolicy.*;
 import static org.forgerock.opendj.ldap.SearchScope.*;
 
 
@@ -44,7 +44,7 @@ import static org.forgerock.opendj.ldap.SearchScope.*;
 public class LDAPSearchOptions extends LDAPToolOptions
 {
 
-  private DereferencePolicy dereferencePolicy =  NEVER_DEREF_ALIASES;
+  private DereferenceAliasesPolicy dereferencePolicy =  NEVER;
   private SearchScope searchScope = WHOLE_SUBTREE;
   private int sizeLimit = 0;
   private int timeLimit = 0;
@@ -165,19 +165,19 @@ public class LDAPSearchOptions extends LDAPToolOptions
   {
       if(policy == null)
       {
-        dereferencePolicy = NEVER_DEREF_ALIASES;
+        dereferencePolicy = NEVER;
       } else if(policy.equals("never"))
       {
-        dereferencePolicy = NEVER_DEREF_ALIASES;
+        dereferencePolicy = NEVER;
       } else if(policy.equals("always"))
       {
-        dereferencePolicy = DEREF_ALWAYS;
+        dereferencePolicy = ALWAYS;
       } else if (policy.equals("search"))
       {
-        dereferencePolicy = DEREF_IN_SEARCHING;
+        dereferencePolicy = IN_SEARCHING;
       } else if (policy.equals("find"))
       {
-        dereferencePolicy = DEREF_FINDING_BASE_OBJECT;
+        dereferencePolicy = FINDING_BASE;
       } else
       {
         err.println("Invalid deref alias specified:" + policy);
@@ -191,7 +191,7 @@ public class LDAPSearchOptions extends LDAPToolOptions
    *
    * @return  The alias dereference policy.
    */
-  public DereferencePolicy getDereferencePolicy()
+  public DereferenceAliasesPolicy getDereferencePolicy()
   {
     return dereferencePolicy;
   }

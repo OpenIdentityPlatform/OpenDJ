@@ -35,6 +35,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.Backend;
@@ -205,7 +206,7 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
               new ArrayList<Control>(),
               ByteString.valueOf("o=test"),
               SearchScope.WHOLE_SUBTREE,
-              DereferencePolicy.NEVER_DEREF_ALIASES,
+              DereferenceAliasesPolicy.NEVER,
               Integer.MAX_VALUE,
               Integer.MAX_VALUE,
               false,
@@ -247,7 +248,7 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
               new ArrayList<Control>(),
               ByteString.valueOf("o=test"),
               SearchScope.WHOLE_SUBTREE,
-              DereferencePolicy.NEVER_DEREF_ALIASES,
+              DereferenceAliasesPolicy.NEVER,
               Integer.MAX_VALUE,
               Integer.MAX_VALUE,
               false,
@@ -318,7 +319,7 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
       SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(ByteString.valueOf("o=test"),
                                      SearchScope.WHOLE_SUBTREE,
-                                     DereferencePolicy.NEVER_DEREF_ALIASES, 0,
+                                     DereferenceAliasesPolicy.NEVER, 0,
                                      0, false,
                                      LDAPFilter.decode("(uid=user.7)"),
                                      attrs);
@@ -327,7 +328,7 @@ public class LDAPBinaryOptionTestCase extends LdapTestCase {
 
       SearchResultEntryProtocolOp searchResultEntry = null;
       SearchResultDoneProtocolOp searchResultDone = null;
-      while (searchResultDone == null && message != null)
+      while (searchResultDone == null)
       {
         message = r.readMessage();
         switch (message.getProtocolOpType())

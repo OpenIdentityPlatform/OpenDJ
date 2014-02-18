@@ -34,6 +34,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
@@ -2070,7 +2071,7 @@ public final class InternalClientConnection
    */
   public InternalSearchOperation
               processSearch(String rawBaseDN, SearchScope scope,
-                            DereferencePolicy derefPolicy,
+                            DereferenceAliasesPolicy derefPolicy,
                             int sizeLimit, int timeLimit,
                             boolean typesOnly, String filterString,
                             Set<String> attributes)
@@ -2112,7 +2113,7 @@ public final class InternalClientConnection
    */
   public InternalSearchOperation
               processSearch(String rawBaseDN, SearchScope scope,
-                            DereferencePolicy derefPolicy,
+                            DereferenceAliasesPolicy derefPolicy,
                             int sizeLimit, int timeLimit,
                             boolean typesOnly, String filterString,
                             Set<String> attributes,
@@ -2157,7 +2158,7 @@ public final class InternalClientConnection
    */
   public InternalSearchOperation
               processSearch(String rawBaseDN, SearchScope scope,
-                            DereferencePolicy derefPolicy,
+                            DereferenceAliasesPolicy derefPolicy,
                             int sizeLimit, int timeLimit,
                             boolean typesOnly, String filterString,
                             Set<String> attributes,
@@ -2205,7 +2206,7 @@ public final class InternalClientConnection
                                       RawFilter filter)
   {
     return processSearch(rawBaseDN, scope,
-                         DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0,
+                         DereferenceAliasesPolicy.NEVER, 0, 0,
                          false, filter, new LinkedHashSet<String>(0));
   }
 
@@ -2234,7 +2235,7 @@ public final class InternalClientConnection
   public InternalSearchOperation
               processSearch(ByteString rawBaseDN,
                             SearchScope scope,
-                            DereferencePolicy derefPolicy,
+                            DereferenceAliasesPolicy derefPolicy,
                             int sizeLimit, int timeLimit,
                             boolean typesOnly, RawFilter filter,
                             Set<String> attributes)
@@ -2271,7 +2272,7 @@ public final class InternalClientConnection
   public InternalSearchOperation
               processSearch(ByteString rawBaseDN,
                             SearchScope scope,
-                            DereferencePolicy derefPolicy,
+                            DereferenceAliasesPolicy derefPolicy,
                             int sizeLimit, int timeLimit,
                             boolean typesOnly, RawFilter filter,
                             Set<String> attributes,
@@ -2311,7 +2312,7 @@ public final class InternalClientConnection
   public InternalSearchOperation
               processSearch(ByteString rawBaseDN,
                             SearchScope scope,
-                            DereferencePolicy derefPolicy,
+                            DereferenceAliasesPolicy derefPolicy,
                             int sizeLimit, int timeLimit,
                             boolean typesOnly, RawFilter filter,
                             Set<String> attributes,
@@ -2352,7 +2353,7 @@ public final class InternalClientConnection
                                       SearchFilter filter)
   {
     return processSearch(baseDN, scope,
-                         DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0,
+                         DereferenceAliasesPolicy.NEVER, 0, 0,
                          false, filter, new LinkedHashSet<String>(0));
   }
 
@@ -2380,7 +2381,7 @@ public final class InternalClientConnection
    */
   public InternalSearchOperation
               processSearch(DN baseDN, SearchScope scope,
-                            DereferencePolicy derefPolicy,
+                            DereferenceAliasesPolicy derefPolicy,
                             int sizeLimit, int timeLimit,
                             boolean typesOnly, SearchFilter filter,
                             Set<String> attributes)
@@ -2416,7 +2417,7 @@ public final class InternalClientConnection
    */
   public InternalSearchOperation
               processSearch(DN baseDN, SearchScope scope,
-                            DereferencePolicy derefPolicy,
+                            DereferenceAliasesPolicy derefPolicy,
                             int sizeLimit, int timeLimit,
                             boolean typesOnly, SearchFilter filter,
                             Set<String> attributes,
@@ -2455,7 +2456,7 @@ public final class InternalClientConnection
    */
   public InternalSearchOperation
               processSearch(DN baseDN, SearchScope scope,
-                            DereferencePolicy derefPolicy,
+                            DereferenceAliasesPolicy derefPolicy,
                             int sizeLimit, int timeLimit,
                             boolean typesOnly, SearchFilter filter,
                             Set<String> attributes,

@@ -49,7 +49,7 @@ import org.opends.server.tools.LDAPDelete;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
-import org.opends.server.types.DereferencePolicy;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
@@ -1418,7 +1418,7 @@ public class GroupManagerTestCase
          new InternalSearchOperation(conn0, InternalClientConnection.nextOperationID(),
                   InternalClientConnection.nextMessageID(), null, DN.rootDN(),
                   SearchScope.BASE_OBJECT,
-                  DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                  DereferenceAliasesPolicy.NEVER, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=*)"), null,
                   null);
 
@@ -1444,7 +1444,7 @@ public class GroupManagerTestCase
          new InternalSearchOperation(conn1, InternalClientConnection.nextOperationID(),
                   InternalClientConnection.nextMessageID(), null, DN.rootDN(),
                   SearchScope.BASE_OBJECT,
-                  DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0,  false,
+                  DereferenceAliasesPolicy.NEVER, 0, 0,  false,
                   SearchFilter.createFilterFromString("(objectClass=*)"), null,
                   null);
 
@@ -1474,7 +1474,7 @@ public class GroupManagerTestCase
          new InternalSearchOperation(conn2, InternalClientConnection.nextOperationID(),
                   InternalClientConnection.nextMessageID(), null, DN.rootDN(),
                   SearchScope.BASE_OBJECT,
-                  DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0,  false,
+                  DereferenceAliasesPolicy.NEVER, 0, 0,  false,
                   SearchFilter.createFilterFromString("(objectClass=*)"), null,
                   null);
 
@@ -1504,7 +1504,7 @@ public class GroupManagerTestCase
          new InternalSearchOperation(conn3, InternalClientConnection.nextOperationID(),
                   InternalClientConnection.nextMessageID(), null, DN.rootDN(),
                   SearchScope.BASE_OBJECT,
-                  DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0,  false,
+                  DereferenceAliasesPolicy.NEVER, 0, 0,  false,
                   SearchFilter.createFilterFromString("(objectClass=*)"), null,
                   null);
 
@@ -2309,14 +2309,6 @@ public class GroupManagerTestCase
     // group operations correctly.
     DN userDN = DN.valueOf("uid=test1,ou=people,dc=example,dc=com");
     InternalClientConnection conn = new InternalClientConnection(userDN);
-    InternalSearchOperation searchOperation =
-         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
-                  InternalClientConnection.nextMessageID(), null, DN.rootDN(),
-                  SearchScope.BASE_OBJECT,
-                  DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
-                  SearchFilter.createFilterFromString("(objectClass=*)"), null,
-                  null);
-
     assertTrue(conn.isMemberOf(group1, null));
     assertTrue(conn.isMemberOf(group2, null));
     assertTrue(conn.isMemberOf(group3, null));
@@ -2335,14 +2327,6 @@ public class GroupManagerTestCase
 
     InternalClientConnection conn1 =
             new InternalClientConnection(userDN);
-    searchOperation =
-         new InternalSearchOperation(conn1, InternalClientConnection.nextOperationID(),
-                  InternalClientConnection.nextMessageID(), null, DN.rootDN(),
-                  SearchScope.BASE_OBJECT,
-                  DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
-                  SearchFilter.createFilterFromString("(objectClass=*)"), null,
-                  null);
-
     group1 = groupManager.getGroupInstance(
             DN.valueOf("cn=group1,ou=moregroups,dc=example,dc=com"));
     assertNotNull(group1);
@@ -2385,14 +2369,6 @@ public class GroupManagerTestCase
     // group operations correctly.
     DN userDN = DN.valueOf("uid=test1,ou=people,dc=example,dc=com");
     InternalClientConnection conn = new InternalClientConnection(userDN);
-    InternalSearchOperation searchOperation =
-         new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
-                  InternalClientConnection.nextMessageID(), null, DN.rootDN(),
-                  SearchScope.BASE_OBJECT,
-                  DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
-                  SearchFilter.createFilterFromString("(objectClass=*)"), null,
-                  null);
-
     assertTrue(conn.isMemberOf(group1, null));
     assertTrue(conn.isMemberOf(group2, null));
     assertTrue(conn.isMemberOf(group3, null));
@@ -2415,14 +2391,6 @@ public class GroupManagerTestCase
 
     InternalClientConnection conn1 =
             new InternalClientConnection(userDN);
-    searchOperation =
-         new InternalSearchOperation(conn1, InternalClientConnection.nextOperationID(),
-                  InternalClientConnection.nextMessageID(), null, DN.rootDN(),
-                  SearchScope.BASE_OBJECT,
-                  DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
-                  SearchFilter.createFilterFromString("(objectClass=*)"), null,
-                  null);
-
     group1 = groupManager.getGroupInstance(
             DN.valueOf("cn=group1,ou=moregroups,dc=example,dc=com"));
     assertNotNull(group1);

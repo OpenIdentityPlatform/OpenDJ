@@ -65,7 +65,7 @@ import org.opends.server.tools.LDAPReader;
 import org.opends.server.tools.LDAPWriter;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.Control;
-import org.opends.server.types.DereferencePolicy;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDAPException;
 import org.forgerock.opendj.ldap.ModificationType;
@@ -365,7 +365,7 @@ public class TaskClient {
     writeSearch(new SearchRequestProtocolOp(
         ByteString.valueOf(ConfigConstants.DN_TASK_ROOT),
             SearchScope.WHOLE_SUBTREE,
-            DereferencePolicy.NEVER_DEREF_ALIASES,
+            DereferenceAliasesPolicy.NEVER,
             Integer.MAX_VALUE,
             Integer.MAX_VALUE,
             false,
@@ -417,7 +417,7 @@ public class TaskClient {
     writeSearch(new SearchRequestProtocolOp(
         ByteString.valueOf(ConfigConstants.DN_TASK_ROOT),
             SearchScope.WHOLE_SUBTREE,
-            DereferencePolicy.NEVER_DEREF_ALIASES,
+            DereferenceAliasesPolicy.NEVER,
             Integer.MAX_VALUE,
             Integer.MAX_VALUE,
             false,

@@ -37,6 +37,7 @@ import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
@@ -4426,7 +4427,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
   {
     final int timeout = (int) (cfg.getConnectionTimeout() / 1000);
     return new SearchRequestProtocolOp(ByteString.valueOf(dn),
-        SearchScope.WHOLE_SUBTREE, DereferencePolicy.DEREF_ALWAYS, 1, timeout,
+        SearchScope.WHOLE_SUBTREE, DereferenceAliasesPolicy.ALWAYS, 1, timeout,
         true, RawFilter.create(filter),
         LDAPPassThroughAuthenticationPolicyFactory.NO_ATTRIBUTES);
   }

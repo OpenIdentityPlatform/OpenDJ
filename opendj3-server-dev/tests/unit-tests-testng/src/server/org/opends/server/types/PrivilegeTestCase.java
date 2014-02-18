@@ -34,6 +34,7 @@ import java.util.*;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
@@ -1346,7 +1347,7 @@ public class PrivilegeTestCase extends TypesTestCase
     InternalSearchOperation searchOperation = new InternalSearchOperation(conn,
                   nextOperationID(), nextMessageID(), controls, targetDN,
                   SearchScope.BASE_OBJECT,
-                  DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                  DereferenceAliasesPolicy.NEVER, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=*)"), null,
                   null);
     searchOperation.run();
@@ -1498,7 +1499,7 @@ public class PrivilegeTestCase extends TypesTestCase
     InternalSearchOperation searchOperation = new InternalSearchOperation(conn, nextOperationID(),
                   nextMessageID(), controls, targetDN,
                   SearchScope.BASE_OBJECT,
-                  DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                  DereferenceAliasesPolicy.NEVER, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=*)"), null,
                   null);
     searchOperation.run();

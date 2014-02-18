@@ -31,7 +31,7 @@ package org.opends.server.types.operation;
 import java.util.Set;
 
 import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.types.DereferencePolicy;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.opends.server.types.DN;
 import org.opends.server.types.RawFilter;
 import org.forgerock.opendj.ldap.SearchScope;
@@ -90,7 +90,7 @@ public interface PostOperationSearchOperation
    * @return  The alias dereferencing policy for this search
    *          operation.
    */
-  public DereferencePolicy getDerefPolicy();
+  public DereferenceAliasesPolicy getDerefPolicy();
 
 
 
