@@ -40,6 +40,7 @@ import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.protocol.*;
 import org.opends.server.replication.server.changelog.api.*;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.ServerConstants;
 
 import static org.opends.messages.ReplicationMessages.*;

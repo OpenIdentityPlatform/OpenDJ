@@ -42,6 +42,7 @@ import org.opends.server.replication.protocol.AddMsg;
 import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.protocol.ModifyDNMsg;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.testng.annotations.Test;
 
 import static org.opends.server.TestCaseUtils.*;

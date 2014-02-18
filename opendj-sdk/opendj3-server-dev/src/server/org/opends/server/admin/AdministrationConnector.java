@@ -56,7 +56,7 @@ import org.opends.server.protocols.ldap.LDAPConnectionHandler;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
-import org.opends.server.types.ResultCode;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.CertificateManager;
 import org.opends.server.util.SetupUtils;
 import org.opends.server.admin.std.server.TrustManagerProviderCfg;

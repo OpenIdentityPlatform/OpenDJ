@@ -42,6 +42,7 @@ import org.opends.server.protocols.ldap.*;
 import org.opends.server.tools.*;
 import org.opends.server.tools.LDAPReader;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;

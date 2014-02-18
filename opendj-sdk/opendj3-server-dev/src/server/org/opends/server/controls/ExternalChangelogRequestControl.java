@@ -25,6 +25,7 @@
  *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.controls;
+
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.getExceptionMessage;
@@ -39,10 +40,7 @@ import org.opends.server.replication.common.MultiDomainServerState;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.Control;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.ResultCode;
-
-
-
+import org.forgerock.opendj.ldap.ResultCode;
 
 /**
  * This class implements the control used to browse the external changelog.

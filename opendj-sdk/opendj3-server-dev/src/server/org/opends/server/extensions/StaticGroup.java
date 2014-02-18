@@ -60,7 +60,7 @@ import org.opends.server.types.MembershipException;
 import org.opends.server.types.Modification;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.opends.server.types.ObjectClass;
-import org.opends.server.types.ResultCode;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.types.SearchFilter;
 import org.forgerock.opendj.ldap.SearchScope;
 

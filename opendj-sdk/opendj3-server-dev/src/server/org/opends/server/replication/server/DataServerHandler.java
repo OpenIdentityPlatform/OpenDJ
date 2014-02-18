@@ -34,6 +34,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.replication.common.*;
 import org.opends.server.replication.protocol.*;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.replication.common.ServerStatus.*;
 import static org.opends.server.replication.common.StatusMachine.*;

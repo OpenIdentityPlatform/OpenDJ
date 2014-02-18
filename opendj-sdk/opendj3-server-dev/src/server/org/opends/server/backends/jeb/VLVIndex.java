@@ -48,6 +48,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.StaticUtils;
 
 import com.sleepycat.je.*;

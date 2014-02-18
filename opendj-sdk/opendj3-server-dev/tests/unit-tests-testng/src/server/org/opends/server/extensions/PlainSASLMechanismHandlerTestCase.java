@@ -41,7 +41,7 @@ import org.opends.server.schema.SchemaConstants;
 import org.opends.server.tools.LDAPSearch;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.Entry;
-import org.opends.server.types.ResultCode;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;

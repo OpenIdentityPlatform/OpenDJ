@@ -46,6 +46,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 
 import static org.opends.messages.ExtensionMessages.*;
 
@@ -214,7 +215,7 @@ public class ExactMatchIdentityMapper
                               DereferencePolicy.NEVER_DEREF_ALIASES, 1, 10,
                               false, filter, requestedAttributes);
 
-      switch (internalSearch.getResultCode())
+      switch (internalSearch.getResultCode().asEnum())
       {
         case SUCCESS:
           // This is fine.  No action needed.

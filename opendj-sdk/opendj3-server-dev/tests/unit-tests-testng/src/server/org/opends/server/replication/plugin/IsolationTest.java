@@ -38,7 +38,7 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.types.DN;
-import org.opends.server.types.ResultCode;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.testng.annotations.Test;
 
 /**

@@ -49,6 +49,7 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.ServerConstants;
 
 import static org.opends.messages.ConfigMessages.*;

@@ -38,6 +38,7 @@ import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.UniqueCharactersPasswordValidatorCfg;
 import org.opends.server.api.PasswordValidator;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ByteString;
 import static org.opends.messages.ExtensionMessages.*;
 import org.forgerock.i18n.LocalizableMessageBuilder;

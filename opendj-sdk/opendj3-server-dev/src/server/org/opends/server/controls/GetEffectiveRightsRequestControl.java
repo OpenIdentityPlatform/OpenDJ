@@ -35,6 +35,7 @@ import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.util.ServerConstants.*;

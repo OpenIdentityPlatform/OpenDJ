@@ -37,7 +37,7 @@ import org.opends.server.admin.server.ConfigurationDeleteListener;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.ResultCode;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.loggers.RetentionPolicy;
 import org.opends.server.config.ConfigException;
 

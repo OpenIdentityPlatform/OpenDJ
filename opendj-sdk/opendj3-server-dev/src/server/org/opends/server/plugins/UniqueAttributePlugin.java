@@ -47,6 +47,7 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.types.operation.*;
 
 import static org.opends.messages.PluginMessages.*;
@@ -665,7 +666,7 @@ public class UniqueAttributePlugin
         }
       }
 
-      switch (searchOperation.getResultCode())
+      switch (searchOperation.getResultCode().asEnum())
       {
         case SUCCESS:
         case NO_SUCH_OBJECT:

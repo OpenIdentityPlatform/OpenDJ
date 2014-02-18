@@ -43,7 +43,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.tasks.TasksTestCase;
 import org.opends.server.types.DN;
 
-import org.opends.server.types.ResultCode;
+import org.forgerock.opendj.ldap.ResultCode;
 import static org.testng.Assert.*;
 
 import static org.opends.server.util.ServerConstants.*;

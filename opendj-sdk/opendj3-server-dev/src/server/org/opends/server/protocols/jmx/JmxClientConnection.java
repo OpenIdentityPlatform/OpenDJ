@@ -48,6 +48,7 @@ import org.opends.server.protocols.internal.InternalSearchListener;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 
 import static org.opends.messages.ProtocolMessages.*;
 

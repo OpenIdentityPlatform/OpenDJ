@@ -62,6 +62,7 @@ import org.opends.server.protocols.ldap.LDAPReader;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.tools.dsconfig.DSConfig;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.FilePermission;
 import org.opends.server.util.BuildVersion;

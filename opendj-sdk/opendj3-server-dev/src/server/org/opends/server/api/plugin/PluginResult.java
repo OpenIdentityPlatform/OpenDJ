@@ -27,7 +27,7 @@
 package org.opends.server.api.plugin;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.types.ResultCode;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.types.DN;
 import org.opends.server.types.DisconnectReason;
 

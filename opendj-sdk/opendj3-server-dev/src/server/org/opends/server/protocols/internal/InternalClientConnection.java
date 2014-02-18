@@ -40,6 +40,7 @@ import org.opends.server.api.ConnectionHandler;
 import org.opends.server.core.*;
 import org.opends.server.core.networkgroups.NetworkGroup;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.AddChangeRecordEntry;
 import org.opends.server.util.DeleteChangeRecordEntry;
 import org.opends.server.util.ModifyChangeRecordEntry;

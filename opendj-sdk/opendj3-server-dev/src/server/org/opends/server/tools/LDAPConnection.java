@@ -464,9 +464,8 @@ public class LDAPConnection
                 le.getCause());
     } catch (DirectoryException de)
     {
-      throw new LDAPConnectionException(de.getMessageObject(), de
-          .getResultCode().getIntValue(), null, de.getMatchedDN(), de
-          .getCause());
+      throw new LDAPConnectionException(de.getMessageObject(),
+          de.getResultCode().intValue(), null, de.getMatchedDN(), de.getCause());
     } catch(Exception ex)
     {
       logger.traceException(ex);

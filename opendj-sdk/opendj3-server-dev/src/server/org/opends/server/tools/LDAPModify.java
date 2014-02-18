@@ -59,6 +59,7 @@ import org.opends.server.protocols.ldap.ModifyDNRequestProtocolOp;
 import org.opends.server.protocols.ldap.ModifyDNResponseProtocolOp;
 import org.opends.server.protocols.ldap.ProtocolOp;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.util.AddChangeRecordEntry;
 import org.opends.server.util.ChangeRecordEntry;
@@ -383,11 +384,10 @@ public class LDAPModify
           }
           else
           {
-            // This shouldnt happen but if it does debug
-            // log it, set the error code to OTHER and
-            // fall thru.
+            // This should not happen but if it does, then debug log it,
+            // set the error code to OTHER and fall through.
             logger.traceException(ce);
-            resultCode = ResultCode.OTHER.getIntValue();
+            resultCode = ResultCode.OTHER.intValue();
             errorMessage = null;
             matchedDN = null;
             referralURLs = null;

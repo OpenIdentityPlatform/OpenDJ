@@ -35,7 +35,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.FixedTimeLogRotationPolicyCfg;
 import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.ResultCode;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.TimeThread;
 
 
@@ -49,7 +49,7 @@ public class FixedTimeRotationPolicy implements
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // The scheduled rotation times as ms offsets from the beginnging of the day.
+  // The scheduled rotation times as ms offsets from the beginning of the day.
   private int[] rotationTimes;
 
   /**

@@ -32,19 +32,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.zip.DataFormatException;
 
+import org.forgerock.opendj.io.ASN1;
+import org.forgerock.opendj.io.ASN1Writer;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.AddOperationBasis;
 import org.opends.server.core.DirectoryServer;
-import org.forgerock.opendj.io.ASN1;
-import org.forgerock.opendj.ldap.DecodeException;
-import org.forgerock.opendj.io.ASN1Writer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.plugin.EntryHistorical;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.types.operation.PostOperationAddOperation;
 
 import static org.opends.server.replication.protocol.OperationContext.*;

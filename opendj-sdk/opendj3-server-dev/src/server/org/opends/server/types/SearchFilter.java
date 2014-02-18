@@ -41,6 +41,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.core.DirectoryServer;
@@ -2724,8 +2725,6 @@ public final class SearchFilter
       // undefined.
       return ConditionResult.UNDEFINED;
     }
-
-    ConditionResult result = ConditionResult.FALSE;
 
     // Iterate through all the attributes and see if we can find a match.
     AttributeValue dummyAttributeValue = AttributeValues.create(value,

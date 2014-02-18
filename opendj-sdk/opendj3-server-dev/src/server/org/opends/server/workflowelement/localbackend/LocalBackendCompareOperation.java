@@ -40,6 +40,7 @@ import org.opends.server.controls.ProxiedAuthV2Control;
 import org.opends.server.core.*;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.types.operation.PostOperationCompareOperation;
 import org.opends.server.types.operation.PostResponseCompareOperation;
 import org.opends.server.types.operation.PreOperationCompareOperation;

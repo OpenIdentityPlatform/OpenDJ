@@ -33,7 +33,7 @@ import org.opends.server.api.ExtendedOperationHandler;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.ExtendedOperation;
 import org.opends.server.types.InitializationException;
-import org.opends.server.types.ResultCode;
+import org.forgerock.opendj.ldap.ResultCode;
 
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.util.ServerConstants.*;

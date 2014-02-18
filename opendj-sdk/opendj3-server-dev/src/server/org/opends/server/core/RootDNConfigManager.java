@@ -48,7 +48,7 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.Privilege;
-import org.opends.server.types.ResultCode;
+import org.forgerock.opendj.ldap.ResultCode;
 
 import static org.opends.messages.ConfigMessages.*;
 

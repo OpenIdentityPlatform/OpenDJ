@@ -62,6 +62,7 @@ import org.opends.server.extensions.TLSByteChannel;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.monitors.ClientConnectionMonitorProvider;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.SelectableCertificateKeyManager;
 import org.opends.server.util.StaticUtils;
 

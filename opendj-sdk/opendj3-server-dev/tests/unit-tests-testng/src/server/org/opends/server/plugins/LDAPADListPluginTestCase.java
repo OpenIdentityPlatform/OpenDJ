@@ -51,7 +51,7 @@ import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-import org.opends.server.types.ResultCode;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.types.SearchFilter;
 import org.forgerock.opendj.ldap.SearchScope;
 

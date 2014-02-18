@@ -45,7 +45,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.RawFilter;
-import org.opends.server.types.ResultCode;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.types.operation.PreParseOperation;
 import org.opends.server.types.operation.PreParseSearchOperation;
 

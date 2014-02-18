@@ -32,7 +32,9 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.AccessLogPublisherCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.core.*;
-import org.opends.server.types.*;
+import org.opends.server.types.DisconnectReason;
+import org.opends.server.types.SearchResultEntry;
+import org.opends.server.types.SearchResultReference;
 
 /**
  * This class defines the set of methods and structures that must be

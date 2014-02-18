@@ -37,6 +37,7 @@ import java.util.TreeMap;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.admin.std.server.WorkflowCfg;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.workflowelement.WorkflowElement;
 import org.opends.server.workflowelement.ObservableWorkflowElementState;
 

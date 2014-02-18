@@ -54,6 +54,7 @@ import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.*;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;

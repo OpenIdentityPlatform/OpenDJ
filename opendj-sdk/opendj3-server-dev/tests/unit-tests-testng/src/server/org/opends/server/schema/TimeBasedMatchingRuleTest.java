@@ -46,7 +46,7 @@ import org.forgerock.opendj.ldap.ConditionResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.DereferencePolicy;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.ResultCode;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.types.SearchResultEntry;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.util.TimeThread;
@@ -64,21 +64,14 @@ public final class TimeBasedMatchingRuleTest
 {
   //User DNs to be used in tests.
   private DN user1;
-
-  private DN user2 ;
-
+  private DN user2;
   private DN user3;
-
   private DN user4;
-
   private DN user5;
-
   private DN user6;
-  private DN user7;
-  private DN user8;
 
- private final static String TIME_ATTR = "test-time";
- private final static String DATE_ATTR = "test-date";
+  private final static String TIME_ATTR = "test-time";
+  private final static String DATE_ATTR = "test-date";
 
 
   /**
@@ -101,11 +94,9 @@ public final class TimeBasedMatchingRuleTest
     user4 = DN.valueOf("cn=user4,dc=example,dc=com");
     user5 = DN.valueOf("cn=user5,dc=example,dc=com");
     user6 = DN.valueOf("cn=user6,dc=example,dc=com");
-    user7 = DN.valueOf("cn=user7,dc=example,dc=com");
-    user8 = DN.valueOf("cn=user!,dc=example,dc=com");
 
     /**
-    Extend the schema and add an attribute which is baseed on
+    Extend the schema and add an attribute which is based on
     generalizedTimeSyntax. Since all the existing attributes based
     on that syntax are read-only, let us create a new attribute and
     add it.*/

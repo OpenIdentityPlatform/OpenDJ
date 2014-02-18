@@ -57,7 +57,7 @@ import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
-import org.opends.server.types.ResultCode;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.EMailMessage;
 
 import static org.opends.messages.ExtensionMessages.*;

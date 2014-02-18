@@ -29,7 +29,7 @@ package org.opends.server.tools.tasks;
 
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.types.ResultCode.*;
+import static org.forgerock.opendj.ldap.ResultCode.*;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -430,7 +430,7 @@ public class TaskClient {
       LDAPMessage responseMessage = reader.readMessage();
       if (responseMessage == null) {
         LocalizableMessage message = ERR_TASK_CLIENT_UNEXPECTED_CONNECTION_CLOSURE.get();
-        throw new LDAPException(UNAVAILABLE.getIntValue(), message);
+        throw new LDAPException(UNAVAILABLE.intValue(), message);
       } else {
         opType = responseMessage.getProtocolOpType();
         if (opType == LDAPConstants.OP_TYPE_SEARCH_RESULT_ENTRY) {
@@ -495,7 +495,7 @@ public class TaskClient {
 
         if (responseMessage == null) {
           LocalizableMessage message = ERR_TASK_CLIENT_UNEXPECTED_CONNECTION_CLOSURE.get();
-          throw new LDAPException(UNAVAILABLE.getIntValue(), message);
+          throw new LDAPException(UNAVAILABLE.intValue(), message);
         }
 
         if (responseMessage.getProtocolOpType() !=
@@ -530,7 +530,7 @@ public class TaskClient {
 
         if (responseMessage == null) {
           LocalizableMessage message = ERR_TASK_CLIENT_UNEXPECTED_CONNECTION_CLOSURE.get();
-          throw new LDAPException(UNAVAILABLE.getIntValue(), message);
+          throw new LDAPException(UNAVAILABLE.intValue(), message);
         }
 
         if (responseMessage.getProtocolOpType() !=

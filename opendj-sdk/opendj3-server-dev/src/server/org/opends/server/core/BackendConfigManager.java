@@ -44,6 +44,7 @@ import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigConstants;
 
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.messages.ConfigMessages.*;
 

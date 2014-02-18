@@ -46,6 +46,7 @@ import org.opends.server.admin.std.server.VirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.util.StaticUtils.*;

@@ -39,7 +39,7 @@ import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DereferencePolicy;
-import org.opends.server.types.ResultCode;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.types.SearchResultEntry;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.testng.annotations.BeforeClass;
@@ -48,7 +48,7 @@ import org.testng.annotations.DataProvider;
 
 
 /**
- * This Test Class tests various matching rules for their compability
+ * This Test Class tests various matching rules for their compatibility
  * against RFC 4517,4518 and 3454.
  */
 public final class StringPrepProfileTestCase

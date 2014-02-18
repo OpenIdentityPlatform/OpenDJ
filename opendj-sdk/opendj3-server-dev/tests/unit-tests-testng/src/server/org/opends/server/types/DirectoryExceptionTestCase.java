@@ -29,10 +29,10 @@ package org.opends.server.types;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-import org.forgerock.i18n.LocalizableMessage;
 
 import static org.testng.Assert.*;
 
@@ -52,12 +52,12 @@ public class DirectoryExceptionTestCase
   @DataProvider(name = "resultCodes")
   public Object[][] getResultCodes()
   {
-    ResultCode[] resultCodes = ResultCode.values();
-    Object[][]   array       = new Object[resultCodes.length][1];
+    List<ResultCode> resultCodes = ResultCode.values();
+    Object[][] array = new Object[resultCodes.size()][1];
 
-    for (int i=0; i < resultCodes.length; i++)
+    for (int i = 0; i < resultCodes.size(); i++)
     {
-      array[i][0] = resultCodes[i];
+      array[i][0] = resultCodes.get(i);
     }
 
     return array;

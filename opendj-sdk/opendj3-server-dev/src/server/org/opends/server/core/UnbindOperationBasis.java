@@ -34,6 +34,7 @@ import java.util.List;
 import org.opends.server.api.ClientConnection;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.types.operation.PostOperationUnbindOperation;
 import org.opends.server.types.operation.PreParseUnbindOperation;
 

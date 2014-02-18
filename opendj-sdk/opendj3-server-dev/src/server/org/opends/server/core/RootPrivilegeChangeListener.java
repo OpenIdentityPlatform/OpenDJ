@@ -38,7 +38,7 @@ import org.opends.server.admin.std.meta.RootDNCfgDefn;
 import org.opends.server.admin.std.server.RootDNCfg;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.Privilege;
-import org.opends.server.types.ResultCode;
+import org.forgerock.opendj.ldap.ResultCode;
 
 
 

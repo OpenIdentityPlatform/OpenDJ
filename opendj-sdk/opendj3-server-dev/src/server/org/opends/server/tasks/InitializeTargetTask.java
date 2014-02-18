@@ -36,6 +36,7 @@ import org.opends.server.backends.task.TaskState;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.plugin.LDAPReplicationDomain;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.core.DirectoryServer.*;

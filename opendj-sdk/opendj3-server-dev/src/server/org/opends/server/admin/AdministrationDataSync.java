@@ -48,7 +48,7 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.Modification;
 import org.forgerock.opendj.ldap.ModificationType;
-import org.opends.server.types.ResultCode;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.types.SearchResultEntry;
 import org.forgerock.opendj.ldap.SearchScope;
 

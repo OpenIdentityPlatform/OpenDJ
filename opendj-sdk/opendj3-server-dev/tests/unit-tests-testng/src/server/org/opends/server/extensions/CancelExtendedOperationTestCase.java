@@ -71,14 +71,14 @@ import org.opends.server.types.Entry;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.opends.server.types.RawAttribute;
 import org.opends.server.types.RawModification;
-import org.opends.server.types.ResultCode;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 
 /**
- * A set of test cases for the cancel extended oepration handler.
+ * A set of test cases for the cancel extended operation handler.
  */
 public class CancelExtendedOperationTestCase
        extends ExtensionsTestCase
@@ -401,7 +401,7 @@ public class CancelExtendedOperationTestCase
     assertEquals(bindResponse.getResultCode(), LDAPResultCode.SUCCESS);
 
 
-    // Create a "Who Am I?" extended oepration and send it to the server.  Make
+    // Create a "Who Am I?" extended operation and send it to the server.  Make
     // sure to include the delay request control so it won't complete before we
     // can send the cancel request.
     ExtendedRequestProtocolOp whoAmIRequest =

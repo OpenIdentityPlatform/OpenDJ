@@ -43,6 +43,7 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.types.operation.*;
 import org.opends.server.workflowelement.localbackend.LocalBackendSearchOperation;
 

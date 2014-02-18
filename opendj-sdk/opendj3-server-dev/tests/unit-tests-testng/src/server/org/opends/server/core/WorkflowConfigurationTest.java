@@ -42,6 +42,7 @@ import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.UtilTestCase;
 import org.opends.server.workflowelement.localbackend.LocalBackendWorkflowElement;

@@ -36,17 +36,20 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.io.ASN1;
+import org.forgerock.opendj.io.ASN1Reader;
+import org.forgerock.opendj.io.ASN1Writer;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.config.ConfigException;
 import org.opends.server.controls.ControlDecoder;
-import org.forgerock.opendj.io.ASN1;
-import org.forgerock.opendj.io.ASN1Reader;
-import org.forgerock.opendj.io.ASN1Writer;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
+import org.opends.server.types.Control;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.OperationType;
 import org.opends.server.types.operation.*;
 
 /**
@@ -72,7 +75,7 @@ public class ShortCircuitPlugin
   public static class ShortCircuitRequestControl extends Control
   {
     /**
-     * ControlDecoder implentation to decode this control from a ByteString.
+     * ControlDecoder implementation to decode this control from a ByteString.
      */
     private final static class Decoder
         implements ControlDecoder<ShortCircuitRequestControl>

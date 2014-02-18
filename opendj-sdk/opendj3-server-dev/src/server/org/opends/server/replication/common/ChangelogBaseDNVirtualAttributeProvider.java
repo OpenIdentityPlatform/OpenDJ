@@ -36,6 +36,7 @@ import org.opends.server.admin.std.server.UserDefinedVirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.util.ServerConstants;
 

@@ -32,7 +32,7 @@ import java.util.List;
 
 import org.opends.server.types.AdditionalLogItem;
 import org.opends.server.types.DN;
-import org.opends.server.types.ResultCode;
+import org.forgerock.opendj.ldap.ResultCode;
 
 
 

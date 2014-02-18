@@ -51,7 +51,7 @@ import org.opends.server.tasks.InitializeTask;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.ResultCode;
+import org.forgerock.opendj.ldap.ResultCode;
 
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.replication.common.AssuredMode.*;

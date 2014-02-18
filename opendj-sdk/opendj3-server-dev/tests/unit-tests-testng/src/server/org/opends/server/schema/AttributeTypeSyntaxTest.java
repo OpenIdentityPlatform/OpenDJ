@@ -41,7 +41,7 @@ import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.types.Control;
 import org.opends.server.types.DereferencePolicy;
-import org.opends.server.types.ResultCode;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 
 import static org.testng.Assert.*;

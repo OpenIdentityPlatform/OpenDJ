@@ -43,7 +43,7 @@ import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValues;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-import org.opends.server.types.ResultCode;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.AfterClass;
 

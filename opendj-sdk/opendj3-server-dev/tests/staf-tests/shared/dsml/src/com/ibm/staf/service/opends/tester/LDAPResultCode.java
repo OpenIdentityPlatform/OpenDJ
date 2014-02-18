@@ -22,8 +22,8 @@
  *
  *
  *      Portions Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
-
 package com.ibm.staf.service.opends.tester;
 
 /**
@@ -601,7 +601,7 @@ public class LDAPResultCode
   {
     String message;
 
-    switch (resultCode)
+    switch (resultCode.asEnum())
     {
       case SUCCESS:
         message = "SUCCESS";

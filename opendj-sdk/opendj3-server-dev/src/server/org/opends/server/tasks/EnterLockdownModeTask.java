@@ -35,6 +35,7 @@ import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import static org.opends.messages.TaskMessages.*;
 
 

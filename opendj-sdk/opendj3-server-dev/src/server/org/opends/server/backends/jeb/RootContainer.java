@@ -37,7 +37,7 @@ import org.opends.server.monitors.DatabaseEnvironmentMonitor;
 import org.opends.server.types.DN;
 import org.opends.server.types.FilePermission;
 import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.ResultCode;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.api.Backend;
 import org.opends.server.admin.std.server.LocalDBBackendCfg;
 import org.opends.server.admin.server.ConfigurationChangeListener;

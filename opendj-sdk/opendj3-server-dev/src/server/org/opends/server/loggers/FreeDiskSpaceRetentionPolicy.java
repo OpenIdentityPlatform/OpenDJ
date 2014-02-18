@@ -41,7 +41,7 @@ import org.opends.server.admin.std.server.FreeDiskSpaceLogRetentionPolicyCfg;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.ResultCode;
+import org.forgerock.opendj.ldap.ResultCode;
 
 /**
  * This class implements a retention policy based on the free disk space

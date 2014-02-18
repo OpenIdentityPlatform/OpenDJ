@@ -44,6 +44,7 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.Base64;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;

@@ -49,7 +49,7 @@ import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 import org.opends.server.types.Modification;
 import org.forgerock.opendj.ldap.ModificationType;
-import org.opends.server.types.ResultCode;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;

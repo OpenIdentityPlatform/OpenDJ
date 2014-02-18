@@ -42,6 +42,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.LDAPPassThroughAuthenticationPolicyCfgDefn.MappingPolicy;
@@ -58,7 +59,20 @@ import org.opends.server.schema.SchemaConstants;
 import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.tools.LDAPReader;
 import org.opends.server.tools.LDAPWriter;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.AttributeValue;
+import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.DereferencePolicy;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.HostPort;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.LDAPException;
+import org.opends.server.types.RawFilter;
+import org.opends.server.types.RawModification;
+import org.opends.server.types.SearchFilter;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;
 
@@ -977,7 +991,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
             final ResultCode resultCode = ResultCode.valueOf(searchResult
                 .getResultCode());
-            switch (resultCode)
+            switch (resultCode.asEnum())
             {
             case SUCCESS:
               // The search succeeded. Drop out of the loop and check that we
@@ -987,16 +1001,15 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
             case SIZE_LIMIT_EXCEEDED:
               // Multiple matching candidates.
               throw new DirectoryException(
-                  ResultCode.CLIENT_SIDE_MORE_RESULTS_TO_RETURN,
+                  ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED,
                   ERR_LDAP_PTA_CONNECTION_SEARCH_SIZE_LIMIT.get(host, port, cfg.dn(), baseDN, filter));
 
             default:
               // The search failed for some reason.
               throw new DirectoryException(resultCode,
                   ERR_LDAP_PTA_CONNECTION_SEARCH_FAILED.get(host, port,
-                      cfg.dn(), baseDN, filter, resultCode.getIntValue(),
-                      resultCode.getResultCodeName(),
-                      searchResult.getErrorMessage()));
+                      cfg.dn(), baseDN, filter, resultCode.intValue(),
+                      resultCode.getName(), searchResult.getErrorMessage()));
             }
 
             break;
@@ -1013,7 +1026,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
         {
           // Multiple matching candidates.
           throw new DirectoryException(
-              ResultCode.CLIENT_SIDE_MORE_RESULTS_TO_RETURN,
+              ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED,
               ERR_LDAP_PTA_CONNECTION_SEARCH_SIZE_LIMIT.get(host, port,
                   cfg.dn(), baseDN, filter));
         }
@@ -1066,7 +1079,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
             throw new DirectoryException(resultCode,
                 ERR_LDAP_PTA_CONNECTION_BIND_FAILED.get(host, port,
                     cfg.dn(), username,
-                    resultCode.getIntValue(), resultCode.getResultCodeName(),
+                    resultCode.intValue(), resultCode.getName(),
                     bindResponse.getErrorMessage()));
           }
 
@@ -1121,8 +1134,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
 
             throw new DirectoryException(mappedResultCode,
                 ERR_LDAP_PTA_CONNECTION_DISCONNECTING.get(host, port,
-                    cfg.dn(), resultCode.getIntValue(),
-                    resultCode.getResultCodeName(),
+                    cfg.dn(), resultCode.intValue(), resultCode.getName(),
                     extendedResponse.getErrorMessage()));
           }
         }
@@ -1730,13 +1742,13 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
               }
               catch (final DirectoryException e)
               {
-                switch (e.getResultCode())
+                switch (e.getResultCode().asEnum())
                 {
                 case NO_SUCH_OBJECT:
                 case CLIENT_SIDE_NO_RESULTS_RETURNED:
                   // Ignore and try next base DN.
                   break;
-                case CLIENT_SIDE_MORE_RESULTS_TO_RETURN:
+                case CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED:
                   // More than one matching entry was returned.
                   throw new DirectoryException(ResultCode.INVALID_CREDENTIALS,
                       ERR_LDAP_PTA_MAPPED_SEARCH_TOO_MANY_CANDIDATES.get(
@@ -1784,7 +1796,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
           }
           catch (final DirectoryException e)
           {
-            switch (e.getResultCode())
+            switch (e.getResultCode().asEnum())
             {
             case NO_SUCH_OBJECT:
             case INVALID_CREDENTIALS:
@@ -2231,7 +2243,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
    */
   static boolean isServiceError(final ResultCode resultCode)
   {
-    switch (resultCode)
+    switch (resultCode.asEnum())
     {
     case OPERATIONS_ERROR:
     case PROTOCOL_ERROR:

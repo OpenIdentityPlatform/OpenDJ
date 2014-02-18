@@ -51,7 +51,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
-import org.opends.server.types.ResultCode;
+import org.forgerock.opendj.ldap.ResultCode;
 
 
 

@@ -86,6 +86,7 @@ import org.opends.server.schema.MatchingRuleUseSyntax;
 import org.opends.server.schema.NameFormSyntax;
 import org.opends.server.schema.ObjectClassSyntax;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;

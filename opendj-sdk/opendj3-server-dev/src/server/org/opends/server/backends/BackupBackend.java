@@ -49,6 +49,7 @@ import org.opends.server.core.SearchOperation;
 import org.opends.server.schema.BooleanSyntax;
 import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.config.ConfigConstants.*;

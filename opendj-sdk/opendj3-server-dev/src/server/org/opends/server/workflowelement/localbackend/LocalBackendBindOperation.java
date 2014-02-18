@@ -42,6 +42,7 @@ import org.opends.server.controls.*;
 import org.opends.server.core.*;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.operation.PostOperationBindOperation;
 import org.opends.server.types.operation.PostResponseBindOperation;

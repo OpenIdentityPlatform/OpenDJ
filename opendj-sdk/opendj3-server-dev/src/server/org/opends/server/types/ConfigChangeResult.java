@@ -26,18 +26,12 @@
  */
 package org.opends.server.types;
 
-import org.forgerock.i18n.LocalizableMessage;
-
-
-
-
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-
-
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ResultCode;
 
 /**
  * This class defines a data structure that can be used to hold
@@ -199,6 +193,7 @@ public final class ConfigChangeResult
    *
    * @return  A string representation of this config change result.
    */
+  @Override
   public String toString()
   {
     StringBuilder buffer = new StringBuilder();

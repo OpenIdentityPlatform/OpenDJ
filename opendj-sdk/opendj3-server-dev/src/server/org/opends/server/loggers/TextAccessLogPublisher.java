@@ -44,6 +44,7 @@ import org.opends.server.api.ExtendedOperationHandler;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.*;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.util.TimeThread;
 
@@ -1209,7 +1210,7 @@ public final class TextAccessLogPublisher extends
       Operation operation)
   {
     buffer.append(" result=");
-    buffer.append(operation.getResultCode().getIntValue());
+    buffer.append(operation.getResultCode().intValue());
 
     final LocalizableMessageBuilder msg = operation.getErrorMessage();
     if ((msg != null) && (msg.length() > 0))
@@ -1220,7 +1221,7 @@ public final class TextAccessLogPublisher extends
     if (operation.getMaskedResultCode() != null)
     {
       buffer.append(" maskedResult=");
-      buffer.append(operation.getMaskedResultCode().getIntValue());
+      buffer.append(operation.getMaskedResultCode().intValue());
     }
     final LocalizableMessageBuilder maskedMsg = operation.getMaskedErrorMessage();
     if (maskedMsg != null && maskedMsg.length() > 0)

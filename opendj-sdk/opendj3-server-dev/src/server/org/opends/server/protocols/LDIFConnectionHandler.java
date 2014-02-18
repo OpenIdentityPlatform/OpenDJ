@@ -54,7 +54,7 @@ import org.opends.server.types.HostPort;
 import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.Operation;
-import org.opends.server.types.ResultCode;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.AddChangeRecordEntry;
 import org.opends.server.util.ChangeRecordEntry;
 import org.opends.server.util.DeleteChangeRecordEntry;
@@ -459,7 +459,7 @@ public final class LDIFConnectionHandler
           }
 
           LocalizableMessage m = INFO_LDIF_CONNHANDLER_RESULT_CODE.get(
-                           operation.getResultCode().getIntValue(),
+                           operation.getResultCode().intValue(),
                            operation.getResultCode());
           writer.writeComment(m, 78);
 

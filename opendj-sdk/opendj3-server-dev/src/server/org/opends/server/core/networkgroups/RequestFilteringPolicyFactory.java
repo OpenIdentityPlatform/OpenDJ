@@ -43,7 +43,7 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.OperationType;
 import org.opends.server.types.RawFilter;
-import org.opends.server.types.ResultCode;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.types.operation.PreParseAddOperation;
 import org.opends.server.types.operation.PreParseCompareOperation;
 import org.opends.server.types.operation.PreParseDeleteOperation;

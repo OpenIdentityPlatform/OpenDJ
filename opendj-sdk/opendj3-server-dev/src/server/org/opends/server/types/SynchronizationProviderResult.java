@@ -26,9 +26,10 @@
  */
 package org.opends.server.types;
 
-import org.forgerock.i18n.LocalizableMessage;
-
 import java.util.List;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ResultCode;
 
 
 /**
@@ -97,6 +98,7 @@ public interface SynchronizationProviderResult
     /**
      * {@inheritDoc}
      */
+    @Override
     public ResultCode getResultCode()
     {
       return null;
@@ -105,6 +107,7 @@ public interface SynchronizationProviderResult
     /**
      * {@inheritDoc}
      */
+    @Override
     public DN getMatchedDN()
     {
       return null;
@@ -113,6 +116,7 @@ public interface SynchronizationProviderResult
     /**
      * {@inheritDoc}
      */
+    @Override
     public List<String> getReferralURLs()
     {
       return null;
@@ -121,6 +125,7 @@ public interface SynchronizationProviderResult
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean continueProcessing()
     {
       return true;
@@ -129,6 +134,7 @@ public interface SynchronizationProviderResult
     /**
      * {@inheritDoc}
      */
+    @Override
     public LocalizableMessage getErrorMessage()
     {
       return null;
@@ -153,14 +159,16 @@ public interface SynchronizationProviderResult
     private final LocalizableMessage errorMessage;
 
     /**
-     * Contrust a new stop processing synchronization provider
-     *  result.
+     * Construct a new stop processing synchronization provider result.
      *
-     * @param resultCode The result code for this result.
-     * @param errorMessage An message explaining why processing
-     * should stop.
-     * @param matchedDN The matched DN for this result.
-     * @param referralURLs The set of referral URLs for this result.
+     * @param resultCode
+     *          The result code for this result.
+     * @param errorMessage
+     *          An message explaining why processing should stop.
+     * @param matchedDN
+     *          The matched DN for this result.
+     * @param referralURLs
+     *          The set of referral URLs for this result.
      */
     public StopProcessing(ResultCode resultCode, LocalizableMessage errorMessage,
                           DN matchedDN, List<String> referralURLs)
@@ -172,12 +180,12 @@ public interface SynchronizationProviderResult
     }
 
     /**
-     * Contrust a new stop processing synchronization provider
-     *  result.
+     * Construct a new stop processing synchronization provider result.
      *
-     * @param resultCode The result code for this result.
-     * @param errorMessage An message explaining why processing
-     * should stop.
+     * @param resultCode
+     *          The result code for this result.
+     * @param errorMessage
+     *          An message explaining why processing should stop.
      */
     public StopProcessing(ResultCode resultCode, LocalizableMessage errorMessage)
     {
@@ -190,6 +198,7 @@ public interface SynchronizationProviderResult
     /**
      * {@inheritDoc}
      */
+    @Override
     public ResultCode getResultCode()
     {
       return resultCode;
@@ -198,6 +207,7 @@ public interface SynchronizationProviderResult
     /**
      * {@inheritDoc}
      */
+    @Override
     public DN getMatchedDN()
     {
       return matchedDN;
@@ -206,6 +216,7 @@ public interface SynchronizationProviderResult
     /**
      * {@inheritDoc}
      */
+    @Override
     public List<String> getReferralURLs()
     {
       return referralURLs;
@@ -214,6 +225,7 @@ public interface SynchronizationProviderResult
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean continueProcessing()
     {
       return false;
@@ -222,6 +234,7 @@ public interface SynchronizationProviderResult
     /**
      * {@inheritDoc}
      */
+    @Override
     public LocalizableMessage getErrorMessage()
     {
       return errorMessage;

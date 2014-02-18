@@ -51,6 +51,7 @@ import org.opends.server.authorization.dseecompat.PatternDN;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.*;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.AddressMask;
 import org.forgerock.opendj.ldap.ByteString;
 
@@ -494,7 +495,7 @@ abstract class AbstractTextAccessLogPublisher
     private boolean filterResponse(final Operation operation)
     {
       // Check response code.
-      final Integer resultCode = operation.getResultCode().getIntValue();
+      final int resultCode = operation.getResultCode().intValue();
 
       if (!cfg.getResponseResultCodeNotEqualTo().isEmpty())
       {

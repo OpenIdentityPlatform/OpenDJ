@@ -40,6 +40,7 @@ import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.core.networkgroups.NetworkGroup;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.operation.PostResponseCompareOperation;
 import org.opends.server.types.operation.PreParseCompareOperation;
@@ -485,8 +486,8 @@ public class CompareOperationBasis
     {
       logger.traceException(coe);
 
-      setResultCode(ResultCode.CANCELED);
-      cancelResult = new CancelResult(ResultCode.CANCELED, null);
+      setResultCode(ResultCode.CANCELLED);
+      cancelResult = new CancelResult(ResultCode.CANCELLED, null);
 
       appendErrorMessage(coe.getCancelRequest().getCancelReason());
     }
@@ -499,7 +500,7 @@ public class CompareOperationBasis
       logCompareResponse(this);
 
       if(cancelRequest == null || cancelResult == null ||
-          cancelResult.getResultCode() != ResultCode.CANCELED ||
+          cancelResult.getResultCode() != ResultCode.CANCELLED ||
           cancelRequest.notifyOriginalRequestor() ||
           DirectoryServer.notifyAbandonedOperations())
       {

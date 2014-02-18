@@ -42,6 +42,7 @@ import javax.management.MBeanServerFactory;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeUsage;
 import org.forgerock.opendj.ldap.schema.ObjectClassType;
 import org.forgerock.util.Reject;

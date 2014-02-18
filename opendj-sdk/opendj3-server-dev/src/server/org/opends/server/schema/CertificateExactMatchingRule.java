@@ -51,7 +51,7 @@ import org.opends.server.protocols.asn1.GSERException;
 import org.opends.server.protocols.asn1.GSERParser;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.ResultCode;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.StaticUtils;
 
 import static org.opends.messages.SchemaMessages.*;

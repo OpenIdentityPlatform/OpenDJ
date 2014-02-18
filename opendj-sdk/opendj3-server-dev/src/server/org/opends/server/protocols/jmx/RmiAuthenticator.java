@@ -43,6 +43,7 @@ import static org.opends.messages.ProtocolMessages.*;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ByteString;
 
 /**
@@ -57,7 +58,7 @@ public class RmiAuthenticator implements JMXAuthenticator
 
 
     /**
-     * The client authencation mode. <code>true</code> indicates that the
+     * The client authentication mode. <code>true</code> indicates that the
      * client will be authenticated by its certificate (SSL protocol).
      * <code>true</code> indicate , that we have to perform an lDAP
      * authentication

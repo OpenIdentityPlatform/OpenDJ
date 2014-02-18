@@ -35,6 +35,7 @@ import java.util.Collections;
 import org.opends.server.api.AbstractMatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.ByteSequence;

@@ -68,6 +68,7 @@ import org.opends.server.replication.service.ReplicationDomain;
 import org.opends.server.tasks.PurgeConflictsHistoricalTask;
 import org.opends.server.tasks.TaskUtils;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.types.operation.*;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.TimeThread;
@@ -79,7 +80,7 @@ import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.replication.plugin.EntryHistorical.*;
 import static org.opends.server.replication.protocol.OperationContext.*;
 import static org.opends.server.replication.service.ReplicationMonitor.*;
-import static org.opends.server.types.ResultCode.*;
+import static org.forgerock.opendj.ldap.ResultCode.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -661,7 +662,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         && search.getResultCode() != ResultCode.NO_SUCH_OBJECT)
     {
       logger.error(ERR_SEARCHING_GENERATION_ID,
-          search.getResultCode().getResultCodeName() + " " + search.getErrorMessage(),
+          search.getResultCode().getName() + " " + search.getErrorMessage(),
           getBaseDNString());
       return false;
     }
@@ -3358,7 +3359,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
 
       if (result != ResultCode.SUCCESS)
       {
-        logger.error(ERR_UPDATING_GENERATION_ID, result.getResultCodeName(), getBaseDNString());
+        logger.error(ERR_UPDATING_GENERATION_ID, result.getName(), getBaseDNString());
       }
     }
     else
@@ -3411,7 +3412,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
       if (search.getResultCode() != ResultCode.NO_SUCH_OBJECT)
       {
         logger.error(ERR_SEARCHING_GENERATION_ID,
-            search.getResultCode().getResultCodeName() + " " + search.getErrorMessage(),
+            search.getResultCode().getName() + " " + search.getErrorMessage(),
             getBaseDNString());
       }
     }

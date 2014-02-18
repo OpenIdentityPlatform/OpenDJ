@@ -38,6 +38,7 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
@@ -45,6 +46,7 @@ import org.testng.annotations.Test;
 
 import static org.testng.Assert.*;
 
+@SuppressWarnings("javadoc")
 public class PasswordExpirationTimeVirtualAttributeProviderTestCase
   extends ExtensionsTestCase
 {

@@ -40,6 +40,7 @@ import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 
 
 /**

@@ -40,7 +40,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
-import org.opends.server.types.ResultCode;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.Base64;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.AfterClass;

@@ -52,7 +52,7 @@ import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
-import org.opends.server.types.ResultCode;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;

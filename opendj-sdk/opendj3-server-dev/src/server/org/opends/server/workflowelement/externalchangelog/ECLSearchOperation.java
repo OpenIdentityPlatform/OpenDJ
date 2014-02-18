@@ -46,6 +46,7 @@ import org.opends.server.replication.protocol.*;
 import org.opends.server.replication.server.ECLServerHandler;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.types.operation.PostOperationSearchOperation;
 import org.opends.server.types.operation.PreOperationSearchOperation;
 import org.opends.server.types.operation.SearchEntrySearchOperation;

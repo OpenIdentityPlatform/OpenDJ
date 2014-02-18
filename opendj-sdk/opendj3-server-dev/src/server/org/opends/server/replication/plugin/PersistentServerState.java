@@ -44,6 +44,7 @@ import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 
 import static org.opends.messages.ReplicationMessages.*;
 
@@ -194,7 +195,7 @@ public class PersistentServerState
       if (((search.getResultCode() != ResultCode.SUCCESS)) &&
           ((search.getResultCode() != ResultCode.NO_SUCH_OBJECT)))
       {
-        logger.error(ERR_ERROR_SEARCHING_RUV, search.getResultCode().getResultCodeName(), search,
+        logger.error(ERR_ERROR_SEARCHING_RUV, search.getResultCode().getName(), search,
                 search.getErrorMessage(), baseDn);
         return null;
       }
@@ -339,7 +340,7 @@ public class PersistentServerState
     if (op.getResultCode() != ResultCode.SUCCESS)
     {
       logger.trace(DEBUG_ERROR_UPDATING_RUV,
-          op.getResultCode().getResultCodeName(), op, op.getErrorMessage(), baseDn);
+          op.getResultCode().getName(), op, op.getErrorMessage(), baseDn);
     }
     return op.getResultCode();
   }

@@ -37,7 +37,7 @@ import org.opends.server.admin.std.server.ReplicationServerCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.ResultCode;
+import org.forgerock.opendj.ldap.ResultCode;
 
 
 /**
@@ -50,7 +50,7 @@ public class ReplicationServerListener
        implements ConfigurationAddListener<ReplicationServerCfg>,
        ConfigurationDeleteListener<ReplicationServerCfg>
 {
-  ReplicationServer replicationServer = null;
+  private ReplicationServer replicationServer;
 
   /**
    * Build a ReplicationServer Listener from the given Multimaster

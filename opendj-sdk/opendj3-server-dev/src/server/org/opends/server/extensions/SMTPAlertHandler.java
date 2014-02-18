@@ -42,7 +42,7 @@ import org.opends.server.config.ConfigException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.InitializationException;
-import org.opends.server.types.ResultCode;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.EMailMessage;
 
 import static org.opends.messages.ExtensionMessages.*;

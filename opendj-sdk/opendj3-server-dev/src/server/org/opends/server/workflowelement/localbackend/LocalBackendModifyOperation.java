@@ -45,6 +45,7 @@ import org.opends.server.core.*;
 import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.types.operation.PostOperationModifyOperation;
 import org.opends.server.types.operation.PostResponseModifyOperation;
 import org.opends.server.types.operation.PostSynchronizationModifyOperation;

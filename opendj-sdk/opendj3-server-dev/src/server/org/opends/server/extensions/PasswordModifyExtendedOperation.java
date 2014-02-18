@@ -55,6 +55,7 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.ExtensionMessages.*;

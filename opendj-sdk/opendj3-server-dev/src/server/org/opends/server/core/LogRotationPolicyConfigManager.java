@@ -38,7 +38,7 @@ import org.opends.server.admin.std.meta.LogRotationPolicyCfgDefn;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.ResultCode;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.config.ConfigException;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;

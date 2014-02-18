@@ -43,6 +43,7 @@ import org.opends.server.admin.std.server.DirectoryStringAttributeSyntaxCfg;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.EqualityMatchingRule;

@@ -56,6 +56,7 @@ import org.opends.server.replication.protocol.*;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.*;
 
 import static java.util.Collections.*;
@@ -665,7 +666,7 @@ public class ReplicationBackend extends Backend
     }
     catch (CanceledOperationException e)
     {
-      searchOperation.setResultCode(ResultCode.CANCELED);
+      searchOperation.setResultCode(ResultCode.CANCELLED);
       searchOperation.setErrorMessage(null);
       return false;
     }

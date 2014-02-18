@@ -37,6 +37,7 @@ import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -177,8 +178,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     {
       if (resultCode != ResultCode.SUCCESS)
       {
-        return new DirectoryException(resultCode,
-            resultCode.getResultCodeName());
+        return new DirectoryException(resultCode, resultCode.getName());
       }
       return null;
     }
@@ -1461,7 +1461,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     Object getResult()
     {
       return resultCode == ResultCode.SUCCESS ? username
-          : new DirectoryException(resultCode, resultCode.getResultCodeName());
+          : new DirectoryException(resultCode, resultCode.getName());
     }
 
 
@@ -1544,7 +1544,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
       if (resultCode != ResultCode.SUCCESS)
       {
         return new DirectoryException(resultCode,
-            resultCode.getResultCodeName());
+            resultCode.getName());
       }
       return null;
     }
@@ -1816,7 +1816,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     return new Object[][] {
         { ResultCode.NO_SUCH_OBJECT },
         { ResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED },
-        { ResultCode.CLIENT_SIDE_MORE_RESULTS_TO_RETURN },
+        { ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED },
         { ResultCode.UNAVAILABLE }
     };
     // @formatter:on
@@ -3001,7 +3001,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     catch (final DirectoryException e)
     {
       assertEquals(e.getResultCode(),
-          ResultCode.CLIENT_SIDE_MORE_RESULTS_TO_RETURN, e.getMessage());
+          ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED, e.getMessage());
     }
     finally
     {
@@ -3136,7 +3136,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     catch (final DirectoryException e)
     {
       assertEquals(e.getResultCode(),
-          ResultCode.CLIENT_SIDE_MORE_RESULTS_TO_RETURN, e.getMessage());
+          ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED, e.getMessage());
     }
     finally
     {
@@ -3356,7 +3356,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     assertEquals(state.getAuthenticationPolicy(), policy);
 
     // Perform authentication.
-    switch (bindResultCode)
+    switch (bindResultCode.asEnum())
     {
     case SUCCESS:
       assertTrue(state.passwordMatches(ByteString.valueOf(userPassword)));
@@ -4398,7 +4398,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
   BindResponseProtocolOp newBindResult(final ResultCode resultCode)
   {
-    return new BindResponseProtocolOp(resultCode.getIntValue());
+    return new BindResponseProtocolOp(resultCode.intValue());
   }
 
 
@@ -4406,7 +4406,7 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
   ExtendedResponseProtocolOp newDisconnectNotification(
       final ResultCode resultCode)
   {
-    return new ExtendedResponseProtocolOp(resultCode.getIntValue(), null, null,
+    return new ExtendedResponseProtocolOp(resultCode.intValue(), null, null,
         null, OID_NOTICE_OF_DISCONNECTION, null);
   }
 
@@ -4435,6 +4435,6 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
 
   SearchResultDoneProtocolOp newSearchResult(final ResultCode resultCode)
   {
-    return new SearchResultDoneProtocolOp(resultCode.getIntValue());
+    return new SearchResultDoneProtocolOp(resultCode.intValue());
   }
 }

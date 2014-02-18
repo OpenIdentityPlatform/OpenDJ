@@ -48,6 +48,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 
 import static org.opends.messages.ExtensionMessages.*;
 
@@ -206,7 +207,7 @@ public class SubjectDNToUserAttributeCertificateMapper
            conn.processSearch(baseDN, SearchScope.WHOLE_SUBTREE,
                               DereferencePolicy.NEVER_DEREF_ALIASES, 1, 10,
                               false, filter, requestedAttributes);
-      switch (searchOperation.getResultCode())
+      switch (searchOperation.getResultCode().asEnum())
       {
         case SUCCESS:
           // This is fine.  No action needed.

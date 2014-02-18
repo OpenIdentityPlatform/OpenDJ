@@ -51,6 +51,7 @@ import org.opends.server.api.SubentryChangeListener;
 import org.opends.server.config.ConfigException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 
 
 

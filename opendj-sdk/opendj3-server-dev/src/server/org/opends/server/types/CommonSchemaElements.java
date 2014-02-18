@@ -26,12 +26,6 @@
  */
 package org.opends.server.types;
 
-import org.forgerock.i18n.LocalizableMessage;
-import static org.opends.messages.SchemaMessages.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.toLowerCase;
-import static org.forgerock.util.Reject.*;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -40,7 +34,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ResultCode;
 
+import static org.forgerock.util.Reject.*;
+import static org.opends.messages.SchemaMessages.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * An abstract base class for LDAP schema definitions which contain an
@@ -525,8 +525,8 @@ public abstract class CommonSchemaElements {
    * @return <code>true</code> if the provided object is equal to
    *         this schema definition, or <code>false</code> if not.
    */
+  @Override
   public final boolean equals(Object o) {
-
     if (this == o) {
       return true;
     }
@@ -547,8 +547,8 @@ public abstract class CommonSchemaElements {
    *
    * @return The hash code for this schema definition.
    */
+  @Override
   public final int hashCode() {
-
     return hashCode;
   }
 
@@ -561,8 +561,8 @@ public abstract class CommonSchemaElements {
    * @return The string representation of this schema definition in
    *         the form specified in RFC 2252.
    */
+  @Override
   public final String toString() {
-
     StringBuilder buffer = new StringBuilder();
     toString(buffer, true);
     return buffer.toString();

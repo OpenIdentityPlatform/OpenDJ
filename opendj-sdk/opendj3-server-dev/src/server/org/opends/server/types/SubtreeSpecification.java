@@ -26,16 +26,15 @@
  */
 package org.opends.server.types;
 
-import static org.opends.messages.SchemaMessages.*;
-
 import java.util.*;
 import java.util.regex.Pattern;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.util.StaticUtils;
 
-
+import static org.opends.messages.SchemaMessages.*;
 
 /**
  * An RFC 3672 subtree specification.

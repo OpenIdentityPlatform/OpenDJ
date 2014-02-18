@@ -40,7 +40,7 @@ import org.opends.server.admin.std.server.TelephoneNumberAttributeSyntaxCfg;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.ResultCode;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ByteString;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;

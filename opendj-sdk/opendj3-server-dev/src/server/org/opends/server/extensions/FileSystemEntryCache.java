@@ -65,6 +65,7 @@ import org.opends.server.backends.jeb.ConfigurableEnvironment;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.ServerConstants;
 
 import static org.opends.messages.ConfigMessages.*;

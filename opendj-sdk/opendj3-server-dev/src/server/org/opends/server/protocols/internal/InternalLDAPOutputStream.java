@@ -449,7 +449,7 @@ public final class InternalLDAPOutputStream
     op.run();
 
     AddResponseProtocolOp addResponse =
-         new AddResponseProtocolOp(op.getResultCode().getIntValue(),
+         new AddResponseProtocolOp(op.getResultCode().intValue(),
                                    op.getErrorMessage().toMessage(),
                                    op.getMatchedDN(),
                                    op.getReferralURLs());
@@ -498,7 +498,7 @@ public final class InternalLDAPOutputStream
     op.run();
 
     BindResponseProtocolOp bindResponse =
-         new BindResponseProtocolOp(op.getResultCode().getIntValue(),
+         new BindResponseProtocolOp(op.getResultCode().intValue(),
                                     op.getErrorMessage().toMessage(),
                                     op.getMatchedDN(),
                                     op.getReferralURLs());
@@ -543,7 +543,7 @@ public final class InternalLDAPOutputStream
 
     CompareResponseProtocolOp compareResponse =
          new CompareResponseProtocolOp(
-                  op.getResultCode().getIntValue(),
+                  op.getResultCode().intValue(),
                   op.getErrorMessage().toMessage(),
                   op.getMatchedDN(),
                   op.getReferralURLs());
@@ -581,7 +581,7 @@ public final class InternalLDAPOutputStream
 
     DeleteResponseProtocolOp deleteResponse =
          new DeleteResponseProtocolOp(
-                  op.getResultCode().getIntValue(),
+                  op.getResultCode().intValue(),
                   op.getErrorMessage().toMessage(),
                   op.getMatchedDN(),
                   op.getReferralURLs());
@@ -630,7 +630,7 @@ public final class InternalLDAPOutputStream
 
     ExtendedResponseProtocolOp extendedResponse =
          new ExtendedResponseProtocolOp(
-                  op.getResultCode().getIntValue(),
+                  op.getResultCode().intValue(),
                   op.getErrorMessage().toMessage(),
                   op.getMatchedDN(),
                   op.getReferralURLs(), op.getResponseOID(),
@@ -670,7 +670,7 @@ public final class InternalLDAPOutputStream
 
     ModifyResponseProtocolOp modifyResponse =
          new ModifyResponseProtocolOp(
-                  op.getResultCode().getIntValue(),
+                  op.getResultCode().intValue(),
                   op.getErrorMessage().toMessage(),
                   op.getMatchedDN(),
                   op.getReferralURLs());
@@ -710,7 +710,7 @@ public final class InternalLDAPOutputStream
 
     ModifyDNResponseProtocolOp modifyDNResponse =
          new ModifyDNResponseProtocolOp(
-                  op.getResultCode().getIntValue(),
+                  op.getResultCode().intValue(),
                   op.getErrorMessage().toMessage(),
                   op.getMatchedDN(),
                   op.getReferralURLs());
@@ -752,7 +752,7 @@ public final class InternalLDAPOutputStream
 
     SearchResultDoneProtocolOp searchDone =
          new SearchResultDoneProtocolOp(
-                  op.getResultCode().getIntValue(),
+                  op.getResultCode().intValue(),
                   op.getErrorMessage().toMessage(),
                   op.getMatchedDN(),
                   op.getReferralURLs());

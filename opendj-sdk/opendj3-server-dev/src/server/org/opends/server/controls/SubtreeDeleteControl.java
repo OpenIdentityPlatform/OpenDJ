@@ -38,7 +38,7 @@ import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.Control;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.ResultCode;
+import org.forgerock.opendj.ldap.ResultCode;
 
 
 

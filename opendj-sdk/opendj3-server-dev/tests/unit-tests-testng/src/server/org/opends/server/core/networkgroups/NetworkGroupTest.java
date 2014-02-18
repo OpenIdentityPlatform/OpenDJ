@@ -39,6 +39,7 @@ import org.opends.server.core.*;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.workflowelement.WorkflowElement;
 import org.testng.annotations.BeforeClass;

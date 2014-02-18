@@ -40,6 +40,7 @@ import org.opends.server.controls.MatchedValuesControl;
 import org.opends.server.core.networkgroups.NetworkGroup;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.types.operation.PostResponseSearchOperation;
 import org.opends.server.types.operation.PreParseSearchOperation;
 import org.opends.server.types.operation.SearchEntrySearchOperation;
@@ -1284,8 +1285,8 @@ public class SearchOperationBasis
     {
       logger.traceException(coe);
 
-      setResultCode(ResultCode.CANCELED);
-      cancelResult = new CancelResult(ResultCode.CANCELED, null);
+      setResultCode(ResultCode.CANCELLED);
+      cancelResult = new CancelResult(ResultCode.CANCELLED, null);
 
       appendErrorMessage(coe.getCancelRequest().getCancelReason());
     }
@@ -1295,7 +1296,7 @@ public class SearchOperationBasis
       setProcessingStopTime();
 
       if(cancelRequest == null || cancelResult == null ||
-          cancelResult.getResultCode() != ResultCode.CANCELED)
+          cancelResult.getResultCode() != ResultCode.CANCELLED)
       {
         // If everything is successful to this point and it is not a persistent
         // search, then send the search result done message to the client.

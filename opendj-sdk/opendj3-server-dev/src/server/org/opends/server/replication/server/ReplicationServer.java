@@ -54,6 +54,7 @@ import org.opends.server.replication.server.changelog.api.ChangelogDB;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.je.JEChangelogDB;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.TimeThread;
