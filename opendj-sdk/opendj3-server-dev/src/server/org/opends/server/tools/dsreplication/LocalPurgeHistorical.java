@@ -44,7 +44,7 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.EmbeddedUtils;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;
-import org.opends.server.util.cli.ConsoleApplication;
+import com.forgerock.opendj.cli.ConsoleApplication;
 import org.opends.server.util.cli.PointAdder;
 
 /**
@@ -99,7 +99,7 @@ public class LocalPurgeHistorical
 
     long endMaxTime = startTime + purgeMaxTime;
 
-    app.printProgress(formatter.getFormattedProgress(
+    app.print(formatter.getFormattedProgress(
         INFO_REPLICATION_PURGE_HISTORICAL_LOCAL_ENVIRONMENT.get()));
 
     PointAdder pointAdder = new PointAdder(app);
@@ -145,12 +145,12 @@ public class LocalPurgeHistorical
       return ReplicationCliReturnCode.ERROR_LOCAL_PURGE_HISTORICAL_SERVER_START;
     }
     pointAdder.stop();
-    app.printProgress(formatter.getFormattedDone());
-    app.printlnProgress();
-    app.printlnProgress();
-    app.printProgress(formatter.getFormattedProgress(
+    app.print(formatter.getFormattedDone());
+    app.println();
+    app.println();
+    app.print(formatter.getFormattedProgress(
         INFO_REPLICATION_PURGE_HISTORICAL_LOCAL_STARTING.get()));
-    app.printlnProgress();
+    app.println();
 
     if (applyTimeout && timeoutOccurred(endMaxTime))
     {

@@ -63,7 +63,7 @@ import org.opends.server.types.DN;
 import org.opends.server.types.Schema;
 import org.opends.server.util.Base64;
 import org.opends.server.util.SetupUtils;
-import org.opends.server.util.cli.CommandBuilder;
+import com.forgerock.opendj.cli.CommandBuilder;
 
 /**
  * The class used to define a number of common methods and mechanisms for the

@@ -32,7 +32,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.JDKLogging;
 import org.opends.server.types.NullOutputStream;
-import org.opends.server.util.cli.ConsoleApplication;
+import com.forgerock.opendj.cli.ConsoleApplication;
 
 import com.forgerock.opendj.cli.*;
 
@@ -88,7 +88,7 @@ public class WaitForFileDelete extends ConsoleApplication
    */
   public WaitForFileDelete(PrintStream out, PrintStream err, InputStream in)
   {
-    super(in, out, err);
+    super(out, err);
   }
 
   /**

@@ -48,9 +48,9 @@ import org.opends.server.util.StaticUtils;
 import com.forgerock.opendj.cli.ClientException;
 import com.forgerock.opendj.cli.ReturnCode;
 
-import org.opends.server.util.cli.ConsoleApplication;
-import org.opends.server.util.cli.MenuBuilder;
-import org.opends.server.util.cli.MenuResult;
+import com.forgerock.opendj.cli.ConsoleApplication;
+import com.forgerock.opendj.cli.MenuBuilder;
+import com.forgerock.opendj.cli.MenuResult;
 
 /**
  * A class that is in charge of interacting with the user to ask about
@@ -286,10 +286,10 @@ public class TaskScheduleInteraction
       sb.append(separator);
       sb.append(entry.getId());
     }
-    app.printlnProgress();
-    app.printProgress(INFO_AVAILABLE_DEFINED_TASKS.get(sb));
-    app.printlnProgress();
-    app.printlnProgress();
+    app.println();
+    app.print(INFO_AVAILABLE_DEFINED_TASKS.get(sb));
+    app.println();
+    app.println();
 
   }
 
@@ -463,9 +463,9 @@ public class TaskScheduleInteraction
         Date currentDate = new Date(System.currentTimeMillis());
         if (currentDate.after(startDate))
         {
-          app.printProgress(ERR_START_DATETIME_ALREADY_PASSED.get(sDate));
-          app.printlnProgress();
-          app.printlnProgress();
+          app.print(ERR_START_DATETIME_ALREADY_PASSED.get(sDate));
+          app.println();
+          app.println();
           startDate = null;
         }
       } catch (ParseException pe) {
@@ -489,7 +489,7 @@ public class TaskScheduleInteraction
       try
       {
         RecurringTask.parseTaskTab(schedule);
-        app.printlnProgress();
+        app.println();
       }
       catch (DirectoryException de)
       {
@@ -506,12 +506,12 @@ public class TaskScheduleInteraction
   {
     if (!headerDisplayed)
     {
-      app.printlnProgress();
-      app.printProgress(INFO_TASK_SCHEDULE_PROMPT_HEADER.get());
-      app.printlnProgress();
+      app.println();
+      app.print(INFO_TASK_SCHEDULE_PROMPT_HEADER.get());
+      app.println();
       headerDisplayed = true;
     }
-    app.printlnProgress();
+    app.println();
 
   }
 }

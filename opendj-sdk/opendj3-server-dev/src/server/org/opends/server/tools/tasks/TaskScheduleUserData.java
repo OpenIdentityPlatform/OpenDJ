@@ -37,7 +37,7 @@ import org.opends.server.backends.task.FailedDependencyAction;
 import org.opends.server.util.StaticUtils;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.StringArgument;
-import org.opends.server.util.cli.CommandBuilder;
+import com.forgerock.opendj.cli.CommandBuilder;
 
 /**
  * A generic data structure that contains the data that the user provided to

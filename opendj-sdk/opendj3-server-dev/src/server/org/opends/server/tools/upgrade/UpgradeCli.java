@@ -26,7 +26,6 @@
 package org.opends.server.tools.upgrade;
 
 import static org.opends.messages.ToolMessages.*;
-
 import static org.opends.server.tools.ToolConstants.*;
 import static org.opends.server.util.StaticUtils.filterExitCode;
 import static org.opends.server.tools.upgrade.FormattedNotificationCallback.*;
@@ -36,6 +35,7 @@ import static org.opends.server.tools.upgrade.Upgrade.EXIT_CODE_SUCCESS;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,12 +51,13 @@ import javax.security.auth.callback.UnsupportedCallbackException;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
+
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.cli.SubCommandArgumentParser;
 import com.forgerock.opendj.cli.ClientException;
-import org.opends.server.util.cli.ConsoleApplication;
+import com.forgerock.opendj.cli.ConsoleApplication;
 
 /**
  * This class provides the CLI used for upgrading the OpenDJ product.
@@ -96,8 +97,7 @@ public final class UpgradeCli extends ConsoleApplication implements
 
   private UpgradeCli(InputStream in, OutputStream out, OutputStream err)
   {
-    super(in, out, err);
-
+    super(new PrintStream(out), new PrintStream(err));
     this.parser =
         new SubCommandArgumentParser(this.getClass().getName(),
             INFO_UPGRADE_DESCRIPTION_CLI.get(), false);
@@ -388,7 +388,7 @@ public final class UpgradeCli extends ConsoleApplication implements
         final ProgressNotificationCallback pnc =
             (ProgressNotificationCallback) c;
         final LocalizableMessage msg = LocalizableMessage.raw("  " + pnc.getMessage());
-        printProgress(msg);
+        print(msg);
         printProgressBar(msg.length(), pnc.getProgress());
       }
       else if (c instanceof FormattedNotificationCallback)
@@ -430,8 +430,8 @@ public final class UpgradeCli extends ConsoleApplication implements
         // Usual output text.
         final TextOutputCallback toc = (TextOutputCallback) c;
         if(toc.getMessageType() == TextOutputCallback.INFORMATION) {
-          logger.debug(LocalizableMessage.raw(toc.getMessage()));
-          printlnProgress(LocalizableMessage.raw(toc.getMessage()));
+          logger.info(LocalizableMessage.raw(toc.getMessage()));
+          println(LocalizableMessage.raw(toc.getMessage()));
         } else {
           logger.error(LocalizableMessage.raw("Unsupported message type: "
             + toc.getMessage()));
@@ -480,7 +480,7 @@ public final class UpgradeCli extends ConsoleApplication implements
         }
         prompt.append(")");
 
-        logger.debug(LocalizableMessage.raw(cc.getPrompt()));
+        logger.info(LocalizableMessage.raw(cc.getPrompt()));
 
         // Displays the output and
         // while it hasn't a valid response, question is repeated.
@@ -502,27 +502,27 @@ public final class UpgradeCli extends ConsoleApplication implements
             }
 
             String valueLC = value.toLowerCase();
-            if ((valueLC.equals(INFO_PROMPT_YES_FIRST_LETTER_ANSWER.get())
-                || valueLC.equals(INFO_PROMPT_YES_COMPLETE_ANSWER.get()))
+            if ((valueLC.equals(INFO_PROMPT_YES_FIRST_LETTER_ANSWER.get().toString())
+                || valueLC.equals(INFO_PROMPT_YES_COMPLETE_ANSWER.get().toString()))
                 && choices.contains(value))
             {
               cc.setSelectedIndex(ConfirmationCallback.YES);
               break;
             }
-            else if ((valueLC.equals(INFO_PROMPT_NO_FIRST_LETTER_ANSWER.get())
-                || valueLC.equals(INFO_PROMPT_NO_COMPLETE_ANSWER.get()))
+            else if ((valueLC.equals(INFO_PROMPT_NO_FIRST_LETTER_ANSWER.get().toString())
+                || valueLC.equals(INFO_PROMPT_NO_COMPLETE_ANSWER.get().toString()))
                 && choices.contains(value))
             {
               cc.setSelectedIndex(ConfirmationCallback.NO);
               break;
             }
-            else if (valueLC.equals(INFO_TASKINFO_CMD_CANCEL_CHAR.get())
+            else if (valueLC.equals(INFO_TASKINFO_CMD_CANCEL_CHAR.get().toString())
                 && choices.contains(value))
             {
               cc.setSelectedIndex(ConfirmationCallback.CANCEL);
               break;
             }
-            logger.debug(LocalizableMessage.raw(value));
+            logger.info(LocalizableMessage.raw(value));
           }
         }
         else // Non interactive mode :
@@ -539,7 +539,7 @@ public final class UpgradeCli extends ConsoleApplication implements
           // Displays the prompt
           prompt.append(" ").append(getDefaultOption(cc.getSelectedIndex()));
           println(Style.SUBTITLE, LocalizableMessage.raw(prompt), 0);
-          logger.debug(LocalizableMessage.raw(getDefaultOption(cc.getSelectedIndex())));
+          logger.info(LocalizableMessage.raw(getDefaultOption(cc.getSelectedIndex())));
         }
       }
       else

@@ -70,12 +70,11 @@ import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.cli.SubCommand;
 import com.forgerock.opendj.cli.SubCommandArgumentParser;
 import com.forgerock.opendj.cli.ClientException;
-import org.opends.server.util.cli.ConsoleApplication;
-import org.opends.server.util.cli.MenuResult;
-import org.opends.server.util.cli.OutputStreamConsoleApplication;
-import org.opends.server.util.table.TableBuilder;
-import org.opends.server.util.table.TablePrinter;
-import org.opends.server.util.table.TextTablePrinter;
+import com.forgerock.opendj.cli.ConsoleApplication;
+import com.forgerock.opendj.cli.MenuResult;
+import com.forgerock.opendj.cli.TableBuilder;
+import com.forgerock.opendj.cli.TablePrinter;
+import com.forgerock.opendj.cli.TextTablePrinter;
 
 
 
@@ -507,11 +506,11 @@ final class HelpSubCommandHandler extends SubCommandHandler {
 
     // Display the property synopsis and description.
     app.println();
-    app.printErrln(pd.getSynopsis(), 4);
+    app.errPrintln(pd.getSynopsis(), 4);
 
     if (pd.getDescription() != null) {
       app.println();
-      app.printErrln(pd.getDescription(), 4);
+      app.errPrintln(pd.getDescription(), 4);
     }
 
     if (pd instanceof AggregationPropertyDefinition) {
@@ -922,7 +921,6 @@ final class HelpSubCommandHandler extends SubCommandHandler {
     }
 
     // Output everything to the output stream.
-    app = new OutputStreamConsoleApplication(app);
     if (!app.isVerbose()) {
       displayNonVerbose(app, categoryName, typeName, tag, propertyNames);
     } else {

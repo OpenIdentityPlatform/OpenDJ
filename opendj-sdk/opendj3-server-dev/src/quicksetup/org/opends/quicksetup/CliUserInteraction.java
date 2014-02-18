@@ -35,10 +35,10 @@ import static org.opends.messages.AdminToolMessages.*;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.util.StaticUtils;
 import com.forgerock.opendj.cli.ClientException;
-import org.opends.server.util.cli.ConsoleApplication;
-import org.opends.server.util.cli.Menu;
-import org.opends.server.util.cli.MenuBuilder;
-import org.opends.server.util.cli.MenuResult;
+import com.forgerock.opendj.cli.ConsoleApplication;
+import com.forgerock.opendj.cli.Menu;
+import com.forgerock.opendj.cli.MenuBuilder;
+import com.forgerock.opendj.cli.MenuResult;
 
 import java.util.List;
 
@@ -60,7 +60,6 @@ public class CliUserInteraction extends ConsoleApplication
    * @param ud The CLI arguments.
    */
   public CliUserInteraction(UserData ud) {
-    super(System.in, System.out, System.err);
     isInteractive = ud == null || ud.isInteractive();
     isForceOnError = ud != null && ud.isForceOnError();
   }

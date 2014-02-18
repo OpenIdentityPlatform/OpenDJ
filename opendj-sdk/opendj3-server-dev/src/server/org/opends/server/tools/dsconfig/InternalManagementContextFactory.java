@@ -32,8 +32,8 @@ import org.opends.server.admin.client.ManagementContext;
 import com.forgerock.opendj.cli.ClientException;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.SubCommandArgumentParser;
-import org.opends.server.util.cli.CommandBuilder;
-import org.opends.server.util.cli.ConsoleApplication;
+import com.forgerock.opendj.cli.CommandBuilder;
+import com.forgerock.opendj.cli.ConsoleApplication;
 
 
 

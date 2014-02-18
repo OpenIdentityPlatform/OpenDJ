@@ -35,6 +35,7 @@ import org.opends.admin.ads.ADSContext.AdministratorProperty;
 import org.opends.admin.ads.ADSContext.ServerProperty;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
+import org.opends.admin.ads.util.OpendsCertificateException;
 import org.opends.admin.ads.util.PreferredConnection;
 import org.opends.admin.ads.util.ServerLoader;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
@@ -45,7 +46,6 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.quicksetup.ApplicationException;
 import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.Installation;
-import org.opends.quicksetup.ReturnCode;
 import org.opends.quicksetup.event.ProgressUpdateEvent;
 import org.opends.quicksetup.event.ProgressUpdateListener;
 import org.opends.quicksetup.installer.Installer;
@@ -53,7 +53,16 @@ import org.opends.quicksetup.installer.InstallerHelper;
 import org.opends.quicksetup.installer.PeerNotFoundException;
 import org.opends.quicksetup.installer.offline.OfflineInstaller;
 import org.opends.quicksetup.util.PlainTextProgressMessageFormatter;
-import org.opends.quicksetup.util.Utils;
+
+import static org.opends.quicksetup.util.Utils.createLdapsContext;
+import static org.opends.quicksetup.util.Utils.createStartTLSContext;
+import static org.opends.quicksetup.util.Utils.areDnsEqual;
+import static org.opends.quicksetup.util.Utils.isLocalHost;
+import static org.opends.quicksetup.util.Utils.isCertificateException;
+import static org.opends.quicksetup.util.Utils.getMessage;
+import static org.opends.quicksetup.util.Utils.getMessageFromCollection;
+import static org.opends.quicksetup.util.Utils.getServerClock;
+
 import org.opends.server.admin.*;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
@@ -86,33 +95,52 @@ import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ClientException;
 import com.forgerock.opendj.cli.FileBasedArgument;
 import com.forgerock.opendj.cli.IntegerArgument;
+import com.forgerock.opendj.cli.CommandBuilder;
+import com.forgerock.opendj.cli.ConsoleApplication;
+import com.forgerock.opendj.cli.ReturnCode;
+import com.forgerock.opendj.cli.MenuBuilder;
+import com.forgerock.opendj.cli.TabSeparatedTablePrinter;
+import com.forgerock.opendj.cli.TableBuilder;
+import com.forgerock.opendj.cli.TablePrinter;
+import com.forgerock.opendj.cli.TextTablePrinter;
+import com.forgerock.opendj.cli.MenuResult;
+import com.forgerock.opendj.cli.ValidationCallback;
 
-import org.opends.server.util.cli.CommandBuilder;
-import org.opends.server.util.cli.ConsoleApplication;
-import org.opends.server.util.cli.LDAPConnectionConsoleInteraction;
-import org.opends.server.util.cli.MenuBuilder;
-import org.opends.server.util.table.TabSeparatedTablePrinter;
-import org.opends.server.util.table.TableBuilder;
-import org.opends.server.util.table.TablePrinter;
-import org.opends.server.util.table.TextTablePrinter;
+import static com.forgerock.opendj.cli.CliMessages.ERR_BAD_INTEGER;
+import static com.forgerock.opendj.cli.CliMessages.INFO_ADMINISTRATOR_PWD_PROMPT;
+import static com.forgerock.opendj.cli.CliMessages.INFO_ADMINISTRATOR_UID_PROMPT;
+import static com.forgerock.opendj.cli.CliMessages.INFO_PROMPT_SINGLE_DEFAULT;
+import static com.forgerock.opendj.cli.Utils.CONFIRMATION_MAX_TRIES;
+import static com.forgerock.opendj.cli.Utils.getCurrentOperationDateMessage;
+import static com.forgerock.opendj.cli.Utils.getMessageForException;
+import static com.forgerock.opendj.cli.Utils.SHELL_COMMENT_SEPARATOR;
+import static org.forgerock.util.Utils.joinAsString;
+
 import org.opends.server.util.cli.PointAdder;
-import org.opends.server.util.cli.MenuResult;
+import org.opends.server.util.cli.LDAPConnectionConsoleInteraction;
 
 import javax.naming.NameAlreadyBoundException;
 import javax.naming.NameNotFoundException;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
+import javax.naming.NoPermissionException;
 import javax.naming.directory.*;
 import javax.naming.ldap.InitialLdapContext;
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.SSLException;
+import javax.net.ssl.SSLHandshakeException;
+import javax.net.ssl.TrustManager;
 
 import java.io.*;
 import java.util.*;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 
-import static org.forgerock.util.Utils.*;
 import static org.opends.admin.ads.ServerDescriptor.*;
 import static org.opends.messages.AdminToolMessages.*;
+import static org.opends.messages.DSConfigMessages.ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT;
+import static org.opends.messages.DSConfigMessages.ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT_NOT_TRUSTED;
+import static org.opends.messages.DSConfigMessages.ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT_WRONG_PORT;
 import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.messages.UtilityMessages.
@@ -237,7 +265,7 @@ public class ReplicationCliMain extends ConsoleApplication
    */
   public ReplicationCliMain(PrintStream out, PrintStream err, InputStream in)
   {
-    super(in, out, err);
+    super(out, err);
   }
 
   /**
@@ -582,6 +610,140 @@ public class ReplicationCliMain extends ConsoleApplication
     return returnValue.getReturnCode();
   }
 
+  /**
+   * Prompts the user to give the Global Administrator UID.
+   *
+   * @param defaultValue
+   *          the default value that will be proposed in the prompt message.
+   * @param logger
+   *          the Logger to be used to log the error message.
+   * @return the Global Administrator UID as provided by the user.
+   */
+  protected String askForAdministratorUID(String defaultValue,
+      LocalizedLogger logger)
+  {
+    String s = defaultValue;
+    try
+    {
+      s = readInput(INFO_ADMINISTRATOR_UID_PROMPT.get(), defaultValue);
+    }
+    catch (ClientException ce)
+    {
+      logger.warn(LocalizableMessage.raw("Error reading input: " + ce, ce));
+    }
+    return s;
+  }
+
+  /**
+   * Prompts the user to give the Global Administrator password.
+   *
+   * @param logger
+   *          the Logger to be used to log the error message.
+   * @return the Global Administrator password as provided by the user.
+   */
+  protected String askForAdministratorPwd(LocalizedLogger logger)
+  {
+    String pwd = null;
+    try
+    {
+      readPassword(INFO_ADMINISTRATOR_PWD_PROMPT.get());
+    }
+    catch (ClientException ex)
+    {
+      logger.warn(LocalizableMessage.raw("Error reading input: " + ex, ex));
+    }
+    return pwd;
+  }
+
+  /**
+   * Commodity method used to repeatidly ask the user to provide an integer
+   * value.
+   *
+   * @param prompt
+   *          the prompt message.
+   * @param defaultValue
+   *          the default value to be proposed to the user.
+   * @param logger
+   *          the logger where the errors will be written.
+   * @return the value provided by the user.
+   */
+  protected int askInteger(LocalizableMessage prompt, int defaultValue,
+      LocalizedLogger logger)
+  {
+    int newInt = -1;
+    while (newInt == -1)
+    {
+      try
+      {
+        newInt = readInteger(prompt, defaultValue);
+      }
+      catch (ClientException ce)
+      {
+        newInt = -1;
+        logger.warn(LocalizableMessage.raw("Error reading input: " + ce, ce));
+      }
+    }
+    return newInt;
+  }
+
+  /**
+   * Interactively retrieves an integer value from the console.
+   *
+   * @param prompt
+   *          The message prompt.
+   * @param defaultValue
+   *          The default value.
+   * @return Returns the value.
+   * @throws ClientException
+   *           If the value could not be retrieved for some reason.
+   */
+  public final int readInteger(
+      LocalizableMessage prompt, final int defaultValue) throws ClientException
+  {
+    ValidationCallback<Integer> callback = new ValidationCallback<Integer>()
+    {
+      @Override
+      public Integer validate(ConsoleApplication app, String input)
+          throws ClientException
+      {
+        String ninput = input.trim();
+        if (ninput.length() == 0)
+        {
+          return defaultValue;
+        }
+        else
+        {
+          try
+          {
+            int i = Integer.parseInt(ninput);
+            if (i < 1)
+            {
+              throw new NumberFormatException();
+            }
+            return i;
+          }
+          catch (NumberFormatException e)
+          {
+            // Try again...
+            app.println();
+            app.println(ERR_BAD_INTEGER.get(ninput));
+            app.println();
+            return null;
+          }
+        }
+      }
+
+    };
+
+    if (defaultValue != -1)
+    {
+      prompt = INFO_PROMPT_SINGLE_DEFAULT.get(prompt, defaultValue);
+    }
+
+    return readValidatedInput(prompt, callback, CONFIRMATION_MAX_TRIES);
+  }
+
+
   private boolean isFirstCallFromScript()
   {
     return FIRST_SCRIPT_CALL.equals(System.getProperty(SCRIPT_CALL_STATUS));
@@ -889,12 +1051,12 @@ public class ReplicationCliMain extends ConsoleApplication
   {
     String separator =  formatter.getLineBreak().toString() +
     formatter.getTab().toString();
-    printlnProgress();
+    println();
     LocalizableMessage msg = formatter.getFormattedProgress(
         INFO_PROGRESS_PURGE_HISTORICAL.get(separator,
             joinAsString(separator, uData.getBaseDNs())));
-    printProgress(msg);
-    printlnProgress();
+    print(msg);
+    println();
 
   }
 
@@ -988,6 +1150,278 @@ public class ReplicationCliMain extends ConsoleApplication
     }
   }
 
+  /**
+   * Returns an InitialLdapContext using the provided parameters. We try to
+   * guarantee that the connection is able to read the configuration.
+   *
+   * @param host
+   *          the host name.
+   * @param port
+   *          the port to connect.
+   * @param useSSL
+   *          whether to use SSL or not.
+   * @param useStartTLS
+   *          whether to use StartTLS or not.
+   * @param bindDn
+   *          the bind dn to be used.
+   * @param pwd
+   *          the password.
+   * @param connectTimeout
+   *          the timeout in milliseconds to connect to the server.
+   * @param trustManager
+   *          the trust manager.
+   * @return an InitialLdapContext connected.
+   * @throws NamingException
+   *           if there was an error establishing the connection.
+   */
+  private InitialLdapContext createAdministrativeContext(String host,
+      int port, boolean useSSL, boolean useStartTLS, String bindDn, String pwd,
+      int connectTimeout, ApplicationTrustManager trustManager)
+      throws NamingException
+  {
+    InitialLdapContext ctx;
+    String ldapUrl = ConnectionUtils.getLDAPUrl(host, port, useSSL);
+    if (useSSL)
+    {
+      ctx =
+          createLdapsContext(ldapUrl, bindDn, pwd, connectTimeout, null,
+              trustManager);
+    }
+    else if (useStartTLS)
+    {
+      ctx =
+          createStartTLSContext(ldapUrl, bindDn, pwd, connectTimeout,
+              null, trustManager, null);
+    }
+    else
+    {
+      ctx = ConnectionUtils.createLdapContext(ldapUrl, bindDn, pwd, connectTimeout, null);
+    }
+    if (!ConnectionUtils.connectedAsAdministrativeUser(ctx))
+    {
+      throw new NoPermissionException(ERR_NOT_ADMINISTRATIVE_USER.get()
+          .toString());
+    }
+    return ctx;
+  }
+
+  /**
+   * Creates an Initial LDAP Context interacting with the user if the
+   * application is interactive.
+   *
+   * @param ci
+   *          the LDAPConnectionConsoleInteraction object that is assumed to
+   *          have been already run.
+   * @return the initial LDAP context or <CODE>null</CODE> if the user did not
+   *         accept to trust the certificates.
+   * @throws ClientException
+   *           if there was an error establishing the connection.
+   */
+  protected InitialLdapContext createInitialLdapContextInteracting(
+      LDAPConnectionConsoleInteraction ci) throws ClientException
+  {
+    return createInitialLdapContextInteracting(ci, isInteractive()
+        && ci.isTrustStoreInMemory());
+  }
+
+  private OpendsCertificateException getCertificateRootException(Throwable t)
+  {
+    OpendsCertificateException oce = null;
+    while (t != null && oce == null)
+    {
+      t = t.getCause();
+      if (t instanceof OpendsCertificateException)
+      {
+        oce = (OpendsCertificateException) t;
+      }
+    }
+    return oce;
+  }
+
+  /**
+   * Creates an Initial LDAP Context interacting with the user if the
+   * application is interactive.
+   *
+   * @param ci
+   *          the LDAPConnectionConsoleInteraction object that is assumed to
+   *          have been already run.
+   * @param promptForCertificate
+   *          whether we should prompt for the certificate or not.
+   * @return the initial LDAP context or <CODE>null</CODE> if the user did not
+   *         accept to trust the certificates.
+   * @throws ClientException
+   *           if there was an error establishing the connection.
+   */
+  protected InitialLdapContext createInitialLdapContextInteracting(
+      LDAPConnectionConsoleInteraction ci, boolean promptForCertificate)
+      throws ClientException
+  {
+    // Interact with the user though the console to get
+    // LDAP connection information
+    String hostName = ConnectionUtils.getHostNameForLdapUrl(ci.getHostName());
+    Integer portNumber = ci.getPortNumber();
+    String bindDN = ci.getBindDN();
+    String bindPassword = ci.getBindPassword();
+    TrustManager trustManager = ci.getTrustManager();
+    KeyManager keyManager = ci.getKeyManager();
+
+    InitialLdapContext ctx;
+
+    if (ci.useSSL())
+    {
+      String ldapsUrl = "ldaps://" + hostName + ":" + portNumber;
+      while (true)
+      {
+        try
+        {
+          ctx =
+              ConnectionUtils.createLdapsContext(ldapsUrl, bindDN,
+                  bindPassword, ci.getConnectTimeout(), null, trustManager,
+                  keyManager);
+          ctx.reconnect(null);
+          break;
+        }
+        catch (NamingException e)
+        {
+          if (promptForCertificate)
+          {
+            OpendsCertificateException oce = getCertificateRootException(e);
+            if (oce != null)
+            {
+              String authType = null;
+              if (trustManager instanceof ApplicationTrustManager)
+              {
+                ApplicationTrustManager appTrustManager =
+                    (ApplicationTrustManager) trustManager;
+                authType = appTrustManager.getLastRefusedAuthType();
+              }
+              if (ci.checkServerCertificate(oce.getChain(), authType, hostName))
+              {
+                // If the certificate is trusted, update the trust manager.
+                trustManager = ci.getTrustManager();
+
+                // Try to connect again.
+                continue;
+              }
+              else
+              {
+                // Assume user canceled.
+                return null;
+              }
+            }
+          }
+          if (e.getCause() != null)
+          {
+            if (!isInteractive() && !ci.isTrustAll())
+            {
+              if (getCertificateRootException(e) != null
+                  || (e.getCause() instanceof SSLHandshakeException))
+              {
+                LocalizableMessage message =
+                    ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT_NOT_TRUSTED.get(hostName, portNumber);
+                throw new ClientException(
+                    ReturnCode.CLIENT_SIDE_CONNECT_ERROR, message);
+              }
+            }
+            if (e.getCause() instanceof SSLException)
+            {
+              LocalizableMessage message =
+                  ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT_WRONG_PORT.get(hostName, portNumber);
+              throw new ClientException(
+                  ReturnCode.CLIENT_SIDE_CONNECT_ERROR, message);
+            }
+          }
+          String hostPort =
+              ServerDescriptor.getServerRepresentation(hostName, portNumber);
+          LocalizableMessage message = getMessageForException(e, hostPort);
+          throw new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR,
+              message);
+        }
+      }
+    }
+    else if (ci.useStartTLS())
+    {
+      String ldapUrl = "ldap://" + hostName + ":" + portNumber;
+      while (true)
+      {
+        try
+        {
+          ctx =
+              ConnectionUtils.createStartTLSContext(ldapUrl, bindDN,
+                  bindPassword, ConnectionUtils.getDefaultLDAPTimeout(), null,
+                  trustManager, keyManager, null);
+          ctx.reconnect(null);
+          break;
+        }
+        catch (NamingException e)
+        {
+          if (promptForCertificate)
+          {
+            OpendsCertificateException oce = getCertificateRootException(e);
+            if (oce != null)
+            {
+              String authType = null;
+              if (trustManager instanceof ApplicationTrustManager)
+              {
+                ApplicationTrustManager appTrustManager =
+                    (ApplicationTrustManager) trustManager;
+                authType = appTrustManager.getLastRefusedAuthType();
+              }
+
+              if (ci.checkServerCertificate(oce.getChain(), authType, hostName))
+              {
+                // If the certificate is trusted, update the trust manager.
+                trustManager = ci.getTrustManager();
+
+                // Try to connect again.
+                continue;
+              }
+              else
+              {
+                // Assume user cancelled.
+                return null;
+              }
+            }
+            else
+            {
+              LocalizableMessage message =
+                  ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(hostName, portNumber);
+              throw new ClientException(
+                  ReturnCode.CLIENT_SIDE_CONNECT_ERROR, message);
+            }
+          }
+          LocalizableMessage message =
+              ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(hostName, portNumber);
+          throw new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR,
+              message);
+        }
+      }
+    }
+    else
+    {
+      String ldapUrl = "ldap://" + hostName + ":" + portNumber;
+      while (true)
+      {
+        try
+        {
+          ctx =
+              ConnectionUtils.createLdapContext(ldapUrl, bindDN, bindPassword,
+                  ConnectionUtils.getDefaultLDAPTimeout(), null);
+          ctx.reconnect(null);
+          break;
+        }
+        catch (NamingException e)
+        {
+          LocalizableMessage message =
+              ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(hostName, portNumber);
+          throw new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR,
+              message);
+        }
+      }
+    }
+    return ctx;
+  }
+
   private ReplicationCliReturnCode purgeHistoricalRemotely(
       PurgeHistoricalUserData uData)
   {
@@ -1048,21 +1482,21 @@ public class ReplicationCliMain extends ConsoleApplication
 
   private void printSuccessMessage(PurgeHistoricalUserData uData, String taskID)
   {
-    printlnProgress();
+    println();
     if (!uData.isOnline())
     {
-      printProgress(
+      print(
           INFO_PROGRESS_PURGE_HISTORICAL_FINISHED_PROCEDURE.get());
     }
     else if (uData.getTaskSchedule().isStartNow())
     {
-      printProgress(INFO_TASK_TOOL_TASK_SUCESSFULL.get(
+      print(INFO_TASK_TOOL_TASK_SUCESSFULL.get(
           INFO_PURGE_HISTORICAL_TASK_NAME.get(),
           taskID));
     }
     else if (uData.getTaskSchedule().getStartDate() != null)
     {
-      printProgress(INFO_TASK_TOOL_TASK_SCHEDULED_FUTURE.get(
+      print(INFO_TASK_TOOL_TASK_SCHEDULED_FUTURE.get(
           INFO_PURGE_HISTORICAL_TASK_NAME.get(),
           taskID,
           StaticUtils.formatDateTimeString(
@@ -1070,12 +1504,12 @@ public class ReplicationCliMain extends ConsoleApplication
     }
     else
     {
-      printProgress(INFO_TASK_TOOL_RECURRING_TASK_SCHEDULED.get(
+      print(INFO_TASK_TOOL_RECURRING_TASK_SCHEDULED.get(
           INFO_PURGE_HISTORICAL_TASK_NAME.get(),
           taskID));
     }
 
-    printlnProgress();
+    println();
   }
 
   /**
@@ -1347,7 +1781,7 @@ public class ReplicationCliMain extends ConsoleApplication
         boolean found = false;
         for (String dn1 : availableSuffixes)
         {
-          if (Utils.areDnsEqual(dn, dn1))
+          if (areDnsEqual(dn, dn1))
           {
             found = true;
             break;
@@ -1358,7 +1792,7 @@ public class ReplicationCliMain extends ConsoleApplication
           boolean notReplicated = false;
           for (String s : notReplicatedSuffixes)
           {
-            if (Utils.areDnsEqual(s, dn))
+            if (areDnsEqual(s, dn))
             {
               notReplicated = true;
               break;
@@ -1390,9 +1824,9 @@ public class ReplicationCliMain extends ConsoleApplication
           boolean noSchemaOrAds = false;
           for (String s: availableSuffixes)
           {
-            if (!Utils.areDnsEqual(s, ADSContext.getAdministrationSuffixDN()) &&
-                !Utils.areDnsEqual(s, Constants.SCHEMA_DN) &&
-                !Utils.areDnsEqual(s, Constants.REPLICATION_CHANGES_DN))
+            if (!areDnsEqual(s, ADSContext.getAdministrationSuffixDN()) &&
+                !areDnsEqual(s, Constants.SCHEMA_DN) &&
+                !areDnsEqual(s, Constants.REPLICATION_CHANGES_DN))
             {
               noSchemaOrAds = true;
             }
@@ -1411,10 +1845,10 @@ public class ReplicationCliMain extends ConsoleApplication
             println(ERR_NO_SUFFIXES_SELECTED_TO_PURGE_HISTORICAL.get());
             for (String dn : availableSuffixes)
             {
-              if (!Utils.areDnsEqual(dn,
+              if (!areDnsEqual(dn,
                   ADSContext.getAdministrationSuffixDN()) &&
-                  !Utils.areDnsEqual(dn, Constants.SCHEMA_DN) &&
-                  !Utils.areDnsEqual(dn, Constants.REPLICATION_CHANGES_DN))
+                  !areDnsEqual(dn, Constants.SCHEMA_DN) &&
+                  !areDnsEqual(dn, Constants.REPLICATION_CHANGES_DN))
               {
                 try
                 {
@@ -1510,7 +1944,7 @@ public class ReplicationCliMain extends ConsoleApplication
         {
           try
           {
-            printlnProgress();
+            println();
             promptForConnection =
               !askConfirmation(
                   INFO_REPLICATION_PURGE_HISTORICAL_LOCAL_PROMPT.get(),
@@ -1583,7 +2017,7 @@ public class ReplicationCliMain extends ConsoleApplication
       /* Prompt for maximum duration */
       if (!argParser.maximumDurationArg.isPresent())
       {
-        printlnProgress();
+        println();
         maximumDuration = askInteger(
             INFO_REPLICATION_PURGE_HISTORICAL_MAXIMUM_DURATION_PROMPT.get(),
             argParser.getDefaultMaximumDuration(), logger);
@@ -1825,7 +2259,7 @@ public class ReplicationCliMain extends ConsoleApplication
                 argParser.getDefaultReplicationPort1(), logger);
             println();
           }
-          if (!argParser.skipReplicationPortCheck() && Utils.isLocalHost(host1))
+          if (!argParser.skipReplicationPortCheck() && isLocalHost(host1))
           {
             if (!SetupUtils.canUseAsPort(replicationPort1))
             {
@@ -1906,7 +2340,7 @@ public class ReplicationCliMain extends ConsoleApplication
     uData.setSecureReplication1(secureReplication1);
     uData.setConfigureReplicationServer1(configureReplicationServer1);
     uData.setConfigureReplicationDomain1(configureReplicationDomain1);
-    firstServerCommandBuilder = new CommandBuilder(null);
+    firstServerCommandBuilder = new CommandBuilder(null, null);
     if (mustPrintCommandBuilder())
     {
       firstServerCommandBuilder.append(ci.getCommandBuilder());
@@ -2115,7 +2549,7 @@ public class ReplicationCliMain extends ConsoleApplication
               println();
             }
             if (!argParser.skipReplicationPortCheck() &&
-                Utils.isLocalHost(host2))
+                isLocalHost(host2))
             {
               if (!SetupUtils.canUseAsPort(replicationPort2))
               {
@@ -2257,8 +2691,18 @@ public class ReplicationCliMain extends ConsoleApplication
         String adminPwdConfirm = null;
         while (adminPwdConfirm == null)
         {
-          adminPwdConfirm =
-          readPassword(INFO_ADMINISTRATOR_PWD_CONFIRM_PROMPT.get(), logger);
+          try
+          {
+            adminPwdConfirm =
+                String
+                    .valueOf(readPassword(INFO_ADMINISTRATOR_PWD_CONFIRM_PROMPT
+                        .get()));
+          }
+          catch (ClientException ex)
+          {
+            logger.warn(LocalizableMessage
+                .raw("Error reading input: " + ex, ex));
+          }
           println();
         }
         if (!adminPwd.equals(adminPwdConfirm))
@@ -2471,11 +2915,11 @@ public class ReplicationCliMain extends ConsoleApplication
       boolean disableSchema = false;
       for (String dn : uData.getBaseDNs())
       {
-        if (Utils.areDnsEqual(ADSContext.getAdministrationSuffixDN(), dn))
+        if (areDnsEqual(ADSContext.getAdministrationSuffixDN(), dn))
         {
           disableADS = true;
         }
-        else if (Utils.areDnsEqual(Constants.SCHEMA_DN, dn))
+        else if (areDnsEqual(Constants.SCHEMA_DN, dn))
         {
           disableSchema = true;
         }
@@ -2620,7 +3064,7 @@ public class ReplicationCliMain extends ConsoleApplication
       boolean initializeADS = false;
       for (String dn : uData.getBaseDNs())
       {
-        if (Utils.areDnsEqual(ADSContext.getAdministrationSuffixDN(), dn))
+        if (areDnsEqual(ADSContext.getAdministrationSuffixDN(), dn))
         {
           initializeADS = true;
         }
@@ -2999,7 +3443,7 @@ public class ReplicationCliMain extends ConsoleApplication
       uData.setAdminPwd(adminPwd);
     }
 
-    firstServerCommandBuilder = new CommandBuilder(null);
+    firstServerCommandBuilder = new CommandBuilder(null, null);
     if (mustPrintCommandBuilder())
     {
       firstServerCommandBuilder.append(ci.getCommandBuilder());
@@ -3094,7 +3538,7 @@ public class ReplicationCliMain extends ConsoleApplication
       boolean initializeADS = false;
       for (String dn : uData.getBaseDNs())
       {
-        if (Utils.areDnsEqual(ADSContext.getAdministrationSuffixDN(), dn))
+        if (areDnsEqual(ADSContext.getAdministrationSuffixDN(), dn))
         {
           initializeADS = true;
           break;
@@ -3684,7 +4128,7 @@ public class ReplicationCliMain extends ConsoleApplication
               break;
             case GENERIC_CREATING_CONNECTION:
               if ((e.getCause() != null) &&
-                  Utils.isCertificateException(e.getCause()))
+                  isCertificateException(e.getCause()))
               {
                 reloadTopology = true;
                 cancelled = !ci.promptForCertificateConfirmation(e.getCause(),
@@ -3692,11 +4136,11 @@ public class ReplicationCliMain extends ConsoleApplication
               }
               else
               {
-                exceptionMsgs.add(Utils.getMessage(e));
+                exceptionMsgs.add(getMessage(e));
               }
               break;
             default:
-              exceptionMsgs.add(Utils.getMessage(e));
+              exceptionMsgs.add(getMessage(e));
             }
           }
         }
@@ -3706,7 +4150,7 @@ public class ReplicationCliMain extends ConsoleApplication
           {
             println(
                 ERR_REPLICATION_STATUS_READING_REGISTERED_SERVERS.get(
-                    Utils.getMessageFromCollection(exceptionMsgs,
+                    getMessageFromCollection(exceptionMsgs,
                         Constants.LINE_SEPARATOR)));
             println();
           }
@@ -3716,7 +4160,7 @@ public class ReplicationCliMain extends ConsoleApplication
             {
               cancelled = !askConfirmation(
               ERR_REPLICATION_READING_REGISTERED_SERVERS_CONFIRM_UPDATE_REMOTE.
-                  get(Utils.getMessageFromCollection(exceptionMsgs,
+                  get(getMessageFromCollection(exceptionMsgs,
                       Constants.LINE_SEPARATOR)), true, logger);
             }
             catch (ClientException ce)
@@ -3859,7 +4303,7 @@ public class ReplicationCliMain extends ConsoleApplication
           {
           case NOT_REPLICATED:
             if (!areReplicated(rep1, rep2) &&
-                Utils.areDnsEqual(rep1.getSuffix().getDN(),
+                areDnsEqual(rep1.getSuffix().getDN(),
                     rep2.getSuffix().getDN()))
             {
               suffixes.add(rep1.getSuffix().getDN());
@@ -3879,14 +4323,14 @@ public class ReplicationCliMain extends ConsoleApplication
             break;
           case NOT_FULLY_REPLICATED:
             if (!areFullyReplicated(rep1, rep2) &&
-                Utils.areDnsEqual(rep1.getSuffix().getDN(),
+                areDnsEqual(rep1.getSuffix().getDN(),
                     rep2.getSuffix().getDN()))
             {
               suffixes.add(rep1.getSuffix().getDN());
             }
             break;
           case ALL:
-            if (Utils.areDnsEqual(rep1.getSuffix().getDN(),
+            if (areDnsEqual(rep1.getSuffix().getDN(),
                 rep2.getSuffix().getDN()))
             {
               suffixes.add(rep1.getSuffix().getDN());
@@ -3921,7 +4365,7 @@ public class ReplicationCliMain extends ConsoleApplication
       ReplicaDescriptor rep2)
   {
     boolean areFullyReplicated = false;
-    if (Utils.areDnsEqual(rep1.getSuffix().getDN(), rep2.getSuffix().getDN()) &&
+    if (areDnsEqual(rep1.getSuffix().getDN(), rep2.getSuffix().getDN()) &&
         rep1.isReplicated() && rep2.isReplicated() &&
         rep1.getServer().isReplicationServer() &&
         rep2.getServer().isReplicationServer())
@@ -3948,7 +4392,7 @@ public class ReplicationCliMain extends ConsoleApplication
   private boolean areReplicated(ReplicaDescriptor rep1, ReplicaDescriptor rep2)
   {
     boolean areReplicated = false;
-    if (Utils.areDnsEqual(rep1.getSuffix().getDN(), rep2.getSuffix().getDN()) &&
+    if (areDnsEqual(rep1.getSuffix().getDN(), rep2.getSuffix().getDN()) &&
         rep1.isReplicated() && rep2.isReplicated())
     {
       Set<String> servers1 = rep1.getReplicationServers();
@@ -4007,8 +4451,8 @@ public class ReplicationCliMain extends ConsoleApplication
 
     LinkedList<LocalizableMessage> errorMessages = new LinkedList<LocalizableMessage>();
 
-    printlnProgress();
-    printProgress(
+    println();
+    print(
         formatter.getFormattedWithPoints(INFO_REPLICATION_CONNECTING.get()));
     try
     {
@@ -4045,8 +4489,8 @@ public class ReplicationCliMain extends ConsoleApplication
     if (errorMessages.isEmpty())
     {
       // This done is for the message informing that we are connecting.
-      printProgress(formatter.getFormattedDone());
-      printlnProgress();
+      print(formatter.getFormattedDone());
+      println();
 
 //    If we are not in interactive mode do some checks...
       if (!argParser.isInteractive())
@@ -4069,7 +4513,7 @@ public class ReplicationCliMain extends ConsoleApplication
         {
           if (!argParser.skipReplicationPortCheck() &&
               uData.configureReplicationServer1() &&
-              Utils.isLocalHost(host1) &&
+              isLocalHost(host1) &&
               !SetupUtils.canUseAsPort(replPort1))
           {
             errorMessages.add(getCannotBindToPortError(replPort1));
@@ -4079,7 +4523,7 @@ public class ReplicationCliMain extends ConsoleApplication
         {
           if (!argParser.skipReplicationPortCheck() &&
               uData.configureReplicationServer2() &&
-              Utils.isLocalHost(host2) &&
+              isLocalHost(host2) &&
               !SetupUtils.canUseAsPort(replPort2))
           {
             errorMessages.add(getCannotBindToPortError(replPort2));
@@ -4187,8 +4631,8 @@ public class ReplicationCliMain extends ConsoleApplication
 
     if (returnValue == SUCCESSFUL)
     {
-      long time1 = Utils.getServerClock(ctx1);
-      long time2 = Utils.getServerClock(ctx2);
+      long time1 = getServerClock(ctx1);
+      long time2 = getServerClock(ctx2);
       if ((time1 != -1) && (time2 != -1))
       {
         if (Math.abs(time1 - time2) >
@@ -4200,10 +4644,10 @@ public class ReplicationCliMain extends ConsoleApplication
               Installer.THRESHOLD_CLOCK_DIFFERENCE_WARNING));
         }
       }
-      printlnProgress();
-      printProgress(INFO_REPLICATION_POST_ENABLE_INFO.get("dsreplication",
+      println();
+      println(INFO_REPLICATION_POST_ENABLE_INFO.get("dsreplication",
           ReplicationCliArgumentParser.INITIALIZE_REPLICATION_SUBCMD_NAME));
-      printlnProgress();
+      println();
     }
 
     close(ctx1, ctx2);
@@ -4223,7 +4667,7 @@ public class ReplicationCliMain extends ConsoleApplication
   {
     ReplicationCliReturnCode returnValue;
     InitialLdapContext ctx = null;
-    printProgress(
+    print(
         formatter.getFormattedWithPoints(INFO_REPLICATION_CONNECTING.get()));
     String bindDn = uData.getAdminUid() == null ? uData.getBindDn() :
       ADSContext.getAdministratorDN(uData.getAdminUid());
@@ -4245,8 +4689,8 @@ public class ReplicationCliMain extends ConsoleApplication
     if (ctx != null)
     {
       // This done is for the message informing that we are connecting.
-      printProgress(formatter.getFormattedDone());
-      printlnProgress();
+      print(formatter.getFormattedDone());
+      println();
       List<String> suffixes = uData.getBaseDNs();
       checkSuffixesForDisableReplication(suffixes, ctx, false,
           !uData.disableReplicationServer(), !uData.disableReplicationServer());
@@ -4437,12 +4881,12 @@ public class ReplicationCliMain extends ConsoleApplication
         {
           try
           {
-            printlnProgress();
+            println();
             LocalizableMessage msg = formatter.getFormattedProgress(
                 INFO_PROGRESS_INITIALIZING_SUFFIX.get(baseDN,
                     ConnectionUtils.getHostPort(ctxSource)));
-            printProgress(msg);
-            printlnProgress();
+            print(msg);
+            println();
             initializeSuffix(baseDN, ctxSource, ctxDestination, true);
             returnValue = SUCCESSFUL;
           }
@@ -4491,7 +4935,7 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       final String hostPort = getServerRepresentation(host, port);
       println();
-      println(Utils.getMessageForException(ne, hostPort));
+      println(getMessageForException(ne, hostPort));
       logger.error(LocalizableMessage.raw("Complete error stack:"), ne);
     }
     return context;
@@ -4552,11 +4996,11 @@ public class ReplicationCliMain extends ConsoleApplication
         {
           try
           {
-            printlnProgress();
+            println();
             LocalizableMessage msg = formatter.getFormattedProgress(
                 INFO_PROGRESS_INITIALIZING_SUFFIX.get(baseDN,
                     ConnectionUtils.getHostPort(ctx)));
-            printProgress(msg);
+            print(msg);
             println();
             initializeAllSuffix(baseDN, ctx, true);
             returnValue = SUCCESSFUL;
@@ -4640,13 +5084,13 @@ public class ReplicationCliMain extends ConsoleApplication
         {
           try
           {
-            printlnProgress();
+            println();
             LocalizableMessage msg = formatter.getFormattedWithPoints(
                 INFO_PROGRESS_PRE_EXTERNAL_INITIALIZATION.get(baseDN));
-            printProgress(msg);
+            print(msg);
             preExternalInitialization(baseDN, ctx, false);
-            printProgress(formatter.getFormattedDone());
-            printlnProgress();
+            print(formatter.getFormattedDone());
+            println();
           }
           catch (ReplicationCliException rce)
           {
@@ -4656,12 +5100,12 @@ public class ReplicationCliMain extends ConsoleApplication
             logger.error(LocalizableMessage.raw("Complete error stack:"), rce);
           }
         }
-        printlnProgress();
-        printProgress(
+        println();
+        print(
           INFO_PROGRESS_PRE_INITIALIZATION_FINISHED_PROCEDURE.get(
               ReplicationCliArgumentParser.
               POST_EXTERNAL_INITIALIZATION_SUBCMD_NAME));
-        printlnProgress();
+        println();
       }
       else
       {
@@ -4729,13 +5173,13 @@ public class ReplicationCliMain extends ConsoleApplication
         {
           try
           {
-            printlnProgress();
+            println();
             LocalizableMessage msg = formatter.getFormattedWithPoints(
                 INFO_PROGRESS_POST_EXTERNAL_INITIALIZATION.get(baseDN));
-            printProgress(msg);
+            print(msg);
             postExternalInitialization(baseDN, ctx, false);
-            printProgress(formatter.getFormattedDone());
-            printlnProgress();
+            println(formatter.getFormattedDone());
+            println();
           }
           catch (ReplicationCliException rce)
           {
@@ -4745,10 +5189,10 @@ public class ReplicationCliMain extends ConsoleApplication
             logger.error(LocalizableMessage.raw("Complete error stack:"), rce);
           }
         }
-        printlnProgress();
-        printProgress(
+        println();
+        print(
             INFO_PROGRESS_POST_INITIALIZATION_FINISHED_PROCEDURE.get());
-        printlnProgress();
+        println();
       }
       else
       {
@@ -4840,7 +5284,7 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         for (String s2 : alreadyReplicatedSuffixes)
         {
-          if (Utils.areDnsEqual(s1, s2))
+          if (areDnsEqual(s1, s2))
           {
             userProvidedReplicatedSuffixes.add(s1);
           }
@@ -4864,7 +5308,7 @@ public class ReplicationCliMain extends ConsoleApplication
         boolean found = false;
         for (String dn1 : availableSuffixes)
         {
-          if (Utils.areDnsEqual(dn, dn1))
+          if (areDnsEqual(dn, dn1))
           {
             found = true;
             break;
@@ -4875,7 +5319,7 @@ public class ReplicationCliMain extends ConsoleApplication
           boolean isReplicated = false;
           for (String s : alreadyReplicatedSuffixes)
           {
-            if (Utils.areDnsEqual(s, dn))
+            if (areDnsEqual(s, dn))
             {
               isReplicated = true;
               break;
@@ -4913,9 +5357,9 @@ public class ReplicationCliMain extends ConsoleApplication
           boolean noSchemaOrAds = false;
           for (String s: availableSuffixes)
           {
-            if (!Utils.areDnsEqual(s, ADSContext.getAdministrationSuffixDN()) &&
-                !Utils.areDnsEqual(s, Constants.SCHEMA_DN) &&
-                !Utils.areDnsEqual(s, Constants.REPLICATION_CHANGES_DN))
+            if (!areDnsEqual(s, ADSContext.getAdministrationSuffixDN()) &&
+                !areDnsEqual(s, Constants.SCHEMA_DN) &&
+                !areDnsEqual(s, Constants.REPLICATION_CHANGES_DN))
             {
               noSchemaOrAds = true;
             }
@@ -4935,10 +5379,10 @@ public class ReplicationCliMain extends ConsoleApplication
             println(ERR_NO_SUFFIXES_SELECTED_TO_REPLICATE.get());
             for (String dn : availableSuffixes)
             {
-              if (!Utils.areDnsEqual(dn,
+              if (!areDnsEqual(dn,
                   ADSContext.getAdministrationSuffixDN()) &&
-                  !Utils.areDnsEqual(dn, Constants.SCHEMA_DN) &&
-                  !Utils.areDnsEqual(dn, Constants.REPLICATION_CHANGES_DN))
+                  !areDnsEqual(dn, Constants.SCHEMA_DN) &&
+                  !areDnsEqual(dn, Constants.REPLICATION_CHANGES_DN))
               {
                 try
                 {
@@ -5015,7 +5459,7 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         for (String s2 : notReplicatedSuffixes)
         {
-          if (Utils.areDnsEqual(s1, s2))
+          if (areDnsEqual(s1, s2))
           {
             userProvidedNotReplicatedSuffixes.add(s1);
           }
@@ -5039,7 +5483,7 @@ public class ReplicationCliMain extends ConsoleApplication
         boolean found = false;
         for (String dn1 : availableSuffixes)
         {
-          if (Utils.areDnsEqual(dn, dn1))
+          if (areDnsEqual(dn, dn1))
           {
             found = true;
             break;
@@ -5050,7 +5494,7 @@ public class ReplicationCliMain extends ConsoleApplication
           boolean notReplicated = false;
           for (String s : notReplicatedSuffixes)
           {
-            if (Utils.areDnsEqual(s, dn))
+            if (areDnsEqual(s, dn))
             {
               notReplicated = true;
               break;
@@ -5088,9 +5532,9 @@ public class ReplicationCliMain extends ConsoleApplication
           boolean noSchemaOrAds = false;
           for (String s: availableSuffixes)
           {
-            if (!Utils.areDnsEqual(s, ADSContext.getAdministrationSuffixDN()) &&
-                !Utils.areDnsEqual(s, Constants.SCHEMA_DN) &&
-                !Utils.areDnsEqual(s, Constants.REPLICATION_CHANGES_DN))
+            if (!areDnsEqual(s, ADSContext.getAdministrationSuffixDN()) &&
+                !areDnsEqual(s, Constants.SCHEMA_DN) &&
+                !areDnsEqual(s, Constants.REPLICATION_CHANGES_DN))
             {
               noSchemaOrAds = true;
             }
@@ -5115,10 +5559,10 @@ public class ReplicationCliMain extends ConsoleApplication
             }
             for (String dn : availableSuffixes)
             {
-              if (!Utils.areDnsEqual(dn,
+              if (!areDnsEqual(dn,
                   ADSContext.getAdministrationSuffixDN()) &&
-                  !Utils.areDnsEqual(dn, Constants.SCHEMA_DN) &&
-                  !Utils.areDnsEqual(dn, Constants.REPLICATION_CHANGES_DN))
+                  !areDnsEqual(dn, Constants.SCHEMA_DN) &&
+                  !areDnsEqual(dn, Constants.REPLICATION_CHANGES_DN))
               {
                 try
                 {
@@ -5200,7 +5644,7 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         for (String s2 : notReplicatedSuffixes)
         {
-          if (Utils.areDnsEqual(s1, s2))
+          if (areDnsEqual(s1, s2))
           {
             userProvidedNotReplicatedSuffixes.add(s1);
           }
@@ -5224,7 +5668,7 @@ public class ReplicationCliMain extends ConsoleApplication
         boolean found = false;
         for (String dn1 : availableSuffixes)
         {
-          if (Utils.areDnsEqual(dn, dn1))
+          if (areDnsEqual(dn, dn1))
           {
             found = true;
             break;
@@ -5235,7 +5679,7 @@ public class ReplicationCliMain extends ConsoleApplication
           boolean notReplicated = false;
           for (String s : notReplicatedSuffixes)
           {
-            if (Utils.areDnsEqual(s, dn))
+            if (areDnsEqual(s, dn))
             {
               notReplicated = true;
               break;
@@ -5273,9 +5717,9 @@ public class ReplicationCliMain extends ConsoleApplication
           boolean noSchemaOrAds = false;
           for (String s: availableSuffixes)
           {
-            if (!Utils.areDnsEqual(s, ADSContext.getAdministrationSuffixDN()) &&
-                !Utils.areDnsEqual(s, Constants.SCHEMA_DN) &&
-                !Utils.areDnsEqual(s, Constants.REPLICATION_CHANGES_DN))
+            if (!areDnsEqual(s, ADSContext.getAdministrationSuffixDN()) &&
+                !areDnsEqual(s, Constants.SCHEMA_DN) &&
+                !areDnsEqual(s, Constants.REPLICATION_CHANGES_DN))
             {
               noSchemaOrAds = true;
             }
@@ -5316,10 +5760,10 @@ public class ReplicationCliMain extends ConsoleApplication
             }
             for (String dn : availableSuffixes)
             {
-              if (!Utils.areDnsEqual(dn,
+              if (!areDnsEqual(dn,
                   ADSContext.getAdministrationSuffixDN()) &&
-                  !Utils.areDnsEqual(dn, Constants.SCHEMA_DN) &&
-                  !Utils.areDnsEqual(dn, Constants.REPLICATION_CHANGES_DN))
+                  !areDnsEqual(dn, Constants.SCHEMA_DN) &&
+                  !areDnsEqual(dn, Constants.REPLICATION_CHANGES_DN))
               {
                 boolean addSuffix;
                 try
@@ -5399,7 +5843,7 @@ public class ReplicationCliMain extends ConsoleApplication
         boolean found = false;
         for (String dn1 : availableSuffixes)
         {
-          if (Utils.areDnsEqual(dn, dn1))
+          if (areDnsEqual(dn, dn1))
           {
             found = true;
             break;
@@ -5425,9 +5869,9 @@ public class ReplicationCliMain extends ConsoleApplication
           boolean noSchemaOrAds = false;
           for (String s: availableSuffixes)
           {
-            if (!Utils.areDnsEqual(s, ADSContext.getAdministrationSuffixDN()) &&
-                !Utils.areDnsEqual(s, Constants.SCHEMA_DN) &&
-                !Utils.areDnsEqual(s, Constants.REPLICATION_CHANGES_DN))
+            if (!areDnsEqual(s, ADSContext.getAdministrationSuffixDN()) &&
+                !areDnsEqual(s, Constants.SCHEMA_DN) &&
+                !areDnsEqual(s, Constants.REPLICATION_CHANGES_DN))
             {
               noSchemaOrAds = true;
             }
@@ -5447,10 +5891,10 @@ public class ReplicationCliMain extends ConsoleApplication
 
             for (String dn : availableSuffixes)
             {
-              if (!Utils.areDnsEqual(dn,
+              if (!areDnsEqual(dn,
                   ADSContext.getAdministrationSuffixDN()) &&
-                  !Utils.areDnsEqual(dn, Constants.SCHEMA_DN) &&
-                  !Utils.areDnsEqual(dn, Constants.REPLICATION_CHANGES_DN))
+                  !areDnsEqual(dn, Constants.SCHEMA_DN) &&
+                  !areDnsEqual(dn, Constants.REPLICATION_CHANGES_DN))
               {
                 try
                 {
@@ -5589,7 +6033,7 @@ public class ReplicationCliMain extends ConsoleApplication
       if (!messages.isEmpty())
       {
         println(ERR_REPLICATION_READING_REGISTERED_SERVERS_WARNING.get(
-                Utils.getMessageFromCollection(messages,
+                getMessageFromCollection(messages,
                     Constants.LINE_SEPARATOR)));
       }
     }
@@ -5651,7 +6095,7 @@ public class ReplicationCliMain extends ConsoleApplication
     boolean adsAlreadyReplicated = false;
     boolean adsMergeDone = false;
 
-    printProgress(formatter.getFormattedWithPoints(
+    print(formatter.getFormattedWithPoints(
         INFO_REPLICATION_ENABLE_UPDATING_ADS_CONTENTS.get()));
     try
     {
@@ -5700,8 +6144,8 @@ public class ReplicationCliMain extends ConsoleApplication
         }
         else if (!areEqual(registry1, registry2))
         {
-          printProgress(formatter.getFormattedDone());
-          printlnProgress();
+          print(formatter.getFormattedDone());
+          println();
 
           boolean isFirstSource = mergeRegistries(adsCtx1, adsCtx2);
           if (isFirstSource)
@@ -5731,8 +6175,8 @@ public class ReplicationCliMain extends ConsoleApplication
             if (isADS1Replicated && isADS2Replicated)
             {
               // Merge
-              printProgress(formatter.getFormattedDone());
-              printlnProgress();
+              print(formatter.getFormattedDone());
+              println();
 
               boolean isFirstSource = mergeRegistries(adsCtx1, adsCtx2);
               if (isFirstSource)
@@ -5876,8 +6320,8 @@ public class ReplicationCliMain extends ConsoleApplication
     }
     if (!adsMergeDone)
     {
-      printProgress(formatter.getFormattedDone());
-      printlnProgress();
+      print(formatter.getFormattedDone());
+      println();
     }
     List<String> baseDNs = uData.getBaseDNs();
     if (!adsAlreadyReplicated)
@@ -5885,7 +6329,7 @@ public class ReplicationCliMain extends ConsoleApplication
       boolean found = false;
       for (String dn : baseDNs)
       {
-        if (Utils.areDnsEqual(dn, ADSContext.getAdministrationSuffixDN()))
+        if (areDnsEqual(dn, ADSContext.getAdministrationSuffixDN()))
         {
           found = true;
           break;
@@ -6106,7 +6550,7 @@ public class ReplicationCliMain extends ConsoleApplication
       Set<String> alreadyConfiguredServers = new HashSet<String>();
 
       if (uData.configureReplicationDomain1() ||
-          Utils.areDnsEqual(baseDN, ADSContext.getAdministrationSuffixDN()))
+          areDnsEqual(baseDN, ADSContext.getAdministrationSuffixDN()))
       {
         try
         {
@@ -6123,7 +6567,7 @@ public class ReplicationCliMain extends ConsoleApplication
       alreadyConfiguredServers.add(server1.getId());
 
       if (uData.configureReplicationDomain2() ||
-          Utils.areDnsEqual(baseDN, ADSContext.getAdministrationSuffixDN()))
+          areDnsEqual(baseDN, ADSContext.getAdministrationSuffixDN()))
       {
         try
         {
@@ -6160,7 +6604,7 @@ public class ReplicationCliMain extends ConsoleApplication
     if (adsMergeDone)
     {
       PointAdder pointAdder = new PointAdder(this);
-      printProgress(
+      print(
           INFO_ENABLE_REPLICATION_INITIALIZING_ADS_ALL.get(
               ConnectionUtils.getHostPort(ctxSource)));
       pointAdder.start();
@@ -6173,21 +6617,21 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         pointAdder.stop();
       }
-      printProgress(formatter.getSpace());
-      printProgress(formatter.getFormattedDone());
-      printlnProgress();
+      print(formatter.getSpace());
+      print(formatter.getFormattedDone());
+      println();
     }
     else if ((ctxSource != null) && (ctxDestination != null))
     {
-      printProgress(formatter.getFormattedWithPoints(
+      print(formatter.getFormattedWithPoints(
           INFO_ENABLE_REPLICATION_INITIALIZING_ADS.get(
               ConnectionUtils.getHostPort(ctxDestination),
               ConnectionUtils.getHostPort(ctxSource))));
 
       initializeSuffix(ADSContext.getAdministrationSuffixDN(), ctxSource,
           ctxDestination, false);
-      printProgress(formatter.getFormattedDone());
-      printlnProgress();
+      print(formatter.getFormattedDone());
+      println();
     }
 
     // If we must initialize the schema do so.
@@ -6206,7 +6650,7 @@ public class ReplicationCliMain extends ConsoleApplication
       if (adsMergeDone)
       {
         PointAdder pointAdder = new PointAdder(this);
-        printProgress(
+        println(
             INFO_ENABLE_REPLICATION_INITIALIZING_SCHEMA.get(
                 ConnectionUtils.getHostPort(ctxDestination),
                 ConnectionUtils.getHostPort(ctxSource)));
@@ -6219,19 +6663,19 @@ public class ReplicationCliMain extends ConsoleApplication
         {
           pointAdder.stop();
         }
-        printProgress(formatter.getSpace());
+        print(formatter.getSpace());
       }
       else
       {
-        printProgress(formatter.getFormattedWithPoints(
+        print(formatter.getFormattedWithPoints(
             INFO_ENABLE_REPLICATION_INITIALIZING_SCHEMA.get(
                 ConnectionUtils.getHostPort(ctxDestination),
                 ConnectionUtils.getHostPort(ctxSource))));
         initializeSuffix(Constants.SCHEMA_DN, ctxSource,
           ctxDestination, false);
       }
-      printProgress(formatter.getFormattedDone());
-      printlnProgress();
+      print(formatter.getFormattedDone());
+      println();
     }
   }
 
@@ -6317,7 +6761,7 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         println(
             ERR_REPLICATION_READING_REGISTERED_SERVERS_WARNING.get(
-                Utils.getMessageFromCollection(messages,
+                getMessageFromCollection(messages,
                     Constants.LINE_SEPARATOR)));
       }
     }
@@ -6343,9 +6787,9 @@ public class ReplicationCliMain extends ConsoleApplication
 
       for (SuffixDescriptor suffix : cache.getSuffixes())
       {
-        if (Utils.areDnsEqual(suffix.getDN(),
+        if (areDnsEqual(suffix.getDN(),
             ADSContext.getAdministrationSuffixDN()) ||
-            Utils.areDnsEqual(suffix.getDN(), Constants.SCHEMA_DN))
+            areDnsEqual(suffix.getDN(), Constants.SCHEMA_DN))
         {
           // Do not display these suffixes.
           continue;
@@ -6384,9 +6828,9 @@ public class ReplicationCliMain extends ConsoleApplication
         Set<String> baseDNs = new LinkedHashSet<String>();
         for (SuffixDescriptor suffix : beforeLastRepServer)
         {
-          if (!Utils.areDnsEqual(suffix.getDN(),
+          if (!areDnsEqual(suffix.getDN(),
               ADSContext.getAdministrationSuffixDN()) &&
-              !Utils.areDnsEqual(suffix.getDN(), Constants.SCHEMA_DN))
+              !areDnsEqual(suffix.getDN(), Constants.SCHEMA_DN))
           {
             // Do not display these suffixes.
             baseDNs.add(suffix.getDN());
@@ -6432,14 +6876,14 @@ public class ReplicationCliMain extends ConsoleApplication
           boolean baseDNSpecified = false;
           for (String baseDN : uData.getBaseDNs())
           {
-            if (Utils.areDnsEqual(baseDN,
+            if (areDnsEqual(baseDN,
                 ADSContext.getAdministrationSuffixDN()) ||
-                Utils.areDnsEqual(baseDN, Constants.SCHEMA_DN))
+                areDnsEqual(baseDN, Constants.SCHEMA_DN))
             {
               // Do not display these suffixes.
               continue;
             }
-            if (Utils.areDnsEqual(baseDN, suffix.getDN()))
+            if (areDnsEqual(baseDN, suffix.getDN()))
             {
               baseDNSpecified = true;
               break;
@@ -6526,11 +6970,11 @@ public class ReplicationCliMain extends ConsoleApplication
       String dn = rep.getSuffix().getDN();
       if (rep.isReplicated())
       {
-        if (Utils.areDnsEqual(ADSContext.getAdministrationSuffixDN(), dn))
+        if (areDnsEqual(ADSContext.getAdministrationSuffixDN(), dn))
         {
           adsReplicated = true;
         }
-        else if (Utils.areDnsEqual(Constants.SCHEMA_DN, dn))
+        else if (areDnsEqual(Constants.SCHEMA_DN, dn))
         {
           schemaReplicated = true;
         }
@@ -6593,12 +7037,12 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       for (String dn : uData.getBaseDNs())
       {
-        if (Utils.areDnsEqual(ADSContext.getAdministrationSuffixDN(), dn))
+        if (areDnsEqual(ADSContext.getAdministrationSuffixDN(), dn))
         {
           // The user already asked this to be explicitly disabled
           forceDisableADS = false;
         }
-        else if (Utils.areDnsEqual(Constants.SCHEMA_DN, dn))
+        else if (areDnsEqual(Constants.SCHEMA_DN, dn))
         {
           // The user already asked this to be explicitly disabled
           forceDisableSchema = false;
@@ -6715,11 +7159,11 @@ public class ReplicationCliMain extends ConsoleApplication
       try
       {
         // Delete all contents from ADSContext.
-        printProgress(formatter.getFormattedWithPoints(
+        print(formatter.getFormattedWithPoints(
             INFO_REPLICATION_REMOVE_ADS_CONTENTS.get()));
         adsCtx.removeAdminData(false /* avoid self-disconnect */);
-        printProgress(formatter.getFormattedDone());
-        printlnProgress();
+        print(formatter.getFormattedDone());
+        println();
       }
       catch (ADSContextException adce)
       {
@@ -6817,7 +7261,7 @@ public class ReplicationCliMain extends ConsoleApplication
       {
         LocalizableMessage msg =
             ERR_REPLICATION_STATUS_READING_REGISTERED_SERVERS.get(
-                Utils.getMessageFromCollection(messages,
+                getMessageFromCollection(messages,
                     Constants.LINE_SEPARATOR));
         println(msg);
       }
@@ -6837,12 +7281,12 @@ public class ReplicationCliMain extends ConsoleApplication
       // If no base DNs where specified display all the base DNs but the schema
       // and cn=admin data.
       boolean found = displayAll &&
-      !Utils.areDnsEqual(dn, ADSContext.getAdministrationSuffixDN()) &&
-      !Utils.areDnsEqual(dn, Constants.SCHEMA_DN) &&
-      !Utils.areDnsEqual(dn, Constants.REPLICATION_CHANGES_DN);
+      !areDnsEqual(dn, ADSContext.getAdministrationSuffixDN()) &&
+      !areDnsEqual(dn, Constants.SCHEMA_DN) &&
+      !areDnsEqual(dn, Constants.REPLICATION_CHANGES_DN);
       for (String baseDN : userBaseDNs)
       {
-        found = Utils.areDnsEqual(baseDN, dn);
+        found = areDnsEqual(baseDN, dn);
         if (found)
         {
           break;
@@ -6872,7 +7316,7 @@ public class ReplicationCliMain extends ConsoleApplication
           {
             ReplicaDescriptor replica = replicas.iterator().next();
             if (!replica.isReplicated() &&
-                Utils.areDnsEqual(dn, replica.getSuffix().getDN()))
+                areDnsEqual(dn, replica.getSuffix().getDN()))
             {
               replicas.addAll(suffix.getReplicas());
               found = true;
@@ -6945,21 +7389,21 @@ public class ReplicationCliMain extends ConsoleApplication
 
       if (oneReplicated && !uData.isScriptFriendly())
       {
-        printlnProgress();
-        printProgress(INFO_REPLICATION_STATUS_REPLICATED_LEGEND.get());
+        println();
+        print(INFO_REPLICATION_STATUS_REPLICATED_LEGEND.get());
 
         if (!replicasWithNoReplicationServer.isEmpty() ||
             !serversWithNoReplica.isEmpty())
         {
-          printlnProgress();
-          printProgress(
+          println();
+          print(
               INFO_REPLICATION_STATUS_NOT_A_REPLICATION_SERVER_LEGEND.get());
 
-          printlnProgress();
-          printProgress(
+          println();
+          print(
               INFO_REPLICATION_STATUS_NOT_A_REPLICATION_DOMAIN_LEGEND.get());
         }
-        printlnProgress();
+        println();
         somethingDisplayed = true;
       }
     }
@@ -6967,13 +7411,13 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       if (displayAll)
       {
-        printProgress(INFO_REPLICATION_STATUS_NO_REPLICATION_INFORMATION.get());
-        printlnProgress();
+        print(INFO_REPLICATION_STATUS_NO_REPLICATION_INFORMATION.get());
+        println();
       }
       else
       {
-        printProgress(INFO_REPLICATION_STATUS_NO_BASEDNS.get());
-        printlnProgress();
+        print(INFO_REPLICATION_STATUS_NO_BASEDNS.get());
+        println();
       }
     }
   }
@@ -7322,25 +7766,25 @@ public class ReplicationCliMain extends ConsoleApplication
 
     if (scriptFriendly)
     {
-      printProgress(
+      print(
           INFO_REPLICATION_STATUS_INDEPENDENT_REPLICATION_SERVERS.get());
-      printlnProgress();
+      println();
       printer = new TabSeparatedTablePrinter(out);
     }
     else
     {
       LocalizableMessage msg =
         INFO_REPLICATION_STATUS_INDEPENDENT_REPLICATION_SERVERS.get();
-      printProgressMessageNoWrap(msg);
-      printlnProgress();
+      print(msg);
+      println();
       int length = msg.length();
       StringBuilder buf = new StringBuilder();
       for (int i=0; i<length; i++)
       {
         buf.append("=");
       }
-      printProgressMessageNoWrap(LocalizableMessage.raw(buf.toString()));
-      printlnProgress();
+      print(LocalizableMessage.raw(buf.toString()));
+      println();
 
       printer = new TextTablePrinter(getOutputStream());
       ((TextTablePrinter)printer).setColumnSeparator(
@@ -7368,7 +7812,7 @@ public class ReplicationCliMain extends ConsoleApplication
     Set<String> servers = new LinkedHashSet<String>();
     for (ReplicaDescriptor replica : server.getReplicas())
     {
-      if (Utils.areDnsEqual(replica.getSuffix().getDN(), baseDN))
+      if (areDnsEqual(replica.getSuffix().getDN(), baseDN))
       {
         servers.addAll(replica.getReplicationServers());
         break;
@@ -7379,7 +7823,7 @@ public class ReplicationCliMain extends ConsoleApplication
       Set<SuffixDescriptor> suffixes = cache.getSuffixes();
       for (SuffixDescriptor suffix : suffixes)
       {
-        if (Utils.areDnsEqual(suffix.getDN(), baseDN))
+        if (areDnsEqual(suffix.getDN(), baseDN))
         {
           Set<String> s = suffix.getReplicationServers();
           // Test that at least we share one of the replication servers.
@@ -7443,7 +7887,7 @@ public class ReplicationCliMain extends ConsoleApplication
     Set<String> servers = new LinkedHashSet<String>();
     for (ReplicaDescriptor replica : server.getReplicas())
     {
-      if (Utils.areDnsEqual(replica.getSuffix().getDN(), baseDN))
+      if (areDnsEqual(replica.getSuffix().getDN(), baseDN))
       {
         servers.addAll(replica.getReplicationServers());
         break;
@@ -7453,7 +7897,7 @@ public class ReplicationCliMain extends ConsoleApplication
     Set<SuffixDescriptor> suffixes = cache.getSuffixes();
     for (SuffixDescriptor suffix : suffixes)
     {
-      if (Utils.areDnsEqual(suffix.getDN(), baseDN))
+      if (areDnsEqual(suffix.getDN(), baseDN))
       {
         Set<String> s = suffix.getReplicationServers();
         // Test that at least we share one of the replication servers.
@@ -7499,7 +7943,7 @@ public class ReplicationCliMain extends ConsoleApplication
     for (ReplicaDescriptor replica : server.getReplicas())
     {
       if ((replica.isReplicated()) &&
-      Utils.areDnsEqual(replica.getSuffix().getDN(), baseDN))
+      areDnsEqual(replica.getSuffix().getDN(), baseDN))
       {
         ids.add(replica.getReplicationId());
         break;
@@ -7528,7 +7972,7 @@ public class ReplicationCliMain extends ConsoleApplication
       Set<String> replicationServers,
       Set<Integer> usedReplicationServerIds) throws OpenDsException
   {
-    printProgress(formatter.getFormattedWithPoints(
+    print(formatter.getFormattedWithPoints(
         INFO_REPLICATION_ENABLE_CONFIGURING_REPLICATION_SERVER.get(
             ConnectionUtils.getHostPort(ctx))));
 
@@ -7619,8 +8063,8 @@ public class ReplicationCliMain extends ConsoleApplication
       replicationServer.commit();
     }
 
-    printProgress(formatter.getFormattedDone());
-    printlnProgress();
+    print(formatter.getFormattedDone());
+    println();
   }
 
   /**
@@ -7634,7 +8078,7 @@ public class ReplicationCliMain extends ConsoleApplication
   private void updateReplicationServer(InitialLdapContext ctx,
       Set<String> replicationServers) throws OpenDsException
   {
-    printProgress(formatter.getFormattedWithPoints(
+    print(formatter.getFormattedWithPoints(
         INFO_REPLICATION_ENABLE_UPDATING_REPLICATION_SERVER.get(
             ConnectionUtils.getHostPort(ctx))));
 
@@ -7665,8 +8109,8 @@ public class ReplicationCliMain extends ConsoleApplication
       replicationServer.commit();
     }
 
-    printProgress(formatter.getFormattedDone());
-    printlnProgress();
+    print(formatter.getFormattedDone());
+    println();
   }
 
   /**
@@ -7712,23 +8156,23 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       for (String dn : l)
       {
-        if (Utils.areDnsEqual(dn, ADSContext.getAdministrationSuffixDN()))
+        if (areDnsEqual(dn, ADSContext.getAdministrationSuffixDN()))
         {
           userSpecifiedAdminBaseDN = true;
           break;
         }
       }
     }
-    if (!userSpecifiedAdminBaseDN && Utils.areDnsEqual(baseDN,
+    if (!userSpecifiedAdminBaseDN && areDnsEqual(baseDN,
         ADSContext.getAdministrationSuffixDN()))
     {
-      printProgress(formatter.getFormattedWithPoints(
+      print(formatter.getFormattedWithPoints(
           INFO_REPLICATION_ENABLE_CONFIGURING_ADS.get(
               ConnectionUtils.getHostPort(ctx))));
     }
     else
     {
-      printProgress(formatter.getFormattedWithPoints(
+      print(formatter.getFormattedWithPoints(
           INFO_REPLICATION_ENABLE_CONFIGURING_BASEDN.get(baseDN,
               ConnectionUtils.getHostPort(ctx))));
     }
@@ -7754,7 +8198,7 @@ public class ReplicationCliMain extends ConsoleApplication
     ReplicationDomainCfgClient domain = null;
     for (ReplicationDomainCfgClient domain2 : domains)
     {
-      if (Utils.areDnsEqual(baseDN, domain2.getBaseDN().toString()))
+      if (areDnsEqual(baseDN, domain2.getBaseDN().toString()))
       {
         domain = domain2;
         break;
@@ -7796,8 +8240,8 @@ public class ReplicationCliMain extends ConsoleApplication
       domain.commit();
     }
 
-    printProgress(formatter.getFormattedDone());
-    printlnProgress();
+    print(formatter.getFormattedDone());
+    println();
   }
 
   /**
@@ -7945,7 +8389,7 @@ public class ReplicationCliMain extends ConsoleApplication
           filter);
       for (ReplicaDescriptor replica : source.getReplicas())
       {
-        if (Utils.areDnsEqual(replica.getSuffix().getDN(), baseDN))
+        if (areDnsEqual(replica.getSuffix().getDN(), baseDN))
         {
           replicationId = replica.getReplicationId();
           break;
@@ -7978,8 +8422,8 @@ public class ReplicationCliMain extends ConsoleApplication
         if ((newLogDetails != null) &&
             !newLogDetails.toString().trim().equals(""))
         {
-          printProgress(newLogDetails);
-          printlnProgress();
+          print(newLogDetails);
+          println();
         }
       }
     });
@@ -8069,7 +8513,7 @@ public class ReplicationCliMain extends ConsoleApplication
         {
         }
       }
-      catch (ApplicationException ae)
+      catch (ClientException ae)
       {
         throw new ReplicationCliException(ae.getMessageObject(),
             ERROR_INITIALIZING_BASEDN_GENERIC, ae);
@@ -8277,13 +8721,13 @@ public class ReplicationCliMain extends ConsoleApplication
    * initialization is.
    * @param baseDN the dn of the suffix.
    * @param displayProgress whether we want to display progress or not.
-   * @throws ApplicationException if an unexpected error occurs.
+   * @throws ClientException if an unexpected error occurs.
    * @throws PeerNotFoundException if the replication mechanism cannot find
    * a peer.
    */
   public void initializeAllSuffixTry(String baseDN, InitialLdapContext ctx,
       boolean displayProgress)
-  throws ApplicationException, PeerNotFoundException
+  throws ClientException, PeerNotFoundException
   {
     boolean taskCreated = false;
     int i = 1;
@@ -8319,7 +8763,7 @@ public class ReplicationCliMain extends ConsoleApplication
       catch (NamingException ne)
       {
         logger.error(LocalizableMessage.raw("Error creating task "+attrs, ne));
-        throw new ApplicationException(
+        throw new ClientException(
             ReturnCode.APPLICATION_ERROR,
                 getThrowableMsg(INFO_ERROR_LAUNCHING_INITIALIZATION.get(
                         serverDisplay), ne), ne);
@@ -8445,9 +8889,9 @@ public class ReplicationCliMain extends ConsoleApplication
             if (((currentTime - minRefreshPeriod) > lastTimeMsgDisplayed) &&
                 !msg.equals(lastDisplayedMsg))
             {
-              printProgress(msg);
+              print(msg);
               lastDisplayedMsg = msg;
-              printlnProgress();
+              println();
               lastTimeMsgDisplayed = currentTime;
             }
           }
@@ -8472,9 +8916,9 @@ public class ReplicationCliMain extends ConsoleApplication
           logger.info(LocalizableMessage.raw("Last task entry: "+sr));
           if (displayProgress && (msg != null) && !msg.equals(lastDisplayedMsg))
           {
-            printProgress(msg);
+            print(msg);
             lastDisplayedMsg = msg;
-            printlnProgress();
+            println();
           }
           if (lastLogMsg == null)
           {
@@ -8499,7 +8943,7 @@ public class ReplicationCliMain extends ConsoleApplication
               helper.isStoppedByError(state))
           {
             logger.warn(LocalizableMessage.raw("Processed errorMsg: "+errorMsg));
-            ApplicationException ae = new ApplicationException(
+            ClientException ce = new ClientException(
                 ReturnCode.APPLICATION_ERROR, errorMsg,
                 null);
             if ((lastLogMsg == null) ||
@@ -8513,15 +8957,15 @@ public class ReplicationCliMain extends ConsoleApplication
             else
             {
               logger.error(LocalizableMessage.raw("Throwing ApplicationException."));
-              throw ae;
+              throw ce;
             }
           }
           else
           {
             if (displayProgress)
             {
-              printProgress(INFO_SUFFIX_INITIALIZED_SUCCESSFULLY.get());
-              printlnProgress();
+              print(INFO_SUFFIX_INITIALIZED_SUCCESSFULLY.get());
+              println();
             }
             logger.info(LocalizableMessage.raw("Processed msg: "+errorMsg));
             logger.info(LocalizableMessage.raw("Initialization completed successfully."));
@@ -8534,13 +8978,13 @@ public class ReplicationCliMain extends ConsoleApplication
         logger.info(LocalizableMessage.raw("Initialization entry not found."));
         if (displayProgress)
         {
-          printProgress(INFO_SUFFIX_INITIALIZED_SUCCESSFULLY.get());
-          printlnProgress();
+          print(INFO_SUFFIX_INITIALIZED_SUCCESSFULLY.get());
+          println();
         }
       }
       catch (NamingException ne)
       {
-        throw new ApplicationException(
+        throw new ClientException(
             ReturnCode.APPLICATION_ERROR,
                 getThrowableMsg(INFO_ERROR_POOLING_INITIALIZATION.get(
                     serverDisplay), ne), ne);
@@ -8611,10 +9055,10 @@ public class ReplicationCliMain extends ConsoleApplication
             for (String baseDN : baseDNs)
             {
               lastBaseDN = baseDN;
-              if (Utils.areDnsEqual(domain.getBaseDN().toString(),
+              if (areDnsEqual(domain.getBaseDN().toString(),
                   baseDN))
               {
-                printProgress(formatter.getFormattedWithPoints(
+                print(formatter.getFormattedWithPoints(
                     INFO_REPLICATION_REMOVING_REFERENCES_ON_REMOTE.get(baseDN,
                         hostPort)));
                 Set<String> replServers = domain.getReplicationServer();
@@ -8646,8 +9090,8 @@ public class ReplicationCliMain extends ConsoleApplication
                     }
                   }
                 }
-                printProgress(formatter.getFormattedDone());
-                printlnProgress();
+                print(formatter.getFormattedDone());
+                println();
               }
             }
           }
@@ -8751,16 +9195,16 @@ public class ReplicationCliMain extends ConsoleApplication
           {
             ReplicationDomainCfgClient domain =
               sync.getReplicationDomain(domainName);
-            if (Utils.areDnsEqual(domain.getBaseDN().toString(), baseDN))
+            if (areDnsEqual(domain.getBaseDN().toString(), baseDN))
             {
-              printProgress(formatter.getFormattedWithPoints(
+              print(formatter.getFormattedWithPoints(
                   INFO_REPLICATION_DISABLING_BASEDN.get(baseDN,
                       hostPort)));
               sync.removeReplicationDomain(domainName);
               sync.commit();
 
-              printProgress(formatter.getFormattedDone());
-              printlnProgress();
+              print(formatter.getFormattedDone());
+              println();
             }
           }
         }
@@ -8809,14 +9253,14 @@ public class ReplicationCliMain extends ConsoleApplication
       if (replicationServer != null)
       {
         String s = String.valueOf(replicationServer.getReplicationPort());
-        printProgress(formatter.getFormattedWithPoints(
+        print(formatter.getFormattedWithPoints(
             INFO_REPLICATION_DISABLING_REPLICATION_SERVER.get(s,
                 hostPort)));
 
         sync.removeReplicationServer();
         sync.commit();
-        printProgress(formatter.getFormattedDone());
-        printlnProgress();
+        print(formatter.getFormattedDone());
+        println();
       }
     }
     catch (OpenDsException ode)
@@ -9111,19 +9555,6 @@ public class ReplicationCliMain extends ConsoleApplication
   }
 
   /**
-   * Prints a message to the output with no wrapping if we are not in quiet
-   * mode.
-   * @param msg the message to be displayed.
-   */
-  private void printProgressMessageNoWrap(LocalizableMessage msg)
-  {
-    if (!isQuiet())
-    {
-      getOutputStream().print(msg.toString());
-    }
-  }
-
-  /**
    * Forces the initialization of the trust manager in the
    * LDAPConnectionInteraction object.
    */
@@ -9233,13 +9664,13 @@ public class ReplicationCliMain extends ConsoleApplication
 
     for (String dn1 : replicatedSuffixes)
     {
-      if (!Utils.areDnsEqual(ADSContext.getAdministrationSuffixDN(), dn1) &&
-          !Utils.areDnsEqual(Constants.SCHEMA_DN, dn1))
+      if (!areDnsEqual(ADSContext.getAdministrationSuffixDN(), dn1) &&
+          !areDnsEqual(Constants.SCHEMA_DN, dn1))
       {
         boolean found = false;
         for (String dn2 : uData.getBaseDNs())
         {
-          if (Utils.areDnsEqual(dn1, dn2))
+          if (areDnsEqual(dn1, dn2))
           {
             found = true;
             break;
@@ -9650,7 +10081,7 @@ public class ReplicationCliMain extends ConsoleApplication
         String adminUID = uData.getAdminUid();
         if (bindDN1 != null && adminUID != null)
         {
-          if (!Utils.areDnsEqual(ADSContext.getAdministratorDN(adminUID),
+          if (!areDnsEqual(ADSContext.getAdministratorDN(adminUID),
               bindDN1))
           {
             forceAddBindDN1 = true;
@@ -9824,7 +10255,7 @@ public class ReplicationCliMain extends ConsoleApplication
         String adminUID = uData.getAdminUid();
         if (bindDN2 != null && adminUID != null)
         {
-          if (!Utils.areDnsEqual(ADSContext.getAdministratorDN(adminUID),
+          if (!areDnsEqual(ADSContext.getAdministratorDN(adminUID),
               bindDN2))
           {
             forceAddBindDN2 = true;
@@ -10385,7 +10816,7 @@ public class ReplicationCliMain extends ConsoleApplication
           boolean isFirstReplicated = false;
           for (SuffixDescriptor suffix2 : cache2.getSuffixes())
           {
-            if (Utils.areDnsEqual(suffix.getDN(), suffix2.getDN()))
+            if (areDnsEqual(suffix.getDN(), suffix2.getDN()))
             {
               for (String rServer2 : suffix2.getReplicationServers())
               {
@@ -10482,7 +10913,7 @@ public class ReplicationCliMain extends ConsoleApplication
       int nReplicationServers = 0;
       for (SuffixDescriptor suffix : suffixes)
       {
-        if (Utils.areDnsEqual(suffix.getDN(), baseDN))
+        if (areDnsEqual(suffix.getDN(), baseDN))
         {
           Set<String> replicationServers = suffix.getReplicationServers();
           nReplicationServers += replicationServers.size();
@@ -10651,7 +11082,7 @@ public class ReplicationCliMain extends ConsoleApplication
         println();
       }
 
-      printProgress(INFO_REPLICATION_MERGING_REGISTRIES_PROGRESS.get());
+      print(INFO_REPLICATION_MERGING_REGISTRIES_PROGRESS.get());
       pointAdder.start();
 
       Collection<LocalizableMessage> cache1Errors = cache1.getErrorMessages();
@@ -10660,7 +11091,7 @@ public class ReplicationCliMain extends ConsoleApplication
         throw new ReplicationCliException(
             ERR_REPLICATION_CANNOT_MERGE_WITH_ERRORS.get(
                 ConnectionUtils.getHostPort(adsCtx1.getDirContext()),
-                Utils.getMessageFromCollection(cache1Errors,
+                getMessageFromCollection(cache1Errors,
                     Constants.LINE_SEPARATOR)),
                     ERROR_READING_ADS, null);
       }
@@ -10671,7 +11102,7 @@ public class ReplicationCliMain extends ConsoleApplication
         throw new ReplicationCliException(
             ERR_REPLICATION_CANNOT_MERGE_WITH_ERRORS.get(
                 ConnectionUtils.getHostPort(adsCtx2.getDirContext()),
-                Utils.getMessageFromCollection(cache2Errors,
+                getMessageFromCollection(cache2Errors,
                     Constants.LINE_SEPARATOR)),
                     ERROR_READING_ADS, null);
       }
@@ -10719,7 +11150,7 @@ public class ReplicationCliMain extends ConsoleApplication
             boolean found = false;
             for (SuffixDescriptor suffix2 : cache2.getSuffixes())
             {
-              if (!Utils.areDnsEqual(suffix2.getDN(),
+              if (!areDnsEqual(suffix2.getDN(),
                   replica1.getSuffix().getDN()))
               {
                 // Conflicting domain names must apply to same suffix.
@@ -10757,7 +11188,7 @@ public class ReplicationCliMain extends ConsoleApplication
         if (!commonRepServerIDErrors.isEmpty())
         {
           mb.append(ERR_REPLICATION_ENABLE_COMMON_REPLICATION_SERVER_ID.get(
-            Utils.getMessageFromCollection(commonRepServerIDErrors,
+            getMessageFromCollection(commonRepServerIDErrors,
                 Constants.LINE_SEPARATOR)));
         }
         if (!commonDomainIDErrors.isEmpty())
@@ -10767,7 +11198,7 @@ public class ReplicationCliMain extends ConsoleApplication
             mb.append(Constants.LINE_SEPARATOR);
           }
           mb.append(ERR_REPLICATION_ENABLE_COMMON_DOMAIN_ID.get(
-            Utils.getMessageFromCollection(commonDomainIDErrors,
+            getMessageFromCollection(commonDomainIDErrors,
                 Constants.LINE_SEPARATOR)));
         }
         throw new ReplicationCliException(mb.toMessage(),
@@ -10851,9 +11282,9 @@ public class ReplicationCliMain extends ConsoleApplication
                     ERROR_SEEDING_TRUSTORE, t);
       }
       pointAdder.stop();
-      printProgress(formatter.getSpace());
-      printProgress(formatter.getFormattedDone());
-      printlnProgress();
+      print(formatter.getSpace());
+      print(formatter.getFormattedDone());
+      println();
 
       return adsCtxSource == adsCtx1;
     }
@@ -10892,7 +11323,7 @@ public class ReplicationCliMain extends ConsoleApplication
     boolean isReplicated = false;
     for (ReplicaDescriptor replica : server.getReplicas())
     {
-      if (Utils.areDnsEqual(replica.getSuffix().getDN(), baseDN))
+      if (areDnsEqual(replica.getSuffix().getDN(), baseDN))
       {
         isReplicated = replica.isReplicated();
         break;
@@ -10918,7 +11349,7 @@ public class ReplicationCliMain extends ConsoleApplication
     ReplicaDescriptor replica2;
     for (ReplicaDescriptor replica : server1.getReplicas())
     {
-      if (Utils.areDnsEqual(replica.getSuffix().getDN(), baseDN))
+      if (areDnsEqual(replica.getSuffix().getDN(), baseDN))
       {
         replica1 = replica;
         break;
@@ -10928,7 +11359,7 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       for (ReplicaDescriptor replica : server2.getReplicas())
       {
-        if (Utils.areDnsEqual(replica.getSuffix().getDN(), baseDN))
+        if (areDnsEqual(replica.getSuffix().getDN(), baseDN))
         {
           replica2 = replica;
           if (replica2.isReplicated())

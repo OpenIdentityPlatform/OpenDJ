@@ -36,11 +36,11 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import static org.opends.server.tools.JavaPropertiesTool.ErrorReturnCode.*;
+import static com.forgerock.opendj.cli.ReturnCode.*;
 import static org.testng.Assert.*;
 
 /**
- * A set of test cases for the dsservice tool.
+ * A set of test cases for the DS service tool.
  */
 public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
   // The path to a file containing an invalid bind password.
@@ -106,8 +106,8 @@ public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
       "-X"
     };
 
-    assertFalse(DSConfig.main(args, false, null, null)
-        == SUCCESSFUL.getReturnCode());
+    assertFalse(DSConfig.main(args, false, System.out, System.err) 
+        == SUCCESS.get());
   }
 
   /**
@@ -129,7 +129,7 @@ public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
     };
 
     assertFalse(DSConfig.main(args, false, System.out, System.err)
-        == SUCCESSFUL.getReturnCode());
+        == SUCCESS.get());
   }
 
   /**
@@ -151,7 +151,7 @@ public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
     };
 
     assertFalse(DSConfig.main(args, false, System.out, System.err)
-        == SUCCESSFUL.getReturnCode());
+        == SUCCESS.get());
   }
 
 
@@ -179,7 +179,7 @@ public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
     };
 
     assertEquals(DSConfig.main(args, false, System.out,
-        System.err), SUCCESSFUL.getReturnCode());
+        System.err), SUCCESS.get());
   }
 
   /**
@@ -204,7 +204,7 @@ public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
     };
 
     assertFalse(DSConfig.main(args, false, System.out, System.err)
-        == SUCCESSFUL.getReturnCode());
+        == SUCCESS.get());
   }
 
 
@@ -229,7 +229,7 @@ public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
     };
 
     assertEquals(DSConfig.main(args, false, System.out,
-        System.err), SUCCESSFUL.getReturnCode());
+        System.err), SUCCESS.get());
   }
 
 
@@ -239,17 +239,17 @@ public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
   @Test()
   public void testHelp()
   {
-    String[] args = {"--noPropertiesFile","--help" };
-    assertEquals(DSConfig.main(args, false, null, null),
-        SUCCESSFUL.getReturnCode());
+    String[] args = { "--noPropertiesFile", "--help" };
+    assertEquals(DSConfig.main(args, false, System.out, System.err), 
+        SUCCESS.get());
 
     args = new String[] { "--noPropertiesFile", "-H" };
-    assertEquals(DSConfig.main(args, false, null, null),
-        SUCCESSFUL.getReturnCode());
+    assertEquals(DSConfig.main(args, false, System.out, System.err), 
+        SUCCESS.get());
 
     args = new String[] { "--noPropertiesFile", "-?" };
-    assertEquals(DSConfig.main(args, false, null, null),
-        SUCCESSFUL.getReturnCode());
+    assertEquals(DSConfig.main(args, false, System.out, System.err), 
+        SUCCESS.get());
   }
 }
 

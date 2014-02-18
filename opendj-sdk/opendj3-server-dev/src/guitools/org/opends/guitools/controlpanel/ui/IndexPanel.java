@@ -84,7 +84,7 @@ import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.ServerConstants;
-import org.opends.server.util.cli.CommandBuilder;
+import com.forgerock.opendj.cli.CommandBuilder;
 
 /**
  * The panel that displays an existing index (it appears on the right of the

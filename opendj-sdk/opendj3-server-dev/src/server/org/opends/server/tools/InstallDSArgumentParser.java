@@ -464,18 +464,17 @@ public class InstallDSArgumentParser extends ArgumentParser
    * should be called after a call to parseArguments.
    * @return the directory manager password provided by the user.
    */
-  public String getDirectoryManagerPassword()
+  public char[] getDirectoryManagerPassword()
   {
-    String pwd = null;
     if (directoryManagerPwdStringArg.isPresent())
     {
-      pwd = directoryManagerPwdStringArg.getValue();
+      return directoryManagerPwdStringArg.getValue().toCharArray();
     }
     else if (directoryManagerPwdFileArg.isPresent())
     {
-      pwd = directoryManagerPwdFileArg.getValue();
+      return directoryManagerPwdFileArg.getValue().toCharArray();
     }
-    return pwd;
+    return null;
   }
 
   /**
