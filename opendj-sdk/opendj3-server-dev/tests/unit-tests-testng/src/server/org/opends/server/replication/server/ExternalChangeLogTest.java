@@ -36,6 +36,7 @@ import java.util.*;
 import org.assertj.core.api.Assertions;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
@@ -889,7 +890,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       op = connection.processSearch(
           "cn=changelog",
           SearchScope.WHOLE_SUBTREE,
-          DereferencePolicy.NEVER_DEREF_ALIASES,
+          DereferenceAliasesPolicy.NEVER,
           0, // Size limit
           0, // Time limit
           false, // Types only
@@ -1509,7 +1510,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     return new SearchRequestProtocolOp(
         ByteString.valueOf("cn=changelog"),
         SearchScope.WHOLE_SUBTREE,
-        DereferencePolicy.NEVER_DEREF_ALIASES,
+        DereferenceAliasesPolicy.NEVER,
         Integer.MAX_VALUE,
         Integer.MAX_VALUE,
         false,
@@ -2496,7 +2497,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     InternalSearchOperation searchOp = connection.processSearch(
             TEST_ROOT_DN_STRING,
             SearchScope.BASE_OBJECT,
-            DereferencePolicy.NEVER_DEREF_ALIASES,
+            DereferenceAliasesPolicy.NEVER,
             0, // Size limit
             0, // Time limit
             false, // Types only
@@ -2569,7 +2570,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     final InternalSearchOperation searchOp = connection.processSearch(
         "",
         SearchScope.BASE_OBJECT,
-        DereferencePolicy.NEVER_DEREF_ALIASES,
+        DereferenceAliasesPolicy.NEVER,
         0, // Size limit
         0, // Time limit
         false, // Types only

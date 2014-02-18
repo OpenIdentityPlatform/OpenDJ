@@ -31,6 +31,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.PluginCfgDefn;
@@ -656,7 +657,7 @@ public class UniqueAttributePlugin
     {
       InternalSearchOperation searchOperation =
            conn.processSearch(baseDN, SearchScope.WHOLE_SUBTREE,
-                              DereferencePolicy.NEVER_DEREF_ALIASES, 2, 0,
+                              DereferenceAliasesPolicy.NEVER, 2, 0,
                               false, filter, SEARCH_ATTRS);
       for (SearchResultEntry e : searchOperation.getSearchEntries())
       {

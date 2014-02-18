@@ -36,6 +36,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.util.Reject;
 import org.opends.server.admin.Configuration;
@@ -316,7 +317,7 @@ public class ReplicationBackend extends Backend
               InternalClientConnection.nextOperationID(),
               InternalClientConnection.nextMessageID(),
               null, entryDN, SearchScope.BASE_OBJECT,
-              DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+              DereferenceAliasesPolicy.NEVER, 0, 0, false,
               filter, null, null);
       search(searchOp);
       List<SearchResultEntry> resultEntries = searchOp.getSearchEntries();

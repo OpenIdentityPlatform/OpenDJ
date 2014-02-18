@@ -35,6 +35,7 @@ import javax.security.auth.x500.X500Principal;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.CertificateMapperCfg;
@@ -297,7 +298,7 @@ public class SubjectAttributeToUserAttributeCertificateMapper
     {
       InternalSearchOperation searchOperation =
            conn.processSearch(baseDN, SearchScope.WHOLE_SUBTREE,
-                              DereferencePolicy.NEVER_DEREF_ALIASES, 1, 10,
+                              DereferenceAliasesPolicy.NEVER, 1, 10,
                               false, filter, requestedAttributes);
 
       switch (searchOperation.getResultCode().asEnum())

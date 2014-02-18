@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.controls.MatchedValuesControl;
 import org.opends.server.types.*;
@@ -122,7 +123,7 @@ public abstract class SearchOperationWrapper extends
    * {@inheritDoc}
    */
   @Override
-  public DereferencePolicy getDerefPolicy()
+  public DereferenceAliasesPolicy getDerefPolicy()
   {
     return getOperation().getDerefPolicy();
   }
@@ -239,7 +240,7 @@ public abstract class SearchOperationWrapper extends
    * {@inheritDoc}
    */
   @Override
-  public void setDerefPolicy(DereferencePolicy derefPolicy)
+  public void setDerefPolicy(DereferenceAliasesPolicy derefPolicy)
   {
     getOperation().setDerefPolicy(derefPolicy);
   }

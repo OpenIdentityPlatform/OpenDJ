@@ -32,6 +32,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -214,7 +215,7 @@ public class PasswordExpirationTimeVirtualAttributeProviderTestCase
     InternalSearchOperation search =
       conn.processSearch(notExpired.getName().toString(),
                          SearchScope.BASE_OBJECT,
-                         DereferencePolicy.DEREF_ALWAYS,
+                         DereferenceAliasesPolicy.ALWAYS,
                          0,
                          0,
                          false,

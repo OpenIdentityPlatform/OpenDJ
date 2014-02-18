@@ -63,7 +63,7 @@ import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.types.DereferencePolicy;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -952,7 +952,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
         final SearchRequestProtocolOp searchRequest =
           new SearchRequestProtocolOp(
             ByteString.valueOf(baseDN.toString()), scope,
-            DereferencePolicy.DEREF_ALWAYS, 1 /* size limit */,
+            DereferenceAliasesPolicy.ALWAYS, 1 /* size limit */,
             (timeoutMS / 1000), true /* types only */,
             RawFilter.create(filter), NO_ATTRIBUTES);
         sendRequest(searchRequest);

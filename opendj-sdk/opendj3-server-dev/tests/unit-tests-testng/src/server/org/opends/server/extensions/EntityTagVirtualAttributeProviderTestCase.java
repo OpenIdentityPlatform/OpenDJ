@@ -64,7 +64,7 @@ import org.opends.server.types.AttributeValue;
 import org.opends.server.types.AttributeValues;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
-import org.opends.server.types.DereferencePolicy;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.forgerock.opendj.ldap.ModificationType;
@@ -891,7 +891,7 @@ public class EntityTagVirtualAttributeProviderTestCase extends
     attrList.add("*");
     attrList.add(ETAG);
     InternalSearchOperation searchOperation = conn.processSearch(userDN,
-        SearchScope.BASE_OBJECT, DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0,
+        SearchScope.BASE_OBJECT, DereferenceAliasesPolicy.NEVER, 0, 0,
         false, "(objectClass=*)", attrList);
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertEquals(searchOperation.getSearchEntries().size(), 1);

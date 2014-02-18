@@ -30,6 +30,7 @@ import java.util.*;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.Backend;
@@ -461,7 +462,7 @@ public class AciListenerManager implements
               .nextOperationID(), InternalClientConnection
               .nextMessageID(), controls, baseDN,
               SearchScope.WHOLE_SUBTREE,
-              DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+              DereferenceAliasesPolicy.NEVER, 0, 0, false,
               aciFilter, attrs, null);
       LocalBackendSearchOperation localInternalSearch =
           new LocalBackendSearchOperation(internalSearch);

@@ -82,7 +82,7 @@ import org.opends.server.tools.LDAPConnectionOptions;
 import org.opends.server.tools.SSLConnectionException;
 import org.opends.server.tools.SSLConnectionFactory;
 import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.types.DereferencePolicy;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.opends.server.types.LDAPException;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.util.Base64;
@@ -268,7 +268,7 @@ public class DSMLServlet extends HttpServlet {
     {
       SearchRequestProtocolOp protocolOp = new SearchRequestProtocolOp(
           ByteString.wrap(new byte[]{}), SearchScope.BASE_OBJECT,
-          DereferencePolicy.NEVER_DEREF_ALIASES,
+          DereferenceAliasesPolicy.NEVER,
           0, 0,
           true, LDAPFilter.decode("(objectClass=*)"), attributes);
       byte opType;

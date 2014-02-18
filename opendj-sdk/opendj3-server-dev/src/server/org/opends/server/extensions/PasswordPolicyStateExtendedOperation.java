@@ -38,6 +38,7 @@ import org.forgerock.opendj.io.ASN1Reader;
 import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.admin.std.server.PasswordPolicyStateExtendedOperationHandlerCfg;
 import org.opends.server.api.AuthenticationPolicy;
@@ -579,7 +580,7 @@ public class PasswordPolicyStateExtendedOperation
 
     InternalSearchOperation internalSearch =
          conn.processSearch(targetDN, SearchScope.BASE_OBJECT,
-                            DereferencePolicy.NEVER_DEREF_ALIASES, 1, 0,
+                            DereferenceAliasesPolicy.NEVER, 1, 0,
                             false, userFilter, requestAttributes, null);
     if (internalSearch.getResultCode() != ResultCode.SUCCESS)
     {

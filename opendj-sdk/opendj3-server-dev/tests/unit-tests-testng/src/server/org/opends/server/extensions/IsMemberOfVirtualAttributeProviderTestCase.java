@@ -44,7 +44,7 @@ import org.opends.server.types.AttributeValue;
 import org.opends.server.types.AttributeValues;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
-import org.opends.server.types.DereferencePolicy;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.opends.server.types.Entry;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.types.SearchFilter;
@@ -1115,7 +1115,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
                                      null,
                                      DN.valueOf("o=test"),
                                      SearchScope.WHOLE_SUBTREE,
-                                     DereferencePolicy.NEVER_DEREF_ALIASES, 0,
+                                     DereferenceAliasesPolicy.NEVER, 0,
                                      0, false, filter, null, null);
 
     assertEquals(provider.isSearchable(rule,
@@ -1247,7 +1247,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
                                      null,
                                      DN.valueOf("o=test"),
                                      SearchScope.WHOLE_SUBTREE,
-                                     DereferencePolicy.NEVER_DEREF_ALIASES, 0,
+                                     DereferenceAliasesPolicy.NEVER, 0,
                                      0, false, filter, null, null);
     provider.processSearch(rule, new LocalBackendSearchOperation(searchOperation));
 
@@ -1340,7 +1340,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
               new ArrayList<Control>(),
               ByteString.valueOf("dc=example,dc=com"),
               SearchScope.WHOLE_SUBTREE,
-              DereferencePolicy.NEVER_DEREF_ALIASES,
+              DereferenceAliasesPolicy.NEVER,
               Integer.MAX_VALUE,
               Integer.MAX_VALUE,
               false,

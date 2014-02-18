@@ -31,6 +31,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.api.AuthenticationPolicyState;
 import org.opends.server.api.ClientConnection;
@@ -108,7 +109,7 @@ public class SearchOperationBasis
   private ByteString rawBaseDN;
 
   /** The dereferencing policy for the search operation. */
-  private DereferencePolicy derefPolicy;
+  private DereferenceAliasesPolicy derefPolicy;
 
   /** The base DN for the search operation. */
   private DN baseDN;
@@ -186,7 +187,7 @@ public class SearchOperationBasis
                          long operationID,
                          int messageID, List<Control> requestControls,
                          ByteString rawBaseDN, SearchScope scope,
-                         DereferencePolicy derefPolicy, int sizeLimit,
+                         DereferenceAliasesPolicy derefPolicy, int sizeLimit,
                          int timeLimit, boolean typesOnly, RawFilter rawFilter,
                          Set<String> attributes)
   {
@@ -251,7 +252,7 @@ public class SearchOperationBasis
                          long operationID,
                          int messageID, List<Control> requestControls,
                          DN baseDN, SearchScope scope,
-                         DereferencePolicy derefPolicy, int sizeLimit,
+                         DereferenceAliasesPolicy derefPolicy, int sizeLimit,
                          int timeLimit, boolean typesOnly, SearchFilter filter,
                          Set<String> attributes)
   {
@@ -400,7 +401,7 @@ public class SearchOperationBasis
    * {@inheritDoc}
    */
   @Override
-  public final DereferencePolicy getDerefPolicy()
+  public final DereferenceAliasesPolicy getDerefPolicy()
   {
     return derefPolicy;
   }
@@ -409,7 +410,7 @@ public class SearchOperationBasis
    * {@inheritDoc}
    */
   @Override
-  public final void setDerefPolicy(DereferencePolicy derefPolicy)
+  public final void setDerefPolicy(DereferenceAliasesPolicy derefPolicy)
   {
     this.derefPolicy = derefPolicy;
   }

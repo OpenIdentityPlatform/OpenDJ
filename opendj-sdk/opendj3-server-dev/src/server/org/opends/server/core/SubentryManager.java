@@ -31,6 +31,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.Backend;
@@ -347,7 +348,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
               conn, InternalClientConnection.nextOperationID(),
               InternalClientConnection.nextMessageID(),
               requestControls, baseDN, SearchScope.WHOLE_SUBTREE,
-              DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+              DereferenceAliasesPolicy.NEVER, 0, 0, false,
               filter, requestAttrs, null);
       LocalBackendSearchOperation localSearch =
               new LocalBackendSearchOperation(internalSearch);

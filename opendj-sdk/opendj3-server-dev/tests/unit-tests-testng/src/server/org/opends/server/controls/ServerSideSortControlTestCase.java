@@ -44,7 +44,7 @@ import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
-import org.opends.server.types.DereferencePolicy;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.opends.server.types.Entry;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.types.SearchFilter;
@@ -321,7 +321,7 @@ public class ServerSideSortControlTestCase
          new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                   InternalClientConnection.nextMessageID(), requestControls,
                   DN.valueOf("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
-                  DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                  DereferenceAliasesPolicy.NEVER, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
                   null, null);
 
@@ -392,7 +392,7 @@ public class ServerSideSortControlTestCase
          new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                   InternalClientConnection.nextMessageID(), requestControls,
                   DN.valueOf("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
-                  DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                  DereferenceAliasesPolicy.NEVER, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
                   null, null);
 
@@ -461,7 +461,7 @@ public class ServerSideSortControlTestCase
          new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                   InternalClientConnection.nextMessageID(), requestControls,
                   DN.valueOf("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
-                  DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                  DereferenceAliasesPolicy.NEVER, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
                   null, null);
 
@@ -532,7 +532,7 @@ public class ServerSideSortControlTestCase
          new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                   InternalClientConnection.nextMessageID(), requestControls,
                   DN.valueOf("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
-                  DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                  DereferenceAliasesPolicy.NEVER, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
                   null, null);
 
@@ -601,7 +601,7 @@ public class ServerSideSortControlTestCase
          new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                   InternalClientConnection.nextMessageID(), requestControls,
                   DN.valueOf("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
-                  DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                  DereferenceAliasesPolicy.NEVER, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
                   null, null);
 
@@ -670,7 +670,7 @@ public class ServerSideSortControlTestCase
          new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                   InternalClientConnection.nextMessageID(), requestControls,
                   DN.valueOf("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
-                  DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                  DereferenceAliasesPolicy.NEVER, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
                   null, null);
 
@@ -739,7 +739,7 @@ public class ServerSideSortControlTestCase
          new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                   InternalClientConnection.nextMessageID(), requestControls,
                   DN.valueOf("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
-                  DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                  DereferenceAliasesPolicy.NEVER, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
                   null, null);
 
@@ -772,7 +772,7 @@ public class ServerSideSortControlTestCase
          new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                   InternalClientConnection.nextMessageID(), requestControls,
                   DN.valueOf("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
-                  DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                  DereferenceAliasesPolicy.NEVER, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
                   null, null);
 
@@ -803,7 +803,7 @@ public class ServerSideSortControlTestCase
          new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                   InternalClientConnection.nextMessageID(), requestControls,
                   DN.valueOf("dc=example,dc=com"), SearchScope.WHOLE_SUBTREE,
-                  DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                  DereferenceAliasesPolicy.NEVER, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=person)"),
                   null, null);
 

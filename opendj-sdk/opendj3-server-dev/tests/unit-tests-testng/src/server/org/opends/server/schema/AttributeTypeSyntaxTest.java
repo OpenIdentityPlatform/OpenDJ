@@ -40,7 +40,7 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.types.Control;
-import org.opends.server.types.DereferencePolicy;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 
@@ -233,7 +233,7 @@ public class AttributeTypeSyntaxTest extends AttributeSyntaxTest
             new ArrayList<Control>(),
             ByteString.valueOf("cn=gvrightstest,o=test"),
             SearchScope.WHOLE_SUBTREE,
-            DereferencePolicy.NEVER_DEREF_ALIASES,
+            DereferenceAliasesPolicy.NEVER,
             Integer.MAX_VALUE,
             Integer.MAX_VALUE,
             false,

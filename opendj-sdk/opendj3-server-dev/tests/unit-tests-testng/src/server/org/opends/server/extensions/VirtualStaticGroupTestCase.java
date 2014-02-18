@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
@@ -663,9 +664,8 @@ public class VirtualStaticGroupTestCase
          new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                   InternalClientConnection.nextMessageID(), null, DN.valueOf("o=test"),
                   SearchScope.WHOLE_SUBTREE,
-                  DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
-                  SearchFilter.createFilterFromString(
-                       "(member=" + u1.toString() + ")"),
+                  DereferenceAliasesPolicy.NEVER, 0, 0, false,
+                  SearchFilter.createFilterFromString("(member=" + u1 + ")"),
                   null, null);
     assertFalse(provider.isSearchable(rule, searchOperation, false));
     assertFalse(provider.isSearchable(rule, searchOperation, true));
@@ -738,9 +738,8 @@ public class VirtualStaticGroupTestCase
          new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                   InternalClientConnection.nextMessageID(), null, DN.valueOf("o=test"),
                   SearchScope.WHOLE_SUBTREE,
-                  DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
-                  SearchFilter.createFilterFromString(
-                       "(member=" + u1.toString() + ")"),
+                  DereferenceAliasesPolicy.NEVER, 0, 0, false,
+                  SearchFilter.createFilterFromString("(member=" + u1 + ")"),
                   null, null);
     assertFalse(provider.isSearchable(rule, searchOperation, false));
     assertFalse(provider.isSearchable(rule, searchOperation, false));

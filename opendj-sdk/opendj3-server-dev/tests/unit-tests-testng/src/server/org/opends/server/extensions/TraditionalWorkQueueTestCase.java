@@ -46,7 +46,7 @@ import org.opends.server.tools.LDAPSearch;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
-import org.opends.server.types.DereferencePolicy;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.opends.server.types.Modification;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -204,7 +204,7 @@ public class TraditionalWorkQueueTestCase
                                      InternalClientConnection.nextMessageID(),requestControls,
                                      DN.valueOf("o=test"),
                                      SearchScope.BASE_OBJECT,
-                                     DereferencePolicy.NEVER_DEREF_ALIASES, 0,
+                                     DereferenceAliasesPolicy.NEVER, 0,
                                      0, false, filter, attrs, null);
     DirectoryServer.getWorkQueue().submitOperation(searchOperation);
 
@@ -241,7 +241,7 @@ public class TraditionalWorkQueueTestCase
                                      InternalClientConnection.nextMessageID(), requestControls,
                                      DN.valueOf("o=test"),
                                      SearchScope.BASE_OBJECT,
-                                     DereferencePolicy.NEVER_DEREF_ALIASES, 0,
+                                     DereferenceAliasesPolicy.NEVER, 0,
                                      0, false, filter, attrs, null);
     DirectoryServer.getWorkQueue().submitOperation(searchOperation);
 

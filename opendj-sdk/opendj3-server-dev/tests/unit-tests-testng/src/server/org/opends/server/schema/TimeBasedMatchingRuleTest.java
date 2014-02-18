@@ -44,7 +44,7 @@ import org.opends.server.protocols.ldap.LDAPFilter;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.opends.server.types.DN;
-import org.opends.server.types.DereferencePolicy;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.opends.server.types.DirectoryException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.types.SearchResultEntry;
@@ -138,7 +138,7 @@ public final class TimeBasedMatchingRuleTest
                 null,
                 ByteString.valueOf("dc=example,dc=com"),
                 SearchScope.WHOLE_SUBTREE,
-                DereferencePolicy.NEVER_DEREF_ALIASES,
+                DereferenceAliasesPolicy.NEVER,
                 Integer.MAX_VALUE,
                 Integer.MAX_VALUE,
                 false,
@@ -178,7 +178,7 @@ public final class TimeBasedMatchingRuleTest
                 null,
                 ByteString.valueOf("dc=example,dc=com"),
                 SearchScope.WHOLE_SUBTREE,
-                DereferencePolicy.NEVER_DEREF_ALIASES,
+                DereferenceAliasesPolicy.NEVER,
                 Integer.MAX_VALUE,
                 Integer.MAX_VALUE,
                 false,
@@ -218,7 +218,7 @@ public final class TimeBasedMatchingRuleTest
                 null,
                 ByteString.valueOf("dc=example,dc=com"),
                 SearchScope.WHOLE_SUBTREE,
-                DereferencePolicy.NEVER_DEREF_ALIASES,
+                DereferenceAliasesPolicy.NEVER,
                 Integer.MAX_VALUE,
                 Integer.MAX_VALUE,
                 false,
@@ -258,7 +258,7 @@ public final class TimeBasedMatchingRuleTest
                 null,
                 ByteString.valueOf("dc=example,dc=com"),
                 SearchScope.WHOLE_SUBTREE,
-                DereferencePolicy.NEVER_DEREF_ALIASES,
+                DereferenceAliasesPolicy.NEVER,
                 Integer.MAX_VALUE,
                 Integer.MAX_VALUE,
                 false,
@@ -301,7 +301,7 @@ public final class TimeBasedMatchingRuleTest
                 null,
                 ByteString.valueOf("dc=example,dc=com"),
                 SearchScope.WHOLE_SUBTREE,
-                DereferencePolicy.NEVER_DEREF_ALIASES,
+                DereferenceAliasesPolicy.NEVER,
                 Integer.MAX_VALUE,
                 Integer.MAX_VALUE,
                 false,

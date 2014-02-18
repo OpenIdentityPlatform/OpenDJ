@@ -48,7 +48,7 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeValue;
-import org.opends.server.types.DereferencePolicy;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -250,7 +250,7 @@ public class LDAPADListPluginTestCase
          InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
          conn.processSearch(DN.valueOf("o=test"), SearchScope.BASE_OBJECT,
-              DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+              DereferenceAliasesPolicy.NEVER, 0, 0, false,
               SearchFilter.createFilterFromString("(objectClass=*)"), attrList);
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertFalse(searchOperation.getSearchEntries().isEmpty());
@@ -280,7 +280,7 @@ public class LDAPADListPluginTestCase
          InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
          conn.processSearch(DN.valueOf("o=test"), SearchScope.BASE_OBJECT,
-              DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+              DereferenceAliasesPolicy.NEVER, 0, 0, false,
               SearchFilter.createFilterFromString("(objectClass=*)"), attrList);
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertFalse(searchOperation.getSearchEntries().isEmpty());
@@ -310,7 +310,7 @@ public class LDAPADListPluginTestCase
          InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
          conn.processSearch(DN.valueOf("o=test"), SearchScope.BASE_OBJECT,
-              DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+              DereferenceAliasesPolicy.NEVER, 0, 0, false,
               SearchFilter.createFilterFromString("(objectClass=*)"), attrList);
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertFalse(searchOperation.getSearchEntries().isEmpty());
@@ -340,7 +340,7 @@ public class LDAPADListPluginTestCase
          InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
          conn.processSearch(DN.valueOf("o=test"), SearchScope.BASE_OBJECT,
-              DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+              DereferenceAliasesPolicy.NEVER, 0, 0, false,
               SearchFilter.createFilterFromString("(objectClass=*)"), attrList);
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertFalse(searchOperation.getSearchEntries().isEmpty());

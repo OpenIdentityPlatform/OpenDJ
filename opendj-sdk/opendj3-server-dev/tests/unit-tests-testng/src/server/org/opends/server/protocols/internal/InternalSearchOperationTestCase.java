@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.protocols.ldap.LDAPFilter;
@@ -76,7 +77,7 @@ public class InternalSearchOperationTestCase
     new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                                 InternalClientConnection.nextMessageID(), new ArrayList<Control>(),
                                 ByteString.empty(), SearchScope.BASE_OBJECT,
-                                DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0,
+                                DereferenceAliasesPolicy.NEVER, 0, 0,
                                 false, LDAPFilter.decode("(objectClass=*)"),
                                 new LinkedHashSet<String>(), null);
   }
@@ -98,7 +99,7 @@ public class InternalSearchOperationTestCase
     new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                                 InternalClientConnection.nextMessageID(), new ArrayList<Control>(),
                                 ByteString.empty(), SearchScope.BASE_OBJECT,
-                                DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0,
+                                DereferenceAliasesPolicy.NEVER, 0, 0,
                                 false, LDAPFilter.decode("(objectClass=*)"),
                                 new LinkedHashSet<String>(),
                                 new TestInternalSearchListener());
@@ -124,7 +125,7 @@ public class InternalSearchOperationTestCase
     new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                                 InternalClientConnection.nextMessageID(), new ArrayList<Control>(),
                                 DN.rootDN(), SearchScope.BASE_OBJECT,
-                                DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0,
+                                DereferenceAliasesPolicy.NEVER, 0, 0,
                                 false, searchFilter,
                                 new LinkedHashSet<String>(), null);
   }
@@ -149,7 +150,7 @@ public class InternalSearchOperationTestCase
     new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                                 InternalClientConnection.nextMessageID(), new ArrayList<Control>(),
                                 DN.rootDN(), SearchScope.BASE_OBJECT,
-                                DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0,
+                                DereferenceAliasesPolicy.NEVER, 0, 0,
                                 false, searchFilter,
                                 new LinkedHashSet<String>(),
                                 new TestInternalSearchListener());
@@ -196,7 +197,7 @@ public class InternalSearchOperationTestCase
                                      new ArrayList<Control>(),
                                      ByteString.empty(),
                                      SearchScope.BASE_OBJECT,
-                                     DereferencePolicy.NEVER_DEREF_ALIASES, 0,
+                                     DereferenceAliasesPolicy.NEVER, 0,
                                      0, false,
                                      LDAPFilter.decode("(objectClass=*)"),
                                      new LinkedHashSet<String>(), null);
@@ -226,7 +227,7 @@ public class InternalSearchOperationTestCase
                                      new ArrayList<Control>(),
                                      ByteString.empty(),
                                      SearchScope.BASE_OBJECT,
-                                     DereferencePolicy.NEVER_DEREF_ALIASES, 0,
+                                     DereferenceAliasesPolicy.NEVER, 0,
                                      0, false,
                                      LDAPFilter.decode("(objectClass=*)"),
                                      new LinkedHashSet<String>(),
@@ -257,7 +258,7 @@ public class InternalSearchOperationTestCase
                                      new ArrayList<Control>(),
                                      ByteString.empty(),
                                      SearchScope.BASE_OBJECT,
-                                     DereferencePolicy.NEVER_DEREF_ALIASES, 0,
+                                     DereferenceAliasesPolicy.NEVER, 0,
                                      0, false,
                                      LDAPFilter.decode("(objectClass=*)"),
                                      new LinkedHashSet<String>(), null);
@@ -286,7 +287,7 @@ public class InternalSearchOperationTestCase
                                      new ArrayList<Control>(),
                                      ByteString.empty(),
                                      SearchScope.BASE_OBJECT,
-                                     DereferencePolicy.NEVER_DEREF_ALIASES, 0,
+                                     DereferenceAliasesPolicy.NEVER, 0,
                                      0, false,
                                      LDAPFilter.decode("(objectClass=*)"),
                                      new LinkedHashSet<String>(),

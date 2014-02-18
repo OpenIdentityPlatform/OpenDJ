@@ -41,7 +41,7 @@ import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeValue;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DN;
-import org.opends.server.types.DereferencePolicy;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.opends.server.types.Entry;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.types.SearchResultEntry;
@@ -238,7 +238,7 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
                 null,
                 ByteString.valueOf("cn=schema"),
                 SearchScope.WHOLE_SUBTREE,
-                DereferencePolicy.NEVER_DEREF_ALIASES,
+                DereferenceAliasesPolicy.NEVER,
                 Integer.MAX_VALUE,
                 Integer.MAX_VALUE,
                 false,
@@ -404,7 +404,7 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
                 null,
                 ByteString.valueOf("cn=test,o=test"),
                 SearchScope.WHOLE_SUBTREE,
-                DereferencePolicy.NEVER_DEREF_ALIASES,
+                DereferenceAliasesPolicy.NEVER,
                 Integer.MAX_VALUE,
                 Integer.MAX_VALUE,
                 false,
@@ -507,7 +507,7 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
                 null,
                 ByteString.valueOf("cn=test,o=test"),
                 SearchScope.WHOLE_SUBTREE,
-                DereferencePolicy.NEVER_DEREF_ALIASES,
+                DereferenceAliasesPolicy.NEVER,
                 Integer.MAX_VALUE,
                 Integer.MAX_VALUE,
                 false,
@@ -575,7 +575,7 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
                 null,
                 ByteString.valueOf("o=test"),
                 SearchScope.WHOLE_SUBTREE,
-                DereferencePolicy.NEVER_DEREF_ALIASES,
+                DereferenceAliasesPolicy.NEVER,
                 Integer.MAX_VALUE,
                 Integer.MAX_VALUE,
                 false,

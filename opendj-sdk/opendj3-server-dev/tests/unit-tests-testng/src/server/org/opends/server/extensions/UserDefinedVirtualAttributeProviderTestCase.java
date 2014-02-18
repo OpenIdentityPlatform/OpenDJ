@@ -29,6 +29,8 @@ package org.opends.server.extensions;
 import java.util.LinkedHashSet;
 import java.util.List;
 
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DeleteOperation;
@@ -37,7 +39,6 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -118,7 +119,7 @@ public class UserDefinedVirtualAttributeProviderTestCase
               .nextOperationID(), InternalClientConnection
               .nextMessageID(), null, DN.valueOf(ruleDN),
               SearchScope.BASE_OBJECT,
-              DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+              DereferenceAliasesPolicy.NEVER, 0, 0, false,
               SearchFilter.createFilterFromString("(objectClass=*)"),
               null, null);
 
@@ -186,7 +187,7 @@ public class UserDefinedVirtualAttributeProviderTestCase
               .nextOperationID(), InternalClientConnection
               .nextMessageID(), null, DN.valueOf(ruleDN),
               SearchScope.BASE_OBJECT,
-              DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+              DereferenceAliasesPolicy.NEVER, 0, 0, false,
               SearchFilter.createFilterFromString("(objectClass=*)"),
               null, null);
 
@@ -644,7 +645,7 @@ public class UserDefinedVirtualAttributeProviderTestCase
       InternalSearchOperation searchOperation =
           conn.processSearch(DN.valueOf(userDN),
               SearchScope.BASE_OBJECT,
-              DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+              DereferenceAliasesPolicy.NEVER, 0, 0, false,
               SearchFilter.createFilterFromString("(objectClass=*)"),
               attributes);
 

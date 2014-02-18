@@ -34,6 +34,7 @@ import java.util.concurrent.locks.Lock;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
@@ -1435,7 +1436,7 @@ public class ModifyOperationTestCase
               new ArrayList<Control>(),
               ByteString.valueOf("uid=test.user," + baseDN),
               SearchScope.WHOLE_SUBTREE,
-              DereferencePolicy.NEVER_DEREF_ALIASES,
+              DereferenceAliasesPolicy.NEVER,
               Integer.MAX_VALUE,
               Integer.MAX_VALUE,
               false,
@@ -1487,7 +1488,7 @@ public class ModifyOperationTestCase
               new ArrayList<Control>(),
               ByteString.valueOf(baseDN),
               SearchScope.WHOLE_SUBTREE,
-              DereferencePolicy.NEVER_DEREF_ALIASES,
+              DereferenceAliasesPolicy.NEVER,
               Integer.MAX_VALUE,
               Integer.MAX_VALUE,
               false,
@@ -1542,7 +1543,7 @@ public class ModifyOperationTestCase
               new ArrayList<Control>(),
               ByteString.valueOf(baseDN),
               SearchScope.WHOLE_SUBTREE,
-              DereferencePolicy.NEVER_DEREF_ALIASES,
+              DereferenceAliasesPolicy.NEVER,
               Integer.MAX_VALUE,
               Integer.MAX_VALUE,
               false,

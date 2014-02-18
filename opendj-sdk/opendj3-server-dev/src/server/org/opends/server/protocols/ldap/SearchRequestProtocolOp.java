@@ -31,10 +31,9 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.types.DereferencePolicy;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.opends.server.types.RawFilter;
 import org.forgerock.opendj.ldap.SearchScope;
 
@@ -48,13 +47,12 @@ import static org.opends.server.util.ServerConstants.*;
 public class SearchRequestProtocolOp
        extends ProtocolOp
 {
-  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The typesOnly flag for this search request. */
   private boolean typesOnly;
 
   /** The alias dereferencing policy for this search request. */
-  private DereferencePolicy dereferencePolicy;
+  private DereferenceAliasesPolicy dereferencePolicy;
 
   /** The base DN for this search request. */
   private ByteString baseDN;
@@ -91,7 +89,7 @@ public class SearchRequestProtocolOp
    *                            request.
    */
   public SearchRequestProtocolOp(ByteString baseDN, SearchScope scope,
-                                 DereferencePolicy dereferencePolicy,
+                                 DereferenceAliasesPolicy dereferencePolicy,
                                  int sizeLimit, int timeLimit,
                                  boolean typesOnly, RawFilter filter,
                                  Set<String> attributes)
@@ -143,7 +141,7 @@ public class SearchRequestProtocolOp
    *
    * @return  The alias dereferencing policy for this search request.
    */
-  public DereferencePolicy getDereferencePolicy()
+  public DereferenceAliasesPolicy getDereferencePolicy()
   {
     return dereferencePolicy;
   }

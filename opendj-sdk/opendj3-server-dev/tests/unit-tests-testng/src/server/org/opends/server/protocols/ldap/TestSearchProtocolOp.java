@@ -35,7 +35,7 @@ import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.SearchScope;
-import org.opends.server.types.DereferencePolicy;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.opends.server.types.LDAPException;
 import org.testng.annotations.Test;
 
@@ -45,12 +45,13 @@ import static org.testng.Assert.*;
 /**
  * Test class for LDAP Search protocol operation classes.
  */
+@SuppressWarnings("javadoc")
 public class TestSearchProtocolOp extends LdapTestCase
 {
   private ByteString baseDN = ByteString.valueOf("dc=example,dc=COM");
   private SearchScope scope = SearchScope.WHOLE_SUBTREE;
-  private DereferencePolicy dereferencePolicy =
-      DereferencePolicy.DEREF_IN_SEARCHING;
+  private DereferenceAliasesPolicy dereferencePolicy =
+      DereferenceAliasesPolicy.IN_SEARCHING;
   private int sizeLimit = Integer.MAX_VALUE;
   private int timeLimit = Integer.MAX_VALUE;
   private boolean typesOnly = true;

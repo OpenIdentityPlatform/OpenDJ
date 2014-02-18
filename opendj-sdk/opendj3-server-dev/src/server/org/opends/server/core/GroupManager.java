@@ -33,6 +33,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.util.Utils;
 import org.opends.server.admin.ClassPropertyDefinition;
@@ -622,7 +623,7 @@ public class GroupManager extends InternalDirectoryServerPlugin
                                          nextMessageID(), requestControls,
                                          baseDN,
                                          SearchScope.WHOLE_SUBTREE,
-                                         DereferencePolicy.NEVER_DEREF_ALIASES,
+                                         DereferenceAliasesPolicy.NEVER,
                                          0, 0, false, filter, null, null);
         LocalBackendSearchOperation localSearch =
           new LocalBackendSearchOperation(internalSearch);

@@ -32,6 +32,7 @@ import java.util.*;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.controls.MatchedValuesControl;
@@ -232,7 +233,7 @@ public class SearchOperationTestCase extends OperationTestCase
                              new ArrayList<Control>(),
                              ByteString.valueOf(BASE),
                              SearchScope.WHOLE_SUBTREE,
-                             DereferencePolicy.NEVER_DEREF_ALIASES,
+                             DereferenceAliasesPolicy.NEVER,
                              -1,
                              -1,
                              false,
@@ -388,7 +389,7 @@ public class SearchOperationTestCase extends OperationTestCase
               new ArrayList<Control>(),
               ByteString.valueOf(BASE),
               SearchScope.WHOLE_SUBTREE,
-              DereferencePolicy.NEVER_DEREF_ALIASES,
+              DereferenceAliasesPolicy.NEVER,
               Integer.MAX_VALUE,
               Integer.MAX_VALUE,
               false,
@@ -418,7 +419,7 @@ public class SearchOperationTestCase extends OperationTestCase
               new ArrayList<Control>(),
               ByteString.valueOf(BASE),
               SearchScope.WHOLE_SUBTREE,
-              DereferencePolicy.NEVER_DEREF_ALIASES,
+              DereferenceAliasesPolicy.NEVER,
               Integer.MAX_VALUE,
               Integer.MAX_VALUE,
               false,
@@ -451,7 +452,7 @@ public class SearchOperationTestCase extends OperationTestCase
               new ArrayList<Control>(),
               ByteString.valueOf(BASE),
               SearchScope.WHOLE_SUBTREE,
-              DereferencePolicy.NEVER_DEREF_ALIASES,
+              DereferenceAliasesPolicy.NEVER,
               Integer.MAX_VALUE,
               Integer.MAX_VALUE,
               true,
@@ -483,7 +484,7 @@ public class SearchOperationTestCase extends OperationTestCase
               new ArrayList<Control>(),
               ByteString.valueOf(BASE),
               SearchScope.WHOLE_SUBTREE,
-              DereferencePolicy.NEVER_DEREF_ALIASES,
+              DereferenceAliasesPolicy.NEVER,
               Integer.MAX_VALUE,
               Integer.MAX_VALUE,
               false,
@@ -515,7 +516,7 @@ public class SearchOperationTestCase extends OperationTestCase
               new ArrayList<Control>(),
               ByteString.valueOf(BASE),
               SearchScope.WHOLE_SUBTREE,
-              DereferencePolicy.NEVER_DEREF_ALIASES,
+              DereferenceAliasesPolicy.NEVER,
               Integer.MAX_VALUE,
               Integer.MAX_VALUE,
               false,
@@ -550,7 +551,7 @@ public class SearchOperationTestCase extends OperationTestCase
               new ArrayList<Control>(),
               ByteString.valueOf(BASE),
               SearchScope.WHOLE_SUBTREE,
-              DereferencePolicy.NEVER_DEREF_ALIASES,
+              DereferenceAliasesPolicy.NEVER,
               Integer.MAX_VALUE,
               Integer.MAX_VALUE,
               false,
@@ -586,7 +587,7 @@ public class SearchOperationTestCase extends OperationTestCase
               new ArrayList<Control>(),
               ByteString.valueOf(BASE),
               SearchScope.WHOLE_SUBTREE,
-              DereferencePolicy.NEVER_DEREF_ALIASES,
+              DereferenceAliasesPolicy.NEVER,
               Integer.MAX_VALUE,
               Integer.MAX_VALUE,
               false,
@@ -607,7 +608,7 @@ public class SearchOperationTestCase extends OperationTestCase
          new SearchRequestProtocolOp(
               ByteString.valueOf(BASE),
               SearchScope.WHOLE_SUBTREE,
-              DereferencePolicy.NEVER_DEREF_ALIASES,
+              DereferenceAliasesPolicy.NEVER,
               Integer.MAX_VALUE,
               Integer.MAX_VALUE,
               false,
@@ -627,7 +628,7 @@ public class SearchOperationTestCase extends OperationTestCase
          new SearchRequestProtocolOp(
               ByteString.valueOf(BASE),
               SearchScope.WHOLE_SUBTREE,
-              DereferencePolicy.NEVER_DEREF_ALIASES,
+              DereferenceAliasesPolicy.NEVER,
               Integer.MAX_VALUE,
               Integer.MAX_VALUE,
               false,
@@ -646,7 +647,7 @@ public class SearchOperationTestCase extends OperationTestCase
          new SearchRequestProtocolOp(
               ByteString.valueOf(BASE),
               SearchScope.WHOLE_SUBTREE,
-              DereferencePolicy.NEVER_DEREF_ALIASES,
+              DereferenceAliasesPolicy.NEVER,
               Integer.MAX_VALUE,
               Integer.MAX_VALUE,
               true,
@@ -671,7 +672,7 @@ public class SearchOperationTestCase extends OperationTestCase
          new SearchRequestProtocolOp(
               ByteString.valueOf(BASE),
               SearchScope.WHOLE_SUBTREE,
-              DereferencePolicy.NEVER_DEREF_ALIASES,
+              DereferenceAliasesPolicy.NEVER,
               Integer.MAX_VALUE,
               Integer.MAX_VALUE,
               true,
@@ -696,7 +697,7 @@ public class SearchOperationTestCase extends OperationTestCase
          new SearchRequestProtocolOp(
               ByteString.valueOf(BASE),
               SearchScope.WHOLE_SUBTREE,
-              DereferencePolicy.NEVER_DEREF_ALIASES,
+              DereferenceAliasesPolicy.NEVER,
               Integer.MAX_VALUE,
               Integer.MAX_VALUE,
               false,
@@ -721,7 +722,7 @@ public class SearchOperationTestCase extends OperationTestCase
          new SearchRequestProtocolOp(
               ByteString.valueOf(BASE),
               SearchScope.WHOLE_SUBTREE,
-              DereferencePolicy.NEVER_DEREF_ALIASES,
+              DereferenceAliasesPolicy.NEVER,
               Integer.MAX_VALUE,
               Integer.MAX_VALUE,
               true,
@@ -746,7 +747,7 @@ public class SearchOperationTestCase extends OperationTestCase
          new SearchRequestProtocolOp(
               ByteString.valueOf(BASE),
               SearchScope.WHOLE_SUBTREE,
-              DereferencePolicy.NEVER_DEREF_ALIASES,
+              DereferenceAliasesPolicy.NEVER,
               Integer.MAX_VALUE,
               Integer.MAX_VALUE,
               false,
@@ -768,7 +769,7 @@ public class SearchOperationTestCase extends OperationTestCase
          new SearchRequestProtocolOp(
               ByteString.valueOf(BASE),
               SearchScope.WHOLE_SUBTREE,
-              DereferencePolicy.NEVER_DEREF_ALIASES,
+              DereferenceAliasesPolicy.NEVER,
               Integer.MAX_VALUE,
               Integer.MAX_VALUE,
               false,
@@ -791,7 +792,7 @@ public class SearchOperationTestCase extends OperationTestCase
          new SearchRequestProtocolOp(
               ByteString.valueOf(BASE),
               SearchScope.WHOLE_SUBTREE,
-              DereferencePolicy.NEVER_DEREF_ALIASES,
+              DereferenceAliasesPolicy.NEVER,
               Integer.MAX_VALUE,
               Integer.MAX_VALUE,
               true,
@@ -817,7 +818,7 @@ public class SearchOperationTestCase extends OperationTestCase
          new SearchRequestProtocolOp(
               ByteString.valueOf(BASE),
               SearchScope.WHOLE_SUBTREE,
-              DereferencePolicy.NEVER_DEREF_ALIASES,
+              DereferenceAliasesPolicy.NEVER,
               Integer.MAX_VALUE,
               Integer.MAX_VALUE,
               false,
@@ -848,7 +849,7 @@ public class SearchOperationTestCase extends OperationTestCase
          new SearchRequestProtocolOp(
               ByteString.valueOf(BASE),
               SearchScope.WHOLE_SUBTREE,
-              DereferencePolicy.NEVER_DEREF_ALIASES,
+              DereferenceAliasesPolicy.NEVER,
               Integer.MAX_VALUE,
               Integer.MAX_VALUE,
               false,
@@ -885,7 +886,7 @@ public class SearchOperationTestCase extends OperationTestCase
               new ArrayList<Control>(),
               ByteString.valueOf(BASE),
               SearchScope.WHOLE_SUBTREE,
-              DereferencePolicy.NEVER_DEREF_ALIASES,
+              DereferenceAliasesPolicy.NEVER,
               Integer.MAX_VALUE,
               Integer.MAX_VALUE,
               false,
@@ -933,7 +934,7 @@ public class SearchOperationTestCase extends OperationTestCase
               new ArrayList<Control>(),
               ByteString.valueOf(BASE),
               SearchScope.SINGLE_LEVEL,
-              DereferencePolicy.NEVER_DEREF_ALIASES,
+              DereferenceAliasesPolicy.NEVER,
               Integer.MAX_VALUE,
               Integer.MAX_VALUE,
               false,
@@ -971,7 +972,7 @@ public class SearchOperationTestCase extends OperationTestCase
               new ArrayList<Control>(),
               ByteString.valueOf(BASE),
               SearchScope.WHOLE_SUBTREE,
-              DereferencePolicy.NEVER_DEREF_ALIASES,
+              DereferenceAliasesPolicy.NEVER,
               Integer.MAX_VALUE,
               Integer.MAX_VALUE,
               false,
@@ -1001,7 +1002,7 @@ public class SearchOperationTestCase extends OperationTestCase
               Collections.singletonList((Control)new SubentriesControl(true, true)),
               ByteString.valueOf(BASE),
               SearchScope.WHOLE_SUBTREE,
-              DereferencePolicy.NEVER_DEREF_ALIASES,
+              DereferenceAliasesPolicy.NEVER,
               Integer.MAX_VALUE,
               Integer.MAX_VALUE,
               false,
@@ -1028,7 +1029,7 @@ public class SearchOperationTestCase extends OperationTestCase
         InternalClientConnection.nextMessageID(),
         Collections.singletonList((Control) new LDAPControl(
             OID_LDUP_SUBENTRIES, true)), ByteString.valueOf(BASE),
-        SearchScope.WHOLE_SUBTREE, DereferencePolicy.NEVER_DEREF_ALIASES,
+        SearchScope.WHOLE_SUBTREE, DereferenceAliasesPolicy.NEVER,
         Integer.MAX_VALUE, Integer.MAX_VALUE, false,
         LDAPFilter.decode("(objectclass=*)"), null, null);
 
@@ -1055,7 +1056,7 @@ public class SearchOperationTestCase extends OperationTestCase
               new ArrayList<Control>(),
               ByteString.valueOf(BASE),
               SearchScope.WHOLE_SUBTREE,
-              DereferencePolicy.NEVER_DEREF_ALIASES,
+              DereferenceAliasesPolicy.NEVER,
               Integer.MAX_VALUE,
               Integer.MAX_VALUE,
               false,
@@ -1076,7 +1077,7 @@ public class SearchOperationTestCase extends OperationTestCase
               new ArrayList<Control>(),
               ByteString.valueOf(BASE),
               SearchScope.WHOLE_SUBTREE,
-              DereferencePolicy.NEVER_DEREF_ALIASES,
+              DereferenceAliasesPolicy.NEVER,
               Integer.MAX_VALUE,
               Integer.MAX_VALUE,
               false,
@@ -1106,7 +1107,7 @@ public class SearchOperationTestCase extends OperationTestCase
               new ArrayList<Control>(),
               ByteString.valueOf(BASE),
               SearchScope.WHOLE_SUBTREE,
-              DereferencePolicy.NEVER_DEREF_ALIASES,
+              DereferenceAliasesPolicy.NEVER,
               Integer.MAX_VALUE,
               Integer.MAX_VALUE,
               false,
@@ -1137,7 +1138,7 @@ public class SearchOperationTestCase extends OperationTestCase
               new ArrayList<Control>(),
               ByteString.valueOf("ou=nonexistent,o=test"),
               SearchScope.WHOLE_SUBTREE,
-              DereferencePolicy.NEVER_DEREF_ALIASES,
+              DereferenceAliasesPolicy.NEVER,
               Integer.MAX_VALUE,
               Integer.MAX_VALUE,
               false,
@@ -1288,7 +1289,7 @@ public class SearchOperationTestCase extends OperationTestCase
 
     InternalSearchOperation search =
         conn.processSearch(userDNString, SearchScope.BASE_OBJECT,
-            DereferencePolicy.NEVER_DEREF_ALIASES, 0, // Size limit
+            DereferenceAliasesPolicy.NEVER, 0, // Size limit
             0, // Time limit
             typesOnly, // Types only
             "(objectClass=*)", attributes, controls, null);
@@ -1490,7 +1491,7 @@ public class SearchOperationTestCase extends OperationTestCase
 
     InternalSearchOperation search =
       conn.processSearch(userDNString, SearchScope.BASE_OBJECT,
-          DereferencePolicy.NEVER_DEREF_ALIASES, 0, // Size limit
+          DereferenceAliasesPolicy.NEVER, 0, // Size limit
           0, // Time limit
           false, // Types only
           "(objectClass=*)", attributes);
@@ -1561,7 +1562,7 @@ public class SearchOperationTestCase extends OperationTestCase
       new SearchRequestProtocolOp(
           ByteString.valueOf(userDNString),
           SearchScope.BASE_OBJECT,
-          DereferencePolicy.NEVER_DEREF_ALIASES,
+          DereferenceAliasesPolicy.NEVER,
           Integer.MAX_VALUE,
           Integer.MAX_VALUE,
           false,
@@ -1637,7 +1638,7 @@ public class SearchOperationTestCase extends OperationTestCase
               new ArrayList<Control>(),
               ByteString.valueOf("dc=example,dc=com"),
               SearchScope.SINGLE_LEVEL,
-              DereferencePolicy.NEVER_DEREF_ALIASES,
+              DereferenceAliasesPolicy.NEVER,
               Integer.MAX_VALUE,
               Integer.MAX_VALUE,
               false,

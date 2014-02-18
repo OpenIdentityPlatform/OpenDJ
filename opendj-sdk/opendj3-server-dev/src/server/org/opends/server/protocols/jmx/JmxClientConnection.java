@@ -39,6 +39,8 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
@@ -48,7 +50,6 @@ import org.opends.server.protocols.internal.InternalSearchListener;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 
 import static org.opends.messages.ProtocolMessages.*;
 
@@ -779,7 +780,7 @@ public class JmxClientConnection
                                       SearchScope scope, LDAPFilter filter)
   {
     return processSearch(rawBaseDN, scope,
-                         DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                         DereferenceAliasesPolicy.NEVER, 0, 0, false,
                          filter, new LinkedHashSet<String>(0));
   }
 
@@ -803,7 +804,7 @@ public class JmxClientConnection
    */
   public InternalSearchOperation processSearch(ByteString rawBaseDN,
                                       SearchScope scope,
-                                      DereferencePolicy derefPolicy,
+                                      DereferenceAliasesPolicy derefPolicy,
                                       int sizeLimit, int timeLimit,
                                       boolean typesOnly, LDAPFilter filter,
                                       LinkedHashSet<String> attributes)
@@ -848,7 +849,7 @@ public class JmxClientConnection
    */
   public InternalSearchOperation processSearch(ByteString rawBaseDN,
                                       SearchScope scope,
-                                      DereferencePolicy derefPolicy,
+                                      DereferenceAliasesPolicy derefPolicy,
                                       int sizeLimit, int timeLimit,
                                       boolean typesOnly, LDAPFilter filter,
                                       LinkedHashSet<String> attributes,

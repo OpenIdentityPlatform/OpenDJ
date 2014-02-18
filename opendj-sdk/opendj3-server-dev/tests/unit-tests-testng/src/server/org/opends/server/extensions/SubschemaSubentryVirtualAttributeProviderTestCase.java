@@ -49,7 +49,7 @@ import org.opends.server.types.AttributeValue;
 import org.opends.server.types.AttributeValues;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
-import org.opends.server.types.DereferencePolicy;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.opends.server.types.Entry;
 import org.opends.server.types.SearchFilter;
 import org.forgerock.opendj.ldap.SearchScope;
@@ -281,7 +281,7 @@ public class SubschemaSubentryVirtualAttributeProviderTestCase
          InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
          conn.processSearch(entryDN, SearchScope.BASE_OBJECT,
-                            DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                            DereferenceAliasesPolicy.NEVER, 0, 0, false,
                             filter, attrList);
     assertEquals(searchOperation.getSearchEntries().size(), 1);
 
@@ -314,7 +314,7 @@ public class SubschemaSubentryVirtualAttributeProviderTestCase
          InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
          conn.processSearch(entryDN, SearchScope.BASE_OBJECT,
-                            DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                            DereferenceAliasesPolicy.NEVER, 0, 0, false,
                             filter, attrList);
     assertEquals(searchOperation.getSearchEntries().size(), 0);
   }
@@ -350,7 +350,7 @@ public class SubschemaSubentryVirtualAttributeProviderTestCase
             .nextOperationID(), InternalClientConnection
             .nextMessageID(), requestControls, entryDN,
             SearchScope.BASE_OBJECT,
-            DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false, filter,
+            DereferenceAliasesPolicy.NEVER, 0, 0, false, filter,
             attrList, null);
     searchOperation.run();
     assertEquals(searchOperation.getSearchEntries().size(), 1);
@@ -391,7 +391,7 @@ public class SubschemaSubentryVirtualAttributeProviderTestCase
             .nextOperationID(), InternalClientConnection
             .nextMessageID(), requestControls, entryDN,
             SearchScope.BASE_OBJECT,
-            DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false, filter,
+            DereferenceAliasesPolicy.NEVER, 0, 0, false, filter,
             attrList, null);
     searchOperation.run();
     assertEquals(searchOperation.getSearchEntries().size(), 1);

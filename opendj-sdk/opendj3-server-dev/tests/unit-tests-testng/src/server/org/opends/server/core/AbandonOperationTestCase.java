@@ -32,6 +32,7 @@ import java.util.LinkedHashSet;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
@@ -722,7 +723,7 @@ public class AbandonOperationTestCase
     SearchRequestProtocolOp searchRequest =
          new SearchRequestProtocolOp(ByteString.valueOf("o=test"),
                                      SearchScope.BASE_OBJECT,
-                                     DereferencePolicy.NEVER_DEREF_ALIASES, 0,
+                                     DereferenceAliasesPolicy.NEVER, 0,
                                      0, false,
                                      LDAPFilter.decode("(match=false)"),
                                      new LinkedHashSet<String>());

@@ -29,6 +29,7 @@ package org.opends.server.backends.jeb;
 import java.util.*;
 
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
@@ -648,7 +649,7 @@ public class TestBackendImpl extends JebTestCase {
     InternalSearchOperation search =
         conn.processSearch(DN.valueOf("dc=test,dc=com"),
             SearchScope.WHOLE_SUBTREE,
-            DereferencePolicy.NEVER_DEREF_ALIASES,
+            DereferenceAliasesPolicy.NEVER,
             0,
             0,
             false,
@@ -662,7 +663,7 @@ public class TestBackendImpl extends JebTestCase {
 
     search = conn.processSearch(DN.valueOf("dc=test,dc=com"),
         SearchScope.WHOLE_SUBTREE,
-        DereferencePolicy.NEVER_DEREF_ALIASES,
+        DereferenceAliasesPolicy.NEVER,
         0,
         0,
         false,
@@ -683,7 +684,7 @@ public class TestBackendImpl extends JebTestCase {
 
     search = conn.processSearch(DN.valueOf("dc=test,dc=com"),
         SearchScope.WHOLE_SUBTREE,
-        DereferencePolicy.NEVER_DEREF_ALIASES,
+        DereferenceAliasesPolicy.NEVER,
         0,
         0,
         false,
@@ -703,7 +704,7 @@ public class TestBackendImpl extends JebTestCase {
 
     search = conn.processSearch(DN.valueOf("dc=test,dc=com"),
         SearchScope.WHOLE_SUBTREE,
-        DereferencePolicy.NEVER_DEREF_ALIASES,
+        DereferenceAliasesPolicy.NEVER,
         0,
         0,
         false,
@@ -722,7 +723,7 @@ public class TestBackendImpl extends JebTestCase {
 
     search = conn.processSearch(DN.valueOf("dc=test,dc=com"),
         SearchScope.WHOLE_SUBTREE,
-        DereferencePolicy.NEVER_DEREF_ALIASES,
+        DereferenceAliasesPolicy.NEVER,
         0,
         0,
         false,
@@ -741,7 +742,7 @@ public class TestBackendImpl extends JebTestCase {
 
     search = conn.processSearch(DN.valueOf("dc=test,dc=com"),
         SearchScope.WHOLE_SUBTREE,
-        DereferencePolicy.NEVER_DEREF_ALIASES,
+        DereferenceAliasesPolicy.NEVER,
         0,
         0,
         false,
@@ -1298,7 +1299,7 @@ public class TestBackendImpl extends JebTestCase {
     InternalSearchOperation search =
         conn.processSearch(DN.valueOf("dc=test,dc=com"),
                            SearchScope.SUBORDINATES,
-                           DereferencePolicy.NEVER_DEREF_ALIASES,
+                           DereferenceAliasesPolicy.NEVER,
                            0,
                            0,
                            false,
@@ -1476,7 +1477,7 @@ public class TestBackendImpl extends JebTestCase {
     InternalSearchOperation search =
         conn.processSearch(DN.valueOf("dc=test,dc=com"),
             SearchScope.SUBORDINATES,
-            DereferencePolicy.NEVER_DEREF_ALIASES,
+            DereferenceAliasesPolicy.NEVER,
             0,
             0,
             false,

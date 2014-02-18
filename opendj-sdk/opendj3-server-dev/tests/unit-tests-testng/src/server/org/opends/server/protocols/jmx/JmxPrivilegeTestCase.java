@@ -35,6 +35,7 @@ import java.util.UUID;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
@@ -1254,7 +1255,7 @@ public class JmxPrivilegeTestCase
          new InternalSearchOperation(conn, conn.nextOperationID(),
                   conn.nextMessageID(), controls, targetDN,
                   SearchScope.BASE_OBJECT,
-                  DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                  DereferenceAliasesPolicy.NEVER, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=*)"), null,
                   null);
     searchOperation.run();
@@ -1461,7 +1462,7 @@ public class JmxPrivilegeTestCase
          new InternalSearchOperation(conn, conn.nextOperationID(),
                   conn.nextMessageID(), controls, targetDN,
                   SearchScope.BASE_OBJECT,
-                  DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                  DereferenceAliasesPolicy.NEVER, 0, 0, false,
                   SearchFilter.createFilterFromString("(objectClass=*)"), null,
                   null);
     searchOperation.run();

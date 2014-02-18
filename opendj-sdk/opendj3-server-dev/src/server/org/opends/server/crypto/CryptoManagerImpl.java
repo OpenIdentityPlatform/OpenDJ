@@ -50,7 +50,9 @@ import javax.net.ssl.X509ExtendedKeyManager;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.util.Reject;
 import org.opends.admin.ads.ADSContext;
@@ -77,7 +79,6 @@ import org.opends.server.tools.LDAPConnectionOptions;
 import org.opends.server.tools.LDAPReader;
 import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.Base64;
 import org.opends.server.util.SelectableCertificateKeyManager;
 import org.opends.server.util.ServerConstants;
@@ -519,7 +520,7 @@ public class CryptoManagerImpl
           InternalSearchOperation searchOp = icc.processSearch(
                   entryDN,
                   SearchScope.BASE_OBJECT,
-                  DereferencePolicy.NEVER_DEREF_ALIASES,
+                  DereferenceAliasesPolicy.NEVER,
                   /* size limit */ 0, /* time limit */ 0,
                   /* types only */ false,
                   SearchFilter.createFilterFromString(
@@ -651,7 +652,7 @@ public class CryptoManagerImpl
     try {
       final InternalSearchOperation searchOp
               = icc.processSearch( entryDN, SearchScope.BASE_OBJECT,
-              DereferencePolicy.NEVER_DEREF_ALIASES,
+              DereferenceAliasesPolicy.NEVER,
               /* size limit */ 0, /* time limit */ 0,
               /* types only */ false,
               SearchFilter.createFilterFromString(
@@ -729,7 +730,7 @@ public class CryptoManagerImpl
       InternalSearchOperation searchOp = icc.processSearch(
               instanceKeysDN,
               SearchScope.SINGLE_LEVEL,
-              DereferencePolicy.NEVER_DEREF_ALIASES,
+              DereferenceAliasesPolicy.NEVER,
               /* size limit */ 0, /* time limit */ 0,
               /* types only */ false,
               SearchFilter.createFilterFromString(searchFilter),

@@ -46,6 +46,7 @@ import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -700,7 +701,7 @@ public class ReferentialIntegrityPlugin
     InternalClientConnection conn =
          InternalClientConnection.getRootConnection();
     InternalSearchOperation operation = conn.processSearch(baseDN,
-         SearchScope.WHOLE_SUBTREE, DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0,
+         SearchScope.WHOLE_SUBTREE, DereferenceAliasesPolicy.NEVER, 0, 0,
          false, SearchFilter.createORFilter(componentFilters), null);
 
     switch (operation.getResultCode().asEnum())

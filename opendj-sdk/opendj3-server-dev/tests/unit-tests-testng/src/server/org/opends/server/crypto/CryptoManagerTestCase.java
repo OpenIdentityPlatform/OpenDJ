@@ -44,6 +44,7 @@ import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.LdapName;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.util.ConnectionUtils;
@@ -390,7 +391,7 @@ public class CryptoManagerTestCase extends CryptoTestCase {
     InternalSearchOperation searchOp = icc.processSearch(
             baseDN,
             SearchScope.SINGLE_LEVEL,
-            DereferencePolicy.NEVER_DEREF_ALIASES,
+            DereferenceAliasesPolicy.NEVER,
             /* size limit */ 0, /* time limit */ 0,
             /* types only */ false,
             SearchFilter.createFilterFromString(searchFilter),

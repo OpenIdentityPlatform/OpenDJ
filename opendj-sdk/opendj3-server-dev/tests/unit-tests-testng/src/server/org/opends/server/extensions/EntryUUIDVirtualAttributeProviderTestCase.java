@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn;
@@ -316,7 +317,7 @@ public class EntryUUIDVirtualAttributeProviderTestCase
          InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
          conn.processSearch(entryDN, SearchScope.BASE_OBJECT,
-                            DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                            DereferenceAliasesPolicy.NEVER, 0, 0, false,
                             filter, attrList);
     assertEquals(searchOperation.getSearchEntries().size(), 1);
 
@@ -349,7 +350,7 @@ public class EntryUUIDVirtualAttributeProviderTestCase
          InternalClientConnection.getRootConnection();
     InternalSearchOperation searchOperation =
          conn.processSearch(entryDN, SearchScope.BASE_OBJECT,
-                            DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+                            DereferenceAliasesPolicy.NEVER, 0, 0, false,
                             filter, attrList);
     assertEquals(searchOperation.getSearchEntries().size(), 0);
   }
@@ -383,7 +384,7 @@ public class EntryUUIDVirtualAttributeProviderTestCase
          new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                                      InternalClientConnection.nextMessageID(), requestControls,
                                      entryDN, SearchScope.BASE_OBJECT,
-                                     DereferencePolicy.NEVER_DEREF_ALIASES, 0,
+                                     DereferenceAliasesPolicy.NEVER, 0,
                                      0, false, filter, attrList, null);
     searchOperation.run();
     assertEquals(searchOperation.getSearchEntries().size(), 1);
@@ -423,7 +424,7 @@ public class EntryUUIDVirtualAttributeProviderTestCase
          new InternalSearchOperation(conn, InternalClientConnection.nextOperationID(),
                                      InternalClientConnection.nextMessageID(), requestControls,
                                      entryDN, SearchScope.BASE_OBJECT,
-                                     DereferencePolicy.NEVER_DEREF_ALIASES, 0,
+                                     DereferenceAliasesPolicy.NEVER, 0,
                                      0, false, filter, attrList, null);
     searchOperation.run();
     assertEquals(searchOperation.getSearchEntries().size(), 1);
