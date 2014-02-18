@@ -104,6 +104,12 @@ public class ConsoleApplicationTestCase extends CliTestCase {
         public void setQuiet(boolean q) {
             quiet = q;
         }
+
+        @Override
+        public boolean isMenuDrivenMode() {
+            // TODO Auto-generated method stub
+            return false;
+        }
     }
 
     @Test()
