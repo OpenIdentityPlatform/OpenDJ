@@ -618,7 +618,7 @@ public final class ArgumentConstants {
     /**
      * The value for the long option advanced.
      */
-    public static final String OPTION_DSCFG_LONG_ADVANCED = "advanced";
+    public static final String OPTION_LONG_ADVANCED = "advanced";
 
     /**
      * Display the equivalent non-interactive command.
@@ -629,6 +629,26 @@ public final class ArgumentConstants {
      * The path where we write the equivalent non-interactive command.
      */
     public static final String OPTION_LONG_EQUIVALENT_COMMAND_FILE_PATH = "commandFilePath";
+
+    /**
+     * The value for the short option remote .
+     */
+    public static final char OPTION_SHORT_REMOTE = 'r';
+
+    /**
+     * The value for the long option remote .
+     */
+    public static final String OPTION_LONG_REMOTE = "remote";
+
+    /**
+     * The value for the short option configClass.
+     */
+    public static final char OPTION_SHORT_CONFIG_CLASS = 'C';
+
+    /**
+     * The value for the long option configClass.
+     */
+    public static final String OPTION_LONG_CONFIG_CLASS = "configClass";
 
     // Prevent instantiation.
     private ArgumentConstants() {

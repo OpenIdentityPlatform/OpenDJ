@@ -107,7 +107,6 @@ public class ConsoleApplicationTestCase extends CliTestCase {
 
         @Override
         public boolean isMenuDrivenMode() {
-            // TODO Auto-generated method stub
             return false;
         }
     }
