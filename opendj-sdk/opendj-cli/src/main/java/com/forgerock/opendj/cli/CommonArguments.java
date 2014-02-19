@@ -28,6 +28,8 @@ package com.forgerock.opendj.cli;
 import static com.forgerock.opendj.cli.CliMessages.*;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 
+import org.forgerock.i18n.LocalizableMessage;
+
 /**
  * This class regroup commons arguments used by the different CLI.
  */
@@ -60,6 +62,26 @@ public final class CommonArguments {
         final BooleanArgument verbose = new BooleanArgument("verbose", 'v', "verbose", INFO_DESCRIPTION_VERBOSE.get());
         verbose.setPropertyName("verbose");
         return verbose;
+    }
+
+    /**
+     * Returns the "port" integer argument.
+     *
+     * @param defaultPort
+     *            The default port number.
+     * @param description
+     *            Port number's description.
+     * @return The "port" argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static IntegerArgument getPort(final int defaultPort, final LocalizableMessage description)
+            throws ArgumentException {
+        final IntegerArgument port = new IntegerArgument("port", OPTION_SHORT_PORT, OPTION_LONG_PORT, false, false,
+                true, INFO_PORT_PLACEHOLDER.get(), defaultPort, null, true, 1, true, 65535,
+                description);
+        port.setPropertyName(OPTION_LONG_PORT);
+        return port;
     }
 
     /**
@@ -170,6 +192,65 @@ public final class CommonArguments {
     }
 
     /**
+     * Returns the "trustAll" boolean argument.
+     *
+     * @return The "trustAll" argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static BooleanArgument getTrustAll() throws ArgumentException {
+        final BooleanArgument trustAll = new BooleanArgument(OPTION_LONG_TRUSTALL, OPTION_SHORT_TRUSTALL,
+                OPTION_LONG_TRUSTALL, INFO_DESCRIPTION_TRUSTALL.get());
+        trustAll.setPropertyName(OPTION_LONG_TRUSTALL);
+        return trustAll;
+    }
+
+    /**
+     * Returns the "trustStorePath" string argument.
+     *
+     * @return The "trustStorePath" argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static StringArgument getTrustStorePath() throws ArgumentException {
+        final StringArgument tsPath = new StringArgument("trustStorePath", OPTION_SHORT_TRUSTSTOREPATH,
+                OPTION_LONG_TRUSTSTOREPATH, false, false, true, INFO_TRUSTSTOREPATH_PLACEHOLDER.get(), null, null,
+                INFO_DESCRIPTION_TRUSTSTOREPATH.get());
+        tsPath.setPropertyName(OPTION_LONG_TRUSTSTOREPATH);
+        return tsPath;
+    }
+
+    /**
+     * Returns the "trustStorePassword" string argument.
+     *
+     * @return The "trustStorePassword" argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static StringArgument getTrustStorePassword() throws ArgumentException {
+        final StringArgument tsPwd = new StringArgument("trustStorePassword", OPTION_SHORT_TRUSTSTORE_PWD,
+                OPTION_LONG_TRUSTSTORE_PWD, false, false, true, INFO_TRUSTSTORE_PWD_PLACEHOLDER.get(), null, null,
+                INFO_DESCRIPTION_TRUSTSTOREPASSWORD.get());
+        tsPwd.setPropertyName(OPTION_LONG_TRUSTSTORE_PWD);
+        return tsPwd;
+    }
+
+    /**
+     * Returns the "trustStorePasswordFile" string argument.
+     *
+     * @return The "trustStorePasswordFile" argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static FileBasedArgument getTrustStorePasswordFile() throws ArgumentException {
+        final FileBasedArgument tsPwdFile = new FileBasedArgument("trustStorePasswordFile",
+                OPTION_SHORT_TRUSTSTORE_PWD_FILE, OPTION_LONG_TRUSTSTORE_PWD_FILE, false, false,
+                INFO_TRUSTSTORE_PWD_FILE_PLACEHOLDER.get(), null, null, INFO_DESCRIPTION_TRUSTSTOREPASSWORD_FILE.get());
+        tsPwdFile.setPropertyName(OPTION_LONG_TRUSTSTORE_PWD_FILE);
+        return tsPwdFile;
+    }
+
+    /**
      * Returns the "connection timeout" boolean argument.
      *
      * @param defaultTimeout
@@ -181,7 +262,7 @@ public final class CommonArguments {
     public static IntegerArgument getConnectTimeOut(final int defaultTimeout) throws ArgumentException {
         final IntegerArgument connectTimeout = new IntegerArgument(OPTION_LONG_CONNECT_TIMEOUT, null,
                 OPTION_LONG_CONNECT_TIMEOUT, false, false, true, INFO_TIMEOUT_PLACEHOLDER.get(), defaultTimeout, null,
-                true, 1, true, 65535, INFO_DESCRIPTION_CONNECTION_TIMEOUT.get());
+                true, 0, false, Integer.MAX_VALUE, INFO_DESCRIPTION_CONNECTION_TIMEOUT.get());
         connectTimeout.setPropertyName(OPTION_LONG_CONNECT_TIMEOUT);
         connectTimeout.setHidden(true);
         return connectTimeout;
@@ -202,6 +283,37 @@ public final class CommonArguments {
     }
 
     /**
+     * Returns the "configfile" string argument.
+     *
+     * @return The "configfile" argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static StringArgument getConfigFile() throws ArgumentException {
+        final StringArgument configFile = new StringArgument("configfile", 'f', "configFile", true, false, true,
+                INFO_CONFIGFILE_PLACEHOLDER.get(), null, null, INFO_DESCRIPTION_CONFIG_FILE.get());
+        configFile.setHidden(true);
+        return configFile;
+    }
+
+    /**
+     * Returns the "configclass" string argument.
+     *
+     * @param configFileHandlerName
+     *            The config file handler name.
+     * @return The "configclass" argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static StringArgument getConfigClass(final String configFileHandlerName) throws ArgumentException {
+        final StringArgument configClass = new StringArgument("configclass", OPTION_SHORT_CONFIG_CLASS,
+                OPTION_LONG_CONFIG_CLASS, true, false, true, INFO_CONFIGCLASS_PLACEHOLDER.get(), configFileHandlerName,
+                null, INFO_DESCRIPTION_CONFIG_CLASS.get());
+        configClass.setHidden(true);
+        return configClass;
+    }
+
+    /**
      * Returns the "baseDN" string argument.
      *
      * @return The "baseDN" argument.
@@ -212,6 +324,65 @@ public final class CommonArguments {
         return new StringArgument(OPTION_LONG_BASEDN.toLowerCase(), OPTION_SHORT_BASEDN, OPTION_LONG_BASEDN, false,
                 true, true, INFO_BASEDN_PLACEHOLDER.get(), null, OPTION_LONG_BASEDN,
                 INFO_ARGUMENT_DESCRIPTION_BASEDN.get());
+    }
+
+    /**
+     * Returns the "batchFilePath" string argument.
+     *
+     * @return The "batchFilePath" argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static StringArgument getBatchFilePath() throws ArgumentException {
+        return new StringArgument(OPTION_LONG_BATCH_FILE_PATH, OPTION_SHORT_BATCH_FILE_PATH,
+                OPTION_LONG_BATCH_FILE_PATH, false, false, true, INFO_BATCH_FILE_PATH_PLACEHOLDER.get(), null, null,
+                INFO_DESCRIPTION_BATCH_FILE_PATH.get());
+    }
+
+    /**
+     * Returns the "bindDN" string argument.
+     *
+     * @param defaultBindDN
+     *            The default bind DN.
+     * @return The "bindDN" argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static StringArgument getBindDN(final String defaultBindDN) throws ArgumentException {
+        final StringArgument bindDN = new StringArgument("bindDN", OPTION_SHORT_BINDDN, OPTION_LONG_BINDDN, false,
+                false, true, INFO_BINDDN_PLACEHOLDER.get(), defaultBindDN, null, INFO_DESCRIPTION_BINDDN.get());
+        bindDN.setPropertyName(OPTION_LONG_BINDDN);
+        return bindDN;
+    }
+
+    /**
+     * Returns the "bindPassword" string argument.
+     *
+     * @return The "bindPassword" argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static StringArgument getBindPassword() throws ArgumentException {
+        final StringArgument bindPassword = new StringArgument("bindPassword", OPTION_SHORT_BINDPWD,
+                OPTION_LONG_BINDPWD, false, false, true, INFO_BINDPWD_PLACEHOLDER.get(), null, null,
+                INFO_DESCRIPTION_BINDPASSWORD.get());
+        bindPassword.setPropertyName(OPTION_LONG_BINDPWD);
+        return bindPassword;
+    }
+
+    /**
+     * Returns the "bindPasswordFile" file argument.
+     *
+     * @return The "bindPasswordFile" argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static FileBasedArgument getBindPasswordFile() throws ArgumentException {
+        final FileBasedArgument bindPasswordFile = new FileBasedArgument("bindPasswordFile", OPTION_SHORT_BINDPWD_FILE,
+                OPTION_LONG_BINDPWD_FILE, false, false, INFO_BINDPWD_FILE_PLACEHOLDER.get(), null, null,
+                INFO_DESCRIPTION_BINDPASSWORDFILE.get());
+        bindPasswordFile.setPropertyName(OPTION_LONG_BINDPWD_FILE);
+        return bindPasswordFile;
     }
 
     /**
@@ -254,6 +425,20 @@ public final class CommonArguments {
     }
 
     /**
+     * Returns the "remote" boolean argument.
+     *
+     * @return The "remote" argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static BooleanArgument getRemote() throws ArgumentException {
+        final BooleanArgument remote = new BooleanArgument(OPTION_LONG_REMOTE.toLowerCase(), OPTION_SHORT_REMOTE,
+                OPTION_LONG_REMOTE, INFO_DESCRIPTION_REMOTE.get());
+        remote.setPropertyName(OPTION_LONG_REMOTE);
+        return remote;
+    }
+
+    /**
      * Returns the "skip file" string argument.
      *
      * @return The "skipFile" argument.
@@ -276,6 +461,34 @@ public final class CommonArguments {
         return new IntegerArgument("sampleData".toLowerCase(), 'd', "sampleData", false, false, true,
                 INFO_NUM_ENTRIES_PLACEHOLDER.get(), 0, "sampleData", true, 0, false, 0,
                 INFO_SETUP_DESCRIPTION_SAMPLE_DATA.get());
+    }
+
+    /**
+     * Returns the "sasloption" string argument.
+     *
+     * @return The "sasloption" argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static StringArgument getSASL() throws ArgumentException {
+        final StringArgument sasl = new StringArgument("sasloption", OPTION_SHORT_SASLOPTION, OPTION_LONG_SASLOPTION,
+                false, true, true, INFO_SASL_OPTION_PLACEHOLDER.get(), null, null,
+                INFO_LDAP_CONN_DESCRIPTION_SASLOPTIONS.get());
+        sasl.setPropertyName(OPTION_LONG_SASLOPTION);
+        return sasl;
+    }
+    /**
+     * Returns the "script-friendly" boolean argument.
+     *
+     * @return The "script-friendly" argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static BooleanArgument getScriptFriendly() throws ArgumentException {
+        final BooleanArgument sf = new BooleanArgument("script-friendly", OPTION_SHORT_SCRIPT_FRIENDLY,
+                OPTION_LONG_SCRIPT_FRIENDLY, INFO_DESCRIPTION_SCRIPT_FRIENDLY.get());
+        sf.setPropertyName(OPTION_LONG_SCRIPT_FRIENDLY);
+        return sf;
     }
 
     /**
@@ -309,6 +522,20 @@ public final class CommonArguments {
     }
 
     /**
+     * Returns the "advanced" boolean argument.
+     *
+     * @return The "advanced" argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static BooleanArgument getAdvancedMode() throws ArgumentException {
+        final BooleanArgument advanced = new BooleanArgument(OPTION_LONG_ADVANCED, null, OPTION_LONG_ADVANCED,
+                INFO_DESCRIPTION_ADVANCED.get());
+        advanced.setPropertyName(OPTION_LONG_ADVANCED);
+        return advanced;
+    }
+
+    /**
      * Returns the "JMX port" integer argument.
      *
      * @param defaultJMXPort
@@ -337,6 +564,19 @@ public final class CommonArguments {
         return skipPortCheck;
     }
 
+    /**
+     * Returns the "startTLS" boolean argument.
+     *
+     * @return The "startTLS" argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static BooleanArgument getStartTLS() throws ArgumentException {
+        final BooleanArgument useStartTLS = new BooleanArgument("startTLS", OPTION_SHORT_START_TLS,
+                OPTION_LONG_START_TLS, INFO_DESCRIPTION_START_TLS.get());
+        useStartTLS.setPropertyName(OPTION_LONG_START_TLS);
+        return useStartTLS;
+    }
     /**
      * Returns the "directory manager DN" string argument.
      *
@@ -402,6 +642,34 @@ public final class CommonArguments {
                 INFO_SETUP_DESCRIPTION_DO_NOT_START.get());
         doNotStartArg.setPropertyName("doNotStart");
         return doNotStartArg;
+    }
+
+    /**
+     * Returns the "displayCommand" boolean argument.
+     *
+     * @return The "displayCommand" argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static BooleanArgument getDisplayEquivalentCommand() throws ArgumentException {
+        return new BooleanArgument(OPTION_LONG_DISPLAY_EQUIVALENT, null, OPTION_LONG_DISPLAY_EQUIVALENT,
+                INFO_DESCRIPTION_DISPLAY_EQUIVALENT.get());
+    }
+
+    /**
+     * Returns the "commandFilePath" string argument.
+     *
+     * @param description
+     *            The description of this argument.
+     * @return The "commandFilePath" argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static StringArgument getEquivalentCommandFile(final LocalizableMessage description)
+            throws ArgumentException {
+        return new StringArgument(OPTION_LONG_EQUIVALENT_COMMAND_FILE_PATH, null,
+                OPTION_LONG_EQUIVALENT_COMMAND_FILE_PATH, false, false, true, INFO_PATH_PLACEHOLDER.get(), null, null,
+                description);
     }
 
     /**
@@ -517,6 +785,21 @@ public final class CommonArguments {
     }
 
     /**
+     * Returns the "useSSL" boolean argument.
+     *
+     * @return The "useSSL" argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static BooleanArgument getUseSSL() throws ArgumentException {
+        final BooleanArgument useSSL = new BooleanArgument("useSSL", OPTION_SHORT_USE_SSL, OPTION_LONG_USE_SSL,
+                INFO_DESCRIPTION_USE_SSL.get());
+        useSSL.setPropertyName(OPTION_LONG_USE_SSL);
+        return useSSL;
+    }
+
+
+    /**
      * Returns the "key store password" string argument.
      *
      * @return The "keyStorePassword" argument.
@@ -540,6 +823,21 @@ public final class CommonArguments {
         return new FileBasedArgument(OPTION_LONG_KEYSTORE_PWD_FILE.toLowerCase(), OPTION_SHORT_KEYSTORE_PWD_FILE,
                 OPTION_LONG_KEYSTORE_PWD_FILE, false, false, INFO_KEYSTORE_PWD_FILE_PLACEHOLDER.get(), null,
                 OPTION_LONG_KEYSTORE_PWD_FILE, INFO_ARGUMENT_DESCRIPTION_KEYSTOREPASSWORD_FILE.get());
+    }
+
+    /**
+     * Returns the "keyStorePath" string argument.
+     *
+     * @return The "keyStorePath" argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static StringArgument getKeyStorePath() throws ArgumentException {
+        final StringArgument ksPath = new StringArgument("keyStorePath", OPTION_SHORT_KEYSTOREPATH,
+                OPTION_LONG_KEYSTOREPATH, false, false, true, INFO_KEYSTOREPATH_PLACEHOLDER.get(), null, null,
+                INFO_DESCRIPTION_KEYSTOREPATH.get());
+        ksPath.setPropertyName(OPTION_LONG_KEYSTOREPATH);
+        return ksPath;
     }
 
     /**
