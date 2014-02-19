@@ -37,6 +37,7 @@ import org.opends.messages.Category;
 import org.opends.messages.Message;
 import org.opends.messages.Severity;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.backends.task.Task;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -641,6 +642,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
 
   private static final String REPLICATION_GENERATION_ID =
     "ds-sync-generation-id";
+  private static final Task NO_INIT_TASK = null;
 
   private long readGenIdFromSuffixRootEntry(String rootDn) throws Exception
   {
@@ -1061,7 +1063,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       replicationDomain.initExport(exportLdif, 2);
 
       // Perform full update from fake domain to fractional domain
-      replicationDomain.initializeRemote(DS1_ID);
+      replicationDomain.initializeRemote(DS1_ID, NO_INIT_TASK);
 
       /*
        * Check fractional domain is operational and that filtering has been done
@@ -1296,10 +1298,10 @@ public class FractionalReplicationTest extends ReplicationTestCase {
       replicationDomain.initExport(exportLdif, 2);
 
       // Perform full update from fake domain to fractional domain
-      replicationDomain.initializeRemote(DS1_ID);
+      replicationDomain.initializeRemote(DS1_ID, NO_INIT_TASK);
 
       /*
-       * Chack fractional domain is operational and that filtering has been done
+       * Check fractional domain is operational and that filtering has been done
        * during the full update
        */
 

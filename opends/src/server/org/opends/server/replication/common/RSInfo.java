@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2013 ForgeRock AS
+ *      Portions Copyright 2012-2014 ForgeRock AS
  */
 package org.opends.server.replication.common;
 
@@ -36,7 +36,7 @@ package org.opends.server.replication.common;
 public final class RSInfo
 {
   /** Server id of the RS. */
-  private final int id;
+  private final int rsServerId;
   /** Generation Id of the RS. */
   private final long generationId;
   /** Group id of the RS. */
@@ -50,22 +50,22 @@ public final class RSInfo
    */
   private final int weight;
   /** The server URL of the RS. */
-  private final String serverUrl;
+  private final String rsServerURL;
 
   /**
    * Creates a new instance of RSInfo with every given info.
    *
-   * @param id The RS id
-   * @param serverUrl Url of the RS
+   * @param rsServerId The RS id
+   * @param rsServerURL Url of the RS
    * @param generationId The generation id the RS is using
    * @param groupId RS group id
    * @param weight RS weight
    */
-  public RSInfo(int id, String serverUrl,
+  public RSInfo(int rsServerId, String rsServerURL,
     long generationId, byte groupId, int weight)
   {
-    this.id = id;
-    this.serverUrl = serverUrl;
+    this.rsServerId = rsServerId;
+    this.rsServerURL = rsServerURL;
     this.generationId = generationId;
     this.groupId = groupId;
     this.weight = weight;
@@ -77,7 +77,7 @@ public final class RSInfo
    */
   public int getId()
   {
-    return id;
+    return rsServerId;
   }
 
   /**
@@ -125,12 +125,10 @@ public final class RSInfo
       return false;
     }
     final RSInfo rsInfo = (RSInfo) obj;
-    return id == rsInfo.getId()
+    return rsServerId == rsInfo.getId()
         && generationId == rsInfo.getGenerationId()
         && groupId == rsInfo.getGroupId()
-        && weight == rsInfo.getWeight()
-        && ((serverUrl == null && rsInfo.getServerUrl() == null)
-            || (serverUrl != null && serverUrl.equals(rsInfo.getServerUrl())));
+        && weight == rsInfo.getWeight();
   }
 
   /**
@@ -141,11 +139,10 @@ public final class RSInfo
   public int hashCode()
   {
     int hash = 7;
-    hash = 17 * hash + this.id;
+    hash = 17 * hash + this.rsServerId;
     hash = 17 * hash + (int) (this.generationId ^ (this.generationId >>> 32));
     hash = 17 * hash + this.groupId;
     hash = 17 * hash + this.weight;
-    hash = 17 * hash + (this.serverUrl != null ? this.serverUrl.hashCode() : 0);
     return hash;
   }
 
@@ -155,7 +152,7 @@ public final class RSInfo
    */
   public String getServerUrl()
   {
-    return serverUrl;
+    return rsServerURL;
   }
 
   /**
@@ -165,12 +162,10 @@ public final class RSInfo
   @Override
   public String toString()
   {
-    StringBuilder sb = new StringBuilder();
-    sb.append("Id: ").append(id);
-    sb.append(" ; Server URL: ").append(serverUrl);
-    sb.append(" ; Generation id: ").append(generationId);
-    sb.append(" ; Group id: ").append(groupId);
-    sb.append(" ; Weight: ").append(weight);
-    return sb.toString();
+    return "RS id: " + rsServerId
+        + " ; RS URL: " + rsServerURL
+        + " ; Generation id: " + generationId
+        + " ; Group id: " + groupId
+        + " ; Weight: " + weight;
   }
 }

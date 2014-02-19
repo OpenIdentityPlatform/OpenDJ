@@ -1729,14 +1729,14 @@ public class AssuredReplicationServerTest
   private void waitForStableTopo(FakeReplicationDomain fakeRd, int expectedDs,
       int expectedRs) throws Exception
   {
-    List<DSInfo> dsInfo = null;
+    Map<Integer, DSInfo> dsInfo = null;
     List<RSInfo> rsInfo = null;
     long nSec = 0;
     long startTime = System.currentTimeMillis();
     do
     {
-      dsInfo = fakeRd.getReplicasList();
-      rsInfo = fakeRd.getRsList();
+      dsInfo = fakeRd.getReplicaInfos();
+      rsInfo = fakeRd.getRsInfos();
       if (dsInfo.size() == expectedDs && rsInfo.size() == expectedRs)
       {
         debugInfo("waitForStableTopo: expected topo obtained after " + nSec + " second(s).");
@@ -3127,8 +3127,7 @@ public class AssuredReplicationServerTest
       // DS must see expected numbers of DSs/RSs
       final FakeReplicationDomain fakeRd1 = fakeRDs[1];
       waitForStableTopo(fakeRd1, 1, 1);
-      List<DSInfo> dsInfos = fakeRd1.getReplicasList();
-      DSInfo dsInfo = dsInfos.get(0);
+      DSInfo dsInfo = fakeRd1.getReplicaInfos().get(FDS2_ID);
       assertEquals(dsInfo.getDsId(), FDS2_ID);
       assertEquals(dsInfo.getStatus(), ServerStatus.NORMAL_STATUS);
 
@@ -3148,27 +3147,7 @@ public class AssuredReplicationServerTest
       }
 
       // Wait for DS2 being degraded
-      boolean error = true;
-      for (int count = 0; count < 12; count++)
-      {
-        dsInfos = fakeRd1.getReplicasList();
-        if (dsInfos == null)
-          continue;
-        if (dsInfos.size() == 0)
-          continue;
-        dsInfo = dsInfos.get(0);
-        if ( (dsInfo.getDsId() == FDS2_ID) &&
-            (dsInfo.getStatus() == ServerStatus.DEGRADED_STATUS) )
-        {
-          error = false;
-          break;
-        }
-        else
-        {
-          Thread.sleep(1000);
-        }
-      }
-      assertFalse(error, "DS2 not in degraded status");
+      expectStatusForDS(fakeRd1, ServerStatus.DEGRADED_STATUS, FDS2_ID);
 
       Thread.sleep(500); // Sleep a while as counters are updated just after sending thread is unblocked
       assertEquals(fakeRd1.getAssuredSrSentUpdates(), 4);
@@ -3230,27 +3209,7 @@ public class AssuredReplicationServerTest
       fakeRd2.startListenService();
 
       // Wait for DS2 being back to normal
-      error = true;
-      for (int count = 0; count < 12; count++)
-      {
-        dsInfos = fakeRd1.getReplicasList();
-        if (dsInfos == null)
-          continue;
-        if (dsInfos.size() == 0)
-          continue;
-        dsInfo = dsInfos.get(0);
-        if ( (dsInfo.getDsId() == FDS2_ID) &&
-            (dsInfo.getStatus() == ServerStatus.NORMAL_STATUS) )
-        {
-          error = false;
-          break;
-        }
-        else
-        {
-          Thread.sleep(1000);
-        }
-      }
-      assertFalse(error, "DS2 not back to normal status");
+      expectStatusForDS(fakeRd1, ServerStatus.NORMAL_STATUS, FDS2_ID);
 
       // DS2 should also change status so reset its assured monitoring data so no received sr updates
       assertEquals(fakeRd1.getAssuredSrSentUpdates(), 5);
@@ -3321,10 +3280,27 @@ public class AssuredReplicationServerTest
       assertEquals(fakeRd2.getReceivedUpdates(), 6);
       assertEquals(fakeRd2.getWrongReceivedUpdates(), 1);
       assertFalse(fakeRd2.receivedUpdatesOk());
-    } finally
+    }
+    finally
     {
       endTest();
     }
+  }
+
+  private void expectStatusForDS(final ReplicationDomain domain,
+      ServerStatus expectedStatus, int dsId) throws InterruptedException
+  {
+    for (int count = 0; count < 12; count++)
+    {
+      final DSInfo dsInfo = domain.getReplicaInfos().get(dsId);
+      if (dsInfo != null && dsInfo.getStatus() == expectedStatus)
+      {
+        return;
+      }
+      Thread.sleep(1000);
+    }
+    Assert.fail("DS(" + dsId + ") did not have expected status "
+        + expectedStatus + " after 12 seconds");
   }
 
   private void assertContainsOnly(Map<Integer, Integer> map, int key,

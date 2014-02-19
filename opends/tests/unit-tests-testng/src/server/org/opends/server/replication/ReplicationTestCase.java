@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication;
 
@@ -215,7 +215,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   {
     final ReplicationBroker broker = new ReplicationBroker(
         new DummyReplicationDomain(generationId), new ServerState(),
-        config, generationId, getReplSessionSecurity());
+        config, getReplSessionSecurity());
     connect(broker, port, timeout);
     return broker;
   }
