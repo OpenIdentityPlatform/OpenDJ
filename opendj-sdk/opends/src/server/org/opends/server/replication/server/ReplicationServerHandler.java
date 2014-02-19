@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -466,7 +466,7 @@ public class ReplicationServerHandler extends ServerHandler
     if (getProtocolVersion() >= ProtocolVersion.REPLICATION_PROTOCOL_V4)
     {
       // List should only contain RS info for sender
-      RSInfo rsInfo = inTopoMsg.getRsList().get(0);
+      RSInfo rsInfo = inTopoMsg.getRsInfos().get(0);
       weight = rsInfo.getWeight();
     }
 
@@ -603,7 +603,7 @@ public class ReplicationServerHandler extends ServerHandler
   public void processTopoInfoFromRS(TopologyMsg topoMsg)
   {
     // List should only contain RS info for sender
-    final RSInfo rsInfo = topoMsg.getRsList().get(0);
+    final RSInfo rsInfo = topoMsg.getRsInfos().get(0);
     generationId = rsInfo.getGenerationId();
     groupId = rsInfo.getGroupId();
     weight = rsInfo.getWeight();
@@ -613,7 +613,7 @@ public class ReplicationServerHandler extends ServerHandler
       clearRemoteLSHandlers();
 
       // Creates the new structure according to the message received.
-      for (DSInfo dsInfo : topoMsg.getDsList())
+      for (DSInfo dsInfo : topoMsg.getReplicaInfos().values())
       {
         // For each DS connected to the peer RS
         DSInfo clonedDSInfo = dsInfo.cloneWithReplicationServerId(serverId);

@@ -283,9 +283,9 @@ public final class DSInfo
         && equals(eclIncludesForDeletes, dsInfo.getEclIncludesForDeletes());
   }
 
-  private boolean equals(Set<String> o1, Set<String> o2)
+  private boolean equals(Object o1, Object o2)
   {
-    return (o1 == null && o2 == null) || (o1 != null && o1.equals(o2));
+    return o1 == null ? o2 == null : o1.equals(o2);
   }
 
   /**
@@ -320,15 +320,18 @@ public final class DSInfo
   @Override
   public String toString()
   {
-    StringBuilder sb = new StringBuilder();
+    final StringBuilder sb = new StringBuilder();
     sb.append("DS id: ").append(dsId);
     sb.append(" ; DS url: ").append(dsUrl);
     sb.append(" ; RS id: ").append(rsId);
     sb.append(" ; Generation id: ").append(generationId);
     sb.append(" ; Status: ").append(status);
     sb.append(" ; Assured replication: ").append(assuredFlag);
-    sb.append(" ; Assured mode: ").append(assuredMode);
-    sb.append(" ; Safe data level: ").append(safeDataLevel);
+    if (assuredFlag)
+    {
+      sb.append(" ; Assured mode: ").append(assuredMode);
+      sb.append(" ; Safe data level: ").append(safeDataLevel);
+    }
     sb.append(" ; Group id: ").append(groupId);
     sb.append(" ; Protocol version: ").append(protocolVersion);
     sb.append(" ; Referral URLs: ").append(refUrls);

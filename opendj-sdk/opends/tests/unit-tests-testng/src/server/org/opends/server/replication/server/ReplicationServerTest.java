@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -357,7 +357,7 @@ public class ReplicationServerTest extends ReplicationTestCase
       final long generationId = getGenerationId(TEST_ROOT_DN);
       broker = new ReplicationBroker(new DummyReplicationDomain(generationId),
           state, newFakeCfg(TEST_ROOT_DN, 3, replicationServerPort),
-          generationId, getReplSessionSecurity());
+          getReplSessionSecurity());
       connect(broker, replicationServerPort, 5000);
 
       ReplicationMsg receivedMsg = broker.receive();

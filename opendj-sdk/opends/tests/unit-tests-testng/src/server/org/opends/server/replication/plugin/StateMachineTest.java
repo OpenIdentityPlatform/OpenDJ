@@ -22,14 +22,13 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -232,7 +231,7 @@ public class StateMachineTest extends ReplicationTestCase
     fakeCfg.setChangetimeHeartbeatInterval(500);
     ReplSessionSecurity security = new ReplSessionSecurity(null, null, null, true);
     ReplicationBroker broker = new ReplicationBroker(
-        new DummyReplicationDomain(generationId), state, fakeCfg, generationId, security);
+        new DummyReplicationDomain(generationId), state, fakeCfg, security);
     broker.start();
     checkConnection(30, broker, rs1Port);
     return broker;
@@ -407,20 +406,13 @@ public class StateMachineTest extends ReplicationTestCase
   {
     for (int count = 0; count< 50; count++)
     {
-      List<DSInfo> dsList = ds3.getDsList();
-      DSInfo ds3Info = null;
-      if (dsList.size() > 0)
-      {
-        ds3Info = dsList.get(0);
-      }
-      if (ds3Info != null
-          && ds3Info.getDsId() == DS2_ID
-          && ds3Info.getStatus() == ServerStatus.DEGRADED_STATUS)
+      DSInfo dsInfo = ds3.getReplicaInfos().get(DS2_ID);
+      if (dsInfo != null && dsInfo.getStatus() == ServerStatus.DEGRADED_STATUS)
       {
         break;
       }
 
-      assertTrue(count < 50, "DS2 did not get degraded : " + ds3Info);
+      assertTrue(count < 50, "DS2 did not get degraded : " + dsInfo);
       Thread.sleep(200); // Be sure status analyzer has time to test
     }
   }
