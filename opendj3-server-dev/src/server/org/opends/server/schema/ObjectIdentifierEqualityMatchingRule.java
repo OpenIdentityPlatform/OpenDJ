@@ -33,11 +33,13 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.NameForm;
+import org.opends.server.types.ObjectClass;
 
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
@@ -124,12 +126,12 @@ class ObjectIdentifierEqualityMatchingRule
    *
    * @return  The normalized version of the provided value.
    *
-   * @throws  DirectoryException  If the provided value is invalid according to
+   * @throws  DecodeException  If the provided value is invalid according to
    *                              the associated attribute syntax.
    */
   @Override
   public ByteString normalizeAttributeValue(ByteSequence value)
-         throws DirectoryException
+         throws DecodeException
   {
     StringBuilder buffer = new StringBuilder();
     toLowerCase(value, buffer, true);
@@ -190,9 +192,8 @@ class ObjectIdentifierEqualityMatchingRule
         }
         else
         {
-          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-              ERR_ATTR_SYNTAX_OID_INVALID_VALUE.get(
-                  lowerValue, invalidReason));
+          throw DecodeException.error(
+              ERR_ATTR_SYNTAX_OID_INVALID_VALUE.get(lowerValue, invalidReason));
         }
 
       case WARN:

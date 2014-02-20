@@ -32,7 +32,10 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.api.ApproximateMatchingRule;
+import org.opends.server.api.MatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
@@ -1767,8 +1770,7 @@ public class VerifyJob
             OrderingMatchingRule orderingRule =
                  attr.getAttributeType().getOrderingMatchingRule();
 
-            normalizedBytes =
-                 orderingRule.normalizeAttributeValue(value.getValue()).toByteArray();
+            normalizedBytes = normalizeAttributeValue(orderingRule, value);
 
             DatabaseEntry key = new DatabaseEntry(normalizedBytes);
             try
@@ -1810,8 +1812,7 @@ public class VerifyJob
             ApproximateMatchingRule approximateRule =
                 attr.getAttributeType().getApproximateMatchingRule();
 
-            normalizedBytes =
-                approximateRule.normalizeAttributeValue(value.getValue()).toByteArray();
+            normalizedBytes = normalizeAttributeValue(approximateRule, value);
 
             DatabaseEntry key = new DatabaseEntry(normalizedBytes);
             try
@@ -1848,6 +1849,21 @@ public class VerifyJob
           }
         }
       }
+    }
+  }
+
+  private byte[] normalizeAttributeValue(MatchingRule matchingRule,
+      AttributeValue value) throws DirectoryException
+  {
+    try
+    {
+      return matchingRule.normalizeAttributeValue(value.getValue())
+          .toByteArray();
+    }
+    catch (DecodeException e)
+    {
+      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+          e.getMessageObject(), e);
     }
   }
 

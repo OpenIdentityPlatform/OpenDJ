@@ -36,6 +36,8 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.CollationMatchingRuleCfgDefn.MatchingRuleType;
 import org.opends.server.admin.std.server.CollationMatchingRuleCfg;
@@ -44,7 +46,6 @@ import org.opends.server.backends.jeb.AttributeIndex;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.StaticUtils;
 
 import static org.opends.messages.ConfigMessages.*;
@@ -52,7 +53,6 @@ import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class is a factory class for Collation matching rules. It
@@ -687,6 +687,155 @@ public final class CollationMatchingRuleFactory extends
 
 
   /**
+   * Evaluates and converts 2 consecutive characters of the provided string
+   * starting at startPos and converts them into a single escaped char.
+   *
+   * @param hexString
+   *          The hexadecimal string containing the escape sequence.
+   * @param startPos
+   *          The starting position of the hexadecimal escape sequence.
+   * @return The escaped character
+   * @throws DecodeException
+   *           If the provided string contains invalid hexadecimal digits .
+   */
+  private static char hexToEscapedChar(String hexString, int startPos)
+      throws DecodeException
+  {
+    // The two positions must be the hex characters that
+    // comprise the escaped value.
+    if ((startPos + 1) >= hexString.length())
+    {
+      LocalizableMessage message =
+          ERR_SEARCH_FILTER_INVALID_ESCAPED_BYTE.get(hexString,
+              startPos + 1);
+      throw DecodeException.error(message);
+    }
+    byte byteValue = 0;
+    switch (hexString.charAt(startPos))
+    {
+    case 0x30: // '0'
+      break;
+    case 0x31: // '1'
+      byteValue = (byte) 0x10;
+      break;
+    case 0x32: // '2'
+      byteValue = (byte) 0x20;
+      break;
+    case 0x33: // '3'
+      byteValue = (byte) 0x30;
+      break;
+    case 0x34: // '4'
+      byteValue = (byte) 0x40;
+      break;
+    case 0x35: // '5'
+      byteValue = (byte) 0x50;
+      break;
+    case 0x36: // '6'
+      byteValue = (byte) 0x60;
+      break;
+    case 0x37: // '7'
+      byteValue = (byte) 0x70;
+      break;
+    case 0x38: // '8'
+      byteValue = (byte) 0x80;
+      break;
+    case 0x39: // '9'
+      byteValue = (byte) 0x90;
+      break;
+    case 0x41: // 'A'
+    case 0x61: // 'a'
+      byteValue = (byte) 0xA0;
+      break;
+    case 0x42: // 'B'
+    case 0x62: // 'b'
+      byteValue = (byte) 0xB0;
+      break;
+    case 0x43: // 'C'
+    case 0x63: // 'c'
+      byteValue = (byte) 0xC0;
+      break;
+    case 0x44: // 'D'
+    case 0x64: // 'd'
+      byteValue = (byte) 0xD0;
+      break;
+    case 0x45: // 'E'
+    case 0x65: // 'e'
+      byteValue = (byte) 0xE0;
+      break;
+    case 0x46: // 'F'
+    case 0x66: // 'f'
+      byteValue = (byte) 0xF0;
+      break;
+    default:
+      LocalizableMessage message =
+          ERR_SEARCH_FILTER_INVALID_ESCAPED_BYTE.get(hexString, startPos);
+      throw DecodeException.error(message);
+    }
+
+    switch (hexString.charAt(++startPos))
+    {
+    case 0x30: // '0'
+      break;
+    case 0x31: // '1'
+      byteValue |= (byte) 0x01;
+      break;
+    case 0x32: // '2'
+      byteValue |= (byte) 0x02;
+      break;
+    case 0x33: // '3'
+      byteValue |= (byte) 0x03;
+      break;
+    case 0x34: // '4'
+      byteValue |= (byte) 0x04;
+      break;
+    case 0x35: // '5'
+      byteValue |= (byte) 0x05;
+      break;
+    case 0x36: // '6'
+      byteValue |= (byte) 0x06;
+      break;
+    case 0x37: // '7'
+      byteValue |= (byte) 0x07;
+      break;
+    case 0x38: // '8'
+      byteValue |= (byte) 0x08;
+      break;
+    case 0x39: // '9'
+      byteValue |= (byte) 0x09;
+      break;
+    case 0x41: // 'A'
+    case 0x61: // 'a'
+      byteValue |= (byte) 0x0A;
+      break;
+    case 0x42: // 'B'
+    case 0x62: // 'b'
+      byteValue |= (byte) 0x0B;
+      break;
+    case 0x43: // 'C'
+    case 0x63: // 'c'
+      byteValue |= (byte) 0x0C;
+      break;
+    case 0x44: // 'D'
+    case 0x64: // 'd'
+      byteValue |= (byte) 0x0D;
+      break;
+    case 0x45: // 'E'
+    case 0x65: // 'e'
+      byteValue |= (byte) 0x0E;
+      break;
+    case 0x46: // 'F'
+    case 0x66: // 'f'
+      byteValue |= (byte) 0x0F;
+      break;
+    default:
+      LocalizableMessage message =
+          ERR_SEARCH_FILTER_INVALID_ESCAPED_BYTE.get(hexString, startPos);
+      throw DecodeException.error(message);
+    }
+    return (char) byteValue;
+  }
+
+  /**
    * Collation Extensible matching rule.
    */
   private abstract class CollationMatchingRule
@@ -861,7 +1010,7 @@ public final class CollationMatchingRuleFactory extends
      */
     @Override
     public ByteString normalizeAttributeValue(ByteSequence value)
-        throws DirectoryException
+        throws DecodeException
     {
       CollationKey key = collator.getCollationKey(value.toString());
       return ByteString.wrap(key.toByteArray());
@@ -886,7 +1035,7 @@ public final class CollationMatchingRuleFactory extends
      */
     @Override
     public <T> T createIndexQuery(ByteSequence assertionValue,
-        IndexQueryFactory<T> factory) throws DirectoryException
+        IndexQueryFactory<T> factory) throws DecodeException
     {
       // Normalize the assertion value.
       return factory.createExactMatchQuery(indexer
@@ -950,7 +1099,7 @@ public final class CollationMatchingRuleFactory extends
      */
     @Override
     public ByteString normalizeAttributeValue(ByteSequence value)
-        throws DirectoryException
+        throws DecodeException
     {
       CollationKey key = collator.getCollationKey(value.toString());
       return ByteString.wrap(key.toByteArray());
@@ -1029,18 +1178,7 @@ public final class CollationMatchingRuleFactory extends
       }
     }
 
-
-
-    /**
-     * Parses the assertion from a given value.
-     *
-     * @param value
-     *          The value that needs to be parsed.
-     * @return The parsed Assertion object containing the
-     * @throws org.opends.server.types.DirectoryException
-     */
-    private Assertion parseAssertion(ByteSequence value)
-        throws DirectoryException
+    private Assertion parseAssertion(ByteSequence value) throws DecodeException
     {
       // Get a string representation of the value.
       String filterString = value.toString();
@@ -1066,10 +1204,8 @@ public final class CollationMatchingRuleFactory extends
       // If there were no asterisks, then this isn't a substring filter.
       if (asteriskPositions.isEmpty())
       {
-        LocalizableMessage message =
-            ERR_SEARCH_FILTER_SUBSTRING_NO_ASTERISKS.get(filterString,
-                0, endPos);
-        throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
+        throw DecodeException.error(
+            ERR_SEARCH_FILTER_SUBSTRING_NO_ASTERISKS.get(filterString, 0, endPos));
       }
 
       // If the value starts with an asterisk, then there is no
@@ -1199,7 +1335,7 @@ public final class CollationMatchingRuleFactory extends
      */
     @Override
     public ByteString normalizeAssertionValue(ByteSequence value)
-        throws DirectoryException
+        throws DecodeException
     {
       Assertion assertion = parseAssertion(value);
       String subInitial = assertion.getInitial();
@@ -1621,7 +1757,7 @@ public final class CollationMatchingRuleFactory extends
      */
     @Override
     public <T> T createIndexQuery(ByteSequence assertionValue,
-        IndexQueryFactory<T> factory) throws DirectoryException
+        IndexQueryFactory<T> factory) throws DecodeException
     {
       Assertion assertion = parseAssertion(assertionValue);
       String subInitial = assertion.getInitial();
@@ -1702,7 +1838,7 @@ public final class CollationMatchingRuleFactory extends
      */
     @Override
     public ByteString normalizeAttributeValue(ByteSequence value)
-        throws DirectoryException
+        throws DecodeException
     {
       CollationKey key = collator.getCollationKey(value.toString());
       return ByteString.wrap(key.toByteArray());
@@ -1783,7 +1919,7 @@ public final class CollationMatchingRuleFactory extends
      */
     @Override
     public <T> T createIndexQuery(ByteSequence assertionValue,
-        IndexQueryFactory<T> factory) throws DirectoryException
+        IndexQueryFactory<T> factory) throws DecodeException
     {
       return factory.createRangeMatchQuery(indexer
           .getExtensibleIndexID(), ByteString.empty(),
@@ -1843,7 +1979,7 @@ public final class CollationMatchingRuleFactory extends
      */
     @Override
     public <T> T createIndexQuery(ByteSequence assertionValue,
-        IndexQueryFactory<T> factory) throws DirectoryException
+        IndexQueryFactory<T> factory) throws DecodeException
     {
       // Read the range: lower < keys <= upper.
       return factory.createRangeMatchQuery(indexer
@@ -1904,7 +2040,7 @@ public final class CollationMatchingRuleFactory extends
      */
     @Override
     public <T> T createIndexQuery(ByteSequence assertionValue,
-        IndexQueryFactory<T> factory) throws DirectoryException
+        IndexQueryFactory<T> factory) throws DecodeException
     {
       return factory.createRangeMatchQuery(indexer
           .getExtensibleIndexID(), normalizeAttributeValue(assertionValue),
@@ -1964,7 +2100,7 @@ public final class CollationMatchingRuleFactory extends
      */
     @Override
     public <T> T createIndexQuery(ByteSequence assertionValue,
-        IndexQueryFactory<T> factory) throws DirectoryException
+        IndexQueryFactory<T> factory) throws DecodeException
     {
       // Read the range: lower <= keys < upper.
       return factory.createRangeMatchQuery(indexer
@@ -2020,14 +2156,14 @@ public final class CollationMatchingRuleFactory extends
     @Override
     public final void getKeys(AttributeValue value, Set<byte[]> keys)
     {
-      ByteString key;
       try
       {
-        key = matchingRule.normalizeAttributeValue(value.getValue());
+        ByteString key = matchingRule.normalizeAttributeValue(value.getValue());
         keys.add(key.toByteArray());
       }
-      catch (DirectoryException de)
+      catch (DecodeException e)
       {
+        logger.traceException(e);
       }
     }
 

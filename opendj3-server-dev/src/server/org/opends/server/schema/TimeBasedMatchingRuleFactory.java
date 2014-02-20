@@ -37,12 +37,15 @@ import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.admin.std.server.MatchingRuleCfg;
 import org.opends.server.api.*;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.types.AttributeValue;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.IndexConfig;
+import org.opends.server.types.InitializationException;
 import org.opends.server.util.StaticUtils;
 
 import static org.opends.messages.SchemaMessages.*;
@@ -165,7 +168,7 @@ public final class TimeBasedMatchingRuleFactory
       */
     @Override
     public ByteString normalizeAttributeValue(ByteSequence value)
-            throws DirectoryException
+            throws DecodeException
     {
       try
       {
@@ -177,15 +180,13 @@ public final class TimeBasedMatchingRuleFactory
         switch (DirectoryServer.getSyntaxEnforcementPolicy())
         {
           case REJECT:
-            throw de;
+            throw DecodeException.error(de.getMessageObject(), de);
 
           case WARN:
             logger.error(de.getMessageObject());
-            return value.toByteString();
-
-          default:
-            return value.toByteString();
+            break;
         }
+        return value.toByteString();
       }
     }
   }
@@ -221,7 +222,7 @@ public final class TimeBasedMatchingRuleFactory
       */
     @Override
     public ByteString normalizeAssertionValue(ByteSequence value)
-            throws DirectoryException
+        throws DecodeException
     {
       /**
       An assertion value may contain one of the following:
@@ -351,8 +352,7 @@ public final class TimeBasedMatchingRuleFactory
           {
             //Log the message and throw an exception.
             logger.error(message);
-            throw new DirectoryException(
-                    ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
+            throw DecodeException.error(message);
           }
           else
           {
@@ -484,7 +484,7 @@ public final class TimeBasedMatchingRuleFactory
     */
     @Override
     public <T> T createIndexQuery(ByteSequence assertionValue,
-        IndexQueryFactory<T> factory) throws DirectoryException
+        IndexQueryFactory<T> factory) throws DecodeException
     {
       return factory.createRangeMatchQuery(indexer
           .getExtensibleIndexID(), normalizeAssertionValue(assertionValue),
@@ -563,7 +563,7 @@ public final class TimeBasedMatchingRuleFactory
     */
     @Override
     public <T> T createIndexQuery(ByteSequence assertionValue,
-        IndexQueryFactory<T> factory) throws DirectoryException
+        IndexQueryFactory<T> factory) throws DecodeException
     {
       return factory.createRangeMatchQuery(indexer
           .getExtensibleIndexID(), ByteString.empty(),
@@ -619,13 +619,12 @@ public final class TimeBasedMatchingRuleFactory
     @Override
     public final void getKeys(AttributeValue value, Set<byte[]> keys)
     {
-      ByteString key;
       try
       {
-        key = matchingRule.normalizeAttributeValue(value.getValue());
+        ByteString key = matchingRule.normalizeAttributeValue(value.getValue());
         keys.add(key.toByteArray());
       }
-      catch (DirectoryException de)
+      catch (DecodeException de)
       {
         //don't do anything.
       }
@@ -711,7 +710,7 @@ public final class TimeBasedMatchingRuleFactory
      */
     @Override
     public ByteString normalizeAssertionValue(ByteSequence value)
-        throws DirectoryException
+        throws DecodeException
     {
      /**
       An assertion value may contain one or all of the following:
@@ -870,8 +869,7 @@ public final class TimeBasedMatchingRuleFactory
           if(message !=null)
           {
             logger.error(message);
-            throw new DirectoryException(
-                    ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
+            throw DecodeException.error(message);
           }
           else
           {
@@ -886,7 +884,7 @@ public final class TimeBasedMatchingRuleFactory
         //A future date is allowed.
         LocalizableMessage message = WARN_ATTR_INVALID_YEAR_ASSERTION_FORMAT.get(value, year);
         logger.warn(message);
-        throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
+        throw DecodeException.error(message);
       }
 
       switch(month)
@@ -933,7 +931,7 @@ public final class TimeBasedMatchingRuleFactory
         default:
           LocalizableMessage message = WARN_ATTR_INVALID_MONTH_ASSERTION_FORMAT.get(value, month);
           logger.warn(message);
-           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
+          throw DecodeException.error(message);
       }
 
       boolean invalidDate = false;
@@ -964,28 +962,28 @@ public final class TimeBasedMatchingRuleFactory
       {
         LocalizableMessage message = WARN_ATTR_INVALID_DATE_ASSERTION_FORMAT.get(value, date);
         logger.warn(message);
-        throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
+        throw DecodeException.error(message);
       }
 
       if(!(hour >=-1 && hour <=23))
       {
-         LocalizableMessage message = WARN_ATTR_INVALID_HOUR_ASSERTION_FORMAT.get(value, date);
-         logger.warn(message);
-        throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
+        LocalizableMessage message = WARN_ATTR_INVALID_HOUR_ASSERTION_FORMAT.get(value, date);
+        logger.warn(message);
+        throw DecodeException.error(message);
       }
 
       if(!(minute >=-1 && minute <=59))
       {
         LocalizableMessage message = WARN_ATTR_INVALID_MINUTE_ASSERTION_FORMAT.get(value, date);
         logger.warn(message);
-        throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
+        throw DecodeException.error(message);
       }
 
       if(!(second >=-1 && second <=60)) //Consider leap seconds.
       {
         LocalizableMessage message = WARN_ATTR_INVALID_SECOND_ASSERTION_FORMAT.get(value, date);
         logger.warn(message);
-        throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
+        throw DecodeException.error(message);
       }
 
       /**
@@ -1068,7 +1066,7 @@ public final class TimeBasedMatchingRuleFactory
       */
     @Override
     public <T> T createIndexQuery(ByteSequence assertionValue,
-            IndexQueryFactory<T> factory) throws DirectoryException
+            IndexQueryFactory<T> factory) throws DecodeException
     {
       //Build the information from the assertion value.
       byte[] arr = normalizeAssertionValue(assertionValue).toByteArray();

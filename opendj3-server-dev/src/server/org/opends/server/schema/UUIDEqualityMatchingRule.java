@@ -35,10 +35,9 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.DirectoryException;
-import org.forgerock.opendj.ldap.ResultCode;
 
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
@@ -125,17 +124,17 @@ class UUIDEqualityMatchingRule
    *
    * @return  The normalized version of the provided value.
    *
-   * @throws  DirectoryException  If the provided value is invalid according to
+   * @throws  DecodeException  If the provided value is invalid according to
    *                              the associated attribute syntax.
    */
   @Override
   public ByteString normalizeAttributeValue(ByteSequence value)
-         throws DirectoryException
+         throws DecodeException
   {
     if (value.length() != 36)
     {
-      return reportInvalidAttrSyntax(value,
-          WARN_ATTR_SYNTAX_UUID_INVALID_LENGTH.get(value, value.length()));
+      reportInvalidSyntax(WARN_ATTR_SYNTAX_UUID_INVALID_LENGTH.get(value, value.length()));
+      return value.toByteString();
     }
 
     StringBuilder builder = new StringBuilder(36);
@@ -153,8 +152,8 @@ class UUIDEqualityMatchingRule
         case 23:
           if (c != '-')
           {
-            return reportInvalidAttrSyntax(value,
-                WARN_ATTR_SYNTAX_UUID_EXPECTED_DASH.get(value, i, c));
+            reportInvalidSyntax(WARN_ATTR_SYNTAX_UUID_EXPECTED_DASH.get(value, i, c));
+            return value.toByteString();
           }
           builder.append(c);
           break;
@@ -199,8 +198,8 @@ class UUIDEqualityMatchingRule
               builder.append('f');
               break;
             default:
-            return reportInvalidAttrSyntax(value,
-                WARN_ATTR_SYNTAX_UUID_EXPECTED_HEX.get(value, i, value.byteAt(i)));
+            reportInvalidSyntax(WARN_ATTR_SYNTAX_UUID_EXPECTED_HEX.get(value, i, value.byteAt(i)));
+            return value.toByteString();
           }
       }
     }
@@ -208,18 +207,16 @@ class UUIDEqualityMatchingRule
     return ByteString.valueOf(builder.toString());
   }
 
-  private ByteString reportInvalidAttrSyntax(ByteSequence value, LocalizableMessage message)
-      throws DirectoryException
+  private void reportInvalidSyntax(LocalizableMessage message)
+      throws DecodeException
   {
     switch (DirectoryServer.getSyntaxEnforcementPolicy())
     {
       case REJECT:
-        throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
+        throw DecodeException.error(message);
       case WARN:
         logger.error(message);
-        return value.toByteString();
-      default:
-        return value.toByteString();
+        break;
     }
   }
 }

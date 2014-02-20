@@ -29,6 +29,7 @@ package org.opends.server.types;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.api.EqualityMatchingRule;
 
@@ -148,7 +149,7 @@ public final class AttributeValues
      * Construct a new DelayedNormalizationValue.
      *
      * @param attributeType The attribute type.
-     * @param value The value of the attriute.
+     * @param value The value of the attribute.
      */
     private DelayedNormalizationValue(
         AttributeType attributeType, ByteString value)
@@ -177,7 +178,15 @@ public final class AttributeValues
               ResultCode.INAPPROPRIATE_MATCHING, message);
         }
 
-        normalizedValue = equalityMatchingRule.normalizeAttributeValue(value);
+        try
+        {
+          normalizedValue = equalityMatchingRule.normalizeAttributeValue(value);
+        }
+        catch (DecodeException e)
+        {
+          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+              e.getMessageObject(), e);
+        }
       }
 
       return normalizedValue;

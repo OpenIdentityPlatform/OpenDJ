@@ -25,8 +25,6 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.protocols.ldap;
-import org.forgerock.i18n.LocalizableMessage;
-
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -35,13 +33,16 @@ import java.util.List;
 import java.util.StringTokenizer;
 import java.util.Collection;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ByteStringBuilder;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
+
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -563,9 +564,9 @@ public class LDAPFilter
     {
       boolean hasEscape = false;
       byte[] valueBytes = getBytes(valueStr);
-      for (int i=0; i < valueBytes.length; i++)
+      for (byte valueByte : valueBytes)
       {
-        if (valueBytes[i] == 0x5C) // The backslash character
+        if (valueByte == 0x5C) // The backslash character
         {
           hasEscape = true;
           break;
@@ -1513,9 +1514,9 @@ public class LDAPFilter
     // Parse out the attribute value.
     byte[] valueBytes = getBytes(filterString.substring(equalPos+1, endPos));
     boolean hasEscape = false;
-    for (int i=0; i < valueBytes.length; i++)
+    for (byte valueByte : valueBytes)
     {
-      if (valueBytes[i] == 0x5C)
+      if (valueByte == 0x5C)
       {
         hasEscape = true;
         break;
@@ -1700,6 +1701,7 @@ public class LDAPFilter
    *
    * @return  The filter type for this search filter.
    */
+  @Override
   public FilterType getFilterType()
   {
     return filterType;
@@ -1714,6 +1716,7 @@ public class LDAPFilter
    * @return  The set of subordinate filter components for AND and OR searches,
    *          or <CODE>null</CODE> if this is not an AND or OR search.
    */
+  @Override
   public ArrayList<RawFilter> getFilterComponents()
   {
     return filterComponents;
@@ -1727,6 +1730,7 @@ public class LDAPFilter
    * @return  The subordinate filter component for NOT searches, or
    *          <CODE>null</CODE> if this is not a NOT search.
    */
+  @Override
   public RawFilter getNOTComponent()
   {
     return notComponent;
@@ -1741,6 +1745,7 @@ public class LDAPFilter
    * @return  The attribute type for this search filter, or <CODE>null</CODE> if
    *          there is none.
    */
+  @Override
   public String getAttributeType()
   {
     return attributeType;
@@ -1756,6 +1761,7 @@ public class LDAPFilter
    * @return  The assertion value for this search filter, or <CODE>null</CODE>
    *          if there is none.
    */
+  @Override
   public ByteString getAssertionValue()
   {
     return assertionValue;
@@ -1771,6 +1777,7 @@ public class LDAPFilter
    * @return  The subInitial component for this substring filter, or
    *          <CODE>null</CODE> if there is none.
    */
+  @Override
   public ByteString getSubInitialElement()
   {
     return subInitialElement;
@@ -1800,6 +1807,7 @@ public class LDAPFilter
    * @return  The set of subAny elements for this substring filter, or
    *          <CODE>null</CODE> if there are none.
    */
+  @Override
   public ArrayList<ByteString> getSubAnyElements()
   {
     return subAnyElements;
@@ -1815,6 +1823,7 @@ public class LDAPFilter
    * @return  The subFinal element for this substring filter, or
    *          <CODE>null</CODE> if there is none.
    */
+  @Override
   public ByteString getSubFinalElement()
   {
     return subFinalElement;
@@ -1830,6 +1839,7 @@ public class LDAPFilter
    * @return  The matching rule ID for this extensible match filter, or
    *          <CODE>null</CODE> if there is none.
    */
+  @Override
   public String getMatchingRuleID()
   {
     return matchingRuleID;
@@ -1845,6 +1855,7 @@ public class LDAPFilter
    * @return  The value of the DN attributes flag for this extensibleMatch
    *          filter.
    */
+  @Override
   public boolean getDNAttributes()
   {
     return dnAttributes;
@@ -1861,6 +1872,7 @@ public class LDAPFilter
    * @throws  DirectoryException  If a problem occurs while attempting to
    *                              construct the search filter.
    */
+  @Override
   public SearchFilter toSearchFilter()
          throws DirectoryException
   {
@@ -1955,9 +1967,17 @@ public class LDAPFilter
         }
         else
         {
-          ByteString normalizedValue = mr.normalizeAttributeValue(assertionValue);
-          value = AttributeValues.create(assertionValue,
-              normalizedValue);
+          try
+          {
+            ByteString normalizedValue =
+                mr.normalizeAttributeValue(assertionValue);
+            value = AttributeValues.create(assertionValue, normalizedValue);
+          }
+          catch (DecodeException e)
+          {
+            throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                e.getMessageObject(), e);
+          }
         }
       }
     }
@@ -1991,6 +2011,7 @@ public class LDAPFilter
    *
    * @param  buffer  The buffer to which the information should be appended.
    */
+  @Override
   public void toString(StringBuilder buffer)
   {
     switch (filterType)

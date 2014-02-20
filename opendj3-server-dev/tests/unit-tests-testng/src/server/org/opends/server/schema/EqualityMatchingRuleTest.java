@@ -26,12 +26,13 @@
  */
 package org.opends.server.schema;
 
+import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.AcceptRejectWarn;
-import org.opends.server.types.DirectoryException;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -133,7 +134,7 @@ public abstract class EqualityMatchingRuleTest extends SchemaTestCase
       fail("The matching rule : " + rule.getNameOrOID()
           + " should detect that value \"" + value + "\" is invalid");
     }
-    catch (DirectoryException ignored)
+    catch (DecodeException ignored)
     {
     }
   }
@@ -161,11 +162,9 @@ public abstract class EqualityMatchingRuleTest extends SchemaTestCase
     // normalize the 2 provided values and check that they are equals
     ByteString normalizedValue1 =
       rule.normalizeAttributeValue(ByteString.valueOf(value1));
-    ByteString normalizedValue2 =
-      rule.normalizeAttributeValue(ByteString.valueOf(value2));
+    Assertion assertion = rule.getAssertion(ByteString.valueOf(value2));
 
-    ConditionResult liveResult =
-      rule.valuesMatch(normalizedValue1, normalizedValue2);
+    ConditionResult liveResult = assertion.matches(normalizedValue1);
     assertEquals(liveResult, ConditionResult.valueOf(result));
   }
 

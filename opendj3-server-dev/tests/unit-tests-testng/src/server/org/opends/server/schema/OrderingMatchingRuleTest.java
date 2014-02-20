@@ -26,15 +26,15 @@
  */
 package org.opends.server.schema;
 
-import static org.testng.Assert.*;
-
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.AcceptRejectWarn;
-import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.types.DirectoryException;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+
+import static org.testng.Assert.*;
 
 /**
  * Test The Ordering matching rules and the Ordering matching rule api.
@@ -125,7 +125,7 @@ public abstract class OrderingMatchingRuleTest extends SchemaTestCase
     try
     {
       ruleInstance.normalizeAttributeValue(ByteString.valueOf(value));
-    } catch (DirectoryException e) {
+    } catch (DecodeException e) {
       // that's the expected path : the matching rule has detected that
       // the value is incorrect.
       return;
@@ -163,35 +163,4 @@ public abstract class OrderingMatchingRuleTest extends SchemaTestCase
     }
   }
 
-  private void dummy ()
-  {
-
-       Object a = new Object[][] {
-
-
-
-
-
-
-
-
-
-
-      };
-
-  }
-
-
-  private Object dummy_invalid()
-  {
-    return new Object[][] {
-
-
-
-
-
-
-
-    };
-  }
 }

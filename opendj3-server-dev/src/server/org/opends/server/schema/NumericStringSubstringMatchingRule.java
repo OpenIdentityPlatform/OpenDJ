@@ -35,10 +35,9 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.DirectoryException;
-import org.forgerock.opendj.ldap.ResultCode;
 
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
@@ -127,12 +126,12 @@ class NumericStringSubstringMatchingRule
    *
    * @return  The normalized version of the provided value.
    *
-   * @throws  DirectoryException  If the provided value is invalid according to
+   * @throws  DecodeException  If the provided value is invalid according to
    *                              the associated attribute syntax.
    */
   @Override
   public ByteString normalizeAttributeValue(ByteSequence value)
-         throws DirectoryException
+         throws DecodeException
   {
     StringBuilder buffer = new StringBuilder();
     prepareUnicode(buffer, value, TRIM, NO_CASE_FOLD);
@@ -153,19 +152,7 @@ class NumericStringSubstringMatchingRule
           // This is an illegal character.  Either log it or reject it.
           LocalizableMessage message = WARN_ATTR_SYNTAX_NUMERIC_STRING_ILLEGAL_CHAR.get(
                   value, c, pos);
-
-          switch (DirectoryServer.getSyntaxEnforcementPolicy())
-          {
-            case REJECT:
-              throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                           message);
-            case WARN:
-              if (! logged)
-              {
-                logger.error(message);
-                logged = true;
-              }
-          }
+          logged = reportInvalidSyntax(logged, message);
         }
       }
     }
@@ -178,6 +165,24 @@ class NumericStringSubstringMatchingRule
 
 
 
+  private boolean reportInvalidSyntax(boolean logged, LocalizableMessage message)
+      throws DecodeException
+  {
+    switch (DirectoryServer.getSyntaxEnforcementPolicy())
+    {
+      case REJECT:
+        throw DecodeException.error(message);
+      case WARN:
+        if (! logged)
+        {
+          logger.error(message);
+          logged = true;
+        }
+        break;
+    }
+    return logged;
+  }
+
   /**
    * Normalizes the provided value fragment into a form that can be used to
    * efficiently compare values.
@@ -186,12 +191,12 @@ class NumericStringSubstringMatchingRule
    *
    * @return  The normalized form of the value fragment.
    *
-   * @throws  DirectoryException  If the provided value fragment is not
+   * @throws  DecodeException  If the provided value fragment is not
    *                              acceptable according to the associated syntax.
    */
   @Override
   public ByteString normalizeSubstring(ByteSequence substring)
-         throws DirectoryException
+         throws DecodeException
   {
     return normalizeAttributeValue(substring);
   }

@@ -26,19 +26,18 @@
  */
 package org.opends.server.replication.plugin;
 
-import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.util.StaticUtils.hexStringToByteArray;
-
 import java.util.Collection;
 import java.util.Collections;
 
-import org.opends.server.api.AbstractMatchingRule;
-import org.opends.server.api.OrderingMatchingRule;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
-import org.forgerock.opendj.ldap.ByteSequence;
+import org.forgerock.opendj.ldap.DecodeException;
+import org.opends.server.api.AbstractMatchingRule;
+import org.opends.server.api.OrderingMatchingRule;
+
+import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * Used to establish an order between historical information and index them.
@@ -72,6 +71,7 @@ public class HistoricalCsnOrderingMatchingRule
    * @param value2 second value to compare
    * @return 0 when equals, -1 or 1 to establish order
    */
+  @Override
   public int compareValues(ByteSequence value1, ByteSequence value2)
   {
     return value1.compareTo(value2);
@@ -81,6 +81,7 @@ public class HistoricalCsnOrderingMatchingRule
   /**
    * {@inheritDoc}
    */
+  @Override
   public Collection<String> getNames()
   {
     return Collections.singleton("historicalCsnOrderingMatch");
@@ -121,11 +122,11 @@ public class HistoricalCsnOrderingMatchingRule
    */
   @Override
   public ByteString normalizeAttributeValue(ByteSequence value)
-      throws DirectoryException
+      throws DecodeException
   {
     /*
      * Change the format of the value to index and start with the serverId. In
-     * that manner, the search response time is optimised for a particular
+     * that manner, the search response time is optimized for a particular
      * serverId. The format of the key is now : serverId + timestamp + seqNum
      */
     try
@@ -142,14 +143,14 @@ public class HistoricalCsnOrderingMatchingRule
     {
       // This should never occur in practice since these attributes are managed
       // internally.
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-          WARN_INVALID_SYNC_HIST_VALUE.get(value), e);
+      throw DecodeException.error(WARN_INVALID_SYNC_HIST_VALUE.get(value), e);
     }
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public int compare(byte[] b1, byte[] b2)
   {
     /*

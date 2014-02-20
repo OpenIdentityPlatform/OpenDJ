@@ -26,17 +26,19 @@
  */
 package org.opends.server.backends.jeb;
 
-import org.forgerock.i18n.slf4j.LocalizedLogger;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
-import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
-
-import java.util.*;
 
 /**
  * An implementation of an Indexer for attribute ordering.
@@ -76,6 +78,7 @@ public class OrderingIndexer extends Indexer
    * used to name an index created using this object.
    * @return A string representation of this object.
    */
+  @Override
   public String toString()
   {
     return attributeType.getNameOrOID() + ".ordering";
@@ -87,6 +90,7 @@ public class OrderingIndexer extends Indexer
    *
    * @return A byte array comparator.
    */
+  @Override
   public Comparator<byte[]> getComparator()
   {
     return orderingRule;
@@ -98,6 +102,7 @@ public class OrderingIndexer extends Indexer
    * @param entry The entry.
    * @param keys The set into which the generated keys will be inserted.
    */
+  @Override
   public void indexEntry(Entry entry, Set<byte[]> keys)
   {
     List<Attribute> attrList =
@@ -116,6 +121,7 @@ public class OrderingIndexer extends Indexer
    * @param newEntry The new entry contents.
    * @param modifiedKeys The map into which the modified keys will be inserted.
    */
+  @Override
   public void replaceEntry(Entry oldEntry, Entry newEntry,
                            Map<byte[], Boolean> modifiedKeys)
   {
@@ -135,6 +141,7 @@ public class OrderingIndexer extends Indexer
    * @param mods The set of modifications that were applied to the entry.
    * @param modifiedKeys The map into which the modified keys will be inserted.
    */
+  @Override
   public void modifyEntry(Entry oldEntry, Entry newEntry,
                           List<Modification> mods,
                           Map<byte[], Boolean> modifiedKeys)
@@ -173,7 +180,7 @@ public class OrderingIndexer extends Indexer
 
           keys.add(keyBytes);
         }
-        catch (DirectoryException e)
+        catch (DecodeException e)
         {
           logger.traceException(e);
         }
@@ -219,7 +226,7 @@ public class OrderingIndexer extends Indexer
             modifiedKeys.remove(keyBytes);
           }
         }
-        catch (DirectoryException e)
+        catch (DecodeException e)
         {
           logger.traceException(e);
         }
