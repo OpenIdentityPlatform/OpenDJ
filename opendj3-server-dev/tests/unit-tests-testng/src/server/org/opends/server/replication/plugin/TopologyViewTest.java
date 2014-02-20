@@ -1020,10 +1020,11 @@ public class TopologyViewTest extends ReplicationTestCase
           rd.getGroupId(), rd.getRefUrls(),
           rd.getEclIncludes(), rd.getEclIncludesForDeletes(),
           ProtocolVersion.getCurrentVersion());
-      final List<DSInfo> dsList = new ArrayList<DSInfo>(rd.getReplicasList());
+      final List<DSInfo> dsList =
+          new ArrayList<DSInfo>(rd.getReplicaInfos().values());
       dsList.add(dsInfo);
 
-     TopoView dsTopoView = new TopoView(dsList, rd.getRsList());
+     TopoView dsTopoView = new TopoView(dsList, rd.getRsInfos());
      assertEquals(dsTopoView, theoricalTopoView, " in DSid=" + currentDsId);
    }
   }

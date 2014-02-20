@@ -26,12 +26,16 @@
  */
 package org.opends.server.replication.service;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.backends.task.Task;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.DSInfo;
 import org.opends.server.replication.common.RSInfo;
@@ -42,6 +46,7 @@ import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.service.ReplicationDomain.IEContext;
 import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -54,6 +59,8 @@ import static org.testng.Assert.*;
 @SuppressWarnings("javadoc")
 public class ReplicationDomainTest extends ReplicationTestCase
 {
+  private static final Task NO_INIT_TASK = null;
+
   @DataProvider(name = "publishAndReceiveData")
   public Object[][] createpublishAndReceiveData()
   {
@@ -116,14 +123,14 @@ public class ReplicationDomainTest extends ReplicationTestCase
       assertNotNull(rcvdMsg);
       assertEquals(test, rcvdMsg.getPayload());
 
-      for (RSInfo replServerInfo : domain1.getRsList())
+      for (RSInfo replServerInfo : domain1.getRsInfos())
       {
         // The generation Id of the remote should be 1
         assertEquals(replServerInfo.getGenerationId(), 1,
             "Unexpected value of generationId in RSInfo for RS=" + replServerInfo);
       }
 
-      for (DSInfo serverInfo : domain1.getReplicasList())
+      for (DSInfo serverInfo : domain1.getReplicaInfos().values())
       {
         assertEquals(serverInfo.getStatus(), ServerStatus.NORMAL_STATUS);
       }
@@ -132,7 +139,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
       domain1.resetReplicationLog();
       Thread.sleep(500);
 
-      for (RSInfo replServerInfo : domain1.getRsList())
+      for (RSInfo replServerInfo : domain1.getRsInfos())
       {
         // The generation Id of the remote should now be 2
         assertEquals(replServerInfo.getGenerationId(), 2,
@@ -144,9 +151,9 @@ public class ReplicationDomainTest extends ReplicationTestCase
       {
         try
         {
-          assertExpectedServerStatuses(domain1.getReplicasList(),
+          assertExpectedServerStatuses(domain1.getReplicaInfos(),
               domain1ServerId, domain2ServerId);
-          assertExpectedServerStatuses(domain2.getReplicasList(),
+          assertExpectedServerStatuses(domain2.getReplicaInfos(),
               domain1ServerId, domain2ServerId);
 
           Map<Integer, ServerState> states1 = domain1.getReplicaStates();
@@ -178,13 +185,15 @@ public class ReplicationDomainTest extends ReplicationTestCase
     }
   }
 
-  private void assertExpectedServerStatuses(List<DSInfo> dsInfos,
+  private void assertExpectedServerStatuses(Map<Integer, DSInfo> dsInfos,
       int domain1ServerId, int domain2ServerId)
   {
-    for (DSInfo serverInfo : dsInfos)
+    for (DSInfo serverInfo : dsInfos.values())
     {
       if (serverInfo.getDsId() == domain2ServerId)
+      {
         assertEquals(serverInfo.getStatus(), ServerStatus.BAD_GEN_ID_STATUS);
+      }
       else
       {
         assertEquals(serverInfo.getDsId(), domain1ServerId);
@@ -330,15 +339,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
        * Trigger a total update from domain1 to domain2.
        * Check that the exported data is correctly received on domain2.
        */
-      for (DSInfo remoteDS : domain2.getReplicasList())
-      {
-        if (remoteDS.getDsId() != domain2.getServerId())
-        {
-          domain2.initializeFromRemote(remoteDS.getDsId());
-          break;
-        }
-      }
-
+      assertTrue(initializeFromRemote(domain2));
       waitEndExport(exportedData, importedData);
       assertExportSucessful(domain1, domain2, exportedData, importedData);
     }
@@ -347,6 +348,19 @@ public class ReplicationDomainTest extends ReplicationTestCase
       disable(domain1, domain2);
       remove(replServer);
     }
+  }
+
+  private boolean initializeFromRemote(ReplicationDomain domain) throws DirectoryException
+  {
+    for (DSInfo remoteDS : domain.getReplicaInfos().values())
+    {
+      if (remoteDS.getDsId() != domain.getServerId())
+      {
+        domain.initializeFromRemote(remoteDS.getDsId(), NO_INIT_TASK);
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -387,7 +401,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
       domain2 = new FakeReplicationDomain(
           testService, 2, servers2, 0, null, importedData, 0);
 
-      domain2.initializeFromRemote(1);
+      domain2.initializeFromRemote(1, NO_INIT_TASK);
 
       waitEndExport(exportedData, importedData);
       assertExportSucessful(domain1, domain2, exportedData, importedData);
@@ -517,23 +531,10 @@ public class ReplicationDomainTest extends ReplicationTestCase
        * Trigger a total update from domain1 to domain2.
        * Check that the exported data is correctly received on domain2.
        */
-      boolean alone = true;
-      while (alone)
+      while (!initializeFromRemote(domain1))
       {
-        for (DSInfo remoteDS : domain1.getReplicasList())
-        {
-          if (remoteDS.getDsId() != domain1.getServerId())
-          {
-            alone = false;
-            domain1.initializeFromRemote(remoteDS.getDsId() , null);
-            break;
-          }
-        }
-        if (alone)
-        {
-          System.out.println("trying...");
-          Thread.sleep(1000);
-        }
+        System.out.println("trying...");
+        Thread.sleep(1000);
       }
       System.out.println("waiting");
       Thread.sleep(10000000);
