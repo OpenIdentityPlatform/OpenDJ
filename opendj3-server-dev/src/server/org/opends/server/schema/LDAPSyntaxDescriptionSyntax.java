@@ -1507,8 +1507,7 @@ public class LDAPSyntaxDescriptionSyntax
       * Implementation of an Enum Ordering matching rule.
       */
     private final class EnumOrderingMatchingRule
-       extends AbstractMatchingRule
-       implements OrderingMatchingRule
+       extends AbstractOrderingMatchingRule
     {
       //The enumeration syntax instance.
       private EnumSyntax syntax;
@@ -1580,17 +1579,6 @@ public class LDAPSyntaxDescriptionSyntax
       public String getOID()
       {
         return oid;
-      }
-
-
-
-      /**
-       * {@inheritDoc}
-       */
-      @Override
-      public String getDescription()
-      {
-        return null;
       }
 
 

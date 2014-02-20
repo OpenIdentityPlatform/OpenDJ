@@ -34,8 +34,6 @@ import java.util.Collections;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
-import org.opends.server.api.AbstractMatchingRule;
-import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
 
@@ -49,8 +47,7 @@ import static org.opends.server.schema.StringPrepProfile.*;
  * and referenced in RFC 2252.
  */
 public class CaseIgnoreOrderingMatchingRule
-       extends AbstractMatchingRule
-       implements OrderingMatchingRule
+       extends AbstractOrderingMatchingRule
 {
   /**
    * The serial version identifier required to satisfy the compiler because this
@@ -91,21 +88,6 @@ public class CaseIgnoreOrderingMatchingRule
   public String getOID()
   {
     return OMR_CASE_IGNORE_OID;
-  }
-
-
-
-  /**
-   * Retrieves the description for this matching rule.
-   *
-   * @return  The description for this matching rule, or <CODE>null</CODE> if
-   *          there is none.
-   */
-  @Override
-  public String getDescription()
-  {
-    // There is no standard description for this matching rule.
-    return null;
   }
 
 

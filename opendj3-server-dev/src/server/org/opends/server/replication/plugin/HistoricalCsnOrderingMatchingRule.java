@@ -33,8 +33,7 @@ import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DecodeException;
-import org.opends.server.api.AbstractMatchingRule;
-import org.opends.server.api.OrderingMatchingRule;
+import org.opends.server.schema.AbstractOrderingMatchingRule;
 
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -43,8 +42,7 @@ import static org.opends.server.util.StaticUtils.*;
  * Used to establish an order between historical information and index them.
  */
 public class HistoricalCsnOrderingMatchingRule
-       extends AbstractMatchingRule
-       implements OrderingMatchingRule
+       extends AbstractOrderingMatchingRule
 {
   /**
    * The serial version identifier required to satisfy the compiler because this
@@ -95,16 +93,6 @@ public class HistoricalCsnOrderingMatchingRule
   public String getOID()
   {
     return "1.3.6.1.4.1.26027.1.4.4";
-  }
-
-  /**
-   * Get the description of this Class.
-   * @return the Class description in String form, currently not used.
-   */
-  @Override
-  public String getDescription()
-  {
-    return null;
   }
 
   /**

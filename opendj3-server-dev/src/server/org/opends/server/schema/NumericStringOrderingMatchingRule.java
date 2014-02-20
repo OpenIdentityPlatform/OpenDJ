@@ -34,8 +34,6 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
-import org.opends.server.api.AbstractMatchingRule;
-import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.util.StaticUtils;
 
@@ -49,8 +47,7 @@ import static org.opends.server.util.StaticUtils.*;
  * in X.520 and referenced in RFC 2252.
  */
 public class NumericStringOrderingMatchingRule
-       extends AbstractMatchingRule
-       implements OrderingMatchingRule
+       extends AbstractOrderingMatchingRule
 {
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
@@ -94,21 +91,6 @@ public class NumericStringOrderingMatchingRule
   public String getOID()
   {
     return OMR_NUMERIC_STRING_OID;
-  }
-
-
-
-  /**
-   * Retrieves the description for this matching rule.
-   *
-   * @return  The description for this matching rule, or <CODE>null</CODE> if
-   *          there is none.
-   */
-  @Override
-  public String getDescription()
-  {
-    // There is no standard description for this matching rule.
-    return null;
   }
 
 
