@@ -1997,7 +1997,7 @@ public class Entry
                 ERR_ENTRY_SCHEMA_DISALLOWED_AUXILIARY_CLASS.get(
                   dn,
                   o.getNameOrOID(),
-                  ditContentRule.getName());
+                  ditContentRule.getNameOrOID());
         if (structuralPolicy == AcceptRejectWarn.REJECT)
         {
           invalidReason.append(message);
@@ -2207,7 +2207,7 @@ public class Entry
                 ERR_ENTRY_SCHEMA_MISSING_REQUIRED_ATTR_FOR_DCR.get(
                   dn,
                   t.getNameOrOID(),
-                  ditContentRule.getName());
+                  ditContentRule.getNameOrOID());
 
         if (structuralPolicy == AcceptRejectWarn.REJECT)
         {
@@ -2231,7 +2231,7 @@ public class Entry
                 ERR_ENTRY_SCHEMA_PROHIBITED_ATTR_FOR_DCR.get(
                   dn,
                   t.getNameOrOID(),
-                  ditContentRule.getName());
+                  ditContentRule.getNameOrOID());
 
         if (structuralPolicy == AcceptRejectWarn.REJECT)
         {
