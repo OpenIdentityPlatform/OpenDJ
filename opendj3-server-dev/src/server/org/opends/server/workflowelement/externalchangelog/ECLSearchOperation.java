@@ -52,8 +52,10 @@ import org.opends.server.types.operation.PreOperationSearchOperation;
 import org.opends.server.types.operation.SearchEntrySearchOperation;
 import org.opends.server.types.operation.SearchReferenceSearchOperation;
 import org.opends.server.util.ServerConstants;
+import org.opends.server.util.TimeThread;
 
 import static org.opends.messages.CoreMessages.*;
+import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.replication.protocol.StartECLSessionMsg.ECLRequestType.*;
 import static org.opends.server.replication.protocol.StartECLSessionMsg.Persistent.*;
@@ -600,9 +602,20 @@ public class ECLSearchOperation
         return;
       }
 
+      int lookthroughCount = 0;
+      int lookthroughLimit = getClientConnection().getLookthroughLimit();
+
       // Process change log entries.
       while (update != null)
       {
+        if(lookthroughLimit > 0 && lookthroughCount > lookthroughLimit)
+        {
+          //Lookthrough limit exceeded
+          setResultCode(ResultCode.ADMIN_LIMIT_EXCEEDED);
+          appendErrorMessage(
+                  NOTE_ECL_LOOKTHROUGH_LIMIT_EXCEEDED.get(lookthroughLimit));
+          return;
+        }
         // Check for a request to cancel this operation.
         checkIfCanceled(false);
 
@@ -612,6 +625,8 @@ public class ECLSearchOperation
           abortECLSession = true;
           return;
         }
+
+        lookthroughCount++;
 
         update = eclServerHandler.getNextECLUpdate();
       }
@@ -667,6 +682,16 @@ public class ECLSearchOperation
       }
       return returnEntry(entry, controls);
     }
+
+    // Check the timelimit here as well, in case there are no matches
+    if ((getTimeLimit() > 0) && (TimeThread.getTime() >=
+      getTimeLimitExpiration()))
+    {
+      setResultCode(ResultCode.TIME_LIMIT_EXCEEDED);
+      appendErrorMessage(ERR_SEARCH_TIME_LIMIT_EXCEEDED.get(getTimeLimit()));
+      return false;
+    }
+
     return true;
   }
 
