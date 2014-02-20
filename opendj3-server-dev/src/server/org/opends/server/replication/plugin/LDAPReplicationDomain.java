@@ -1488,7 +1488,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     // process:
     // This is an error termination during the import
     // The error is stored and the import is ended by returning null
-    final IEContext ieCtx = getImportExportContext();
+    final ImportExportContext ieCtx = getImportExportContext();
     LocalizableMessage msg = null;
     switch (importErrorMessageId)
     {
@@ -3689,41 +3689,40 @@ private boolean solveNamingConflict(ModifyDNOperation op,
 
     Backend backend = getBackend();
 
-    IEContext ieCtx = getImportExportContext();
+    ImportExportContext ieCtx = getImportExportContext();
     try
     {
       if (!backend.supportsLDIFImport())
       {
         ieCtx.setExceptionIfNoneSet(new DirectoryException(OTHER,
             ERR_INIT_IMPORT_NOT_SUPPORTED.get(backend.getBackendID())));
+        return;
       }
-      else
-      {
-        importConfig = new LDIFImportConfig(input);
-        List<DN> includeBranches = new ArrayList<DN>();
-        includeBranches.add(getBaseDN());
-        importConfig.setIncludeBranches(includeBranches);
-        importConfig.setAppendToExistingData(false);
-        importConfig.setSkipDNValidation(true);
-        // We should not validate schema for replication
-        importConfig.setValidateSchema(false);
-        // Allow fractional replication ldif import plugin to be called
-        importConfig.setInvokeImportPlugins(true);
-        // Reset the follow import flag and message before starting the import
-        importErrorMessageId = -1;
 
-        // TODO How to deal with rejected entries during the import
-        importConfig.writeRejectedEntries(
-            getFileForPath("logs" + File.separator +
-            "replInitRejectedEntries").getAbsolutePath(),
-            ExistingFileBehavior.OVERWRITE);
+      importConfig = new LDIFImportConfig(input);
+      List<DN> includeBranches = new ArrayList<DN>();
+      includeBranches.add(getBaseDN());
+      importConfig.setIncludeBranches(includeBranches);
+      importConfig.setAppendToExistingData(false);
+      importConfig.setSkipDNValidation(true);
+      // We should not validate schema for replication
+      importConfig.setValidateSchema(false);
+      // Allow fractional replication ldif import plugin to be called
+      importConfig.setInvokeImportPlugins(true);
+      // Reset the follow import flag and message before starting the import
+      importErrorMessageId = -1;
 
-        // Process import
-        preBackendImport(backend);
-        backend.importLDIF(importConfig);
+      // TODO How to deal with rejected entries during the import
+      File rejectsFile =
+          getFileForPath("logs" + File.separator + "replInitRejectedEntries");
+      importConfig.writeRejectedEntries(rejectsFile.getAbsolutePath(),
+          ExistingFileBehavior.OVERWRITE);
 
-        stateSavingDisabled = false;
-      }
+      // Process import
+      preBackendImport(backend);
+      backend.importLDIF(importConfig);
+
+      stateSavingDisabled = false;
     }
     catch(Exception e)
     {
