@@ -36,8 +36,6 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
-import org.opends.server.api.AbstractMatchingRule;
-import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.util.StaticUtils;
 
@@ -50,9 +48,7 @@ import static org.opends.server.schema.SchemaConstants.*;
  * This class defines the uuidOrderingMatch matching rule defined in RFC 4530.
  * This will be the default ordering matching rule for the UUID syntax.
  */
-public class UUIDOrderingMatchingRule
-       extends AbstractMatchingRule
-       implements OrderingMatchingRule
+public class UUIDOrderingMatchingRule extends AbstractOrderingMatchingRule
 {
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
@@ -96,21 +92,6 @@ public class UUIDOrderingMatchingRule
   public String getOID()
   {
     return OMR_UUID_OID;
-  }
-
-
-
-  /**
-   * Retrieves the description for this matching rule.
-   *
-   * @return  The description for this matching rule, or <CODE>null</CODE> if
-   *          there is none.
-   */
-  @Override
-  public String getDescription()
-  {
-    // There is no standard description for this matching rule.
-    return null;
   }
 
 
@@ -230,6 +211,21 @@ public class UUIDOrderingMatchingRule
       case WARN:
         logger.error(message);
         break;
+    }
+  }
+
+  private ByteString reject(ByteSequence value, LocalizableMessage message)
+      throws DecodeException
+  {
+    switch (DirectoryServer.getSyntaxEnforcementPolicy())
+    {
+      case REJECT:
+        throw DecodeException.error(message);
+      case WARN:
+        logger.error(message);
+        return value.toByteString();
+      default:
+        return value.toByteString();
     }
   }
 
