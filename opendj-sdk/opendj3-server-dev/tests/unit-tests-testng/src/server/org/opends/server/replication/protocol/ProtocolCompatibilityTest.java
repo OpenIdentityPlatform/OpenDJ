@@ -32,10 +32,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.zip.DataFormatException;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ModificationType;
+import org.assertj.core.api.Assertions;
 import org.opends.server.core.AddOperationBasis;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperationBasis;
@@ -50,6 +52,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.replication.protocol.OperationContext.*;
 import static org.opends.server.replication.protocol.ProtocolVersion.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -1036,61 +1039,47 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     assertEquals(bi.toString(16), pdu);
   }
 
-  @DataProvider(name="createTopologyData")
+  @DataProvider
   public Object [][] createTopologyData() throws Exception
   {
-    List<String> urls1 = new ArrayList<String>();
-    urls1.add("ldap://ldap.iplanet.com/o=test??sub?(sn=Jensen)");
-    urls1.add("ldaps://ldap.iplanet.com:4041/uid=bjensen,ou=People,o=test?cn,mail,telephoneNumber");
+    List<String> urls1 = newList(
+        "ldap://ldap.iplanet.com/o=test??sub?(sn=Jensen)",
+        "ldaps://ldap.iplanet.com:4041/uid=bjensen,ou=People,o=test?cn,mail,telephoneNumber");
 
-    List<String> urls2 = new ArrayList<String>();
+    List<String> urls2 = newList();
 
-    List<String> urls3 = new ArrayList<String>();
-    urls3.add("ldaps://host:port/dc=foo??sub?(sn=One Entry)");
+    List<String> urls3 = newList(
+        "ldaps://host:port/dc=foo??sub?(sn=One Entry)");
 
-    List<String> urls4 = new ArrayList<String>();
-    urls4.add("ldaps://host:port/dc=foobar1??sub?(sn=Another Entry 1)");
-    urls4.add("ldaps://host:port/dc=foobar2??sub?(sn=Another Entry 2)");
+    List<String> urls4 = newList(
+        "ldaps://host:port/dc=foobar1??sub?(sn=Another Entry 1)",
+        "ldaps://host:port/dc=foobar2??sub?(sn=Another Entry 2)");
 
-    DSInfo dsInfo1 = new DSInfo(13, "dsHost1:111", 26, 154631, ServerStatus.FULL_UPDATE_STATUS,
+    DSInfo dsInfo1 = new DSInfo(13, "", 26, 154631, ServerStatus.FULL_UPDATE_STATUS,
       false, AssuredMode.SAFE_DATA_MODE, (byte)12, (byte)132, urls1, new HashSet<String>(), new HashSet<String>(), (short)-1);
 
-    DSInfo dsInfo2 = new DSInfo(-436, "dsHost2:222", 493, -227896, ServerStatus.DEGRADED_STATUS,
+    DSInfo dsInfo2 = new DSInfo(-436, "", 493, -227896, ServerStatus.DEGRADED_STATUS,
       true, AssuredMode.SAFE_READ_MODE, (byte)-7, (byte)-265, urls2, new HashSet<String>(), new HashSet<String>(), (short)-1);
 
-    DSInfo dsInfo3 = new DSInfo(2436, "dsHost3:333", 591, 0, ServerStatus.NORMAL_STATUS,
+    DSInfo dsInfo3 = new DSInfo(2436, "", 591, 0, ServerStatus.NORMAL_STATUS,
       false, AssuredMode.SAFE_READ_MODE, (byte)17, (byte)0, urls3, new HashSet<String>(), new HashSet<String>(), (short)-1);
 
-    DSInfo dsInfo4 = new DSInfo(415, "dsHost4:444", 146, 0, ServerStatus.BAD_GEN_ID_STATUS,
+    DSInfo dsInfo4 = new DSInfo(415, "", 146, 0, ServerStatus.BAD_GEN_ID_STATUS,
       true, AssuredMode.SAFE_DATA_MODE, (byte)2, (byte)15, urls4, new HashSet<String>(), new HashSet<String>(), (short)-1);
 
-    List<DSInfo> dsList1 = new ArrayList<DSInfo>();
-    dsList1.add(dsInfo1);
-
-    List<DSInfo> dsList2 = new ArrayList<DSInfo>();
-
-    List<DSInfo> dsList3 = new ArrayList<DSInfo>();
-    dsList3.add(dsInfo2);
-
-    List<DSInfo> dsList4 = new ArrayList<DSInfo>();
-    dsList4.add(dsInfo4);
-    dsList4.add(dsInfo3);
-    dsList4.add(dsInfo2);
-    dsList4.add(dsInfo1);
+    Set<DSInfo> dsList1 = newSet(dsInfo1);
+    Set<DSInfo> dsList2 = newSet();
+    Set<DSInfo> dsList3 = newSet(dsInfo2);
+    Set<DSInfo> dsList4 = newSet(dsInfo4, dsInfo3, dsInfo2, dsInfo1);
 
     RSInfo rsInfo1 = new RSInfo(4527, null, 45316, (byte)103, 1);
     RSInfo rsInfo2 = new RSInfo(4527, null, 0, (byte)0, 1);
     RSInfo rsInfo3 = new RSInfo(0, null, -21113, (byte)98, 1);
 
-    List<RSInfo> rsList1 = new ArrayList<RSInfo>();
-    rsList1.add(rsInfo1);
+    List<RSInfo> rsList1 = newList(rsInfo1);
+    List<RSInfo> rsList2 = newList(rsInfo1, rsInfo2, rsInfo3);
 
-    List<RSInfo> rsList2 = new ArrayList<RSInfo>();
-    rsList2.add(rsInfo1);
-    rsList2.add(rsInfo2);
-    rsList2.add(rsInfo3);
-
-    return new Object [][] {
+    return new Object[][] {
       {"1a01313300323600313534363331000300020c84026c6461703a2f2f6c6461702e697" +
        "06c616e65742e636f6d2f6f3d746573743f3f7375623f28736e3d4a656e73656e2900" +
        "6c646170733a2f2f6c6461702e69706c616e65742e636f6d3a343034312f7569643d6" +
@@ -1098,9 +1087,9 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
        "6c6570686f6e654e756d6265720001343532370034353331360067",dsList1, rsList1},
       {"1a0003343532370034353331360067343532370030000030002d32313131330062", dsList2, rsList2},
       {"1a012d34333600343933002d32323738393600020101f9f70001343532370034353331360067", dsList3, rsList1},
-      {"1a012d34333600343933002d32323738393600020101f9f70000", dsList3, new ArrayList<RSInfo>()},
-      {"1a0001343532370034353331360067", new ArrayList<DSInfo>(), rsList1},
-      {"1a0000", new ArrayList<DSInfo>(), new ArrayList<RSInfo>()},
+      {"1a012d34333600343933002d32323738393600020101f9f70000", dsList3, newList()},
+      {"1a0001343532370034353331360067", newSet(), rsList1},
+      {"1a0000", newSet(), newList()},
       {"1a0434313500313436003000040102020f026c646170733a2f2f686f73743a706f727" +
        "42f64633d666f6f626172313f3f7375623f28736e3d416e6f7468657220456e747279" +
        "203129006c646170733a2f2f686f73743a706f72742f64633d666f6f626172323f3f7" +
@@ -1117,15 +1106,21 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
   }
 
   @Test(dataProvider = "createTopologyData")
-  public void oldTopologyPDUs(String oldPdu, List<DSInfo> dsList, List<RSInfo> rsList)
+  public void oldTopologyPDUs(String oldPdu, Set<DSInfo> dsList, List<RSInfo> rsList)
          throws Exception
   {
     TopologyMsg msg = new TopologyMsg(hexStringToByteArray(oldPdu),
         ProtocolVersion.REPLICATION_PROTOCOL_V3);
-    assertEquals(msg.getDsList(), dsList);
-    assertEquals(msg.getRsList(), rsList);
-    BigInteger bi = new BigInteger(msg.getBytes(ProtocolVersion.REPLICATION_PROTOCOL_V3));
-    assertEquals(bi.toString(16), oldPdu);
+    Assertions.assertThat(new HashSet<DSInfo>(msg.getReplicaInfos().values()))
+        .isEqualTo(dsList);
+    assertEquals(msg.getRsInfos(), rsList);
+    if (msg.getReplicaInfos().values().equals(dsList))
+    {
+      // Unfortunately this check does not work when the order of the
+      // replicaInfos collection is not exactly the same as the dsList
+      BigInteger bi = new BigInteger(msg.getBytes(ProtocolVersion.REPLICATION_PROTOCOL_V3));
+      assertEquals(bi.toString(16), oldPdu);
+    }
   }
 
   @DataProvider(name="createEntryMsgData")
@@ -1137,9 +1132,8 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     int pos = 0;
     int length = 2;
     int msgid = 14;
-    Object[] set1 = new Object[] {sid, dest, entryBytes, pos, length, msgid};
 
-    return new Object [][] { set1};
+    return new Object[][] { { sid, dest, entryBytes, pos, length, msgid } };
   }
 
   /**
@@ -1186,8 +1180,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     int sender = 1;
     int dest = 2;
     LocalizableMessage message = ERR_UNKNOWN_TYPE.get("toto");
-    Object[] set1 = new Object[] {sender, dest, message};
-    return new Object [][] { set1};
+    return new Object[][] { { sender, dest, message } };
   }
 
   /**

@@ -916,8 +916,8 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     TopologyMsg msg = new TopologyMsg(dsList, rsList);
     TopologyMsg newMsg = new TopologyMsg(msg.getBytes(getCurrentVersion()),
         ProtocolVersion.getCurrentVersion());
-    assertEquals(msg.getDsList(), newMsg.getDsList());
-    assertEquals(msg.getRsList(), newMsg.getRsList());
+    assertEquals(msg.getReplicaInfos(), newMsg.getReplicaInfos());
+    assertEquals(msg.getRsInfos(), newMsg.getRsInfos());
   }
 
   /**
