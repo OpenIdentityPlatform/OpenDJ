@@ -44,7 +44,7 @@ import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
-import org.opends.server.replication.service.ReplicationDomain.IEContext;
+import org.opends.server.replication.service.ReplicationDomain.*;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.testng.annotations.DataProvider;
@@ -444,7 +444,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
 
   private long getLeftEntryCount(ReplicationDomain domain)
   {
-    final IEContext ieContext = domain.getImportExportContext();
+    final ImportExportContext ieContext = domain.getImportExportContext();
     if (ieContext != null)
     {
       return ieContext.getLeftEntryCount();
