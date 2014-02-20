@@ -26,7 +26,6 @@
  */
 package org.opends.server.types;
 
-import org.forgerock.opendj.ldap.ByteString;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -35,13 +34,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.schema.DITContentRuleSyntax;
 
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import static org.opends.server.util.ServerConstants.*;
 import static org.forgerock.util.Reject.*;
-
-
+import static org.opends.server.util.ServerConstants.*;
 
 /**
  * This class defines a DIT content rule, which defines the set of
@@ -236,6 +234,7 @@ public final class DITContentRule
    * @return  The definition string used to create this DIT content
    *          rule.
    */
+  @Override
   public String getDefinition()
   {
     return definition;
@@ -246,6 +245,7 @@ public final class DITContentRule
   /**
    * {@inheritDoc}
    */
+  @Override
   public DITContentRule recreateFromDefinition(Schema schema)
          throws DirectoryException
   {
@@ -294,7 +294,7 @@ public final class DITContentRule
    * @return  The primary name to use to reference this DIT content
    *          rule, or {@code null} if there is none.
    */
-  public String getName()
+  public String getNameOrOID()
   {
     if (names.isEmpty())
     {
@@ -334,6 +334,7 @@ public final class DITContentRule
    *          for this DIT content rule, or {@code null} if it is not
    *          known or if it is not stored in any schema file.
    */
+  @Override
   public String getSchemaFile()
   {
     List<String> values =
@@ -355,22 +356,10 @@ public final class DITContentRule
    * @param  schemaFile  The name of the schema file that contains the
    *                     definition for this DIT content rule.
    */
+  @Override
   public void setSchemaFile(String schemaFile)
   {
     setExtraProperty(SCHEMA_PROPERTY_FILENAME, schemaFile);
-  }
-
-
-
-  /**
-   * Retrieves the description for this DIT content rule.
-   *
-   * @return  The description for this DIT content rule, or
-   *          {@code null} if there is none.
-   */
-  public String getDescription()
-  {
-    return description;
   }
 
 
@@ -385,24 +374,6 @@ public final class DITContentRule
   public Set<ObjectClass> getAuxiliaryClasses()
   {
     return auxiliaryClasses;
-  }
-
-
-
-  /**
-   * Indicates whether the provided auxiliary objectclass is allowed
-   * for use by this DIT content rule.
-   *
-   * @param  auxiliaryClass  The auxiliary objectclass for which to
-   *                         make the determination.
-   *
-   * @return  {@code true} if the provided auxiliary objectclass is
-   *          allowed for use by this DIT content rule, or
-   *          {@code false} if not.
-   */
-  public boolean isAllowedAuxiliaryClass(ObjectClass auxiliaryClass)
-  {
-    return auxiliaryClasses.contains(auxiliaryClass);
   }
 
 
@@ -489,38 +460,6 @@ public final class DITContentRule
 
 
   /**
-   * Indicates whether the provided attribute type is in the list of
-   * required or optional attributes for this DIT content rule.
-   *
-   * @param  attributeType  The attribute type for which to make the
-   *                        determination.
-   * @param  acceptEmpty    Indicates whether an empty list of
-   *                        required or optional attributes should be
-   *                        taken to indicate that all attributes
-   *                        allowed for an objectclass will be
-   *                        acceptable.
-   *
-   * @return  {@code true} if the provided attribute type is required
-   *          or allowed for this DIT content rule, or {@code false}
-   *          if it is not.
-   */
-  public boolean isRequiredOrOptional(AttributeType attributeType,
-                                      boolean acceptEmpty)
-  {
-    if (acceptEmpty &&
-        (requiredAttributes.isEmpty() ||
-         optionalAttributes.isEmpty()))
-    {
-      return true;
-    }
-
-    return (requiredAttributes.contains(attributeType) ||
-            optionalAttributes.contains(attributeType));
-  }
-
-
-
-  /**
    * Retrieves the set of prohibited attributes for this DIT content
    * rule.
    *
@@ -531,25 +470,6 @@ public final class DITContentRule
   {
     return prohibitedAttributes;
   }
-
-
-
-  /**
-   * Indicates whether the provided attribute type is included in the
-   * prohibited attribute list for this DIT content rule.
-   *
-   * @param  attributeType  The attribute type for which to make the
-   *                        determination.
-   *
-   * @return  {@code true} if the provided attribute type is
-   *          prohibited for this DIT content rule, or {@code false}
-   *          if not.
-   */
-  public boolean isProhibited(AttributeType attributeType)
-  {
-    return prohibitedAttributes.contains(attributeType);
-  }
-
 
 
   /**
@@ -582,24 +502,6 @@ public final class DITContentRule
 
 
   /**
-   * Retrieves the value of the specified "extra" property for this
-   * DIT content rule.
-   *
-   * @param  propertyName  The name of the "extra" property for which
-   *                       to retrieve the value.
-   *
-   * @return  The value of the specified "extra" property for this DIT
-   *          content rule, or {@code null} if no such property is
-   *          defined.
-   */
-  public List<String> getExtraProperty(String propertyName)
-  {
-    return extraProperties.get(propertyName);
-  }
-
-
-
-  /**
    * Specifies the provided "extra" property for this DIT content
    * rule.
    *
@@ -608,7 +510,7 @@ public final class DITContentRule
    * @param  value  The value for the "extra" property, or
    *                {@code null} if the property is to be removed.
    */
-  public void setExtraProperty(String name, String value)
+  private void setExtraProperty(String name, String value)
   {
     ifNull(name);
 
@@ -628,32 +530,6 @@ public final class DITContentRule
 
 
   /**
-   * Specifies the provided "extra" property for this DIT content
-   * rule.
-   *
-   * @param  name    The name for the "extra" property.  It must not
-   *                 be {@code null}.
-   * @param  values  The set of value for the "extra" property, or
-   *                 {@code null} if the property is to be removed.
-   */
-  public void setExtraProperty(String name, List<String> values)
-  {
-    ifNull(name);
-
-    if ((values == null) || values.isEmpty())
-    {
-      extraProperties.remove(name);
-    }
-    else
-    {
-      LinkedList<String> valuesCopy = new LinkedList<String>(values);
-      extraProperties.put(name, valuesCopy);
-    }
-  }
-
-
-
-  /**
    * Indicates whether the provided object is equal to this DIT
    * content rule.  The object will be considered equal if it is a DIT
    * content rule for the same structural objectclass and the same
@@ -667,6 +543,7 @@ public final class DITContentRule
    * @return  {@code true} if the provided object is equal to
    *          this DIT content rule, or {@code false} if not.
    */
+  @Override
   public boolean equals(Object o)
   {
     if (this == o)
@@ -710,6 +587,7 @@ public final class DITContentRule
    *
    * @return  The hash code for this DIT content rule.
    */
+  @Override
   public int hashCode()
   {
     return structuralClass.hashCode();
@@ -724,6 +602,7 @@ public final class DITContentRule
    * @return  The string representation of this DIT content rule in
    *          the form specified in RFC 2252.
    */
+  @Override
   public String toString()
   {
     StringBuilder buffer = new StringBuilder();

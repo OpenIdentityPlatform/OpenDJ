@@ -2507,9 +2507,9 @@ public final class Schema
                               ditContentRules.get(objectClass);
 
           LocalizableMessage message = ERR_SCHEMA_CONFLICTING_DIT_CONTENT_RULE.
-              get(ditContentRule.getName(),
+              get(ditContentRule.getNameOrOID(),
                   objectClass.getNameOrOID(),
-                  conflictingRule.getName());
+                  conflictingRule.getNameOrOID());
           throw new DirectoryException(
                          ResultCode.CONSTRAINT_VIOLATION, message);
         }

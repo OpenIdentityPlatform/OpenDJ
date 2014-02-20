@@ -1907,7 +1907,7 @@ public class SchemaBackend
           dcr.getProhibitedAttributes().contains(removeType))
       {
         LocalizableMessage message = ERR_SCHEMA_MODIFY_REMOVE_AT_IN_DCR.get(
-            removeType.getNameOrOID(), dcr.getName());
+            removeType.getNameOrOID(), dcr.getNameOrOID());
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
     }
@@ -2220,7 +2220,7 @@ public class SchemaBackend
           dcr.getAuxiliaryClasses().contains(removeClass))
       {
         LocalizableMessage message = ERR_SCHEMA_MODIFY_REMOVE_OC_IN_DCR.get(
-            removeClass.getNameOrOID(), dcr.getName());
+            removeClass.getNameOrOID(), dcr.getNameOrOID());
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
     }
@@ -2542,8 +2542,8 @@ public class SchemaBackend
           else
           {
             LocalizableMessage message = ERR_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_DCR.
-                get(ditContentRule.getName(), existingDCR.getName(),
-                    dcr.getName());
+                get(ditContentRule.getNameOrOID(), existingDCR.getNameOrOID(),
+                    dcr.getNameOrOID());
             throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
                                          message);
           }
@@ -2562,33 +2562,33 @@ public class SchemaBackend
     if ((existingRuleForClass != null) && (existingRuleForClass != existingDCR))
     {
       LocalizableMessage message = ERR_SCHEMA_MODIFY_STRUCTURAL_OC_CONFLICT_FOR_ADD_DCR.
-          get(ditContentRule.getName(), structuralClass.getNameOrOID(),
-              existingRuleForClass.getName());
+          get(ditContentRule.getNameOrOID(), structuralClass.getNameOrOID(),
+              existingRuleForClass.getNameOrOID());
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
 
     // Make sure that the new DIT content rule doesn't reference an undefined
-    // structural or auxiliaryclass, or an undefined required, optional, or
+    // structural or auxiliary class, or an undefined required, optional, or
     // prohibited attribute type.
     if (! schema.hasObjectClass(structuralClass.getOID()))
     {
       LocalizableMessage message = ERR_SCHEMA_MODIFY_DCR_UNDEFINED_STRUCTURAL_OC.get(
-          ditContentRule.getName(), structuralClass.getNameOrOID());
+          ditContentRule.getNameOrOID(), structuralClass.getNameOrOID());
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
     if (structuralClass.getObjectClassType() != ObjectClassType.STRUCTURAL)
     {
       LocalizableMessage message = ERR_SCHEMA_MODIFY_DCR_OC_NOT_STRUCTURAL.get(
-          ditContentRule.getName(), structuralClass.getNameOrOID());
+          ditContentRule.getNameOrOID(), structuralClass.getNameOrOID());
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
     if (structuralClass.isObsolete())
     {
       LocalizableMessage message = ERR_SCHEMA_MODIFY_DCR_STRUCTURAL_OC_OBSOLETE.get(
-          ditContentRule.getName(), structuralClass.getNameOrOID());
+          ditContentRule.getNameOrOID(), structuralClass.getNameOrOID());
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
@@ -2597,19 +2597,19 @@ public class SchemaBackend
       if (! schema.hasObjectClass(oc.getOID()))
       {
         LocalizableMessage message = ERR_SCHEMA_MODIFY_DCR_UNDEFINED_AUXILIARY_OC.get(
-            ditContentRule.getName(), oc.getNameOrOID());
+            ditContentRule.getNameOrOID(), oc.getNameOrOID());
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
       if (oc.getObjectClassType() != ObjectClassType.AUXILIARY)
       {
         LocalizableMessage message = ERR_SCHEMA_MODIFY_DCR_OC_NOT_AUXILIARY.get(
-            ditContentRule.getName(), oc.getNameOrOID());
+            ditContentRule.getNameOrOID(), oc.getNameOrOID());
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
       if (oc.isObsolete())
       {
         LocalizableMessage message = ERR_SCHEMA_MODIFY_DCR_OBSOLETE_AUXILIARY_OC.get(
-            ditContentRule.getName(), oc.getNameOrOID());
+            ditContentRule.getNameOrOID(), oc.getNameOrOID());
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
     }
@@ -2619,13 +2619,13 @@ public class SchemaBackend
       if (! schema.hasAttributeType(at.getOID()))
       {
         LocalizableMessage message = ERR_SCHEMA_MODIFY_DCR_UNDEFINED_REQUIRED_ATTR.get(
-            ditContentRule.getName(), at.getNameOrOID());
+            ditContentRule.getNameOrOID(), at.getNameOrOID());
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
       else if (at.isObsolete())
       {
         LocalizableMessage message = ERR_SCHEMA_MODIFY_DCR_OBSOLETE_REQUIRED_ATTR.get(
-            ditContentRule.getName(), at.getNameOrOID());
+            ditContentRule.getNameOrOID(), at.getNameOrOID());
         throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
       }
     }
@@ -2635,13 +2635,13 @@ public class SchemaBackend
       if (! schema.hasAttributeType(at.getOID()))
       {
         LocalizableMessage message = ERR_SCHEMA_MODIFY_DCR_UNDEFINED_OPTIONAL_ATTR.get(
-            ditContentRule.getName(), at.getNameOrOID());
+            ditContentRule.getNameOrOID(), at.getNameOrOID());
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
       else if (at.isObsolete())
       {
         LocalizableMessage message = ERR_SCHEMA_MODIFY_DCR_OBSOLETE_OPTIONAL_ATTR.get(
-            ditContentRule.getName(), at.getNameOrOID());
+            ditContentRule.getNameOrOID(), at.getNameOrOID());
         throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
       }
     }
@@ -2651,13 +2651,13 @@ public class SchemaBackend
       if (! schema.hasAttributeType(at.getOID()))
       {
         LocalizableMessage message = ERR_SCHEMA_MODIFY_DCR_UNDEFINED_PROHIBITED_ATTR.get(
-            ditContentRule.getName(), at.getNameOrOID());
+            ditContentRule.getNameOrOID(), at.getNameOrOID());
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
       else if (at.isObsolete())
       {
         LocalizableMessage message = ERR_SCHEMA_MODIFY_DCR_OBSOLETE_PROHIBITED_ATTR.get(
-            ditContentRule.getName(), at.getNameOrOID());
+            ditContentRule.getNameOrOID(), at.getNameOrOID());
         throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
       }
     }
@@ -2754,7 +2754,7 @@ public class SchemaBackend
     if ((removeDCR == null) || (! removeDCR.equals(ditContentRule)))
     {
       LocalizableMessage message =
-          ERR_SCHEMA_MODIFY_REMOVE_NO_SUCH_DCR.get(ditContentRule.getName());
+          ERR_SCHEMA_MODIFY_REMOVE_NO_SUCH_DCR.get(ditContentRule.getNameOrOID());
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
