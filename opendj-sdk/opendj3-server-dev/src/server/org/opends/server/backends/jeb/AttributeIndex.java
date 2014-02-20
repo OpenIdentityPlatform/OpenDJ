@@ -31,6 +31,8 @@ import java.util.*;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn;
 import org.opends.server.admin.std.server.LocalDBIndexCfg;
@@ -39,7 +41,6 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.monitors.DatabaseEnvironmentMonitor;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.StaticUtils;
 
 import com.sleepycat.je.*;
@@ -300,7 +301,7 @@ public class AttributeIndex
    * Open the attribute index.
    *
    * @throws DatabaseException if a JE database error occurs while
-   * openning the index.
+   * opening the index.
    */
   public void open() throws DatabaseException
   {
@@ -990,7 +991,7 @@ public class AttributeIndex
       }
       return idSet;
     }
-    catch (DirectoryException e)
+    catch (DecodeException e)
     {
       logger.traceException(e);
       return new EntryIDSet();
@@ -1140,7 +1141,7 @@ public class AttributeIndex
       }
       return idSet;
     }
-    catch (DirectoryException e)
+    catch (DecodeException e)
     {
       logger.traceException(e);
       return new EntryIDSet();
@@ -1224,7 +1225,7 @@ public class AttributeIndex
       }
       return idSet;
     }
-    catch (DirectoryException e)
+    catch (DecodeException e)
     {
       logger.traceException(e);
       return new EntryIDSet();
@@ -1407,7 +1408,7 @@ public class AttributeIndex
 
       return results;
     }
-    catch (DirectoryException e)
+    catch (DecodeException e)
     {
       logger.traceException(e);
       return new EntryIDSet();
@@ -1448,7 +1449,7 @@ public class AttributeIndex
       // Read the range: lower <= keys <= upper.
       return orderingIndex.readRange(lower, upper, true, true);
     }
-    catch (DirectoryException e)
+    catch (DecodeException e)
     {
       logger.traceException(e);
       return new EntryIDSet();
@@ -1576,7 +1577,7 @@ public class AttributeIndex
       }
       return idSet;
     }
-    catch (DirectoryException e)
+    catch (DecodeException e)
     {
       logger.traceException(e);
       return new EntryIDSet();
@@ -2715,7 +2716,7 @@ public class AttributeIndex
       }
       return idSet;
     }
-    catch (DirectoryException e)
+    catch (DecodeException e)
     {
       logger.traceException(e);
       return IndexQuery.createNullIndexQuery().evaluate(null);

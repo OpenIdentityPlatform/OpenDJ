@@ -33,6 +33,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.types.DirectoryException;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -128,12 +129,12 @@ class IntegerFirstComponentEqualityMatchingRule
    *
    * @return  The normalized version of the provided value.
    *
-   * @throws  DirectoryException  If the provided value is invalid according to
+   * @throws  DecodeException  If the provided value is invalid according to
    *                              the associated attribute syntax.
    */
   @Override
   public ByteString normalizeAttributeValue(ByteSequence value)
-         throws DirectoryException
+         throws DecodeException
   {
     StringBuilder buffer = new StringBuilder();
     toLowerCase(value, buffer, true);

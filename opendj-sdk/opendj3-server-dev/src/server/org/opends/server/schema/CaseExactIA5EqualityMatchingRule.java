@@ -35,10 +35,9 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.DirectoryException;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.ServerConstants;
 
 import static org.opends.messages.SchemaMessages.*;
@@ -128,12 +127,12 @@ class CaseExactIA5EqualityMatchingRule
    *
    * @return  The normalized version of the provided value.
    *
-   * @throws  DirectoryException  If the provided value is invalid according to
+   * @throws  DecodeException  If the provided value is invalid according to
    *                              the associated attribute syntax.
    */
   @Override
   public ByteString normalizeAttributeValue(ByteSequence value)
-         throws DirectoryException
+         throws DecodeException
   {
     StringBuilder buffer = new StringBuilder();
     prepareUnicode(buffer, value, TRIM, NO_CASE_FOLD);
@@ -179,22 +178,16 @@ class CaseExactIA5EqualityMatchingRule
         switch (DirectoryServer.getSyntaxEnforcementPolicy())
         {
           case REJECT:
-            throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                         message);
+          throw DecodeException.error(message);
           case WARN:
             if (! logged)
             {
               logger.error(message);
               logged = true;
             }
-
-            buffer.delete(pos, pos+1);
-            break;
-
-          default:
-            buffer.delete(pos, pos+1);
             break;
         }
+        buffer.delete(pos, pos + 1);
       }
     }
 

@@ -37,12 +37,16 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
 import org.opends.server.api.*;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.types.CommonSchemaElements;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.LDAPSyntaxDescription;
+import org.opends.server.types.Schema;
 
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
@@ -1607,7 +1611,7 @@ public class LDAPSyntaxDescriptionSyntax
        */
       @Override
       public ByteString normalizeAttributeValue(ByteSequence value)
-              throws DirectoryException
+              throws DecodeException
       {
         StringBuilder buffer = new StringBuilder();
         prepareUnicode(buffer, value, TRIM, CASE_FOLD);

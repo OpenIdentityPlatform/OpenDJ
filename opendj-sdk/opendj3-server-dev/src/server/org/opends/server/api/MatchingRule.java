@@ -26,17 +26,13 @@
  */
 package org.opends.server.api;
 
-
-
 import java.util.Collection;
 
+import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.schema.Syntax;
-import org.opends.server.types.DirectoryException;
-
-
 
 /**
  * This interface defines the set of methods that must be implemented
@@ -76,12 +72,12 @@ public interface MatchingRule
    * @param value
    *          The assertion value to be normalized.
    * @return The normalized version of the provided value.
-   * @throws DirectoryException
+   * @throws DecodeException
    *           If the provided value is invalid according to the
    *           associated attribute syntax.
    */
   ByteString normalizeAssertionValue(ByteSequence value)
-      throws DirectoryException;
+      throws DecodeException;
 
 
 
@@ -111,7 +107,16 @@ public interface MatchingRule
    */
   Syntax getSyntax();
 
-
+  /**
+   * Whole class to be replaced by the equivalent SDK class.
+   *
+   * @param value
+   *          the value
+   * @return SDK syntax
+   * @throws DecodeException
+   *           if problem
+   */
+  Assertion getAssertion(final ByteSequence value) throws DecodeException;
 
   /**
    * Indicates whether this matching rule is declared "OBSOLETE". The
@@ -135,37 +140,12 @@ public interface MatchingRule
    * @param value
    *          The value to be normalized.
    * @return The normalized version of the provided value.
-   * @throws DirectoryException
+   * @throws DecodeException
    *           If the provided value is invalid according to the
    *           associated attribute syntax.
    */
   ByteString normalizeAttributeValue(ByteSequence value)
-      throws DirectoryException;
-
-
-
-  /**
-   * Indicates whether the provided attribute value should be
-   * considered a match for the given assertion value. This will only
-   * be used for the purpose of extensible matching. Subclasses
-   * should define more specific methods that are appropriate to the
-   * matching rule type.
-   *
-   * @param attributeValue
-   *          The attribute value in a form that has been normalized
-   *          according to this matching rule.
-   * @param assertionValue
-   *          The assertion value in a form that has been normalized
-   *          according to this matching rule.
-   * @return {@code TRUE} if the attribute value should be considered
-   *         a match for the provided assertion value, {@code FALSE}
-   *         if it does not match, or {@code UNDEFINED} if the result
-   *         is undefined.
-   */
-  ConditionResult valuesMatch(
-      ByteSequence attributeValue, ByteSequence assertionValue);
-
-
+      throws DecodeException;
 
   /**
    * Appends a string representation of this matching rule in the

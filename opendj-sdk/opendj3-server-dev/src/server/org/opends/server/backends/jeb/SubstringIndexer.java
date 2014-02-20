@@ -26,10 +26,15 @@
  */
 package org.opends.server.backends.jeb;
 
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.server.types.*;
-import java.util.*;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.api.SubstringMatchingRule;
+import org.opends.server.types.*;
 
 /**
  * An implementation of an Indexer for attribute substrings.
@@ -74,6 +79,7 @@ public class SubstringIndexer extends Indexer
    * used to name an index created using this object.
    * @return A string representation of this object.
    */
+  @Override
   public String toString()
   {
     return attributeType.getNameOrOID() + ".substring";
@@ -85,6 +91,7 @@ public class SubstringIndexer extends Indexer
    *
    * @return A byte array comparator.
    */
+  @Override
   public Comparator<byte[]> getComparator()
   {
     return comparator;
@@ -96,6 +103,7 @@ public class SubstringIndexer extends Indexer
    * @param entry The entry.
    * @param keys The set into which the generated keys will be inserted.
    */
+  @Override
   public void indexEntry(Entry entry, Set<byte[]> keys)
   {
     List<Attribute> attrList =
@@ -114,6 +122,7 @@ public class SubstringIndexer extends Indexer
    * @param newEntry The new entry contents.
    * @param modifiedKeys The map into which the modified keys will be inserted.
    */
+  @Override
   public void replaceEntry(Entry oldEntry, Entry newEntry,
                            Map<byte[], Boolean> modifiedKeys)
   {
@@ -135,6 +144,7 @@ public class SubstringIndexer extends Indexer
    * @param mods The set of modifications that were applied to the entry.
    * @param modifiedKeys The map into which the modified keys will be inserted.
    */
+  @Override
   public void modifyEntry(Entry oldEntry, Entry newEntry,
                           List<Modification> mods,
                           Map<byte[], Boolean> modifiedKeys)
@@ -175,7 +185,7 @@ public class SubstringIndexer extends Indexer
 
           substringKeys(normalizedBytes, keys);
         }
-        catch (DirectoryException e)
+        catch (DecodeException e)
         {
           logger.traceException(e);
         }
@@ -258,7 +268,7 @@ public class SubstringIndexer extends Indexer
 
           substringKeys(normalizedBytes, modifiedKeys, insert);
         }
-        catch (DirectoryException e)
+        catch (DecodeException e)
         {
           logger.traceException(e);
         }

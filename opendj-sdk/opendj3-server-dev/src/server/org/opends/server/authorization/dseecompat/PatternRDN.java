@@ -24,24 +24,23 @@
  *      Copyright 2008 Sun Microsystems, Inc.
  *      Portions Copyright 2014 ForgeRock AS
  */
-
 package org.opends.server.authorization.dseecompat;
-import org.forgerock.i18n.LocalizableMessage;
 
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.api.EqualityMatchingRule;
-import static org.opends.messages.AccessControlMessages.
-     WARN_PATTERN_DN_TYPE_CONTAINS_SUBSTRINGS;
-import static org.opends.messages.AccessControlMessages.
-     WARN_PATTERN_DN_TYPE_WILDCARD_IN_MULTIVALUED_RDN;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.TreeMap;
 import java.util.Set;
 import java.util.Iterator;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.api.EqualityMatchingRule;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.types.*;
+
+import static org.opends.messages.AccessControlMessages.*;
 
 /**
  * This class is used to match RDN patterns containing wildcards in either
@@ -317,11 +316,14 @@ public class PatternRDN
         return mr.areEqual(thisNormValue, thatNormValue);
       }
     }
+    catch (DecodeException e)
+    {
+      return false;
+    }
     catch (DirectoryException e)
     {
       return false;
     }
   }
-
 
 }

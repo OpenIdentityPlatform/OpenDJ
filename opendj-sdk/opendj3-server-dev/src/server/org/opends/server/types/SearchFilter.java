@@ -38,9 +38,11 @@ import java.util.Collections;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
@@ -2086,8 +2088,16 @@ public final class SearchFilter
         }
         else
         {
-          value = AttributeValues.create(userValue,
-                                     mr.normalizeAttributeValue(userValue));
+          try
+          {
+            value = AttributeValues.create(
+                userValue, mr.normalizeAttributeValue(userValue));
+          }
+          catch (DecodeException e)
+          {
+            throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+                e.getMessageObject(), e);
+          }
         }
       }
     }
@@ -3314,12 +3324,10 @@ public final class SearchFilter
 
 
     // Normalize the assertion value using the matching rule.
-    ByteString normalizedValue;
+    Assertion assertion;
     try
     {
-        normalizedValue =
-              matchingRule.
-               normalizeAssertionValue(assertionValue.getValue());
+      assertion = matchingRule.getAssertion(assertionValue.getValue());
     }
     catch (Exception e)
     {
@@ -3348,8 +3356,7 @@ public final class SearchFilter
             {
               ByteString nv =
                    matchingRule.normalizeAttributeValue(v.getValue());
-              ConditionResult r =
-                   matchingRule.valuesMatch(nv, normalizedValue);
+              ConditionResult r = assertion.matches(nv);
               switch (r)
               {
                 case TRUE:
@@ -3391,8 +3398,7 @@ public final class SearchFilter
             {
               ByteString nv =
                    matchingRule.normalizeAttributeValue(v.getValue());
-              ConditionResult r =
-                   matchingRule.valuesMatch(nv, normalizedValue);
+              ConditionResult r = assertion.matches(nv);
               switch (r)
               {
                 case TRUE:
@@ -3429,8 +3435,7 @@ public final class SearchFilter
         try
         {
           ByteString nv = matchingRule.normalizeAttributeValue(v.getValue());
-          ConditionResult r =
-               matchingRule.valuesMatch(nv, normalizedValue);
+          ConditionResult r = assertion.matches(nv);
           switch (r)
           {
             case TRUE:
@@ -3471,8 +3476,7 @@ public final class SearchFilter
             {
               ByteString nv =
                    matchingRule.normalizeAttributeValue(v.getValue());
-              ConditionResult r =
-                   matchingRule.valuesMatch(nv, normalizedValue);
+              ConditionResult r = assertion.matches(nv);
               switch (r)
               {
                 case TRUE:
@@ -3526,8 +3530,7 @@ public final class SearchFilter
               AttributeValue v = rdn.getAttributeValue(i);
               ByteString nv =
                    matchingRule.normalizeAttributeValue(v.getValue());
-              ConditionResult r =
-                   matchingRule.valuesMatch(nv, normalizedValue);
+              ConditionResult r = assertion.matches(nv);
               switch (r)
               {
                 case TRUE:
@@ -3821,13 +3824,8 @@ outerComponentLoop:
             {
               try
               {
-                ConditionResult cr = mr.valuesMatch(
-                     mr.normalizeAttributeValue(assertionValue.getValue()),
-                     mr.normalizeAttributeValue(f.assertionValue.getValue()));
-                if (cr != ConditionResult.TRUE)
-                {
-                  return false;
-                }
+                Assertion assertion = mr.getAssertion(f.assertionValue.getValue());
+                return assertion.matches(mr.normalizeAttributeValue(assertionValue.getValue())) == ConditionResult.TRUE;
               }
               catch (Exception e)
               {

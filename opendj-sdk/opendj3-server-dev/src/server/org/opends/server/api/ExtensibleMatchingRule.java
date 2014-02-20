@@ -31,7 +31,7 @@ package org.opends.server.api;
 import java.util.Collection;
 
 import org.forgerock.opendj.ldap.ByteSequence;
-import org.opends.server.types.DirectoryException;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.types.IndexConfig;
 
 
@@ -76,9 +76,9 @@ public interface ExtensibleMatchingRule extends MatchingRule
    *          construct the index query.
    * @return The index query appropriate for the provided attribute
    *         value assertion.
-   * @throws DirectoryException
+   * @throws DecodeException
    *           If an error occurs while generating the index query.
    */
   <T> T createIndexQuery(ByteSequence assertionValue,
-      IndexQueryFactory<T> factory) throws DirectoryException;
+      IndexQueryFactory<T> factory) throws DecodeException;
 }

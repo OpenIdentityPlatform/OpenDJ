@@ -45,13 +45,12 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.asn1.GSERException;
 import org.opends.server.protocols.asn1.GSERParser;
 import org.opends.server.types.DN;
-import org.opends.server.types.DirectoryException;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.StaticUtils;
 
 import static org.opends.messages.SchemaMessages.*;
@@ -159,12 +158,12 @@ class CertificateExactMatchingRule
    *
    * @return  The normalized version of the provided value.
    *
-   * @throws  DirectoryException  If the provided value is invalid according to
+   * @throws  DecodeException  If the provided value is invalid according to
    *                              the associated attribute syntax.
    */
   @Override
   public ByteString normalizeAttributeValue(ByteSequence value)
-         throws DirectoryException
+         throws DecodeException
   {
     // The normalized form of this value is the GSER encoded ....
     final BigInteger serialNumber;
@@ -211,18 +210,12 @@ class CertificateExactMatchingRule
       switch (DirectoryServer.getSyntaxEnforcementPolicy())
       {
         case REJECT:
-          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message);
+          throw DecodeException.error(message);
         case WARN:
           logger.error(message);
-
-          certificateIssuer= toLowerCase(dnstring);
-          break;
-
-        default:
-          certificateIssuer= toLowerCase(dnstring);
           break;
       }
+      certificateIssuer= toLowerCase(dnstring);
     }
 
     // Create the encoded value
@@ -236,7 +229,7 @@ class CertificateExactMatchingRule
    */
   @Override
   public ByteString normalizeAssertionValue(ByteSequence value)
-         throws DirectoryException
+      throws DecodeException
   {
     // validate and normalize the GSER structure
     // according to the definitions from RFC 4523, Appendix A.1
@@ -271,8 +264,7 @@ class CertificateExactMatchingRule
       {
         LocalizableMessage message = ERR_CERTIFICATE_MATCH_IDENTIFIER_NOT_FOUND
                             .get(GSER_ID_SERIALNUMBER);
-        throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message);
+        throw DecodeException.error(message);
       }
 
       // The value for the serialNumber
@@ -287,8 +279,7 @@ class CertificateExactMatchingRule
       {
         LocalizableMessage message = ERR_CERTIFICATE_MATCH_IDENTIFIER_NOT_FOUND
                             .get(GSER_ID_ISSUER);
-        throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message);
+        throw DecodeException.error(message);
       }
 
       // expecting "rdnSequence:"
@@ -297,8 +288,7 @@ class CertificateExactMatchingRule
       {
         LocalizableMessage message = ERR_CERTIFICATE_MATCH_IDENTIFIER_NOT_FOUND
                             .get(GSER_ID_RDNSEQUENCE);
-        throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message);
+        throw DecodeException.error(message);
       }
 
       // now the issuer dn
@@ -314,8 +304,7 @@ class CertificateExactMatchingRule
         switch (DirectoryServer.getSyntaxEnforcementPolicy())
         {
           case REJECT:
-            throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message);
+            throw DecodeException.error(message);
           case WARN:
             logger.error(message);
             break;
@@ -326,8 +315,7 @@ class CertificateExactMatchingRule
     {
       LocalizableMessage message = ERR_CERTIFICATE_MATCH_GSER_INVALID.get(
                           getExceptionMessage(e));
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message);
+      throw DecodeException.error(message);
     }
 
     // Normalize the DN
@@ -349,18 +337,12 @@ class CertificateExactMatchingRule
       switch (DirectoryServer.getSyntaxEnforcementPolicy())
       {
         case REJECT:
-          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message);
+          throw DecodeException.error(message);
         case WARN:
           logger.error(message);
-
-          certificateIssuer= toLowerCase(dnstring);
-          break;
-
-        default:
-          certificateIssuer= toLowerCase(dnstring);
           break;
       }
+      certificateIssuer = toLowerCase(dnstring);
     }
 
     // Create the encoded value

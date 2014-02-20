@@ -26,14 +26,11 @@
  */
 package org.opends.server.api;
 
-
-
 import java.util.List;
 
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteSequence;
-
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DecodeException;
 
 /**
  * This class defines the set of methods and structures that must be
@@ -57,12 +54,12 @@ public abstract class SubstringMatchingRule
    *
    * @return  The normalized form of the value fragment.
    *
-   * @throws  DirectoryException  If the provided value fragment is
+   * @throws  DecodeException  If the provided value fragment is
    *                              not acceptable according to the
    *                              associated syntax.
    */
   public abstract ByteString normalizeSubstring(
-      ByteSequence substring) throws DirectoryException;
+      ByteSequence substring) throws DecodeException;
 
 
 

@@ -35,6 +35,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.io.ASN1Reader;
 import org.forgerock.opendj.io.ASN1Writer;
+import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
@@ -1293,9 +1294,11 @@ public class MatchedValuesFilter
     switch (matchType)
     {
       case EQUALITY_MATCH_TYPE:
-        if ((attributeType != null) && (type != null) &&
-            attributeType.equals(type) && (rawAssertionValue != null) &&
-            (value != null) && (equalityMatchingRule != null))
+        if (attributeType != null
+            && attributeType.equals(type)
+            && rawAssertionValue != null
+            && value != null
+            && equalityMatchingRule != null)
         {
           try
           {
@@ -1306,19 +1309,15 @@ public class MatchedValuesFilter
           catch (Exception e)
           {
             logger.traceException(e);
-
-            return false;
           }
         }
-        else
-        {
-          return false;
-        }
+        return false;
 
 
       case SUBSTRINGS_TYPE:
-        if ((attributeType != null) && (type != null) &&
-            attributeType.equals(type) && (substringMatchingRule != null))
+        if (attributeType != null
+            && attributeType.equals(type)
+            && substringMatchingRule != null)
         {
           try
           {
@@ -1333,75 +1332,65 @@ public class MatchedValuesFilter
           catch (Exception e)
           {
             logger.traceException(e);
-
-            return false;
           }
         }
-        else
-        {
-          return false;
-        }
+        return false;
 
 
       case GREATER_OR_EQUAL_TYPE:
-        if ((attributeType != null) && (type != null) &&
-            attributeType.equals(type) && (assertionValue != null) &&
-            (value != null) && (orderingMatchingRule != null))
+        if (attributeType != null
+            && attributeType.equals(type)
+            && assertionValue != null
+            && value != null
+            && orderingMatchingRule != null)
         {
           try
           {
-            return (orderingMatchingRule.compareValues(
+            return orderingMatchingRule.compareValues(
                          assertionValue.getNormalizedValue(),
                          orderingMatchingRule.normalizeAttributeValue(
-                         value.getValue())) >= 0);
+                         value.getValue())) >= 0;
           }
           catch (Exception e)
           {
             logger.traceException(e);
-
-            return false;
           }
         }
-        else
-        {
-          return false;
-        }
+        return false;
 
 
       case LESS_OR_EQUAL_TYPE:
-        if ((attributeType != null) && (type != null) &&
-            attributeType.equals(type) && (assertionValue != null) &&
-            (value != null) && (orderingMatchingRule != null))
+        if (attributeType != null
+            && attributeType.equals(type)
+            && assertionValue != null
+            && value != null
+            && orderingMatchingRule != null)
         {
           try
           {
-            return (orderingMatchingRule.compareValues(
+            return orderingMatchingRule.compareValues(
                          assertionValue.getNormalizedValue(),
                          orderingMatchingRule.normalizeAttributeValue(
-                         value.getValue())) <= 0);
+                         value.getValue())) <= 0;
           }
           catch (Exception e)
           {
             logger.traceException(e);
-
-            return false;
           }
         }
-        else
-        {
-          return false;
-        }
+        return false;
 
 
       case PRESENT_TYPE:
-        return ((attributeType != null) && (type != null) &&
-                attributeType.equals(type));
+        return attributeType != null && attributeType.equals(type);
 
 
       case APPROXIMATE_MATCH_TYPE:
-        if ((attributeType != null) && (type != null) &&
-            attributeType.equals(type) && (assertionValue != null) &&
-            (value != null) && (approximateMatchingRule != null))
+        if (attributeType != null
+            && attributeType.equals(type)
+            && assertionValue != null
+            && value != null
+            && approximateMatchingRule != null)
         {
           try
           {
@@ -1415,18 +1404,13 @@ public class MatchedValuesFilter
           catch (Exception e)
           {
             logger.traceException(e);
-
-            return false;
           }
         }
-        else
-        {
-          return false;
-        }
+        return false;
 
 
       case EXTENSIBLE_MATCH_TYPE:
-        if ((assertionValue == null) || (value == null))
+        if (assertionValue == null || value == null)
         {
           return false;
         }
@@ -1442,10 +1426,8 @@ public class MatchedValuesFilter
           {
             ByteString nv1 =
                  matchingRule.normalizeAttributeValue(value.getValue());
-            ByteString nv2 =
-                 matchingRule.normalizeAttributeValue(assertionValue.getValue());
-
-            return (matchingRule.valuesMatch(nv1, nv2) == ConditionResult.TRUE);
+            Assertion assertion = matchingRule.getAssertion(assertionValue.getValue());
+            return assertion.matches(nv1) == ConditionResult.TRUE;
           }
           catch (Exception e)
           {

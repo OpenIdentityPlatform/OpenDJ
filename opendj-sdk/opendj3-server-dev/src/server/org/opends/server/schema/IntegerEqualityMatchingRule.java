@@ -35,10 +35,9 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.DirectoryException;
-import org.forgerock.opendj.ldap.ResultCode;
 
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
@@ -125,12 +124,12 @@ class IntegerEqualityMatchingRule
    *
    * @return  The normalized version of the provided value.
    *
-   * @throws  DirectoryException  If the provided value is invalid according to
+   * @throws  DecodeException  If the provided value is invalid according to
    *                              the associated attribute syntax.
    */
   @Override
   public ByteString normalizeAttributeValue(ByteSequence value)
-         throws DirectoryException
+         throws DecodeException
   {
     int length = value.length();
     StringBuilder buffer = new StringBuilder(length);
@@ -152,20 +151,7 @@ class IntegerEqualityMatchingRule
               else
               {
                 LocalizableMessage message = WARN_ATTR_SYNTAX_INTEGER_INITIAL_ZERO.get(value);
-
-                switch (DirectoryServer.getSyntaxEnforcementPolicy())
-                {
-                  case REJECT:
-                    throw new DirectoryException(
-                                  ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
-                  case WARN:
-                    if (! logged)
-                    {
-                      logged = true;
-                      logger.error(message);
-                    }
-                    break;
-                }
+                logged = reportInvalidSyntax(logged, message);
               }
               break;
             case 1:
@@ -173,20 +159,7 @@ class IntegerEqualityMatchingRule
               if (buffer.charAt(0) == '-')
               {
                 LocalizableMessage message = WARN_ATTR_SYNTAX_INTEGER_INITIAL_ZERO.get(value);
-
-                switch (DirectoryServer.getSyntaxEnforcementPolicy())
-                {
-                  case REJECT:
-                    throw new DirectoryException(
-                                  ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
-                  case WARN:
-                    if (! logged)
-                    {
-                      logged = true;
-                      logger.error(message);
-                    }
-                    break;
-                }
+                logged = reportInvalidSyntax(logged, message);
               }
               else
               {
@@ -235,92 +208,48 @@ class IntegerEqualityMatchingRule
           else
           {
             LocalizableMessage message = WARN_ATTR_SYNTAX_INTEGER_MISPLACED_DASH.get(value);
-
-            switch (DirectoryServer.getSyntaxEnforcementPolicy())
-            {
-              case REJECT:
-                throw new DirectoryException(
-                               ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
-              case WARN:
-                if (! logged)
-                {
-                  logged = true;
-                  logger.error(message);
-                }
-                break;
-            }
+            logged = reportInvalidSyntax(logged, message);
           }
           break;
         default:
           LocalizableMessage message = WARN_ATTR_SYNTAX_INTEGER_INVALID_CHARACTER.get(
               value, ((char) value.byteAt(i)), i);
-          switch (DirectoryServer.getSyntaxEnforcementPolicy())
-          {
-            case REJECT:
-              throw new DirectoryException(
-                             ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
-            case WARN:
-              if (! logged)
-              {
-                logged = true;
-                logger.error(message);
-              }
-              break;
-          }
+          logged = reportInvalidSyntax(logged, message);
       }
     }
 
     if (buffer.length() == 0)
     {
-      LocalizableMessage message = WARN_ATTR_SYNTAX_INTEGER_EMPTY_VALUE.get(value);
-
-      switch (DirectoryServer.getSyntaxEnforcementPolicy())
-      {
-        case REJECT:
-          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message);
-
-        case WARN:
-          if (! logged)
-          {
-            logged = true;
-            logger.error(message);
-          }
-
-          buffer.append("0");
-          break;
-
-        default:
-          buffer.append("0");
-          break;
-      }
+      logged = reportInvalidSyntax(
+          logged, WARN_ATTR_SYNTAX_INTEGER_EMPTY_VALUE.get(value));
+      buffer.append("0");
     }
     else if ((buffer.length() == 1) && (buffer.charAt(0) == '-'))
     {
-      LocalizableMessage message = WARN_ATTR_SYNTAX_INTEGER_DASH_NEEDS_VALUE.get(value);
-      switch (DirectoryServer.getSyntaxEnforcementPolicy())
-      {
-        case REJECT:
-          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message);
-
-        case WARN:
-          if (! logged)
-          {
-            logged = true;
-            logger.error(message);
-          }
-
-          buffer.setCharAt(0, '0');
-          break;
-
-        default:
-          buffer.setCharAt(0, '0');
-          break;
-      }
+      logged = reportInvalidSyntax(
+          logged, WARN_ATTR_SYNTAX_INTEGER_DASH_NEEDS_VALUE.get(value));
+      buffer.setCharAt(0, '0');
     }
 
     return ByteString.valueOf(buffer.toString());
+  }
+
+  private boolean reportInvalidSyntax(boolean logged, LocalizableMessage message)
+      throws DecodeException
+  {
+    switch (DirectoryServer.getSyntaxEnforcementPolicy())
+    {
+      case REJECT:
+        throw DecodeException.error(message);
+      case WARN:
+        if (! logged)
+        {
+          logged = true;
+          logger.error(message);
+        }
+        break;
+    }
+    return logged;
   }
 }
 

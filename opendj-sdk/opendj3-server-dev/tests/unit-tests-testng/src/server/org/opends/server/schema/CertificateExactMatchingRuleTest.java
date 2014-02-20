@@ -28,9 +28,8 @@
 package org.opends.server.schema;
 
 import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.types.DirectoryException;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.util.Base64;
-
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -206,7 +205,7 @@ public class CertificateExactMatchingRuleTest extends SchemaTestCase
     CertificateExactMatchingRule rule = getRule();
 
     // normalize the provided assertion values
-    rule.normalizeAssertionValue(ByteString.valueOf(value));
+    rule.getAssertion(ByteString.valueOf(value));
   }
 
 
@@ -215,7 +214,7 @@ public class CertificateExactMatchingRuleTest extends SchemaTestCase
    * Test that invalid assertion values are rejected.
    */
   @Test(dataProvider= "certificateExactMatchInvalidAssertionValues",
-        expectedExceptions={ DirectoryException.class })
+        expectedExceptions={ DecodeException.class })
   public void certificateExactMatchingRuleInvalidAssertionValues(String value)
               throws Exception
   {
@@ -223,7 +222,7 @@ public class CertificateExactMatchingRuleTest extends SchemaTestCase
     CertificateExactMatchingRule rule = getRule();
 
     // normalize the provided assertion value
-    rule.normalizeAssertionValue(ByteString.valueOf(value));
+    rule.getAssertion(ByteString.valueOf(value));
   }
 
 

@@ -24,41 +24,35 @@
  *      Copyright 2009-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2010-2014 ForgeRock AS.
  */
-
-
 package org.opends.server.schema;
 
 import java.util.Calendar;
 import java.util.GregorianCalendar;
-import static org.testng.Assert.*;
-
 import java.util.List;
-
 import java.util.TimeZone;
+
+import org.forgerock.opendj.ldap.*;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPFilter;
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ConditionResult;
 import org.opends.server.types.DN;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
-import org.opends.server.types.DirectoryException;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.types.SearchResultEntry;
-import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.util.TimeThread;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+
 import static org.opends.server.schema.GeneralizedTimeSyntax.*;
 import static org.opends.server.schema.SchemaConstants.*;
+import static org.testng.Assert.*;
 
 /**
  * This class tests various time-based matching rules.
  */
+@SuppressWarnings("javadoc")
 public final class TimeBasedMatchingRuleTest
         extends SchemaTestCase
 {
@@ -329,8 +323,8 @@ public final class TimeBasedMatchingRuleTest
   {
     MatchingRule partialTimeRule = DirectoryServer.getMatchingRule(
             EXT_PARTIAL_DATE_TIME_NAME.toLowerCase());
-    ByteString str = partialTimeRule.normalizeAssertionValue(ByteString.valueOf(assertionValue));
-    assertEquals(partialTimeRule.valuesMatch(ByteString.valueOf(attributeValue), str), ConditionResult.TRUE);
+    Assertion assertion = partialTimeRule.getAssertion(ByteString.valueOf(assertionValue));
+    assertEquals(assertion.matches(ByteString.valueOf(attributeValue)), ConditionResult.TRUE);
   }
 
 
@@ -344,21 +338,16 @@ public final class TimeBasedMatchingRuleTest
     MatchingRule relativeTimeLTRule =
             DirectoryServer.getOrderingMatchingRule(
             EXT_OMR_RELATIVE_TIME_LT_ALT_NAME.toLowerCase());
-    boolean exception = false;
     try
     {
-      relativeTimeLTRule.normalizeAssertionValue(ByteString.valueOf(assertion));
+      relativeTimeLTRule.getAssertion(ByteString.valueOf(assertion));
+      // An invalid value can't get away without throwing exception.
+      assertTrue(isValid);
     }
-    catch(DirectoryException e)
+    catch (DecodeException e)
     {
       //invalid values will throw an exception.
-      exception = true;
-      assertTrue(!isValid);
-    }
-    if(!isValid)
-    {
-      //An invalid value can't get away without throwing exception.
-      assertTrue(exception);
+      assertFalse(isValid);
     }
   }
 
@@ -372,20 +361,15 @@ public final class TimeBasedMatchingRuleTest
   {
     MatchingRule partialDTRule =
             DirectoryServer.getMatchingRule(EXT_PARTIAL_DATE_TIME_OID);
-    boolean exception = false;
     try
     {
-      partialDTRule.normalizeAssertionValue(ByteString.valueOf(assertion));
+      partialDTRule.getAssertion(ByteString.valueOf(assertion));
+      assertTrue(isValid);
     }
-    catch(DirectoryException e)
+    catch (DecodeException e)
     {
       //invalid values will throw an exception.
-      exception = true;
-      assertTrue(!isValid);
-    }
-    if(!isValid)
-    {
-      assertTrue(exception);
+      assertFalse(isValid);
     }
   }
 

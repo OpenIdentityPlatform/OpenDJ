@@ -26,8 +26,6 @@
  */
 package org.opends.server.schema;
 
-
-
 import java.util.Collection;
 import java.util.Collections;
 
@@ -35,17 +33,14 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DN;
-import org.opends.server.types.DirectoryException;
-import org.forgerock.opendj.ldap.ResultCode;
 
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-
-
 
 /**
  * This class implements the uniqueMemberMatch matching rule defined in X.520
@@ -130,12 +125,12 @@ class UniqueMemberEqualityMatchingRule
    *
    * @return  The normalized version of the provided value.
    *
-   * @throws  DirectoryException  If the provided value is invalid according to
+   * @throws  DecodeException  If the provided value is invalid according to
    *                              the associated attribute syntax.
    */
   @Override
   public ByteString normalizeAttributeValue(ByteSequence value)
-         throws DirectoryException
+         throws DecodeException
   {
     String valueString = value.toString().trim();
     int    valueLength = valueString.length();
@@ -176,18 +171,12 @@ class UniqueMemberEqualityMatchingRule
       switch (DirectoryServer.getSyntaxEnforcementPolicy())
       {
         case REJECT:
-          throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                       message);
+          throw DecodeException.error(message);
         case WARN:
           logger.error(message);
-
-          valueBuffer.append(toLowerCase(valueString).substring(0, dnEndPos));
-          break;
-
-        default:
-          valueBuffer.append(toLowerCase(valueString).substring(0, dnEndPos));
           break;
       }
+      valueBuffer.append(toLowerCase(valueString).substring(0, dnEndPos));
     }
 
 
@@ -216,8 +205,7 @@ class UniqueMemberEqualityMatchingRule
           switch (DirectoryServer.getSyntaxEnforcementPolicy())
           {
             case REJECT:
-              throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                           message);
+              throw DecodeException.error(message);
             case WARN:
               if (! logged)
               {

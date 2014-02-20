@@ -28,12 +28,13 @@ package org.opends.server.api;
 
 import java.util.Collection;
 
+import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.Syntax;
-import org.opends.server.types.DirectoryException;
 
 /**
  * This class provides default implementation of MatchingRule. A
@@ -53,7 +54,7 @@ public abstract class AbstractMatchingRule implements MatchingRule
    */
   @Override
   public ByteString normalizeAssertionValue(ByteSequence value)
-      throws DirectoryException
+      throws DecodeException
   {
     // Default implementation is to use attribute value normalization.
     return normalizeAttributeValue(value);
@@ -93,16 +94,47 @@ public abstract class AbstractMatchingRule implements MatchingRule
 
   /** {@inheritDoc} */
   @Override
+  public Assertion getAssertion(final ByteSequence value)
+      throws DecodeException
+  {
+    final ByteString assertionValue = normalizeAssertionValue(value);
+    return new Assertion()
+    {
+
+      @Override
+      public ConditionResult matches(ByteSequence attributeValue)
+      {
+        return valuesMatch(attributeValue, assertionValue);
+      }
+    };
+  }
+
+  /** {@inheritDoc} */
+  @Override
   public boolean isObsolete()
   {
     return false;
   }
 
   /**
-   * {@inheritDoc}
+   * Indicates whether the provided attribute value should be
+   * considered a match for the given assertion value. This will only
+   * be used for the purpose of extensible matching. Subclasses
+   * should define more specific methods that are appropriate to the
+   * matching rule type.
+   *
+   * @param attributeValue
+   *          The attribute value in a form that has been normalized
+   *          according to this matching rule.
+   * @param assertionValue
+   *          The assertion value in a form that has been normalized
+   *          according to this matching rule.
+   * @return {@code TRUE} if the attribute value should be considered
+   *         a match for the provided assertion value, {@code FALSE}
+   *         if it does not match, or {@code UNDEFINED} if the result
+   *         is undefined.
    */
-  @Override
-  public ConditionResult valuesMatch(
+  protected ConditionResult valuesMatch(
       ByteSequence attributeValue, ByteSequence assertionValue)
   {
     //Default implementation of most rule types.
