@@ -131,7 +131,7 @@ public class ReplicationMonitor extends MonitorProvider<MonitorProviderCfg>
         String.valueOf(domain.getGenerationID())));
 
     // Add import/export monitoring attributes
-    final IEContext ieContext = domain.getImportExportContext();
+    final ImportExportContext ieContext = domain.getImportExportContext();
     if (ieContext != null)
     {
       addMonitorData(attributes, "total-update",
