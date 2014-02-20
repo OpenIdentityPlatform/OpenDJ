@@ -69,6 +69,19 @@ public final class CommonArguments {
      *
      * @param defaultPort
      *            The default port number.
+     * @return The "port" argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static IntegerArgument getPort(final int defaultPort) throws ArgumentException {
+        return getPort(defaultPort, null);
+    }
+
+    /**
+     * Returns the "port" integer argument.
+     *
+     * @param defaultPort
+     *            The default port number.
      * @param description
      *            Port number's description.
      * @return The "port" argument.
@@ -77,11 +90,34 @@ public final class CommonArguments {
      */
     public static IntegerArgument getPort(final int defaultPort, final LocalizableMessage description)
             throws ArgumentException {
-        final IntegerArgument port = new IntegerArgument("port", OPTION_SHORT_PORT, OPTION_LONG_PORT, false, false,
-                true, INFO_PORT_PLACEHOLDER.get(), defaultPort, null, true, 1, true, 65535,
-                description);
-        port.setPropertyName(OPTION_LONG_PORT);
-        return port;
+        return new IntegerArgument("port", OPTION_SHORT_PORT, OPTION_LONG_PORT, false, false, true,
+                INFO_PORT_PLACEHOLDER.get(), defaultPort, OPTION_LONG_PORT, true, 1, true, 65535,
+                description != null ? description : INFO_DESCRIPTION_ADMIN_PORT.get());
+    }
+
+    /**
+     * Returns the "postreadattrs" string argument.
+     *
+     * @return The "postreadattrs" argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static StringArgument getPostReadAttributes() throws ArgumentException {
+        return new StringArgument("postreadattrs", null, "postReadAttributes", false, false, true,
+                INFO_ATTRIBUTE_LIST_PLACEHOLDER.get(), null, "postReadAttributes",
+                INFO_DESCRIPTION_POSTREAD_ATTRS.get());
+    }
+
+    /**
+     * Returns the "prereadattrs" string argument.
+     *
+     * @return The "prereadattrs" argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static StringArgument getPreReadAttributes() throws ArgumentException {
+        return new StringArgument("prereadattrs", null, "preReadAttributes", false, false, true,
+                INFO_ATTRIBUTE_LIST_PLACEHOLDER.get(), null, "preReadAttributes", INFO_DESCRIPTION_PREREAD_ATTRS.get());
     }
 
     /**
@@ -94,6 +130,19 @@ public final class CommonArguments {
     public static StringArgument getPropertiesFile() throws ArgumentException {
         return new StringArgument("propertiesFilePath", null, OPTION_LONG_PROP_FILE_PATH, false, false, true,
                 INFO_PROP_FILE_PATH_PLACEHOLDER.get(), null, null, INFO_DESCRIPTION_PROP_FILE_PATH.get());
+    }
+
+    /**
+     * Returns the "proxyauthzid" string argument.
+     *
+     * @return The "proxyauthzid" argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static StringArgument getProxyAuthId() throws ArgumentException {
+        return new StringArgument("proxyauthzid", OPTION_SHORT_PROXYAUTHID, OPTION_LONG_PROXYAUTHID, false, false,
+                true, INFO_PROXYAUTHID_PLACEHOLDER.get(), null, OPTION_LONG_PROXYAUTHID,
+                INFO_DESCRIPTION_PROXYAUTHZID.get());
     }
 
     /**
@@ -123,6 +172,18 @@ public final class CommonArguments {
     }
 
     /**
+     * Returns the "control" string argument.
+     *
+     * @return The "control" argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static StringArgument getControl() throws ArgumentException {
+        return new StringArgument("control", 'J', "control", false, true, true, INFO_LDAP_CONTROL_PLACEHOLDER.get(),
+                null, null, INFO_DESCRIPTION_CONTROLS.get());
+    }
+
+    /**
      * Returns the "version" integer argument.
      *
      * @return The "version" argument.
@@ -130,11 +191,23 @@ public final class CommonArguments {
      *             If there is a problem with any of the parameters used to create this argument.
      */
     public static IntegerArgument getVersion() throws ArgumentException {
-        final IntegerArgument version = new IntegerArgument("version", OPTION_SHORT_PROTOCOL_VERSION,
-                OPTION_LONG_PROTOCOL_VERSION, false, false, true, INFO_PROTOCOL_VERSION_PLACEHOLDER.get(), 3, null,
+        return new IntegerArgument("version", OPTION_SHORT_PROTOCOL_VERSION, OPTION_LONG_PROTOCOL_VERSION, false,
+                false, true, INFO_PROTOCOL_VERSION_PLACEHOLDER.get(), 3, OPTION_LONG_PROTOCOL_VERSION,
                 INFO_DESCRIPTION_VERSION.get());
-        version.setPropertyName(OPTION_LONG_PROTOCOL_VERSION);
-        return version;
+    }
+
+    /**
+     * Returns the "windowsnetstop" boolean argument.
+     *
+     * @return The "windowsnetstop" argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static BooleanArgument getWindowsNetStop() throws ArgumentException {
+        final BooleanArgument netStop = new BooleanArgument("windowsnetstop", null, "windowsNetStop",
+                INFO_DESCRIPTION_WINDOWS_NET_STOP.get());
+        netStop.setHidden(true);
+        return netStop;
     }
 
     /**
@@ -150,6 +223,17 @@ public final class CommonArguments {
         quiet.setPropertyName(OPTION_LONG_QUIET);
         return quiet;
 
+    }
+
+    /**
+     * Returns the "no-op" boolean argument.
+     *
+     * @return The "no-op" argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static BooleanArgument getNoOp() throws ArgumentException {
+        return new BooleanArgument("no-op", OPTION_SHORT_DRYRUN, OPTION_LONG_DRYRUN, INFO_DESCRIPTION_NOOP.get());
     }
 
     /**
@@ -174,6 +258,32 @@ public final class CommonArguments {
     public static BooleanArgument getAcceptLicense() throws ArgumentException {
         return new BooleanArgument(OPTION_LONG_ACCEPT_LICENSE, null, OPTION_LONG_ACCEPT_LICENSE,
                 INFO_OPTION_ACCEPT_LICENSE.get());
+    }
+
+    /**
+     * Returns the "targetldif" string argument.
+     *
+     * @param description
+     *            The description of this argument.
+     * @return The "targetldif" argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static StringArgument getTargetLDIF(final LocalizableMessage description) throws ArgumentException {
+        return new StringArgument("targetldif", 't', "targetLDIF", true, false, true, INFO_LDIFFILE_PLACEHOLDER.get(),
+                null, null, description);
+    }
+
+    /**
+     * Returns the "timelimit" boolean argument.
+     *
+     * @return The "timelimit" argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static IntegerArgument getTimeLimit() throws ArgumentException {
+        return new IntegerArgument("timelimit", 't', "timeLimit", false, false, true,
+                INFO_TIME_LIMIT_PLACEHOLDER.get(), 0, null, true, 0, false, 0, INFO_DESCRIPTION_TIME_LIMIT.get());
     }
 
     /**
@@ -206,6 +316,19 @@ public final class CommonArguments {
     }
 
     /**
+     * Returns the "trustmanagerproviderdn" string argument.
+     *
+     * @return The "trustmanagerproviderdn" argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static StringArgument getTrustManagerProviderDN() throws ArgumentException {
+        return new StringArgument("trustmanagerproviderdn", 't', "trustManagerProviderDN", false, false, true,
+                INFO_TRUST_MANAGER_PROVIDER_DN_PLACEHOLDER.get(), null, null,
+                INFO_DESCRIPTION_TRUSTMANAGER_PROVIDER_DN.get());
+    }
+
+    /**
      * Returns the "trustStorePath" string argument.
      *
      * @return The "trustStorePath" argument.
@@ -213,45 +336,53 @@ public final class CommonArguments {
      *             If there is a problem with any of the parameters used to create this argument.
      */
     public static StringArgument getTrustStorePath() throws ArgumentException {
-        final StringArgument tsPath = new StringArgument("trustStorePath", OPTION_SHORT_TRUSTSTOREPATH,
-                OPTION_LONG_TRUSTSTOREPATH, false, false, true, INFO_TRUSTSTOREPATH_PLACEHOLDER.get(), null, null,
+        return new StringArgument("trustStorePath", OPTION_SHORT_TRUSTSTOREPATH, OPTION_LONG_TRUSTSTOREPATH, false,
+                false, true, INFO_TRUSTSTOREPATH_PLACEHOLDER.get(), null, OPTION_LONG_TRUSTSTOREPATH,
                 INFO_DESCRIPTION_TRUSTSTOREPATH.get());
-        tsPath.setPropertyName(OPTION_LONG_TRUSTSTOREPATH);
-        return tsPath;
     }
 
     /**
-     * Returns the "trustStorePassword" string argument.
+     * Returns the "typesOnly" boolean argument.
      *
-     * @return The "trustStorePassword" argument.
+     * @return The "typesOnly" argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static BooleanArgument getTypesOnly() throws ArgumentException {
+        final BooleanArgument typesOnly = new BooleanArgument("typesOnly", 'A', "typesOnly",
+                INFO_DESCRIPTION_TYPES_ONLY.get());
+        typesOnly.setPropertyName("typesOnly");
+        return typesOnly;
+    }
+
+    /**
+     * Returns the "truststorepw" string argument.
+     *
+     * @return The "truststorepw" argument.
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
     public static StringArgument getTrustStorePassword() throws ArgumentException {
-        final StringArgument tsPwd = new StringArgument("trustStorePassword", OPTION_SHORT_TRUSTSTORE_PWD,
-                OPTION_LONG_TRUSTSTORE_PWD, false, false, true, INFO_TRUSTSTORE_PWD_PLACEHOLDER.get(), null, null,
+        return new StringArgument("truststorepw", 'T', OPTION_LONG_TRUSTSTORE_PWD, false, false, true,
+                INFO_TRUSTSTORE_PWD_PLACEHOLDER.get(), null, OPTION_LONG_TRUSTSTORE_PWD,
                 INFO_DESCRIPTION_TRUSTSTOREPASSWORD.get());
-        tsPwd.setPropertyName(OPTION_LONG_TRUSTSTORE_PWD);
-        return tsPwd;
     }
 
     /**
-     * Returns the "trustStorePasswordFile" string argument.
+     * Returns the "trustStorePasswordFile" file argument.
      *
      * @return The "trustStorePasswordFile" argument.
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
     public static FileBasedArgument getTrustStorePasswordFile() throws ArgumentException {
-        final FileBasedArgument tsPwdFile = new FileBasedArgument("trustStorePasswordFile",
-                OPTION_SHORT_TRUSTSTORE_PWD_FILE, OPTION_LONG_TRUSTSTORE_PWD_FILE, false, false,
-                INFO_TRUSTSTORE_PWD_FILE_PLACEHOLDER.get(), null, null, INFO_DESCRIPTION_TRUSTSTOREPASSWORD_FILE.get());
-        tsPwdFile.setPropertyName(OPTION_LONG_TRUSTSTORE_PWD_FILE);
-        return tsPwdFile;
+        return new FileBasedArgument("trustStorePasswordFile", OPTION_SHORT_TRUSTSTORE_PWD_FILE,
+                OPTION_LONG_TRUSTSTORE_PWD_FILE, false, false, INFO_TRUSTSTORE_PWD_FILE_PLACEHOLDER.get(), null,
+                OPTION_LONG_TRUSTSTORE_PWD_FILE, INFO_DESCRIPTION_TRUSTSTOREPASSWORD_FILE.get());
     }
 
     /**
-     * Returns the "connection timeout" boolean argument.
+     * Returns the "connectTimeout" integer argument.
      *
      * @param defaultTimeout
      *            The default timeout.
@@ -269,6 +400,19 @@ public final class CommonArguments {
     }
 
     /**
+     * Returns the "cleanupservice" string argument.
+     *
+     * @return The "cleanupservice" argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static StringArgument getCleanupService() throws ArgumentException {
+        return new StringArgument("cleanupservice", 'c', "cleanupService", false, false, true,
+                INFO_SERVICE_NAME_PLACEHOLDER.get(), null, null,
+                INFO_CONFIGURE_WINDOWS_SERVICE_DESCRIPTION_CLEANUP.get());
+    }
+
+    /**
      * Returns the "CLI" boolean argument.
      *
      * @return The "CLI" argument.
@@ -280,6 +424,20 @@ public final class CommonArguments {
                 OPTION_LONG_CLI, INFO_ARGUMENT_DESCRIPTION_CLI.get());
         cli.setPropertyName(OPTION_LONG_CLI);
         return cli;
+    }
+
+    /**
+     * Returns the "checkstoppability" boolean argument.
+     *
+     * @return The "checkstoppability" argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static BooleanArgument getCheckStoppability() throws ArgumentException {
+        final BooleanArgument cs = new BooleanArgument("checkstoppability", null, "checkStoppability",
+                INFO_CHECK_STOPPABILITY.get());
+        cs.setHidden(true);
+        return cs;
     }
 
     /**
@@ -311,6 +469,53 @@ public final class CommonArguments {
                 null, INFO_DESCRIPTION_CONFIG_CLASS.get());
         configClass.setHidden(true);
         return configClass;
+    }
+
+    /**
+     * Returns the "backendid" string argument.
+     *
+     * @return The "backendid" argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static StringArgument getBackendId() throws ArgumentException {
+        return new StringArgument("backendid", 'n', "backendID", false, true, true, INFO_BACKENDNAME_PLACEHOLDER.get(),
+                null, null, INFO_BACKUPDB_DESCRIPTION_BACKEND_ID.get());
+    }
+
+    /**
+     * Returns the "backupdirectory" string argument.
+     *
+     * @return The "backupdirectory" argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static StringArgument getBackupDirectory() throws ArgumentException {
+        return new StringArgument("backupdirectory", 'd', "backupDirectory", true, false, true,
+                INFO_BACKUPDIR_PLACEHOLDER.get(), null, null, INFO_DESCRIPTION_BACKUP_DIR.get());
+    }
+
+    /**
+     * Returns the "backupID" string argument.
+     *
+     * @return The "backupID" argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static StringArgument getBackupId() throws ArgumentException {
+        return new StringArgument("backupid", 'I', "backupID", false, false, true,
+                INFO_BACKUPID_PLACEHOLDER.get(), null, null, INFO_DESCRIPTION_BACKUP_ID.get());
+    }
+
+    /**
+     * Returns the "backupall" boolean argument.
+     *
+     * @return The "backupall" argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static BooleanArgument getBackupAll() throws ArgumentException {
+        return new BooleanArgument("backupall", 'a', "backUpAll", INFO_DESCRIPTION_BACKUP_ALL.get());
     }
 
     /**
@@ -349,10 +554,9 @@ public final class CommonArguments {
      *             If there is a problem with any of the parameters used to create this argument.
      */
     public static StringArgument getBindDN(final String defaultBindDN) throws ArgumentException {
-        final StringArgument bindDN = new StringArgument("bindDN", OPTION_SHORT_BINDDN, OPTION_LONG_BINDDN, false,
-                false, true, INFO_BINDDN_PLACEHOLDER.get(), defaultBindDN, null, INFO_DESCRIPTION_BINDDN.get());
-        bindDN.setPropertyName(OPTION_LONG_BINDDN);
-        return bindDN;
+        return new StringArgument("bindDN", OPTION_SHORT_BINDDN, OPTION_LONG_BINDDN, false, false, true,
+                INFO_BINDDN_PLACEHOLDER.get(), defaultBindDN, OPTION_LONG_BINDDN, INFO_DESCRIPTION_BINDDN.get());
+
     }
 
     /**
@@ -363,11 +567,8 @@ public final class CommonArguments {
      *             If there is a problem with any of the parameters used to create this argument.
      */
     public static StringArgument getBindPassword() throws ArgumentException {
-        final StringArgument bindPassword = new StringArgument("bindPassword", OPTION_SHORT_BINDPWD,
-                OPTION_LONG_BINDPWD, false, false, true, INFO_BINDPWD_PLACEHOLDER.get(), null, null,
-                INFO_DESCRIPTION_BINDPASSWORD.get());
-        bindPassword.setPropertyName(OPTION_LONG_BINDPWD);
-        return bindPassword;
+        return new StringArgument("bindPassword", OPTION_SHORT_BINDPWD, OPTION_LONG_BINDPWD, false, false, true,
+                INFO_BINDPWD_PLACEHOLDER.get(), null, OPTION_LONG_BINDPWD, INFO_DESCRIPTION_BINDPASSWORD.get());
     }
 
     /**
@@ -378,11 +579,9 @@ public final class CommonArguments {
      *             If there is a problem with any of the parameters used to create this argument.
      */
     public static FileBasedArgument getBindPasswordFile() throws ArgumentException {
-        final FileBasedArgument bindPasswordFile = new FileBasedArgument("bindPasswordFile", OPTION_SHORT_BINDPWD_FILE,
-                OPTION_LONG_BINDPWD_FILE, false, false, INFO_BINDPWD_FILE_PLACEHOLDER.get(), null, null,
+        return new FileBasedArgument("bindPasswordFile", OPTION_SHORT_BINDPWD_FILE, OPTION_LONG_BINDPWD_FILE, false,
+                false, INFO_BINDPWD_FILE_PLACEHOLDER.get(), null, OPTION_LONG_BINDPWD_FILE,
                 INFO_DESCRIPTION_BINDPASSWORDFILE.get());
-        bindPasswordFile.setPropertyName(OPTION_LONG_BINDPWD_FILE);
-        return bindPasswordFile;
     }
 
     /**
@@ -397,19 +596,6 @@ public final class CommonArguments {
                 INFO_ARGUMENT_DESCRIPTION_ADDBASE.get());
         addBaseEntryArg.setPropertyName("addBaseEntry");
         return addBaseEntryArg;
-    }
-
-    /**
-     * Returns the "import LDIF" string argument.
-     *
-     * @return The "import LDIF" argument.
-     * @throws ArgumentException
-     *             If there is a problem with any of the parameters used to create this argument.
-     */
-    public static StringArgument getImportLDIF() throws ArgumentException {
-        return new StringArgument(OPTION_LONG_LDIF_FILE.toLowerCase(), OPTION_SHORT_LDIF_FILE, OPTION_LONG_LDIF_FILE,
-                false, true, true, INFO_LDIFFILE_PLACEHOLDER.get(), null, OPTION_LONG_LDIF_FILE,
-                INFO_ARGUMENT_DESCRIPTION_IMPORTLDIF.get());
     }
 
     /**
@@ -436,6 +622,33 @@ public final class CommonArguments {
                 OPTION_LONG_REMOTE, INFO_DESCRIPTION_REMOTE.get());
         remote.setPropertyName(OPTION_LONG_REMOTE);
         return remote;
+    }
+
+    /**
+     * Returns the "reportauthzid" boolean argument.
+     *
+     * @return The "reportauthzid" argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static BooleanArgument getReportAuthzId() throws ArgumentException {
+        final BooleanArgument report = new BooleanArgument("reportauthzid", 'E', "reportAuthzID",
+                INFO_DESCRIPTION_REPORT_AUTHZID.get());
+        report.setPropertyName("reportAuthzID");
+        return report;
+    }
+
+    /**
+     * Returns the "restart" boolean argument.
+     *
+     * @return The "restart" argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static BooleanArgument getRestart() throws ArgumentException {
+        final BooleanArgument restart = new BooleanArgument("restart", 'R', "restart", INFO_DESCRIPTION_RESTART.get());
+        restart.setPropertyName("restart");
+        return restart;
     }
 
     /**
@@ -471,12 +684,37 @@ public final class CommonArguments {
      *             If there is a problem with any of the parameters used to create this argument.
      */
     public static StringArgument getSASL() throws ArgumentException {
-        final StringArgument sasl = new StringArgument("sasloption", OPTION_SHORT_SASLOPTION, OPTION_LONG_SASLOPTION,
-                false, true, true, INFO_SASL_OPTION_PLACEHOLDER.get(), null, null,
+        return new StringArgument("sasloption", OPTION_SHORT_SASLOPTION, OPTION_LONG_SASLOPTION, false, true, true,
+                INFO_SASL_OPTION_PLACEHOLDER.get(), null, OPTION_LONG_SASLOPTION,
                 INFO_LDAP_CONN_DESCRIPTION_SASLOPTIONS.get());
-        sasl.setPropertyName(OPTION_LONG_SASLOPTION);
-        return sasl;
     }
+
+    /**
+     * Returns the "serverRoot" string argument.
+     *
+     * @return The "serverRoot" argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static StringArgument getServerRoot() throws ArgumentException {
+        final StringArgument serverRoot = new StringArgument("serverRoot", OPTION_SHORT_SERVER_ROOT,
+                OPTION_LONG_SERVER_ROOT, false, false, true, INFO_SERVER_ROOT_DIR_PLACEHOLDER.get(), null, null, null);
+        serverRoot.setHidden(true);
+        return serverRoot;
+    }
+
+    /**
+     * Returns the "servicestatey" boolean argument.
+     *
+     * @return The "servicestate" argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static BooleanArgument getServiceState() throws ArgumentException {
+        return new BooleanArgument("servicestate", 's', "serviceState",
+                INFO_CONFIGURE_WINDOWS_SERVICE_DESCRIPTION_STATE.get());
+    }
+
     /**
      * Returns the "script-friendly" boolean argument.
      *
@@ -536,6 +774,19 @@ public final class CommonArguments {
     }
 
     /**
+     * Returns the "assertionfilter" string argument.
+     *
+     * @return The "assertionfilter" argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static StringArgument getAssertionFilter() throws ArgumentException {
+        return new StringArgument("assertionfilter", null, OPTION_LONG_ASSERTION_FILE, false, false, true,
+                INFO_ASSERTION_FILTER_PLACEHOLDER.get(), null, OPTION_LONG_ASSERTION_FILE,
+                INFO_DESCRIPTION_ASSERTION_FILTER.get());
+    }
+
+    /**
      * Returns the "JMX port" integer argument.
      *
      * @param defaultJMXPort
@@ -565,6 +816,20 @@ public final class CommonArguments {
     }
 
     /**
+     * Returns the "sourceldif" string argument.
+     *
+     * @param description
+     *            The description of this argument.
+     * @return The "sourceldif" argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static StringArgument getSourceLDIF(final LocalizableMessage description) throws ArgumentException {
+        return new StringArgument("sourceldif", 's', "sourceLDIF", true, false, true, INFO_LDIFFILE_PLACEHOLDER.get(),
+                null, null, description);
+    }
+
+    /**
      * Returns the "startTLS" boolean argument.
      *
      * @return The "startTLS" argument.
@@ -577,6 +842,31 @@ public final class CommonArguments {
         useStartTLS.setPropertyName(OPTION_LONG_START_TLS);
         return useStartTLS;
     }
+
+    /**
+     * Returns the "stopreason" string argument.
+     *
+     * @return The "stopreason" argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static StringArgument getStopReason() throws ArgumentException {
+        return new StringArgument("stopreason", 'r', "stopReason", false, false, true,
+                INFO_STOP_REASON_PLACEHOLDER.get(), null, "stopReason", INFO_DESCRIPTION_STOP_REASON.get());
+    }
+
+    /**
+     * Returns the "stopTime" string argument.
+     *
+     * @return The "stopTime" argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static StringArgument getStopTime() throws ArgumentException {
+        return new StringArgument("stoptime", 't', "stopTime", false, false, true, INFO_STOP_TIME_PLACEHOLDER.get(),
+                null, "stopTime", INFO_DESCRIPTION_STOP_TIME.get());
+    }
+
     /**
      * Returns the "directory manager DN" string argument.
      *
@@ -631,6 +921,18 @@ public final class CommonArguments {
     }
 
     /**
+     * Returns the "encoding" string argument.
+     *
+     * @return The "encoding" argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static StringArgument getEncoding() throws ArgumentException {
+        return new StringArgument("encoding", 'i', "encoding", false, false, true, INFO_ENCODING_PLACEHOLDER.get(),
+                null, "encoding", INFO_DESCRIPTION_ENCODING.get());
+    }
+
+    /**
      * Returns the "do not start" boolean argument.
      *
      * @return The "doNotStart" argument.
@@ -642,6 +944,29 @@ public final class CommonArguments {
                 INFO_SETUP_DESCRIPTION_DO_NOT_START.get());
         doNotStartArg.setPropertyName("doNotStart");
         return doNotStartArg;
+    }
+
+    /**
+     * Returns the "defaultAdd" boolean argument.
+     *
+     * @return The "defaultAdd" argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static BooleanArgument getDefaultAdd() throws ArgumentException {
+        return new BooleanArgument("defaultAdd", 'a', "defaultAdd", INFO_MODIFY_DESCRIPTION_DEFAULT_ADD.get());
+    }
+
+    /**
+     * Returns the "disableservice" boolean argument.
+     *
+     * @return The "disableservice" argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static BooleanArgument getDisableService() throws ArgumentException {
+        return new BooleanArgument("disableservice", 'd', "disableService",
+                INFO_CONFIGURE_WINDOWS_SERVICE_DESCRIPTION_DISABLE.get());
     }
 
     /**
@@ -670,6 +995,20 @@ public final class CommonArguments {
         return new StringArgument(OPTION_LONG_EQUIVALENT_COMMAND_FILE_PATH, null,
                 OPTION_LONG_EQUIVALENT_COMMAND_FILE_PATH, false, false, true, INFO_PATH_PLACEHOLDER.get(), null, null,
                 description);
+    }
+
+    /**
+     * Returns the "filename" string argument.
+     *
+     * @param description
+     *            The description of this argument.
+     * @return The "filename" argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static StringArgument getFilename(final LocalizableMessage description) throws ArgumentException {
+        return new StringArgument("filename", OPTION_SHORT_FILENAME, OPTION_LONG_FILENAME, false, false, true,
+                INFO_FILE_PLACEHOLDER.get(), null, OPTION_LONG_FILENAME, description);
     }
 
     /**
@@ -702,6 +1041,20 @@ public final class CommonArguments {
     }
 
     /**
+     * Returns the "ldiffile" string argument.
+     *
+     * @param description
+     *            The description of this argument.
+     * @return The "ldapsPort" argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static StringArgument getLDIFFile(final LocalizableMessage description) throws ArgumentException {
+        return new StringArgument(OPTION_LONG_LDIF_FILE.toLowerCase(), OPTION_SHORT_LDIF_FILE, OPTION_LONG_LDIF_FILE,
+                false, true, true, INFO_LDIFFILE_PLACEHOLDER.get(), null, null, description);
+    }
+
+    /**
      * Returns the "generate self certificate" boolean argument.
      *
      * @return The "generateSelfSignedCertificate" argument.
@@ -716,7 +1069,7 @@ public final class CommonArguments {
     }
 
     /**
-     * Returns the "host name" string argument.
+     * Returns the "hostname" string argument.
      *
      * @param defaultHostName
      *            The default host name value.
@@ -725,11 +1078,25 @@ public final class CommonArguments {
      *             If there is a problem with any of the parameters used to create this argument.
      */
     public static StringArgument getHostName(final String defaultHostName) throws ArgumentException {
-        final StringArgument hostName = new StringArgument(OPTION_LONG_HOST.toLowerCase(), OPTION_SHORT_HOST,
-                OPTION_LONG_HOST, false, false, true, INFO_HOST_PLACEHOLDER.get(), defaultHostName, null,
-                INFO_ARGUMENT_DESCRIPTION_HOST_NAME.get());
-        hostName.setPropertyName(OPTION_LONG_HOST);
-        return hostName;
+        return getHostName(defaultHostName, null);
+    }
+
+    /**
+     * Returns the "hostname" string argument.
+     *
+     * @param defaultHostName
+     *            The default host name value.
+     * @param description
+     *            The custom description.
+     * @return The "hostname" argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static StringArgument getHostName(final String defaultHostName, final LocalizableMessage description)
+            throws ArgumentException {
+        return new StringArgument(OPTION_LONG_HOST.toLowerCase(), OPTION_SHORT_HOST, OPTION_LONG_HOST, false, false,
+                true, INFO_HOST_PLACEHOLDER.get(), defaultHostName, OPTION_LONG_HOST, description != null ? description
+                        : INFO_ARGUMENT_DESCRIPTION_HOST_NAME.get());
     }
 
     /**
@@ -785,6 +1152,20 @@ public final class CommonArguments {
     }
 
     /**
+     * Returns the "useSASLExternal" boolean argument.
+     *
+     * @return The "useSASLExternal" argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static BooleanArgument getUseSASLExternal() throws ArgumentException {
+        final BooleanArgument useSASLExternal = new BooleanArgument("useSASLExternal", 'r', "useSASLExternal",
+                INFO_DESCRIPTION_USE_SASL_EXTERNAL.get());
+        useSASLExternal.setPropertyName("useSASLExternal");
+        return useSASLExternal;
+    }
+
+    /**
      * Returns the "useSSL" boolean argument.
      *
      * @return The "useSSL" argument.
@@ -798,6 +1179,30 @@ public final class CommonArguments {
         return useSSL;
     }
 
+    /**
+     * Returns the "keymanagerpath" string argument.
+     *
+     * @return The "keymanagerpath" argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static StringArgument getKeyManagerPath() throws ArgumentException {
+        return new StringArgument("keymanagerpath", 'm', "keyManagerPath", false, false, true,
+                INFO_KEY_MANAGER_PATH_PLACEHOLDER.get(), null, null, INFO_DESCRIPTION_KEYMANAGER_PATH.get());
+    }
+
+    /**
+     * Returns the "keymanagerproviderdn" string argument.
+     *
+     * @return The "keymanagerproviderdn" argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static StringArgument getKeyManagerProviderDN() throws ArgumentException {
+        return new StringArgument("keymanagerproviderdn", 'k', "keyManagerProviderDN", false, false, true,
+                INFO_KEY_MANAGER_PROVIDER_DN_PLACEHOLDER.get(), null, null,
+                INFO_DESCRIPTION_KEYMANAGER_PROVIDER_DN.get());
+    }
 
     /**
      * Returns the "key store password" string argument.
