@@ -250,8 +250,8 @@ public abstract class ReplicationDomain
    * The context related to an import or export being processed
    * Null when none is being processed.
    */
-  private final AtomicReference<IEContext> ieContext =
-      new AtomicReference<IEContext>();
+  private final AtomicReference<ImportExportContext> importExportContext =
+      new AtomicReference<ImportExportContext>();
 
   /**
    * The Thread waiting for incoming update messages for this domain and pushing
@@ -673,7 +673,7 @@ public abstract class ReplicationDomain
    * @return the info related to this remote server if it is connected,
    *                  null is the server is NOT connected.
    */
-  private DSInfo isRemoteDSConnected(int dsId)
+  private DSInfo getConnectedRemoteDS(int dsId)
   {
     return getReplicaInfos().get(dsId);
   }
@@ -824,7 +824,7 @@ public abstract class ReplicationDomain
         else if (msg instanceof ErrorMsg)
         {
           ErrorMsg errorMsg = (ErrorMsg)msg;
-          IEContext ieCtx = ieContext.get();
+          ImportExportContext ieCtx = importExportContext.get();
           if (ieCtx != null)
           {
             /*
@@ -877,7 +877,7 @@ public abstract class ReplicationDomain
         }
         else if (msg instanceof InitializeRcvAckMsg)
         {
-          IEContext ieCtx = ieContext.get();
+          ImportExportContext ieCtx = importExportContext.get();
           if (ieCtx != null)
           {
             InitializeRcvAckMsg ackMsg = (InitializeRcvAckMsg) msg;
@@ -1120,10 +1120,10 @@ public abstract class ReplicationDomain
   }
 
   /**
-   * This class contain the context related to an import or export
-   * launched on the domain.
+   * This class contains the context related to an import or export launched on
+   * the domain.
    */
-  protected class IEContext
+  protected class ImportExportContext
   {
     /** The private task that initiated the operation. */
     private Task initializeTask;
@@ -1202,7 +1202,7 @@ public abstract class ReplicationDomain
      *                         for and import, false if the IEContext
      *                         will be used for and export.
      */
-    private IEContext(boolean importInProgress)
+    private ImportExportContext(boolean importInProgress)
     {
       this.importInProgress = importInProgress;
       this.startTime = System.currentTimeMillis();
@@ -1368,7 +1368,7 @@ public abstract class ReplicationDomain
 
       // Recompute the server with the minAck returned,means the slowest server.
       slowestServerId = serverId;
-      for (Integer sid : ieContext.get().ackVals.keySet())
+      for (Integer sid : importExportContext.get().ackVals.keySet())
       {
         if (this.ackVals.get(sid) < this.ackVals.get(slowestServerId))
         {
@@ -1474,7 +1474,7 @@ public abstract class ReplicationDomain
       int serverRunningTheTask, Task initTask, int initWindow)
   throws DirectoryException
   {
-    final IEContext ieCtx = acquireIEContext(false);
+    final ImportExportContext ieCtx = acquireIEContext(false);
 
     /*
     We manage the list of servers to initialize in order :
@@ -1595,7 +1595,8 @@ public abstract class ReplicationDomain
               TRACER.debugInfo(
                 "[IE] Exporter wait for reconnection by the listener thread");
             int att=0;
-            while (!broker.shuttingDown() && !broker.isConnected()
+            while (!broker.shuttingDown()
+                && !broker.isConnected()
                 && ++att < 100)
             {
               try { Thread.sleep(100); }
@@ -1603,7 +1604,8 @@ public abstract class ReplicationDomain
             }
           }
 
-          if (initTask != null && broker.isConnected()
+          if (initTask != null
+              && broker.isConnected()
               && serverToInitialize != RoutableMsg.ALL_SERVERS)
           {
             /*
@@ -1680,7 +1682,7 @@ public abstract class ReplicationDomain
    * - wait it has finished the import and present the expected generationID,
    * - build the failureList.
    */
-  private void waitForRemoteStartOfInit(IEContext ieCtx)
+  private void waitForRemoteStartOfInit(ImportExportContext ieCtx)
   {
     final Set<Integer> replicasWeAreWaitingFor =
         new HashSet<Integer>(ieCtx.startList);
@@ -1738,7 +1740,7 @@ public abstract class ReplicationDomain
    * - wait it has finished the import and present the expected generationID,
    * - build the failureList.
    */
-  private void waitForRemoteEndOfInit(IEContext ieCtx)
+  private void waitForRemoteEndOfInit(ImportExportContext ieCtx)
   {
     final Set<Integer> replicasWeAreWaitingFor =
         new HashSet<Integer>(ieCtx.startList);
@@ -1773,7 +1775,7 @@ public abstract class ReplicationDomain
           continue;
         }
 
-        DSInfo dsInfo = isRemoteDSConnected(serverId);
+        DSInfo dsInfo = getConnectedRemoteDS(serverId);
         if (dsInfo == null)
         {
           /*
@@ -1838,11 +1840,11 @@ public abstract class ReplicationDomain
    * Acquire and initialize the import/export context, verifying no other
    * import/export is in progress.
    */
-  private IEContext acquireIEContext(boolean importInProgress)
+  private ImportExportContext acquireIEContext(boolean importInProgress)
       throws DirectoryException
   {
-    final IEContext ieCtx = new IEContext(importInProgress);
-    if (!ieContext.compareAndSet(null, ieCtx))
+    final ImportExportContext ieCtx = new ImportExportContext(importInProgress);
+    if (!importExportContext.compareAndSet(null, ieCtx))
     {
       // Rejects 2 simultaneous exports
       Message message = ERR_SIMULTANEOUS_IMPORT_EXPORT_REJECTED.get();
@@ -1853,7 +1855,7 @@ public abstract class ReplicationDomain
 
   private void releaseIEContext()
   {
-    ieContext.set(null);
+    importExportContext.set(null);
   }
 
   /**
@@ -1862,7 +1864,7 @@ public abstract class ReplicationDomain
    *
    * @param errorMsg The error message received.
    */
-  private void processErrorMsg(ErrorMsg errorMsg, IEContext ieCtx)
+  private void processErrorMsg(ErrorMsg errorMsg, ImportExportContext ieCtx)
   {
     //Exporting must not be stopped on the first error, if we run initialize-all
     if (ieCtx != null && ieCtx.exportTarget != RoutableMsg.ALL_SERVERS)
@@ -1900,7 +1902,7 @@ public abstract class ReplicationDomain
     ReplicationMsg msg;
     while (true)
     {
-      IEContext ieCtx = ieContext.get();
+      ImportExportContext ieCtx = importExportContext.get();
       try
       {
         // In the context of the total update, we don't want any automatic
@@ -2000,7 +2002,7 @@ public abstract class ReplicationDomain
           // Other messages received during an import are trashed except
           // the topologyMsg.
           if (msg instanceof TopologyMsg
-              && isRemoteDSConnected(ieCtx.importSource) == null)
+              && getConnectedRemoteDS(ieCtx.importSource) == null)
           {
             Message errMsg =
               Message.raw(Category.SYNC, Severity.NOTICE,
@@ -2077,7 +2079,7 @@ public abstract class ReplicationDomain
           Arrays.toString(lDIFEntry));
 
     // build the message
-    IEContext ieCtx = ieContext.get();
+    ImportExportContext ieCtx = importExportContext.get();
     EntryMsg entryMessage = new EntryMsg(
         getServerId(), ieCtx.getExportTarget(), lDIFEntry, pos, length,
         ++ieCtx.msgCnt);
@@ -2096,7 +2098,7 @@ public abstract class ReplicationDomain
       }
 
       int slowestServerId = ieCtx.getSlowestServer();
-      if (isRemoteDSConnected(slowestServerId)==null)
+      if (getConnectedRemoteDS(slowestServerId) == null)
       {
         ieCtx.setException(new DirectoryException(ResultCode.OTHER,
             ERR_INIT_HEARTBEAT_LOST_DURING_EXPORT.get(
@@ -2227,7 +2229,7 @@ public abstract class ReplicationDomain
       update the task.
       */
 
-      final IEContext ieCtx = acquireIEContext(true);
+      final ImportExportContext ieCtx = acquireIEContext(true);
       ieCtx.initializeTask = initTask;
       ieCtx.attemptCnt = 0;
       ieCtx.initReqMsgSent = new InitializeRequestMsg(
@@ -2288,7 +2290,7 @@ public abstract class ReplicationDomain
 
     int source = initTargetMsgReceived.getSenderID();
 
-    IEContext ieCtx = ieContext.get();
+    ImportExportContext ieCtx = importExportContext.get();
     try
     {
       // Log starting
@@ -2500,7 +2502,7 @@ public abstract class ReplicationDomain
    */
   public boolean ieRunning()
   {
-    return ieContext.get() != null;
+    return importExportContext.get() != null;
   }
 
   /**
@@ -3518,9 +3520,9 @@ public abstract class ReplicationDomain
    *
    * @return the Import/Export context associated to this ReplicationDomain
    */
-  protected IEContext getImportExportContext()
+  protected ImportExportContext getImportExportContext()
   {
-    return ieContext.get();
+    return importExportContext.get();
   }
 
   /**
