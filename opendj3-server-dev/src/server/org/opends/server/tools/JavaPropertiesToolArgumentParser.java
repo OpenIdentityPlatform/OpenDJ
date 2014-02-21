@@ -27,7 +27,6 @@
 package org.opends.server.tools;
 
 import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.tools.ToolConstants.*;
 
 import java.io.File;
 import java.util.LinkedHashSet;

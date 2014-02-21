@@ -42,8 +42,6 @@ import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.tools.LDAPConnection;
 import org.opends.server.tools.LDAPConnectionException;
 
-import static org.opends.server.tools.ToolConstants.*;
-
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.util.args.LDAPConnectionArgumentParser;

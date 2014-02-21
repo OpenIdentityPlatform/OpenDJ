@@ -31,8 +31,8 @@ import org.forgerock.i18n.LocalizableMessage;
 import com.forgerock.opendj.cli.ArgumentParser;
 
 import static org.opends.messages.QuickSetupMessages.*;
-import static org.opends.server.tools.ToolConstants.*;
 import static org.opends.server.util.DynamicConstants.PRINTABLE_VERSION_STRING;
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
 
 import org.opends.quicksetup.util.Utils;
 

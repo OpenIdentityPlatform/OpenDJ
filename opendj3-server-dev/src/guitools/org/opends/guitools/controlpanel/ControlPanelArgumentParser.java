@@ -28,7 +28,6 @@
 package org.opends.guitools.controlpanel;
 
 import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.tools.ToolConstants.*;
 
 import java.util.LinkedHashSet;
 

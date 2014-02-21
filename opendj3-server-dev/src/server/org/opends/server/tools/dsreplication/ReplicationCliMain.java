@@ -62,6 +62,7 @@ import static org.opends.quicksetup.util.Utils.isCertificateException;
 import static org.opends.quicksetup.util.Utils.getMessage;
 import static org.opends.quicksetup.util.Utils.getMessageFromCollection;
 import static org.opends.quicksetup.util.Utils.getServerClock;
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
 
 import org.opends.server.admin.*;
 import org.opends.server.admin.client.ManagementContext;
@@ -75,7 +76,6 @@ import org.opends.server.admin.std.meta.
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.tasks.PurgeConflictsHistoricalTask;
-import org.opends.server.tools.ToolConstants;
 import org.opends.server.tools.tasks.TaskEntry;
 import org.opends.server.tools.tasks.TaskScheduleInteraction;
 import org.opends.server.tools.tasks.TaskScheduleUserData;
@@ -147,7 +147,6 @@ import static org.opends.messages.UtilityMessages.
     ERR_CONFIRMATION_TRIES_LIMIT_REACHED;
 import static org.opends.quicksetup.util.Utils.getFirstValue;
 import static org.opends.quicksetup.util.Utils.getThrowableMsg;
-import static org.opends.server.tools.ToolConstants.*;
 import static org.opends.server.tools.dsreplication.ReplicationCliReturnCode.*;
 import static org.opends.server.util.StaticUtils.close;
 
@@ -583,7 +582,7 @@ public class ReplicationCliMain extends ConsoleApplication
           else
           {
             println(ERR_REPLICATION_VALID_SUBCOMMAND_NOT_FOUND.get(
-                "--"+ToolConstants.OPTION_LONG_NO_PROMPT));
+                "--"+OPTION_LONG_NO_PROMPT));
             println(LocalizableMessage.raw(argParser.getUsage()));
             returnValue = ERROR_USER_DATA;
             subcommandLaunched = false;
@@ -7718,7 +7717,7 @@ public class ReplicationCliMain extends ConsoleApplication
     {
       printer = new TextTablePrinter(out);
       ((TextTablePrinter)printer).setColumnSeparator(
-        ToolConstants.LIST_TABLE_SEPARATOR);
+        LIST_TABLE_SEPARATOR);
     }
     tableBuilder.print(printer);
   }
@@ -7788,7 +7787,7 @@ public class ReplicationCliMain extends ConsoleApplication
 
       printer = new TextTablePrinter(getOutputStream());
       ((TextTablePrinter)printer).setColumnSeparator(
-        ToolConstants.LIST_TABLE_SEPARATOR);
+        LIST_TABLE_SEPARATOR);
     }
     tableBuilder.print(printer);
   }

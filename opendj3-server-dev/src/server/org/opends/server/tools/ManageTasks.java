@@ -35,7 +35,7 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.forgerock.opendj.ldap.DecodeException;
 
-import static org.opends.server.tools.ToolConstants.*;
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
 
 import org.opends.server.tools.tasks.TaskClient;
 import org.opends.server.tools.tasks.TaskEntry;

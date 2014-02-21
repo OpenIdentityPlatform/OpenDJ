@@ -32,6 +32,7 @@ import static org.opends.messages.DSConfigMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.admin.PropertyException.*;
 import static org.opends.server.tools.dsconfig.ArgumentExceptionFactory.*;
+import static com.forgerock.opendj.cli.ArgumentConstants.LIST_TABLE_SEPARATOR;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -77,7 +78,6 @@ import org.opends.server.admin.client.MissingMandatoryPropertiesException;
 import org.opends.server.admin.client.OperationRejectedException;
 import org.opends.server.admin.condition.Condition;
 import org.opends.server.admin.condition.ContainsCondition;
-import org.opends.server.tools.ToolConstants;
 
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
@@ -328,7 +328,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
 
       TextTablePrinter printer = new TextTablePrinter(app.getErrorStream());
       printer.setColumnWidth(1, 0);
-      printer.setColumnSeparator(ToolConstants.LIST_TABLE_SEPARATOR);
+      printer.setColumnSeparator(LIST_TABLE_SEPARATOR);
       builder.print(printer);
       app.println();
       app.pressReturnToContinue();

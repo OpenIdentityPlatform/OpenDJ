@@ -69,7 +69,7 @@ import com.forgerock.opendj.cli.StringArgument;
 
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
-import static org.opends.server.tools.ToolConstants.*;
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 

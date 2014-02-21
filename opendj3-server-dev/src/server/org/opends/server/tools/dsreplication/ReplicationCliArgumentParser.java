@@ -29,7 +29,7 @@ package org.opends.server.tools.dsreplication;
 
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.tools.ToolConstants.*;
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
 
 import java.io.File;
 import java.io.OutputStream;

@@ -26,11 +26,11 @@
 package org.opends.server.tools.upgrade;
 
 import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.tools.ToolConstants.*;
 import static org.opends.server.util.StaticUtils.filterExitCode;
 import static org.opends.server.tools.upgrade.FormattedNotificationCallback.*;
 import static org.opends.server.tools.upgrade.Upgrade.EXIT_CODE_ERROR;
 import static org.opends.server.tools.upgrade.Upgrade.EXIT_CODE_SUCCESS;
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
 
 import java.io.IOException;
 import java.io.InputStream;

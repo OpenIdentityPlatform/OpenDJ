@@ -67,7 +67,7 @@ import org.opends.server.util.args.LDAPConnectionArgumentParser;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-import static org.opends.server.tools.ToolConstants.*;
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
 
 import org.opends.server.tools.tasks.TaskTool;
 import org.opends.server.admin.std.server.BackendCfg;

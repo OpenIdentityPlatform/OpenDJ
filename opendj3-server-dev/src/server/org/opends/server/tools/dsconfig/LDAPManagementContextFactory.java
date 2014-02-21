@@ -44,7 +44,8 @@ import org.opends.server.config.ConfigException;
 import com.forgerock.opendj.cli.ClientException;
 
 import org.opends.server.tools.JavaPropertiesTool.ErrorReturnCode;
-import org.opends.server.tools.ToolConstants;
+import static com.forgerock.opendj.cli.ArgumentConstants.OPTION_LONG_HELP;
+import static com.forgerock.opendj.cli.ArgumentConstants.OPTION_SHORT_HELP;
 import com.forgerock.opendj.cli.CommandBuilder;
 import com.forgerock.opendj.cli.ConsoleApplication;
 import org.opends.server.util.cli.LDAPConnectionConsoleInteraction;
@@ -365,8 +366,8 @@ public final class LDAPManagementContextFactory implements
             // This is not a help command
             continue;
           }
-          if (rawArg.contains(ToolConstants.OPTION_LONG_HELP) ||
-            (rawArg.charAt(1) == ToolConstants.OPTION_SHORT_HELP) || (rawArg.
+          if (rawArg.contains(OPTION_LONG_HELP) ||
+            (rawArg.charAt(1) == OPTION_SHORT_HELP) || (rawArg.
             charAt(1) == '?')) {
             // used for usage help default values only
             secureArgsList.initArgumentsWithConfiguration();

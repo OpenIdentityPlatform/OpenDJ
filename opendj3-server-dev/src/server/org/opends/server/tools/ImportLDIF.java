@@ -33,7 +33,7 @@ import static org.opends.messages.ToolMessages.*;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.tools.ToolConstants.*;
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
