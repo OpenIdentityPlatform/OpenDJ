@@ -64,7 +64,7 @@ import org.opends.server.util.args.LDAPConnectionArgumentParser;
 import static org.opends.server.extensions.
                    PasswordPolicyStateExtendedOperation.*;
 import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.tools.ToolConstants.*;
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
 
 import org.opends.server.util.EmbeddedUtils;
 

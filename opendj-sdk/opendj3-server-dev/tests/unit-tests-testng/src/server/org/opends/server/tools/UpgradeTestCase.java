@@ -40,7 +40,7 @@ import org.opends.server.util.StaticUtils;
 import org.testng.annotations.Test;
 
 import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.tools.ToolConstants.*;
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static org.testng.Assert.*;
 
 /**

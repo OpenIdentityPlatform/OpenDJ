@@ -28,6 +28,7 @@ package org.opends.quicksetup.util;
 
 import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.quicksetup.util.Utils.*;
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
@@ -35,7 +36,6 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.quicksetup.*;
 import org.opends.quicksetup.installer.InstallerHelper;
-import org.opends.server.tools.ToolConstants;
 import org.opends.server.util.SetupUtils;
 import org.opends.server.util.StaticUtils;
 
@@ -155,7 +155,7 @@ public class ServerController {
       argList.toArray(args);
       if (noPropertiesFile)
       {
-        args[argList.size()] = "--" + ToolConstants.OPTION_LONG_NO_PROP_FILE;
+        args[argList.size()] = "--" + OPTION_LONG_NO_PROP_FILE;
       }
       ProcessBuilder pb = new ProcessBuilder(args);
       Map<String, String> env = pb.environment();

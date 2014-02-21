@@ -61,7 +61,6 @@ import org.opends.server.admin.std.client.ReplicationServerCfgClient;
 import org.opends.server.admin.std.client.RootCfgClient;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.tools.ConfigureWindowsService;
-import org.opends.server.tools.ToolConstants;
 import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.StaticUtils;
 
@@ -70,6 +69,7 @@ import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.quicksetup.Step.*;
 import static org.opends.quicksetup.util.Utils.*;
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
 
 import java.io.*;
 import java.net.InetAddress;
@@ -2073,8 +2073,8 @@ public class Uninstaller extends GuiApplication implements CliApplication {
             ERR_UNINSTALL_ERROR_UPDATING_REMOTE_NO_FORCE.get(
               "--"+
               parser.getSecureArgsList().adminUidArg.getLongIdentifier(),
-              "--"+ToolConstants.OPTION_LONG_BINDPWD,
-              "--"+ToolConstants.OPTION_LONG_BINDPWD_FILE,
+              "--"+OPTION_LONG_BINDPWD,
+              "--"+OPTION_LONG_BINDPWD_FILE,
               "--"+parser.forceOnErrorArg.getLongIdentifier(),
               ae.getMessageObject());
           throw new ApplicationException(ae.getType(), msg, ae);

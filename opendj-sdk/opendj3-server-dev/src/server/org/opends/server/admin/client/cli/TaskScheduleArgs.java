@@ -27,7 +27,7 @@
 package org.opends.server.admin.client.cli;
 
 import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.tools.ToolConstants.*;
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
 
 import java.text.ParseException;
 import java.util.Collections;

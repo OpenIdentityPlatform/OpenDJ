@@ -63,7 +63,7 @@ import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-import static org.opends.server.tools.ToolConstants.*;
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
 
 
 
@@ -492,7 +492,7 @@ public class ListBackends
         table.appendCell(buf.toString());
       }
       TextTablePrinter printer = new TextTablePrinter(out);
-      printer.setColumnSeparator(ToolConstants.LIST_TABLE_SEPARATOR);
+      printer.setColumnSeparator(LIST_TABLE_SEPARATOR);
       table.print(printer);
     }
 

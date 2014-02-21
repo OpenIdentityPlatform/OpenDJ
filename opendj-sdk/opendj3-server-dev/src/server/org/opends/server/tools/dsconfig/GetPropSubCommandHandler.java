@@ -29,6 +29,7 @@ package org.opends.server.tools.dsconfig;
 
 
 import static org.opends.messages.DSConfigMessages.*;
+import static com.forgerock.opendj.cli.ArgumentConstants.LIST_TABLE_SEPARATOR;
 
 import java.io.PrintStream;
 import java.util.Collection;
@@ -61,7 +62,6 @@ import org.opends.server.admin.client.ConcurrentModificationException;
 import org.opends.server.admin.client.ManagedObject;
 import org.opends.server.admin.client.ManagedObjectDecodingException;
 import org.opends.server.admin.client.ManagementContext;
-import org.opends.server.tools.ToolConstants;
 
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ReturnCode;
@@ -328,7 +328,7 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
       builder.print(printer);
     } else {
       TextTablePrinter printer = new TextTablePrinter(out);
-      printer.setColumnSeparator(ToolConstants.LIST_TABLE_SEPARATOR);
+      printer.setColumnSeparator(LIST_TABLE_SEPARATOR);
       printer.setColumnWidth(1, 0);
       builder.print(printer);
     }

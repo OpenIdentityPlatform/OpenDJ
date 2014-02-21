@@ -60,7 +60,6 @@ import org.opends.quicksetup.util.ServerController;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
 import org.opends.server.tools.JavaPropertiesTool.ErrorReturnCode;
-import org.opends.server.tools.ToolConstants;
 import org.opends.server.tools.dsconfig.LDAPManagementContextFactory;
 import org.opends.server.util.StaticUtils;
 
@@ -78,6 +77,7 @@ import static org.forgerock.util.Utils.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
 import static com.forgerock.opendj.cli.Utils.CONFIRMATION_MAX_TRIES;
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
 
 /**
  * The class used to provide some CLI interface in the uninstall.
@@ -1300,8 +1300,8 @@ public class UninstallCliHelper extends ConsoleApplication {
           println();
           printErrorMessage(ERR_UNINSTALL_ERROR_UPDATING_REMOTE_FORCE.get(
               "--"+parser.getSecureArgsList().adminUidArg.getLongIdentifier(),
-              "--"+ToolConstants.OPTION_LONG_BINDPWD,
-              "--"+ToolConstants.OPTION_LONG_BINDPWD_FILE,
+              "--"+OPTION_LONG_BINDPWD,
+              "--"+OPTION_LONG_BINDPWD_FILE,
               exceptionMsg));
         }
         else
@@ -1311,8 +1311,8 @@ public class UninstallCliHelper extends ConsoleApplication {
               ERR_UNINSTALL_ERROR_UPDATING_REMOTE_NO_FORCE.get(
                   "--"+
                   parser.getSecureArgsList().adminUidArg.getLongIdentifier(),
-                  "--"+ToolConstants.OPTION_LONG_BINDPWD,
-                  "--"+ToolConstants.OPTION_LONG_BINDPWD_FILE,
+                  "--"+OPTION_LONG_BINDPWD,
+                  "--"+OPTION_LONG_BINDPWD_FILE,
                   "--"+parser.forceOnErrorArg.getLongIdentifier(),
                   exceptionMsg));
         }
@@ -1472,8 +1472,8 @@ public class UninstallCliHelper extends ConsoleApplication {
             ERR_UNINSTALL_ERROR_UPDATING_REMOTE_NO_FORCE.get(
               "--"+
               parser.getSecureArgsList().adminUidArg.getLongIdentifier(),
-              "--"+ToolConstants.OPTION_LONG_BINDPWD,
-              "--"+ToolConstants.OPTION_LONG_BINDPWD_FILE,
+              "--"+OPTION_LONG_BINDPWD,
+              "--"+OPTION_LONG_BINDPWD_FILE,
               "--"+parser.forceOnErrorArg.getLongIdentifier(),
               Utils.getMessageFromCollection(exceptionMsgs,
                   Constants.LINE_SEPARATOR));

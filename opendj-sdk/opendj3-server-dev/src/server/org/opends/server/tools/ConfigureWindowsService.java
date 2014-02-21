@@ -51,7 +51,7 @@ import com.forgerock.opendj.cli.StringArgument;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.MAX_LINE_WIDTH;
 import static org.opends.server.util.StaticUtils.*;
-import static org.opends.server.tools.ToolConstants.*;
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
 
 /**
   * This class is used to configure the Windows service for this instance on

@@ -60,7 +60,6 @@ import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
 import org.opends.server.config.ConfigException;
 import com.forgerock.opendj.cli.ClientException;
-import org.opends.server.tools.ToolConstants;
 import org.opends.server.tools.dsconfig.LDAPManagementContextFactory;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
@@ -79,6 +78,7 @@ import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.quicksetup.util.Utils.*;
+import static com.forgerock.opendj.cli.ArgumentConstants.LIST_TABLE_SEPARATOR;
 
 /**
  * The class used to provide some CLI interface to display status.
@@ -1004,7 +1004,7 @@ class StatusCli extends ConsoleApplication
         }
       }
       TextTablePrinter printer = new TextTablePrinter(getOutputStream());
-      printer.setColumnSeparator(ToolConstants.LIST_TABLE_SEPARATOR);
+      printer.setColumnSeparator(LIST_TABLE_SEPARATOR);
       table.print(printer);
     }
   }

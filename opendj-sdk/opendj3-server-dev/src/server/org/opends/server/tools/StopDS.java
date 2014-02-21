@@ -71,7 +71,7 @@ import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-import static org.opends.server.tools.ToolConstants.*;
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
 
 /**
  * This class provides a tool that can send a request to the Directory Server

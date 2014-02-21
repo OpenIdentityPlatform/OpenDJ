@@ -80,7 +80,7 @@ import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-import static org.opends.server.tools.ToolConstants.*;
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
 
 /**
  * This class provides a very basic tool that can be used to configure some of
@@ -364,8 +364,8 @@ public class ConfigureDS
       argParser.setUsageArgument(showUsage);
 
       serverRoot = new StringArgument("serverRoot",
-              ToolConstants.OPTION_SHORT_SERVER_ROOT,
-              ToolConstants.OPTION_LONG_SERVER_ROOT,
+              OPTION_SHORT_SERVER_ROOT,
+              OPTION_LONG_SERVER_ROOT,
               false, false, true, INFO_SERVER_ROOT_DIR_PLACEHOLDER.get(), null,
               null, null);
       serverRoot.setHidden(true);

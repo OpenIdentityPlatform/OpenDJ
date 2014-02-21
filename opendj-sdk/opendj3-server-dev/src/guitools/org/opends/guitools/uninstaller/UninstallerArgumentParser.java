@@ -37,7 +37,7 @@ import org.opends.quicksetup.UserData;
 import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
 import org.opends.server.admin.client.cli.SecureConnectionCliParser;
 import org.opends.server.tools.JavaPropertiesTool.ErrorReturnCode;
-import org.opends.server.tools.ToolConstants;
+
 
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
@@ -47,7 +47,7 @@ import com.forgerock.opendj.cli.StringArgument;
 
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.tools.ToolConstants.*;
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
 
 /**
  * Class used to parse and populate the arguments of the Uninstaller.
@@ -193,7 +193,7 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
     defaultArgs.remove(secureArgsList.hostNameArg);
     defaultArgs.remove(secureArgsList.portArg);
     referencedHostNameArg = new StringArgument("referencedHostName",
-        ToolConstants.OPTION_SHORT_HOST,
+        OPTION_SHORT_HOST,
         OPTION_LONG_REFERENCED_HOST_NAME, false, false, true,
         INFO_HOST_PLACEHOLDER.get(),
         UserData.getDefaultHostName(), OPTION_LONG_REFERENCED_HOST_NAME,

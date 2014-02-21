@@ -34,9 +34,9 @@ import static org.opends.messages.ToolMessages.*;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 
-import static org.opends.server.tools.ToolConstants.*;
 import static org.opends.server.util.ServerConstants.MAX_LINE_WIDTH;
 import static org.opends.server.util.StaticUtils.*;
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
 
 import java.io.File;
 import java.io.FileInputStream;

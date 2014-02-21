@@ -32,7 +32,7 @@ import java.io.BufferedReader;
 
 import static org.opends.messages.DSConfigMessages.*;
 import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.tools.ToolConstants.*;
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static org.opends.server.tools.dsconfig.ArgumentExceptionFactory.*;
 import static org.opends.server.util.ServerConstants.PROPERTY_SCRIPT_NAME;
 import static org.opends.server.util.StaticUtils.*;
@@ -569,10 +569,10 @@ public final class DSConfig extends ConsoleApplication {
           OPTION_LONG_NO_PROMPT,
           INFO_DESCRIPTION_NO_PROMPT.get());
 
-      advancedModeArgument = new BooleanArgument(OPTION_DSCFG_LONG_ADVANCED,
-          OPTION_DSCFG_SHORT_ADVANCED, OPTION_DSCFG_LONG_ADVANCED,
+      advancedModeArgument = new BooleanArgument(OPTION_LONG_ADVANCED,
+          null, OPTION_LONG_ADVANCED,
           INFO_DSCFG_DESCRIPTION_ADVANCED.get());
-      advancedModeArgument.setPropertyName(OPTION_DSCFG_LONG_ADVANCED);
+      advancedModeArgument.setPropertyName(OPTION_LONG_ADVANCED);
 
       showUsageArgument = new BooleanArgument("showUsage", OPTION_SHORT_HELP,
           OPTION_LONG_HELP, INFO_DSCFG_DESCRIPTION_SHOW_GROUP_USAGE_SUMMARY
@@ -585,11 +585,11 @@ public final class DSConfig extends ConsoleApplication {
           INFO_DESCRIPTION_BATCH_FILE_PATH.get());
 
       displayEquivalentArgument = new BooleanArgument(
-          OPTION_DSCFG_LONG_DISPLAY_EQUIVALENT,
-          null, OPTION_DSCFG_LONG_DISPLAY_EQUIVALENT,
+          OPTION_LONG_DISPLAY_EQUIVALENT,
+          null, OPTION_LONG_DISPLAY_EQUIVALENT,
           INFO_DSCFG_DESCRIPTION_DISPLAY_EQUIVALENT.get());
       advancedModeArgument.setPropertyName(
-          OPTION_DSCFG_LONG_DISPLAY_EQUIVALENT);
+          OPTION_LONG_DISPLAY_EQUIVALENT);
 
       equivalentCommandFileArgument = new StringArgument(
           OPTION_LONG_EQUIVALENT_COMMAND_FILE_PATH, null,
