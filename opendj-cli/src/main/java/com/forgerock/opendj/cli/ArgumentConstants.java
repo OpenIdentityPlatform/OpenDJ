@@ -379,16 +379,6 @@ public final class ArgumentConstants {
     public static final String OPTION_LONG_PRODUCT_VERSION = "version";
 
     /**
-     * The value for the short option description attributes.
-     */
-    public static final char OPTION_SHORT_DESCRIPTION = 'd';
-
-    /**
-     * The value for the long option description attribute.
-     */
-    public static final String OPTION_LONG_DESCRIPTION = "description";
-
-    /**
      * The value for the short option groupName attributes.
      */
     public static final char OPTION_SHORT_GROUPNAME = 'g';
@@ -407,16 +397,6 @@ public final class ArgumentConstants {
      * The value for the long option groupName attribute.
      */
     public static final String OPTION_LONG_NEWGROUPNAME = "newGroupName";
-
-    /**
-     * The value for the short option member-name attributes.
-     */
-    public static final char OPTION_SHORT_MEMBERNAME = 'm';
-
-    /**
-     * The value for the long member-name version attribute.
-     */
-    public static final String OPTION_LONG_MEMBERNAME = "memberName";
 
     /**
      * The value for the short option serverID attributes.
@@ -659,6 +639,16 @@ public final class ArgumentConstants {
      * Value for the server root option long form.
      */
     public static final String OPTION_LONG_SERVER_ROOT = "serverRoot";
+
+    /**
+     * Value for the control option short form.
+     */
+    public static final Character OPTION_SHORT_CONTROL = 'J';
+
+    /**
+     * Value for the control option long form.
+     */
+    public static final String OPTION_LONG_CONTROL = "control";
 
     // Prevent instantiation.
     private ArgumentConstants() {
