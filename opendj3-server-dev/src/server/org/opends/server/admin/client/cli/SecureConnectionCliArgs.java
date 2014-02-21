@@ -26,11 +26,14 @@
  */
 package org.opends.server.admin.client.cli;
 
+import static com.forgerock.opendj.cli.CliMessages.INFO_DESCRIPTION_ADMIN_PORT;
 import static org.opends.server.tools.JavaPropertiesTool.ErrorReturnCode.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.ToolMessages.*;
+
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+
 import static org.opends.server.tools.ToolConstants.*;
 import static org.opends.server.util.ServerConstants.MAX_LINE_WIDTH;
 import static org.opends.server.util.StaticUtils.*;
@@ -66,9 +69,11 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.util.PasswordReader;
 import org.opends.server.util.SelectableCertificateKeyManager;
+
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.FileBasedArgument;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.StringArgument;
@@ -429,9 +434,7 @@ public final class SecureConnectionCliArgs
   {
     argList = new LinkedHashSet<Argument>();
 
-    useSSLArg = new BooleanArgument("useSSL", OPTION_SHORT_USE_SSL,
-        OPTION_LONG_USE_SSL, INFO_DESCRIPTION_USE_SSL.get());
-    useSSLArg.setPropertyName(OPTION_LONG_USE_SSL);
+    useSSLArg = CommonArguments.getUseSSL();
     if (!alwaysSSL) {
       argList.add(useSSLArg);
     } else {
@@ -439,10 +442,7 @@ public final class SecureConnectionCliArgs
       useSSLArg.setPresent(true);
     }
 
-    useStartTLSArg = new BooleanArgument("startTLS", OPTION_SHORT_START_TLS,
-        OPTION_LONG_START_TLS,
-        INFO_DESCRIPTION_START_TLS.get());
-    useStartTLSArg.setPropertyName(OPTION_LONG_START_TLS);
+    useStartTLSArg = CommonArguments.getStartTLS();
     if (!alwaysSSL) {
       argList.add(useStartTLSArg);
     }
@@ -453,31 +453,17 @@ public final class SecureConnectionCliArgs
     } catch (Exception e) {
       defaultHostName="Unknown (" + e + ")";
     }
-    hostNameArg = new StringArgument("host", OPTION_SHORT_HOST,
-        OPTION_LONG_HOST, false, false, true, INFO_HOST_PLACEHOLDER.get(),
-        defaultHostName,
-        null, INFO_DESCRIPTION_HOST.get());
-    hostNameArg.setPropertyName(OPTION_LONG_HOST);
+    hostNameArg = CommonArguments.getHostName(defaultHostName);
     argList.add(hostNameArg);
 
-
-    LocalizableMessage portDescription = INFO_DESCRIPTION_PORT.get();
-    if (alwaysSSL) {
-      portDescription = INFO_DESCRIPTION_ADMIN_PORT.get();
-    }
-
-    portArg = new IntegerArgument("port", OPTION_SHORT_PORT, OPTION_LONG_PORT,
-        false, false, true, INFO_PORT_PLACEHOLDER.get(),
-        AdministrationConnector.DEFAULT_ADMINISTRATION_CONNECTOR_PORT, null,
-        true, 1, true, 65535,
-        portDescription);
-    portArg.setPropertyName(OPTION_LONG_PORT);
+    portArg =
+        CommonArguments.getPort(
+            AdministrationConnector.DEFAULT_ADMINISTRATION_CONNECTOR_PORT,
+            alwaysSSL ? INFO_DESCRIPTION_ADMIN_PORT.get()
+                : INFO_DESCRIPTION_PORT.get());
     argList.add(portArg);
 
-    bindDnArg = new StringArgument("bindDN", OPTION_SHORT_BINDDN,
-        OPTION_LONG_BINDDN, false, false, true, INFO_BINDDN_PLACEHOLDER.get(),
-        "cn=Directory Manager", null, INFO_DESCRIPTION_BINDDN.get());
-    bindDnArg.setPropertyName(OPTION_LONG_BINDDN);
+    bindDnArg = CommonArguments.getBindDN("cn=Directory Manager");
     argList.add(bindDnArg);
 
     // It is up to the classes that required admin UID to make this argument
@@ -490,92 +476,43 @@ public final class SecureConnectionCliArgs
     adminUidArg.setPropertyName(OPTION_LONG_ADMIN_UID);
     adminUidArg.setHidden(true);
 
-    bindPasswordArg = new StringArgument("bindPassword",
-        OPTION_SHORT_BINDPWD, OPTION_LONG_BINDPWD, false, false, true,
-        INFO_BINDPWD_PLACEHOLDER.get(), null, null,
-        INFO_DESCRIPTION_BINDPASSWORD.get());
-    bindPasswordArg.setPropertyName(OPTION_LONG_BINDPWD);
+    bindPasswordArg = CommonArguments.getBindPassword();
     argList.add(bindPasswordArg);
 
-    bindPasswordFileArg = new FileBasedArgument("bindPasswordFile",
-        OPTION_SHORT_BINDPWD_FILE, OPTION_LONG_BINDPWD_FILE, false, false,
-        INFO_BINDPWD_FILE_PLACEHOLDER.get(), null, null,
-        INFO_DESCRIPTION_BINDPASSWORDFILE.get());
-    bindPasswordFileArg.setPropertyName(OPTION_LONG_BINDPWD_FILE);
+    bindPasswordFileArg = CommonArguments.getBindPasswordFile();
     argList.add(bindPasswordFileArg);
 
-    saslOptionArg = new StringArgument(
-        "sasloption", OPTION_SHORT_SASLOPTION,
-        OPTION_LONG_SASLOPTION, false,
-        true, true,
-        INFO_SASL_OPTION_PLACEHOLDER.get(), null, null,
-        INFO_LDAP_CONN_DESCRIPTION_SASLOPTIONS.get());
-    saslOptionArg.setPropertyName(OPTION_LONG_SASLOPTION);
+    saslOptionArg = CommonArguments.getSASL();
     argList.add(saslOptionArg);
 
-    trustAllArg = new BooleanArgument("trustAll", OPTION_SHORT_TRUSTALL,
-        OPTION_LONG_TRUSTALL, INFO_DESCRIPTION_TRUSTALL.get());
-    trustAllArg.setPropertyName(OPTION_LONG_TRUSTALL);
+    trustAllArg = CommonArguments.getTrustAll();
     argList.add(trustAllArg);
 
-    trustStorePathArg = new StringArgument("trustStorePath",
-        OPTION_SHORT_TRUSTSTOREPATH, OPTION_LONG_TRUSTSTOREPATH, false,
-        false, true, INFO_TRUSTSTOREPATH_PLACEHOLDER.get(), null, null,
-        INFO_DESCRIPTION_TRUSTSTOREPATH.get());
-    trustStorePathArg.setPropertyName(OPTION_LONG_TRUSTSTOREPATH);
+    trustStorePathArg = CommonArguments.getTrustStorePath();
     argList.add(trustStorePathArg);
 
-    trustStorePasswordArg = new StringArgument("trustStorePassword",
-        OPTION_SHORT_TRUSTSTORE_PWD, OPTION_LONG_TRUSTSTORE_PWD, false, false,
-        true, INFO_TRUSTSTORE_PWD_PLACEHOLDER.get(), null, null,
-        INFO_DESCRIPTION_TRUSTSTOREPASSWORD.get());
-    trustStorePasswordArg.setPropertyName(OPTION_LONG_TRUSTSTORE_PWD);
+    trustStorePasswordArg = CommonArguments.getTrustStorePassword();
     argList.add(trustStorePasswordArg);
 
-    trustStorePasswordFileArg = new FileBasedArgument("trustStorePasswordFile",
-        OPTION_SHORT_TRUSTSTORE_PWD_FILE, OPTION_LONG_TRUSTSTORE_PWD_FILE,
-        false, false, INFO_TRUSTSTORE_PWD_FILE_PLACEHOLDER.get(), null, null,
-        INFO_DESCRIPTION_TRUSTSTOREPASSWORD_FILE.get());
-    trustStorePasswordFileArg.setPropertyName(OPTION_LONG_TRUSTSTORE_PWD_FILE);
+    trustStorePasswordFileArg = CommonArguments.getTrustStorePasswordFile();
     argList.add(trustStorePasswordFileArg);
 
-    keyStorePathArg = new StringArgument("keyStorePath",
-        OPTION_SHORT_KEYSTOREPATH, OPTION_LONG_KEYSTOREPATH, false, false,
-        true, INFO_KEYSTOREPATH_PLACEHOLDER.get(), null, null,
-        INFO_DESCRIPTION_KEYSTOREPATH.get());
-    keyStorePathArg.setPropertyName(OPTION_LONG_KEYSTOREPATH);
+    keyStorePathArg = CommonArguments.getKeyStorePath();
     argList.add(keyStorePathArg);
 
-    keyStorePasswordArg = new StringArgument("keyStorePassword",
-        OPTION_SHORT_KEYSTORE_PWD,
-        OPTION_LONG_KEYSTORE_PWD, false, false, true,
-        INFO_KEYSTORE_PWD_PLACEHOLDER.get(), null, null,
-        INFO_DESCRIPTION_KEYSTOREPASSWORD.get());
-    keyStorePasswordArg.setPropertyName(OPTION_LONG_KEYSTORE_PWD);
+    keyStorePasswordArg = CommonArguments.getKeyStorePassword();
     argList.add(keyStorePasswordArg);
 
-    keyStorePasswordFileArg = new FileBasedArgument("keystorePasswordFile",
-        OPTION_SHORT_KEYSTORE_PWD_FILE, OPTION_LONG_KEYSTORE_PWD_FILE, false,
-        false, INFO_KEYSTORE_PWD_FILE_PLACEHOLDER.get(), null, null,
-        INFO_DESCRIPTION_KEYSTOREPASSWORD_FILE.get());
-    keyStorePasswordFileArg.setPropertyName(OPTION_LONG_KEYSTORE_PWD_FILE);
+    keyStorePasswordFileArg = CommonArguments.getKeyStorePasswordFile();
     argList.add(keyStorePasswordFileArg);
 
-    certNicknameArg = new StringArgument("certNickname",
-        OPTION_SHORT_CERT_NICKNAME, OPTION_LONG_CERT_NICKNAME,
-        false, false, true, INFO_NICKNAME_PLACEHOLDER.get(), null, null,
-        INFO_DESCRIPTION_CERT_NICKNAME.get());
-    certNicknameArg.setPropertyName(OPTION_LONG_CERT_NICKNAME);
+    certNicknameArg = CommonArguments.getCertNickName();
     argList.add(certNicknameArg);
 
-    int defaultTimeout = ConnectionUtils.getDefaultLDAPTimeout();
-    connectTimeoutArg = new IntegerArgument(OPTION_LONG_CONNECT_TIMEOUT,
-        null, OPTION_LONG_CONNECT_TIMEOUT,
-        false, false, true, INFO_TIMEOUT_PLACEHOLDER.get(),
-        defaultTimeout, null,
-        true, 0, false, Integer.MAX_VALUE,
-        INFO_DESCRIPTION_CONNECTION_TIMEOUT.get());
-    connectTimeoutArg.setPropertyName(OPTION_LONG_CONNECT_TIMEOUT);
+    connectTimeoutArg =
+        CommonArguments.getConnectTimeOut(ConnectionUtils
+            .getDefaultLDAPTimeout());
+    connectTimeoutArg.setHidden(false);
     argList.add(connectTimeoutArg);
 
     return argList;
@@ -593,17 +530,14 @@ public final class SecureConnectionCliArgs
     {
       return hostNameArg.getValue();
     }
-    else
-    {
-      return hostNameArg.getDefaultValue();
-    }
+    return hostNameArg.getDefaultValue();
   }
 
   /**
    * Get the port which has to be used for the command.
    *
-   * @return The port specified by the command line argument, or the
-   *         default value, if not specified.
+   * @return The port specified by the command line argument, or the default
+   *         value, if not specified.
    */
   public String getPort()
   {
@@ -611,10 +545,7 @@ public final class SecureConnectionCliArgs
     {
       return portArg.getValue();
     }
-    else
-    {
-      return portArg.getDefaultValue();
-    }
+    return portArg.getDefaultValue();
   }
 
   /**
@@ -738,14 +669,7 @@ public final class SecureConnectionCliArgs
    */
   public boolean useSSL()
   {
-    if (useSSLArg.isPresent() || alwaysSSL())
-    {
-      return true;
-    }
-    else
-    {
-      return false ;
-    }
+    return (useSSLArg.isPresent() || alwaysSSL());
   }
 
   /**
@@ -755,14 +679,7 @@ public final class SecureConnectionCliArgs
    */
   public boolean useStartTLS()
   {
-    if (useStartTLSArg.isPresent())
-    {
-      return true;
-    }
-    else
-    {
-      return false ;
-    }
+    return useStartTLSArg.isPresent();
   }
 
   /**

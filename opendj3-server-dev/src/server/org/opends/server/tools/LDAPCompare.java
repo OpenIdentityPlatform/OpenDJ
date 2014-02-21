@@ -55,6 +55,7 @@ import org.opends.server.util.PasswordReader;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.FileBasedArgument;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.StringArgument;
@@ -636,9 +637,7 @@ public class LDAPCompare
       argParser.addArgument(noop);
       noop.setPropertyName(OPTION_LONG_DRYRUN);
 
-      verbose = new BooleanArgument("verbose", 'v', "verbose",
-                                    INFO_DESCRIPTION_VERBOSE.get());
-      verbose.setPropertyName("verbose");
+      verbose = CommonArguments.getVerbose();
       argParser.addArgument(verbose);
 
       showUsage = new BooleanArgument("showUsage", OPTION_SHORT_HELP,

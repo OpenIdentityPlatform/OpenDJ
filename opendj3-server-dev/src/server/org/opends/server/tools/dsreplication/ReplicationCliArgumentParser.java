@@ -47,11 +47,13 @@ import org.opends.server.admin.client.cli.SecureConnectionCliParser;
 import org.opends.server.admin.client.cli.TaskScheduleArgs;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.tasks.PurgeConflictsHistoricalTask;
+
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentGroup;
 import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.ClientException;
+import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.FileBasedArgument;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.StringArgument;
@@ -553,54 +555,30 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
 
     defaultArgs.remove(verboseArg);
 
-    quietArg = new BooleanArgument(
-        OPTION_LONG_QUIET,
-        OPTION_SHORT_QUIET,
-        OPTION_LONG_QUIET,
-        INFO_REPLICATION_DESCRIPTION_QUIET.get());
+    quietArg = CommonArguments.getQuiet();
     defaultArgs.add(index++, quietArg);
 
-    noPromptArg = new BooleanArgument(
-        OPTION_LONG_NO_PROMPT,
-        OPTION_SHORT_NO_PROMPT,
-        OPTION_LONG_NO_PROMPT,
-        INFO_DESCRIPTION_NO_PROMPT.get());
+    noPromptArg = CommonArguments.getNoPrompt();
     defaultArgs.add(index++, noPromptArg);
 
-    displayEquivalentArgument = new BooleanArgument(
-        OPTION_DSCFG_LONG_DISPLAY_EQUIVALENT,
-        null, OPTION_DSCFG_LONG_DISPLAY_EQUIVALENT,
-        INFO_REPLICATION_DESCRIPTION_DISPLAY_EQUIVALENT.get());
+    displayEquivalentArgument = CommonArguments.getDisplayEquivalentCommand();
+
     defaultArgs.add(index++, displayEquivalentArgument);
 
-    equivalentCommandFileArgument = new StringArgument(
-        OPTION_LONG_EQUIVALENT_COMMAND_FILE_PATH, null,
-        OPTION_LONG_EQUIVALENT_COMMAND_FILE_PATH, false, false, true,
-        INFO_PATH_PLACEHOLDER.get(), null, null,
-        INFO_REPLICATION_DESCRIPTION_EQUIVALENT_COMMAND_FILE_PATH.get());
+    equivalentCommandFileArgument =
+        CommonArguments
+            .getEquivalentCommandFile(
+                INFO_REPLICATION_DESCRIPTION_EQUIVALENT_COMMAND_FILE_PATH.get());
     defaultArgs.add(index++, equivalentCommandFileArgument);
 
-    advancedArg = new BooleanArgument(OPTION_DSCFG_LONG_ADVANCED,
-        OPTION_DSCFG_SHORT_ADVANCED,
-        OPTION_DSCFG_LONG_ADVANCED,
-        INFO_REPLICATION_DESCRIPTION_ADVANCED.get());
+    advancedArg = CommonArguments.getAdvancedMode();
     defaultArgs.add(index++, advancedArg);
 
     configClassArg =
-      new StringArgument("configclass", OPTION_SHORT_CONFIG_CLASS,
-                         OPTION_LONG_CONFIG_CLASS, true, false,
-                         true, INFO_CONFIGCLASS_PLACEHOLDER.get(),
-                         ConfigFileHandler.class.getName(), null,
-                         INFO_DESCRIPTION_CONFIG_CLASS.get());
-    configClassArg.setHidden(true);
+        CommonArguments.getConfigClass(ConfigFileHandler.class.getName());
     defaultArgs.add(index++, configClassArg);
 
-    configFileArg =
-      new StringArgument("configfile", 'f', "configFile", true, false,
-                         true, INFO_CONFIGFILE_PLACEHOLDER.get(), null,
-                         null,
-                         INFO_DESCRIPTION_CONFIG_FILE.get());
-    configFileArg.setHidden(true);
+    configFileArg = CommonArguments.getConfigFile();
     defaultArgs.add(index++, configFileArg);
 
     for (int i=0; i<index; i++)
@@ -609,16 +587,11 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
       arg.setPropertyName(arg.getLongIdentifier());
     }
 
-    this.propertiesFileArgument = new StringArgument(
-        "propertiesFilePath", null, OPTION_LONG_PROP_FILE_PATH, false, false,
-        true, INFO_PROP_FILE_PATH_PLACEHOLDER.get(), null, null,
-        INFO_DESCRIPTION_PROP_FILE_PATH.get());
+    this.propertiesFileArgument = CommonArguments.getPropertiesFile();
     defaultArgs.add(this.propertiesFileArgument);
     setFilePropertiesArgument(this.propertiesFileArgument);
 
-    this.noPropertiesFileArgument = new BooleanArgument(
-        "noPropertiesFileArgument", null, OPTION_LONG_NO_PROP_FILE,
-        INFO_DESCRIPTION_NO_PROP_FILE.get());
+    this.noPropertiesFileArgument = CommonArguments.getNoPropertiesFile();
     defaultArgs.add(this.noPropertiesFileArgument);
     setNoPropertiesFileArgument(this.noPropertiesFileArgument);
 

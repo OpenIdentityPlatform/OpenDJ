@@ -42,6 +42,7 @@ import org.opends.server.tools.ToolConstants;
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.StringArgument;
 
 import static org.opends.messages.AdminToolMessages.*;
@@ -104,12 +105,9 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
   throws ArgumentException
   {
     LinkedHashSet<Argument> args = new LinkedHashSet<Argument>();
-    cliArg = new BooleanArgument(
-        OPTION_LONG_CLI,
-        OPTION_SHORT_CLI,
-        OPTION_LONG_CLI,
-        INFO_UNINSTALLDS_DESCRIPTION_CLI.get());
+    cliArg = CommonArguments.getCLI();
     args.add(cliArg);
+
     removeAllArg = new BooleanArgument(
         "remove-all",
         'a',
@@ -159,12 +157,10 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
         INFO_UNINSTALLDS_DESCRIPTION_REMOVE_LDIF_FILES.get()
         );
     args.add(removeLDIFFilesArg);
-    noPromptArg = new BooleanArgument(
-        OPTION_LONG_NO_PROMPT,
-        OPTION_SHORT_NO_PROMPT,
-        OPTION_LONG_NO_PROMPT,
-        INFO_DESCRIPTION_NO_PROMPT.get());
+
+    noPromptArg = CommonArguments.getNoPrompt();
     args.add(noPromptArg);
+
     forceOnErrorArg = new BooleanArgument(
         "forceOnError",
         'f',
@@ -172,11 +168,8 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
         INFO_UNINSTALLDS_DESCRIPTION_FORCE.get(
             "--"+noPromptArg.getLongIdentifier()));
     args.add(forceOnErrorArg);
-    quietArg = new BooleanArgument(
-        OPTION_LONG_QUIET,
-        OPTION_SHORT_QUIET,
-        OPTION_LONG_QUIET,
-        INFO_UNINSTALLDS_DESCRIPTION_QUIET.get());
+
+    quietArg = CommonArguments.getQuiet();
     args.add(quietArg);
 
     for (Argument arg : args)
