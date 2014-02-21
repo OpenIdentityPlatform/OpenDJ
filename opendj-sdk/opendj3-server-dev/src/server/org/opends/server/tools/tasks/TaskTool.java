@@ -30,6 +30,7 @@ import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentGroup;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.cli.ClientException;
 
@@ -137,17 +138,13 @@ public abstract class TaskTool implements TaskScheduleInformation {
       INFO_DESCRIPTION_TASK_TASK_ARGS.get(), 1000);
 
     try {
-      StringArgument propertiesFileArgument = new StringArgument(
-        "propertiesFilePath",
-        null, OPTION_LONG_PROP_FILE_PATH,
-        false, false, true, INFO_PROP_FILE_PATH_PLACEHOLDER.get(), null, null,
-        INFO_DESCRIPTION_PROP_FILE_PATH.get());
+      StringArgument propertiesFileArgument =
+          CommonArguments.getPropertiesFile();
       argParser.addArgument(propertiesFileArgument);
       argParser.setFilePropertiesArgument(propertiesFileArgument);
 
-      BooleanArgument noPropertiesFileArgument = new BooleanArgument(
-        "noPropertiesFileArgument", null, OPTION_LONG_NO_PROP_FILE,
-        INFO_DESCRIPTION_NO_PROP_FILE.get());
+      BooleanArgument noPropertiesFileArgument =
+          CommonArguments.getNoPropertiesFile();
       argParser.addArgument(noPropertiesFileArgument);
       argParser.setNoPropertiesFileArgument(noPropertiesFileArgument);
 

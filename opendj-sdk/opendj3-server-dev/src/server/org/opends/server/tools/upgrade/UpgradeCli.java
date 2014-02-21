@@ -54,6 +54,7 @@ import org.opends.server.util.StaticUtils;
 
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.cli.SubCommandArgumentParser;
 import com.forgerock.opendj.cli.ClientException;
@@ -231,29 +232,15 @@ public final class UpgradeCli extends ConsoleApplication implements
     if (!globalArgumentsInitialized)
     {
       configClass =
-          new StringArgument("configclass", OPTION_SHORT_CONFIG_CLASS,
-              OPTION_LONG_CONFIG_CLASS, true, false, true,
-              INFO_CONFIGCLASS_PLACEHOLDER.get(), ConfigFileHandler.class
-                  .getName(), null, INFO_DESCRIPTION_CONFIG_CLASS.get());
-      configClass.setHidden(true);
+          CommonArguments.getConfigClass(ConfigFileHandler.class.getName());
 
-      configFile =
-          new StringArgument("configfile", 'f', "configFile", true, false,
-              true, INFO_CONFIGFILE_PLACEHOLDER.get(), null, null,
-              INFO_DESCRIPTION_CONFIG_FILE.get());
-      configFile.setHidden(true);
+      configFile = CommonArguments.getConfigFile();
 
-      noPrompt =
-          new BooleanArgument(OPTION_LONG_NO_PROMPT, OPTION_SHORT_NO_PROMPT,
-              OPTION_LONG_NO_PROMPT, INFO_UPGRADE_DESCRIPTION_NO_PROMPT.get());
+      noPrompt = CommonArguments.getNoPrompt();
 
-      verbose =
-          new BooleanArgument(OPTION_LONG_VERBOSE, OPTION_SHORT_VERBOSE,
-              OPTION_LONG_VERBOSE, INFO_DESCRIPTION_VERBOSE.get());
+      verbose = CommonArguments.getVerbose();
 
-      quietMode =
-          new BooleanArgument(OPTION_LONG_QUIET, OPTION_SHORT_QUIET,
-              OPTION_LONG_QUIET, INFO_DESCRIPTION_QUIET.get());
+      quietMode = CommonArguments.getQuiet();
 
       ignoreErrors =
           new BooleanArgument(OPTION_LONG_IGNORE_ERRORS, null,
@@ -264,12 +251,9 @@ public final class UpgradeCli extends ConsoleApplication implements
           OPTION_LONG_FORCE_UPGRADE,
           INFO_UPGRADE_OPTION_FORCE.get(OPTION_LONG_NO_PROMPT));
 
-      acceptLicense = new BooleanArgument(OPTION_LONG_ACCEPT_LICENSE, null,
-          OPTION_LONG_ACCEPT_LICENSE, INFO_OPTION_ACCEPT_LICENSE.get());
+      acceptLicense = CommonArguments.getAcceptLicense();
 
-      showUsageArgument =
-          new BooleanArgument("help", OPTION_SHORT_HELP, OPTION_LONG_HELP,
-              INFO_DESCRIPTION_USAGE.get());
+      showUsageArgument = CommonArguments.getShowUsage();
 
 
       // Register the global arguments.

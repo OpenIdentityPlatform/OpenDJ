@@ -48,15 +48,18 @@ import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.util.EmbeddedUtils;
 import org.opends.server.util.PasswordReader;
+
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.FileBasedArgument;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.StringArgument;
 
 import org.opends.server.controls.SubtreeDeleteControl;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -542,9 +545,7 @@ public class LDAPDelete
       noop.setPropertyName(OPTION_LONG_DRYRUN);
       argParser.addArgument(noop);
 
-      verbose = new BooleanArgument("verbose", 'v', "verbose",
-                                    INFO_DESCRIPTION_VERBOSE.get());
-      verbose.setPropertyName("verbose");
+      verbose = CommonArguments.getVerbose();
       argParser.addArgument(verbose);
 
       showUsage = new BooleanArgument("showUsage", OPTION_SHORT_HELP,

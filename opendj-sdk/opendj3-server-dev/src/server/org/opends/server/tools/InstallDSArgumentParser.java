@@ -36,7 +36,6 @@ import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.Installation;
@@ -44,10 +43,12 @@ import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.admin.AdministrationConnector;
 import org.opends.server.util.SetupUtils;
+
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.FileBasedArgument;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.StringArgument;
@@ -119,19 +120,10 @@ public class InstallDSArgumentParser extends ArgumentParser
    */
   public void initializeArguments() throws ArgumentException
   {
-    testOnlyArg = new BooleanArgument(
-        "testOnly".toLowerCase(), 't', "testOnly",
-        INFO_INSTALLDS_DESCRIPTION_TESTONLY.get());
-    testOnlyArg.setHidden(true);
-    testOnlyArg.setPropertyName("testOnly");
+    testOnlyArg = CommonArguments.getTestOnly();
     addArgument(testOnlyArg);
 
-    cliArg = new BooleanArgument(
-        OPTION_LONG_CLI.toLowerCase(),
-        OPTION_SHORT_CLI,
-        OPTION_LONG_CLI,
-        INFO_INSTALLDS_DESCRIPTION_CLI.get());
-    cliArg.setPropertyName(OPTION_LONG_CLI);
+    cliArg = CommonArguments.getCLI();
     addArgument(cliArg);
 
     String defaultProgName;
@@ -150,24 +142,13 @@ public class InstallDSArgumentParser extends ArgumentParser
     progNameArg.setHidden(true);
     addArgument(progNameArg);
 
-    noPromptArg = new BooleanArgument(
-        OPTION_LONG_NO_PROMPT.toLowerCase(),
-        OPTION_SHORT_NO_PROMPT,
-        OPTION_LONG_NO_PROMPT,
-        INFO_INSTALLDS_DESCRIPTION_NO_PROMPT.get());
-    noPromptArg.setPropertyName(OPTION_LONG_NO_PROMPT);
+    noPromptArg = CommonArguments.getNoPrompt();
     addArgument(noPromptArg);
 
-    quietArg = new BooleanArgument(
-        OPTION_LONG_QUIET.toLowerCase(), OPTION_SHORT_QUIET,
-        OPTION_LONG_QUIET,
-        INFO_INSTALLDS_DESCRIPTION_SILENT.get());
-    quietArg.setPropertyName(OPTION_LONG_QUIET);
+    quietArg = CommonArguments.getQuiet();
     addArgument(quietArg);
 
-    verboseArg = new BooleanArgument(OPTION_LONG_VERBOSE.toLowerCase(),
-        OPTION_SHORT_VERBOSE,
-        OPTION_LONG_VERBOSE, INFO_DESCRIPTION_VERBOSE.get());
+    verboseArg = CommonArguments.getVerbose();
     addArgument(verboseArg);
 
     propertiesFileArgument = new StringArgument(
@@ -392,25 +373,15 @@ public class InstallDSArgumentParser extends ArgumentParser
         INFO_INSTALLDS_DESCRIPTION_CERT_NICKNAME.get());
     addDefaultArgument(certNicknameArg);
 
-    int defaultTimeout = ConnectionUtils.getDefaultLDAPTimeout();
-    connectTimeoutArg = new IntegerArgument(OPTION_LONG_CONNECT_TIMEOUT,
-        null, OPTION_LONG_CONNECT_TIMEOUT,
-        false, false, true, INFO_TIMEOUT_PLACEHOLDER.get(),
-        defaultTimeout, null,
-        true, 1, true, 65535,
-        INFO_DESCRIPTION_CONNECTION_TIMEOUT.get());
-    connectTimeoutArg.setPropertyName(OPTION_LONG_CONNECT_TIMEOUT);
-    connectTimeoutArg.setHidden(true);
+    connectTimeoutArg =
+        CommonArguments.getConnectTimeOut(ConnectionUtils
+            .getDefaultLDAPTimeout());
     addArgument(connectTimeoutArg);
 
-    acceptLicense = new BooleanArgument(OPTION_LONG_ACCEPT_LICENSE, null,
-        OPTION_LONG_ACCEPT_LICENSE, INFO_OPTION_ACCEPT_LICENSE.get());
+    acceptLicense = CommonArguments.getAcceptLicense();
     addArgument(acceptLicense);
 
-    showUsageArg = new BooleanArgument(
-        OPTION_LONG_HELP.toLowerCase(), OPTION_SHORT_HELP,
-        OPTION_LONG_HELP,
-        INFO_INSTALLDS_DESCRIPTION_HELP.get());
+    showUsageArg = CommonArguments.getShowUsage();
     addArgument(showUsageArg);
     setUsageArgument(showUsageArg);
   }
@@ -464,17 +435,18 @@ public class InstallDSArgumentParser extends ArgumentParser
    * should be called after a call to parseArguments.
    * @return the directory manager password provided by the user.
    */
-  public char[] getDirectoryManagerPassword()
+  public String getDirectoryManagerPassword()
   {
+    String pwd = null;
     if (directoryManagerPwdStringArg.isPresent())
     {
-      return directoryManagerPwdStringArg.getValue().toCharArray();
+      pwd = directoryManagerPwdStringArg.getValue();
     }
     else if (directoryManagerPwdFileArg.isPresent())
     {
-      return directoryManagerPwdFileArg.getValue().toCharArray();
+      pwd = directoryManagerPwdFileArg.getValue();
     }
-    return null;
+    return pwd;
   }
 
   /**

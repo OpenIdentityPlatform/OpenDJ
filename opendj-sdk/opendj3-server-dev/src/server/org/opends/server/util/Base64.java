@@ -48,8 +48,10 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.NullOutputStream;
 import org.forgerock.opendj.ldap.ByteSequence;
+
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.cli.SubCommand;
 import com.forgerock.opendj.cli.SubCommandArgumentParser;
@@ -541,8 +543,7 @@ public final class Base64
       subCommandList.add(encodeSubCommand);
 
 
-      showUsage = new BooleanArgument("help", 'H', "help",
-                                      INFO_BASE64_HELP_DESCRIPTION.get());
+      showUsage = CommonArguments.getShowUsage();
       argParser.addGlobalArgument(showUsage);
       argParser.setUsageGroupArgument(showUsage, subCommandList);
       argParser.setUsageArgument(showUsage, NullOutputStream.printStream());

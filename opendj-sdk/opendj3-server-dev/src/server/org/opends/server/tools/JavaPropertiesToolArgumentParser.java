@@ -36,9 +36,11 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.util.Utils;
+
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.StringArgument;
 
 /**
@@ -74,11 +76,7 @@ public class JavaPropertiesToolArgumentParser extends ArgumentParser
    */
   public void initializeArguments() throws ArgumentException
   {
-    quietArg = new BooleanArgument(
-        "quiet", OPTION_SHORT_QUIET,
-        OPTION_LONG_QUIET,
-        INFO_JAVAPROPERTIES_DESCRIPTION_SILENT.get());
-    quietArg.setPropertyName(OPTION_LONG_QUIET);
+    quietArg = CommonArguments.getQuiet();
     addArgument(quietArg);
 
     propertiesFileArg = new StringArgument("propertiesFile",
@@ -99,9 +97,7 @@ public class JavaPropertiesToolArgumentParser extends ArgumentParser
     destinationFileArg.setHidden(true);
     addArgument(destinationFileArg);
 
-    showUsageArg = new BooleanArgument("help", OPTION_SHORT_HELP,
-        OPTION_LONG_HELP,
-        INFO_JAVAPROPERTIES_DESCRIPTION_HELP.get());
+    showUsageArg = CommonArguments.getShowUsage();
     addArgument(showUsageArg);
     setUsageArgument(showUsageArg);
   }

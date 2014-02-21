@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.tools;
 
@@ -456,15 +456,6 @@ public class ToolConstants
      */
      public static final String OPTION_LONG_PRODUCT_VERSION  = "version";
 
-  /**
-   * The value for the short option description attributes.
-   */
-  public static final char OPTION_SHORT_DESCRIPTION = 'd';
-
-  /**
-   * The value for the long option description attribute.
-   */
-  public static final String OPTION_LONG_DESCRIPTION = "description";
 
   /**
    * The value for the short option groupName attributes.
@@ -487,17 +478,6 @@ public class ToolConstants
    * attribute.
    */
   public static final String OPTION_LONG_NEWGROUPNAME= "newGroupName";
-
-  /**
-   * The value for the short option member-name attributes.
-   */
-  public static final char OPTION_SHORT_MEMBERNAME = 'm';
-
-  /**
-   * The value for the long member-name version
-   * attribute.
-   */
-  public static final String OPTION_LONG_MEMBERNAME= "memberName";
 
   /**
    * The value for the short option backendName attributes.

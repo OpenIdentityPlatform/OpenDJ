@@ -29,18 +29,17 @@ package org.opends.server.tools.status;
 
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.tools.ToolConstants.OPTION_LONG_NO_PROP_FILE;
-import static org.opends.server.tools.ToolConstants.OPTION_LONG_PROP_FILE_PATH;
 
 import java.io.OutputStream;
 import java.util.ArrayList;
 
 import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
 import org.opends.server.admin.client.cli.SecureConnectionCliParser;
-import org.opends.server.tools.ToolConstants;
+
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.StringArgument;
 
@@ -98,30 +97,20 @@ public class StatusCliArgumentParser extends SecureConnectionCliParser
     defaultArgs.remove(verboseArg);
     defaultArgs.remove(noPropertiesFileArg);
     defaultArgs.remove(propertiesFileArg);
-    noPromptArg = new BooleanArgument(
-        ToolConstants.OPTION_LONG_NO_PROMPT,
-        ToolConstants.OPTION_SHORT_NO_PROMPT,
-        ToolConstants.OPTION_LONG_NO_PROMPT,
-        INFO_DESCRIPTION_NO_PROMPT.get());
+    noPromptArg = CommonArguments.getNoPrompt();
     defaultArgs.add(0, noPromptArg);
 
-    scriptFriendlyArg = new BooleanArgument(
-        "script-friendly",
-        's',
-        "script-friendly",
-        INFO_DESCRIPTION_SCRIPT_FRIENDLY.get());
+    scriptFriendlyArg = CommonArguments.getScriptFriendly();
     defaultArgs.add(1, scriptFriendlyArg);
 
-    StringArgument propertiesFileArgument = new StringArgument(
-        "propertiesFilePath", null, OPTION_LONG_PROP_FILE_PATH, false, false,
-        true, INFO_PROP_FILE_PATH_PLACEHOLDER.get(), null, null,
-        INFO_DESCRIPTION_PROP_FILE_PATH.get());
+    StringArgument propertiesFileArgument
+        = CommonArguments.getPropertiesFile();
+
     defaultArgs.add(propertiesFileArgument);
     setFilePropertiesArgument(propertiesFileArgument);
 
-    BooleanArgument noPropertiesFileArgument = new BooleanArgument(
-        "noPropertiesFileArgument", null, OPTION_LONG_NO_PROP_FILE,
-        INFO_DESCRIPTION_NO_PROP_FILE.get());
+    BooleanArgument noPropertiesFileArgument =
+        CommonArguments.getNoPropertiesFile();
     defaultArgs.add(noPropertiesFileArgument);
     setNoPropertiesFileArgument(noPropertiesFileArgument);
 

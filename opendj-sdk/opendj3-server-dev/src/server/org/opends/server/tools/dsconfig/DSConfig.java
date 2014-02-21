@@ -81,6 +81,7 @@ import org.opends.server.util.StaticUtils;
 
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.cli.SubCommand;
 import com.forgerock.opendj.cli.SubCommandArgumentParser;
@@ -548,8 +549,7 @@ public final class DSConfig extends ConsoleApplication {
   private void initializeGlobalArguments(String[] args)
   throws ArgumentException {
     if (globalArgumentsInitialized == false) {
-      verboseArgument = new BooleanArgument("verbose", 'v', "verbose",
-          INFO_DESCRIPTION_VERBOSE.get());
+      verboseArgument = CommonArguments.getVerbose();
 
       quietArgument = new BooleanArgument(
           OPTION_LONG_QUIET,

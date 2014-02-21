@@ -44,7 +44,6 @@ import org.opends.server.util.PasswordReader;
 import com.forgerock.opendj.cli.*;
 
 import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.tools.ToolConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -265,25 +264,18 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
     secureArgsList = new SecureConnectionCliArgs(alwaysSSL);
     LinkedHashSet<Argument> set = secureArgsList.createGlobalArguments();
 
-    showUsageArg = new BooleanArgument("showUsage", OPTION_SHORT_HELP,
-        OPTION_LONG_HELP, INFO_DESCRIPTION_SHOWUSAGE.get());
+    showUsageArg = CommonArguments.getShowUsage();
     setUsageArgument(showUsageArg, outStream);
     set.add(showUsageArg);
 
-    verboseArg = new BooleanArgument("verbose", OPTION_SHORT_VERBOSE,
-        OPTION_LONG_VERBOSE, INFO_DESCRIPTION_VERBOSE.get());
+    verboseArg = CommonArguments.getVerbose();
     set.add(verboseArg);
 
-    propertiesFileArg = new StringArgument("propertiesFilePath",
-        null, OPTION_LONG_PROP_FILE_PATH,
-        false, false, true, INFO_PROP_FILE_PATH_PLACEHOLDER.get(), null, null,
-        INFO_DESCRIPTION_PROP_FILE_PATH.get());
+    propertiesFileArg = CommonArguments.getPropertiesFile();
     setFilePropertiesArgument(propertiesFileArg);
     set.add(propertiesFileArg);
 
-    noPropertiesFileArg = new BooleanArgument(
-        "noPropertiesFileArgument", null, OPTION_LONG_NO_PROP_FILE,
-        INFO_DESCRIPTION_NO_PROP_FILE.get());
+    noPropertiesFileArg = CommonArguments.getNoPropertiesFile();
     setNoPropertiesFileArgument(noPropertiesFileArg);
     set.add(noPropertiesFileArg);
 

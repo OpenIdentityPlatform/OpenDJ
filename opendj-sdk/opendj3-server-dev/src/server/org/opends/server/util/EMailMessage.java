@@ -37,6 +37,7 @@ import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
+
 import javax.activation.DataHandler;
 import javax.activation.FileDataSource;
 import javax.mail.MessagingException;
@@ -52,9 +53,11 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.core.DirectoryServer;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.StringArgument;
 
 import static org.opends.messages.ToolMessages.*;
@@ -549,8 +552,7 @@ public final class EMailMessage
       argParser.addArgument(attachFile);
 
 
-      showUsage = new BooleanArgument("help", 'H', "help",
-                                      INFO_EMAIL_HELP_DESCRIPTION.get());
+      showUsage = CommonArguments.getShowUsage();
       argParser.addArgument(showUsage);
       argParser.setUsageArgument(showUsage);
     }

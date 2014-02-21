@@ -38,9 +38,11 @@ import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.admin.AdministrationConnector;
+
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.FileBasedArgument;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.StringArgument;
@@ -129,64 +131,36 @@ public class ControlPanelArgumentParser extends ArgumentParser
    */
   public void initializeArguments() throws ArgumentException
   {
-    hostNameArg = new StringArgument("host", OPTION_SHORT_HOST,
-        OPTION_LONG_HOST, false, false, true, INFO_HOST_PLACEHOLDER.get(),
-        UserData.getDefaultHostName(),
-        null, INFO_DESCRIPTION_HOST.get());
-    hostNameArg.setPropertyName(OPTION_LONG_HOST);
+    hostNameArg = CommonArguments.getHostName(UserData.getDefaultHostName());
     addArgument(hostNameArg);
 
-    portArg = new IntegerArgument("port", OPTION_SHORT_PORT, OPTION_LONG_PORT,
-        false, false, true, INFO_PORT_PLACEHOLDER.get(),
-        getDefaultAdministrationPort(), null,
-        true, 1, true, 65535,
-        INFO_DESCRIPTION_ADMIN_PORT.get());
-    portArg.setPropertyName(OPTION_LONG_PORT);
+    portArg =
+        CommonArguments.getPort(getDefaultAdministrationPort(),
+            INFO_DESCRIPTION_ADMIN_PORT.get());
     addArgument(portArg);
 
-    bindDnArg = new StringArgument("bindDN", OPTION_SHORT_BINDDN,
-        OPTION_LONG_BINDDN, false, false, true, INFO_BINDDN_PLACEHOLDER.get(),
-        getDefaultBindDN(), null, INFO_DESCRIPTION_BINDDN.get());
-    bindDnArg.setPropertyName(OPTION_LONG_BINDDN);
+    bindDnArg = CommonArguments.getBindDN(getDefaultBindDN());
     addArgument(bindDnArg);
 
-    bindPasswordArg = new StringArgument("bindPassword",
-        OPTION_SHORT_BINDPWD, OPTION_LONG_BINDPWD, false, false, true,
-        INFO_BINDPWD_PLACEHOLDER.get(), null, null,
-        INFO_DESCRIPTION_BINDPASSWORD.get());
-    bindPasswordArg.setPropertyName(OPTION_LONG_BINDPWD);
+    bindPasswordArg = CommonArguments.getBindPassword();
     addArgument(bindPasswordArg);
 
-    bindPasswordFileArg = new FileBasedArgument("bindPasswordFile",
-        OPTION_SHORT_BINDPWD_FILE, OPTION_LONG_BINDPWD_FILE, false, false,
-        INFO_BINDPWD_FILE_PLACEHOLDER.get(), null, null,
-        INFO_DESCRIPTION_BINDPASSWORDFILE.get());
-    bindPasswordFileArg.setPropertyName(OPTION_LONG_BINDPWD_FILE);
+    bindPasswordFileArg = CommonArguments.getBindPasswordFile();
     addArgument(bindPasswordFileArg);
 
-    trustAllArg = new BooleanArgument("trustAll", OPTION_SHORT_TRUSTALL,
-        OPTION_LONG_TRUSTALL, INFO_DESCRIPTION_TRUSTALL.get());
-    trustAllArg.setPropertyName(OPTION_LONG_TRUSTALL);
+    trustAllArg = CommonArguments.getTrustAll();
     addArgument(trustAllArg);
 
-    remoteArg = new BooleanArgument("remote", OPTION_SHORT_REMOTE,
-        OPTION_LONG_REMOTE, INFO_DESCRIPTION_REMOTE.get());
-    remoteArg.setPropertyName(OPTION_LONG_REMOTE);
+    remoteArg = CommonArguments.getRemote();
     addArgument(remoteArg);
 
-    int defaultTimeout = ConnectionUtils.getDefaultLDAPTimeout();
-    connectTimeoutArg = new IntegerArgument(OPTION_LONG_CONNECT_TIMEOUT,
-        null, OPTION_LONG_CONNECT_TIMEOUT,
-        false, false, true, INFO_TIMEOUT_PLACEHOLDER.get(),
-        defaultTimeout, null,
-        true, 0, false, Integer.MAX_VALUE,
-        INFO_DESCRIPTION_CONNECTION_TIMEOUT.get());
-    connectTimeoutArg.setPropertyName(OPTION_LONG_CONNECT_TIMEOUT);
+    connectTimeoutArg =
+        CommonArguments.getConnectTimeOut(ConnectionUtils
+            .getDefaultLDAPTimeout());
+    connectTimeoutArg.setHidden(false);
     addArgument(connectTimeoutArg);
 
-    showUsageArg = new BooleanArgument("help", OPTION_SHORT_HELP,
-        OPTION_LONG_HELP,
-        INFO_DESCRIPTION_USAGE.get());
+    showUsageArg = CommonArguments.getShowUsage();
     addArgument(showUsageArg);
     setUsageArgument(showUsageArg);
   }

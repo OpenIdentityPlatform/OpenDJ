@@ -51,6 +51,7 @@ import org.forgerock.opendj.ldap.ByteStringBuilder;
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.FileBasedArgument;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.MultiChoiceArgument;
@@ -964,9 +965,7 @@ public class ManageAccount
                                   INFO_PWPSTATE_DESCRIPTION_TSPWFILE.get());
       argParser.addGlobalArgument(trustStorePWFile);
 
-      verbose = new BooleanArgument("verbose", 'v', "verbose",
-                                    INFO_DESCRIPTION_VERBOSE.get());
-      verbose.setPropertyName("verbose");
+      verbose = CommonArguments.getVerbose();
       argParser.addGlobalArgument(verbose);
 
       showUsage = new BooleanArgument(

@@ -722,7 +722,7 @@ public class InstallDS extends ConsoleApplication
       errorMessages.add(message);
     }
     uData.setDirectoryManagerDn(dmDN);
-    uData.setDirectoryManagerPwd(String.valueOf(argParser.getDirectoryManagerPassword()));
+    uData.setDirectoryManagerPwd(argParser.getDirectoryManagerPassword());
 
     // Check the validity of the base DNs
     List<String> baseDNs = argParser.baseDNArg.getValues();
@@ -978,7 +978,7 @@ public class InstallDS extends ConsoleApplication
         true);
     uData.setDirectoryManagerDn(dns.getFirst());
 
-    char[] pwd = argParser.getDirectoryManagerPassword();
+    String pwd = argParser.getDirectoryManagerPassword();
     int nTries = 0;
     while (pwd == null)
     {
@@ -1004,9 +1004,9 @@ public class InstallDS extends ConsoleApplication
       char[] pwd2 =
         readPassword(INFO_INSTALLDS_PROMPT_CONFIRM_ROOT_PASSWORD.get());
 
-      if (pwd1.equals(pwd2))
+      if (Arrays.equals(pwd1, pwd2))
       {
-        pwd = pwd1;
+        pwd = String.valueOf(pwd1);
       }
       else
       {

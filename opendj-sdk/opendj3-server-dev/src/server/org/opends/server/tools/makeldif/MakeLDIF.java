@@ -42,9 +42,11 @@ import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.LDIFWriter;
+
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.StringArgument;
 
@@ -189,9 +191,7 @@ public class MakeLDIF
       argParser.addArgument(randomSeed);
 
 
-      showUsage = new BooleanArgument("help", OPTION_SHORT_HELP,
-                                      OPTION_LONG_HELP,
-                                      INFO_MAKELDIF_DESCRIPTION_HELP.get());
+      showUsage = CommonArguments.getShowUsage();
       argParser.addArgument(showUsage);
       argParser.setUsageArgument(showUsage);
     }
