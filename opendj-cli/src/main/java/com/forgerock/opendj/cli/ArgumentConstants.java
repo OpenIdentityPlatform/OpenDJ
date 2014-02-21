@@ -650,6 +650,61 @@ public final class ArgumentConstants {
      */
     public static final String OPTION_LONG_CONTROL = "control";
 
+    /**
+     * Recurring task option long form.
+     */
+    public static final String OPTION_LONG_RECURRING_TASK = "recurringTask";
+
+    /**
+     * Recurring task option short form.
+     */
+    public static final Character OPTION_SHORT_RECURRING_TASK = null;
+
+    /**
+     * Subentries control option long form.
+     */
+    public static final String OPTION_LONG_SUBENTRIES = "subEntries";
+
+    /**
+     * Subentries control option short form.
+     */
+    public static final Character OPTION_SHORT_SUBENTRIES = null;
+
+    /**
+     * Scheduled start date/time option long form.
+     */
+    public static final String OPTION_LONG_START_DATETIME = "start";
+
+    /**
+     * Scheduled start date/time option short form.
+     */
+    public static final Character OPTION_SHORT_START_DATETIME = 't';
+
+    /**
+     * Long form of admin password.
+     */
+    public static final String OPTION_LONG_ADMIN_PWD = "adminPassword";
+
+    /**
+     * Long form of admin password file.
+     */
+    public static final String OPTION_LONG_ADMIN_PWD_FILE = "adminPasswordFile";
+
+    /**
+     * The name of the SASL property that can be used to provide trace information
+     * for a SASL ANONYMOUS request.
+     */
+    public static final String SASL_PROPERTY_TRACE = "trace";
+
+    /**
+     * The value for the long option force upgrade.
+     */
+    public static final String OPTION_LONG_FORCE_UPGRADE = "force";
+
+    /**
+     * The value for the long option ignore errors.
+     */
+    public static final String OPTION_LONG_IGNORE_ERRORS = "ignoreErrors";
     // Prevent instantiation.
     private ArgumentConstants() {
 
