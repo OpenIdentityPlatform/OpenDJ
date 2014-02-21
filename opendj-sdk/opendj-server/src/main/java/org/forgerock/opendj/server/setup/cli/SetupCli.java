@@ -225,7 +225,7 @@ public final class SetupCli extends ConsoleApplication {
         cli = addGlobal(CommonArguments.getCLI());
         baseDN = addGlobal(CommonArguments.getBaseDN());
         addBaseEntry = addGlobal(CommonArguments.getAddBaseEntry());
-        importLDIF = addGlobal(CommonArguments.getImportLDIF());
+        importLDIF = addGlobal(CommonArguments.getLDIFFile(INFO_DESCRIPTION_IMPORTLDIF.get()));
         rejectedImportFile = addGlobal(CommonArguments.getRejectedImportLdif());
         skippedImportFile = addGlobal(CommonArguments.getSkippedImportFile());
         sampleData = addGlobal(CommonArguments.getSampleData());
