@@ -44,7 +44,7 @@
  <section xml:id="changed-functionality">
   <title>Important Changes to Existing Functionality</title>
 
-  <para>OpenDJ <?eval ${docTargetVersion}?> improves on earlier releases
+  <para>OpenDJ <?eval ${stableServerVersion}?> improves on earlier releases
   introducing many new features. Also take the following into account.</para>
 
   <itemizedlist>
