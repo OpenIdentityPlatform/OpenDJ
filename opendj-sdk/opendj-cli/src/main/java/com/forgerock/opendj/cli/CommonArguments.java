@@ -265,7 +265,7 @@ public final class CommonArguments {
     /**
      * Returns the "targetldif" string argument.
      * <br><i> N.B : the 't' short option is also used by timelimit,
-     * testonly, trustmanagerproviderdn, stoptime.</i>
+     * testonly, trustmanagerproviderdn, stoptime, start(dateTime).</i>
      *
      * @param description
      *            The description of this argument.
@@ -280,7 +280,8 @@ public final class CommonArguments {
 
     /**
      * Returns the "timelimit" boolean argument. <br>
-     * <i> N.B : the 't' short option is also used by targetldif, testonly, trustmanagerproviderdn, stoptime.</i>
+     * <i> N.B : the 't' short option is also used by targetldif, testonly, trustmanagerproviderdn, stoptime,
+     * start(dateTime).</i>
      *
      * @return The "timelimit" argument.
      * @throws ArgumentException
@@ -294,7 +295,7 @@ public final class CommonArguments {
     /**
      * Returns the "testonly" boolean argument.
      * <br><i> N.B : the 't' short option is also used by targetldif, timelimit,
-     * trustmanagerproviderdn, stoptime.</i>
+     * trustmanagerproviderdn, stoptime, start(dateTime)</i>
      *
      * @return The "testonly" argument.
      * @throws ArgumentException
@@ -325,7 +326,7 @@ public final class CommonArguments {
     /**
      * Returns the "trustmanagerproviderdn" string argument.
      * <br><i> N.B : the 't' short option is also used by targetldif, timelimit,
-     * testonly, stoptime.</i>
+     * testonly, stoptime, start(dateTime)</i>
      *
      * @return The "trustmanagerproviderdn" argument.
      * @throws ArgumentException
@@ -562,7 +563,7 @@ public final class CommonArguments {
     /**
      * Returns the "bindDN" string argument. <br/>
      * <i> N.B : the 'D' short option is also used by rootUserDN.</i>
-     * 
+     *
      * @param defaultBindDN
      *            The default bind DN.
      * @return The "bindDN" argument.
@@ -685,7 +686,7 @@ public final class CommonArguments {
     /**
      * Returns the "sample data" integer argument. <br>
      * <i> N.B : the 'd' short option is also used by backupdirectory, disableservice.</i>
-     * 
+     *
      * @return The "sampleData" argument.
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
@@ -883,7 +884,7 @@ public final class CommonArguments {
 
     /**
      * Returns the "stopTime" string argument. <br><i> N.B : the 't' short option is also used by targetldif, timelimit,
-     * testonly, trustmanagerproviderdn.</i>
+     * testonly, trustmanagerproviderdn, start(dateTime)</i>
      *
      * @return The "stopTime" argument.
      * @throws ArgumentException
