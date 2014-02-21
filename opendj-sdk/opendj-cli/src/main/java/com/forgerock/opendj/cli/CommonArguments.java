@@ -59,7 +59,8 @@ public final class CommonArguments {
      *             If there is a problem with any of the parameters used to create this argument.
      */
     public static BooleanArgument getVerbose() throws ArgumentException {
-        final BooleanArgument verbose = new BooleanArgument("verbose", 'v', "verbose", INFO_DESCRIPTION_VERBOSE.get());
+        final BooleanArgument verbose = new BooleanArgument("verbose", OPTION_SHORT_VERBOSE, "verbose",
+                INFO_DESCRIPTION_VERBOSE.get());
         verbose.setPropertyName("verbose");
         return verbose;
     }
@@ -158,7 +159,8 @@ public final class CommonArguments {
     }
 
     /**
-     * Returns the "Continue On Error" boolean argument.
+     * Returns the "Continue On Error" boolean argument. <br>
+     * <i> N.B : the 'c' short option is also used by cleanupservice, compress.</i>
      *
      * @return The "continueOnError" argument.
      * @throws ArgumentException
@@ -179,8 +181,8 @@ public final class CommonArguments {
      *             If there is a problem with any of the parameters used to create this argument.
      */
     public static StringArgument getControl() throws ArgumentException {
-        return new StringArgument("control", 'J', "control", false, true, true, INFO_LDAP_CONTROL_PLACEHOLDER.get(),
-                null, null, INFO_DESCRIPTION_CONTROLS.get());
+        return new StringArgument(OPTION_LONG_CONTROL.toLowerCase(), OPTION_SHORT_CONTROL, OPTION_LONG_CONTROL, false,
+                true, true, INFO_LDAP_CONTROL_PLACEHOLDER.get(), null, null, INFO_DESCRIPTION_CONTROLS.get());
     }
 
     /**
@@ -262,6 +264,8 @@ public final class CommonArguments {
 
     /**
      * Returns the "targetldif" string argument.
+     * <br><i> N.B : the 't' short option is also used by timelimit,
+     * testonly, trustmanagerproviderdn, stoptime.</i>
      *
      * @param description
      *            The description of this argument.
@@ -275,7 +279,8 @@ public final class CommonArguments {
     }
 
     /**
-     * Returns the "timelimit" boolean argument.
+     * Returns the "timelimit" boolean argument. <br>
+     * <i> N.B : the 't' short option is also used by targetldif, testonly, trustmanagerproviderdn, stoptime.</i>
      *
      * @return The "timelimit" argument.
      * @throws ArgumentException
@@ -287,9 +292,11 @@ public final class CommonArguments {
     }
 
     /**
-     * Returns the "test only" boolean argument.
+     * Returns the "testonly" boolean argument.
+     * <br><i> N.B : the 't' short option is also used by targetldif, timelimit,
+     * trustmanagerproviderdn, stoptime.</i>
      *
-     * @return The "test only" argument.
+     * @return The "testonly" argument.
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
@@ -317,6 +324,8 @@ public final class CommonArguments {
 
     /**
      * Returns the "trustmanagerproviderdn" string argument.
+     * <br><i> N.B : the 't' short option is also used by targetldif, timelimit,
+     * testonly, stoptime.</i>
      *
      * @return The "trustmanagerproviderdn" argument.
      * @throws ArgumentException
@@ -363,8 +372,8 @@ public final class CommonArguments {
      *             If there is a problem with any of the parameters used to create this argument.
      */
     public static StringArgument getTrustStorePassword() throws ArgumentException {
-        return new StringArgument("truststorepw", 'T', OPTION_LONG_TRUSTSTORE_PWD, false, false, true,
-                INFO_TRUSTSTORE_PWD_PLACEHOLDER.get(), null, OPTION_LONG_TRUSTSTORE_PWD,
+        return new StringArgument("truststorepw", OPTION_SHORT_TRUSTSTORE_PWD, OPTION_LONG_TRUSTSTORE_PWD, false,
+                false, true, INFO_TRUSTSTORE_PWD_PLACEHOLDER.get(), null, OPTION_LONG_TRUSTSTORE_PWD,
                 INFO_DESCRIPTION_TRUSTSTOREPASSWORD.get());
     }
 
@@ -400,7 +409,8 @@ public final class CommonArguments {
     }
 
     /**
-     * Returns the "cleanupservice" string argument.
+     * Returns the "cleanupservice" string argument. <br>
+     * <i> N.B : the 'c' short option is also used by continueOnError, compress.</i>
      *
      * @return The "cleanupservice" argument.
      * @throws ArgumentException
@@ -413,7 +423,8 @@ public final class CommonArguments {
     }
 
     /**
-     * Returns the "CLI" boolean argument.
+     * Returns the "CLI" boolean argument. <br>
+     * <i> N.B : the 'i' short option is also used by encoding.</i>
      *
      * @return The "CLI" argument.
      * @throws ArgumentException
@@ -441,7 +452,8 @@ public final class CommonArguments {
     }
 
     /**
-     * Returns the "configfile" string argument.
+     * Returns the "configfile" string argument. <br>
+     * <i> N.B : the 'f' short option is also used by filename</i>
      *
      * @return The "configfile" argument.
      * @throws ArgumentException
@@ -472,7 +484,8 @@ public final class CommonArguments {
     }
 
     /**
-     * Returns the "backendid" string argument.
+     * Returns the "backendid" string argument. <br>
+     * <i> N.B : the 'n' short option is also used by newGroupName, no-prompt.</i>
      *
      * @return The "backendid" argument.
      * @throws ArgumentException
@@ -484,7 +497,8 @@ public final class CommonArguments {
     }
 
     /**
-     * Returns the "backupdirectory" string argument.
+     * Returns the "backupdirectory" string argument. <br>
+     * <i> N.B : the 'd' short option is also used by sampledata, disableservice.</i>
      *
      * @return The "backupdirectory" argument.
      * @throws ArgumentException
@@ -508,7 +522,8 @@ public final class CommonArguments {
     }
 
     /**
-     * Returns the "backupall" boolean argument.
+     * Returns the "backupall" boolean argument. <br><i> N.B : the 'a' short option is also used by addbaseentry,
+     * defaultAdd.</i>
      *
      * @return The "backupall" argument.
      * @throws ArgumentException
@@ -545,8 +560,9 @@ public final class CommonArguments {
     }
 
     /**
-     * Returns the "bindDN" string argument.
-     *
+     * Returns the "bindDN" string argument. <br/>
+     * <i> N.B : the 'D' short option is also used by rootUserDN.</i>
+     * 
      * @param defaultBindDN
      *            The default bind DN.
      * @return The "bindDN" argument.
@@ -556,7 +572,6 @@ public final class CommonArguments {
     public static StringArgument getBindDN(final String defaultBindDN) throws ArgumentException {
         return new StringArgument("bindDN", OPTION_SHORT_BINDDN, OPTION_LONG_BINDDN, false, false, true,
                 INFO_BINDDN_PLACEHOLDER.get(), defaultBindDN, OPTION_LONG_BINDDN, INFO_DESCRIPTION_BINDDN.get());
-
     }
 
     /**
@@ -585,9 +600,10 @@ public final class CommonArguments {
     }
 
     /**
-     * Returns the "add base entry" boolean argument.
+     * Returns the "addbaseentry" boolean argument.
+     * <br><i> N.B : the 'a' short option is also used by backupall, defaultAdd.</i>
      *
-     * @return The "addBaseEntry" argument.
+     * @return The "addbaseentry" argument.
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
@@ -599,9 +615,10 @@ public final class CommonArguments {
     }
 
     /**
-     * Returns the "rejected import ldif file" string argument.
+     * Returns the "rejectfile" string argument. <br>
+     * <i> N.B : the 'R' short option is also used by restart, serverRoot.</i>
      *
-     * @return The "rejectFile" argument.
+     * @return The "rejectfile" argument.
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
@@ -611,7 +628,8 @@ public final class CommonArguments {
     }
 
     /**
-     * Returns the "remote" boolean argument.
+     * Returns the "remote" boolean argument. <br>
+     * <i> N.B : the 'r' short option is also used by useSASLExternal, stopreason.</i>
      *
      * @return The "remote" argument.
      * @throws ArgumentException
@@ -639,7 +657,8 @@ public final class CommonArguments {
     }
 
     /**
-     * Returns the "restart" boolean argument.
+     * Returns the "restart" boolean argument. <br>
+     * <i> N.B : the 'R' short option is also used by rejectfile, serverRoot.</i>
      *
      * @return The "restart" argument.
      * @throws ArgumentException
@@ -664,8 +683,9 @@ public final class CommonArguments {
     }
 
     /**
-     * Returns the "sample data" integer argument.
-     *
+     * Returns the "sample data" integer argument. <br>
+     * <i> N.B : the 'd' short option is also used by backupdirectory, disableservice.</i>
+     * 
      * @return The "sampleData" argument.
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
@@ -677,7 +697,8 @@ public final class CommonArguments {
     }
 
     /**
-     * Returns the "sasloption" string argument.
+     * Returns the "sasloption" string argument. <br>
+     * <i> N.B : the 'o' short option is also used by outputLDIF.</i>
      *
      * @return The "sasloption" argument.
      * @throws ArgumentException
@@ -690,7 +711,8 @@ public final class CommonArguments {
     }
 
     /**
-     * Returns the "serverRoot" string argument.
+     * Returns the "serverRoot" string argument. <br>
+     * <i> N.B : the 'R' short option is also used by rejectfile, restart.</i>
      *
      * @return The "serverRoot" argument.
      * @throws ArgumentException
@@ -704,7 +726,8 @@ public final class CommonArguments {
     }
 
     /**
-     * Returns the "servicestatey" boolean argument.
+     * Returns the "servicestate" boolean argument. <br>
+     * <i> N.B : the 's' short option is also used by sourceldif, randomSeed, script-friendly.</i>
      *
      * @return The "servicestate" argument.
      * @throws ArgumentException
@@ -716,7 +739,8 @@ public final class CommonArguments {
     }
 
     /**
-     * Returns the "script-friendly" boolean argument.
+     * Returns the "script-friendly" boolean argument. <i> N.B : the 's' short option is also used by servicestate,
+     * sourceldif, randomSeed.</i>
      *
      * @return The "script-friendly" argument.
      * @throws ArgumentException
@@ -816,7 +840,8 @@ public final class CommonArguments {
     }
 
     /**
-     * Returns the "sourceldif" string argument.
+     * Returns the "sourceldif" string argument. <br>
+     * <i> N.B : the 's' short option is also used by servicestate, randomSeed, script-friendly.</i>
      *
      * @param description
      *            The description of this argument.
@@ -844,7 +869,8 @@ public final class CommonArguments {
     }
 
     /**
-     * Returns the "stopreason" string argument.
+     * Returns the "stopreason" string argument. <br>
+     * <i> N.B : the 'r' short option is also used by useSASLExternal, remote.</i>
      *
      * @return The "stopreason" argument.
      * @throws ArgumentException
@@ -856,7 +882,8 @@ public final class CommonArguments {
     }
 
     /**
-     * Returns the "stopTime" string argument.
+     * Returns the "stopTime" string argument. <br><i> N.B : the 't' short option is also used by targetldif, timelimit,
+     * testonly, trustmanagerproviderdn.</i>
      *
      * @return The "stopTime" argument.
      * @throws ArgumentException
@@ -868,7 +895,8 @@ public final class CommonArguments {
     }
 
     /**
-     * Returns the "directory manager DN" string argument.
+     * Returns the "rootUserDN" string argument. <br>
+     * <i> N.B : the 'D' short option is also used by bindDN.</i>
      *
      * @return The "rootUserDN" argument.
      * @throws ArgumentException
@@ -921,7 +949,8 @@ public final class CommonArguments {
     }
 
     /**
-     * Returns the "encoding" string argument.
+     * Returns the "encoding" string argument. <br>
+     * <i> N.B : the 'i' short option is also used by cli</i>
      *
      * @return The "encoding" argument.
      * @throws ArgumentException
@@ -948,6 +977,7 @@ public final class CommonArguments {
 
     /**
      * Returns the "defaultAdd" boolean argument.
+     * <br><i> N.B : the 'a' short option is also used by addbaseentry, defaultAdd.</i>
      *
      * @return The "defaultAdd" argument.
      * @throws ArgumentException
@@ -958,7 +988,8 @@ public final class CommonArguments {
     }
 
     /**
-     * Returns the "disableservice" boolean argument.
+     * Returns the "disableservice" boolean argument. <br>
+     * <i> N.B : the 'd' short option is also used by backupdirectory, sampledata.</i>
      *
      * @return The "disableservice" argument.
      * @throws ArgumentException
@@ -999,7 +1030,7 @@ public final class CommonArguments {
 
     /**
      * Returns the "filename" string argument.
-     *
+     * <i> N.B : the 'f' short option is also used by configfile</i>
      * @param description
      *            The description of this argument.
      * @return The "filename" argument.
@@ -1026,7 +1057,8 @@ public final class CommonArguments {
     }
 
     /**
-     * Returns the "ldaps port" integer argument.
+     * Returns the "ldaps port" integer argument. <br>
+     * <i> N.B : the 'Z' short option is also used by useSSL.</i>
      *
      * @param defaultSecurePort
      *            Default value for the LDAPS port.
@@ -1152,7 +1184,8 @@ public final class CommonArguments {
     }
 
     /**
-     * Returns the "useSASLExternal" boolean argument.
+     * Returns the "useSASLExternal" boolean argument. <br>
+     * <i> N.B : the 'r' short option is also used by stopreason, remote.</i>
      *
      * @return The "useSASLExternal" argument.
      * @throws ArgumentException
@@ -1166,7 +1199,8 @@ public final class CommonArguments {
     }
 
     /**
-     * Returns the "useSSL" boolean argument.
+     * Returns the "useSSL" boolean argument. <br>
+     * <i> N.B : the 'Z' short option is also used by ldapsport.</i>
      *
      * @return The "useSSL" argument.
      * @throws ArgumentException
