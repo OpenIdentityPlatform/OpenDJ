@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS.
+ *      Portions copyright 2011-2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -798,14 +798,14 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
         }
 
         private void checkForHeartBeat() {
-            if (sync.isHeldExclusively()) {
+            if (sync.isHeld()) {
                 /*
-                 * A heart beat is still in progress, but it should have
-                 * completed by now. Let's avoid aggressively terminating the
-                 * connection, because the heart beat may simply have been
-                 * delayed by a sudden surge of activity. Therefore, only flag
-                 * the connection as failed if no activity has been seen on the
-                 * connection since the heart beat was sent.
+                 * A heart beat or bind/startTLS is still in progress, but it
+                 * should have completed by now. Let's avoid aggressively
+                 * terminating the connection, because the heart beat may simply
+                 * have been delayed by a sudden surge of activity. Therefore,
+                 * only flag the connection as failed if no activity has been
+                 * seen on the connection since the heart beat was sent.
                  */
                 final long currentTimeMillis = timeSource.currentTimeMillis();
                 if (lastResponseTimestamp < (currentTimeMillis - timeoutMS)) {
@@ -916,7 +916,6 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
             if (sync.tryLockExclusively()) {
                 try {
                     connection.searchAsync(heartBeatRequest, null, heartBeatHandler);
-                    return true;
                 } catch (final IllegalStateException e) {
                     /*
                      * This may happen when we attempt to send the heart beat
@@ -931,7 +930,12 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
                     releaseHeartBeatLock();
                 }
             }
-            return false;
+            /*
+             * Indicate that a the heartbeat should be checked even if a
+             * bind/startTLS is in progress, since these operations will
+             * effectively act as the heartbeat.
+             */
+            return true;
         }
 
         private <R> R timestamp(final R response) {
@@ -1004,6 +1008,10 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
         @Override
         protected boolean isHeldExclusively() {
             return getState() == LOCKED_EXCLUSIVELY;
+        }
+
+        boolean isHeld() {
+            return getState() != 0;
         }
 
         @Override
