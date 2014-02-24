@@ -49,9 +49,11 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.util.EmbeddedUtils;
 import org.opends.server.util.PasswordReader;
+
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.FileBasedArgument;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.StringArgument;
@@ -148,7 +150,7 @@ public class LDAPPasswordModify
     // Create the arguments that will be used by this program.
     BooleanArgument   provideDNForAuthzID;
     BooleanArgument   showUsage;
-    BooleanArgument   sslBlindTrust;
+    BooleanArgument   trustAll;
     BooleanArgument   useSSL;
     BooleanArgument   useStartTLS;
     FileBasedArgument bindPWFile;
@@ -303,11 +305,8 @@ public class LDAPPasswordModify
       argParser.addArgument(currentPWFile);
 
 
-      sslBlindTrust =
-           new BooleanArgument("blindtrust", 'X', "trustAll",
-                               INFO_LDAPPWMOD_DESCRIPTION_BLIND_TRUST.get());
-      sslBlindTrust.setPropertyName("trustAll");
-      argParser.addArgument(sslBlindTrust);
+      trustAll = CommonArguments.getTrustAll();
+      argParser.addArgument(trustAll);
 
 
       sslKeyStore =
@@ -400,9 +399,7 @@ public class LDAPPasswordModify
       argParser.addArgument(connectTimeout);
 
 
-      showUsage = new BooleanArgument("help", OPTION_SHORT_HELP,
-                                      OPTION_LONG_HELP,
-                                      INFO_DESCRIPTION_USAGE.get());
+      showUsage = CommonArguments.getShowUsage();
       argParser.addArgument(showUsage);
       argParser.setUsageArgument(showUsage, out);
     }
@@ -623,7 +620,7 @@ public class LDAPPasswordModify
           clientAlias = null;
         }
         SSLConnectionFactory sslConnectionFactory = new SSLConnectionFactory();
-        sslConnectionFactory.init(sslBlindTrust.isPresent(),
+        sslConnectionFactory.init(trustAll.isPresent(),
                                   sslKeyStore.getValue(), keyPIN, clientAlias,
                                   sslTrustStore.getValue(), trustPIN);
         connectionOptions.setSSLConnectionFactory(sslConnectionFactory);

@@ -549,34 +549,13 @@ public final class DSConfig extends ConsoleApplication {
   private void initializeGlobalArguments(String[] args)
   throws ArgumentException {
     if (globalArgumentsInitialized == false) {
+
       verboseArgument = CommonArguments.getVerbose();
-
-      quietArgument = new BooleanArgument(
-          OPTION_LONG_QUIET,
-          OPTION_SHORT_QUIET,
-          OPTION_LONG_QUIET,
-          INFO_DESCRIPTION_QUIET.get());
-      quietArgument.setPropertyName(OPTION_LONG_QUIET);
-
-      scriptFriendlyArgument = new BooleanArgument("script-friendly",
-          OPTION_SHORT_SCRIPT_FRIENDLY, OPTION_LONG_SCRIPT_FRIENDLY,
-          INFO_DESCRIPTION_SCRIPT_FRIENDLY.get());
-      scriptFriendlyArgument.setPropertyName(OPTION_LONG_SCRIPT_FRIENDLY);
-
-      noPromptArgument = new BooleanArgument(
-          OPTION_LONG_NO_PROMPT,
-          OPTION_SHORT_NO_PROMPT,
-          OPTION_LONG_NO_PROMPT,
-          INFO_DESCRIPTION_NO_PROMPT.get());
-
-      advancedModeArgument = new BooleanArgument(OPTION_LONG_ADVANCED,
-          null, OPTION_LONG_ADVANCED,
-          INFO_DSCFG_DESCRIPTION_ADVANCED.get());
-      advancedModeArgument.setPropertyName(OPTION_LONG_ADVANCED);
-
-      showUsageArgument = new BooleanArgument("showUsage", OPTION_SHORT_HELP,
-          OPTION_LONG_HELP, INFO_DSCFG_DESCRIPTION_SHOW_GROUP_USAGE_SUMMARY
-          .get());
+      quietArgument = CommonArguments.getQuiet();
+      scriptFriendlyArgument = CommonArguments.getScriptFriendly();
+      noPromptArgument = CommonArguments.getNoPrompt();
+      advancedModeArgument = CommonArguments.getAdvancedMode();
+      showUsageArgument = CommonArguments.getShowUsage();
 
       batchFileArgument = new StringArgument(OPTION_LONG_BATCH_FILE_PATH,
           OPTION_SHORT_BATCH_FILE_PATH, OPTION_LONG_BATCH_FILE_PATH,
@@ -588,8 +567,6 @@ public final class DSConfig extends ConsoleApplication {
           OPTION_LONG_DISPLAY_EQUIVALENT,
           null, OPTION_LONG_DISPLAY_EQUIVALENT,
           INFO_DSCFG_DESCRIPTION_DISPLAY_EQUIVALENT.get());
-      advancedModeArgument.setPropertyName(
-          OPTION_LONG_DISPLAY_EQUIVALENT);
 
       equivalentCommandFileArgument = new StringArgument(
           OPTION_LONG_EQUIVALENT_COMMAND_FILE_PATH, null,
@@ -649,7 +626,7 @@ public final class DSConfig extends ConsoleApplication {
     if (handlerFactory == null) {
       handlerFactory = new SubCommandHandlerFactory(parser);
 
-      Comparator<SubCommand> c = new Comparator<SubCommand>() {
+      final Comparator<SubCommand> c = new Comparator<SubCommand>() {
 
         @Override
         public int compare(SubCommand o1, SubCommand o2) {

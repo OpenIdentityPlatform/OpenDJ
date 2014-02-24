@@ -58,6 +58,7 @@ import org.opends.server.util.args.LDAPConnectionArgumentParser;
 
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.cli.ClientException;
@@ -295,10 +296,7 @@ public class ExportLDIF extends TaskTool {
       argParser.addArgument(signHash);
 
 
-      displayUsage =
-           new BooleanArgument("help", OPTION_SHORT_HELP,
-                               OPTION_LONG_HELP,
-                               INFO_DESCRIPTION_USAGE.get());
+      displayUsage = CommonArguments.getShowUsage();
       argParser.addArgument(displayUsage);
       argParser.setUsageArgument(displayUsage);
     }

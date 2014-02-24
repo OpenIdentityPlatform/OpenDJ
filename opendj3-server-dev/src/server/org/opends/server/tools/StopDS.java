@@ -63,6 +63,7 @@ import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.FileBasedArgument;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.StringArgument;
@@ -310,9 +311,7 @@ public class StopDS
       windowsNetStop.setHidden(true);
       argParser.addArgument(windowsNetStop);
 
-      restart = new BooleanArgument("restart", 'R', "restart",
-                                    INFO_STOPDS_DESCRIPTION_RESTART.get());
-      restart.setPropertyName("restart");
+      restart = CommonArguments.getRestart();
       argParser.addArgument(restart);
 
       stopTimeStr = new StringArgument("stoptime", 't', "stopTime", false,
@@ -323,9 +322,7 @@ public class StopDS
       stopTimeStr.setPropertyName("stopTime");
       argParser.addArgument(stopTimeStr);
 
-      trustAll = new BooleanArgument("trustall", 'X', "trustAll",
-                                     INFO_STOPDS_DESCRIPTION_TRUST_ALL.get());
-      trustAll.setPropertyName("trustAll");
+      trustAll = CommonArguments.getTrustAll();
       argParser.addArgument(trustAll);
 
       keyStoreFile = new StringArgument("keystorefile",
@@ -400,9 +397,7 @@ public class StopDS
       quietMode.setPropertyName(OPTION_LONG_QUIET);
       argParser.addArgument(quietMode);
 
-      showUsage = new BooleanArgument("showusage", OPTION_SHORT_HELP,
-                                      OPTION_LONG_HELP,
-                                      INFO_STOPDS_DESCRIPTION_SHOWUSAGE.get());
+      showUsage = CommonArguments.getShowUsage();
       argParser.addArgument(showUsage);
       argParser.setUsageArgument(showUsage, out);
     }
@@ -795,7 +790,7 @@ public class StopDS
     }
 
     BooleanArgument restart =
-      (BooleanArgument)argParser.getArgumentForLongID("restart");
+      (BooleanArgument)argParser.getArgumentForLongID(OPTION_LONG_RESTART);
     boolean restartPresent = restart.isPresent();
     BooleanArgument windowsNetStop =
       (BooleanArgument)argParser.getArgumentForLongID("windowsnetstop");
@@ -806,9 +801,9 @@ public class StopDS
     boolean stopThroughProtocol = false;
     for (Argument arg: list)
     {
-      if (!"restart".equals(arg.getName()) &&
-          !"quiet".equals(arg.getName()) &&
-          !"showusage".equals(arg.getName()) &&
+      if (!OPTION_LONG_RESTART.toLowerCase().equals(arg.getName()) &&
+          !OPTION_LONG_QUIET.equals(arg.getName()) &&
+          !OPTION_LONG_HELP.toLowerCase().equals(arg.getName()) &&
           !"checkstoppability".equals(arg.getName()) &&
           !"windowsnetstop".equals(arg.getName()) &&
           ! OPTION_LONG_NO_PROP_FILE.equals(arg.getLongIdentifier()))

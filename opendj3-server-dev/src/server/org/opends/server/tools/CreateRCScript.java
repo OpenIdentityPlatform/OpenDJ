@@ -45,6 +45,7 @@ import org.opends.server.util.SetupUtils;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.StringArgument;
 
 import static org.opends.messages.ToolMessages.*;
@@ -159,8 +160,7 @@ public class CreateRCScript
       argParser.addArgument(javaArgs);
 
 
-      showUsage = new BooleanArgument("help", 'H', "help",
-                                      INFO_DESCRIPTION_SHOWUSAGE.get());
+      showUsage = CommonArguments.getShowUsage();
       argParser.addArgument(showUsage);
       argParser.setUsageArgument(showUsage);
     }

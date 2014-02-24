@@ -85,6 +85,7 @@ import org.opends.server.workflowelement.localbackend.LocalBackendWorkflowElemen
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.StringArgument;
 
@@ -8892,8 +8893,7 @@ public final class DirectoryServer
                                     0, INFO_DSCORE_DESCRIPTION_TIMEOUT.get());
       argParser.addArgument(timeout);
 
-      displayUsage = new BooleanArgument("help", 'H', "help",
-                                         INFO_DSCORE_DESCRIPTION_USAGE.get());
+      displayUsage = CommonArguments.getShowUsage();
       argParser.addArgument(displayUsage);
       argParser.setUsageArgument(displayUsage);
     }

@@ -49,6 +49,7 @@ import static org.opends.server.util.StaticUtils.filterExitCode;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.ClientException;
+import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.StringArgument;
 
 import org.opends.server.util.args.LDAPConnectionArgumentParser;
@@ -257,17 +258,10 @@ public class ManageTasks extends ConsoleApplication {
               INFO_TASKINFO_SUMMARY_ARG_DESCRIPTION.get());
       argParser.addArgument(summary);
 
-      noPrompt = new BooleanArgument(
-              OPTION_LONG_NO_PROMPT,
-              OPTION_SHORT_NO_PROMPT,
-              OPTION_LONG_NO_PROMPT,
-              INFO_DESCRIPTION_NO_PROMPT.get());
+      noPrompt = CommonArguments.getNoPrompt();
       argParser.addArgument(noPrompt);
 
-      BooleanArgument displayUsage = new BooleanArgument(
-              "help", OPTION_SHORT_HELP,
-              OPTION_LONG_HELP,
-              INFO_DESCRIPTION_USAGE.get());
+      BooleanArgument displayUsage = CommonArguments.getShowUsage();
       argParser.addArgument(displayUsage);
       argParser.setUsageArgument(displayUsage);
     }

@@ -65,6 +65,7 @@ import org.opends.server.util.StaticUtils;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.StringArgument;
 
 import static org.opends.messages.ToolMessages.*;
@@ -235,9 +236,7 @@ public class LDIFDiff
       configClass.setHidden(true);
       argParser.addArgument(configClass);
 
-      showUsage = new BooleanArgument("showusage", OPTION_SHORT_HELP,
-                                      OPTION_LONG_HELP,
-                                      INFO_DESCRIPTION_USAGE.get());
+      showUsage =  CommonArguments.getShowUsage();
       argParser.addArgument(showUsage);
 
       useCompareResultCode =

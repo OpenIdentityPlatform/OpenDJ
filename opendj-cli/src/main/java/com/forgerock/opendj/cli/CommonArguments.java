@@ -41,14 +41,15 @@ public final class CommonArguments {
     }
 
     /**
-     * Returns the "show usage" boolean argument.
+     * Returns the "show usage / help" boolean argument.
      *
      * @return The "show usage" argument.
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
     public static BooleanArgument getShowUsage() throws ArgumentException {
-        return new BooleanArgument("showUsage", OPTION_SHORT_HELP, OPTION_LONG_HELP, INFO_DESCRIPTION_SHOWUSAGE.get());
+        return new BooleanArgument(OPTION_LONG_HELP.toLowerCase(), OPTION_SHORT_HELP, OPTION_LONG_HELP,
+                INFO_DESCRIPTION_SHOWUSAGE.get());
     }
 
     /**
@@ -59,8 +60,8 @@ public final class CommonArguments {
      *             If there is a problem with any of the parameters used to create this argument.
      */
     public static BooleanArgument getVerbose() throws ArgumentException {
-        final BooleanArgument verbose = new BooleanArgument("verbose", OPTION_SHORT_VERBOSE, "verbose",
-                INFO_DESCRIPTION_VERBOSE.get());
+        final BooleanArgument verbose = new BooleanArgument(OPTION_LONG_VERBOSE.toLowerCase(), OPTION_SHORT_VERBOSE,
+                OPTION_LONG_VERBOSE, INFO_DESCRIPTION_VERBOSE.get());
         verbose.setPropertyName("verbose");
         return verbose;
     }
@@ -79,7 +80,9 @@ public final class CommonArguments {
     }
 
     /**
-     * Returns the "port" integer argument.
+     * Returns the "port" integer argument. <br>
+     * <i> N.B : the 'p' short option is also used by skipdecode(DBTest),
+     * propertiesFile(JavaPropertiesToolArguments).</i>
      *
      * @param defaultPort
      *            The default port number.
@@ -91,8 +94,8 @@ public final class CommonArguments {
      */
     public static IntegerArgument getPort(final int defaultPort, final LocalizableMessage description)
             throws ArgumentException {
-        return new IntegerArgument("port", OPTION_SHORT_PORT, OPTION_LONG_PORT, false, false, true,
-                INFO_PORT_PLACEHOLDER.get(), defaultPort, OPTION_LONG_PORT, true, 1, true, 65535,
+        return new IntegerArgument(OPTION_LONG_PORT.toLowerCase(), OPTION_SHORT_PORT, OPTION_LONG_PORT, false, false,
+                true, INFO_PORT_PLACEHOLDER.get(), defaultPort, OPTION_LONG_PORT, true, 1, true, 65535,
                 description != null ? description : INFO_DESCRIPTION_ADMIN_PORT.get());
     }
 
@@ -122,15 +125,15 @@ public final class CommonArguments {
     }
 
     /**
-     * Returns the "get properties file" string argument.
+     * Returns the "propertiesFilePath" string argument.
      *
-     * @return The "get properties file" argument.
+     * @return The "propertiesFilePath" argument.
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
     public static StringArgument getPropertiesFile() throws ArgumentException {
-        return new StringArgument("propertiesFilePath", null, OPTION_LONG_PROP_FILE_PATH, false, false, true,
-                INFO_PROP_FILE_PATH_PLACEHOLDER.get(), null, null, INFO_DESCRIPTION_PROP_FILE_PATH.get());
+        return new StringArgument(OPTION_LONG_PROP_FILE_PATH.toLowerCase(), null, OPTION_LONG_PROP_FILE_PATH, false,
+                false, true, INFO_PROP_FILE_PATH_PLACEHOLDER.get(), null, null, INFO_DESCRIPTION_PROP_FILE_PATH.get());
     }
 
     /**
@@ -154,7 +157,7 @@ public final class CommonArguments {
      *             If there is a problem with any of the parameters used to create this argument.
      */
     public static BooleanArgument getNoPropertiesFile() throws ArgumentException {
-        return new BooleanArgument("noPropertiesFile", null, OPTION_LONG_NO_PROP_FILE,
+        return new BooleanArgument(OPTION_LONG_NO_PROP_FILE.toLowerCase(), null, OPTION_LONG_NO_PROP_FILE,
                 INFO_DESCRIPTION_NO_PROP_FILE.get());
     }
 
@@ -228,7 +231,8 @@ public final class CommonArguments {
     }
 
     /**
-     * Returns the "no-op" boolean argument.
+     * Returns the "no-op" boolean argument. <br>
+     * <i> N.B : the 'n' short option is also used by backendid, newGroupName, newPassword, no-prompt.</i>
      *
      * @return The "no-op" argument.
      * @throws ArgumentException
@@ -239,7 +243,8 @@ public final class CommonArguments {
     }
 
     /**
-     * Returns the "no-prompt" boolean argument.
+     * Returns the "no-prompt" boolean argument. <br>
+     * <i> N.B : the 'n' short option is also used by backendid, newGroupName, newPassword, no-prompt.</i>
      *
      * @return The "no-prompt" argument.
      * @throws ArgumentException
@@ -666,8 +671,9 @@ public final class CommonArguments {
      *             If there is a problem with any of the parameters used to create this argument.
      */
     public static BooleanArgument getRestart() throws ArgumentException {
-        final BooleanArgument restart = new BooleanArgument("restart", 'R', "restart", INFO_DESCRIPTION_RESTART.get());
-        restart.setPropertyName("restart");
+        final BooleanArgument restart = new BooleanArgument(OPTION_LONG_RESTART.toLowerCase(), 'R',
+                OPTION_LONG_RESTART, INFO_DESCRIPTION_RESTART.get());
+        restart.setPropertyName(OPTION_LONG_RESTART);
         return restart;
     }
 
