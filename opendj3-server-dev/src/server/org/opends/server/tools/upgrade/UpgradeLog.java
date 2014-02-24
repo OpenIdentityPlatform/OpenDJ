@@ -44,6 +44,7 @@ import com.forgerock.opendj.cli.ClientException;
 import com.forgerock.opendj.cli.ReturnCode;
 
 import static org.opends.messages.ToolMessages.ERR_UPGRADE_INVALID_LOG_FILE;
+import static com.forgerock.opendj.cli.Utils.LINE_SEPARATOR;
 
 /**
  * Creates a historical log about the upgrade. If file does not exist an attempt
@@ -94,9 +95,9 @@ class UpgradeLog
             record.getSequenceNumber()).append(SPACE).append("severity=")
             .append(record.getLevel().toString().toUpperCase());
         sb.append(SPACE).append("src=").append(record.getSourceClassName())
-            .append(SPACE).append(record.getSourceMethodName()).append("\n");
+            .append(SPACE).append(record.getSourceMethodName()).append(LINE_SEPARATOR);
         sb.append(SPACE).append("msg=").append(record.getMessage())
-            .append("\n");
+            .append(LINE_SEPARATOR);
         return sb.toString();
       }
     });
