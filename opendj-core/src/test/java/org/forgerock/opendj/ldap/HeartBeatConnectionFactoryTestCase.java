@@ -283,20 +283,76 @@ public class HeartBeatConnectionFactoryTestCase extends SdkTestCase {
     }
 
     @SuppressWarnings("unchecked")
-    @Test
-    public void testHeartBeatWhileBindInProgress() throws Exception {
+    @Test(description = "OPENDJ-1348")
+    public void testBindPreventsHeartBeatTimeout() throws Exception {
         mockConnectionWithInitialHeartbeatResult(ResultCode.SUCCESS);
-
         hbc = hbcf.getConnection();
 
         /*
          * Send a bind request, trapping the bind call-back so that we can send
          * the response once we have attempted a heartbeat.
          */
-        when(
-                connection.bindAsync(any(BindRequest.class),
-                        any(IntermediateResponseHandler.class), any(ResultHandler.class)))
-                .thenReturn(null);
+        when(hbcf.timeSource.currentTimeMillis()).thenReturn(11000L);
+        hbc.bindAsync(newSimpleBindRequest(), null, null);
+        @SuppressWarnings("rawtypes")
+        final ArgumentCaptor<ResultHandler> arg = ArgumentCaptor.forClass(ResultHandler.class);
+        verify(connection, times(1)).bindAsync(any(BindRequest.class),
+                any(IntermediateResponseHandler.class), arg.capture());
+
+        // Verify no heartbeat is sent because there is a bind in progress.
+        when(hbcf.timeSource.currentTimeMillis()).thenReturn(11001L);
+        scheduler.runAllTasks(); // Invokes HBCF.ConnectionImpl.sendHeartBeat()
+        verify(connection, times(1)).searchAsync(same(HEARTBEAT),
+                any(IntermediateResponseHandler.class), any(SearchResultHandler.class));
+
+        // Send fake bind response, releasing the heartbeat.
+        when(hbcf.timeSource.currentTimeMillis()).thenReturn(11099L);
+        arg.getValue().handleResult(newResult(ResultCode.SUCCESS));
+
+        // Check that bind response acts as heartbeat.
+        assertThat(hbc.isValid()).isTrue();
+        when(hbcf.timeSource.currentTimeMillis()).thenReturn(11100L);
+        scheduler.runAllTasks(); // Invokes HBCF.ConnectionImpl.checkForHeartBeat()
+        assertThat(hbc.isValid()).isTrue();
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test(description = "OPENDJ-1348")
+    public void testBindTriggersHeartBeatTimeoutWhenTooSlow() throws Exception {
+        mockConnectionWithInitialHeartbeatResult(ResultCode.SUCCESS);
+        hbc = hbcf.getConnection();
+
+        // Send another bind request which will timeout.
+        when(hbcf.timeSource.currentTimeMillis()).thenReturn(20000L);
+        hbc.bindAsync(newSimpleBindRequest(), null, null);
+        @SuppressWarnings("rawtypes")
+        final ArgumentCaptor<ResultHandler> arg = ArgumentCaptor.forClass(ResultHandler.class);
+        verify(connection, times(1)).bindAsync(any(BindRequest.class),
+                any(IntermediateResponseHandler.class), arg.capture());
+
+        // Verify no heartbeat is sent because there is a bind in progress.
+        when(hbcf.timeSource.currentTimeMillis()).thenReturn(20001L);
+        scheduler.runAllTasks(); // Invokes HBCF.ConnectionImpl.sendHeartBeat()
+        verify(connection, times(1)).searchAsync(same(HEARTBEAT),
+                any(IntermediateResponseHandler.class), any(SearchResultHandler.class));
+
+        // Check that lack of bind response acts as heartbeat timeout.
+        assertThat(hbc.isValid()).isTrue();
+        when(hbcf.timeSource.currentTimeMillis()).thenReturn(20100L);
+        scheduler.runAllTasks(); // Invokes HBCF.ConnectionImpl.checkForHeartBeat()
+        assertThat(hbc.isValid()).isFalse();
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testHeartBeatWhileBindInProgress() throws Exception {
+        mockConnectionWithInitialHeartbeatResult(ResultCode.SUCCESS);
+        hbc = hbcf.getConnection();
+
+        /*
+         * Send a bind request, trapping the bind call-back so that we can send
+         * the response once we have attempted a heartbeat.
+         */
         hbc.bindAsync(newSimpleBindRequest(), null, null);
 
         // Capture the bind result handler.
