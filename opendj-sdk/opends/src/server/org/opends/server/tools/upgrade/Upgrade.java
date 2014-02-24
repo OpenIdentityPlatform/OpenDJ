@@ -30,6 +30,7 @@ import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.tools.upgrade.FormattedNotificationCallback.*;
 import static org.opends.server.tools.upgrade.UpgradeTasks.*;
 import static org.opends.server.tools.upgrade.LicenseFile.*;
+import static org.opends.server.util.ServerConstants.EOL;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -632,7 +633,7 @@ public final class Upgrade
     {
       if (LicenseFile.exists())
       {
-        context.notify(Message.raw("\n" + LicenseFile.getText()));
+        context.notify(Message.raw(EOL + LicenseFile.getText()));
         context.notify(INFO_LICENSE_DETAILS_CLI_LABEL.get());
         if (!context.isAcceptLicenseMode())
         {
