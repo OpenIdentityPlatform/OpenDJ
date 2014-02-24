@@ -83,7 +83,9 @@ public interface ModifyDNRequest extends Request, ChangeRecord {
     /**
      * Returns the distinguished name of an existing entry that will become the
      * immediate superior (parent) of the entry to be renamed. The server shall
-     * not dereference any aliases in locating the new superior entry.
+     * not dereference any aliases in locating the new superior entry. The
+     * default value is {@code null}, indicating that the entry is to remain
+     * under the same parent entry.
      *
      * @return The distinguished name of the new superior entry, or {@code null}
      *         if the entry is to remain under the same parent entry.
@@ -92,7 +94,8 @@ public interface ModifyDNRequest extends Request, ChangeRecord {
 
     /**
      * Indicates whether the old RDN attribute values are to be retained as
-     * attributes of the entry or deleted from the entry.
+     * attributes of the entry or deleted from the entry. The default value is
+     * {@code false}.
      *
      * @return {@code true} if the old RDN attribute values are to be deleted
      *         from the entry, or {@code false} if they are to be retained.
@@ -101,7 +104,8 @@ public interface ModifyDNRequest extends Request, ChangeRecord {
 
     /**
      * Specifies whether the old RDN attribute values are to be retained as
-     * attributes of the entry or deleted from the entry.
+     * attributes of the entry or deleted from the entry. The default value is
+     * {@code false}.
      *
      * @param deleteOldRDN
      *            {@code true} if the old RDN attribute values are to be deleted
@@ -188,7 +192,9 @@ public interface ModifyDNRequest extends Request, ChangeRecord {
     /**
      * Sets the distinguished name of an existing entry that will become the
      * immediate superior (parent) of the entry to be renamed. The server shall
-     * not dereference any aliases in locating the new superior entry.
+     * not dereference any aliases in locating the new superior entry. The
+     * default value is {@code null}, indicating that the entry is to remain
+     * under the same parent entry.
      *
      * @param dn
      *            The distinguished name of an existing entry that will become
@@ -204,7 +210,9 @@ public interface ModifyDNRequest extends Request, ChangeRecord {
     /**
      * Sets the distinguished name of an existing entry that will become the
      * immediate superior (parent) of the entry to be renamed. The server shall
-     * not dereference any aliases in locating the new superior entry.
+     * not dereference any aliases in locating the new superior entry. The
+     * default value is {@code null}, indicating that the entry is to remain
+     * under the same parent entry.
      *
      * @param dn
      *            The distinguished name of an existing entry that will become
