@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS
+ *      Copyright 2013-2014 ForgeRock AS
  */
 
 package org.opends.server.tools.upgrade;
@@ -42,6 +42,7 @@ import org.opends.messages.RuntimeMessages;
 import org.opends.server.tools.ClientException;
 
 import static org.opends.messages.ToolMessages.ERR_UPGRADE_INVALID_LOG_FILE;
+import static org.opends.server.util.ServerConstants.EOL;
 
 /**
  * Creates a historical log about the upgrade. If file does not exist an attempt
@@ -92,9 +93,9 @@ class UpgradeLog
             record.getSequenceNumber()).append(SPACE).append("severity=")
             .append(record.getLevel().toString().toUpperCase());
         sb.append(SPACE).append("src=").append(record.getSourceClassName())
-            .append(SPACE).append(record.getSourceMethodName()).append("\n");
+            .append(SPACE).append(record.getSourceMethodName()).append(EOL);
         sb.append(SPACE).append("msg=").append(record.getMessage())
-            .append("\n");
+            .append(EOL);
         return sb.toString();
       }
     });
