@@ -69,6 +69,7 @@ import org.opends.server.util.SetupUtils;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.FileBasedArgument;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.StringArgument;
@@ -357,9 +358,7 @@ public class ConfigureDS
           INFO_CONFIGDS_DESCRIPTION_ROOT_PW_FILE.get());
       argParser.addArgument(rootPasswordFile);
 
-      showUsage = new BooleanArgument("showusage", OPTION_SHORT_HELP,
-                                      OPTION_LONG_HELP,
-                                      INFO_DESCRIPTION_USAGE.get());
+      showUsage = CommonArguments.getShowUsage();
       argParser.addArgument(showUsage);
       argParser.setUsageArgument(showUsage);
 

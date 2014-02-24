@@ -239,10 +239,7 @@ public class LDIFSearch
       argParser.addArgument(timeLimit);
 
 
-      showUsage = new BooleanArgument(
-              "help", OPTION_SHORT_HELP,
-              OPTION_LONG_HELP,
-              INFO_DESCRIPTION_USAGE.get());
+      showUsage = CommonArguments.getShowUsage();
       argParser.addArgument(showUsage);
       argParser.setUsageArgument(showUsage);
     }

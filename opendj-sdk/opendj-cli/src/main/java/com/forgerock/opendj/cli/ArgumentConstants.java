@@ -705,6 +705,12 @@ public final class ArgumentConstants {
      * The value for the long option ignore errors.
      */
     public static final String OPTION_LONG_IGNORE_ERRORS = "ignoreErrors";
+
+    /**
+     * Value for the restart option long form.
+     */
+    public static final String OPTION_LONG_RESTART = "restart";
+
     // Prevent instantiation.
     private ArgumentConstants() {
 

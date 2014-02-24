@@ -33,6 +33,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;
+
 import javax.swing.JEditorPane;
 import javax.swing.JFrame;
 import javax.swing.JScrollPane;
@@ -49,9 +50,11 @@ import javax.swing.event.TreeSelectionListener;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Reader;
+
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.StringArgument;
 
 import static org.opends.messages.PluginMessages.*;
@@ -126,9 +129,7 @@ public class ProfileViewer
               INFO_PROFILEVIEWER_DESCRIPTION_USE_GUI.get());
       argParser.addArgument(useGUI);
 
-      displayUsage = new BooleanArgument(
-              "help", 'H', "help",
-              INFO_PROFILEVIEWER_DESCRIPTION_USAGE.get());
+      displayUsage = CommonArguments.getShowUsage();
       argParser.addArgument(displayUsage);
       argParser.setUsageArgument(displayUsage);
     }

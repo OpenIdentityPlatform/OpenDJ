@@ -30,6 +30,7 @@ import org.forgerock.i18n.LocalizableMessage;
 
 
 
+
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.Iterator;
@@ -53,6 +54,7 @@ import org.opends.server.util.BuildVersion;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.StringArgument;
 
 import org.opends.server.util.table.TableBuilder;
@@ -183,10 +185,7 @@ public class ListBackends
       argParser.addArgument(baseDN);
 
 
-      displayUsage = new BooleanArgument(
-              "help", OPTION_SHORT_HELP,
-              OPTION_LONG_HELP,
-              INFO_LISTBACKENDS_DESCRIPTION_HELP.get());
+      displayUsage = CommonArguments.getShowUsage();
       argParser.addArgument(displayUsage);
       argParser.setUsageArgument(displayUsage, out);
     }

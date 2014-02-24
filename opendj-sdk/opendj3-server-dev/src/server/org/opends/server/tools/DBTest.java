@@ -51,6 +51,7 @@ import org.opends.server.util.StaticUtils;
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.cli.SubCommand;
@@ -200,9 +201,7 @@ public class DBTest
       configFile.setHidden(true);
 
 
-      showUsageArgument =
-          new BooleanArgument("help", OPTION_SHORT_HELP, OPTION_LONG_HELP,
-                              INFO_DESCRIPTION_USAGE.get());
+      showUsageArgument = CommonArguments.getShowUsage();
 
       // Register the global arguments.
       parser.addGlobalArgument(showUsageArgument);

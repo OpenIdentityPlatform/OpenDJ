@@ -32,7 +32,6 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.JDKLogging;
 import org.opends.server.types.NullOutputStream;
-import com.forgerock.opendj.cli.ConsoleApplication;
 
 import com.forgerock.opendj.cli.*;
 
@@ -220,12 +219,10 @@ public class WaitForFileDelete extends ConsoleApplication
 
       // Not used in this class, but required by the start-ds script
       // (see issue #3814)
-      quietMode = new BooleanArgument("quiet", 'Q', "quiet",
-                                      INFO_DESCRIPTION_QUIET.get());
+      quietMode = CommonArguments.getQuiet();
       argParser.addArgument(quietMode);
 
-      showUsage = new BooleanArgument("help", 'H', "help",
-                                      INFO_WAIT4DEL_DESCRIPTION_HELP.get());
+      showUsage = CommonArguments.getShowUsage();
       argParser.addArgument(showUsage);
       argParser.setUsageArgument(showUsage);
     }

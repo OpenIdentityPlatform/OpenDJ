@@ -39,6 +39,7 @@ import org.opends.server.util.StaticUtils;
 
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.StringArgument;
 
 import org.opends.server.util.args.LDAPConnectionArgumentParser;
@@ -315,8 +316,7 @@ public class RebuildIndex extends TaskTool
             null, INFO_REBUILDINDEX_DESCRIPTION_TEMP_DIRECTORY.get());
     argParser.addArgument(tmpDirectory);
 
-    BooleanArgument displayUsage =
-        new BooleanArgument("help", 'H', "help", INFO_DESCRIPTION_USAGE.get());
+    final BooleanArgument displayUsage = CommonArguments.getShowUsage();
     argParser.addArgument(displayUsage);
     argParser.setUsageArgument(displayUsage);
   }

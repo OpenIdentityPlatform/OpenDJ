@@ -903,8 +903,7 @@ public class ManageAccount
               INFO_PWPSTATE_DESCRIPTION_SASLOPTIONS.get());
       argParser.addGlobalArgument(saslOption);
 
-      trustAll = new BooleanArgument("trustall", 'X', "trustAll",
-                                     INFO_PWPSTATE_DESCRIPTION_TRUST_ALL.get());
+      trustAll = CommonArguments.getTrustAll();
       argParser.addGlobalArgument(trustAll);
 
       keyStoreFile = new StringArgument("keystorefile",
@@ -968,10 +967,7 @@ public class ManageAccount
       verbose = CommonArguments.getVerbose();
       argParser.addGlobalArgument(verbose);
 
-      showUsage = new BooleanArgument(
-              "showusage", OPTION_SHORT_HELP,
-              OPTION_LONG_HELP,
-              INFO_PWPSTATE_DESCRIPTION_SHOWUSAGE.get());
+      showUsage = CommonArguments.getShowUsage();
       argParser.addGlobalArgument(showUsage);
       argParser.setUsageArgument(showUsage, out);
 

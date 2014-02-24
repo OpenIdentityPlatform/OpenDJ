@@ -510,9 +510,7 @@ public class LDAPCompare
       saslOptions.setPropertyName(OPTION_LONG_SASLOPTION);
       argParser.addArgument(saslOptions);
 
-      trustAll = new BooleanArgument("trustAll", 'X', "trustAll",
-                                     INFO_DESCRIPTION_TRUSTALL.get());
-      trustAll.setPropertyName("trustAll");
+      trustAll = CommonArguments.getTrustAll();
       argParser.addArgument(trustAll);
 
       keyStorePath = new StringArgument("keyStorePath",
@@ -640,9 +638,7 @@ public class LDAPCompare
       verbose = CommonArguments.getVerbose();
       argParser.addArgument(verbose);
 
-      showUsage = new BooleanArgument("showUsage", OPTION_SHORT_HELP,
-                                    OPTION_LONG_HELP,
-                                    INFO_DESCRIPTION_SHOWUSAGE.get());
+      showUsage = CommonArguments.getShowUsage();
       argParser.addArgument(showUsage);
 
       useCompareResultCode =
