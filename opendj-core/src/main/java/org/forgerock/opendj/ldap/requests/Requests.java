@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions copyright 2011-2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -835,7 +835,9 @@ public final class Requests {
 
     /**
      * Creates a new modify DN request using the provided distinguished name and
-     * new RDN.
+     * new RDN. The new superior will be {@code null}, indicating that the
+     * renamed entry will remain under the same parent entry, and the old RDN
+     * attribute values will not be deleted.
      *
      * @param name
      *            The distinguished name of the entry to be renamed.
@@ -853,7 +855,9 @@ public final class Requests {
 
     /**
      * Creates a new modify DN request using the provided distinguished name and
-     * new RDN decoded using the default schema.
+     * new RDN decoded using the default schema. The new superior will be
+     * {@code null}, indicating that the renamed entry will remain under the
+     * same parent entry, and the old RDN attribute values will not be deleted.
      *
      * @param name
      *            The distinguished name of the entry to be renamed.
