@@ -135,10 +135,9 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
          */
         @Override
         public void handleResult(final Connection connection) {
-            notifyOnline();
-
             // The connection is not going to be used, so close it immediately.
             connection.close();
+            notifyOnline();
         }
 
         @Override

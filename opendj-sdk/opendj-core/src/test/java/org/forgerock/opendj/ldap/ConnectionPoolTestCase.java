@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS.
+ *      Portions copyright 2011-2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -30,18 +30,16 @@ package org.forgerock.opendj.ldap;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.forgerock.opendj.ldap.Connections.newFixedConnectionPool;
 import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
-import static org.forgerock.opendj.ldap.TestCaseUtils.*;
+import static org.forgerock.opendj.ldap.TestCaseUtils.mockConnection;
+import static org.forgerock.opendj.ldap.TestCaseUtils.mockConnectionFactory;
+import static org.forgerock.opendj.ldap.TestCaseUtils.mockTimeSource;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.eq;
 import static org.mockito.Matchers.isA;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -50,11 +48,13 @@ import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.responses.ExtendedResult;
 import org.forgerock.opendj.ldap.responses.Responses;
+import org.mockito.ArgumentCaptor;
 import org.testng.annotations.Test;
 
 /**
  * Tests the connection pool implementation..
  */
+@SuppressWarnings("javadoc")
 public class ConnectionPoolTestCase extends SdkTestCase {
 
     /**
@@ -509,6 +509,40 @@ public class ConnectionPoolTestCase extends SdkTestCase {
         verify(pooledConnection5, times(1)).close();
         verify(pooledConnection6, times(1)).close();
         assertThat(scheduler.isScheduled()).isFalse();
+    }
+
+    /**
+     * Test that all outstanding pending connection futures are completed when a
+     * connection request fails.
+     */
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    @Test(description = "OPENDJ-1348", timeOut = 10000)
+    public void testNewConnectionFailureFlushesAllPendingFutures() throws Exception {
+        final ConnectionFactory factory = mock(ConnectionFactory.class);
+        final int poolSize = 2;
+        final ConnectionPool pool = Connections.newFixedConnectionPool(factory, poolSize);
+
+        List<FutureResult<Connection>> futures = new ArrayList<FutureResult<Connection>>();
+        for (int i = 0; i < poolSize + 1; i++) {
+            futures.add(pool.getConnectionAsync(null));
+        }
+
+        final ArgumentCaptor<ResultHandler> arg = ArgumentCaptor.forClass(ResultHandler.class);
+        verify(factory, times(poolSize)).getConnectionAsync(arg.capture());
+        final ErrorResultException connectError =
+                ErrorResultException.newErrorResult(ResultCode.CLIENT_SIDE_CONNECT_ERROR);
+        for (ResultHandler<Connection> handler : arg.getAllValues()) {
+            handler.handleErrorResult(connectError);
+        }
+
+        for (FutureResult<Connection> future : futures) {
+            try {
+                // Before the fix for OPENDJ-1348 the third future.get() would hang.
+                future.get();
+            } catch (ErrorResultException e) {
+                assertThat(e).isSameAs(connectError);
+            }
+        }
     }
 
 }

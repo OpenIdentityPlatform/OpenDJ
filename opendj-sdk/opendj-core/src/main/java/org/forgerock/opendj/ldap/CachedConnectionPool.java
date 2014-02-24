@@ -42,6 +42,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -87,23 +88,34 @@ final class CachedConnectionPool implements ConnectionPool {
         @Override
         public void handleErrorResult(final ErrorResultException error) {
             // Connection attempt failed, so decrease the pool size.
+            pendingConnectionAttempts.decrementAndGet();
             availableConnections.release();
 
-            logger.debug(LocalizableMessage.raw("Connection attempt failed: availableConnections=%d, maxPoolSize=%d",
+            logger.debug(LocalizableMessage.raw(
+                    "Connection attempt failed: availableConnections=%d, maxPoolSize=%d",
                     currentPoolSize(), maxPoolSize, error));
 
-            QueueElement holder;
+            /*
+             * There may be many pending futures waiting for a connection
+             * attempt to succeed. In some situations the number of pending
+             * futures may exceed the pool size and the number of outstanding
+             * connection attempts. If only one pending future is resolved per
+             * failed connection attempt then some pending futures will be left
+             * unresolved. Therefore, a failed connection attempt must fail all
+             * pending futures, even if some of the subsequent connection
+             * attempts succeed, which is unlikely (if one fails, then they are
+             * all likely to fail).
+             */
+            final List<QueueElement> waitingFutures =
+                    new LinkedList<CachedConnectionPool.QueueElement>();
             synchronized (queue) {
-                if (hasWaitingFutures()) {
-                    holder = queue.removeFirst();
-                } else {
-                    // No waiting futures.
-                    return;
+                while (hasWaitingFutures()) {
+                    waitingFutures.add(queue.removeFirst());
                 }
             }
-
-            // There was waiting future, so close it.
-            holder.getWaitingFuture().handleErrorResult(error);
+            for (QueueElement waitingFuture : waitingFutures) {
+                waitingFuture.getWaitingFuture().handleErrorResult(error);
+            }
         }
 
         @Override
@@ -111,6 +123,7 @@ final class CachedConnectionPool implements ConnectionPool {
             logger.debug(LocalizableMessage.raw(
                     "Connection attempt succeeded:  availableConnections=%d, maxPoolSize=%d",
                     currentPoolSize(), maxPoolSize));
+            pendingConnectionAttempts.decrementAndGet();
             publishConnection(connection);
         }
     }
@@ -254,6 +267,7 @@ final class CachedConnectionPool implements ConnectionPool {
                  * availableConnections.
                  */
                 connection.close();
+                pendingConnectionAttempts.incrementAndGet();
                 factory.getConnectionAsync(connectionResultHandler);
 
                 logger.debug(LocalizableMessage.raw(
@@ -660,7 +674,6 @@ final class CachedConnectionPool implements ConnectionPool {
     private final Semaphore availableConnections;
     private final ResultHandler<Connection> connectionResultHandler = new ConnectionResultHandler();
     private final int corePoolSize;
-
     private final ConnectionFactory factory;
     private boolean isClosed = false;
     private final ScheduledFuture<?> idleTimeoutFuture;
@@ -668,6 +681,12 @@ final class CachedConnectionPool implements ConnectionPool {
     private final int maxPoolSize;
     private final LinkedList<QueueElement> queue = new LinkedList<QueueElement>();
     private final ReferenceCountedObject<ScheduledExecutorService>.Reference scheduler;
+
+    /**
+     * The number of new connections which are in the process of being
+     * established.
+     */
+    private final AtomicInteger pendingConnectionAttempts = new AtomicInteger();
 
     CachedConnectionPool(final ConnectionFactory factory, final int corePoolSize,
             final int maximumPoolSize, final long idleTimeout, final TimeUnit unit,
@@ -766,45 +785,56 @@ final class CachedConnectionPool implements ConnectionPool {
                 }
             }
 
-            if (!holder.isWaitingFuture()) {
-                // There was a completed connection attempt.
-                final Connection connection = holder.getWaitingConnection();
-                if (connection.isValid()) {
-                    final PooledConnection pooledConnection =
-                            newPooledConnection(connection, getStackTraceIfDebugEnabled());
-                    if (handler != null) {
-                        handler.handleResult(pooledConnection);
-                    }
-                    return new CompletedFutureResult<Connection>(pooledConnection);
-                } else {
-                    // Close the stale connection and try again.
-                    connection.close();
-                    availableConnections.release();
-
-                    logger.debug(LocalizableMessage.raw(
-                            "Connection no longer valid: availableConnections=%d, maxPoolSize=%d",
-                            currentPoolSize(), maxPoolSize));
-                }
-            } else {
+            if (holder.isWaitingFuture()) {
                 // Grow the pool if needed.
                 final FutureResult<Connection> future = holder.getWaitingFuture();
                 if (!future.isDone() && availableConnections.tryAcquire()) {
+                    pendingConnectionAttempts.incrementAndGet();
                     factory.getConnectionAsync(connectionResultHandler);
                 }
                 return future;
+            }
+
+            // There was a completed connection attempt.
+            final Connection connection = holder.getWaitingConnection();
+            if (connection.isValid()) {
+                final PooledConnection pooledConnection =
+                        newPooledConnection(connection, getStackTraceIfDebugEnabled());
+                if (handler != null) {
+                    handler.handleResult(pooledConnection);
+                }
+                return new CompletedFutureResult<Connection>(pooledConnection);
+            } else {
+                // Close the stale connection and try again.
+                connection.close();
+                availableConnections.release();
+
+                logger.debug(LocalizableMessage.raw(
+                        "Connection no longer valid: availableConnections=%d, poolSize=%d",
+                        currentPoolSize(), maxPoolSize));
             }
         }
     }
 
     @Override
     public String toString() {
-        final StringBuilder builder = new StringBuilder();
-        builder.append("CachedConnectionPool(");
-        builder.append(String.valueOf(factory));
-        builder.append(',');
-        builder.append(maxPoolSize);
-        builder.append(')');
-        return builder.toString();
+        final int size = currentPoolSize();
+        final int pending = pendingConnectionAttempts.get();
+        int in = 0;
+        int blocked = 0;
+        synchronized (queue) {
+            for (QueueElement qe : queue) {
+                if (qe.isWaitingFuture()) {
+                    blocked++;
+                } else {
+                    in++;
+                }
+            }
+        }
+        final int out = size - in - pending;
+        return String.format("CachedConnectionPool(size=%d[in:%d + out:%d + "
+                + "pending:%d], maxSize=%d, blocked=%d, factory=%s)", size, in, out, pending,
+                maxPoolSize, blocked, String.valueOf(factory));
     }
 
     /**
