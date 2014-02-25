@@ -41,6 +41,7 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.LinkedAttribute;
+import org.forgerock.opendj.ldap.LinkedHashMapEntry;
 import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.controls.Control;
@@ -68,6 +69,28 @@ public final class Converters {
     // Prevent instantiation.
     private Converters() {
         throw new AssertionError();
+    }
+
+    /**
+     * Converts from OpenDJ LDAP SDK {@link org.forgerock.opendj.ldap.Entry} to OpenDJ
+     * server {@link org.opends.server.types.Entry}.
+     *
+     * @param sdkEntry
+     *          SDK entry to convert
+     * @return the converted entry
+     */
+    public static org.opends.server.types.Entry to(
+            final org.forgerock.opendj.ldap.Entry sdkEntry) {
+        if (sdkEntry != null) {
+            org.opends.server.types.Entry entry =
+                new org.opends.server.types.Entry(to(sdkEntry.getName()), null, null, null);
+            List<AttributeValue> duplicateValues = new ArrayList<AttributeValue>();
+            for (org.opends.server.types.Attribute attribute : toAttributes(sdkEntry.getAllAttributes())) {
+                entry.addAttribute(attribute, duplicateValues);
+            }
+            return entry;
+        }
+        return null;
     }
 
     /**
@@ -491,6 +514,27 @@ public final class Converters {
         }
 
         return searchResultEntry;
+    }
+
+    /**
+     * Converts from OpenDJ server
+     * {@link org.opends.server.types.Entry} to OpenDJ LDAP SDK
+     * {@link org.forgerock.opendj.ldap.Entry}.
+     *
+     * @param srvResultEntry
+     *          value to convert
+     * @return the converted value
+     */
+    public static org.forgerock.opendj.ldap.Entry from(
+        final org.opends.server.types.Entry srvResultEntry) {
+
+        final org.forgerock.opendj.ldap.Entry entry = new LinkedHashMapEntry(srvResultEntry.getName().toString());
+        if (srvResultEntry.getAttributes() != null) {
+            for (org.opends.server.types.Attribute a : srvResultEntry.getAttributes()) {
+                entry.addAttribute(from(a));
+            }
+        }
+        return entry;
     }
 
     /**
