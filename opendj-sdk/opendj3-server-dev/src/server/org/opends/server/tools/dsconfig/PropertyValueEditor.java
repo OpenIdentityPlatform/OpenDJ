@@ -98,22 +98,22 @@ final class PropertyValueEditor {
       <C extends ConfigurationClient, S extends Configuration>
       implements MenuCallback<String> {
 
-    // The aggregation property definition.
+    /** The aggregation property definition. */
     private final AggregationPropertyDefinition<C, S> pd;
 
 
 
-    // Creates a new component create call-back for the provided
-    // aggregation property definition.
+    /**
+     * Creates a new component create call-back for the provided aggregation
+     * property definition.
+     */
     private CreateComponentCallback(AggregationPropertyDefinition<C, S> pd) {
       this.pd = pd;
     }
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public MenuResult<String> invoke(ConsoleApplication app)
         throws ClientException {
       try {
@@ -182,15 +182,15 @@ final class PropertyValueEditor {
    */
   private static final class ComponentHelpCallback implements HelpCallback {
 
-    // The managed object being edited.
+    /** The managed object being edited. */
     private final ManagedObject<?> mo;
 
-    // The properties that can be edited.
+    /** The properties that can be edited. */
     private final Collection<PropertyDefinition<?>> properties;
 
 
 
-    // Creates a new component helper for the specified property.
+    /** Creates a new component helper for the specified property. */
     private ComponentHelpCallback(ManagedObject<?> mo,
         Collection<PropertyDefinition<?>> c) {
       this.mo = mo;
@@ -199,9 +199,7 @@ final class PropertyValueEditor {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public void display(ConsoleApplication app) {
       app.println();
       HelpSubCommandHandler.displaySingleComponent(app, mo
@@ -262,9 +260,7 @@ final class PropertyValueEditor {
           new DefaultBehaviorProviderVisitor<T, DefaultBehaviorQuery<T>,
           PropertyDefinition<T>>() {
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public DefaultBehaviorQuery<T> visitAbsoluteInherited(
             AbsoluteInheritedDefaultBehaviorProvider<T> d,
             PropertyDefinition<T> p) {
@@ -280,9 +276,7 @@ final class PropertyValueEditor {
 
 
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public DefaultBehaviorQuery<T> visitAlias(
             AliasDefaultBehaviorProvider<T> d, PropertyDefinition<T> p) {
           return new DefaultBehaviorQuery<T>(Type.ALIAS, d.getSynopsis());
@@ -290,9 +284,7 @@ final class PropertyValueEditor {
 
 
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public DefaultBehaviorQuery<T> visitDefined(
             DefinedDefaultBehaviorProvider<T> d, PropertyDefinition<T> p) {
           return new DefaultBehaviorQuery<T>(Type.DEFINED, null);
@@ -300,9 +292,7 @@ final class PropertyValueEditor {
 
 
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public DefaultBehaviorQuery<T> visitRelativeInherited(
             RelativeInheritedDefaultBehaviorProvider<T> d,
             PropertyDefinition<T> p) {
@@ -318,9 +308,7 @@ final class PropertyValueEditor {
 
 
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public DefaultBehaviorQuery<T> visitUndefined(
             UndefinedDefaultBehaviorProvider<T> d, PropertyDefinition<T> p) {
           return new DefaultBehaviorQuery<T>(Type.UNDEFINED, null);
@@ -330,16 +318,17 @@ final class PropertyValueEditor {
       return pd.getDefaultBehaviorProvider().accept(visitor, pd);
     }
 
-    // The description of the behavior if it is an alias default
-    // behavior.
+    /**
+     * The description of the behavior if it is an alias default behavior.
+     */
     private final LocalizableMessage aliasDescription;
 
-    // The type of behavior.
+    /** The type of behavior. */
     private final Type type;
 
 
 
-    // Private constructor.
+    /** Private constructor. */
     private DefaultBehaviorQuery(Type type, LocalizableMessage aliasDescription) {
       this.type = type;
       this.aliasDescription = aliasDescription;
@@ -421,18 +410,18 @@ final class PropertyValueEditor {
       PropertyDefinitionVisitor<MenuResult<Void>, Void> implements
       MenuCallback<Void> {
 
-    // Any exception that was caught during processing.
+    /** Any exception that was caught during processing. */
     private ClientException e = null;
 
-    // The managed object being edited.
+    /** The managed object being edited. */
     private final ManagedObject<?> mo;
 
-    // The property to be edited.
+    /** The property to be edited. */
     private final PropertyDefinition<?> pd;
 
 
 
-    // Creates a new property editor for the specified property.
+    /** Creates a new property editor for the specified property. */
     private MandatoryPropertyInitializer(ManagedObject<?> mo,
         PropertyDefinition<?> pd) {
       this.mo = mo;
@@ -441,9 +430,7 @@ final class PropertyValueEditor {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public MenuResult<Void> invoke(ConsoleApplication app)
         throws ClientException {
       displayPropertyHeader(app, pd);
@@ -459,9 +446,7 @@ final class PropertyValueEditor {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public <C extends ConfigurationClient, S extends Configuration>
         MenuResult<Void> visitAggregation(
@@ -586,9 +571,7 @@ final class PropertyValueEditor {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public <E extends Enum<E>> MenuResult<Void> visitEnum(
         EnumPropertyDefinition<E> d, Void x) {
@@ -643,9 +626,7 @@ final class PropertyValueEditor {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public <T> MenuResult<Void> visitUnknown(PropertyDefinition<T> d,
         Void p) throws PropertyException {
@@ -678,18 +659,18 @@ final class PropertyValueEditor {
       PropertyDefinitionVisitor<MenuResult<Boolean>, Void>
       implements MenuCallback<Boolean> {
 
-    // Any exception that was caught during processing.
+    /** Any exception that was caught during processing. */
     private ClientException e = null;
 
-    // The managed object being edited.
+    /** The managed object being edited. */
     private final ManagedObject<?> mo;
 
-    // The property to be edited.
+    /** The property to be edited. */
     private final PropertyDefinition<?> pd;
 
 
 
-    // Creates a new property editor for the specified property.
+    /** Creates a new property editor for the specified property. */
     private MultiValuedPropertyEditor(ManagedObject<?> mo,
         PropertyDefinition<?> pd) {
       Reject.ifFalse(pd.hasOption(PropertyOption.MULTI_VALUED));
@@ -700,9 +681,7 @@ final class PropertyValueEditor {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public MenuResult<Boolean> invoke(ConsoleApplication app)
         throws ClientException {
       displayPropertyHeader(app, pd);
@@ -717,9 +696,7 @@ final class PropertyValueEditor {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public <C extends ConfigurationClient, S extends Configuration>
         MenuResult<Boolean> visitAggregation(
@@ -887,9 +864,7 @@ final class PropertyValueEditor {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public <T extends Enum<T>> MenuResult<Boolean> visitEnum(
         final EnumPropertyDefinition<T> d, Void p) {
@@ -1033,9 +1008,7 @@ final class PropertyValueEditor {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public <T> MenuResult<Boolean> visitUnknown(final PropertyDefinition<T> d,
         Void p) {
@@ -1287,7 +1260,7 @@ final class PropertyValueEditor {
 
 
 
-    // Common menu processing.
+    /** Common menu processing. */
     private <T> MenuResult<Boolean> runMenu(final PropertyDefinition<T> d,
         ConsoleApplication app, final SortedSet<T> defaultValues,
         final SortedSet<T> oldValues, final SortedSet<T> currentValues,
@@ -1337,24 +1310,23 @@ final class PropertyValueEditor {
             currentValues);
       }
 
-      if (!currentValues.isEmpty()) {
-        if (resetOption == null || !defaultValues.isEmpty()) {
-          MenuCallback<Boolean> callback = new MenuCallback<Boolean>() {
-
-            public MenuResult<Boolean> invoke(ConsoleApplication app)
-                throws ClientException {
-              isLastChoiceReset = false;
-              currentValues.clear();
-              app.println();
-              app.pressReturnToContinue();
-              return MenuResult.success(false);
-            }
-
-          };
-
-          builder.addNumberedOption(INFO_EDITOR_OPTION_REMOVE_ALL_VALUES.get(),
-              callback);
-        }
+      if (!currentValues.isEmpty()
+          && (resetOption == null || !defaultValues.isEmpty()))
+      {
+        MenuCallback<Boolean> callback = new MenuCallback<Boolean>()
+        {
+          public MenuResult<Boolean> invoke(ConsoleApplication app)
+              throws ClientException
+          {
+            isLastChoiceReset = false;
+            currentValues.clear();
+            app.println();
+            app.pressReturnToContinue();
+            return MenuResult.success(false);
+          }
+        };
+        builder.addNumberedOption(INFO_EDITOR_OPTION_REMOVE_ALL_VALUES.get(),
+            callback);
       }
 
       if (resetOption != null) {
@@ -1410,7 +1382,7 @@ final class PropertyValueEditor {
       }
 
       if (result.isSuccess()) {
-        if (result.getValue() == true) {
+        if (result.getValue()) {
 
           // Set the new property value(s).
           mo.setPropertyValues(d, currentValues);
@@ -1443,15 +1415,15 @@ final class PropertyValueEditor {
    */
   private static final class PropertyHelpCallback implements HelpCallback {
 
-    // The managed object definition.
+    /** The managed object definition. */
     private final ManagedObjectDefinition<?, ?> d;
 
-    // The property to be edited.
+    /** The property to be edited. */
     private final PropertyDefinition<?> pd;
 
 
 
-    // Creates a new property helper for the specified property.
+    /** Creates a new property helper for the specified property. */
     private PropertyHelpCallback(ManagedObjectDefinition<?, ?> d,
         PropertyDefinition<?> pd) {
       this.d = d;
@@ -1460,9 +1432,7 @@ final class PropertyValueEditor {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public void display(ConsoleApplication app) {
       app.println();
       HelpSubCommandHandler.displayVerboseSingleProperty(app, d, pd.getName());
@@ -1480,18 +1450,18 @@ final class PropertyValueEditor {
       PropertyDefinitionVisitor<MenuResult<Boolean>, Void> implements
       MenuCallback<Boolean> {
 
-    // Any exception that was caught during processing.
+    /** Any exception that was caught during processing. */
     private ClientException e = null;
 
-    // The managed object being edited.
+    /** The managed object being edited. */
     private final ManagedObject<?> mo;
 
-    // The property to be edited.
+    /** The property to be edited. */
     private final PropertyDefinition<?> pd;
 
 
 
-    // Creates a new property editor for the specified property.
+    /** Creates a new property editor for the specified property. */
     private ReadOnlyPropertyViewer(ManagedObject<?> mo,
         PropertyDefinition<?> pd) {
       this.mo = mo;
@@ -1500,9 +1470,7 @@ final class PropertyValueEditor {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public MenuResult<Boolean> invoke(ConsoleApplication app)
         throws ClientException {
       MenuResult<Boolean> result = pd.accept(this, null);
@@ -1515,9 +1483,7 @@ final class PropertyValueEditor {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public <T> MenuResult<Boolean> visitUnknown(PropertyDefinition<T> pd,
         Void p) {
@@ -1581,18 +1547,18 @@ final class PropertyValueEditor {
       PropertyDefinitionVisitor<MenuResult<Boolean>, Void>
       implements MenuCallback<Boolean> {
 
-    // Any exception that was caught during processing.
+    /** Any exception that was caught during processing. */
     private ClientException e = null;
 
-    // The managed object being edited.
+    /** The managed object being edited. */
     private final ManagedObject<?> mo;
 
-    // The property to be edited.
+    /** The property to be edited. */
     private final PropertyDefinition<?> pd;
 
 
 
-    // Creates a new property editor for the specified property.
+    /** Creates a new property editor for the specified property. */
     private SingleValuedPropertyEditor(ManagedObject<?> mo,
         PropertyDefinition<?> pd) {
       Reject.ifFalse(!pd.hasOption(PropertyOption.MULTI_VALUED));
@@ -1603,9 +1569,7 @@ final class PropertyValueEditor {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public MenuResult<Boolean> invoke(ConsoleApplication app)
         throws ClientException {
       displayPropertyHeader(app, pd);
@@ -1620,9 +1584,7 @@ final class PropertyValueEditor {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public <C extends ConfigurationClient, S extends Configuration>
         MenuResult<Boolean> visitAggregation(
@@ -1696,9 +1658,7 @@ final class PropertyValueEditor {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public MenuResult<Boolean> visitBoolean(BooleanPropertyDefinition d,
         Void p) {
@@ -1722,10 +1682,10 @@ final class PropertyValueEditor {
 
       // The second (and possibly third) option is to always change
       // the property's value.
-      if (currentValue == null || currentValue == false) {
+      if (currentValue == null || !currentValue) {
         LocalizableMessage svalue = getPropertyValues(d, Collections.singleton(true));
 
-        if (defaultValue != null && defaultValue == true) {
+        if (defaultValue != null && defaultValue) {
           option = INFO_EDITOR_OPTION_CHANGE_TO_DEFAULT_VALUE.get(svalue);
         } else {
           option = INFO_EDITOR_OPTION_CHANGE_TO_VALUE.get(svalue);
@@ -1734,10 +1694,10 @@ final class PropertyValueEditor {
         builder.addNumberedOption(option, MenuResult.success(true));
       }
 
-      if (currentValue == null || currentValue == true) {
+      if (currentValue == null || currentValue) {
         LocalizableMessage svalue = getPropertyValues(d, Collections.singleton(false));
 
-        if (defaultValue != null && defaultValue == false) {
+        if (defaultValue != null && !defaultValue) {
           option = INFO_EDITOR_OPTION_CHANGE_TO_DEFAULT_VALUE.get(svalue);
         } else {
           option = INFO_EDITOR_OPTION_CHANGE_TO_VALUE.get(svalue);
@@ -1759,9 +1719,7 @@ final class PropertyValueEditor {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public <E extends Enum<E>> MenuResult<Boolean> visitEnum(
         EnumPropertyDefinition<E> d, Void p) {
@@ -1814,9 +1772,7 @@ final class PropertyValueEditor {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public <T> MenuResult<Boolean> visitUnknown(final PropertyDefinition<T> d,
         Void p) {
@@ -1945,7 +1901,7 @@ final class PropertyValueEditor {
 
 
 
-    // Common menu processing.
+    /** Common menu processing. */
     private <T> MenuResult<Boolean> runMenu(final PropertyDefinition<T> d,
         MenuBuilder<T> builder) throws PropertyException,
         PropertyException, PropertyException,
@@ -1969,15 +1925,9 @@ final class PropertyValueEditor {
         Collection<T> newValues = result.getValues();
         SortedSet<T> oldValues = new TreeSet<T>(mo.getPropertyValues(d));
         mo.setPropertyValues(d, newValues);
-        if (newValues.size() > 0)
-        {
-          isLastChoiceReset = false;
-        }
-        else
-        {
-          // There are no newValues when we do a reset.
-          isLastChoiceReset = true;
-        }
+
+        // If there are no newValues when we do a reset.
+        isLastChoiceReset = !(newValues.size() > 0);
         registerModification(d, new TreeSet<T>(newValues), oldValues);
         app.println();
         app.pressReturnToContinue();
@@ -1994,7 +1944,7 @@ final class PropertyValueEditor {
 
 
 
-  // Display a title and a description of the property.
+  /** Display a title and a description of the property. */
   private static void displayPropertyHeader(ConsoleApplication app,
       PropertyDefinition<?> pd) {
     app.println();
@@ -2010,7 +1960,7 @@ final class PropertyValueEditor {
 
 
 
-  // Display a property's syntax.
+  /** Display a property's syntax. */
   private static <T> void displayPropertySyntax(ConsoleApplication app,
       PropertyDefinition<T> d) throws IllegalArgumentException {
     PropertyDefinitionUsageBuilder b = new PropertyDefinitionUsageBuilder(true);
@@ -2029,7 +1979,7 @@ final class PropertyValueEditor {
 
 
 
-  // Display a table of property values.
+  /** Display a table of property values. */
   private static <T> void displayPropertyValues(ConsoleApplication app,
       PropertyDefinition<T> pd, Collection<T> values)
       throws IllegalArgumentException {
@@ -2076,7 +2026,7 @@ final class PropertyValueEditor {
 
 
 
-  // Display the set of values associated with a property.
+  /** Display the set of values associated with a property. */
   private static <T> LocalizableMessage getPropertyValues(PropertyDefinition<T> pd,
       Collection<T> values) {
     if (values.isEmpty()) {
@@ -2109,7 +2059,7 @@ final class PropertyValueEditor {
 
 
 
-  // Display the set of values associated with a property.
+  /** Display the set of values associated with a property. */
   private static <T> LocalizableMessage getPropertyValues(
       PropertyDefinition<T> pd,
       ManagedObject<?> mo) {
@@ -2119,7 +2069,7 @@ final class PropertyValueEditor {
 
 
 
-  // Read new values for a property.
+  /** Read new values for a property. */
   private static <T> SortedSet<T> readPropertyValues(ConsoleApplication app,
       ManagedObjectDefinition<?, ?> d, PropertyDefinition<T> pd)
       throws ClientException {
@@ -2130,7 +2080,7 @@ final class PropertyValueEditor {
 
 
 
-  // Add values to a property.
+  /** Add values to a property. */
   private static <T> void readPropertyValues(ConsoleApplication app,
       ManagedObjectDefinition<?, ?> d, PropertyDefinition<T> pd,
       SortedSet<T> values) throws ClientException {
@@ -2149,10 +2099,9 @@ final class PropertyValueEditor {
 
           app.println();
           String s = app.readLineOfInput(prompt);
-          if (s.trim().length() == 0) {
-            if (!pd.hasOption(PropertyOption.MANDATORY)) {
-              return;
-            }
+          if (s.trim().length() == 0 && !pd.hasOption(PropertyOption.MANDATORY))
+          {
+            return;
           }
 
           T value = pd.decodeValue(s);
@@ -2203,23 +2152,27 @@ final class PropertyValueEditor {
     }
   }
 
-  // The threshold above which choice menus should be displayed in
-  // multiple columns.
+  /** The threshold above which choice menus should be displayed in
+   * multiple columns.
+*/
   private static final int MULTI_COLUMN_THRESHOLD = 8;
 
-  // The application console.
+  /** The application console. */
   private final ConsoleApplication app;
 
-  // The management context.
+  /** The management context. */
   private final ManagementContext context;
 
-  // The modifications performed: we assume that at most there is one
-  // modification per property definition.
+  /**
+   * The modifications performed: we assume that at most there is one
+   * modification per property definition.
+   */
   private final List<PropertyEditorModification<?>> mods =
     new ArrayList<PropertyEditorModification<?>>();
 
-  // Whether the last type of choice made by the user in a menu is a
-  // reset
+  /**
+   * Whether the last type of choice made by the user in a menu is a reset.
+   */
   private boolean isLastChoiceReset;
 
 
@@ -2271,14 +2224,15 @@ final class PropertyValueEditor {
 
     // Get values for this missing mandatory property.
     for (PropertyDefinition<?> pd : c) {
-      if (pd.hasOption(PropertyOption.MANDATORY)) {
-        if (mo.getPropertyValues(pd).isEmpty()) {
-          MandatoryPropertyInitializer mpi = new MandatoryPropertyInitializer(
-              mo, pd);
-          MenuResult<Void> result = mpi.invoke(app);
-          if (!result.isSuccess()) {
-            return result;
-          }
+      if (pd.hasOption(PropertyOption.MANDATORY)
+          && mo.getPropertyValues(pd).isEmpty())
+      {
+        MandatoryPropertyInitializer mpi =
+            new MandatoryPropertyInitializer(mo, pd);
+        MenuResult<Void> result = mpi.invoke(app);
+        if (!result.isSuccess())
+        {
+          return result;
         }
       }
     }

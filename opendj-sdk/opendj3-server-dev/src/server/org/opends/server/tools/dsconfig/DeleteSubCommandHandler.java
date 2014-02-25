@@ -149,25 +149,26 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
 
 
 
-  // The argument which should be used to force deletion.
+  /** The argument which should be used to force deletion. */
   private final BooleanArgument forceArgument;
 
-  // The sub-commands naming arguments.
+  /** The sub-commands naming arguments. */
   private final List<StringArgument> namingArgs;
 
-  // The path of the managed object.
+  /** The path of the managed object. */
   private final ManagedObjectPath<?, ?> path;
 
-  // The relation which references the managed
-  // object to be deleted.
+  /**
+   * The relation which references the managed object to be deleted.
+   */
   private final RelationDefinition<?, ?> relation;
 
-  // The sub-command associated with this handler.
+  /** The sub-command associated with this handler. */
   private final SubCommand subCommand;
 
 
 
-  // Private constructor.
+  /** Private constructor. */
   private DeleteSubCommandHandler(
       SubCommandArgumentParser parser, ManagedObjectPath<?, ?> p,
       RelationDefinition<?, ?> r, ManagedObjectPath<?, ?> c)
@@ -210,9 +211,7 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public SubCommand getSubCommand() {
     return subCommand;
@@ -220,9 +219,7 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public MenuResult<Integer> run(ConsoleApplication app,
       ManagementContextFactory factory) throws ArgumentException,
@@ -414,7 +411,7 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
 
 
 
-  // Confirm deletion.
+  /** Confirm deletion. */
   private boolean confirmDeletion(ConsoleApplication app) throws ClientException {
     if (app.isInteractive()) {
       LocalizableMessage prompt = INFO_DSCFG_CONFIRM_DELETE.get(relation

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.tools.dsconfig;
@@ -45,7 +46,7 @@ import org.opends.server.admin.SetRelationDefinition;
  */
 final class CLIProfile {
 
-  // The singleton instance.
+  /** The singleton instance. */
   private static final CLIProfile INSTANCE = new CLIProfile();
 
 
@@ -59,12 +60,12 @@ final class CLIProfile {
     return INSTANCE;
   }
 
-  // The CLI profile property table.
+  /** The CLI profile property table. */
   private final ManagedObjectDefinitionResource resource;
 
 
 
-  // Private constructor.
+  /** Private constructor. */
   private CLIProfile() {
     this.resource = ManagedObjectDefinitionResource.createForProfile("cli");
   }
@@ -81,13 +82,12 @@ final class CLIProfile {
    *         displayed in a list-xxx operation.
    */
   public Set<String> getDefaultListPropertyNames(RelationDefinition<?, ?> r) {
-    String s = resource.getString(r.getParentDefinition(), "relation."
+    final String s = resource.getString(r.getParentDefinition(), "relation."
         + r.getName() + ".list-properties");
     if (s.trim().length() == 0) {
       return Collections.emptySet();
-    } else {
-      return new LinkedHashSet<String>(Arrays.asList(s.split(",")));
     }
+    return new LinkedHashSet<String>(Arrays.asList(s.split(",")));
   }
 
 
@@ -145,7 +145,6 @@ final class CLIProfile {
    *         customization.
    */
   public boolean isForCustomization(AbstractManagedObjectDefinition<?, ?> d) {
-    String s = resource.getString(d, "is-for-customization");
-    return Boolean.parseBoolean(s);
+    return Boolean.parseBoolean(resource.getString(d, "is-for-customization"));
   }
 }

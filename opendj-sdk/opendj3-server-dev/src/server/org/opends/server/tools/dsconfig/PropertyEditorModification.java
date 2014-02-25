@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.tools.dsconfig;
@@ -181,15 +182,13 @@ final class PropertyEditorModification<T>
     return originalValues;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String toString()
   {
-    return "Property name: "+getPropertyDefinition()+
-        "\nMod type: "+getType()+
-        "\nMod values: "+getModificationValues()+
-        "\nOriginal values: "+getOriginalValues();
+    return "Property name: " + getPropertyDefinition()
+        + "\nMod type: " + getType()
+        + "\nMod values: " + getModificationValues()
+        + "\nOriginal values: " + getOriginalValues();
   }
 }
