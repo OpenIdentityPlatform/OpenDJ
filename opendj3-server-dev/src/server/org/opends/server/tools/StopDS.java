@@ -60,6 +60,7 @@ import org.opends.server.types.*;
 import org.opends.server.util.args.LDAPConnectionArgumentParser;
 
 import com.forgerock.opendj.cli.Argument;
+import com.forgerock.opendj.cli.ArgumentConstants;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
@@ -391,10 +392,7 @@ public class StopDS
       trustStorePWFile.setPropertyName(OPTION_LONG_TRUSTSTORE_PWD_FILE);
       argParser.addArgument(trustStorePWFile);
 
-      quietMode = new BooleanArgument("quiet", OPTION_SHORT_QUIET,
-                                      OPTION_LONG_QUIET,
-                                      INFO_DESCRIPTION_QUIET.get());
-      quietMode.setPropertyName(OPTION_LONG_QUIET);
+      quietMode = CommonArguments.getQuiet();
       argParser.addArgument(quietMode);
 
       showUsage = CommonArguments.getShowUsage();
@@ -783,7 +781,7 @@ public class StopDS
     boolean isServerRunning;
 
     boolean quietMode = false;
-    Argument quietArg = argParser.getArgumentForLongID("quiet");
+    Argument quietArg = argParser.getArgumentForLongID(ArgumentConstants.OPTION_LONG_QUIET);
     if ((quietArg != null) && quietArg.isPresent())
     {
       quietMode = true;
