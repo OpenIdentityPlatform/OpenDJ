@@ -26,7 +26,6 @@
  */
 package org.opends.server.core;
 
-import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -451,25 +450,16 @@ public class GroupManager extends InternalDirectoryServerPlugin
 
       if (initialize)
       {
-        Method method = group.getClass().getMethod(
-          "initializeGroupImplementation", configuration.configurationClass());
-        method.invoke(group, configuration);
+        group.initializeGroupImplementation(configuration);
       }
       else
       {
-        Method method = group.getClass().getMethod("isConfigurationAcceptable",
-                                                   GroupImplementationCfg.class,
-                                                   List.class);
-
         List<LocalizableMessage> unacceptableReasons = new ArrayList<LocalizableMessage>();
-        Boolean acceptable = (Boolean) method.invoke(group, configuration,
-                                                     unacceptableReasons);
-        if (! acceptable)
+        if (!group.isConfigurationAcceptable(configuration, unacceptableReasons))
         {
           String reason = Utils.joinAsString(".  ", unacceptableReasons);
-          LocalizableMessage message = ERR_CONFIG_GROUP_CONFIG_NOT_ACCEPTABLE.get(
-              configuration.dn(), reason);
-          throw new InitializationException(message);
+          throw new InitializationException(ERR_CONFIG_GROUP_CONFIG_NOT_ACCEPTABLE.get(
+              configuration.dn(), reason));
         }
       }
 

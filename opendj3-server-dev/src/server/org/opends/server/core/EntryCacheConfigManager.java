@@ -26,11 +26,11 @@
  */
 package org.opends.server.core;
 
-import java.lang.reflect.Method;
 import java.util.*;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.util.Utils;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.server.ConfigurationAddListener;
@@ -51,7 +51,6 @@ import org.opends.server.monitors.EntryCacheMonitorProvider;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
-import org.forgerock.opendj.ldap.ResultCode;
 
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.ExtensionMessages.*;
@@ -71,12 +70,12 @@ public class EntryCacheConfigManager
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   // The default entry cache.
-  private DefaultEntryCache _defaultEntryCache = null;
+  private DefaultEntryCache _defaultEntryCache;
 
   // The entry cache order map sorted by the cache level.
-  private SortedMap<Integer, EntryCache<? extends
-    EntryCacheCfg>> cacheOrderMap = new TreeMap<Integer,
-    EntryCache<? extends EntryCacheCfg>>();
+  @SuppressWarnings("rawtypes")
+  private SortedMap<Integer, EntryCache> cacheOrderMap =
+      new TreeMap<Integer, EntryCache>();
 
   // The entry cache name to level map.
   private HashMap<String, Integer>
@@ -144,8 +143,7 @@ public class EntryCacheConfigManager
 
     // Default entry cache should be already installed with
     // <CODE>initializeDefaultEntryCache()</CODE> method so
-    // that there will be one even if we encounter a problem
-    // later.
+    // that there will be one even if we encounter a problem later.
 
     // Register as an add and delete listener with the root configuration so we
     // can be notified if any entry cache entry is added or removed.
@@ -233,6 +231,7 @@ public class EntryCacheConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
       EntryCacheCfg configuration,
       List<LocalizableMessage> unacceptableReasons
@@ -275,6 +274,7 @@ public class EntryCacheConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
       EntryCacheCfg configuration
       )
@@ -326,7 +326,7 @@ public class EntryCacheConfigManager
     }
 
     // Push any changes made to the cache order map.
-    _defaultEntryCache.setCacheOrder(cacheOrderMap);
+    setCacheOrder(cacheOrderMap);
 
     // At this point, new configuration is enabled...
     // If the current entry cache is already enabled then we don't do
@@ -364,6 +364,7 @@ public class EntryCacheConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationAddAcceptable(
       EntryCacheCfg configuration,
       List<LocalizableMessage> unacceptableReasons
@@ -407,6 +408,7 @@ public class EntryCacheConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationAdd(
       EntryCacheCfg configuration
       )
@@ -443,6 +445,7 @@ public class EntryCacheConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationDeleteAcceptable(
       EntryCacheCfg configuration,
       List<LocalizableMessage> unacceptableReasons
@@ -458,6 +461,7 @@ public class EntryCacheConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationDelete(
       EntryCacheCfg configuration
       )
@@ -490,7 +494,7 @@ public class EntryCacheConfigManager
       cacheNameToLevelMap.remove(configuration.dn().toNormalizedString());
 
       // Push any changes made to the cache order map.
-      _defaultEntryCache.setCacheOrder(cacheOrderMap);
+      setCacheOrder(cacheOrderMap);
 
       entryCache = null;
     }
@@ -537,7 +541,7 @@ public class EntryCacheConfigManager
       configuration.getCacheLevel());
 
     // Push any changes made to the cache order map.
-    _defaultEntryCache.setCacheOrder(cacheOrderMap);
+    setCacheOrder(cacheOrderMap);
 
     // Install and register the monitor for this cache.
     EntryCacheMonitorProvider monitor =
@@ -557,6 +561,11 @@ public class EntryCacheConfigManager
     DirectoryServer.registerMonitorProvider(monitor);
   }
 
+  @SuppressWarnings({ "rawtypes", "unchecked" })
+  private void setCacheOrder(SortedMap<Integer, EntryCache> cacheOrderMap)
+  {
+    _defaultEntryCache.setCacheOrder((SortedMap) cacheOrderMap);
+  }
 
   /**
    * Loads the specified class, instantiates it as an entry cache, and
@@ -574,17 +583,16 @@ public class EntryCacheConfigManager
    * @throws  InitializationException  If a problem occurred while attempting
    *                                   to initialize the entry cache.
    */
-  private EntryCache<? extends EntryCacheCfg> loadEntryCache(
+  private <T extends EntryCacheCfg> EntryCache<T> loadEntryCache(
     String        className,
-    EntryCacheCfg configuration,
+    T configuration,
     boolean initialize
     )
     throws InitializationException
   {
-    EntryCache<?> entryCache = null;
-
     // If we this entry cache is already installed and active it
     // should be present in the current cache order map, use it.
+    EntryCache<T> entryCache = null;
     if (!cacheOrderMap.isEmpty()) {
       entryCache = cacheOrderMap.get(configuration.getCacheLevel());
     }
@@ -595,13 +603,13 @@ public class EntryCacheConfigManager
       ClassPropertyDefinition propertyDefinition = definition
           .getJavaClassPropertyDefinition();
       @SuppressWarnings("unchecked")
-      Class<? extends EntryCache<?>> cacheClass =
-          (Class<? extends EntryCache<?>>) propertyDefinition
+      Class<? extends EntryCache<T>> cacheClass =
+          (Class<? extends EntryCache<T>>) propertyDefinition
               .loadClass(className, EntryCache.class);
 
       // If there is some entry cache instance already initialized work with
       // it instead of creating a new one unless explicit init is requested.
-      EntryCache<? extends EntryCacheCfg> cache;
+      EntryCache<T> cache;
       if (initialize || (entryCache == null)) {
         cache = cacheClass.newInstance();
       } else {
@@ -610,23 +618,15 @@ public class EntryCacheConfigManager
 
       if (initialize)
       {
-        Method method = cache.getClass().getMethod("initializeEntryCache",
-            configuration.configurationClass());
-        method.invoke(cache, configuration);
+        cache.initializeEntryCache(configuration);
       }
       // This will check if configuration is acceptable on disabled
       // and uninitialized cache instance that has no "acceptable"
       // change listener registered to invoke and verify on its own.
       else if (!configuration.isEnabled())
       {
-        Method method = cache.getClass().getMethod("isConfigurationAcceptable",
-                                                   EntryCacheCfg.class,
-                                                   List.class);
-
         List<LocalizableMessage> unacceptableReasons = new ArrayList<LocalizableMessage>();
-        Boolean acceptable = (Boolean) method.invoke(cache, configuration,
-                                                     unacceptableReasons);
-        if (! acceptable)
+        if (!cache.isConfigurationAcceptable(configuration, unacceptableReasons))
         {
           String buffer = Utils.joinAsString(".  ", unacceptableReasons);
           throw new InitializationException(

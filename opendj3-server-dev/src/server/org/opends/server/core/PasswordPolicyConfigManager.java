@@ -26,17 +26,13 @@
  */
 package org.opends.server.core;
 
-
-
-import static org.opends.messages.ConfigMessages.*;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
-
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
@@ -49,11 +45,10 @@ import org.opends.server.api.AuthenticationPolicy;
 import org.opends.server.api.AuthenticationPolicyFactory;
 import org.opends.server.api.SubentryChangeListener;
 import org.opends.server.config.ConfigException;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 
-
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines a utility that will be used to manage the set of password
@@ -194,6 +189,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationAddAcceptable(
       AuthenticationPolicyCfg configuration, List<LocalizableMessage> unacceptableReason)
   {
@@ -208,6 +204,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationAdd(
       AuthenticationPolicyCfg configuration)
   {
@@ -241,6 +238,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationDeleteAcceptable(
       AuthenticationPolicyCfg configuration, List<LocalizableMessage> unacceptableReason)
   {
@@ -265,6 +263,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationDelete(
       AuthenticationPolicyCfg configuration)
   {
@@ -291,6 +290,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
   /**
    * {@inheritDoc}
    */
+  @Override
   public void checkSubentryAddAcceptable(Entry entry) throws DirectoryException
   {
     if (entry.isPasswordPolicySubentry())
@@ -304,6 +304,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
   /**
    * {@inheritDoc}
    */
+  @Override
   public void checkSubentryDeleteAcceptable(Entry entry)
       throws DirectoryException
   {
@@ -317,6 +318,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
   /**
    * {@inheritDoc}
    */
+  @Override
   public void checkSubentryModifyAcceptable(Entry oldEntry, Entry newEntry)
       throws DirectoryException
   {
@@ -331,6 +333,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
   /**
    * {@inheritDoc}
    */
+  @Override
   public void checkSubentryModifyDNAcceptable(Entry oldEntry, Entry newEntry)
       throws DirectoryException
   {
@@ -344,6 +347,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
   /**
    * {@inheritDoc}
    */
+  @Override
   public void handleSubentryAdd(Entry entry)
   {
     if (entry.isPasswordPolicySubentry())
@@ -369,6 +373,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
   /**
    * {@inheritDoc}
    */
+  @Override
   public void handleSubentryDelete(Entry entry)
   {
     if (entry.isPasswordPolicySubentry())
@@ -382,6 +387,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
   /**
    * {@inheritDoc}
    */
+  @Override
   public void handleSubentryModify(Entry oldEntry, Entry newEntry)
   {
     if (oldEntry.isPasswordPolicySubentry())
@@ -414,6 +420,7 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
   /**
    * {@inheritDoc}
    */
+  @Override
   public void handleSubentryModifyDN(Entry oldEntry, Entry newEntry)
   {
     if (oldEntry.isPasswordPolicySubentry())
@@ -445,9 +452,8 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
 
   // Creates and registers the provided authentication policy
   // configuration.
-  private void createAuthenticationPolicy(
-      AuthenticationPolicyCfg policyConfiguration) throws ConfigException,
-      InitializationException
+  private <T extends AuthenticationPolicyCfg> void createAuthenticationPolicy(
+      T policyConfiguration) throws ConfigException, InitializationException
   {
     // If this is going to be the default password policy then check the type is
     // correct.
@@ -465,37 +471,17 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
     AuthenticationPolicyCfgDefn d = AuthenticationPolicyCfgDefn.getInstance();
     ClassPropertyDefinition pd = d.getJavaClassPropertyDefinition();
 
-    // Load the class and cast it to an authentication policy.
-    Class<?> theClass;
-    AuthenticationPolicyFactory<?> factory;
-
     try
     {
-      theClass = pd.loadClass(className, AuthenticationPolicyFactory.class);
-      factory = (AuthenticationPolicyFactory<?>) theClass.newInstance();
+      Class<AuthenticationPolicyFactory<T>> theClass =
+          (Class<AuthenticationPolicyFactory<T>>) pd.loadClass(className,
+              AuthenticationPolicyFactory.class);
+      AuthenticationPolicyFactory<T> factory = theClass.newInstance();
       factory.setServerContext(serverContext);
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
 
-      LocalizableMessage message = ERR_CONFIG_PWPOLICY_INVALID_POLICY_CONFIG.get(
-          policyConfiguration.dn(), stackTraceToSingleLineString(e));
-      throw new InitializationException(message, e);
-    }
+      AuthenticationPolicy policy = factory.createAuthenticationPolicy(policyConfiguration);
 
-    // Perform the necessary initialization for the authentication policy.
-    AuthenticationPolicy policy;
-    try
-    {
-      // Determine the initialization method to use: it must take a
-      // single parameter which is the exact type of the configuration
-      // object.
-      Method method = theClass.getMethod("createAuthenticationPolicy",
-          policyConfiguration.configurationClass());
-
-      policy = (AuthenticationPolicy) method.invoke(factory,
-          policyConfiguration);
+      DirectoryServer.registerAuthenticationPolicy(policyConfiguration.dn(), policy);
     }
     catch (Exception e)
     {
@@ -519,16 +505,14 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
           policyConfiguration.dn(), stackTraceToSingleLineString(e));
       throw new InitializationException(message, e);
     }
-
-    DirectoryServer.registerAuthenticationPolicy(policyConfiguration.dn(), policy);
   }
 
 
 
   // Determines whether or not the new authentication policy configuration's
   // implementation class is acceptable.
-  private boolean isAuthenticationPolicyConfigurationAcceptable(
-      AuthenticationPolicyCfg policyConfiguration,
+  private <T extends AuthenticationPolicyCfg> boolean isAuthenticationPolicyConfigurationAcceptable(
+      T policyConfiguration,
       List<LocalizableMessage> unacceptableReasons)
   {
     // If this is going to be the default password policy then check the type is
@@ -551,21 +535,13 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
     // Validate the configuration.
     try
     {
-      // Load the class and cast it to a authentication policy factory.
-      Class<?> theClass;
-      AuthenticationPolicyFactory<?> factory;
-
-      theClass = pd.loadClass(className, AuthenticationPolicyFactory.class);
-      factory = (AuthenticationPolicyFactory<?>) theClass.newInstance();
+      Class<?> theClass =
+          pd.loadClass(className, AuthenticationPolicyFactory.class);
+      AuthenticationPolicyFactory<T> factory =
+          (AuthenticationPolicyFactory<T>) theClass.newInstance();
       factory.setServerContext(serverContext);
 
-      // Determine the initialization method to use: it must take a
-      // single parameter which is the exact type of the configuration
-      // object.
-      Method method = theClass.getMethod("isConfigurationAcceptable",
-          AuthenticationPolicyCfg.class, List.class);
-      return (Boolean) method.invoke(factory, policyConfiguration,
-          unacceptableReasons);
+      return factory.isConfigurationAcceptable(policyConfiguration, unacceptableReasons);
     }
     catch (Exception e)
     {

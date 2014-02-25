@@ -25,8 +25,12 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.core;
-import org.forgerock.i18n.LocalizableMessage;
+import java.util.ArrayList;
+import java.util.List;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.loggers.RotationPolicy;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
@@ -38,18 +42,10 @@ import org.opends.server.admin.std.meta.LogRotationPolicyCfgDefn;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ConfigChangeResult;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.config.ConfigException;
 
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.messages.ConfigMessages.*;
-
 import static org.opends.server.util.StaticUtils.*;
-
-import java.util.List;
-import java.util.ArrayList;
-import java.lang.reflect.Method;
-import java.lang.reflect.InvocationTargetException;
 
 /**
  * This class defines a utility that will be used to manage the set of
@@ -98,6 +94,7 @@ public class LogRotationPolicyConfigManager implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationAddAcceptable(
       LogRotationPolicyCfg configuration,
       List<LocalizableMessage> unacceptableReasons)
@@ -108,6 +105,7 @@ public class LogRotationPolicyConfigManager implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationDeleteAcceptable(
       LogRotationPolicyCfg configuration,
       List<LocalizableMessage> unacceptableReasons)
@@ -119,6 +117,7 @@ public class LogRotationPolicyConfigManager implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationAdd(LogRotationPolicyCfg config)
   {
     // Default result code.
@@ -150,6 +149,7 @@ public class LogRotationPolicyConfigManager implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationDelete(
       LogRotationPolicyCfg config)
   {
@@ -175,6 +175,7 @@ public class LogRotationPolicyConfigManager implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
       LogRotationPolicyCfg configuration,
       List<LocalizableMessage> unacceptableReasons)
@@ -185,6 +186,7 @@ public class LogRotationPolicyConfigManager implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
       LogRotationPolicyCfg configuration)
   {
@@ -209,68 +211,39 @@ public class LogRotationPolicyConfigManager implements
   {
     String className = config.getJavaClass();
     LogRotationPolicyCfgDefn d = LogRotationPolicyCfgDefn.getInstance();
-    ClassPropertyDefinition pd =
-        d.getJavaClassPropertyDefinition();
-    // Load the class and cast it to a RotationPolicy.
-    Class<? extends RotationPolicy> theClass;
+    ClassPropertyDefinition pd = d.getJavaClassPropertyDefinition();
     try {
-      theClass = pd.loadClass(className, RotationPolicy.class);
-      theClass.newInstance();
+      Class<? extends RotationPolicy> theClass =
+          pd.loadClass(className, RotationPolicy.class);
+      // Explicitly cast to check that implementation implements the correct interface.
+      RotationPolicy retentionPolicy = theClass.newInstance();
+      // next line is here to ensure that eclipse does not remove the cast in the line above
+      retentionPolicy.hashCode();
+      return true;
     } catch (Exception e) {
       unacceptableReasons.add(
           ERR_CONFIG_ROTATION_POLICY_INVALID_CLASS.get(className, config.dn(), e));
       return false;
     }
-    // Check that the implementation class implements the correct interface.
-    try {
-      // Determine the initialization method to use: it must take a
-      // single parameter which is the exact type of the configuration
-      // object.
-      theClass.getMethod("initializeLogRotationPolicy", config
-          .configurationClass());
-    } catch (Exception e) {
-      unacceptableReasons.add(
-          ERR_CONFIG_ROTATION_POLICY_INVALID_CLASS.get(className, config.dn(), e));
-      return false;
-    }
-    // The class is valid as far as we can tell.
-    return true;
   }
 
   private RotationPolicy getRotationPolicy(LogRotationPolicyCfg config)
       throws ConfigException {
     String className = config.getJavaClass();
     LogRotationPolicyCfgDefn d = LogRotationPolicyCfgDefn.getInstance();
-    ClassPropertyDefinition pd =
-        d.getJavaClassPropertyDefinition();
-    // Load the class and cast it to a RotationPolicy.
-    Class<? extends RotationPolicy> theClass;
-    RotationPolicy rotationPolicy;
+    ClassPropertyDefinition pd = d.getJavaClassPropertyDefinition();
     try {
-      theClass = pd.loadClass(className, RotationPolicy.class);
-      rotationPolicy = theClass.newInstance();
+      Class<? extends RotationPolicy> theClass =
+          pd.loadClass(className, RotationPolicy.class);
+      RotationPolicy rotationPolicy = theClass.newInstance();
 
-      // Determine the initialization method to use: it must take a
-      // single parameter which is the exact type of the configuration
-      // object.
-      Method method = theClass.getMethod("initializeLogRotationPolicy", config
-          .configurationClass());
-      method.invoke(rotationPolicy, config);
-    }
-    catch (InvocationTargetException ite)
-    {
-      // Rethrow the exceptions thrown be the invoked method.
-      Throwable e = ite.getTargetException();
-      LocalizableMessage message = ERR_CONFIG_ROTATION_POLICY_INVALID_CLASS.get(
-          className, config.dn(), stackTraceToSingleLineString(e));
-      throw new ConfigException(message, e);
+      rotationPolicy.initializeLogRotationPolicy(config);
+
+      return rotationPolicy;
     } catch (Exception e) {
       LocalizableMessage message = ERR_CONFIG_ROTATION_POLICY_INVALID_CLASS.get(
           className, config.dn(), e);
       throw new ConfigException(message, e);
     }
-
-    // The connection handler has been successfully initialized.
-    return rotationPolicy;
   }
 }

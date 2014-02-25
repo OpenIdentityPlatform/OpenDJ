@@ -30,7 +30,6 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.util.Utils;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -371,9 +370,9 @@ public class PasswordGeneratorConfigManager
    * @throws  InitializationException  If a problem occurred while attempting to
    *                                   initialize the password generator.
    */
-  private PasswordGenerator<? extends PasswordGeneratorCfg>
+  private <T extends PasswordGeneratorCfg> PasswordGenerator<T>
                loadGenerator(String className,
-                             PasswordGeneratorCfg configuration,
+                             T configuration,
                              boolean initialize)
           throws InitializationException
   {
@@ -385,27 +384,16 @@ public class PasswordGeneratorConfigManager
            definition.getJavaClassPropertyDefinition();
       Class<? extends PasswordGenerator> generatorClass =
            propertyDefinition.loadClass(className, PasswordGenerator.class);
-      PasswordGenerator<? extends PasswordGeneratorCfg> generator =
-           (PasswordGenerator<? extends PasswordGeneratorCfg>)
-           generatorClass.newInstance();
+      PasswordGenerator<T> generator = generatorClass.newInstance();
 
       if (initialize)
       {
-        Method method = generator.getClass().getMethod(
-            "initializePasswordGenerator", configuration.configurationClass());
-        method.invoke(generator, configuration);
+        generator.initializePasswordGenerator(configuration);
       }
       else
       {
-        Method method =
-             generator.getClass().getMethod("isConfigurationAcceptable",
-                                            PasswordGeneratorCfg.class,
-                                            List.class);
-
         List<LocalizableMessage> unacceptableReasons = new ArrayList<LocalizableMessage>();
-        Boolean acceptable = (Boolean) method.invoke(generator, configuration,
-                                                     unacceptableReasons);
-        if (! acceptable)
+        if (!generator.isConfigurationAcceptable(configuration, unacceptableReasons))
         {
           String reasons = Utils.joinAsString(".  ", unacceptableReasons);
           throw new InitializationException(

@@ -30,7 +30,6 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.util.Utils;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -384,9 +383,9 @@ public class PasswordValidatorConfigManager
    * @throws  InitializationException  If a problem occurred while attempting to
    *                                   initialize the password validator.
    */
-  private PasswordValidator<? extends PasswordValidatorCfg>
+  private <T extends PasswordValidatorCfg> PasswordValidator<T>
                loadValidator(String className,
-                             PasswordValidatorCfg configuration,
+                             T configuration,
                              boolean initialize)
           throws InitializationException
   {
@@ -398,27 +397,16 @@ public class PasswordValidatorConfigManager
            definition.getJavaClassPropertyDefinition();
       Class<? extends PasswordValidator> validatorClass =
            propertyDefinition.loadClass(className, PasswordValidator.class);
-      PasswordValidator<? extends PasswordValidatorCfg> validator =
-           (PasswordValidator<? extends PasswordValidatorCfg>)
-           validatorClass.newInstance();
+      PasswordValidator<T> validator = validatorClass.newInstance();
 
       if (initialize)
       {
-        Method method = validator.getClass().getMethod(
-            "initializePasswordValidator", configuration.configurationClass());
-        method.invoke(validator, configuration);
+        validator.initializePasswordValidator(configuration);
       }
       else
       {
-        Method method =
-             validator.getClass().getMethod("isConfigurationAcceptable",
-                                            PasswordValidatorCfg.class,
-                                            List.class);
-
         List<LocalizableMessage> unacceptableReasons = new ArrayList<LocalizableMessage>();
-        Boolean acceptable = (Boolean) method.invoke(validator, configuration,
-                                                     unacceptableReasons);
-        if (! acceptable)
+        if (!validator.isConfigurationAcceptable(configuration, unacceptableReasons))
         {
           String reasons = Utils.joinAsString(".  ", unacceptableReasons);
           throw new InitializationException(

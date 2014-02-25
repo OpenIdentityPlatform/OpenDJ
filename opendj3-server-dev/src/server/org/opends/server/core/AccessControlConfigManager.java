@@ -26,7 +26,6 @@
  */
 package org.opends.server.core;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -34,6 +33,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.util.Utils;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -47,7 +47,6 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
-import org.forgerock.opendj.ldap.ResultCode;
 
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -426,9 +425,9 @@ public final class AccessControlConfigManager
    * @throws  InitializationException  If a problem occurred while attempting to
    *                                   initialize the Access Control Handler.
    */
-  private AccessControlHandler<? extends AccessControlHandlerCfg>
+  private <T extends AccessControlHandlerCfg> AccessControlHandler<T>
                loadHandler(String className,
-                           AccessControlHandlerCfg configuration,
+                           T configuration,
                            boolean initialize)
           throws InitializationException
   {
@@ -440,29 +439,18 @@ public final class AccessControlConfigManager
            definition.getJavaClassPropertyDefinition();
       Class<? extends AccessControlHandler> providerClass =
            propertyDefinition.loadClass(className, AccessControlHandler.class);
-      AccessControlHandler<? extends AccessControlHandlerCfg> provider =
-          providerClass.newInstance();
+      AccessControlHandler<T> provider = providerClass.newInstance();
 
       if (configuration != null)
       {
-        Method method = provider.getClass().getMethod(
-            "initializeAccessControlHandler",
-            configuration.configurationClass());
         if(initialize) {
-          method.invoke(provider, configuration);
+          provider.initializeAccessControlHandler(configuration);
         }
       }
       else
       {
-        Method method =
-             provider.getClass().getMethod("isConfigurationAcceptable",
-                                           AccessControlHandlerCfg.class,
-                                           List.class);
-
         List<LocalizableMessage> unacceptableReasons = new ArrayList<LocalizableMessage>();
-        Boolean acceptable = (Boolean) method.invoke(provider, configuration,
-                                                     unacceptableReasons);
-        if (! acceptable)
+        if (!provider.isConfigurationAcceptable(configuration, unacceptableReasons))
         {
           String reasons = Utils.joinAsString(".  ", unacceptableReasons);
           // Bug: we are in a section where configuration is null

@@ -26,7 +26,6 @@
  */
 package org.opends.server.core;
 
-import java.lang.reflect.Method;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import java.util.ArrayList;
 import java.util.List;
@@ -465,20 +464,12 @@ public class AttributeSyntaxConfigManager
 
       if (initialize)
       {
-        Method method = syntax.getClass().getMethod("initializeSyntax",
-            configuration.configurationClass());
-        method.invoke(syntax, configuration);
+        syntax.initializeSyntax(configuration);
       }
       else
       {
-        Method method = syntax.getClass().getMethod("isConfigurationAcceptable",
-                                                    AttributeSyntaxCfg.class,
-                                                    List.class);
-
         List<LocalizableMessage> unacceptableReasons = new ArrayList<LocalizableMessage>();
-        Boolean acceptable = (Boolean) method.invoke(syntax, configuration,
-                                                     unacceptableReasons);
-        if (! acceptable)
+        if (!syntax.isConfigurationAcceptable(configuration, unacceptableReasons))
         {
           String reasons = Utils.joinAsString(".  ", unacceptableReasons);
           throw new InitializationException(

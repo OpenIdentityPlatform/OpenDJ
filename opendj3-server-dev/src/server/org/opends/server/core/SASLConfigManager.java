@@ -30,7 +30,6 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.util.Utils;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -389,22 +388,12 @@ public class SASLConfigManager implements
 
       if (initialize)
       {
-        Method method = handler.getClass().getMethod(
-            "initializeSASLMechanismHandler",
-            configuration.configurationClass());
-        method.invoke(handler, configuration);
+        handler.initializeSASLMechanismHandler(configuration);
       }
       else
       {
-        Method method =
-             handler.getClass().getMethod("isConfigurationAcceptable",
-                                          SASLMechanismHandlerCfg.class,
-                                          List.class);
-
         List<LocalizableMessage> unacceptableReasons = new ArrayList<LocalizableMessage>();
-        Boolean acceptable = (Boolean) method.invoke(handler, configuration,
-                                                     unacceptableReasons);
-        if (! acceptable)
+        if (!handler.isConfigurationAcceptable(configuration, unacceptableReasons))
         {
           String reasons = Utils.joinAsString(".  ", unacceptableReasons);
           throw new InitializationException(

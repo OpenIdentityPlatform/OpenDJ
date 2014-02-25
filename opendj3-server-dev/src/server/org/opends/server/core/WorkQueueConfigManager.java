@@ -25,23 +25,21 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.core;
-import org.forgerock.i18n.LocalizableMessage;
-
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.std.meta.WorkQueueCfgDefn;
-import org.opends.server.admin.std.server.WorkQueueCfg;
-import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.admin.server.ServerManagementContext;
+import org.opends.server.admin.std.meta.WorkQueueCfgDefn;
+import org.opends.server.admin.std.server.RootCfg;
+import org.opends.server.admin.std.server.WorkQueueCfg;
 import org.opends.server.api.WorkQueue;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.InitializationException;
-import org.forgerock.opendj.ldap.ResultCode;
 
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -106,9 +104,7 @@ public class WorkQueueConfigManager
     {
       WorkQueue workQueue = workQueueClass.newInstance();
 
-      Method method = workQueue.getClass().getMethod("initializeWorkQueue",
-          workQueueConfig.configurationClass());
-      method.invoke(workQueue, workQueueConfig);
+      workQueue.initializeWorkQueue(workQueueConfig);
 
       return workQueue;
     }
@@ -125,6 +121,7 @@ public class WorkQueueConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(WorkQueueCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
   {
@@ -138,6 +135,7 @@ public class WorkQueueConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(WorkQueueCfg configuration)
   {
     ResultCode        resultCode          = ResultCode.SUCCESS;
