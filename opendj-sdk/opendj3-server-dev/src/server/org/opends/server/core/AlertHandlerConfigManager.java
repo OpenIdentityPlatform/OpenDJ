@@ -26,29 +26,27 @@
  */
 package org.opends.server.core;
 
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.util.Utils;
-
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.util.Utils;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
+import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.admin.std.meta.AlertHandlerCfgDefn;
 import org.opends.server.admin.std.server.AlertHandlerCfg;
 import org.opends.server.admin.std.server.RootCfg;
-import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.api.AlertHandler;
 import org.opends.server.config.ConfigException;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
-import org.forgerock.opendj.ldap.ResultCode;
 
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -139,6 +137,7 @@ public class AlertHandlerConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationAddAcceptable(AlertHandlerCfg configuration,
                                               List<LocalizableMessage> unacceptableReasons)
   {
@@ -167,6 +166,7 @@ public class AlertHandlerConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationAdd(AlertHandlerCfg configuration)
   {
     ResultCode         resultCode          = ResultCode.SUCCESS;
@@ -213,6 +213,7 @@ public class AlertHandlerConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationDeleteAcceptable(
                       AlertHandlerCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -227,6 +228,7 @@ public class AlertHandlerConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationDelete(
                                  AlertHandlerCfg configuration)
   {
@@ -249,6 +251,7 @@ public class AlertHandlerConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(AlertHandlerCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
   {
@@ -277,6 +280,7 @@ public class AlertHandlerConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
                                  AlertHandlerCfg configuration)
   {
@@ -382,20 +386,12 @@ public class AlertHandlerConfigManager
 
       if (initialize)
       {
-        Method method = handler.getClass().getMethod("initializeAlertHandler",
-            configuration.configurationClass());
-        method.invoke(handler, configuration);
+        handler.initializeAlertHandler(configuration);
       }
       else
       {
-        Method method =
-             handler.getClass().getMethod("isConfigurationAcceptable",
-                                          AlertHandlerCfg.class, List.class);
-
         List<LocalizableMessage> unacceptableReasons = new ArrayList<LocalizableMessage>();
-        Boolean acceptable = (Boolean) method.invoke(handler, configuration,
-                                                     unacceptableReasons);
-        if (! acceptable)
+        if (!handler.isConfigurationAcceptable(configuration, unacceptableReasons))
         {
           String reasons = Utils.joinAsString(".  ", unacceptableReasons);
           throw new InitializationException(

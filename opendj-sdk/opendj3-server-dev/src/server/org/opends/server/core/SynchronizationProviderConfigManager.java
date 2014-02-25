@@ -25,20 +25,14 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.core;
-import org.forgerock.i18n.LocalizableMessage;
 
-
-
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import static org.opends.messages.ConfigMessages.*;
-
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
-
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -52,9 +46,9 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
-import org.forgerock.opendj.ldap.ResultCode;
 
-
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines a utility that will be used to manage the configuration
@@ -155,6 +149,7 @@ public class SynchronizationProviderConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
       SynchronizationProviderCfg configuration)
   {
@@ -244,6 +239,7 @@ public class SynchronizationProviderConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
       SynchronizationProviderCfg configuration,
       List<LocalizableMessage> unacceptableReasons)
@@ -264,6 +260,7 @@ public class SynchronizationProviderConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationAdd(
     SynchronizationProviderCfg configuration)
   {
@@ -322,6 +319,7 @@ public class SynchronizationProviderConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationAddAcceptable(
       SynchronizationProviderCfg configuration,
       List<LocalizableMessage> unacceptableReasons)
@@ -421,40 +419,16 @@ public class SynchronizationProviderConfigManager
     String className = configuration.getJavaClass();
     SynchronizationProviderCfgDefn d =
       SynchronizationProviderCfgDefn.getInstance();
-    ClassPropertyDefinition pd =
-      d.getJavaClassPropertyDefinition();
+    ClassPropertyDefinition pd = d.getJavaClassPropertyDefinition();
 
-    // Load the class and cast it to a synchronizationProvider.
-    SynchronizationProvider provider = null;
-    Class<? extends SynchronizationProvider> theClass;
     try
     {
-       theClass = pd.loadClass(className, SynchronizationProvider.class);
-       provider = theClass.newInstance();
-    } catch (Exception e)
-    {
-       // Handle the exception: put a message in the unacceptable reasons.
-       LocalizableMessage message = ERR_CONFIG_SYNCH_UNABLE_TO_LOAD_PROVIDER_CLASS.get(
-           className, configuration.dn(), stackTraceToSingleLineString(e));
-       unacceptableReasons.add(message);
-       return false;
-    }
-    // Check that the implementation class implements the correct interface.
-    try
-    {
-      // Determine the initialization method to use: it must take a
-      // single parameter which is the exact type of the configuration
-      // object.
-      Method method = theClass.getMethod("isConfigurationAcceptable",
-                                         SynchronizationProviderCfg.class,
-                                         List.class);
-      Boolean acceptable = (Boolean) method.invoke(provider, configuration,
-                                                   unacceptableReasons);
+      Class<? extends SynchronizationProvider> theClass =
+          pd.loadClass(className, SynchronizationProvider.class);
+      SynchronizationProvider provider = theClass.newInstance();
 
-      if (! acceptable)
-      {
-        return false;
-      }
+      return provider.isConfigurationAcceptable(configuration,
+          unacceptableReasons);
     } catch (Exception e)
     {
       // Handle the exception: put a message in the unacceptable reasons.
@@ -463,14 +437,12 @@ public class SynchronizationProviderConfigManager
       unacceptableReasons.add(message);
       return false;
     }
-
-    // The class is valid as far as we can tell.
-    return true;
   }
 
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationDelete(
       SynchronizationProviderCfg configuration)
   {
@@ -495,6 +467,7 @@ public class SynchronizationProviderConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationDeleteAcceptable(
       SynchronizationProviderCfg configuration,
       List<LocalizableMessage> unacceptableReasons)
@@ -503,7 +476,3 @@ public class SynchronizationProviderConfigManager
     return true;
   }
 }
-
-
-
-

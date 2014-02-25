@@ -30,7 +30,6 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.util.Utils;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -379,9 +378,9 @@ public class TrustManagerProviderConfigManager
    * @throws  InitializationException  If a problem occurred while attempting to
    *                                   initialize the trust manager provider.
    */
-  private TrustManagerProvider loadProvider(
+  private <T extends TrustManagerProviderCfg> TrustManagerProvider<T> loadProvider(
                                    String className,
-                                   TrustManagerProviderCfg configuration,
+                                   T configuration,
                                    boolean initialize)
           throws InitializationException
   {
@@ -393,26 +392,16 @@ public class TrustManagerProviderConfigManager
            definition.getJavaClassPropertyDefinition();
       Class<? extends TrustManagerProvider> providerClass =
            propertyDefinition.loadClass(className, TrustManagerProvider.class);
-      TrustManagerProvider provider = providerClass.newInstance();
+      TrustManagerProvider<T> provider = providerClass.newInstance();
 
       if (initialize)
       {
-        Method method = provider.getClass().getMethod(
-            "initializeTrustManagerProvider",
-            configuration.configurationClass());
-        method.invoke(provider, configuration);
+        provider.initializeTrustManagerProvider(configuration);
       }
       else
       {
-        Method method =
-             provider.getClass().getMethod("isConfigurationAcceptable",
-                                           TrustManagerProviderCfg.class,
-                                           List.class);
-
         List<LocalizableMessage> unacceptableReasons = new ArrayList<LocalizableMessage>();
-        Boolean acceptable = (Boolean) method.invoke(provider, configuration,
-                                                     unacceptableReasons);
-        if (! acceptable)
+        if (!provider.isConfigurationAcceptable(configuration, unacceptableReasons))
         {
           String reasons = Utils.joinAsString(".  ", unacceptableReasons);
           throw new InitializationException(

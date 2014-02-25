@@ -25,12 +25,10 @@
  *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.core;
+
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 
-
-
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -370,30 +368,27 @@ public class MonitorConfigManager
    * @throws  InitializationException  If a problem occurred while attempting to
    *                                   initialize the monitor provider.
    */
-  private MonitorProvider<? extends MonitorProviderCfg>
-               loadMonitor(String className, MonitorProviderCfg configuration)
+  private <T extends MonitorProviderCfg> MonitorProvider<T>
+               loadMonitor(String className, T configuration)
           throws InitializationException
   {
     try
     {
-      MonitorProviderCfgDefn definition =
-           MonitorProviderCfgDefn.getInstance();
+      MonitorProviderCfgDefn definition = MonitorProviderCfgDefn.getInstance();
       ClassPropertyDefinition propertyDefinition =
            definition.getJavaClassPropertyDefinition();
       @SuppressWarnings("unchecked")
-      Class<? extends MonitorProvider<?>> providerClass =
-          (Class<? extends MonitorProvider<?>>) propertyDefinition
+      Class<? extends MonitorProvider<T>> providerClass =
+          (Class<? extends MonitorProvider<T>>) propertyDefinition
               .loadClass(className, MonitorProvider.class);
-      MonitorProvider<?> monitor = providerClass.newInstance();
+      MonitorProvider<T> monitor = providerClass.newInstance();
 
       if (configuration != null)
       {
-        Method method = monitor.getClass().getMethod(
-            "initializeMonitorProvider", configuration.configurationClass());
-        method.invoke(monitor, configuration);
+        monitor.initializeMonitorProvider(configuration);
       }
 
-      return (MonitorProvider<? extends MonitorProviderCfg>) monitor;
+      return monitor;
     }
     catch (Exception e)
     {

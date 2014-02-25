@@ -26,15 +26,12 @@
  */
 package org.opends.server.core.networkgroups;
 
-
-
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.forgerock.util.Reject.*;
 
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -47,6 +44,8 @@ import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -63,18 +62,14 @@ import org.opends.server.core.RootDseWorkflowTopology;
 import org.opends.server.core.Workflow;
 import org.opends.server.core.WorkflowImpl;
 import org.opends.server.core.WorkflowTopologyNode;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.types.AuthenticationType;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.types.operation.PreParseOperation;
 import org.opends.server.workflowelement.WorkflowElement;
-
-
 
 /**
  * This class defines the network group. A network group is used to
@@ -98,6 +93,7 @@ public class NetworkGroup
     /**
      * {@inheritDoc}
      */
+    @Override
     public ConfigChangeResult applyConfigurationChange(
         NetworkGroupCfg configuration)
     {
@@ -163,6 +159,7 @@ public class NetworkGroup
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean isConfigurationChangeAcceptable(
         NetworkGroupCfg configuration, List<LocalizableMessage> unacceptableReasons)
     {
@@ -183,6 +180,7 @@ public class NetworkGroup
     /**
      * {@inheritDoc}
      */
+    @Override
     public ConfigChangeResult applyConfigurationAdd(
         QOSPolicyCfg configuration)
     {
@@ -214,6 +212,7 @@ public class NetworkGroup
     /**
      * {@inheritDoc}
      */
+    @Override
     public ConfigChangeResult applyConfigurationDelete(
         QOSPolicyCfg configuration)
     {
@@ -241,6 +240,7 @@ public class NetworkGroup
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean isConfigurationAddAcceptable(
         QOSPolicyCfg configuration, List<LocalizableMessage> unacceptableReasons)
     {
@@ -253,6 +253,7 @@ public class NetworkGroup
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean isConfigurationDeleteAcceptable(
         QOSPolicyCfg configuration, List<LocalizableMessage> unacceptableReasons)
     {
@@ -728,27 +729,11 @@ public class NetworkGroup
     // Validate the configuration.
     try
     {
-      // Load the class and cast it to a network group policy factory.
-      Class<? extends QOSPolicyFactory> theClass;
-      QOSPolicyFactory factory;
+      Class<? extends QOSPolicyFactory> theClass =
+          pd.loadClass(className, QOSPolicyFactory.class);
+      QOSPolicyFactory factory = theClass.newInstance();
 
-      theClass = pd.loadClass(className, QOSPolicyFactory.class);
-      factory = theClass.newInstance();
-
-      // Determine the initialization method to use: it must take a
-      // single parameter which is the exact type of the configuration
-      // object.
-      Method method =
-          theClass.getMethod("isConfigurationAcceptable",
-              QOSPolicyCfg.class, List.class);
-      Boolean acceptable =
-          (Boolean) method.invoke(factory, policyConfiguration,
-              unacceptableReasons);
-
-      if (!acceptable)
-      {
-        return false;
-      }
+      return factory.isConfigurationAcceptable(policyConfiguration, unacceptableReasons);
     }
     catch (Exception e)
     {
@@ -759,9 +744,6 @@ public class NetworkGroup
               className, policyConfiguration.dn(), stackTraceToSingleLineString(e)));
       return false;
     }
-
-    // The configuration is valid as far as we can tell.
-    return true;
   }
 
 
@@ -1598,38 +1580,14 @@ public class NetworkGroup
     QOSPolicyCfgDefn d = QOSPolicyCfgDefn.getInstance();
     ClassPropertyDefinition pd = d.getJavaClassPropertyDefinition();
 
-    // Load the class and cast it to a network group policy.
-    Class<? extends QOSPolicyFactory> theClass;
-    QOSPolicyFactory factory;
-
-    try
-    {
-      theClass = pd.loadClass(className, QOSPolicyFactory.class);
-      factory = theClass.newInstance();
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-
-      LocalizableMessage message = ERR_CONFIG_NETWORK_GROUP_POLICY_CANNOT_INITIALIZE.get(
-          className, policyConfiguration.dn(), stackTraceToSingleLineString(e));
-      throw new InitializationException(message, e);
-    }
-
-    // Perform the necessary initialization for the network group
-    // policy.
     QOSPolicy policy;
-
     try
     {
-      // Determine the initialization method to use: it must take a
-      // single parameter which is the exact type of the configuration
-      // object.
-      Method method =
-          theClass.getMethod("createQOSPolicy", policyConfiguration
-              .configurationClass());
+      Class<? extends QOSPolicyFactory> theClass =
+          pd.loadClass(className, QOSPolicyFactory.class);
+      QOSPolicyFactory factory = theClass.newInstance();
 
-      policy = (QOSPolicy) method.invoke(factory, policyConfiguration);
+      policy = factory.createQOSPolicy(policyConfiguration);
     }
     catch (Exception e)
     {
@@ -1654,8 +1612,7 @@ public class NetworkGroup
       throw new InitializationException(message, e);
     }
 
-    // The network group has been successfully initialized - so register
-    // it.
+    // The network group has been successfully initialized - so register it.
     QOSPolicy oldPolicy =
         policies.put(policyConfiguration.dn(), policy);
 

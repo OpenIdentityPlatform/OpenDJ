@@ -30,7 +30,6 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.util.Utils;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -397,21 +396,12 @@ public class  KeyManagerProviderConfigManager
 
       if (initialize)
       {
-        Method method = provider.getClass().getMethod(
-            "initializeKeyManagerProvider", configuration.configurationClass());
-        method.invoke(provider, configuration);
+        provider.initializeKeyManagerProvider(configuration);
       }
       else
       {
-        Method method =
-             provider.getClass().getMethod("isConfigurationAcceptable",
-                                           KeyManagerProviderCfg.class,
-                                           List.class);
-
         List<LocalizableMessage> unacceptableReasons = new ArrayList<LocalizableMessage>();
-        Boolean acceptable = (Boolean) method.invoke(provider, configuration,
-                                                     unacceptableReasons);
-        if (! acceptable)
+        if (!provider.isConfigurationAcceptable(configuration, unacceptableReasons))
         {
           String reasons = Utils.joinAsString(".  ", unacceptableReasons);
           throw new InitializationException(

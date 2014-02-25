@@ -24,20 +24,17 @@
  *      Copyright 2008-2009 Sun Microsystems, Inc.
  *      Portions Copyright 2014 ForgeRock AS
  */
-
 package org.opends.server.tools.tasks;
 
 import org.forgerock.i18n.LocalizableMessage;
-
+import org.opends.server.backends.task.FailedDependencyAction;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
-import org.opends.server.backends.task.FailedDependencyAction;
 import org.opends.server.types.Entry;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DN;
-import static org.opends.server.util.ServerConstants.*;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -52,6 +49,8 @@ import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
 import java.text.DateFormat;
 import java.text.ParseException;
+
+import static org.opends.server.util.ServerConstants.*;
 
 /**
  * Processes information from a task entry from the directory and
@@ -369,16 +368,9 @@ public class TaskEntry {
       if (type == null) {
         Task task = getTask();
         if (task != null) {
-          try {
-            Method m = Task.class.getMethod("getDisplayName");
-            Object oName = m.invoke(task);
-            if (oName instanceof LocalizableMessage) {
-              mapClassToTypeName.put(className, (LocalizableMessage) oName);
-              type = (LocalizableMessage) oName;
-            }
-          } catch (Exception e) {
-            // ignore; this is best effort
-          }
+          LocalizableMessage message = task.getDisplayName();
+          mapClassToTypeName.put(className, message);
+          type = message;
         }
       }
 

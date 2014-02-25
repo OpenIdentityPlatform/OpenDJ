@@ -26,17 +26,13 @@
  */
 package org.opends.server.core;
 
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.util.Utils;
-
-import static org.opends.messages.ConfigMessages.*;
-import static org.opends.server.util.StaticUtils.*;
-
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.util.Utils;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -50,7 +46,9 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
-import org.forgerock.opendj.ldap.ResultCode;
+
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines a utility that will be used to manage the set of account
@@ -141,6 +139,7 @@ public class AccountStatusNotificationHandlerConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
       AccountStatusNotificationHandlerCfg configuration,
       List<LocalizableMessage> unacceptableReasons
@@ -174,6 +173,7 @@ public class AccountStatusNotificationHandlerConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
       AccountStatusNotificationHandlerCfg configuration
       )
@@ -238,6 +238,7 @@ public class AccountStatusNotificationHandlerConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationAddAcceptable(
       AccountStatusNotificationHandlerCfg configuration,
       List<LocalizableMessage> unacceptableReasons
@@ -280,6 +281,7 @@ public class AccountStatusNotificationHandlerConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationAdd(
       AccountStatusNotificationHandlerCfg configuration
       )
@@ -317,6 +319,7 @@ public class AccountStatusNotificationHandlerConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationDeleteAcceptable(
       AccountStatusNotificationHandlerCfg configuration,
       List<LocalizableMessage> unacceptableReasons
@@ -331,6 +334,7 @@ public class AccountStatusNotificationHandlerConfigManager
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationDelete(
       AccountStatusNotificationHandlerCfg configuration
       )
@@ -397,54 +401,32 @@ public class AccountStatusNotificationHandlerConfigManager
    * @throws  InitializationException  If a problem occurred while attempting
    *                                   to initialize the notification handler.
    */
-  private
-    AccountStatusNotificationHandler
-       <? extends AccountStatusNotificationHandlerCfg>
-    loadNotificationHandler(
-       String className,
-       AccountStatusNotificationHandlerCfg configuration,
-       boolean initialize)
-       throws InitializationException
+  private <T extends AccountStatusNotificationHandlerCfg>
+      AccountStatusNotificationHandler<T> loadNotificationHandler(
+      String className, T configuration, boolean initialize)
+      throws InitializationException
   {
     try
     {
-      AccountStatusNotificationHandlerCfgDefn definition;
-      ClassPropertyDefinition propertyDefinition;
-      Class<? extends AccountStatusNotificationHandler> handlerClass;
-      AccountStatusNotificationHandler
-         <? extends AccountStatusNotificationHandlerCfg> notificationHandler;
-
-      definition = AccountStatusNotificationHandlerCfgDefn.getInstance();
-      propertyDefinition =
+      final AccountStatusNotificationHandlerCfgDefn definition =
+          AccountStatusNotificationHandlerCfgDefn.getInstance();
+      final ClassPropertyDefinition propertyDefinition =
           definition.getJavaClassPropertyDefinition();
-      handlerClass = propertyDefinition.loadClass(
-          className,
-          AccountStatusNotificationHandler.class
-          );
-      notificationHandler =
-        (AccountStatusNotificationHandler
-            <? extends AccountStatusNotificationHandlerCfg>)
-        handlerClass.newInstance();
+      final Class<? extends AccountStatusNotificationHandler> handlerClass =
+          propertyDefinition.loadClass(className,
+              AccountStatusNotificationHandler.class);
+      final AccountStatusNotificationHandler<T> notificationHandler =
+          handlerClass.newInstance();
 
       if (initialize)
       {
-        Method method = notificationHandler.getClass().getMethod(
-            "initializeStatusNotificationHandler",
-            configuration.configurationClass());
-        method.invoke(notificationHandler, configuration);
+        notificationHandler.initializeStatusNotificationHandler(configuration);
       }
       else
       {
-        Method method =
-             notificationHandler.getClass().getMethod(
-                  "isConfigurationAcceptable",
-                  AccountStatusNotificationHandlerCfg.class, List.class);
-
         List<LocalizableMessage> unacceptableReasons = new ArrayList<LocalizableMessage>();
-        Boolean acceptable = (Boolean) method.invoke(notificationHandler,
-                                                     configuration,
-                                                     unacceptableReasons);
-        if (! acceptable)
+        if (!notificationHandler.isConfigurationAcceptable(configuration,
+            unacceptableReasons))
         {
           String reasons = Utils.joinAsString(".  ", unacceptableReasons);
           throw new InitializationException(

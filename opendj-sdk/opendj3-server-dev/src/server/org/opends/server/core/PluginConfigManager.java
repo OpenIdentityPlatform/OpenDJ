@@ -26,7 +26,6 @@
  */
 package org.opends.server.core;
 
-import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
@@ -342,9 +341,9 @@ public class PluginConfigManager
    * @throws  InitializationException  If a problem occurred while attempting to
    *                                   initialize the plugin.
    */
-  private DirectoryServerPlugin<? extends PluginCfg>
+  private <T extends PluginCfg> DirectoryServerPlugin<T>
                loadPlugin(String className, Set<PluginType> pluginTypes,
-                          PluginCfg configuration, boolean initialize)
+                          T configuration, boolean initialize)
           throws InitializationException
   {
     try
@@ -355,29 +354,18 @@ public class PluginConfigManager
            definition.getJavaClassPropertyDefinition();
       Class<? extends DirectoryServerPlugin> pluginClass =
            propertyDefinition.loadClass(className, DirectoryServerPlugin.class);
-      DirectoryServerPlugin<? extends PluginCfg> plugin =
-          pluginClass.newInstance();
+      DirectoryServerPlugin<T> plugin = pluginClass.newInstance();
 
       if (initialize)
       {
         plugin.initializeInternal(configuration.dn(), pluginTypes,
             configuration.isInvokeForInternalOperations());
-
-        Method method =
-            plugin.getClass().getMethod("initializePlugin", Set.class,
-                configuration.configurationClass());
-        method.invoke(plugin, pluginTypes, configuration);
+        plugin.initializePlugin(pluginTypes, configuration);
       }
       else
       {
-        Method method = plugin.getClass().getMethod("isConfigurationAcceptable",
-                                                    PluginCfg.class,
-                                                    List.class);
-
         List<LocalizableMessage> unacceptableReasons = new ArrayList<LocalizableMessage>();
-        Boolean acceptable = (Boolean) method.invoke(plugin, configuration,
-                                                     unacceptableReasons);
-        if (! acceptable)
+        if (!plugin.isConfigurationAcceptable(configuration, unacceptableReasons))
         {
           String buffer = Utils.joinAsString(".  ", unacceptableReasons);
           throw new InitializationException(

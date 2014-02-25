@@ -388,9 +388,7 @@ public abstract class AbstractLogger
     String className = config.getJavaClass();
     ClassPropertyDefinition pd = getJavaClassPropertyDefinition();
     try {
-      // Load the class and cast it to a LogPublisher.
       P publisher = pd.loadClass(className, logPublisherClass).newInstance();
-      // The class is valid as far as we can tell.
       return publisher.isConfigurationAcceptable(config, unacceptableReasons);
     } catch (Exception e) {
       unacceptableReasons.add(invalidLoggerClassErrorMessage.get(className, config.dn(), e));
@@ -403,10 +401,8 @@ public abstract class AbstractLogger
     String className = config.getJavaClass();
     ClassPropertyDefinition pd = getJavaClassPropertyDefinition();
     try {
-      // Load the class and cast it to a LogPublisher.
       P logPublisher = pd.loadClass(className, logPublisherClass).newInstance();
       logPublisher.initializeLogPublisher(config, serverContext);
-      // The log publisher has been successfully initialized.
       return logPublisher;
     }
     catch (Exception e)

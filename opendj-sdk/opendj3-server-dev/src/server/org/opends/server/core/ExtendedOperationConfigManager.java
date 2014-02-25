@@ -25,36 +25,30 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.core;
-import org.forgerock.i18n.LocalizableMessage;
-
-
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
-import java.lang.reflect.Method;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.ClassPropertyDefinition;
-import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ConfigurationAddListener;
+import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
 import org.opends.server.admin.server.ServerManagementContext;
+import org.opends.server.admin.std.meta.ExtendedOperationHandlerCfgDefn;
 import org.opends.server.admin.std.server.ExtendedOperationHandlerCfg;
 import org.opends.server.admin.std.server.RootCfg;
-import org.opends.server.admin.std.meta.ExtendedOperationHandlerCfgDefn;
 import org.opends.server.api.ExtendedOperationHandler;
 import org.opends.server.config.ConfigException;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
-import org.forgerock.opendj.ldap.ResultCode;
 
 import static org.opends.messages.ConfigMessages.*;
-
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
-
-
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines a utility that will be used to manage the set of extended
@@ -140,6 +134,7 @@ public class ExtendedOperationConfigManager implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationDelete(
        ExtendedOperationHandlerCfg configuration)
   {
@@ -162,6 +157,7 @@ public class ExtendedOperationConfigManager implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
        ExtendedOperationHandlerCfg configuration,
        List<LocalizableMessage> unacceptableReasons)
@@ -178,6 +174,7 @@ public class ExtendedOperationConfigManager implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
        ExtendedOperationHandlerCfg configuration)
   {
@@ -243,6 +240,7 @@ public class ExtendedOperationConfigManager implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationAddAcceptable(
        ExtendedOperationHandlerCfg configuration,
        List<LocalizableMessage> unacceptableReasons)
@@ -253,6 +251,7 @@ public class ExtendedOperationConfigManager implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationAdd(
        ExtendedOperationHandlerCfg configuration)
   {
@@ -304,6 +303,7 @@ public class ExtendedOperationConfigManager implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationDeleteAcceptable(
        ExtendedOperationHandlerCfg configuration,
        List<LocalizableMessage> unacceptableReasons)
@@ -318,35 +318,24 @@ public class ExtendedOperationConfigManager implements
   {
     String className = config.getJavaClass();
     ExtendedOperationHandlerCfgDefn d =
-      ExtendedOperationHandlerCfgDefn.getInstance();
-    ClassPropertyDefinition pd = d
-        .getJavaClassPropertyDefinition();
-
-    // Load the class and cast it to an extended operation handler.
-    Class<? extends ExtendedOperationHandler> theClass;
-    ExtendedOperationHandler extendedOperationHandler;
+        ExtendedOperationHandlerCfgDefn.getInstance();
+    ClassPropertyDefinition pd = d.getJavaClassPropertyDefinition();
 
     try
     {
-      theClass = pd.loadClass(className, ExtendedOperationHandler.class);
-      extendedOperationHandler = theClass.newInstance();
+      Class<? extends ExtendedOperationHandler> theClass =
+          pd.loadClass(className, ExtendedOperationHandler.class);
+      ExtendedOperationHandler extendedOperationHandler = theClass.newInstance();
 
-      // Determine the initialization method to use: it must take a
-      // single parameter which is the exact type of the configuration
-      // object.
-      Method method = theClass.getMethod("initializeExtendedOperationHandler",
-          config.configurationClass());
+      extendedOperationHandler.initializeExtendedOperationHandler(config);
 
-      method.invoke(extendedOperationHandler, config);
+      return extendedOperationHandler;
     }
     catch (Exception e)
     {
       logger.traceException(e);
       throw new ConfigException(ERR_CONFIG_EXTOP_INVALID_CLASS.get(className, config.dn(), e), e);
     }
-
-    // The handler has been successfully initialized.
-    return extendedOperationHandler;
   }
 
 
@@ -358,29 +347,15 @@ public class ExtendedOperationConfigManager implements
   {
     String className = config.getJavaClass();
     ExtendedOperationHandlerCfgDefn d =
-      ExtendedOperationHandlerCfgDefn.getInstance();
-    ClassPropertyDefinition pd = d
-        .getJavaClassPropertyDefinition();
+        ExtendedOperationHandlerCfgDefn.getInstance();
+    ClassPropertyDefinition pd = d.getJavaClassPropertyDefinition();
 
-    // Load the class and cast it to an extended operation handler.
-    Class<? extends ExtendedOperationHandler> theClass;
     try {
-      theClass = pd.loadClass(className, ExtendedOperationHandler.class);
+      Class<? extends ExtendedOperationHandler> theClass =
+          pd.loadClass(className, ExtendedOperationHandler.class);
       ExtendedOperationHandler extOpHandler = theClass.newInstance();
 
-      // Determine the initialization method to use: it must take a
-      // single parameter which is the exact type of the configuration
-      // object.
-      Method method = theClass.getMethod("isConfigurationAcceptable",
-                                         ExtendedOperationHandlerCfg.class,
-                                         List.class);
-      Boolean acceptable = (Boolean) method.invoke(extOpHandler, config,
-                                                   unacceptableReasons);
-
-      if (! acceptable)
-      {
-        return false;
-      }
+      return extOpHandler.isConfigurationAcceptable(config, unacceptableReasons);
     }
     catch (Exception e)
     {
@@ -388,9 +363,6 @@ public class ExtendedOperationConfigManager implements
       unacceptableReasons.add(ERR_CONFIG_EXTOP_INVALID_CLASS.get(className, config.dn(), e));
       return false;
     }
-
-    // The class is valid as far as we can tell.
-    return true;
   }
 }
 

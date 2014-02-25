@@ -25,11 +25,16 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.core;
-import org.forgerock.i18n.LocalizableMessage;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import org.opends.server.admin.std.server.LogRetentionPolicyCfg;
 import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.admin.std.meta.LogRetentionPolicyCfgDefn;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -37,19 +42,11 @@ import org.opends.server.admin.server.ConfigurationDeleteListener;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ConfigChangeResult;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.loggers.RetentionPolicy;
 import org.opends.server.config.ConfigException;
 
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.messages.ConfigMessages.*;
-
 import static org.opends.server.util.StaticUtils.*;
-
-import java.util.List;
-import java.util.ArrayList;
-import java.lang.reflect.Method;
-import java.lang.reflect.InvocationTargetException;
 
 /**
  * This class defines a utility that will be used to manage the set of
@@ -98,6 +95,7 @@ public class LogRetentionPolicyConfigManager implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationAddAcceptable(
       LogRetentionPolicyCfg configuration,
       List<LocalizableMessage> unacceptableReasons)
@@ -108,6 +106,7 @@ public class LogRetentionPolicyConfigManager implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationDeleteAcceptable(
       LogRetentionPolicyCfg configuration,
       List<LocalizableMessage> unacceptableReasons)
@@ -119,6 +118,7 @@ public class LogRetentionPolicyConfigManager implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationAdd(LogRetentionPolicyCfg config)
   {
     // Default result code.
@@ -150,6 +150,7 @@ public class LogRetentionPolicyConfigManager implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationDelete(
       LogRetentionPolicyCfg config)
   {
@@ -175,6 +176,7 @@ public class LogRetentionPolicyConfigManager implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
       LogRetentionPolicyCfg configuration,
       List<LocalizableMessage> unacceptableReasons)
@@ -185,6 +187,7 @@ public class LogRetentionPolicyConfigManager implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
       LogRetentionPolicyCfg configuration)
   {
@@ -209,69 +212,40 @@ public class LogRetentionPolicyConfigManager implements
   {
     String className = config.getJavaClass();
     LogRetentionPolicyCfgDefn d = LogRetentionPolicyCfgDefn.getInstance();
-    ClassPropertyDefinition pd =
-        d.getJavaClassPropertyDefinition();
-    // Load the class and cast it to a RetentionPolicy.
-    Class<? extends RetentionPolicy> theClass;
+    ClassPropertyDefinition pd = d.getJavaClassPropertyDefinition();
     try {
-      theClass = pd.loadClass(className, RetentionPolicy.class);
-      theClass.newInstance();
+      Class<? extends RetentionPolicy> theClass =
+          pd.loadClass(className, RetentionPolicy.class);
+      // Explicitly cast to check that implementation implements the correct interface.
+      RetentionPolicy retentionPolicy = theClass.newInstance();
+      // next line is here to ensure that eclipse does not remove the cast in the line above
+      retentionPolicy.hashCode();
+      return true;
     } catch (Exception e) {
       unacceptableReasons.add(
           ERR_CONFIG_RETENTION_POLICY_INVALID_CLASS.get(className, config.dn(), e));
       return false;
     }
-    // Check that the implementation class implements the correct interface.
-    try {
-      // Determine the initialization method to use: it must take a
-      // single parameter which is the exact type of the configuration
-      // object.
-      theClass.getMethod("initializeLogRetentionPolicy", config
-          .configurationClass());
-    } catch (Exception e) {
-      unacceptableReasons.add(
-          ERR_CONFIG_RETENTION_POLICY_INVALID_CLASS.get(className, config.dn(), e));
-      return false;
-    }
-    // The class is valid as far as we can tell.
-    return true;
   }
 
   private RetentionPolicy getRetentionPolicy(LogRetentionPolicyCfg config)
       throws ConfigException {
     String className = config.getJavaClass();
     LogRetentionPolicyCfgDefn d = LogRetentionPolicyCfgDefn.getInstance();
-    ClassPropertyDefinition pd =
-        d.getJavaClassPropertyDefinition();
-    // Load the class and cast it to a RetentionPolicy.
-    Class<? extends RetentionPolicy> theClass;
-    RetentionPolicy RetentionPolicy;
+    ClassPropertyDefinition pd = d.getJavaClassPropertyDefinition();
     try {
-      theClass = pd.loadClass(className, RetentionPolicy.class);
-      RetentionPolicy = theClass.newInstance();
+      Class<? extends RetentionPolicy> theClass =
+          pd.loadClass(className, RetentionPolicy.class);
+      RetentionPolicy retentionPolicy = theClass.newInstance();
 
-      // Determine the initialization method to use: it must take a
-      // single parameter which is the exact type of the configuration
-      // object.
-      Method method = theClass.getMethod("initializeLogRetentionPolicy", config
-          .configurationClass());
-      method.invoke(RetentionPolicy, config);
-    }
-    catch (InvocationTargetException ite)
-    {
-      // Rethrow the exceptions thrown be the invoked method.
-      Throwable e = ite.getTargetException();
-      LocalizableMessage message = ERR_CONFIG_RETENTION_POLICY_INVALID_CLASS.get(
-          className, config.dn(), stackTraceToSingleLineString(e));
-      throw new ConfigException(message, e);
+      retentionPolicy.initializeLogRetentionPolicy(config);
+
+      return retentionPolicy;
     } catch (Exception e) {
       LocalizableMessage message = ERR_CONFIG_RETENTION_POLICY_INVALID_CLASS.get(
           className, config.dn(), e);
       throw new ConfigException(message, e);
     }
-
-    // The connection handler has been successfully initialized.
-    return RetentionPolicy;
   }
 }
 

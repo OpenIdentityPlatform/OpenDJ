@@ -32,7 +32,6 @@ import org.forgerock.util.Utils;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.util.StaticUtils.*;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -388,49 +387,31 @@ public class PasswordStorageSchemeConfigManager
    * @throws  InitializationException  If a problem occurred while attempting
    *                                   to initialize the class.
    */
-  private PasswordStorageScheme <? extends PasswordStorageSchemeCfg>
+  private <T extends PasswordStorageSchemeCfg> PasswordStorageScheme<T>
     loadPasswordStorageScheme(
        String className,
-       PasswordStorageSchemeCfg configuration,
+       T configuration,
        boolean initialize)
        throws InitializationException
   {
     try
     {
-      PasswordStorageSchemeCfgDefn definition;
       ClassPropertyDefinition propertyDefinition;
       Class<? extends PasswordStorageScheme> schemeClass;
-      PasswordStorageScheme<? extends PasswordStorageSchemeCfg>
-          passwordStorageScheme;
 
-      definition = PasswordStorageSchemeCfgDefn.getInstance();
+      PasswordStorageSchemeCfgDefn definition = PasswordStorageSchemeCfgDefn.getInstance();
       propertyDefinition = definition.getJavaClassPropertyDefinition();
-      schemeClass = propertyDefinition.loadClass(
-          className,
-          PasswordStorageScheme.class
-          );
-      passwordStorageScheme =
-        (PasswordStorageScheme<? extends PasswordStorageSchemeCfg>)
-            schemeClass.newInstance();
+      schemeClass = propertyDefinition.loadClass(className, PasswordStorageScheme.class);
+      PasswordStorageScheme<T> passwordStorageScheme = schemeClass.newInstance();
 
       if (initialize)
       {
-        Method method = passwordStorageScheme.getClass().getMethod(
-            "initializePasswordStorageScheme",
-            configuration.configurationClass());
-        method.invoke(passwordStorageScheme, configuration);
+        passwordStorageScheme.initializePasswordStorageScheme(configuration);
       }
       else
       {
-        Method method = passwordStorageScheme.getClass().getMethod(
-                             "isConfigurationAcceptable",
-                             PasswordStorageSchemeCfg.class, List.class);
-
         List<LocalizableMessage> unacceptableReasons = new ArrayList<LocalizableMessage>();
-        Boolean acceptable = (Boolean) method.invoke(passwordStorageScheme,
-                                                     configuration,
-                                                     unacceptableReasons);
-        if (! acceptable)
+        if (!passwordStorageScheme.isConfigurationAcceptable(configuration, unacceptableReasons))
         {
           String reasons = Utils.joinAsString(".  ", unacceptableReasons);
           throw new InitializationException(

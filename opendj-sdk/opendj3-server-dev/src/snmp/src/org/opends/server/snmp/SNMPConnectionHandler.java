@@ -256,10 +256,9 @@ public final class SNMPConnectionHandler
             URLClassLoader sysloader =
               (URLClassLoader)ClassLoader.getSystemClassLoader();
             Class sysclass = URLClassLoader.class;
-            Method method =
-              sysclass.getDeclaredMethod("addURL",new Class[]{URL.class});
+            Method method = sysclass.getDeclaredMethod("addURL", URL.class);
             method.setAccessible(true);
-            method.invoke(sysloader,new Object[]{ u });
+            method.invoke(sysloader, u);
         }
         catch (Throwable t) {
         }

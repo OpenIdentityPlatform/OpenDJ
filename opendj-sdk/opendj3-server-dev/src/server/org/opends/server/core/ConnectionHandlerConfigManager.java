@@ -25,29 +25,22 @@
  *      Portions Copyright 2012-2014 ForgeRock AS.
  */
 package org.opends.server.core;
-import org.forgerock.i18n.LocalizableMessage;
 
-
-
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import static org.opends.messages.ConfigMessages.*;
-import static org.opends.messages.CoreMessages.*;
-
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
-
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.AdministrationConnector;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
 import org.opends.server.admin.server.ServerManagementContext;
-import org.opends.server.admin.std.meta.*;
+import org.opends.server.admin.std.meta.ConnectionHandlerCfgDefn;
 import org.opends.server.admin.std.server.AdministrationConnectorCfg;
 import org.opends.server.admin.std.server.ConnectionHandlerCfg;
 import org.opends.server.admin.std.server.RootCfg;
@@ -57,8 +50,10 @@ import org.opends.server.protocols.ldap.LDAPConnectionHandler;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
-import org.forgerock.opendj.ldap.ResultCode;
 
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines a utility that will be used to manage the
@@ -93,6 +88,7 @@ public class ConnectionHandlerConfigManager implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationAdd(
       ConnectionHandlerCfg configuration) {
     // Default result code.
@@ -143,6 +139,7 @@ public class ConnectionHandlerConfigManager implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
       ConnectionHandlerCfg configuration) {
     // Attempt to get the existing connection handler. This will only
@@ -217,6 +214,7 @@ public class ConnectionHandlerConfigManager implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationDelete(
       ConnectionHandlerCfg configuration) {
 
@@ -330,6 +328,7 @@ public class ConnectionHandlerConfigManager implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationAddAcceptable(
       ConnectionHandlerCfg configuration,
       List<LocalizableMessage> unacceptableReasons) {
@@ -347,6 +346,7 @@ public class ConnectionHandlerConfigManager implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
       ConnectionHandlerCfg configuration,
       List<LocalizableMessage> unacceptableReasons) {
@@ -364,6 +364,7 @@ public class ConnectionHandlerConfigManager implements
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationDeleteAcceptable(
       ConnectionHandlerCfg configuration,
       List<LocalizableMessage> unacceptableReasons) {
@@ -374,24 +375,22 @@ public class ConnectionHandlerConfigManager implements
 
 
   // Load and initialize the connection handler named in the config.
-  private ConnectionHandler<? extends ConnectionHandlerCfg>
-               getConnectionHandler(ConnectionHandlerCfg config)
-          throws ConfigException
+  private <T extends ConnectionHandlerCfg> ConnectionHandler<T> getConnectionHandler(
+      T config) throws ConfigException
   {
     String className = config.getJavaClass();
-    ConnectionHandlerCfgDefn d =
-      ConnectionHandlerCfgDefn.getInstance();
-    ClassPropertyDefinition pd = d
-        .getJavaClassPropertyDefinition();
-
-    // Load the class and cast it to a connection handler.
-    @SuppressWarnings("rawtypes")
-    Class<? extends ConnectionHandler> theClass;
-    ConnectionHandler<?> connectionHandler;
+    ConnectionHandlerCfgDefn d = ConnectionHandlerCfgDefn.getInstance();
+    ClassPropertyDefinition pd = d.getJavaClassPropertyDefinition();
 
     try {
-      theClass = pd.loadClass(className, ConnectionHandler.class);
-      connectionHandler = theClass.newInstance();
+      @SuppressWarnings("rawtypes")
+      Class<? extends ConnectionHandler> theClass =
+          pd.loadClass(className, ConnectionHandler.class);
+      ConnectionHandler<T> connectionHandler = theClass.newInstance();
+
+      connectionHandler.initializeConnectionHandler(config);
+
+      return connectionHandler;
     } catch (Exception e) {
       logger.traceException(e);
 
@@ -399,27 +398,6 @@ public class ConnectionHandlerConfigManager implements
           className, config.dn(), stackTraceToSingleLineString(e));
       throw new ConfigException(message, e);
     }
-
-    // Perform the necessary initialization for the connection
-    // handler.
-    try {
-      // Determine the initialization method to use: it must take a
-      // single parameter which is the exact type of the configuration
-      // object.
-      Method method = theClass.getMethod("initializeConnectionHandler", config
-          .configurationClass());
-
-      method.invoke(connectionHandler, config);
-    } catch (Exception e) {
-      logger.traceException(e);
-
-      LocalizableMessage message = ERR_CONFIG_CONNHANDLER_CANNOT_INITIALIZE.get(
-          className, config.dn(), stackTraceToSingleLineString(e));
-      throw new ConfigException(message, e);
-    }
-
-    // The connection handler has been successfully initialized.
-    return connectionHandler;
   }
 
 
@@ -430,46 +408,19 @@ public class ConnectionHandlerConfigManager implements
       ConnectionHandlerCfg config,
       List<LocalizableMessage> unacceptableReasons) {
     String className = config.getJavaClass();
-    ConnectionHandlerCfgDefn d =
-      ConnectionHandlerCfgDefn.getInstance();
-    ClassPropertyDefinition pd = d
-        .getJavaClassPropertyDefinition();
+    ConnectionHandlerCfgDefn d = ConnectionHandlerCfgDefn.getInstance();
+    ClassPropertyDefinition pd = d.getJavaClassPropertyDefinition();
 
-    // Load the class and cast it to a connection handler.
-    ConnectionHandler<?> connectionHandler = null;
-    @SuppressWarnings("rawtypes")
-    Class<? extends ConnectionHandler> theClass;
     try {
-      connectionHandler = connectionHandlers.get(config.dn());
-      theClass = pd.loadClass(className, ConnectionHandler.class);
+      ConnectionHandler<?> connectionHandler = connectionHandlers.get(config.dn());
       if (connectionHandler == null) {
+        @SuppressWarnings("rawtypes")
+        Class<? extends ConnectionHandler> theClass =
+            pd.loadClass(className, ConnectionHandler.class);
         connectionHandler = theClass.newInstance();
       }
-    } catch (Exception e) {
-      logger.traceException(e);
 
-      unacceptableReasons.add(
-              ERR_CONFIG_CONNHANDLER_CANNOT_INITIALIZE.get(
-                      className, config.dn(), stackTraceToSingleLineString(e)));
-      return false;
-    }
-
-    // Perform the necessary initialization for the connection
-    // handler.
-    try {
-      // Determine the initialization method to use: it must take a
-      // single parameter which is the exact type of the configuration
-      // object.
-      Method method = theClass.getMethod("isConfigurationAcceptable",
-                                         ConnectionHandlerCfg.class,
-                                         List.class);
-      Boolean acceptable = (Boolean) method.invoke(connectionHandler, config,
-                                                   unacceptableReasons);
-
-      if (! acceptable)
-      {
-        return false;
-      }
+      return connectionHandler.isConfigurationAcceptable(config, unacceptableReasons);
     } catch (Exception e) {
       logger.traceException(e);
 
@@ -477,8 +428,5 @@ public class ConnectionHandlerConfigManager implements
           className, config.dn(), stackTraceToSingleLineString(e)));
       return false;
     }
-
-    // The class is valid as far as we can tell.
-    return true;
   }
 }
