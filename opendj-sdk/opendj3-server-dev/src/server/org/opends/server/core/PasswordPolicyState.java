@@ -237,15 +237,8 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
           }
           catch (Exception e)
           {
-            if (logger.isTraceEnabled())
-            {
-              logger.traceException(e);
-
-              logger.trace("Unable to decode value %s for attribute %s" +
-                  "in user entry %s: %s",
-                  v.getValue(), attributeType.getNameOrOID(),
-                  userDNString, stackTraceToSingleLineString(e));
-            }
+            logger.traceException(e, "Unable to decode value %s for attribute %s in user entry %s",
+                v.getValue(), attributeType.getNameOrOID(), userDNString);
 
             LocalizableMessage message = ERR_PWPSTATE_CANNOT_DECODE_GENERALIZED_TIME.
                 get(v.getValue(), attributeType.getNameOrOID(), userDNString, e);
@@ -258,12 +251,9 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
     if (timeValues.isEmpty())
     {
-      if (logger.isTraceEnabled())
-      {
-        logger.trace("Returning an empty list because attribute %s " +
-            "does not exist in user entry %s",
-            attributeType.getNameOrOID(), userDNString);
-      }
+      logger.trace("Returning an empty list because attribute %s " +
+          "does not exist in user entry %s",
+          attributeType.getNameOrOID(), userDNString);
     }
     return timeValues;
   }
@@ -546,17 +536,11 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
      }
     catch (Exception e)
     {
-      logger.traceException(e);
+      logger.traceException(e, "User %s is considered to have an expired " +
+          "account because an error occurred while attempting to make " +
+          "the determination.", userDNString);
 
       isAccountExpired = ConditionResult.TRUE;
-      if (logger.isTraceEnabled())
-      {
-          logger.trace("User %s is considered to have an expired " +
-               "account because an error occurred while attempting to make " +
-               "the determination: %s.",
-              userDNString, stackTraceToSingleLineString(e));
-      }
-
       return true;
     }
 
@@ -564,33 +548,24 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     {
       // The user does have an expiration time, but it hasn't arrived yet.
       isAccountExpired = ConditionResult.FALSE;
-      if (logger.isTraceEnabled())
-      {
-        logger.trace("The account for user %s is not expired because " +
-            "the expiration time has not yet arrived.", userDNString);
-      }
+      logger.trace("The account for user %s is not expired because " +
+          "the expiration time has not yet arrived.", userDNString);
     }
     else if (accountExpirationTime >= 0)
     {
       // The user does have an expiration time, and it is in the past.
       isAccountExpired = ConditionResult.TRUE;
-      if (logger.isTraceEnabled())
-      {
-        logger.trace("The account for user %s is expired because the " +
-            "expiration time in that account has passed.", userDNString);
-      }
+      logger.trace("The account for user %s is expired because the " +
+          "expiration time in that account has passed.", userDNString);
     }
     else
     {
       // The user doesn't have an expiration time in their entry, so it
       // can't be expired.
       isAccountExpired = ConditionResult.FALSE;
-      if (logger.isTraceEnabled())
-      {
-        logger.trace("The account for user %s is not expired because " +
-            "there is no expiration time in the user's entry.",
-            userDNString);
-      }
+      logger.trace("The account for user %s is not expired because " +
+          "there is no expiration time in the user's entry.",
+          userDNString);
     }
 
     return isAccountExpired == ConditionResult.TRUE;
@@ -712,14 +687,8 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     }
     catch (Exception e)
     {
-      logger.traceException(e);
-
-      if (logger.isTraceEnabled())
-      {
-        logger.trace("Error while processing auth failure times " +
-             "for user %s: %s",
-                     userDNString, stackTraceToSingleLineString(e));
-      }
+      logger.traceException(e, "Error while processing auth failure times for user %s",
+          userDNString);
 
       authFailureTimes = new ArrayList<Long>();
 
@@ -973,16 +942,10 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     }
     catch (Exception e)
     {
-      logger.traceException(e);
+      logger.traceException(e,
+          "Returning current time for user %s because an error occurred", userDNString);
 
       failureLockedTime = currentTime;
-      if (logger.isTraceEnabled())
-      {
-        logger.trace("Returning current time for user %s because an " +
-            "error occurred: %s",
-                     userDNString, stackTraceToSingleLineString(e));
-      }
-
       return failureLockedTime;
     }
 
@@ -1372,15 +1335,8 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     }
     catch (Exception e)
     {
-      logger.traceException(e);
-
-      if (logger.isTraceEnabled())
-      {
-        logger.trace("Unable to set last login time for user %s " +
-            "because an error occurred: %s",
-                     userDNString, stackTraceToSingleLineString(e));
-      }
-
+      logger.traceException(e, "Unable to set last login time for user %s " +
+          "because an error occurred", userDNString);
       return;
     }
 
@@ -1388,13 +1344,8 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     String existingTimestamp = getValue(type);
     if ((existingTimestamp != null) && timestamp.equals(existingTimestamp))
     {
-      if (logger.isTraceEnabled())
-      {
-        logger.trace("Not updating last login time for user %s " +
-            "because the new value matches the existing value.",
-            userDNString);
-      }
-
+      logger.trace("Not updating last login time for user %s " +
+          "because the new value matches the existing value.", userDNString);
       return;
     }
 
@@ -1402,11 +1353,8 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     Attribute a = Attributes.create(type, timestamp);
     modifications.add(new Modification(ModificationType.REPLACE, a, true));
 
-    if (logger.isTraceEnabled())
-    {
-      logger.trace("Updated the last login time for user %s to %s",
-          userDNString, timestamp);
-    }
+    logger.trace("Updated the last login time for user %s to %s",
+        userDNString, timestamp);
   }
 
 
@@ -1570,13 +1518,8 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     }
     catch (Exception e)
     {
-      if (logger.isTraceEnabled())
-      {
-        logger.traceException(e);
-
-        logger.trace("Returning true for user %s because an error " +
-            "occurred: %s", userDNString, stackTraceToSingleLineString(e));
-      }
+      logger.traceException(e, "Returning true for user %s because an error occurred",
+          userDNString);
 
       mustChangePassword = ConditionResult.TRUE;
 
@@ -1586,23 +1529,16 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     if(mustChangePassword == ConditionResult.UNDEFINED)
     {
       mustChangePassword = ConditionResult.FALSE;
-      if (logger.isTraceEnabled())
-      {
-        logger.trace("Returning %b for user since the attribute \"%s\"" +
-            " is not present in the entry.",
-            false, userDNString, OP_ATTR_PWPOLICY_RESET_REQUIRED);
-      }
+      logger.trace("Returning %b for user since the attribute \"%s\"" +
+          " is not present in the entry.",
+          false, userDNString, OP_ATTR_PWPOLICY_RESET_REQUIRED);
 
       return false;
     }
 
-    if (logger.isTraceEnabled())
-    {
-      logger.trace("Returning %b for user %s.",
-          (mustChangePassword == ConditionResult.TRUE), userDNString);
-    }
-
-    return mustChangePassword == ConditionResult.TRUE;
+    final boolean result = mustChangePassword == ConditionResult.TRUE;
+    logger.trace("Returning %b for user %s.", result, userDNString);
+    return result;
   }
 
 
@@ -2082,24 +2018,15 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     }
     catch (Exception e)
     {
-      logger.traceException(e);
+      logger.traceException(e, "Returning %d for user %s because an error occurred",
+          requiredChangeTime, userDNString);
 
       requiredChangeTime = -1;
-      if (logger.isTraceEnabled())
-      {
-        logger.trace("Returning %d for user %s because an error " +
-            "occurred: %s", requiredChangeTime, userDNString,
-                     stackTraceToSingleLineString(e));
-      }
-
       return requiredChangeTime;
     }
 
-    if (logger.isTraceEnabled())
-    {
-      logger.trace("Returning required change time of %d for user %s",
-          requiredChangeTime, userDNString);
-    }
+    logger.trace("Returning required change time of %d for user %s",
+        requiredChangeTime, userDNString);
 
     return requiredChangeTime;
   }
@@ -2193,25 +2120,14 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
       }
       catch (Exception e)
       {
-        logger.traceException(e);
-
-        if (logger.isTraceEnabled())
-        {
-          logger.trace("Unable to decode the warned time for user %s: " +
-              "%s", userDNString, stackTraceToSingleLineString(e));
-        }
-
+        logger.traceException(e, "Unable to decode the warned time for user %s",
+            userDNString);
         warnedTime = -1;
       }
     }
 
-
-    if (logger.isTraceEnabled())
-    {
-      logger.trace("Returning a warned time of %d for user %s",
-          warnedTime, userDNString);
-    }
-
+    logger.trace("Returning a warned time of %d for user %s",
+        warnedTime, userDNString);
     return warnedTime;
   }
 
@@ -2320,14 +2236,8 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
       }
       catch (Exception e)
       {
-        logger.traceException(e);
-
-        if (logger.isTraceEnabled())
-        {
-          logger.trace("Error while processing grace login times " +
-               "for user %s: %s",
-                       userDNString, stackTraceToSingleLineString(e));
-        }
+        logger.traceException(e, "Error while processing grace login times for user %s",
+            userDNString);
 
         graceLoginTimes = new ArrayList<Long>();
 
@@ -2336,13 +2246,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
       }
     }
 
-
-    if (logger.isTraceEnabled())
-    {
-      logger.trace("Returning grace login times for user %s",
-          userDNString);
-    }
-
+    logger.trace("Returning grace login times for user %s", userDNString);
     return graceLoginTimes;
   }
 
@@ -2652,25 +2556,16 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
         }
         catch (Exception e)
         {
-          logger.traceException(e);
-
-          if (logger.isTraceEnabled())
-          {
-            logger.trace("An error occurred while attempting to " +
-                "process a password value for user %s: %s",
-                     userDNString, stackTraceToSingleLineString(e));
-          }
+          logger.traceException(e, "An error occurred while attempting to " +
+              "process a password value for user %s", userDNString);
         }
       }
     }
 
     // If we've gotten here, then we couldn't find a match.
-    if (logger.isTraceEnabled())
-    {
-      logger.trace("Returning false because the provided password does " +
-          "not match any of the stored password values for user %s",
-          userDNString);
-    }
+    logger.trace("Returning false because the provided password does " +
+        "not match any of the stored password values for user %s",
+        userDNString);
 
     return false;
   }
@@ -2895,27 +2790,17 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
         }
         catch (Exception e)
         {
-          if (logger.isTraceEnabled())
-          {
-            logger.traceException(e);
-
-            logger.trace("Skipping password value for user %s because " +
-                "an error occurred while attempting to decode it based on " +
-                "the user password syntax: %s",
-                userDNString, stackTraceToSingleLineString(e));
-          }
+          logger.traceException(e, "Skipping password value for user %s because " +
+              "an error occurred while attempting to decode it based on " +
+              "the user password syntax", userDNString);
         }
       }
     }
 
     if (removedValues.isEmpty())
     {
-      if (logger.isTraceEnabled())
-      {
-        logger.trace("User entry %s does not have any password values " +
-            "encoded using deprecated schemes.", userDNString);
-      }
-
+      logger.trace("User entry %s does not have any password values " +
+          "encoded using deprecated schemes.", userDNString);
       return;
     }
 
@@ -2943,10 +2828,8 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
           if (logger.isTraceEnabled())
           {
-            logger.trace("Unable to encode password for user %s using " +
-                 "default scheme %s: %s",
-                         userDNString, s.getStorageSchemeName(),
-                         stackTraceToSingleLineString(e));
+            logger.traceException(e, "Unable to encode password for user %s using " +
+                 "default scheme %s", userDNString, s.getStorageSchemeName());
           }
         }
       }
@@ -2954,13 +2837,9 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
     if (updatedValues.isEmpty())
     {
-      if (logger.isTraceEnabled())
-      {
-        logger.trace("Not updating user entry %s because removing " +
-             "deprecated schemes would leave the user without a password.",
-                     userDNString);
-      }
-
+      logger.trace("Not updating user entry %s because removing " +
+          "deprecated schemes would leave the user without a password.",
+          userDNString);
       return;
     }
 

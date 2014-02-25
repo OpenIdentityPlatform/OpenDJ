@@ -359,11 +359,8 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
       }
       catch (Exception e)
       {
-        if (logger.isTraceEnabled())
-        {
-          logger.trace("Could not create password policy subentry DN %s: %s",
-              entry.getName(), stackTraceToSingleLineString(e));
-        }
+        logger.traceException(e, "Could not create password policy subentry DN %s",
+            entry.getName());
       }
     }
   }
@@ -406,11 +403,8 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
       }
       catch (Exception e)
       {
-        if (logger.isTraceEnabled())
-        {
-          logger.trace("Could not create password policy subentry DN %s: %s",
-              newEntry.getName(), stackTraceToSingleLineString(e));
-        }
+        logger.traceException(e, "Could not create password policy subentry DN %s",
+            newEntry.getName());
       }
     }
   }
@@ -439,11 +433,8 @@ final class PasswordPolicyConfigManager implements SubentryChangeListener,
       }
       catch (Exception e)
       {
-        if (logger.isTraceEnabled())
-        {
-          logger.trace("Could not create password policy subentry DN %s: %s",
-              newEntry.getName(), stackTraceToSingleLineString(e));
-        }
+        logger.traceException(e, "Could not create password policy subentry DN %s",
+            newEntry.getName());
       }
     }
   }
