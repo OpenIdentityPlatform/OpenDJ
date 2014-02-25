@@ -83,11 +83,9 @@ final class PropertyValuePrinter {
       this.timeUnit = timeUnit;
       this.isScriptFriendly = isScriptFriendly;
 
-      this.numberFormat = NumberFormat.getNumberInstance();
-      {
-        numberFormat.setGroupingUsed(!this.isScriptFriendly);
-        numberFormat.setMaximumFractionDigits(2);
-      }
+      numberFormat = NumberFormat.getNumberInstance();
+      numberFormat.setGroupingUsed(!this.isScriptFriendly);
+      numberFormat.setMaximumFractionDigits(2);
     }
 
 
@@ -96,11 +94,7 @@ final class PropertyValuePrinter {
     @Override
     public LocalizableMessage visitBoolean(BooleanPropertyDefinition pd, Boolean v,
         Void p) {
-      if (!v) {
-        return INFO_VALUE_FALSE.get();
-      } else {
-        return INFO_VALUE_TRUE.get();
-      }
+      return v ? INFO_VALUE_TRUE.get() : INFO_VALUE_FALSE.get();
     }
 
 
