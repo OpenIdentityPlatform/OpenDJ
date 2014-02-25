@@ -1434,7 +1434,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
       for (Argument arg : argsCopy)
       {
         if (arg != null
-            && (OPTION_DSCFG_LONG_RESET.equals(arg.getName()) 
+            && (OPTION_DSCFG_LONG_RESET.equals(arg.getName())
             || OPTION_DSCFG_LONG_REMOVE.equals(arg.getName())))
         {
           getCommandBuilder().removeArgument(arg);
