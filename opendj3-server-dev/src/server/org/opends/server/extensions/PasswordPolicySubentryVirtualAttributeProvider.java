@@ -40,7 +40,6 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ResultCode;
 import static org.opends.messages.ExtensionMessages.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class implements a virtual attribute provider to serve
@@ -91,21 +90,15 @@ public class PasswordPolicySubentryVirtualAttributeProvider
         // retrieve password policy, log this.
         logger.error(de.getMessageObject());
 
-        if (logger.isTraceEnabled())
-        {
-          logger.trace("Failed to retrieve password policy for user %s: %s",
-              entry.getName(), stackTraceToSingleLineString(de));
-        }
+        logger.traceException(de, "Failed to retrieve password policy for user %s",
+            entry.getName());
       }
 
       if (policy == null)
       {
         // No authentication policy: debug log this as an error since all
         // entries should have at least the default password policy.
-        if (logger.isTraceEnabled())
-        {
-          logger.trace("No applicable password policy for user %s", entry.getName());
-        }
+        logger.trace("No applicable password policy for user %s", entry.getName());
       }
       else if (policy.isPasswordPolicy())
       {

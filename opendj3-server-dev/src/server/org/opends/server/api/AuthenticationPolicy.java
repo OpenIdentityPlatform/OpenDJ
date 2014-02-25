@@ -24,14 +24,10 @@
  *      Portions Copyright 2011-2014 ForgeRock AS.
  *      Portions Copyright 2014 ForgeRock AS
  */
-
 package org.opends.server.api;
-
-
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import java.util.List;
 
@@ -41,8 +37,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.TimeThread;
-
-
 
 /**
  * An abstract authentication policy.
@@ -172,10 +166,8 @@ public abstract class AuthenticationPolicy
         }
         catch (Exception e)
         {
-          if (logger.isTraceEnabled()) {
-            logger.trace("Could not parse password policy subentry DN %s for user %s: %s",
-                subentry.getDN(), userDNString, stackTraceToSingleLineString(e));
-          }
+          logger.traceException(e, "Could not parse password policy subentry DN %s for user %s",
+              subentry.getDN(), userDNString);
         }
       }
     }

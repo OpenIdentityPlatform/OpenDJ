@@ -189,13 +189,11 @@ public final class Session extends DirectoryThread implements Closeable
       }
       else
       {
-        logger.trace(
-            "Aborting Session from %s to %s in %s due to the "
-                + "following error: %s",
+        logger.traceException(localSessionError,
+            "Aborting Session from %s to %s in %s due to the following error",
             plainSocket.getLocalSocketAddress(),
             plainSocket.getRemoteSocketAddress(),
-            stackTraceToSingleLineString(new Exception()),
-            stackTraceToSingleLineString(localSessionError));
+            stackTraceToSingleLineString(new Exception()));
       }
     }
 

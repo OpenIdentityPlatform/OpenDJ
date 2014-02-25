@@ -211,13 +211,8 @@ public abstract class AuthenticationPolicyState
         }
         catch (final Exception e)
         {
-          if (logger.isTraceEnabled())
-          {
-            logger.traceException(e);
-            logger.trace("Unable to decode value %s for attribute %s "
-                + "in user entry %s: %s", v.getValue(), attributeType.getNameOrOID(), entry.getName(),
-                stackTraceToSingleLineString(e));
-          }
+          logger.traceException(e, "Unable to decode value %s for attribute %s in user entry %s",
+              v.getValue(), attributeType.getNameOrOID(), entry.getName());
 
           final LocalizableMessage message = ERR_PWPSTATE_CANNOT_DECODE_GENERALIZED_TIME
               .get(v.getValue(), attributeType.getNameOrOID(), entry.getName(), e);
@@ -313,17 +308,11 @@ public abstract class AuthenticationPolicyState
     }
     catch (final Exception e)
     {
-      logger.traceException(e);
+      logger.traceException(e, "User %s is considered administratively "
+          + "disabled because an error occurred while "
+          + "attempting to make the determination.", userEntry.getName());
 
       isDisabled = ConditionResult.TRUE;
-      if (logger.isTraceEnabled())
-      {
-        logger.trace("User %s is considered administratively "
-            + "disabled because an error occurred while "
-            + "attempting to make the determination: %s.", userEntry.getName(),
-            stackTraceToSingleLineString(e));
-      }
-
       return true;
     }
 

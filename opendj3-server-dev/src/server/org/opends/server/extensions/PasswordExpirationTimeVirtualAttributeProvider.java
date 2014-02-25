@@ -41,7 +41,6 @@ import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ResultCode;
 import static org.opends.messages.ExtensionMessages.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * Provider for the password expiration time virtual attribute.
@@ -147,21 +146,15 @@ public class PasswordExpirationTimeVirtualAttributeProvider
     {
       logger.error(de.getMessageObject());
 
-      if (logger.isTraceEnabled())
-      {
-        logger.trace("Failed to retrieve password policy for user %s: %s",
-            entry.getName(), stackTraceToSingleLineString(de));
-      }
+      logger.traceException(de, "Failed to retrieve password policy for user %s",
+          entry.getName());
     }
 
     if (policy == null)
     {
       // No authentication policy: debug log this as an error since all
       // entries should have at least the default password policy.
-      if (logger.isTraceEnabled())
-      {
-        logger.trace("No applicable password policy for user %s", entry.getName());
-      }
+      logger.trace("No applicable password policy for user %s", entry.getName());
     }
     else if (policy.isPasswordPolicy())
     {
@@ -176,11 +169,8 @@ public class PasswordExpirationTimeVirtualAttributeProvider
       {
         logger.error(de.getMessageObject());
 
-        if (logger.isTraceEnabled())
-        {
-          logger.trace("Failed to retrieve password policy state for user %s: %s",
-              entry.getName(), stackTraceToSingleLineString(de));
-        }
+        logger.traceException(de, "Failed to retrieve password policy state for user %s",
+            entry.getName());
       }
 
       return pwpState.getPasswordExpirationTime();
@@ -189,11 +179,8 @@ public class PasswordExpirationTimeVirtualAttributeProvider
     else
     {
       // Not a password policy, could be PTA, etc.
-      if (logger.isTraceEnabled())
-      {
-        logger.trace("Authentication policy %s found for user %s is not a password policy",
-            policy.getDN(), entry.getName());
-      }
+      logger.trace("Authentication policy %s found for user %s is not a password policy",
+          policy.getDN(), entry.getName());
     }
 
     return -1L;
