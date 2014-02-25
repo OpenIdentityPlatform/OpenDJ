@@ -37,6 +37,7 @@ import java.util.List;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.LinkedAttribute;
+import org.forgerock.opendj.ldap.LinkedHashMapEntry;
 import org.forgerock.opendj.ldap.Modification;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -131,6 +132,23 @@ public class ConvertersTestCase extends ForgeRockTestCase {
         SearchResultEntry result = to(entry);
         assertThat(result.getName().toString()).isEqualTo(entry.getName().toString());
         assertThat(result.getControls()).hasSize(entry.getControls().size());
+        assertThat(result.getAttributes()).hasSize(2);
+    }
+
+    /**
+     * Converts a SDK {@link Entry} to an LDAP Server
+     * {@link Entry}.
+     */
+    @Test()
+    public final void testToEntry() throws Exception {
+        org.forgerock.opendj.ldap.Entry entry =
+            new LinkedHashMapEntry(org.forgerock.opendj.ldap.DN
+                .valueOf("uid=scarter,ou=People,dc=example,dc=com"));
+        entry.addAttribute(new LinkedAttribute("test", "value1"));
+        entry.addAttribute(new LinkedAttribute("Another", ByteString.valueOf("myValue")));
+
+        org.opends.server.types.Entry result = to(entry);
+        assertThat(result.getName().toString()).isEqualTo(entry.getName().toString());
         assertThat(result.getAttributes()).hasSize(2);
     }
 
