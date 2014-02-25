@@ -82,6 +82,7 @@ import org.opends.server.workflowelement.WorkflowElement;
 import org.opends.server.workflowelement.WorkflowElementConfigManager;
 import org.opends.server.workflowelement.localbackend.LocalBackendWorkflowElement;
 
+import com.forgerock.opendj.cli.ArgumentConstants;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
@@ -8879,8 +8880,7 @@ public final class DirectoryServer
       argParser.addArgument(noDetach);
 
 
-      quietMode = new BooleanArgument("quiet", 'Q', "quiet",
-                                      INFO_DESCRIPTION_QUIET.get());
+      quietMode = CommonArguments.getQuiet();
       argParser.addArgument(quietMode);
 
 
@@ -9307,7 +9307,7 @@ public final class DirectoryServer
     BooleanArgument noDetach =
       (BooleanArgument)argParser.getArgumentForLongID("nodetach");
     BooleanArgument quietMode =
-      (BooleanArgument)argParser.getArgumentForLongID("quiet");
+      (BooleanArgument)argParser.getArgumentForLongID(ArgumentConstants.OPTION_LONG_QUIET);
     BooleanArgument windowsNetStart =
       (BooleanArgument)argParser.getArgumentForLongID("windowsnetstart");
 
