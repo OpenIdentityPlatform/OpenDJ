@@ -497,19 +497,19 @@ final class ListSubCommandHandler extends SubCommandHandler {
       }
 
       PrintStream out = app.getOutputStream();
-      TablePrinter printer = null;
       if (app.isScriptFriendly()) {
-        printer = createScriptFriendlyTablePrinter(out);
+        TablePrinter printer = createScriptFriendlyTablePrinter(out);
+        builder.print(printer);
       } else {
         if (app.isInteractive()) {
           // Make interactive mode prettier.
           app.println();
           app.println();
         }
-        printer = new TextTablePrinter(out);
-        ((TextTablePrinter)printer).setColumnSeparator(LIST_TABLE_SEPARATOR);
+        TextTablePrinter printer = new TextTablePrinter(out);
+        printer.setColumnSeparator(LIST_TABLE_SEPARATOR);
+        builder.print(printer);
       }
-      builder.print(printer);
     }
 
     return MenuResult.success(0);

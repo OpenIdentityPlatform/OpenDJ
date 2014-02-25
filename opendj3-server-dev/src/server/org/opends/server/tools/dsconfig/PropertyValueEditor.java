@@ -114,6 +114,7 @@ final class PropertyValueEditor {
 
 
     /** {@inheritDoc} */
+    @Override
     public MenuResult<String> invoke(ConsoleApplication app)
         throws ClientException {
       try {
@@ -200,6 +201,7 @@ final class PropertyValueEditor {
 
 
     /** {@inheritDoc} */
+    @Override
     public void display(ConsoleApplication app) {
       app.println();
       HelpSubCommandHandler.displaySingleComponent(app, mo
@@ -240,7 +242,7 @@ final class PropertyValueEditor {
        * Undefined default behavior.
        */
       UNDEFINED;
-    };
+    }
 
 
 
@@ -261,6 +263,7 @@ final class PropertyValueEditor {
           PropertyDefinition<T>>() {
 
         /** {@inheritDoc} */
+        @Override
         public DefaultBehaviorQuery<T> visitAbsoluteInherited(
             AbsoluteInheritedDefaultBehaviorProvider<T> d,
             PropertyDefinition<T> p) {
@@ -277,6 +280,7 @@ final class PropertyValueEditor {
 
 
         /** {@inheritDoc} */
+        @Override
         public DefaultBehaviorQuery<T> visitAlias(
             AliasDefaultBehaviorProvider<T> d, PropertyDefinition<T> p) {
           return new DefaultBehaviorQuery<T>(Type.ALIAS, d.getSynopsis());
@@ -285,6 +289,7 @@ final class PropertyValueEditor {
 
 
         /** {@inheritDoc} */
+        @Override
         public DefaultBehaviorQuery<T> visitDefined(
             DefinedDefaultBehaviorProvider<T> d, PropertyDefinition<T> p) {
           return new DefaultBehaviorQuery<T>(Type.DEFINED, null);
@@ -293,6 +298,7 @@ final class PropertyValueEditor {
 
 
         /** {@inheritDoc} */
+        @Override
         public DefaultBehaviorQuery<T> visitRelativeInherited(
             RelativeInheritedDefaultBehaviorProvider<T> d,
             PropertyDefinition<T> p) {
@@ -309,6 +315,7 @@ final class PropertyValueEditor {
 
 
         /** {@inheritDoc} */
+        @Override
         public DefaultBehaviorQuery<T> visitUndefined(
             UndefinedDefaultBehaviorProvider<T> d, PropertyDefinition<T> p) {
           return new DefaultBehaviorQuery<T>(Type.UNDEFINED, null);
@@ -431,6 +438,7 @@ final class PropertyValueEditor {
 
 
     /** {@inheritDoc} */
+    @Override
     public MenuResult<Void> invoke(ConsoleApplication app)
         throws ClientException {
       displayPropertyHeader(app, pd);
@@ -439,9 +447,8 @@ final class PropertyValueEditor {
 
       if (e != null) {
         throw e;
-      } else {
-        return result;
       }
+      return result;
     }
 
 
@@ -682,6 +689,7 @@ final class PropertyValueEditor {
 
 
     /** {@inheritDoc} */
+    @Override
     public MenuResult<Boolean> invoke(ConsoleApplication app)
         throws ClientException {
       displayPropertyHeader(app, pd);
@@ -689,9 +697,8 @@ final class PropertyValueEditor {
       MenuResult<Boolean> result = pd.accept(this, null);
       if (e != null) {
         throw e;
-      } else {
-        return result;
       }
+      return result;
     }
 
 
@@ -747,6 +754,7 @@ final class PropertyValueEditor {
         if (!values.isEmpty()) {
           addCallback = new MenuCallback<Boolean>() {
 
+            @Override
             public MenuResult<Boolean> invoke(ConsoleApplication app)
                 throws ClientException {
               MenuBuilder<String> builder = new MenuBuilder<String>(app);
@@ -809,6 +817,7 @@ final class PropertyValueEditor {
         // Create the remove values call-back.
         MenuCallback<Boolean> removeCallback = new MenuCallback<Boolean>() {
 
+          @Override
           public MenuResult<Boolean> invoke(ConsoleApplication app)
               throws ClientException {
             MenuBuilder<String> builder = new MenuBuilder<String>(app);
@@ -898,6 +907,7 @@ final class PropertyValueEditor {
         if (!values.isEmpty()) {
           addCallback = new MenuCallback<Boolean>() {
 
+            @Override
             public MenuResult<Boolean> invoke(ConsoleApplication app)
                 throws ClientException {
               MenuBuilder<T> builder = new MenuBuilder<T>(app);
@@ -954,6 +964,7 @@ final class PropertyValueEditor {
         // Create the remove values call-back.
         MenuCallback<Boolean> removeCallback = new MenuCallback<Boolean>() {
 
+          @Override
           public MenuResult<Boolean> invoke(ConsoleApplication app)
               throws ClientException {
             MenuBuilder<T> builder = new MenuBuilder<T>(app);
@@ -1039,6 +1050,7 @@ final class PropertyValueEditor {
         // Create the add values call-back.
         MenuCallback<Boolean> addCallback = new MenuCallback<Boolean>() {
 
+          @Override
           public MenuResult<Boolean> invoke(ConsoleApplication app)
               throws ClientException {
             app.println();
@@ -1056,6 +1068,7 @@ final class PropertyValueEditor {
         // Create the remove values call-back.
         MenuCallback<Boolean> removeCallback = new MenuCallback<Boolean>() {
 
+          @Override
           public MenuResult<Boolean> invoke(ConsoleApplication app)
               throws ClientException {
             MenuBuilder<T> builder = new MenuBuilder<T>(app);
@@ -1315,6 +1328,7 @@ final class PropertyValueEditor {
       {
         MenuCallback<Boolean> callback = new MenuCallback<Boolean>()
         {
+          @Override
           public MenuResult<Boolean> invoke(ConsoleApplication app)
               throws ClientException
           {
@@ -1332,6 +1346,7 @@ final class PropertyValueEditor {
       if (resetOption != null) {
         MenuCallback<Boolean> callback = new MenuCallback<Boolean>() {
 
+          @Override
           public MenuResult<Boolean> invoke(ConsoleApplication app)
               throws ClientException {
             currentValues.clear();
@@ -1351,6 +1366,7 @@ final class PropertyValueEditor {
       if (!oldValues.equals(currentValues)) {
         MenuCallback<Boolean> callback = new MenuCallback<Boolean>() {
 
+          @Override
           public MenuResult<Boolean> invoke(ConsoleApplication app)
               throws ClientException {
             currentValues.clear();
@@ -1433,6 +1449,7 @@ final class PropertyValueEditor {
 
 
     /** {@inheritDoc} */
+    @Override
     public void display(ConsoleApplication app) {
       app.println();
       HelpSubCommandHandler.displayVerboseSingleProperty(app, d, pd.getName());
@@ -1471,14 +1488,14 @@ final class PropertyValueEditor {
 
 
     /** {@inheritDoc} */
+    @Override
     public MenuResult<Boolean> invoke(ConsoleApplication app)
         throws ClientException {
       MenuResult<Boolean> result = pd.accept(this, null);
       if (e != null) {
         throw e;
-      } else {
-        return result;
       }
+      return result;
     }
 
 
@@ -1570,6 +1587,7 @@ final class PropertyValueEditor {
 
 
     /** {@inheritDoc} */
+    @Override
     public MenuResult<Boolean> invoke(ConsoleApplication app)
         throws ClientException {
       displayPropertyHeader(app, pd);
@@ -1577,9 +1595,8 @@ final class PropertyValueEditor {
       MenuResult<Boolean> result = pd.accept(this, null);
       if (e != null) {
         throw e;
-      } else {
-        return result;
       }
+      return result;
     }
 
 
@@ -1792,6 +1809,7 @@ final class PropertyValueEditor {
       builder.addNumberedOption(INFO_EDITOR_OPTION_CHANGE_VALUE.get(),
           new MenuCallback<T>() {
 
+            @Override
             public MenuResult<T> invoke(ConsoleApplication app)
                 throws ClientException {
               app.println();
@@ -1876,9 +1894,8 @@ final class PropertyValueEditor {
         if (!currentValues.equals(defaultValues)) {
           LocalizableMessage svalue = getPropertyValues(pd, defaultValues);
           return INFO_EDITOR_OPTION_RESET_DEFAULT_VALUE.get(svalue);
-        } else {
-          return null;
         }
+        return null;
       } else if (!isMandatory && query.isInherited()) {
         if (defaultValues.isEmpty()) {
           if (query.getAliasDescription() != null) {
@@ -1894,9 +1911,8 @@ final class PropertyValueEditor {
         }
       } else if (!isMandatory && query.isUndefined()) {
         return INFO_EDITOR_OPTION_LEAVE_UNDEFINED.get();
-      } else {
-        return null;
       }
+      return null;
     }
 
 
@@ -1927,7 +1943,7 @@ final class PropertyValueEditor {
         mo.setPropertyValues(d, newValues);
 
         // If there are no newValues when we do a reset.
-        isLastChoiceReset = !(newValues.size() > 0);
+        isLastChoiceReset = newValues.isEmpty();
         registerModification(d, new TreeSet<T>(newValues), oldValues);
         app.println();
         app.pressReturnToContinue();
@@ -2034,11 +2050,11 @@ final class PropertyValueEditor {
       // behavior for alias values.
       DefaultBehaviorQuery<T> query = DefaultBehaviorQuery.query(pd);
       LocalizableMessage content = query.getAliasDescription();
-      if (content == null) {
-        return LocalizableMessage.raw("-");
-      } else {
+      if (content != null)
+      {
         return content;
       }
+      return LocalizableMessage.raw("-");
     } else {
       PropertyValuePrinter printer =
         new PropertyValuePrinter(null, null, false);
