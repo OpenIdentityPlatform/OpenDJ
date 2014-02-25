@@ -439,7 +439,7 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
                     ref.commit();
 
                     // Try to create the command builder
-                    if ((app instanceof DSConfig) && app.isInteractive())
+                    if (app instanceof DSConfig && app.isInteractive())
                     {
                       DSConfig dsConfig = (DSConfig)app;
                       String subCommandName = "set-" +

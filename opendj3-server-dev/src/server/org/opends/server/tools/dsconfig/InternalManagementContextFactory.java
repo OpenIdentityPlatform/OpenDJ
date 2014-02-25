@@ -26,8 +26,6 @@
  */
 package org.opends.server.tools.dsconfig;
 
-
-
 import org.opends.server.admin.client.ManagementContext;
 import com.forgerock.opendj.cli.ClientException;
 import com.forgerock.opendj.cli.ArgumentException;
@@ -44,7 +42,7 @@ import com.forgerock.opendj.cli.ConsoleApplication;
 public final class InternalManagementContextFactory implements
     ManagementContextFactory {
 
-  // The pre-defined management context.
+  /** The pre-defined management context. */
   private final ManagementContext context;
 
 
@@ -60,9 +58,7 @@ public final class InternalManagementContextFactory implements
     this.context = context;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void close()
   {
     // No implementation required.
@@ -70,9 +66,7 @@ public final class InternalManagementContextFactory implements
     // his/her context.
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public ManagementContext getManagementContext(ConsoleApplication app)
       throws ArgumentException, ClientException {
     return context;
@@ -80,9 +74,7 @@ public final class InternalManagementContextFactory implements
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void registerGlobalArguments(SubCommandArgumentParser parser)
       throws ArgumentException {
     // No implementation required.
@@ -90,24 +82,18 @@ public final class InternalManagementContextFactory implements
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void validateGlobalArguments() throws ArgumentException {
     // No implementation required.
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public CommandBuilder getContextCommandBuilder() {
     // No implementation required.
     return new CommandBuilder(null, null);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void setRawArguments(String[] args) {
     // No implementation required.
   }

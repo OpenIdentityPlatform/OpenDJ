@@ -76,8 +76,6 @@ import org.opends.server.loggers.JDKLogging;
 import org.opends.server.types.InitializationException;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.EmbeddedUtils;
-import org.opends.server.util.ServerConstants;
-import org.opends.server.util.StaticUtils;
 
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
@@ -103,11 +101,16 @@ import com.forgerock.opendj.cli.MenuResult;
 public final class DSConfig extends ConsoleApplication {
 
   /**
+   * The name of this tool.
+   */
+  final static String DSCONFIGTOOLNAME = "dsconfig";
+
+  /**
    * A menu call-back which runs a sub-command interactively.
    */
   private class SubCommandHandlerMenuCallback implements MenuCallback<Integer> {
 
-    // The sub-command handler.
+    /** The sub-command handler. */
     private final SubCommandHandler handler;
 
 
@@ -124,9 +127,7 @@ public final class DSConfig extends ConsoleApplication {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public MenuResult<Integer> invoke(ConsoleApplication app)
     throws ClientException {
@@ -163,7 +164,7 @@ public final class DSConfig extends ConsoleApplication {
    */
   private class SubMenuCallback implements MenuCallback<Integer> {
 
-    // The menu.
+    /** The menu. */
     private final Menu<Integer> menu;
 
 
@@ -254,9 +255,7 @@ public final class DSConfig extends ConsoleApplication {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public final MenuResult<Integer> invoke(ConsoleApplication app)
     throws ClientException {
@@ -293,7 +292,7 @@ public final class DSConfig extends ConsoleApplication {
    */
   public static final String GENERIC_TYPE = "generic";
 
-  // This CLI is always using the administration connector with SSL
+  /** This CLI is always using the administration connector with SSL. */
   private static final boolean alwaysSSL = true;
 
   private long sessionStartTime;
@@ -357,67 +356,81 @@ public final class DSConfig extends ConsoleApplication {
     return app.run(args);
   }
 
-  // The argument which should be used to request advanced mode.
+  /** The argument which should be used to request advanced mode. */
   private BooleanArgument advancedModeArgument;
 
-  // Flag indicating whether or not the application environment has
-  // already been initialized.
+  /**
+   * Flag indicating whether or not the application environment has already been
+   * initialized.
+   */
   private boolean environmentInitialized = false;
 
-  // The factory which the application should use to retrieve its
-  // management context.
+  /**
+   * The factory which the application should use to retrieve its management
+   * context.
+   */
   private final ManagementContextFactory factory;
 
-  // Flag indicating whether or not the global arguments have
-  // already been initialized.
+  /**
+   * Flag indicating whether or not the global arguments have already been
+   * initialized.
+   */
   private boolean globalArgumentsInitialized = false;
 
-  // The sub-command handler factory.
+  /** The sub-command handler factory. */
   private SubCommandHandlerFactory handlerFactory = null;
 
-  // Mapping of sub-commands to their implementations;
+  /** Mapping of sub-commands to their implementations. */
   private final Map<SubCommand, SubCommandHandler> handlers =
     new HashMap<SubCommand, SubCommandHandler>();
 
-  // Indicates whether or not a sub-command was provided.
+  /** Indicates whether or not a sub-command was provided. */
   private boolean hasSubCommand = true;
 
-  // The argument which should be used to read dsconfig commands from a file.
+  /** The argument which should be used to read dsconfig commands from a file. */
   private StringArgument batchFileArgument;
 
-  // The argument which should be used to request non interactive
-  // behavior.
+  /**
+   * The argument which should be used to request non interactive behavior.
+   */
   private BooleanArgument noPromptArgument;
 
-  // The argument that the user must set to display the equivalent
-  // non-interactive mode argument
+  /**
+   * The argument that the user must set to display the equivalent
+   * non-interactive mode argument.
+   */
   private BooleanArgument displayEquivalentArgument;
 
-  // The argument that allows the user to dump the equivalent non-interactive
-  // command to a file.
+  /**
+   * The argument that allows the user to dump the equivalent non-interactive
+   * command to a file.
+   */
   private StringArgument equivalentCommandFileArgument;
 
-  // The command-line argument parser.
+  /** The command-line argument parser. */
   private final SubCommandArgumentParser parser;
 
-  // The argument which should be used to request quiet output.
+  /** The argument which should be used to request quiet output. */
   private BooleanArgument quietArgument;
 
-  // The argument which should be used to request script-friendly
-  // output.
+  /**
+   * The argument which should be used to request script-friendly output.
+   */
   private BooleanArgument scriptFriendlyArgument;
 
-  // The argument which should be used to request usage information.
+  /** The argument which should be used to request usage information. */
   private BooleanArgument showUsageArgument;
 
-  // The argument which should be used to request verbose output.
+  /** The argument which should be used to request verbose output. */
   private BooleanArgument verboseArgument;
 
-  // The argument which should be used to indicate the properties file.
+  /** The argument which should be used to indicate the properties file. */
   private StringArgument propertiesFileArgument;
 
-  // The argument which should be used to indicate that we will not look for
-  // properties file.
+  /**
+   * The argument which should be used to indicate that we will not look for
+   * properties file.
+   */
   private BooleanArgument noPropertiesFileArgument;
 
   /**
@@ -437,7 +450,7 @@ public final class DSConfig extends ConsoleApplication {
       ManagementContextFactory factory) {
     super(new PrintStream(out), new PrintStream(err));
 
-    this.parser = new SubCommandArgumentParser(this.getClass().getName(),
+    this.parser = new SubCommandArgumentParser(getClass().getName(),
         INFO_CONFIGDS_TOOL_DESCRIPTION.get(), false);
 
     this.factory = factory;
@@ -453,7 +466,7 @@ public final class DSConfig extends ConsoleApplication {
    *           If the core APIs could not be initialized.
    */
   private void initializeClientEnvironment() throws InitializationException {
-    if (environmentInitialized == false) {
+    if (!environmentInitialized) {
       EmbeddedUtils.initializeForClientUse();
 
       // Bootstrap definition classes.
@@ -471,9 +484,7 @@ public final class DSConfig extends ConsoleApplication {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isAdvancedMode() {
     return advancedModeArgument.isPresent();
@@ -481,9 +492,7 @@ public final class DSConfig extends ConsoleApplication {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isInteractive() {
     return !noPromptArgument.isPresent();
@@ -491,9 +500,7 @@ public final class DSConfig extends ConsoleApplication {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isMenuDrivenMode() {
     return !hasSubCommand;
@@ -501,9 +508,7 @@ public final class DSConfig extends ConsoleApplication {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isQuiet() {
     return quietArgument.isPresent();
@@ -511,9 +516,7 @@ public final class DSConfig extends ConsoleApplication {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isScriptFriendly() {
     return scriptFriendlyArgument.isPresent();
@@ -521,9 +524,7 @@ public final class DSConfig extends ConsoleApplication {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isVerbose() {
     return verboseArgument.isPresent();
@@ -531,7 +532,7 @@ public final class DSConfig extends ConsoleApplication {
 
 
 
-  // Displays the provided message followed by a help usage reference.
+  /** Displays the provided message followed by a help usage reference. */
   private void displayMessageAndUsageReference(LocalizableMessage message) {
     println(message);
     println();
@@ -548,7 +549,7 @@ public final class DSConfig extends ConsoleApplication {
    */
   private void initializeGlobalArguments(String[] args)
   throws ArgumentException {
-    if (globalArgumentsInitialized == false) {
+    if (!globalArgumentsInitialized) {
 
       verboseArgument = CommonArguments.getVerbose();
       quietArgument = CommonArguments.getQuiet();
@@ -841,7 +842,7 @@ public final class DSConfig extends ConsoleApplication {
 
 
 
-  // Run the top-level interactive console.
+  /** Run the top-level interactive console. */
   private int runInteractiveMode() {
 
     ConsoleApplication app = this;
@@ -958,7 +959,7 @@ public final class DSConfig extends ConsoleApplication {
 
 
 
-  // Run the provided sub-command handler.
+  /** Run the provided sub-command handler. */
   private int runSubCommand(SubCommandHandler handler) {
     try {
       MenuResult<Integer> result = handler.run(this, factory);
@@ -1003,82 +1004,41 @@ public final class DSConfig extends ConsoleApplication {
 
       return 1;
     } catch (Exception e) {
-      println(LocalizableMessage.raw(StaticUtils.stackTraceToString(e)));
+      println(LocalizableMessage.raw(stackTraceToString(e)));
       return 1;
     }
   }
 
   /**
    * Updates the command builder with the global options: script friendly,
-   * verbose, etc. for a given subcommand.  It also adds systematically the
+   * verbose, etc. for a given sub command. It also adds systematically the
    * no-prompt option.
-   * @param handler the subcommand handler.
+   *
+   * @param <T>
+   *          SubCommand type.
+   * @param subCommand
+   *          The sub command handler or common.
+   * @return <T> The builded command.
    */
-  private CommandBuilder getCommandBuilder(SubCommandHandler handler)
+  <T> CommandBuilder getCommandBuilder(final T subCommand)
   {
-    String commandName =
-      System.getProperty(ServerConstants.PROPERTY_SCRIPT_NAME);
+    String commandName = System.getProperty(PROPERTY_SCRIPT_NAME);
     if (commandName == null)
     {
-      commandName = "dsconfig";
+      commandName = DSCONFIGTOOLNAME;
     }
-
-    CommandBuilder commandBuilder =
-      new CommandBuilder(commandName, handler.getSubCommand().getName());
-
-    commandBuilder.append(handler.getCommandBuilder());
-
-    if ((factory != null) && (factory.getContextCommandBuilder() != null))
+    CommandBuilder commandBuilder = null;
+    if (subCommand instanceof SubCommandHandler)
     {
-      commandBuilder.append(factory.getContextCommandBuilder());
+      commandBuilder =
+          new CommandBuilder(commandName, ((SubCommandHandler) subCommand)
+              .getSubCommand().getName());
     }
-
-    if (verboseArgument.isPresent())
+    else
     {
-      commandBuilder.addArgument(verboseArgument);
+      commandBuilder = new CommandBuilder(commandName, (String) subCommand);
     }
-
-    if (scriptFriendlyArgument.isPresent())
-    {
-      commandBuilder.addArgument(scriptFriendlyArgument);
-    }
-
-    commandBuilder.addArgument(noPromptArgument);
-
-    if (propertiesFileArgument.isPresent())
-    {
-      commandBuilder.addArgument(propertiesFileArgument);
-    }
-
-    if (noPropertiesFileArgument.isPresent())
-    {
-      commandBuilder.addArgument(noPropertiesFileArgument);
-    }
-
-    return commandBuilder;
-  }
-
-  /**
-   * Creates a command builder with the global options: script friendly,
-   * verbose, etc. for a given subcommand name.  It also adds systematically the
-   * no-prompt option.
-   * @param subcommandName the subcommand name.
-   * @return the command builder that has been created with the specified
-   * subcommandName.
-   */
-  CommandBuilder getCommandBuilder(String subcommandName)
-  {
-    String commandName =
-      System.getProperty(ServerConstants.PROPERTY_SCRIPT_NAME);
-    if (commandName == null)
-    {
-      commandName = "dsconfig";
-    }
-
-    CommandBuilder commandBuilder =
-      new CommandBuilder(commandName, subcommandName);
-
-    if ((factory != null) && (factory.getContextCommandBuilder() != null))
+    if (factory != null && factory.getContextCommandBuilder() != null)
     {
       commandBuilder.append(factory.getContextCommandBuilder());
     }
@@ -1126,10 +1086,10 @@ public final class DSConfig extends ConsoleApplication {
     if (equivalentCommandFileArgument.isPresent())
     {
       String file = equivalentCommandFileArgument.getValue();
+      BufferedWriter writer = null;
       try
       {
-        BufferedWriter writer =
-          new BufferedWriter(new FileWriter(file, true));
+        writer = new BufferedWriter(new FileWriter(file, true));
 
         if (!sessionStartTimePrinted)
         {
@@ -1153,11 +1113,14 @@ public final class DSConfig extends ConsoleApplication {
         writer.newLine();
 
         writer.flush();
-        writer.close();
       }
       catch (IOException ioe)
       {
         println(ERR_DSCFG_ERROR_WRITING_EQUIVALENT_COMMAND_LINE.get(file, ioe));
+      }
+      finally
+      {
+        close(writer);
       }
     }
   }
@@ -1171,17 +1134,19 @@ public final class DSConfig extends ConsoleApplication {
   private String getSessionStartTimeMessage()
   {
     String scriptName = System.getProperty(PROPERTY_SCRIPT_NAME);
-    if ((scriptName == null) || (scriptName.length() == 0))
+    if (scriptName == null || scriptName.length() == 0)
     {
-      scriptName = "dsconfig";
+      scriptName = DSCONFIGTOOLNAME;
     }
-    String date = formatDateTimeStringForEquivalentCommand(
+    final String date = formatDateTimeStringForEquivalentCommand(
         new Date(sessionStartTime));
     return INFO_DSCFG_SESSION_START_TIME_MESSAGE.get(scriptName, date).
     toString();
   }
 
   private void handleBatchFile(String[] args) {
+
+    BufferedReader bReader = null;
     try {
       // Build a list of initial arguments,
       // removing the batch file option + its value
@@ -1201,15 +1166,13 @@ public final class DSConfig extends ConsoleApplication {
         initialArgs.remove(batchFileArgIndex);
       }
       String batchFilePath = batchFileArgument.getValue().trim();
-      BufferedReader reader =
+      bReader =
               new BufferedReader(new FileReader(batchFilePath));
       String line;
       String command = "";
-      //
       // Split the CLI string into arguments array
-      //
-      while ((line = reader.readLine()) != null) {
-         if (line.equals("") || line.startsWith("#")) {
+      while ((line = bReader.readLine()) != null) {
+         if ("".equals(line) || line.startsWith("#")) {
           // Empty line or comment
           continue;
         }
@@ -1248,35 +1211,31 @@ public final class DSConfig extends ConsoleApplication {
         int exitCode =
                 main(allArgsArray, false, getOutputStream(), getErrorStream());
         if (exitCode != 0) {
-          reader.close();
+          bReader.close();
           System.exit(filterExitCode(exitCode));
         }
         errPrintln();
       }
-      reader.close();
+      bReader.close();
 
     } catch (IOException ex) {
       println(ERR_DSCFG_ERROR_READING_BATCH_FILE.get(ex));
+    } finally {
+      close(bReader);
     }
   }
 
-  // Replace spaces in quotes by "\ "
+  /** Replace spaces in quotes by "\ ". */
   private String replaceSpacesInQuotes(String line) {
     String newLine = "";
     boolean inQuotes = false;
     for (int ii = 0; ii < line.length(); ii++) {
       char ch = line.charAt(ii);
-      if ((ch == '\"') || (ch == '\'')) {
-        if (!inQuotes) {
-          // enter in a quoted string
-          inQuotes = true;
-        } else {
-          // end of a quoted string
-          inQuotes = false;
-        }
+      if (ch == '\"' || ch == '\'') {
+        inQuotes = !inQuotes;
         continue;
       }
-      if (inQuotes && (ch == ' ')) {
+      if (inQuotes && ch == ' ') {
         newLine += "\\ ";
       } else {
         newLine += ch;

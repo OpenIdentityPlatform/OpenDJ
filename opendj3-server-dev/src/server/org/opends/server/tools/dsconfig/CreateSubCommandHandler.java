@@ -116,7 +116,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
    */
   private static class MyPropertyProvider implements PropertyProvider {
 
-    // Decoded set of properties.
+    /** Decoded set of properties. */
     private final Map<PropertyDefinition<?>, Collection<?>> properties =
       new HashMap<PropertyDefinition<?>, Collection<?>>();
 
@@ -190,23 +190,20 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @SuppressWarnings("unchecked")
     public <T> Collection<T> getPropertyValues(PropertyDefinition<T> d)
         throws IllegalArgumentException {
       Collection<T> values = (Collection<T>) properties.get(d);
       if (values == null) {
         return Collections.emptySet();
-      } else {
-        return values;
       }
+      return values;
     }
 
 
 
-    // Add a single property value.
+    /** Add a single property value. */
     @SuppressWarnings("unchecked")
     private <T> void addPropertyValue(ManagedObjectDefinition<?, ?> d,
         PropertyDefinition<T> pd, String s) throws ArgumentException {
@@ -242,21 +239,19 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
       <C extends ConfigurationClient, S extends Configuration>
       implements HelpCallback {
 
-    // The abstract definition for which to provide help on its sub-types.
+    /** The abstract definition for which to provide help on its sub-types. */
     private final AbstractManagedObjectDefinition<C, S> d;
 
 
 
-    // Create a new type help call-back.
+    /** Create a new type help call-back. */
     private TypeHelpCallback(AbstractManagedObjectDefinition<C, S> d) {
       this.d = d;
     }
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public void display(ConsoleApplication app) {
       app.println(INFO_DSCFG_CREATE_TYPE_HELP_HEADING.get(d
           .getUserFriendlyPluralName()));
@@ -557,8 +552,9 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
 
 
 
-  // Check that any referenced components are enabled if
-  // required.
+  /**
+   * Check that any referenced components are enabled if required.
+   */
   private static MenuResult<Void> checkReferences(ConsoleApplication app,
       ManagementContext context, ManagedObject<?> mo, SubCommandHandler handler)
       throws ClientException, ClientException
@@ -685,9 +681,8 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
                 if (app.confirmAction(INFO_DSCFG_PROMPT_EDIT_AGAIN.get(ufn),
                     true)) {
                   return MenuResult.again();
-                } else {
-                  return MenuResult.cancel();
                 }
+                return MenuResult.cancel();
               }
             }
           }
@@ -706,7 +701,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
 
 
 
-  // Commit a new managed object's configuration.
+  /** Commit a new managed object's configuration. */
   private static MenuResult<Void> commitManagedObject(ConsoleApplication app,
       ManagementContext context, ManagedObject<?> mo, SubCommandHandler handler)
       throws ClientException {
@@ -837,7 +832,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
 
 
 
-  // Interactively create the child by prompting for the name.
+  /** Interactively create the child by prompting for the name. */
   private static <C extends ConfigurationClient, S extends Configuration>
   ManagedObject<? extends C> createChildInteractively(
       ConsoleApplication app, final ManagedObject<?> parent,
@@ -941,7 +936,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
 
 
 
-  // Interactively ask the user which type of component they want to create.
+  /** Interactively ask the user which type of component they want to create. */
   private static <C extends ConfigurationClient, S extends Configuration>
       MenuResult<ManagedObjectDefinition<? extends C, ? extends S>>
       getTypeInteractively(ConsoleApplication app,
@@ -1022,42 +1017,47 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
 
 
 
-  // The sub-commands naming arguments.
+  /** The sub-commands naming arguments. */
   private final List<StringArgument> namingArgs;
 
-  // The optional naming property definition.
+  /** The optional naming property definition. */
   private final PropertyDefinition<?> namingPropertyDefinition;
 
-  // The path of the parent managed object.
+  /** The path of the parent managed object. */
   private final ManagedObjectPath<?, ?> path;
 
-  // The argument which should be used to specify zero or more
-  // property values.
+  /**
+   * The argument which should be used to specify zero or more property values.
+   */
   private final StringArgument propertySetArgument;
 
-  // The relation which should be used for creating children.
+  /** The relation which should be used for creating children. */
   private final RelationDefinition<C, S> relation;
 
-  // The sub-command associated with this handler.
+  /** The sub-command associated with this handler. */
   private final SubCommand subCommand;
 
-  // The argument which should be used to specify the type of managed
-  // object to be created.
+  /**
+   * The argument which should be used to specify the type of managed object to
+   * be created.
+   */
   private final StringArgument typeArgument;
 
-  // The set of instantiable managed object definitions and their
-  // associated type option value.
+  /**
+   * The set of instantiable managed object definitions and their associated
+   * type option value.
+   */
   private final SortedMap<String,
       ManagedObjectDefinition<? extends C, ? extends S>> types;
 
-  // The syntax of the type argument.
+  /** The syntax of the type argument. */
   private final String typeUsage;
 
 
 
 
 
-  // Common constructor.
+  /** Common constructor. */
   private CreateSubCommandHandler(
       SubCommandArgumentParser parser, ManagedObjectPath<?, ?> p,
       RelationDefinition<C, S> r, PropertyDefinition<?> pd,
@@ -1134,9 +1134,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public SubCommand getSubCommand() {
     return subCommand;
@@ -1144,9 +1142,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public MenuResult<Integer> run(ConsoleApplication app,
       ManagementContextFactory factory) throws ArgumentException,
@@ -1384,8 +1380,8 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
               for (String value2 : arg.getValues())
               {
                 String prop2Name;
-                if (arg.getName().equals(OPTION_DSCFG_LONG_SET) ||
-                    arg.getName().equals(OPTION_DSCFG_LONG_REMOVE))
+                if (OPTION_DSCFG_LONG_SET.equals(arg.getName()) ||
+                    OPTION_DSCFG_LONG_REMOVE.equals(arg.getName()))
                 {
                   int index2 = value2.indexOf(':');
                   if (index2 != -1)
@@ -1397,7 +1393,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
                     prop2Name = null;
                   }
                 }
-                else if (arg.getName().equals(OPTION_DSCFG_LONG_RESET))
+                else if (OPTION_DSCFG_LONG_RESET.equals(arg.getName()))
                 {
                   prop2Name = value2;
                 }
@@ -1405,13 +1401,10 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
                 {
                   prop2Name = null;
                 }
-                if (prop2Name != null)
+                if (prop2Name != null && prop2Name.equalsIgnoreCase(propName))
                 {
-                  if (prop2Name.equalsIgnoreCase(propName))
-                  {
-                    addValue = false;
-                    break;
-                  }
+                  addValue = false;
+                  break;
                 }
               }
               if (!addValue)
@@ -1440,11 +1433,11 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
           getCommandBuilder().getArguments());
       for (Argument arg : argsCopy)
       {
-        if (arg != null) {
-          if (arg.getName().equals(OPTION_DSCFG_LONG_RESET) ||
-            arg.getName().equals(OPTION_DSCFG_LONG_REMOVE)) {
-            getCommandBuilder().removeArgument(arg);
-          }
+        if (arg != null
+            && (OPTION_DSCFG_LONG_RESET.equals(arg.getName()) 
+            || OPTION_DSCFG_LONG_REMOVE.equals(arg.getName())))
+        {
+          getCommandBuilder().removeArgument(arg);
         }
       }
 
@@ -1473,7 +1466,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
 
 
 
-  // Set a property's initial values.
+  /** Set a property's initial values. */
   private <T> void setProperty(ManagedObject<?> mo,
       MyPropertyProvider provider, PropertyDefinition<T> pd) {
     Collection<T> values = provider.getPropertyValues(pd);

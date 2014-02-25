@@ -92,7 +92,7 @@ public interface ManagementContextFactory {
    *
    * @param args raw arguments.
    */
-  public void setRawArguments(String[] args);
+  void setRawArguments(String[] args);
 
 
   /**

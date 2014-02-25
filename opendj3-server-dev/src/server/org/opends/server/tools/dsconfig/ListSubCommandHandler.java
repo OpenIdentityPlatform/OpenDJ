@@ -142,21 +142,21 @@ final class ListSubCommandHandler extends SubCommandHandler {
         .getUserFriendlyName());
   }
 
-  // The sub-commands naming arguments.
+  /** The sub-commands naming arguments. */
   private final List<StringArgument> namingArgs;
 
-  // The path of the parent managed object.
+  /** The path of the parent managed object. */
   private final ManagedObjectPath<?, ?> path;
 
-  // The relation which should be listed.
+  /** The relation which should be listed. */
   private final RelationDefinition<?, ?> relation;
 
-  // The sub-command associated with this handler.
+  /** The sub-command associated with this handler. */
   private final SubCommand subCommand;
 
 
 
-  // Private constructor.
+  /** Private constructor. */
   private ListSubCommandHandler(
       SubCommandArgumentParser parser, ManagedObjectPath<?, ?> p,
       RelationDefinition<?, ?> r, String rname, LocalizableMessage rufn)
@@ -196,9 +196,7 @@ final class ListSubCommandHandler extends SubCommandHandler {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public SubCommand getSubCommand() {
     return subCommand;
@@ -206,9 +204,7 @@ final class ListSubCommandHandler extends SubCommandHandler {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public MenuResult<Integer> run(ConsoleApplication app,
       ManagementContextFactory factory) throws ArgumentException,
@@ -423,8 +419,7 @@ final class ListSubCommandHandler extends SubCommandHandler {
       // appropriate), and requested properties.
       SortedMap<String, ?> subTypes =
           getSubTypes(relation.getChildDefinition());
-      boolean includeTypesColumn = (subTypes.size() != 1
-          || !subTypes.containsKey(DSConfig.GENERIC_TYPE));
+      boolean includeTypesColumn = subTypes.size() != 1 || !subTypes.containsKey(DSConfig.GENERIC_TYPE);
 
       TableBuilder builder = new TableBuilder();
       builder.appendHeading(relation.getUserFriendlyName());
@@ -502,20 +497,19 @@ final class ListSubCommandHandler extends SubCommandHandler {
       }
 
       PrintStream out = app.getOutputStream();
+      TablePrinter printer = null;
       if (app.isScriptFriendly()) {
-        TablePrinter printer = createScriptFriendlyTablePrinter(out);
-        builder.print(printer);
+        printer = createScriptFriendlyTablePrinter(out);
       } else {
         if (app.isInteractive()) {
           // Make interactive mode prettier.
           app.println();
           app.println();
         }
-
-        TextTablePrinter printer = new TextTablePrinter(out);
-        printer.setColumnSeparator(LIST_TABLE_SEPARATOR);
-        builder.print(printer);
+        printer = new TextTablePrinter(out);
+        ((TextTablePrinter)printer).setColumnSeparator(LIST_TABLE_SEPARATOR);
       }
+      builder.print(printer);
     }
 
     return MenuResult.success(0);
@@ -523,7 +517,7 @@ final class ListSubCommandHandler extends SubCommandHandler {
 
 
 
-  // Display the set of values associated with a property.
+  /** Display the set of values associated with a property. */
   private <T> void displayProperty(ConsoleApplication app,
       TableBuilder builder, ManagedObject<?> mo, PropertyDefinition<T> pd,
       PropertyValuePrinter valuePrinter) {

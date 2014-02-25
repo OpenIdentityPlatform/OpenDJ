@@ -60,9 +60,7 @@ final class SubCommandHandlerFactory {
   private final class Visitor implements
       RelationDefinitionVisitor<Void, ManagedObjectPath<?, ?>> {
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public <C extends ConfigurationClient, S extends Configuration>
         Void visitInstantiable(
         InstantiableRelationDefinition<C, S> rd, ManagedObjectPath<?, ?> p) {
@@ -86,9 +84,7 @@ final class SubCommandHandlerFactory {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public <C extends ConfigurationClient, S extends Configuration>
         Void visitOptional(
         OptionalRelationDefinition<C, S> rd, ManagedObjectPath<?, ?> p) {
@@ -112,9 +108,7 @@ final class SubCommandHandlerFactory {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public <C extends ConfigurationClient, S extends Configuration>
         Void visitSet(
         SetRelationDefinition<C, S> rd, ManagedObjectPath<?, ?> p) {
@@ -138,9 +132,7 @@ final class SubCommandHandlerFactory {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public <C extends ConfigurationClient, S extends Configuration>
         Void visitSingleton(
         SingletonRelationDefinition<C, S> rd, ManagedObjectPath<?, ?> p) {
@@ -161,40 +153,40 @@ final class SubCommandHandlerFactory {
 
   }
 
-  // The set of all available sub-commands.
+  /** The set of all available sub-commands. */
   private final SortedSet<SubCommandHandler> allHandlers =
     new TreeSet<SubCommandHandler>();
 
-  // The set of create-xxx available sub-commands.
+  /** The set of create-xxx available sub-commands. */
   private final SortedSet<CreateSubCommandHandler<?, ?>> createHandlers =
     new TreeSet<CreateSubCommandHandler<?, ?>>();
 
-  // The set of delete-xxx available sub-commands.
+  /** The set of delete-xxx available sub-commands. */
   private final SortedSet<DeleteSubCommandHandler> deleteHandlers =
     new TreeSet<DeleteSubCommandHandler>();
 
-  // Any exception that occurred whilst creating the sub-commands.
+  /** Any exception that occurred whilst creating the sub-commands. */
   private ArgumentException exception = null;
 
-  // The set of get-xxx-prop available sub-commands.
+  /** The set of get-xxx-prop available sub-commands. */
   private final SortedSet<GetPropSubCommandHandler> getPropHandlers =
     new TreeSet<GetPropSubCommandHandler>();
 
-  // The help sub-command handler.
+  /** The help sub-command handler. */
   private HelpSubCommandHandler helpHandler = null;
 
-  // The set of list-xxx available sub-commands.
+  /** The set of list-xxx available sub-commands. */
   private final SortedSet<ListSubCommandHandler> listHandlers =
     new TreeSet<ListSubCommandHandler>();
 
-  // The sub-command argument parser.
+  /** The sub-command argument parser. */
   private final SubCommandArgumentParser parser;
 
-  // The set of set-xxx-prop available sub-commands.
+  /** The set of set-xxx-prop available sub-commands. */
   private final SortedSet<SetPropSubCommandHandler> setPropHandlers =
     new TreeSet<SetPropSubCommandHandler>();
 
-  // The relation visitor.
+  /** The relation visitor. */
   private final Visitor visitor = new Visitor();
 
 
@@ -297,8 +289,10 @@ final class SubCommandHandlerFactory {
 
 
 
-  // Process the relations associated with the managed object
-  // definition identified by the provided path.
+  /**
+   * Process the relations associated with the managed object definition
+   * identified by the provided path.
+   */
   private void processPath(ManagedObjectPath<?, ?> path) {
     AbstractManagedObjectDefinition<?, ?> d = path.getManagedObjectDefinition();
 
@@ -312,7 +306,7 @@ final class SubCommandHandlerFactory {
 
 
 
-  // Process an instantiable relation.
+  /** Process an instantiable relation. */
   private <C extends ConfigurationClient, S extends Configuration>
       void processRelation(
       ManagedObjectPath<?, ?> path, InstantiableRelationDefinition<C, S> r) {
@@ -333,7 +327,7 @@ final class SubCommandHandlerFactory {
 
 
 
-  // Process an optional relation.
+  /** Process an optional relation. */
   private <C extends ConfigurationClient, S extends Configuration>
       void processRelation(
       ManagedObjectPath<?, ?> path, OptionalRelationDefinition<C, S> r) {
@@ -354,7 +348,7 @@ final class SubCommandHandlerFactory {
 
 
 
-  // Process a set relation.
+  /** Process a set relation. */
   private <C extends ConfigurationClient, S extends Configuration>
       void processRelation(
       ManagedObjectPath<?, ?> path, SetRelationDefinition<C, S> r) {
@@ -375,7 +369,7 @@ final class SubCommandHandlerFactory {
 
 
 
-  // Process a singleton relation.
+  /** Process a singleton relation. */
   private <C extends ConfigurationClient, S extends Configuration>
       void processRelation(
       ManagedObjectPath<?, ?> path, SingletonRelationDefinition<C, S> r) {

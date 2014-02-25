@@ -73,19 +73,19 @@ import static org.opends.messages.DSConfigMessages.*;
 public final class LDAPManagementContextFactory implements
     ManagementContextFactory {
 
-  // The SecureConnectionCliArgsList object.
+  /** The SecureConnectionCliArgsList object. */
   private SecureConnectionCliArgs secureArgsList = null;
 
-  // The management context.
+  /** The management context. */
   private ManagementContext context = null;
 
-  // The connection parameters command builder.
+  /** The connection parameters command builder. */
   private CommandBuilder contextCommandBuilder;
 
-  // This CLI is always using the administration connector with SSL
+  /** This CLI is always using the administration connector with SSL. */
   private boolean alwaysSSL = false;
 
-  // Raw arguments
+  /** Raw arguments. */
   private String[] rawArgs = null;
 
   /**
@@ -98,9 +98,7 @@ public final class LDAPManagementContextFactory implements
     this.alwaysSSL = alwaysSSL;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ManagementContext getManagementContext(ConsoleApplication app)
       throws ArgumentException, ClientException
@@ -117,9 +115,7 @@ public final class LDAPManagementContextFactory implements
     return context;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void close()
   {
@@ -129,9 +125,7 @@ public final class LDAPManagementContextFactory implements
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public CommandBuilder getContextCommandBuilder()
   {
@@ -190,51 +184,47 @@ public final class LDAPManagementContextFactory implements
           }
           catch (NamingException e)
           {
-            if ( app.isInteractive() && ci.isTrustStoreInMemory())
+            if (app.isInteractive()
+                && ci.isTrustStoreInMemory()
+                && e.getRootCause() != null
+                && e.getRootCause().getCause() instanceof OpendsCertificateException)
             {
-              if ((e.getRootCause() != null)
-                  && (e.getRootCause().getCause()
-                      instanceof OpendsCertificateException))
-              {
-                OpendsCertificateException oce =
+              OpendsCertificateException oce =
                   (OpendsCertificateException) e.getRootCause().getCause();
-                String authType = null;
-                if (trustManager instanceof ApplicationTrustManager)
-                {
-                  ApplicationTrustManager appTrustManager =
-                    (ApplicationTrustManager)trustManager;
-                  authType = appTrustManager.getLastRefusedAuthType();
-                }
-                  if (ci.checkServerCertificate(oce.getChain(), authType,
-                      hostName))
-                  {
-                    // If the certificate is trusted, update the trust manager.
-                    trustManager = ci.getTrustManager();
-
-                    // Try to connect again.
-                    continue ;
-                  }
+              String authType = null;
+              if (trustManager instanceof ApplicationTrustManager)
+              {
+                ApplicationTrustManager appTrustManager =
+                    (ApplicationTrustManager) trustManager;
+                authType = appTrustManager.getLastRefusedAuthType();
+              }
+              if (ci.checkServerCertificate(oce.getChain(), authType, hostName))
+              {
+                // If the certificate is trusted, update the trust manager.
+                trustManager = ci.getTrustManager();
+                // Try to connect again.
+                continue;
               }
             }
             if (e.getRootCause() != null) {
-              if (e.getRootCause().getCause() != null) {
-                if (((e.getRootCause().getCause()
-                  instanceof OpendsCertificateException)) ||
-                  (e.getRootCause() instanceof SSLHandshakeException)) {
-                  LocalizableMessage message =
-                    ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT_NOT_TRUSTED.get(hostName, portNumber);
-                  throw new ClientException(
-                    ReturnCode.CLIENT_SIDE_CONNECT_ERROR, message);
-                }
+              if (e.getRootCause().getCause() != null
+                  && (e.getRootCause().getCause() instanceof OpendsCertificateException
+                  || e.getRootCause() instanceof SSLHandshakeException))
+              {
+                final LocalizableMessage message =
+                    ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT_NOT_TRUSTED.get(
+                        hostName, portNumber);
+                throw new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR,
+                    message);
               }
               if (e.getRootCause() instanceof SSLException) {
-                LocalizableMessage message =
+                final LocalizableMessage message =
                   ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT_WRONG_PORT.get(hostName, portNumber);
                 throw new ClientException(
                     ReturnCode.CLIENT_SIDE_CONNECT_ERROR, message);
               }
             }
-            LocalizableMessage message = ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(hostName, portNumber);
+            final LocalizableMessage message = ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(hostName, portNumber);
             throw new ClientException(
                 ReturnCode.CLIENT_SIDE_CONNECT_ERROR, message);
           }
@@ -259,9 +249,8 @@ public final class LDAPManagementContextFactory implements
           {
             if ( app.isInteractive() && ci.isTrustStoreInMemory())
             {
-              if ((e.getRootCause() != null)
-                  && (e.getRootCause().getCause()
-                      instanceof OpendsCertificateException))
+              if (e.getRootCause() != null
+                  && e.getRootCause().getCause() instanceof OpendsCertificateException)
               {
                 String authType = null;
                 if (trustManager instanceof ApplicationTrustManager)
@@ -332,18 +321,14 @@ public final class LDAPManagementContextFactory implements
     return context;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setRawArguments(String[] args) {
     this.rawArgs = args;
 
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void registerGlobalArguments(SubCommandArgumentParser parser)
       throws ArgumentException {
@@ -367,8 +352,7 @@ public final class LDAPManagementContextFactory implements
             continue;
           }
           if (rawArg.contains(OPTION_LONG_HELP) ||
-            (rawArg.charAt(1) == OPTION_SHORT_HELP) || (rawArg.
-            charAt(1) == '?')) {
+            rawArg.charAt(1) == OPTION_SHORT_HELP || rawArg.charAt(1) == '?') {
             // used for usage help default values only
             secureArgsList.initArgumentsWithConfiguration();
           }
@@ -383,9 +367,7 @@ public final class LDAPManagementContextFactory implements
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void validateGlobalArguments() throws ArgumentException {
     // Make sure that the user didn't specify any conflicting

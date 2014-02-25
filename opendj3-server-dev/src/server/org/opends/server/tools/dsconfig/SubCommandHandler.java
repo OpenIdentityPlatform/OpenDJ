@@ -103,39 +103,41 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
    */
   private class ManagedObjectFinder implements ManagedObjectPathSerializer {
 
-    // The console application.
+    /** The console application. */
     private ConsoleApplication app;
 
-    // The index of the next path argument to be retrieved.
+    /** The index of the next path argument to be retrieved. */
     private int argIndex;
 
-    // The list of managed object path arguments.
+    /** The list of managed object path arguments. */
     private List<String> args;
 
     private AuthorizationException authze;
 
     private CommunicationException ce;
 
-    // Any CLI exception that was caught when attempting to find
-    // the managed object.
+    /**
+     * Any CLI exception that was caught when attempting to find the managed
+     * object.
+     */
     private ClientException clie;
 
     private ConcurrentModificationException cme;
 
-    // Any operation exception that was caught when attempting to find
-    // the managed object.
+    /**
+     * Any operation exception that was caught when attempting to find the
+     * managed object.
+     */
     private DefinitionDecodingException dde;
 
     private ManagedObjectDecodingException mode;
 
     private ManagedObjectNotFoundException monfe;
 
-    // The current result.
+    /** The current result. */
     private MenuResult<ManagedObject<?>> result;
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public <C extends ConfigurationClient, S extends Configuration>
         void appendManagedObjectPathElement(
         InstantiableRelationDefinition<? super C, ? super S> r,
@@ -211,9 +213,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public <C extends ConfigurationClient, S extends Configuration>
         void appendManagedObjectPathElement(
         OptionalRelationDefinition<? super C, ? super S> r,
@@ -255,9 +255,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public <C extends ConfigurationClient, S extends Configuration>
         void appendManagedObjectPathElement(
         SetRelationDefinition<? super C, ? super S> r,
@@ -349,9 +347,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public <C extends ConfigurationClient, S extends Configuration>
         void appendManagedObjectPathElement(
         SingletonRelationDefinition<? super C, ? super S> r,
@@ -516,28 +512,30 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
       return builder.arguments;
     }
 
-    // The list of naming arguments.
+    /** The list of naming arguments. */
     private final List<StringArgument> arguments =
       new LinkedList<StringArgument>();
 
-    // Any argument exception thrown when creating the naming
-    // arguments.
+    /**
+     * Any argument exception thrown when creating the naming arguments.
+     */
     private ArgumentException e = null;
 
-    // Indicates whether the sub-command is a create-xxx
-    // sub-command, in which case the final path element will
-    // have different usage information.
+    /**
+     * Indicates whether the sub-command is a create-xxx sub-command, in which
+     * case the final path element will have different usage information.
+     */
     private final boolean isCreate;
 
-    // The sub-command.
+    /** The sub-command. */
     private final SubCommand subCommand;
 
-    // The number of path elements to expect.
+    /** The number of path elements to expect. */
     private int sz;
 
 
 
-    // Private constructor.
+    /** Private constructor. */
     private NamingArgumentBuilder(SubCommand subCommand, int sz,
         boolean isCreate) {
       this.subCommand = subCommand;
@@ -547,9 +545,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public <C extends ConfigurationClient, S extends Configuration>
         void appendManagedObjectPathElement(
         InstantiableRelationDefinition<? super C, ? super S> r,
@@ -594,9 +590,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public <C extends ConfigurationClient, S extends Configuration>
         void appendManagedObjectPathElement(
         OptionalRelationDefinition<? super C, ? super S> r,
@@ -606,9 +600,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public <C extends ConfigurationClient, S extends Configuration>
         void appendManagedObjectPathElement(
         SetRelationDefinition<? super C, ? super S> r,
@@ -638,9 +630,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public <C extends ConfigurationClient, S extends Configuration>
         void appendManagedObjectPathElement(
         SingletonRelationDefinition<? super C, ? super S> r,
@@ -696,23 +686,24 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
    */
   private static final char OPTION_DSCFG_SHORT_UNIT_TIME = 'm';
 
-  // The argument which should be used to specify zero or more
-  // property names.
+  /**
+   * The argument which should be used to specify zero or more property names.
+   */
   private StringArgument propertyArgument;
 
-  // The argument which should be used to request record mode.
+  /** The argument which should be used to request record mode. */
   private BooleanArgument recordModeArgument;
 
-  // The tags associated with this sub-command handler.
+  /** The tags associated with this sub-command handler. */
   private final Set<Tag> tags = new HashSet<Tag>();
 
-  // The argument which should be used to request specific size units.
+  /** The argument which should be used to request specific size units. */
   private StringArgument unitSizeArgument;
 
-  // The argument which should be used to request specific time units.
+  /** The argument which should be used to request specific time units. */
   private StringArgument unitTimeArgument;
 
-  // The command builder associated with this handler.
+  /** The command builder associated with this handler. */
   private CommandBuilder commandBuilder;
 
 
@@ -731,9 +722,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public final int compareTo(SubCommandHandler o) {
     String s1 = getSubCommand().getName();
     String s2 = o.getSubCommand().getName();
@@ -743,9 +732,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final boolean equals(Object obj) {
     if (this == obj) {
@@ -822,9 +809,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final int hashCode() {
     return getSubCommand().getName().hashCode();
@@ -1426,9 +1411,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
   protected static <T> String castAndGetArgumentValue(
       PropertyDefinition<T> propertyDefinition, Object o)
   {
-    String value = propertyDefinition.encodeValue(
-        propertyDefinition.castValue(o));
-    return value;
+    return propertyDefinition.encodeValue(propertyDefinition.castValue(o));
   }
 
   /**
@@ -1442,9 +1425,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
   protected static <T> String getArgumentValue(
       PropertyDefinition<T> propertyDefinition, T o)
   {
-    String value;
-    value = propertyDefinition.encodeValue(o);
-    return value;
+    return propertyDefinition.encodeValue(o);
   }
 
 
@@ -1472,12 +1453,12 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
 
     // If the top-level definition is instantiable, we use the value
     // "generic" or "custom".
-    if (!d.hasOption(ManagedObjectOption.HIDDEN)) {
-      if (d instanceof ManagedObjectDefinition) {
-        ManagedObjectDefinition<? extends C, ? extends S> mod =
+    if (!d.hasOption(ManagedObjectOption.HIDDEN)
+        && d instanceof ManagedObjectDefinition)
+    {
+      ManagedObjectDefinition<? extends C, ? extends S> mod =
           (ManagedObjectDefinition<? extends C, ? extends S>) d;
-        map.put(getShortTypeName(d, mod), mod);
-      }
+      map.put(getShortTypeName(d, mod), mod);
     }
 
     // Process its sub-definitions.

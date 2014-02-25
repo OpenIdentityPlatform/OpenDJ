@@ -100,9 +100,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
     private static class DefaultVisitor<T> implements
         DefaultBehaviorProviderVisitor<T, LocalizableMessage, PropertyDefinition<T>> {
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public LocalizableMessage visitAbsoluteInherited(
           AbsoluteInheritedDefaultBehaviorProvider<T> d,
           PropertyDefinition<T> p) {
@@ -113,9 +111,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
 
 
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public LocalizableMessage visitAlias(AliasDefaultBehaviorProvider<T> d,
           PropertyDefinition<T> p) {
         return d.getSynopsis();
@@ -123,9 +119,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
 
 
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public LocalizableMessage visitDefined(DefinedDefaultBehaviorProvider<T> d,
           PropertyDefinition<T> p) {
         LocalizableMessageBuilder builder = new LocalizableMessageBuilder();
@@ -146,9 +140,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
 
 
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public LocalizableMessage visitRelativeInherited(
           RelativeInheritedDefaultBehaviorProvider<T> d,
           PropertyDefinition<T> p) {
@@ -164,9 +156,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
 
 
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       public LocalizableMessage visitUndefined(UndefinedDefaultBehaviorProvider<T> d,
           PropertyDefinition<T> p) {
         return INFO_DSCFG_HELP_FIELD_UNDEFINED.get();
@@ -216,16 +206,14 @@ final class HelpSubCommandHandler extends SubCommandHandler {
     private static class Visitor extends
         PropertyDefinitionVisitor<Void, PrintStream> {
 
-      // Private constructor.
+      /** Private constructor. */
       private Visitor() {
         // No implementation required.
       }
 
 
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       @Override
       public <E extends Enum<E>> Void visitEnum(EnumPropertyDefinition<E> d,
           PrintStream p) {
@@ -263,9 +251,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
 
 
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       @Override
       public Void visitString(StringPropertyDefinition d, PrintStream p) {
         PropertyDefinitionUsageBuilder usageBuilder =
@@ -298,9 +284,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
 
 
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
       @Override
       public <T> Void visitUnknown(PropertyDefinition<T> d, PrintStream p)
           throws PropertyException {
@@ -313,7 +297,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
 
 
 
-      // Common usage.
+      /** Common usage. */
       private void displayUsage(PrintStream p, LocalizableMessage usage) {
         TableBuilder builder = new TableBuilder();
         builder.startRow();
@@ -331,7 +315,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
       }
     }
 
-    // The private implementation.
+    /** The private implementation. */
     private final Visitor pimpl;
 
 
@@ -359,11 +343,11 @@ final class HelpSubCommandHandler extends SubCommandHandler {
     }
   }
 
-  // Strings used in property help.
-  private final static String HEADING_SEPARATOR = " : ";
+  /** Strings used in property help. */
+  private static final String HEADING_SEPARATOR = " : ";
 
-  // Width of biggest heading (need to be careful of I18N).
-  private final static int HEADING_WIDTH;
+  /** Width of biggest heading (need to be careful of I18N). */
+  private static final int HEADING_WIDTH;
 
   /**
    * The value for the long option category.
@@ -612,7 +596,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
 
 
 
-  // Displays the property option summary key.
+  /** Displays the property option summary key. */
   private static void displayPropertyOptionKey(ConsoleApplication app) {
     LocalizableMessageBuilder builder;
 
@@ -647,7 +631,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
 
 
 
-  // Compute the options field.
+  /** Compute the options field. */
   private static String getPropertyOptionSummary(PropertyDefinition<?> pd) {
     StringBuilder b = new StringBuilder();
 
@@ -679,34 +663,43 @@ final class HelpSubCommandHandler extends SubCommandHandler {
     return b.toString();
   }
 
-  // The argument which should be used to specify the category of
-  // managed object to be retrieved.
+  /**
+   * The argument which should be used to specify the category of managed object
+   * to be retrieved.
+   */
   private final StringArgument categoryArgument;
 
-  // A table listing all the available types of managed object indexed
-  // on their parent type.
+  /**
+   * A table listing all the available types of managed object indexed on their
+   * parent type.
+   */
   private final Map<String, Map<String,
     AbstractManagedObjectDefinition<?, ?>>> categoryMap;
 
-  // The argument which should be used to display inherited
-  // properties.
+  /**
+   * The argument which should be used to display inherited properties.
+   */
   private BooleanArgument inheritedModeArgument;
 
-  // The sub-command associated with this handler.
+  /** The sub-command associated with this handler. */
   private final SubCommand subCommand;
 
-  // A table listing all the available types of managed object indexed
-  // on their tag(s).
+  /**
+   * A table listing all the available types of managed object indexed on their
+   * tag(s).
+   */
   private final Map<Tag, Map<String,
     AbstractManagedObjectDefinition<?, ?>>> tagMap;
 
-  // The argument which should be used to specify the sub-type of
-  // managed object to be retrieved.
+  /**
+   * The argument which should be used to specify the sub-type of managed object
+   * to be retrieved.
+   */
   private final StringArgument typeArgument;
 
 
 
-  // Private constructor.
+  /** Private constructor. */
   private HelpSubCommandHandler(SubCommandArgumentParser parser)
       throws ArgumentException {
     // Create the sub-command.
@@ -745,9 +738,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public SubCommand getSubCommand() {
     return subCommand;
@@ -809,9 +800,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public MenuResult<Integer> run(ConsoleApplication app,
       ManagementContextFactory factory) throws ArgumentException,
@@ -930,7 +919,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
     return MenuResult.success(0);
   }
 
-  // Output property summary table.
+  /** Output property summary table. */
   private void displayNonVerbose(ConsoleApplication app, String categoryName,
       String typeName, Tag tag, Set<String> propertyNames) {
     if (!app.isScriptFriendly()) {
@@ -1048,7 +1037,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
 
 
 
-  // Display detailed help on managed objects and their properties.
+  /** Display detailed help on managed objects and their properties. */
   private void displayVerbose(ConsoleApplication app, String categoryName,
       String typeName, Tag tag, Set<String> propertyNames) {
     // Construct line used to separate consecutive sections.

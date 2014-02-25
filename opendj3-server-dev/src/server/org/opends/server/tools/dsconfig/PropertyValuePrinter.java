@@ -56,24 +56,27 @@ final class PropertyValuePrinter {
   private static class MyPropertyValueVisitor extends
       PropertyValueVisitor<LocalizableMessage, Void> {
 
-    // The requested size unit (null if the property's unit should be
-    // used).
+    /**
+     * The requested size unit (null if the property's unit should be used).
+     */
     private final SizeUnit sizeUnit;
 
-    // The requested time unit (null if the property's unit should be
-    // used).
+    /**
+     * The requested time unit (null if the property's unit should be used).
+     */
     private final DurationUnit timeUnit;
 
-    // Whether or not values should be displayed in a script-friendly
-    // manner.
+    /**
+     * Whether or not values should be displayed in a script-friendly manner.
+     */
     private final boolean isScriptFriendly;
 
-    // The formatter to use for numeric values.
+    /** The formatter to use for numeric values. */
     private final NumberFormat numberFormat;
 
 
 
-    // Private constructor.
+    /** Private constructor. */
     private MyPropertyValueVisitor(SizeUnit sizeUnit, DurationUnit timeUnit,
         boolean isScriptFriendly) {
       this.sizeUnit = sizeUnit;
@@ -81,24 +84,19 @@ final class PropertyValuePrinter {
       this.isScriptFriendly = isScriptFriendly;
 
       this.numberFormat = NumberFormat.getNumberInstance();
-      if (this.isScriptFriendly) {
-        numberFormat.setGroupingUsed(false);
-        numberFormat.setMaximumFractionDigits(2);
-      } else {
-        numberFormat.setGroupingUsed(true);
+      {
+        numberFormat.setGroupingUsed(!this.isScriptFriendly);
         numberFormat.setMaximumFractionDigits(2);
       }
     }
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public LocalizableMessage visitBoolean(BooleanPropertyDefinition pd, Boolean v,
         Void p) {
-      if (v == false) {
+      if (!v) {
         return INFO_VALUE_FALSE.get();
       } else {
         return INFO_VALUE_TRUE.get();
@@ -107,9 +105,7 @@ final class PropertyValuePrinter {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public LocalizableMessage visitDuration(DurationPropertyDefinition pd, Long v,
         Void p) {
@@ -141,9 +137,7 @@ final class PropertyValuePrinter {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public LocalizableMessage visitSize(SizePropertyDefinition pd, Long v, Void p) {
       if (pd.isAllowUnlimited() && v < 0) {
@@ -170,9 +164,7 @@ final class PropertyValuePrinter {
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public <T> LocalizableMessage visitUnknown(PropertyDefinition<T> pd, T v, Void p) {
       // For all other property definition types the default encoding
@@ -191,7 +183,7 @@ final class PropertyValuePrinter {
 
   }
 
-  // The property value printer implementation.
+  /** The property value printer implementation. */
   private final MyPropertyValueVisitor pimpl;
 
 
