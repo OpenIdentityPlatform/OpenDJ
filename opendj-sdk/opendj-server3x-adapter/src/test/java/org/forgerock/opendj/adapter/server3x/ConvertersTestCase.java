@@ -489,6 +489,20 @@ public class ConvertersTestCase extends ForgeRockTestCase {
     }
 
     /**
+     * Converts a a LDAP server Distinguish Name to a SDK Distinguished Name.
+     *
+     * @throws DirectoryException
+     */
+    @Test()
+    public final void testFromDN() throws DirectoryException {
+        final String dnString = "uid=scarter,ou=People,dc=example,dc=com";
+        org.opends.server.types.DN srvDN = org.opends.server.types.DN.valueOf(dnString);
+        org.forgerock.opendj.ldap.DN sdkDN = from(srvDN);
+
+        assertThat(sdkDN.toString()).isEqualTo(dnString);
+    }
+
+    /**
      * For an SASL bind request, credentials are composed by uid and password
      * (in this config).
      */

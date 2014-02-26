@@ -538,6 +538,22 @@ public final class Converters {
     }
 
     /**
+     * Converts from OpenDJ server {@link org.opends.server.types.DN} to OpenDJ
+     * LDAP SDK {@link DN}.
+     *
+     * @param dn
+     *            value to convert
+     * @return the converted value
+     */
+    public static DN from(final org.opends.server.types.DN dn) {
+        try {
+            return DN.valueOf(dn.toString());
+        } catch (Exception e) {
+            throw new IllegalStateException(e.getMessage());
+        }
+    }
+
+    /**
      * Populates the result object with the operation details and return the
      * result object if it was successful. Otherwise, it throws an
      * {@link ErrorResultException}.
