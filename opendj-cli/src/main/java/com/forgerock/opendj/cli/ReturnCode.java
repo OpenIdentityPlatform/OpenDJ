@@ -113,6 +113,10 @@ public enum ReturnCode {
      */
     SASL_BIND_IN_PROGRESS(14),
     /**
+     * Conflicting command line arguments.
+     */
+    CONFLICTING_ARGS(18),
+    /**
      * The LDAP result code for operations that fail because a defined constraint
      * has been violated.
      */

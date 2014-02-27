@@ -65,6 +65,7 @@ import static org.forgerock.util.Utils.*;
 import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.quicksetup.Step.*;
 import static org.opends.quicksetup.util.Utils.*;
+import static com.forgerock.opendj.cli.Utils.canWrite;
 
 /**
  * This is an abstract class that is in charge of actually performing the

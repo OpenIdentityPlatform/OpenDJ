@@ -29,7 +29,9 @@ package org.opends.server.tools.dsconfig;
 
 
 import static org.opends.messages.DSConfigMessages.*;
-import static org.opends.messages.ToolMessages.*;
+import static org.opends.messages.ToolMessages.INFO_NAME_PLACEHOLDER;
+import static org.opends.messages.ToolMessages.INFO_PROPERTY_PLACEHOLDER;
+import static org.opends.messages.ToolMessages.INFO_UNIT_PLACEHOLDER;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -77,16 +79,15 @@ import org.opends.server.util.ServerConstants;
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
-import com.forgerock.opendj.cli.ReturnCode;
-import com.forgerock.opendj.cli.StringArgument;
-import com.forgerock.opendj.cli.SubCommand;
 import com.forgerock.opendj.cli.ClientException;
-
 import com.forgerock.opendj.cli.CommandBuilder;
 import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.Menu;
 import com.forgerock.opendj.cli.MenuBuilder;
 import com.forgerock.opendj.cli.MenuResult;
+import com.forgerock.opendj.cli.ReturnCode;
+import com.forgerock.opendj.cli.StringArgument;
+import com.forgerock.opendj.cli.SubCommand;
 import com.forgerock.opendj.cli.TabSeparatedTablePrinter;
 import com.forgerock.opendj.cli.TablePrinter;
 

@@ -27,6 +27,7 @@
 package org.opends.server.tools;
 
 import static org.opends.messages.ToolMessages.*;
+import static com.forgerock.opendj.cli.Utils.canWrite;
 
 import java.io.File;
 import java.util.LinkedHashSet;
@@ -132,7 +133,7 @@ public class JavaPropertiesToolArgumentParser extends ArgumentParser
       if (value != null)
       {
         File f = new File(value);
-        if (f.isDirectory() || !Utils.canWrite(value))
+        if (f.isDirectory() || !canWrite(value))
         {
           errorMessages.add(
               ERR_JAVAPROPERTIES_WITH_DESTINATION_FILE.get(value));

@@ -28,6 +28,7 @@ package com.forgerock.opendj.cli;
 
 import static com.forgerock.opendj.cli.CliMessages.*;
 import static com.forgerock.opendj.util.StaticUtils.getExceptionMessage;
+import static org.forgerock.util.Utils.closeSilently;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -218,11 +219,7 @@ public final class FileBasedArgument extends Argument {
                     getExceptionMessage(e)));
             return false;
         } finally {
-            try {
-                reader.close();
-            } catch (final Exception e) {
-                // Ignored.
-            }
+            closeSilently(reader);
         }
 
         // If the line read is null, then that means the file was empty.

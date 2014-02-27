@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.util.table;
 
@@ -32,6 +33,9 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.Writer;
+
+import com.forgerock.opendj.cli.TablePrinter;
+import com.forgerock.opendj.cli.TableSerializer;
 
 
 

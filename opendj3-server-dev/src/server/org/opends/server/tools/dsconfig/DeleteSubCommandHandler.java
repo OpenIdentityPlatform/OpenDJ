@@ -52,14 +52,13 @@ import org.opends.server.admin.client.OperationRejectedException;
 
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.ClientException;
+import com.forgerock.opendj.cli.ConsoleApplication;
+import com.forgerock.opendj.cli.MenuResult;
 import com.forgerock.opendj.cli.ReturnCode;
 import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.cli.SubCommand;
 import com.forgerock.opendj.cli.SubCommandArgumentParser;
-import com.forgerock.opendj.cli.ClientException;
-
-import com.forgerock.opendj.cli.ConsoleApplication;
-import com.forgerock.opendj.cli.MenuResult;
 import com.forgerock.opendj.cli.TableBuilder;
 import com.forgerock.opendj.cli.TextTablePrinter;
 

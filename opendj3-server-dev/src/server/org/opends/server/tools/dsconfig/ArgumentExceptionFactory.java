@@ -32,10 +32,10 @@ import static org.opends.messages.DSConfigMessages.*;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.AbstractManagedObjectDefinition;
-import org.opends.server.admin.PropertyException;
 import org.opends.server.admin.ManagedObjectDefinition;
 import org.opends.server.admin.PropertyDefinition;
 import org.opends.server.admin.PropertyDefinitionUsageBuilder;
+import org.opends.server.admin.PropertyException;
 import org.opends.server.admin.RelationDefinition;
 import org.opends.server.admin.client.IllegalManagedObjectNameException;
 import org.opends.server.admin.client.ManagedObjectDecodingException;
@@ -45,9 +45,8 @@ import org.opends.server.admin.client.OperationRejectedException;
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ClientException;
-import com.forgerock.opendj.cli.ReturnCode;
-
 import com.forgerock.opendj.cli.ConsoleApplication;
+import com.forgerock.opendj.cli.ReturnCode;
 import com.forgerock.opendj.cli.TableBuilder;
 import com.forgerock.opendj.cli.TextTablePrinter;
 

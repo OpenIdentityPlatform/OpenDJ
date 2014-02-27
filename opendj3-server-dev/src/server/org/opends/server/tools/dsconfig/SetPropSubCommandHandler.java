@@ -28,8 +28,13 @@
 package org.opends.server.tools.dsconfig;
 
 import static org.opends.messages.DSConfigMessages.*;
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.tools.dsconfig.ArgumentExceptionFactory.*;
+import static org.opends.messages.ToolMessages.INFO_NAME_PLACEHOLDER;
+import static org.opends.messages.ToolMessages.INFO_PROPERTY_PLACEHOLDER;
+import static org.opends.messages.ToolMessages.INFO_VALUE_SET_PLACEHOLDER;
+import static org.opends.server.tools.dsconfig.ArgumentExceptionFactory.
+displayMissingMandatoryPropertyException;
+import static org.opends.server.tools.dsconfig.ArgumentExceptionFactory.
+displayOperationRejectedException;
 
 import java.util.HashMap;
 import java.util.List;
@@ -41,7 +46,6 @@ import java.util.TreeSet;
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.AggregationPropertyDefinition;
 import org.opends.server.admin.DefinitionDecodingException;
-import org.opends.server.admin.PropertyException;
 import org.opends.server.admin.InstantiableRelationDefinition;
 import org.opends.server.admin.ManagedObjectAlreadyExistsException;
 import org.opends.server.admin.ManagedObjectDefinition;
@@ -49,6 +53,7 @@ import org.opends.server.admin.ManagedObjectNotFoundException;
 import org.opends.server.admin.ManagedObjectPath;
 import org.opends.server.admin.OptionalRelationDefinition;
 import org.opends.server.admin.PropertyDefinition;
+import org.opends.server.admin.PropertyException;
 import org.opends.server.admin.PropertyOption;
 import org.opends.server.admin.RelationDefinition;
 import org.opends.server.admin.SetRelationDefinition;
@@ -67,16 +72,14 @@ import org.opends.server.admin.condition.ContainsCondition;
 
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
+import com.forgerock.opendj.cli.ClientException;
+import com.forgerock.opendj.cli.CommandBuilder;
+import com.forgerock.opendj.cli.ConsoleApplication;
+import com.forgerock.opendj.cli.MenuResult;
 import com.forgerock.opendj.cli.ReturnCode;
 import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.cli.SubCommand;
 import com.forgerock.opendj.cli.SubCommandArgumentParser;
-import com.forgerock.opendj.cli.ClientException;
-
-import com.forgerock.opendj.cli.CommandBuilder;
-import com.forgerock.opendj.cli.ConsoleApplication;
-import com.forgerock.opendj.cli.MenuResult;
-
 import com.forgerock.opendj.util.Pair;
 
 /**
