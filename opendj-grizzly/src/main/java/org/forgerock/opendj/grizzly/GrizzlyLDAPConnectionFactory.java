@@ -216,7 +216,7 @@ public final class GrizzlyLDAPConnectionFactory implements LDAPConnectionFactory
             } else if (timeoutEndTime > currentTime) {
                 return timeoutEndTime - currentTime;
             } else {
-                future.handleErrorResult(newErrorResult(ResultCode.CLIENT_SIDE_TIMEOUT,
+                future.handleErrorResult(newErrorResult(ResultCode.CLIENT_SIDE_CONNECT_ERROR,
                         LDAP_CONNECTION_CONNECT_TIMEOUT.get(socketAddress, getTimeout()).toString()));
                 return 0;
             }
