@@ -180,17 +180,16 @@ public final class DirectoryEnvironmentConfig
   }
 
   /**
-   * Retrieves the directory that should be considered the server
-   * root.
+   * Retrieves the directory that should be considered the server root.
    * <p>
-   * The determination will first be based on the properties
-   * defined in this object.  If no value is found there, then
-   * the JVM system properties will be checked, followed by an
-   * environment variable. If there is still no value, then the
-   * location of the config file is used to determine the root.
+   * The determination will first be based on the properties defined in this
+   * object. If no value is found there, then the JVM system properties will be
+   * checked, followed by an environment variable. If there is still no value,
+   * then the location of the config file, if available, is used to determine
+   * the root.
    *
-   * @return  The directory that should be considered the server root,
-   *          or {@code null} if it can't be determined.
+   * @return The directory that should be considered the server root, or
+   *         {@code null} if it can't be determined.
    */
   public File getServerRoot()
   {
@@ -209,20 +208,18 @@ public final class DirectoryEnvironmentConfig
       }
       else
       {
-        // try to figure out root
-        // from the location of the configuration file.
-        File configFile = getConfigFile();
-        File configDirFile = configFile.getParentFile();
-        if (configDirFile != null
-            && CONFIG_DIR_NAME.equals(configDirFile.getName()))
+        // Try to figure out root from the location of the configuration file
+        // Check for property first to avoid infinite loop with getConfigFile()
+        final String configFilePath = getProperty(PROPERTY_CONFIG_FILE);
+        if (configFilePath != null)
         {
-          File parent = configDirFile.getParentFile();
-          rootFile = forceNonRelativeFile(parent);
-        }
-        else
-        {
-          logger.error(ERR_CONFIG_CANNOT_DETERMINE_SERVER_ROOT,
-              ENV_VAR_INSTALL_ROOT);
+          final File configDirFile = getConfigFile().getParentFile();
+          if (configDirFile != null
+              && CONFIG_DIR_NAME.equals(configDirFile.getName()))
+          {
+            File parent = configDirFile.getParentFile();
+            rootFile = forceNonRelativeFile(parent);
+          }
         }
       }
     }
@@ -230,6 +227,11 @@ public final class DirectoryEnvironmentConfig
     {
       logger.error(ERR_CONFIG_CANNOT_DETERMINE_SERVER_ROOT,
           ENV_VAR_INSTALL_ROOT, e);
+    }
+    if (rootFile == null)
+    {
+      logger.error(ERR_CONFIG_CANNOT_DETERMINE_SERVER_ROOT,
+          ENV_VAR_INSTALL_ROOT);
     }
     return rootFile;
   }
