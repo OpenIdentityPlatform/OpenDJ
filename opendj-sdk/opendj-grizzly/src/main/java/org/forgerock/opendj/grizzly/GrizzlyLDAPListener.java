@@ -35,7 +35,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.Connections;
-import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.LDAPClientContext;
 import org.forgerock.opendj.ldap.LDAPListenerOptions;
 import org.forgerock.opendj.ldap.ServerConnectionFactory;
@@ -51,13 +50,13 @@ import com.forgerock.opendj.util.ReferenceCountedObject;
  * LDAP listener implementation using Grizzly for transport.
  */
 public final class GrizzlyLDAPListener implements LDAPListenerImpl {
-
     private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
     private final ReferenceCountedObject<TCPNIOTransport>.Reference transport;
     private final ServerConnectionFactory<LDAPClientContext, Integer> connectionFactory;
     private final TCPNIOServerConnection serverConnection;
     private final AtomicBoolean isClosed = new AtomicBoolean();
     private final InetSocketAddress socketAddress;
+    private final LDAPListenerOptions options;
 
     /**
      * Creates a new LDAP listener implementation which will listen for LDAP
@@ -104,9 +103,10 @@ public final class GrizzlyLDAPListener implements LDAPListenerImpl {
             final LDAPListenerOptions options, TCPNIOTransport transport) throws IOException {
         this.transport = DEFAULT_TRANSPORT.acquireIfNull(transport);
         this.connectionFactory = factory;
-        final DecodeOptions decodeOptions = new DecodeOptions(options.getDecodeOptions());
+        this.options = new LDAPListenerOptions(options);
         final LDAPServerFilter serverFilter =
-                new LDAPServerFilter(this, decodeOptions, options.getMaxRequestSize());
+                new LDAPServerFilter(this, this.options.getDecodeOptions(), this.options
+                        .getMaxRequestSize());
         final FilterChain ldapChain =
                 GrizzlyUtils.buildFilterChain(this.transport.get().getProcessor(), serverFilter);
         final TCPNIOBindingHandler bindingHandler =
@@ -154,5 +154,9 @@ public final class GrizzlyLDAPListener implements LDAPListenerImpl {
 
     ServerConnectionFactory<LDAPClientContext, Integer> getConnectionFactory() {
         return connectionFactory;
+    }
+
+    LDAPListenerOptions getLDAPListenerOptions() {
+        return options;
     }
 }

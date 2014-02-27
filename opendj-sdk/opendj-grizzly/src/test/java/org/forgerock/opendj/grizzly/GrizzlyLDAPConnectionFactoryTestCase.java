@@ -21,17 +21,23 @@
  * CDDL HEADER END
  *
  *
- *     Copyright 2013 ForgeRock AS.
+ *     Copyright 2013-2014 ForgeRock AS.
  */
 package org.forgerock.opendj.grizzly;
 
 import static org.fest.assertions.Assertions.assertThat;
+import static org.fest.assertions.Fail.fail;
 import static org.forgerock.opendj.ldap.TestCaseUtils.findFreeSocketAddress;
-import static org.mockito.Mockito.mock;
+import static org.forgerock.opendj.ldap.requests.Requests.newSimpleBindRequest;
+import static org.mockito.Matchers.any;
+import static org.mockito.Matchers.anyInt;
+import static org.mockito.Matchers.same;
+import static org.mockito.Mockito.*;
 
 import java.io.IOException;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.forgerock.opendj.ldap.Connection;
@@ -55,19 +61,6 @@ import org.forgerock.opendj.ldap.SearchResultHandler;
 import org.forgerock.opendj.ldap.ServerConnection;
 import org.forgerock.opendj.ldap.ServerConnectionFactory;
 import org.forgerock.opendj.ldap.TimeoutResultException;
-import org.testng.annotations.Test;
-
-import static org.fest.assertions.Fail.fail;
-import static org.forgerock.opendj.ldap.requests.Requests.newSimpleBindRequest;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.same;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
-
-import java.util.concurrent.TimeoutException;
 import org.forgerock.opendj.ldap.requests.AbandonRequest;
 import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
@@ -78,13 +71,18 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.mockito.stubbing.Stubber;
 import org.testng.annotations.AfterClass;
+import org.testng.annotations.Test;
 
 /**
  * Tests the {@link LDAPConnectionFactory} class.
  */
 @SuppressWarnings({ "javadoc", "unchecked" })
 public class GrizzlyLDAPConnectionFactoryTestCase extends SdkTestCase {
-    // Manual testing has gone up to 10000 iterations.
+    /*
+     * The number of test iterations for unit tests which attempt to expose
+     * potential race conditions. Manual testing has gone up to 10000
+     * iterations.
+     */
     private static final int ITERATIONS = 100;
 
     // Test timeout for tests which need to wait for network events.
@@ -117,6 +115,30 @@ public class GrizzlyLDAPConnectionFactoryTestCase extends SdkTestCase {
         server.close();
     }
 
+    @Test(description = "OPENDJ-1197")
+    public void testClientSideConnectTimeout() throws Exception {
+        // Use an non-local unreachable network address.
+        final ConnectionFactory factory =
+                new LDAPConnectionFactory("10.20.30.40", 1389, new LDAPOptions().setConnectTimeout(
+                        1, TimeUnit.MILLISECONDS));
+        try {
+            for (int i = 0; i < ITERATIONS; i++) {
+                final ResultHandler<Connection> handler = mock(ResultHandler.class);
+                final FutureResult<Connection> future = factory.getConnectionAsync(handler);
+                // Wait for the connect to timeout.
+                try {
+                    future.get(TEST_TIMEOUT, TimeUnit.SECONDS);
+                    fail("The connect request succeeded unexpectedly");
+                } catch (TimeoutResultException e) {
+                    verifyResultCodeIsClientSideTimeout(e);
+                    verify(handler).handleErrorResult(same(e));
+                }
+            }
+        } finally {
+            factory.close();
+        }
+    }
+
     /**
      * Unit test for OPENDJ-1247: a locally timed out bind request will leave a
      * connection in an invalid state since a bind (or startTLS) is in progress
@@ -130,41 +152,39 @@ public class GrizzlyLDAPConnectionFactoryTestCase extends SdkTestCase {
         registerBindEvent();
         registerCloseEvent();
 
-        for (int i = 0; i < ITERATIONS; i++) {
-            final Connection connection = factory.getConnection();
+        final Connection connection = factory.getConnection();
+        try {
+            waitForConnect();
+            final MockConnectionEventListener listener = new MockConnectionEventListener();
+            connection.addConnectionEventListener(listener);
+
+            final ResultHandler<BindResult> handler = mock(ResultHandler.class);
+            final FutureResult<BindResult> future =
+                    connection.bindAsync(newSimpleBindRequest(), null, handler);
+            waitForBind();
+
+            // Wait for the request to timeout.
             try {
-                waitForConnect();
-                final MockConnectionEventListener listener = new MockConnectionEventListener();
-                connection.addConnectionEventListener(listener);
+                future.get(TEST_TIMEOUT, TimeUnit.SECONDS);
+                fail("The bind request succeeded unexpectedly");
+            } catch (TimeoutResultException e) {
+                verifyResultCodeIsClientSideTimeout(e);
+                verify(handler).handleErrorResult(same(e));
 
-                final ResultHandler<BindResult> handler = mock(ResultHandler.class);
-                final FutureResult<BindResult> future =
-                        connection.bindAsync(newSimpleBindRequest(), null, handler);
-                waitForBind();
-
-                // Wait for the request to timeout.
-                try {
-                    future.get(TEST_TIMEOUT, TimeUnit.SECONDS);
-                    fail("The bind request succeeded unexpectedly");
-                } catch (TimeoutResultException e) {
-                    verifyResultCodeIsClientSideTimeout(e);
-                    verify(handler).handleErrorResult(same(e));
-
-                    /*
-                     * The connection should no longer be valid, the event
-                     * listener should have been notified, but no abandon should
-                     * have been sent.
-                     */
-                    listener.awaitError(TEST_TIMEOUT, TimeUnit.SECONDS);
-                    assertThat(connection.isValid()).isFalse();
-                    verifyResultCodeIsClientSideTimeout(listener.getError());
-                    connection.close();
-                    waitForClose();
-                    verifyNoAbandonSent();
-                }
-            } finally {
+                /*
+                 * The connection should no longer be valid, the event listener
+                 * should have been notified, but no abandon should have been
+                 * sent.
+                 */
+                listener.awaitError(TEST_TIMEOUT, TimeUnit.SECONDS);
+                assertThat(connection.isValid()).isFalse();
+                verifyResultCodeIsClientSideTimeout(listener.getError());
                 connection.close();
+                waitForClose();
+                verifyNoAbandonSent();
             }
+        } finally {
+            connection.close();
         }
     }
 

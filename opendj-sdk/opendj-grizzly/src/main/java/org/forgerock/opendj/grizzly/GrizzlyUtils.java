@@ -25,10 +25,17 @@
  */
 package org.forgerock.opendj.grizzly;
 
+import java.io.IOException;
+import java.net.SocketOption;
+import java.net.StandardSocketOptions;
+import java.nio.channels.SocketChannel;
+
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.io.LDAP;
 import org.forgerock.opendj.io.LDAPReader;
 import org.forgerock.opendj.io.LDAPWriter;
 import org.forgerock.opendj.ldap.DecodeOptions;
+import org.glassfish.grizzly.Connection;
 import org.glassfish.grizzly.Processor;
 import org.glassfish.grizzly.ThreadCache;
 import org.glassfish.grizzly.filterchain.Filter;
@@ -36,6 +43,7 @@ import org.glassfish.grizzly.filterchain.FilterChain;
 import org.glassfish.grizzly.filterchain.FilterChainBuilder;
 import org.glassfish.grizzly.filterchain.TransportFilter;
 import org.glassfish.grizzly.memory.MemoryManager;
+import org.glassfish.grizzly.nio.transport.TCPNIOConnection;
 import org.glassfish.grizzly.ssl.SSLFilter;
 
 /**
@@ -65,7 +73,7 @@ final class GrizzlyUtils {
      *         is a {@code FilterChain}, and having the provided filter as the
      *         last filter
      */
-    public static FilterChain buildFilterChain(Processor<?> processor, Filter filter) {
+    static FilterChain buildFilterChain(Processor<?> processor, Filter filter) {
         if (processor instanceof FilterChain) {
             return FilterChainBuilder.stateless().addAll((FilterChain) processor).add(filter).build();
         } else {
@@ -89,7 +97,7 @@ final class GrizzlyUtils {
      *            connection to update with the new filter chain containing the
      *            provided filter
      */
-    public static void addFilterToConnection(final Filter filter, org.glassfish.grizzly.Connection<?> connection) {
+    static void addFilterToConnection(final Filter filter, Connection<?> connection) {
         final FilterChain currentChain = (FilterChain) connection.getProcessor();
         final FilterChain newChain = addFilterToChain(filter, currentChain);
         connection.setProcessor(newChain);
@@ -111,7 +119,7 @@ final class GrizzlyUtils {
      *            initial filter chain
      * @return a new filter chain which includes the provided filter
      */
-    public static FilterChain addFilterToChain(final Filter filter, final FilterChain chain) {
+    static FilterChain addFilterToChain(final Filter filter, final FilterChain chain) {
         // By default, before LDAP filter which is the last one
         int indexToAddFilter = chain.size() - 1;
         if (filter instanceof SSLFilter) {
@@ -139,8 +147,8 @@ final class GrizzlyUtils {
      *            The memory manager to use for buffering.
      * @return a LDAP reader
      */
-    public static LDAPReader<ASN1BufferReader> createReader(DecodeOptions decodeOptions, int maxASN1ElementSize,
-            MemoryManager<?> memoryManager) {
+    static LDAPReader<ASN1BufferReader> createReader(DecodeOptions decodeOptions,
+            int maxASN1ElementSize, MemoryManager<?> memoryManager) {
         ASN1BufferReader asn1Reader = new ASN1BufferReader(maxASN1ElementSize, memoryManager);
         return LDAP.getReader(asn1Reader, decodeOptions);
     }
@@ -155,7 +163,7 @@ final class GrizzlyUtils {
      * @return a LDAP writer
      */
     @SuppressWarnings("unchecked")
-    public static LDAPWriter<ASN1BufferWriter> getWriter() {
+    static LDAPWriter<ASN1BufferWriter> getWriter() {
         LDAPWriter<ASN1BufferWriter> writer = ThreadCache.takeFromCache(WRITER_INDEX);
         if (writer == null) {
             writer = LDAP.getWriter(new ASN1BufferWriter());
@@ -172,9 +180,36 @@ final class GrizzlyUtils {
      *
      * @param writer LDAP writer to recycle
      */
-    public static void recycleWriter(LDAPWriter<ASN1BufferWriter> writer) {
+    static void recycleWriter(LDAPWriter<ASN1BufferWriter> writer) {
         writer.getASN1Writer().recycle();
         ThreadCache.putToCache(WRITER_INDEX, writer);
+    }
+
+    static void configureConnection(final Connection<?> connection, final boolean tcpNoDelay,
+            final boolean keepAlive, final boolean reuseAddress, final int linger,
+            final LocalizedLogger logger) {
+        /*
+         * Test shows that its much faster with non block writes but risk
+         * running out of memory if the server is slow.
+         */
+        connection.configureBlocking(true);
+
+        // Configure socket options.
+        final SocketChannel channel = (SocketChannel) ((TCPNIOConnection) connection).getChannel();
+        setSocketOption(channel, StandardSocketOptions.TCP_NODELAY, tcpNoDelay, logger);
+        setSocketOption(channel, StandardSocketOptions.SO_KEEPALIVE, keepAlive, logger);
+        setSocketOption(channel, StandardSocketOptions.SO_REUSEADDR, reuseAddress, logger);
+        setSocketOption(channel, StandardSocketOptions.SO_LINGER, linger, logger);
+    }
+
+    private static <T> void setSocketOption(final SocketChannel channel,
+            final SocketOption<T> option, final T value, final LocalizedLogger logger) {
+        try {
+            channel.setOption(option, value);
+        } catch (final IOException e) {
+            logger.traceException(e, "Unable to set " + option.name()
+                    + " to %d on client connection", value);
+        }
     }
 
     // Prevent instantiation.
