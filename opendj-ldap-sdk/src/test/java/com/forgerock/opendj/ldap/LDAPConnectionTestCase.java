@@ -104,7 +104,7 @@ public class LDAPConnectionTestCase extends LDAPTestCase {
             connection.searchAsync(request, null, handler);
 
             // Pass in a time which is guaranteed to trigger expiration.
-            connection.cancelExpiredRequests(System.currentTimeMillis() + 1000000);
+            connection.handleTimeout(System.currentTimeMillis() + 1000000);
             if (isPersistentSearch) {
                 verifyZeroInteractions(handler);
             } else {

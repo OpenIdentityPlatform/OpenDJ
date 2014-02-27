@@ -22,11 +22,12 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions copyright 2012-2014 ForgeRock AS.
  */
 
 package com.forgerock.opendj.ldap;
 
+import static com.forgerock.opendj.ldap.GrizzlyUtils.configureConnection;
 import static com.forgerock.opendj.ldap.LDAPConstants.OID_NOTICE_OF_DISCONNECTION;
 
 import java.io.IOException;
@@ -43,6 +44,7 @@ import org.forgerock.opendj.ldap.ConnectionSecurityLayer;
 import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.IntermediateResponseHandler;
 import org.forgerock.opendj.ldap.LDAPClientContext;
+import org.forgerock.opendj.ldap.LDAPListenerOptions;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ResultHandler;
 import org.forgerock.opendj.ldap.SearchResultHandler;
@@ -813,7 +815,9 @@ final class LDAPServerFilter extends BaseFilter {
     @Override
     public NextAction handleAccept(final FilterChainContext ctx) throws IOException {
         final Connection<?> connection = ctx.getConnection();
-        connection.configureBlocking(true);
+        LDAPListenerOptions options = listener.getLDAPListenerOptions();
+        configureConnection(connection, options.isTCPNoDelay(), options.isKeepAlive(), options
+                .isReuseAddress(), options.getLinger());
         try {
             final ClientContextImpl clientContext = new ClientContextImpl(connection);
             final ServerConnection<Integer> serverConn =

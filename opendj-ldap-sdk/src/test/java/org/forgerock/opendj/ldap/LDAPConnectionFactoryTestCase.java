@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *     Copyright 2013 ForgeRock AS.
+ *     Copyright 2013-2014 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap;
 
@@ -61,7 +61,11 @@ import org.testng.annotations.Test;
  */
 @SuppressWarnings({ "javadoc", "unchecked" })
 public class LDAPConnectionFactoryTestCase extends SdkTestCase {
-    // Manual testing has gone up to 10000 iterations.
+    /*
+     * The number of test iterations for unit tests which attempt to expose
+     * potential race conditions. Manual testing has gone up to 10000
+     * iterations.
+     */
     private static final int ITERATIONS = 100;
 
     // Test timeout for tests which need to wait for network events.
@@ -93,6 +97,31 @@ public class LDAPConnectionFactoryTestCase extends SdkTestCase {
         pool.close();
         factory.close();
         server.close();
+    }
+
+    @Test(description = "OPENDJ-1197")
+    public void testClientSideConnectTimeout() throws Exception {
+        // Use an non-local unreachable network address.
+        final ConnectionFactory factory =
+                new LDAPConnectionFactory("10.20.30.40", 1389, new LDAPOptions().setConnectTimeout(
+                        1, TimeUnit.MILLISECONDS));
+        try {
+            for (int i = 0; i < ITERATIONS; i++) {
+                final ResultHandler<Connection> handler = mock(ResultHandler.class);
+                final FutureResult<Connection> future = factory.getConnectionAsync(handler);
+                // Wait for the connect to timeout.
+                try {
+                    future.get(TEST_TIMEOUT, TimeUnit.SECONDS);
+                    fail("The connect request succeeded unexpectedly");
+                } catch (ConnectionException e) {
+                    assertThat(e.getResult().getResultCode()).isEqualTo(
+                            ResultCode.CLIENT_SIDE_CONNECT_ERROR);
+                    verify(handler).handleErrorResult(same(e));
+                }
+            }
+        } finally {
+            factory.close();
+        }
     }
 
     /**

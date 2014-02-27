@@ -36,7 +36,6 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 
-import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.LDAPClientContext;
 import org.forgerock.opendj.ldap.LDAPListenerOptions;
 import org.forgerock.opendj.ldap.ServerConnectionFactory;
@@ -60,6 +59,7 @@ public final class LDAPListenerImpl implements Closeable {
     private final TCPNIOServerConnection serverConnection;
     private final AtomicBoolean isClosed = new AtomicBoolean();
     private final InetSocketAddress socketAddress;
+    private final LDAPListenerOptions options;
 
     /**
      * Creates a new LDAP listener implementation which will listen for LDAP
@@ -81,12 +81,12 @@ public final class LDAPListenerImpl implements Closeable {
             final LDAPListenerOptions options) throws IOException {
         this.transport = DEFAULT_TRANSPORT.acquireIfNull(options.getTCPNIOTransport());
         this.connectionFactory = factory;
-
-        final DecodeOptions decodeOptions = new DecodeOptions(options.getDecodeOptions());
+        this.options = new LDAPListenerOptions(options);
+        final LDAPServerFilter serverFilter =
+                new LDAPServerFilter(this, new LDAPReader(this.options.getDecodeOptions()),
+                        this.options.getMaxRequestSize());
         this.defaultFilterChain =
-                FilterChainBuilder.stateless().add(new TransportFilter()).add(
-                        new LDAPServerFilter(this, new LDAPReader(decodeOptions), options
-                                .getMaxRequestSize())).build();
+                FilterChainBuilder.stateless().add(new TransportFilter()).add(serverFilter).build();
         final TCPNIOBindingHandler bindingHandler =
                 TCPNIOBindingHandler.builder(transport.get()).processor(defaultFilterChain).build();
         this.serverConnection = bindingHandler.bind(address, options.getBacklog());
@@ -139,5 +139,9 @@ public final class LDAPListenerImpl implements Closeable {
 
     FilterChain getDefaultFilterChain() {
         return defaultFilterChain;
+    }
+
+    LDAPListenerOptions getLDAPListenerOptions() {
+        return options;
     }
 }

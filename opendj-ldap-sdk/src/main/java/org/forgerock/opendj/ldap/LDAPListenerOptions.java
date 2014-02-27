@@ -22,34 +22,26 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
 
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 
-import com.forgerock.opendj.util.Validator;
-
 /**
  * Common options for LDAP listeners.
  */
-public final class LDAPListenerOptions {
-
+public final class LDAPListenerOptions extends CommonLDAPOptions<LDAPListenerOptions> {
     private int backlog;
-    private DecodeOptions decodeOptions;
     private int maxRequestSize;
-    private TCPNIOTransport transport;
 
     /**
      * Creates a new set of listener options with default settings. SSL will not
      * be enabled, and a default set of decode options will be used.
      */
     public LDAPListenerOptions() {
-        this.backlog = 0;
-        this.maxRequestSize = 0;
-        this.decodeOptions = new DecodeOptions();
-        this.transport = null;
+        super();
     }
 
     /**
@@ -60,10 +52,9 @@ public final class LDAPListenerOptions {
      *            The set of listener options to be copied.
      */
     public LDAPListenerOptions(final LDAPListenerOptions options) {
+        super(options);
         this.backlog = options.backlog;
         this.maxRequestSize = options.maxRequestSize;
-        this.decodeOptions = new DecodeOptions(options.decodeOptions);
-        this.transport = options.transport;
     }
 
     /**
@@ -79,17 +70,6 @@ public final class LDAPListenerOptions {
     }
 
     /**
-     * Returns the decoding options which will be used to control how requests
-     * and responses are decoded.
-     *
-     * @return The decoding options which will be used to control how requests
-     *         and responses are decoded (never {@code null}).
-     */
-    public DecodeOptions getDecodeOptions() {
-        return decodeOptions;
-    }
-
-    /**
      * Returns the maximum request size in bytes for incoming LDAP requests. If
      * an incoming request exceeds the limit then the connection will be aborted
      * by the listener. If the limit is less than {@code 1} then a default value
@@ -99,22 +79,6 @@ public final class LDAPListenerOptions {
      */
     public int getMaxRequestSize() {
         return maxRequestSize;
-    }
-
-    /**
-     * Returns the Grizzly TCP transport which will be used when initiating
-     * connections with the Directory Server.
-     * <p>
-     * By default this method will return {@code null} indicating that the
-     * default transport factory should be used to obtain a TCP transport.
-     *
-     * @return The Grizzly TCP transport which will be used when initiating
-     *         connections with the Directory Server, or {@code null} if the
-     *         default transport factory should be used to obtain a TCP
-     *         transport.
-     */
-    public TCPNIOTransport getTCPNIOTransport() {
-        return transport;
     }
 
     /**
@@ -129,23 +93,6 @@ public final class LDAPListenerOptions {
      */
     public LDAPListenerOptions setBacklog(final int backlog) {
         this.backlog = backlog;
-        return this;
-    }
-
-    /**
-     * Sets the decoding options which will be used to control how requests and
-     * responses are decoded.
-     *
-     * @param decodeOptions
-     *            The decoding options which will be used to control how
-     *            requests and responses are decoded (never {@code null}).
-     * @return A reference to this LDAP listener options.
-     * @throws NullPointerException
-     *             If {@code decodeOptions} was {@code null}.
-     */
-    public LDAPListenerOptions setDecodeOptions(final DecodeOptions decodeOptions) {
-        Validator.ensureNotNull(decodeOptions);
-        this.decodeOptions = decodeOptions;
         return this;
     }
 
@@ -165,22 +112,25 @@ public final class LDAPListenerOptions {
     }
 
     /**
-     * Sets the Grizzly TCP transport which will be used when initiating
-     * connections with the Directory Server.
-     * <p>
-     * By default this method will return {@code null} indicating that the
-     * default transport factory should be used to obtain a TCP transport.
-     *
-     * @param transport
-     *            The Grizzly TCP transport which will be used when initiating
-     *            connections with the Directory Server, or {@code null} if the
-     *            default transport factory should be used to obtain a TCP
-     *            transport.
-     * @return A reference to this connection options.
+     * {@inheritDoc}
      */
-    public LDAPListenerOptions setTCPNIOTransport(final TCPNIOTransport transport) {
-        this.transport = transport;
-        return this;
+    @Override
+    public LDAPListenerOptions setDecodeOptions(DecodeOptions decodeOptions) {
+        // This method is required for binary compatibility.
+        return super.setDecodeOptions(decodeOptions);
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public LDAPListenerOptions setTCPNIOTransport(TCPNIOTransport transport) {
+        // This method is required for binary compatibility.
+        return super.setTCPNIOTransport(transport);
+    }
+
+    @Override
+    LDAPListenerOptions getThis() {
+        return this;
+    }
 }

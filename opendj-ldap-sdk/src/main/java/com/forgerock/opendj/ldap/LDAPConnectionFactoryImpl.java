@@ -28,7 +28,9 @@
 package com.forgerock.opendj.ldap;
 
 import static com.forgerock.opendj.ldap.DefaultTCPNIOTransport.DEFAULT_TRANSPORT;
+import static com.forgerock.opendj.ldap.GrizzlyUtils.configureConnection;
 import static com.forgerock.opendj.ldap.TimeoutChecker.TIMEOUT_CHECKER;
+import static org.forgerock.opendj.ldap.CoreMessages.LDAP_CONNECTION_CONNECT_TIMEOUT;
 import static org.forgerock.opendj.ldap.ErrorResultException.*;
 
 import java.io.IOException;
@@ -72,13 +74,16 @@ public final class LDAPConnectionFactoryImpl implements ConnectionFactory {
      */
     @SuppressWarnings("rawtypes")
     private final class CompletionHandlerAdapter implements
-            CompletionHandler<org.glassfish.grizzly.Connection> {
-
+            CompletionHandler<org.glassfish.grizzly.Connection>, TimeoutEventListener {
         private final AsynchronousFutureResult<Connection, ResultHandler<? super Connection>> future;
+        private final long timeoutEndTime;
 
         private CompletionHandlerAdapter(
                 final AsynchronousFutureResult<Connection, ResultHandler<? super Connection>> future) {
             this.future = future;
+            final long timeoutMS = getTimeout();
+            this.timeoutEndTime = timeoutMS > 0 ? System.currentTimeMillis() + timeoutMS : 0;
+            timeoutChecker.get().addListener(this);
         }
 
         @Override
@@ -99,10 +104,10 @@ public final class LDAPConnectionFactoryImpl implements ConnectionFactory {
 
             // Start TLS or install SSL layer asynchronously.
 
-            // Give up immediately if the future has been cancelled.
-            if (future.isCancelled()) {
+            // Give up immediately if the future has been cancelled or timed out.
+            if (future.isDone()) {
+                timeoutChecker.get().removeListener(this);
                 connection.close();
-                releaseTransportAndTimeoutChecker();
                 return;
             }
 
@@ -151,6 +156,7 @@ public final class LDAPConnectionFactoryImpl implements ConnectionFactory {
         @Override
         public void failed(final Throwable throwable) {
             // Adapt and forward.
+            timeoutChecker.get().removeListener(this);
             future.handleErrorResult(adaptConnectionException(throwable));
             releaseTransportAndTimeoutChecker();
         }
@@ -161,16 +167,11 @@ public final class LDAPConnectionFactoryImpl implements ConnectionFactory {
         }
 
         private LDAPConnection adaptConnection(final org.glassfish.grizzly.Connection<?> connection) {
-            /*
-             * Test shows that its much faster with non block writes but risk
-             * running out of memory if the server is slow.
-             */
-            connection.configureBlocking(true);
+            configureConnection(connection, options.isTCPNoDelay(), options.isKeepAlive(), options
+                    .isReuseAddress(), options.getLinger());
             final LDAPConnection ldapConnection =
                     new LDAPConnection(connection, LDAPConnectionFactoryImpl.this);
-            if (options.getTimeout(TimeUnit.MILLISECONDS) > 0) {
-                timeoutChecker.get().addConnection(ldapConnection);
-            }
+            timeoutChecker.get().addListener(ldapConnection);
             clientFilter.registerConnection(connection, ldapConnection);
             return ldapConnection;
         }
@@ -189,19 +190,36 @@ public final class LDAPConnectionFactoryImpl implements ConnectionFactory {
 
         private void onFailure(final LDAPConnection connection, final Throwable t) {
             // Abort connection attempt due to error.
-            connection.close();
+            timeoutChecker.get().removeListener(this);
             future.handleErrorResult(adaptConnectionException(t));
-            releaseTransportAndTimeoutChecker();
+            connection.close();
         }
 
         private void onSuccess(final LDAPConnection connection) {
-            future.handleResult(connection);
-
-            // Close the connection if the future was cancelled.
-            if (future.isCancelled()) {
+            timeoutChecker.get().removeListener(this);
+            if (!future.tryHandleResult(connection)) {
+                // The connection has been either cancelled or it has timed out.
                 connection.close();
-                releaseTransportAndTimeoutChecker();
             }
+        }
+
+        @Override
+        public long handleTimeout(final long currentTime) {
+            if (timeoutEndTime == 0) {
+                return 0;
+            } else if (timeoutEndTime > currentTime) {
+                return timeoutEndTime - currentTime;
+            } else {
+                future.handleErrorResult(newErrorResult(ResultCode.CLIENT_SIDE_CONNECT_ERROR,
+                        LDAP_CONNECTION_CONNECT_TIMEOUT.get(socketAddress.toString(), getTimeout())
+                                .toString()));
+                return 0;
+            }
+        }
+
+        @Override
+        public long getTimeout() {
+            return options.getConnectTimeout(TimeUnit.MILLISECONDS);
         }
     }
 
@@ -271,8 +289,7 @@ public final class LDAPConnectionFactoryImpl implements ConnectionFactory {
                         .build();
         final AsynchronousFutureResult<Connection, ResultHandler<? super Connection>> future =
                 new AsynchronousFutureResult<Connection, ResultHandler<? super Connection>>(handler);
-        final CompletionHandlerAdapter cha = new CompletionHandlerAdapter(future);
-        connectorHandler.connect(socketAddress, cha);
+        connectorHandler.connect(socketAddress, new CompletionHandlerAdapter(future));
         return future;
     }
 

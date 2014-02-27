@@ -22,9 +22,8 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS.
+ *      Portions copyright 2013-2014 ForgeRock AS.
  */
-
 package com.forgerock.opendj.ldap;
 
 import static com.forgerock.opendj.util.StaticUtils.DEBUG_LOG;
@@ -37,13 +36,17 @@ import java.util.logging.Level;
 import com.forgerock.opendj.util.ReferenceCountedObject;
 
 /**
- * Checks connection for pending requests that have timed out.
+ * Checks {@code TimeoutEventListener listeners} for events that have timed out.
+ * <p>
+ * All listeners registered with the {@code #addListener()} method are called
+ * back with {@code TimeoutEventListener#handleTimeout()} to be able to handle
+ * the timeout.
  */
-final class TimeoutChecker {
+public final class TimeoutChecker {
     /**
-     * Global reference counted instance.
+     * Global reference on the timeout checker.
      */
-    static final ReferenceCountedObject<TimeoutChecker> TIMEOUT_CHECKER =
+    public static final ReferenceCountedObject<TimeoutChecker> TIMEOUT_CHECKER =
             new ReferenceCountedObject<TimeoutChecker>() {
                 @Override
                 protected void destroyInstance(final TimeoutChecker instance) {
@@ -62,11 +65,11 @@ final class TimeoutChecker {
     private final Object stateLock = new Object();
 
     /**
-     * The connection set must be safe from CMEs because expiring requests can
-     * cause the connection to be closed.
+     * The listener set must be safe from CMEs. For example, if the listener is
+     * a connection, expiring requests can cause the connection to be closed.
      */
-    private final Set<LDAPConnection> connections =
-            newSetFromMap(new ConcurrentHashMap<LDAPConnection, Boolean>());
+    private final Set<TimeoutEventListener> listeners =
+            newSetFromMap(new ConcurrentHashMap<TimeoutEventListener, Boolean>());
 
     /**
      * Used to signal thread shutdown.
@@ -74,48 +77,46 @@ final class TimeoutChecker {
     private volatile boolean shutdownRequested = false;
 
     /**
-     * Used for signalling that new connections have been added while performing
-     * timeout processing.
+     * Contains the minimum delay for listeners which were added while the
+     * timeout check was not sleeping (i.e. while it was processing listeners).
      */
-    private volatile boolean pendingNewConnections = false;
+    private volatile long pendingListenerMinDelay = Long.MAX_VALUE;
 
     private TimeoutChecker() {
-        final Thread checkerThread = new Thread("OpenDJ LDAP SDK Connection Timeout Checker") {
+        final Thread checkerThread = new Thread("OpenDJ LDAP SDK Timeout Checker") {
             @Override
             public void run() {
                 DEBUG_LOG.fine("Timeout Checker Starting");
                 while (!shutdownRequested) {
-                    final long currentTime = System.currentTimeMillis();
-                    long delay = 0;
                     /*
-                     * New connections may be added during iteration and may be
-                     * missed resulting in the timeout checker waiting longer
-                     * than it should, or even forever (e.g. if the new
-                     * connection is the first).
+                     * New listeners may be added during iteration and may not
+                     * be included in the computation of the new delay. This
+                     * could potentially result in the timeout checker waiting
+                     * longer than it should, or even forever (e.g. if the new
+                     * listener is the first).
                      */
-                    pendingNewConnections = false;
-                    for (final LDAPConnection connection : connections) {
+                    final long currentTime = System.currentTimeMillis();
+                    long delay = Long.MAX_VALUE;
+                    pendingListenerMinDelay = Long.MAX_VALUE;
+                    for (final TimeoutEventListener listener : listeners) {
                         if (DEBUG_LOG.isLoggable(Level.FINER)) {
-                            DEBUG_LOG.finer("Checking connection " + connection + " delay = "
+                            DEBUG_LOG.finer("Checking listener " + listener + " delay = "
                                     + delay);
                         }
-
                         // May update the connections set.
-                        final long newDelay = connection.cancelExpiredRequests(currentTime);
+                        final long newDelay = listener.handleTimeout(currentTime);
                         if (newDelay > 0) {
-                            if (delay > 0) {
-                                delay = Math.min(newDelay, delay);
-                            } else {
-                                delay = newDelay;
-                            }
+                            delay = Math.min(newDelay, delay);
                         }
                     }
 
                     try {
                         synchronized (stateLock) {
-                            if (shutdownRequested || pendingNewConnections) {
-                                // Loop immediately.
-                                pendingNewConnections = false;
+                            // Include any pending listener delays.
+                            delay = Math.min(pendingListenerMinDelay, delay);
+                            if (shutdownRequested) {
+                                // Stop immediately.
+                                break;
                             } else if (delay <= 0) {
                                 /*
                                  * If there is at least one connection then the
@@ -137,16 +138,35 @@ final class TimeoutChecker {
         checkerThread.start();
     }
 
-    void addConnection(final LDAPConnection connection) {
-        connections.add(connection);
-        synchronized (stateLock) {
-            pendingNewConnections = true;
-            stateLock.notifyAll();
+    /**
+     * Registers a timeout event listener for timeout notification.
+     *
+     * @param listener
+     *            The timeout event listener.
+     */
+    public void addListener(final TimeoutEventListener listener) {
+        /*
+         * Only add the listener if it has a non-zero timeout. This assumes that
+         * the timeout is fixed.
+         */
+        final long timeout = listener.getTimeout();
+        if (timeout > 0) {
+            listeners.add(listener);
+            synchronized (stateLock) {
+                pendingListenerMinDelay = Math.min(pendingListenerMinDelay, timeout);
+                stateLock.notifyAll();
+            }
         }
     }
 
-    void removeConnection(final LDAPConnection connection) {
-        connections.remove(connection);
+    /**
+     * Deregisters a timeout event listener for timeout notification.
+     *
+     * @param listener
+     *            The timeout event listener.
+     */
+    public void removeListener(final TimeoutEventListener listener) {
+        listeners.remove(listener);
         // No need to signal.
     }
 

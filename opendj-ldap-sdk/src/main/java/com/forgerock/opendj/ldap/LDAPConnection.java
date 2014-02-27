@@ -87,7 +87,8 @@ import com.forgerock.opendj.util.Validator;
 /**
  * LDAP connection implementation.
  */
-final class LDAPConnection extends AbstractAsynchronousConnection implements Connection {
+final class LDAPConnection extends AbstractAsynchronousConnection implements Connection,
+        TimeoutEventListener {
     /**
      * A dummy SSL client engine configurator as SSLFilter only needs client
      * config. This prevents Grizzly from needlessly using JVM defaults which
@@ -385,6 +386,11 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements Con
     }
 
     @Override
+    public long getTimeout() {
+        return factory.getLDAPOptions().getTimeout(TimeUnit.MILLISECONDS);
+    }
+
+    @Override
     public <R extends ExtendedResult> FutureResult<R> extendedRequestAsync(
             final ExtendedRequest<R> request,
             final IntermediateResponseHandler intermediateResponseHandler,
@@ -568,7 +574,8 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements Con
         return builder.toString();
     }
 
-    long cancelExpiredRequests(final long currentTime) {
+    @Override
+    public long handleTimeout(final long currentTime) {
         final long timeout = factory.getLDAPOptions().getTimeout(TimeUnit.MILLISECONDS);
         if (timeout <= 0) {
             return 0;
@@ -701,7 +708,7 @@ final class LDAPConnection extends AbstractAsynchronousConnection implements Con
             } finally {
                 asn1Writer.recycle();
             }
-            factory.getTimeoutChecker().removeConnection(this);
+            factory.getTimeoutChecker().removeListener(this);
             connection.closeSilently();
             factory.releaseTransportAndTimeoutChecker();
         }

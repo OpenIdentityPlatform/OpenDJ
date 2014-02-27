@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2013-2014 ForgeRock AS.
  */
 
 package com.forgerock.opendj.util;
@@ -161,34 +162,36 @@ public class AsynchronousFutureResult<M, H extends ResultHandler<? super M>> imp
             return getState() > 1;
         }
 
-        void innerSetErrorResult(final ErrorResultException errorResult) {
-            if (setStatePending()) {
-                this.errorResult = errorResult;
-
-                try {
-                    // Invoke error result completion handler.
-                    if (handler != null) {
-                        handler.handleErrorResult(errorResult);
-                    }
-                } finally {
-                    releaseShared(FAIL); // Publishes errorResult.
-                }
+        boolean innerSetErrorResult(final ErrorResultException errorResult) {
+            if (!setStatePending()) {
+                return false;
             }
+            this.errorResult = errorResult;
+            try {
+                // Invoke error result completion handler.
+                if (handler != null) {
+                    handler.handleErrorResult(errorResult);
+                }
+            } finally {
+                releaseShared(FAIL); // Publishes errorResult.
+            }
+            return true;
         }
 
-        void innerSetResult(final M result) {
-            if (setStatePending()) {
-                this.result = result;
-
-                try {
-                    // Invoke result completion handler.
-                    if (handler != null) {
-                        handler.handleResult(result);
-                    }
-                } finally {
-                    releaseShared(SUCCESS); // Publishes result.
-                }
+        boolean innerSetResult(final M result) {
+            if (!setStatePending()) {
+                return false;
             }
+            this.result = result;
+            try {
+                // Invoke result completion handler.
+                if (handler != null) {
+                    handler.handleResult(result);
+                }
+            } finally {
+                releaseShared(SUCCESS); // Publishes result.
+            }
+            return true;
         }
 
         private M get0() throws ErrorResultException {
@@ -320,6 +323,42 @@ public class AsynchronousFutureResult<M, H extends ResultHandler<? super M>> imp
     @Override
     public final void handleResult(final M result) {
         sync.innerSetResult(result);
+    }
+
+    /**
+     * Attempts to set the error result associated with this future. If (i.e.
+     * {@code isDone() == true}) then the error result will be ignored and
+     * {@code false} will be returned, otherwise the result handler will be
+     * invoked if one was provided and, on returning {@code true}, any threads
+     * waiting on {@link #get} will be released and the provided error result
+     * will be thrown.
+     *
+     * @param errorResult
+     *            The error result.
+     * @return {@code false} if this future has already been completed, either
+     *         due to normal termination, an exception, or cancellation (i.e.
+     *         {@code isDone() == true}).
+     */
+    public final boolean tryHandleErrorResult(final ErrorResultException errorResult) {
+        return sync.innerSetErrorResult(errorResult);
+    }
+
+    /**
+     * Attempts to set the result associated with this future. If (i.e.
+     * {@code isDone() == true}) then the result will be ignored and
+     * {@code false} will be returned, otherwise the result handler will be
+     * invoked if one was provided and, on returning {@code true}, any threads
+     * waiting on {@link #get} will be released and the provided result will be
+     * returned.
+     *
+     * @param result
+     *            The result.
+     * @return {@code false} if this future has already been completed, either
+     *         due to normal termination, an exception, or cancellation (i.e.
+     *         {@code isDone() == true}).
+     */
+    public final boolean tryHandleResult(final M result) {
+        return sync.innerSetResult(result);
     }
 
     /**
