@@ -175,8 +175,6 @@ public class ConfigFileHandler
   /** The instance root directory for the Directory Server. */
   private String instanceRoot;
 
-
-
   /**
    * Creates a new instance of this config file handler.  No initialization
    * should be performed here, as all of that work should be done in the
@@ -200,8 +198,7 @@ public class ConfigFileHandler
     // configuration.  If so, then only do so if such a file exists.  If it
     // doesn't exist, then fall back on the active configuration file.
     this.configFile = configFile;
-    DirectoryEnvironmentConfig envConfig =
-         DirectoryServer.getEnvironmentConfig();
+    DirectoryEnvironmentConfig envConfig = DirectoryServer.getEnvironmentConfig();
     useLastKnownGoodConfig = envConfig.useLastKnownGoodConfiguration();
     File f;
     if (useLastKnownGoodConfig)
@@ -497,106 +494,21 @@ public class ConfigFileHandler
     }
 
 
-    // Determine the appropriate server root.  If it's not defined in the
-    // environment config, then try to figure it out from the location of the
-    // configuration file.
+    // Get the server root
     File rootFile = envConfig.getServerRoot();
     if (rootFile == null)
     {
-      try
-      {
-        File configDirFile = f.getParentFile();
-        if (configDirFile != null &&
-            CONFIG_DIR_NAME.equals(configDirFile.getName()))
-        {
-          /*
-           * Do a best effort to avoid having a relative representation (for
-           * instance to avoid having ../../../).
-           */
-          try
-          {
-            serverRoot = configDirFile.getParentFile().getCanonicalPath();
-          }
-          catch (IOException ioe)
-          {
-            // Best effort
-            serverRoot = configDirFile.getParentFile().getAbsolutePath();
-          }
-        }
-
-        if (serverRoot == null)
-        {
-          LocalizableMessage message = ERR_CONFIG_CANNOT_DETERMINE_SERVER_ROOT.get(
-              ENV_VAR_INSTALL_ROOT);
-          throw new InitializationException(message);
-        }
-      }
-      catch (InitializationException ie)
-      {
-        logger.traceException(ie);
-
-        throw ie;
-      }
-      catch (Exception e)
-      {
-        logger.traceException(e);
-
-        LocalizableMessage message =
-            ERR_CONFIG_CANNOT_DETERMINE_SERVER_ROOT.get(ENV_VAR_INSTALL_ROOT);
-        throw new InitializationException(message);
-      }
+      throw new InitializationException(ERR_CONFIG_CANNOT_DETERMINE_SERVER_ROOT.get(
+          ENV_VAR_INSTALL_ROOT));
     }
-    else
-    {
-      /*
-       * Do a best effort to avoid having a relative representation (for
-       * instance to avoid having ../../../).
-       */
-      try
-      {
-        serverRoot = rootFile.getCanonicalPath();
-      }
-      catch (IOException ioe)
-      {
-        // Best effort
-        serverRoot = rootFile.getAbsolutePath();
-      }
-    }
+    serverRoot = rootFile.getAbsolutePath();
 
-    // Determine the appropriate server root.  If it's not defined in the
-    // environment config, then try to figure it out from the location of the
-    // configuration file.
-    File instanceFile =
-        DirectoryEnvironmentConfig.getInstanceRootFromServerRoot(new File(
-          serverRoot));
-    if (instanceFile == null)
-    {
-      LocalizableMessage message =
-        ERR_CONFIG_CANNOT_DETERMINE_SERVER_ROOT.get(ENV_VAR_INSTALL_ROOT);
-        throw new InitializationException(message);
-    }
-    else
-    {
-      /*
-       * Do a best effort to avoid having a relative representation (for
-       * instance to avoid having ../../../).
-       */
-      try
-      {
-        instanceRoot = instanceFile.getCanonicalPath();
-      }
-      catch (IOException ioe)
-      {
-        // Best effort
-        instanceRoot = instanceFile.getAbsolutePath();
-      }
-    }
-
-
+    // Get the server instance root
+    File instanceFile = envConfig.getInstanceRoot();
+    instanceRoot = instanceFile.getAbsolutePath();
 
     // Register with the Directory Server as an alert generator.
     DirectoryServer.registerAlertGenerator(this);
-
 
     // Register with the Directory Server as the backend that should be used
     // when accessing the configuration.
