@@ -27,12 +27,13 @@
  */
 package org.opends.server.tools;
 
-import static org.forgerock.util.Utils.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.messages.UtilityMessages.*;
 import static com.forgerock.opendj.cli.Utils.CONFIRMATION_MAX_TRIES;
+import static com.forgerock.opendj.cli.Utils.canWrite;
+import static org.forgerock.util.Utils.joinAsString;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -793,7 +794,7 @@ public class InstallDS extends ConsoleApplication
       String rejectedFile = argParser.rejectedImportFileArg.getValue();
       if (rejectedFile != null)
       {
-        if (!Utils.canWrite(rejectedFile))
+        if (!canWrite(rejectedFile))
         {
           errorMessages.add(
               ERR_INSTALLDS_CANNOT_WRITE_REJECTED.get(rejectedFile));
@@ -802,7 +803,7 @@ public class InstallDS extends ConsoleApplication
       String skippedFile = argParser.skippedImportFileArg.getValue();
       if (skippedFile != null)
       {
-        if (!Utils.canWrite(skippedFile))
+        if (!canWrite(skippedFile))
         {
           errorMessages.add(ERR_INSTALLDS_CANNOT_WRITE_SKIPPED.get(
               skippedFile));
@@ -1323,7 +1324,7 @@ public class InstallDS extends ConsoleApplication
       String rejectedFile = argParser.rejectedImportFileArg.getValue();
       if (rejectedFile != null)
       {
-        while (!Utils.canWrite(rejectedFile))
+        while (!canWrite(rejectedFile))
         {
           println();
           println(ERR_INSTALLDS_CANNOT_WRITE_REJECTED.get(rejectedFile));
@@ -1343,7 +1344,7 @@ public class InstallDS extends ConsoleApplication
       String skippedFile = argParser.skippedImportFileArg.getValue();
       if (skippedFile != null)
       {
-        while (!Utils.canWrite(skippedFile))
+        while (!canWrite(skippedFile))
         {
           println();
           println(ERR_INSTALLDS_CANNOT_WRITE_SKIPPED.get(skippedFile));
@@ -1491,7 +1492,7 @@ public class InstallDS extends ConsoleApplication
         String rejectedFile = argParser.rejectedImportFileArg.getValue();
         if (rejectedFile != null)
         {
-          while (!Utils.canWrite(rejectedFile))
+          while (!canWrite(rejectedFile))
           {
             println();
             println(
@@ -1511,7 +1512,7 @@ public class InstallDS extends ConsoleApplication
         String skippedFile = argParser.skippedImportFileArg.getValue();
         if (skippedFile != null)
         {
-          while (!Utils.canWrite(skippedFile))
+          while (!canWrite(skippedFile))
           {
             println();
             println(ERR_INSTALLDS_CANNOT_WRITE_SKIPPED.get(skippedFile));

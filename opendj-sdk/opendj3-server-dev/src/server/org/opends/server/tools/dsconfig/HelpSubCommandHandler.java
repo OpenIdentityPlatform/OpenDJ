@@ -31,7 +31,7 @@ package org.opends.server.tools.dsconfig;
 import static org.opends.messages.DSConfigMessages.*;
 import static org.opends.messages.UtilityMessages.*;
 import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.util.ServerConstants.*;
+import static com.forgerock.opendj.cli.Utils.MAX_LINE_WIDTH;
 
 import java.io.PrintStream;
 import java.util.Collection;

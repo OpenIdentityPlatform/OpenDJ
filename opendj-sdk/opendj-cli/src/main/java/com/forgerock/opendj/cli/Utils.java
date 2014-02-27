@@ -489,6 +489,23 @@ final public class Utils {
         return msg;
     }
 
+    /**
+     * Returns <CODE>true</CODE> if we can write on the provided path and <CODE>false</CODE> otherwise.
+     *
+     * @param path
+     *            the path.
+     * @return <CODE>true</CODE> if we can write on the provided path and <CODE>false</CODE> otherwise.
+     */
+    public static boolean canWrite(String path) {
+        final File file = new File(path);
+        if (file.exists()) {
+            return file.canWrite();
+        }
+        final File parentFile = file.getParentFile();
+        return (parentFile != null && parentFile.canWrite());
+    }
+
+
     // Prevent instantiation.
     private Utils() {
         // Do nothing.

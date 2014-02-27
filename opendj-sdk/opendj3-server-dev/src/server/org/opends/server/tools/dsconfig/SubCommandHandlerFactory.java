@@ -42,6 +42,7 @@ import org.opends.server.admin.RelationDefinitionVisitor;
 import org.opends.server.admin.RelationOption;
 import org.opends.server.admin.SetRelationDefinition;
 import org.opends.server.admin.SingletonRelationDefinition;
+
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.SubCommandArgumentParser;
 

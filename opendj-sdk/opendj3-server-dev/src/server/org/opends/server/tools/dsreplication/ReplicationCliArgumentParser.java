@@ -30,6 +30,8 @@ package org.opends.server.tools.dsreplication;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.Utils.canWrite;
+import static org.opends.quicksetup.util.Utils.isDn;
 
 import java.io.File;
 import java.io.OutputStream;
@@ -40,7 +42,6 @@ import java.util.LinkedList;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.quicksetup.Constants;
-import org.opends.quicksetup.util.Utils;
 import org.opends.server.admin.AdministrationConnector;
 import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
 import org.opends.server.admin.client.cli.SecureConnectionCliParser;
@@ -414,7 +415,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
     if (equivalentCommandFileArgument.isPresent())
     {
       String file = equivalentCommandFileArgument.getValue();
-      if (!Utils.canWrite(file))
+      if (!canWrite(file))
       {
         errors.add(
             ERR_REPLICATION_CANNOT_WRITE_EQUIVALENT_COMMAND_LINE_FILE.get(
@@ -463,7 +464,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
       LinkedList<String> baseDNs = baseDNsArg.getValues();
       for (String dn : baseDNs)
       {
-        if (!Utils.isDn(dn))
+        if (!isDn(dn))
         {
           errors.add(ERR_REPLICATION_NOT_A_VALID_BASEDN.get(dn));
         }

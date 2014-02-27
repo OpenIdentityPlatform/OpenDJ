@@ -62,9 +62,8 @@ import com.forgerock.opendj.cli.Menu;
 import com.forgerock.opendj.cli.MenuBuilder;
 import com.forgerock.opendj.cli.MenuCallback;
 import com.forgerock.opendj.cli.MenuResult;
-
-import org.opends.server.util.table.TableBuilder;
-import org.opends.server.util.table.TextTablePrinter;
+import com.forgerock.opendj.cli.TableBuilder;
+import com.forgerock.opendj.cli.TextTablePrinter;
 
 import java.io.IOException;
 import java.io.InputStream;

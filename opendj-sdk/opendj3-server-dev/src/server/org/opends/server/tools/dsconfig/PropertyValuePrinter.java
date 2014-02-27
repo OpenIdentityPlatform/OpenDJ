@@ -26,14 +26,12 @@
  */
 package org.opends.server.tools.dsconfig;
 
-
-
-import java.text.NumberFormat;
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.LocalizableMessageBuilder;
-
 import static org.opends.messages.DSConfigMessages.*;
 
+import java.text.NumberFormat;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.admin.BooleanPropertyDefinition;
 import org.opends.server.admin.DurationPropertyDefinition;
 import org.opends.server.admin.DurationUnit;

@@ -481,28 +481,6 @@ public class Utils
   }
 
   /**
-   * Returns <CODE>true</CODE> if we can write on the provided path and
-   * <CODE>false</CODE> otherwise.
-   * @param path the path.
-   * @return <CODE>true</CODE> if we can write on the provided path and
-   * <CODE>false</CODE> otherwise.
-   */
-  public static boolean canWrite(String path)
-  {
-    boolean canWrite;
-    File file = new File(path);
-    if (file.exists())
-    {
-      canWrite = file.canWrite();
-    } else
-    {
-      File parentFile = file.getParentFile();
-      canWrite = parentFile != null && parentFile.canWrite();
-    }
-    return canWrite;
-  }
-
-  /**
    * Creates the a directory in the provided path.
    * @param path the path.
    * @return <CODE>true</CODE> if the path was created or already existed (and

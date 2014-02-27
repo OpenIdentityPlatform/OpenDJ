@@ -26,6 +26,21 @@
  */
 package org.opends.server.tools.dsconfig;
 
+
+
+import static com.forgerock.opendj.cli.ArgumentConstants.OPTION_LONG_HELP;
+import static com.forgerock.opendj.cli.ArgumentConstants.OPTION_SHORT_HELP;
+import static org.opends.messages.DSConfigMessages.*;
+
+import java.util.LinkedHashSet;
+
+import javax.naming.NamingException;
+import javax.naming.ldap.InitialLdapContext;
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.SSLException;
+import javax.net.ssl.SSLHandshakeException;
+import javax.net.ssl.TrustManager;
+
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.admin.ads.util.ApplicationTrustManager;
@@ -40,31 +55,16 @@ import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
 import org.opends.server.admin.client.ldap.LDAPConnection;
 import org.opends.server.admin.client.ldap.LDAPManagementContext;
 import org.opends.server.config.ConfigException;
-
-import com.forgerock.opendj.cli.ClientException;
-
 import org.opends.server.tools.JavaPropertiesTool.ErrorReturnCode;
-import static com.forgerock.opendj.cli.ArgumentConstants.OPTION_LONG_HELP;
-import static com.forgerock.opendj.cli.ArgumentConstants.OPTION_SHORT_HELP;
-import com.forgerock.opendj.cli.CommandBuilder;
-import com.forgerock.opendj.cli.ConsoleApplication;
 import org.opends.server.util.cli.LDAPConnectionConsoleInteraction;
 
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
+import com.forgerock.opendj.cli.ClientException;
+import com.forgerock.opendj.cli.CommandBuilder;
+import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.ReturnCode;
 import com.forgerock.opendj.cli.SubCommandArgumentParser;
-
-import java.util.LinkedHashSet;
-
-import javax.naming.NamingException;
-import javax.naming.ldap.InitialLdapContext;
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.SSLException;
-import javax.net.ssl.SSLHandshakeException;
-import javax.net.ssl.TrustManager;
-
-import static org.opends.messages.DSConfigMessages.*;
 
 
 /**

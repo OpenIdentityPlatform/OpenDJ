@@ -27,9 +27,11 @@
 package org.opends.server.admin.client.cli;
 
 import static com.forgerock.opendj.cli.CliMessages.INFO_DESCRIPTION_ADMIN_PORT;
-import static org.opends.server.tools.JavaPropertiesTool.ErrorReturnCode.*;
+import static com.forgerock.opendj.cli.Utils.LINE_SEPARATOR;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.ToolMessages.*;
+import static com.forgerock.opendj.cli.ReturnCode.SUCCESS;
+import static com.forgerock.opendj.cli.ReturnCode.CONFLICTING_ARGS;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
@@ -188,12 +190,6 @@ public final class SecureConnectionCliArgs
   private boolean configurationInitialized = false;
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  /**
-   * End Of Line.
-   */
-  public static String EOL = System.getProperty("line.separator");
-
-
   // Defines if the CLI always use the SSL connection type.
   private boolean alwaysSSL = false;
 
@@ -316,7 +312,7 @@ public final class SecureConnectionCliArgs
           try
           {
             err.write(wrapText(ex.getMessage(), MAX_LINE_WIDTH).getBytes());
-            err.write(EOL.getBytes());
+            err.write(LINE_SEPARATOR.getBytes());
           }
           catch (IOException e)
           {
@@ -348,7 +344,7 @@ public final class SecureConnectionCliArgs
           try
           {
             err.write(wrapText(ex.getMessage(), MAX_LINE_WIDTH).getBytes());
-            err.write(EOL.getBytes());
+            err.write(LINE_SEPARATOR.getBytes());
           }
           catch (IOException e)
           {
@@ -635,14 +631,14 @@ public final class SecureConnectionCliArgs
       {
         if (buf.length() > 0)
         {
-          buf.append(EOL);
+          buf.append(LINE_SEPARATOR);
         }
         buf.append(error);
       }
-      return CONFLICTING_ARGS.getReturnCode();
+      return CONFLICTING_ARGS.get();
     }
 
-    return SUCCESSFUL_NOP.getReturnCode();
+    return SUCCESS.get();
   }
   /**
    * Indication if provided global options are validate.

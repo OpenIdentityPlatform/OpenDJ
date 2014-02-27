@@ -28,11 +28,18 @@ package org.opends.server.tools.dsconfig;
 
 
 
-import static org.opends.messages.DSConfigMessages.*;
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.admin.PropertyException.*;
-import static org.opends.server.tools.dsconfig.ArgumentExceptionFactory.*;
 import static com.forgerock.opendj.cli.ArgumentConstants.LIST_TABLE_SEPARATOR;
+import static org.opends.messages.DSConfigMessages.*;
+import static org.opends.messages.ToolMessages.INFO_NAME_PLACEHOLDER;
+import static org.opends.messages.ToolMessages.INFO_PROPERTY_PLACEHOLDER;
+import static org.opends.messages.ToolMessages.INFO_TYPE_PLACEHOLDER;
+import static org.opends.messages.ToolMessages.INFO_VALUE_SET_PLACEHOLDER;
+import static org.opends.server.admin.PropertyException.
+propertyIsSingleValuedException;
+import static org.opends.server.tools.dsconfig.ArgumentExceptionFactory.
+displayMissingMandatoryPropertyException;
+import static org.opends.server.tools.dsconfig.ArgumentExceptionFactory.
+displayOperationRejectedException;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -52,7 +59,6 @@ import org.opends.server.admin.AbstractManagedObjectDefinition;
 import org.opends.server.admin.AggregationPropertyDefinition;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.ConfigurationClient;
-import org.opends.server.admin.PropertyException;
 import org.opends.server.admin.DefinitionDecodingException;
 import org.opends.server.admin.InstantiableRelationDefinition;
 import org.opends.server.admin.ManagedObjectAlreadyExistsException;
@@ -63,6 +69,7 @@ import org.opends.server.admin.ManagedObjectPath;
 import org.opends.server.admin.OptionalRelationDefinition;
 import org.opends.server.admin.PropertyDefinition;
 import org.opends.server.admin.PropertyDefinitionUsageBuilder;
+import org.opends.server.admin.PropertyException;
 import org.opends.server.admin.PropertyOption;
 import org.opends.server.admin.PropertyProvider;
 import org.opends.server.admin.RelationDefinition;
@@ -81,19 +88,18 @@ import org.opends.server.admin.condition.ContainsCondition;
 
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
-import com.forgerock.opendj.cli.ReturnCode;
-import com.forgerock.opendj.cli.StringArgument;
-import com.forgerock.opendj.cli.SubCommand;
-import com.forgerock.opendj.cli.SubCommandArgumentParser;
 import com.forgerock.opendj.cli.ClientException;
-
 import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.HelpCallback;
 import com.forgerock.opendj.cli.MenuBuilder;
 import com.forgerock.opendj.cli.MenuResult;
+import com.forgerock.opendj.cli.ReturnCode;
+import com.forgerock.opendj.cli.StringArgument;
+import com.forgerock.opendj.cli.SubCommand;
+import com.forgerock.opendj.cli.SubCommandArgumentParser;
+import com.forgerock.opendj.cli.TableBuilder;
+import com.forgerock.opendj.cli.TextTablePrinter;
 import com.forgerock.opendj.cli.ValidationCallback;
-import org.opends.server.util.table.TableBuilder;
-import org.opends.server.util.table.TextTablePrinter;
 
 
 

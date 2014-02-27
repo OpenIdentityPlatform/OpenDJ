@@ -25,7 +25,12 @@
  */
 package com.forgerock.opendj.cli;
 
+import java.io.File;
+import java.io.IOException;
+
 import org.testng.annotations.Test;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
 
 public class UtilsTestCase extends CliTestCase {
 
@@ -43,5 +48,22 @@ public class UtilsTestCase extends CliTestCase {
     @Test()
     public void testValidJavaVersion() throws ClientException {
         Utils.checkJavaVersion();
+    }
+
+    @Test()
+    public void testCanWriteOnNewFile() throws ClientException, IOException {
+        final File f = File.createTempFile("tempFile", ".txt");
+        f.deleteOnExit();
+        assertTrue(f.exists());
+        assertTrue(Utils.canWrite(f.getPath()));
+    }
+
+    @Test()
+    public void testCannotWriteOnNewFile() throws ClientException, IOException {
+        final File f = File.createTempFile("tempFile", ".txt");
+        f.setReadOnly();
+        f.deleteOnExit();
+        assertTrue(f.exists());
+        assertFalse(Utils.canWrite(f.getPath()));
     }
 }

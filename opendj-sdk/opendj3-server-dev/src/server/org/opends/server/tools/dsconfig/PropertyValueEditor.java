@@ -42,6 +42,7 @@ import java.util.TreeSet;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.util.Reject;
 import org.opends.server.admin.AbsoluteInheritedDefaultBehaviorProvider;
 import org.opends.server.admin.AbstractManagedObjectDefinition;
 import org.opends.server.admin.AggregationPropertyDefinition;
@@ -53,7 +54,6 @@ import org.opends.server.admin.DefaultBehaviorProviderVisitor;
 import org.opends.server.admin.DefinedDefaultBehaviorProvider;
 import org.opends.server.admin.DefinitionDecodingException;
 import org.opends.server.admin.EnumPropertyDefinition;
-import org.opends.server.admin.PropertyException;
 import org.opends.server.admin.InstantiableRelationDefinition;
 import org.opends.server.admin.ManagedObjectDefinition;
 import org.opends.server.admin.ManagedObjectNotFoundException;
@@ -61,6 +61,7 @@ import org.opends.server.admin.ManagedObjectPath;
 import org.opends.server.admin.PropertyDefinition;
 import org.opends.server.admin.PropertyDefinitionUsageBuilder;
 import org.opends.server.admin.PropertyDefinitionVisitor;
+import org.opends.server.admin.PropertyException;
 import org.opends.server.admin.PropertyOption;
 import org.opends.server.admin.RelativeInheritedDefaultBehaviorProvider;
 import org.opends.server.admin.UndefinedDefaultBehaviorProvider;
@@ -69,19 +70,17 @@ import org.opends.server.admin.client.CommunicationException;
 import org.opends.server.admin.client.ManagedObject;
 import org.opends.server.admin.client.ManagedObjectDecodingException;
 import org.opends.server.admin.client.ManagementContext;
-import org.forgerock.util.Reject;
 
 import com.forgerock.opendj.cli.ClientException;
-import com.forgerock.opendj.cli.ReturnCode;
-
+import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.HelpCallback;
 import com.forgerock.opendj.cli.Menu;
 import com.forgerock.opendj.cli.MenuBuilder;
 import com.forgerock.opendj.cli.MenuCallback;
 import com.forgerock.opendj.cli.MenuResult;
+import com.forgerock.opendj.cli.ReturnCode;
 import com.forgerock.opendj.cli.TableBuilder;
 import com.forgerock.opendj.cli.TextTablePrinter;
-import com.forgerock.opendj.cli.ConsoleApplication;
 
 
 

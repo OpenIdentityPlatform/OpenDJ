@@ -28,18 +28,26 @@ package org.opends.server.tools.dsconfig;
 
 
 
-import java.io.BufferedReader;
-
-import static org.opends.messages.DSConfigMessages.*;
-import static org.opends.messages.ToolMessages.*;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
-import static org.opends.server.tools.dsconfig.ArgumentExceptionFactory.*;
-import static org.opends.server.util.ServerConstants.PROPERTY_SCRIPT_NAME;
-import static org.opends.server.util.StaticUtils.*;
-import static com.forgerock.opendj.cli.Utils.formatDateTimeStringForEquivalentCommand;
+import static com.forgerock.opendj.cli.CliMessages.*;
 import static com.forgerock.opendj.cli.Utils.SHELL_COMMENT_SEPARATOR;
+import static com.forgerock.opendj.cli.Utils.canWrite;
+import static com.forgerock.opendj.cli.Utils.filterExitCode;
+import static com.forgerock.opendj.cli.Utils.formatDateTimeStringForEquivalentCommand;
 import static com.forgerock.opendj.cli.Utils.getCurrentOperationDateMessage;
+import static com.forgerock.opendj.util.StaticUtils.stackTraceToSingleLineString;
+import static org.forgerock.util.Utils.closeSilently;
+import static org.opends.messages.DSConfigMessages.*;
+import static org.opends.messages.ToolMessages.ERR_DSCFG_ERROR_BATCH_FILE_AND_INTERACTIVE_INCOMPATIBLE;
+import static org.opends.messages.ToolMessages.ERR_DSCFG_ERROR_QUIET_AND_INTERACTIVE_INCOMPATIBLE;
+import static org.opends.messages.ToolMessages.INFO_CONFIGDS_TOOL_DESCRIPTION;
+import static org.opends.messages.ToolMessages.INFO_DESCRIPTION_CONFIG_OPTIONS_ARGS;
+import static org.opends.server.tools.dsconfig.ArgumentExceptionFactory.displayManagedObjectDecodingException;
+import static org.opends.server.tools.dsconfig.ArgumentExceptionFactory.displayMissingMandatoryPropertyException;
+import static org.opends.server.tools.dsconfig.ArgumentExceptionFactory.displayOperationRejectedException;
+import static org.opends.server.util.ServerConstants.PROPERTY_SCRIPT_NAME;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
@@ -61,7 +69,6 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.quicksetup.util.Utils;
 import org.opends.server.admin.AttributeTypePropertyDefinition;
 import org.opends.server.admin.ClassLoaderProvider;
 import org.opends.server.admin.ClassPropertyDefinition;
@@ -78,19 +85,19 @@ import org.opends.server.util.BuildVersion;
 import org.opends.server.util.EmbeddedUtils;
 
 import com.forgerock.opendj.cli.ArgumentException;
-import com.forgerock.opendj.cli.BooleanArgument;
-import com.forgerock.opendj.cli.CommonArguments;
-import com.forgerock.opendj.cli.StringArgument;
-import com.forgerock.opendj.cli.SubCommand;
-import com.forgerock.opendj.cli.SubCommandArgumentParser;
 import com.forgerock.opendj.cli.ArgumentGroup;
+import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.ClientException;
 import com.forgerock.opendj.cli.CommandBuilder;
+import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.Menu;
 import com.forgerock.opendj.cli.MenuBuilder;
 import com.forgerock.opendj.cli.MenuCallback;
 import com.forgerock.opendj.cli.MenuResult;
+import com.forgerock.opendj.cli.StringArgument;
+import com.forgerock.opendj.cli.SubCommand;
+import com.forgerock.opendj.cli.SubCommandArgumentParser;
 
 
 
@@ -777,16 +784,15 @@ public final class DSConfig extends ConsoleApplication {
     // equivalent non-interactive commands.
     if (equivalentCommandFileArgument.isPresent())
     {
-      String file = equivalentCommandFileArgument.getValue();
-      if (!Utils.canWrite(file))
+      final String file = equivalentCommandFileArgument.getValue();
+      if (!canWrite(file))
       {
         println(ERR_DSCFG_CANNOT_WRITE_EQUIVALENT_COMMAND_LINE_FILE.get(file));
         return 1;
       }
       else
       {
-        File f = new File(file);
-        if (f.isDirectory())
+        if (new File(file).isDirectory())
         {
           println(ERR_DSCFG_EQUIVALENT_COMMAND_LINE_FILE_DIRECTORY.get(file));
           return 1;
@@ -859,27 +865,21 @@ public final class DSConfig extends ConsoleApplication {
 
         return s1.compareToIgnoreCase(s2);
       }
-
     };
 
-    Set<RelationDefinition<?, ?>> relations;
-    Map<RelationDefinition<?, ?>, CreateSubCommandHandler<?, ?>> createHandlers;
-    Map<RelationDefinition<?, ?>, DeleteSubCommandHandler> deleteHandlers;
-    Map<RelationDefinition<?, ?>, ListSubCommandHandler> listHandlers;
-    Map<RelationDefinition<?, ?>, GetPropSubCommandHandler> getPropHandlers;
-    Map<RelationDefinition<?, ?>, SetPropSubCommandHandler> setPropHandlers;
+    final Set<RelationDefinition<?, ?>> relations =
+        new TreeSet<RelationDefinition<?, ?>>(c);
+    final Map<RelationDefinition<?, ?>, CreateSubCommandHandler<?, ?>> createHandlers =
+        new HashMap<RelationDefinition<?, ?>, CreateSubCommandHandler<?, ?>>();
+    final Map<RelationDefinition<?, ?>, DeleteSubCommandHandler> deleteHandlers =
+        new HashMap<RelationDefinition<?, ?>, DeleteSubCommandHandler>();
+    final Map<RelationDefinition<?, ?>, ListSubCommandHandler> listHandlers =
+        new HashMap<RelationDefinition<?, ?>, ListSubCommandHandler>();
+    final Map<RelationDefinition<?, ?>, GetPropSubCommandHandler> getPropHandlers =
+        new HashMap<RelationDefinition<?, ?>, GetPropSubCommandHandler>();
+    final Map<RelationDefinition<?, ?>, SetPropSubCommandHandler> setPropHandlers =
+        new HashMap<RelationDefinition<?, ?>, SetPropSubCommandHandler>();
 
-    relations = new TreeSet<RelationDefinition<?, ?>>(c);
-    createHandlers =
-      new HashMap<RelationDefinition<?, ?>, CreateSubCommandHandler<?, ?>>();
-    deleteHandlers =
-      new HashMap<RelationDefinition<?, ?>, DeleteSubCommandHandler>();
-    listHandlers =
-      new HashMap<RelationDefinition<?, ?>, ListSubCommandHandler>();
-    getPropHandlers =
-      new HashMap<RelationDefinition<?, ?>, GetPropSubCommandHandler>();
-    setPropHandlers =
-      new HashMap<RelationDefinition<?, ?>, SetPropSubCommandHandler>();
 
     for (CreateSubCommandHandler<?, ?> ch : handlerFactory
         .getCreateSubCommandHandlers()) {
@@ -1004,7 +1004,7 @@ public final class DSConfig extends ConsoleApplication {
 
       return 1;
     } catch (Exception e) {
-      println(LocalizableMessage.raw(stackTraceToString(e)));
+      println(LocalizableMessage.raw(stackTraceToSingleLineString(e, true)));
       return 1;
     }
   }
@@ -1120,7 +1120,7 @@ public final class DSConfig extends ConsoleApplication {
       }
       finally
       {
-        close(writer);
+        closeSilently(writer);
       }
     }
   }
@@ -1211,17 +1211,14 @@ public final class DSConfig extends ConsoleApplication {
         int exitCode =
                 main(allArgsArray, false, getOutputStream(), getErrorStream());
         if (exitCode != 0) {
-          bReader.close();
           System.exit(filterExitCode(exitCode));
         }
         errPrintln();
       }
-      bReader.close();
-
     } catch (IOException ex) {
       println(ERR_DSCFG_ERROR_READING_BATCH_FILE.get(ex));
     } finally {
-      close(bReader);
+      closeSilently(bReader);
     }
   }
 

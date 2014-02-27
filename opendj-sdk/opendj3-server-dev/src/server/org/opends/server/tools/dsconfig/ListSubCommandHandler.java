@@ -56,14 +56,13 @@ import org.opends.server.admin.client.ManagedObjectDecodingException;
 import org.opends.server.admin.client.ManagementContext;
 
 import com.forgerock.opendj.cli.ArgumentException;
+import com.forgerock.opendj.cli.ClientException;
+import com.forgerock.opendj.cli.ConsoleApplication;
+import com.forgerock.opendj.cli.MenuResult;
 import com.forgerock.opendj.cli.ReturnCode;
 import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.cli.SubCommand;
 import com.forgerock.opendj.cli.SubCommandArgumentParser;
-import com.forgerock.opendj.cli.ClientException;
-
-import com.forgerock.opendj.cli.ConsoleApplication;
-import com.forgerock.opendj.cli.MenuResult;
 import com.forgerock.opendj.cli.TableBuilder;
 import com.forgerock.opendj.cli.TablePrinter;
 import com.forgerock.opendj.cli.TextTablePrinter;
