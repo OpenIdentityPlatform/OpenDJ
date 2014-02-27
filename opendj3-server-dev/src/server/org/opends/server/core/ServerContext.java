@@ -26,7 +26,6 @@
 package org.opends.server.core;
 
 import org.opends.server.admin.server.ServerManagementContext;
-import org.opends.server.schema.SchemaUpdater;
 import org.opends.server.types.DirectoryEnvironmentConfig;
 import org.opends.server.types.Schema;
 
