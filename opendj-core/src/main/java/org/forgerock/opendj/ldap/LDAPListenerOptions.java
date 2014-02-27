@@ -22,30 +22,24 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions copyright 2012-2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
 
-import org.forgerock.util.Reject;
-
 /**
  * Common options for LDAP listeners.
  */
-public final class LDAPListenerOptions {
-
+public final class LDAPListenerOptions extends CommonLDAPOptions<LDAPListenerOptions> {
     private int backlog;
-    private DecodeOptions decodeOptions;
     private int maxRequestSize;
-    private ClassLoader providerClassLoader;
-    private String transportProvider;
 
     /**
      * Creates a new set of listener options with default settings. SSL will not
      * be enabled, and a default set of decode options will be used.
      */
     public LDAPListenerOptions() {
-        this.decodeOptions = new DecodeOptions();
+        super();
     }
 
     /**
@@ -56,11 +50,9 @@ public final class LDAPListenerOptions {
      *            The set of listener options to be copied.
      */
     public LDAPListenerOptions(final LDAPListenerOptions options) {
+        super(options);
         this.backlog = options.backlog;
         this.maxRequestSize = options.maxRequestSize;
-        this.decodeOptions = new DecodeOptions(options.decodeOptions);
-        this.providerClassLoader = options.providerClassLoader;
-        this.transportProvider = options.transportProvider;
     }
 
     /**
@@ -73,17 +65,6 @@ public final class LDAPListenerOptions {
      */
     public int getBacklog() {
         return backlog;
-    }
-
-    /**
-     * Returns the decoding options which will be used to control how requests
-     * and responses are decoded.
-     *
-     * @return The decoding options which will be used to control how requests
-     *         and responses are decoded (never {@code null}).
-     */
-    public DecodeOptions getDecodeOptions() {
-        return decodeOptions;
     }
 
     /**
@@ -114,23 +95,6 @@ public final class LDAPListenerOptions {
     }
 
     /**
-     * Sets the decoding options which will be used to control how requests and
-     * responses are decoded.
-     *
-     * @param decodeOptions
-     *            The decoding options which will be used to control how
-     *            requests and responses are decoded (never {@code null}).
-     * @return A reference to this LDAP listener options.
-     * @throws NullPointerException
-     *             If {@code decodeOptions} was {@code null}.
-     */
-    public LDAPListenerOptions setDecodeOptions(final DecodeOptions decodeOptions) {
-        Reject.ifNull(decodeOptions);
-        this.decodeOptions = decodeOptions;
-        return this;
-    }
-
-    /**
      * Sets the maximum request size in bytes for incoming LDAP requests. If an
      * incoming request exceeds the limit then the connection will be aborted by
      * the listener. If the limit is less than {@code 1} then a default value of
@@ -145,86 +109,8 @@ public final class LDAPListenerOptions {
         return this;
     }
 
-    /**
-     * Gets the class loader which will be used to load the
-     * {@code TransportProvider}.
-     * <p>
-     * By default this method will return {@code null} indicating that the
-     * default class loader will be used.
-     * <p>
-     * The transport provider is loaded using {@code java.util.ServiceLoader},
-     * the JDK service-provider loading facility. The provider must be
-     * accessible from the same class loader that was initially queried to
-     * locate the configuration file; note that this is not necessarily the
-     * class loader from which the file was actually loaded. This method allows
-     * to provide a class loader to be used for loading the provider.
-     *
-     * @return The class loader which will be used to load the transport
-     *         provider, or {@code null} if the default class loader should be
-     *         used.
-     */
-    public final ClassLoader getProviderClassLoader() {
-        return providerClassLoader;
-    }
-
-    /**
-     * Sets the class loader which will be used to load the
-     * {@code TransportProvider}.
-     * <p>
-     * The default class loader will be used if no class loader is set using
-     * this method.
-     * <p>
-     * The transport provider is loaded using {@code java.util.ServiceLoader},
-     * the JDK service-provider loading facility. The provider must be
-     * accessible from the same class loader that was initially queried to
-     * locate the configuration file; note that this is not necessarily the
-     * class loader from which the file was actually loaded. This method allows
-     * to provide a class loader to be used for loading the provider.
-     *
-     * @param classLoader
-     *            The class loader which will be used load the transport
-     *            provider, or {@code null} if the default class loader should
-     *            be used.
-     * @return A reference to this LDAP listener options.
-     */
-    public final LDAPListenerOptions setProviderClassLoader(ClassLoader classLoader) {
-        this.providerClassLoader = classLoader;
+    @Override
+    LDAPListenerOptions getThis() {
         return this;
     }
-
-    /**
-     * Returns the name of the provider used for transport.
-     * <p>
-     * Transport providers implement {@code TransportProvider} interface.
-     * <p>
-     * The name should correspond to the name of an existing provider, as
-     * returned by {@code TransportProvider#getName()} method.
-     *
-     * @return The name of transport provider. The name is {@code null} if no
-     *         specific provider has been selected. In that case, the first
-     *         provider found will be used.
-     */
-    public String getTransportProvider() {
-        return transportProvider;
-    }
-
-    /**
-     * Sets the name of the provider to use for transport.
-     * <p>
-     * Transport providers implement {@code TransportProvider} interface.
-     * <p>
-     * The name should correspond to the name of an existing provider, as
-     * returned by {@code TransportProvider#getName()} method.
-     *
-     * @param providerName
-     *            The name of transport provider, or {@code null} if no specific
-     *            provider is preferred. In that case, the first provider found
-     *            will be used.
-     * @return A reference to this LDAP listener options.
-     */
-    public LDAPListenerOptions setTransportProvider(String providerName) {
-        this.transportProvider = providerName;
-        return this;
-    }
-
 }

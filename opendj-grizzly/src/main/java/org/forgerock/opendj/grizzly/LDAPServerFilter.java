@@ -27,6 +27,8 @@
 
 package org.forgerock.opendj.grizzly;
 
+import static org.forgerock.opendj.grizzly.GrizzlyUtils.configureConnection;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.security.GeneralSecurityException;
@@ -36,6 +38,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLSession;
 
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.io.AbstractLDAPMessageHandler;
 import org.forgerock.opendj.io.LDAP;
 import org.forgerock.opendj.io.LDAPReader;
@@ -46,6 +49,7 @@ import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.IntermediateResponseHandler;
 import org.forgerock.opendj.ldap.LDAPClientContext;
+import org.forgerock.opendj.ldap.LDAPListenerOptions;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ResultHandler;
 import org.forgerock.opendj.ldap.SSLContextBuilder;
@@ -82,7 +86,6 @@ import org.glassfish.grizzly.filterchain.NextAction;
 import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
 import org.glassfish.grizzly.ssl.SSLFilter;
 import org.glassfish.grizzly.ssl.SSLUtils;
-
 import org.forgerock.util.Reject;
 
 /**
@@ -639,6 +642,8 @@ final class LDAPServerFilter extends LDAPBaseFilter {
     private static final Attribute<ServerRequestHandler> REQUEST_HANDLER_ATTR =
             Grizzly.DEFAULT_ATTRIBUTE_BUILDER.createAttribute("ServerRequestHandler");
 
+    private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
     /**
      * A dummy SSL client engine configurator as SSLFilter only needs server
      * config. This prevents Grizzly from needlessly using JVM defaults which
@@ -829,7 +834,9 @@ final class LDAPServerFilter extends LDAPBaseFilter {
     @Override
     public NextAction handleAccept(final FilterChainContext ctx) throws IOException {
         final Connection<?> connection = ctx.getConnection();
-        connection.configureBlocking(true);
+        LDAPListenerOptions options = listener.getLDAPListenerOptions();
+        configureConnection(connection, options.isTCPNoDelay(), options.isKeepAlive(), options
+                .isReuseAddress(), options.getLinger(), logger);
         try {
             final ClientContextImpl clientContext = new ClientContextImpl(connection);
             final ServerConnection<Integer> serverConn =
