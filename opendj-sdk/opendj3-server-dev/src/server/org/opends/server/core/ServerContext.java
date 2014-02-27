@@ -25,6 +25,9 @@
  */
 package org.opends.server.core;
 
+import org.opends.server.admin.server.ServerManagementContext;
+import org.opends.server.schema.SchemaUpdater;
+import org.opends.server.types.DirectoryEnvironmentConfig;
 import org.opends.server.types.Schema;
 
 /**
@@ -53,5 +56,20 @@ public interface ServerContext
    * @return the schema
    */
   public Schema getSchema();
+
+  /**
+   * Returns the environment of the server.
+   *
+   * @return the environment
+   */
+  public DirectoryEnvironmentConfig getEnvironment();
+
+  /**
+   * Returns the server management context, which gives
+   * an entry point on configuration objects.
+   *
+   * @return the server management context
+   */
+  public ServerManagementContext getServerManagementContext();
 
 }

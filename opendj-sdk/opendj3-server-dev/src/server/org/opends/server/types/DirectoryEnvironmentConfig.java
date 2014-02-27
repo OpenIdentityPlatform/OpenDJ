@@ -22,24 +22,27 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.types;
 
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.util.ServerConstants.*;
+
 import java.io.File;
+import java.io.IOException;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.api.ConfigHandler;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.ConfigFileHandler;
-
-import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.util.ServerConstants.*;
 
 /**
  * This class provides a set of properties that may control various
@@ -58,7 +61,7 @@ public final class DirectoryEnvironmentConfig
   /** The set of properties for the environment config. */
   private final Map<String, String> configProperties;
 
-
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * Creates a new directory environment configuration initialized
@@ -84,7 +87,7 @@ public final class DirectoryEnvironmentConfig
     configProperties = new HashMap<String,String>();
     if (properties != null)
     {
-      Enumeration propertyNames = properties.propertyNames();
+      Enumeration<?> propertyNames = properties.propertyNames();
       while (propertyNames.hasMoreElements())
       {
         Object o = propertyNames.nextElement();
@@ -176,34 +179,137 @@ public final class DirectoryEnvironmentConfig
     }
   }
 
-
-
   /**
    * Retrieves the directory that should be considered the server
-   * root.  The determination will first be based on the properties
-   * defined in this config object.  If no value is found there, then
+   * root.
+   * <p>
+   * The determination will first be based on the properties
+   * defined in this object.  If no value is found there, then
    * the JVM system properties will be checked, followed by an
-   * environment variable.
+   * environment variable. If there is still no value, then the
+   * location of the config file is used to determine the root.
    *
    * @return  The directory that should be considered the server root,
-   *          or {@code null} if it is not defined.
+   *          or {@code null} if it can't be determined.
    */
   public File getServerRoot()
   {
-    String serverRootPath = getProperty(PROPERTY_SERVER_ROOT);
-    if (serverRootPath == null)
+    File rootFile = null;
+    try
     {
-      serverRootPath = System.getenv(ENV_VAR_INSTALL_ROOT);
+      String serverRootPath = getProperty(PROPERTY_SERVER_ROOT);
+      if (serverRootPath == null)
+      {
+        serverRootPath = System.getenv(ENV_VAR_INSTALL_ROOT);
+      }
+      if (serverRootPath != null)
+      {
+        rootFile = new File(serverRootPath);
+        rootFile = forceNonRelativeFile(rootFile);
+      }
+      else
+      {
+        // try to figure out root
+        // from the location of the configuration file.
+        File configFile = getConfigFile();
+        File configDirFile = configFile.getParentFile();
+        if (configDirFile != null
+            && CONFIG_DIR_NAME.equals(configDirFile.getName()))
+        {
+          File parent = configDirFile.getParentFile();
+          rootFile = forceNonRelativeFile(parent);
+        }
+        else
+        {
+          logger.error(ERR_CONFIG_CANNOT_DETERMINE_SERVER_ROOT,
+              ENV_VAR_INSTALL_ROOT);
+        }
+      }
+    }
+    catch (Exception e)
+    {
+      logger.error(ERR_CONFIG_CANNOT_DETERMINE_SERVER_ROOT,
+          ENV_VAR_INSTALL_ROOT, e);
+    }
+    return rootFile;
+  }
+
+  /**
+   * Retrieves the path of the directory that should be considered the server
+   * root.
+   * <p>
+   * This method uses the same rules than {@code getServerRoot} method, but
+   * never returns {@code null}. If no directory can be found it returns as a
+   * last resort the value of "user.dir" system property.
+   *
+   * @return the path of the directory that should be considered the server
+   *         root.
+   */
+  public String getServerRootAsString() {
+    File serverRoot = getServerRoot();
+    if (serverRoot != null)
+    {
+      return serverRoot.getAbsolutePath();
+    }
+    // We don't know where the server root is, so we'll have to assume it's
+    // the current working directory.
+    return System.getProperty("user.dir");
+  }
+
+  /**
+   * Retrieves the directory that should be considered the instance
+   * root.
+   *
+   * @return  The directory that should be considered the instance
+   *          root or {@code null} if it can't be determined.
+   */
+  public File getInstanceRoot() {
+    File serverRoot = getServerRoot();
+    if (serverRoot != null)
+    {
+      File instanceRoot = new File(Utils.getInstancePathFromInstallPath(getServerRoot().getAbsolutePath()));
+      return forceNonRelativeFile(instanceRoot);
+    }
+    return null;
+  }
+
+  /**
+   * Retrieves the path of the directory that should be considered the instance
+   * root.
+   * <p>
+   * This method uses the same rules than {@code getInstanceRoot} method, but
+   * never returns {@code null}. If no directory can be found it returns as a
+   * last resort the value of "user.dir" system property.
+   *
+   * @return the path of the directory that should be considered the instance
+   *         root.
+   */
+  public String getInstanceRootAsString()
+  {
+    File instanceRoot = getInstanceRoot();
+    if (instanceRoot != null)
+    {
+      return instanceRoot.getAbsolutePath();
     }
 
-    if (serverRootPath == null)
+    // We don't know where the instance root is, so we'll have to assume it's
+    // the current working directory.
+    return System.getProperty("user.dir");
+  }
+
+  private File forceNonRelativeFile(File file) {
+    // Do a best effort to avoid having a relative representation
+    // (for instance to avoid having ../../../).
+    String path = null;
+    try
     {
-      return null;
+      path = file.getCanonicalPath();
     }
-    else
+    catch (IOException ioe)
     {
-      return new File(serverRootPath);
+      path = file.getAbsolutePath();
     }
+    return new File(path);
   }
 
   /**
@@ -220,8 +326,7 @@ public final class DirectoryEnvironmentConfig
    */
   public static File getInstanceRootFromServerRoot(File serverRoot)
   {
-    return new File(Utils.getInstancePathFromInstallPath(
-                                serverRoot.getAbsolutePath()));
+    return new File(Utils.getInstancePathFromInstallPath(serverRoot.getAbsolutePath()));
   }
 
 

@@ -766,6 +766,20 @@ public final class DirectoryServer
       return directoryServer.schema;
     }
 
+    /** {@inheritDoc} */
+    @Override
+    public DirectoryEnvironmentConfig getEnvironment()
+    {
+      return directoryServer.environmentConfig;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public ServerManagementContext getServerManagementContext()
+    {
+      return ServerManagementContext.getInstance();
+    }
+
   }
 
 
@@ -2836,22 +2850,7 @@ public final class DirectoryServer
   */
   public static String getServerRoot()
   {
-    if (directoryServer.configHandler == null)
-    {
-      File serverRoot = directoryServer.environmentConfig.getServerRoot();
-      if (serverRoot != null)
-      {
-        return serverRoot.getAbsolutePath();
-      }
-
-      // We don't know where the server root is, so we'll have to assume it's
-      // the current working directory.
-      return System.getProperty("user.dir");
-    }
-    else
-    {
-      return directoryServer.configHandler.getServerRoot();
-    }
+    return directoryServer.environmentConfig.getServerRootAsString();
   }
 
   /**
@@ -2863,28 +2862,7 @@ public final class DirectoryServer
    */
   public static String getInstanceRoot()
   {
-    if (directoryServer.configHandler == null)
-    {
-      File serverRoot = directoryServer.environmentConfig.getServerRoot();
-      if (serverRoot != null)
-      {
-        File instanceRoot =
-          DirectoryEnvironmentConfig.getInstanceRootFromServerRoot(
-              serverRoot);
-        if (instanceRoot != null)
-        {
-          return instanceRoot.getAbsolutePath();
-        }
-      }
-
-      // We don't know where the server root is, so we'll have to assume it's
-      // the current working directory.
-      return System.getProperty("user.dir");
-    }
-    else
-    {
-      return directoryServer.configHandler.getInstanceRoot();
-    }
+    return directoryServer.environmentConfig.getInstanceRootAsString();
   }
 
   /**
@@ -9015,6 +8993,23 @@ public final class DirectoryServer
     }
     serverLocked = true;
 
+    // Create an environment configuration for the server and populate a number
+    // of appropriate properties.
+    DirectoryEnvironmentConfig environmentConfig = new DirectoryEnvironmentConfig();
+    try
+    {
+      environmentConfig.setProperty(PROPERTY_CONFIG_CLASS, configClass.getValue());
+      environmentConfig.setProperty(PROPERTY_CONFIG_FILE, configFile.getValue());
+      environmentConfig.setProperty(PROPERTY_USE_LAST_KNOWN_GOOD_CONFIG,
+          String.valueOf(useLastKnownGoodConfig.isPresent()));
+    }
+    catch (Exception e)
+    {
+      // This shouldn't happen.  For the methods we are using, the exception is
+      // just a guard against making changes with the server running.
+      System.err.println("WARNING:  Unable to set environment properties in environment config : "
+          + stackTraceToSingleLineString(e));
+    }
 
     // Configure the JVM to delete the PID file on exit, if it exists.
     boolean pidFileMarkedForDeletion      = false;
@@ -9023,9 +9018,7 @@ public final class DirectoryServer
     {
       String pidFilePath;
       String startingFilePath;
-      String serverRoot = System.getenv(ENV_VAR_INSTALL_ROOT);
-      File instanceRoot = DirectoryEnvironmentConfig
-          .getInstanceRootFromServerRoot(new File(serverRoot));
+      File instanceRoot = environmentConfig.getInstanceRoot();
       if (instanceRoot == null)
       {
         pidFilePath      = "logs/server.pid";
@@ -9065,23 +9058,15 @@ public final class DirectoryServer
       // We need to figure out where to put the file.  See if the server root
       // is available as an environment variable and if so then use it.
       // Otherwise, try to figure it out from the location of the config file.
-      String serverRoot = System.getenv(ENV_VAR_INSTALL_ROOT);
-      if (serverRoot == null)
-      {
-        serverRoot = new File(configFile.getValue()).getParentFile().
-                              getParentFile().getAbsolutePath();
-      }
-
+      File serverRoot = environmentConfig.getServerRoot();
       if (serverRoot == null)
       {
         System.err.println("WARNING:  Unable to determine server root in " +
-                           "order to redirect standard output and standard " +
-                           "error.");
+            "order to redirect standard output and standard error.");
       }
       else
       {
-        File instanceRoot = DirectoryEnvironmentConfig
-            .getInstanceRootFromServerRoot(new File(serverRoot));
+        File instanceRoot = environmentConfig.getInstanceRoot();
         File logDir = new File(instanceRoot.getAbsolutePath() + File.separator
             + "logs");
         if (logDir.exists())
@@ -9141,26 +9126,6 @@ public final class DirectoryServer
     DebugLogPublisher startupDebugLogPublisher =
         DebugLogger.getInstance().addPublisherIfRequired(new TextWriter.STDOUT());
 
-    // Create an environment configuration for the server and populate a number
-    // of appropriate properties.
-    DirectoryEnvironmentConfig environmentConfig =
-         new DirectoryEnvironmentConfig();
-    try
-    {
-      environmentConfig.setProperty(PROPERTY_CONFIG_CLASS,
-                                    configClass.getValue());
-      environmentConfig.setProperty(PROPERTY_CONFIG_FILE,
-                                    configFile.getValue());
-      environmentConfig.setProperty(PROPERTY_USE_LAST_KNOWN_GOOD_CONFIG,
-           String.valueOf(useLastKnownGoodConfig.isPresent()));
-    }
-    catch (Exception e)
-    {
-      // This shouldn't happen.  For the methods we are using, the exception is
-      // just a guard against making changes with the server running.
-    }
-
-
     // Bootstrap and start the Directory Server.
     DirectoryServer theDirectoryServer = DirectoryServer.getInstance();
     try
@@ -9168,7 +9133,7 @@ public final class DirectoryServer
       theDirectoryServer.setEnvironmentConfig(environmentConfig);
       theDirectoryServer.bootstrapServer();
       theDirectoryServer.initializeConfiguration(configClass.getValue(),
-                                              configFile.getValue());
+          configFile.getValue());
     }
     catch (InitializationException ie)
     {
