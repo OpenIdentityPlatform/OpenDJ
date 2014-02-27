@@ -42,6 +42,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ConnectionEventListener;
+import org.forgerock.opendj.ldap.ConnectionException;
 import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.Connections;
 import org.forgerock.opendj.ldap.DN;
@@ -129,8 +130,9 @@ public class GrizzlyLDAPConnectionFactoryTestCase extends SdkTestCase {
                 try {
                     future.get(TEST_TIMEOUT, TimeUnit.SECONDS);
                     fail("The connect request succeeded unexpectedly");
-                } catch (TimeoutResultException e) {
-                    verifyResultCodeIsClientSideTimeout(e);
+                } catch (ConnectionException e) {
+                    assertThat(e.getResult().getResultCode()).isEqualTo(
+                            ResultCode.CLIENT_SIDE_CONNECT_ERROR);
                     verify(handler).handleErrorResult(same(e));
                 }
             }
