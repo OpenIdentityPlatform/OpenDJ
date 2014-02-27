@@ -20,8 +20,7 @@
  *
  * CDDL HEADER END
  *
- *
- *      Copyright 2013 ForgeRock AS.
+ *      Copyright 2013-2014 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap;
 
@@ -41,15 +40,16 @@ public interface TimeoutEventListener {
      * Handle a timeout event.
      *
      * @param currentTime
-     *            time to use as current time for any check
-     * @return the delay to wait before next timeout callback in milliseconds
+     *            Time to use as current time for any check.
+     * @return The delay to wait before next timeout callback in milliseconds,
+     *         or zero if this listener should no longer be notified.
      */
     long handleTimeout(final long currentTime);
 
     /**
      * Returns the timeout for this listener.
      *
-     * @return the timeout in milliseconds
+     * @return The timeout in milliseconds.
      */
     long getTimeout();
 
