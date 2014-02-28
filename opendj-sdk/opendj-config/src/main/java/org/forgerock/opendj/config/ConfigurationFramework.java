@@ -124,7 +124,7 @@ public final class ConfigurationFramework {
     }
 
     private static final String MANIFEST =
-            "META-INF/services/org.forgerock.opendj.config.AbstractManagedObjectDefinition";
+            "/META-INF/services/org.forgerock.opendj.config.AbstractManagedObjectDefinition";
 
     private static final LocalizedLogger adminLogger = LocalizedLogger
             .getLocalizedLogger(AdminMessages.resourceName());
