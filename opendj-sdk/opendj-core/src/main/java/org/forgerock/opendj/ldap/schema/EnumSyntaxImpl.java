@@ -23,13 +23,14 @@
  *
  *      Copyright 2009 Sun Microsystems, Inc.
  */
-
 package org.forgerock.opendj.ldap.schema;
 
 import static com.forgerock.opendj.util.StringPrepProfile.CASE_FOLD;
 import static com.forgerock.opendj.util.StringPrepProfile.TRIM;
 import static com.forgerock.opendj.util.StringPrepProfile.prepareUnicode;
 import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_LDAPSYNTAX_ENUM_INVALID_VALUE;
+
+import static org.forgerock.opendj.ldap.schema.AbstractMatchingRuleImpl.*;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.AMR_DOUBLE_METAPHONE_OID;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.EMR_CASE_IGNORE_OID;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.OMR_OID_GENERIC_ENUM;
@@ -131,14 +132,7 @@ final class EnumSyntaxImpl extends AbstractSyntaxImpl {
             }
         }
 
-        // Replace any consecutive spaces with a single space.
-        for (int pos = bufferLength - 1; pos > 0; pos--) {
-            if (buffer.charAt(pos) == ' ') {
-                if (buffer.charAt(pos - 1) == ' ') {
-                    buffer.delete(pos, pos + 1);
-                }
-            }
-        }
+        trimConsecutiveSpaces(buffer);
 
         return buffer.toString();
     }

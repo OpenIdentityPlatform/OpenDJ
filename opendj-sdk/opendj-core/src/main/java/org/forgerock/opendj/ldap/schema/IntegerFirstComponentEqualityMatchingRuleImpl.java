@@ -33,7 +33,6 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DecodeException;
 import com.forgerock.opendj.util.SubstringReader;
 
@@ -45,30 +44,23 @@ import com.forgerock.opendj.util.SubstringReader;
  * objectclass descriptions) in which the "first component" is the first item
  * after the opening parenthesis.
  */
-final class IntegerFirstComponentEqualityMatchingRuleImpl extends AbstractMatchingRuleImpl {
+final class IntegerFirstComponentEqualityMatchingRuleImpl extends AbstractEqualityMatchingRuleImpl {
 
     private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
     @Override
-    public Assertion getAssertion(final Schema schema, final ByteSequence value)
+    public Assertion getAssertion(final Schema schema, final ByteSequence assertionValue)
             throws DecodeException {
         try {
-            final String definition = value.toString();
+            final String definition = assertionValue.toString();
             final SubstringReader reader = new SubstringReader(definition);
             final int intValue = SchemaUtils.readRuleID(reader);
-
-            return new Assertion() {
-                public ConditionResult matches(final ByteSequence attributeValue) {
-                    final int actualIntValue = attributeValue.toByteString().toInt();
-                    return intValue == actualIntValue ? ConditionResult.TRUE
-                            : ConditionResult.FALSE;
-                }
-            };
+            return new DefaultEqualityAssertion(ByteString.valueOf(intValue));
         } catch (final Exception e) {
             logger.debug(LocalizableMessage.raw("%s", e));
 
             final LocalizableMessage message =
-                    ERR_EMR_INTFIRSTCOMP_FIRST_COMPONENT_NOT_INT.get(value.toString());
+                    ERR_EMR_INTFIRSTCOMP_FIRST_COMPONENT_NOT_INT.get(assertionValue.toString());
             throw DecodeException.error(message);
         }
 

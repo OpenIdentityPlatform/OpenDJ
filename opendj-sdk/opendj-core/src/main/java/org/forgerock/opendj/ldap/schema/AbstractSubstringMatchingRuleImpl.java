@@ -131,9 +131,9 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
     }
 
     @Override
-    public Assertion getAssertion(final Schema schema, final ByteSequence value)
+    public Assertion getAssertion(final Schema schema, final ByteSequence assertionValue)
             throws DecodeException {
-        if (value.length() == 0) {
+        if (assertionValue.length() == 0) {
             throw DecodeException.error(WARN_ATTR_SYNTAX_SUBSTRING_EMPTY.get());
         }
 
@@ -141,7 +141,7 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
         ByteSequence finalString = null;
         List<ByteSequence> anyStrings = null;
 
-        final String valueString = value.toString();
+        final String valueString = assertionValue.toString();
 
         if (valueString.length() == 1 && valueString.charAt(0) == '*') {
             return getSubstringAssertion(schema, initialString, anyStrings, finalString);
@@ -155,7 +155,7 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
             initialString = normalizeSubString(schema, bytes);
         }
         if (reader.remaining() == 0) {
-            throw DecodeException.error(WARN_ATTR_SYNTAX_SUBSTRING_NO_WILDCARDS.get(value
+            throw DecodeException.error(WARN_ATTR_SYNTAX_SUBSTRING_NO_WILDCARDS.get(assertionValue
                     .toString()));
         }
         while (true) {
@@ -164,7 +164,7 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
             if (reader.remaining() > 0) {
                 if (bytes.length() == 0) {
                     throw DecodeException.error(WARN_ATTR_SYNTAX_SUBSTRING_CONSECUTIVE_WILDCARDS
-                            .get(value.toString(), reader.pos()));
+                            .get(assertionValue.toString(), reader.pos()));
                 }
                 if (anyStrings == null) {
                     anyStrings = new LinkedList<ByteSequence>();

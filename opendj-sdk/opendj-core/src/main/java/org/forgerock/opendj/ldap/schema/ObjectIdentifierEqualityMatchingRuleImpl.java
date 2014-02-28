@@ -40,7 +40,7 @@ import com.forgerock.opendj.util.SubstringReader;
  * either an attribute/objectclass name or a numeric OID. NOTE: This matching
  * rule requires a schema to lookup object identifiers in the descriptor form.
  */
-final class ObjectIdentifierEqualityMatchingRuleImpl extends AbstractMatchingRuleImpl {
+final class ObjectIdentifierEqualityMatchingRuleImpl extends AbstractEqualityMatchingRuleImpl {
     static String resolveNames(final Schema schema, final String oid) {
         if (!StaticUtils.isDigit(oid.charAt(0))) {
             // Do an best effort attempt to normalize names to OIDs.
@@ -97,9 +97,9 @@ final class ObjectIdentifierEqualityMatchingRuleImpl extends AbstractMatchingRul
     }
 
     @Override
-    public Assertion getAssertion(final Schema schema, final ByteSequence value)
+    public Assertion getAssertion(final Schema schema, final ByteSequence assertionValue)
             throws DecodeException {
-        final String definition = value.toString();
+        final String definition = assertionValue.toString();
         final SubstringReader reader = new SubstringReader(definition);
         final String normalized =
                 resolveNames(schema, SchemaUtils.readOID(reader, schema

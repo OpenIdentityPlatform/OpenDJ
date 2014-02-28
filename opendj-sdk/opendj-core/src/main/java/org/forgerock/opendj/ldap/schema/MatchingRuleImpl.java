@@ -47,23 +47,23 @@ public interface MatchingRuleImpl {
      * @return A comparator that can be used to compare the attribute values
      *         normalized by this matching rule.
      */
-    public Comparator<ByteSequence> comparator(Schema schema);
+    Comparator<ByteSequence> comparator(Schema schema);
 
     /**
      * Retrieves the normalized form of the provided assertion value, which is
      * best suited for efficiently performing matching operations on that value.
-     * The assertion value is guarenteed to be valid against this matching
+     * The assertion value is guaranteed to be valid against this matching
      * rule's assertion syntax.
      *
      * @param schema
      *            The schema in which this matching rule is defined.
-     * @param value
+     * @param assertionValue
      *            The syntax checked assertion value to be normalized.
      * @return The normalized version of the provided assertion value.
      * @throws DecodeException
-     *             if an syntax error occured while parsing the value.
+     *             if an syntax error occurred while parsing the value.
      */
-    public Assertion getAssertion(Schema schema, ByteSequence value) throws DecodeException;
+    Assertion getAssertion(Schema schema, ByteSequence assertionValue) throws DecodeException;
 
     /**
      * Retrieves the normalized form of the provided assertion substring values,
@@ -83,16 +83,16 @@ public interface MatchingRuleImpl {
      *            the end of the target value.
      * @return The normalized version of the provided assertion value.
      * @throws DecodeException
-     *             if an syntax error occured while parsing the value.
+     *             if an syntax error occurred while parsing the value.
      */
-    public Assertion getSubstringAssertion(Schema schema, ByteSequence subInitial,
+    Assertion getSubstringAssertion(Schema schema, ByteSequence subInitial,
             List<? extends ByteSequence> subAnyElements, ByteSequence subFinal)
             throws DecodeException;
 
     /**
      * Retrieves the normalized form of the provided assertion value, which is
      * best suited for efficiently performing greater than or equal matching
-     * operations on that value. The assertion value is guarenteed to be valid
+     * operations on that value. The assertion value is guaranteed to be valid
      * against this matching rule's assertion syntax.
      *
      * @param schema
@@ -101,15 +101,15 @@ public interface MatchingRuleImpl {
      *            The syntax checked assertion value to be normalized.
      * @return The normalized version of the provided assertion value.
      * @throws DecodeException
-     *             if an syntax error occured while parsing the value.
+     *             if an syntax error occurred while parsing the value.
      */
-    public Assertion getGreaterOrEqualAssertion(Schema schema, ByteSequence value)
+    Assertion getGreaterOrEqualAssertion(Schema schema, ByteSequence value)
             throws DecodeException;
 
     /**
      * Retrieves the normalized form of the provided assertion value, which is
      * best suited for efficiently performing greater than or equal matching
-     * operations on that value. The assertion value is guarenteed to be valid
+     * operations on that value. The assertion value is guaranteed to be valid
      * against this matching rule's assertion syntax.
      *
      * @param schema
@@ -118,9 +118,9 @@ public interface MatchingRuleImpl {
      *            The syntax checked assertion value to be normalized.
      * @return The normalized version of the provided assertion value.
      * @throws DecodeException
-     *             if an syntax error occured while parsing the value.
+     *             if an syntax error occurred while parsing the value.
      */
-    public Assertion getLessOrEqualAssertion(Schema schema, ByteSequence value)
+    Assertion getLessOrEqualAssertion(Schema schema, ByteSequence value)
             throws DecodeException;
 
     /**
@@ -133,8 +133,9 @@ public interface MatchingRuleImpl {
      *            The attribute value to be normalized.
      * @return The normalized version of the provided attribute value.
      * @throws DecodeException
-     *             if an syntax error occured while parsing the value.
+     *             if an syntax error occurred while parsing the value.
      */
-    public ByteString normalizeAttributeValue(Schema schema, ByteSequence value)
+    ByteString normalizeAttributeValue(Schema schema, ByteSequence value)
             throws DecodeException;
+
 }

@@ -36,7 +36,7 @@ import org.forgerock.opendj.ldap.DecodeException;
  * This class defines the distinguishedNameMatch matching rule defined in X.520
  * and referenced in RFC 2252.
  */
-final class DistinguishedNameEqualityMatchingRuleImpl extends AbstractMatchingRuleImpl {
+final class DistinguishedNameEqualityMatchingRuleImpl extends AbstractEqualityMatchingRuleImpl {
 
     /**
      * {@inheritDoc}

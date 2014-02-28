@@ -36,14 +36,14 @@ import org.forgerock.opendj.ldap.DecodeException;
  * consider two values approximately equal only if they have the same length. It
  * is intended purely for testing purposes.
  */
-final class EqualLengthApproximateMatchingRuleImpl extends AbstractMatchingRuleImpl {
+final class EqualLengthApproximateMatchingRuleImpl extends AbstractApproximateMatchingRuleImpl {
     @Override
-    public Assertion getAssertion(final Schema schema, final ByteSequence value)
+    public Assertion getAssertion(final Schema schema, final ByteSequence assertionValue)
             throws DecodeException {
         return new Assertion() {
+            @Override
             public ConditionResult matches(final ByteSequence attributeValue) {
-                return attributeValue.length() == value.length() ? ConditionResult.TRUE
-                        : ConditionResult.FALSE;
+                return ConditionResult.valueOf(attributeValue.length() == assertionValue.length());
             }
         };
     }
@@ -51,6 +51,7 @@ final class EqualLengthApproximateMatchingRuleImpl extends AbstractMatchingRuleI
     /**
      * {@inheritDoc}
      */
+    @Override
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value) {
         return value.toByteString();
     }

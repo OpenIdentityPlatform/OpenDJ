@@ -38,7 +38,7 @@ import org.forgerock.opendj.ldap.DecodeException;
  * This class defines the bitStringMatch matching rule defined in X.520 and
  * referenced in RFC 2252.
  */
-final class BitStringEqualityMatchingRuleImpl extends AbstractMatchingRuleImpl {
+final class BitStringEqualityMatchingRuleImpl extends AbstractEqualityMatchingRuleImpl {
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value)
             throws DecodeException {
         final String valueString = value.toString().toUpperCase();

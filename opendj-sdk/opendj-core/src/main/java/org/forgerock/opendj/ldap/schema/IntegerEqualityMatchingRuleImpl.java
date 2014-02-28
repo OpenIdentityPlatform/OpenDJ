@@ -38,20 +38,18 @@ import org.forgerock.opendj.ldap.DecodeException;
  * This class defines the integerMatch matching rule defined in X.520 and
  * referenced in RFC 2252.
  */
-final class IntegerEqualityMatchingRuleImpl extends AbstractMatchingRuleImpl {
+final class IntegerEqualityMatchingRuleImpl extends AbstractEqualityMatchingRuleImpl {
 
     private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
+    @Override
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value)
             throws DecodeException {
         try {
             return ByteString.valueOf(Integer.parseInt(value.toString()));
         } catch (final Exception e) {
             logger.debug(LocalizableMessage.raw("%s", e));
-
-            final LocalizableMessage message =
-                    WARN_ATTR_SYNTAX_ILLEGAL_INTEGER.get(value.toString());
-            throw DecodeException.error(message);
+            throw DecodeException.error(WARN_ATTR_SYNTAX_ILLEGAL_INTEGER.get(value));
         }
     }
 }

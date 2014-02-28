@@ -811,7 +811,7 @@ final class CoreSchemaImpl {
                 .syntaxOID(SYNTAX_NAME_AND_OPTIONAL_UID_OID).extraProperties(RFC4512_ORIGIN)
                 .implementation(new UniqueMemberEqualityMatchingRuleImpl()).addToSchema();
         builder.buildMatchingRule(EMR_WORD_OID).names(EMR_WORD_NAME).syntaxOID(SYNTAX_DIRECTORY_STRING_OID)
-                .extraProperties(RFC4512_ORIGIN).implementation(new WordEqualityMatchingRuleImpl())
+                .extraProperties(RFC4512_ORIGIN).implementation(new KeywordEqualityMatchingRuleImpl())
                 .addToSchema();
     }
 

@@ -33,7 +33,7 @@ import org.forgerock.opendj.ldap.DecodeException;
  * This class implements the authPasswordMatch matching rule defined in RFC
  * 3112.
  */
-final class AuthPasswordExactEqualityMatchingRuleImpl extends AbstractMatchingRuleImpl {
+final class AuthPasswordExactEqualityMatchingRuleImpl extends AbstractEqualityMatchingRuleImpl {
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value)
             throws DecodeException {
         final StringBuilder[] authPWComponents =

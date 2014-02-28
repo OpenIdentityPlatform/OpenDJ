@@ -45,11 +45,11 @@ import com.forgerock.opendj.util.SubstringReader;
  * objectclass descriptions) in which the "first component" is the first item
  * after the opening parenthesis.
  */
-final class ObjectIdentifierFirstComponentEqualityMatchingRuleImpl extends AbstractMatchingRuleImpl {
+final class ObjectIdentifierFirstComponentEqualityMatchingRuleImpl extends AbstractEqualityMatchingRuleImpl {
     @Override
-    public Assertion getAssertion(final Schema schema, final ByteSequence value)
+    public Assertion getAssertion(final Schema schema, final ByteSequence assertionValue)
             throws DecodeException {
-        final String definition = value.toString();
+        final String definition = assertionValue.toString();
         final SubstringReader reader = new SubstringReader(definition);
         final String normalized =
                 ObjectIdentifierEqualityMatchingRuleImpl.resolveNames(schema, SchemaUtils.readOID(

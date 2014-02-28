@@ -36,7 +36,7 @@ import org.forgerock.opendj.ldap.ByteString;
  * This class defines the caseIgnoreMatch matching rule defined in X.520 and
  * referenced in RFC 2252.
  */
-final class CaseIgnoreEqualityMatchingRuleImpl extends AbstractMatchingRuleImpl {
+final class CaseIgnoreEqualityMatchingRuleImpl extends AbstractEqualityMatchingRuleImpl {
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value) {
         final StringBuilder buffer = new StringBuilder();
         prepareUnicode(buffer, value, TRIM, CASE_FOLD);
@@ -53,14 +53,7 @@ final class CaseIgnoreEqualityMatchingRuleImpl extends AbstractMatchingRuleImpl 
             }
         }
 
-        // Replace any consecutive spaces with a single space.
-        for (int pos = bufferLength - 1; pos > 0; pos--) {
-            if (buffer.charAt(pos) == ' ') {
-                if (buffer.charAt(pos - 1) == ' ') {
-                    buffer.delete(pos, pos + 1);
-                }
-            }
-        }
+        trimConsecutiveSpaces(buffer);
 
         return ByteString.valueOf(buffer.toString());
     }

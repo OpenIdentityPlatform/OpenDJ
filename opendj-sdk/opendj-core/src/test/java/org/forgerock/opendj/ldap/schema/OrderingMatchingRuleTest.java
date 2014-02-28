@@ -79,16 +79,13 @@ public abstract class OrderingMatchingRuleTest extends SchemaTestCase {
         }
 
         Assertion a = ruleInstance.getGreaterOrEqualAssertion(ByteString.valueOf(value2));
-        Assert.assertEquals(a.matches(normalizedValue1), result >= 0 ? ConditionResult.TRUE
-                : ConditionResult.FALSE);
+        Assert.assertEquals(a.matches(normalizedValue1), ConditionResult.valueOf(result >= 0));
 
         a = ruleInstance.getLessOrEqualAssertion(ByteString.valueOf(value2));
-        Assert.assertEquals(a.matches(normalizedValue1), result <= 0 ? ConditionResult.TRUE
-                : ConditionResult.FALSE);
+        Assert.assertEquals(a.matches(normalizedValue1), ConditionResult.valueOf(result <= 0));
 
         a = ruleInstance.getAssertion(ByteString.valueOf(value2));
-        Assert.assertEquals(a.matches(normalizedValue1), result < 0 ? ConditionResult.TRUE
-                : ConditionResult.FALSE);
+        Assert.assertEquals(a.matches(normalizedValue1), ConditionResult.valueOf(result < 0));
     }
 
     /**

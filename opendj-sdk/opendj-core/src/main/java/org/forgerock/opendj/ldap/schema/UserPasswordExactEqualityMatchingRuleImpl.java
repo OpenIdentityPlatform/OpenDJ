@@ -36,7 +36,7 @@ import com.forgerock.opendj.util.StaticUtils;
  * simply compare encoded hashed password values to see if they are exactly
  * equal to each other.
  */
-final class UserPasswordExactEqualityMatchingRuleImpl extends AbstractMatchingRuleImpl {
+final class UserPasswordExactEqualityMatchingRuleImpl extends AbstractEqualityMatchingRuleImpl {
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value)
             throws DecodeException {
         // The normalized form of this matching rule is exactly equal to the
