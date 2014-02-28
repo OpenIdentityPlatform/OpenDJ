@@ -27,21 +27,14 @@
 
 package org.forgerock.opendj.grizzly;
 
-import static java.util.Arrays.asList;
 import static org.fest.assertions.Assertions.assertThat;
-import static org.forgerock.opendj.ldap.Connections.newFixedConnectionPool;
-import static org.forgerock.opendj.ldap.Connections.newHeartBeatConnectionFactory;
-import static org.forgerock.opendj.ldap.Connections.newLoadBalancer;
+import static org.forgerock.opendj.ldap.Connections.*;
 import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
-import static org.forgerock.opendj.ldap.TestCaseUtils.findFreeSocketAddress;
-import static org.forgerock.opendj.ldap.TestCaseUtils.getServerSocketAddress;
+import static org.forgerock.opendj.ldap.TestCaseUtils.*;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyInt;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
+import static org.mockito.Mockito.*;
+import static org.testng.Assert.*;
 
 import java.util.Arrays;
 import java.util.concurrent.Callable;
@@ -117,12 +110,14 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
             this.latch = latch;
         }
 
+        @Override
         public void handleErrorResult(final ErrorResultException error) {
             // came here.
             this.error = error;
             latch.countDown();
         }
 
+        @Override
         public void handleResult(final Connection con) {
             con.close();
             latch.countDown();
@@ -135,15 +130,20 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
      * @throws Exception
      *             If an unexpected problem occurs.
      */
-    @BeforeClass()
+    @BeforeClass
     public void startServer() throws Exception {
         TestCaseUtils.startServer();
+    }
+
+    @AfterClass
+    public void stopServer() throws Exception {
+        TestCaseUtils.stopServer();
     }
 
     /**
      * Disables logging before the tests.
      */
-    @BeforeClass()
+    @BeforeClass
     public void disableLogging() {
         TestCaseUtils.setDefaultLogLevel(Level.SEVERE);
     }
@@ -151,7 +151,7 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
     /**
      * Re-enable logging after the tests.
      */
-    @AfterClass()
+    @AfterClass
     public void enableLogging() {
         TestCaseUtils.setDefaultLogLevel(Level.INFO);
     }
@@ -383,6 +383,7 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
         when(mockFactory.getConnectionAsync(any(ResultHandler.class))).thenAnswer(
                 new Answer<FutureResult<Connection>>() {
 
+                    @Override
                     public FutureResult<Connection> answer(InvocationOnMock invocation)
                             throws Throwable {
                         // Update state.
@@ -392,6 +393,7 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
                         // Mock connection decrements counter on close.
                         Connection mockConnection = mock(Connection.class);
                         doAnswer(new Answer<Void>() {
+                            @Override
                             public Void answer(InvocationOnMock invocation) throws Throwable {
                                 realConnectionCount.decrementAndGet();
                                 realConnectionIsClosed[connectionID] = true;
@@ -538,6 +540,7 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
         when(mockServer.handleAccept(any(LDAPClientContext.class))).thenAnswer(
                 new Answer<ServerConnection<Integer>>() {
 
+                    @Override
                     public ServerConnection<Integer> answer(InvocationOnMock invocation)
                             throws Throwable {
                         // Allow the context to be accessed from outside the mock.
@@ -639,6 +642,7 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
         when(mockServer.handleAccept(any(LDAPClientContext.class))).thenAnswer(
                 new Answer<ServerConnection<Integer>>() {
 
+                    @Override
                     public ServerConnection<Integer> answer(InvocationOnMock invocation)
                             throws Throwable {
                         // Allow the context to be accessed from outside the mock.
@@ -686,7 +690,7 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
             + "closing the connection factory causes NPE")
     public void testFactoryCloseBeforeConnectionClose() throws Exception {
         final ConnectionFactory factory =
-                newLoadBalancer(new FailoverLoadBalancingAlgorithm(asList(newFixedConnectionPool(
+                newLoadBalancer(new FailoverLoadBalancingAlgorithm(Arrays.asList(newFixedConnectionPool(
                         newHeartBeatConnectionFactory(new LDAPConnectionFactory(getServerSocketAddress())), 2))));
         Connection conn = null;
         try {
