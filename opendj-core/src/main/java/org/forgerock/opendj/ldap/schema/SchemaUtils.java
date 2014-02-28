@@ -22,14 +22,13 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2014 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
 
-import static com.forgerock.opendj.util.StaticUtils.isAlpha;
-import static com.forgerock.opendj.util.StaticUtils.isDigit;
-import static com.forgerock.opendj.util.StaticUtils.isKeyChar;
 import static com.forgerock.opendj.ldap.CoreMessages.*;
+import static com.forgerock.opendj.util.StaticUtils.*;
+import static com.forgerock.opendj.util.StringPrepProfile.*;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -41,6 +40,8 @@ import java.util.Map;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ByteSequence;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 
 import com.forgerock.opendj.util.SubstringReader;
@@ -116,8 +117,7 @@ final class SchemaUtils {
 
             return values;
         } catch (final StringIndexOutOfBoundsException e) {
-            final LocalizableMessage message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE1.get();
-            throw DecodeException.error(message);
+            throw DecodeException.error(ERR_ATTR_SYNTAX_TRUNCATED_VALUE1.get());
         }
     }
 
@@ -162,8 +162,7 @@ final class SchemaUtils {
 
             return values;
         } catch (final StringIndexOutOfBoundsException e) {
-            final LocalizableMessage message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE1.get();
-            throw DecodeException.error(message);
+            throw DecodeException.error(ERR_ATTR_SYNTAX_TRUNCATED_VALUE1.get());
         }
     }
 
@@ -279,8 +278,7 @@ final class SchemaUtils {
         }
 
         if (length == 0) {
-            final LocalizableMessage message = ERR_ATTR_SYNTAX_OID_NO_VALUE1.get(reader.pos() - 1);
-            throw DecodeException.error(message);
+            throw DecodeException.error(ERR_ATTR_SYNTAX_OID_NO_VALUE1.get(reader.pos() - 1));
         }
 
         reader.reset();
@@ -336,13 +334,11 @@ final class SchemaUtils {
                         }
                     } else if (!isDigit(c)) {
                         // Technically, this must be an illegal character.
-                        // However,
-                        // it is possible that someone just got sloppy and did
-                        // not
+                        // However, it is possible that someone just got sloppy
+                        // and did not
                         // include a space between the name/OID and a closing
                         // parenthesis. In that case, we'll assume it's the end
-                        // of
-                        // the value.
+                        // of the value.
                         if (c == ')') {
                             break;
                         }
@@ -421,8 +417,7 @@ final class SchemaUtils {
 
             return oid;
         } catch (final StringIndexOutOfBoundsException e) {
-            final LocalizableMessage message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE1.get();
-            throw DecodeException.error(message);
+            throw DecodeException.error(ERR_ATTR_SYNTAX_TRUNCATED_VALUE1.get());
         }
     }
 
@@ -452,8 +447,7 @@ final class SchemaUtils {
 
             return values;
         } catch (final StringIndexOutOfBoundsException e) {
-            final LocalizableMessage message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE1.get();
-            throw DecodeException.error(message);
+            throw DecodeException.error(ERR_ATTR_SYNTAX_TRUNCATED_VALUE1.get());
         }
     }
 
@@ -495,8 +489,7 @@ final class SchemaUtils {
             reader.read();
             return str;
         } catch (final StringIndexOutOfBoundsException e) {
-            final LocalizableMessage message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE1.get();
-            throw DecodeException.error(message);
+            throw DecodeException.error(ERR_ATTR_SYNTAX_TRUNCATED_VALUE1.get());
         }
     }
 
@@ -536,12 +529,10 @@ final class SchemaUtils {
             try {
                 return Integer.valueOf(ruleID);
             } catch (final NumberFormatException e) {
-                final LocalizableMessage message = ERR_ATTR_SYNTAX_RULE_ID_INVALID1.get(ruleID);
-                throw DecodeException.error(message);
+                throw DecodeException.error(ERR_ATTR_SYNTAX_RULE_ID_INVALID1.get(ruleID));
             }
         } catch (final StringIndexOutOfBoundsException e) {
-            final LocalizableMessage message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE1.get();
-            throw DecodeException.error(message);
+            throw DecodeException.error(ERR_ATTR_SYNTAX_TRUNCATED_VALUE1.get());
         }
     }
 
@@ -570,8 +561,7 @@ final class SchemaUtils {
 
             return values;
         } catch (final StringIndexOutOfBoundsException e) {
-            final LocalizableMessage message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE1.get();
-            throw DecodeException.error(message);
+            throw DecodeException.error(ERR_ATTR_SYNTAX_TRUNCATED_VALUE1.get());
         }
     }
 
@@ -617,8 +607,7 @@ final class SchemaUtils {
 
             return token;
         } catch (final StringIndexOutOfBoundsException e) {
-            final LocalizableMessage message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE1.get();
-            throw DecodeException.error(message);
+            throw DecodeException.error(ERR_ATTR_SYNTAX_TRUNCATED_VALUE1.get());
         }
     }
 
@@ -725,14 +714,116 @@ final class SchemaUtils {
             reader.read();
             return descr;
         } catch (final StringIndexOutOfBoundsException e) {
-            final LocalizableMessage message = ERR_ATTR_SYNTAX_TRUNCATED_VALUE1.get();
-            throw DecodeException.error(message);
+            throw DecodeException.error(ERR_ATTR_SYNTAX_TRUNCATED_VALUE1.get());
         }
     }
 
     // Prevent instantiation.
     private SchemaUtils() {
         // Nothing to do.
+    }
+
+    private static ByteString singleSpaceOrEmpty(final ByteSequence value) {
+        if (value.length() > 0) {
+            // This should only happen if the value is composed entirely of
+            // spaces. In that case, the normalized value is a single space.
+            return SchemaConstants.SINGLE_SPACE_VALUE;
+        }
+        // The value is empty, so it is already normalized.
+        return ByteString.empty();
+    }
+
+    static ByteString normalizeStringListAttributeValue(final ByteSequence value, boolean trim, boolean foldCase) {
+        final StringBuilder buffer = new StringBuilder();
+        prepareUnicode(buffer, value, trim, foldCase);
+
+        if (buffer.length() == 0) {
+            return singleSpaceOrEmpty(value);
+        }
+        trimConsecutiveSpacesInStringList(buffer);
+        return ByteString.valueOf(buffer.toString());
+    }
+
+    private static void trimConsecutiveSpacesInStringList(StringBuilder buffer) {
+        // Replace any consecutive spaces with a single space. Any spaces
+        // around a dollar sign will also be removed.
+        for (int pos = buffer.length() - 1; pos > 0; pos--) {
+            if (buffer.charAt(pos) == ' ') {
+                final char c = buffer.charAt(pos - 1);
+                if (c == ' ') {
+                    buffer.delete(pos, pos + 1);
+                } else if (c == '$') {
+                    if (pos <= 1 || buffer.charAt(pos - 2) != '\\') {
+                        buffer.delete(pos, pos + 1);
+                    }
+                } else if (buffer.charAt(pos + 1) == '$') {
+                    buffer.delete(pos, pos + 1);
+                }
+            }
+        }
+    }
+
+    static ByteString normalizeStringAttributeValue(final ByteSequence value, final boolean trim,
+            final boolean foldCase) {
+        final StringBuilder buffer = new StringBuilder();
+        prepareUnicode(buffer, value, trim, foldCase);
+
+        if (buffer.length() == 0) {
+            return singleSpaceOrEmpty(value);
+        }
+        trimConsecutiveSpaces(buffer);
+        return ByteString.valueOf(buffer.toString());
+    }
+
+    private static void trimConsecutiveSpaces(StringBuilder buffer) {
+        for (int pos = buffer.length() - 1; pos > 0; pos--) {
+            if (buffer.charAt(pos) == ' '
+                    && buffer.charAt(pos - 1) == ' ') {
+                buffer.delete(pos, pos + 1);
+            }
+        }
+    }
+
+    static ByteString normalizeIA5StringAttributeValue(final ByteSequence value, boolean trim, boolean foldCase)
+            throws DecodeException {
+        final StringBuilder buffer = new StringBuilder();
+        prepareUnicode(buffer, value, trim, foldCase);
+
+        if (buffer.length() == 0) {
+            return singleSpaceOrEmpty(value);
+        }
+        trimConsecutiveSpacesInIA5String(buffer, value);
+        return ByteString.valueOf(buffer.toString());
+    }
+
+    private static void trimConsecutiveSpacesInIA5String(StringBuilder buffer, ByteSequence value)
+            throws DecodeException {
+        // Replace any consecutive spaces with a single space and watch out
+        // for non-ASCII characters.
+        for (int pos = buffer.length() - 1; pos > 0; pos--) {
+            final char c = buffer.charAt(pos);
+            if (c == ' ') {
+                if (buffer.charAt(pos - 1) == ' ') {
+                    buffer.delete(pos, pos + 1);
+                }
+            } else if ((c & 0x7F) != c) {
+                // This is not a valid character for an IA5 string. If strict
+                // syntax enforcement is enabled, then we'll throw an exception.
+                // Otherwise, we'll get rid of the character.
+                throw DecodeException.error(
+                        WARN_ATTR_SYNTAX_IA5_ILLEGAL_CHARACTER.get(value, c));
+            }
+        }
+    }
+
+    static ByteString normalizeNumericStringAttributeValue(final ByteSequence value) {
+        final StringBuilder buffer = new StringBuilder();
+        prepareUnicode(buffer, value, TRIM, NO_CASE_FOLD);
+
+        if (buffer.length() == 0) {
+            return ByteString.empty();
+        }
+        return ByteString.valueOf(buffer.toString());
     }
 
 }

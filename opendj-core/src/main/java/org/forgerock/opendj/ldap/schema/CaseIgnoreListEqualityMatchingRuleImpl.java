@@ -27,11 +27,10 @@
 package org.forgerock.opendj.ldap.schema;
 
 import static com.forgerock.opendj.util.StringPrepProfile.CASE_FOLD;
-import static com.forgerock.opendj.util.StringPrepProfile.TRIM;
-import static com.forgerock.opendj.util.StringPrepProfile.prepareUnicode;
-
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
+
+import static com.forgerock.opendj.util.StringPrepProfile.*;
 
 /**
  * This class implements the caseIgnoreListMatch matching rule defined in X.520
@@ -39,38 +38,6 @@ import org.forgerock.opendj.ldap.ByteString;
  */
 final class CaseIgnoreListEqualityMatchingRuleImpl extends AbstractEqualityMatchingRuleImpl {
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value) {
-        final StringBuilder buffer = new StringBuilder();
-        prepareUnicode(buffer, value, TRIM, CASE_FOLD);
-
-        final int bufferLength = buffer.length();
-        if (bufferLength == 0) {
-            if (value.length() > 0) {
-                // This should only happen if the value is composed entirely of
-                // spaces. In that case, the normalized value is a single space.
-                return SchemaConstants.SINGLE_SPACE_VALUE;
-            } else {
-                // The value is empty, so it is already normalized.
-                return ByteString.empty();
-            }
-        }
-
-        // Replace any consecutive spaces with a single space. Any spaces
-        // around a dollar sign will also be removed.
-        for (int pos = bufferLength - 1; pos > 0; pos--) {
-            if (buffer.charAt(pos) == ' ') {
-                final char c = buffer.charAt(pos - 1);
-                if (c == ' ') {
-                    buffer.delete(pos, pos + 1);
-                } else if (c == '$') {
-                    if (pos <= 1 || buffer.charAt(pos - 2) != '\\') {
-                        buffer.delete(pos, pos + 1);
-                    }
-                } else if (buffer.charAt(pos + 1) == '$') {
-                    buffer.delete(pos, pos + 1);
-                }
-            }
-        }
-
-        return ByteString.valueOf(buffer.toString());
+        return SchemaUtils.normalizeStringListAttributeValue(value, TRIM, CASE_FOLD);
     }
 }
