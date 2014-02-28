@@ -38,7 +38,7 @@ import org.forgerock.opendj.ldap.DecodeException;
  * This class defines the uuidMatch matching rule defined in RFC 4530. It will
  * be used as the default equality matching rule for the UUID syntax.
  */
-final class UUIDEqualityMatchingRuleImpl extends AbstractMatchingRuleImpl {
+final class UUIDEqualityMatchingRuleImpl extends AbstractEqualityMatchingRuleImpl {
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value)
             throws DecodeException {
         if (value.length() != 36) {

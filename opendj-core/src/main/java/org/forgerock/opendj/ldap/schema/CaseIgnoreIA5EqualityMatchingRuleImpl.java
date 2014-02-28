@@ -39,7 +39,7 @@ import org.forgerock.opendj.ldap.DecodeException;
  * This class implements the caseIgnoreIA5Match matching rule defined in RFC
  * 2252.
  */
-final class CaseIgnoreIA5EqualityMatchingRuleImpl extends AbstractMatchingRuleImpl {
+final class CaseIgnoreIA5EqualityMatchingRuleImpl extends AbstractEqualityMatchingRuleImpl {
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value)
             throws DecodeException {
         final StringBuilder buffer = new StringBuilder();

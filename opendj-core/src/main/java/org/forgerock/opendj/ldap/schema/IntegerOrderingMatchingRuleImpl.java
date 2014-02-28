@@ -42,16 +42,14 @@ final class IntegerOrderingMatchingRuleImpl extends AbstractOrderingMatchingRule
 
     private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
+    @Override
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value)
             throws DecodeException {
         try {
             return ByteString.valueOf(Integer.parseInt(value.toString()));
         } catch (final Exception e) {
             logger.debug(LocalizableMessage.raw("%s", e));
-
-            final LocalizableMessage message =
-                    WARN_ATTR_SYNTAX_ILLEGAL_INTEGER.get(value.toString());
-            throw DecodeException.error(message);
+            throw DecodeException.error(WARN_ATTR_SYNTAX_ILLEGAL_INTEGER.get(value));
         }
     }
 }

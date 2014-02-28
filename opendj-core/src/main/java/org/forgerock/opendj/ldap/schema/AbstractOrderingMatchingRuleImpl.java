@@ -40,14 +40,12 @@ abstract class AbstractOrderingMatchingRuleImpl extends AbstractMatchingRuleImpl
         // Nothing to do.
     }
 
-    @Override
     public Assertion getAssertion(final Schema schema, final ByteSequence value)
             throws DecodeException {
         final ByteString normAssertion = normalizeAttributeValue(schema, value);
         return new Assertion() {
             public ConditionResult matches(final ByteSequence attributeValue) {
-                return attributeValue.compareTo(normAssertion) < 0 ? ConditionResult.TRUE
-                        : ConditionResult.FALSE;
+                return ConditionResult.valueOf(attributeValue.compareTo(normAssertion) < 0);
             }
         };
     }
@@ -58,8 +56,7 @@ abstract class AbstractOrderingMatchingRuleImpl extends AbstractMatchingRuleImpl
         final ByteString normAssertion = normalizeAttributeValue(schema, value);
         return new Assertion() {
             public ConditionResult matches(final ByteSequence attributeValue) {
-                return attributeValue.compareTo(normAssertion) >= 0 ? ConditionResult.TRUE
-                        : ConditionResult.FALSE;
+                return ConditionResult.valueOf(attributeValue.compareTo(normAssertion) >= 0);
             }
         };
     }
@@ -70,8 +67,7 @@ abstract class AbstractOrderingMatchingRuleImpl extends AbstractMatchingRuleImpl
         final ByteString normAssertion = normalizeAttributeValue(schema, value);
         return new Assertion() {
             public ConditionResult matches(final ByteSequence attributeValue) {
-                return attributeValue.compareTo(normAssertion) <= 0 ? ConditionResult.TRUE
-                        : ConditionResult.FALSE;
+                return ConditionResult.valueOf(attributeValue.compareTo(normAssertion) <= 0);
             }
         };
     }

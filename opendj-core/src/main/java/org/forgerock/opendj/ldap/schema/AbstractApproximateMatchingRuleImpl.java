@@ -21,28 +21,28 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Copyright 2014 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
 
-import org.forgerock.i18n.LocalizedIllegalArgumentException;
+import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteSequence;
-import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
-import org.forgerock.opendj.ldap.GeneralizedTime;
 
 /**
- * This class defines the generalizedTimeMatch matching rule defined in X.520
- * and referenced in RFC 2252.
+ * This class implements an approximate matching rule that matches normalized
+ * values in byte order.
  */
-final class GeneralizedTimeEqualityMatchingRuleImpl extends AbstractEqualityMatchingRuleImpl {
-    public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value)
-            throws DecodeException {
-        try {
-            return ByteString.valueOf(GeneralizedTime.valueOf(value.toString()).getTimeInMillis());
-        } catch (LocalizedIllegalArgumentException e) {
-            throw DecodeException.error(e.getMessageObject());
-        }
+abstract class AbstractApproximateMatchingRuleImpl extends AbstractMatchingRuleImpl {
+
+    AbstractApproximateMatchingRuleImpl() {
+        // Nothing to do.
     }
+
+    @Override
+    public Assertion getAssertion(final Schema schema, final ByteSequence assertionValue)
+            throws DecodeException {
+        return new DefaultEqualityAssertion(normalizeAttributeValue(schema, assertionValue));
+    }
+
 }

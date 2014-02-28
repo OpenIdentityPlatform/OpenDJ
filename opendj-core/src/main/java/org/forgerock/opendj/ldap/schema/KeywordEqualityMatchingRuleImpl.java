@@ -39,8 +39,8 @@ import org.forgerock.opendj.ldap.DecodeException;
  * This class implements the keywordMatch matching rule defined in X.520. That
  * document defines "keyword" as implementation-specific, but in this case we
  * will consider it a match if the assertion value is contained within the
- * attribute value and is bounded by the edge of the value or any of the
- * following characters: <BR>
+ * attribute value and is bounded by the start or the end of the attribute value
+ * or any of the following characters: <BR>
  * <UL>
  * <LI>A space</LI>
  * <LI>A period</LI>
@@ -54,11 +54,11 @@ import org.forgerock.opendj.ldap.DecodeException;
  * <LI>An equal sign</LI>
  * </UL>
  */
-final class KeywordEqualityMatchingRuleImpl extends AbstractMatchingRuleImpl {
+final class KeywordEqualityMatchingRuleImpl extends AbstractEqualityMatchingRuleImpl {
     @Override
-    public Assertion getAssertion(final Schema schema, final ByteSequence value)
+    public Assertion getAssertion(final Schema schema, final ByteSequence assertionValue)
             throws DecodeException {
-        final String normalStr = normalize(value);
+        final String normalStr = normalize(assertionValue);
 
         return new Assertion() {
             public ConditionResult matches(final ByteSequence attributeValue) {
@@ -73,50 +73,39 @@ final class KeywordEqualityMatchingRuleImpl extends AbstractMatchingRuleImpl {
 
                 if (pos > 0) {
                     final char c = valueStr1.charAt(pos - 1);
-                    switch (c) {
-                    case ' ':
-                    case '.':
-                    case ',':
-                    case '/':
-                    case '$':
-                    case '+':
-                    case '-':
-                    case '_':
-                    case '#':
-                    case '=':
-                        // These are all acceptable.
-                        break;
-
-                    default:
-                        // Anything else is not.
+                    if (!isAcceptable(c)) {
                         return ConditionResult.FALSE;
                     }
                 }
 
                 if (valueStr1.length() > pos + normalStr.length()) {
                     final char c = valueStr1.charAt(pos + normalStr.length());
-                    switch (c) {
-                    case ' ':
-                    case '.':
-                    case ',':
-                    case '/':
-                    case '$':
-                    case '+':
-                    case '-':
-                    case '_':
-                    case '#':
-                    case '=':
-                        // These are all acceptable.
-                        break;
-
-                    default:
-                        // Anything else is not.
+                    if (!isAcceptable(c)) {
                         return ConditionResult.FALSE;
                     }
                 }
 
                 // If we've gotten here, then we can assume it is a match.
                 return ConditionResult.TRUE;
+            }
+
+            private boolean isAcceptable(final char c) {
+                switch (c) {
+                case ' ':
+                case '.':
+                case ',':
+                case '/':
+                case '$':
+                case '+':
+                case '-':
+                case '_':
+                case '#':
+                case '=':
+                    return true;
+
+                default:
+                    return false;
+                }
             }
         };
     }
@@ -129,26 +118,18 @@ final class KeywordEqualityMatchingRuleImpl extends AbstractMatchingRuleImpl {
         final StringBuilder buffer = new StringBuilder();
         prepareUnicode(buffer, value, TRIM, CASE_FOLD);
 
-        final int bufferLength = buffer.length();
-        if (bufferLength == 0) {
+        if (buffer.length() == 0) {
             if (value.length() > 0) {
                 // This should only happen if the value is composed entirely of
                 // spaces. In that case, the normalized value is a single space.
-                return " ".intern();
+                return " ";
             } else {
                 // The value is empty, so it is already normalized.
-                return "".intern();
+                return "";
             }
         }
 
-        // Replace any consecutive spaces with a single space.
-        for (int pos = bufferLength - 1; pos > 0; pos--) {
-            if (buffer.charAt(pos) == ' ') {
-                if (buffer.charAt(pos - 1) == ' ') {
-                    buffer.delete(pos, pos + 1);
-                }
-            }
-        }
+        trimConsecutiveSpaces(buffer);
 
         return buffer.toString();
     }

@@ -33,7 +33,7 @@ import org.forgerock.opendj.ldap.ByteString;
  * will be used as the default equality matching rule for the binary and octet
  * string syntaxes.
  */
-final class OctetStringEqualityMatchingRuleImpl extends AbstractMatchingRuleImpl {
+final class OctetStringEqualityMatchingRuleImpl extends AbstractEqualityMatchingRuleImpl {
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value) {
         return value.toByteString();
     }

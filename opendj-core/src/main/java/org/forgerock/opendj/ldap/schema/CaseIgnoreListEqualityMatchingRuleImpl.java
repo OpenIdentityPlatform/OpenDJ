@@ -36,7 +36,7 @@ import org.forgerock.opendj.ldap.ByteString;
  * This class implements the caseIgnoreListMatch matching rule defined in X.520
  * and referenced in RFC 2252.
  */
-final class CaseIgnoreListEqualityMatchingRuleImpl extends AbstractMatchingRuleImpl {
+final class CaseIgnoreListEqualityMatchingRuleImpl extends AbstractEqualityMatchingRuleImpl {
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value) {
         final StringBuilder buffer = new StringBuilder();
         prepareUnicode(buffer, value, TRIM, CASE_FOLD);

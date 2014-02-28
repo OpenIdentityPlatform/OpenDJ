@@ -37,7 +37,7 @@ import org.forgerock.opendj.ldap.ByteString;
  * and referenced in RFC 2252. It allows for values with numeric digits and
  * spaces, but ignores spaces when performing matching.
  */
-final class NumericStringEqualityMatchingRuleImpl extends AbstractMatchingRuleImpl {
+final class NumericStringEqualityMatchingRuleImpl extends AbstractEqualityMatchingRuleImpl {
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value) {
         final StringBuilder buffer = new StringBuilder();
         prepareUnicode(buffer, value, TRIM, NO_CASE_FOLD);

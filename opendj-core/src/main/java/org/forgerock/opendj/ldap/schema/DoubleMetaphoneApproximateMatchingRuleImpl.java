@@ -49,7 +49,7 @@ import org.forgerock.opendj.ldap.ByteString;
  * redundant checks that aren't needed. It has also been updated to always only
  * generate a single value rather than one or possibly two values.
  */
-final class DoubleMetaphoneApproximateMatchingRuleImpl extends AbstractMatchingRuleImpl {
+final class DoubleMetaphoneApproximateMatchingRuleImpl extends AbstractApproximateMatchingRuleImpl {
 
     private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 

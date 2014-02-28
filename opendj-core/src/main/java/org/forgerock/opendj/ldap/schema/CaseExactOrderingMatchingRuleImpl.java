@@ -53,14 +53,7 @@ final class CaseExactOrderingMatchingRuleImpl extends AbstractOrderingMatchingRu
             }
         }
 
-        // Replace any consecutive spaces with a single space.
-        for (int pos = bufferLength - 1; pos > 0; pos--) {
-            if (buffer.charAt(pos) == ' ') {
-                if (buffer.charAt(pos - 1) == ' ') {
-                    buffer.delete(pos, pos + 1);
-                }
-            }
-        }
+        trimConsecutiveSpaces(buffer);
 
         return ByteString.valueOf(buffer.toString());
     }

@@ -38,16 +38,15 @@ import org.forgerock.opendj.ldap.DecodeException;
  * matches normalized values in byte order.
  */
 abstract class AbstractMatchingRuleImpl implements MatchingRuleImpl {
-    static class DefaultEqualityAssertion implements Assertion {
-        ByteSequence normalizedAssertionValue;
+    static final class DefaultEqualityAssertion implements Assertion {
+        private final ByteSequence normalizedAssertionValue;
 
-        protected DefaultEqualityAssertion(final ByteSequence normalizedAssertionValue) {
+        DefaultEqualityAssertion(final ByteSequence normalizedAssertionValue) {
             this.normalizedAssertionValue = normalizedAssertionValue;
         }
 
         public ConditionResult matches(final ByteSequence attributeValue) {
-            return normalizedAssertionValue.equals(attributeValue) ? ConditionResult.TRUE
-                    : ConditionResult.FALSE;
+            return ConditionResult.valueOf(normalizedAssertionValue.equals(attributeValue));
         }
     }
 
@@ -72,9 +71,9 @@ abstract class AbstractMatchingRuleImpl implements MatchingRuleImpl {
         return DEFAULT_COMPARATOR;
     }
 
-    public Assertion getAssertion(final Schema schema, final ByteSequence value)
+    public Assertion getAssertion(final Schema schema, final ByteSequence assertionValue)
             throws DecodeException {
-        return new DefaultEqualityAssertion(normalizeAttributeValue(schema, value));
+        return UNDEFINED_ASSERTION;
     }
 
     public Assertion getSubstringAssertion(final Schema schema, final ByteSequence subInitial,
@@ -91,5 +90,14 @@ abstract class AbstractMatchingRuleImpl implements MatchingRuleImpl {
     public Assertion getLessOrEqualAssertion(final Schema schema, final ByteSequence value)
             throws DecodeException {
         return UNDEFINED_ASSERTION;
+    }
+
+    static void trimConsecutiveSpaces(StringBuilder buffer) {
+        for (int pos = buffer.length() - 1; pos > 0; pos--) {
+            if (buffer.charAt(pos) == ' '
+                    && buffer.charAt(pos - 1) == ' ') {
+                buffer.delete(pos, pos + 1);
+            }
+        }
     }
 }

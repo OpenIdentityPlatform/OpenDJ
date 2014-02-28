@@ -36,7 +36,7 @@ import com.forgerock.opendj.util.StaticUtils;
  * very rigorous format, this is widely ignored so this matching will compare
  * only numeric digits and strip out everything else.
  */
-final class TelephoneNumberEqualityMatchingRuleImpl extends AbstractMatchingRuleImpl {
+final class TelephoneNumberEqualityMatchingRuleImpl extends AbstractEqualityMatchingRuleImpl {
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value) {
         final String valueString = value.toString();
         final int valueLength = valueString.length();

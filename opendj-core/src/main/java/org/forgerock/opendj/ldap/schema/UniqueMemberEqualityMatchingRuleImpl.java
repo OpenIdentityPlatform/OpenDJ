@@ -34,7 +34,7 @@ import org.forgerock.opendj.ldap.ByteString;
  * and will compare values with a distinguished name and optional bit string
  * suffix.
  */
-final class UniqueMemberEqualityMatchingRuleImpl extends AbstractMatchingRuleImpl {
+final class UniqueMemberEqualityMatchingRuleImpl extends AbstractEqualityMatchingRuleImpl {
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value) {
         return value.toByteString();
     }

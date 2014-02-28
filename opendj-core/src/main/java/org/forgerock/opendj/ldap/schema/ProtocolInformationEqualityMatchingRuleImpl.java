@@ -38,7 +38,7 @@ import org.forgerock.opendj.ldap.ByteString;
  * associated syntax have been deprecated, this matching rule behaves exactly
  * like the caseIgnoreMatch rule.
  */
-final class ProtocolInformationEqualityMatchingRuleImpl extends AbstractMatchingRuleImpl {
+final class ProtocolInformationEqualityMatchingRuleImpl extends AbstractEqualityMatchingRuleImpl {
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value) {
         final StringBuilder buffer = new StringBuilder();
         prepareUnicode(buffer, value, TRIM, CASE_FOLD);
@@ -55,14 +55,7 @@ final class ProtocolInformationEqualityMatchingRuleImpl extends AbstractMatching
             }
         }
 
-        // Replace any consecutive spaces with a single space.
-        for (int pos = bufferLength - 1; pos > 0; pos--) {
-            if (buffer.charAt(pos) == ' ') {
-                if (buffer.charAt(pos - 1) == ' ') {
-                    buffer.delete(pos, pos + 1);
-                }
-            }
-        }
+        trimConsecutiveSpaces(buffer);
 
         return ByteString.valueOf(buffer.toString());
     }

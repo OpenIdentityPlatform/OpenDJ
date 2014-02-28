@@ -26,14 +26,14 @@
  */
 package org.forgerock.opendj.ldap.schema;
 
-import static org.forgerock.opendj.ldap.schema.SchemaConstants.OMR_OID_GENERIC_ENUM;
-
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DecodeException;
-import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+
+import static org.forgerock.opendj.ldap.ConditionResult.*;
+import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
+import static org.testng.Assert.*;
 
 /**
  * Enum syntax tests.
@@ -58,27 +58,21 @@ public class EnumSyntaxTestCase extends AbstractSyntaxTestCase {
         final Schema schema = builder.toSchema();
         final Syntax syntax = schema.getSyntax("3.3.3");
         final MatchingRule rule = syntax.getOrderingMatchingRule();
-        Assert.assertEquals(rule.getGreaterOrEqualAssertion(ByteString.valueOf("monday")).matches(
-                rule.normalizeAttributeValue(ByteString.valueOf("thursday"))), ConditionResult.TRUE);
-        Assert.assertEquals(rule.getLessOrEqualAssertion(ByteString.valueOf("monday")).matches(
-                rule.normalizeAttributeValue(ByteString.valueOf("thursday"))),
-                ConditionResult.FALSE);
-        Assert.assertEquals(rule.getGreaterOrEqualAssertion(ByteString.valueOf("tuesday")).matches(
-                rule.normalizeAttributeValue(ByteString.valueOf("monday"))), ConditionResult.FALSE);
-        Assert.assertEquals(rule.getLessOrEqualAssertion(ByteString.valueOf("tuesday")).matches(
-                rule.normalizeAttributeValue(ByteString.valueOf("monday"))), ConditionResult.TRUE);
-        Assert.assertEquals(rule.getGreaterOrEqualAssertion(ByteString.valueOf("tuesday")).matches(
-                rule.normalizeAttributeValue(ByteString.valueOf("tuesday"))), ConditionResult.TRUE);
-        Assert.assertEquals(rule.getLessOrEqualAssertion(ByteString.valueOf("tuesday")).matches(
-                rule.normalizeAttributeValue(ByteString.valueOf("tuesday"))), ConditionResult.TRUE);
-        Assert.assertEquals(rule.getAssertion(ByteString.valueOf("tuesday")).matches(
-                rule.normalizeAttributeValue(ByteString.valueOf("monday"))), ConditionResult.TRUE);
-        Assert.assertEquals(rule.getAssertion(ByteString.valueOf("monday")).matches(
-                rule.normalizeAttributeValue(ByteString.valueOf("thursday"))),
-                ConditionResult.FALSE);
-        Assert.assertEquals(rule.getAssertion(ByteString.valueOf("tuesday")).matches(
-                rule.normalizeAttributeValue(ByteString.valueOf("tuesday"))), ConditionResult.FALSE);
-        Assert.assertNotNull(schema.getMatchingRule(OMR_OID_GENERIC_ENUM + ".3.3.3"));
+        final ByteString monday = ByteString.valueOf("monday");
+        final ByteString normMonday = rule.normalizeAttributeValue(monday);
+        final ByteString tuesday = ByteString.valueOf("tuesday");
+        final ByteString normTuesday = rule.normalizeAttributeValue(tuesday);
+        final ByteString normThursday = rule.normalizeAttributeValue(ByteString.valueOf("thursday"));
+        assertEquals(rule.getGreaterOrEqualAssertion(monday).matches(normThursday), TRUE);
+        assertEquals(rule.getLessOrEqualAssertion(monday).matches(normThursday), FALSE);
+        assertEquals(rule.getGreaterOrEqualAssertion(tuesday).matches(normMonday), FALSE);
+        assertEquals(rule.getLessOrEqualAssertion(tuesday).matches(normMonday), TRUE);
+        assertEquals(rule.getGreaterOrEqualAssertion(tuesday).matches(normTuesday), TRUE);
+        assertEquals(rule.getLessOrEqualAssertion(tuesday).matches(normTuesday), TRUE);
+        assertEquals(rule.getAssertion(tuesday).matches(normMonday), TRUE);
+        assertEquals(rule.getAssertion(monday).matches(normThursday), FALSE);
+        assertEquals(rule.getAssertion(tuesday).matches(normTuesday), FALSE);
+        assertNotNull(schema.getMatchingRule(OMR_OID_GENERIC_ENUM + ".3.3.3"));
     }
 
     @Test

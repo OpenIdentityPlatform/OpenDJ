@@ -35,7 +35,7 @@ import org.forgerock.opendj.ldap.DecodeException;
  * This class defines the booleanMatch matching rule defined in X.520 and
  * referenced in RFC 4519.
  */
-final class BooleanEqualityMatchingRuleImpl extends AbstractMatchingRuleImpl {
+final class BooleanEqualityMatchingRuleImpl extends AbstractEqualityMatchingRuleImpl {
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value)
             throws DecodeException {
         final String valueString = value.toString().toUpperCase();

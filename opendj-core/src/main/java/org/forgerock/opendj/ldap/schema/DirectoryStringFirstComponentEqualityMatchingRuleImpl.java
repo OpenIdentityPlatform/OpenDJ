@@ -47,15 +47,15 @@ import com.forgerock.opendj.util.SubstringReader;
  * objectclass descriptions) in which the "first component" is the first item
  * after the opening parenthesis.
  */
-final class DirectoryStringFirstComponentEqualityMatchingRuleImpl extends AbstractMatchingRuleImpl {
+final class DirectoryStringFirstComponentEqualityMatchingRuleImpl extends AbstractEqualityMatchingRuleImpl {
     @Override
-    public Assertion getAssertion(final Schema schema, final ByteSequence value) {
+    public Assertion getAssertion(final Schema schema, final ByteSequence assertionValue) {
         final StringBuilder buffer = new StringBuilder();
-        prepareUnicode(buffer, value, TRIM, CASE_FOLD);
+        prepareUnicode(buffer, assertionValue, TRIM, CASE_FOLD);
 
         final int bufferLength = buffer.length();
         if (bufferLength == 0) {
-            if (value.length() > 0) {
+            if (assertionValue.length() > 0) {
                 // This should only happen if the value is composed entirely of
                 // spaces. In that case, the normalized value is a single space.
                 return new DefaultEqualityAssertion(SchemaConstants.SINGLE_SPACE_VALUE);
@@ -65,14 +65,7 @@ final class DirectoryStringFirstComponentEqualityMatchingRuleImpl extends Abstra
             }
         }
 
-        // Replace any consecutive spaces with a single space.
-        for (int pos = bufferLength - 1; pos > 0; pos--) {
-            if (buffer.charAt(pos) == ' ') {
-                if (buffer.charAt(pos - 1) == ' ') {
-                    buffer.delete(pos, pos + 1);
-                }
-            }
-        }
+        trimConsecutiveSpaces(buffer);
 
         return new DefaultEqualityAssertion(ByteString.valueOf(buffer.toString()));
     }
@@ -95,8 +88,7 @@ final class DirectoryStringFirstComponentEqualityMatchingRuleImpl extends Abstra
         }
 
         // The next character must be an open parenthesis. If it is not,
-        // then
-        // that is an error.
+        // then that is an error.
         final char c = reader.read();
         if (c != '(') {
             final LocalizableMessage message =
@@ -105,8 +97,7 @@ final class DirectoryStringFirstComponentEqualityMatchingRuleImpl extends Abstra
             throw DecodeException.error(message);
         }
 
-        // Skip over any spaces immediately following the opening
-        // parenthesis.
+        // Skip over any spaces immediately following the opening parenthesis.
         reader.skipWhitespaces();
 
         // The next set of characters must be the OID.
