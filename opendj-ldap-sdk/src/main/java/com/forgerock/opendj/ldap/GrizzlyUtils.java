@@ -27,9 +27,8 @@ package com.forgerock.opendj.ldap;
 
 import static com.forgerock.opendj.util.StaticUtils.DEBUG_LOG;
 
-import java.io.IOException;
-import java.net.SocketOption;
-import java.net.StandardSocketOptions;
+import java.net.Socket;
+import java.net.SocketException;
 import java.nio.channels.SocketChannel;
 import java.util.logging.Level;
 
@@ -50,18 +49,33 @@ final class GrizzlyUtils {
 
         // Configure socket options.
         final SocketChannel channel = (SocketChannel) ((TCPNIOConnection) connection).getChannel();
-        setSocketOption(channel, StandardSocketOptions.TCP_NODELAY, tcpNoDelay);
-        setSocketOption(channel, StandardSocketOptions.SO_KEEPALIVE, keepAlive);
-        setSocketOption(channel, StandardSocketOptions.SO_REUSEADDR, reuseAddress);
-        setSocketOption(channel, StandardSocketOptions.SO_LINGER, linger);
-    }
-
-    private static <T> void setSocketOption(final SocketChannel channel,
-            final SocketOption<T> option, final T value) {
+        final Socket socket = channel.socket();
         try {
-            channel.setOption(option, value);
-        } catch (final IOException e) {
-            DEBUG_LOG.log(Level.FINE, "Unable to set " + option.name() + " to " + value
+            socket.setTcpNoDelay(tcpNoDelay);
+        } catch (final SocketException e) {
+            DEBUG_LOG.log(Level.FINE, "Unable to set TCP_NODELAY to " + tcpNoDelay
+                    + " on client connection", e);
+        }
+        try {
+            socket.setKeepAlive(keepAlive);
+        } catch (final SocketException e) {
+            DEBUG_LOG.log(Level.FINE, "Unable to set SO_KEEPALIVE to " + keepAlive
+                    + " on client connection", e);
+        }
+        try {
+            socket.setReuseAddress(reuseAddress);
+        } catch (final SocketException e) {
+            DEBUG_LOG.log(Level.FINE, "Unable to set SO_REUSEADDR to " + reuseAddress
+                    + " on client connection", e);
+        }
+        try {
+            if (linger < 0) {
+                socket.setSoLinger(false, 0);
+            } else {
+                socket.setSoLinger(true, linger);
+            }
+        } catch (final SocketException e) {
+            DEBUG_LOG.log(Level.FINE, "Unable to set SO_LINGER to " + linger
                     + " on client connection", e);
         }
     }

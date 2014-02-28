@@ -90,13 +90,13 @@ abstract class CommonLDAPOptions<T extends CommonLDAPOptions<T>> {
     }
 
     /**
-     * Returns the value of the {@link java.net.StandardSocketOptions#SO_LINGER
+     * Returns the value of the {@link java.net.SocketOptions#SO_LINGER
      * SO_LINGER} socket option for new connections.
      * <p>
      * The default setting is {@code -1} (disabled) and may be configured using
      * the {@code org.forgerock.opendj.io.linger} property.
      *
-     * @return The value of the {@link java.net.StandardSocketOptions#SO_LINGER
+     * @return The value of the {@link java.net.SocketOptions#SO_LINGER
      *         SO_LINGER} socket option for new connections, or -1 if linger
      *         should be disabled.
      */
@@ -105,48 +105,42 @@ abstract class CommonLDAPOptions<T extends CommonLDAPOptions<T>> {
     }
 
     /**
-     * Returns the value of the
-     * {@link java.net.StandardSocketOptions#SO_KEEPALIVE SO_KEEPALIVE} socket
-     * option for new connections.
+     * Returns the value of the {@link java.net.SocketOptions#SO_KEEPALIVE
+     * SO_KEEPALIVE} socket option for new connections.
      * <p>
      * The default setting is {@code true} and may be configured using the
      * {@code org.forgerock.opendj.io.keepAlive} property.
      *
-     * @return The value of the
-     *         {@link java.net.StandardSocketOptions#SO_KEEPALIVE SO_KEEPALIVE}
-     *         socket option for new connections.
+     * @return The value of the {@link java.net.SocketOptions#SO_KEEPALIVE
+     *         SO_KEEPALIVE} socket option for new connections.
      */
     public boolean isKeepAlive() {
         return keepAlive;
     }
 
     /**
-     * Returns the value of the
-     * {@link java.net.StandardSocketOptions#SO_REUSEADDR SO_REUSEADDR} socket
-     * option for new connections.
+     * Returns the value of the {@link java.net.SocketOptions#SO_REUSEADDR
+     * SO_REUSEADDR} socket option for new connections.
      * <p>
      * The default setting is {@code true} and may be configured using the
      * {@code org.forgerock.opendj.io.reuseAddress} property.
      *
-     * @return The value of the
-     *         {@link java.net.StandardSocketOptions#SO_REUSEADDR SO_REUSEADDR}
-     *         socket option for new connections.
+     * @return The value of the {@link java.net.SocketOptions#SO_REUSEADDR
+     *         SO_REUSEADDR} socket option for new connections.
      */
     public boolean isReuseAddress() {
         return reuseAddress;
     }
 
     /**
-     * Returns the value of the
-     * {@link java.net.StandardSocketOptions#TCP_NODELAY TCP_NODELAY} socket
-     * option for new connections.
+     * Returns the value of the {@link java.net.SocketOptions#TCP_NODELAY
+     * TCP_NODELAY} socket option for new connections.
      * <p>
      * The default setting is {@code true} and may be configured using the
      * {@code org.forgerock.opendj.io.tcpNoDelay} property.
      *
-     * @return The value of the
-     *         {@link java.net.StandardSocketOptions#TCP_NODELAY TCP_NODELAY}
-     *         socket option for new connections.
+     * @return The value of the {@link java.net.SocketOptions#TCP_NODELAY
+     *         TCP_NODELAY} socket option for new connections.
      */
     public boolean isTCPNoDelay() {
         return tcpNoDelay;
@@ -170,16 +164,14 @@ abstract class CommonLDAPOptions<T extends CommonLDAPOptions<T>> {
     }
 
     /**
-     * Specifies the value of the
-     * {@link java.net.StandardSocketOptions#SO_KEEPALIVE SO_KEEPALIVE} socket
-     * option for new connections.
+     * Specifies the value of the {@link java.net.SocketOptions#SO_KEEPALIVE
+     * SO_KEEPALIVE} socket option for new connections.
      * <p>
      * The default setting is {@code true} and may be configured using the
      * {@code org.forgerock.opendj.io.keepAlive} property.
      *
      * @param keepAlive
-     *            The value of the
-     *            {@link java.net.StandardSocketOptions#SO_KEEPALIVE
+     *            The value of the {@link java.net.SocketOptions#SO_KEEPALIVE
      *            SO_KEEPALIVE} socket option for new connections.
      * @return A reference to this set of options.
      */
@@ -189,18 +181,16 @@ abstract class CommonLDAPOptions<T extends CommonLDAPOptions<T>> {
     }
 
     /**
-     * Specifies the value of the
-     * {@link java.net.StandardSocketOptions#SO_LINGER SO_LINGER} socket option
-     * for new connections.
+     * Specifies the value of the {@link java.net.SocketOptions#SO_LINGER
+     * SO_LINGER} socket option for new connections.
      * <p>
      * The default setting is {@code -1} (disabled) and may be configured using
      * the {@code org.forgerock.opendj.io.linger} property.
      *
      * @param linger
-     *            The value of the
-     *            {@link java.net.StandardSocketOptions#SO_LINGER SO_LINGER}
-     *            socket option for new connections, or -1 if linger should be
-     *            disabled.
+     *            The value of the {@link java.net.SocketOptions#SO_LINGER
+     *            SO_LINGER} socket option for new connections, or -1 if linger
+     *            should be disabled.
      * @return A reference to this set of options.
      */
     public T setLinger(final int linger) {
@@ -209,16 +199,14 @@ abstract class CommonLDAPOptions<T extends CommonLDAPOptions<T>> {
     }
 
     /**
-     * Specifies the value of the
-     * {@link java.net.StandardSocketOptions#SO_REUSEADDR SO_REUSEADDR} socket
-     * option for new connections.
+     * Specifies the value of the {@link java.net.SocketOptions#SO_REUSEADDR
+     * SO_REUSEADDR} socket option for new connections.
      * <p>
      * The default setting is {@code true} and may be configured using the
      * {@code org.forgerock.opendj.io.reuseAddress} property.
      *
      * @param reuseAddress
-     *            The value of the
-     *            {@link java.net.StandardSocketOptions#SO_REUSEADDR
+     *            The value of the {@link java.net.SocketOptions#SO_REUSEADDR
      *            SO_REUSEADDR} socket option for new connections.
      * @return A reference to this set of options.
      */
@@ -228,17 +216,15 @@ abstract class CommonLDAPOptions<T extends CommonLDAPOptions<T>> {
     }
 
     /**
-     * Specifies the value of the
-     * {@link java.net.StandardSocketOptions#TCP_NODELAY TCP_NODELAY} socket
-     * option for new connections.
+     * Specifies the value of the {@link java.net.SocketOptions#TCP_NODELAY
+     * TCP_NODELAY} socket option for new connections.
      * <p>
      * The default setting is {@code true} and may be configured using the
      * {@code org.forgerock.opendj.io.tcpNoDelay} property.
      *
      * @param tcpNoDelay
-     *            The value of the
-     *            {@link java.net.StandardSocketOptions#TCP_NODELAY TCP_NODELAY}
-     *            socket option for new connections.
+     *            The value of the {@link java.net.SocketOptions#TCP_NODELAY
+     *            TCP_NODELAY} socket option for new connections.
      * @return A reference to this set of options.
      */
     public T setTCPNoDelay(final boolean tcpNoDelay) {
