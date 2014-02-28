@@ -28,11 +28,9 @@ package org.forgerock.opendj.ldap.schema;
 
 import static com.forgerock.opendj.util.StringPrepProfile.CASE_FOLD;
 import static com.forgerock.opendj.util.StringPrepProfile.TRIM;
-import static com.forgerock.opendj.util.StringPrepProfile.prepareUnicode;
 import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_EMPTY_VALUE;
 import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_EXPECTED_OPEN_PARENTHESIS;
 
-import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
@@ -51,24 +49,7 @@ import com.forgerock.opendj.util.SubstringReader;
 final class DirectoryStringFirstComponentEqualityMatchingRuleImpl extends AbstractEqualityMatchingRuleImpl {
     @Override
     public Assertion getAssertion(final Schema schema, final ByteSequence assertionValue) {
-        final StringBuilder buffer = new StringBuilder();
-        prepareUnicode(buffer, assertionValue, TRIM, CASE_FOLD);
-
-        final int bufferLength = buffer.length();
-        if (bufferLength == 0) {
-            if (assertionValue.length() > 0) {
-                // This should only happen if the value is composed entirely of
-                // spaces. In that case, the normalized value is a single space.
-                return new DefaultEqualityAssertion(SchemaConstants.SINGLE_SPACE_VALUE);
-            } else {
-                // The value is empty, so it is already normalized.
-                return new DefaultEqualityAssertion(ByteString.empty());
-            }
-        }
-
-        trimConsecutiveSpaces(buffer);
-
-        return new DefaultEqualityAssertion(ByteString.valueOf(buffer.toString()));
+        return new DefaultEqualityAssertion(SchemaUtils.normalizeStringAttributeValue(assertionValue, TRIM, CASE_FOLD));
     }
 
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value)
@@ -84,18 +65,15 @@ final class DirectoryStringFirstComponentEqualityMatchingRuleImpl extends Abstra
             // This means that the value was empty or contained only
             // whitespace.
             // That is illegal.
-            final LocalizableMessage message = ERR_ATTR_SYNTAX_EMPTY_VALUE.get();
-            throw DecodeException.error(message);
+            throw DecodeException.error(ERR_ATTR_SYNTAX_EMPTY_VALUE.get());
         }
 
         // The next character must be an open parenthesis. If it is not,
         // then that is an error.
         final char c = reader.read();
         if (c != '(') {
-            final LocalizableMessage message =
-                    ERR_ATTR_SYNTAX_EXPECTED_OPEN_PARENTHESIS.get(definition, (reader.pos() - 1),
-                            String.valueOf(c));
-            throw DecodeException.error(message);
+            throw DecodeException.error(
+                    ERR_ATTR_SYNTAX_EXPECTED_OPEN_PARENTHESIS.get(definition, reader.pos() - 1, c));
         }
 
         // Skip over any spaces immediately following the opening parenthesis.

@@ -28,7 +28,6 @@ package org.forgerock.opendj.ldap.schema;
 
 import static com.forgerock.opendj.util.StringPrepProfile.CASE_FOLD;
 import static com.forgerock.opendj.util.StringPrepProfile.TRIM;
-import static com.forgerock.opendj.util.StringPrepProfile.prepareUnicode;
 
 import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteSequence;
@@ -116,22 +115,6 @@ final class KeywordEqualityMatchingRuleImpl extends AbstractEqualityMatchingRule
     }
 
     private String normalize(final ByteSequence value) {
-        final StringBuilder buffer = new StringBuilder();
-        prepareUnicode(buffer, value, TRIM, CASE_FOLD);
-
-        if (buffer.length() == 0) {
-            if (value.length() > 0) {
-                // This should only happen if the value is composed entirely of
-                // spaces. In that case, the normalized value is a single space.
-                return " ";
-            } else {
-                // The value is empty, so it is already normalized.
-                return "";
-            }
-        }
-
-        trimConsecutiveSpaces(buffer);
-
-        return buffer.toString();
+        return SchemaUtils.normalizeStringAttributeValue(value, TRIM, CASE_FOLD).toString();
     }
 }

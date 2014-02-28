@@ -26,14 +26,11 @@
  */
 package org.forgerock.opendj.ldap.schema;
 
-import static com.forgerock.opendj.util.StringPrepProfile.CASE_FOLD;
-import static com.forgerock.opendj.util.StringPrepProfile.TRIM;
-
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 
-import com.forgerock.opendj.util.StringPrepProfile;
+import static com.forgerock.opendj.util.StringPrepProfile.*;
 
 /**
  * This class defines the caseIgnoreSubstringsMatch matching rule defined in
@@ -51,24 +48,6 @@ final class CaseIgnoreSubstringMatchingRuleImpl extends AbstractSubstringMatchin
     }
 
     private ByteString normalize(final boolean trim, final ByteSequence value) {
-
-        final StringBuilder buffer = new StringBuilder();
-        StringPrepProfile.prepareUnicode(buffer, value, trim, CASE_FOLD);
-
-        final int bufferLength = buffer.length();
-        if (bufferLength == 0) {
-            if (value.length() > 0) {
-                // This should only happen if the value is composed entirely of
-                // spaces. In that case, the normalized value is a single space.
-                return SchemaConstants.SINGLE_SPACE_VALUE;
-            } else {
-                // The value is empty, so it is already normalized.
-                return value.toByteString();
-            }
-        }
-
-        trimConsecutiveSpaces(buffer);
-
-        return ByteString.valueOf(buffer.toString());
+        return SchemaUtils.normalizeStringAttributeValue(value, trim, CASE_FOLD);
     }
 }

@@ -26,10 +26,6 @@
  */
 package org.forgerock.opendj.ldap.schema;
 
-import static com.forgerock.opendj.util.StringPrepProfile.NO_CASE_FOLD;
-import static com.forgerock.opendj.util.StringPrepProfile.TRIM;
-import static com.forgerock.opendj.util.StringPrepProfile.prepareUnicode;
-
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 
@@ -40,12 +36,6 @@ import org.forgerock.opendj.ldap.ByteString;
  */
 final class NumericStringEqualityMatchingRuleImpl extends AbstractEqualityMatchingRuleImpl {
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value) {
-        final StringBuilder buffer = new StringBuilder();
-        prepareUnicode(buffer, value, TRIM, NO_CASE_FOLD);
-
-        if (buffer.length() == 0) {
-            return ByteString.empty();
-        }
-        return ByteString.valueOf(buffer.toString());
+        return SchemaUtils.normalizeNumericStringAttributeValue(value);
     }
 }

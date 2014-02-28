@@ -28,10 +28,8 @@ package org.forgerock.opendj.ldap.schema;
 
 import static com.forgerock.opendj.util.StringPrepProfile.CASE_FOLD;
 import static com.forgerock.opendj.util.StringPrepProfile.TRIM;
-import static com.forgerock.opendj.util.StringPrepProfile.prepareUnicode;
 import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_LDAPSYNTAX_ENUM_INVALID_VALUE;
 
-import static org.forgerock.opendj.ldap.schema.AbstractMatchingRuleImpl.*;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.AMR_DOUBLE_METAPHONE_OID;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.EMR_CASE_IGNORE_OID;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.OMR_OID_GENERIC_ENUM;
@@ -118,23 +116,6 @@ final class EnumSyntaxImpl extends AbstractSyntaxImpl {
     }
 
     private String normalize(final ByteSequence value) {
-        final StringBuilder buffer = new StringBuilder();
-        prepareUnicode(buffer, value, TRIM, CASE_FOLD);
-
-        final int bufferLength = buffer.length();
-        if (bufferLength == 0) {
-            if (value.length() > 0) {
-                // This should only happen if the value is composed entirely of
-                // spaces. In that case, the normalized value is a single space.
-                return " ";
-            } else {
-                // The value is empty, so it is already normalized.
-                return "";
-            }
-        }
-
-        trimConsecutiveSpaces(buffer);
-
-        return buffer.toString();
+        return SchemaUtils.normalizeStringAttributeValue(value, TRIM, CASE_FOLD).toString();
     }
 }

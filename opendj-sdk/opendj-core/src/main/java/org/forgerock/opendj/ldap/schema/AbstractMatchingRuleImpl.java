@@ -92,13 +92,4 @@ abstract class AbstractMatchingRuleImpl implements MatchingRuleImpl {
             throws DecodeException {
         return UNDEFINED_ASSERTION;
     }
-
-    static void trimConsecutiveSpaces(StringBuilder buffer) {
-        for (int pos = buffer.length() - 1; pos > 0; pos--) {
-            if (buffer.charAt(pos) == ' '
-                    && buffer.charAt(pos - 1) == ' ') {
-                buffer.delete(pos, pos + 1);
-            }
-        }
-    }
 }

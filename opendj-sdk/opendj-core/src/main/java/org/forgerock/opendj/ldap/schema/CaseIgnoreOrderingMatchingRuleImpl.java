@@ -26,36 +26,18 @@
  */
 package org.forgerock.opendj.ldap.schema;
 
-import static com.forgerock.opendj.util.StringPrepProfile.CASE_FOLD;
-import static com.forgerock.opendj.util.StringPrepProfile.TRIM;
-import static com.forgerock.opendj.util.StringPrepProfile.prepareUnicode;
-
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
+
+import static com.forgerock.opendj.util.StringPrepProfile.*;
 
 /**
  * This class defines the caseIgnoreOrderingMatch matching rule defined in X.520
  * and referenced in RFC 2252.
  */
 final class CaseIgnoreOrderingMatchingRuleImpl extends AbstractOrderingMatchingRuleImpl {
+    @Override
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value) {
-        final StringBuilder buffer = new StringBuilder();
-        prepareUnicode(buffer, value, TRIM, CASE_FOLD);
-
-        final int bufferLength = buffer.length();
-        if (bufferLength == 0) {
-            if (value.length() > 0) {
-                // This should only happen if the value is composed entirely of
-                // spaces. In that case, the normalized value is a single space.
-                return SchemaConstants.SINGLE_SPACE_VALUE;
-            } else {
-                // The value is empty, so it is already normalized.
-                return ByteString.empty();
-            }
-        }
-
-        trimConsecutiveSpaces(buffer);
-
-        return ByteString.valueOf(buffer.toString());
+        return SchemaUtils.normalizeStringAttributeValue(value, TRIM, CASE_FOLD);
     }
 }
