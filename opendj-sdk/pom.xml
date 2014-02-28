@@ -112,7 +112,7 @@
 
     <forgerockBuildToolsVersion>1.0.2</forgerockBuildToolsVersion>
     <i18nFrameworkVersion>1.4.2-SNAPSHOT</i18nFrameworkVersion>
-    <grizzlyFrameworkVersion>2.3.6</grizzlyFrameworkVersion>
+    <grizzlyFrameworkVersion>2.3.11</grizzlyFrameworkVersion>
     <slf4jVersion>1.7.5</slf4jVersion>
     <forgerockRestVersion>2.1.0-SNAPSHOT</forgerockRestVersion>
 
