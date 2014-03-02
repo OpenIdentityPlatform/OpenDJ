@@ -23,6 +23,7 @@
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
  *      Portions copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2014 Manuel Gaupp
  */
 
 package org.forgerock.opendj.ldap.schema;
@@ -152,6 +153,7 @@ public final class SchemaBuilder {
     private boolean allowZeroLengthDirectoryStrings;
     private boolean allowMalformedNamesAndOptions;
     private boolean allowMalformedJPEGPhotos;
+    private boolean allowMalformedCertificates;
 
     private String defaultSyntaxOID;
     private String defaultMatchingRuleOID;
@@ -2257,6 +2259,24 @@ public final class SchemaBuilder {
     }
 
     /**
+     * Specifies whether or not the Certificate syntax should allow values which
+     * do not conform to the X.509 specifications.
+     * <p>
+     * By default this compatibility option is set to {@code true}.
+     *
+     * @param allowMalformedCertificates
+     *            {@code true} if the Certificate syntax should allow values
+     *            which do not conform to the X.509 specifications.
+     * @return A reference to this {@code SchemaBuilder}.
+     */
+    public SchemaBuilder allowMalformedCertificates(final boolean allowMalformedCertificates) {
+        lazyInitBuilder();
+
+        this.allowMalformedCertificates = allowMalformedCertificates;
+        return this;
+    }
+
+    /**
      * Specifies whether or not the Telephone Number syntax should allow values
      * which do not conform to the E.123 international telephone number format.
      * <p>
@@ -2526,7 +2546,7 @@ public final class SchemaBuilder {
 
         final Schema schema =
                 new Schema(localSchemaName, allowMalformedNamesAndOptions,
-                        allowMalformedJPEGPhotos, allowNonStandardTelephoneNumbers,
+                        allowMalformedJPEGPhotos, allowMalformedCertificates, allowNonStandardTelephoneNumbers,
                         allowZeroLengthDirectoryStrings, defaultSyntax, defaultMatchingRule,
                         numericOID2Syntaxes, numericOID2MatchingRules, numericOID2MatchingRuleUses,
                         numericOID2AttributeTypes, numericOID2ObjectClasses, numericOID2NameForms,
@@ -2805,6 +2825,7 @@ public final class SchemaBuilder {
         if (numericOID2Syntaxes == null) {
             allowMalformedNamesAndOptions = true;
             allowMalformedJPEGPhotos = true;
+            allowMalformedCertificates = true;
             allowNonStandardTelephoneNumbers = true;
             allowZeroLengthDirectoryStrings = false;
             defaultSyntaxOID = SchemaConstants.SYNTAX_OCTET_STRING_OID;
@@ -2838,6 +2859,7 @@ public final class SchemaBuilder {
 
             allowMalformedNamesAndOptions = copyOnWriteSchema.allowMalformedNamesAndOptions();
             allowMalformedJPEGPhotos = copyOnWriteSchema.allowMalformedJPEGPhotos();
+            allowMalformedCertificates = copyOnWriteSchema.allowMalformedCertificates();
             allowNonStandardTelephoneNumbers = copyOnWriteSchema.allowNonStandardTelephoneNumbers();
             allowZeroLengthDirectoryStrings = copyOnWriteSchema.allowZeroLengthDirectoryStrings();
             defaultSyntaxOID = copyOnWriteSchema.getDefaultSyntax().getOID();
@@ -2853,6 +2875,7 @@ public final class SchemaBuilder {
 
         this.allowMalformedNamesAndOptions = true;
         this.allowMalformedJPEGPhotos = true;
+        this.allowMalformedCertificates = true;
         this.allowNonStandardTelephoneNumbers = true;
         this.allowZeroLengthDirectoryStrings = false;
         this.defaultSyntaxOID = null;

@@ -23,6 +23,7 @@
  *
  *      Copyright 2010 Sun Microsystems, Inc.
  *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions Copyright 2014 Manuel Gaupp
  */
 package org.forgerock.opendj.io;
 
@@ -749,6 +750,36 @@ public abstract class ASN1ReaderTestCase extends ForgeRockTestCase {
         reader.readStartSequence();
         reader.readBoolean();
         reader.skipElement();
+        reader.readEndSequence();
+    }
+
+    /**
+     * Tests the <CODE>skipElement</CODE> method providing a specific type.
+     */
+    @Test()
+    public void testSkipElementWithType() throws Exception {
+        final byte[] b =
+                new byte[] { 0x30, 0x09, 0x02, 0x01, 0x00, 0x02, 0x01, 0x01, 0x02, 0x01, 0x02 };
+        final ASN1Reader reader = getReader(b, 0);
+        reader.readStartSequence();
+        reader.skipElement(ASN1.UNIVERSAL_INTEGER_TYPE);
+        reader.skipElement(ASN1.UNIVERSAL_INTEGER_TYPE);
+        assertEquals(reader.readInteger(), 2);
+        reader.readEndSequence();
+    }
+
+    /**
+     * Tests the <CODE>skipElement</CODE> method providing a wrong type.
+     */
+    @Test(expectedExceptions = { DecodeException.class, IOException.class })
+    public void testSkipElementWithWrongType() throws Exception {
+        final byte[] b =
+                new byte[] { 0x30, 0x09, 0x02, 0x01, 0x00, 0x02, 0x01, 0x01, 0x02, 0x01, 0x02 };
+        final ASN1Reader reader = getReader(b, 0);
+        reader.readStartSequence();
+        reader.readInteger();
+        reader.skipElement(ASN1.UNIVERSAL_OCTET_STRING_TYPE);
+        assertEquals(reader.readInteger(), 2);
         reader.readEndSequence();
     }
 

@@ -23,6 +23,7 @@
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
  *      Portions copyright 2013-2014 ForgeRock AS.
+ *      Portions copyright 2014 Manuel Gaupp
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -57,6 +58,9 @@ final class CoreSchemaImpl {
     private static final Map<String, List<String>> RFC4519_ORIGIN = Collections.singletonMap(
             SCHEMA_PROPERTY_ORIGIN, Collections.singletonList("RFC 4519"));
 
+    private static final Map<String, List<String>> RFC4523_ORIGIN = Collections.singletonMap(
+            SCHEMA_PROPERTY_ORIGIN, Collections.singletonList("RFC 4523"));
+
     private static final Map<String, List<String>> RFC4530_ORIGIN = Collections.singletonMap(
             SCHEMA_PROPERTY_ORIGIN, Collections.singletonList("RFC 4530"));
 
@@ -80,6 +84,7 @@ final class CoreSchemaImpl {
         defaultObjectClasses(builder);
 
         addRFC4519(builder);
+        addRFC4523(builder);
         addRFC4530(builder);
         addRFC3045(builder);
         addRFC3112(builder);
@@ -550,6 +555,101 @@ final class CoreSchemaImpl {
                         .singleton("uid"), attrs, ObjectClassType.AUXILIARY, RFC4519_ORIGIN, false);
     }
 
+    private static void addRFC4523(final SchemaBuilder builder) {
+        builder.buildSyntax(SYNTAX_CERTLIST_OID).description(SYNTAX_CERTLIST_DESCRIPTION)
+                .extraProperties(RFC4523_ORIGIN).implementation(new CertificateListSyntaxImpl()).addToSchema();
+        builder.buildSyntax(SYNTAX_CERTPAIR_OID).description(SYNTAX_CERTPAIR_DESCRIPTION)
+                .extraProperties(RFC4523_ORIGIN).implementation(new CertificatePairSyntaxImpl()).addToSchema();
+        builder.buildSyntax(SYNTAX_CERTIFICATE_OID).description(SYNTAX_CERTIFICATE_DESCRIPTION)
+                .extraProperties(RFC4523_ORIGIN).implementation(new CertificateSyntaxImpl()).addToSchema();
+        builder.buildSyntax(SYNTAX_CERTIFICATE_EXACT_ASSERTION_OID)
+                .description(SYNTAX_CERTIFICATE_EXACT_ASSERTION_DESCRIPTION).extraProperties(RFC4523_ORIGIN)
+                .implementation(new CertificateExactAssertionSyntaxImpl()).addToSchema();
+        builder.buildSyntax(SYNTAX_SUPPORTED_ALGORITHM_OID).description(SYNTAX_SUPPORTED_ALGORITHM_DESCRIPTION)
+                .extraProperties(RFC4523_ORIGIN).implementation(new SupportedAlgorithmSyntaxImpl()).addToSchema();
+
+        builder.buildMatchingRule(EMR_CERTIFICATE_EXACT_OID).names(EMR_CERTIFICATE_EXACT_NAME)
+                .syntaxOID(SYNTAX_CERTIFICATE_EXACT_ASSERTION_OID).extraProperties(RFC4523_ORIGIN)
+                .implementation(new CertificateExactMatchingRuleImpl()).addToSchema();
+
+        builder.addAttributeType("2.5.4.36", Collections.singletonList("userCertificate"),
+                "X.509 user certificate", false, null, EMR_CERTIFICATE_EXACT_OID, null,
+                null, null, SYNTAX_CERTIFICATE_OID, false, false, false,
+                AttributeUsage.USER_APPLICATIONS, RFC4523_ORIGIN, false);
+        builder.addAttributeType("2.5.4.37", Collections.singletonList("cACertificate"),
+                "X.509 CA certificate", false, null, EMR_CERTIFICATE_EXACT_OID, null,
+                null, null, SYNTAX_CERTIFICATE_OID, false, false, false,
+                AttributeUsage.USER_APPLICATIONS, RFC4523_ORIGIN, false);
+        builder.addAttributeType("2.5.4.38", Collections.singletonList("authorityRevocationList"),
+                "X.509 authority revocation list", false, null, EMR_OCTET_STRING_OID, null,
+                null, null, SYNTAX_CERTLIST_OID, false, false, false,
+                AttributeUsage.USER_APPLICATIONS, RFC4523_ORIGIN, false);
+        builder.addAttributeType("2.5.4.39", Collections.singletonList("certificateRevocationList"),
+                "X.509 certificate revocation list", false, null, EMR_OCTET_STRING_OID, null,
+                null, null, SYNTAX_CERTLIST_OID, false, false, false,
+                AttributeUsage.USER_APPLICATIONS, RFC4523_ORIGIN, false);
+        builder.addAttributeType("2.5.4.40", Collections.singletonList("crossCertificatePair"),
+                "X.509 cross certificate pair", false, null, EMR_OCTET_STRING_OID, null,
+                null, null, SYNTAX_CERTPAIR_OID, false, false, false,
+                AttributeUsage.USER_APPLICATIONS, RFC4523_ORIGIN, false);
+        builder.addAttributeType("2.5.4.52", Collections.singletonList("supportedAlgorithms"),
+                "X.509 supported algorithms", false, null, EMR_OCTET_STRING_OID, null,
+                null, null, SYNTAX_SUPPORTED_ALGORITHM_OID, false, false, false,
+                AttributeUsage.USER_APPLICATIONS, RFC4523_ORIGIN, false);
+        builder.addAttributeType("2.5.4.53", Collections.singletonList("deltaRevocationList"),
+                "X.509 delta revocation list", false, null, EMR_OCTET_STRING_OID, null,
+                null, null, SYNTAX_CERTLIST_OID, false, false, false,
+                AttributeUsage.USER_APPLICATIONS, RFC4523_ORIGIN, false);
+
+        builder.addObjectClass("2.5.6.21", Collections.singletonList("pkiUser"),
+                "X.509 PKI User", false, Collections.singleton(TOP_OBJECTCLASS_NAME), EMPTY_STRING_SET,
+                Collections.singleton("userCertificate"), ObjectClassType.AUXILIARY, RFC4523_ORIGIN, false);
+
+        Set<String> attrs = new HashSet<String>();
+        attrs.add("cACertificate");
+        attrs.add("certificateRevocationList");
+        attrs.add("authorityRevocationList");
+        attrs.add("crossCertificatePair");
+
+        builder.addObjectClass("2.5.6.22", Collections.singletonList("pkiCA"),
+                "X.509 PKI Certificate Authority", false, Collections.singleton(TOP_OBJECTCLASS_NAME),
+                EMPTY_STRING_SET, attrs, ObjectClassType.AUXILIARY, RFC4523_ORIGIN, false);
+
+        attrs = new HashSet<String>();
+        attrs.add("certificateRevocationList");
+        attrs.add("authorityRevocationList");
+        attrs.add("deltaRevocationList");
+
+        builder.addObjectClass("2.5.6.19", Collections.singletonList("cRLDistributionPoint"),
+                "X.509 CRL distribution point", false, Collections.singleton(TOP_OBJECTCLASS_NAME),
+                Collections.singleton("cn"), attrs, ObjectClassType.STRUCTURAL, RFC4523_ORIGIN, false);
+
+        builder.addObjectClass("2.5.6.23", Collections.singletonList("deltaCRL"),
+                "X.509 delta CRL", false, Collections.singleton(TOP_OBJECTCLASS_NAME), EMPTY_STRING_SET,
+                Collections.singleton("deltaRevocationList"), ObjectClassType.AUXILIARY, RFC4523_ORIGIN, false);
+        builder.addObjectClass("2.5.6.15", Collections.singletonList("strongAuthenticationUser"),
+                "X.521 strong authentication user", false, Collections.singleton(TOP_OBJECTCLASS_NAME),
+                Collections.singleton("userCertificate"), EMPTY_STRING_SET, ObjectClassType.AUXILIARY,
+                RFC4523_ORIGIN, false);
+        builder.addObjectClass("2.5.6.18", Collections.singletonList("userSecurityInformation"),
+                "X.521 user security information", false, Collections.singleton(TOP_OBJECTCLASS_NAME), EMPTY_STRING_SET,
+                Collections.singleton("supportedAlgorithms"), ObjectClassType.AUXILIARY, RFC4523_ORIGIN, false);
+
+        attrs = new HashSet<String>();
+        attrs.add("authorityRevocationList");
+        attrs.add("certificateRevocationList");
+        attrs.add("cACertificate");
+
+        builder.addObjectClass("2.5.6.16", Collections.singletonList("certificationAuthority"),
+                "X.509 certificate authority", false, Collections.singleton(TOP_OBJECTCLASS_NAME), attrs,
+                Collections.singleton("crossCertificatePair"), ObjectClassType.AUXILIARY, RFC4523_ORIGIN, false);
+
+        builder.addObjectClass("2.5.6.16.2", Collections.singletonList("certificationAuthority-V2"),
+                "X.509 certificate authority, version 2", false, Collections.singleton("certificationAuthority"),
+                EMPTY_STRING_SET, Collections.singleton("deltaRevocationList"), ObjectClassType.AUXILIARY,
+                RFC4523_ORIGIN, false);
+    }
+
     private static void addRFC4530(final SchemaBuilder builder) {
         builder.buildSyntax(SYNTAX_UUID_OID).description(SYNTAX_UUID_DESCRIPTION).extraProperties(RFC4530_ORIGIN)
                 .implementation(new UUIDSyntaxImpl()).addToSchema();
@@ -854,12 +954,6 @@ final class CoreSchemaImpl {
                 .extraProperties(RFC4512_ORIGIN).implementation(new BitStringSyntaxImpl()).addToSchema();
         builder.buildSyntax(SYNTAX_BOOLEAN_OID).description(SYNTAX_BOOLEAN_DESCRIPTION).extraProperties(RFC4512_ORIGIN)
                 .implementation(new BooleanSyntaxImpl()).addToSchema();
-        builder.buildSyntax(SYNTAX_CERTLIST_OID).description(SYNTAX_CERTLIST_DESCRIPTION)
-                .extraProperties(RFC4512_ORIGIN).implementation(new CertificateListSyntaxImpl()).addToSchema();
-        builder.buildSyntax(SYNTAX_CERTPAIR_OID).description(SYNTAX_CERTPAIR_DESCRIPTION)
-                .extraProperties(RFC4512_ORIGIN).implementation(new CertificatePairSyntaxImpl()).addToSchema();
-        builder.buildSyntax(SYNTAX_CERTIFICATE_OID).description(SYNTAX_CERTIFICATE_DESCRIPTION)
-                .extraProperties(RFC4512_ORIGIN).implementation(new CertificateSyntaxImpl()).addToSchema();
         builder.buildSyntax(SYNTAX_COUNTRY_STRING_OID).description(SYNTAX_COUNTRY_STRING_DESCRIPTION)
                 .extraProperties(RFC4512_ORIGIN).implementation(new CountryStringSyntaxImpl()).addToSchema();
         builder.buildSyntax(SYNTAX_DELIVERY_METHOD_OID).description(SYNTAX_DELIVERY_METHOD_DESCRIPTION)
@@ -920,8 +1014,6 @@ final class CoreSchemaImpl {
                 .extraProperties(RFC2252_ORIGIN).implementation(new ProtocolInformationSyntaxImpl()).addToSchema();
         builder.buildSyntax(SYNTAX_SUBSTRING_ASSERTION_OID).description(SYNTAX_SUBSTRING_ASSERTION_DESCRIPTION)
                 .extraProperties(RFC4512_ORIGIN).implementation(new SubstringAssertionSyntaxImpl()).addToSchema();
-        builder.buildSyntax(SYNTAX_SUPPORTED_ALGORITHM_OID).description(SYNTAX_SUPPORTED_ALGORITHM_DESCRIPTION)
-                .extraProperties(RFC4512_ORIGIN).implementation(new SupportedAlgorithmSyntaxImpl()).addToSchema();
         builder.buildSyntax(SYNTAX_TELEPHONE_OID).description(SYNTAX_TELEPHONE_DESCRIPTION)
                 .extraProperties(RFC4512_ORIGIN).implementation(new TelephoneNumberSyntaxImpl()).addToSchema();
         builder.buildSyntax(SYNTAX_TELETEX_TERM_ID_OID).description(SYNTAX_TELETEX_TERM_ID_DESCRIPTION)

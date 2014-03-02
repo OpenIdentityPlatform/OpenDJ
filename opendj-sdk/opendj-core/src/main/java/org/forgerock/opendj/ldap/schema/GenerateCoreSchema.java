@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 Manuel Gaupp
  */
 
 package org.forgerock.opendj.ldap.schema;
@@ -60,8 +61,8 @@ final class GenerateCoreSchema {
             }
 
             final String name = syntax.getDescription().replaceAll(" Syntax$", "");
-            final String fieldName =
-                    name.replace(" ", "_").toUpperCase(Locale.ENGLISH).concat("_SYNTAX");
+            final String fieldName = name.replace(" ", "_").replaceAll("[.-]", "")
+                    .toUpperCase(Locale.ENGLISH).concat("_SYNTAX");
             syntaxes.put(fieldName, syntax);
         }
 
@@ -93,7 +94,7 @@ final class GenerateCoreSchema {
                 continue;
             }
             final String name = objectClass.getNameOrOID();
-            final String fieldName = splitNameIntoWords(name).concat("_OBJECT_CLASS");
+            final String fieldName = splitNameIntoWords(name.replace("-", "")).concat("_OBJECT_CLASS");
 
             objectClasses.put(fieldName, objectClass);
         }

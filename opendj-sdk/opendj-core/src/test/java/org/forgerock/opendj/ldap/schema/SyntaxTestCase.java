@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2014 ForgeRock AS.
+ *      Portions Copyright 2014 Manuel Gaupp
  */
 
 package org.forgerock.opendj.ldap.schema;
@@ -399,7 +400,7 @@ public class SyntaxTestCase extends SchemaTestCase {
         assertThat(syntax.getDescription()).isEqualTo("X.509 Certificate");
         assertThat(syntax.getExtraProperties().isEmpty()).isTrue();
         assertThat(syntax.getApproximateMatchingRule()).isNull();
-        assertThat(syntax.getEqualityMatchingRule().getNameOrOID()).isEqualTo("octetStringMatch");
+        assertThat(syntax.getEqualityMatchingRule().getNameOrOID()).isEqualTo("certificateExactMatch");
         assertThat(syntax.getOrderingMatchingRule().getNameOrOID()).isEqualTo("octetStringOrderingMatch");
         assertThat(syntax.getSubstringMatchingRule()).isNull();
         assertThat(syntax.isBEREncodingRequired()).isTrue();
