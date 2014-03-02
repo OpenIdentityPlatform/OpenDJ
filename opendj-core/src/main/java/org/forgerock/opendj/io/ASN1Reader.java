@@ -23,6 +23,7 @@
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions Copyright 2014 Manuel Gaupp
  */
 
 package org.forgerock.opendj.io;
@@ -338,9 +339,9 @@ public interface ASN1Reader extends Closeable {
     void readStartSequence() throws DecodeException, IOException;
 
     /**
-     * Reads the next element as an explicit tag having the Universal Sequence
-     * ASN.1 type tag. All further reads will read the elements in the explicit
-     * tag until {@link #readEndExplicitTag()} is called.
+     * Reads the next element as an explicit ignoring the ASN.1 type tag. All
+     * further reads will read the elements in the explicit tag until
+     * {@link #readEndExplicitTag()} is called.
      *
      * @throws DecodeException
      *             If the element cannot be decoded as an explicit tag.
@@ -348,6 +349,20 @@ public interface ASN1Reader extends Closeable {
      *             If an unexpected IO error occurred.
      */
     void readStartExplicitTag() throws DecodeException, IOException;
+
+    /**
+     * Reads the next element as an explicit tag having the provided tag type.
+     * All further reads will read the elements in the explicit tag until
+     * {@link #readEndExplicitTag()} is called.
+     *
+     * @param type
+     *            The expected type tag of the element.
+     * @throws DecodeException
+     *             If the element cannot be decoded as an explicit tag.
+     * @throws IOException
+     *             If an unexpected IO error occurred.
+     */
+    void readStartExplicitTag(byte type) throws DecodeException, IOException;
 
     /**
      * Reads the next element as a sequence having the provided type tag. All
@@ -399,4 +414,17 @@ public interface ASN1Reader extends Closeable {
      *             If an unexpected IO error occurred.
      */
     ASN1Reader skipElement() throws DecodeException, IOException;
+
+    /**
+     * Skips the next element having the provided type tag without decoding it.
+     *
+     * @param type
+     *            The expected type tag of the element.
+     * @return A reference to this ASN.1 reader.
+     * @throws DecodeException
+     *             If the next element does not have the provided type tag.
+     * @throws IOException
+     *             If an unexpected IO error occurred.
+     */
+    ASN1Reader skipElement(byte type) throws DecodeException, IOException;
 }

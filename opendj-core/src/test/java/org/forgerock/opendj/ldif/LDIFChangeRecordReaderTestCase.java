@@ -23,6 +23,7 @@
  *
  *      Copyright 2011 ForgeRock AS
  *      Portions copyright 2012 ForgeRock AS.
+ *      Portions Copyright 2014 Manuel Gaupp
  */
 
 package org.forgerock.opendj.ldif;
@@ -60,7 +61,6 @@ import org.forgerock.opendj.ldap.requests.DeleteRequest;
 import org.forgerock.opendj.ldap.requests.ModifyDNRequest;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.schema.Schema;
-import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.opendj.ldap.schema.SchemaValidationPolicy;
 import org.forgerock.opendj.ldap.schema.SchemaValidationPolicy.Action;
 import org.testng.annotations.Test;
@@ -1755,16 +1755,7 @@ public final class LDIFChangeRecordReaderTestCase extends AbstractLDIFTestCase {
         // @formatter:on
 
         final LDIFChangeRecordReader reader = new LDIFChangeRecordReader(strChangeRecord);
-
-        final SchemaBuilder scBuild = new SchemaBuilder();
-        // Adding the new schema containing the userCertificate
-        scBuild.addObjectClass("( 2.5.6.15 NAME 'strongAuthenticationUser"
-                + "' SUP top AUXILIARY MUST userCertificate )", false);
-        scBuild.addAttributeType(
-                "( 2.5.4.36 NAME 'userCertificate' SYNTAX 1.3.6.1.4.1.1466.115.121.1.8 )", false);
-        // Adding to default core schema
-        scBuild.addSchema(Schema.getCoreSchema(), false);
-        Schema schema = scBuild.toSchema();
+        Schema schema = Schema.getCoreSchema();
         reader.setSchema(schema);
         reader.setSchemaValidationPolicy(SchemaValidationPolicy.defaultPolicy());
 

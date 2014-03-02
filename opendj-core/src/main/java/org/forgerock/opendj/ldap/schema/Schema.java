@@ -23,6 +23,7 @@
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
  *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2014 Manuel Gaupp
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -91,6 +92,11 @@ public final class Schema {
 
         @Override
         public boolean allowMalformedJPEGPhotos() {
+            return true;
+        }
+
+        @Override
+        public boolean allowMalformedCertificates() {
             return true;
         }
 
@@ -316,6 +322,8 @@ public final class Schema {
 
         boolean allowMalformedJPEGPhotos();
 
+        boolean allowMalformedCertificates();
+
         boolean allowNonStandardTelephoneNumbers();
 
         boolean allowZeroLengthDirectoryStrings();
@@ -416,6 +424,11 @@ public final class Schema {
         @Override
         public boolean allowMalformedJPEGPhotos() {
             return strictImpl.allowMalformedJPEGPhotos();
+        }
+
+        @Override
+        public boolean allowMalformedCertificates() {
+            return strictImpl.allowMalformedCertificates();
         }
 
         @Override
@@ -658,6 +671,7 @@ public final class Schema {
         private final List<LocalizableMessage> warnings;
         private final String schemaName;
         private final boolean allowMalformedJPEGPhotos;
+        private final boolean allowMalformedCertificates;
         private final boolean allowNonStandardTelephoneNumbers;
         private final boolean allowZeroLengthDirectoryStrings;
         private final boolean allowMalformedNamesAndOptions;
@@ -666,6 +680,7 @@ public final class Schema {
 
         StrictImpl(final String schemaName, final boolean allowMalformedNamesAndOptions,
                 final boolean allowMalformedJPEGPhotos,
+                final boolean allowMalformedCertificates,
                 final boolean allowNonStandardTelephoneNumbers,
                 final boolean allowZeroLengthDirectoryStrings,
                 final Syntax defaultSyntax,
@@ -691,6 +706,7 @@ public final class Schema {
             this.schemaName = schemaName;
             this.allowMalformedNamesAndOptions = allowMalformedNamesAndOptions;
             this.allowMalformedJPEGPhotos = allowMalformedJPEGPhotos;
+            this.allowMalformedCertificates = allowMalformedCertificates;
             this.allowNonStandardTelephoneNumbers = allowNonStandardTelephoneNumbers;
             this.allowZeroLengthDirectoryStrings = allowZeroLengthDirectoryStrings;
             this.defaultSyntax = defaultSyntax;
@@ -724,6 +740,11 @@ public final class Schema {
         @Override
         public boolean allowMalformedJPEGPhotos() {
             return allowMalformedJPEGPhotos;
+        }
+
+        @Override
+        public boolean allowMalformedCertificates() {
+            return allowMalformedCertificates;
         }
 
         @Override
@@ -1349,6 +1370,7 @@ public final class Schema {
 
     Schema(final String schemaName, final boolean allowMalformedNamesAndOptions,
             final boolean allowMalformedJPEGPhotos,
+            final boolean allowMalformedCertificates,
             final boolean allowNonStandardTelephoneNumbers,
             final boolean allowZeroLengthDirectoryStrings,
             final Syntax defaultSyntax,
@@ -1373,9 +1395,9 @@ public final class Schema {
             final List<LocalizableMessage> warnings) {
         impl =
                 new StrictImpl(schemaName, allowMalformedNamesAndOptions, allowMalformedJPEGPhotos,
-                        allowNonStandardTelephoneNumbers, allowZeroLengthDirectoryStrings,
-                        defaultSyntax, defaultMatchingRule, numericOID2Syntaxes,
-                        numericOID2MatchingRules, numericOID2MatchingRuleUses,
+                        allowMalformedCertificates, allowNonStandardTelephoneNumbers,
+                        allowZeroLengthDirectoryStrings, defaultSyntax, defaultMatchingRule,
+                        numericOID2Syntaxes, numericOID2MatchingRules, numericOID2MatchingRuleUses,
                         numericOID2AttributeTypes, numericOID2ObjectClasses, numericOID2NameForms,
                         numericOID2ContentRules, id2StructureRules, name2MatchingRules,
                         name2MatchingRuleUses, name2AttributeTypes, name2ObjectClasses,
@@ -1423,6 +1445,21 @@ public final class Schema {
      */
     public boolean allowMalformedJPEGPhotos() {
         return impl.allowMalformedJPEGPhotos();
+    }
+
+    /**
+     * Returns {@code true} if the Certificate syntax defined for this
+     * schema allows values which do not conform to the X.509
+     * specifications.
+     * <p>
+     * By default this compatibility option is set to {@code true}.
+     *
+     * @return {@code true} if the Certificate syntax defined for this
+     *         schema allows values which do not conform to the X.509
+     *         specifications.
+     */
+    public boolean allowMalformedCertificates() {
+        return impl.allowMalformedCertificates();
     }
 
     /**

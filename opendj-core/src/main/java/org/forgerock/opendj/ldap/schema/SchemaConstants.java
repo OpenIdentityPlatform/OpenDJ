@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 Manuel Gaupp
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -215,6 +216,16 @@ final class SchemaConstants {
      * The OID for the caseIgnoreListMatch equality matching rule.
      */
     public static final String EMR_CASE_IGNORE_LIST_OID = "2.5.13.11";
+
+    /**
+     * The name for the certificateExactMatch equality matching rule.
+     */
+    public static final String EMR_CERTIFICATE_EXACT_NAME = "certificateExactMatch";
+
+    /**
+     * The OID for the certificateExactMatch equality matching rule.
+     */
+    public static final String EMR_CERTIFICATE_EXACT_OID = "2.5.13.34";
 
     /**
      * The name for the directoryStringFirstComponentMatch equality matching
@@ -697,6 +708,22 @@ final class SchemaConstants {
      * The OID for the certificate attribute syntax.
      */
     public static final String SYNTAX_CERTIFICATE_OID = "1.3.6.1.4.1.1466.115.121.1.8";
+
+    /**
+     * The description for the certificate exact assertion attribute syntax.
+     */
+    public static final String SYNTAX_CERTIFICATE_EXACT_ASSERTION_DESCRIPTION = "X.509 Certificate Exact Assertion";
+
+    /**
+     * The name for the certificate exact assertion attribute syntax.
+     */
+    public static final String SYNTAX_CERTIFICATE_EXACT_ASSERTION_NAME = "CertificateExactAssertion";
+
+    /**
+     * The OID for the Certificate Exact Assertion syntax used for assertion
+     * values in extensible match filters.
+     */
+    public static final String SYNTAX_CERTIFICATE_EXACT_ASSERTION_OID = "1.3.6.1.1.15.1";
 
     /**
      * The description for the certificate list attribute syntax.

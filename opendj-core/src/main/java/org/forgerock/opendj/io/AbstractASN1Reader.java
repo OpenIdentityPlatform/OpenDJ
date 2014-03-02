@@ -23,6 +23,7 @@
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
  *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions Copyright 2014 Manuel Gaupp
  */
 
 package org.forgerock.opendj.io;
@@ -132,6 +133,17 @@ public abstract class AbstractASN1Reader implements ASN1Reader {
     /**
      * {@inheritDoc}
      */
+    public void readStartExplicitTag(byte type) throws IOException {
+        if (type == 0x00) {
+            type = (ASN1.TYPE_MASK_CONTEXT | ASN1.TYPE_MASK_CONSTRUCTED);
+        }
+        checkType(type);
+        readStartExplicitTag();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public void readStartSequence(byte type) throws IOException {
         if (type == 0x00) {
             type = ASN1.UNIVERSAL_SEQUENCE_TYPE;
@@ -151,6 +163,19 @@ public abstract class AbstractASN1Reader implements ASN1Reader {
         }
         checkType(type);
         readStartSet();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public ASN1Reader skipElement(final byte expectedType) throws IOException {
+        if (peekType() != expectedType) {
+            final LocalizableMessage message =
+                    ERR_ASN1_UNEXPECTED_TAG.get(expectedType, peekType());
+            throw DecodeException.fatalError(message);
+        }
+        skipElement();
+        return this;
     }
 
     private void checkType(final byte expectedType) throws IOException {
