@@ -32,6 +32,7 @@ import static org.opends.messages.ToolMessages.*;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.Utils.canWrite;
 import static org.opends.quicksetup.util.Utils.isDn;
+import static com.forgerock.opendj.cli.Utils.LINE_SEPARATOR;
 
 import java.io.File;
 import java.io.OutputStream;
@@ -2181,7 +2182,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
   {
     if (buf.length() > 0)
     {
-      buf.append(EOL);
+      buf.append(LINE_SEPARATOR);
     }
     buf.append(message);
   }

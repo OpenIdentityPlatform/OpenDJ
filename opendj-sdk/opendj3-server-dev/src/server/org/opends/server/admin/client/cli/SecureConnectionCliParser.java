@@ -57,7 +57,12 @@ import static org.opends.server.util.StaticUtils.*;
 public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
 {
   /**
-   * The showUsage' global argument.
+   * Logger.
+   */
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
+  /**
+   * The 'showUsage' global argument.
    */
   protected BooleanArgument showUsageArg = null;
 
@@ -81,12 +86,6 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
    * look for properties file.
    */
   protected BooleanArgument noPropertiesFileArg;
-  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-
-  /**
-   * End Of Line.
-   */
-  public static String EOL = System.getProperty("line.separator");
 
   /**
    * Creates a new instance of this argument parser with no arguments.
@@ -154,7 +153,7 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
     if (clearArg.isPresent())
     {
       String bindPasswordValue = clearArg.getValue();
-      if(bindPasswordValue != null && bindPasswordValue.equals("-"))
+      if(bindPasswordValue != null && "-".equals(bindPasswordValue))
       {
         // read the password from the stdin.
         try
@@ -392,14 +391,7 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
    */
   public boolean isVerbose()
   {
-    if (verboseArg.isPresent())
-    {
-      return true;
-    }
-    else
-    {
-      return false ;
-    }
+    return verboseArg.isPresent();
   }
 
 

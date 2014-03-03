@@ -184,13 +184,13 @@ public final class SecureConnectionCliArgs
    */
   private LinkedHashSet<Argument> argList = null;
 
-  // the trust manager.
+  /** The trust manager. */
   private ApplicationTrustManager trustManager;
 
   private boolean configurationInitialized = false;
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // Defines if the CLI always use the SSL connection type.
+  /** Defines if the CLI always use the SSL connection type. */
   private boolean alwaysSSL = false;
 
   /**
@@ -297,7 +297,7 @@ public final class SecureConnectionCliArgs
     if (clearArg.isPresent())
     {
       String bindPasswordValue = clearArg.getValue();
-      if(bindPasswordValue != null && bindPasswordValue.equals("-"))
+      if(bindPasswordValue != null && "-".equals(bindPasswordValue))
       {
         // read the password from the stdin.
         try
@@ -665,7 +665,7 @@ public final class SecureConnectionCliArgs
    */
   public boolean useSSL()
   {
-    return (useSSLArg.isPresent() || alwaysSSL());
+    return useSSLArg.isPresent() || alwaysSSL();
   }
 
   /**
