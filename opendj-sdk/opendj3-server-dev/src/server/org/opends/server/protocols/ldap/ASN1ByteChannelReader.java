@@ -26,16 +26,18 @@
  */
 package org.opends.server.protocols.ldap;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.IllegalBlockingModeException;
+import java.nio.channels.ReadableByteChannel;
+
 import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Reader;
 import org.forgerock.opendj.ldap.ByteSequenceReader;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
-import java.nio.ByteBuffer;
-import java.nio.channels.IllegalBlockingModeException;
-import java.nio.channels.ReadableByteChannel;
-import java.io.IOException;
-import java.io.InputStream;
+import org.forgerock.opendj.ldap.DecodeException;
 
 /**
  * This class is for reading ASN.1 elements from a readable byte
@@ -72,22 +74,26 @@ import java.io.InputStream;
  */
 final class ASN1ByteChannelReader implements ASN1Reader
 {
-  // The byte channel to read from.
+  /** The byte channel to read from. */
   private final ReadableByteChannel byteChannel;
 
-  // The wrapped ASN.1 reader.
+  /** The wrapped ASN.1 reader. */
   private final ASN1Reader reader;
 
-  // The NIO ByteStringBuilder that stores any immediate data read off
-  // the channel.
+  /**
+   * The NIO ByteStringBuilder that stores any immediate data read off the
+   * channel.
+   */
   private final ByteBuffer byteBuffer;
 
-  // The save buffer used to store any unprocessed data waiting
-  // to be read as ASN.1 elements. (Usually due to reading
-  // incomplete elements from the channel).
+  /**
+   * The save buffer used to store any unprocessed data waiting to be read as
+   * ASN.1 elements. (Usually due to reading incomplete elements from the
+   * channel).
+   */
   private final ByteStringBuilder saveBuffer;
 
-  // The save buffer reader.
+  /** The save buffer reader. */
   private final ByteSequenceReader saveBufferReader;
 
   /**
@@ -108,9 +114,7 @@ final class ASN1ByteChannelReader implements ASN1Reader
    */
   private final class CombinedBufferInputStream extends InputStream
   {
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public int available()
     {
@@ -205,7 +209,7 @@ final class ASN1ByteChannelReader implements ASN1Reader
     @Override
     public int read(byte[] b, int off, int len)
     {
-      if ((off < 0) || (len < 0) || (off + len > b.length))
+      if (off < 0 || len < 0 || off + len > b.length)
       {
         throw new IndexOutOfBoundsException();
       }
@@ -240,9 +244,7 @@ final class ASN1ByteChannelReader implements ASN1Reader
       return bytesCopied;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public long skip(long length)
     {
@@ -333,8 +335,7 @@ final class ASN1ByteChannelReader implements ASN1Reader
     byteBuffer.clear();
     try
     {
-      int read = byteChannel.read(byteBuffer);
-      return read;
+      return byteChannel.read(byteBuffer);
     }
     finally
     {
@@ -380,28 +381,22 @@ final class ASN1ByteChannelReader implements ASN1Reader
    */
   public boolean hasRemainingData()
   {
-    return (saveBufferReader.remaining() != 0) || (byteBuffer.remaining() != 0);
+    return saveBufferReader.remaining() != 0 || byteBuffer.remaining() != 0;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public int peekLength() throws IOException {
     return reader.peekLength();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public byte peekType() throws IOException {
     return reader.peekType();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean readBoolean() throws IOException {
     return reader.readBoolean();
@@ -413,32 +408,25 @@ final class ASN1ByteChannelReader implements ASN1Reader
     return reader.readBoolean(type);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public void readEndExplicitTag() throws IOException {
-//    reader.readEndExplicitTag(); // TODO
+    reader.readEndExplicitTag();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void readEndSequence() throws IOException {
     reader.readEndSequence();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void readEndSet() throws IOException {
     reader.readEndSet();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public int readEnumerated() throws IOException {
     return reader.readEnumerated();
@@ -450,9 +438,7 @@ final class ASN1ByteChannelReader implements ASN1Reader
     return reader.readEnumerated(type);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public long readInteger() throws IOException {
     return reader.readInteger();
@@ -464,9 +450,7 @@ final class ASN1ByteChannelReader implements ASN1Reader
     return reader.readInteger(type);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void readNull() throws IOException {
     reader.readNull();
@@ -478,9 +462,7 @@ final class ASN1ByteChannelReader implements ASN1Reader
     reader.readNull(type);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ByteString readOctetString() throws IOException {
     return reader.readOctetString();
@@ -492,9 +474,7 @@ final class ASN1ByteChannelReader implements ASN1Reader
     return readOctetString(type);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ByteStringBuilder readOctetString(ByteStringBuilder buffer) throws IOException {
     return reader.readOctetString(buffer);
@@ -506,9 +486,7 @@ final class ASN1ByteChannelReader implements ASN1Reader
     return readOctetString(type, builder);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String readOctetStringAsString() throws IOException {
     return reader.readOctetStringAsString();
@@ -520,16 +498,19 @@ final class ASN1ByteChannelReader implements ASN1Reader
     return readOctetStringAsString(type);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public void readStartExplicitTag() throws IOException {
-//    reader.readStartExplicitTag();// TODO
+    reader.readStartExplicitTag();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
+  public void readStartExplicitTag(byte type) throws IOException {
+    reader.readStartExplicitTag(type);
+  }
+
+  /** {@inheritDoc} */
   @Override
   public void readStartSequence() throws IOException {
     reader.readStartSequence();
@@ -541,9 +522,7 @@ final class ASN1ByteChannelReader implements ASN1Reader
     reader.readStartSequence(type);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void readStartSet() throws IOException {
     reader.readStartSet();
@@ -555,21 +534,25 @@ final class ASN1ByteChannelReader implements ASN1Reader
     reader.readStartSet(type);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void close() throws IOException {
     reader.close();
     byteChannel.close();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ASN1Reader skipElement() throws IOException {
     reader.skipElement();
+    return this;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public ASN1Reader skipElement(byte type) throws DecodeException, IOException
+  {
+    reader.skipElement(type);
     return this;
   }
 }
