@@ -62,7 +62,7 @@ class UpgradeLog
    */
   static void initLogFileHandler()
   {
-    final Logger logger = Logger.getLogger(UpgradeCli.class.getName());
+    final Logger logger = Logger.getLogger(UpgradeLog.class.getPackage().getName());
 
     final String SPACE = " ";
 
@@ -101,7 +101,7 @@ class UpgradeLog
         return sb.toString();
       }
     });
-    logger.setLevel(Level.CONFIG);
+    logger.setLevel(Level.ALL);
     logger.addHandler(fileHandler);
 
     logger.setUseParentHandlers(false);
