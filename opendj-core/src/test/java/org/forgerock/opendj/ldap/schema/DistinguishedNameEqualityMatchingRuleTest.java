@@ -27,6 +27,7 @@
 
 package org.forgerock.opendj.ldap.schema;
 
+import static org.fest.assertions.Assertions.*;
 import static org.testng.Assert.assertEquals;
 
 import org.forgerock.opendj.ldap.ByteString;
@@ -185,18 +186,21 @@ public class DistinguishedNameEqualityMatchingRuleTest extends MatchingRuleTest 
         return CoreSchema.getDistinguishedNameMatchingRule();
     }
 
+    @Test
+    public void testIsValidated() {
+        assertThat(getRule().isValidated()).isTrue();
+    }
+
     /**
      * Test the normalized values
      */
     @Test(dataProvider = "testDNs")
     public void testNormalization(final String value1, final String value2) throws Exception {
-        // TODO : workaround to make test pass until issue OPENDJ-1361 is fixed
-        new SchemaBuilder("workaround").addSchema(Schema.getCoreSchema(), true).toSchema();
-
         final MatchingRule rule = getRule();
         final ByteString normalizedValue1 =
                 rule.normalizeAttributeValue(ByteString.valueOf(value1));
         final ByteString expectedValue = ByteString.valueOf(value2);
         assertEquals(normalizedValue1, expectedValue);
     }
+
 }

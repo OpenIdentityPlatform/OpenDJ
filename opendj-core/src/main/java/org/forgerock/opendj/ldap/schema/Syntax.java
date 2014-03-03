@@ -453,4 +453,14 @@ public final class Syntax extends SchemaElement {
             }
         }
     }
+
+    /**
+     * Indicates if the syntax has been validated, which means it has a non-null
+     * schema.
+     *
+     * @return {@code true} if and only if this syntax has been validated
+     */
+    boolean isValidated() {
+        return schema != null;
+    }
 }
