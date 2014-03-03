@@ -2712,7 +2712,8 @@ public final class SchemaBuilder {
     }
 
     SchemaBuilder addMatchingRule(final MatchingRule rule, final boolean overwrite) {
-        assert !rule.isValidated() : "Matching rule has already been validated, it can't be added";
+        Reject.ifTrue(rule.isValidated(),
+                "Matching rule has already been validated, it can't be added");
         MatchingRule conflictingRule;
         if (numericOID2MatchingRules.containsKey(rule.getOID())) {
             conflictingRule = numericOID2MatchingRules.get(rule.getOID());
@@ -2848,6 +2849,7 @@ public final class SchemaBuilder {
     }
 
     SchemaBuilder addSyntax(final Syntax syntax, final boolean overwrite) {
+        Reject.ifTrue(syntax.isValidated(), "Syntax has already been validated, it can't be added");
         Syntax conflictingSyntax;
         if (numericOID2Syntaxes.containsKey(syntax.getOID())) {
             conflictingSyntax = numericOID2Syntaxes.get(syntax.getOID());

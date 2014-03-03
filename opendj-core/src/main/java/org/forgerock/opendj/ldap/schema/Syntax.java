@@ -201,7 +201,13 @@ public final class Syntax extends SchemaElement {
         Reject.ifNull(oid);
         this.oid = oid;
         this.schema = schema;
-        this.impl = schema.getDefaultSyntax().impl;
+
+        final Syntax defaultSyntax = schema.getDefaultSyntax();
+        this.impl = defaultSyntax.impl;
+        this.approximateMatchingRule = defaultSyntax.getApproximateMatchingRule();
+        this.equalityMatchingRule = defaultSyntax.getEqualityMatchingRule();
+        this.orderingMatchingRule = defaultSyntax.getOrderingMatchingRule();
+        this.substringMatchingRule = defaultSyntax.getSubstringMatchingRule();
     }
 
     /**

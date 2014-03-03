@@ -66,24 +66,41 @@ public class SyntaxTestCase extends SchemaTestCase {
     }
 
     /**
-     * Creates an empty syntax.
+     * Tests that unrecognized syntaxes are automatically substituted with the
+     * default syntax during building.
      */
-    @Test()
-    public final void testCreatesEmptySyntax() {
-        final SchemaBuilder sb = new SchemaBuilder();
-        sb.addSchema(Schema.getCoreSchema(), false);
-
-        sb.addSyntax(new Syntax(Schema.getEmptySchema(), "1.2.3.4.5"), false);
-
+    @Test
+    public final void testBuilderSubstitutesUnknownSyntaxWithDefaultSyntax() {
+        final SchemaBuilder sb = new SchemaBuilder(Schema.getCoreSchema());
+        sb.buildSyntax("1.2.3.4.5").addToSchema();
         final Schema schema = sb.toSchema();
-        assertThat(schema.getWarnings()).isEmpty();
+        assertThat(schema.getWarnings()).hasSize(1);
         final Syntax syntax = schema.getSyntax("1.2.3.4.5");
         assertThat(syntax).isNotNull();
         assertThat(syntax.getDescription()).isEmpty();
-        assertThat(syntax.getExtraProperties().get("X-SUBST").get(0)).isEqualTo("1.3.6.1.4.1.1466.115.121.1.40");
         assertThat(syntax.getApproximateMatchingRule()).isNull();
         assertThat(syntax.getEqualityMatchingRule().getNameOrOID()).isEqualTo("octetStringMatch");
-        assertThat(syntax.getOrderingMatchingRule().getNameOrOID()).isEqualTo("octetStringOrderingMatch");
+        assertThat(syntax.getOrderingMatchingRule().getNameOrOID()).isEqualTo(
+                "octetStringOrderingMatch");
+        assertThat(syntax.getSubstringMatchingRule()).isNull();
+    }
+
+    /**
+     * Tests that unrecognized syntaxes are automatically substituted with the
+     * default syntax and matching rule.
+     */
+    @Test()
+    public final void testDefaultSyntaxSubstitution() {
+        final Syntax syntax = Schema.getCoreSchema().getSyntax("1.2.3.4.5");
+        assertThat(syntax).isNotNull();
+        assertThat(syntax.getDescription()).isEmpty();
+        // Dynamically created syntaxes include the X-SUBST extension.
+        assertThat(syntax.getExtraProperties().get("X-SUBST").get(0)).isEqualTo(
+                "1.3.6.1.4.1.1466.115.121.1.40");
+        assertThat(syntax.getApproximateMatchingRule()).isNull();
+        assertThat(syntax.getEqualityMatchingRule().getNameOrOID()).isEqualTo("octetStringMatch");
+        assertThat(syntax.getOrderingMatchingRule().getNameOrOID()).isEqualTo(
+                "octetStringOrderingMatch");
         assertThat(syntax.getSubstringMatchingRule()).isNull();
     }
 
