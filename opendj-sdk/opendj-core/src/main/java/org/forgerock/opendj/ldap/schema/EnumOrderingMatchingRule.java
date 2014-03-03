@@ -35,7 +35,7 @@ import org.forgerock.util.Reject;
 
 /**
  * This class is the ordering matching rule implementation for an enum syntax
- * implmentation. The ordering is determined by the order of the entries in the
+ * implementation. The ordering is determined by the order of the entries in the
  * X-ENUM extension value.
  */
 final class EnumOrderingMatchingRule extends AbstractOrderingMatchingRuleImpl {
