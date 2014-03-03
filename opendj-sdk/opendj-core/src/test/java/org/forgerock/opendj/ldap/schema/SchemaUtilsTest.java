@@ -26,6 +26,8 @@
  */
 package org.forgerock.opendj.ldap.schema;
 
+import org.fest.assertions.Assertions;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
@@ -87,5 +89,159 @@ public class SchemaUtilsTest extends SchemaTestCase {
 
         final SubstringReader reader = new SubstringReader(oid);
         Assert.assertEquals(SchemaUtils.readOID(reader, false), expected);
+    }
+
+    @DataProvider
+    public Object[][] nonAsciiStringProvider() throws Exception {
+        final String nonAsciiChars = "ëéèêœ";
+        final String nonAsciiCharsReplacement = new String(
+                new byte[] { _(0x65), _(0xcc), _(0x88), _(0x65), _(0xcc),
+                    _(0x81), _(0x65), _(0xcc), _(0x80), _(0x65), _(0xcc),
+                    _(0x82), _(0xc5), _(0x93), }, "UTF8");
+        return new Object[][] {
+            { nonAsciiChars, false, false, nonAsciiCharsReplacement },
+            { nonAsciiChars, false, true,  nonAsciiCharsReplacement },
+            { nonAsciiChars, true,  false, nonAsciiCharsReplacement },
+            { nonAsciiChars, true,  true,  nonAsciiCharsReplacement },
+        };
+    }
+
+    @DataProvider
+    public Object[][] stringProvider() throws Exception {
+        final String allSpaceChars = "\u0009\n\u000b\u000c\r\u000e";
+        final String mappedToNothingChars = "\u007F"
+            + "\u0000\u0001\u0002\u0003\u0004\u0005\u0006\u0007\u0008"
+            + "\u000E\u000F"
+            + "\u0010\u0011\u0012\u0013\u0014\u0015\u0016\u0017\u0018\u0019"
+            + "\u001A\u001B\u001C\u001D\u001E\u001F";
+        return new Object[][] {
+            // empty always remains empty
+            { "", false, false, "" },
+            { "", false, true,  "" },
+            { "", true,  false, "" },
+            { "", true,  true,  "" },
+            // double space chars are always converted to single char
+            { "  ", false, false, " " },
+            { "  ", false, true,  " " },
+            { "  ", true,  false, " " },
+            { "  ", true,  true,  " " },
+            // trim all space chars to a single space
+            { allSpaceChars, false, false, " " },
+            { allSpaceChars, false, true,  " " },
+            { allSpaceChars, true,  false, " " },
+            { allSpaceChars, true,  true,  " " },
+            // remove chars that are not mapped to anything
+            { mappedToNothingChars, false, false, " " },
+            { mappedToNothingChars, false, true,  " " },
+            { mappedToNothingChars, true,  false, " " },
+            { mappedToNothingChars, true,  true,  " " },
+        };
+    }
+
+    /** Mixes trimming and case folding tests. */
+    @DataProvider
+    public Object[][] stringWithSpacesProvider() {
+        return new Object[][] {
+            { " this is a string ", false, false, " this is a string " },
+            { " this is a string ", false, true,  " this is a string " },
+            { " this is a string ", true,  false, "this is a string" },
+            { " this is a string ", true,  true,  "this is a string" },
+            { "   this  is    a   string  ", false, false, " this is a string " },
+            { "   this  is    a   string  ", false, true,  " this is a string " },
+            { "   this  is    a   string  ", true,  false, "this is a string" },
+            { "   this  is    a   string  ", true,  true,  "this is a string" },
+            { " THIS IS A STRING ", false, false, " THIS IS A STRING " },
+            { " THIS IS A STRING ", false, true,  " this is a string " },
+            { " THIS IS A STRING ", true,  false, "THIS IS A STRING" },
+            { " THIS IS A STRING ", true,  true,  "this is a string" },
+        };
+    }
+
+    //@Checkstyle:off
+    private byte _(int i) {
+        return (byte) i;
+    }
+    //@Checkstyle:on
+
+    @Test(dataProvider = "stringProvider")
+    public void testNormalizeStringProvider(String value, boolean trim, boolean foldCase, String expected)
+            throws Exception {
+        ByteString val = ByteString.valueOf(value);
+        ByteString normValue = SchemaUtils.normalizeStringAttributeValue(val, trim, foldCase);
+        Assertions.assertThat(normValue.toString()).isEqualTo(expected);
+    }
+
+    @Test(dataProvider = "nonAsciiStringProvider")
+    public void testNormalizeStringWithNonAscii(String value, boolean trim, boolean foldCase, String expected)
+            throws Exception {
+        testNormalizeStringProvider(value, trim, foldCase, expected);
+    }
+
+    @Test(dataProvider = "stringWithSpacesProvider")
+    public void testNormalizeStringWithSpaces(String value, boolean trim, boolean foldCase, String expected)
+            throws Exception {
+        testNormalizeStringProvider(value, trim, foldCase, expected);
+    }
+
+    @Test(dataProvider = "stringProvider")
+    public void testNormalizeIA5String(String value, boolean trim, boolean foldCase, String expected)
+            throws Exception {
+        ByteString val = ByteString.valueOf(value);
+        ByteString normValue = SchemaUtils.normalizeIA5StringAttributeValue(val, trim, foldCase);
+        Assertions.assertThat(normValue.toString()).isEqualTo(expected);
+    }
+
+    @Test(dataProvider = "nonAsciiStringProvider", expectedExceptions = { DecodeException.class })
+    public void testNormalizeIA5StringShouldThrowForNonAscii(
+            String value, boolean trim, boolean foldCase, String expected) throws Exception {
+        testNormalizeIA5String(value, trim, foldCase, expected);
+    }
+
+    @Test(dataProvider = "stringWithSpacesProvider")
+    public void testNormalizeIA5StringWithSpaces(String value, boolean trim, boolean foldCase, String expected)
+            throws Exception {
+        testNormalizeIA5String(value, trim, foldCase, expected);
+    }
+
+    @Test(dataProvider = "stringProvider")
+    public void testNormalizeStringList(String value, boolean trim, boolean foldCase, String expected)
+            throws Exception {
+        ByteString val = ByteString.valueOf(value);
+        ByteString normValue = SchemaUtils.normalizeStringListAttributeValue(val, trim, foldCase);
+        Assertions.assertThat(normValue.toString()).isEqualTo(expected);
+    }
+
+    @Test(dataProvider = "nonAsciiStringProvider")
+    public void testNormalizeStringListWithNonAscii(String value, boolean trim, boolean foldCase, String expected)
+            throws Exception {
+        testNormalizeStringList(value, trim, foldCase, expected);
+    }
+
+    @DataProvider
+    public Object[][] stringListProvider() throws Exception {
+        return new Object[][] {
+            { "this$is$a$list", false, false, "this$is$a$list" },
+            { "this$is$a$list", false, true,  "this$is$a$list"},
+            { "this$is$a$list", true,  false, "this$is$a$list" },
+            { "this$is$a$list", true,  true,  "this$is$a$list" },
+            { "this $ is $ a $ list", false, false, "this$is$a$list" },
+            { "this $ is $ a $ list", false, true,  "this$is$a$list" },
+            { "this $ is $ a $ list", true,  false, "this$is$a$list" },
+            { "this $ is $ a $ list", true,  true,  "this$is$a$list" },
+            { "this $ is \\\\ $ a $ list", false, false, "this$is \\\\$a$list" },
+            { "this $ is \\\\ $ a $ list", false, true,  "this$is \\\\$a$list" },
+            { "this $ is \\\\ $ a $ list", true,  false, "this$is \\\\$a$list" },
+            { "this $ is \\\\ $ a $ list", true,  true,  "this$is \\\\$a$list" },
+            { "$ this $ is $ a $ list", false, false, "$this$is$a$list" },
+            { "$ this $ is $ a $ list", false, true,  "$this$is$a$list" },
+            { "$ this $ is $ a $ list", true,  false, "$this$is$a$list" },
+            { "$ this $ is $ a $ list", true,  true,  "$this$is$a$list" },
+        };
+    }
+
+    @Test(dataProvider = "stringListProvider")
+    public void testNormalizeStringListWithList(String value, boolean trim, boolean foldCase, String expected)
+            throws Exception {
+        testNormalizeStringList(value, trim, foldCase, expected);
     }
 }
