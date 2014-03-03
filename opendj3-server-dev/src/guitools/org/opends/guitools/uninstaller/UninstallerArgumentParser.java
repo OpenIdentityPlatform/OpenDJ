@@ -48,6 +48,7 @@ import com.forgerock.opendj.cli.StringArgument;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.Utils.LINE_SEPARATOR;
 
 /**
  * Class used to parse and populate the arguments of the Uninstaller.
@@ -379,7 +380,7 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
           "--"+noPromptArg.getLongIdentifier());
       if (buf.length() > 0)
       {
-        buf.append(EOL);
+        buf.append(LINE_SEPARATOR);
       }
       buf.append(message);
     }
@@ -402,7 +403,7 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
               removeArg.getLongIdentifier());
           if (buf.length() > 0)
           {
-            buf.append(EOL);
+            buf.append(LINE_SEPARATOR);
           }
           buf.append(message);
         }
