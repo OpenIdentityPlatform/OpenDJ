@@ -694,19 +694,16 @@ final class SchemaUtils {
         if (buffer.length() == 0) {
             return singleSpaceOrEmpty(value);
         }
-        trimConsecutiveSpacesInStringList(buffer);
+        trimUnnecessarySpacesInStringList(buffer);
         return ByteString.valueOf(buffer.toString());
     }
 
-    private static void trimConsecutiveSpacesInStringList(StringBuilder buffer) {
+    private static void trimUnnecessarySpacesInStringList(StringBuilder buffer) {
         // Replace any consecutive spaces with a single space. Any spaces
         // around a dollar sign will also be removed.
         for (int pos = buffer.length() - 1; pos > 0; pos--) {
             if (buffer.charAt(pos) == ' ') {
-                final char c = buffer.charAt(pos - 1);
-                if (c == ' ') {
-                    buffer.delete(pos, pos + 1);
-                } else if (c == '$') {
+                if (buffer.charAt(pos - 1) == '$') {
                     if (pos <= 1 || buffer.charAt(pos - 2) != '\\') {
                         buffer.delete(pos, pos + 1);
                     }
@@ -725,17 +722,7 @@ final class SchemaUtils {
         if (buffer.length() == 0) {
             return singleSpaceOrEmpty(value);
         }
-        trimConsecutiveSpaces(buffer);
         return ByteString.valueOf(buffer.toString());
-    }
-
-    private static void trimConsecutiveSpaces(StringBuilder buffer) {
-        for (int pos = buffer.length() - 1; pos > 0; pos--) {
-            if (buffer.charAt(pos) == ' '
-                    && buffer.charAt(pos - 1) == ' ') {
-                buffer.delete(pos, pos + 1);
-            }
-        }
     }
 
     static ByteString normalizeIA5StringAttributeValue(final ByteSequence value, boolean trim, boolean foldCase)
@@ -746,21 +733,16 @@ final class SchemaUtils {
         if (buffer.length() == 0) {
             return singleSpaceOrEmpty(value);
         }
-        trimConsecutiveSpacesInIA5String(buffer, value);
+        throwIfIA5IllegalCharacter(buffer, value);
         return ByteString.valueOf(buffer.toString());
     }
 
-    private static void trimConsecutiveSpacesInIA5String(StringBuilder buffer, ByteSequence value)
-            throws DecodeException {
+    private static void throwIfIA5IllegalCharacter(StringBuilder buffer, ByteSequence value) throws DecodeException {
         // Replace any consecutive spaces with a single space and watch out
         // for non-ASCII characters.
         for (int pos = buffer.length() - 1; pos > 0; pos--) {
             final char c = buffer.charAt(pos);
-            if (c == ' ') {
-                if (buffer.charAt(pos - 1) == ' ') {
-                    buffer.delete(pos, pos + 1);
-                }
-            } else if ((c & 0x7F) != c) {
+            if ((c & 0x7F) != c) {
                 // This is not a valid character for an IA5 string. If strict
                 // syntax enforcement is enabled, then we'll throw an exception.
                 // Otherwise, we'll get rid of the character.
