@@ -353,7 +353,7 @@ public final class ServerManagementContext {
      * @param repository
      *          The repository of configuration entries.
      */
-    ServerManagementContext(ConfigurationRepository repository) {
+    public ServerManagementContext(ConfigurationRepository repository) {
         configRepository = repository;
     }
 
