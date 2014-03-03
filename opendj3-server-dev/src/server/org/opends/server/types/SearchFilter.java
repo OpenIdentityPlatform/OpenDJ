@@ -3315,7 +3315,7 @@ public final class SearchFilter
                 "Attribute type %s is not allowed for use with " +
                 "matching rule %s because of matching rule use " +
                 "definition %s", attributeType.getNameOrOID(),
-                matchingRule.getNameOrOID(), mru.getName());
+                matchingRule.getNameOrOID(), mru.getNameOrOID());
           }
           return ConditionResult.UNDEFINED;
         }

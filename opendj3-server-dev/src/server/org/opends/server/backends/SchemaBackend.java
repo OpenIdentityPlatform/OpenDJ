@@ -1920,7 +1920,7 @@ public class SchemaBackend
       if (mru.getAttributes().contains(removeType))
       {
         LocalizableMessage message = ERR_SCHEMA_MODIFY_REMOVE_AT_IN_MR_USE.get(
-            removeType.getNameOrOID(), mru.getName());
+            removeType.getNameOrOID(), mru.getNameOrOID());
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
     }
@@ -3090,9 +3090,9 @@ public class SchemaBackend
           {
             LocalizableMessage message =
                     ERR_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_MR_USE.get(
-                            matchingRuleUse.getName(),
-                            existingMRU.getName(),
-                            mru.getName());
+                            matchingRuleUse.getNameOrOID(),
+                            existingMRU.getNameOrOID(),
+                            mru.getNameOrOID());
             throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
                                          message);
           }
@@ -3112,15 +3112,15 @@ public class SchemaBackend
     if ((existingMRUForRule != null) && (existingMRUForRule != existingMRU))
     {
       LocalizableMessage message = ERR_SCHEMA_MODIFY_MR_CONFLICT_FOR_ADD_MR_USE.
-          get(matchingRuleUse.getName(), matchingRule.getNameOrOID(),
-              existingMRUForRule.getName());
+          get(matchingRuleUse.getNameOrOID(), matchingRule.getNameOrOID(),
+              existingMRUForRule.getNameOrOID());
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
     if (matchingRule.isObsolete())
     {
       LocalizableMessage message = ERR_SCHEMA_MODIFY_MRU_OBSOLETE_MR.get(
-          matchingRuleUse.getName(), matchingRule.getNameOrOID());
+          matchingRuleUse.getNameOrOID(), matchingRule.getNameOrOID());
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
@@ -3132,13 +3132,13 @@ public class SchemaBackend
       if (! schema.hasAttributeType(at.getOID()))
       {
         LocalizableMessage message = ERR_SCHEMA_MODIFY_MRU_UNDEFINED_ATTR.get(
-            matchingRuleUse.getName(), at.getNameOrOID());
+            matchingRuleUse.getNameOrOID(), at.getNameOrOID());
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
       else if (at.isObsolete())
       {
         LocalizableMessage message = ERR_SCHEMA_MODIFY_MRU_OBSOLETE_ATTR.get(
-            matchingRuleUse.getName(), matchingRule.getNameOrOID());
+            matchingRuleUse.getNameOrOID(), matchingRule.getNameOrOID());
         throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
       }
     }
@@ -3236,7 +3236,7 @@ public class SchemaBackend
     if ((removeMRU == null) || (! removeMRU.equals(matchingRuleUse)))
     {
       LocalizableMessage message = ERR_SCHEMA_MODIFY_REMOVE_NO_SUCH_MR_USE.get(
-          matchingRuleUse.getName());
+          matchingRuleUse.getNameOrOID());
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
     }
 
