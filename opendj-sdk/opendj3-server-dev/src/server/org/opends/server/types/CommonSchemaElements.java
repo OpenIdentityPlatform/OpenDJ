@@ -581,9 +581,8 @@ public abstract class CommonSchemaElements {
    *          specifies the path to the schema file from which this
    *          schema definition was loaded.
    */
-  public final void toString(StringBuilder buffer,
-      boolean includeFileElement) {
-
+  private final void toString(StringBuilder buffer, boolean includeFileElement)
+  {
     buffer.append("( ");
     buffer.append(oid);
 

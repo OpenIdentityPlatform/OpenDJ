@@ -2348,9 +2348,9 @@ public final class Schema
                                matchingRuleUses.get(matchingRule);
 
           LocalizableMessage message = ERR_SCHEMA_CONFLICTING_MATCHING_RULE_USE.
-              get(matchingRuleUse.getName(),
+              get(matchingRuleUse.getNameOrOID(),
                   matchingRule.getNameOrOID(),
-                  conflictingUse.getName());
+                  conflictingUse.getNameOrOID());
           throw new DirectoryException(
                          ResultCode.CONSTRAINT_VIOLATION, message);
         }

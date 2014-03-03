@@ -26,7 +26,6 @@
  */
 package org.opends.server.types;
 
-import org.forgerock.opendj.ldap.ByteString;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -35,13 +34,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.schema.NameFormSyntax;
 
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import static org.opends.server.util.ServerConstants.*;
 import static org.forgerock.util.Reject.*;
-
-
+import static org.opends.server.util.ServerConstants.*;
 
 /**
  * This class defines a data structure for storing and interacting
@@ -484,24 +482,6 @@ public final class NameForm
 
 
   /**
-   * Retrieves the value of the specified "extra" property for this
-   * name form.
-   *
-   * @param  propertyName  The name of the "extra" property for which
-   *                       to retrieve the value.
-   *
-   * @return  The value of the specified "extra" property for this
-   *          name form, or {@code null} if no such property is
-   *          defined.
-   */
-  public List<String> getExtraProperty(String propertyName)
-  {
-    return extraProperties.get(propertyName);
-  }
-
-
-
-  /**
    * Specifies the provided "extra" property for this name form.
    *
    * @param  name   The name for the "extra" property.  It must not be
@@ -509,7 +489,7 @@ public final class NameForm
    * @param  value  The value for the "extra" property, or
    *                {@code null} if the property is to be removed.
    */
-  public void setExtraProperty(String name, String value)
+  private void setExtraProperty(String name, String value)
   {
     ifNull(name);
 
@@ -523,31 +503,6 @@ public final class NameForm
       values.add(value);
 
       extraProperties.put(name, values);
-    }
-  }
-
-
-
-  /**
-   * Specifies the provided "extra" property for this name form.
-   *
-   * @param  name    The name for the "extra" property.  It must not
-   *                 be {@code null}.
-   * @param  values  The set of value for the "extra" property, or
-   *                 {@code null} if the property is to be removed.
-   */
-  public void setExtraProperty(String name, List<String> values)
-  {
-    ifNull(name);
-
-    if ((values == null) || values.isEmpty())
-    {
-      extraProperties.remove(name);
-    }
-    else
-    {
-      LinkedList<String> valuesCopy = new LinkedList<String>(values);
-      extraProperties.put(name, valuesCopy);
     }
   }
 
@@ -627,8 +582,7 @@ public final class NameForm
    *                             path to the schema file from which
    *                             this name form was loaded.
    */
-  public void toString(StringBuilder buffer,
-                       boolean includeFileElement)
+  private void toString(StringBuilder buffer, boolean includeFileElement)
   {
     buffer.append("( ");
     buffer.append(oid);

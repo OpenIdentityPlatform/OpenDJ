@@ -26,7 +26,6 @@
  */
 package org.opends.server.types;
 
-import org.forgerock.opendj.ldap.ByteString;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -35,14 +34,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.schema.MatchingRuleUseSyntax;
 
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import static org.opends.server.util.ServerConstants.*;
 import static org.forgerock.util.Reject.*;
-
-
+import static org.opends.server.util.ServerConstants.*;
 
 /**
  * This class defines a data structure for storing and interacting
@@ -242,7 +240,7 @@ public final class MatchingRuleUse
    * @return  The primary name to use when referencing this matching
    *          rule use, or {@code null} if there is none.
    */
-  public String getName()
+  public String getNameOrOID()
   {
     if (names.isEmpty())
     {
@@ -359,7 +357,7 @@ public final class MatchingRuleUse
    *          referenced by this matching rule use, or {@code false}
    *          if it is not.
    */
-  public boolean appliesToAttribute(AttributeType attributeType)
+  boolean appliesToAttribute(AttributeType attributeType)
   {
     return attributes.contains(attributeType);
   }
@@ -383,24 +381,6 @@ public final class MatchingRuleUse
 
 
   /**
-   * Retrieves the value of the specified "extra" property for this
-   * matching rule use.
-   *
-   * @param  propertyName  The name of the "extra" property for which
-   *                       to retrieve the value.
-   *
-   * @return  The value of the specified "extra" property for this
-   *          matching rule use, or {@code null} if no such property
-   *          is defined.
-   */
-  public List<String> getExtraProperty(String propertyName)
-  {
-    return extraProperties.get(propertyName);
-  }
-
-
-
-  /**
    * Specifies the provided "extra" property for this matching rule
    * use.
    *
@@ -409,7 +389,7 @@ public final class MatchingRuleUse
    * @param  value  The value for the "extra" property, or
    *                {@code null} if the property is to be removed.
    */
-  public void setExtraProperty(String name, String value)
+  private void setExtraProperty(String name, String value)
   {
     ifNull(name);
 
@@ -423,32 +403,6 @@ public final class MatchingRuleUse
       values.add(value);
 
       extraProperties.put(name, values);
-    }
-  }
-
-
-
-  /**
-   * Specifies the provided "extra" property for this matching rule
-   * use.
-   *
-   * @param  name    The name for the "extra" property.  It must not
-   *                 be {@code null}.
-   * @param  values  The set of value for the "extra" property, or
-   *                 {@code null} if the property is to be removed.
-   */
-  public void setExtraProperty(String name, List<String> values)
-  {
-    ifNull(name);
-
-    if ((values == null) || values.isEmpty())
-    {
-      extraProperties.remove(name);
-    }
-    else
-    {
-      LinkedList<String> valuesCopy = new LinkedList<String>(values);
-      extraProperties.put(name, valuesCopy);
     }
   }
 
@@ -521,8 +475,7 @@ public final class MatchingRuleUse
    *                             path to the schema file from which
    *                             this matching rule use was loaded.
    */
-  public void toString(StringBuilder buffer,
-                       boolean includeFileElement)
+  private void toString(StringBuilder buffer, boolean includeFileElement)
   {
     buffer.append("( ");
     buffer.append(matchingRule.getOID());
