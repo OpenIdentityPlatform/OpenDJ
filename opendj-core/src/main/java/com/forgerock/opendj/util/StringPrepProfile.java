@@ -25,7 +25,6 @@
  */
 package com.forgerock.opendj.util;
 
-
 import java.text.Normalizer;
 import java.text.Normalizer.Form;
 import java.util.HashMap;
@@ -44,15 +43,17 @@ public final class StringPrepProfile {
      * A Table defining the mapped code-points as per RFC 3454.
      */
     private static final class MappingTable {
-        // Set of chars which are deleted from the incoming value.
-        private final static HashSet<Character> MAP_2_NULL = new HashSet<Character>();
+        /** Set of chars which are deleted from the incoming value. */
+        private static final HashSet<Character> MAP_2_NULL = new HashSet<Character>();
 
-        // Set of chars which are replaced by a SPACE when found.
-        private final static HashSet<Character> MAP_2_SPACE = new HashSet<Character>();
+        /** Set of chars which are replaced by a SPACE when found. */
+        private static final HashSet<Character> MAP_2_SPACE = new HashSet<Character>();
 
-        // Table for case-folding. Map of Character and String containing
-        // uppercase and lowercase value as the key-value pair.
-        private final static HashMap<Character, String> CASE_MAP_TABLE =
+        /**
+         * Table for case-folding. Map of Character and String containing
+         * uppercase and lowercase value as the key-value pair.
+         */
+        private static final HashMap<Character, String> CASE_MAP_TABLE =
                 new HashMap<Character, String>();
 
         static {
@@ -88,8 +89,7 @@ public final class StringPrepProfile {
 
             // Appendix B.2 RFC 3454.
             // Build an uppercase array and a lowercase array and create a map
-            // of both
-            // values.
+            // of both values.
             final char[] upperCaseArr =
                     new char[] { '\u0041', '\u0042', '\u0043', '\u0044', '\u0045', '\u0046',
                         '\u0047', '\u0048', '\u0049', '\u004A', '\u004B', '\u004C', '\u004D',
@@ -369,7 +369,7 @@ public final class StringPrepProfile {
             }
         }
 
-        // Gets the mapped String.
+        /** Checks each character and replaces it with its mapping. */
         private static void map(final StringBuilder buffer, final ByteSequence sequence,
                 final boolean trim, final boolean foldCase) {
             final String value = sequence.toString();
@@ -380,17 +380,9 @@ public final class StringPrepProfile {
                 }
 
                 if (MAP_2_SPACE.contains(c)) {
-                    final int buffLen = buffer.length();
-                    if (trim && buffLen == 0 || buffLen > 0
-                            && buffer.charAt(buffLen - 1) == SPACE_CHAR) {
-                        /**
-                         * Do not map this character into a space if: a .
-                         * trimming is wanted and this was the first char. b.
-                         * The last character was a space.
-                         **/
-                        continue;
+                    if (canMapToSpace(buffer, trim)) {
+                        buffer.append(SPACE_CHAR);
                     }
-                    buffer.append(SPACE_CHAR);
                     continue;
                 }
 
@@ -458,46 +450,36 @@ public final class StringPrepProfile {
         // common case.
         final int length = sequence.length();
         for (int i = 0; i < length; i++) {
-            if ((sequence.byteAt(i) & 0x7F) != sequence.byteAt(i)) {
+            final byte b = sequence.byteAt(i);
+            if ((b & 0x7F) != b) {
                 // Map the attribute value.
-                map(buffer, sequence.subSequence(i, length), trim, foldCase);
+                MappingTable.map(buffer, sequence.subSequence(i, length), trim, foldCase);
                 // Normalize the attribute value.
                 String normalizedForm = Normalizer.normalize(buffer, Form.NFKD);
                 buffer.setLength(0);
                 buffer.append(normalizedForm);
                 break;
             }
-            int buffLen = buffer.length();
-            switch (sequence.byteAt(i)) {
+
+            switch (b) {
             case ' ':
-                if (trim && buffLen == 0 || buffLen > 0 && buffer.charAt(buffLen - 1) == SPACE_CHAR) {
-                    break;
+                if (canMapToSpace(buffer, trim)) {
+                    buffer.append(' ');
                 }
-                buffer.append(' ');
                 break;
             default:
-                final byte b = sequence.byteAt(i);
                 // Perform mapping.
                 if (b >= '\u0009' && b < '\u000E') {
                     // These characters are mapped to a SPACE.
-                    buffLen = buffer.length();
-                    if (trim && buffLen == 0 || buffLen > 0 && buffer.charAt(buffLen - 1) == ' ') {
-                        /**
-                         * Do not map this character into a space if: a .
-                         * trimming is desired and this was the leading char. b.
-                         * The last character was a space.
-                         **/
-                        break;
-                    } else {
+                    if (canMapToSpace(buffer, trim)) {
                         buffer.append(SPACE_CHAR);
                     }
-                } else if (b >= '\u0000' && b <= '\u0008' || b >= '\u000E' && b <= '\u001F'
+                } else if ((b >= '\u0000' && b <= '\u0008') || (b >= '\u000E' && b <= '\u001F')
                         || b == '\u007F') {
                     // These characters are mapped to nothing and hence not
-                    // copied
-                    // over..
+                    // copied over..
                     break;
-                } else if (foldCase && b >= 65 && b <= 90) {
+                } else if (foldCase && b >= 'A' && b <= 'Z') {
                     // If case-folding is allowed then map to the lower case.
                     buffer.append((char) (b + 32));
                 } else {
@@ -518,13 +500,21 @@ public final class StringPrepProfile {
         }
     }
 
-    // Checks each character and replaces it with its mapping.
-    private static void map(final StringBuilder buffer, final ByteSequence value,
-            final boolean trim, final boolean foldCase) {
-        MappingTable.map(buffer, value, trim, foldCase);
+    /**
+     * Do not map this character into a space if:
+     * <ol>
+     * <li>trimming is desired and this was the leading char.</li>
+     * <li>The last character was a space.</li>
+     * </ol>
+     */
+    private static boolean canMapToSpace(final StringBuilder buffer, final boolean trim) {
+        final int buffLen = buffer.length();
+        final boolean doNotMap = (trim && buffLen == 0)
+                || (buffLen > 0 && buffer.charAt(buffLen - 1) == SPACE_CHAR);
+        return !doNotMap;
     }
 
-    // Prevent instantiation.
+    /** Prevent instantiation. */
     private StringPrepProfile() {
         // Nothing to do.
     }
