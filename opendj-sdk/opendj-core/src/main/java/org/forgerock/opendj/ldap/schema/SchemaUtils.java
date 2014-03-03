@@ -39,7 +39,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
@@ -154,10 +153,8 @@ final class SchemaUtils {
                     values = Collections.unmodifiableList(values);
                 }
             } else {
-                final LocalizableMessage message =
-                        ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID1.get(String.valueOf(c), reader
-                                .pos() - 1);
-                throw DecodeException.error(message);
+                throw DecodeException.error(
+                        ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID1.get(c, reader.pos() - 1));
             }
 
             return values;
@@ -213,19 +210,13 @@ final class SchemaUtils {
                         && !(c == '\'' && enclosingQuote)) {
                     if (c == '.') {
                         if (lastWasPeriod) {
-                            final LocalizableMessage message =
-                                    ERR_ATTR_SYNTAX_OID_CONSECUTIVE_PERIODS1.get(reader.pos() - 1);
-                            throw DecodeException.error(message);
-                        } else {
-                            lastWasPeriod = true;
+                            throw DecodeException.error(
+                                    ERR_ATTR_SYNTAX_OID_CONSECUTIVE_PERIODS1.get(reader.pos() - 1));
                         }
+                        lastWasPeriod = true;
                     } else if (!isDigit(c)) {
-                        // This must be an illegal character.
-                        // This must have been an illegal character.
-                        final LocalizableMessage message =
-                                ERR_ATTR_SYNTAX_OID_ILLEGAL_CHARACTER1.get(String.valueOf(c),
-                                        reader.pos() - 1);
-                        throw DecodeException.error(message);
+                        throw DecodeException.error(
+                                ERR_ATTR_SYNTAX_OID_ILLEGAL_CHARACTER1.get(c, reader.pos() - 1));
                     } else {
                         lastWasPeriod = false;
                     }
@@ -234,9 +225,8 @@ final class SchemaUtils {
                 }
 
                 if (lastWasPeriod) {
-                    final LocalizableMessage message =
-                            ERR_ATTR_SYNTAX_OID_ENDS_WITH_PERIOD1.get(reader.pos() - 1);
-                    throw DecodeException.error(message);
+                    throw DecodeException.error(
+                            ERR_ATTR_SYNTAX_OID_ENDS_WITH_PERIOD1.get(reader.pos() - 1));
                 }
             } else if (isAlpha(c)) {
                 // This must be an attribute description. In this case, we will
@@ -245,35 +235,25 @@ final class SchemaUtils {
                 while (reader.remaining() > 0 && (c = reader.read()) != ' ' && c != ')'
                         && !(c == '\'' && enclosingQuote)) {
                     if (length == 0 && !isAlpha(c)) {
-                        // This is an illegal character.
-                        final LocalizableMessage message =
-                                ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID1.get(String.valueOf(c),
-                                        reader.pos() - 1);
-                        throw DecodeException.error(message);
+                        throw DecodeException.error(
+                                ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID1.get(c, reader.pos() - 1));
                     }
 
                     if (!isKeyChar(c, allowCompatChars)) {
-                        // This is an illegal character.
-                        final LocalizableMessage message =
-                                ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID1.get(String.valueOf(c),
-                                        reader.pos() - 1);
-                        throw DecodeException.error(message);
+                        throw DecodeException.error(
+                                ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID1.get(c, reader.pos() - 1));
                     }
 
                     length++;
                 }
             } else {
-                final LocalizableMessage message =
-                        ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID1.get(String.valueOf(c), reader
-                                .pos() - 1);
-                throw DecodeException.error(message);
+                throw DecodeException.error(
+                        ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID1.get(c, reader.pos() - 1));
             }
 
             if (enclosingQuote && c != '\'') {
-                final LocalizableMessage message =
-                        ERR_ATTR_SYNTAX_EXPECTED_QUOTE_AT_POS1.get(reader.pos() - 1, String
-                                .valueOf(c));
-                throw DecodeException.error(message);
+                throw DecodeException.error(
+                        ERR_ATTR_SYNTAX_EXPECTED_QUOTE_AT_POS1.get(reader.pos() - 1, c));
             }
         }
 
@@ -326,28 +306,24 @@ final class SchemaUtils {
                 while ((c = reader.read()) != ' ' && c != '{' && !(c == '\'' && enclosingQuote)) {
                     if (c == '.') {
                         if (lastWasPeriod) {
-                            final LocalizableMessage message =
-                                    ERR_ATTR_SYNTAX_OID_CONSECUTIVE_PERIODS1.get(reader.pos() - 1);
-                            throw DecodeException.error(message);
-                        } else {
-                            lastWasPeriod = true;
+                            throw DecodeException.error(
+                                    ERR_ATTR_SYNTAX_OID_CONSECUTIVE_PERIODS1.get(reader.pos() - 1));
                         }
+                        lastWasPeriod = true;
                     } else if (!isDigit(c)) {
-                        // Technically, this must be an illegal character.
-                        // However, it is possible that someone just got sloppy
-                        // and did not
-                        // include a space between the name/OID and a closing
-                        // parenthesis. In that case, we'll assume it's the end
-                        // of the value.
+                        /*
+                         * Technically, this must be an illegal character.
+                         * However, it is possible that someone just got sloppy
+                         * and did not include a space between the name/OID and
+                         * a closing parenthesis.
+                         * In that case, we'll assume it's the end of the value.
+                         */
                         if (c == ')') {
                             break;
                         }
 
-                        // This must have been an illegal character.
-                        final LocalizableMessage message =
-                                ERR_ATTR_SYNTAX_OID_ILLEGAL_CHARACTER1.get(String.valueOf(c),
-                                        reader.pos() - 1);
-                        throw DecodeException.error(message);
+                        throw DecodeException.error(
+                                ERR_ATTR_SYNTAX_OID_ILLEGAL_CHARACTER1.get(c, reader.pos() - 1));
                     } else {
                         lastWasPeriod = false;
                     }
@@ -355,9 +331,8 @@ final class SchemaUtils {
                 }
 
                 if (length == 0) {
-                    final LocalizableMessage message =
-                            ERR_ATTR_SYNTAX_OID_NO_VALUE1.get(reader.pos() - 1);
-                    throw DecodeException.error(message);
+                    throw DecodeException.error(
+                            ERR_ATTR_SYNTAX_OID_NO_VALUE1.get(reader.pos() - 1));
                 }
             } else if (isAlpha(c)) {
                 // This must be an attribute description. In this case, we will
@@ -366,28 +341,20 @@ final class SchemaUtils {
                 while ((c = reader.read()) != ' ' && c != ')' && c != '{'
                         && !(c == '\'' && enclosingQuote)) {
                     if (length == 0 && !isAlpha(c)) {
-                        // This is an illegal character.
-                        final LocalizableMessage message =
-                                ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID1.get(String.valueOf(c),
-                                        reader.pos() - 1);
-                        throw DecodeException.error(message);
+                        throw DecodeException.error(
+                                ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID1.get(c, reader.pos() - 1));
                     }
 
                     if (!isKeyChar(c, allowCompatChars)) {
-                        // This is an illegal character.
-                        final LocalizableMessage message =
-                                ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID1.get(String.valueOf(c),
-                                        reader.pos() - 1);
-                        throw DecodeException.error(message);
+                        throw DecodeException.error(
+                                ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID1.get(c, reader.pos() - 1));
                     }
 
                     length++;
                 }
             } else {
-                final LocalizableMessage message =
-                        ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID1.get(String.valueOf(c), reader
-                                .pos() - 1);
-                throw DecodeException.error(message);
+                throw DecodeException.error(
+                        ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID1.get(c, reader.pos() - 1));
             }
 
             reader.reset();
@@ -403,10 +370,9 @@ final class SchemaUtils {
                 // the closing curly brace.
                 while ((c = reader.read()) != '}') {
                     if (!isDigit(c)) {
-                        final LocalizableMessage message =
+                        throw DecodeException.error(
                                 ERR_ATTR_SYNTAX_OID_ILLEGAL_CHARACTER1.get(reader.getString(),
-                                        reader.pos() - 1);
-                        throw DecodeException.error(message);
+                                        reader.pos() - 1));
                     }
                 }
             } else if (c == '\'') {
@@ -471,10 +437,8 @@ final class SchemaUtils {
             // The next character must be a single quote.
             final char c = reader.read();
             if (c != '\'') {
-                final LocalizableMessage message =
-                        ERR_ATTR_SYNTAX_EXPECTED_QUOTE_AT_POS1.get(reader.pos() - 1, String
-                                .valueOf(c));
-                throw DecodeException.error(message);
+                throw DecodeException.error(
+                        ERR_ATTR_SYNTAX_EXPECTED_QUOTE_AT_POS1.get(reader.pos() - 1, c));
             }
 
             // Read until we find the closing quote.
@@ -518,9 +482,8 @@ final class SchemaUtils {
             }
 
             if (length == 0) {
-                final LocalizableMessage message =
-                        ERR_ATTR_SYNTAX_RULE_ID_NO_VALUE1.get(reader.pos() - 1);
-                throw DecodeException.error(message);
+                throw DecodeException.error(
+                        ERR_ATTR_SYNTAX_RULE_ID_NO_VALUE1.get(reader.pos() - 1));
             }
 
             reader.reset();
@@ -600,9 +563,8 @@ final class SchemaUtils {
 
             if (token == null && reader.remaining() > 0) {
                 reader.reset();
-                final LocalizableMessage message =
-                        ERR_ATTR_SYNTAX_UNEXPECTED_CLOSE_PARENTHESIS1.get(length);
-                throw DecodeException.error(message);
+                throw DecodeException.error(
+                        ERR_ATTR_SYNTAX_UNEXPECTED_CLOSE_PARENTHESIS1.get(length));
             }
 
             return token;
@@ -680,29 +642,21 @@ final class SchemaUtils {
             // The next character must be a single quote.
             char c = reader.read();
             if (c != '\'') {
-                final LocalizableMessage message =
-                        ERR_ATTR_SYNTAX_EXPECTED_QUOTE_AT_POS1.get(reader.pos() - 1, String
-                                .valueOf(c));
-                throw DecodeException.error(message);
+                throw DecodeException.error(
+                        ERR_ATTR_SYNTAX_EXPECTED_QUOTE_AT_POS1.get(reader.pos() - 1, c));
             }
 
             // Read until we find the closing quote.
             reader.mark();
             while ((c = reader.read()) != '\'') {
                 if (length == 0 && !isAlpha(c)) {
-                    // This is an illegal character.
-                    final LocalizableMessage message =
-                            ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID1.get(String.valueOf(c),
-                                    reader.pos() - 1);
-                    throw DecodeException.error(message);
+                    throw DecodeException.error(
+                            ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID1.get(c, reader.pos() - 1));
                 }
 
                 if (!isKeyChar(c, allowCompatChars)) {
-                    // This is an illegal character.
-                    final LocalizableMessage message =
-                            ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID1.get(String.valueOf(c),
-                                    reader.pos() - 1);
-                    throw DecodeException.error(message);
+                    throw DecodeException.error(
+                            ERR_ATTR_SYNTAX_ILLEGAL_CHAR_IN_STRING_OID1.get(c, reader.pos() - 1));
                 }
 
                 length++;

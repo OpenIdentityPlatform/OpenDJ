@@ -244,4 +244,21 @@ public class SchemaUtilsTest extends SchemaTestCase {
             throws Exception {
         testNormalizeStringList(value, trim, foldCase, expected);
     }
+
+    @DataProvider
+    public Object[][] numericStringProvider() throws Exception {
+        return new Object[][] {
+            { "", "" },
+            { "   ", "" },
+            { " 123  ", "123" },
+            { " 123  456  ", "123 456" },
+        };
+    }
+
+    @Test(dataProvider = "numericStringProvider")
+    public void testNormalizeNumericString(String value, String expected) throws Exception {
+        ByteString val = ByteString.valueOf(value);
+        ByteString normValue = SchemaUtils.normalizeNumericStringAttributeValue(val);
+        Assertions.assertThat(normValue.toString()).isEqualTo(expected);
+    }
 }
