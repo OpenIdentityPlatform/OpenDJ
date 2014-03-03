@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS.
+ *      Copyright 2013-2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -40,9 +40,6 @@ import org.testng.annotations.Test;
  */
 @SuppressWarnings("javadoc")
 public class PasswordModifyExtendedRequestTestCase extends RequestsTestCase {
-    private static final PasswordModifyExtendedRequest NEW_PASSWORDMODIFYEXTENDED_REQUEST = Requests
-            .newPasswordModifyExtendedRequest();
-
     @DataProvider(name = "passwordModifyExtendedRequests")
     private Object[][] getPasswordModifyExtendedRequests() throws Exception {
         return createModifiableInstance();
@@ -50,9 +47,7 @@ public class PasswordModifyExtendedRequestTestCase extends RequestsTestCase {
 
     @Override
     protected PasswordModifyExtendedRequest[] newInstance() {
-        return new PasswordModifyExtendedRequest[] {
-            NEW_PASSWORDMODIFYEXTENDED_REQUEST
-        };
+        return new PasswordModifyExtendedRequest[] { Requests.newPasswordModifyExtendedRequest() };
     }
 
     @Override
@@ -79,7 +74,9 @@ public class PasswordModifyExtendedRequestTestCase extends RequestsTestCase {
         assertThat(copy.getNewPassword()).isEqualTo(password.getBytes());
         assertThat(original.getNewPassword()).isNull();
         assertThat(copy.getOldPassword()).isEqualTo(oldPassword.getBytes());
-        assertThat(copy.getOID()).isEqualTo(original.getOID());
+        assertThat(original.getOldPassword()).isNull();
+        assertThat(copy.getUserIdentityAsString()).isEqualTo(userIdentity);
+        assertThat(original.getUserIdentityAsString()).isNull();
     }
 
     @Test(dataProvider = "passwordModifyExtendedRequests")
