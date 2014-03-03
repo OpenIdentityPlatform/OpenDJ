@@ -540,4 +540,14 @@ public final class MatchingRule extends SchemaElement {
 
         this.schema = schema;
     }
+
+    /**
+     * Indicates if the matching rule has been validated, which means it has a
+     * non-null schema.
+     *
+     * @return {@code true} if and only if this matching rule has been validated
+     */
+    boolean isValidated() {
+        return schema != null;
+    }
 }

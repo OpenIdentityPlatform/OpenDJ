@@ -161,9 +161,6 @@ public class CertificateExactMatchingRuleImplTest extends SchemaTestCase {
     @Test(dataProvider = "certificateExactMatchingRules")
     public void certificateExactMatchingRules(ByteString attributeValue,
             ByteString assertionValue, ConditionResult result) throws DecodeException {
-        // TODO : workaround to make test pass until issue OPENDJ-1361 is fixed
-        new SchemaBuilder("workaround").addSchema(Schema.getCoreSchema(), true).toSchema();
-
         MatchingRule rule = getRule();
 
         // normalize the 2 provided values and check that they are equal

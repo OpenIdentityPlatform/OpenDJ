@@ -1476,7 +1476,23 @@ public final class SchemaBuilder {
      * @return A matching rule builder.
      */
     public MatchingRule.Builder buildMatchingRule(final MatchingRule matchingRule) {
-        lazyInitBuilder();
+        return buildMatchingRule(matchingRule, true);
+    }
+
+    /**
+     * Duplicates the matching rule.
+     *
+     * @param matchingRule
+     *            The matching rule to duplicate.
+     * @param initialize
+     *            Indicates if initialization should be attempted. Use
+     *            {@code false} to prevent it.
+     * @return A matching rule builder.
+     */
+    private MatchingRule.Builder buildMatchingRule(final MatchingRule matchingRule, final boolean initialize) {
+        if (initialize) {
+            lazyInitBuilder();
+        }
         return new MatchingRule.Builder(matchingRule, this);
     }
 
@@ -1500,7 +1516,24 @@ public final class SchemaBuilder {
      * @return A syntax builder.
      */
     public Syntax.Builder buildSyntax(final Syntax syntax) {
-        lazyInitBuilder();
+        return buildSyntax(syntax, true);
+    }
+
+    /**
+     * Duplicates the syntax, with or without lazy initialization
+     * of the schema.
+     *
+     * @param syntax
+     *            The syntax to duplicate.
+     * @param initialize
+     *            Indicates if initialization should be attempted.
+     *            Use {@code false} to prevent it.
+     * @return A syntax builder.
+     */
+    private Syntax.Builder buildSyntax(final Syntax syntax, final boolean initialize) {
+        if (initialize) {
+            lazyInitBuilder();
+        }
         return new Syntax.Builder(syntax, this);
     }
 
@@ -2679,6 +2712,7 @@ public final class SchemaBuilder {
     }
 
     SchemaBuilder addMatchingRule(final MatchingRule rule, final boolean overwrite) {
+        assert !rule.isValidated() : "Matching rule has already been validated, it can't be added";
         MatchingRule conflictingRule;
         if (numericOID2MatchingRules.containsKey(rule.getOID())) {
             conflictingRule = numericOID2MatchingRules.get(rule.getOID());
@@ -2773,11 +2807,19 @@ public final class SchemaBuilder {
         // unlikely, may be different in the new schema.
 
         for (final Syntax syntax : schema.getSyntaxes()) {
-            addSyntax(syntax, overwrite);
+            if (overwrite) {
+                buildSyntax(syntax, false).addToSchemaOverwrite();
+            } else {
+                buildSyntax(syntax, false).addToSchema();
+            }
         }
 
         for (final MatchingRule matchingRule : schema.getMatchingRules()) {
-            addMatchingRule(matchingRule, overwrite);
+            if (overwrite) {
+                buildMatchingRule(matchingRule, false).addToSchemaOverwrite();
+            } else {
+                buildMatchingRule(matchingRule, false).addToSchema();
+            }
         }
 
         for (final MatchingRuleUse matchingRuleUse : schema.getMatchingRuleUses()) {
