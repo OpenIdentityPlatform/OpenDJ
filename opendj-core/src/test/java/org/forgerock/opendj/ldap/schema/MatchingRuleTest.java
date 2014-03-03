@@ -71,6 +71,9 @@ public abstract class MatchingRuleTest extends SchemaTestCase {
     @Test(dataProvider = "matchingrules")
     public void matchingRules(final String value1, final String value2, final ConditionResult result)
             throws Exception {
+        // TODO : workaround to make test pass until issue OPENDJ-1361 is fixed
+        new SchemaBuilder("workaround").addSchema(Schema.getCoreSchema(), true).toSchema();
+
         final MatchingRule rule = getRule();
 
         // normalize the 2 provided values and check that they are equals
