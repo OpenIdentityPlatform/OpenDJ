@@ -456,6 +456,24 @@ public class MemoryBackendTestCase extends SdkTestCase {
     }
 
     @Test
+    public void testSearchSubordinatesReturnsAllEntries() throws Exception {
+        final Connection connection = getConnection();
+        Collection<SearchResultEntry> entries = new ArrayList<SearchResultEntry>();
+        connection.search(Requests.newSearchRequest("dc=com", SearchScope.SUBORDINATES, "(objectclass=*)"), entries);
+        assertThat(entries).hasSize(numberOfEntriesInBackend - 1);
+    }
+
+    @Test
+    public void testSearchSubordinatesEntries() throws Exception {
+        int numberOfUsers = 5;
+        final Connection connection = getConnection();
+        Collection<SearchResultEntry> entries = new ArrayList<SearchResultEntry>();
+        connection.search(Requests.newSearchRequest("ou=People,dc=example,dc=com", SearchScope.SUBORDINATES,
+            "(objectclass=*)"), entries);
+        assertThat(entries).hasSize(numberOfUsers);
+    }
+
+    @Test
     public void testSearchSubtreeWithSizeLimit() throws Exception {
         final Connection connection = getConnection();
         Collection<SearchResultEntry> entries = new ArrayList<SearchResultEntry>();
