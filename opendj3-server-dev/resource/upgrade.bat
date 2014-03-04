@@ -22,11 +22,25 @@ rem
 rem CDDL HEADER END
 rem
 rem
-rem      Copyright 2013 ForgeRock AS
+rem      Copyright 2013-2014 ForgeRock AS
 
 setlocal
 
 set OPENDJ_INVOKE_CLASS="org.opends.server.tools.upgrade.UpgradeCli"
 set SCRIPT_NAME=upgrade
+
+set DIR_CLASSES="classes"
+rem The upgrade is not compatible with patches. If the folder is not empty
+rem we renamed it as "classes.disabled", and the upgrade process should be launched properly.
+IF EXIST "%DIR_CLASSES%" (
+  for /F %%i in ('dir /b %DIR_CLASSES%\*.*') do goto renamePatchesFolder 
+)
+goto end
+
+:renamePatchesFolder
+rename %DIR_CLASSES% "classes.disabled"
+mkdir %DIR_CLASSES%
+
+:end
 for %%i in (%~sf0) do call "%%~dPsi\lib\_server-script.bat" %*
 
