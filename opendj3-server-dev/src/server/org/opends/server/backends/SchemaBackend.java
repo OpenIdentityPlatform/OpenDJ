@@ -1413,8 +1413,7 @@ public class SchemaBackend
                     ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
               }
 
-              removeDITContentRule(dcr, newSchema, mods, pos,
-                  modifiedSchemaFiles);
+              removeDITContentRule(dcr, newSchema, modifiedSchemaFiles);
             }
           }
           else if (at.equals(ditStructureRulesType))
@@ -1461,8 +1460,7 @@ public class SchemaBackend
                     ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
               }
 
-              removeMatchingRuleUse(mru, newSchema, mods, pos,
-                  modifiedSchemaFiles);
+              removeMatchingRuleUse(mru, newSchema, modifiedSchemaFiles);
             }
           }
           else if (at.equals(ldapSyntaxesType))
@@ -1719,46 +1717,60 @@ public class SchemaBackend
     if (existingType == null)
     {
       schema.registerAttributeType(attributeType, false);
-      String schemaFile = getSchemaFile(attributeType);
-      if ((schemaFile == null) || (schemaFile.length() == 0))
-      {
-        schemaFile = FILE_USER_SCHEMA_ELEMENTS;
-        setSchemaFile(attributeType, schemaFile);
-      }
-
-      modifiedSchemaFiles.add(schemaFile);
+      addNewSchemaElement(modifiedSchemaFiles, attributeType);
     }
     else
     {
       schema.deregisterAttributeType(existingType);
       schema.registerAttributeType(attributeType, false);
       schema.rebuildDependentElements(existingType);
+      replaceExistingSchemaElement(modifiedSchemaFiles, attributeType,
+          existingType);
+    }
+  }
 
-      if ((getSchemaFile(attributeType) == null)
-          || (getSchemaFile(attributeType).length() == 0))
+
+
+  private void addNewSchemaElement(Set<String> modifiedSchemaFiles,
+      SchemaFileElement elem)
+  {
+    String schemaFile = getSchemaFile(elem);
+    if ((schemaFile == null) || (schemaFile.length() == 0))
+    {
+      schemaFile = FILE_USER_SCHEMA_ELEMENTS;
+      setSchemaFile(elem, schemaFile);
+    }
+
+    modifiedSchemaFiles.add(schemaFile);
+  }
+
+
+
+  private <T extends SchemaFileElement> void replaceExistingSchemaElement(
+      Set<String> modifiedSchemaFiles, T newElem, T existingElem)
+  {
+    String newSchemaFile = getSchemaFile(newElem);
+    String oldSchemaFile = getSchemaFile(existingElem);
+    if (newSchemaFile == null || newSchemaFile.length() == 0)
+    {
+      if (oldSchemaFile == null || oldSchemaFile.length() == 0)
       {
-        String schemaFile = getSchemaFile(existingType);
-        if ((schemaFile == null) || (schemaFile.length() == 0))
-        {
-          schemaFile = FILE_USER_SCHEMA_ELEMENTS;
-        }
+        oldSchemaFile = FILE_USER_SCHEMA_ELEMENTS;
+      }
 
-        setSchemaFile(attributeType, schemaFile);
-        modifiedSchemaFiles.add(schemaFile);
+      setSchemaFile(newElem, oldSchemaFile);
+      modifiedSchemaFiles.add(oldSchemaFile);
+    }
+    else
+    {
+      if ((oldSchemaFile == null) || oldSchemaFile.equals(newSchemaFile))
+      {
+        modifiedSchemaFiles.add(newSchemaFile);
       }
       else
       {
-        String newSchemaFile = getSchemaFile(attributeType);
-        String oldSchemaFile = getSchemaFile(existingType);
-        if ((oldSchemaFile == null) || oldSchemaFile.equals(newSchemaFile))
-        {
-          modifiedSchemaFiles.add(newSchemaFile);
-        }
-        else
-        {
-          modifiedSchemaFiles.add(newSchemaFile);
-          modifiedSchemaFiles.add(oldSchemaFile);
-        }
+        modifiedSchemaFiles.add(newSchemaFile);
+        modifiedSchemaFiles.add(oldSchemaFile);
       }
     }
   }
@@ -2048,47 +2060,15 @@ public class SchemaBackend
     if (existingClass == null)
     {
       schema.registerObjectClass(objectClass, false);
-      String schemaFile = getSchemaFile(objectClass);
-      if ((schemaFile == null) || (schemaFile.length() == 0))
-      {
-        schemaFile = FILE_USER_SCHEMA_ELEMENTS;
-        setSchemaFile(objectClass, schemaFile);
-      }
-
-      modifiedSchemaFiles.add(schemaFile);
+      addNewSchemaElement(modifiedSchemaFiles, objectClass);
     }
     else
     {
       schema.deregisterObjectClass(existingClass);
       schema.registerObjectClass(objectClass, false);
       schema.rebuildDependentElements(existingClass);
-
-      if ((getSchemaFile(objectClass) == null)
-          || (getSchemaFile(objectClass).length() == 0))
-      {
-        String schemaFile = getSchemaFile(existingClass);
-        if ((schemaFile == null) || (schemaFile.length() == 0))
-        {
-          schemaFile = FILE_USER_SCHEMA_ELEMENTS;
-        }
-
-        setSchemaFile(objectClass, schemaFile);
-        modifiedSchemaFiles.add(schemaFile);
-      }
-      else
-      {
-        String newSchemaFile = getSchemaFile(objectClass);
-        String oldSchemaFile = getSchemaFile(existingClass);
-        if ((oldSchemaFile == null) || oldSchemaFile.equals(newSchemaFile))
-        {
-          modifiedSchemaFiles.add(newSchemaFile);
-        }
-        else
-        {
-          modifiedSchemaFiles.add(newSchemaFile);
-          modifiedSchemaFiles.add(oldSchemaFile);
-        }
-      }
+      replaceExistingSchemaElement(modifiedSchemaFiles, objectClass,
+          existingClass);
     }
   }
 
@@ -2351,47 +2331,14 @@ public class SchemaBackend
     if (existingNF == null)
     {
       schema.registerNameForm(nameForm, false);
-      String schemaFile = getSchemaFile(nameForm);
-      if ((schemaFile == null) || (schemaFile.length() == 0))
-      {
-        schemaFile = FILE_USER_SCHEMA_ELEMENTS;
-        setSchemaFile(nameForm, schemaFile);
-      }
-
-      modifiedSchemaFiles.add(schemaFile);
+      addNewSchemaElement(modifiedSchemaFiles, nameForm);
     }
     else
     {
       schema.deregisterNameForm(existingNF);
       schema.registerNameForm(nameForm, false);
       schema.rebuildDependentElements(existingNF);
-
-      if ((getSchemaFile(nameForm) == null) ||
-          (getSchemaFile(nameForm).length() == 0))
-      {
-        String schemaFile = getSchemaFile(existingNF);
-        if ((schemaFile == null) || (schemaFile.length() == 0))
-        {
-          schemaFile = FILE_USER_SCHEMA_ELEMENTS;
-        }
-
-        setSchemaFile(nameForm, schemaFile);
-        modifiedSchemaFiles.add(schemaFile);
-      }
-      else
-      {
-        String newSchemaFile = getSchemaFile(nameForm);
-        String oldSchemaFile = getSchemaFile(existingNF);
-        if ((oldSchemaFile == null) || oldSchemaFile.equals(newSchemaFile))
-        {
-          modifiedSchemaFiles.add(newSchemaFile);
-        }
-        else
-        {
-          modifiedSchemaFiles.add(newSchemaFile);
-          modifiedSchemaFiles.add(oldSchemaFile);
-        }
-      }
+      replaceExistingSchemaElement(modifiedSchemaFiles, nameForm, existingNF);
     }
   }
 
@@ -2669,47 +2616,15 @@ public class SchemaBackend
     if (existingDCR == null)
     {
       schema.registerDITContentRule(ditContentRule, false);
-      String schemaFile = getSchemaFile(ditContentRule);
-      if ((schemaFile == null) || (schemaFile.length() == 0))
-      {
-        schemaFile = FILE_USER_SCHEMA_ELEMENTS;
-        setSchemaFile(ditContentRule, schemaFile);
-      }
-
-      modifiedSchemaFiles.add(schemaFile);
+      addNewSchemaElement(modifiedSchemaFiles, ditContentRule);
     }
     else
     {
       schema.deregisterDITContentRule(existingDCR);
       schema.registerDITContentRule(ditContentRule, false);
       schema.rebuildDependentElements(existingDCR);
-
-      if ((getSchemaFile(ditContentRule) == null) ||
-          (getSchemaFile(ditContentRule).length() == 0))
-      {
-        String schemaFile = getSchemaFile(existingDCR);
-        if ((schemaFile == null) || (schemaFile.length() == 0))
-        {
-          schemaFile = FILE_USER_SCHEMA_ELEMENTS;
-        }
-
-        setSchemaFile(ditContentRule, schemaFile);
-        modifiedSchemaFiles.add(schemaFile);
-      }
-      else
-      {
-        String newSchemaFile = getSchemaFile(ditContentRule);
-        String oldSchemaFile = getSchemaFile(existingDCR);
-        if ((oldSchemaFile == null) || oldSchemaFile.equals(newSchemaFile))
-        {
-          modifiedSchemaFiles.add(newSchemaFile);
-        }
-        else
-        {
-          modifiedSchemaFiles.add(newSchemaFile);
-          modifiedSchemaFiles.add(oldSchemaFile);
-        }
-      }
+      replaceExistingSchemaElement(modifiedSchemaFiles, ditContentRule,
+          existingDCR);
     }
   }
 
@@ -2729,10 +2644,6 @@ public class SchemaBackend
    *                              schema.
    * @param  schema               The schema from which the DIT content rule
    *                              should be removed.
-   * @param  modifications        The full set of modifications to be processed
-   *                              against the server schema.
-   * @param  currentPosition      The position of the modification currently
-   *                              being performed.
    * @param  modifiedSchemaFiles  The names of the schema files containing
    *                              schema elements that have been updated as part
    *                              of the schema modification.
@@ -2742,11 +2653,7 @@ public class SchemaBackend
    *                              schema.
    */
   private void removeDITContentRule(DITContentRule ditContentRule,
-                                    Schema schema,
-                                    ArrayList<Modification> modifications,
-                                    int currentPosition,
-                                    Set<String> modifiedSchemaFiles)
-          throws DirectoryException
+      Schema schema, Set<String> modifiedSchemaFiles) throws DirectoryException
   {
     // See if the specified DIT content rule is actually defined in the server
     // schema.  If not, then fail.
@@ -2890,47 +2797,15 @@ public class SchemaBackend
     if (existingDSR == null)
     {
       schema.registerDITStructureRule(ditStructureRule, false);
-      String schemaFile = getSchemaFile(ditStructureRule);
-      if ((schemaFile == null) || (schemaFile.length() == 0))
-      {
-        schemaFile = FILE_USER_SCHEMA_ELEMENTS;
-        setSchemaFile(ditStructureRule, schemaFile);
-      }
-
-      modifiedSchemaFiles.add(schemaFile);
+      addNewSchemaElement(modifiedSchemaFiles, ditStructureRule);
     }
     else
     {
       schema.deregisterDITStructureRule(existingDSR);
       schema.registerDITStructureRule(ditStructureRule, false);
       schema.rebuildDependentElements(existingDSR);
-
-      if ((getSchemaFile(ditStructureRule) == null) ||
-          (getSchemaFile(ditStructureRule).length() == 0))
-      {
-        String schemaFile = getSchemaFile(existingDSR);
-        if ((schemaFile == null) || (schemaFile.length() == 0))
-        {
-          schemaFile = FILE_USER_SCHEMA_ELEMENTS;
-        }
-
-        setSchemaFile(ditStructureRule, schemaFile);
-        modifiedSchemaFiles.add(schemaFile);
-      }
-      else
-      {
-        String newSchemaFile = getSchemaFile(ditStructureRule);
-        String oldSchemaFile = getSchemaFile(existingDSR);
-        if ((oldSchemaFile == null) || oldSchemaFile.equals(newSchemaFile))
-        {
-          modifiedSchemaFiles.add(newSchemaFile);
-        }
-        else
-        {
-          modifiedSchemaFiles.add(newSchemaFile);
-          modifiedSchemaFiles.add(oldSchemaFile);
-        }
-      }
+      replaceExistingSchemaElement(modifiedSchemaFiles, ditStructureRule,
+          existingDSR);
     }
   }
 
@@ -3150,47 +3025,15 @@ public class SchemaBackend
     if (existingMRU == null)
     {
       schema.registerMatchingRuleUse(matchingRuleUse, false);
-      String schemaFile = getSchemaFile(matchingRuleUse);
-      if ((schemaFile == null) || (schemaFile.length() == 0))
-      {
-        schemaFile = FILE_USER_SCHEMA_ELEMENTS;
-        setSchemaFile(matchingRuleUse, schemaFile);
-      }
-
-      modifiedSchemaFiles.add(schemaFile);
+      addNewSchemaElement(modifiedSchemaFiles, matchingRuleUse);
     }
     else
     {
       schema.deregisterMatchingRuleUse(existingMRU);
       schema.registerMatchingRuleUse(matchingRuleUse, false);
       schema.rebuildDependentElements(existingMRU);
-
-      if ((getSchemaFile(matchingRuleUse) == null) ||
-          (getSchemaFile(matchingRuleUse).length() == 0))
-      {
-        String schemaFile = getSchemaFile(existingMRU);
-        if ((schemaFile == null) || (schemaFile.length() == 0))
-        {
-          schemaFile = FILE_USER_SCHEMA_ELEMENTS;
-        }
-
-        setSchemaFile(matchingRuleUse, schemaFile);
-        modifiedSchemaFiles.add(schemaFile);
-      }
-      else
-      {
-        String newSchemaFile = getSchemaFile(matchingRuleUse);
-        String oldSchemaFile = getSchemaFile(existingMRU);
-        if ((oldSchemaFile == null) || oldSchemaFile.equals(newSchemaFile))
-        {
-          modifiedSchemaFiles.add(newSchemaFile);
-        }
-        else
-        {
-          modifiedSchemaFiles.add(newSchemaFile);
-          modifiedSchemaFiles.add(oldSchemaFile);
-        }
-      }
+      replaceExistingSchemaElement(modifiedSchemaFiles, matchingRuleUse,
+          existingMRU);
     }
   }
 
@@ -3211,22 +3054,15 @@ public class SchemaBackend
    *                              server schema.
    * @param  schema               The schema from which the matching rule use
    *                              should be removed.
-   * @param  modifications        The full set of modifications to be processed
-   *                              against the server schema.
-   * @param  currentPosition      The position of the modification currently
-   *                              being performed.
    * @param  modifiedSchemaFiles  The names of the schema files containing
    *                              schema elements that have been updated as part
    *                              of the schema modification.
-   *
    * @throws  DirectoryException  If a problem occurs while attempting to remove
    *                              the provided matching rule use from the server
    *                              schema.
    */
   private void removeMatchingRuleUse(MatchingRuleUse matchingRuleUse,
                                      Schema schema,
-                                     ArrayList<Modification> modifications,
-                                     int currentPosition,
                                      Set<String> modifiedSchemaFiles)
           throws DirectoryException
   {
@@ -3299,47 +3135,15 @@ public class SchemaBackend
     if (existingLSD == null)
     {
       schema.registerLdapSyntaxDescription(ldapSyntaxDesc, false);
-      String schemaFile = getSchemaFile(ldapSyntaxDesc);
-      if ((schemaFile == null) || (schemaFile.length() == 0))
-      {
-        schemaFile = FILE_USER_SCHEMA_ELEMENTS;
-        setSchemaFile(ldapSyntaxDesc, schemaFile);
-      }
-
-      modifiedSchemaFiles.add(schemaFile);
+      addNewSchemaElement(modifiedSchemaFiles, ldapSyntaxDesc);
     }
     else
     {
       schema.deregisterLdapSyntaxDescription(existingLSD);
       schema.registerLdapSyntaxDescription(ldapSyntaxDesc, false);
       schema.rebuildDependentElements(existingLSD);
-
-      if ((getSchemaFile(ldapSyntaxDesc) == null) ||
-          (getSchemaFile(ldapSyntaxDesc).length() == 0))
-      {
-        String schemaFile = getSchemaFile(ldapSyntaxDesc);
-        if ((schemaFile == null) || (schemaFile.length() == 0))
-        {
-          schemaFile = FILE_USER_SCHEMA_ELEMENTS;
-        }
-
-        setSchemaFile(ldapSyntaxDesc, schemaFile);
-        modifiedSchemaFiles.add(schemaFile);
-      }
-      else
-      {
-        String newSchemaFile = getSchemaFile(ldapSyntaxDesc);
-        String oldSchemaFile = getSchemaFile(existingLSD);
-        if ((oldSchemaFile == null) || oldSchemaFile.equals(newSchemaFile))
-        {
-          modifiedSchemaFiles.add(newSchemaFile);
-        }
-        else
-        {
-          modifiedSchemaFiles.add(newSchemaFile);
-          modifiedSchemaFiles.add(oldSchemaFile);
-        }
-      }
+      replaceExistingSchemaElement(modifiedSchemaFiles, ldapSyntaxDesc,
+          existingLSD);
     }
   }
 

@@ -36,6 +36,7 @@ import java.util.List;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ModificationType;
+import org.opends.server.api.AttributeSyntax;
 import org.opends.server.config.ConfigException;
 import org.opends.server.schema.*;
 import org.opends.server.types.*;
@@ -89,13 +90,11 @@ public class SchemaConfigManager
   public static String getSchemaDirectoryPath()
   {
     File schemaDir =
-              DirectoryServer.getEnvironmentConfig().
-                getSchemaDirectory();
+        DirectoryServer.getEnvironmentConfig().getSchemaDirectory();
     if (schemaDir != null) {
       return schemaDir.getAbsolutePath();
-    } else {
-      return null;
     }
+    return null;
   }
 
 
@@ -501,15 +500,8 @@ public class SchemaConfigManager
       ldapSyntax.initializeSyntax(null);
     }
 
-    AttributeType ldapSyntaxAttrType =
-         schema.getAttributeType(ATTR_LDAP_SYNTAXES_LC);
-    if (ldapSyntaxAttrType == null)
-    {
-      ldapSyntaxAttrType =
-           DirectoryServer.getDefaultAttributeType(ATTR_LDAP_SYNTAXES,
-                                                   ldapSyntax);
-    }
-
+    AttributeType ldapSyntaxAttrType = getAttributeType(
+        schema, ATTR_LDAP_SYNTAXES, ATTR_LDAP_SYNTAXES_LC, ldapSyntax);
     return createAddModifications(entry, mods, ldapSyntaxAttrType);
   }
 
@@ -536,15 +528,8 @@ public class SchemaConfigManager
       attrTypeSyntax.initializeSyntax(null);
     }
 
-    AttributeType attributeAttrType =
-         schema.getAttributeType(ATTR_ATTRIBUTE_TYPES_LC);
-    if (attributeAttrType == null)
-    {
-      attributeAttrType =
-           DirectoryServer.getDefaultAttributeType(ATTR_ATTRIBUTE_TYPES,
-                                                   attrTypeSyntax);
-    }
-
+    AttributeType attributeAttrType = getAttributeType(
+        schema, ATTR_ATTRIBUTE_TYPES, ATTR_ATTRIBUTE_TYPES_LC, attrTypeSyntax);
     return createAddModifications(entry, mods, attributeAttrType);
   }
 
@@ -571,15 +556,8 @@ public class SchemaConfigManager
       ocSyntax.initializeSyntax(null);
     }
 
-    AttributeType objectclassAttrType =
-         schema.getAttributeType(ATTR_OBJECTCLASSES_LC);
-    if (objectclassAttrType == null)
-    {
-      objectclassAttrType =
-           DirectoryServer.getDefaultAttributeType(ATTR_OBJECTCLASSES,
-                                                   ocSyntax);
-    }
-
+    AttributeType objectclassAttrType = getAttributeType(
+        schema, ATTR_OBJECTCLASSES, ATTR_OBJECTCLASSES_LC, ocSyntax);
     return createAddModifications(entry, mods, objectclassAttrType);
   }
 
@@ -606,14 +584,8 @@ public class SchemaConfigManager
       nfSyntax.initializeSyntax(null);
     }
 
-    AttributeType nameFormAttrType =
-         schema.getAttributeType(ATTR_NAME_FORMS_LC);
-    if (nameFormAttrType == null)
-    {
-      nameFormAttrType =
-           DirectoryServer.getDefaultAttributeType(ATTR_NAME_FORMS, nfSyntax);
-    }
-
+    AttributeType nameFormAttrType = getAttributeType(
+        schema, ATTR_NAME_FORMS, ATTR_NAME_FORMS_LC, nfSyntax);
     return createAddModifications(entry, mods, nameFormAttrType);
   }
 
@@ -641,15 +613,8 @@ public class SchemaConfigManager
       dcrSyntax.initializeSyntax(null);
     }
 
-    AttributeType dcrAttrType =
-         schema.getAttributeType(ATTR_DIT_CONTENT_RULES_LC);
-    if (dcrAttrType == null)
-    {
-      dcrAttrType =
-           DirectoryServer.getDefaultAttributeType(ATTR_DIT_CONTENT_RULES,
-                                                   dcrSyntax);
-    }
-
+    AttributeType dcrAttrType = getAttributeType(
+        schema, ATTR_DIT_CONTENT_RULES, ATTR_DIT_CONTENT_RULES_LC, dcrSyntax);
     return createAddModifications(entry, mods, dcrAttrType);
   }
 
@@ -677,15 +642,8 @@ public class SchemaConfigManager
       dsrSyntax.initializeSyntax(null);
     }
 
-    AttributeType dsrAttrType =
-         schema.getAttributeType(ATTR_DIT_STRUCTURE_RULES_LC);
-    if (dsrAttrType == null)
-    {
-      dsrAttrType =
-           DirectoryServer.getDefaultAttributeType(ATTR_DIT_STRUCTURE_RULES,
-                                                   dsrSyntax);
-    }
-
+    AttributeType dsrAttrType = getAttributeType(
+        schema, ATTR_DIT_STRUCTURE_RULES, ATTR_DIT_STRUCTURE_RULES_LC, dsrSyntax);
     return createAddModifications(entry, mods, dsrAttrType);
   }
 
@@ -713,16 +671,20 @@ public class SchemaConfigManager
       mruSyntax.initializeSyntax(null);
     }
 
-    AttributeType mruAttrType =
-         schema.getAttributeType(ATTR_MATCHING_RULE_USE_LC);
-    if (mruAttrType == null)
-    {
-      mruAttrType =
-           DirectoryServer.getDefaultAttributeType(ATTR_MATCHING_RULE_USE,
-                                                   mruSyntax);
-    }
-
+    AttributeType mruAttrType = getAttributeType(
+        schema, ATTR_MATCHING_RULE_USE, ATTR_MATCHING_RULE_USE_LC, mruSyntax);
     return createAddModifications(entry, mods, mruAttrType);
+  }
+
+  private static AttributeType getAttributeType(Schema schema, String attrName,
+      String attrLowerName, AttributeSyntax<?> syntax)
+  {
+    final AttributeType attrType = schema.getAttributeType(attrLowerName);
+    if (attrType != null)
+    {
+      return attrType;
+    }
+    return DirectoryServer.getDefaultAttributeType(attrName, syntax);
   }
 
   private static List<Attribute> createAddModifications(Entry entry,
@@ -765,16 +727,8 @@ public class SchemaConfigManager
             LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_LDAP_SYNTAX.get(
                     schemaFile,
                     de.getMessageObject());
-
-            if (failOnError)
-            {
-              throw new ConfigException(message, de);
-            }
-            else
-            {
-              logger.error(message);
-              continue;
-            }
+            reportError(failOnError, de, message);
+            continue;
           }
           catch (Exception e)
           {
@@ -783,16 +737,8 @@ public class SchemaConfigManager
             LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_LDAP_SYNTAX.get(
                     schemaFile,
                     v.getValue() + ":  " + getExceptionMessage(e));
-
-            if (failOnError)
-            {
-              throw new ConfigException(message, e);
-            }
-            else
-            {
-              logger.error(message);
-              continue;
-            }
+            reportError(failOnError, e, message);
+            continue;
           }
 
            // Register it with the schema.  We will allow duplicates, with the
@@ -850,16 +796,8 @@ public class SchemaConfigManager
 
             LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_ATTR_TYPE.get(
                     schemaFile, de.getMessageObject());
-
-            if (failOnError)
-            {
-              throw new ConfigException(message, de);
-            }
-            else
-            {
-              logger.error(message);
-              continue;
-            }
+            reportError(failOnError, de, message);
+            continue;
           }
           catch (Exception e)
           {
@@ -867,15 +805,8 @@ public class SchemaConfigManager
 
             LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_ATTR_TYPE.get(
                     schemaFile, v.getValue() + ":  " + getExceptionMessage(e));
-            if (failOnError)
-            {
-              throw new ConfigException(message, e);
-            }
-            else
-            {
-              logger.error(message);
-              continue;
-            }
+            reportError(failOnError, e, message);
+            continue;
           }
 
           // Register it with the schema.  We will allow duplicates, with the
@@ -933,16 +864,8 @@ public class SchemaConfigManager
             LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_OC.get(
                     schemaFile,
                     de.getMessageObject());
-
-            if (failOnError)
-            {
-              throw new ConfigException(message, de);
-            }
-            else
-            {
-              logger.error(message);
-              continue;
-            }
+            reportError(failOnError, de, message);
+            continue;
           }
           catch (Exception e)
           {
@@ -951,16 +874,8 @@ public class SchemaConfigManager
             LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_OC.get(
                     schemaFile,
                     v.getValue() + ":  " + getExceptionMessage(e));
-
-            if (failOnError)
-            {
-              throw new ConfigException(message, e);
-            }
-            else
-            {
-              logger.error(message);
-              continue;
-            }
+            reportError(failOnError, e, message);
+            continue;
           }
 
           // Register it with the schema.  We will allow duplicates, with the
@@ -1016,15 +931,8 @@ public class SchemaConfigManager
 
             LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_NAME_FORM.get(
                     schemaFile, de.getMessageObject());
-            if (failOnError)
-            {
-              throw new ConfigException(message, de);
-            }
-            else
-            {
-              logger.error(message);
-              continue;
-            }
+            reportError(failOnError, de, message);
+            continue;
           }
           catch (Exception e)
           {
@@ -1032,16 +940,8 @@ public class SchemaConfigManager
 
             LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_NAME_FORM.get(
                     schemaFile,  v.getValue() + ":  " + getExceptionMessage(e));
-
-            if (failOnError)
-            {
-              throw new ConfigException(message, e);
-            }
-            else
-            {
-              logger.error(message);
-              continue;
-            }
+            reportError(failOnError, e, message);
+            continue;
           }
 
           // Register it with the schema.  We will allow duplicates, with the
@@ -1098,16 +998,8 @@ public class SchemaConfigManager
 
             LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_DCR.get(
                     schemaFile, de.getMessageObject());
-
-            if (failOnError)
-            {
-              throw new ConfigException(message, de);
-            }
-            else
-            {
-              logger.error(message);
-              continue;
-            }
+            reportError(failOnError, de, message);
+            continue;
           }
           catch (Exception e)
           {
@@ -1115,16 +1007,8 @@ public class SchemaConfigManager
 
             LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_DCR.get(
                     schemaFile,v.getValue() + ":  " + getExceptionMessage(e));
-
-            if (failOnError)
-            {
-              throw new ConfigException(message, e);
-            }
-            else
-            {
-              logger.error(message);
-              continue;
-            }
+            reportError(failOnError, e, message);
+            continue;
           }
 
           // Register it with the schema.  We will allow duplicates, with the
@@ -1155,6 +1039,16 @@ public class SchemaConfigManager
     }
   }
 
+  private static void reportError(boolean failOnError, Exception e,
+      LocalizableMessage message) throws ConfigException
+  {
+    if (failOnError)
+    {
+      throw new ConfigException(message, e);
+    }
+    logger.error(message);
+  }
+
   /** Parse the DIT structure rule definitions if there are any. */
   private static void parseDITStructureRuleDefinitions(Schema schema,
       String schemaFile, boolean failOnError, List<Attribute> dsrList)
@@ -1181,16 +1075,8 @@ public class SchemaConfigManager
 
             LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_DSR.get(
                     schemaFile, de.getMessageObject());
-
-            if (failOnError)
-            {
-              throw new ConfigException(message, de);
-            }
-            else
-            {
-              logger.error(message);
-              continue;
-            }
+            reportError(failOnError, de, message);
+            continue;
           }
           catch (Exception e)
           {
@@ -1198,16 +1084,8 @@ public class SchemaConfigManager
 
             LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_DSR.get(
                     schemaFile, v.getValue() + ":  " + getExceptionMessage(e));
-
-            if (failOnError)
-            {
-              throw new ConfigException(message, e);
-            }
-            else
-            {
-              logger.error(message);
-              continue;
-            }
+            reportError(failOnError, e, message);
+            continue;
           }
 
           // Register it with the schema.  We will allow duplicates, with the
@@ -1264,16 +1142,8 @@ public class SchemaConfigManager
 
             LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_MRU.get(
                     schemaFile, de.getMessageObject());
-
-            if (failOnError)
-            {
-              throw new ConfigException(message, de);
-            }
-            else
-            {
-              logger.error(message);
-              continue;
-            }
+            reportError(failOnError, de, message);
+            continue;
           }
           catch (Exception e)
           {
@@ -1282,16 +1152,8 @@ public class SchemaConfigManager
             LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_MRU.get(
                     schemaFile,
                     v.getValue() + ":  " + getExceptionMessage(e));
-
-            if (failOnError)
-            {
-              throw new ConfigException(message, e);
-            }
-            else
-            {
-              logger.error(message);
-              continue;
-            }
+            reportError(failOnError, e, message);
+            continue;
           }
 
           // Register it with the schema.  We will allow duplicates, with the
