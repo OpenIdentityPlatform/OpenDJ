@@ -45,6 +45,7 @@ import org.opends.server.util.StaticUtils;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.server.types.CommonSchemaElements.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -754,9 +755,8 @@ public class SchemaConfigManager
           {
             syntaxDescription = LDAPSyntaxDescriptionSyntax.decodeLDAPSyntax(
                     v.getValue(),schema,false);
-            syntaxDescription.setExtraProperty(
-                    SCHEMA_PROPERTY_FILENAME, (String) null);
-            syntaxDescription.setSchemaFile(schemaFile);
+            setExtraProperty(syntaxDescription, SCHEMA_PROPERTY_FILENAME, null);
+            setSchemaFile(syntaxDescription, schemaFile);
           }
           catch (DirectoryException de)
           {
@@ -841,8 +841,8 @@ public class SchemaConfigManager
           {
             attrType = AttributeTypeSyntax.decodeAttributeType(v.getValue(),
                                                           schema, false);
-            attrType.setExtraProperty(SCHEMA_PROPERTY_FILENAME, (String) null);
-            attrType.setSchemaFile(schemaFile);
+            setExtraProperty(attrType, SCHEMA_PROPERTY_FILENAME, null);
+            setSchemaFile(attrType, schemaFile);
           }
           catch (DirectoryException de)
           {
@@ -923,8 +923,8 @@ public class SchemaConfigManager
           {
             oc =
               ObjectClassSyntax.decodeObjectClass(v.getValue(), schema, false);
-            oc.setExtraProperty(SCHEMA_PROPERTY_FILENAME, (String) null);
-            oc.setSchemaFile(schemaFile);
+            setExtraProperty(oc, SCHEMA_PROPERTY_FILENAME, null);
+            setSchemaFile(oc, schemaFile);
           }
           catch (DirectoryException de)
           {
@@ -1008,7 +1008,7 @@ public class SchemaConfigManager
           {
             nf = NameFormSyntax.decodeNameForm(v.getValue(), schema, false);
             nf.getExtraProperties().remove(SCHEMA_PROPERTY_FILENAME);
-            nf.setSchemaFile(schemaFile);
+            setSchemaFile(nf, schemaFile);
           }
           catch (DirectoryException de)
           {
@@ -1090,7 +1090,7 @@ public class SchemaConfigManager
             dcr = DITContentRuleSyntax.decodeDITContentRule(
                 v.getValue(), schema, false);
             dcr.getExtraProperties().remove(SCHEMA_PROPERTY_FILENAME);
-            dcr.setSchemaFile(schemaFile);
+            setSchemaFile(dcr, schemaFile);
           }
           catch (DirectoryException de)
           {
@@ -1173,7 +1173,7 @@ public class SchemaConfigManager
             dsr = DITStructureRuleSyntax.decodeDITStructureRule(
                 v.getValue(), schema, false);
             dsr.getExtraProperties().remove(SCHEMA_PROPERTY_FILENAME);
-            dsr.setSchemaFile(schemaFile);
+            setSchemaFile(dsr, schemaFile);
           }
           catch (DirectoryException de)
           {
@@ -1256,7 +1256,7 @@ public class SchemaConfigManager
             mru = MatchingRuleUseSyntax.decodeMatchingRuleUse(
                             v.getValue(), schema, false);
             mru.getExtraProperties().remove(SCHEMA_PROPERTY_FILENAME);
-            mru.setSchemaFile(schemaFile);
+            setSchemaFile(mru, schemaFile);
           }
           catch (DirectoryException de)
           {

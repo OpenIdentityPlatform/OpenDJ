@@ -29,14 +29,11 @@ package org.opends.server.types;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.schema.NameFormSyntax;
 
 import static org.forgerock.util.Reject.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -200,23 +197,10 @@ public final class NameForm
    *
    * @return  The definition string used to create this name form.
    */
+  @Override
   public String getDefinition()
   {
     return definition;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public NameForm recreateFromDefinition(Schema schema)
-         throws DirectoryException
-  {
-    ByteString value  = ByteString.valueOf(definition);
-    NameForm nf = NameFormSyntax.decodeNameForm(value, schema, false);
-    nf.setSchemaFile(getSchemaFile());
-    return nf;
   }
 
 
@@ -308,42 +292,6 @@ public final class NameForm
     }
 
     return lowerValue.equals(oid);
-  }
-
-
-
-  /**
-   * Retrieves the path to the schema file that contains the
-   * definition for this name form.
-   *
-   * @return  The path to the schema file that contains the definition
-   *          for this name form, or {@code null} if it is not known
-   *          or if it is not stored in any schema file.
-   */
-  public String getSchemaFile()
-  {
-    List<String> values =
-         extraProperties.get(SCHEMA_PROPERTY_FILENAME);
-    if ((values == null) || values.isEmpty())
-    {
-      return null;
-    }
-
-    return values.get(0);
-  }
-
-
-
-  /**
-   * Specifies the path to the schema file that contains the
-   * definition for this name form.
-   *
-   * @param  schemaFile  The path to the schema file that contains the
-   *                     definition for this name form.
-   */
-  public void setSchemaFile(String schemaFile)
-  {
-    setExtraProperty(SCHEMA_PROPERTY_FILENAME, schemaFile);
   }
 
 
@@ -474,36 +422,10 @@ public final class NameForm
    *          properties that may be associated with this name form
    *          and the value for that property.
    */
+  @Override
   public Map<String,List<String>> getExtraProperties()
   {
     return extraProperties;
-  }
-
-
-
-  /**
-   * Specifies the provided "extra" property for this name form.
-   *
-   * @param  name   The name for the "extra" property.  It must not be
-   *                {@code null}.
-   * @param  value  The value for the "extra" property, or
-   *                {@code null} if the property is to be removed.
-   */
-  private void setExtraProperty(String name, String value)
-  {
-    ifNull(name);
-
-    if (value == null)
-    {
-      extraProperties.remove(name);
-    }
-    else
-    {
-      LinkedList<String> values = new LinkedList<String>();
-      values.add(value);
-
-      extraProperties.put(name, values);
-    }
   }
 
 
@@ -518,6 +440,7 @@ public final class NameForm
    * @return  {@code true} if the provided object is equal to this
    *          name form, or {@code true} if not.
    */
+  @Override
   public boolean equals(Object o)
   {
     if (this == o)
@@ -541,6 +464,7 @@ public final class NameForm
    *
    * @return  The hash code for this name form.
    */
+  @Override
   public int hashCode()
   {
     int oidLength = oid.length();
@@ -562,6 +486,7 @@ public final class NameForm
    * @return  The string representation of this name form in the form
    *          specified in RFC 2252.
    */
+  @Override
   public String toString()
   {
     StringBuilder buffer = new StringBuilder();

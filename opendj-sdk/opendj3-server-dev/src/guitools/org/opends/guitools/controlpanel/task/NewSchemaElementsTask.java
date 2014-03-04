@@ -37,6 +37,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.naming.NamingException;
@@ -63,10 +64,13 @@ import org.opends.server.types.Modification;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.OpenDsException;
+import org.opends.server.types.SchemaFileElement;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
+
+import static org.opends.server.types.CommonSchemaElements.*;
 
 /**
  * An abstract class used to re-factor some code between the different tasks
@@ -97,6 +101,7 @@ public class NewSchemaElementsTask extends Task
   /**
    * {@inheritDoc}
    */
+  @Override
   public Set<String> getBackends()
   {
     return Collections.emptySet();
@@ -105,6 +110,7 @@ public class NewSchemaElementsTask extends Task
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean canLaunch(Task taskToBeLaunched,
       Collection<LocalizableMessage> incompatibilityReasons)
   {
@@ -124,6 +130,7 @@ public class NewSchemaElementsTask extends Task
   /**
    * {@inheritDoc}
    */
+  @Override
   public void runTask()
   {
     state = State.RUNNING;
@@ -144,6 +151,7 @@ public class NewSchemaElementsTask extends Task
   /**
    * {@inheritDoc}
    */
+  @Override
   public Type getType()
   {
     return Type.NEW_SCHEMA_ELEMENT;
@@ -152,6 +160,7 @@ public class NewSchemaElementsTask extends Task
   /**
    * {@inheritDoc}
    */
+  @Override
   public LocalizableMessage getTaskDescription()
   {
     if (attrsToAdd.size() == 1 && ocsToAdd.isEmpty())
@@ -212,6 +221,7 @@ public class NewSchemaElementsTask extends Task
   /**
    * {@inheritDoc}
    */
+  @Override
   protected String getCommandLinePath()
   {
     return null;
@@ -220,6 +230,7 @@ public class NewSchemaElementsTask extends Task
   /**
    * {@inheritDoc}
    */
+  @Override
   protected List<String> getCommandLineArguments()
   {
     return Collections.emptyList();
@@ -234,6 +245,7 @@ public class NewSchemaElementsTask extends Task
       addAttributeOnline(attr);
       SwingUtilities.invokeLater(new Runnable()
       {
+        @Override
         public void run()
         {
           getProgressDialog().appendProgressHtml(Utilities.applyFont("<br><br>",
@@ -246,6 +258,7 @@ public class NewSchemaElementsTask extends Task
       addObjectClassOnline(oc);
       SwingUtilities.invokeLater(new Runnable()
       {
+        @Override
         public void run()
         {
           getProgressDialog().appendProgressHtml(Utilities.applyFont("<br><br>",
@@ -258,57 +271,16 @@ public class NewSchemaElementsTask extends Task
   private void updateSchemaOffline() throws OpenDsException
   {
     // Group the changes in the same schema file.
-    LinkedHashMap<String, List<AttributeType>> hmAttrs =
-      new LinkedHashMap<String, List<AttributeType>>();
-    for (AttributeType attr : attrsToAdd)
-    {
-      String fileName = getFileName(attr);
-      if (fileName == null)
-      {
-        fileName = "";
-      }
-      List<AttributeType> attrs = hmAttrs.get(fileName);
-      if (attrs == null)
-      {
-        attrs = new ArrayList<AttributeType>();
-        hmAttrs.put(fileName, attrs);
-      }
-      attrs.add(attr);
-    }
-
-    LinkedHashMap<String, List<ObjectClass>> hmOcs =
-      new LinkedHashMap<String, List<ObjectClass>>();
-    for (ObjectClass oc : ocsToAdd)
-    {
-      String fileName = getFileName(oc);
-      if (fileName == null)
-      {
-        fileName = "";
-      }
-      List<ObjectClass> ocs = hmOcs.get(fileName);
-      if (ocs == null)
-      {
-        ocs = new ArrayList<ObjectClass>();
-        hmOcs.put(fileName, ocs);
-      }
-      ocs.add(oc);
-    }
+    LinkedHashMap<String, List<AttributeType>> hmAttrs = copy(attrsToAdd);
+    LinkedHashMap<String, List<ObjectClass>> hmOcs = copy(ocsToAdd);
 
     LinkedHashSet<String> allFileNames = new LinkedHashSet<String>();
     allFileNames.addAll(hmAttrs.keySet());
     allFileNames.addAll(hmOcs.keySet());
     for (String fileName : allFileNames)
     {
-      List<AttributeType> attrs = hmAttrs.get(fileName);
-      List<ObjectClass> ocs = hmOcs.get(fileName);
-      if (attrs == null)
-      {
-        attrs = Collections.emptyList();
-      }
-      if (ocs == null)
-      {
-        ocs = Collections.emptyList();
-      }
+      List<AttributeType> attrs = get(hmAttrs, fileName);
+      List<ObjectClass> ocs = get(hmOcs, fileName);
 
       if (fileName.equals(""))
       {
@@ -317,6 +289,7 @@ public class NewSchemaElementsTask extends Task
       updateSchemaOffline(fileName, attrs, ocs);
       SwingUtilities.invokeLater(new Runnable()
       {
+        @Override
         public void run()
         {
           getProgressDialog().appendProgressHtml(Utilities.applyFont("<br><br>",
@@ -324,6 +297,40 @@ public class NewSchemaElementsTask extends Task
         }
       });
     }
+  }
+
+  private <T extends SchemaFileElement> List<T> get(
+      LinkedHashMap<String, List<T>> hmElems, String fileName)
+  {
+    List<T> elems = hmElems.get(fileName);
+    if (elems != null)
+    {
+      return elems;
+    }
+    return Collections.emptyList();
+  }
+
+  private <T extends SchemaFileElement> LinkedHashMap<String, List<T>> copy(
+      LinkedHashSet<T> elemsToAdd)
+  {
+    LinkedHashMap<String, List<T>> hmElems =
+        new LinkedHashMap<String, List<T>>();
+    for (T elem : elemsToAdd)
+    {
+      String fileName = CommonSchemaElements.getSchemaFile(elem);
+      if (fileName == null)
+      {
+        fileName = "";
+      }
+      List<T> elems = hmElems.get(fileName);
+      if (elems == null)
+      {
+        elems = new ArrayList<T>();
+        hmElems.put(fileName, elems);
+      }
+      elems.add(elem);
+    }
+    return hmElems;
   }
 
   private void addAttributeOnline(final AttributeType attribute)
@@ -334,6 +341,7 @@ public class NewSchemaElementsTask extends Task
       /**
        * {@inheritDoc}
        */
+      @Override
       public void run()
       {
         printEquivalentCommandLineToAddOnline(attribute);
@@ -362,6 +370,7 @@ public class NewSchemaElementsTask extends Task
     notifyConfigurationElementCreated(attribute);
     SwingUtilities.invokeLater(new Runnable()
     {
+      @Override
       public void run()
       {
         getProgressDialog().appendProgressHtml(
@@ -378,6 +387,7 @@ public class NewSchemaElementsTask extends Task
       /**
        * {@inheritDoc}
        */
+      @Override
       public void run()
       {
         printEquivalentCommandLineToAddOnline(objectClass);
@@ -406,6 +416,7 @@ public class NewSchemaElementsTask extends Task
     notifyConfigurationElementCreated(objectClass);
     SwingUtilities.invokeLater(new Runnable()
     {
+      @Override
       public void run()
       {
         getProgressDialog().appendProgressHtml(
@@ -421,23 +432,16 @@ public class NewSchemaElementsTask extends Task
 
   private String getValueOffline(CommonSchemaElements element)
   {
-    Iterable<String> previousValues =
-      element.getExtraProperty(ServerConstants.SCHEMA_PROPERTY_FILENAME);
-    element.setExtraProperty(ServerConstants.SCHEMA_PROPERTY_FILENAME,
-        (String)null);
+    final Map<String, List<String>> props = element.getExtraProperties();
+    List<String> previousValues =
+        props.get(ServerConstants.SCHEMA_PROPERTY_FILENAME);
+    setExtraProperty(element, ServerConstants.SCHEMA_PROPERTY_FILENAME, null);
     String attributeWithoutFileDefinition = element.toString();
 
-    if (previousValues != null)
+    if (previousValues != null && !previousValues.isEmpty())
     {
-      ArrayList<String> vs = new ArrayList<String>();
-      for (String s : previousValues)
-      {
-        vs.add(s);
-      }
-      if (!vs.isEmpty())
-      {
-        element.setExtraProperty(ServerConstants.SCHEMA_PROPERTY_FILENAME, vs);
-      }
+      ArrayList<String> vs = new ArrayList<String>(previousValues);
+      element.setExtraProperty(ServerConstants.SCHEMA_PROPERTY_FILENAME, vs);
     }
     return attributeWithoutFileDefinition;
   }
@@ -491,21 +495,6 @@ public class NewSchemaElementsTask extends Task
     }
   }
 
-  private String getFileName(CommonSchemaElements element)
-  {
-    String value = null;
-    Iterable<String> vs =
-      element.getExtraProperty(ServerConstants.SCHEMA_PROPERTY_FILENAME);
-    if (vs != null)
-    {
-      if (vs.iterator().hasNext())
-      {
-        value = vs.iterator().next();
-      }
-    }
-    return value;
-  }
-
   private void updateSchemaOffline(String file,
       final List<AttributeType> attributes,
       final List<ObjectClass> objectClasses) throws OpenDsException
@@ -528,6 +517,7 @@ public class NewSchemaElementsTask extends Task
       /**
        * {@inheritDoc}
        */
+      @Override
       public void run()
       {
         printEquivalentCommandToAddOffline(fileName, isSchemaFileDefined,
@@ -573,6 +563,7 @@ public class NewSchemaElementsTask extends Task
     }
     SwingUtilities.invokeLater(new Runnable()
     {
+      @Override
       public void run()
       {
         getProgressDialog().appendProgressHtml(

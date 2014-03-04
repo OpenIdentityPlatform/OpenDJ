@@ -48,7 +48,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -125,6 +124,8 @@ import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.*;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
+
+import static org.opends.server.types.CommonSchemaElements.*;
 
 /**
  * A static class that provides miscellaneous functions.
@@ -2112,17 +2113,10 @@ public class Utilities
   public static boolean isStandard(SchemaFileElement fileElement)
   {
     boolean isStandard = false;
-    String fileName = fileElement.getSchemaFile();
+    String fileName = getSchemaFile(fileElement);
     if (fileName != null)
     {
-      for (String name : standardSchemaFileNames)
-      {
-        isStandard = fileName.equals(name);
-        if (isStandard)
-        {
-          break;
-        }
-      }
+      isStandard = contains(standardSchemaFileNames, fileName);
       if (!isStandard)
       {
         isStandard = fileName.toLowerCase().indexOf("-rfc") != -1;
@@ -2130,18 +2124,10 @@ public class Utilities
     }
     else if (fileElement instanceof CommonSchemaElements)
     {
-      CommonSchemaElements element = (CommonSchemaElements)fileElement;
-      String xOrigin = getOrigin(element);
+      String xOrigin = getOrigin(fileElement);
       if (xOrigin != null)
       {
-        for (String name : standardSchemaOrigins)
-        {
-          isStandard = xOrigin.equals(name);
-          if (isStandard)
-          {
-            break;
-          }
-        }
+        isStandard = contains(standardSchemaOrigins, xOrigin);
         if (!isStandard)
         {
           isStandard = xOrigin.startsWith("RFC ") ||
@@ -2162,35 +2148,32 @@ public class Utilities
   public static boolean isConfiguration(SchemaFileElement fileElement)
   {
     boolean isConfiguration = false;
-    String fileName = fileElement.getSchemaFile();
+    String fileName = getSchemaFile(fileElement);
     if (fileName != null)
     {
-      for (String name : configurationSchemaFileNames)
-      {
-        isConfiguration = fileName.equals(name);
-        if (isConfiguration)
-        {
-          break;
-        }
-      }
+      isConfiguration = contains(configurationSchemaFileNames, fileName);
     }
     else if (fileElement instanceof CommonSchemaElements)
     {
-      CommonSchemaElements element = (CommonSchemaElements)fileElement;
-      String xOrigin = getOrigin(element);
+      String xOrigin = getOrigin(fileElement);
       if (xOrigin != null)
       {
-        for (String name : configurationSchemaOrigins)
-        {
-          isConfiguration = xOrigin.equals(name);
-          if (isConfiguration)
-          {
-            break;
-          }
-        }
+        isConfiguration = contains(configurationSchemaOrigins, xOrigin);
       }
     }
     return isConfiguration;
+  }
+
+  private static boolean contains(String[] names, String toFind)
+  {
+    for (String name : names)
+    {
+      if (toFind.equals(name))
+      {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -2198,20 +2181,10 @@ public class Utilities
    * @param element the schema element.
    * @return the origin of the provided schema element.
    */
-  public static String getOrigin(CommonSchemaElements element)
+  public static String getOrigin(SchemaFileElement element)
   {
-    String xOrigin = null;
-    Iterable<String> it =
-      element.getExtraProperty(ServerConstants.SCHEMA_PROPERTY_ORIGIN);
-    if (it != null)
-    {
-      Iterator<String> iterator = it.iterator();
-      if (iterator.hasNext())
-      {
-        xOrigin = iterator.next();
-      }
-    }
-    return xOrigin;
+    return CommonSchemaElements.getSingleValueProperty(
+        element, ServerConstants.SCHEMA_PROPERTY_ORIGIN);
   }
 
   /**

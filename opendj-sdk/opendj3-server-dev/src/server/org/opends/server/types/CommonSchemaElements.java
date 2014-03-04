@@ -71,7 +71,7 @@ import static org.opends.server.util.StaticUtils.*;
      mayInstantiate=false,
      mayExtend=false,
      mayInvoke=true)
-public abstract class CommonSchemaElements {
+public abstract class CommonSchemaElements implements SchemaFileElement {
 
   // Indicates whether this definition is declared "obsolete".
   private final boolean isObsolete;
@@ -361,18 +361,31 @@ public abstract class CommonSchemaElements {
    * Retrieves the name of the schema file that contains the
    * definition for this schema definition.
    *
+   * @param elem The element where to get the schema file from
    * @return The name of the schema file that contains the definition
    *         for this schema definition, or <code>null</code> if it
    *         is not known or if it is not stored in any schema file.
    */
-  public final String getSchemaFile() {
+  public static String getSchemaFile(SchemaFileElement elem)
+  {
+    return getSingleValueProperty(elem, SCHEMA_PROPERTY_FILENAME);
+  }
 
-    List<String> values = extraProperties
-        .get(SCHEMA_PROPERTY_FILENAME);
+  /**
+   * Retrieves the name of a single value property for this schema element.
+   *
+   * @param elem The element where to get the single value property from
+   * @param propertyName The name of the property to get
+   * @return The single value for this property, or <code>null</code> if it
+   *         is this property is not set.
+   */
+  public static String getSingleValueProperty(SchemaFileElement elem,
+      String propertyName)
+  {
+    List<String> values = elem.getExtraProperties().get(propertyName);
     if (values != null && !values.isEmpty()) {
       return values.get(0);
     }
-
     return null;
   }
 
@@ -385,12 +398,13 @@ public abstract class CommonSchemaElements {
    * overwritten.  If the provided schema file value is {@code null},
    * then any existing schema file definition will be removed.
    *
+   * @param elem The element where to set the schema file
    * @param  schemaFile  The name of the schema file that contains the
    *                     definition for this schema element.
    */
-  public final void setSchemaFile(String schemaFile) {
-
-    setExtraProperty(SCHEMA_PROPERTY_FILENAME, schemaFile);
+  public static void setSchemaFile(SchemaFileElement elem, String schemaFile)
+  {
+    setExtraProperty(elem, SCHEMA_PROPERTY_FILENAME, schemaFile);
   }
 
 
@@ -421,34 +435,11 @@ public abstract class CommonSchemaElements {
 
 
 
-  /**
-   * Retrieves an iterable over the names of "extra" properties
-   * associated with this schema definition.
-   *
-   * @return Returns an iterable over the names of "extra" properties
-   *         associated with this schema definition.
-   */
-  public final Iterable<String> getExtraPropertyNames() {
-
-    return extraProperties.keySet();
-  }
-
-
-
-  /**
-   * Retrieves an iterable over the value(s) of the specified "extra"
-   * property for this schema definition.
-   *
-   * @param name
-   *          The name of the "extra" property for which to retrieve
-   *          the value(s).
-   * @return Returns an iterable over the value(s) of the specified
-   *         "extra" property for this schema definition, or
-   *         <code>null</code> if no such property is defined.
-   */
-  public final Iterable<String> getExtraProperty(String name) {
-
-    return extraProperties.get(name);
+  /** {@inheritDoc} */
+  @Override
+  public final Map<String, List<String>> getExtraProperties()
+  {
+    return extraProperties;
   }
 
 
@@ -459,26 +450,28 @@ public abstract class CommonSchemaElements {
    * will be overwritten.  If the value is {@code null}, then any
    * existing property with the given name will be removed.
    *
+   * @param elem The element where to set the extra property
    * @param  name   The name for the "extra" property.  It must not be
    *                {@code null}.
    * @param  value  The value for the "extra" property.  If it is
    *                {@code null}, then any existing definition will be
    *                removed.
    */
-  public final void setExtraProperty(String name, String value) {
-
+  public static final void setExtraProperty(SchemaFileElement elem,
+      String name, String value)
+  {
     ifNull(name);
 
     if (value == null)
     {
-      extraProperties.remove(name);
+      elem.getExtraProperties().remove(name);
     }
     else
     {
       LinkedList<String> values = new LinkedList<String>();
       values.add(value);
 
-      extraProperties.put(name, values);
+      elem.getExtraProperties().put(name, values);
     }
   }
 
@@ -667,4 +660,25 @@ public abstract class CommonSchemaElements {
    *          The buffer to which the information should be appended.
    */
   protected abstract void toStringContent(StringBuilder buffer);
+
+  /**
+   * Retrieves the definition string used to create this attribute
+   * type and including the X-SCHEMA-FILE extension.
+   *
+   * @param elem The element where to get definition from
+   * @return  The definition string used to create this attribute
+   *          type including the X-SCHEMA-FILE extension.
+   */
+  public static String getDefinitionWithFileName(SchemaFileElement elem)
+  {
+    final String schemaFile = getSchemaFile(elem);
+    final String definition = elem.getDefinition();
+    if (schemaFile != null)
+    {
+      int pos = definition.lastIndexOf(')');
+      return definition.substring(0, pos).trim() + " "
+          + SCHEMA_PROPERTY_FILENAME + " '" + schemaFile + "' )";
+    }
+    return definition;
+  }
 }

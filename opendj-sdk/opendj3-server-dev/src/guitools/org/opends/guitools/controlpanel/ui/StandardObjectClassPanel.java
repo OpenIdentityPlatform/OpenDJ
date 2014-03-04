@@ -60,6 +60,8 @@ import org.opends.server.types.CommonSchemaElements;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.Schema;
 
+import static org.opends.server.types.CommonSchemaElements.*;
+
 /**
  * The panel that displays a standard object class definition.
  *
@@ -103,32 +105,28 @@ public class StandardObjectClassPanel extends SchemaElementPanel
     createLayout();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_STANDARD_OBJECTCLASS_TITLE.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public Component getPreferredFocusComponent()
   {
     return requiredAttributes;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public void okClicked()
   {
   }
@@ -234,9 +232,8 @@ public class StandardObjectClassPanel extends SchemaElementPanel
       final JList list = lists[i];
       MouseAdapter clickListener = new MouseAdapter()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
+        @Override
         public void mouseClicked(MouseEvent ev)
         {
           if (ev.getClickCount() == 1)
@@ -249,9 +246,8 @@ public class StandardObjectClassPanel extends SchemaElementPanel
 
       KeyAdapter keyListener = new KeyAdapter()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
+        @Override
         public void keyTyped(KeyEvent ev)
         {
           if ((ev.getKeyChar() == KeyEvent.VK_SPACE) ||
@@ -273,7 +269,7 @@ public class StandardObjectClassPanel extends SchemaElementPanel
   static LocalizableMessage getOrigin(CommonSchemaElements element)
   {
     LocalizableMessageBuilder returnValue = new LocalizableMessageBuilder();
-    String fileName = element.getSchemaFile();
+    String fileName = getSchemaFile(element);
     String xOrigin = Utilities.getOrigin(element);
     if (xOrigin != null)
     {

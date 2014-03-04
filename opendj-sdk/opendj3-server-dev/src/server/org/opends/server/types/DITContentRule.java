@@ -29,14 +29,11 @@ package org.opends.server.types;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.schema.DITContentRuleSyntax;
 
 import static org.forgerock.util.Reject.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -243,23 +240,6 @@ public final class DITContentRule
 
 
   /**
-   * {@inheritDoc}
-   */
-  @Override
-  public DITContentRule recreateFromDefinition(Schema schema)
-         throws DirectoryException
-  {
-    ByteString value  = ByteString.valueOf(definition);
-    DITContentRule dcr =
-         DITContentRuleSyntax.decodeDITContentRule(value, schema,
-                                                   false);
-    dcr.setSchemaFile(getSchemaFile());
-    return dcr;
-  }
-
-
-
-  /**
    * Retrieves the structural objectclass for this DIT content rule.
    *
    * @return  The structural objectclass for this DIT content rule.
@@ -322,44 +302,6 @@ public final class DITContentRule
   public boolean hasName(String lowerName)
   {
     return names.containsKey(lowerName);
-  }
-
-
-
-  /**
-   * Retrieves the name of the schema file that contains the
-   * definition for this DIT content rule.
-   *
-   * @return  The name of the schema file that contains the definition
-   *          for this DIT content rule, or {@code null} if it is not
-   *          known or if it is not stored in any schema file.
-   */
-  @Override
-  public String getSchemaFile()
-  {
-    List<String> values =
-         extraProperties.get(SCHEMA_PROPERTY_FILENAME);
-    if ((values == null) || values.isEmpty())
-    {
-      return null;
-    }
-
-    return values.get(0);
-  }
-
-
-
-  /**
-   * Specifies the name of the schema file that contains the
-   * definition for this DIT content rule.
-   *
-   * @param  schemaFile  The name of the schema file that contains the
-   *                     definition for this DIT content rule.
-   */
-  @Override
-  public void setSchemaFile(String schemaFile)
-  {
-    setExtraProperty(SCHEMA_PROPERTY_FILENAME, schemaFile);
   }
 
 
@@ -494,37 +436,10 @@ public final class DITContentRule
    *          properties that may be associated with this DIT content
    *          rule and the value for that property.
    */
+  @Override
   public Map<String,List<String>> getExtraProperties()
   {
     return extraProperties;
-  }
-
-
-
-  /**
-   * Specifies the provided "extra" property for this DIT content
-   * rule.
-   *
-   * @param  name   The name for the "extra" property.  It must not be
-   *                {@code null}.
-   * @param  value  The value for the "extra" property, or
-   *                {@code null} if the property is to be removed.
-   */
-  private void setExtraProperty(String name, String value)
-  {
-    ifNull(name);
-
-    if (value == null)
-    {
-      extraProperties.remove(name);
-    }
-    else
-    {
-      LinkedList<String> values = new LinkedList<String>();
-      values.add(value);
-
-      extraProperties.put(name, values);
-    }
   }
 
 

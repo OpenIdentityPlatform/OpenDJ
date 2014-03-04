@@ -76,22 +76,25 @@ import org.opends.server.util.StaticUtils;
 public class DeleteSchemaElementsTask extends Task
 {
   // The list of object classes that the user asked to delete.
-  LinkedHashSet<ObjectClass> providedOcsToDelete =
+  private LinkedHashSet<ObjectClass> providedOcsToDelete =
     new LinkedHashSet<ObjectClass>();
   // The list of attributes that the user asked to delete.
-  LinkedHashSet<AttributeType> providedAttrsToDelete =
+  private LinkedHashSet<AttributeType> providedAttrsToDelete =
     new LinkedHashSet<AttributeType>();
   // The list of object classes that will be actually deleted (some might be
   // recreated).
-  LinkedHashSet<ObjectClass> ocsToDelete = new LinkedHashSet<ObjectClass>();
+  private LinkedHashSet<ObjectClass> ocsToDelete =
+      new LinkedHashSet<ObjectClass>();
   // The list of attributes that will be actually deleted (some might be
   // recreated).
-  LinkedHashSet<AttributeType> attrsToDelete =
+  private LinkedHashSet<AttributeType> attrsToDelete =
     new LinkedHashSet<AttributeType>();
   // The list of object classes that will be recreated.
-  LinkedHashSet<ObjectClass> ocsToAdd = new LinkedHashSet<ObjectClass>();
+  private LinkedHashSet<ObjectClass> ocsToAdd =
+      new LinkedHashSet<ObjectClass>();
   // The list of attributes that will be recreated.
-  LinkedHashSet<AttributeType> attrsToAdd = new LinkedHashSet<AttributeType>();
+  private LinkedHashSet<AttributeType> attrsToAdd =
+      new LinkedHashSet<AttributeType>();
 
   /**
    * Constructor of the task.
@@ -403,7 +406,7 @@ public class DeleteSchemaElementsTask extends Task
   private void updateSchemaFile(CommonSchemaElements schemaElement)
   throws OpenDsException
   {
-    String schemaFile = getSchemaFile((SchemaFileElement)schemaElement);
+    String schemaFile = getSchemaFile(schemaElement);
     LDIFExportConfig exportConfig =
       new LDIFExportConfig(schemaFile,
           ExistingFileBehavior.OVERWRITE);
@@ -441,7 +444,7 @@ public class DeleteSchemaElementsTask extends Task
    */
   private String getSchemaFile(SchemaFileElement element)
   {
-    String schemaFile = element.getSchemaFile();
+    String schemaFile = CommonSchemaElements.getSchemaFile(element);
     if (schemaFile == null)
     {
       schemaFile = ConfigConstants.FILE_USER_SCHEMA_ELEMENTS;
@@ -483,14 +486,7 @@ public class DeleteSchemaElementsTask extends Task
    */
   private String getSchemaFileAttributeValue(CommonSchemaElements element)
   {
-    if (element instanceof AttributeType)
-    {
-      return ((AttributeType)element).getDefinition();
-    }
-    else
-    {
-      return ((ObjectClass)element).getDefinition();
-    }
+    return element.getDefinition();
   }
 
   /**
@@ -500,7 +496,7 @@ public class DeleteSchemaElementsTask extends Task
    */
   private void printEquivalentCommandToDelete(CommonSchemaElements element)
   {
-    String schemaFile = getSchemaFile((SchemaFileElement)element);
+    String schemaFile = getSchemaFile(element);
     String attrName = getSchemaFileAttributeName(element);
     String attrValue = getSchemaFileAttributeValue(element);
     if (!isServerRunning())
@@ -798,14 +794,10 @@ public class DeleteSchemaElementsTask extends Task
   {
     Map<String, List<String>> extraProperties =
       new HashMap<String, List<String>>();
-    for (String name : element.getExtraPropertyNames())
+    Map<String, List<String>> props = element.getExtraProperties();
+    for (String name : props.keySet())
     {
-      List<String> values = new ArrayList<String>();
-      Iterable<String> properties = element.getExtraProperty(name);
-      for (String v : properties)
-      {
-        values.add(v);
-      }
+      List<String> values = new ArrayList<String>(props.get(name));
       extraProperties.put(name, values);
     }
     return extraProperties;

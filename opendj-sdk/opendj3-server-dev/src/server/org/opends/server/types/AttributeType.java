@@ -31,7 +31,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.schema.AttributeUsage;
 import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.AttributeSyntax;
@@ -39,7 +38,6 @@ import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.schema.AttributeTypeSyntax;
 
 import static org.forgerock.util.Reject.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -66,7 +64,7 @@ import static org.opends.server.util.ServerConstants.*;
      mayInvoke=true)
 public final class AttributeType
        extends CommonSchemaElements
-       implements SchemaFileElement, Comparable<AttributeType>
+       implements Comparable<AttributeType>
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -402,43 +400,6 @@ public final class AttributeType
   public String getDefinition()
   {
     return definition;
-  }
-
-  /**
-   * Retrieves the definition string used to create this attribute
-   * type and including the X-SCHEMA-FILE extension.
-   *
-   * @return  The definition string used to create this attribute
-   *          type including the X-SCHEMA-FILE extension.
-   */
-  public String getDefinitionWithFileName()
-  {
-    if (getSchemaFile() != null)
-    {
-      int pos = definition.lastIndexOf(')');
-      String defStr = definition.substring(0, pos).trim() + " " +
-                      SCHEMA_PROPERTY_FILENAME + " '" +
-                      getSchemaFile() + "' )";
-      return defStr;
-    }
-    else
-      return definition;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public AttributeType recreateFromDefinition(Schema schema)
-         throws DirectoryException
-  {
-    ByteString value  = ByteString.valueOf(definition);
-    AttributeType at =
-         AttributeTypeSyntax.decodeAttributeType(value, schema,
-                                              false);
-    at.setSchemaFile(getSchemaFile());
-    at.mayHaveSubordinateTypes = mayHaveSubordinateTypes;
-    return at;
   }
 
 

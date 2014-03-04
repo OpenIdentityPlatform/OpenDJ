@@ -36,9 +36,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.schema.ObjectClassType;
-import org.opends.server.schema.ObjectClassSyntax;
 
 import static org.forgerock.util.Reject.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -65,7 +63,6 @@ import static org.opends.server.util.ServerConstants.*;
      mayInvoke=true)
 public final class ObjectClass
        extends CommonSchemaElements
-       implements SchemaFileElement
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -284,50 +281,11 @@ public final class ObjectClass
 
 
   /**
-   * Retrieves the definition string used to create this objectclass
-   * including the X-SCHEMA-FILE extension.
-   *
-   * @return  The definition string used to create this objectclass
-   *          including the X-SCHEMA-FILE extension.
-   */
-  public String getDefinitionWithFileName()
-  {
-    if (getSchemaFile() != null)
-    {
-      int pos = definition.lastIndexOf(')');
-      String defStr = definition.substring(0, pos).trim() + " " +
-                      SCHEMA_PROPERTY_FILENAME + " '" +
-                      getSchemaFile() + "' )";
-      return defStr;
-    }
-    else
-      return definition;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public ObjectClass recreateFromDefinition(Schema schema)
-         throws DirectoryException
-  {
-    ByteString value  = ByteString.valueOf(definition);
-    ObjectClass oc = ObjectClassSyntax.decodeObjectClass(value,
-                                            schema, false);
-    oc.setSchemaFile(getSchemaFile());
-    return oc;
-  }
-
-
-
-  /**
    * Retrieves an unmodifiable view of the set of direct superior
    * classes for this objectclass.
    *
    * @return An unmodifiable view of the set of  direct superior
-   *                classes for this objectlass,
+   *                classes for this objectclass,
    */
   public Set<ObjectClass> getSuperiorClasses() {
     return superiorClasses;

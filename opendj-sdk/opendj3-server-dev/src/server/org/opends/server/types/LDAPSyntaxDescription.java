@@ -28,16 +28,15 @@
 
 package org.opends.server.types;
 
-import org.forgerock.opendj.ldap.ByteString;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-
 import org.opends.server.schema.LDAPSyntaxDescriptionSyntax;
-import static org.opends.server.util.ServerConstants.*;
+
 import static org.forgerock.util.Reject.*;
+import static org.opends.server.util.ServerConstants.*;
 
 
 
@@ -145,6 +144,7 @@ public final class LDAPSyntaxDescription
    * @return  The definition string used to create this ldap syntax
      *            description.
    */
+  @Override
   public String getDefinition()
   {
     return definition;
@@ -156,64 +156,11 @@ public final class LDAPSyntaxDescription
    * Retrieves the ldap syntax description syntax associated with
     * this ldap syntax.
    *
-   * @return  The description syntax for this defition.
+   * @return  The description syntax for this definition.
    */
   public LDAPSyntaxDescriptionSyntax getLdapSyntaxDescriptionSyntax()
   {
     return descriptionSyntax;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public LDAPSyntaxDescription recreateFromDefinition(Schema schema)
-         throws DirectoryException
-  {
-    ByteString value  = ByteString.valueOf(definition);
-    LDAPSyntaxDescription ls =
-            LDAPSyntaxDescriptionSyntax.decodeLDAPSyntax(value,
-            schema, false);
-    ls.setSchemaFile(getSchemaFile());
-    return ls;
-  }
-
-
-
-  /**
-   * Retrieves the path to the schema file that contains the
-   * definition for this ldap syntax description.
-   *
-   * @return  The path to the schema file that contains the
-   *           definition for this ldap syntax description, or
-   *           {@code null} if it is not known or if it is not stored
-   *           in any schema file.
-   */
-  public String getSchemaFile()
-  {
-    List<String> values =
-         extraProperties.get(SCHEMA_PROPERTY_FILENAME);
-    if ((values == null) || values.isEmpty())
-    {
-      return null;
-    }
-
-    return values.get(0);
-  }
-
-
-
-  /**
-   * Specifies the path to the schema file that contains the
-   * definition for this ldap syntax description.
-   *
-   * @param  schemaFile  The path to the schema file that contains
-   *                the definition for this ldap syntax description.
-   */
-  public void setSchemaFile(String schemaFile)
-  {
-    setExtraProperty(SCHEMA_PROPERTY_FILENAME, schemaFile);
   }
 
 
@@ -241,6 +188,7 @@ public final class LDAPSyntaxDescription
    *          properties that may be associated with this ldap syntax
    *          description and the value for that property.
    */
+  @Override
   public Map<String,List<String>> getExtraProperties()
   {
     return extraProperties;
@@ -262,34 +210,6 @@ public final class LDAPSyntaxDescription
   public List<String> getExtraProperty(String propertyName)
   {
     return extraProperties.get(propertyName);
-  }
-
-
-
-  /**
-   * Specifies the provided "extra" property for this ldap syntax
-   * description.
-   *
-   * @param  name   The name for the "extra" property.  It must not
-   *                          be {@code null}.
-   * @param  value  The value for the "extra" property, or
-   *                {@code null} if the property is to be removed.
-   */
-  public void setExtraProperty(String name, String value)
-  {
-    ifNull(name);
-
-    if (value == null)
-    {
-      extraProperties.remove(name);
-    }
-    else
-    {
-      LinkedList<String> values = new LinkedList<String>();
-      values.add(value);
-
-      extraProperties.put(name, values);
-    }
   }
 
 
