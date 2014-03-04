@@ -398,7 +398,8 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
                     sendEntry(attributeFilter, resultHandler, baseEntry);
                 }
                 resultHandler.handleResult(newResult(ResultCode.SUCCESS));
-            } else if (scope.equals(SearchScope.SINGLE_LEVEL) || scope.equals(SearchScope.WHOLE_SUBTREE)) {
+            } else if (scope.equals(SearchScope.SINGLE_LEVEL) || scope.equals(SearchScope.SUBORDINATES)
+                || scope.equals(SearchScope.WHOLE_SUBTREE)) {
                 searchWithSubordinates(requestContext, resultHandler, dn, matcher, attributeFilter,
                         request.getSizeLimit(), scope, request.getControl(
                                 SimplePagedResultsControl.DECODER, new DecodeOptions()));
@@ -502,7 +503,8 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
         int position = 0;
         for (final Entry entry : subtree.values()) {
             requestContext.checkIfCancelled(false);
-            if (scope.equals(SearchScope.WHOLE_SUBTREE) || entry.getName().isChildOf(dn)) {
+            if (scope.equals(SearchScope.WHOLE_SUBTREE) || entry.getName().isChildOf(dn)
+                || (scope.equals(SearchScope.SUBORDINATES) && !entry.getName().equals(dn))) {
                 if (matcher.matches(entry).toBoolean()) {
                     /*
                      * This entry is going to be returned to the client so it
