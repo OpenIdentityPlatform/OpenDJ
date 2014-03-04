@@ -381,6 +381,8 @@ public final class Upgrade
     // Checks License.
     checkLicence(context);
 
+    logWarnAboutPatchesFolder();
+    
     /*
      * Get the list of required upgrade tasks.
      */
@@ -675,6 +677,31 @@ public final class Upgrade
     }
   }
 
+  /**
+   * The classes folder is renamed by the script launcher to avoid
+   * incompatibility between patches and upgrade process. If a folder
+   * "classes.disabled" is found, this function just displays a warning in the
+   * log file, meaning the "classes" folder has been renamed. See upgrade.sh /
+   * upgrade.bat scripts which hold the renaming process. (OPENDJ-1098)
+   */
+  private static void logWarnAboutPatchesFolder()
+  {
+    try
+    {
+      final File backup =
+          new File(UpgradeUtils.getInstancePath(), "classes.disabled");
+      if (backup.exists() && backup.listFiles() != null
+          && backup.listFiles().length > 0)
+      {
+        LOG.log(Level.WARNING, INFO_UPGRADE_CLASSES_FOLDER_RENAMED.get(backup
+            .getAbsoluteFile().toString()).toString());
+      }
+    }
+    catch (SecurityException se)
+    {
+      LOG.log(Level.SEVERE, se.getMessage());
+    }
+  }
   /**
    * Returns {@code true} if the current upgrade contains post upgrade tasks.
    *
