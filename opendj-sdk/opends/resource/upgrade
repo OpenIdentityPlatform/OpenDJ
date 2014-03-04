@@ -22,7 +22,7 @@
 # CDDL HEADER END
 #
 #
-#      Copyright 2013 ForgeRock AS
+#      Copyright 2013-2014 ForgeRock AS
 
 
 # This script may be used to perform a backup of a Directory Server backend.
@@ -31,6 +31,14 @@ export OPENDJ_INVOKE_CLASS
 
 SCRIPT_NAME="upgrade"
 export SCRIPT_NAME
+
+DIR_CLASSES="./classes"
+# The upgrade is not compatible with patches. If the folder is not empty
+# we renamed it as "classes.disabled", and the upgrade process should be launched properly.
+if [ "`(ls -A ${DIR_CLASSES})`" ]; then
+    mv -f ${DIR_CLASSES} "./classes.disabled"
+    mkdir ${DIR_CLASSES}
+fi
 
 SCRIPT_DIR=`dirname "${0}"`
 "${SCRIPT_DIR}/lib/_server-script.sh" "${@}"
