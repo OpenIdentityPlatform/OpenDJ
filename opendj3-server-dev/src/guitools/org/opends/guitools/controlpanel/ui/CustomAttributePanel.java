@@ -98,6 +98,8 @@ import org.opends.server.types.Schema;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
 
+import static org.opends.server.types.CommonSchemaElements.*;
+
 /**
  * The panel that displays a custom attribute definition.
  */
@@ -189,9 +191,8 @@ public class CustomAttributePanel extends SchemaElementPanel
     createLayout();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_CUSTOM_ATTRIBUTE_TITLE.get();
@@ -231,9 +232,8 @@ public class CustomAttributePanel extends SchemaElementPanel
     add(delete, gbc);
     delete.addActionListener(new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         deleteAttribute();
@@ -248,9 +248,8 @@ public class CustomAttributePanel extends SchemaElementPanel
     add(saveChanges, gbc);
     saveChanges.addActionListener(new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
@@ -369,9 +368,8 @@ public class CustomAttributePanel extends SchemaElementPanel
       final BasicExpander expander = expanders[i];
       ChangeListener changeListener = new ChangeListener()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
+        @Override
         public void stateChanged(ChangeEvent e)
         {
           p.setVisible(expander.isSelected());
@@ -384,9 +382,8 @@ public class CustomAttributePanel extends SchemaElementPanel
 
     ItemListener itemListener = new ItemListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public void itemStateChanged(ItemEvent ev)
       {
         if (ev.getStateChange() == ItemEvent.SELECTED)
@@ -439,9 +436,7 @@ public class CustomAttributePanel extends SchemaElementPanel
       final JList list = lists[i];
       MouseAdapter clickListener = new MouseAdapter()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public void mouseClicked(MouseEvent ev)
         {
@@ -455,9 +450,7 @@ public class CustomAttributePanel extends SchemaElementPanel
 
       KeyAdapter keyListener = new KeyAdapter()
       {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public void keyTyped(KeyEvent ev)
         {
@@ -473,25 +466,22 @@ public class CustomAttributePanel extends SchemaElementPanel
 
     DocumentListener docListener = new DocumentListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public void insertUpdate(DocumentEvent ev)
       {
         checkEnableSaveChanges();
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public void removeUpdate(DocumentEvent ev)
       {
         checkEnableSaveChanges();
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public void changedUpdate(DocumentEvent arg0)
       {
         checkEnableSaveChanges();
@@ -505,6 +495,7 @@ public class CustomAttributePanel extends SchemaElementPanel
 
     ActionListener actionListener = new ActionListener()
     {
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         checkEnableSaveChanges();
@@ -526,18 +517,14 @@ public class CustomAttributePanel extends SchemaElementPanel
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean mustCheckUnsavedChanges()
   {
     return saveChanges.isEnabled();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public UnsavedChangesDialog.Result checkUnsavedChanges()
   {
@@ -564,18 +551,14 @@ public class CustomAttributePanel extends SchemaElementPanel
     return result;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean requiresScroll()
   {
     return false;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void update(AttributeType attr, Schema schema)
   {
     ignoreChangeEvents = true;
@@ -618,7 +601,7 @@ public class CustomAttributePanel extends SchemaElementPanel
     }
     origin.setText(sOrigin);
 
-    String sFile = attr.getSchemaFile();
+    String sFile = getSchemaFile(attr);
     if (sFile == null)
     {
       sFile = "";
@@ -693,9 +676,8 @@ public class CustomAttributePanel extends SchemaElementPanel
     ignoreChangeEvents = false;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
     ArrayList<AttributeSyntax<?>> newSyntaxes =
@@ -841,9 +823,8 @@ public class CustomAttributePanel extends SchemaElementPanel
     }
     SwingUtilities.invokeLater(new Runnable()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public void run()
       {
         delete.setEnabled(!authenticationRequired(desc) &&
@@ -857,17 +838,15 @@ public class CustomAttributePanel extends SchemaElementPanel
     });
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public Component getPreferredFocusComponent()
   {
     return name;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public void okClicked()
   {
   }
@@ -1309,21 +1288,17 @@ public class CustomAttributePanel extends SchemaElementPanel
       {
         DefaultComboBoxModel model = (DefaultComboBoxModel)combos[i].getModel();
         int index = combos[i].getSelectedIndex();
+        if (model.getSize() > 0)
+        {
+          model.removeElementAt(0);
+        }
         if (rules[i] != null)
         {
-          if (model.getSize() > 0)
-          {
-            model.removeElementAt(0);
-          }
           model.insertElementAt(INFO_CTRL_PANEL_DEFAULT_DEFINED_IN_SYNTAX.get(
               rules[i].getNameOrOID()), 0);
         }
         else
         {
-          if (model.getSize() > 0)
-          {
-            model.removeElementAt(0);
-          }
           model.insertElementAt(NO_MATCHING_RULE, 0);
         }
         combos[i].setSelectedIndex(index);

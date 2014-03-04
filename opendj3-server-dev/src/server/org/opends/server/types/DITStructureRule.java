@@ -29,14 +29,11 @@ package org.opends.server.types;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.schema.DITStructureRuleSyntax;
 
 import static org.forgerock.util.Reject.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -184,25 +181,10 @@ public final class DITStructureRule
    * @return  The definition string used to create this DIT structure
    *          rule.
    */
+  @Override
   public String getDefinition()
   {
     return definition;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  public DITStructureRule recreateFromDefinition(Schema schema)
-         throws DirectoryException
-  {
-    ByteString value  = ByteString.valueOf(definition);
-    DITStructureRule dsr =
-         DITStructureRuleSyntax.decodeDITStructureRule(value, schema,
-                                                       false);
-    dsr.setSchemaFile(getSchemaFile());
-    return dsr;
   }
 
 
@@ -268,42 +250,6 @@ public final class DITStructureRule
     {
       return names.values().iterator().next();
     }
-  }
-
-
-
-  /**
-   * Retrieves the path to the schema file that contains the
-   * definition for this DIT structure rule.
-   *
-   * @return  The path to the schema file that contains the definition
-   *          for this DIT structure rule, or {@code null} if it
-   *          is not known or if it is not stored in any schema file.
-   */
-  public String getSchemaFile()
-  {
-    List<String> values =
-         extraProperties.get(SCHEMA_PROPERTY_FILENAME);
-    if ((values == null) || values.isEmpty())
-    {
-      return null;
-    }
-
-    return values.get(0);
-  }
-
-
-
-  /**
-   * Specifies the path to the schema file that contains the
-   * definition for this DIT structure rule.
-   *
-   * @param  schemaFile  The path to the schema file that contains the
-   *                     definition for this DIT structure rule.
-   */
-  public void setSchemaFile(String schemaFile)
-  {
-    setExtraProperty(SCHEMA_PROPERTY_FILENAME, schemaFile);
   }
 
 
@@ -394,37 +340,10 @@ public final class DITStructureRule
    *          properties that may be associated with this DIT
    *          structure rule and the value for that property.
    */
+  @Override
   public Map<String,List<String>> getExtraProperties()
   {
     return extraProperties;
-  }
-
-
-
-  /**
-   * Specifies the provided "extra" property for this DIT structure
-   * rule.
-   *
-   * @param  name   The name for the "extra" property.  It must not be
-   *                {@code null}.
-   * @param  value  The value for the "extra" property, or
-   *                {@code null} if the property is to be removed.
-   */
-  private void setExtraProperty(String name, String value)
-  {
-    ifNull(name);
-
-    if (value == null)
-    {
-      extraProperties.remove(name);
-    }
-    else
-    {
-      LinkedList<String> values = new LinkedList<String>();
-      values.add(value);
-
-      extraProperties.put(name, values);
-    }
   }
 
 
@@ -439,6 +358,7 @@ public final class DITStructureRule
    * @return  {@code true} if the provided object is equal to this
    *          attribute, or {@code false} if not.
    */
+  @Override
   public boolean equals(Object o)
   {
     if (this == o)
@@ -462,6 +382,7 @@ public final class DITStructureRule
    *
    * @return  The hash code for this DIT structure rule.
    */
+  @Override
   public int hashCode()
   {
     return ruleID;
@@ -476,6 +397,7 @@ public final class DITStructureRule
    * @return  The string representation of this attribute type in the
    *          form specified in RFC 2252.
    */
+  @Override
   public String toString()
   {
     StringBuilder buffer = new StringBuilder();

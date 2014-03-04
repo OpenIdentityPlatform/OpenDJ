@@ -54,12 +54,19 @@ import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SchemaConfigManager;
+import org.opends.server.schema.AttributeTypeSyntax;
+import org.opends.server.schema.DITContentRuleSyntax;
+import org.opends.server.schema.DITStructureRuleSyntax;
+import org.opends.server.schema.MatchingRuleUseSyntax;
+import org.opends.server.schema.NameFormSyntax;
+import org.opends.server.schema.ObjectClassSyntax;
 import org.opends.server.schema.CaseIgnoreEqualityMatchingRule;
 import org.opends.server.util.StaticUtils;
 
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.types.CommonSchemaElements.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -3232,7 +3239,7 @@ public final class Schema
         if ((at.getSuperiorType() != null) &&
             at.getSuperiorType().equals(t))
         {
-          AttributeType newAT = at.recreateFromDefinition(this);
+          AttributeType newAT = recreateFromDefinition(at);
           deregisterAttributeType(at);
           registerAttributeType(newAT, true);
           rebuildDependentElements(at, depth+1);
@@ -3244,7 +3251,7 @@ public final class Schema
         if (oc.getRequiredAttributes().contains(t) ||
             oc.getOptionalAttributes().contains(t))
         {
-          ObjectClass newOC = oc.recreateFromDefinition(this);
+          ObjectClass newOC = recreateFromDefinition(oc);
           deregisterObjectClass(oc);
           registerObjectClass(newOC, true);
           rebuildDependentElements(oc, depth+1);
@@ -3258,7 +3265,7 @@ public final class Schema
           if (nf.getRequiredAttributes().contains(t) ||
               nf.getOptionalAttributes().contains(t))
           {
-            NameForm newNF = nf.recreateFromDefinition(this);
+            NameForm newNF = recreateFromDefinition(nf);
             deregisterNameForm(nf);
             registerNameForm(newNF, true);
             rebuildDependentElements(nf, depth+1);
@@ -3272,7 +3279,7 @@ public final class Schema
             dcr.getOptionalAttributes().contains(t) ||
             dcr.getProhibitedAttributes().contains(t))
         {
-          DITContentRule newDCR = dcr.recreateFromDefinition(this);
+          DITContentRule newDCR = recreateFromDefinition(dcr);
           deregisterDITContentRule(dcr);
           registerDITContentRule(newDCR, true);
           rebuildDependentElements(dcr, depth+1);
@@ -3283,7 +3290,7 @@ public final class Schema
       {
         if (mru.getAttributes().contains(t))
         {
-          MatchingRuleUse newMRU = mru.recreateFromDefinition(this);
+          MatchingRuleUse newMRU = recreateFromDefinition(mru);
           deregisterMatchingRuleUse(mru);
           registerMatchingRuleUse(newMRU, true);
           rebuildDependentElements(mru, depth+1);
@@ -3298,7 +3305,7 @@ public final class Schema
       {
         if (oc.getSuperiorClasses().contains(c))
         {
-          ObjectClass newOC = oc.recreateFromDefinition(this);
+          ObjectClass newOC = recreateFromDefinition(oc);
           deregisterObjectClass(oc);
           registerObjectClass(newOC, true);
           rebuildDependentElements(oc, depth+1);
@@ -3312,7 +3319,7 @@ public final class Schema
         {
           if (nf != null)
           {
-            NameForm newNF = nf.recreateFromDefinition(this);
+            NameForm newNF = recreateFromDefinition(nf);
             deregisterNameForm(nf);
             registerNameForm(newNF, true);
             rebuildDependentElements(nf, depth+1);
@@ -3325,7 +3332,7 @@ public final class Schema
         if (dcr.getStructuralClass().equals(c) ||
             dcr.getAuxiliaryClasses().contains(c))
         {
-          DITContentRule newDCR = dcr.recreateFromDefinition(this);
+          DITContentRule newDCR = recreateFromDefinition(dcr);
           deregisterDITContentRule(dcr);
           registerDITContentRule(newDCR, true);
           rebuildDependentElements(dcr, depth+1);
@@ -3338,7 +3345,7 @@ public final class Schema
       DITStructureRule dsr = ditStructureRulesByNameForm.get(n);
       if (dsr != null)
       {
-        DITStructureRule newDSR = dsr.recreateFromDefinition(this);
+        DITStructureRule newDSR = recreateFromDefinition(dsr);
         deregisterDITStructureRule(dsr);
         registerDITStructureRule(newDSR, true);
         rebuildDependentElements(dsr, depth+1);
@@ -3351,7 +3358,7 @@ public final class Schema
       {
         if (dsr.getSuperiorRules().contains(d))
         {
-          DITStructureRule newDSR = dsr.recreateFromDefinition(this);
+          DITStructureRule newDSR = recreateFromDefinition(dsr);
           deregisterDITStructureRule(dsr);
           registerDITStructureRule(newDSR, true);
           rebuildDependentElements(dsr, depth+1);
@@ -3360,7 +3367,67 @@ public final class Schema
     }
   }
 
+  private AttributeType recreateFromDefinition(AttributeType attrType)
+      throws DirectoryException
+  {
+    ByteString value = ByteString.valueOf(attrType.getDefinition());
+    AttributeType copy =
+        AttributeTypeSyntax.decodeAttributeType(value, this, false);
+    setSchemaFile(copy, getSchemaFile(attrType));
+    if (attrType.mayHaveSubordinateTypes())
+    {
+      copy.setMayHaveSubordinateTypes();
+    }
+    return copy;
+  }
 
+  private DITContentRule recreateFromDefinition(DITContentRule dcr)
+      throws DirectoryException
+  {
+    ByteString value = ByteString.valueOf(dcr.getDefinition());
+    DITContentRule copy =
+        DITContentRuleSyntax.decodeDITContentRule(value, this, false);
+    setSchemaFile(copy, getSchemaFile(dcr));
+    return copy;
+  }
+
+  private DITStructureRule recreateFromDefinition(DITStructureRule dsr)
+      throws DirectoryException
+  {
+    ByteString value = ByteString.valueOf(dsr.getDefinition());
+    DITStructureRule copy =
+        DITStructureRuleSyntax.decodeDITStructureRule(value, this, false);
+    setSchemaFile(copy, getSchemaFile(dsr));
+    return copy;
+  }
+
+  private MatchingRuleUse recreateFromDefinition(MatchingRuleUse mru)
+      throws DirectoryException
+  {
+    ByteString value = ByteString.valueOf(mru.getDefinition());
+    MatchingRuleUse copy =
+        MatchingRuleUseSyntax.decodeMatchingRuleUse(value, this, false);
+    setSchemaFile(copy, getSchemaFile(mru));
+    return copy;
+  }
+
+  private NameForm recreateFromDefinition(NameForm nf)
+      throws DirectoryException
+  {
+    ByteString value = ByteString.valueOf(nf.getDefinition());
+    NameForm copy = NameFormSyntax.decodeNameForm(value, this, false);
+    setSchemaFile(copy, getSchemaFile(nf));
+    return copy;
+  }
+
+  private ObjectClass recreateFromDefinition(ObjectClass oc)
+      throws DirectoryException
+  {
+    ByteString value = ByteString.valueOf(oc.getDefinition());
+    ObjectClass copy = ObjectClassSyntax.decodeObjectClass(value, this, false);
+    setSchemaFile(copy, getSchemaFile(oc));
+    return copy;
+  }
 
   /**
    * Creates a new <CODE>Schema</CODE> object that is a duplicate of

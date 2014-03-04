@@ -22,11 +22,12 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS.
+ *      Portions copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.types;
 
-
+import java.util.List;
+import java.util.Map;
 
 /**
  * This interface defines a set of methods that must be provided by a
@@ -52,29 +53,18 @@ package org.opends.server.types;
      mayInvoke=true)
 public interface SchemaFileElement
 {
-  /**
-   * Retrieves the name of the schema file in which this element is
-   * defined.
-   *
-   * @return  The name of the schema file in which this element is
-   *          defined, or {@code null} if it is not known or this
-   *          element is not defined in any schema file.
-   */
-  public String getSchemaFile();
-
-
 
   /**
-   * Specifies the name of the schema file in which this element is
-   * defined.
+   * Retrieves the "extra" properties for this schema definition.
+   * <p>
+   * FIXME Contrary to the SDK, this method returns a modifiable Map.
    *
-   * @param  schemaFile  The name of the schema file in which this
-   *                     element is defined, or {@code null} if it is
-   *                     not defined in any schema file.
+   * @return Returns a Map of the "extra" properties for this schema definition,
+   *         where the key is the property name and the value is a List of
+   *         Strings representing the property values.
+   *         Single valued properties have a List with a single element inside.
    */
-  public void setSchemaFile(String schemaFile);
-
-
+  Map<String, List<String>> getExtraProperties();
 
   /**
    * Retrieves the definition string that is used to represent this
@@ -85,27 +75,4 @@ public interface SchemaFileElement
    */
   public String getDefinition();
 
-
-
-  /**
-   * Creates a new instance of this schema element based on the definition from
-   * the schema file. The new instance should also be created with all
-   * appropriate state information that may not be directly represented in the
-   * schema definition (e.g., the name of the schema file containing the
-   * definition). <BR>
-   * <BR>
-   * Whenever an existing schema file element is modified with the server
-   * online, this method will be invoked to recreate any schema elements that
-   * might have been dependent upon the modified element.
-   *
-   * @param schema
-   *          The schema which should be used for resolving dependencies.
-   * @return A new instance of this schema element based on the definition.
-   * @throws DirectoryException
-   *           If a problem occurs while attempting to create the new instance
-   *           of this schema element.
-   */
-  public SchemaFileElement recreateFromDefinition(Schema schema)
-         throws DirectoryException;
 }
-

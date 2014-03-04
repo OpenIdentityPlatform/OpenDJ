@@ -22,8 +22,8 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
-
 package org.opends.guitools.controlpanel.datamodel;
 
 import java.io.File;
@@ -48,6 +48,8 @@ import org.opends.server.types.ObjectClass;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.types.OperatingSystem;
 import org.opends.server.types.Schema;
+
+import static org.opends.server.types.CommonSchemaElements.*;
 
 /**
  * This is just a class used to provide a data model describing what the
@@ -779,7 +781,7 @@ public class ServerDescriptor
     {
       Object[] compareWithEqual = {attr1.getApproximateMatchingRule(),
           attr2.getApproximateMatchingRule(),
-          attr1.getDefinitionWithFileName(), attr2.getDefinitionWithFileName(),
+          getDefinitionWithFileName(attr1), getDefinitionWithFileName(attr2),
           attr1.getDescription(), attr2.getDescription(),
           attr1.getEqualityMatchingRule(), attr2.getEqualityMatchingRule(),
           attr1.getOrderingMatchingRule(), attr2.getOrderingMatchingRule(),
@@ -798,8 +800,8 @@ public class ServerDescriptor
 
       if (areEqual)
       {
-        Iterable<?>[] iterables = {attr1.getExtraPropertyNames(),
-            attr2.getExtraPropertyNames(),
+        Iterable<?>[] iterables = {attr1.getExtraProperties().keySet(),
+            attr2.getExtraProperties().keySet(),
             attr1.getNormalizedNames(), attr2.getNormalizedNames(),
             attr1.getUserDefinedNames(), attr2.getUserDefinedNames()};
         for (int i=0; i<iterables.length && areEqual; i++)
@@ -840,7 +842,7 @@ public class ServerDescriptor
     if (areEqual)
     {
       Object[] compareWithEqual = {
-          oc1.getDefinitionWithFileName(), oc2.getDefinitionWithFileName(),
+          getDefinitionWithFileName(oc1), getDefinitionWithFileName(oc2),
           oc1.getDescription(), oc2.getDescription(),
           oc1.getObjectClassType(), oc2.getObjectClassType(),
           oc1.getOptionalAttributes(), oc2.getOptionalAttributes(),
@@ -858,7 +860,7 @@ public class ServerDescriptor
     if (areEqual)
     {
       Iterable<?>[] iterables = {
-          oc1.getExtraPropertyNames(), oc2.getExtraPropertyNames(),
+          oc1.getExtraProperties().keySet(), oc2.getExtraProperties().keySet(),
           oc1.getNormalizedNames(), oc2.getNormalizedNames(),
           oc1.getUserDefinedNames(), oc2.getUserDefinedNames()};
       for (int i=0; i<iterables.length && areEqual; i++)

@@ -95,6 +95,8 @@ import org.opends.server.types.Schema;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
 
+import static org.opends.server.types.CommonSchemaElements.*;
+
 /**
  * The panel that displays a custom object class definition.
  *
@@ -166,9 +168,8 @@ public class CustomObjectClassPanel extends SchemaElementPanel
     createLayout();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_CUSTOM_OBJECTCLASS_TITLE.get();
@@ -208,9 +209,8 @@ public class CustomObjectClassPanel extends SchemaElementPanel
     add(delete, gbc);
     delete.addActionListener(new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         deleteObjectclass();
@@ -225,9 +225,8 @@ public class CustomObjectClassPanel extends SchemaElementPanel
     add(saveChanges, gbc);
     saveChanges.addActionListener(new ActionListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         ArrayList<LocalizableMessage> errors = new ArrayList<LocalizableMessage>();
@@ -246,9 +245,8 @@ public class CustomObjectClassPanel extends SchemaElementPanel
     SuperiorObjectClassesChangedListener listener =
       new SuperiorObjectClassesChangedListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public void parentObjectClassesChanged(
           SuperiorObjectClassesChangedEvent ev)
       {
@@ -284,9 +282,8 @@ public class CustomObjectClassPanel extends SchemaElementPanel
       new DoubleAddRemovePanel<AttributeType>(0, AttributeType.class);
     Comparator<AttributeType> comparator = new Comparator<AttributeType>()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public int compare(AttributeType attr1, AttributeType attr2)
       {
         return attr1.getNameOrOID().toLowerCase().compareTo(
@@ -385,9 +382,8 @@ public class CustomObjectClassPanel extends SchemaElementPanel
     add(labels, comps, inlineHelps, p, gbc1);
     ChangeListener changeListener = new ChangeListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public void stateChanged(ChangeEvent e)
       {
         p.setVisible(expander.isSelected());
@@ -399,25 +395,22 @@ public class CustomObjectClassPanel extends SchemaElementPanel
 
     DocumentListener docListener = new DocumentListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public void insertUpdate(DocumentEvent ev)
       {
         checkEnableSaveChanges();
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public void removeUpdate(DocumentEvent ev)
       {
         checkEnableSaveChanges();
       }
 
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public void changedUpdate(DocumentEvent arg0)
       {
         checkEnableSaveChanges();
@@ -431,6 +424,7 @@ public class CustomObjectClassPanel extends SchemaElementPanel
 
     ActionListener actionListener = new ActionListener()
     {
+      @Override
       public void actionPerformed(ActionEvent ev)
       {
         checkEnableSaveChanges();
@@ -441,23 +435,20 @@ public class CustomObjectClassPanel extends SchemaElementPanel
 
     ListDataListener dataListener = new ListDataListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public void contentsChanged(ListDataEvent e)
       {
         checkEnableSaveChanges();
       }
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public void intervalAdded(ListDataEvent e)
       {
         checkEnableSaveChanges();
       }
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public void intervalRemoved(ListDataEvent e)
       {
         checkEnableSaveChanges();
@@ -552,7 +543,7 @@ public class CustomObjectClassPanel extends SchemaElementPanel
     }
     origin.setText(sOrigin);
 
-    String sFile = oc.getSchemaFile();
+    String sFile = getSchemaFile(oc);
     if (sFile == null)
     {
       sFile = "";
@@ -573,9 +564,8 @@ public class CustomObjectClassPanel extends SchemaElementPanel
     ignoreChangeEvents = false;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
     final ServerDescriptor desc = ev.getNewDescriptor();
@@ -616,9 +606,8 @@ public class CustomObjectClassPanel extends SchemaElementPanel
     }
     SwingUtilities.invokeLater(new Runnable()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public void run()
       {
         delete.setEnabled(!authenticationRequired(desc)
@@ -638,17 +627,15 @@ public class CustomObjectClassPanel extends SchemaElementPanel
     });
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public boolean mustCheckUnsavedChanges()
   {
     return saveChanges.isEnabled();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public UnsavedChangesDialog.Result checkUnsavedChanges()
   {
     UnsavedChangesDialog.Result result;
@@ -674,17 +661,15 @@ public class CustomObjectClassPanel extends SchemaElementPanel
     return result;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public Component getPreferredFocusComponent()
   {
     return name;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public void okClicked()
   {
   }
@@ -1111,11 +1096,11 @@ public class CustomObjectClassPanel extends SchemaElementPanel
       if (sel != null)
       {
         ArrayList<Integer> indexes = new ArrayList<Integer>();
-        for (int j=0; j<sel.length; j++)
+        for (int element : sel)
         {
-          if (sel[j] < lists[i].getModel().getSize())
+          if (element < lists[i].getModel().getSize())
           {
-            indexes.add(sel[j]);
+            indexes.add(element);
           }
         }
         int[] newSelection = new int[indexes.size()];
@@ -1210,9 +1195,8 @@ public class CustomObjectClassPanel extends SchemaElementPanel
       defaultRenderer = attributes.getAvailableList().getCellRenderer();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public Component getListCellRendererComponent(JList list, Object value,
         int index, boolean isSelected, boolean cellHasFocus)
     {

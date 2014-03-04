@@ -41,6 +41,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.opends.server.types.CommonSchemaElements.*;
 
 
 /**
@@ -452,42 +453,34 @@ public abstract class TestCommonSchemaElements extends TypesTestCase {
 
 
   /**
-   * Check that the
-   * {@link CommonSchemaElements#getExtraProperty(String)} method
+   * Check that the {@link CommonSchemaElements#getExtraProperties()} method
    * returns <code>null</code> when there is no property.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
    */
   @Test
   public final void testGetExtraPropertyDefault() throws Exception {
     SchemaDefinitionBuilder builder = getBuilder("test", "1.2.3");
     CommonSchemaElements d = builder.getInstance();
-    Assert.assertNull(d.getExtraProperty("test"));
+    Assert.assertNull(d.getExtraProperties().get("test"));
   }
 
 
 
   /**
-   * Check that the
-   * {@link CommonSchemaElements#getExtraProperty(String)} method
+   * Check that the {@link CommonSchemaElements#getExtraProperties()} method
    * returns values.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
    */
   @Test
-  public final void testGetExtraProperty() throws Exception {
+  public final void testGetExtraProperties() throws Exception {
     SchemaDefinitionBuilder builder = getBuilder("test", "1.2.3");
     String[] expectedValues = new String[] { "one", "two" };
     builder.addExtraProperty("test", expectedValues);
     CommonSchemaElements d = builder.getInstance();
 
-    Assert.assertNotNull(d.getExtraProperty("test"));
-    int i = 0;
-    for (String value : d.getExtraProperty("test")) {
-      Assert.assertEquals(value, expectedValues[i]);
-      i++;
+    List<String> values = d.getExtraProperties().get("test");
+    Assert.assertNotNull(values);
+    for (int i = 0; i < values.size(); i++)
+    {
+      Assert.assertEquals(values.get(i), expectedValues[i]);
     }
   }
 
@@ -495,17 +488,13 @@ public abstract class TestCommonSchemaElements extends TypesTestCase {
 
   /**
    * Check that the
-   * {@link CommonSchemaElements#getExtraPropertyNames()} method.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
+   * {@link CommonSchemaElements#getExtraProperties()} method.
    */
   @Test
   public final void testGetExtraPropertyNames() throws Exception {
     SchemaDefinitionBuilder builder = getBuilder("test", "1.2.3");
     CommonSchemaElements d = builder.getInstance();
-    Assert
-        .assertFalse(d.getExtraPropertyNames().iterator().hasNext());
+    Assert.assertFalse(d.getExtraProperties().keySet().iterator().hasNext());
   }
 
 
@@ -722,8 +711,7 @@ public abstract class TestCommonSchemaElements extends TypesTestCase {
   @Test
   public final void testGetSchemaFileDefault() throws Exception {
     SchemaDefinitionBuilder builder = getBuilder(null, "1.2.3");
-    CommonSchemaElements d = builder.getInstance();
-    Assert.assertNull(d.getSchemaFile());
+    Assert.assertNull(getSchemaFile(builder.getInstance()));
   }
 
 
@@ -740,8 +728,7 @@ public abstract class TestCommonSchemaElements extends TypesTestCase {
     SchemaDefinitionBuilder builder = getBuilder(null, "1.2.3");
     builder.addExtraProperty(
         ServerConstants.SCHEMA_PROPERTY_FILENAME, "/foo/bar");
-    CommonSchemaElements d = builder.getInstance();
-    Assert.assertEquals(d.getSchemaFile(), "/foo/bar");
+    Assert.assertEquals(getSchemaFile(builder.getInstance()), "/foo/bar");
   }
 
 
