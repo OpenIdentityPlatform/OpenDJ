@@ -55,7 +55,7 @@ final class IntegerFirstComponentEqualityMatchingRuleImpl extends AbstractEquali
             final String definition = assertionValue.toString();
             final SubstringReader reader = new SubstringReader(definition);
             final int intValue = SchemaUtils.readRuleID(reader);
-            return new DefaultEqualityAssertion(ByteString.valueOf(intValue));
+            return DefaultAssertion.equality(ByteString.valueOf(intValue));
         } catch (final Exception e) {
             logger.debug(LocalizableMessage.raw("%s", e));
 
@@ -63,7 +63,6 @@ final class IntegerFirstComponentEqualityMatchingRuleImpl extends AbstractEquali
                     ERR_EMR_INTFIRSTCOMP_FIRST_COMPONENT_NOT_INT.get(assertionValue.toString());
             throw DecodeException.error(message);
         }
-
     }
 
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value)
@@ -82,8 +81,8 @@ final class IntegerFirstComponentEqualityMatchingRuleImpl extends AbstractEquali
             throw DecodeException.error(message);
         }
 
-        // The next character must be an open parenthesis. If it is not,
-        // then that is an error.
+        // The next character must be an open parenthesis.
+        // If it is not, then that is an error.
         final char c = reader.read();
         if (c != '(') {
             final LocalizableMessage message =
@@ -92,8 +91,7 @@ final class IntegerFirstComponentEqualityMatchingRuleImpl extends AbstractEquali
             throw DecodeException.error(message);
         }
 
-        // Skip over any spaces immediately following the opening
-        // parenthesis.
+        // Skip over any spaces immediately following the opening parenthesis.
         reader.skipWhitespaces();
 
         // The next set of characters must be the OID.

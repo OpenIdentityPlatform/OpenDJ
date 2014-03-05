@@ -46,15 +46,15 @@ import com.forgerock.opendj.util.SubstringReader;
  * after the opening parenthesis.
  */
 final class ObjectIdentifierFirstComponentEqualityMatchingRuleImpl extends AbstractEqualityMatchingRuleImpl {
+
     @Override
     public Assertion getAssertion(final Schema schema, final ByteSequence assertionValue)
             throws DecodeException {
         final String definition = assertionValue.toString();
         final SubstringReader reader = new SubstringReader(definition);
-        final String normalized =
-                ObjectIdentifierEqualityMatchingRuleImpl.resolveNames(schema, SchemaUtils.readOID(
-                        reader, schema.allowMalformedNamesAndOptions()));
-        return new DefaultEqualityAssertion(ByteString.valueOf(normalized));
+        final String oid = SchemaUtils.readOID(reader, schema.allowMalformedNamesAndOptions());
+        final String normalized = ObjectIdentifierEqualityMatchingRuleImpl.resolveNames(schema, oid);
+        return DefaultAssertion.equality(ByteString.valueOf(normalized));
     }
 
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value)
@@ -73,8 +73,8 @@ final class ObjectIdentifierFirstComponentEqualityMatchingRuleImpl extends Abstr
             throw DecodeException.error(message);
         }
 
-        // The next character must be an open parenthesis. If it is not,
-        // then that is an error.
+        // The next character must be an open parenthesis.
+        // If it is not, then that is an error.
         final char c = reader.read();
         if (c != '(') {
             final LocalizableMessage message =
@@ -83,8 +83,7 @@ final class ObjectIdentifierFirstComponentEqualityMatchingRuleImpl extends Abstr
             throw DecodeException.error(message);
         }
 
-        // Skip over any spaces immediately following the opening
-        // parenthesis.
+        // Skip over any spaces immediately following the opening parenthesis.
         reader.skipWhitespaces();
 
         // The next set of characters must be the OID.
