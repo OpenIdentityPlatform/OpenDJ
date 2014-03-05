@@ -382,7 +382,7 @@ public final class Upgrade
     checkLicence(context);
 
     logWarnAboutPatchesFolder();
-    
+
     /*
      * Get the list of required upgrade tasks.
      */
