@@ -29,7 +29,8 @@ setlocal
 set OPENDJ_INVOKE_CLASS="org.opends.server.tools.upgrade.UpgradeCli"
 set SCRIPT_NAME=upgrade
 
-set DIR_CLASSES="classes"
+for %%i in (%~sf0) do set SCRIPT_DIR=%%~dPsi
+set DIR_CLASSES="%SCRIPT_DIR%classes"
 rem The upgrade is not compatible with patches. If the folder is not empty
 rem we renamed it as "classes.disabled", and the upgrade process should be launched properly.
 IF EXIST "%DIR_CLASSES%" (
@@ -38,7 +39,7 @@ IF EXIST "%DIR_CLASSES%" (
 goto end
 
 :renamePatchesFolder
-rename %DIR_CLASSES% "classes.disabled"
+move /-Y "%DIR_CLASSES%" "%SCRIPT_DIR%classes.disabled" > nul
 mkdir %DIR_CLASSES%
 
 :end
