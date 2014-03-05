@@ -29,7 +29,6 @@ package org.opends.server.types;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -268,19 +267,6 @@ public final class ObjectClass
 
 
   /**
-   * Retrieves the definition string used to create this objectclass.
-   *
-   * @return  The definition string used to create this objectclass.
-   */
-  @Override
-  public String getDefinition()
-  {
-    return definition;
-  }
-
-
-
-  /**
    * Retrieves an unmodifiable view of the set of direct superior
    * classes for this objectclass.
    *
@@ -470,84 +456,11 @@ public final class ObjectClass
     return isExtensibleObject;
   }
 
-
-
-  /**
-   * Appends a string representation of this schema definition's
-   * non-generic properties to the provided buffer.
-   *
-   * @param  buffer  The buffer to which the information should be
-   *                 appended.
-   */
+  /** {@inheritDoc} */
   @Override
-  protected void toStringContent(StringBuilder buffer) {
-
-    if (!superiorClasses.isEmpty()) {
-      buffer.append(" SUP ");
-      Iterator<ObjectClass> iterator = superiorClasses.iterator();
-      ObjectClass oc =  iterator.next();
-
-      if(iterator.hasNext()) {
-        buffer.append("( ");
-        buffer.append(oc.getNameOrOID());
-
-        while(iterator.hasNext()) {
-          buffer.append(" $ ");
-          buffer.append(iterator.next().getNameOrOID());
-        }
-
-        buffer.append(" )");
-      } else {
-        buffer.append(oc.getNameOrOID());
-      }
-    }
-
-    if (objectClassType != null) {
-      buffer.append(" ");
-      buffer.append(objectClassType.toString());
-    }
-
-    if (!requiredAttributes.isEmpty()) {
-      Iterator<AttributeType> iterator = requiredAttributes
-          .iterator();
-
-      String firstName = iterator.next().getNameOrOID();
-      if (iterator.hasNext()) {
-        buffer.append(" MUST ( ");
-        buffer.append(firstName);
-
-        while (iterator.hasNext()) {
-          buffer.append(" $ ");
-          buffer.append(iterator.next().getNameOrOID());
-        }
-
-        buffer.append(" )");
-      } else {
-        buffer.append(" MUST ");
-        buffer.append(firstName);
-      }
-    }
-
-    if (!optionalAttributes.isEmpty()) {
-      Iterator<AttributeType> iterator = optionalAttributes
-          .iterator();
-
-      String firstName = iterator.next().getNameOrOID();
-      if (iterator.hasNext()) {
-        buffer.append(" MAY ( ");
-        buffer.append(firstName);
-
-        while (iterator.hasNext()) {
-          buffer.append(" $ ");
-          buffer.append(iterator.next().getNameOrOID());
-        }
-
-        buffer.append(" )");
-      } else {
-        buffer.append(" MAY ");
-        buffer.append(firstName);
-      }
-    }
+  public String toString()
+  {
+    return definition;
   }
 
 

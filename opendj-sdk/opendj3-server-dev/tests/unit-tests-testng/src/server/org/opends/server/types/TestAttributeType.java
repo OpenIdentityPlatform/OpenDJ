@@ -27,19 +27,18 @@
 package org.opends.server.types;
 
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 
 import org.forgerock.opendj.ldap.schema.AttributeUsage;
+import org.forgerock.util.Utils;
 import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.util.ServerConstants;
 import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -151,33 +150,22 @@ public final class TestAttributeType extends TestCommonSchemaElements {
 
       if (names != null)
       {
-        for (String name : names)
-        {
-          nameSet.add(name);
-        }
+        nameSet.addAll(names);
       }
 
       if (! nameSet.isEmpty())
       {
+        definition.append(" NAME ");
         if (nameSet.size() == 1)
         {
-          definition.append(" NAME '");
+          definition.append("'");
           definition.append(nameSet.iterator().next());
           definition.append("'");
         }
         else
         {
-          Iterator<String> iterator = nameSet.iterator();
-
-          definition.append(" NAME ( '");
-          definition.append(iterator.next());
-
-          while (iterator.hasNext())
-          {
-            definition.append("' '");
-            definition.append(iterator.next());
-          }
-
+          definition.append("( '");
+          definition.append(Utils.joinAsString("' '", nameSet));
           definition.append("' )");
         }
       }
@@ -242,7 +230,7 @@ public final class TestAttributeType extends TestCommonSchemaElements {
       if (attributeUsage != null)
       {
         definition.append(" USAGE ");
-        definition.append(attributeUsage.toString());
+        definition.append(attributeUsage);
       }
 
       if (extraProperties != null)
@@ -784,56 +772,6 @@ public final class TestAttributeType extends TestCommonSchemaElements {
     AttributeType type = builder.getInstance();
     Assert.assertEquals(type.isOperational(), result);
   }
-
-
-
-  /**
-   * Check that the {@link AttributeType#toString()} method.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test
-  public void testToStringDefault() throws Exception {
-    AttributeTypeBuilder builder = new AttributeTypeBuilder(null,
-        "1.2.3");
-    AttributeType type = builder.getInstance();
-    Assert.assertEquals(type.toString(), "( 1.2.3 "
-        + "EQUALITY caseIgnoreMatch "
-        + "ORDERING caseIgnoreOrderingMatch "
-        + "SUBSTR caseIgnoreSubstringsMatch "
-        + "SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 "
-        + "USAGE userApplications )");
-  }
-
-
-
-  /**
-   * Check that the {@link AttributeType#toString()} method.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test
-  public void testToString() throws Exception {
-    AttributeTypeBuilder builder = new AttributeTypeBuilder(
-        "testType", "1.2.3");
-    builder.addTypeNames("anotherName");
-    builder.setAttributeUsage(AttributeUsage.DIRECTORY_OPERATION);
-    builder.setSingleValue(true);
-    builder.setSyntax(DirectoryServer.getDefaultBooleanSyntax());
-    builder.addExtraProperty(
-        ServerConstants.SCHEMA_PROPERTY_FILENAME, "/foo/bar");
-
-    AttributeType type = builder.getInstance();
-    Assert.assertEquals(type.toString(), "( 1.2.3 "
-        + "NAME ( 'testType' 'anotherName' ) "
-        + "EQUALITY booleanMatch "
-        + "SYNTAX 1.3.6.1.4.1.1466.115.121.1.7 " + "SINGLE-VALUE "
-        + "USAGE directoryOperation " + "X-SCHEMA-FILE '/foo/bar' )");
-  }
-
-
 
   /**
    * {@inheritDoc}

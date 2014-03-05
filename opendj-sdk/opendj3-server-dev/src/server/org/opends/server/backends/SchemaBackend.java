@@ -58,6 +58,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.ObjectClassType;
 import org.forgerock.util.Reject;
@@ -86,7 +87,6 @@ import org.opends.server.schema.MatchingRuleUseSyntax;
 import org.opends.server.schema.NameFormSyntax;
 import org.opends.server.schema.ObjectClassSyntax;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
@@ -3121,8 +3121,8 @@ public class SchemaBackend
     // We allow only unimplemented syntaxes to be substituted.
     if(schema.getSyntax(oid) !=null)
     {
-      LocalizableMessage message = ERR_ATTR_SYNTAX_INVALID_LDAP_SYNTAX.get(
-              ldapSyntaxDesc.getDefinition(),oid);
+      LocalizableMessage message =
+          ERR_ATTR_SYNTAX_INVALID_LDAP_SYNTAX.get(ldapSyntaxDesc, oid);
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                                      message);
     }
@@ -3259,7 +3259,7 @@ public class SchemaBackend
       if (schemaFile.equals(getSchemaFile(ldapSyntax)))
       {
         values.add(AttributeValues.create(ldapSyntaxesType,
-                ldapSyntax.getDefinition()));
+                ldapSyntax.toString()));
       }
     }
 
@@ -3329,8 +3329,7 @@ public class SchemaBackend
       {
         if (schemaFile.equals(getSchemaFile(nf)))
         {
-          values.add(AttributeValues.create(
-              nameFormsType, nf.getDefinition()));
+          values.add(AttributeValues.create(nameFormsType, nf.toString()));
         }
       }
     }
@@ -3354,7 +3353,7 @@ public class SchemaBackend
       if (schemaFile.equals(getSchemaFile(dcr)))
       {
         values.add(AttributeValues.create(ditContentRulesType,
-                                      dcr.getDefinition()));
+                                      dcr.toString()));
       }
     }
 
@@ -3401,7 +3400,7 @@ public class SchemaBackend
       if (schemaFile.equals(getSchemaFile(mru)))
       {
         values.add(AttributeValues.create(matchingRuleUsesType,
-                                      mru.getDefinition()));
+                                      mru.toString()));
       }
     }
 
@@ -3485,7 +3484,7 @@ public class SchemaBackend
     }
 
     values.add(AttributeValues.create(attributeTypesType,
-                                  attributeType.getDefinition()));
+                                  attributeType.toString()));
     addedTypes.add(attributeType);
   }
 
@@ -3536,7 +3535,7 @@ public class SchemaBackend
       }
     }
     values.add(AttributeValues.create(objectClassesType,
-                                  objectClass.getDefinition()));
+                                  objectClass.toString()));
     addedClasses.add(objectClass);
   }
 
@@ -3587,7 +3586,7 @@ public class SchemaBackend
     }
 
     values.add(AttributeValues.create(ditStructureRulesType,
-                                  ditStructureRule.getDefinition()));
+                                  ditStructureRule.toString()));
     addedDSRs.add(ditStructureRule);
   }
 
@@ -3712,20 +3711,7 @@ public class SchemaBackend
     {
       logger.traceException(e);
 
-      for (File f : installedFileList)
-      {
-        try
-        {
-          if (f.exists())
-          {
-            f.delete();
-          }
-        }
-        catch (Exception e2)
-        {
-          logger.traceException(e2);
-        }
-      }
+      deleteFiles(installedFileList);
 
       boolean allRestored = true;
       for (int i=0; i < installedFileList.size(); i++)
@@ -3772,37 +3758,27 @@ public class SchemaBackend
       }
     }
 
+    deleteFiles(origFileList);
+    deleteFiles(tempFileList);
+  }
 
-    // At this point, we're committed to the schema change, so we can't throw
-    // any more exceptions, but all we have left is to clean up the original and
-    // temporary files.
-    for (File f : origFileList)
+  private void deleteFiles(Iterable<File> files)
+  {
+    if (files != null)
     {
-      try
+      for (File f : files)
       {
-        if (f.exists())
+        try
         {
-          f.delete();
+          if (f.exists())
+          {
+            f.delete();
+          }
         }
-      }
-      catch (Exception e)
-      {
-        logger.traceException(e);
-      }
-    }
-
-    for (File f : tempFileList)
-    {
-      try
-      {
-        if (f.exists())
+        catch (Exception e)
         {
-          f.delete();
+          logger.traceException(e);
         }
-      }
-      catch (Exception e)
-      {
-        logger.traceException(e);
       }
     }
   }
@@ -3852,25 +3828,7 @@ public class SchemaBackend
    */
   private void cleanUpTempSchemaFiles(HashMap<String,File> tempSchemaFiles)
   {
-    if ((tempSchemaFiles == null) || tempSchemaFiles.isEmpty())
-    {
-      return;
-    }
-
-    for (File f : tempSchemaFiles.values())
-    {
-      try
-      {
-        if (f.exists())
-        {
-          f.delete();
-        }
-      }
-      catch (Exception e)
-      {
-        logger.traceException(e);
-      }
-    }
+    deleteFiles(tempSchemaFiles.values());
   }
 
 

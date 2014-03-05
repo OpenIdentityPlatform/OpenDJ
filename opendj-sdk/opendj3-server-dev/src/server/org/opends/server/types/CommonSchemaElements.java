@@ -28,7 +28,6 @@ package org.opends.server.types;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -545,122 +544,6 @@ public abstract class CommonSchemaElements implements SchemaFileElement {
     return hashCode;
   }
 
-
-
-  /**
-   * Retrieves the string representation of this schema definition in
-   * the form specified in RFC 2252.
-   *
-   * @return The string representation of this schema definition in
-   *         the form specified in RFC 2252.
-   */
-  @Override
-  public final String toString() {
-    StringBuilder buffer = new StringBuilder();
-    toString(buffer, true);
-    return buffer.toString();
-  }
-
-
-
-  /**
-   * Appends a string representation of this schema definition in the
-   * form specified in RFC 2252 to the provided buffer.
-   *
-   * @param buffer
-   *          The buffer to which the information should be appended.
-   * @param includeFileElement
-   *          Indicates whether to include an "extra" property that
-   *          specifies the path to the schema file from which this
-   *          schema definition was loaded.
-   */
-  private final void toString(StringBuilder buffer, boolean includeFileElement)
-  {
-    buffer.append("( ");
-    buffer.append(oid);
-
-    if (!names.isEmpty()) {
-      Iterator<String> iterator = names.values().iterator();
-
-      String firstName = iterator.next();
-      if (iterator.hasNext()) {
-        buffer.append(" NAME ( '");
-        buffer.append(firstName);
-
-        while (iterator.hasNext()) {
-          buffer.append("' '");
-          buffer.append(iterator.next());
-        }
-
-        buffer.append("' )");
-      } else {
-        buffer.append(" NAME '");
-        buffer.append(firstName);
-        buffer.append("'");
-      }
-    }
-
-    if ((description != null) && (description.length() > 0)) {
-      buffer.append(" DESC '");
-      buffer.append(description);
-      buffer.append("'");
-    }
-
-    if (isObsolete) {
-      buffer.append(" OBSOLETE");
-    }
-
-    // Delegate remaining string output to sub-class.
-    toStringContent(buffer);
-
-    if (!extraProperties.isEmpty()) {
-      for (Map.Entry<String, List<String>> e : extraProperties
-          .entrySet()) {
-
-        String property = e.getKey();
-        if (!includeFileElement
-            && property.equals(SCHEMA_PROPERTY_FILENAME)) {
-          // Don't include the schema file if it was not requested.
-          continue;
-        }
-
-        List<String> valueList = e.getValue();
-
-        buffer.append(" ");
-        buffer.append(property);
-
-        if (valueList.size() == 1) {
-          buffer.append(" '");
-          buffer.append(valueList.get(0));
-          buffer.append("'");
-        } else {
-          buffer.append(" ( ");
-
-          for (String value : valueList) {
-            buffer.append("'");
-            buffer.append(value);
-            buffer.append("' ");
-          }
-
-          buffer.append(")");
-        }
-      }
-    }
-
-    buffer.append(" )");
-  }
-
-
-
-  /**
-   * Appends a string representation of this schema definition's
-   * non-generic properties to the provided buffer.
-   *
-   * @param buffer
-   *          The buffer to which the information should be appended.
-   */
-  protected abstract void toStringContent(StringBuilder buffer);
-
   /**
    * Retrieves the definition string used to create this attribute
    * type and including the X-SCHEMA-FILE extension.
@@ -672,7 +555,7 @@ public abstract class CommonSchemaElements implements SchemaFileElement {
   public static String getDefinitionWithFileName(SchemaFileElement elem)
   {
     final String schemaFile = getSchemaFile(elem);
-    final String definition = elem.getDefinition();
+    final String definition = elem.toString();
     if (schemaFile != null)
     {
       int pos = definition.lastIndexOf(')');

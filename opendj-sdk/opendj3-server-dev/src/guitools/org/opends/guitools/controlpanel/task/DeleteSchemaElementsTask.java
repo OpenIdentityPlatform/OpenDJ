@@ -172,6 +172,7 @@ public class DeleteSchemaElementsTask extends Task
   /**
    * {@inheritDoc}
    */
+  @Override
   public Set<String> getBackends()
   {
     return Collections.emptySet();
@@ -180,6 +181,7 @@ public class DeleteSchemaElementsTask extends Task
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean canLaunch(Task taskToBeLaunched,
       Collection<LocalizableMessage> incompatibilityReasons)
   {
@@ -199,6 +201,7 @@ public class DeleteSchemaElementsTask extends Task
   /**
    * {@inheritDoc}
    */
+  @Override
   public Type getType()
   {
     return Type.NEW_SCHEMA_ELEMENT;
@@ -207,6 +210,7 @@ public class DeleteSchemaElementsTask extends Task
   /**
    * {@inheritDoc}
    */
+  @Override
   public void runTask()
   {
     state = State.RUNNING;
@@ -227,6 +231,7 @@ public class DeleteSchemaElementsTask extends Task
   /**
    * {@inheritDoc}
    */
+  @Override
   protected String getCommandLinePath()
   {
     return null;
@@ -235,6 +240,7 @@ public class DeleteSchemaElementsTask extends Task
   /**
    * {@inheritDoc}
    */
+  @Override
   protected List<String> getCommandLineArguments()
   {
     return Collections.emptyList();
@@ -243,6 +249,7 @@ public class DeleteSchemaElementsTask extends Task
   /**
    * {@inheritDoc}
    */
+  @Override
   public LocalizableMessage getTaskDescription()
   {
     return INFO_CTRL_PANEL_DELETE_SCHEMA_ELEMENT_TASK_DESCRIPTION.get();
@@ -262,6 +269,7 @@ public class DeleteSchemaElementsTask extends Task
       final ObjectClass fObjectclass = objectClass;
       SwingUtilities.invokeLater(new Runnable()
       {
+        @Override
         public void run()
         {
           if (!isFirst[0])
@@ -305,6 +313,7 @@ public class DeleteSchemaElementsTask extends Task
       final int fNumberDeleted = numberDeleted;
       SwingUtilities.invokeLater(new Runnable()
       {
+        @Override
         public void run()
         {
           getProgressDialog().getProgressBar().setIndeterminate(false);
@@ -321,6 +330,7 @@ public class DeleteSchemaElementsTask extends Task
       final AttributeType fAttribute = attribute;
       SwingUtilities.invokeLater(new Runnable()
       {
+        @Override
         public void run()
         {
           if (!isFirst[0])
@@ -366,6 +376,7 @@ public class DeleteSchemaElementsTask extends Task
       final int fNumberDeleted = numberDeleted;
       SwingUtilities.invokeLater(new Runnable()
       {
+        @Override
         public void run()
         {
           getProgressDialog().getProgressBar().setIndeterminate(false);
@@ -381,6 +392,7 @@ public class DeleteSchemaElementsTask extends Task
     {
       SwingUtilities.invokeLater(new Runnable()
       {
+        @Override
         public void run()
         {
           getProgressDialog().appendProgressHtml(Utilities.applyFont(
@@ -486,7 +498,7 @@ public class DeleteSchemaElementsTask extends Task
    */
   private String getSchemaFileAttributeValue(CommonSchemaElements element)
   {
-    return element.getDefinition();
+    return element.toString();
   }
 
   /**

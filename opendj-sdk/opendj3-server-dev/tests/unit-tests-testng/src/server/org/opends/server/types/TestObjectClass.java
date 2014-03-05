@@ -36,9 +36,9 @@ import java.util.Map;
 import java.util.Set;
 
 import org.forgerock.opendj.ldap.schema.ObjectClassType;
+import org.forgerock.util.Utils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.schema.SchemaConstants;
-import org.opends.server.util.ServerConstants;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -125,33 +125,22 @@ public final class TestObjectClass extends TestCommonSchemaElements {
 
       if (names != null)
       {
-        for (String name : names)
-        {
-          nameSet.add(name);
-        }
+        nameSet.addAll(names);
       }
 
       if (! nameSet.isEmpty())
       {
+        definition.append(" NAME ");
         if (nameSet.size() == 1)
         {
-          definition.append(" NAME '");
+          definition.append("'");
           definition.append(nameSet.iterator().next());
           definition.append("'");
         }
         else
         {
-          Iterator<String> iterator = nameSet.iterator();
-
-          definition.append(" NAME ( '");
-          definition.append(iterator.next());
-
-          while (iterator.hasNext())
-          {
-            definition.append("' '");
-            definition.append(iterator.next());
-          }
-
+          definition.append("( '");
+          definition.append(Utils.joinAsString("' '", nameSet));
           definition.append("' )");
         }
       }
@@ -196,56 +185,11 @@ public final class TestObjectClass extends TestCommonSchemaElements {
       if (objectClassType != null)
       {
         definition.append(" ");
-        definition.append(objectClassType.toString());
+        definition.append(objectClassType);
       }
 
-      if ((requiredAttributeTypes != null) &&
-          (! requiredAttributeTypes.isEmpty()))
-      {
-        if (requiredAttributeTypes.size() == 1)
-        {
-          definition.append(" MUST ");
-          definition.append(
-               requiredAttributeTypes.iterator().next().getNameOrOID());
-        }
-        else
-        {
-          Iterator<AttributeType> iterator = requiredAttributeTypes.iterator();
-
-          definition.append(" MUST ( ");
-          definition.append(iterator.next().getNameOrOID());
-          while (iterator.hasNext())
-          {
-            definition.append(" $ ");
-            definition.append(iterator.next().getNameOrOID());
-          }
-          definition.append(" )");
-        }
-      }
-
-      if ((optionalAttributeTypes != null) &&
-          (! optionalAttributeTypes.isEmpty()))
-      {
-        if (optionalAttributeTypes.size() == 1)
-        {
-          definition.append(" MUST ");
-          definition.append(
-               optionalAttributeTypes.iterator().next().getNameOrOID());
-        }
-        else
-        {
-          Iterator<AttributeType> iterator = optionalAttributeTypes.iterator();
-
-          definition.append(" MUST ( ");
-          definition.append(iterator.next().getNameOrOID());
-          while (iterator.hasNext())
-          {
-            definition.append(" $ ");
-            definition.append(iterator.next().getNameOrOID());
-          }
-          definition.append(" )");
-        }
-      }
+      append(definition, "MUST", requiredAttributeTypes);
+      append(definition, "MAY", optionalAttributeTypes);
 
       if (extraProperties != null)
       {
@@ -289,6 +233,35 @@ public final class TestObjectClass extends TestCommonSchemaElements {
                              requiredAttributeTypes,
                              optionalAttributeTypes, objectClassType,
                              isObsolete, extraProperties);
+    }
+
+
+
+    private void append(StringBuilder definition, String word,
+        Set<AttributeType> attrTypes)
+    {
+      if ((attrTypes != null) && (!attrTypes.isEmpty()))
+      {
+        definition.append(" ");
+        definition.append(word);
+        definition.append(" ");
+        if (attrTypes.size() == 1)
+        {
+          definition.append(attrTypes.iterator().next().getNameOrOID());
+        }
+        else
+        {
+          definition.append("( ");
+          Iterator<AttributeType> iterator = attrTypes.iterator();
+          definition.append(iterator.next().getNameOrOID());
+          while (iterator.hasNext())
+          {
+            definition.append(" $ ");
+            definition.append(iterator.next().getNameOrOID());
+          }
+          definition.append(" )");
+        }
+      }
     }
 
 
@@ -1570,55 +1543,6 @@ public final class TestObjectClass extends TestCommonSchemaElements {
     Assert.assertTrue(c.isRequiredOrOptional(types[0]));
     Assert.assertTrue(c.isRequiredOrOptional(types[1]));
   }
-
-
-
-  /**
-   * Check the {@link ObjectClass#toString()} method.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test
-  public void testToStringDefault() throws Exception {
-    ObjectClassBuilder builder = new ObjectClassBuilder(null, "1.2.3");
-    ObjectClass type = builder.getInstance();
-    Assert.assertEquals(type.toString(), "( 1.2.3 STRUCTURAL )");
-  }
-
-
-
-  /**
-   * Check the {@link ObjectClass#toString()} method.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test
-  public void testToString() throws Exception {
-    ObjectClassBuilder builder = new ObjectClassBuilder(
-        "parentClass", "1.2.1");
-    ObjectClass parent = builder.getInstance();
-
-    builder = new ObjectClassBuilder("childClass", "1.2.2");
-    builder.addTypeNames("anotherName");
-    builder.setDescription("A description");
-    builder.setObjectClassType(ObjectClassType.ABSTRACT);
-    builder.setObsolete(true);
-    builder.setSuperior(Collections.singleton(parent));
-    builder.addRequiredAttributeTypes(types[0], types[1], types[2]);
-    builder.addOptionalAttributeTypes(types[3]);
-    builder.addExtraProperty(
-        ServerConstants.SCHEMA_PROPERTY_FILENAME, "/foo/bar");
-    ObjectClass type = builder.getInstance();
-    Assert.assertEquals(type.toString(), "( 1.2.2 "
-        + "NAME ( 'childClass' 'anotherName' ) "
-        + "DESC 'A description' " + "OBSOLETE " + "SUP parentClass "
-        + "ABSTRACT " + "MUST ( testType0 $ testType1 $ testType2 ) "
-        + "MAY testType3 " + "X-SCHEMA-FILE '/foo/bar' )");
-  }
-
-
 
   /**
    * Create test data for testing different combinations of superiors.
