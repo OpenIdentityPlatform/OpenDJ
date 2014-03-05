@@ -285,6 +285,19 @@ public final class ByteStringBuilder implements ByteSequence {
     }
 
     /**
+     * Creates a new byte string builder with the content of the provided
+     * ByteSequence. Its capacity is set to the length of the provided
+     * ByteSequence.
+     *
+     * @param bs
+     *            The ByteSequence to copy
+     */
+    public ByteStringBuilder(final ByteSequence bs) {
+        this(bs.length());
+        bs.copyTo(this);
+    }
+
+    /**
      * Appends the provided byte to this byte string builder.
      *
      * @param b
@@ -920,6 +933,27 @@ public final class ByteStringBuilder implements ByteSequence {
     @Override
     public int length() {
         return length;
+    }
+
+    /**
+     * Sets the byte value at the specified index.
+     * <p>
+     * An index ranges from zero to {@code length() - 1}. The first byte value
+     * of the sequence is at index zero, the next at index one, and so on, as
+     * for array indexing.
+     *
+     * @param index
+     *            The index of the byte to be set.
+     * @param b
+     *            The byte to set on this byte string builder.
+     * @throws IndexOutOfBoundsException
+     *             If the index argument is negative or not less than length().
+     */
+    public void setByte(final int index, final byte b) {
+        if (index >= length || index < 0) {
+            throw new IndexOutOfBoundsException();
+        }
+        buffer[index] = b;
     }
 
     /**

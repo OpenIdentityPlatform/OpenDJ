@@ -293,4 +293,118 @@ public class ByteStringBuilderTestCase extends ByteSequenceTestCase {
                     _(0x00), _(0x00), _(0x00), _(0x84), _(0xFF), _(0xFF),
                     _(0xFF), _(0xFF) } }, };
     }
+
+    @Test
+    public void testCopyCtor() {
+        final ByteStringBuilder builder = new ByteStringBuilder(400);
+        builder.append("this is a ByteString");
+        final ByteString orig = builder.toByteString();
+        final ByteString copy = new ByteStringBuilder(orig).toByteString();
+        Assert.assertEquals(copy, orig);
+        Assert.assertEquals(copy.length(), builder.length());
+    }
+
+    @Test
+    public void testSetByte() {
+        final ByteStringBuilder builder = new ByteStringBuilder();
+        builder.append("this is a ByteString");
+        builder.setByte(2, _('a'));
+        builder.setByte(3, _('t'));
+        Assert.assertEquals(builder.toByteString().toString(), "that is a ByteString");
+    }
+
+    @Test(expectedExceptions = { IndexOutOfBoundsException.class })
+    public void testSetByteAtInvalidLowerIndex() {
+        final ByteStringBuilder builder = new ByteStringBuilder();
+        builder.setByte(-1, _(0));
+    }
+
+    @Test(expectedExceptions = { IndexOutOfBoundsException.class })
+    public void testSetByteAtInvalidUpperIndex() {
+        final ByteStringBuilder builder = new ByteStringBuilder();
+        builder.setByte(builder.length(), _(0));
+    }
+
+    @Test
+    public void testSetLength() {
+        final ByteStringBuilder builder = new ByteStringBuilder();
+        builder.append("this is a ByteString");
+        builder.setLength(builder.length() - 16);
+        Assert.assertEquals(builder.toString(), "this");
+        builder.setLength(builder.length() + 1);
+        Assert.assertEquals(builder.toString(), "this\u0000");
+    }
+
+    @Test(expectedExceptions = { IndexOutOfBoundsException.class })
+    public void testSetInvalidLength() {
+        new ByteStringBuilder().setLength(-1);
+    }
+
+    @Test
+    public void testAppendNullCharArray() {
+        final ByteStringBuilder builder = new ByteStringBuilder();
+        builder.append((char[]) null);
+        Assert.assertTrue(builder.isEmpty());
+    }
+
+    @Test
+    public void testAppendNullString() {
+        final ByteStringBuilder builder = new ByteStringBuilder();
+        builder.append((String) null);
+        Assert.assertTrue(builder.isEmpty());
+    }
+
+    @Test
+    public void testAppendNonAsciiCharArray() {
+        final ByteStringBuilder builder = new ByteStringBuilder();
+        builder.append(new char[] { 'œ', 'Œ' });
+        Assert.assertEquals(builder.toString(), "œŒ");
+    }
+
+    @Test
+    public void testAppendNonAsciiString() {
+        final ByteStringBuilder builder = new ByteStringBuilder();
+        builder.append("œŒ");
+        Assert.assertEquals(builder.toString(), "œŒ");
+    }
+
+    @Test
+    public void testByteStringBuilderCompareTo() {
+        final ByteString orig = ByteString.valueOf("this is a ByteString");
+        final ByteStringBuilder builder = new ByteStringBuilder(orig);
+        Assert.assertEquals(builder.compareTo(builder), 0);
+        Assert.assertEquals(builder.compareTo(orig), 0);
+        Assert.assertEquals(orig.compareTo(builder), 0);
+    }
+
+    @Test
+    public void testSubSequenceCompareTo() {
+        final ByteString orig = ByteString.valueOf("this is a ByteString");
+        final ByteStringBuilder builder = new ByteStringBuilder(orig);
+        final ByteSequence subSequence = builder.subSequence(0, 4);
+        Assert.assertEquals(subSequence.compareTo(subSequence), 0);
+        Assert.assertTrue(subSequence.compareTo(orig) < 0);
+        Assert.assertTrue(orig.compareTo(subSequence) > 0);
+    }
+
+    @Test
+    public void testSubSequenceEqualsAndHashCode() {
+        final ByteString orig = ByteString.valueOf("this is a ByteString");
+        final ByteStringBuilder builder = new ByteStringBuilder(orig);
+        final ByteSequence subSequence = builder.subSequence(0, builder.length());
+        final ByteSequence subSequence2 = builder.subSequence(0, builder.length());
+        Assert.assertTrue(subSequence.hashCode() != 0);
+        Assert.assertTrue(subSequence.equals(subSequence));
+        Assert.assertTrue(subSequence.equals(subSequence2));
+        Assert.assertTrue(subSequence.equals(builder));
+        Assert.assertFalse(subSequence.equals(null));
+    }
+
+    @Test
+    public void testSubSequenceIsEmpty() {
+        final ByteStringBuilder builder = new ByteStringBuilder();
+        Assert.assertTrue(builder.subSequence(0, builder.length()).isEmpty());
+        builder.append("This is a ByteString");
+        Assert.assertFalse(builder.subSequence(0, builder.length()).isEmpty());
+    }
 }
