@@ -59,7 +59,7 @@ import org.opends.server.util.Platform;
  * it cannot be retrieved this class will only accept the certificates
  * explicitly accepted by the user (and specified by calling acceptCertificate).
  *
- * NOTE: this class is not aimed to be used when we have connections in paralel.
+ * NOTE: this class is not aimed to be used when we have connections in parallel.
  */
 public class ApplicationKeyManager implements X509KeyManager
 {
@@ -86,28 +86,24 @@ public class ApplicationKeyManager implements X509KeyManager
     //Handle IBM specific cases if the user did not specify a algorithm and/or
     //provider.
     if(userSpecifiedAlgo == null && Platform.isVendor("IBM"))
+    {
       userSpecifiedAlgo = "IbmX509";
+    }
     if(userSpecifiedProvider == null && Platform.isVendor("IBM"))
+    {
       userSpecifiedProvider = "IBMJSSE2";
+    }
 
     // Have some fallbacks to choose the provider and algorith of the key
     // manager.  First see if the user wanted to use something specific,
     // then try with the SunJSSE provider and SunX509 algorithm. Finally,
     // fallback to the default algorithm of the JVM.
     String[] preferredProvider =
-    {
-        userSpecifiedProvider,
-        "SunJSSE",
-        null,
-        null
-    };
+        { userSpecifiedProvider, "SunJSSE", null, null };
     String[] preferredAlgo =
-    {
-        userSpecifiedAlgo,
-        "SunX509",
-        "SunX509",
-        TrustManagerFactory.getDefaultAlgorithm()
-    };
+        { userSpecifiedAlgo, "SunX509", "SunX509",
+          TrustManagerFactory.getDefaultAlgorithm() };
+
     for (int i=0; i<preferredProvider.length && keyManager == null; i++)
     {
       String provider = preferredProvider[i];
@@ -145,25 +141,25 @@ public class ApplicationKeyManager implements X509KeyManager
       catch (NoSuchAlgorithmException e)
       {
         // Nothing to do. Maybe we should avoid this and be strict, but we are
-        // in a best effor mode.
+        // in a best effort mode.
         logger.warn(LocalizableMessage.raw("Error with the algorithm", e));
       }
       catch (KeyStoreException e)
       {
         // Nothing to do. Maybe we should avoid this and be strict, but we are
-        // in a best effor mode..
+        // in a best effort mode.
         logger.warn(LocalizableMessage.raw("Error with the keystore", e));
       }
       catch (UnrecoverableKeyException e)
       {
         // Nothing to do. Maybe we should avoid this and be strict, but we are
-        // in a best effor mode.
+        // in a best effort mode.
         logger.warn(LocalizableMessage.raw("Error with the key", e));
       }
       catch (NoSuchProviderException e)
       {
         // Nothing to do. Maybe we should avoid this and be strict, but we are
-        // in a best effor mode.
+        // in a best effort mode.
         logger.warn(LocalizableMessage.raw("Error with the provider", e));
       }
     }
@@ -195,10 +191,7 @@ public class ApplicationKeyManager implements X509KeyManager
     {
       return keyManager.chooseClientAlias(keyType, issuers, socket);
     }
-    else
-    {
-      return null ;
-    }
+    return null;
   }
 
   /**
@@ -226,10 +219,7 @@ public class ApplicationKeyManager implements X509KeyManager
     {
       return keyManager.chooseServerAlias(keyType, issuers, socket);
     }
-    else
-    {
-      return null;
-    }
+    return null;
   }
 
   /**
@@ -247,10 +237,7 @@ public class ApplicationKeyManager implements X509KeyManager
     {
       return keyManager.getCertificateChain(alias);
     }
-    else
-    {
-      return null;
-    }
+    return null;
   }
 
   /**
@@ -272,10 +259,7 @@ public class ApplicationKeyManager implements X509KeyManager
     {
       return keyManager.getClientAliases(keyType, issuers);
     }
-    else
-    {
-      return null;
-    }
+    return null;
   }
 
   /**
@@ -291,10 +275,7 @@ public class ApplicationKeyManager implements X509KeyManager
     {
       return keyManager.getPrivateKey(alias);
     }
-    else
-    {
-      return null;
-    }
+    return null;
   }
 
   /**
@@ -316,9 +297,6 @@ public class ApplicationKeyManager implements X509KeyManager
     {
       return keyManager.getServerAliases(keyType, issuers);
     }
-    else
-    {
-      return null;
-    }
+    return null;
   }
 }
