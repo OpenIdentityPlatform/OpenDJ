@@ -86,7 +86,7 @@ public class ApplicationTrustManager implements X509TrustManager
   private Cause lastRefusedCause = null;
   private KeyStore keystore = null;
 
-  /*
+  /**
    * The following ArrayList contain information about the certificates
    * explicitly accepted by the user.
    */
@@ -115,28 +115,24 @@ public class ApplicationTrustManager implements X509TrustManager
     //Handle IBM specific cases if the user did not specify a algorithm and/or
     //provider.
     if(userSpecifiedAlgo == null && Platform.isVendor("IBM"))
+    {
       userSpecifiedAlgo = "IbmX509";
+    }
     if(userSpecifiedProvider == null && Platform.isVendor("IBM"))
+    {
       userSpecifiedProvider = "IBMJSSE2";
+    }
 
     // Have some fallbacks to choose the provider and algorith of the key
     // manager.  First see if the user wanted to use something specific,
     // then try with the SunJSSE provider and SunX509 algorithm. Finally,
     // fallback to the default algorithm of the JVM.
     String[] preferredProvider =
-    {
-        userSpecifiedProvider,
-        "SunJSSE",
-        null,
-        null
-    };
+        { userSpecifiedProvider, "SunJSSE", null, null };
     String[] preferredAlgo =
-    {
-        userSpecifiedAlgo,
-        "SunX509",
-        "SunX509",
-        TrustManagerFactory.getDefaultAlgorithm()
-    };
+        { userSpecifiedAlgo, "SunX509", "SunX509",
+          TrustManagerFactory.getDefaultAlgorithm() };
+
       for (int i=0; i<preferredProvider.length && trustManager == null; i++)
       {
         String provider = preferredProvider[i];
@@ -181,9 +177,7 @@ public class ApplicationTrustManager implements X509TrustManager
       }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void checkClientTrusted(X509Certificate[] chain, String authType)
   throws CertificateException
   {
@@ -210,13 +204,7 @@ public class ApplicationTrustManager implements X509TrustManager
     }
     catch (CertificateException ce)
     {
-      lastRefusedChain = chain;
-      lastRefusedAuthType = authType;
-      lastRefusedCause = Cause.NOT_TRUSTED;
-      OpendsCertificateException e = new OpendsCertificateException(
-          chain);
-      e.initCause(ce);
-      throw e;
+      manageException(chain, authType, ce, Cause.NOT_TRUSTED);
     }
 
     if (!explicitlyAccepted)
@@ -227,20 +215,12 @@ public class ApplicationTrustManager implements X509TrustManager
       }
       catch (CertificateException ce)
       {
-        lastRefusedChain = chain;
-        lastRefusedAuthType = authType;
-        lastRefusedCause = Cause.HOST_NAME_MISMATCH;
-        OpendsCertificateException e = new OpendsCertificateException(
-            chain);
-        e.initCause(ce);
-        throw e;
+        manageException(chain, authType, ce, Cause.HOST_NAME_MISMATCH);
       }
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void checkServerTrusted(X509Certificate[] chain,
       String authType) throws CertificateException
   {
@@ -267,12 +247,7 @@ public class ApplicationTrustManager implements X509TrustManager
     }
     catch (CertificateException ce)
     {
-      lastRefusedChain = chain;
-      lastRefusedAuthType = authType;
-      lastRefusedCause = Cause.NOT_TRUSTED;
-      OpendsCertificateException e = new OpendsCertificateException(chain);
-      e.initCause(ce);
-      throw e;
+      manageException(chain, authType, ce, Cause.NOT_TRUSTED);
     }
 
     if (!explicitlyAccepted)
@@ -283,30 +258,31 @@ public class ApplicationTrustManager implements X509TrustManager
       }
       catch (CertificateException ce)
       {
-        lastRefusedChain = chain;
-        lastRefusedAuthType = authType;
-        lastRefusedCause = Cause.HOST_NAME_MISMATCH;
-        OpendsCertificateException e = new OpendsCertificateException(
-            chain);
-        e.initCause(ce);
-        throw e;
+        manageException(chain, authType, ce, Cause.HOST_NAME_MISMATCH);
       }
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  private void manageException(final X509Certificate[] chain,
+      final String authType, final CertificateException ce, final Cause cause)
+      throws OpendsCertificateException
+  {
+    lastRefusedChain = chain;
+    lastRefusedAuthType = authType;
+    lastRefusedCause = cause;
+    final OpendsCertificateException e = new OpendsCertificateException(chain);
+    e.initCause(ce);
+    throw e;
+  }
+
+  /** {@inheritDoc} */
   public X509Certificate[] getAcceptedIssuers()
   {
     if (trustManager != null)
     {
       return trustManager.getAcceptedIssuers();
     }
-    else
-    {
-      return new X509Certificate[0];
-    }
+    return new X509Certificate[0];
   }
 
   /**
@@ -506,7 +482,7 @@ public class ApplicationTrustManager implements X509TrustManager
     boolean hostMatch = h1.length == h2.length;
     for (int i=0; i<h1.length && hostMatch; i++)
     {
-      if (!h1[i].equals("*") && !h2[i].equals("*"))
+      if (!"*".equals(h1[i]) && !"*".equals(h2[i]))
       {
         hostMatch = h1[i].equalsIgnoreCase(h2[i]);
       }
