@@ -41,57 +41,37 @@ import com.forgerock.opendj.util.SubstringReader;
  * rule requires a schema to lookup object identifiers in the descriptor form.
  */
 final class ObjectIdentifierEqualityMatchingRuleImpl extends AbstractEqualityMatchingRuleImpl {
+
     static String resolveNames(final Schema schema, final String oid) {
         if (!StaticUtils.isDigit(oid.charAt(0))) {
             // Do an best effort attempt to normalize names to OIDs.
-
             String schemaName = null;
-
             if (schema.hasAttributeType(oid)) {
                 schemaName = schema.getAttributeType(oid).getOID();
             }
-
-            if (schemaName == null) {
-                if (schema.hasDITContentRule(oid)) {
-                    schemaName = schema.getDITContentRule(oid).getStructuralClass().getOID();
-                }
+            if (schemaName == null && schema.hasDITContentRule(oid)) {
+                schemaName = schema.getDITContentRule(oid).getStructuralClass().getOID();
             }
-
-            if (schemaName == null) {
-                if (schema.hasSyntax(oid)) {
-                    schemaName = schema.getSyntax(oid).getOID();
-                }
+            if (schemaName == null && schema.hasSyntax(oid)) {
+                schemaName = schema.getSyntax(oid).getOID();
             }
-
-            if (schemaName == null) {
-                if (schema.hasObjectClass(oid)) {
-                    schemaName = schema.getObjectClass(oid).getOID();
-                }
+            if (schemaName == null && schema.hasObjectClass(oid)) {
+                schemaName = schema.getObjectClass(oid).getOID();
             }
-
-            if (schemaName == null) {
-                if (schema.hasMatchingRule(oid)) {
-                    schemaName = schema.getMatchingRule(oid).getOID();
-                }
+            if (schemaName == null && schema.hasMatchingRule(oid)) {
+                schemaName = schema.getMatchingRule(oid).getOID();
             }
-
-            if (schemaName == null) {
-                if (schema.hasMatchingRuleUse(oid)) {
-                    schemaName = schema.getMatchingRuleUse(oid).getMatchingRule().getOID();
-                }
+            if (schemaName == null && schema.hasMatchingRuleUse(oid)) {
+                schemaName = schema.getMatchingRuleUse(oid).getMatchingRule().getOID();
             }
-
-            if (schemaName == null) {
-                if (schema.hasNameForm(oid)) {
-                    schemaName = schema.getNameForm(oid).getOID();
-                }
+            if (schemaName == null && schema.hasNameForm(oid)) {
+                schemaName = schema.getNameForm(oid).getOID();
             }
 
             if (schemaName != null) {
                 return schemaName;
-            } else {
-                return StaticUtils.toLowerCase(oid);
             }
+            return StaticUtils.toLowerCase(oid);
         }
         return oid;
     }
@@ -101,19 +81,17 @@ final class ObjectIdentifierEqualityMatchingRuleImpl extends AbstractEqualityMat
             throws DecodeException {
         final String definition = assertionValue.toString();
         final SubstringReader reader = new SubstringReader(definition);
-        final String normalized =
-                resolveNames(schema, SchemaUtils.readOID(reader, schema
-                        .allowMalformedNamesAndOptions()));
-        return new DefaultEqualityAssertion(ByteString.valueOf(normalized));
+        final String oid = SchemaUtils.readOID(reader, schema.allowMalformedNamesAndOptions());
+        final String normalized = resolveNames(schema, oid);
+        return DefaultAssertion.equality(ByteString.valueOf(normalized));
     }
 
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value)
             throws DecodeException {
         final String definition = value.toString();
         final SubstringReader reader = new SubstringReader(definition);
-        final String normalized =
-                resolveNames(schema, SchemaUtils.readOID(reader, schema
-                        .allowMalformedNamesAndOptions()));
+        final String oid = SchemaUtils.readOID(reader, schema.allowMalformedNamesAndOptions());
+        final String normalized = resolveNames(schema, oid);
         return ByteString.valueOf(normalized);
     }
 }

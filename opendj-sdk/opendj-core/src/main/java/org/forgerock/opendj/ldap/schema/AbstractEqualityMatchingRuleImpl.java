@@ -42,7 +42,7 @@ abstract class AbstractEqualityMatchingRuleImpl extends AbstractMatchingRuleImpl
     @Override
     public Assertion getAssertion(final Schema schema, final ByteSequence assertionValue)
             throws DecodeException {
-        return new DefaultEqualityAssertion(normalizeAttributeValue(schema, assertionValue));
+        return DefaultAssertion.equality(normalizeAttributeValue(schema, assertionValue));
     }
 
 }

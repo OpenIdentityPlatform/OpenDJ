@@ -23,6 +23,7 @@
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
  *      Portions Copyright 2013-2014 Manuel Gaupp
+ *      Copyright 2014 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -32,9 +33,9 @@ import java.math.BigInteger;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+
 import javax.security.auth.x500.X500Principal;
 
-import com.forgerock.opendj.util.StaticUtils;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.Assertion;
@@ -45,11 +46,9 @@ import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.GSERParser;
 import org.forgerock.opendj.ldap.DN;
 
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_MR_CERTIFICATE_MATCH_EXPECTED_END;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_MR_CERTIFICATE_MATCH_GSER_INVALID;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_MR_CERTIFICATE_MATCH_INVALID_DN;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_MR_CERTIFICATE_MATCH_IDENTIFIER_NOT_FOUND;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_MR_CERTIFICATE_MATCH_PARSE_ERROR;
+import com.forgerock.opendj.util.StaticUtils;
+
+import static com.forgerock.opendj.ldap.CoreMessages.*;
 
 /**
  * This class implements the certificateExactMatch matching rule defined in
@@ -83,16 +82,15 @@ final class CertificateExactMatchingRuleImpl
      *
      * @return The normalized version of the provided value.
      *
-     * @throws DirectoryException If the provided value is invalid according to
+     * @throws DecodeException If the provided value is invalid according to
      * the associated attribute syntax.
      */
+    @Override
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value)
             throws DecodeException {
+        // Read the X.509 Certificate and extract serialNumber and issuerDN
         final BigInteger serialNumber;
         final String dnstring;
-        String certificateIssuer;
-
-        // Read the X.509 Certificate and extract serialNumber and issuerDN
         try {
             CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
             InputStream inputStream = new ByteArrayInputStream(value.toByteArray());
@@ -112,38 +110,19 @@ final class CertificateExactMatchingRuleImpl
             return value.toByteString();
         }
 
-        // Normalize the DN
-        try {
-            DN dn = DN.valueOf(dnstring, schema.asNonStrictSchema());
-            certificateIssuer = dn.toNormalizedString();
-        } catch (Exception e) {
-            // We couldn't normalize the DN for some reason.
-            final LocalizableMessage message
-                = ERR_MR_CERTIFICATE_MATCH_INVALID_DN.get(dnstring,
-                    StaticUtils.getExceptionMessage(e));
-            throw DecodeException.error(message);
-        }
-
-        // Create the encoded value
+        final String certificateIssuer = normalizeDN(schema, dnstring);
         return createEncodedValue(serialNumber, certificateIssuer);
     }
 
     /**
      * {@inheritDoc}
      */
+    @Override
     public Assertion getAssertion(final Schema schema, final ByteSequence value)
             throws DecodeException {
         // validate and normalize the GSER structure
         // according to the definitions from RFC 4523, Appendix A.1
-        final BigInteger serialNumber;
-        final String dnstring;
-        String certificateIssuer;
-
-        final GSERParser parser;
-        String identifier;
-
-        parser = new GSERParser(value.toString());
-
+        final GSERParser parser = new GSERParser(value.toString());
         try {
             // the String starts with a sequence
             parser.readStartSequence();
@@ -152,9 +131,12 @@ final class CertificateExactMatchingRuleImpl
             // Assume the assertion value is a certificate and parse issuer and
             // serial number. If the value is not even a certificate then the
             // raw bytes will be returned.
-            return new DefaultEqualityAssertion(normalizeAttributeValue(schema, value));
+            return DefaultAssertion.equality(normalizeAttributeValue(schema, value));
         }
 
+        final BigInteger serialNumber;
+        final String dnstring;
+        String identifier;
         try {
             // the first namedValue is serialNumber
             identifier = parser.nextNamedValueIdentifier();
@@ -203,10 +185,14 @@ final class CertificateExactMatchingRuleImpl
             throw DecodeException.error(message);
         }
 
-        // Normalize the DN
+        final String certificateIssuer = normalizeDN(schema, dnstring);
+        return DefaultAssertion.equality(createEncodedValue(serialNumber, certificateIssuer));
+    }
+
+    private String normalizeDN(final Schema schema, final String dnstring) throws DecodeException {
         try {
             DN dn = DN.valueOf(dnstring, schema.asNonStrictSchema());
-            certificateIssuer = dn.toNormalizedString();
+            return dn.toNormalizedString();
         } catch (Exception e) {
             logger.traceException(e);
 
@@ -216,9 +202,6 @@ final class CertificateExactMatchingRuleImpl
                             StaticUtils.getExceptionMessage(e));
             throw DecodeException.error(message);
         }
-
-        // Create the encoded value
-        return new DefaultEqualityAssertion(createEncodedValue(serialNumber, certificateIssuer));
     }
 
     /**

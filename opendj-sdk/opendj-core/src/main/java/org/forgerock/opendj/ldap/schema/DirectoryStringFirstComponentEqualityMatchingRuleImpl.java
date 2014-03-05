@@ -47,9 +47,10 @@ import com.forgerock.opendj.util.SubstringReader;
  * after the opening parenthesis.
  */
 final class DirectoryStringFirstComponentEqualityMatchingRuleImpl extends AbstractEqualityMatchingRuleImpl {
+
     @Override
     public Assertion getAssertion(final Schema schema, final ByteSequence assertionValue) {
-        return new DefaultEqualityAssertion(SchemaUtils.normalizeStringAttributeValue(assertionValue, TRIM, CASE_FOLD));
+        return DefaultAssertion.equality(SchemaUtils.normalizeStringAttributeValue(assertionValue, TRIM, CASE_FOLD));
     }
 
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value)
@@ -62,8 +63,7 @@ final class DirectoryStringFirstComponentEqualityMatchingRuleImpl extends Abstra
         reader.skipWhitespaces();
 
         if (reader.remaining() <= 0) {
-            // This means that the value was empty or contained only
-            // whitespace.
+            // This means that the value was empty or contained only whitespace.
             // That is illegal.
             throw DecodeException.error(ERR_ATTR_SYNTAX_EMPTY_VALUE.get());
         }

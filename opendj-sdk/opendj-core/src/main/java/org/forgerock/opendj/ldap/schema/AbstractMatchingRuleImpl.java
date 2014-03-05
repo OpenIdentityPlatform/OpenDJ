@@ -39,10 +39,22 @@ import org.forgerock.opendj.ldap.DecodeException;
  * matches normalized values in byte order.
  */
 abstract class AbstractMatchingRuleImpl implements MatchingRuleImpl {
-    static final class DefaultEqualityAssertion implements Assertion {
+
+    static final class DefaultAssertion implements Assertion {
+        /** The ID of the DB index that to use with this assertion.*/
+        private final String indexID;
         private final ByteSequence normalizedAssertionValue;
 
-        DefaultEqualityAssertion(final ByteSequence normalizedAssertionValue) {
+        static DefaultAssertion equality(final ByteSequence normalizedAssertionValue) {
+            return new DefaultAssertion("equality", normalizedAssertionValue);
+        }
+
+        static DefaultAssertion approximate(final ByteSequence normalizedAssertionValue) {
+            return new DefaultAssertion("approximate", normalizedAssertionValue);
+        }
+
+        private DefaultAssertion(final String indexID, final ByteSequence normalizedAssertionValue) {
+            this.indexID = indexID;
             this.normalizedAssertionValue = normalizedAssertionValue;
         }
 
