@@ -27,6 +27,11 @@
 
 package org.opends.server.admin.client.cli;
 
+import static org.opends.server.util.ServerConstants.EOL;
+import static org.opends.server.util.ServerConstants.MAX_LINE_WIDTH;
+import static org.opends.server.util.StaticUtils.wrapText;
+import static org.opends.messages.ToolMessages.*;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -41,18 +46,20 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.server.util.PasswordReader;
 
-import com.forgerock.opendj.cli.*;
-
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
+import com.forgerock.opendj.cli.Argument;
+import com.forgerock.opendj.cli.ArgumentException;
+import com.forgerock.opendj.cli.ArgumentGroup;
+import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.CommonArguments;
+import com.forgerock.opendj.cli.FileBasedArgument;
+import com.forgerock.opendj.cli.StringArgument;
+import com.forgerock.opendj.cli.SubCommandArgumentParser;
 
 /**
- * This is a commodity class that can be used to check the arguments required
- * to establish a secure connection in the command line.  It can be used
- * to generate an ApplicationTrustManager object based on the options provided
- * by the user in the command line.
- *
+ * This is a commodity class that can be used to check the arguments required to
+ * establish a secure connection in the command line. It can be used to generate
+ * an ApplicationTrustManager object based on the options provided by the user
+ * in the command line.
  */
 public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
 {

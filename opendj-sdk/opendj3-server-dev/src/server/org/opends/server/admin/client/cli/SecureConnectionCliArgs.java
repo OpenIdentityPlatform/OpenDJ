@@ -26,19 +26,16 @@
  */
 package org.opends.server.admin.client.cli;
 
+import static com.forgerock.opendj.cli.ArgumentConstants.OPTION_LONG_ADMIN_UID;
 import static com.forgerock.opendj.cli.CliMessages.INFO_DESCRIPTION_ADMIN_PORT;
+import static com.forgerock.opendj.cli.ReturnCode.CONFLICTING_ARGS;
+import static com.forgerock.opendj.cli.ReturnCode.SUCCESS;
 import static com.forgerock.opendj.cli.Utils.LINE_SEPARATOR;
+import static org.opends.server.util.ServerConstants.MAX_LINE_WIDTH;
+import static org.opends.server.util.StaticUtils.close;
+import static org.opends.server.util.StaticUtils.wrapText;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.ToolMessages.*;
-import static com.forgerock.opendj.cli.ReturnCode.SUCCESS;
-import static com.forgerock.opendj.cli.ReturnCode.CONFLICTING_ARGS;
-
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.LocalizableMessageBuilder;
-
-import static org.opends.server.util.ServerConstants.MAX_LINE_WIDTH;
-import static org.opends.server.util.StaticUtils.*;
-import static com.forgerock.opendj.cli.ArgumentConstants.*;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -53,10 +50,11 @@ import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-
 import javax.net.ssl.KeyManager;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.admin.ads.util.ApplicationKeyManager;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
@@ -237,10 +235,7 @@ public final class SecureConnectionCliArgs
     {
       return adminUidArg.getValue();
     }
-    else
-    {
-      return adminUidArg.getDefaultValue();
-    }
+    return adminUidArg.getDefaultValue();
   }
 
   /**
@@ -266,10 +261,7 @@ public final class SecureConnectionCliArgs
     {
       return bindDnArg.getValue();
     }
-    else
-    {
-      return bindDnArg.getDefaultValue();
-    }
+    return bindDnArg.getDefaultValue();
   }
 
   /**
@@ -388,21 +380,15 @@ public final class SecureConnectionCliArgs
   public String getBindPassword(StringArgument clearArg,
       FileBasedArgument fileArg)
   {
-    String pwd;
     if (clearArg.isPresent())
     {
-      pwd = clearArg.getValue();
+      return clearArg.getValue();
     }
-    else
-      if (fileArg.isPresent())
-      {
-        pwd = fileArg.getValue();
-      }
-      else
-      {
-        pwd = null;
-      }
-    return pwd;
+    else if (fileArg.isPresent())
+    {
+      return fileArg.getValue();
+    }
+    return null;
   }
 
   /**
@@ -813,36 +799,29 @@ public final class SecureConnectionCliArgs
       catch (KeyStoreException e)
       {
         // Nothing to do: if this occurs we will systematically refuse
-        // the
-        // certificates. Maybe we should avoid this and be strict, but
+        // the certificates. Maybe we should avoid this and be strict, but
         // we are in a best effort mode.
         logger.warn(LocalizableMessage.raw("Error with the keystore"), e);
       }
       catch (NoSuchAlgorithmException e)
       {
         // Nothing to do: if this occurs we will systematically refuse
-        // the
-        // certificates. Maybe we should avoid this and be strict, but
-        // we are
-        // in a best effort mode.
+        // the certificates. Maybe we should avoid this and be strict, but
+        // we are in a best effort mode.
         logger.warn(LocalizableMessage.raw("Error with the keystore"), e);
       }
       catch (CertificateException e)
       {
         // Nothing to do: if this occurs we will systematically refuse
-        // the
-        // certificates. Maybe we should avoid this and be strict, but
-        // we are
-        // in a best effort mode.
+        // the certificates. Maybe we should avoid this and be strict, but
+        // we are in a best effort mode.
         logger.warn(LocalizableMessage.raw("Error with the keystore"), e);
       }
       catch (IOException e)
       {
         // Nothing to do: if this occurs we will systematically refuse
-        // the
-        // certificates. Maybe we should avoid this and be strict, but
-        // we are
-        // in a best effort mode.
+        // the certificates. Maybe we should avoid this and be strict, but
+        // we are in a best effort mode.
         logger.warn(LocalizableMessage.raw("Error with the keystore"), e);
       }
       finally
@@ -861,15 +840,10 @@ public final class SecureConnectionCliArgs
         return new SelectableCertificateKeyManager(akm, certNicknameArg
             .getValue());
       }
-      else
-      {
-        return akm;
-      }
+      return akm;
     }
-    else
-    {
-      return null;
-    }
+    return null;
+
   }
 
   /**
@@ -881,17 +855,12 @@ public final class SecureConnectionCliArgs
    */
   private boolean canRead(String path)
   {
-    boolean canRead;
-    File file = new File(path);
+    final File file = new File(path);
     if (file.exists())
     {
-      canRead = file.canRead();
+      return file.canRead();
     }
-    else
-    {
-      canRead = false;
-    }
-    return canRead;
+    return false;
   }
 
   /**
