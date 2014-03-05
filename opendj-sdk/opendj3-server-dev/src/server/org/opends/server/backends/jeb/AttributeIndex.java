@@ -419,46 +419,32 @@ public class AttributeIndex
                           Entry entry)
        throws DatabaseException, DirectoryException
   {
-    boolean success = true;
+    boolean success = false;
 
-    if (equalityIndex != null)
+    if (equalityIndex != null
+        && !equalityIndex.addEntry(buffer, entryID, entry))
     {
-      if(!equalityIndex.addEntry(buffer, entryID, entry))
-      {
-        success = false;
-      }
+      success = false;
     }
-
-    if (presenceIndex != null)
+    if (presenceIndex != null
+        && !presenceIndex.addEntry(buffer, entryID, entry))
     {
-      if(!presenceIndex.addEntry(buffer, entryID, entry))
-      {
-        success = false;
-      }
+      success = false;
     }
-
-    if (substringIndex != null)
+    if (substringIndex != null
+        && !substringIndex.addEntry(buffer, entryID, entry))
     {
-      if(!substringIndex.addEntry(buffer, entryID, entry))
-      {
-        success = false;
-      }
+      success = false;
     }
-
-    if (orderingIndex != null)
+    if (orderingIndex != null
+        && !orderingIndex.addEntry(buffer, entryID, entry))
     {
-      if(!orderingIndex.addEntry(buffer, entryID, entry))
-      {
-        success = false;
-      }
+      success = false;
     }
-
-    if (approximateIndex != null)
+    if (approximateIndex != null
+        && !approximateIndex.addEntry(buffer, entryID, entry))
     {
-      if(!approximateIndex.addEntry(buffer, entryID, entry))
-      {
-        success = false;
-      }
+      success = false;
     }
 
     if(extensibleIndexes!=null)
@@ -492,44 +478,26 @@ public class AttributeIndex
   {
     boolean success = true;
 
-    if (equalityIndex != null)
+    if (equalityIndex != null && !equalityIndex.addEntry(txn, entryID, entry))
     {
-      if(!equalityIndex.addEntry(txn, entryID, entry))
-      {
-        success = false;
-      }
+      success = false;
     }
-
-    if (presenceIndex != null)
+    if (presenceIndex != null && !presenceIndex.addEntry(txn, entryID, entry))
     {
-      if(!presenceIndex.addEntry(txn, entryID, entry))
-      {
-        success = false;
-      }
+      success = false;
     }
-
-    if (substringIndex != null)
+    if (substringIndex != null && !substringIndex.addEntry(txn, entryID, entry))
     {
-      if(!substringIndex.addEntry(txn, entryID, entry))
-      {
-        success = false;
-      }
+      success = false;
     }
-
-    if (orderingIndex != null)
+    if (orderingIndex != null && !orderingIndex.addEntry(txn, entryID, entry))
     {
-      if(!orderingIndex.addEntry(txn, entryID, entry))
-      {
-        success = false;
-      }
+      success = false;
     }
-
-    if (approximateIndex != null)
+    if (approximateIndex != null
+        && !approximateIndex.addEntry(txn, entryID, entry))
     {
-      if(!approximateIndex.addEntry(txn, entryID, entry))
-      {
-        success = false;
-      }
+      success = false;
     }
 
     if(extensibleIndexes!=null)
@@ -1259,7 +1227,7 @@ public class AttributeIndex
       if (filter.getSubInitialElement() != null)
       {
         // Use the equality index for initial substrings if possible.
-        if ((equalityIndex != null) && (matchRule != null))
+        if (equalityIndex != null && matchRule != null)
         {
           ByteString normValue =
                matchRule.normalizeSubstring(filter.getSubInitialElement());
@@ -1460,7 +1428,7 @@ public class AttributeIndex
    * The default lexicographic byte array comparator.
    * Is there one available in the Java platform?
    */
-  static public class KeyComparator implements Comparator<byte[]>
+  public static class KeyComparator implements Comparator<byte[]>
   {
     /**
      * Compares its two arguments for order.  Returns a negative integer,
@@ -1721,9 +1689,7 @@ public class AttributeIndex
     return getName();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public synchronized boolean isConfigurationChangeAcceptable(
       LocalDBIndexCfg cfg,
@@ -1731,46 +1697,39 @@ public class AttributeIndex
   {
     AttributeType attrType = cfg.getAttribute();
 
-    if (cfg.getIndexType().contains(LocalDBIndexCfgDefn.IndexType.EQUALITY))
+    if (cfg.getIndexType().contains(LocalDBIndexCfgDefn.IndexType.EQUALITY)
+        && equalityIndex == null
+        && attrType.getEqualityMatchingRule() == null)
     {
-      if (equalityIndex == null && attrType.getEqualityMatchingRule() == null)
-      {
-        unacceptableReasons.add(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attrType, "equality"));
-        return false;
-      }
+      unacceptableReasons.add(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attrType, "equality"));
+      return false;
     }
 
-    if (cfg.getIndexType().contains(LocalDBIndexCfgDefn.IndexType.SUBSTRING))
+    if (cfg.getIndexType().contains(LocalDBIndexCfgDefn.IndexType.SUBSTRING)
+        && substringIndex == null
+        && attrType.getSubstringMatchingRule() == null)
     {
-      if (substringIndex == null && attrType.getSubstringMatchingRule() == null)
-      {
-        unacceptableReasons.add(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attrType, "substring"));
-        return false;
-      }
-
+      unacceptableReasons.add(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attrType, "substring"));
+      return false;
     }
 
-    if (cfg.getIndexType().contains(LocalDBIndexCfgDefn.IndexType.ORDERING))
+    if (cfg.getIndexType().contains(LocalDBIndexCfgDefn.IndexType.ORDERING)
+        && orderingIndex == null
+        && attrType.getOrderingMatchingRule() == null)
     {
-      if (orderingIndex == null && attrType.getOrderingMatchingRule() == null)
-      {
-        unacceptableReasons.add(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attrType, "ordering"));
-        return false;
-      }
+      unacceptableReasons.add(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attrType, "ordering"));
+      return false;
     }
-    if (cfg.getIndexType().contains(LocalDBIndexCfgDefn.IndexType.APPROXIMATE))
+    if (cfg.getIndexType().contains(LocalDBIndexCfgDefn.IndexType.APPROXIMATE)
+        && approximateIndex == null
+        && attrType.getApproximateMatchingRule() == null)
     {
-      if (approximateIndex == null &&
-          attrType.getApproximateMatchingRule() == null)
-      {
-        unacceptableReasons.add(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attrType, "approximate"));
-        return false;
-      }
+      unacceptableReasons.add(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attrType, "approximate"));
+      return false;
     }
     if (cfg.getIndexType().contains(LocalDBIndexCfgDefn.IndexType.EXTENSIBLE))
     {
-      Set<String> newRules =
-              cfg.getIndexExtensibleMatchingRule();
+      Set<String> newRules = cfg.getIndexExtensibleMatchingRule();
       if (newRules == null || newRules.isEmpty())
       {
         unacceptableReasons.add(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attrType, "extensible"));
@@ -1781,14 +1740,11 @@ public class AttributeIndex
     return true;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public synchronized ConfigChangeResult applyConfigurationChange(
       LocalDBIndexCfg cfg)
   {
-    ConfigChangeResult ccr;
     boolean adminActionRequired = false;
     ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
     try
@@ -1850,9 +1806,8 @@ public class AttributeIndex
           {
             messages.add(LocalizableMessage.raw(
                     StaticUtils.stackTraceToSingleLineString(de)));
-            ccr = new ConfigChangeResult(
+            return new ConfigChangeResult(
                 DirectoryServer.getServerErrorResultCode(), false, messages);
-            return ccr;
           }
           finally
           {
@@ -1911,9 +1866,8 @@ public class AttributeIndex
           {
             messages.add(LocalizableMessage.raw(
                     StaticUtils.stackTraceToSingleLineString(de)));
-            ccr = new ConfigChangeResult(
+            return new ConfigChangeResult(
                 DirectoryServer.getServerErrorResultCode(), false, messages);
-            return ccr;
           }
           finally
           {
@@ -1980,9 +1934,8 @@ public class AttributeIndex
           {
             messages.add(LocalizableMessage.raw(
                     StaticUtils.stackTraceToSingleLineString(de)));
-            ccr = new ConfigChangeResult(
+            return new ConfigChangeResult(
                 DirectoryServer.getServerErrorResultCode(), false, messages);
-            return ccr;
           }
           finally
           {
@@ -2041,9 +1994,8 @@ public class AttributeIndex
           {
             messages.add(LocalizableMessage.raw(
                     StaticUtils.stackTraceToSingleLineString(de)));
-            ccr = new ConfigChangeResult(
+            return new ConfigChangeResult(
                 DirectoryServer.getServerErrorResultCode(), false, messages);
-            return ccr;
           }
           finally
           {
@@ -2103,9 +2055,8 @@ public class AttributeIndex
           {
             messages.add(
                     LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(de)));
-            ccr = new ConfigChangeResult(
+            return new ConfigChangeResult(
                 DirectoryServer.getServerErrorResultCode(), false, messages);
-            return ccr;
           }
           finally
           {
@@ -2259,9 +2210,8 @@ public class AttributeIndex
           {
             messages.add(
                   LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(de)));
-            ccr = new ConfigChangeResult(
-              DirectoryServer.getServerErrorResultCode(), false, messages);
-            return ccr;
+            return new ConfigChangeResult(
+                DirectoryServer.getServerErrorResultCode(), false, messages);
           }
           finally
           {
@@ -2287,9 +2237,8 @@ public class AttributeIndex
           {
             messages.add(
                   LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(de)));
-            ccr = new ConfigChangeResult(
-              DirectoryServer.getServerErrorResultCode(), false, messages);
-            return ccr;
+            return new ConfigChangeResult(
+                DirectoryServer.getServerErrorResultCode(), false, messages);
           }
           finally
           {
@@ -2306,10 +2255,8 @@ public class AttributeIndex
     catch(Exception e)
     {
       messages.add(LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(e)));
-      ccr = new ConfigChangeResult(DirectoryServer.getServerErrorResultCode(),
-                                   adminActionRequired,
-                                   messages);
-      return ccr;
+      return new ConfigChangeResult(
+          DirectoryServer.getServerErrorResultCode(), adminActionRequired, messages);
     }
   }
 
@@ -2444,18 +2391,15 @@ public class AttributeIndex
   }
 
   /**
-   * Get the JE database name prefix for indexes in this attribute
-   * index.
+   * Get the JE database name prefix for indexes in this attribute index.
    *
    * @return JE database name for this database container.
    */
   public String getName()
   {
-    StringBuilder builder = new StringBuilder();
-    builder.append(entryContainer.getDatabasePrefix());
-    builder.append("_");
-    builder.append(indexConfig.getAttribute().getNameOrOID());
-    return builder.toString();
+    return entryContainer.getDatabasePrefix()
+        + "_"
+        + indexConfig.getAttribute().getNameOrOID();
   }
 
   /**
@@ -2680,13 +2624,12 @@ public class AttributeIndex
                 new JEIndexConfig(indexConfig.getSubstringLength());
         for(ExtensibleIndexer indexer :  rule.getIndexers(config))
         {
-          String indexerID = indexer.getExtensibleIndexID();
-          String indexName = indexer.getPreferredIndexName();
-          String indexID = " "
-                         + extensibleFilter.getAttributeType().getNameOrOID()
-                         + "." + indexName
-                         + "." +indexerID;
-          debugBuffer.append(indexID);
+          debugBuffer.append(" ")
+                     .append(extensibleFilter.getAttributeType().getNameOrOID())
+                     .append(".")
+                     .append(indexer.getPreferredIndexName())
+                     .append(".")
+                     .append(indexer.getExtensibleIndexID());
         }
         debugBuffer.append("]");
       }
@@ -2727,7 +2670,7 @@ public class AttributeIndex
    * This class manages all the configured extensible matching rules and
    * their corresponding indexes.
    */
-  private class ExtensibleMatchingRuleIndex
+  private static class ExtensibleMatchingRuleIndex
   {
     /**
       * The mapping of index ID and Index database.
@@ -2960,7 +2903,7 @@ public class AttributeIndex
    */
   private class JEIndexConfig extends IndexConfig
   {
-    //The length of the substring index.
+    /** The length of the substring index. */
     private int substringLength;
 
 
@@ -2978,10 +2921,10 @@ public class AttributeIndex
      * Returns the length of the substring.
      * @return the length of the substring.
      */
-   @Override
-  public int getSubstringLength()
-   {
-     return substringLength;
-   }
+    @Override
+    public int getSubstringLength()
+    {
+      return substringLength;
+    }
   }
 }
