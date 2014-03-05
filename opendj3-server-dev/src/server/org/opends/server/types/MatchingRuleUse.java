@@ -26,7 +26,6 @@
  */
 package org.opends.server.types;
 
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -170,21 +169,6 @@ public final class MatchingRuleUse
       this.extraProperties =
            new LinkedHashMap<String,List<String>>(extraProperties);
     }
-  }
-
-
-
-  /**
-   * Retrieves the definition string used to create this matching rule
-   * use.
-   *
-   * @return  The definition string used to create this matching rule
-   *          use.
-   */
-  @Override
-  public String getDefinition()
-  {
-    return definition;
   }
 
 
@@ -379,126 +363,7 @@ public final class MatchingRuleUse
   @Override
   public String toString()
   {
-    StringBuilder buffer = new StringBuilder();
-    toString(buffer, true);
-    return buffer.toString();
+    return definition;
   }
 
-
-
-  /**
-   * Appends a string representation of this matching rule use in the
-   * form specified in RFC 2252 to the provided buffer.
-   *
-   * @param  buffer              The buffer to which the information
-   *                             should be appended.
-   * @param  includeFileElement  Indicates whether to include an
-   *                             "extra" property that specifies the
-   *                             path to the schema file from which
-   *                             this matching rule use was loaded.
-   */
-  private void toString(StringBuilder buffer, boolean includeFileElement)
-  {
-    buffer.append("( ");
-    buffer.append(matchingRule.getOID());
-
-    if (! names.isEmpty())
-    {
-      Iterator<String> iterator = names.values().iterator();
-
-      String firstName = iterator.next();
-      if (iterator.hasNext())
-      {
-        buffer.append(" NAME ( '");
-        buffer.append(firstName);
-
-        while (iterator.hasNext())
-        {
-          buffer.append("' '");
-          buffer.append(iterator.next());
-        }
-
-        buffer.append("' )");
-      }
-      else
-      {
-        buffer.append(" NAME '");
-        buffer.append(firstName);
-        buffer.append("'");
-      }
-    }
-
-    if ((description != null) && (description.length() > 0))
-    {
-      buffer.append(" DESC '");
-      buffer.append(description);
-      buffer.append("'");
-    }
-
-    if (isObsolete)
-    {
-      buffer.append(" OBSOLETE");
-    }
-
-    buffer.append(" APPLIES ");
-    Iterator<AttributeType> iterator = attributes.iterator();
-    String firstName = iterator.next().getNameOrOID();
-    if (iterator.hasNext())
-    {
-      buffer.append("( ");
-      buffer.append(firstName);
-
-      while (iterator.hasNext())
-      {
-        buffer.append(" $ ");
-        buffer.append(iterator.next().getNameOrOID());
-      }
-
-      buffer.append(" )");
-    }
-    else
-    {
-      buffer.append(firstName);
-    }
-
-    if (! extraProperties.isEmpty())
-    {
-      for (String property : extraProperties.keySet())
-      {
-        if ((! includeFileElement) &&
-            property.equals(SCHEMA_PROPERTY_FILENAME))
-        {
-          continue;
-        }
-
-        List<String> valueList = extraProperties.get(property);
-
-        buffer.append(" ");
-        buffer.append(property);
-
-        if (valueList.size() == 1)
-        {
-          buffer.append(" '");
-          buffer.append(valueList.get(0));
-          buffer.append("'");
-        }
-        else
-        {
-          buffer.append(" ( ");
-
-          for (String value : valueList)
-          {
-            buffer.append("'");
-            buffer.append(value);
-            buffer.append("' ");
-          }
-
-          buffer.append(")");
-        }
-      }
-    }
-
-    buffer.append(" )");
-  }
 }
-

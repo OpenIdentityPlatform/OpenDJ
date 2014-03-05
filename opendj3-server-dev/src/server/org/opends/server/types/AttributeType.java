@@ -390,21 +390,6 @@ public final class AttributeType
 
 
   /**
-   * Retrieves the definition string used to create this attribute
-   * type.
-   *
-   * @return  The definition string used to create this attribute
-   *          type.
-   */
-  @Override
-  public String getDefinition()
-  {
-    return definition;
-  }
-
-
-
-  /**
    * Retrieves the superior type for this attribute type.
    *
    * @return  The superior type for this attribute type, or
@@ -639,74 +624,11 @@ public final class AttributeType
     return isObjectClassType;
   }
 
-
-
-  /**
-   * Appends a string representation of this schema definition's
-   * non-generic properties to the provided buffer.
-   *
-   * @param  buffer  The buffer to which the information should be
-   *                 appended.
-   */
+  /** {@inheritDoc} */
   @Override
-  protected void toStringContent(StringBuilder buffer)
+  public String toString()
   {
-    if (superiorType != null)
-    {
-      buffer.append(" SUP ");
-      buffer.append(superiorType.getNameOrOID());
-    }
-
-    if (equalityMatchingRule != null)
-    {
-      buffer.append(" EQUALITY ");
-      buffer.append(equalityMatchingRule.getNameOrOID());
-    }
-
-    if (orderingMatchingRule != null)
-    {
-      buffer.append(" ORDERING ");
-      buffer.append(orderingMatchingRule.getNameOrOID());
-    }
-
-    if (substringMatchingRule != null)
-    {
-      buffer.append(" SUBSTR ");
-      buffer.append(substringMatchingRule.getNameOrOID());
-    }
-
-    // NOTE -- We will not include any approximate matching rule
-    // information here because it would break the standard and
-    // anything that depends on it.
-    // FIXME -- Should we encode this into one of the "extra"
-    // properties?
-
-    if (syntax != null)
-    {
-      buffer.append(" SYNTAX ");
-      buffer.append(syntax.getOID());
-    }
-
-    if (isSingleValue)
-    {
-      buffer.append(" SINGLE-VALUE");
-    }
-
-    if (isCollective)
-    {
-      buffer.append(" COLLECTIVE");
-    }
-
-    if (isNoUserModification)
-    {
-      buffer.append(" NO-USER-MODIFICATION");
-    }
-
-    if (attributeUsage != null)
-    {
-      buffer.append(" USAGE ");
-      buffer.append(attributeUsage.toString());
-    }
+    return definition;
   }
 
   /**

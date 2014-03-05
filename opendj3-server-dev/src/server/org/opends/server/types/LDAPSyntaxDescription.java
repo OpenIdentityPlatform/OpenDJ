@@ -137,21 +137,6 @@ public final class LDAPSyntaxDescription
 
 
 
-    /**
-   * Retrieves the definition string used to create this ldap syntax
-   * description.
-   *
-   * @return  The definition string used to create this ldap syntax
-     *            description.
-   */
-  @Override
-  public String getDefinition()
-  {
-    return definition;
-  }
-
-
-
    /**
    * Retrieves the ldap syntax description syntax associated with
     * this ldap syntax.
@@ -299,74 +284,7 @@ public final class LDAPSyntaxDescription
   @Override
   public String toString()
   {
-    StringBuilder buffer = new StringBuilder();
-    toString(buffer, true);
-    return buffer.toString();
+    return definition;
   }
 
-
-
-  /**
-   * Appends a string representation of this ldap syntax in the form
-   * specified in RFC 2252 to the provided buffer.
-   *
-   * @param  buffer              The buffer to which the information
-   *                             should be appended.
-   * @param  includeFileElement  Indicates whether to include an
-   *                             "extra" property that specifies the
-   *                             path to the schema file from which
-   *                             this ldap syntax was loaded.
-   */
-  public void toString(StringBuilder buffer,
-                       boolean includeFileElement)
-  {
-    buffer.append("( ");
-    buffer.append(oid);
-
-    if ((description != null) && (description.length() > 0))
-    {
-      buffer.append(" DESC '");
-      buffer.append(description);
-      buffer.append("'");
-    }
-
-    if (! extraProperties.isEmpty())
-    {
-      for (String property : extraProperties.keySet())
-      {
-        if ((! includeFileElement) &&
-            property.equals(SCHEMA_PROPERTY_FILENAME))
-        {
-          continue;
-        }
-
-        List<String> valueList = extraProperties.get(property);
-
-        buffer.append(" ");
-        buffer.append(property);
-
-        if (valueList.size() == 1)
-        {
-          buffer.append(" '");
-          buffer.append(valueList.get(0));
-          buffer.append("'");
-        }
-        else
-        {
-          buffer.append(" ( ");
-
-          for (String value : valueList)
-          {
-            buffer.append("'");
-            buffer.append(value);
-            buffer.append("' ");
-          }
-
-          buffer.append(")");
-        }
-      }
-    }
-
-    buffer.append(" )");
-  }
 }

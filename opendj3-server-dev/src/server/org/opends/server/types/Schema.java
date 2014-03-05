@@ -450,16 +450,7 @@ public final class Schema
       {
         registerSubordinateType(attributeType, superiorType);
       }
-
-      // We'll use an attribute value including the normalized value
-      // rather than the attribute type because otherwise it would use
-      // a very expensive matching rule (OID first component match)
-      // that would kill performance.
-      String valueString = attributeType.getDefinition();
-      ByteString rawValue = ByteString.valueOf(valueString);
-      ByteString normValue = normalizeAttributeValue(rawValue);
-      attributeTypeSet.add(AttributeValues.create(rawValue,
-          normValue));
+      attributeTypeSet.add(createAttrValueForAdd(attributeType));
     }
   }
 
@@ -506,31 +497,45 @@ public final class Schema
       {
         deregisterSubordinateType(attributeType, superiorType);
       }
-
-      // We'll use an attribute value including the normalized value
-      // rather than the attribute type because otherwise it would use
-      // a very expensive matching rule (OID first component match)
-      // that would kill performance.
-      try
-      {
-        String valueString = attributeType.getDefinition();
-        ByteString rawValue = ByteString.valueOf(valueString);
-        ByteString normValue = normalizeAttributeValue(rawValue);
-        attributeTypeSet.remove(AttributeValues.create(rawValue,
-                                                   normValue));
-      }
-      catch (Exception e)
-      {
-        String valueString = attributeType.getDefinition();
-        ByteString rawValue = ByteString.valueOf(valueString);
-        ByteString normValue =
-            ByteString.valueOf(toLowerCase(valueString));
-        attributeTypeSet.remove(AttributeValues.create(rawValue,
-                                                   normValue));
-      }
+      attributeTypeSet.remove(createAttrValueForRemove(attributeType));
     }
   }
 
+
+
+  /**
+   * We'll use an attribute value including the normalized value rather than the
+   * attribute type because otherwise it would use a very expensive matching
+   * rule (OID first component match) that would kill performance.
+   */
+  private AttributeValue createAttrValueForRemove(Object elem)
+  {
+    final String valueString = elem.toString();
+    final ByteString rawValue = ByteString.valueOf(valueString);
+    final ByteString normValue = normalizeAttrValue(valueString, rawValue);
+    return AttributeValues.create(rawValue, normValue);
+  }
+
+  private ByteString normalizeAttrValue(String valueString, ByteString rawValue)
+  {
+    try
+    {
+      return normalizeAttributeValue(rawValue);
+    }
+    catch (Exception e)
+    {
+      return ByteString.valueOf(toLowerCase(valueString));
+    }
+  }
+
+  private AttributeValue createAttrValueForAdd(Object elem)
+      throws DirectoryException
+  {
+    final String valueString = elem.toString();
+    final ByteString rawValue = ByteString.valueOf(valueString);
+    final ByteString normValue = normalizeAttributeValue(rawValue);
+    return AttributeValues.create(rawValue, normValue);
+  }
 
 
   /**
@@ -752,15 +757,7 @@ public final class Schema
       {
         objectClasses.put(name, objectClass);
       }
-
-      // We'll use an attribute value including the normalized value
-      // rather than the attribute type because otherwise it would use
-      // a very expensive matching rule (OID first component match)
-      // that would kill performance.
-      String valueString = objectClass.getDefinition();
-      ByteString rawValue = ByteString.valueOf(valueString);
-      ByteString normValue = normalizeAttributeValue(rawValue);
-      objectClassSet.add(AttributeValues.create(rawValue, normValue));
+      objectClassSet.add(createAttrValueForAdd(objectClass));
     }
   }
 
@@ -787,29 +784,7 @@ public final class Schema
       {
         objectClasses.remove(name, objectClass);
       }
-
-
-      // We'll use an attribute value including the normalized value
-      // rather than the attribute type because otherwise it would use
-      // a very expensive matching rule (OID first component match)
-      // that would kill performance.
-      try
-      {
-        String valueString = objectClass.getDefinition();
-        ByteString rawValue = ByteString.valueOf(valueString);
-        ByteString normValue = normalizeAttributeValue(rawValue);
-        objectClassSet.remove(AttributeValues.create(rawValue,
-                                                 normValue));
-      }
-      catch (Exception e)
-      {
-        String valueString = objectClass.getDefinition();
-        ByteString rawValue = ByteString.valueOf(valueString);
-        ByteString normValue =
-            ByteString.valueOf(toLowerCase(valueString));
-        objectClassSet.remove(AttributeValues.create(rawValue,
-                                                 normValue));
-      }
+      objectClassSet.remove(createAttrValueForRemove(objectClass));
     }
   }
 
@@ -961,15 +936,7 @@ public final class Schema
       }
 
       syntaxes.put(toLowerCase(syntax.getOID()), syntax);
-
-      // We'll use an attribute value including the normalized value
-      // rather than the attribute type because otherwise it would use
-      // a very expensive matching rule (OID first component match)
-      // that would kill performance.
-      String valueString = syntax.toString();
-      ByteString rawValue = ByteString.valueOf(valueString);
-      ByteString normValue = normalizeAttributeValue(rawValue);
-      syntaxSet.add(AttributeValues.create(rawValue, normValue));
+      syntaxSet.add(createAttrValueForAdd(syntax));
     }
   }
 
@@ -987,26 +954,7 @@ public final class Schema
     synchronized (syntaxes)
     {
       syntaxes.remove(toLowerCase(syntax.getOID()), syntax);
-
-      // We'll use an attribute value including the normalized value
-      // rather than the attribute type because otherwise it would use
-      // a very expensive matching rule (OID first component match)
-      // that would kill performance.
-      try
-      {
-        String valueString = syntax.toString();
-        ByteString rawValue = ByteString.valueOf(valueString);
-        ByteString normValue = normalizeAttributeValue(rawValue);
-        syntaxSet.remove(AttributeValues.create(rawValue, normValue));
-      }
-      catch (Exception e)
-      {
-        String valueString = syntax.toString();
-        ByteString rawValue = ByteString.valueOf(valueString);
-        ByteString normValue =
-            ByteString.valueOf(toLowerCase(valueString));
-        syntaxSet.remove(AttributeValues.create(rawValue, normValue));
-      }
+      syntaxSet.remove(createAttrValueForRemove(syntax));
     }
   }
 
@@ -1015,7 +963,7 @@ public final class Schema
   /**
    * Retrieves the ldap syntax definitions for this schema, as a
    * mapping between the OID for the syntax and the ldap syntax
-   * defition itself. Each ldap syntax should only be present once,
+   * definition itself. Each ldap syntax should only be present once,
    * since its only key is its OID.  The contents of the returned
    * mapping must not be altered.
    *
@@ -1310,15 +1258,7 @@ public final class Schema
             matchingRules.put(toLowerCase(name), matchingRule);
           }
         }
-        // We'll use an attribute value including the normalized value
-        // rather than the attribute type because otherwise it would
-        // use a very expensive matching rule (OID first component
-        // match) that would kill performance.
-        String valueString = matchingRule.toString();
-        ByteString rawValue = ByteString.valueOf(valueString);
-        ByteString normValue = normalizeAttributeValue(rawValue);
-        matchingRuleSet.add(
-            AttributeValues.create(rawValue, normValue));
+        matchingRuleSet.add(createAttrValueForAdd(matchingRule));
       }
     }
   }
@@ -1368,28 +1308,7 @@ public final class Schema
             matchingRules.remove(toLowerCase(name), matchingRule);
           }
         }
-
-        // We'll use an attribute value including the normalized value
-        // rather than the attribute type because otherwise it would
-        // use a very expensive matching rule (OID first component
-        // match) that would kill performance.
-        try
-        {
-          String valueString = matchingRule.toString();
-          ByteString rawValue = ByteString.valueOf(valueString);
-          ByteString normValue = normalizeAttributeValue(rawValue);
-          matchingRuleSet.remove(AttributeValues.create(rawValue,
-              normValue));
-        }
-        catch (Exception e)
-        {
-          String valueString = matchingRule.toString();
-          ByteString rawValue = ByteString.valueOf(valueString);
-          ByteString normValue =
-              ByteString.valueOf(toLowerCase(valueString));
-          matchingRuleSet.remove(AttributeValues.create(rawValue,
-                                                    normValue));
-        }
+        matchingRuleSet.remove(createAttrValueForRemove(matchingRule));
       }
     }
   }
@@ -1503,15 +1422,7 @@ public final class Schema
           matchingRules.put(name, matchingRule);
         }
       }
-      // We'll use an attribute value including the normalized value
-      // rather than the attribute type because otherwise it would use
-      // a very expensive matching rule (OID first component match)
-      // that would kill performance.
-      String valueString = matchingRule.toString();
-      ByteString rawValue = ByteString.valueOf(valueString);
-      ByteString normValue = normalizeAttributeValue(rawValue);
-      matchingRuleSet.add(AttributeValues.create(rawValue,
-          normValue));
+      matchingRuleSet.add(createAttrValueForAdd(matchingRule));
     }
   }
 
@@ -1542,27 +1453,7 @@ public final class Schema
           matchingRules.remove(name, matchingRule);
         }
       }
-      // We'll use an attribute value including the normalized value
-      // rather than the attribute type because otherwise it would use
-      // a very expensive matching rule (OID first component match)
-      // that would kill performance.
-      try
-      {
-        String valueString = matchingRule.toString();
-        ByteString rawValue = ByteString.valueOf(valueString);
-        ByteString normValue = normalizeAttributeValue(rawValue);
-        matchingRuleSet.remove(AttributeValues.create(rawValue,
-                                                  normValue));
-      }
-      catch (Exception e)
-      {
-        String valueString = matchingRule.toString();
-        ByteString rawValue = ByteString.valueOf(valueString);
-        ByteString normValue =
-            ByteString.valueOf(toLowerCase(valueString));
-        matchingRuleSet.remove(AttributeValues.create(rawValue,
-                                                  normValue));
-      }
+      matchingRuleSet.remove(createAttrValueForRemove(matchingRule));
     }
   }
 
@@ -1675,15 +1566,7 @@ public final class Schema
           matchingRules.put(name, matchingRule);
         }
       }
-      // We'll use an attribute value including the normalized value
-      // rather than the attribute type because otherwise it would use
-      // a very expensive matching rule (OID first component match)
-      // that would kill performance.
-      String valueString = matchingRule.toString();
-      ByteString rawValue = ByteString.valueOf(valueString);
-      ByteString normValue = normalizeAttributeValue(rawValue);
-      matchingRuleSet.add(AttributeValues.create(rawValue,
-          normValue));
+      matchingRuleSet.add(createAttrValueForAdd(matchingRule));
     }
   }
 
@@ -1714,28 +1597,7 @@ public final class Schema
           matchingRules.remove(name, matchingRule);
         }
       }
-
-      // We'll use an attribute value including the normalized value
-      // rather than the attribute type because otherwise it would use
-      // a very expensive matching rule (OID first component match)
-      // that would kill performance.
-      try
-      {
-        String valueString = matchingRule.toString();
-        ByteString rawValue = ByteString.valueOf(valueString);
-        ByteString normValue = normalizeAttributeValue(rawValue);
-        matchingRuleSet.remove(AttributeValues.create(rawValue,
-                                                  normValue));
-      }
-      catch (Exception e)
-      {
-        String valueString = matchingRule.toString();
-        ByteString rawValue = ByteString.valueOf(valueString);
-        ByteString normValue =
-            ByteString.valueOf(toLowerCase(valueString));
-        matchingRuleSet.remove(AttributeValues.create(rawValue,
-                                                  normValue));
-      }
+      matchingRuleSet.remove(createAttrValueForRemove(matchingRule));
     }
   }
 
@@ -1847,15 +1709,7 @@ public final class Schema
           matchingRules.put(name, matchingRule);
         }
       }
-      // We'll use an attribute value including the normalized value
-      // rather than the attribute type because otherwise it would use
-      // a very expensive matching rule (OID first component match)
-      // that would kill performance.
-      String valueString = matchingRule.toString();
-        ByteString rawValue = ByteString.valueOf(valueString);
-        ByteString normValue = normalizeAttributeValue(rawValue);
-      matchingRuleSet.add(AttributeValues.create(rawValue,
-          normValue));
+      matchingRuleSet.add(createAttrValueForAdd(matchingRule));
     }
   }
 
@@ -1886,27 +1740,7 @@ public final class Schema
           matchingRules.remove(name, matchingRule);
         }
       }
-      // We'll use an attribute value including the normalized value
-      // rather than the attribute type because otherwise it would use
-      // a very expensive matching rule (OID first component match)
-      // that would kill performance.
-      try
-      {
-        String valueString = matchingRule.toString();
-        ByteString rawValue = ByteString.valueOf(valueString);
-        ByteString normValue = normalizeAttributeValue(rawValue);
-        matchingRuleSet.remove(AttributeValues.create(rawValue,
-                                                  normValue));
-      }
-      catch (Exception e)
-      {
-        String valueString = matchingRule.toString();
-        ByteString rawValue = ByteString.valueOf(valueString);
-        ByteString normValue =
-            ByteString.valueOf(toLowerCase(valueString));
-        matchingRuleSet.remove(AttributeValues.create(rawValue,
-                                                  normValue));
-      }
+      matchingRuleSet.remove(createAttrValueForRemove(matchingRule));
     }
   }
 
@@ -2018,15 +1852,7 @@ public final class Schema
           matchingRules.put(name, matchingRule);
         }
       }
-      // We'll use an attribute value including the normalized value
-      // rather than the attribute type because otherwise it would use
-      // a very expensive matching rule (OID first component match)
-      // that would kill performance.
-      String valueString = matchingRule.toString();
-        ByteString rawValue = ByteString.valueOf(valueString);
-        ByteString normValue = normalizeAttributeValue(rawValue);
-      matchingRuleSet.add(AttributeValues.create(rawValue,
-          normValue));
+      matchingRuleSet.add(createAttrValueForAdd(matchingRule));
     }
   }
 
@@ -2057,27 +1883,7 @@ public final class Schema
           matchingRules.remove(name, matchingRule);
         }
       }
-      // We'll use an attribute value including the normalized value
-      // rather than the attribute type because otherwise it would use
-      // a very expensive matching rule (OID first component match)
-      // that would kill performance.
-      try
-      {
-        String valueString = matchingRule.toString();
-        ByteString rawValue = ByteString.valueOf(valueString);
-        ByteString normValue = normalizeAttributeValue(rawValue);
-        matchingRuleSet.remove(AttributeValues.create(rawValue,
-                                                  normValue));
-      }
-      catch (Exception e)
-      {
-        String valueString = matchingRule.toString();
-        ByteString rawValue = ByteString.valueOf(valueString);
-        ByteString normValue =
-            ByteString.valueOf(toLowerCase(valueString));
-        matchingRuleSet.remove(AttributeValues.create(rawValue,
-                                                  normValue));
-      }
+      matchingRuleSet.remove(createAttrValueForRemove(matchingRule));
     }
   }
 
@@ -2195,15 +2001,7 @@ public final class Schema
           matchingRules.put(name, matchingRule);
         }
       }
-      // We'll use an attribute value including the normalized value
-      // rather than the attribute type because otherwise it would use
-      // a very expensive matching rule (OID first component match)
-      // that would kill performance.
-      String valueString = matchingRule.toString();
-      ByteString rawValue  = ByteString.valueOf(valueString);
-      ByteString normValue = normalizeAttributeValue(rawValue);
-      matchingRuleSet.add(
-          AttributeValues.create(rawValue, normValue));
+      matchingRuleSet.add(createAttrValueForAdd(matchingRule));
     }
   }
 
@@ -2234,27 +2032,7 @@ public final class Schema
           matchingRules.remove(name, matchingRule);
         }
       }
-      // We'll use an attribute value including the normalized value
-      // rather than the attribute type because otherwise it would use
-      // a very expensive matching rule (OID first component match)
-      // that would kill performance.
-      try
-      {
-        String valueString = matchingRule.toString();
-        ByteString rawValue = ByteString.valueOf(valueString);
-        ByteString normValue = normalizeAttributeValue(rawValue);
-        matchingRuleSet.remove(AttributeValues.create(rawValue,
-            normValue));
-      }
-      catch (Exception e)
-      {
-        String valueString = matchingRule.toString();
-        ByteString rawValue = ByteString.valueOf(valueString);
-        ByteString normValue =
-            ByteString.valueOf(toLowerCase(valueString));
-        matchingRuleSet.remove(AttributeValues.create(rawValue,
-            normValue));
-      }
+      matchingRuleSet.remove(createAttrValueForRemove(matchingRule));
     }
   }
 
@@ -2364,16 +2142,7 @@ public final class Schema
       }
 
       matchingRuleUses.put(matchingRule, matchingRuleUse);
-
-      // We'll use an attribute value including the normalized value
-      // rather than the attribute type because otherwise it would use
-      // a very expensive matching rule (OID first component match)
-      // that would kill performance.
-      String valueString = matchingRuleUse.getDefinition();
-      ByteString rawValue = ByteString.valueOf(valueString);
-      ByteString normValue = normalizeAttributeValue(rawValue);
-      matchingRuleUseSet.add(AttributeValues.create(rawValue,
-          normValue));
+      matchingRuleUseSet.add(createAttrValueForAdd(matchingRuleUse));
     }
   }
 
@@ -2393,28 +2162,7 @@ public final class Schema
     {
       matchingRuleUses.remove(matchingRuleUse.getMatchingRule(),
                               matchingRuleUse);
-
-      // We'll use an attribute value including the normalized value
-      // rather than the attribute type because otherwise it would use
-      // a very expensive matching rule (OID first component match)
-      // that would kill performance.
-      try
-      {
-        String valueString = matchingRuleUse.getDefinition();
-        ByteString rawValue = ByteString.valueOf(valueString);
-        ByteString normValue = normalizeAttributeValue(rawValue);
-        matchingRuleUseSet.remove(AttributeValues.create(rawValue,
-                                                     normValue));
-      }
-      catch (Exception e)
-      {
-        String valueString = matchingRuleUse.getDefinition();
-        ByteString rawValue = ByteString.valueOf(valueString);
-        ByteString normValue =
-            ByteString.valueOf(toLowerCase(valueString));
-        matchingRuleUseSet.remove(AttributeValues.create(rawValue,
-                                                     normValue));
-      }
+      matchingRuleUseSet.remove(createAttrValueForRemove(matchingRuleUse));
     }
   }
 
@@ -2523,16 +2271,7 @@ public final class Schema
       }
 
       ditContentRules.put(objectClass, ditContentRule);
-
-      // We'll use an attribute value including the normalized value
-      // rather than the attribute type because otherwise it would use
-      // a very expensive matching rule (OID first component match)
-      // that would kill performance.
-      String valueString = ditContentRule.getDefinition();
-      ByteString rawValue = ByteString.valueOf(valueString);
-      ByteString normValue = normalizeAttributeValue(rawValue);
-      ditContentRuleSet.add(AttributeValues.create(rawValue,
-          normValue));
+      ditContentRuleSet.add(createAttrValueForAdd(ditContentRule));
     }
   }
 
@@ -2551,28 +2290,7 @@ public final class Schema
     {
       ditContentRules.remove(ditContentRule.getStructuralClass(),
                              ditContentRule);
-
-      // We'll use an attribute value including the normalized value
-      // rather than the attribute type because otherwise it would use
-      // a very expensive matching rule (OID first component match)
-      // that would kill performance.
-      try
-      {
-        String valueString = ditContentRule.getDefinition();
-        ByteString rawValue = ByteString.valueOf(valueString);
-        ByteString normValue = normalizeAttributeValue(rawValue);
-        ditContentRuleSet.remove(AttributeValues.create(rawValue,
-                                                    normValue));
-      }
-      catch (Exception e)
-      {
-        String valueString = ditContentRule.getDefinition();
-        ByteString rawValue = ByteString.valueOf(valueString);
-        ByteString normValue =
-            ByteString.valueOf(toLowerCase(valueString));
-        ditContentRuleSet.remove(AttributeValues.create(rawValue,
-                                                    normValue));
-      }
+      ditContentRuleSet.remove(createAttrValueForRemove(ditContentRule));
     }
   }
 
@@ -2750,16 +2468,7 @@ public final class Schema
 
       ditStructureRulesByNameForm.put(nameForm, ditStructureRule);
       ditStructureRulesByID.put(ruleID, ditStructureRule);
-
-      // We'll use an attribute value including the normalized value
-      // rather than the attribute type because otherwise it would use
-      // a very expensive matching rule (OID first component match)
-      // that would kill performance.
-      String valueString = ditStructureRule.getDefinition();
-      ByteString rawValue = ByteString.valueOf(valueString);
-      ByteString normValue = normalizeAttributeValue(rawValue);
-      ditStructureRuleSet.add(AttributeValues.create(rawValue,
-                                                 normValue));
+      ditStructureRuleSet.add(createAttrValueForAdd(ditStructureRule));
     }
   }
 
@@ -2781,28 +2490,7 @@ public final class Schema
            ditStructureRule.getNameForm(), ditStructureRule);
       ditStructureRulesByID.remove(ditStructureRule.getRuleID(),
                                    ditStructureRule);
-
-      // We'll use an attribute value including the normalized value
-      // rather than the attribute type because otherwise it would use
-      // a very expensive matching rule (OID first component match)
-      // that would kill performance.
-      try
-      {
-        String valueString = ditStructureRule.getDefinition();
-        ByteString rawValue = ByteString.valueOf(valueString);
-        ByteString normValue = normalizeAttributeValue(rawValue);
-        ditStructureRuleSet.remove(AttributeValues.create(rawValue,
-                                                      normValue));
-      }
-      catch (Exception e)
-      {
-        String valueString = ditStructureRule.getDefinition();
-        ByteString rawValue = ByteString.valueOf(valueString);
-        ByteString normValue =
-            ByteString.valueOf(toLowerCase(valueString));
-        ditStructureRuleSet.remove(AttributeValues.create(rawValue,
-                                                      normValue));
-      }
+      ditStructureRuleSet.remove(createAttrValueForRemove(ditStructureRule));
     }
   }
 
@@ -3001,15 +2689,7 @@ public final class Schema
       {
         nameFormsByName.put(name, nameForm);
       }
-
-      // We'll use an attribute value including the normalized value
-      // rather than the attribute type because otherwise it would use
-      // a very expensive matching rule (OID first component match)
-      // that would kill performance.
-      String valueString = nameForm.getDefinition();
-      ByteString rawValue = ByteString.valueOf(valueString);
-      ByteString normValue = normalizeAttributeValue(rawValue);
-      nameFormSet.add(AttributeValues.create(rawValue, normValue));
+      nameFormSet.add(createAttrValueForAdd(nameForm));
     }
   }
 
@@ -3042,28 +2722,7 @@ public final class Schema
       {
         nameFormsByName.remove(name, nameForm);
       }
-
-      // We'll use an attribute value including the normalized value
-      // rather than the attribute type because otherwise it would use
-      // a very expensive matching rule (OID first component match)
-      // that would kill performance.
-      try
-      {
-        String valueString = nameForm.getDefinition();
-        ByteString rawValue = ByteString.valueOf(valueString);
-        ByteString normValue = normalizeAttributeValue(rawValue);
-        nameFormSet.remove(AttributeValues.create(rawValue,
-            normValue));
-      }
-      catch (Exception e)
-      {
-        String valueString = nameForm.getDefinition();
-        ByteString rawValue = ByteString.valueOf(valueString);
-        ByteString normValue =
-            ByteString.valueOf(toLowerCase(valueString));
-        nameFormSet.remove(AttributeValues.create(rawValue,
-            normValue));
-      }
+      nameFormSet.remove(createAttrValueForRemove(nameForm));
     }
   }
 
@@ -3186,8 +2845,8 @@ public final class Schema
       if (StaticUtils.hasDescriptor(de.getMessageObject(),
           ERR_SCHEMA_CIRCULAR_DEPENDENCY_REFERENCE))
       {
-        LocalizableMessage message = ERR_SCHEMA_CIRCULAR_DEPENDENCY_REFERENCE.
-            get(element.getDefinition());
+        LocalizableMessage message =
+            ERR_SCHEMA_CIRCULAR_DEPENDENCY_REFERENCE.get(element);
         throw new DirectoryException(de.getResultCode(), message,
                                      de);
       }
@@ -3221,10 +2880,8 @@ public final class Schema
     {
       // FIXME -- Is this an appropriate maximum depth for detecting
       // circular references?
-      LocalizableMessage message = ERR_SCHEMA_CIRCULAR_DEPENDENCY_REFERENCE.get(
-          element.getDefinition());
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                   message);
+          ERR_SCHEMA_CIRCULAR_DEPENDENCY_REFERENCE.get(element));
     }
 
 
@@ -3370,7 +3027,7 @@ public final class Schema
   private AttributeType recreateFromDefinition(AttributeType attrType)
       throws DirectoryException
   {
-    ByteString value = ByteString.valueOf(attrType.getDefinition());
+    ByteString value = ByteString.valueOf(attrType.toString());
     AttributeType copy =
         AttributeTypeSyntax.decodeAttributeType(value, this, false);
     setSchemaFile(copy, getSchemaFile(attrType));
@@ -3384,7 +3041,7 @@ public final class Schema
   private DITContentRule recreateFromDefinition(DITContentRule dcr)
       throws DirectoryException
   {
-    ByteString value = ByteString.valueOf(dcr.getDefinition());
+    ByteString value = ByteString.valueOf(dcr.toString());
     DITContentRule copy =
         DITContentRuleSyntax.decodeDITContentRule(value, this, false);
     setSchemaFile(copy, getSchemaFile(dcr));
@@ -3394,7 +3051,7 @@ public final class Schema
   private DITStructureRule recreateFromDefinition(DITStructureRule dsr)
       throws DirectoryException
   {
-    ByteString value = ByteString.valueOf(dsr.getDefinition());
+    ByteString value = ByteString.valueOf(dsr.toString());
     DITStructureRule copy =
         DITStructureRuleSyntax.decodeDITStructureRule(value, this, false);
     setSchemaFile(copy, getSchemaFile(dsr));
@@ -3404,7 +3061,7 @@ public final class Schema
   private MatchingRuleUse recreateFromDefinition(MatchingRuleUse mru)
       throws DirectoryException
   {
-    ByteString value = ByteString.valueOf(mru.getDefinition());
+    ByteString value = ByteString.valueOf(mru.toString());
     MatchingRuleUse copy =
         MatchingRuleUseSyntax.decodeMatchingRuleUse(value, this, false);
     setSchemaFile(copy, getSchemaFile(mru));
@@ -3414,7 +3071,7 @@ public final class Schema
   private NameForm recreateFromDefinition(NameForm nf)
       throws DirectoryException
   {
-    ByteString value = ByteString.valueOf(nf.getDefinition());
+    ByteString value = ByteString.valueOf(nf.toString());
     NameForm copy = NameFormSyntax.decodeNameForm(value, this, false);
     setSchemaFile(copy, getSchemaFile(nf));
     return copy;
@@ -3423,7 +3080,7 @@ public final class Schema
   private ObjectClass recreateFromDefinition(ObjectClass oc)
       throws DirectoryException
   {
-    ByteString value = ByteString.valueOf(oc.getDefinition());
+    ByteString value = ByteString.valueOf(oc.toString());
     ObjectClass copy = ObjectClassSyntax.decodeObjectClass(value, this, false);
     setSchemaFile(copy, getSchemaFile(oc));
     return copy;

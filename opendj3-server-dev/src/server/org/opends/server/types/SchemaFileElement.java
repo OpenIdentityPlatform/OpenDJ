@@ -66,13 +66,4 @@ public interface SchemaFileElement
    */
   Map<String, List<String>> getExtraProperties();
 
-  /**
-   * Retrieves the definition string that is used to represent this
-   * element in the schema configuration file.
-   *
-   * @return  The definition string that should be used to represent
-   *          this element in the schema configuration file.
-   */
-  public String getDefinition();
-
 }
