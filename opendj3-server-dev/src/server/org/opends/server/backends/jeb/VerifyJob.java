@@ -62,7 +62,7 @@ public class VerifyJob
   /**
    * The root container used for the verify job.
    */
-  RootContainer rootContainer;
+  private RootContainer rootContainer;
 
   /**
    * The number of milliseconds between job progress reports.
@@ -82,28 +82,28 @@ public class VerifyJob
   /**
    * The number of records that have exceeded the entry limit.
    */
-  long entryLimitExceededCount = 0;
+  private long entryLimitExceededCount = 0;
 
   /**
    * The number of records that reference more than one entry.
    */
-  long multiReferenceCount = 0;
+  private long multiReferenceCount = 0;
 
   /**
    * The total number of entry references.
    */
-  long entryReferencesCount = 0;
+  private long entryReferencesCount = 0;
 
   /**
    * The maximum number of references per record.
    */
-  long maxEntryPerValue = 0;
+  private long maxEntryPerValue = 0;
 
   /**
    * This map is used to gather some statistics about values that have
    * exceeded the entry limit.
    */
-  IdentityHashMap<Index,HashMap<ByteString,Long>> entryLimitMap =
+  private IdentityHashMap<Index, HashMap<ByteString, Long>> entryLimitMap =
        new IdentityHashMap<Index, HashMap<ByteString, Long>>();
 
   /**
@@ -124,37 +124,38 @@ public class VerifyJob
   /**
    * The entry database.
    */
-  ID2Entry id2entry = null;
+  private ID2Entry id2entry;
 
   /**
    * The DN database.
    */
-  DN2ID dn2id = null;
+  private DN2ID dn2id;
 
   /**
    * The children database.
    */
-  Index id2c = null;
+  private Index id2c;
 
   /**
    * The subtree database.
    */
-  Index id2s = null;
+  private Index id2s;
 
   /**
    * A list of the attribute indexes to be verified.
    */
-  ArrayList<AttributeIndex> attrIndexList = new ArrayList<AttributeIndex>();
+  private ArrayList<AttributeIndex> attrIndexList =
+      new ArrayList<AttributeIndex>();
 
   /**
    * A list of the VLV indexes to be verified.
    */
-  ArrayList<VLVIndex> vlvIndexList = new ArrayList<VLVIndex>();
+  private ArrayList<VLVIndex> vlvIndexList = new ArrayList<VLVIndex>();
 
-/**
- * The types of indexes that are verifiable.
- */
-  enum IndexType
+  /**
+   * The types of indexes that are verifiable.
+   */
+  private enum IndexType
   {
       PRES, EQ, SUBSTRING, ORDERING, APPROXIMATE
   }
@@ -1475,21 +1476,9 @@ public class VerifyJob
    */
   private String keyDump(Index index, byte[] keyBytes)
   {
-/*
-    String str;
-    try
-    {
-      str = new String(keyBytes, "UTF-8");
-    }
-    catch (UnsupportedEncodingException e)
-    {
-      str = StaticUtils.bytesToHex(keyBytes);
-    }
-    return str;
-*/
     StringBuilder buffer = new StringBuilder(128);
     buffer.append("File: ");
-    buffer.append(index.toString());
+    buffer.append(index);
     buffer.append(ServerConstants.EOL);
     buffer.append("Key:");
     buffer.append(ServerConstants.EOL);
@@ -1506,21 +1495,9 @@ public class VerifyJob
    */
   private String keyDump(VLVIndex vlvIndex, SortValues keySortValues)
   {
-/*
-    String str;
-    try
-    {
-      str = new String(keyBytes, "UTF-8");
-    }
-    catch (UnsupportedEncodingException e)
-    {
-      str = StaticUtils.bytesToHex(keyBytes);
-    }
-    return str;
-*/
     StringBuilder buffer = new StringBuilder(128);
     buffer.append("File: ");
-    buffer.append(vlvIndex.toString());
+    buffer.append(vlvIndex);
     buffer.append(ServerConstants.EOL);
     buffer.append("Key (last sort values):");
     if(keySortValues == null)
@@ -1529,7 +1506,7 @@ public class VerifyJob
     }
     else
     {
-      buffer.append(keySortValues.toString());
+      buffer.append(keySortValues);
     }
     return buffer.toString();
   }
@@ -1630,6 +1607,11 @@ public class VerifyJob
                               List<Attribute> attrList)
        throws DirectoryException
   {
+    if (attrList == null || attrList.isEmpty())
+    {
+      return;
+    }
+
     Transaction txn = null;
     Index equalityIndex = attrIndex.getEqualityIndex();
     Index presenceIndex = attrIndex.getPresenceIndex();
@@ -1637,218 +1619,101 @@ public class VerifyJob
     Index orderingIndex = attrIndex.getOrderingIndex();
     Index approximateIndex = attrIndex.getApproximateIndex();
     // TODO: Add support for Extended Matching Rules indexes.
-    DatabaseEntry presenceKey = AttributeIndex.presenceKey;
 
     // Presence index.
-    if ((attrList != null) && !attrList.isEmpty() && presenceIndex != null)
+    if (presenceIndex != null)
     {
-      try
+      DatabaseEntry presenceKey = AttributeIndex.presenceKey;
+      verifyAttributeInIndex(presenceIndex, txn, presenceKey, entryID);
+    }
+
+    for (Attribute attr : attrList)
+    {
+      for (AttributeValue value : attr)
       {
-        ConditionResult cr;
-        cr = presenceIndex.containsID(txn, presenceKey, entryID);
-        if (cr == ConditionResult.FALSE)
+        byte[] normalizedBytes = value.getNormalizedValue().toByteArray();
+
+        // Equality index.
+        if (equalityIndex != null)
         {
-          if (logger.isTraceEnabled())
-          {
-            logger.trace("Missing ID %d%n%s",
-                       entryID.longValue(),
-                       keyDump(presenceIndex, presenceKey.getData()));
-          }
-          errorCount++;
+          DatabaseEntry key = new DatabaseEntry(normalizedBytes);
+          verifyAttributeInIndex(equalityIndex, txn, key, entryID);
         }
-        else if (cr == ConditionResult.UNDEFINED)
+
+        // Substring index.
+        if (substringIndex != null)
         {
-          incrEntryLimitStats(presenceIndex, presenceKey.getData());
+          Set<ByteString> keyBytesSet =
+              attrIndex.substringKeys(normalizedBytes);
+          DatabaseEntry key = new DatabaseEntry();
+          for (ByteString keyBytes : keyBytesSet)
+          {
+            key.setData(keyBytes.toByteArray());
+            verifyAttributeInIndex(substringIndex, txn, key, entryID);
+          }
+        }
+
+        // Ordering index.
+        if (orderingIndex != null)
+        {
+          // Use the ordering matching rule to normalize the value.
+          OrderingMatchingRule orderingRule =
+              attr.getAttributeType().getOrderingMatchingRule();
+
+          normalizedBytes = normalizeAttributeValue(orderingRule, value);
+
+          DatabaseEntry key = new DatabaseEntry(normalizedBytes);
+          verifyAttributeInIndex(orderingIndex, txn, key, entryID);
+        }
+
+        // Approximate index.
+        if (approximateIndex != null)
+        {
+          // Use the approximate matching rule to normalize the value.
+          ApproximateMatchingRule approximateRule =
+              attr.getAttributeType().getApproximateMatchingRule();
+
+          normalizedBytes = normalizeAttributeValue(approximateRule, value);
+
+          DatabaseEntry key = new DatabaseEntry(normalizedBytes);
+          verifyAttributeInIndex(approximateIndex, txn, key, entryID);
         }
       }
-      catch (DatabaseException e)
+    }
+  }
+
+  private void verifyAttributeInIndex(Index index, Transaction txn,
+      DatabaseEntry key, EntryID entryID)
+  {
+    try
+    {
+      ConditionResult cr = index.containsID(txn, key, entryID);
+      if (cr == ConditionResult.FALSE)
       {
         if (logger.isTraceEnabled())
         {
-          logger.traceException(e);
-
-          logger.trace("Error reading database: %s%n%s",
-                     e.getMessage(),
-                     keyDump(presenceIndex, presenceKey.getData()));
+          logger.trace("Missing ID %d%n%s",
+                     entryID.longValue(),
+                     keyDump(index, key.getData()));
         }
         errorCount++;
       }
-    }
-
-    if (attrList != null)
-    {
-      for (Attribute attr : attrList)
+      else if (cr == ConditionResult.UNDEFINED)
       {
-        for (AttributeValue value : attr)
-        {
-          byte[] normalizedBytes = value.getNormalizedValue().toByteArray();
-
-          // Equality index.
-          if (equalityIndex != null)
-          {
-            DatabaseEntry key = new DatabaseEntry(normalizedBytes);
-            try
-            {
-              ConditionResult cr;
-              cr = equalityIndex.containsID(txn, key, entryID);
-              if (cr == ConditionResult.FALSE)
-              {
-                if (logger.isTraceEnabled())
-                {
-                  logger.trace("Missing ID %d%n%s",
-                             entryID.longValue(),
-                             keyDump(equalityIndex, normalizedBytes));
-                }
-                errorCount++;
-              }
-              else if (cr == ConditionResult.UNDEFINED)
-              {
-                incrEntryLimitStats(equalityIndex, normalizedBytes);
-              }
-            }
-            catch (DatabaseException e)
-            {
-              if (logger.isTraceEnabled())
-              {
-                logger.traceException(e);
-
-                logger.trace("Error reading database: %s%n%s",
-                           e.getMessage(),
-                           keyDump(equalityIndex, normalizedBytes));
-              }
-              errorCount++;
-            }
-          }
-
-          // Substring index.
-          if (substringIndex != null)
-          {
-            Set<ByteString> keyBytesSet =
-                 attrIndex.substringKeys(normalizedBytes);
-            DatabaseEntry key = new DatabaseEntry();
-            for (ByteString keyBytes : keyBytesSet)
-            {
-              key.setData(keyBytes.toByteArray());
-              try
-              {
-                ConditionResult cr;
-                cr = substringIndex.containsID(txn, key, entryID);
-                if (cr == ConditionResult.FALSE)
-                {
-                  if (logger.isTraceEnabled())
-                  {
-                    logger.trace("Missing ID %d%n%s",
-                               entryID.longValue(),
-                               keyDump(substringIndex, key.getData()));
-                  }
-                  errorCount++;
-                }
-                else if (cr == ConditionResult.UNDEFINED)
-                {
-                  incrEntryLimitStats(substringIndex, key.getData());
-                }
-              }
-              catch (DatabaseException e)
-              {
-                if (logger.isTraceEnabled())
-                {
-                  logger.traceException(e);
-
-                  logger.trace("Error reading database: %s%n%s",
-                             e.getMessage(),
-                             keyDump(substringIndex, key.getData()));
-                }
-                errorCount++;
-              }
-            }
-          }
-
-          // Ordering index.
-          if (orderingIndex != null)
-          {
-            // Use the ordering matching rule to normalize the value.
-            OrderingMatchingRule orderingRule =
-                 attr.getAttributeType().getOrderingMatchingRule();
-
-            normalizedBytes = normalizeAttributeValue(orderingRule, value);
-
-            DatabaseEntry key = new DatabaseEntry(normalizedBytes);
-            try
-            {
-              ConditionResult cr;
-              cr = orderingIndex.containsID(txn, key, entryID);
-              if (cr == ConditionResult.FALSE)
-              {
-                if (logger.isTraceEnabled())
-                {
-                  logger.trace("Missing ID %d%n%s",
-                             entryID.longValue(),
-                             keyDump(orderingIndex, normalizedBytes));
-                }
-                errorCount++;
-              }
-              else if (cr == ConditionResult.UNDEFINED)
-              {
-                incrEntryLimitStats(orderingIndex, normalizedBytes);
-              }
-            }
-            catch (DatabaseException e)
-            {
-              if (logger.isTraceEnabled())
-              {
-                logger.traceException(e);
-
-                logger.trace("Error reading database: %s%n%s",
-                           e.getMessage(),
-                           keyDump(orderingIndex, normalizedBytes));
-              }
-              errorCount++;
-            }
-          }
-          // Approximate index.
-          if (approximateIndex != null)
-          {
-            // Use the approximate matching rule to normalize the value.
-            ApproximateMatchingRule approximateRule =
-                attr.getAttributeType().getApproximateMatchingRule();
-
-            normalizedBytes = normalizeAttributeValue(approximateRule, value);
-
-            DatabaseEntry key = new DatabaseEntry(normalizedBytes);
-            try
-            {
-              ConditionResult cr;
-              cr = approximateIndex.containsID(txn, key, entryID);
-              if (cr == ConditionResult.FALSE)
-              {
-                if (logger.isTraceEnabled())
-                {
-                  logger.trace("Missing ID %d%n%s",
-                             entryID.longValue(),
-                             keyDump(orderingIndex, normalizedBytes));
-                }
-                errorCount++;
-              }
-              else if (cr == ConditionResult.UNDEFINED)
-              {
-                incrEntryLimitStats(orderingIndex, normalizedBytes);
-              }
-            }
-            catch (DatabaseException e)
-            {
-              if (logger.isTraceEnabled())
-              {
-                logger.traceException(e);
-
-                logger.trace("Error reading database: %s%n%s",
-                           e.getMessage(),
-                           keyDump(approximateIndex, normalizedBytes));
-              }
-              errorCount++;
-            }
-          }
-        }
+        incrEntryLimitStats(index, key.getData());
       }
+    }
+    catch (DatabaseException e)
+    {
+      if (logger.isTraceEnabled())
+      {
+        logger.traceException(e);
+
+        logger.trace("Error reading database: %s%n%s",
+                   e.getMessage(),
+                   keyDump(index, key.getData()));
+      }
+      errorCount++;
     }
   }
 
