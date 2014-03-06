@@ -36,6 +36,7 @@ import static com.forgerock.opendj.util.StaticUtils.EOL;
 import java.io.BufferedReader;
 import java.io.Console;
 import java.io.EOFException;
+import java.io.IOError;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -491,6 +492,27 @@ public abstract class ConsoleApplication {
             // FIXME: should go direct to char[] and avoid the String.
             return readLineOfInput(prompt).toCharArray();
         }
+    }
+
+    /**
+     * Reads a password from the console without echoing it to the client.
+     * FIXME This method should disappear when all
+     * the tools will extend to ConsoleApplication.
+     *
+     * @return The password as an array of characters.
+     * @throws ClientException
+     *             If an error occurs when reading the password.
+     */
+    public static final char[] readPassword() throws ClientException {
+        try {
+            char[] password = System.console().readPassword();
+            if (password != null) {
+                return password;
+            }
+        } catch (IOError e) {
+            throw ClientException.adaptInputException(e);
+        }
+        return null;
     }
 
     /**

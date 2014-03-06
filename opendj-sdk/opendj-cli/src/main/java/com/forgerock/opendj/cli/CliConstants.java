@@ -61,6 +61,12 @@ public final class CliConstants {
     /** Default name of root user DN. */
     public static final String DEFAULT_ROOT_USER_DN = "cn=Directory Manager";
 
+    /** Default Administration Connector port. */
+    public static final int DEFAULT_ADMINISTRATION_CONNECTOR_PORT = 4444;
+
+    /** Default Administration UID. */
+    public static final String GLOBAL_ADMIN_UID = "admin";
+
 
     // Prevent instantiation.
     private CliConstants() {
