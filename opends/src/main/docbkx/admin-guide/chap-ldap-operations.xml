@@ -20,13 +20,14 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2013 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-ldap-operations'
  xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xsi:schemaLocation='http://docbook.org/ns/docbook
+                     http://docbook.org/xml/5.0/xsd/docbook.xsd'
  xmlns:xlink='http://www.w3.org/1999/xlink'
  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>Performing LDAP Operations</title>
@@ -962,17 +963,44 @@ DELETE operation successful for DN ou=Special Users,dc=example,dc=com</screen>
 The LDAP password modify operation was successful</screen>
 
    <tip>
-    <para>Whenever one user changes another user's password, OpenDJ considers
-    it a password reset. That often means the user has to change her password
-    again after the reset.</para>
-    <para>If you want your application to change a user's password, rather
-    than reset a user's password, have your application request the password
-    change as the user whose password is changing. To change the password as
-    the user, either bind as the user or use proxied authorization. For
-    instructions on the latter, see the section on <link
-    xlink:href="admin-guide#proxied-authz"
-    xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Configuring
-    Proxied Authorization</citetitle></link>.</para>
+    <para>
+     The <command>ldappasswordmodify</command> command uses
+     the LDAP Password Modify extended operation.
+     If this extended operation is performed on a connection
+     that is already associated with a user
+     &#8212;in other words, when a user first does a bind on the connection,
+     and then requests the LDAP Password Modify extended operation&#8212;
+     then the operation is performed as the user associated with the connection.
+     If the user associated with the connection
+     is not the user whose password is being changed,
+     then OpenDJ considers it a password reset.
+    </para>
+
+    <para>
+     Whenever one user changes another user's password,
+     OpenDJ considers it a password reset.
+     Often password policies specify that users
+     must change their passwords again after a password reset.
+    </para>
+
+    <para>
+     If you want your application to change a user's password,
+     rather than reset a user's password,
+     have your application request the password change
+     as the user whose password is changing.
+    </para>
+
+    <para>
+     To change the password as the user, you can
+     bind as the user whose password should be changed,
+     use the LDAP Password Modify extended operation
+     with an authorization ID but without performing a bind,
+     or use proxied authorization.
+     For instructions on using proxied authorization, see the section on
+     <link xlink:href="admin-guide#proxied-authz"
+           xlink:role="http://docbook.org/xlink/role/olink"
+     ><citetitle>Configuring Proxied Authorization</citetitle></link>.
+    </para>
    </tip>
 
    <para>You could also accomplish password reset with the following command,
