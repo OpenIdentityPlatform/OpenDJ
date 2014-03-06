@@ -359,12 +359,12 @@ public final class MatchingRule extends SchemaElement {
     }
 
     /**
-     * Returns the indexer for this matching rule.
+     * Returns the indexers for this matching rule.
      *
-     * @return the indexer for this matching rule.
+     * @return the collection of indexers for this matching rule.
      */
-    public Indexer getIndexer() {
-        return impl.getIndexer();
+    public Collection<? extends Indexer> getIndexers() {
+        return impl.getIndexers();
     }
 
     /**

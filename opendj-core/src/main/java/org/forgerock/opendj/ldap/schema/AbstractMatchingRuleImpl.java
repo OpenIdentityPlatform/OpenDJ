@@ -63,10 +63,12 @@ abstract class AbstractMatchingRuleImpl implements MatchingRuleImpl {
             this.normalizedAssertionValue = normalizedAssertionValue;
         }
 
-        public ConditionResult matches(final ByteSequence attributeValue) {
-            return ConditionResult.valueOf(normalizedAssertionValue.equals(attributeValue));
+        @Override
+        public ConditionResult matches(final ByteSequence normalizedAttributeValue) {
+            return ConditionResult.valueOf(normalizedAssertionValue.equals(normalizedAttributeValue));
         }
 
+        @Override
         public <T> T createIndexQuery(IndexQueryFactory<T> factory) throws DecodeException {
             return factory.createExactMatchQuery(indexID, normalizedAssertionValue);
         }
@@ -93,10 +95,12 @@ abstract class AbstractMatchingRuleImpl implements MatchingRuleImpl {
     };
 
     private static final Assertion UNDEFINED_ASSERTION = new Assertion() {
-        public ConditionResult matches(final ByteSequence attributeValue) {
+        @Override
+        public ConditionResult matches(final ByteSequence normalizedAttributeValue) {
             return ConditionResult.UNDEFINED;
         }
 
+        @Override
         public <T> T createIndexQuery(IndexQueryFactory<T> factory) throws DecodeException {
             // Subclassing this class will always work, albeit inefficiently.
             // This is better than throwing an exception for no good reason.
@@ -106,6 +110,7 @@ abstract class AbstractMatchingRuleImpl implements MatchingRuleImpl {
 
     private static final Comparator<ByteSequence> DEFAULT_COMPARATOR =
             new Comparator<ByteSequence>() {
+                @Override
                 public int compare(final ByteSequence o1, final ByteSequence o2) {
                     return o1.compareTo(o2);
                 }
@@ -115,26 +120,31 @@ abstract class AbstractMatchingRuleImpl implements MatchingRuleImpl {
         // Nothing to do.
     }
 
+    @Override
     public Comparator<ByteSequence> comparator(final Schema schema) {
         return DEFAULT_COMPARATOR;
     }
 
+    @Override
     public Assertion getAssertion(final Schema schema, final ByteSequence assertionValue)
             throws DecodeException {
         return UNDEFINED_ASSERTION;
     }
 
+    @Override
     public Assertion getSubstringAssertion(final Schema schema, final ByteSequence subInitial,
             final List<? extends ByteSequence> subAnyElements, final ByteSequence subFinal)
             throws DecodeException {
         return UNDEFINED_ASSERTION;
     }
 
+    @Override
     public Assertion getGreaterOrEqualAssertion(final Schema schema, final ByteSequence value)
             throws DecodeException {
         return UNDEFINED_ASSERTION;
     }
 
+    @Override
     public Assertion getLessOrEqualAssertion(final Schema schema, final ByteSequence value)
             throws DecodeException {
         return UNDEFINED_ASSERTION;
@@ -143,7 +153,7 @@ abstract class AbstractMatchingRuleImpl implements MatchingRuleImpl {
     /** {@inheritDoc} */
     @Override
     public boolean isIndexingSupported() {
-        return getIndexer() != null;
+        return getIndexers().isEmpty();
     }
 
 }

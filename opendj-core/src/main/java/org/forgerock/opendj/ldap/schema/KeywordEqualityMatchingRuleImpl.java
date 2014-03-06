@@ -29,6 +29,9 @@ package org.forgerock.opendj.ldap.schema;
 import static com.forgerock.opendj.util.StringPrepProfile.CASE_FOLD;
 import static com.forgerock.opendj.util.StringPrepProfile.TRIM;
 
+import java.util.Collection;
+import java.util.Collections;
+
 import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
@@ -119,8 +122,8 @@ final class KeywordEqualityMatchingRuleImpl extends AbstractEqualityMatchingRule
 
     /** {@inheritDoc} */
     @Override
-    public Indexer getIndexer() {
-        return null;
+    public Collection<? extends Indexer> getIndexers() {
+        return Collections.emptySet();
     }
 
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value) {

@@ -26,6 +26,7 @@
  */
 package org.forgerock.opendj.ldap.schema;
 
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 
@@ -141,11 +142,11 @@ public interface MatchingRuleImpl {
             throws DecodeException;
 
     /**
-     * Returns the indexer for this matching rule.
+     * Returns the indexers for this matching rule.
      *
-     * @return the indexer for this matching rule.
+     * @return a non null collection of indexers for this matching rule.
      */
-    Indexer getIndexer();
+    Collection<? extends Indexer> getIndexers();
 
     /**
      * Returns whether a backend can build an index for this matching rule.
