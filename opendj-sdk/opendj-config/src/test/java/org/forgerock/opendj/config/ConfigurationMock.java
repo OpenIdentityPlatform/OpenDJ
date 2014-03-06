@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS.
+ *      Copyright 2013-2014 ForgeRock AS.
  */
 package org.forgerock.opendj.config;
 
@@ -33,6 +33,7 @@ import java.util.Collection;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import org.mockito.internal.stubbing.defaultanswers.ReturnsEmptyValues;
 import org.mockito.invocation.InvocationOnMock;
 
 /**
@@ -76,20 +77,47 @@ public final class ConfigurationMock {
      * A stubbed answer for Configuration objects, allowing to return default
      * value for settings when available.
      */
-    private static class ConfigAnswer implements org.mockito.stubbing.Answer<Object> {
+    private static class ConfigAnswer extends ReturnsEmptyValues {
+
+        private static final long serialVersionUID = 1L;
 
         /** {@inheritDoc} */
         @Override
-        public Object answer(InvocationOnMock invocation) throws Throwable {
-            String definitionClassName = toDefinitionClassName(invocation.getMethod().getDeclaringClass()
-                    .getName());
-            Class<?> definitionClass = Class.forName(definitionClassName);
-            ManagedObjectDefinition<?, ?> definition = (ManagedObjectDefinition<?, ?>) definitionClass.getMethod(
-                    "getInstance").invoke(null);
-            Method getPropertyDefMethod =
-                    definitionClass.getMethod(invocation.getMethod().getName() + "PropertyDefinition");
-            Class<?> propertyReturnType = getPropertyReturnType(getPropertyDefMethod);
-            return getDefaultValue(definition, getPropertyDefMethod, propertyReturnType);
+        public Object answer(InvocationOnMock invocation) {
+            try {
+                String definitionClassName =
+                    toDefinitionClassName(invocation.getMethod().getDeclaringClass().getName());
+                Class<?> definitionClass = Class.forName(definitionClassName);
+                ManagedObjectDefinition<?, ?> definition =
+                    (ManagedObjectDefinition<?, ?>) definitionClass.getMethod("getInstance").invoke(null);
+                String invokedMethodName = invocation.getMethod().getName();
+                if (!isGetterMethod(invokedMethodName)) {
+                    return answerFromDefaultMockitoBehavior(invocation);
+                }
+                Method getPropertyDefMethod = getPropertyDefinitionMethod(definitionClass, invokedMethodName);
+                Class<?> propertyReturnType = getPropertyReturnType(getPropertyDefMethod);
+                Object defaultValue = getDefaultValue(definition, getPropertyDefMethod, propertyReturnType);
+                if (defaultValue == null) {
+                    return answerFromDefaultMockitoBehavior(invocation);
+                }
+                return defaultValue;
+            } catch (Exception e) {
+                return answerFromDefaultMockitoBehavior(invocation);
+            }
+        }
+
+        private Object answerFromDefaultMockitoBehavior(InvocationOnMock invocation) {
+            return super.answer(invocation);
+        }
+
+        private boolean isGetterMethod(String invokedMethodName) {
+            return invokedMethodName.startsWith("get") || invokedMethodName.startsWith("is");
+        }
+
+        private Method getPropertyDefinitionMethod(Class<?> definitionClass, String invokedMethodName)
+                throws SecurityException, NoSuchMethodException {
+            // Methods for boolean starts with "is" in Cfg class but with "get" in CfgDefn class.
+            return definitionClass.getMethod(invokedMethodName.replaceAll("^is", "get") + "PropertyDefinition");
         }
 
         /**
@@ -141,10 +169,13 @@ public final class ConfigurationMock {
             MockProviderVisitor<T> visitor = new MockProviderVisitor<T>(propertyDefinition);
             Collection<T> values = defaultBehaviorProvider.accept(visitor, null);
 
-            if (propertyDefinition.hasOption(PropertyOption.MULTI_VALUED)) {
+            if (values == null) {
+                // No default behavior defined
+                return null;
+            } else if (propertyDefinition.hasOption(PropertyOption.MULTI_VALUED)) {
                 return values;
             } else {
-                // single value returned
+                // Single value returned
                 return values.iterator().next();
             }
         }
