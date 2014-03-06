@@ -23,6 +23,7 @@
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
  *      Portions Copyright 2013-2014 Manuel Gaupp
+ *      Copyright 2014 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
 
