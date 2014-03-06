@@ -25,6 +25,9 @@
  */
 package org.forgerock.opendj.ldap.schema;
 
+import java.util.Collection;
+import java.util.Collections;
+
 import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.DecodeException;
@@ -36,7 +39,8 @@ import org.forgerock.opendj.ldap.spi.Indexer;
  */
 abstract class AbstractApproximateMatchingRuleImpl extends AbstractMatchingRuleImpl {
 
-    private final Indexer indexer = new DefaultIndexer("approximate");
+    private final Collection<? extends Indexer> indexers =
+            Collections.singleton(new DefaultIndexer("approximate"));
 
     AbstractApproximateMatchingRuleImpl() {
         // Nothing to do.
@@ -50,7 +54,7 @@ abstract class AbstractApproximateMatchingRuleImpl extends AbstractMatchingRuleI
 
     /** {@inheritDoc} */
     @Override
-    public Indexer getIndexer() {
-        return indexer;
+    public Collection<? extends Indexer> getIndexers() {
+        return indexers;
     }
 }

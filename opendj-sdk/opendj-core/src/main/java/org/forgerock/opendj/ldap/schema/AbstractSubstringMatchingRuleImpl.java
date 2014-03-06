@@ -29,6 +29,7 @@ package org.forgerock.opendj.ldap.schema;
 import static com.forgerock.opendj.ldap.CoreMessages.*;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.TreeSet;
@@ -79,8 +80,8 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
 
         /** {@inheritDoc} */
         @Override
-        public ConditionResult matches(final ByteSequence attributeValue) {
-            final int valueLength = attributeValue.length();
+        public ConditionResult matches(final ByteSequence normalizedAttributeValue) {
+            final int valueLength = normalizedAttributeValue.length();
 
             int pos = 0;
             if (normInitial != null) {
@@ -90,7 +91,7 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
                 }
 
                 for (; pos < initialLength; pos++) {
-                    if (normInitial.byteAt(pos) != attributeValue.byteAt(pos)) {
+                    if (normInitial.byteAt(pos) != normalizedAttributeValue.byteAt(pos)) {
                         return ConditionResult.FALSE;
                     }
                 }
@@ -105,10 +106,10 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
                     final int end = valueLength - anyLength;
                     boolean match = false;
                     for (; pos <= end; pos++) {
-                        if (element.byteAt(0) == attributeValue.byteAt(pos)) {
+                        if (element.byteAt(0) == normalizedAttributeValue.byteAt(pos)) {
                             boolean subMatch = true;
                             for (int i = 1; i < anyLength; i++) {
-                                if (element.byteAt(i) != attributeValue.byteAt(pos + i)) {
+                                if (element.byteAt(i) != normalizedAttributeValue.byteAt(pos + i)) {
                                     subMatch = false;
                                     break;
                                 }
@@ -138,7 +139,7 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
 
                 pos = valueLength - finalLength;
                 for (int i = 0; i < finalLength; i++, pos++) {
-                    if (normFinal.byteAt(i) != attributeValue.byteAt(pos)) {
+                    if (normFinal.byteAt(i) != normalizedAttributeValue.byteAt(pos)) {
                         return ConditionResult.FALSE;
                     }
                 }
@@ -251,7 +252,8 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
         }
     }
 
-    private SubstringIndexer substringIndexer = new SubstringIndexer();
+    private final Collection<? extends Indexer> indexers =
+              Collections.singleton(new SubstringIndexer());
 
     AbstractSubstringMatchingRuleImpl() {
         // Nothing to do.
@@ -565,8 +567,8 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
 
     /** {@inheritDoc} */
     @Override
-    public Indexer getIndexer() {
-        return substringIndexer;
+    public Collection<? extends Indexer> getIndexers() {
+        return indexers;
     }
 
 }

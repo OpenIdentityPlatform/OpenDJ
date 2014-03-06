@@ -26,6 +26,9 @@
  */
 package org.forgerock.opendj.ldap.schema;
 
+import java.util.Collection;
+import java.util.Collections;
+
 import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
@@ -40,7 +43,8 @@ import org.forgerock.opendj.ldap.spi.Indexer;
  */
 abstract class AbstractOrderingMatchingRuleImpl extends AbstractMatchingRuleImpl {
 
-    private final Indexer indexer = new DefaultIndexer("ordering");
+    private final Collection<? extends Indexer> indexers =
+            Collections.singleton(new DefaultIndexer("ordering"));
 
     AbstractOrderingMatchingRuleImpl() {
         // Nothing to do.
@@ -66,8 +70,8 @@ abstract class AbstractOrderingMatchingRuleImpl extends AbstractMatchingRuleImpl
             throws DecodeException {
         final ByteString normAssertion = normalizeAttributeValue(schema, value);
         return new Assertion() {
-            public ConditionResult matches(final ByteSequence attributeValue) {
-                return ConditionResult.valueOf(attributeValue.compareTo(normAssertion) >= 0);
+            public ConditionResult matches(final ByteSequence normalizedAttributeValue) {
+                return ConditionResult.valueOf(normalizedAttributeValue.compareTo(normAssertion) >= 0);
             }
 
             @Override
@@ -82,8 +86,8 @@ abstract class AbstractOrderingMatchingRuleImpl extends AbstractMatchingRuleImpl
             throws DecodeException {
         final ByteString normAssertion = normalizeAttributeValue(schema, value);
         return new Assertion() {
-            public ConditionResult matches(final ByteSequence attributeValue) {
-                return ConditionResult.valueOf(attributeValue.compareTo(normAssertion) <= 0);
+            public ConditionResult matches(final ByteSequence normalizedAttributeValue) {
+                return ConditionResult.valueOf(normalizedAttributeValue.compareTo(normAssertion) <= 0);
             }
 
             @Override
@@ -95,7 +99,7 @@ abstract class AbstractOrderingMatchingRuleImpl extends AbstractMatchingRuleImpl
 
     /** {@inheritDoc} */
     @Override
-    public Indexer getIndexer() {
-        return indexer;
+    public Collection<? extends Indexer> getIndexers() {
+        return indexers;
     }
 }
