@@ -55,6 +55,7 @@ import javax.security.sasl.Sasl;
 import javax.security.sasl.SaslClient;
 
 import com.forgerock.opendj.cli.ClientException;
+import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.ReturnCode;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -69,7 +70,6 @@ import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.Control;
 import org.opends.server.util.Base64;
-import org.opends.server.util.PasswordReader;
 
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
@@ -3582,7 +3582,14 @@ public class LDAPAuthenticationHandler
           if (gssapiAuthPW == null)
           {
             System.out.print(INFO_LDAPAUTH_PASSWORD_PROMPT.get(gssapiAuthID));
-            gssapiAuthPW = PasswordReader.readPassword();
+            try
+            {
+              gssapiAuthPW = ConsoleApplication.readPassword();
+            }
+            catch (ClientException e)
+            {
+              throw new UnsupportedCallbackException(cb, e.getLocalizedMessage());
+            }
           }
 
           ((PasswordCallback) cb).setPassword(gssapiAuthPW);

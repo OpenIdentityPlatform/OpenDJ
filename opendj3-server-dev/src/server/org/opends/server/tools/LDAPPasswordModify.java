@@ -48,12 +48,12 @@ import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.util.EmbeddedUtils;
-import org.opends.server.util.PasswordReader;
 
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.CommonArguments;
+import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.FileBasedArgument;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.StringArgument;
@@ -647,7 +647,7 @@ public class LDAPPasswordModify
         try
         {
           out.print(INFO_LDAPAUTH_PASSWORD_PROMPT.get(dn));
-          char[] pwChars = PasswordReader.readPassword();
+          char[] pwChars = ConsoleApplication.readPassword();
           //As per rfc 4513(section-5.1.2) a client should avoid sending
           //an empty password to the server.
           while(pwChars.length==0)
@@ -656,7 +656,7 @@ public class LDAPPasswordModify
                 INFO_LDAPAUTH_NON_EMPTY_PASSWORD.get(),
                 MAX_LINE_WIDTH));
             out.print(INFO_LDAPAUTH_PASSWORD_PROMPT.get(dn));
-            pwChars = PasswordReader.readPassword();
+            pwChars = ConsoleApplication.readPassword();
           }
           pw = new String(pwChars);
         } catch(Exception ex)
