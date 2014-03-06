@@ -34,6 +34,8 @@ import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
+import org.forgerock.opendj.ldap.spi.Indexer;
 
 /**
  * This class implements the keywordMatch matching rule defined in X.520. That
@@ -107,7 +109,18 @@ final class KeywordEqualityMatchingRuleImpl extends AbstractEqualityMatchingRule
                     return false;
                 }
             }
+
+            @Override
+            public <T> T createIndexQuery(IndexQueryFactory<T> factory) throws DecodeException {
+                return factory.createMatchAllQuery();
+            }
         };
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public Indexer getIndexer() {
+        return null;
     }
 
     public ByteString normalizeAttributeValue(final Schema schema, final ByteSequence value) {

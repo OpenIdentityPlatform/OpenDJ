@@ -31,12 +31,17 @@ import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
+import org.forgerock.opendj.ldap.spi.Indexer;
 
 /**
  * This class implements a default ordering matching rule that matches
  * normalized values in byte order.
  */
 abstract class AbstractOrderingMatchingRuleImpl extends AbstractMatchingRuleImpl {
+
+    private final Indexer indexer = new DefaultIndexer("ordering");
+
     AbstractOrderingMatchingRuleImpl() {
         // Nothing to do.
     }
@@ -47,6 +52,11 @@ abstract class AbstractOrderingMatchingRuleImpl extends AbstractMatchingRuleImpl
         return new Assertion() {
             public ConditionResult matches(final ByteSequence attributeValue) {
                 return ConditionResult.valueOf(attributeValue.compareTo(normAssertion) < 0);
+            }
+
+            @Override
+            public <T> T createIndexQuery(IndexQueryFactory<T> factory) throws DecodeException {
+                return factory.createRangeMatchQuery("ordering", ByteString.empty(), normAssertion, false, false);
             }
         };
     }
@@ -59,6 +69,11 @@ abstract class AbstractOrderingMatchingRuleImpl extends AbstractMatchingRuleImpl
             public ConditionResult matches(final ByteSequence attributeValue) {
                 return ConditionResult.valueOf(attributeValue.compareTo(normAssertion) >= 0);
             }
+
+            @Override
+            public <T> T createIndexQuery(IndexQueryFactory<T> factory) throws DecodeException {
+                return factory.createRangeMatchQuery("ordering", normAssertion, ByteString.empty(), true, false);
+            }
         };
     }
 
@@ -70,6 +85,17 @@ abstract class AbstractOrderingMatchingRuleImpl extends AbstractMatchingRuleImpl
             public ConditionResult matches(final ByteSequence attributeValue) {
                 return ConditionResult.valueOf(attributeValue.compareTo(normAssertion) <= 0);
             }
+
+            @Override
+            public <T> T createIndexQuery(IndexQueryFactory<T> factory) throws DecodeException {
+                return factory.createRangeMatchQuery("ordering", ByteString.empty(), normAssertion, false, true);
+            }
         };
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public Indexer getIndexer() {
+        return indexer;
     }
 }

@@ -20,37 +20,22 @@
  *
  * CDDL HEADER END
  *
- *
  *      Copyright 2014 ForgeRock AS
  */
-package org.forgerock.opendj.ldap.schema;
-
-import org.forgerock.opendj.ldap.Assertion;
-import org.forgerock.opendj.ldap.ByteSequence;
-import org.forgerock.opendj.ldap.DecodeException;
-import org.forgerock.opendj.ldap.spi.Indexer;
+package org.forgerock.opendj.ldap.spi;
 
 /**
- * This class implements an equality matching rule that matches normalized
- * values in byte order.
+ * Contains options indicating how indexing must be performed.
  */
-abstract class AbstractEqualityMatchingRuleImpl extends AbstractMatchingRuleImpl {
+public interface IndexingOptions {
 
-    private final Indexer indexer = new DefaultIndexer("equality");
+    /**
+     * Returns the maximum size to use when building the keys for the
+     * "substring" index.
+     *
+     * @return the maximum size to use when building the keys for the
+     *         "substring" index.
+     */
+    int substringKeySize();
 
-    AbstractEqualityMatchingRuleImpl() {
-        // Nothing to do.
-    }
-
-    @Override
-    public Assertion getAssertion(final Schema schema, final ByteSequence assertionValue)
-            throws DecodeException {
-        return DefaultAssertion.equality(normalizeAttributeValue(schema, assertionValue));
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public Indexer getIndexer() {
-        return indexer;
-    }
 }

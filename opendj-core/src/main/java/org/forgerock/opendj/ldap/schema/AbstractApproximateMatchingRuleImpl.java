@@ -28,12 +28,15 @@ package org.forgerock.opendj.ldap.schema;
 import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.spi.Indexer;
 
 /**
  * This class implements an approximate matching rule that matches normalized
  * values in byte order.
  */
 abstract class AbstractApproximateMatchingRuleImpl extends AbstractMatchingRuleImpl {
+
+    private final Indexer indexer = new DefaultIndexer("approximate");
 
     AbstractApproximateMatchingRuleImpl() {
         // Nothing to do.
@@ -45,4 +48,9 @@ abstract class AbstractApproximateMatchingRuleImpl extends AbstractMatchingRuleI
         return DefaultAssertion.approximate(normalizeAttributeValue(schema, assertionValue));
     }
 
+    /** {@inheritDoc} */
+    @Override
+    public Indexer getIndexer() {
+        return indexer;
+    }
 }

@@ -28,8 +28,10 @@ package org.forgerock.opendj.ldap.schema;
 
 import static com.forgerock.opendj.ldap.CoreMessages.*;
 
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.TreeSet;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.Assertion;
@@ -38,6 +40,9 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
+import org.forgerock.opendj.ldap.spi.Indexer;
+import org.forgerock.opendj.ldap.spi.IndexingOptions;
 
 import com.forgerock.opendj.util.SubstringReader;
 
@@ -46,18 +51,34 @@ import com.forgerock.opendj.util.SubstringReader;
  * normalized substring assertion values in byte order.
  */
 abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImpl {
-    static class DefaultSubstringAssertion implements Assertion {
+
+    /**
+     * Default assertion implementation for substring matching rules.
+     * For example, with the assertion value "initial*any1*any2*any3*final",
+     * the assertion will be decomposed like this:
+     * <ul>
+     * <li>normInitial will contain "initial"</li>
+     * <li>normAnys will contain [ "any1", "any2", "any3" ]</li>
+     * <li>normFinal will contain "final"</li>
+     * </ul>
+     */
+    static final class DefaultSubstringAssertion implements Assertion {
+        /** Normalized substring for the text before the first '*' character. */
         private final ByteString normInitial;
+        /** Normalized substrings for all text chunks in between '*' characters. */
         private final ByteString[] normAnys;
+        /** Normalized substring for the text after the last '*' character. */
         private final ByteString normFinal;
 
-        protected DefaultSubstringAssertion(final ByteString normInitial,
+        private DefaultSubstringAssertion(final ByteString normInitial,
                 final ByteString[] normAnys, final ByteString normFinal) {
             this.normInitial = normInitial;
             this.normAnys = normAnys;
             this.normFinal = normFinal;
         }
 
+        /** {@inheritDoc} */
+        @Override
         public ConditionResult matches(final ByteSequence attributeValue) {
             final int valueLength = attributeValue.length();
 
@@ -125,12 +146,118 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
 
             return ConditionResult.TRUE;
         }
+
+        /** {@inheritDoc} */
+        @Override
+        public <T> T createIndexQuery(IndexQueryFactory<T> factory) throws DecodeException {
+            final Collection<T> subqueries = new LinkedList<T>();
+            if (normInitial != null) {
+                // relies on the fact that equality indexes are also ordered
+                subqueries.add(rangeMatch(factory, "equality", normInitial));
+            }
+            if (normAnys != null) {
+                for (ByteString normAny : normAnys) {
+                    substringMatch(factory, normAny, subqueries);
+                }
+            }
+            if (normFinal != null) {
+                substringMatch(factory, normFinal, subqueries);
+            }
+            if (normInitial != null) {
+                // Add this one last to minimize the risk to run the same search twice
+                // (possible overlapping with the use of equality index at the start of this method)
+                substringMatch(factory, normInitial, subqueries);
+            }
+            return factory.createIntersectionQuery(subqueries);
+        }
+
+        private <T> T rangeMatch(IndexQueryFactory<T> factory, String indexID, ByteSequence lower) {
+            // Iterate through all the keys that have this value as the prefix.
+
+            // Set the upper bound for a range search.
+            // We need a key for the upper bound that is of equal length
+            // but slightly greater than the lower bound.
+            final ByteStringBuilder upper = new ByteStringBuilder(lower);
+
+            for (int i = upper.length() - 1; i >= 0; i--) {
+                if (upper.byteAt(i) == 0xFF) {
+                    // We have to carry the overflow to the more significant byte.
+                    upper.setByte(i, (byte) 0);
+                } else {
+                    // No overflow, we can stop.
+                    upper.setByte(i, (byte) (upper.byteAt(i) + 1));
+                    break;
+                }
+            }
+
+            // Read the range: lower <= keys < upper.
+            return factory.createRangeMatchQuery(indexID, lower, upper, true, false);
+        }
+
+        private <T> void substringMatch(final IndexQueryFactory<T> factory, final ByteString normSubstring,
+                final Collection<T> subqueries) {
+            int substrLength = factory.getIndexingOptions().substringKeySize();
+
+            // There are two cases, depending on whether the user-provided
+            // substring is smaller than the configured index substring length or not.
+            if (normSubstring.length() < substrLength) {
+                subqueries.add(rangeMatch(factory, "substring", normSubstring));
+            } else {
+                // Break the value up into fragments of length equal to the
+                // index substring length, and read those keys.
+
+                // Eliminate duplicates by putting the keys into a set.
+                final TreeSet<ByteSequence> substringKeys = new TreeSet<ByteSequence>();
+
+                // Example: The value is ABCDE and the substring length is 3.
+                // We produce the keys ABC BCD CDE.
+                for (int first = 0, last = substrLength;
+                     last <= normSubstring.length(); first++, last++) {
+                    substringKeys.add(normSubstring.subSequence(first, first + substrLength));
+                }
+
+                for (ByteSequence key : substringKeys) {
+                    subqueries.add(factory.createExactMatchQuery("substring", key));
+                }
+            }
+        }
+
     }
+
+    final class SubstringIndexer implements Indexer {
+
+        /** {@inheritDoc} */
+        @Override
+        public void createKeys(Schema schema, ByteSequence value, IndexingOptions options, Collection<ByteString> keys)
+                throws DecodeException {
+            final ByteString normValue = normalizeAttributeValue(schema, value);
+            final int substringKeySize = options.substringKeySize();
+
+            // Example: The value is ABCDE and the substring length is 3.
+            // We produce the keys ABC BCD CDE DE E
+            // To find values containing a short substring such as DE,
+            // iterate through keys with prefix DE. To find values
+            // containing a longer substring such as BCDE, read keys BCD and CDE.
+            for (int i = 0, remain = normValue.length(); remain > 0; i++, remain--) {
+                int len = Math.min(substringKeySize, remain);
+                keys.add(normValue.subSequence(i, i  + len));
+            }
+        }
+
+        /** {@inheritDoc} */
+        @Override
+        public String getIndexID() {
+            return "substring";
+        }
+    }
+
+    private SubstringIndexer substringIndexer = new SubstringIndexer();
 
     AbstractSubstringMatchingRuleImpl() {
         // Nothing to do.
     }
 
+    /** {@inheritDoc} */
     @Override
     public Assertion getAssertion(final Schema schema, final ByteSequence assertionValue)
             throws DecodeException {
@@ -143,7 +270,6 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
         List<ByteSequence> anyStrings = null;
 
         final String valueString = assertionValue.toString();
-
         if (valueString.length() == 1 && valueString.charAt(0) == '*') {
             return getSubstringAssertion(schema, initialString, anyStrings, finalString);
         }
@@ -156,8 +282,7 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
             initialString = normalizeSubString(schema, bytes);
         }
         if (reader.remaining() == 0) {
-            throw DecodeException.error(WARN_ATTR_SYNTAX_SUBSTRING_NO_WILDCARDS.get(assertionValue
-                    .toString()));
+            throw DecodeException.error(WARN_ATTR_SYNTAX_SUBSTRING_NO_WILDCARDS.get(assertionValue));
         }
         while (true) {
             reader.read();
@@ -165,7 +290,7 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
             if (reader.remaining() > 0) {
                 if (bytes.length() == 0) {
                     throw DecodeException.error(WARN_ATTR_SYNTAX_SUBSTRING_CONSECUTIVE_WILDCARDS
-                            .get(assertionValue.toString(), reader.pos()));
+                            .get(assertionValue, reader.pos()));
                 }
                 if (anyStrings == null) {
                     anyStrings = new LinkedList<ByteSequence>();
@@ -182,6 +307,7 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
         return getSubstringAssertion(schema, initialString, anyStrings, finalString);
     }
 
+    /** {@inheritDoc} */
     @Override
     public Assertion getSubstringAssertion(final Schema schema, final ByteSequence subInitial,
             final List<? extends ByteSequence> subAnyElements, final ByteSequence subFinal)
@@ -436,4 +562,11 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
             return ByteString.empty();
         }
     }
+
+    /** {@inheritDoc} */
+    @Override
+    public Indexer getIndexer() {
+        return substringIndexer;
+    }
+
 }

@@ -26,10 +26,13 @@
  */
 package org.forgerock.opendj.ldap;
 
+import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
+
 /**
  * A compiled attribute value assertion.
  */
 public interface Assertion {
+
     /**
      * Indicates whether the provided attribute value should be considered a
      * match for this assertion value according to the matching rule.
@@ -41,4 +44,20 @@ public interface Assertion {
      *         match, or {@code UNDEFINED} if the result is undefined.
      */
     ConditionResult matches(ByteSequence normalizedAttributeValue);
+
+    /**
+     * Returns an index query appropriate for the provided attribute
+     * value assertion.
+     *
+     * @param <T>
+     *          The type of index query created by the {@code factory}.
+     * @param factory
+     *          The index query factory which should be used to
+     *          construct the index query.
+     * @return The index query appropriate for the provided attribute
+     *         value assertion.
+     * @throws DecodeException
+     *           If an error occurs while generating the index query.
+     */
+    <T> T createIndexQuery(IndexQueryFactory<T> factory) throws DecodeException;
 }

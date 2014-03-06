@@ -31,6 +31,7 @@ import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
 
 /**
  * This class implements an extremely simple approximate matching rule that will
@@ -45,6 +46,11 @@ final class EqualLengthApproximateMatchingRuleImpl extends AbstractApproximateMa
             @Override
             public ConditionResult matches(final ByteSequence attributeValue) {
                 return ConditionResult.valueOf(attributeValue.length() == assertionValue.length());
+            }
+
+            @Override
+            public <T> T createIndexQuery(IndexQueryFactory<T> factory) throws DecodeException {
+                return factory.createExactMatchQuery("approximate", ByteString.valueOf(assertionValue.length()));
             }
         };
     }
