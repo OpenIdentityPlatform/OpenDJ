@@ -33,6 +33,7 @@ import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.spi.Indexer;
 
 /**
  * This interface defines the set of methods that must be implemented to define
@@ -139,4 +140,18 @@ public interface MatchingRuleImpl {
     ByteString normalizeAttributeValue(Schema schema, ByteSequence value)
             throws DecodeException;
 
+    /**
+     * Returns the indexer for this matching rule.
+     *
+     * @return the indexer for this matching rule.
+     */
+    Indexer getIndexer();
+
+    /**
+     * Returns whether a backend can build an index for this matching rule.
+     *
+     * @return true a backend can build an index for this matching rule,
+     *         false otherwise.
+     */
+    boolean isIndexingSupported();
 }

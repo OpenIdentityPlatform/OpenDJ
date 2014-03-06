@@ -178,4 +178,24 @@ Note: waiting on https://jira.codehaus.org/browse/MCLIRR-62 to be resolved to av
     <method>org.forgerock.opendj.ldap.LDAPOptions setDecodeOptions(org.forgerock.opendj.ldap.DecodeOptions)</method>
     <justification>OPENDJ-1197: Method return type has changed due to reification</justification>
   </difference>
+
+  <difference>
+    <className>org/forgerock/opendj/ldap/Assertion</className>
+    <differenceType>7012</differenceType>
+    <method>java.lang.Object createIndexQuery(org.forgerock.opendj.ldap.spi.IndexQueryFactory)</method>
+    <justification>OPENDJ-1308 Migrate schema support: allows decoupling indexing from a specific backend</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/schema/MatchingRuleImpl</className>
+    <differenceType>7012</differenceType>
+    <method>org.forgerock.opendj.ldap.spi.Indexer getIndexer()</method>
+    <justification>OPENDJ-1308 Migrate schema support: allows decoupling indexing from a specific backend</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/schema/MatchingRuleImpl</className>
+    <differenceType>7012</differenceType>
+    <method>boolean isIndexingSupported()</method>
+    <justification>OPENDJ-1308 Migrate schema support: allows decoupling indexing from a specific backend</justification>
+  </difference>
+
 </differences>

@@ -43,6 +43,7 @@ import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.spi.Indexer;
 
 
 /**
@@ -358,6 +359,15 @@ public final class MatchingRule extends SchemaElement {
      */
     public Assertion getLessOrEqualAssertion(final ByteSequence value) throws DecodeException {
         return impl.getLessOrEqualAssertion(schema, value);
+    }
+
+    /**
+     * Returns the indexer for this matching rule.
+     *
+     * @return the indexer for this matching rule.
+     */
+    public Indexer getIndexer() {
+        return impl.getIndexer();
     }
 
     /**

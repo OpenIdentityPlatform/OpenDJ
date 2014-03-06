@@ -23,7 +23,6 @@
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
  *      Portions Copyright 2013-2014 Manuel Gaupp
- *      Copyright 2014 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -43,8 +42,8 @@ import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DecodeException;
-import org.forgerock.opendj.ldap.GSERParser;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.GSERParser;
 
 import com.forgerock.opendj.util.StaticUtils;
 
@@ -55,7 +54,7 @@ import static com.forgerock.opendj.ldap.CoreMessages.*;
  * X.509 and referenced in RFC 4523.
  */
 final class CertificateExactMatchingRuleImpl
-        extends AbstractMatchingRuleImpl {
+        extends AbstractEqualityMatchingRuleImpl {
 
     private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
