@@ -35,6 +35,7 @@ import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.Syntax;
+import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
 
 /**
  * This class provides default implementation of MatchingRule. A
@@ -105,6 +106,13 @@ public abstract class AbstractMatchingRule implements MatchingRule
       public ConditionResult matches(ByteSequence attributeValue)
       {
         return valuesMatch(attributeValue, assertionValue);
+      }
+
+      @Override
+      public <T> T createIndexQuery(IndexQueryFactory<T> factory)
+          throws DecodeException
+      {
+        throw new RuntimeException("Not implemented");
       }
     };
   }
