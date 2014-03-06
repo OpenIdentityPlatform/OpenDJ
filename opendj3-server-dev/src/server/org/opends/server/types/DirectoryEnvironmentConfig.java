@@ -61,6 +61,8 @@ public final class DirectoryEnvironmentConfig
   /** The set of properties for the environment config. */
   private final Map<String, String> configProperties;
 
+  private final boolean checkIfServerIsRunning;
+
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
@@ -69,7 +71,19 @@ public final class DirectoryEnvironmentConfig
    */
   public DirectoryEnvironmentConfig()
   {
-    this(System.getProperties());
+    this(true);
+  }
+
+  /**
+   * Creates a new directory environment configuration initialized from the
+   * system properties defined in the JVM.
+   *
+   * @param checkIfServerIsRunning
+   *          If {@code true}, prevent any change when server is running.
+   */
+  public DirectoryEnvironmentConfig(boolean checkIfServerIsRunning)
+  {
+    this(System.getProperties(), checkIfServerIsRunning);
   }
 
 
@@ -81,9 +95,12 @@ public final class DirectoryEnvironmentConfig
    * @param  properties  The properties to use when initializing this
    *                     environment configuration, or {@code null}
    *                     to use an empty set of properties.
+   * @param checkIfServerIsRunning
+   *            If {@code true}, prevent any change when server is running.
    */
-  public DirectoryEnvironmentConfig(Properties properties)
+  public DirectoryEnvironmentConfig(Properties properties, boolean checkIfServerIsRunning)
   {
+    this.checkIfServerIsRunning = checkIfServerIsRunning;
     configProperties = new HashMap<String,String>();
     if (properties != null)
     {
@@ -106,9 +123,12 @@ public final class DirectoryEnvironmentConfig
    * @param  properties  The properties to use when initializing this
    *                     environment configuration, or {@code null}
    *                     to use an empty set of properties.
+   * @param checkIfServerIsRunning
+   *            If {@code true}, prevent any change when server is running.
    */
-  public DirectoryEnvironmentConfig(Map<String,String> properties)
+  public DirectoryEnvironmentConfig(Map<String,String> properties, boolean checkIfServerIsRunning)
   {
+    this.checkIfServerIsRunning = checkIfServerIsRunning;
     if (properties == null)
     {
       configProperties = new HashMap<String,String>();
@@ -163,11 +183,7 @@ public final class DirectoryEnvironmentConfig
   public String setProperty(String name, String value)
          throws InitializationException
   {
-    if (DirectoryServer.isRunning())
-    {
-      throw new InitializationException(
-              ERR_DIRCFG_SERVER_ALREADY_RUNNING.get());
-    }
+    checkServerIsRunning();
 
     if (value == null)
     {
@@ -352,11 +368,7 @@ public final class DirectoryEnvironmentConfig
   public File setServerRoot(File serverRoot)
          throws InitializationException
   {
-    if (DirectoryServer.isRunning())
-    {
-      throw new InitializationException(
-              ERR_DIRCFG_SERVER_ALREADY_RUNNING.get());
-    }
+    checkServerIsRunning();
 
     if (!serverRoot.exists() || !serverRoot.isDirectory())
     {
@@ -420,11 +432,7 @@ public final class DirectoryEnvironmentConfig
   public File setInstanceRoot(File instanceRoot)
          throws InitializationException
   {
-    if (DirectoryServer.isRunning())
-    {
-      throw new InitializationException(
-              ERR_DIRCFG_SERVER_ALREADY_RUNNING.get());
-    }
+    checkServerIsRunning();
 
     if (!instanceRoot.exists() || !instanceRoot.isDirectory())
     {
@@ -493,11 +501,7 @@ public final class DirectoryEnvironmentConfig
   public File setConfigFile(File configFile)
          throws InitializationException
   {
-    if (DirectoryServer.isRunning())
-    {
-      throw new InitializationException(
-              ERR_DIRCFG_SERVER_ALREADY_RUNNING.get());
-    }
+    checkServerIsRunning();
 
     if (!configFile.exists() || !configFile.isFile())
     {
@@ -563,11 +567,7 @@ public final class DirectoryEnvironmentConfig
   public Class setConfigClass(Class configClass)
          throws InitializationException
   {
-    if (DirectoryServer.isRunning())
-    {
-      throw new InitializationException(
-              ERR_DIRCFG_SERVER_ALREADY_RUNNING.get());
-    }
+    checkServerIsRunning();
 
     if (!ConfigHandler.class.isAssignableFrom(configClass))
     {
@@ -696,11 +696,7 @@ public final class DirectoryEnvironmentConfig
                       boolean maintainConfigArchive)
          throws InitializationException
   {
-    if (DirectoryServer.isRunning())
-    {
-      throw new InitializationException(
-              ERR_DIRCFG_SERVER_ALREADY_RUNNING.get());
-    }
+    checkServerIsRunning();
 
     String oldMaintainStr =
          setProperty(PROPERTY_MAINTAIN_CONFIG_ARCHIVE,
@@ -768,11 +764,7 @@ public final class DirectoryEnvironmentConfig
   public int setMaxConfigArchiveSize(int maxConfigArchiveSize)
          throws InitializationException
   {
-    if (DirectoryServer.isRunning())
-    {
-      throw new InitializationException(
-              ERR_DIRCFG_SERVER_ALREADY_RUNNING.get());
-    }
+    checkServerIsRunning();
 
     if (maxConfigArchiveSize < 0)
     {
@@ -864,11 +856,7 @@ public final class DirectoryEnvironmentConfig
   public File setSchemaDirectory(File schemaDirectory)
          throws InitializationException
   {
-    if (DirectoryServer.isRunning())
-    {
-      throw new InitializationException(
-              ERR_DIRCFG_SERVER_ALREADY_RUNNING.get());
-    }
+    checkServerIsRunning();
 
     if (!schemaDirectory.exists() || !schemaDirectory.isDirectory())
     {
@@ -936,11 +924,7 @@ public final class DirectoryEnvironmentConfig
   public File setLockDirectory(File lockDirectory)
          throws InitializationException
   {
-    if (DirectoryServer.isRunning())
-    {
-      throw new InitializationException(
-              ERR_DIRCFG_SERVER_ALREADY_RUNNING.get());
-    }
+    checkServerIsRunning();
 
     if (lockDirectory.exists())
     {
@@ -1049,11 +1033,7 @@ public final class DirectoryEnvironmentConfig
   private boolean setBooleanProperty(String propertyName, boolean newValue)
       throws InitializationException
   {
-    if (DirectoryServer.isRunning())
-    {
-      throw new InitializationException(
-              ERR_DIRCFG_SERVER_ALREADY_RUNNING.get());
-    }
+    checkServerIsRunning();
 
     final String oldValue = setProperty(propertyName, String.valueOf(newValue));
     return "true".equalsIgnoreCase(oldValue);
@@ -1195,11 +1175,7 @@ public final class DirectoryEnvironmentConfig
   public int setLockManagerConcurrencyLevel(int concurrencyLevel)
          throws InitializationException
   {
-    if (DirectoryServer.isRunning())
-    {
-      throw new InitializationException(
-              ERR_DIRCFG_SERVER_ALREADY_RUNNING.get());
-    }
+    checkServerIsRunning();
 
     if (concurrencyLevel <= 0)
     {
@@ -1271,11 +1247,7 @@ public final class DirectoryEnvironmentConfig
   public boolean setLockManagerFairOrdering(boolean fairOrdering)
          throws InitializationException
   {
-    if (DirectoryServer.isRunning())
-    {
-      throw new InitializationException(
-              ERR_DIRCFG_SERVER_ALREADY_RUNNING.get());
-    }
+    checkServerIsRunning();
 
     String fairOrderingStr =
          setProperty(PROPERTY_LOCK_MANAGER_FAIR_ORDERING,
@@ -1294,6 +1266,16 @@ public final class DirectoryEnvironmentConfig
       {
         return LockManager.DEFAULT_FAIR_ORDERING;
       }
+    }
+  }
+
+  /** Throws an exception if server is running and it is not allowed. */
+  private void checkServerIsRunning() throws InitializationException
+  {
+    if (checkIfServerIsRunning && DirectoryServer.isRunning())
+    {
+      throw new InitializationException(
+              ERR_DIRCFG_SERVER_ALREADY_RUNNING.get());
     }
   }
 
@@ -1348,11 +1330,7 @@ public final class DirectoryEnvironmentConfig
   public int setLockManagerTableSize(int lockTableSize)
          throws InitializationException
   {
-    if (DirectoryServer.isRunning())
-    {
-      throw new InitializationException(
-              ERR_DIRCFG_SERVER_ALREADY_RUNNING.get());
-    }
+    checkServerIsRunning();
 
     if (lockTableSize <= 0)
     {

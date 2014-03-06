@@ -57,9 +57,7 @@
     <dependency org="org.forgerock.opendj"  name="opendj-server3x-adapter"  rev="&opendj.sdk.version;">
       <exclude module="opendj-server" />
     </dependency>
-    <dependency org="org.forgerock.opendj"  name="opendj-server"            rev="&opendj.sdk.version;">
-      <exclude module="opendj-config" />
-    </dependency>
+    <dependency org="org.forgerock.opendj"  name="opendj-server"            rev="&opendj.sdk.version;" />
     <dependency org="org.glassfish.grizzly" name="grizzly-http-servlet"     rev="&grizzly.version;">
       <exclude module="javax.servlet-api" />
     </dependency>

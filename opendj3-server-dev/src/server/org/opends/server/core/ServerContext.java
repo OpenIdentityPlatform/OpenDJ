@@ -25,7 +25,8 @@
  */
 package org.opends.server.core;
 
-import org.opends.server.admin.server.ServerManagementContext;
+import org.forgerock.opendj.config.server.ServerManagementContext;
+import org.opends.server.schema.SchemaUpdater;
 import org.opends.server.types.DirectoryEnvironmentConfig;
 import org.opends.server.types.Schema;
 
@@ -55,6 +56,14 @@ public interface ServerContext
    * @return the schema
    */
   public Schema getSchema();
+
+  /**
+   * Returns the schema updater, which provides
+   * a mean to update the server's current schema.
+   *
+   * @return the schema updater
+   */
+  public SchemaUpdater getSchemaUpdater();
 
   /**
    * Returns the environment of the server.

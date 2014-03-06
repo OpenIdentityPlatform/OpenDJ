@@ -23,7 +23,7 @@
   !
   !
   !      Copyright 2007-2010 Sun Microsystems, Inc.
-  !      Portions Copyright 2011 ForgeRock AS
+  !      Portions Copyright 2011-2014 ForgeRock AS
   ! -->
 <adm:root-managed-object xmlns:adm="http://www.opends.org/admin"
   xmlns:ldap="http://www.opends.org/admin-ldap"
@@ -38,6 +38,17 @@
     <adm:one-to-one />
     <adm:profile name="ldap">
       <ldap:rdn-sequence>cn=config</ldap:rdn-sequence>
+    </adm:profile>
+  </adm:relation>
+  <adm:relation name="schema-provider">
+    <adm:one-to-many />
+    <adm:profile name="ldap">
+      <ldap:rdn-sequence>cn=Schema Providers,cn=config</ldap:rdn-sequence>
+    </adm:profile>
+     <adm:profile name="cli">
+      <cli:relation>
+        <cli:default-property name="enabled" />
+      </cli:relation>
     </adm:profile>
   </adm:relation>
   <adm:relation name="connection-handler">
