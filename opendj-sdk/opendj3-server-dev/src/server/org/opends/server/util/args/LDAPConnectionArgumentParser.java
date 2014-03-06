@@ -28,14 +28,18 @@
 package org.opends.server.util.args;
 
 import org.forgerock.i18n.LocalizableMessage;
+
 import static org.opends.messages.ToolMessages.*;
+
 import org.opends.server.tools.LDAPConnection;
 import org.opends.server.tools.LDAPConnectionOptions;
 import org.opends.server.tools.SSLConnectionFactory;
 import org.opends.server.tools.SSLConnectionException;
 import org.opends.server.tools.LDAPConnectionException;
+
 import static org.opends.server.util.ServerConstants.MAX_LINE_WIDTH;
 import static org.opends.server.util.StaticUtils.wrapText;
+
 import org.opends.server.util.cli.LDAPConnectionConsoleInteraction;
 import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
 import org.opends.server.types.OpenDsException;
@@ -44,6 +48,7 @@ import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.ArgumentGroup;
+import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.FileBasedArgument;
 import com.forgerock.opendj.cli.StringArgument;
 
@@ -51,12 +56,12 @@ import java.util.LinkedList;
 import java.util.LinkedHashSet;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.io.PrintStream;
+
 import javax.net.ssl.SSLException;
-import org.opends.server.util.PasswordReader;
 
 /**
  * Creates an argument parser pre-populated with arguments for specifying
- * information for openning and LDAPConnection an LDAP connection.
+ * information for opening and LDAPConnection an LDAP connection.
  */
 public class LDAPConnectionArgumentParser extends ArgumentParser {
 
@@ -498,7 +503,7 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
       try
       {
         out.print(INFO_LDAPAUTH_PASSWORD_PROMPT.get(bindDN));
-        char[] pwChars = PasswordReader.readPassword();
+        char[] pwChars = ConsoleApplication.readPassword();
         pwd = new String(pwChars);
         //As per rfc 4513(section-5.1.2) a client should avoid sending
         //an empty password to the server.
@@ -508,7 +513,7 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
                   INFO_LDAPAUTH_NON_EMPTY_PASSWORD.get(),
                   MAX_LINE_WIDTH));
           out.print(INFO_LDAPAUTH_PASSWORD_PROMPT.get(bindDN));
-          pwChars = PasswordReader.readPassword();
+          pwChars = ConsoleApplication.readPassword();
         }
         pwd = new String(pwChars);
       } catch(Exception ex)

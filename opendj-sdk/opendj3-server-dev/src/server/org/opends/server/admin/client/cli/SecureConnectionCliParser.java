@@ -27,10 +27,11 @@
 
 package org.opends.server.admin.client.cli;
 
-import static org.opends.server.util.ServerConstants.EOL;
-import static org.opends.server.util.ServerConstants.MAX_LINE_WIDTH;
+import static com.forgerock.opendj.cli.CliMessages.*;
+import static com.forgerock.opendj.cli.Utils.LINE_SEPARATOR;
+import static com.forgerock.opendj.cli.Utils.MAX_LINE_WIDTH;
 import static org.opends.server.util.StaticUtils.wrapText;
-import static org.opends.messages.ToolMessages.*;
+import static com.forgerock.opendj.cli.ReturnCode.CONFLICTING_ARGS;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -38,19 +39,18 @@ import java.io.PrintStream;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 
-import javax.net.ssl.KeyManager;
-
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.admin.ads.util.ApplicationTrustManager;
-import org.opends.server.util.PasswordReader;
 
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentGroup;
 import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.ClientException;
 import com.forgerock.opendj.cli.CommonArguments;
+import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.FileBasedArgument;
 import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.cli.SubCommandArgumentParser;
@@ -146,59 +146,32 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
    * @param err
    *          The error stream to used if we have to prompt to the
    *          user.
-   * @param clearArg
+   * @param pwdArg
    *          The password StringArgument argument.
    * @param fileArg
    *          The password FileBased argument.
    * @return The password stored into the specified file on by the
    *         command line argument, or prompts it if not specified.
    */
-  protected String getBindPassword(String dn,
-      OutputStream out, OutputStream err, StringArgument clearArg,
-      FileBasedArgument fileArg)
+  protected String getBindPassword(String dn, OutputStream out,
+      OutputStream err, StringArgument pwdArg, FileBasedArgument fileArg)
   {
-    if (clearArg.isPresent())
-    {
-      String bindPasswordValue = clearArg.getValue();
-      if(bindPasswordValue != null && "-".equals(bindPasswordValue))
-      {
-        // read the password from the stdin.
-        try
-        {
-          out.write(INFO_LDAPAUTH_PASSWORD_PROMPT.get(dn).toString().getBytes());
-          out.flush();
-          char[] pwChars = PasswordReader.readPassword();
-          bindPasswordValue = new String(pwChars);
-        } catch(Exception ex)
-        {
-          logger.traceException(ex);
-          try
-          {
-            err.write(wrapText(ex.getMessage(), MAX_LINE_WIDTH).getBytes());
-            err.write(EOL.getBytes());
-          }
-          catch (IOException e)
-          {
-          }
-          return null;
-        }
-      }
-      return bindPasswordValue;
-    }
-    else
+    String bindPasswordValue = null;
     if (fileArg.isPresent())
     {
       return fileArg.getValue();
     }
-    else
+    else if (pwdArg.isPresent())
     {
-      // read the password from the stdin.
+      bindPasswordValue = pwdArg.getValue();
+    }
+    if ((bindPasswordValue != null && "-".equals(bindPasswordValue))
+        || bindPasswordValue == null)
+    {
+      // Read the password from the STDin.
       try
       {
-        out.write(INFO_LDAPAUTH_PASSWORD_PROMPT.get(dn).toString().getBytes());
-        out.flush();
-        char[] pwChars = PasswordReader.readPassword();
-        return new String(pwChars);
+        return readPassword(dn, out);
       }
       catch (Exception ex)
       {
@@ -206,19 +179,28 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
         try
         {
           err.write(wrapText(ex.getMessage(), MAX_LINE_WIDTH).getBytes());
-          err.write(EOL.getBytes());
+          err.write(LINE_SEPARATOR.getBytes());
         }
         catch (IOException e)
         {
+          // Nothing to do.
         }
-        return null;
       }
     }
+    return bindPasswordValue;
+  }
 
+  private String readPassword(String dn, OutputStream out) throws IOException,
+      ClientException
+  {
+    out.write(INFO_LDAPAUTH_PASSWORD_PROMPT.get(dn).toString().getBytes());
+    out.flush();
+    char[] pwChars = ConsoleApplication.readPassword();
+    return new String(pwChars);
   }
 
   /**
-   * Get the password which has to be used for the command.
+   * Gets the password which has to be used for the command.
    *
    * @param dn
    *          The user DN for which to password could be asked.
@@ -238,7 +220,7 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
   }
 
   /**
-   * Get the password which has to be used for the command without prompting
+   * Gets the password which has to be used for the command without prompting
    * the user.  If no password was specified, return null.
    *
    * @return The password stored into the specified file on by the
@@ -366,10 +348,10 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
               .getLongIdentifier());
       if (buf.length() > 0)
       {
-        buf.append(EOL);
+        buf.append(LINE_SEPARATOR);
       }
       buf.append(message);
-      ret = 1;
+      return CONFLICTING_ARGS.get();
     }
 
     return ret;
@@ -430,16 +412,6 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
   public ApplicationTrustManager getTrustManager()
   {
     return secureArgsList.getTrustManager();
-  }
-
-  /**
-   * Handle KeyStore.
-   *
-   * @return The keyStore manager to be used for the command.
-   */
-  public KeyManager getKeyManager()
-  {
-    return secureArgsList.getKeyManager() ;
   }
 
   /**

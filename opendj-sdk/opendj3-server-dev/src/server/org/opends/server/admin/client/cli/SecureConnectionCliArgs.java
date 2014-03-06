@@ -27,21 +27,15 @@
 package org.opends.server.admin.client.cli;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.OPTION_LONG_ADMIN_UID;
-import static com.forgerock.opendj.cli.CliMessages.INFO_DESCRIPTION_ADMIN_PORT;
+import static com.forgerock.opendj.cli.CliMessages.*;
 import static com.forgerock.opendj.cli.ReturnCode.CONFLICTING_ARGS;
 import static com.forgerock.opendj.cli.ReturnCode.SUCCESS;
 import static com.forgerock.opendj.cli.Utils.LINE_SEPARATOR;
-import static org.opends.server.util.ServerConstants.MAX_LINE_WIDTH;
-import static org.opends.server.util.StaticUtils.close;
-import static org.opends.server.util.StaticUtils.wrapText;
-import static org.opends.messages.AdminToolMessages.*;
-import static org.opends.messages.ToolMessages.*;
+import static org.forgerock.util.Utils.closeSilently;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintStream;
 import java.net.InetAddress;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -50,15 +44,11 @@ import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 
-import javax.net.ssl.KeyManager;
-
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.admin.ads.util.ApplicationKeyManager;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
-import org.opends.quicksetup.Constants;
 import org.opends.server.admin.AdministrationConnector;
 import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.admin.std.server.AdministrationConnectorCfg;
@@ -67,12 +57,11 @@ import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.admin.std.server.TrustManagerProviderCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.util.PasswordReader;
-import org.opends.server.util.SelectableCertificateKeyManager;
 
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.CliConstants;
 import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.FileBasedArgument;
 import com.forgerock.opendj.cli.IntegerArgument;
@@ -265,145 +254,6 @@ public final class SecureConnectionCliArgs
   }
 
   /**
-   * Get the password which has to be used for the command.
-   *
-   * @param dn
-   *          The user DN for which to password could be asked.
-   * @param out
-   *          The input stream to used if we have to prompt to the
-   *          user.
-   * @param err
-   *          The error stream to used if we have to prompt to the
-   *          user.
-   * @param clearArg
-   *          The password StringArgument argument.
-   * @param fileArg
-   *          The password FileBased argument.
-   * @return The password stored into the specified file on by the
-   *         command line argument, or prompts it if not specified.
-   */
-  public String getBindPassword(String dn,
-      OutputStream out, OutputStream err, StringArgument clearArg,
-      FileBasedArgument fileArg)
-  {
-    if (clearArg.isPresent())
-    {
-      String bindPasswordValue = clearArg.getValue();
-      if(bindPasswordValue != null && "-".equals(bindPasswordValue))
-      {
-        // read the password from the stdin.
-        try
-        {
-          out.write(INFO_LDAPAUTH_PASSWORD_PROMPT.get(dn).toString().getBytes());
-          out.flush();
-          char[] pwChars = PasswordReader.readPassword();
-          bindPasswordValue = new String(pwChars);
-        } catch(Exception ex)
-        {
-          logger.traceException(ex);
-          try
-          {
-            err.write(wrapText(ex.getMessage(), MAX_LINE_WIDTH).getBytes());
-            err.write(LINE_SEPARATOR.getBytes());
-          }
-          catch (IOException e)
-          {
-          }
-          return null;
-        }
-      }
-      return bindPasswordValue;
-    }
-    else
-      if (fileArg.isPresent())
-      {
-        return fileArg.getValue();
-      }
-      else
-      {
-        // read the password from the stdin.
-        try
-        {
-          out.write(
-              INFO_LDAPAUTH_PASSWORD_PROMPT.get(dn).toString().getBytes());
-          out.flush();
-          char[] pwChars = PasswordReader.readPassword();
-          return new String(pwChars);
-        }
-        catch (Exception ex)
-        {
-          logger.traceException(ex);
-          try
-          {
-            err.write(wrapText(ex.getMessage(), MAX_LINE_WIDTH).getBytes());
-            err.write(LINE_SEPARATOR.getBytes());
-          }
-          catch (IOException e)
-          {
-          }
-          return null;
-        }
-      }
-
-  }
-
-  /**
-   * Get the password which has to be used for the command.
-   *
-   * @param dn
-   *          The user DN for which to password could be asked.
-   * @param out
-   *          The input stream to used if we have to prompt to the
-   *          user.
-   * @param err
-   *          The error stream to used if we have to prompt to the
-   *          user.
-   * @return The password stored into the specified file on by the
-   *         command line argument, or prompts it if not specified.
-   */
-  public String getBindPassword(String dn, OutputStream out, OutputStream err)
-  {
-    return getBindPassword(dn, out, err, bindPasswordArg, bindPasswordFileArg);
-  }
-
-  /**
-   * Get the password which has to be used for the command without prompting
-   * the user.  If no password was specified, return null.
-   *
-   * @param clearArg
-   *          The password StringArgument argument.
-   * @param fileArg
-   *          The password FileBased argument.
-   * @return The password stored into the specified file on by the
-   *         command line argument, or null it if not specified.
-   */
-  public String getBindPassword(StringArgument clearArg,
-      FileBasedArgument fileArg)
-  {
-    if (clearArg.isPresent())
-    {
-      return clearArg.getValue();
-    }
-    else if (fileArg.isPresent())
-    {
-      return fileArg.getValue();
-    }
-    return null;
-  }
-
-  /**
-   * Get the password which has to be used for the command without prompting
-   * the user.  If no password was specified, return null.
-   *
-   * @return The password stored into the specified file on by the
-   *         command line argument, or null it if not specified.
-   */
-  public String getBindPassword()
-  {
-    return getBindPassword(bindPasswordArg, bindPasswordFileArg);
-  }
-
-  /**
    * Initialize Global option.
    *
    * @throws ArgumentException
@@ -453,7 +303,7 @@ public final class SecureConnectionCliArgs
     adminUidArg = new StringArgument("adminUID", 'I',
         OPTION_LONG_ADMIN_UID, false, false, true,
         INFO_ADMINUID_PLACEHOLDER.get(),
-        Constants.GLOBAL_ADMIN_UID, null,
+        CliConstants.GLOBAL_ADMIN_UID, null,
         INFO_DESCRIPTION_ADMIN_UID.get());
     adminUidArg.setPropertyName(OPTION_LONG_ADMIN_UID);
     adminUidArg.setHidden(true);
@@ -626,23 +476,6 @@ public final class SecureConnectionCliArgs
 
     return SUCCESS.get();
   }
-  /**
-   * Indication if provided global options are validate.
-   *
-   * @param err the stream to be used to print error message.
-   * @return return code.
-   */
-  public int validateGlobalOptions(PrintStream err)
-  {
-    LocalizableMessageBuilder buf = new LocalizableMessageBuilder();
-    int returnValue = validateGlobalOptions(buf);
-    if (buf.length() > 0)
-    {
-      err.println(wrapText(buf.toString(), MAX_LINE_WIDTH));
-    }
-    return returnValue;
-  }
-
 
   /**
    * Indicate if the SSL mode is required.
@@ -756,7 +589,7 @@ public final class SecureConnectionCliArgs
           }
           finally
           {
-            close(fos);
+            closeSilently(fos);
           }
         }
       trustManager = new ApplicationTrustManager(truststore);
@@ -764,87 +597,7 @@ public final class SecureConnectionCliArgs
     return trustManager;
   }
 
-  /**
-   * Handle KeyStore.
-   *
-   * @return The keyStore manager to be used for the command.
-   */
-  public KeyManager getKeyManager()
-  {
-    KeyStore keyStore = null;
-    String keyStorePasswordStringValue = null;
-    char[] keyStorePasswordValue = null;
-    if (keyStorePathArg.isPresent())
-    {
-      FileInputStream fos = null;
-      try
-      {
-        fos = new FileInputStream(keyStorePathArg.getValue());
-        if (keyStorePasswordArg.isPresent())
-        {
-          keyStorePasswordStringValue = keyStorePasswordArg.getValue();
-        }
-        else if (keyStorePasswordFileArg.isPresent())
-        {
-          keyStorePasswordStringValue = keyStorePasswordFileArg.getValue();
-        }
-        if (keyStorePasswordStringValue != null)
-        {
-          keyStorePasswordValue = keyStorePasswordStringValue.toCharArray();
-        }
 
-        keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
-        keyStore.load(fos,keyStorePasswordValue);
-      }
-      catch (KeyStoreException e)
-      {
-        // Nothing to do: if this occurs we will systematically refuse
-        // the certificates. Maybe we should avoid this and be strict, but
-        // we are in a best effort mode.
-        logger.warn(LocalizableMessage.raw("Error with the keystore"), e);
-      }
-      catch (NoSuchAlgorithmException e)
-      {
-        // Nothing to do: if this occurs we will systematically refuse
-        // the certificates. Maybe we should avoid this and be strict, but
-        // we are in a best effort mode.
-        logger.warn(LocalizableMessage.raw("Error with the keystore"), e);
-      }
-      catch (CertificateException e)
-      {
-        // Nothing to do: if this occurs we will systematically refuse
-        // the certificates. Maybe we should avoid this and be strict, but
-        // we are in a best effort mode.
-        logger.warn(LocalizableMessage.raw("Error with the keystore"), e);
-      }
-      catch (IOException e)
-      {
-        // Nothing to do: if this occurs we will systematically refuse
-        // the certificates. Maybe we should avoid this and be strict, but
-        // we are in a best effort mode.
-        logger.warn(LocalizableMessage.raw("Error with the keystore"), e);
-      }
-      finally
-      {
-        close(fos);
-      }
-
-      char[] password = null;
-      if (keyStorePasswordStringValue != null)
-      {
-        password = keyStorePasswordStringValue.toCharArray();
-      }
-      ApplicationKeyManager akm = new ApplicationKeyManager(keyStore,password);
-      if (certNicknameArg.isPresent())
-      {
-        return new SelectableCertificateKeyManager(akm, certNicknameArg
-            .getValue());
-      }
-      return akm;
-    }
-    return null;
-
-  }
 
   /**
    * Returns <CODE>true</CODE> if we can read on the provided path and
