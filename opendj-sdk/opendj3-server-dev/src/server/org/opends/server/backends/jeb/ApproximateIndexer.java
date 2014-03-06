@@ -27,6 +27,7 @@
 package org.opends.server.backends.jeb;
 
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -34,6 +35,7 @@ import java.util.Set;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.api.ApproximateMatchingRule;
+import org.opends.server.api.ExtensibleIndexer;
 import org.opends.server.types.*;
 
 /**
@@ -165,24 +167,28 @@ public class ApproximateIndexer extends Indexer
 
     for (Attribute attr : attrList)
     {
-      if (attr.isVirtual())
+      if (!attr.isVirtual())
       {
-        continue;
-      }
-      for (AttributeValue value : attr)
-      {
-        try
+        for (AttributeValue value : attr)
         {
-          byte[] keyBytes =
-               approximateRule.normalizeAttributeValue(value.getValue()).toByteArray();
+          getKeys(value, keys);
+        }
+      }
+    }
+  }
 
-          keys.add(keyBytes);
-        }
-        catch (DecodeException e)
-        {
-          logger.traceException(e);
-        }
-      }
+  private void getKeys(AttributeValue value, Set<byte[]> keys)
+  {
+    try
+    {
+      byte[] keyBytes =
+           approximateRule.normalizeAttributeValue(value.getValue()).toByteArray();
+
+      keys.add(keyBytes);
+    }
+    catch (DecodeException e)
+    {
+      logger.traceException(e);
     }
   }
 
@@ -202,32 +208,21 @@ public class ApproximateIndexer extends Indexer
 
     for (Attribute attr : attrList)
     {
-      if (attr.isVirtual())
+      if (!attr.isVirtual())
       {
-        continue;
-      }
-      for (AttributeValue value : attr)
-      {
-        try
+        for (AttributeValue value : attr)
         {
-          byte[] keyBytes = approximateRule
-              .normalizeAttributeValue(value.getValue()).toByteArray();
-
-          Boolean cInsert = modifiedKeys.get(keyBytes);
-          if(cInsert == null)
-          {
-            modifiedKeys.put(keyBytes, insert);
-          }
-          else if(!cInsert.equals(insert))
-          {
-            modifiedKeys.remove(keyBytes);
-          }
-        }
-        catch (DecodeException e)
-        {
-          logger.traceException(e);
+          getKeys(value, modifiedKeys, insert);
         }
       }
     }
+  }
+
+  private void getKeys(AttributeValue value, Map<byte[], Boolean> modifiedKeys,
+      Boolean insert)
+  {
+    Set<byte[]> keys = new HashSet<byte[]>();
+    getKeys(value, keys);
+    ExtensibleIndexer.computeModifiedKeys(modifiedKeys, insert, keys);
   }
 }

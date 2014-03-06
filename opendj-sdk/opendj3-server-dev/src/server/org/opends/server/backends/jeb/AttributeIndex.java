@@ -33,6 +33,8 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
+import org.forgerock.opendj.ldap.spi.IndexingOptions;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn;
 import org.opends.server.admin.std.server.LocalDBIndexCfg;
@@ -144,6 +146,7 @@ public class AttributeIndex
     String name =
         entryContainer.getDatabasePrefix() + "_" + attrType.getNameOrOID();
     int indexEntryLimit = indexConfig.getIndexEntryLimit();
+    JEIndexConfig config = new JEIndexConfig(indexConfig.getSubstringLength());
 
     if (indexConfig.getIndexType().contains(
             LocalDBIndexCfgDefn.IndexType.EQUALITY))
@@ -186,8 +189,7 @@ public class AttributeIndex
         throw new ConfigException(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attrType, "substring"));
       }
 
-      Indexer substringIndexer = new SubstringIndexer(attrType,
-                                         indexConfig.getSubstringLength());
+      Indexer substringIndexer = new SubstringIndexer(attrType, config);
       this.substringIndex = new Index(name + ".substring",
                                      substringIndexer,
                                      state,
@@ -248,7 +250,6 @@ public class AttributeIndex
       //Collation equality and Ordering matching rules share the same
       //indexer and index. A Collation substring matching rule is treated
       // differently as it uses a separate indexer and index.
-      IndexConfig config = new JEIndexConfig(indexConfig.getSubstringLength());
       for(String ruleName:extensibleRules)
       {
         ExtensibleMatchingRule rule =
@@ -262,11 +263,7 @@ public class AttributeIndex
         Map<String,Index> indexMap = new HashMap<String,Index>();
         for(ExtensibleIndexer indexer : rule.getIndexers(config))
         {
-          String indexerId = indexer.getExtensibleIndexID();
-          String indexID =
-                  attrType.getNameOrOID()  + "."
-                    + indexer.getPreferredIndexName()
-                    + "." + indexerId;
+          String indexID = attrType.getNameOrOID() + "." + indexer.getIndexID();
           if(!extensibleIndexes.isIndexPresent(indexID))
           {
             //There is no index available for this index id. Create a new index.
@@ -290,9 +287,9 @@ public class AttributeIndex
         indexMap.put(indexer.getExtensibleIndexID(),
                 extensibleIndexes.getIndex(indexID));
       }
-      IndexQueryFactory<IndexQuery> factory =
-              new IndexQueryFactoryImpl(indexMap);
-      extensibleIndexes.addQueryFactory(rule, factory);
+        IndexQueryFactory<IndexQuery> factory =
+            new IndexQueryFactoryImpl(indexMap, config);
+        extensibleIndexes.addQueryFactory(rule, factory);
       }
     }
   }
@@ -739,6 +736,9 @@ public class AttributeIndex
    */
   Set<ByteString> substringKeys(byte[] value)
   {
+    // FIXME replace this code with SDK's
+    // AbstractSubstringMatchingRuleImpl.SubstringIndexer.createKeys()
+
     // Eliminate duplicates by putting the keys into a set.
     // Sorting the keys will ensure database record locks are acquired
     // in a consistent order and help prevent transaction deadlocks between
@@ -746,7 +746,6 @@ public class AttributeIndex
     Set<ByteString> set = new HashSet<ByteString>();
 
     int substrLength = indexConfig.getSubstringLength();
-    byte[] keyBytes;
 
     // Example: The value is ABCDE and the substring length is 3.
     // We produce the keys ABC BCD CDE DE E
@@ -757,7 +756,7 @@ public class AttributeIndex
     for (int i = 0, remain = value.length; remain > 0; i++, remain--)
     {
       int len = Math.min(substrLength, remain);
-      keyBytes = makeSubstringKey(value, i, len);
+      byte[] keyBytes = makeSubstringKey(value, i, len);
       set.add(ByteString.wrap(keyBytes));
     }
 
@@ -771,6 +770,9 @@ public class AttributeIndex
    */
   private EntryIDSet matchSubstring(byte[] bytes)
   {
+    // FIXME replace this code with SDK's
+    // AbstractSubstringMatchingRuleImpl.DefaultSubstringAssertion.createIndexQuery()
+
     int substrLength = indexConfig.getSubstringLength();
 
     // There are two cases, depending on whether the user-provided
@@ -818,9 +820,7 @@ public class AttributeIndex
       for (int first = 0, last = substrLength;
            last <= bytes.length; first++, last++)
       {
-        byte[] keyBytes;
-        keyBytes = makeSubstringKey(bytes, first, substrLength);
-        set.add(keyBytes);
+        set.add(makeSubstringKey(bytes, first, substrLength));
       }
 
       EntryIDSet results = new EntryIDSet();
@@ -856,6 +856,9 @@ public class AttributeIndex
    */
   private EntryIDSet matchInitialSubstring(byte[] bytes)
   {
+    // FIXME replace this code with SDK's
+    // AbstractSubstringMatchingRuleImpl.DefaultSubstringAssertion.createIndexQuery()
+
     // Iterate through all the keys that have this value as the prefix.
 
     // Set the lower bound for a range search.
@@ -1753,6 +1756,7 @@ public class AttributeIndex
       String name =
         entryContainer.getDatabasePrefix() + "_" + attrType.getNameOrOID();
       int indexEntryLimit = cfg.getIndexEntryLimit();
+      JEIndexConfig config = new JEIndexConfig(cfg.getSubstringLength());
 
       if (cfg.getIndexType().contains(LocalDBIndexCfgDefn.IndexType.EQUALITY))
       {
@@ -1880,8 +1884,7 @@ public class AttributeIndex
       {
         if(substringIndex == null)
         {
-          Indexer substringIndexer = new SubstringIndexer(
-              attrType, cfg.getSubstringLength());
+          Indexer substringIndexer = new SubstringIndexer(attrType, config);
           substringIndex = new Index(name + ".substring",
                                      substringIndexer,
                                      state,
@@ -1914,8 +1917,7 @@ public class AttributeIndex
           if(indexConfig.getSubstringLength() !=
               cfg.getSubstringLength())
           {
-            Indexer substringIndexer = new SubstringIndexer(
-                attrType, cfg.getSubstringLength());
+            Indexer substringIndexer = new SubstringIndexer(attrType, config);
             this.substringIndex.setIndexer(substringIndexer);
           }
         }
@@ -2076,7 +2078,6 @@ public class AttributeIndex
         {
           extensibleIndexes = new ExtensibleMatchingRuleIndex();
         }
-        IndexConfig config = new JEIndexConfig(cfg.getSubstringLength());
         for(String ruleName:extensibleRules)
         {
           ExtensibleMatchingRule rule =
@@ -2091,11 +2092,7 @@ public class AttributeIndex
           Map<String,Index> indexMap = new HashMap<String,Index>();
           for(ExtensibleIndexer indexer: rule.getIndexers(config))
           {
-            String indexerId = indexer.getExtensibleIndexID();
-            String indexID =
-                  attrType.getNameOrOID()  + "."
-                   + indexer.getPreferredIndexName()
-                   + "." + indexerId;
+            String indexID = attrType.getNameOrOID() + "." + indexer.getIndexID();
             if(!extensibleIndexes.isIndexPresent(indexID))
             {
               Indexer extensibleIndexer =
@@ -2144,10 +2141,10 @@ public class AttributeIndex
               }
             }
             extensibleIndexes.addRule(indexID, rule);
-            indexMap.put(indexerId,extensibleIndexes.getIndex(indexID));
+            indexMap.put(indexer.getExtensibleIndexID(), extensibleIndexes.getIndex(indexID));
           }
           IndexQueryFactory<IndexQuery> factory =
-                  new IndexQueryFactoryImpl(indexMap);
+              new IndexQueryFactoryImpl(indexMap, config);
           extensibleIndexes.addQueryFactory(rule, factory);
         }
         //Some rules might have been removed from the configuration.
@@ -2172,9 +2169,7 @@ public class AttributeIndex
               List<String> ids = new ArrayList<String>();
               for(ExtensibleIndexer indexer: rule.getIndexers(config))
               {
-                String id = attrType.getNameOrOID()  + "."
-                 + indexer.getPreferredIndexName()
-                 + "." + indexer.getExtensibleIndexID();
+                String id = attrType.getNameOrOID()  + "." + indexer.getIndexID();
                 rules.addAll(extensibleIndexes.getRules(id));
                 ids.add(id);
               }
@@ -2620,16 +2615,14 @@ public class AttributeIndex
       if(debugBuffer != null)
       {
         debugBuffer.append("[INDEX:");
-        IndexConfig config =
+        JEIndexConfig config =
                 new JEIndexConfig(indexConfig.getSubstringLength());
         for(ExtensibleIndexer indexer :  rule.getIndexers(config))
         {
           debugBuffer.append(" ")
                      .append(extensibleFilter.getAttributeType().getNameOrOID())
                      .append(".")
-                     .append(indexer.getPreferredIndexName())
-                     .append(".")
-                     .append(indexer.getExtensibleIndexID());
+                     .append(indexer.getIndexID());
         }
         debugBuffer.append("]");
       }
@@ -2901,7 +2894,7 @@ public class AttributeIndex
   /**
    * This class extends the IndexConfig for JE Backend.
    */
-  private class JEIndexConfig extends IndexConfig
+  private class JEIndexConfig implements IndexingOptions
   {
     /** The length of the substring index. */
     private int substringLength;
@@ -2916,13 +2909,9 @@ public class AttributeIndex
       this.substringLength = substringLength;
     }
 
-
-    /**
-     * Returns the length of the substring.
-     * @return the length of the substring.
-     */
+    /** {@inheritDoc} */
     @Override
-    public int getSubstringLength()
+    public int substringKeySize()
     {
       return substringLength;
     }

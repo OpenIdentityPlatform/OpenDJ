@@ -22,17 +22,22 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.api;
 
-
-
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.forgerock.opendj.ldap.ByteSequence;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.schema.Schema;
+import org.forgerock.opendj.ldap.spi.Indexer;
+import org.forgerock.opendj.ldap.spi.IndexingOptions;
 import org.opends.server.types.AttributeValue;
-
-
 
 /**
  * This class is registered with a Backend and it provides call- backs
@@ -44,19 +49,8 @@ import org.opends.server.types.AttributeValue;
     mayInstantiate = false,
     mayExtend = true,
     mayInvoke = false)
-public abstract class ExtensibleIndexer
+public abstract class ExtensibleIndexer implements Indexer
 {
-  /**
-   * Returns the index name preferred by this indexer. This name
-   * appended with the identifier returned from
-   * {@link #getExtensibleIndexID()} will be used as the index
-   * database name.
-   *
-   * @return The name of the index for this indexer.
-   */
-  public abstract String getPreferredIndexName();
-
-
 
   /**
    * Returns an index identifier associated with this indexer. An
@@ -81,27 +75,67 @@ public abstract class ExtensibleIndexer
    * @param keys
    *          The set into which the generated keys will be inserted.
    */
-  public abstract void getKeys(AttributeValue value,
-      Set<byte[]> keys);
+  public abstract void getKeys(AttributeValue value, Set<byte[]> keys);
 
-
+  /** {@inheritDoc} */
+  @Override
+  public void createKeys(Schema schema, ByteSequence value,
+      IndexingOptions options, Collection<ByteString> keys)
+      throws DecodeException
+  {
+    throw new RuntimeException("Not implemented yet");
+  }
 
   /**
    * Generates a map of index keys and a boolean flag indicating
    * whether the corresponding key will be inserted or deleted.
    *
-   * @param value
+   * @param attrValue
    *          The attribute for which keys are required.
    * @param modifiedKeys
    *          A map containing the keys and a boolean. Keys
-   *          corresponding to the boolean value <code>true
-   *              </code>
+   *          corresponding to the boolean value <code>true</code>
    *          should be inserted and <code>false</code> should be
    *          deleted.
    * @param insert
    *          <code>true</code> if generated keys should be inserted
    *          or <code>false</code> otherwise.
    */
-  public abstract void getKeys(AttributeValue value,
-      Map<byte[], Boolean> modifiedKeys, Boolean insert);
+  public void getKeys(AttributeValue attrValue, Map<byte[], Boolean> modifiedKeys, Boolean insert)
+  {
+    final Set<byte[]> keys = new HashSet<byte[]>();
+    getKeys(attrValue, keys);
+    computeModifiedKeys(modifiedKeys, insert, keys);
+  }
+
+  /**
+   * Computes the modified keys by an indexer.
+   *
+   * @param modifiedKeys
+   *          A map containing the keys and a boolean. Keys
+   *          corresponding to the boolean value <code>true</code>
+   *          should be inserted and <code>false</code> should be
+   *          deleted.
+   * @param insert
+   *          <code>true</code> if generated keys should be inserted
+   *          or <code>false</code> otherwise.
+   * @param keys
+   *          the newly generated keys that will be added or removed from the Map
+   */
+  public static void computeModifiedKeys(Map<byte[], Boolean> modifiedKeys,
+      Boolean insert, final Set<byte[]> keys)
+  {
+    for (byte[] key : keys)
+    {
+      Boolean cInsert = modifiedKeys.get(key);
+      if (cInsert == null)
+      {
+        modifiedKeys.put(key, insert);
+      }
+      else if (!cInsert.equals(insert))
+      {
+        modifiedKeys.remove(key);
+      }
+    }
+  }
 }

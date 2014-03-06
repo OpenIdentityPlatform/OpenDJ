@@ -27,12 +27,15 @@
 package org.opends.server.backends.jeb;
 
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.spi.IndexingOptions;
+import org.opends.server.api.ExtensibleIndexer;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.types.*;
 
@@ -56,22 +59,21 @@ public class SubstringIndexer extends Indexer
    * generate index keys.
    */
   private AttributeType attributeType;
-
-  /**
-   * The substring length.
-   */
-  private int substrLength;
+  private IndexingOptions indexingOptions;
 
   /**
    * Create a new attribute substring indexer for the given index configuration.
-   * @param attributeType The attribute type for which an indexer is
-   * required.
-   * @param substringLength The decomposed substring length.
+   *
+   * @param attributeType
+   *          The attribute type for which an indexer is required.
+   * @param indexingOptions
+   *          The decomposed substring length.
    */
-  public SubstringIndexer(AttributeType attributeType, int substringLength)
+  public SubstringIndexer(AttributeType attributeType,
+      IndexingOptions indexingOptions)
   {
     this.attributeType = attributeType;
-    this.substrLength = substringLength;
+    this.indexingOptions = indexingOptions;
   }
 
   /**
@@ -169,25 +171,13 @@ public class SubstringIndexer extends Indexer
     if (attrList == null) return;
     for (Attribute attr : attrList)
     {
-      if (attr.isVirtual())
+      if (!attr.isVirtual())
       {
-        continue;
-      }
-      //Get the substring matching rule.
-      SubstringMatchingRule rule =
-              attr.getAttributeType().getSubstringMatchingRule();
-      for (AttributeValue value : attr)
-      {
-        try
+        SubstringMatchingRule rule =
+            attr.getAttributeType().getSubstringMatchingRule();
+        for (AttributeValue value : attr)
         {
-          byte[] normalizedBytes = rule.normalizeAttributeValue(value.getValue()).
-                  toByteArray();
-
-          substringKeys(normalizedBytes, keys);
-        }
-        catch (DecodeException e)
-        {
-          logger.traceException(e);
+          getKeys(rule, value, keys);
         }
       }
     }
@@ -198,24 +188,32 @@ public class SubstringIndexer extends Indexer
    * The ID of the entry containing this value should be inserted
    * into the list of each of these keys.
    *
-   * @param value A byte array containing the normalized attribute value
-   * @param set A set into which the keys will be inserted.
+   * @param attrValue A byte array containing the normalized attribute value
+   * @param keys A set into which the keys will be inserted.
    */
-  private void substringKeys(byte[] value, Set<byte[]> set)
-  {
-    byte[] keyBytes;
-
-    // Example: The value is ABCDE and the substring length is 3.
-    // We produce the keys ABC BCD CDE DE E
-    // To find values containing a short substring such as DE,
-    // iterate through keys with prefix DE. To find values
-    // containing a longer substring such as BCDE, read keys
-    // BCD and CDE.
-    for (int i = 0, remain = value.length; remain > 0; i++, remain--)
+  private void getKeys(SubstringMatchingRule rule, AttributeValue attrValue,
+      Set<byte[]> keys)
+  { // TODO merge with ExtensibleIndexer.getKeys(attrValue, keys);
+    try
     {
-      int len = Math.min(substrLength, remain);
-      keyBytes = makeSubstringKey(value, i, len);
-      set.add(keyBytes);
+      byte[] value = rule.normalizeAttributeValue(attrValue.getValue()).toByteArray();
+
+      // Example: The value is ABCDE and the substring length is 3.
+      // We produce the keys ABC BCD CDE DE E
+      // To find values containing a short substring such as DE,
+      // iterate through keys with prefix DE. To find values
+      // containing a longer substring such as BCDE, read keys
+      // BCD and CDE.
+      final int substringKeySize = indexingOptions.substringKeySize();
+      for (int i = 0, remain = value.length; remain > 0; i++, remain--)
+      {
+        int len = Math.min(substringKeySize, remain);
+        keys.add(makeSubstringKey(value, i, len));
+      }
+    }
+    catch (DecodeException e)
+    {
+      logger.traceException(e);
     }
   }
 
@@ -251,26 +249,13 @@ public class SubstringIndexer extends Indexer
 
     for (Attribute attr : attrList)
     {
-      if (attr.isVirtual())
+      if (!attr.isVirtual())
       {
-        continue;
-      }
-            //Get the substring matching rule.
-      SubstringMatchingRule rule =
-              attr.getAttributeType().getSubstringMatchingRule();
-
-      for (AttributeValue value : attr)
-      {
-        try
+        SubstringMatchingRule rule =
+            attr.getAttributeType().getSubstringMatchingRule();
+        for (AttributeValue value : attr)
         {
-          byte[] normalizedBytes = rule.normalizeAttributeValue(value.getValue())
-                  .toByteArray();
-
-          substringKeys(normalizedBytes, modifiedKeys, insert);
-        }
-        catch (DecodeException e)
-        {
-          logger.traceException(e);
+          getKeys(rule, value, modifiedKeys, insert);
         }
       }
     }
@@ -287,41 +272,12 @@ public class SubstringIndexer extends Indexer
    * @param insert <code>true</code> if generated keys should
    * be inserted or <code>false</code> otherwise.
    */
-  private void substringKeys(byte[] value,
-                             Map<byte[], Boolean> modifiedKeys,
-                             Boolean insert)
-  {
-    byte[] keyBytes;
-
-    // Example: The value is ABCDE and the substring length is 3.
-    // We produce the keys ABC BCD CDE DE E
-    // To find values containing a short substring such as DE,
-    // iterate through keys with prefix DE. To find values
-    // containing a longer substring such as BCDE, read keys
-    // BCD and CDE.
-    for (int i = 0, remain = value.length; remain > 0; i++, remain--)
-    {
-      int len = Math.min(substrLength, remain);
-      keyBytes = makeSubstringKey(value, i, len);
-      Boolean cInsert = modifiedKeys.get(keyBytes);
-      if(cInsert == null)
-      {
-        modifiedKeys.put(keyBytes, insert);
-      }
-      else if(!cInsert.equals(insert))
-      {
-        modifiedKeys.remove(keyBytes);
-      }
-    }
+  private void getKeys(SubstringMatchingRule rule, AttributeValue value,
+      Map<byte[], Boolean> modifiedKeys, Boolean insert)
+  { // TODO merge with ExtensibleIndexer.getKeys(attrValue, modifiedKeys, insert);
+    Set<byte[]> keys = new HashSet<byte[]>();
+    getKeys(rule, value, keys);
+    ExtensibleIndexer.computeModifiedKeys(modifiedKeys, insert, keys);
   }
 
-  /**
-   * Return the substring length for an indexer.
-   *
-   * @return  The substring length configured for an sub string indexer.
-   */
-  public int getSubStringLen()
-  {
-    return substrLength;
-  }
 }

@@ -31,7 +31,9 @@ import java.util.*;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.spi.IndexingOptions;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.LocalDBBackendCfgDefn;
@@ -45,7 +47,12 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
+import org.opends.server.types.Modification;
+import org.opends.server.types.RDN;
 import org.opends.server.util.Base64;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -57,6 +64,7 @@ import com.sleepycat.je.LockMode;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.forgerock.opendj.ldap.ConditionResult.*;
+import static org.mockito.Mockito.*;
 import static org.testng.Assert.*;
 
 /**
@@ -842,9 +850,7 @@ public class TestBackendImpl extends JebTestCase {
       assertIndexContainsID(equalityIndexer, entry, index.equalityIndex,
           entryID, FALSE);
 
-      Indexer substringIndexer =
-          new SubstringIndexer(index.getAttributeType(),
-                   index.getConfiguration().getSubstringLength());
+      Indexer substringIndexer = newSubstringIndexer(index);
       assertIndexContainsID(substringIndexer, entry, index.substringIndex,
           entryID, FALSE);
 
@@ -856,6 +862,14 @@ public class TestBackendImpl extends JebTestCase {
     {
       ec.sharedLock.unlock();
     }
+  }
+
+  private SubstringIndexer newSubstringIndexer(AttributeIndex index)
+  {
+    final IndexingOptions options = mock(IndexingOptions.class);
+    when(options.substringKeySize()).thenReturn(
+        index.getConfiguration().getSubstringLength());
+    return new SubstringIndexer(index.getAttributeType(), options);
   }
 
   private void assertIndexContainsID(Indexer indexer, Entry entry, Index index,
@@ -932,8 +946,7 @@ public class TestBackendImpl extends JebTestCase {
       assertIndexContainsID(orderingIndexer, oldEntry, index.orderingIndex,
           entryID, FALSE);
 
-      Indexer substringIndexer = new SubstringIndexer(index.getAttributeType(),
-                                              index.getConfiguration().getSubstringLength());
+      Indexer substringIndexer = newSubstringIndexer(index);
       assertIndexContainsID(substringIndexer, entry, index.substringIndex,
           entryID, TRUE);
       assertIndexContainsID(substringIndexer, oldEntry, index.substringIndex,
@@ -1096,12 +1109,10 @@ public class TestBackendImpl extends JebTestCase {
       equalityIndexer = new EqualityIndexer(nameIndex.getAttributeType());
       assertIndexContainsID(equalityIndexer, entry, nameIndex.equalityIndex, entryID);
 
-      substringIndexer = new SubstringIndexer(titleIndex.getAttributeType(),
-          titleIndex.getConfiguration().getSubstringLength());
+      substringIndexer = newSubstringIndexer(titleIndex);
       assertIndexContainsID(substringIndexer, entry, titleIndex.substringIndex, entryID);
 
-      substringIndexer = new SubstringIndexer(nameIndex.getAttributeType(),
-          nameIndex.getConfiguration().getSubstringLength());
+      substringIndexer = newSubstringIndexer(nameIndex);
       assertIndexContainsID(substringIndexer, entry, nameIndex.substringIndex, entryID);
     }
     finally
