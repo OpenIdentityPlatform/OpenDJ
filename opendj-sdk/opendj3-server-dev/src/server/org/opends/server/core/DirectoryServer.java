@@ -45,6 +45,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeUsage;
 import org.forgerock.opendj.ldap.schema.ObjectClassType;
+import org.forgerock.opendj.ldap.schema.SchemaBuilder;
 import org.forgerock.util.Reject;
 import org.forgerock.util.Utils;
 import org.opends.server.admin.AdministrationConnector;
@@ -628,6 +629,10 @@ public final class DirectoryServer
   /** The schema for the Directory Server. */
   private Schema schema;
 
+  /** The schema for the Directory Server. */
+  // TODO : temporary field to be removed once old schema is completely removed
+  private org.forgerock.opendj.ldap.schema.Schema schemaNG;
+
   /** The schema configuration manager for the Directory Server. */
   private SchemaConfigManager schemaConfigManager;
 
@@ -727,6 +732,9 @@ public final class DirectoryServer
   /** Temporary context object, to provide instance methods instead of static methods. */
   private final DirectoryServerContext serverContext = new DirectoryServerContext();
 
+  /** Entry point for server configuration. */
+  private org.forgerock.opendj.config.server.ServerManagementContext serverManagementContext;
+
   /**
    * Creates a new instance of the Directory Server.  This will allow only a
    * single instance of the server per JVM.
@@ -775,9 +783,30 @@ public final class DirectoryServer
 
     /** {@inheritDoc} */
     @Override
-    public ServerManagementContext getServerManagementContext()
+    public SchemaUpdater getSchemaUpdater()
     {
-      return ServerManagementContext.getInstance();
+      return new SchemaUpdater()
+      {
+        @Override
+        public boolean updateSchema(SchemaBuilder schemaBuilder)
+        {
+          schemaNG = schemaBuilder.toSchema();
+          return true;
+        }
+
+        @Override
+        public SchemaBuilder getSchemaBuilder()
+        {
+          return new SchemaBuilder(schemaNG);
+        }
+      };
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public org.forgerock.opendj.config.server.ServerManagementContext getServerManagementContext()
+    {
+      return serverManagementContext;
     }
 
   }
@@ -1142,7 +1171,42 @@ public final class DirectoryServer
     initializeConfiguration();
   }
 
+  /**
+   * Initialize this server.
+   * <p>
+   * Initialization involves the following steps:
+   * <ul>
+   *  <li>Configuration</li>
+   *  <li>Schema</li>
+   * </ul>
+   * @throws InitializationException
+   */
+  private void initializeNG() throws InitializationException
+  {
+    serverManagementContext = ConfigurationBootstrapper.bootstrap(serverContext);
+    initializeSchemaNG();
 
+    // TODO : config backend should be initialized later, with the other backends
+    //ConfigBackend configBackend = new ConfigBackend();
+    //configBackend.initializeConfigBackend(serverContext, configurationHandler);
+  }
+
+  /**
+   * Initialize the schema of this server.
+   */
+  private void initializeSchemaNG() throws InitializationException
+  {
+    SchemaHandler schemaHandler = new SchemaHandler();
+    try
+    {
+      schemaHandler.initialize(serverContext);
+    }
+    catch (org.forgerock.opendj.config.server.ConfigException e)
+    {
+      // TODO : fix message
+      throw new InitializationException(LocalizableMessage.raw("Cannot initialize schema handler"), e);
+    }
+  }
 
   /**
    * Instantiates the configuration handler and loads the Directory Server
@@ -1157,14 +1221,12 @@ public final class DirectoryServer
     this.configClass = environmentConfig.getConfigClass();
     this.configFile  = environmentConfig.getConfigFile();
 
-
     // Make sure that administration framework definition classes are loaded.
     ClassLoaderProvider provider = ClassLoaderProvider.getInstance();
     if (! provider.isEnabled())
     {
       provider.enable();
     }
-
 
     // Load and instantiate the configuration handler class.
     Class<ConfigHandler> handlerClass = configClass;
@@ -1180,6 +1242,8 @@ public final class DirectoryServer
           ERR_CANNOT_INSTANTIATE_CONFIG_HANDLER.get(configClass, e.getLocalizedMessage());
       throw new InitializationException(message, e);
     }
+
+
 
 
     // Perform the handler-specific initialization.
@@ -1314,7 +1378,6 @@ public final class DirectoryServer
 
       // Initialize all the schema elements.
       initializeSchema();
-
 
       // Initialize the plugin manager so that internal plugins can be
       // registered.
@@ -9055,9 +9118,6 @@ public final class DirectoryServer
     PrintStream serverOutStream;
     try
     {
-      // We need to figure out where to put the file.  See if the server root
-      // is available as an environment variable and if so then use it.
-      // Otherwise, try to figure it out from the location of the config file.
       File serverRoot = environmentConfig.getServerRoot();
       if (serverRoot == null)
       {

@@ -69,6 +69,21 @@ ds-cfg-allowed-task: org.opends.server.tasks.RestoreTask
 ds-cfg-allowed-task: org.opends.server.tasks.ShutdownTask
 ds-cfg-allowed-task: org.opends.server.tasks.PurgeConflictsHistoricalTask
 
+dn: cn=Schema Providers,cn=config
+objectClass: top
+objectClass: ds-cfg-branch
+cn: Schema Providers
+
+dn: cn=Core Schema,cn=Schema Providers,cn=config
+objectClass: top
+objectClass: ds-cfg-schema-provider
+objectClass: ds-cfg-core-schema
+cn: Core Schema
+ds-cfg-java-class: org.opends.server.schema.CoreSchemaProvider
+ds-cfg-enabled: true
+ds-cfg-strip-syntax-min-upper-bound-attribute-type-description: false
+ds-cfg-strict-format-country-string: false
+
 dn: cn=Access Control Handler,cn=config
 objectClass: top
 objectClass: ds-cfg-access-control-handler
