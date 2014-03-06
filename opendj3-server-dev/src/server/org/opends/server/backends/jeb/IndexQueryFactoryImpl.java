@@ -24,28 +24,21 @@
  *      Copyright 2009-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2014 ForgeRock AS
  */
-
 package org.opends.server.backends.jeb;
 
-
-
-import com.sleepycat.je.DatabaseEntry;
-import com.sleepycat.je.LockMode;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.api.IndexQueryFactory;
 import org.forgerock.opendj.ldap.ByteSequence;
+import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
+import org.forgerock.opendj.ldap.spi.IndexingOptions;
 
-import static org.opends.messages.JebMessages.
-    INFO_JEB_INDEX_FILTER_INDEX_LIMIT_EXCEEDED;
-import static org.opends.messages.JebMessages.
-    INFO_JEB_INDEX_FILTER_INDEX_NOT_TRUSTED;
-import static org.opends.messages.JebMessages.
-    INFO_JEB_INDEX_FILTER_INDEX_REBUILD_IN_PROGRESS;
+import com.sleepycat.je.DatabaseEntry;
+import com.sleepycat.je.LockMode;
 
+import static org.opends.messages.JebMessages.*;
 
 /**
  * This class is an implementation of IndexQueryFactory which creates
@@ -54,30 +47,31 @@ import static org.opends.messages.JebMessages.
 public final class IndexQueryFactoryImpl implements
     IndexQueryFactory<IndexQuery>
 {
+
   /**
-   * The Map containing the string type identifier and the corresponding
-   * index.
+   * The Map containing the string type identifier and the corresponding index.
    */
-  private Map<String, Index> indexMap;
-
-
+  private final Map<String, Index> indexMap;
+  private final IndexingOptions indexingOptions;
 
   /**
    * Creates a new IndexQueryFactoryImpl object.
    *
    * @param indexMap
    *          A map containing the index id and the corresponding index.
+   * @param indexingOptions
+   *          The options to use for indexing
    */
-  public IndexQueryFactoryImpl(Map<String, Index> indexMap)
+  public IndexQueryFactoryImpl(Map<String, Index> indexMap, IndexingOptions indexingOptions)
   {
     this.indexMap = indexMap;
+    this.indexingOptions = indexingOptions;
   }
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public IndexQuery createExactMatchQuery(final String indexID,
       final ByteSequence value)
   {
@@ -122,9 +116,8 @@ public final class IndexQueryFactoryImpl implements
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public IndexQuery createRangeMatchQuery(final String indexID,
       final ByteSequence lowerBound, final ByteSequence upperBound,
       final boolean includeLowerBound, final boolean includeUpperBound)
@@ -168,9 +161,8 @@ public final class IndexQueryFactoryImpl implements
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public IndexQuery createIntersectionQuery(
       Collection<IndexQuery> subqueries)
   {
@@ -179,9 +171,8 @@ public final class IndexQueryFactoryImpl implements
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public IndexQuery createUnionQuery(Collection<IndexQuery> subqueries)
   {
     return IndexQuery.createUnionIndexQuery(subqueries);
@@ -195,6 +186,7 @@ public final class IndexQueryFactoryImpl implements
    * It returns an empty EntryIDSet object when either all or no record
    * sets are requested.
    */
+  @Override
   public IndexQuery createMatchAllQuery()
   {
     return new IndexQuery()
@@ -206,5 +198,12 @@ public final class IndexQueryFactoryImpl implements
           return new EntryIDSet();
         }
       };
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public IndexingOptions getIndexingOptions()
+  {
+    return indexingOptions;
   }
 }

@@ -38,13 +38,14 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
+import org.forgerock.opendj.ldap.spi.IndexingOptions;
 import org.opends.server.admin.std.server.MatchingRuleCfg;
 import org.opends.server.api.*;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DirectoryException;
-import org.opends.server.types.IndexConfig;
 import org.opends.server.types.InitializationException;
 import org.opends.server.util.StaticUtils;
 
@@ -403,7 +404,8 @@ public final class TimeBasedMatchingRuleFactory
     * {@inheritDoc}
     */
     @Override
-    public Collection<ExtensibleIndexer> getIndexers(IndexConfig config)
+    public Collection<ExtensibleIndexer> getIndexers(
+        IndexingOptions indexingOptions)
     {
       if(indexer == null)
       {
@@ -630,40 +632,11 @@ public final class TimeBasedMatchingRuleFactory
       }
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
-    public final void getKeys(AttributeValue value,
-        Map<byte[], Boolean> modifiedKeys, Boolean insert)
+    public String getIndexID()
     {
-      Set<byte[]> keys = new HashSet<byte[]>();
-      getKeys(value, keys);
-      for (byte[] key : keys)
-      {
-        Boolean cInsert = modifiedKeys.get(key);
-        if (cInsert == null)
-        {
-          modifiedKeys.put(key, insert);
-        }
-        else if (!cInsert.equals(insert))
-        {
-          modifiedKeys.remove(key);
-        }
-      }
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String getPreferredIndexName()
-    {
-      return RELATIVE_TIME_INDEX_NAME;
+      return RELATIVE_TIME_INDEX_NAME + "." + getExtensibleIndexID();
     }
   }
 
@@ -674,7 +647,6 @@ public final class TimeBasedMatchingRuleFactory
    */
   private final class PartialDateAndTimeMatchingRule
           extends TimeBasedMatchingRule
-          implements ExtensibleMatchingRule
   {
      /**
       * Indexer associated with this instance.
@@ -1050,7 +1022,8 @@ public final class TimeBasedMatchingRuleFactory
       * {@inheritDoc}
       */
     @Override
-    public Collection<ExtensibleIndexer> getIndexers(IndexConfig config)
+    public Collection<ExtensibleIndexer> getIndexers(
+        IndexingOptions indexingOptions)
     {
       if(indexer == null)
       {
@@ -1237,40 +1210,11 @@ public final class TimeBasedMatchingRuleFactory
       matchingRule.timeKeys(value.getValue(), keys);
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
-    public void getKeys(AttributeValue attValue,
-        Map<byte[], Boolean> modifiedKeys, Boolean insert)
+    public String getIndexID()
     {
-      Set<byte[]> keys = new HashSet<byte[]>();
-      getKeys(attValue, keys);
-      for (byte[] key : keys)
-      {
-        Boolean cInsert = modifiedKeys.get(key);
-        if (cInsert == null)
-        {
-          modifiedKeys.put(key, insert);
-        }
-        else if (!cInsert.equals(insert))
-        {
-          modifiedKeys.remove(key);
-        }
-      }
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String getPreferredIndexName()
-    {
-      return PARTIAL_DATE_TIME_INDEX_NAME;
+      return PARTIAL_DATE_TIME_INDEX_NAME + "." + getExtensibleIndexID();
     }
 
 

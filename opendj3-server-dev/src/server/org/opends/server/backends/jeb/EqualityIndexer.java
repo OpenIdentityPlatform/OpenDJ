@@ -26,16 +26,16 @@
  */
 package org.opends.server.backends.jeb;
 
-import org.forgerock.i18n.slf4j.LocalizedLogger;
+import java.util.*;
 
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.opends.server.api.ExtensibleIndexer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
-
-import java.util.*;
 
 /**
  * An implementation of an Indexer for attribute equality.
@@ -74,6 +74,7 @@ public class EqualityIndexer extends Indexer
    * used to name an index created using this object.
    * @return A string representation of this object.
    */
+  @Override
   public String toString()
   {
     return attributeType.getNameOrOID() + ".equality";
@@ -85,6 +86,7 @@ public class EqualityIndexer extends Indexer
    *
    * @return A byte array comparator.
    */
+  @Override
   public Comparator<byte[]> getComparator()
   {
     return comparator;
@@ -98,6 +100,7 @@ public class EqualityIndexer extends Indexer
    * @param entry The entry.
    * @param keys The set into which the generated keys will be inserted.
    */
+  @Override
   public void indexEntry(Entry entry, Set<byte[]> keys)
   {
     List<Attribute> attrList =
@@ -118,6 +121,7 @@ public class EqualityIndexer extends Indexer
    * @param newEntry The new entry contents.
    * @param modifiedKeys The map into which the modified keys will be inserted.
    */
+  @Override
   public void replaceEntry(Entry oldEntry, Entry newEntry,
                            Map<byte[], Boolean> modifiedKeys)
   {
@@ -140,6 +144,7 @@ public class EqualityIndexer extends Indexer
    * @param mods The set of modifications that were applied to the entry.
    * @param modifiedKeys The map into which the modified keys will be inserted.
    */
+  @Override
   public void modifyEntry(Entry oldEntry, Entry newEntry,
                           List<Modification> mods,
                           Map<byte[], Boolean> modifiedKeys)
@@ -163,23 +168,25 @@ public class EqualityIndexer extends Indexer
 
     for (Attribute attr : attrList)
     {
-      if (attr.isVirtual())
+      if (!attr.isVirtual())
       {
-        continue;
-      }
-      for (AttributeValue value : attr)
-      {
-        try
+        for (AttributeValue value : attr)
         {
-          byte[] keyBytes = value.getNormalizedValue().toByteArray();
+          getKeys(value, keys);
+        }
+      }
+    }
+  }
 
-          keys.add(keyBytes);
-        }
-        catch (DirectoryException e)
-        {
-          logger.traceException(e);
-        }
-      }
+  private void getKeys(AttributeValue value, Set<byte[]> keys)
+  {
+    try
+    {
+      keys.add(value.getNormalizedValue().toByteArray());
+    }
+    catch (DirectoryException e)
+    {
+      logger.traceException(e);
     }
   }
 
@@ -199,31 +206,21 @@ public class EqualityIndexer extends Indexer
 
     for (Attribute attr : attrList)
     {
-      if (attr.isVirtual())
+      if (!attr.isVirtual())
       {
-        continue;
-      }
-      for (AttributeValue value : attr)
-      {
-        try
+        for (AttributeValue value : attr)
         {
-          byte[] keyBytes = value.getNormalizedValue().toByteArray();
-
-          Boolean cInsert = modifiedKeys.get(keyBytes);
-          if(cInsert == null)
-          {
-            modifiedKeys.put(keyBytes, insert);
-          }
-          else if(!cInsert.equals(insert))
-          {
-            modifiedKeys.remove(keyBytes);
-          }
-        }
-        catch (DirectoryException e)
-        {
-          logger.traceException(e);
+          getKeys(value, modifiedKeys, insert);
         }
       }
     }
+  }
+
+  private void getKeys(AttributeValue value, Map<byte[], Boolean> modifiedKeys,
+      Boolean insert)
+  {
+    Set<byte[]> keys = new HashSet<byte[]>();
+    getKeys(value, keys);
+    ExtensibleIndexer.computeModifiedKeys(modifiedKeys, insert, keys);
   }
 }

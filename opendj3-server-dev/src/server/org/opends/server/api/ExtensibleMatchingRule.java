@@ -26,15 +26,12 @@
  */
 package org.opends.server.api;
 
-
-
 import java.util.Collection;
 
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.DecodeException;
-import org.opends.server.types.IndexConfig;
-
-
+import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
+import org.forgerock.opendj.ldap.spi.IndexingOptions;
 
 /**
  * This interface defines the set of methods that must be
@@ -49,17 +46,15 @@ import org.opends.server.types.IndexConfig;
 public interface ExtensibleMatchingRule extends MatchingRule
 {
   /**
-   * Returns a collection of extensible indexers associated with this
-   * matching rule.
+   * Returns a collection of extensible indexers associated with this matching
+   * rule.
    *
-   * @param config
-   *          The index configuration to be used by this matching
-   *          rule.
-   * @return The collection of extensible indexers associated with
-   *         this matching rule.
+   * @param indexingOptions
+   *          The indexing options to be used by this matching rule.
+   * @return The collection of extensible indexers associated with this matching
+   *         rule.
    */
-  Collection<ExtensibleIndexer> getIndexers(
-      IndexConfig config);
+  Collection<ExtensibleIndexer> getIndexers(IndexingOptions indexingOptions);
 
 
 

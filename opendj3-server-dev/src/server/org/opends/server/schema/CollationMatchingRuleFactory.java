@@ -38,6 +38,8 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
+import org.forgerock.opendj.ldap.spi.IndexingOptions;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.CollationMatchingRuleCfgDefn.MatchingRuleType;
 import org.opends.server.admin.std.server.CollationMatchingRuleCfg;
@@ -45,7 +47,10 @@ import org.opends.server.api.*;
 import org.opends.server.backends.jeb.AttributeIndex;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.*;
+import org.opends.server.types.AttributeValue;
+import org.opends.server.types.ConfigChangeResult;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.InitializationException;
 import org.opends.server.util.StaticUtils;
 
 import static org.opends.messages.ConfigMessages.*;
@@ -957,7 +962,8 @@ public final class CollationMatchingRuleFactory extends
      * {@inheritDoc}
      */
     @Override
-    public Collection<ExtensibleIndexer> getIndexers(IndexConfig config)
+    public Collection<ExtensibleIndexer> getIndexers(
+        IndexingOptions indexingOptions)
     {
       if (indexer == null)
       {
@@ -1420,7 +1426,8 @@ public final class CollationMatchingRuleFactory extends
     @Override
     public ConditionResult valuesMatch(ByteSequence attributeValue,
         ByteSequence assertionValue)
-    {
+    { // FIXME Code similar to
+      // AbstractSubstringMatchingRuleImpl.DefaultSubstringAssertion.matches()
       int valueLength = attributeValue.length() - 4;
       int valuePos = 0; // position in the value bytes array.
 
@@ -1526,30 +1533,25 @@ public final class CollationMatchingRuleFactory extends
      */
     @Override
     public final Collection<ExtensibleIndexer> getIndexers(
-        IndexConfig config)
+        IndexingOptions indexingOptions)
     {
       Collection<ExtensibleIndexer> indexers =
           new ArrayList<ExtensibleIndexer>();
       int substrLength = 6; // Default substring length;
       if (subIndexer == null)
       {
-        if (config != null)
+        if (indexingOptions != null)
         {
-          substrLength = config.getSubstringLength();
+          substrLength = indexingOptions.substringKeySize();
         }
         subIndexer =
             new CollationSubstringExtensibleIndexer(this, substrLength);
       }
-      else
+      else if (indexingOptions != null
+          && indexingOptions.substringKeySize() != subIndexer
+              .getSubstringLength())
       {
-        if (config != null)
-        {
-          if (config.getSubstringLength() != subIndexer
-              .gerSubstringLength())
-          {
-            subIndexer.setSubstringLength(substrLength);
-          }
-        }
+        subIndexer.setSubstringLength(substrLength);
       }
 
       if (indexer == null)
@@ -1573,15 +1575,15 @@ public final class CollationMatchingRuleFactory extends
      * @param set
      *          A set into which the keys will be inserted.
      */
-    private void subtringKeys(ByteString attValue, Set<byte[]> keys)
-    {
+    private void substringKeys(ByteString attValue, Set<byte[]> keys)
+    { // TODO merge with ExtensibleIndexer.getKeys(attrValue, keys);
+      // TODO and with AbstractSubstringMatchingRuleImpl.SubstringIndexer.createKeys();
       String value = attValue.toString();
-      int keyLength = subIndexer.gerSubstringLength();
+      int keyLength = subIndexer.getSubstringLength();
       for (int i = 0, remain = value.length(); remain > 0; i++, remain--)
       {
         int len = Math.min(keyLength, remain);
-        byte[] keyBytes = makeSubstringKey(value, i, len);
-        keys.add(keyBytes);
+        keys.add(makeSubstringKey(value, i, len));
       }
     }
 
@@ -1600,23 +1602,10 @@ public final class CollationMatchingRuleFactory extends
      */
     private void substringKeys(ByteString attValue,
         Map<byte[], Boolean> modifiedKeys, Boolean insert)
-    {
-      String value = attValue.toString();
-      int keyLength = subIndexer.gerSubstringLength();
-      for (int i = 0, remain = value.length(); remain > 0; i++, remain--)
-      {
-        int len = Math.min(keyLength, remain);
-        byte[] keyBytes = makeSubstringKey(value, i, len);
-        Boolean cinsert = modifiedKeys.get(keyBytes);
-        if (cinsert == null)
-        {
-          modifiedKeys.put(keyBytes, insert);
-        }
-        else if (!cinsert.equals(insert))
-        {
-          modifiedKeys.remove(keyBytes);
-        }
-      }
+    { // TODO merge with ExtensibleIndexer.getKeys(attrValue, modifiedKeys, insert);
+      Set<byte[]> keys = new TreeSet<byte[]>();
+      substringKeys(attValue, keys);
+      ExtensibleIndexer.computeModifiedKeys(modifiedKeys, insert, keys);
     }
 
 
@@ -1655,7 +1644,8 @@ public final class CollationMatchingRuleFactory extends
      */
     private <T> T matchInitialSubstring(String value,
         IndexQueryFactory<T> factory)
-    {
+    { // FIXME Code similar to
+      // AbstractSubstringMatchingRuleImpl.DefaultSubstringAssertion.rangeMatch()
       byte[] lower = makeSubstringKey(value, 0, value.length());
       byte[] upper = new byte[lower.length];
       System.arraycopy(lower, 0, upper, 0, lower.length);
@@ -1695,9 +1685,10 @@ public final class CollationMatchingRuleFactory extends
      */
     private <T> T matchSubstring(String value,
         IndexQueryFactory<T> factory)
-    {
+    { // FIXME Code similar to
+      // AbstractSubstringMatchingRuleImpl.DefaultSubstringAssertion.substringMatch()
       T intersectionQuery;
-      int substrLength = subIndexer.gerSubstringLength();
+      int substrLength = subIndexer.getSubstringLength();
 
       if (value.length() < substrLength)
       {
@@ -1733,17 +1724,13 @@ public final class CollationMatchingRuleFactory extends
              last <= value.length();
              first++, last++)
         {
-          byte[] keyBytes;
-          keyBytes = makeSubstringKey(value, first, substrLength);
-          set.add(keyBytes);
+          set.add(makeSubstringKey(value, first, substrLength));
         }
 
         for (byte[] keyBytes : set)
         {
-          T single =
-              factory.createExactMatchQuery(subIndexer
-                  .getExtensibleIndexID(), ByteString.wrap(keyBytes));
-          queryList.add(single);
+          queryList.add(factory.createExactMatchQuery(
+              subIndexer.getExtensibleIndexID(), ByteString.wrap(keyBytes)));
         }
         intersectionQuery = factory.createIntersectionQuery(queryList);
       }
@@ -1758,7 +1745,8 @@ public final class CollationMatchingRuleFactory extends
     @Override
     public <T> T createIndexQuery(ByteSequence assertionValue,
         IndexQueryFactory<T> factory) throws DecodeException
-    {
+    { // FIXME Code similar to
+      // AbstractSubstringMatchingRuleImpl.DefaultSubstringAssertion.createIndexQuery()?
       Assertion assertion = parseAssertion(assertionValue);
       String subInitial = assertion.getInitial();
       List<String> subAny = assertion.getAny();
@@ -2167,40 +2155,11 @@ public final class CollationMatchingRuleFactory extends
       }
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
-    public final void getKeys(AttributeValue value,
-        Map<byte[], Boolean> modifiedKeys, Boolean insert)
+    public String getIndexID()
     {
-      Set<byte[]> keys = new HashSet<byte[]>();
-      getKeys(value, keys);
-      for (byte[] key : keys)
-      {
-        Boolean cInsert = modifiedKeys.get(key);
-        if (cInsert == null)
-        {
-          modifiedKeys.put(key, insert);
-        }
-        else if (!cInsert.equals(insert))
-        {
-          modifiedKeys.remove(key);
-        }
-      }
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String getPreferredIndexName()
-    {
-      return matchingRule.getIndexName();
+      return matchingRule.getIndexName() + "." + getExtensibleIndexID();
     }
   }
 
@@ -2242,7 +2201,7 @@ public final class CollationMatchingRuleFactory extends
     @Override
     public void getKeys(AttributeValue value, Set<byte[]> keys)
     {
-      matchingRule.subtringKeys(value.getValue(), keys);
+      matchingRule.substringKeys(value.getValue(), keys);
     }
 
 
@@ -2254,19 +2213,14 @@ public final class CollationMatchingRuleFactory extends
     public void getKeys(AttributeValue attValue,
         Map<byte[], Boolean> modifiedKeys, Boolean insert)
     {
-      matchingRule.substringKeys(attValue.getValue(), modifiedKeys,
-          insert);
+      matchingRule.substringKeys(attValue.getValue(), modifiedKeys, insert);
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
-    public String getPreferredIndexName()
+    public String getIndexID()
     {
-      return matchingRule.getIndexName();
+      return matchingRule.getIndexName() + "." + getExtensibleIndexID();
     }
 
 
@@ -2287,8 +2241,8 @@ public final class CollationMatchingRuleFactory extends
      *
      * @return The length of the substring.
      */
-    private int gerSubstringLength()
-    {
+    private int getSubstringLength()
+    {// TODO JNR remove
       return substringLen;
     }
 
@@ -2301,9 +2255,10 @@ public final class CollationMatchingRuleFactory extends
      *          The substring length.
      */
     private void setSubstringLength(int substringLen)
-    {
+    {// TODO JNR remove
       this.substringLen = substringLen;
     }
+
   }
 
   /**

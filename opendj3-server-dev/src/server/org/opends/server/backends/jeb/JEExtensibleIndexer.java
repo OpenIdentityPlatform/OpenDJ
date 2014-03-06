@@ -22,25 +22,22 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
-
-
 package org.opends.server.backends.jeb;
-
-import org.opends.server.api.ExtensibleIndexer;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.Entry;
-import org.opends.server.types.Modification;
-import org.opends.server.api.ExtensibleMatchingRule;
-import org.opends.server.types.Attribute;
-
 
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.opends.server.api.ExtensibleIndexer;
+import org.opends.server.api.ExtensibleMatchingRule;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.AttributeValue;
+import org.opends.server.types.Entry;
+import org.opends.server.types.Modification;
+import org.opends.server.types.Attribute;
 
 /**
  *This class implements an Indexer for extensible matching rules in JE Backend.
@@ -179,13 +176,12 @@ public final class JEExtensibleIndexer extends Indexer
 
     for (Attribute attr : attrList)
     {
-      if (attr.isVirtual())
+      if (!attr.isVirtual())
       {
-        continue;
-      }
-      for (AttributeValue value : attr)
-      {
-        extensibleIndexer.getKeys(value, keys);
+        for (AttributeValue value : attr)
+        {
+          extensibleIndexer.getKeys(value, keys);
+        }
       }
     }
   }
@@ -208,13 +204,12 @@ public final class JEExtensibleIndexer extends Indexer
 
     for (Attribute attr : attrList)
     {
-      if (attr.isVirtual())
+      if (!attr.isVirtual())
       {
-        continue;
-      }
-      for (AttributeValue value : attr)
-      {
-        extensibleIndexer.getKeys(value,modifiedKeys,insert);
+        for (AttributeValue value : attr)
+        {
+          extensibleIndexer.getKeys(value, modifiedKeys, insert);
+        }
       }
     }
   }
