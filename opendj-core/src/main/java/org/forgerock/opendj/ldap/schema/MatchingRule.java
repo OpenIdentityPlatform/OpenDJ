@@ -22,13 +22,11 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS.
+ *      Portions copyright 2013-2014 ForgeRock AS.
  */
-
 package org.forgerock.opendj.ldap.schema;
 
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_ATTR_SYNTAX_MR_UNKNOWN_SYNTAX1;
-import static com.forgerock.opendj.ldap.CoreMessages.WARN_MATCHING_RULE_NOT_IMPLEMENTED1;
+import static com.forgerock.opendj.ldap.CoreMessages.*;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -44,7 +42,6 @@ import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.spi.Indexer;
-
 
 /**
  * This class defines a data structure for storing and interacting with matching
