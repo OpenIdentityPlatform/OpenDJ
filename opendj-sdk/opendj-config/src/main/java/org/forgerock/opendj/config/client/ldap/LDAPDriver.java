@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock, AS.
+ *      Portions Copyright 2013-2014 ForgeRock, AS.
  */
 package org.forgerock.opendj.config.client.ldap;
 
@@ -66,10 +66,17 @@ import org.forgerock.opendj.config.client.spi.Driver;
 import org.forgerock.opendj.config.client.spi.PropertySet;
 import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.EntryNotFoundException;
 import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.ErrorResultIOException;
+import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.SearchResultReferenceIOException;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
+import org.forgerock.opendj.ldif.ConnectionEntryReader;
 
 /**
  * The LDAP management context driver implementation.
@@ -132,7 +139,7 @@ final class LDAPDriver extends Driver {
 
     private LDAPManagementContext context;
 
-    private final LDAPConnection connection;
+    private final Connection connection;
 
     // The LDAP profile which should be used to construct LDAP
     // requests and decode LDAP responses.
@@ -147,7 +154,7 @@ final class LDAPDriver extends Driver {
      * @param profile
      *            The LDAP profile.
      */
-    public LDAPDriver(LDAPConnection connection, LDAPProfile profile) {
+    LDAPDriver(Connection connection, LDAPProfile profile) {
         this.connection = connection;
         this.profile = profile;
     }
@@ -161,7 +168,7 @@ final class LDAPDriver extends Driver {
      */
     @Override
     public void close() {
-        connection.unbind();
+        connection.close();
     }
 
     /**
@@ -177,7 +184,7 @@ final class LDAPDriver extends Driver {
 
         try {
             // Read the entry associated with the managed object.
-            DN dn = LDAPNameBuilder.create(path, profile);
+            DN dn = DNBuilder.create(path, profile);
             AbstractManagedObjectDefinition<C, S> d = path.getManagedObjectDefinition();
             ManagedObjectDefinition<? extends C, ? extends S> mod = getEntryDefinition(d, dn);
 
@@ -186,8 +193,8 @@ final class LDAPDriver extends Driver {
                 String attrId = profile.getAttributeName(mod, pd);
                 attrIds.add(attrId);
             }
-
-            SearchResultEntry searchResultEntry = connection.readEntry(dn, attrIds);
+            SearchResultEntry searchResultEntry =
+                    connection.readEntry(dn, attrIds.toArray(new String[0]));
 
             // Build the managed object's properties.
             List<PropertyException> exceptions = new LinkedList<PropertyException>();
@@ -241,7 +248,7 @@ final class LDAPDriver extends Driver {
 
         try {
             // Read the entry associated with the managed object.
-            DN dn = LDAPNameBuilder.create(path, profile);
+            DN dn = DNBuilder.create(path, profile);
             ManagedObjectDefinition<? extends C, ? extends S> objectDef = getEntryDefinition(d, dn);
 
             // Make sure we use the correct property definition, the
@@ -250,7 +257,7 @@ final class LDAPDriver extends Driver {
             propertyDef = (PropertyDefinition<P>) objectDef.getPropertyDefinition(propertyDef.getName());
 
             String attrID = profile.getAttributeName(objectDef, propertyDef);
-            SearchResultEntry resultEntry = connection.readEntry(dn, Collections.singleton(attrID));
+            SearchResultEntry resultEntry = connection.readEntry(dn, attrID);
             Attribute attribute = resultEntry.getAttribute(attrID);
 
             // Decode the values.
@@ -309,19 +316,14 @@ final class LDAPDriver extends Driver {
         }
 
         // Get the search base DN.
-        DN dn = LDAPNameBuilder.create(parent, rd, profile);
+        DN dn = DNBuilder.create(parent, rd, profile);
 
         // Retrieve only those entries which are sub-types of the
         // specified definition.
-        StringBuilder builder = new StringBuilder();
-        builder.append("(objectclass=");
-        builder.append(profile.getObjectClass(d));
-        builder.append(')');
-        String filter = builder.toString();
-
+        Filter filter = Filter.equality("objectClass", profile.getObjectClass(d));
         List<String> children = new ArrayList<String>();
         try {
-            for (DN child : connection.listEntries(dn, filter)) {
+            for (DN child : listEntries(dn, filter)) {
                 children.add(child.rdn().getFirstAVA().getAttributeValue().toString());
             }
         } catch (ErrorResultException e) {
@@ -351,19 +353,14 @@ final class LDAPDriver extends Driver {
         }
 
         // Get the search base DN.
-        DN dn = LDAPNameBuilder.create(parent, rd, profile);
+        DN dn = DNBuilder.create(parent, rd, profile);
 
         // Retrieve only those entries which are sub-types of the
         // specified definition.
-        StringBuilder builder = new StringBuilder();
-        builder.append("(objectclass=");
-        builder.append(profile.getObjectClass(d));
-        builder.append(')');
-        String filter = builder.toString();
-
+        Filter filter = Filter.equality("objectClass", profile.getObjectClass(d));
         List<String> children = new ArrayList<String>();
         try {
-            for (DN child : connection.listEntries(dn, filter)) {
+            for (DN child : listEntries(dn, filter)) {
                 children.add(child.rdn().getFirstAVA().getAttributeValue().toString());
             }
         } catch (ErrorResultException e) {
@@ -390,12 +387,12 @@ final class LDAPDriver extends Driver {
         }
 
         ManagedObjectPath<?, ?> parent = path.parent();
-        DN dn = LDAPNameBuilder.create(parent, profile);
+        DN dn = DNBuilder.create(parent, profile);
         if (!entryExists(dn)) {
             throw new ManagedObjectNotFoundException();
         }
 
-        dn = LDAPNameBuilder.create(path, profile);
+        dn = DNBuilder.create(path, profile);
         return entryExists(dn);
     }
 
@@ -406,9 +403,9 @@ final class LDAPDriver extends Driver {
     protected <C extends ConfigurationClient, S extends Configuration> void deleteManagedObject(
         ManagedObjectPath<C, S> path) throws OperationRejectedException, ErrorResultException {
         // Delete the entry and any subordinate entries.
-        DN dn = LDAPNameBuilder.create(path, profile);
+        DN dn = DNBuilder.create(path, profile);
         try {
-            connection.deleteSubtree(dn);
+            connection.deleteSubtree(dn.toString());
         } catch (ErrorResultException e) {
             if (e.getResult().getResultCode() == ResultCode.UNWILLING_TO_PERFORM) {
                 AbstractManagedObjectDefinition<?, ?> d = path.getManagedObjectDefinition();
@@ -437,7 +434,12 @@ final class LDAPDriver extends Driver {
      *             if a problem occurs.
      */
     boolean entryExists(DN dn) throws ErrorResultException {
-        return connection.entryExists(dn);
+        try {
+            connection.readEntry(dn, "1.1");
+            return true;
+        } catch (EntryNotFoundException e) {
+            return false;
+        }
     }
 
     /**
@@ -445,7 +447,7 @@ final class LDAPDriver extends Driver {
      *
      * @return Returns the LDAP connection used for interacting with the server.
      */
-    LDAPConnection getLDAPConnection() {
+    Connection getLDAPConnection() {
         return connection;
     }
 
@@ -525,7 +527,7 @@ final class LDAPDriver extends Driver {
         getEntryDefinition(AbstractManagedObjectDefinition<C, S> d, DN dn) throws ErrorResultException,
         DefinitionDecodingException {
         // @Checkstyle:on
-        SearchResultEntry searchResultEntry = connection.readEntry(dn, Collections.singleton("objectclass"));
+        SearchResultEntry searchResultEntry = connection.readEntry(dn, "objectclass");
         Attribute objectClassAttr = searchResultEntry.getAttribute("objectclass");
 
         if (objectClassAttr == null) {
@@ -553,5 +555,23 @@ final class LDAPDriver extends Driver {
         };
 
         return d.resolveManagedObjectDefinition(resolver);
+    }
+
+    private Collection<DN> listEntries(DN dn, Filter filter) throws ErrorResultException {
+        List<DN> names = new LinkedList<DN>();
+        ConnectionEntryReader reader =
+                connection.search(dn.toString(), SearchScope.SINGLE_LEVEL, filter.toString());
+        try {
+            while (reader.hasNext()) {
+                names.add(reader.readEntry().getName());
+            }
+        } catch (ErrorResultIOException e) {
+            throw e.getCause();
+        } catch (SearchResultReferenceIOException e) {
+            // Ignore.
+        } finally {
+            reader.close();
+        }
+        return names;
     }
 }

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2007-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.config.client.ldap;
@@ -159,10 +160,10 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends AbstractMan
             // be required anyway).
             DN dn;
             if (r instanceof InstantiableRelationDefinition) {
-                dn = LDAPNameBuilder.create(parent, (InstantiableRelationDefinition<?, ?>) r,
+                dn = DNBuilder.create(parent, (InstantiableRelationDefinition<?, ?>) r,
                         driver.getLDAPProfile());
             } else {
-                dn = LDAPNameBuilder.create(parent, (SetRelationDefinition<?, ?>) r,
+                dn = DNBuilder.create(parent, (SetRelationDefinition<?, ?>) r,
                         driver.getLDAPProfile());
             }
 
@@ -178,7 +179,7 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends AbstractMan
 
                 // Create the entry.
                 try {
-                    driver.getLDAPConnection().createEntry(entry);
+                    driver.getLDAPConnection().add(entry);
                 } catch (ErrorResultException e) {
                     if (e.getResult().getResultCode() == ResultCode.UNWILLING_TO_PERFORM) {
                         LocalizableMessage m = LocalizableMessage.raw("%s", e.getLocalizedMessage());
@@ -191,7 +192,7 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends AbstractMan
         }
 
         // Now add the entry representing this new managed object.
-        DN dn = LDAPNameBuilder.create(path, driver.getLDAPProfile());
+        DN dn = DNBuilder.create(path, driver.getLDAPProfile());
         Entry entry = new LinkedHashMapEntry(dn);
 
         // Create the object class attribute.
@@ -217,7 +218,7 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends AbstractMan
 
         try {
             // Create the entry.
-            driver.getLDAPConnection().createEntry(entry);
+            driver.getLDAPConnection().add(entry);
         } catch (ErrorResultException e) {
             if (e.getResult().getResultCode() == ResultCode.ENTRY_ALREADY_EXISTS) {
                 throw new ManagedObjectAlreadyExistsException();
@@ -254,7 +255,7 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends AbstractMan
             ErrorResultException {
         // Build the modify request
         ManagedObjectPath<?, ?> path = getManagedObjectPath();
-        DN dn = LDAPNameBuilder.create(path, driver.getLDAPProfile());
+        DN dn = DNBuilder.create(path, driver.getLDAPProfile());
         ModifyRequest request = Requests.newModifyRequest(dn);
         ManagedObjectDefinition<?, ?> d = getManagedObjectDefinition();
         for (PropertyDefinition<?> pd : d.getAllPropertyDefinitions()) {
@@ -271,7 +272,7 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends AbstractMan
         // Perform the LDAP modification if something has changed.
         if (!request.getModifications().isEmpty()) {
             try {
-                driver.getLDAPConnection().modifyEntry(request);
+                driver.getLDAPConnection().modify(request);
             } catch (ErrorResultException e) {
                 if (e.getResult().getResultCode() == ResultCode.UNWILLING_TO_PERFORM) {
                     LocalizableMessage m = LocalizableMessage.raw("%s", e.getLocalizedMessage());
