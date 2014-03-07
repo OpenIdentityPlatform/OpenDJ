@@ -27,12 +27,13 @@
 package org.opends.server.backends.jeb;
 
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.opends.server.api.ExtensibleIndexer;
-import org.opends.server.api.ExtensibleMatchingRule;
+import org.opends.server.api.MatchingRule;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.Entry;
@@ -77,14 +78,12 @@ public final class JEExtensibleIndexer extends Indexer
    * @param extensibleIndexer The extensible indexer to be used.
    */
   public JEExtensibleIndexer(AttributeType attributeType,
-          ExtensibleMatchingRule matchingRule,
+          MatchingRule matchingRule,
           ExtensibleIndexer extensibleIndexer)
   {
     this.attributeType = attributeType;
     this.extensibleIndexer = extensibleIndexer;
   }
-
-
 
    /**
    * Gets a string representation of this object.  The returned value is
@@ -202,14 +201,38 @@ public final class JEExtensibleIndexer extends Indexer
   {
     if (attrList == null) return;
 
-    for (Attribute attr : attrList)
+    final Set<byte[]> keys = new HashSet<byte[]>();
+    indexAttribute(attrList, keys);
+    computeModifiedKeys(modifiedKeys, insert, keys);
+  }
+
+  /**
+   * Computes a map of index keys and a boolean flag indicating whether the
+   * corresponding key will be inserted or deleted.
+   *
+   * @param modifiedKeys
+   *          A map containing the keys and a boolean. Keys corresponding to the
+   *          boolean value <code>true</code> should be inserted and
+   *          <code>false</code> should be deleted.
+   * @param insert
+   *          <code>true</code> if generated keys should be inserted or
+   *          <code>false</code> otherwise.
+   * @param keys
+   *          The index keys to map.
+   */
+  private static void computeModifiedKeys(Map<byte[], Boolean> modifiedKeys,
+      Boolean insert, final Set<byte[]> keys)
+  {
+    for (byte[] key : keys)
     {
-      if (!attr.isVirtual())
+      Boolean cInsert = modifiedKeys.get(key);
+      if (cInsert == null)
       {
-        for (AttributeValue value : attr)
-        {
-          extensibleIndexer.getKeys(value, modifiedKeys, insert);
-        }
+        modifiedKeys.put(key, insert);
+      }
+      else if (!cInsert.equals(insert))
+      {
+        modifiedKeys.remove(key);
       }
     }
   }

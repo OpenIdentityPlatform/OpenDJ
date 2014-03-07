@@ -1350,7 +1350,6 @@ public final class CollationMatchingRuleFactory extends
       // initialLength, initial, numberofany, anyLength1, any1,
       // anyLength2, any2, ..., anyLengthn, anyn, finalLength,
       // final
-      CollationKey key;
       List<Integer> normalizedList = new ArrayList<Integer>();
 
       if (subInitial == null)
@@ -1359,16 +1358,7 @@ public final class CollationMatchingRuleFactory extends
       }
       else
       {
-        key = collator.getCollationKey(subInitial);
-        byte[] initialBytes = key.toByteArray();
-
-        // Last 4 bytes are 0s with PRIMARY strength.
-        int length = initialBytes.length - 4;
-        normalizedList.add(length);
-        for (int i = 0; i < length; i++)
-        {
-          normalizedList.add((int) initialBytes[i]);
-        }
+        addLengthAndBytes(subInitial, normalizedList);
       }
 
       List<String> subAny = assertion.getAny();
@@ -1381,14 +1371,7 @@ public final class CollationMatchingRuleFactory extends
         normalizedList.add(subAny.size());
         for (String any : subAny)
         {
-          key = collator.getCollationKey(any);
-          byte[] anyBytes = key.toByteArray();
-          int length = anyBytes.length - 4;
-          normalizedList.add(length);
-          for (int i = 0; i < length; i++)
-          {
-            normalizedList.add((int) anyBytes[i]);
-          }
+          addLengthAndBytes(any, normalizedList);
         }
       }
 
@@ -1399,14 +1382,7 @@ public final class CollationMatchingRuleFactory extends
       }
       else
       {
-        key = collator.getCollationKey(subFinal);
-        byte[] subFinalBytes = key.toByteArray();
-        int length = subFinalBytes.length - 4;
-        normalizedList.add(length);
-        for (int i = 0; i < length; i++)
-        {
-          normalizedList.add((int) subFinalBytes[i]);
-        }
+        addLengthAndBytes(subFinal, normalizedList);
       }
 
       byte[] normalizedBytes = new byte[normalizedList.size()];
@@ -1416,6 +1392,23 @@ public final class CollationMatchingRuleFactory extends
       }
 
       return ByteString.wrap(normalizedBytes);
+    }
+
+
+
+    private void addLengthAndBytes(String substring,
+        List<Integer> normalizedList)
+    {
+      CollationKey key = collator.getCollationKey(substring);
+      byte[] substrBytes = key.toByteArray();
+
+      // Last 4 bytes are 0s with PRIMARY strength.
+      int length = substrBytes.length - 4;
+      normalizedList.add(length);
+      for (int i = 0; i < length; i++)
+      {
+        normalizedList.add((int) substrBytes[i]);
+      }
     }
 
 
@@ -1564,50 +1557,6 @@ public final class CollationMatchingRuleFactory extends
 
       return indexers;
     }
-
-
-
-    /**
-     * Decomposes an attribute value into a set of substring index keys.
-     *
-     * @param attValue
-     *          The normalized attribute value
-     * @param set
-     *          A set into which the keys will be inserted.
-     */
-    private void substringKeys(ByteString attValue, Set<byte[]> keys)
-    { // TODO merge with ExtensibleIndexer.getKeys(attrValue, keys);
-      // TODO and with AbstractSubstringMatchingRuleImpl.SubstringIndexer.createKeys();
-      String value = attValue.toString();
-      int keyLength = subIndexer.getSubstringLength();
-      for (int i = 0, remain = value.length(); remain > 0; i++, remain--)
-      {
-        int len = Math.min(keyLength, remain);
-        keys.add(makeSubstringKey(value, i, len));
-      }
-    }
-
-
-
-    /**
-     * Decomposes an attribute value into a set of substring index keys.
-     *
-     * @param value
-     *          The normalized attribute value
-     * @param modifiedKeys
-     *          The map into which the modified keys will be inserted.
-     * @param insert
-     *          <code>true</code> if generated keys should be inserted
-     *          or <code>false</code> otherwise.
-     */
-    private void substringKeys(ByteString attValue,
-        Map<byte[], Boolean> modifiedKeys, Boolean insert)
-    { // TODO merge with ExtensibleIndexer.getKeys(attrValue, modifiedKeys, insert);
-      Set<byte[]> keys = new TreeSet<byte[]>();
-      substringKeys(attValue, keys);
-      ExtensibleIndexer.computeModifiedKeys(modifiedKeys, insert, keys);
-    }
-
 
 
     /**
@@ -2199,21 +2148,16 @@ public final class CollationMatchingRuleFactory extends
      * {@inheritDoc}
      */
     @Override
-    public void getKeys(AttributeValue value, Set<byte[]> keys)
-    {
-      matchingRule.substringKeys(value.getValue(), keys);
-    }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void getKeys(AttributeValue attValue,
-        Map<byte[], Boolean> modifiedKeys, Boolean insert)
-    {
-      matchingRule.substringKeys(attValue.getValue(), modifiedKeys, insert);
+    public void getKeys(AttributeValue attValue, Set<byte[]> keys)
+    { // TODO merge with ExtensibleIndexer.getKeys(attrValue, keys);
+      // TODO and with AbstractSubstringMatchingRuleImpl.SubstringIndexer.createKeys();
+      String value = attValue.toString();
+      int keyLength = substringLen;
+      for (int i = 0, remain = value.length(); remain > 0; i++, remain--)
+      {
+        int len = Math.min(keyLength, remain);
+        keys.add(matchingRule.makeSubstringKey(value, i, len));
+      }
     }
 
     /** {@inheritDoc} */

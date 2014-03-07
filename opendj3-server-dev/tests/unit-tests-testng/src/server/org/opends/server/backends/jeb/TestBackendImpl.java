@@ -30,7 +30,6 @@ import java.util.*;
 
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
-import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.spi.IndexingOptions;
@@ -38,6 +37,7 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.LocalDBBackendCfgDefn;
 import org.opends.server.admin.std.server.LocalDBBackendCfg;
+import org.opends.server.api.ExtensibleIndexer;
 import org.opends.server.controls.SubtreeDeleteControl;
 import org.opends.server.core.DeleteOperationBasis;
 import org.opends.server.core.DirectoryServer;
@@ -47,12 +47,6 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.types.*;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.Attributes;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.Modification;
-import org.opends.server.types.RDN;
 import org.opends.server.util.Base64;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -64,7 +58,9 @@ import com.sleepycat.je.LockMode;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.forgerock.opendj.ldap.ConditionResult.*;
+import static org.forgerock.opendj.ldap.ModificationType.*;
 import static org.mockito.Mockito.*;
+import static org.opends.server.types.Attributes.*;
 import static org.testng.Assert.*;
 
 /**
@@ -846,7 +842,7 @@ public class TestBackendImpl extends JebTestCase {
       assertIndexContainsID(presenceIndexer, entry, index.presenceIndex,
           entryID, FALSE);
 
-      Indexer equalityIndexer = new EqualityIndexer(index.getAttributeType());
+      Indexer equalityIndexer = newEqualityIndexer(index);
       assertIndexContainsID(equalityIndexer, entry, index.equalityIndex,
           entryID, FALSE);
 
@@ -854,7 +850,7 @@ public class TestBackendImpl extends JebTestCase {
       assertIndexContainsID(substringIndexer, entry, index.substringIndex,
           entryID, FALSE);
 
-      Indexer orderingIndexer = new OrderingIndexer(index.getAttributeType());
+      Indexer orderingIndexer = newOrderingIndexer(index);
       assertIndexContainsID(orderingIndexer, entry, index.orderingIndex,
           entryID, FALSE);
     }
@@ -864,12 +860,28 @@ public class TestBackendImpl extends JebTestCase {
     }
   }
 
-  private SubstringIndexer newSubstringIndexer(AttributeIndex index)
+  private Indexer newOrderingIndexer(AttributeIndex index)
+  {
+    AttributeType attrType = index.getAttributeType();
+    ExtensibleIndexer extIndexer = new OrderingIndexer(index.getAttributeType());
+    return new JEExtensibleIndexer(attrType, attrType.getSubstringMatchingRule(), extIndexer);
+  }
+
+  private Indexer newEqualityIndexer(AttributeIndex index)
+  {
+    AttributeType attrType = index.getAttributeType();
+    ExtensibleIndexer extIndexer = new EqualityIndexer();
+    return new JEExtensibleIndexer(attrType, attrType.getSubstringMatchingRule(), extIndexer);
+  }
+
+  private Indexer newSubstringIndexer(AttributeIndex index)
   {
     final IndexingOptions options = mock(IndexingOptions.class);
     when(options.substringKeySize()).thenReturn(
         index.getConfiguration().getSubstringLength());
-    return new SubstringIndexer(index.getAttributeType(), options);
+    AttributeType attrType = index.getAttributeType();
+    ExtensibleIndexer extIndexer = new SubstringIndexer(attrType, options);
+    return new JEExtensibleIndexer(attrType, attrType.getSubstringMatchingRule(), extIndexer);
   }
 
   private void assertIndexContainsID(Indexer indexer, Entry entry, Index index,
@@ -940,7 +952,7 @@ public class TestBackendImpl extends JebTestCase {
           entry.getAttribute("cn").get(0).getAttributeType();
       AttributeIndex index = ec.getAttributeIndex(attribute);
 
-      Indexer orderingIndexer = new OrderingIndexer(index.getAttributeType());
+      Indexer orderingIndexer = newOrderingIndexer(index);
       assertIndexContainsID(orderingIndexer, entry, index.orderingIndex,
           entryID, TRUE);
       assertIndexContainsID(orderingIndexer, oldEntry, index.orderingIndex,
@@ -952,7 +964,7 @@ public class TestBackendImpl extends JebTestCase {
       assertIndexContainsID(substringIndexer, oldEntry, index.substringIndex,
           entryID, FALSE);
 
-      Indexer equalityIndexer = new EqualityIndexer(index.getAttributeType());
+      Indexer equalityIndexer = newEqualityIndexer(index);
       assertIndexContainsID(equalityIndexer, entry, index.equalityIndex,
           entryID, TRUE);
       assertIndexContainsID(equalityIndexer, oldEntry, index.equalityIndex,
@@ -976,10 +988,10 @@ public class TestBackendImpl extends JebTestCase {
     AttributeIndex titleIndex;
     AttributeIndex nameIndex;
     Set<byte[]> addKeys;
-    PresenceIndexer presenceIndexer;
-    EqualityIndexer equalityIndexer;
-    SubstringIndexer substringIndexer;
-    OrderingIndexer orderingIndexer;
+    Indexer presenceIndexer;
+    Indexer equalityIndexer;
+    Indexer substringIndexer;
+    Indexer orderingIndexer;
 
     EntryContainer ec = backend.getRootContainer().getEntryContainer(
         DN.valueOf("dc=test,dc=com"));
@@ -987,42 +999,32 @@ public class TestBackendImpl extends JebTestCase {
     try
     {
       List<Modification> modifications = new ArrayList<Modification>();
-      modifications.add(new Modification(ModificationType.ADD, Attributes
-          .create("title", "debugger")));
+      modifications.add(new Modification(ADD, create("title", "debugger")));
 
       AttributeBuilder builder = new AttributeBuilder("title");
       builder.setOption("lang-en");
       builder.add("debugger2");
 
-      modifications.add(new Modification(ModificationType.ADD, builder
-          .toAttribute()));
-      modifications.add(new Modification(ModificationType.DELETE,
-          Attributes.create("cn", "Aaren Atp")));
-      modifications.add(new Modification(ModificationType.ADD, Attributes
-          .create("cn", "Aaren Rigor")));
-      modifications.add(new Modification(ModificationType.ADD, Attributes
-          .create("cn", "Aarenister Rigor")));
+      modifications.add(new Modification(ADD, builder.toAttribute()));
+      modifications.add(new Modification(DELETE, create("cn", "Aaren Atp")));
+      modifications.add(new Modification(ADD, create("cn", "Aaren Rigor")));
+      modifications.add(new Modification(ADD, create("cn", "Aarenister Rigor")));
 
       builder = new AttributeBuilder("givenname");
       builder.add("test");
       builder.setOption("lang-de");
-      modifications.add(new Modification(ModificationType.ADD, builder
-          .toAttribute()));
+      modifications.add(new Modification(ADD, builder.toAttribute()));
 
       builder = new AttributeBuilder("givenname");
       builder.add("test2");
       builder.setOption("lang-cn");
-      modifications.add(new Modification(ModificationType.DELETE, builder
-          .toAttribute()));
+      modifications.add(new Modification(DELETE, builder.toAttribute()));
 
       builder = new AttributeBuilder("givenname");
       builder.add("newtest3");
       builder.setOption("lang-es");
-      modifications.add(new Modification(ModificationType.REPLACE, builder
-          .toAttribute()));
-
-      modifications.add(new Modification(ModificationType.REPLACE,
-          Attributes.create("employeenumber", "222")));
+      modifications.add(new Modification(REPLACE, builder.toAttribute()));
+      modifications.add(new Modification(REPLACE, create("employeenumber", "222")));
 
       newEntry = entries.get(1);
       newEntry.applyModifications(modifications);
@@ -1097,16 +1099,16 @@ public class TestBackendImpl extends JebTestCase {
       presenceIndexer = new PresenceIndexer(nameIndex.getAttributeType());
       assertIndexContainsID(presenceIndexer, entry, nameIndex.presenceIndex, entryID);
 
-      orderingIndexer = new OrderingIndexer(titleIndex.getAttributeType());
+      orderingIndexer = newOrderingIndexer(titleIndex);
       assertIndexContainsID(orderingIndexer, entry, titleIndex.orderingIndex, entryID);
 
-      orderingIndexer = new OrderingIndexer(nameIndex.getAttributeType());
+      orderingIndexer = newOrderingIndexer(nameIndex);
       assertIndexContainsID(orderingIndexer, entry, nameIndex.orderingIndex, entryID);
 
-      equalityIndexer = new EqualityIndexer(titleIndex.getAttributeType());
+      equalityIndexer = newEqualityIndexer(titleIndex);
       assertIndexContainsID(equalityIndexer, entry, titleIndex.equalityIndex, entryID);
 
-      equalityIndexer = new EqualityIndexer(nameIndex.getAttributeType());
+      equalityIndexer = newEqualityIndexer(nameIndex);
       assertIndexContainsID(equalityIndexer, entry, nameIndex.equalityIndex, entryID);
 
       substringIndexer = newSubstringIndexer(titleIndex);

@@ -27,8 +27,6 @@
 package org.opends.server.api;
 
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import org.forgerock.opendj.ldap.ByteSequence;
@@ -86,56 +84,4 @@ public abstract class ExtensibleIndexer implements Indexer
     throw new RuntimeException("Not implemented yet");
   }
 
-  /**
-   * Generates a map of index keys and a boolean flag indicating
-   * whether the corresponding key will be inserted or deleted.
-   *
-   * @param attrValue
-   *          The attribute for which keys are required.
-   * @param modifiedKeys
-   *          A map containing the keys and a boolean. Keys
-   *          corresponding to the boolean value <code>true</code>
-   *          should be inserted and <code>false</code> should be
-   *          deleted.
-   * @param insert
-   *          <code>true</code> if generated keys should be inserted
-   *          or <code>false</code> otherwise.
-   */
-  public void getKeys(AttributeValue attrValue, Map<byte[], Boolean> modifiedKeys, Boolean insert)
-  {
-    final Set<byte[]> keys = new HashSet<byte[]>();
-    getKeys(attrValue, keys);
-    computeModifiedKeys(modifiedKeys, insert, keys);
-  }
-
-  /**
-   * Computes the modified keys by an indexer.
-   *
-   * @param modifiedKeys
-   *          A map containing the keys and a boolean. Keys
-   *          corresponding to the boolean value <code>true</code>
-   *          should be inserted and <code>false</code> should be
-   *          deleted.
-   * @param insert
-   *          <code>true</code> if generated keys should be inserted
-   *          or <code>false</code> otherwise.
-   * @param keys
-   *          the newly generated keys that will be added or removed from the Map
-   */
-  public static void computeModifiedKeys(Map<byte[], Boolean> modifiedKeys,
-      Boolean insert, final Set<byte[]> keys)
-  {
-    for (byte[] key : keys)
-    {
-      Boolean cInsert = modifiedKeys.get(key);
-      if (cInsert == null)
-      {
-        modifiedKeys.put(key, insert);
-      }
-      else if (!cInsert.equals(insert))
-      {
-        modifiedKeys.remove(key);
-      }
-    }
-  }
 }

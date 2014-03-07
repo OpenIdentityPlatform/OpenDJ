@@ -26,17 +26,19 @@
  */
 package org.opends.server.backends.jeb;
 
-import com.sleepycat.je.*;
+import java.io.Closeable;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
 
+import com.sleepycat.je.*;
+
 /**
  * This class is a wrapper around the JE database object and provides basic
  * read and write methods for entries.
  */
-public abstract class DatabaseContainer
+public abstract class DatabaseContainer implements Closeable
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -89,7 +91,7 @@ public abstract class DatabaseContainer
    * created and used to perform the open.
    *
    * @throws DatabaseException if a JE database error occurs while
-   * openning the index.
+   * opening the index.
    */
   public void open() throws DatabaseException
   {
@@ -131,17 +133,18 @@ public abstract class DatabaseContainer
    * database container.
    *
    * The database container should not be closed while other processes
-   * aquired the container. The container should not be closed
+   * acquired the container. The container should not be closed
    * while cursors handles into the database remain open, or
    * transactions that include operations on the database have not yet
-   * been commited or aborted.
+   * been committed or aborted.
    *
    * The container may not be accessed again after this method is
    * called, regardless of the method's success or failure.
    *
    * @throws DatabaseException if an error occurs.
    */
-  synchronized void close() throws DatabaseException
+  @Override
+  synchronized public void close() throws DatabaseException
   {
     if(dbConfig.getDeferredWrite())
     {
@@ -270,7 +273,6 @@ public abstract class DatabaseContainer
       throws DatabaseException
   {
     return database.openCursor(cursorConfig);
-
   }
 
   /**
@@ -293,6 +295,7 @@ public abstract class DatabaseContainer
    * Get a string representation of this object.
    * @return return A string representation of this object.
    */
+  @Override
   public String toString()
   {
     return name;
@@ -338,7 +341,7 @@ public abstract class DatabaseContainer
   {
     StringBuilder builder = new StringBuilder();
     builder.append(" (");
-    builder.append(status.toString());
+    builder.append(status);
     builder.append(")");
     builder.append(" db=");
     try
@@ -347,7 +350,7 @@ public abstract class DatabaseContainer
     }
     catch (DatabaseException de)
     {
-      builder.append(de.toString());
+      builder.append(de);
     }
     if (txn != null)
     {
@@ -358,7 +361,7 @@ public abstract class DatabaseContainer
       }
       catch (DatabaseException de)
       {
-        builder.append(de.toString());
+        builder.append(de);
       }
     }
     else
@@ -386,6 +389,5 @@ public abstract class DatabaseContainer
     }
     return builder.toString();
   }
-
 
 }

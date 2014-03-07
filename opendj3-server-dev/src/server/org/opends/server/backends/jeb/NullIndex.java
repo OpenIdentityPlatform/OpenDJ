@@ -67,9 +67,7 @@ final class NullIndex extends Index
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean insertID(IndexBuffer buffer, byte[] keyBytes, EntryID entryID)
   {
@@ -78,9 +76,7 @@ final class NullIndex extends Index
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean insertID(Transaction txn, DatabaseEntry key, EntryID entryID)
       throws DatabaseException
@@ -90,9 +86,7 @@ final class NullIndex extends Index
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void insert(DatabaseEntry key, ImportIDSet importIdSet,
       DatabaseEntry data) throws DatabaseException
@@ -102,9 +96,7 @@ final class NullIndex extends Index
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void delete(DatabaseEntry key, ImportIDSet importIdSet,
       DatabaseEntry data) throws DatabaseException
@@ -114,11 +106,9 @@ final class NullIndex extends Index
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
-  public synchronized boolean insert(ImportIDSet importIDSet,
+  public boolean insert(ImportIDSet importIDSet,
       Set<byte[]> keySet, DatabaseEntry keyData, DatabaseEntry data)
       throws DatabaseException
   {
@@ -127,9 +117,7 @@ final class NullIndex extends Index
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   void updateKey(Transaction txn, DatabaseEntry key, EntryIDSet deletedIDs,
       EntryIDSet addedIDs) throws DatabaseException
@@ -139,9 +127,7 @@ final class NullIndex extends Index
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean removeID(IndexBuffer buffer, byte[] keyBytes, EntryID entryID)
   {
@@ -150,9 +136,7 @@ final class NullIndex extends Index
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void removeID(Transaction txn, DatabaseEntry key, EntryID entryID)
       throws DatabaseException
@@ -162,9 +146,7 @@ final class NullIndex extends Index
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void delete(Transaction txn, Set<byte[]> keySet, EntryID entryID)
       throws DatabaseException
@@ -174,9 +156,7 @@ final class NullIndex extends Index
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void delete(IndexBuffer buffer, byte[] keyBytes)
   {
@@ -185,9 +165,7 @@ final class NullIndex extends Index
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConditionResult containsID(Transaction txn, DatabaseEntry key,
       EntryID entryID) throws DatabaseException
@@ -197,9 +175,7 @@ final class NullIndex extends Index
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public EntryIDSet readKey(DatabaseEntry key, Transaction txn,
       LockMode lockMode)
@@ -209,9 +185,7 @@ final class NullIndex extends Index
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void writeKey(Transaction txn, DatabaseEntry key,
       EntryIDSet entryIDList) throws DatabaseException
@@ -221,9 +195,7 @@ final class NullIndex extends Index
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public EntryIDSet readRange(byte[] lower, byte[] upper,
       boolean lowerIncluded, boolean upperIncluded)
@@ -233,9 +205,7 @@ final class NullIndex extends Index
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public int getEntryLimitExceededCount()
   {
@@ -244,9 +214,7 @@ final class NullIndex extends Index
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void closeCursor() throws DatabaseException
   {
@@ -255,9 +223,7 @@ final class NullIndex extends Index
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean addEntry(IndexBuffer buffer, EntryID entryID, Entry entry)
       throws DatabaseException, DirectoryException
@@ -267,9 +233,7 @@ final class NullIndex extends Index
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean addEntry(Transaction txn, EntryID entryID, Entry entry)
       throws DatabaseException, DirectoryException
@@ -279,9 +243,7 @@ final class NullIndex extends Index
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void removeEntry(IndexBuffer buffer, EntryID entryID, Entry entry)
       throws DatabaseException, DirectoryException
@@ -291,9 +253,7 @@ final class NullIndex extends Index
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void removeEntry(Transaction txn, EntryID entryID, Entry entry)
       throws DatabaseException, DirectoryException
@@ -303,9 +263,7 @@ final class NullIndex extends Index
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void modifyEntry(Transaction txn, EntryID entryID, Entry oldEntry,
       Entry newEntry, List<Modification> mods) throws DatabaseException
@@ -315,9 +273,7 @@ final class NullIndex extends Index
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void modifyEntry(IndexBuffer buffer, EntryID entryID, Entry oldEntry,
       Entry newEntry, List<Modification> mods) throws DatabaseException
@@ -327,9 +283,7 @@ final class NullIndex extends Index
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean setIndexEntryLimit(int indexEntryLimit)
   {
@@ -338,9 +292,7 @@ final class NullIndex extends Index
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public int getIndexEntryLimit()
   {
@@ -349,11 +301,9 @@ final class NullIndex extends Index
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
-  public synchronized void setTrusted(Transaction txn, boolean trusted)
+  public void setTrusted(Transaction txn, boolean trusted)
       throws DatabaseException
   {
     // Do nothing.
@@ -361,42 +311,34 @@ final class NullIndex extends Index
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
-  public synchronized boolean isTrusted()
+  public boolean isTrusted()
   {
     return true;
   }
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
-  public synchronized boolean isRebuildRunning()
+  public boolean isRebuildRunning()
   {
     return false;
   }
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
-  public synchronized void setRebuildStatus(boolean rebuildRunning)
+  public void setRebuildStatus(boolean rebuildRunning)
   {
     // Do nothing.
   }
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean getMaintainCount()
   {
@@ -405,9 +347,7 @@ final class NullIndex extends Index
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void open() throws DatabaseException
   {
@@ -416,20 +356,16 @@ final class NullIndex extends Index
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
-  synchronized void close() throws DatabaseException
+  public void close() throws DatabaseException
   {
     // Do nothing.
   }
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   protected OperationStatus put(Transaction txn, DatabaseEntry key,
       DatabaseEntry data) throws DatabaseException
@@ -439,9 +375,7 @@ final class NullIndex extends Index
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   protected OperationStatus read(Transaction txn, DatabaseEntry key,
       DatabaseEntry data, LockMode lockMode) throws DatabaseException
@@ -451,9 +385,7 @@ final class NullIndex extends Index
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   protected OperationStatus insert(Transaction txn, DatabaseEntry key,
       DatabaseEntry data) throws DatabaseException
@@ -463,9 +395,7 @@ final class NullIndex extends Index
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   protected OperationStatus delete(Transaction txn, DatabaseEntry key)
       throws DatabaseException
@@ -475,9 +405,7 @@ final class NullIndex extends Index
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Cursor openCursor(Transaction txn, CursorConfig cursorConfig)
       throws DatabaseException
@@ -487,9 +415,7 @@ final class NullIndex extends Index
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public long getRecordCount() throws DatabaseException
   {
@@ -498,9 +424,7 @@ final class NullIndex extends Index
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public PreloadStats preload(PreloadConfig config) throws DatabaseException
   {
