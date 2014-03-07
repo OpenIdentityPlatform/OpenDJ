@@ -53,6 +53,9 @@ import com.forgerock.opendj.util.SubstringReader;
  */
 abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImpl {
 
+    /** The backslash character. */
+    private static final int BACKSLASH = 0x5C;
+
     /**
      * Default assertion implementation for substring matching rules.
      * For example, with the assertion value "initial*any1*any2*any3*final",
@@ -97,36 +100,28 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
                 }
             }
 
-            if (normAnys != null && normAnys.length != 0) {
+            if (normAnys != null) {
+            matchEachSubstring:
                 for (final ByteSequence element : normAnys) {
                     final int anyLength = element.length();
-                    if (anyLength == 0) {
-                        continue;
-                    }
                     final int end = valueLength - anyLength;
-                    boolean match = false;
+                matchCurrentSubstring:
                     for (; pos <= end; pos++) {
-                        if (element.byteAt(0) == normalizedAttributeValue.byteAt(pos)) {
-                            boolean subMatch = true;
-                            for (int i = 1; i < anyLength; i++) {
-                                if (element.byteAt(i) != normalizedAttributeValue.byteAt(pos + i)) {
-                                    subMatch = false;
-                                    break;
-                                }
-                            }
-
-                            if (subMatch) {
-                                match = subMatch;
-                                break;
+                        // Try to match all characters from the substring
+                        for (int i = 0; i < anyLength; i++) {
+                            if (element.byteAt(i) != normalizedAttributeValue.byteAt(pos + i)) {
+                                // not a match,
+                                // try to find a match in the rest of this value
+                                continue matchCurrentSubstring;
                             }
                         }
-                    }
-
-                    if (match) {
+                        // we just matched current substring,
+                        // go try to match the next substring
                         pos += anyLength;
-                    } else {
-                        return ConditionResult.FALSE;
+                        continue matchEachSubstring;
                     }
+                    // Could not match current substring
+                    return ConditionResult.FALSE;
                 }
             }
 
@@ -181,7 +176,7 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
             final ByteStringBuilder upper = new ByteStringBuilder(lower);
 
             for (int i = upper.length() - 1; i >= 0; i--) {
-                if (upper.byteAt(i) == 0xFF) {
+                if (upper.byteAt(i) == (byte) 0xFF) {
                     // We have to carry the overflow to the more significant byte.
                     upper.setByte(i, (byte) 0);
                 } else {
@@ -394,7 +389,7 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
             b = (byte) 0xF0;
             break;
         default:
-            if (c1 == 0x5C) {
+            if (c1 == BACKSLASH) {
                 return c1;
             }
             if (escapeChars != null) {
@@ -483,6 +478,7 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
 
     private ByteString evaluateEscapes(final SubstringReader reader, final char[] escapeChars,
             final boolean trim) throws DecodeException {
+        // FIXME JNR I believe the trim parameter is dead code
         return evaluateEscapes(reader, escapeChars, escapeChars, trim);
     }
 
@@ -500,7 +496,7 @@ abstract class AbstractSubstringMatchingRuleImpl extends AbstractMatchingRuleImp
         reader.mark();
         while (reader.remaining() > 0) {
             c = reader.read();
-            if (c == 0x5C /* The backslash character */) {
+            if (c == BACKSLASH) {
                 if (valueBuffer == null) {
                     valueBuffer = new ByteStringBuilder();
                 }
