@@ -61,20 +61,30 @@ public class LogRetentionPolicyConfigManager implements
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
+  private final ServerContext serverContext;
+
+  /**
+   * Creates this log retention policy manager.
+   *
+   * @param serverContext
+   *          The server context.
+   */
+  public LogRetentionPolicyConfigManager(ServerContext serverContext)
+  {
+    this.serverContext = serverContext;
+  }
 
   /**
    * Initializes all the log retention policies.
    *
    * @throws ConfigException
-   *           If an unrecoverable problem arises in the process of
-   *           performing the initialization as a result of the server
-   *           configuration.
+   *           If an unrecoverable problem arises in the process of performing
+   *           the initialization as a result of the server configuration.
    * @throws InitializationException
-   *           If a problem occurs during initialization that is not
-   *           related to the server configuration.
+   *           If a problem occurs during initialization that is not related to
+   *           the server configuration.
    */
-  public void initializeLogRetentionPolicyConfig()
-      throws ConfigException, InitializationException
+  public void initializeLogRetentionPolicyConfig() throws ConfigException, InitializationException
   {
     ServerManagementContext context = ServerManagementContext.getInstance();
     RootCfg root = context.getRootConfiguration();

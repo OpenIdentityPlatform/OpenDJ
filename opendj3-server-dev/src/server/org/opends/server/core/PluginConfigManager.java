@@ -149,13 +149,17 @@ public class PluginConfigManager
   // plugins.
   private ReentrantLock pluginLock;
 
-
+  private final ServerContext serverContext;
 
   /**
    * Creates a new instance of this plugin config manager.
+   *
+   * @param serverContext
+   *          The server context.
    */
-  public PluginConfigManager()
+  public PluginConfigManager(ServerContext serverContext)
   {
+    this.serverContext = serverContext;
     pluginLock = new ReentrantLock();
 
     startupPlugins                     = new DirectoryServerPlugin[0];
@@ -222,9 +226,8 @@ public class PluginConfigManager
 
 
   /**
-   * Initializes this plugin configuration manager. This should only
-   * be called at Directory Server startup and before user plugins are
-   * loaded.
+   * Initializes this plugin configuration manager. This should only be called
+   * at Directory Server startup and before user plugins are loaded.
    *
    * @throws ConfigException
    *           If a critical configuration problem prevents the plugin

@@ -664,7 +664,7 @@ public class BackUpDB extends TaskTool
       // Initialize the Directory Server core configuration.
       try
       {
-        CoreConfigManager coreConfigManager = new CoreConfigManager();
+        CoreConfigManager coreConfigManager = new CoreConfigManager(directoryServer.getServerContext());
         coreConfigManager.initializeCoreConfig();
       }
       catch (ConfigException ce)

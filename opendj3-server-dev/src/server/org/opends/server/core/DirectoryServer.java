@@ -26,11 +26,35 @@
  */
 package org.opends.server.core;
 
-import java.io.*;
+import static org.forgerock.util.Reject.*;
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.server.util.DynamicConstants.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
 import java.text.DecimalFormat;
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -53,8 +77,61 @@ import org.opends.server.admin.AdministrationDataSync;
 import org.opends.server.admin.ClassLoaderProvider;
 import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.admin.std.meta.GlobalCfgDefn.WorkflowConfigurationMode;
-import org.opends.server.admin.std.server.*;
-import org.opends.server.api.*;
+import org.opends.server.admin.std.server.AlertHandlerCfg;
+import org.opends.server.admin.std.server.AttributeSyntaxCfg;
+import org.opends.server.admin.std.server.ConnectionHandlerCfg;
+import org.opends.server.admin.std.server.CryptoManagerCfg;
+import org.opends.server.admin.std.server.DirectoryStringAttributeSyntaxCfg;
+import org.opends.server.admin.std.server.MonitorProviderCfg;
+import org.opends.server.admin.std.server.PasswordValidatorCfg;
+import org.opends.server.admin.std.server.RootCfg;
+import org.opends.server.admin.std.server.RootDSEBackendCfg;
+import org.opends.server.admin.std.server.SynchronizationProviderCfg;
+import org.opends.server.api.AccessControlHandler;
+import org.opends.server.api.AccountStatusNotificationHandler;
+import org.opends.server.api.AlertGenerator;
+import org.opends.server.api.AlertHandler;
+import org.opends.server.api.ApproximateMatchingRule;
+import org.opends.server.api.AttributeSyntax;
+import org.opends.server.api.AuthenticationPolicy;
+import org.opends.server.api.Backend;
+import org.opends.server.api.BackendInitializationListener;
+import org.opends.server.api.BackupTaskListener;
+import org.opends.server.api.CertificateMapper;
+import org.opends.server.api.ChangeNotificationListener;
+import org.opends.server.api.ClientConnection;
+import org.opends.server.api.CompressedSchema;
+import org.opends.server.api.ConfigAddListener;
+import org.opends.server.api.ConfigChangeListener;
+import org.opends.server.api.ConfigDeleteListener;
+import org.opends.server.api.ConfigHandler;
+import org.opends.server.api.ConnectionHandler;
+import org.opends.server.api.DirectoryServerMBean;
+import org.opends.server.api.EntryCache;
+import org.opends.server.api.EqualityMatchingRule;
+import org.opends.server.api.ExportTaskListener;
+import org.opends.server.api.ExtendedOperationHandler;
+import org.opends.server.api.ExtensibleMatchingRule;
+import org.opends.server.api.Extension;
+import org.opends.server.api.IdentityMapper;
+import org.opends.server.api.ImportTaskListener;
+import org.opends.server.api.InitializationCompletedListener;
+import org.opends.server.api.InvokableComponent;
+import org.opends.server.api.KeyManagerProvider;
+import org.opends.server.api.MatchingRule;
+import org.opends.server.api.MatchingRuleFactory;
+import org.opends.server.api.MonitorProvider;
+import org.opends.server.api.OrderingMatchingRule;
+import org.opends.server.api.PasswordGenerator;
+import org.opends.server.api.PasswordStorageScheme;
+import org.opends.server.api.PasswordValidator;
+import org.opends.server.api.RestoreTaskListener;
+import org.opends.server.api.SASLMechanismHandler;
+import org.opends.server.api.ServerShutdownListener;
+import org.opends.server.api.SubstringMatchingRule;
+import org.opends.server.api.SynchronizationProvider;
+import org.opends.server.api.TrustManagerProvider;
+import org.opends.server.api.WorkQueue;
 import org.opends.server.api.plugin.InternalDirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.api.plugin.PluginType;
@@ -70,15 +147,88 @@ import org.opends.server.crypto.CryptoManagerImpl;
 import org.opends.server.crypto.CryptoManagerSync;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.extensions.JMXAlertHandler;
-import org.opends.server.loggers.*;
+import org.opends.server.loggers.AccessLogger;
+import org.opends.server.loggers.DebugLogPublisher;
+import org.opends.server.loggers.DebugLogger;
+import org.opends.server.loggers.ErrorLogPublisher;
+import org.opends.server.loggers.ErrorLogger;
+import org.opends.server.loggers.RetentionPolicy;
+import org.opends.server.loggers.RotationPolicy;
+import org.opends.server.loggers.TextErrorLogPublisher;
+import org.opends.server.loggers.TextWriter;
 import org.opends.server.monitors.BackendMonitor;
 import org.opends.server.monitors.ConnectionHandlerMonitor;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalConnectionHandler;
-import org.opends.server.schema.*;
+import org.opends.server.schema.AttributeTypeSyntax;
+import org.opends.server.schema.BinarySyntax;
+import org.opends.server.schema.BooleanEqualityMatchingRuleFactory;
+import org.opends.server.schema.BooleanSyntax;
+import org.opends.server.schema.CaseExactEqualityMatchingRuleFactory;
+import org.opends.server.schema.CaseExactIA5EqualityMatchingRuleFactory;
+import org.opends.server.schema.CaseExactIA5SubstringMatchingRuleFactory;
+import org.opends.server.schema.CaseExactOrderingMatchingRuleFactory;
+import org.opends.server.schema.CaseExactSubstringMatchingRuleFactory;
+import org.opends.server.schema.CaseIgnoreEqualityMatchingRuleFactory;
+import org.opends.server.schema.CaseIgnoreIA5EqualityMatchingRuleFactory;
+import org.opends.server.schema.CaseIgnoreIA5SubstringMatchingRuleFactory;
+import org.opends.server.schema.CaseIgnoreOrderingMatchingRuleFactory;
+import org.opends.server.schema.CaseIgnoreSubstringMatchingRuleFactory;
+import org.opends.server.schema.DirectoryStringSyntax;
+import org.opends.server.schema.DistinguishedNameEqualityMatchingRuleFactory;
+import org.opends.server.schema.DistinguishedNameSyntax;
+import org.opends.server.schema.DoubleMetaphoneApproximateMatchingRuleFactory;
+import org.opends.server.schema.GeneralizedTimeEqualityMatchingRuleFactory;
+import org.opends.server.schema.GeneralizedTimeOrderingMatchingRuleFactory;
+import org.opends.server.schema.GeneralizedTimeSyntax;
+import org.opends.server.schema.IA5StringSyntax;
+import org.opends.server.schema.IntegerEqualityMatchingRuleFactory;
+import org.opends.server.schema.IntegerOrderingMatchingRuleFactory;
+import org.opends.server.schema.IntegerSyntax;
+import org.opends.server.schema.OIDSyntax;
+import org.opends.server.schema.ObjectClassSyntax;
+import org.opends.server.schema.ObjectIdentifierEqualityMatchingRuleFactory;
+import org.opends.server.schema.OctetStringEqualityMatchingRuleFactory;
+import org.opends.server.schema.OctetStringOrderingMatchingRuleFactory;
+import org.opends.server.schema.OctetStringSubstringMatchingRuleFactory;
+import org.opends.server.schema.SchemaUpdater;
+import org.opends.server.schema.TelephoneNumberEqualityMatchingRuleFactory;
+import org.opends.server.schema.TelephoneNumberSubstringMatchingRuleFactory;
+import org.opends.server.schema.TelephoneNumberSyntax;
 import org.opends.server.tools.ConfigureWindowsService;
-import org.opends.server.types.*;
-import org.opends.server.util.*;
+import org.opends.server.types.AcceptRejectWarn;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.AttributeValue;
+import org.opends.server.types.BackupConfig;
+import org.opends.server.types.Control;
+import org.opends.server.types.DITContentRule;
+import org.opends.server.types.DITStructureRule;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryEnvironmentConfig;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.HostPort;
+import org.opends.server.types.InitializationException;
+import org.opends.server.types.LDIFExportConfig;
+import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.LockManager;
+import org.opends.server.types.MatchingRuleUse;
+import org.opends.server.types.Modification;
+import org.opends.server.types.NameForm;
+import org.opends.server.types.ObjectClass;
+import org.opends.server.types.OperatingSystem;
+import org.opends.server.types.Operation;
+import org.opends.server.types.Privilege;
+import org.opends.server.types.RestoreConfig;
+import org.opends.server.types.Schema;
+import org.opends.server.types.VirtualAttributeRule;
+import org.opends.server.types.WritabilityMode;
+import org.opends.server.util.BuildVersion;
+import org.opends.server.util.MultiOutputStream;
+import org.opends.server.util.RuntimeInformation;
+import org.opends.server.util.SetupUtils;
+import org.opends.server.util.TimeThread;
+import org.opends.server.util.VersionCompatibilityIssue;
 import org.opends.server.workflowelement.WorkflowElement;
 import org.opends.server.workflowelement.WorkflowElementConfigManager;
 import org.opends.server.workflowelement.localbackend.LocalBackendWorkflowElement;
@@ -90,16 +240,6 @@ import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.StringArgument;
-
-import static org.forgerock.util.Reject.*;
-import static org.opends.messages.ConfigMessages.*;
-import static org.opends.messages.CoreMessages.*;
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.schema.SchemaConstants.*;
-import static org.opends.server.util.DynamicConstants.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines the core of the Directory Server.  It manages the startup
@@ -177,6 +317,9 @@ public final class DirectoryServer
    * any output.
    */
   private static int START_AS_NON_DETACH_QUIET = 104;
+
+  /** Temporary context object, to provide instance methods instead of static methods. */
+  private final DirectoryServerContext serverContext;
 
   /** The policy to use regarding single structural objectclass enforcement. */
   private AcceptRejectWarn singleStructuralClassPolicy;
@@ -681,8 +824,7 @@ public final class DirectoryServer
    * The virtual attribute provider configuration manager for the Directory
    * Server.
    */
-  private final VirtualAttributeConfigManager virtualAttributeConfigManager =
-      new VirtualAttributeConfigManager();
+  private final VirtualAttributeConfigManager virtualAttributeConfigManager;
 
   /** The work queue that will be used to service client requests. */
   private WorkQueue workQueue;
@@ -729,20 +871,8 @@ public final class DirectoryServer
    */
   public static final int DEFAULT_TIMEOUT = 200;
 
-  /** Temporary context object, to provide instance methods instead of static methods. */
-  private final DirectoryServerContext serverContext = new DirectoryServerContext();
-
   /** Entry point for server configuration. */
   private org.forgerock.opendj.config.server.ServerManagementContext serverManagementContext;
-
-  /**
-   * Creates a new instance of the Directory Server.  This will allow only a
-   * single instance of the server per JVM.
-   */
-  private DirectoryServer()
-  {
-    this(new DirectoryEnvironmentConfig());
-  }
 
   /**
    * Temporary class to provide instance methods instead of static methods for
@@ -815,6 +945,15 @@ public final class DirectoryServer
   /**
    * Creates a new instance of the Directory Server.  This will allow only a
    * single instance of the server per JVM.
+   */
+  private DirectoryServer()
+  {
+    this(new DirectoryEnvironmentConfig());
+  }
+
+  /**
+   * Creates a new instance of the Directory Server.  This will allow only a
+   * single instance of the server per JVM.
    *
    * @param  config  The environment configuration to use for the Directory
    *                 Server instance.
@@ -829,6 +968,8 @@ public final class DirectoryServer
     serverErrorResultCode    = ResultCode.OTHER;
 
     operatingSystem = OperatingSystem.forName(System.getProperty("os.name"));
+    serverContext = new DirectoryServerContext();
+    virtualAttributeConfigManager = new VirtualAttributeConfigManager(serverContext);
   }
 
 
@@ -901,7 +1042,14 @@ public final class DirectoryServer
     environmentConfig = config;
   }
 
-
+  /**
+   * Returns the server context.
+   *
+   * @return the server context
+   */
+  public ServerContext getServerContext() {
+    return serverContext;
+  }
 
   /**
    * Indicates whether the Directory Server is currently running.
@@ -1078,8 +1226,7 @@ public final class DirectoryServer
     // Create the plugin config manager, but don't initialize it yet.  This will
     // make it possible to process internal operations before the plugins have
     // been loaded.
-    pluginConfigManager = new PluginConfigManager();
-
+    pluginConfigManager = new PluginConfigManager(serverContext);
 
     // If we have gotten here, then the configuration should be properly
     // bootstrapped.
@@ -1370,11 +1517,8 @@ public final class DirectoryServer
       startUpTime  = System.currentTimeMillis();
       startTimeUTC = TimeThread.getGMTTime();
 
-
       // Determine whether or not we should start the connection handlers.
-      boolean startConnectionHandlers =
-          !environmentConfig.disableConnectionHandlers();
-
+      boolean startConnectionHandlers = !environmentConfig.disableConnectionHandlers();
 
       // Initialize all the schema elements.
       initializeSchema();
@@ -1383,26 +1527,22 @@ public final class DirectoryServer
       // registered.
       pluginConfigManager.initializePluginConfigManager();
 
-
       // Initialize all the virtual attribute handlers.
       virtualAttributeConfigManager.initializeVirtualAttributes();
 
-
       // Initialize the core Directory Server configuration.
-      coreConfigManager = new CoreConfigManager();
+      coreConfigManager = new CoreConfigManager(serverContext);
       coreConfigManager.initializeCoreConfig();
-
 
       // Initialize the Directory Server crypto manager.
       initializeCryptoManager();
 
-
       // Initialize the log rotation policies.
-      rotationPolicyConfigManager = new LogRotationPolicyConfigManager();
+      rotationPolicyConfigManager = new LogRotationPolicyConfigManager(serverContext);
       rotationPolicyConfigManager.initializeLogRotationPolicyConfig();
 
       // Initialize the log retention policies.
-      retentionPolicyConfigManager = new LogRetentionPolicyConfigManager();
+      retentionPolicyConfigManager = new LogRetentionPolicyConfigManager(serverContext);
       retentionPolicyConfigManager.initializeLogRetentionPolicyConfig();
 
 
@@ -1739,12 +1879,12 @@ public final class DirectoryServer
   /**
    * Initializes the crypto manager for the Directory Server.
    *
-   * @throws  ConfigException  If a configuration problem is identified while
-   *                           initializing the crypto manager.
-   *
-   * @throws  InitializationException  If a problem occurs while initializing
-   *                                   the crypto manager that is not related
-   *                                   to the server configuration.
+   * @throws ConfigException
+   *           If a configuration problem is identified while initializing the
+   *           crypto manager.
+   * @throws InitializationException
+   *           If a problem occurs while initializing the crypto manager that is
+   *           not related to the server configuration.
    */
   public void initializeCryptoManager()
          throws ConfigException, InitializationException
@@ -1752,7 +1892,7 @@ public final class DirectoryServer
     RootCfg root =
          ServerManagementContext.getInstance().getRootConfiguration();
     CryptoManagerCfg cryptoManagerCfg = root.getCryptoManager();
-    cryptoManager = new CryptoManagerImpl(cryptoManagerCfg);
+    cryptoManager = new CryptoManagerImpl(serverContext, cryptoManagerCfg);
   }
 
 
@@ -2793,7 +2933,7 @@ public final class DirectoryServer
   public void initializePlugins(Set<PluginType> pluginTypes)
          throws ConfigException, InitializationException
   {
-    pluginConfigManager = new PluginConfigManager();
+    pluginConfigManager = new PluginConfigManager(serverContext);
     pluginConfigManager.initializePluginConfigManager();
     pluginConfigManager.initializeUserPlugins(pluginTypes);
   }
