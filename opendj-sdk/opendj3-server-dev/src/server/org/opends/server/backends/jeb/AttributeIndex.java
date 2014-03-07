@@ -26,7 +26,9 @@
  *      Portions Copyright 2014 Manuel Gaupp
  */
 package org.opends.server.backends.jeb;
+
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -35,6 +37,7 @@ import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
 import org.forgerock.opendj.ldap.spi.IndexingOptions;
+import org.forgerock.util.Utils;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn;
 import org.opends.server.admin.std.server.LocalDBIndexCfg;
@@ -151,20 +154,8 @@ public class AttributeIndex
     if (indexConfig.getIndexType().contains(
             LocalDBIndexCfgDefn.IndexType.EQUALITY))
     {
-      if (attrType.getEqualityMatchingRule() == null)
-      {
-        throw new ConfigException(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attrType, "equality"));
-      }
-
-      Indexer equalityIndexer = new EqualityIndexer(attrType);
-      this.equalityIndex = new Index(name + ".equality",
-                                     equalityIndexer,
-                                     state,
-                                     indexEntryLimit,
-                                     cursorEntryLimit,
-                                     false,
-                                     env,
-                                     entryContainer);
+      this.equalityIndex = buildExtIndex(
+          name, attrType, attrType.getEqualityMatchingRule(), new EqualityIndexer());
     }
 
     if (indexConfig.getIndexType().contains(
@@ -184,57 +175,21 @@ public class AttributeIndex
     if (indexConfig.getIndexType().contains(
             LocalDBIndexCfgDefn.IndexType.SUBSTRING))
     {
-      if (attrType.getSubstringMatchingRule() == null)
-      {
-        throw new ConfigException(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attrType, "substring"));
-      }
-
-      Indexer substringIndexer = new SubstringIndexer(attrType, config);
-      this.substringIndex = new Index(name + ".substring",
-                                     substringIndexer,
-                                     state,
-                                     indexEntryLimit,
-                                     cursorEntryLimit,
-                                     false,
-                                     env,
-                                     entryContainer);
+      this.substringIndex = buildExtIndex(
+          name, attrType, attrType.getSubstringMatchingRule(), new SubstringIndexer(attrType, config));
     }
 
     if (indexConfig.getIndexType().contains(
             LocalDBIndexCfgDefn.IndexType.ORDERING))
     {
-      if (attrType.getOrderingMatchingRule() == null)
-      {
-        throw new ConfigException(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attrType, "ordering"));
-      }
-
-      Indexer orderingIndexer = new OrderingIndexer(attrType);
-      this.orderingIndex = new Index(name + ".ordering",
-                                     orderingIndexer,
-                                     state,
-                                     indexEntryLimit,
-                                     cursorEntryLimit,
-                                     false,
-                                     env,
-                                     entryContainer);
+      this.orderingIndex = buildExtIndex(
+          name, attrType, attrType.getOrderingMatchingRule(), new OrderingIndexer(attrType));
     }
     if (indexConfig.getIndexType().contains(
         LocalDBIndexCfgDefn.IndexType.APPROXIMATE))
     {
-      if (attrType.getApproximateMatchingRule() == null)
-      {
-        throw new ConfigException(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(attrType, "approximate"));
-      }
-
-      Indexer approximateIndexer = new ApproximateIndexer(attrType);
-      this.approximateIndex = new Index(name + ".approximate",
-                                        approximateIndexer,
-                                        state,
-                                        indexEntryLimit,
-                                        cursorEntryLimit,
-                                        false,
-                                        env,
-                                        entryContainer);
+      this.approximateIndex = buildExtIndex(
+          name, attrType, attrType.getApproximateMatchingRule(), new ApproximateIndexer(attrType));
     }
     if (indexConfig.getIndexType().contains(
         LocalDBIndexCfgDefn.IndexType.EXTENSIBLE))
@@ -294,6 +249,26 @@ public class AttributeIndex
     }
   }
 
+  private Index buildExtIndex(String name, AttributeType attrType,
+      MatchingRule rule, ExtensibleIndexer extIndexer) throws ConfigException
+  {
+    if (rule == null)
+    {
+      throw new ConfigException(ERR_CONFIG_INDEX_TYPE_NEEDS_MATCHING_RULE.get(
+          attrType, extIndexer.getExtensibleIndexID()));
+    }
+
+    Indexer indexer = new JEExtensibleIndexer(attrType, rule, extIndexer);
+    return new Index(name + "." + extIndexer.getExtensibleIndexID(),
+                                   indexer,
+                                   state,
+                                   indexConfig.getIndexEntryLimit(),
+                                   cursorEntryLimit,
+                                   false,
+                                   env,
+                                   entryContainer);
+  }
+
   /**
    * Open the attribute index.
    *
@@ -302,30 +277,11 @@ public class AttributeIndex
    */
   public void open() throws DatabaseException
   {
-    if (equalityIndex != null)
-    {
-      equalityIndex.open();
-    }
-
-    if (presenceIndex != null)
-    {
-      presenceIndex.open();
-    }
-
-    if (substringIndex != null)
-    {
-      substringIndex.open();
-    }
-
-    if (orderingIndex != null)
-    {
-      orderingIndex.open();
-    }
-
-    if (approximateIndex != null)
-    {
-      approximateIndex.open();
-    }
+    open(equalityIndex);
+    open(presenceIndex);
+    open(substringIndex);
+    open(orderingIndex);
+    open(approximateIndex);
 
     if(extensibleIndexes!=null)
     {
@@ -338,6 +294,14 @@ public class AttributeIndex
     indexConfig.addChangeListener(this);
   }
 
+  private void open(Index index)
+  {
+    if (index != null)
+    {
+      index.open();
+    }
+  }
+
   /**
    * Close the attribute index.
    *
@@ -346,37 +310,12 @@ public class AttributeIndex
    */
   public void close() throws DatabaseException
   {
-    if (equalityIndex != null)
-    {
-      equalityIndex.close();
-    }
-
-    if (presenceIndex != null)
-    {
-      presenceIndex.close();
-    }
-
-    if (substringIndex != null)
-    {
-      substringIndex.close();
-    }
-
-    if (orderingIndex != null)
-    {
-      orderingIndex.close();
-    }
-
-    if (approximateIndex != null)
-    {
-      approximateIndex.close();
-    }
+    Utils.closeSilently(equalityIndex, presenceIndex, substringIndex,
+        orderingIndex, approximateIndex);
 
     if(extensibleIndexes!=null)
     {
-      for(Index extensibleIndex:extensibleIndexes.getIndexes())
-      {
-        extensibleIndex.close();
-      }
+      Utils.closeSilently(extensibleIndexes.getIndexes());
     }
 
     indexConfig.removeChangeListener(this);
@@ -416,33 +355,13 @@ public class AttributeIndex
                           Entry entry)
        throws DatabaseException, DirectoryException
   {
-    boolean success = false;
+    boolean success = true;
 
-    if (equalityIndex != null
-        && !equalityIndex.addEntry(buffer, entryID, entry))
-    {
-      success = false;
-    }
-    if (presenceIndex != null
-        && !presenceIndex.addEntry(buffer, entryID, entry))
-    {
-      success = false;
-    }
-    if (substringIndex != null
-        && !substringIndex.addEntry(buffer, entryID, entry))
-    {
-      success = false;
-    }
-    if (orderingIndex != null
-        && !orderingIndex.addEntry(buffer, entryID, entry))
-    {
-      success = false;
-    }
-    if (approximateIndex != null
-        && !approximateIndex.addEntry(buffer, entryID, entry))
-    {
-      success = false;
-    }
+    success = addEntry(equalityIndex, buffer, entryID, entry, success);
+    success = addEntry(presenceIndex, buffer, entryID, entry, success);
+    success = addEntry(substringIndex, buffer, entryID, entry, success);
+    success = addEntry(orderingIndex, buffer, entryID, entry, success);
+    success = addEntry(approximateIndex, buffer, entryID, entry, success);
 
     if(extensibleIndexes!=null)
     {
@@ -458,6 +377,15 @@ public class AttributeIndex
     return success;
   }
 
+  private boolean addEntry(Index index, IndexBuffer buffer, EntryID entryID,
+      Entry entry, boolean success) throws DirectoryException, DatabaseException
+  {
+    if (index != null && !index.addEntry(buffer, entryID, entry))
+    {
+      return false;
+    }
+    return success;
+  }
 
   /**
    * Update the attribute index for a new entry.
@@ -475,27 +403,11 @@ public class AttributeIndex
   {
     boolean success = true;
 
-    if (equalityIndex != null && !equalityIndex.addEntry(txn, entryID, entry))
-    {
-      success = false;
-    }
-    if (presenceIndex != null && !presenceIndex.addEntry(txn, entryID, entry))
-    {
-      success = false;
-    }
-    if (substringIndex != null && !substringIndex.addEntry(txn, entryID, entry))
-    {
-      success = false;
-    }
-    if (orderingIndex != null && !orderingIndex.addEntry(txn, entryID, entry))
-    {
-      success = false;
-    }
-    if (approximateIndex != null
-        && !approximateIndex.addEntry(txn, entryID, entry))
-    {
-      success = false;
-    }
+    success = addEntry(equalityIndex, txn, entryID, entry, success);
+    success = addEntry(presenceIndex, txn, entryID, entry, success);
+    success = addEntry(substringIndex, txn, entryID, entry, success);
+    success = addEntry(orderingIndex, txn, entryID, entry, success);
+    success = addEntry(approximateIndex, txn, entryID, entry, success);
 
     if(extensibleIndexes!=null)
     {
@@ -511,6 +423,17 @@ public class AttributeIndex
     return success;
   }
 
+  private boolean addEntry(Index index, Transaction txn, EntryID entryID,
+      Entry entry, boolean success) throws DirectoryException, DatabaseException
+  {
+    if (index != null && !index.addEntry(txn, entryID, entry))
+    {
+      return false;
+    }
+    return success;
+  }
+
+
   /**
    * Update the attribute index for a deleted entry.
    *
@@ -524,30 +447,11 @@ public class AttributeIndex
                           Entry entry)
        throws DatabaseException, DirectoryException
   {
-    if (equalityIndex != null)
-    {
-      equalityIndex.removeEntry(buffer, entryID, entry);
-    }
-
-    if (presenceIndex != null)
-    {
-      presenceIndex.removeEntry(buffer, entryID, entry);
-    }
-
-    if (substringIndex != null)
-    {
-      substringIndex.removeEntry(buffer, entryID, entry);
-    }
-
-    if (orderingIndex != null)
-    {
-      orderingIndex.removeEntry(buffer, entryID, entry);
-    }
-
-    if(approximateIndex != null)
-    {
-      approximateIndex.removeEntry(buffer, entryID, entry);
-    }
+    removeEntry(equalityIndex, buffer, entryID, entry);
+    removeEntry(presenceIndex, buffer, entryID, entry);
+    removeEntry(substringIndex, buffer, entryID, entry);
+    removeEntry(orderingIndex, buffer, entryID, entry);
+    removeEntry(approximateIndex, buffer, entryID, entry);
 
     if(extensibleIndexes!=null)
     {
@@ -555,6 +459,15 @@ public class AttributeIndex
       {
         extensibleIndex.removeEntry(buffer, entryID, entry);
       }
+    }
+  }
+
+  private void removeEntry(Index index, IndexBuffer buffer, EntryID entryID,
+      Entry entry) throws DirectoryException, DatabaseException
+  {
+    if (index != null)
+    {
+      index.removeEntry(buffer, entryID, entry);
     }
   }
 
@@ -570,30 +483,11 @@ public class AttributeIndex
   public void removeEntry(Transaction txn, EntryID entryID, Entry entry)
        throws DatabaseException, DirectoryException
   {
-    if (equalityIndex != null)
-    {
-      equalityIndex.removeEntry(txn, entryID, entry);
-    }
-
-    if (presenceIndex != null)
-    {
-      presenceIndex.removeEntry(txn, entryID, entry);
-    }
-
-    if (substringIndex != null)
-    {
-      substringIndex.removeEntry(txn, entryID, entry);
-    }
-
-    if (orderingIndex != null)
-    {
-      orderingIndex.removeEntry(txn, entryID, entry);
-    }
-
-    if(approximateIndex != null)
-    {
-      approximateIndex.removeEntry(txn, entryID, entry);
-    }
+    removeEntry(equalityIndex, txn, entryID, entry);
+    removeEntry(presenceIndex, txn, entryID, entry);
+    removeEntry(substringIndex, txn, entryID, entry);
+    removeEntry(orderingIndex, txn, entryID, entry);
+    removeEntry(approximateIndex, txn, entryID, entry);
 
     if(extensibleIndexes!=null)
     {
@@ -601,6 +495,15 @@ public class AttributeIndex
       {
         extensibleIndex.removeEntry(txn, entryID, entry);
       }
+    }
+  }
+
+  private void removeEntry(Index index, Transaction txn, EntryID entryID,
+      Entry entry) throws DirectoryException, DatabaseException
+  {
+    if (index != null)
+    {
+      index.removeEntry(txn, entryID, entry);
     }
   }
 
@@ -623,30 +526,11 @@ public class AttributeIndex
                           List<Modification> mods)
        throws DatabaseException
   {
-    if (equalityIndex != null)
-    {
-      equalityIndex.modifyEntry(txn, entryID, oldEntry, newEntry, mods);
-    }
-
-    if (presenceIndex != null)
-    {
-      presenceIndex.modifyEntry(txn, entryID, oldEntry, newEntry, mods);
-    }
-
-    if (substringIndex != null)
-    {
-      substringIndex.modifyEntry(txn, entryID, oldEntry, newEntry, mods);
-    }
-
-    if (orderingIndex != null)
-    {
-      orderingIndex.modifyEntry(txn, entryID, oldEntry, newEntry, mods);
-    }
-
-    if (approximateIndex != null)
-    {
-      approximateIndex.modifyEntry(txn, entryID, oldEntry, newEntry, mods);
-    }
+    modifyEntry(equalityIndex, txn, entryID, oldEntry, newEntry, mods);
+    modifyEntry(presenceIndex, txn, entryID, oldEntry, newEntry, mods);
+    modifyEntry(substringIndex, txn, entryID, oldEntry, newEntry, mods);
+    modifyEntry(orderingIndex, txn, entryID, oldEntry, newEntry, mods);
+    modifyEntry(approximateIndex, txn, entryID, oldEntry, newEntry, mods);
 
     if(extensibleIndexes!=null)
     {
@@ -654,6 +538,16 @@ public class AttributeIndex
       {
         extensibleIndex.modifyEntry(txn, entryID, oldEntry, newEntry, mods);
       }
+    }
+  }
+
+  private void modifyEntry(Index index, Transaction txn, EntryID entryID,
+      Entry oldEntry, Entry newEntry, List<Modification> mods)
+      throws DatabaseException
+  {
+    if (index != null)
+    {
+      index.modifyEntry(txn, entryID, oldEntry, newEntry, mods);
     }
   }
 
@@ -676,30 +570,11 @@ public class AttributeIndex
                           List<Modification> mods)
        throws DatabaseException
   {
-    if (equalityIndex != null)
-    {
-      equalityIndex.modifyEntry(buffer, entryID, oldEntry, newEntry, mods);
-    }
-
-    if (presenceIndex != null)
-    {
-      presenceIndex.modifyEntry(buffer, entryID, oldEntry, newEntry, mods);
-    }
-
-    if (substringIndex != null)
-    {
-      substringIndex.modifyEntry(buffer, entryID, oldEntry, newEntry, mods);
-    }
-
-    if (orderingIndex != null)
-    {
-      orderingIndex.modifyEntry(buffer, entryID, oldEntry, newEntry, mods);
-    }
-
-    if (approximateIndex != null)
-    {
-      approximateIndex.modifyEntry(buffer, entryID, oldEntry, newEntry, mods);
-    }
+    modifyEntry(equalityIndex, buffer, entryID, oldEntry, newEntry, mods);
+    modifyEntry(presenceIndex, buffer, entryID, oldEntry, newEntry, mods);
+    modifyEntry(substringIndex, buffer, entryID, oldEntry, newEntry, mods);
+    modifyEntry(orderingIndex, buffer, entryID, oldEntry, newEntry, mods);
+    modifyEntry(approximateIndex, buffer, entryID, oldEntry, newEntry, mods);
 
     if(extensibleIndexes!=null)
     {
@@ -707,6 +582,16 @@ public class AttributeIndex
       {
         extensibleIndex.modifyEntry(buffer, entryID, oldEntry, newEntry, mods);
       }
+    }
+  }
+
+  private void modifyEntry(Index index, IndexBuffer buffer, EntryID entryID,
+      Entry oldEntry, Entry newEntry, List<Modification> mods)
+      throws DatabaseException
+  {
+    if (index != null)
+    {
+      index.modifyEntry(buffer, entryID, oldEntry, newEntry, mods);
     }
   }
 
@@ -735,8 +620,7 @@ public class AttributeIndex
    * @return A set of index keys.
    */
   Set<ByteString> substringKeys(byte[] value)
-  {
-    // FIXME replace this code with SDK's
+  { // FIXME replace this code with SDK's
     // AbstractSubstringMatchingRuleImpl.SubstringIndexer.createKeys()
 
     // Eliminate duplicates by putting the keys into a set.
@@ -769,8 +653,7 @@ public class AttributeIndex
    * @return The candidate entry IDs.
    */
   private EntryIDSet matchSubstring(byte[] bytes)
-  {
-    // FIXME replace this code with SDK's
+  { // FIXME replace this code with SDK's
     // AbstractSubstringMatchingRuleImpl.DefaultSubstringAssertion.createIndexQuery()
 
     int substrLength = indexConfig.getSubstringLength();
@@ -855,8 +738,7 @@ public class AttributeIndex
    * @return The candidate entry IDs.
    */
   private EntryIDSet matchInitialSubstring(byte[] bytes)
-  {
-    // FIXME replace this code with SDK's
+  { // FIXME replace this code with SDK's
     // AbstractSubstringMatchingRuleImpl.DefaultSubstringAssertion.createIndexQuery()
 
     // Iterate through all the keys that have this value as the prefix.
@@ -1051,73 +933,9 @@ public class AttributeIndex
       SearchFilter filter, StringBuilder debugBuffer,
       DatabaseEnvironmentMonitor monitor)
   {
-    if (orderingIndex == null)
-    {
-      if(monitor.isFilterUseEnabled())
-      {
-        monitor.updateStats(filter,
-            INFO_JEB_INDEX_FILTER_INDEX_TYPE_DISABLED.get("ordering",
-                indexConfig.getAttribute().getNameOrOID()));
-      }
-      return new EntryIDSet();
-    }
-
-    try
-    {
-      // Set the lower bound for a range search.
-      // Use the ordering matching rule to normalize the value.
-      OrderingMatchingRule orderingRule =
-           filter.getAttributeType().getOrderingMatchingRule();
-      byte[] lower = orderingRule.normalizeAttributeValue(
-           filter.getAssertionValue().getValue()).toByteArray();
-
-      // Set the upper bound to 0 to search all keys greater then the lower
-      // bound.
-      byte[] upper = new byte[0];
-
-      if(debugBuffer != null)
-      {
-        debugBuffer.append("[INDEX:");
-        debugBuffer.append(indexConfig.getAttribute().getNameOrOID());
-        debugBuffer.append(".");
-        debugBuffer.append("ordering]");
-      }
-
-      // Read the range: lower <= keys < upper.
-      EntryIDSet idSet = orderingIndex.readRange(lower, upper, true, false);
-      if(monitor.isFilterUseEnabled())
-      {
-        if(idSet.isDefined())
-        {
-          monitor.updateStats(filter, idSet.size());
-        }
-        else if(!orderingIndex.isTrusted())
-        {
-          monitor.updateStats(filter,
-              INFO_JEB_INDEX_FILTER_INDEX_NOT_TRUSTED.get(
-                  orderingIndex.getName()));
-        }
-        else if(orderingIndex.isRebuildRunning())
-        {
-          monitor.updateStats(filter,
-              INFO_JEB_INDEX_FILTER_INDEX_REBUILD_IN_PROGRESS.get(
-                  orderingIndex.getName()));
-        }
-        else
-        {
-          monitor.updateStats(filter,
-              INFO_JEB_INDEX_FILTER_INDEX_LIMIT_EXCEEDED.get(
-                  orderingIndex.getName()));
-        }
-      }
-      return idSet;
-    }
-    catch (DecodeException e)
-    {
-      logger.traceException(e);
-      return new EntryIDSet();
-    }
+    return evaluateOrderingFilter(filter, true, debugBuffer, monitor);
   }
+
 
   /**
    * Retrieve the entry IDs that might match a less-or-equal filter.
@@ -1135,6 +953,14 @@ public class AttributeIndex
                                               StringBuilder debugBuffer,
                                              DatabaseEnvironmentMonitor monitor)
   {
+    return evaluateOrderingFilter(filter, false, debugBuffer, monitor);
+  }
+
+  private EntryIDSet evaluateOrderingFilter(SearchFilter filter,
+      boolean greater, StringBuilder debugBuffer,
+      DatabaseEnvironmentMonitor monitor)
+  {
+
     if (orderingIndex == null)
     {
       if(monitor.isFilterUseEnabled())
@@ -1148,16 +974,28 @@ public class AttributeIndex
 
     try
     {
-      // Set the lower bound to 0 to start the range search from the smallest
-      // key.
-      byte[] lower = new byte[0];
-
-      // Set the upper bound for a range search.
       // Use the ordering matching rule to normalize the value.
       OrderingMatchingRule orderingRule =
            filter.getAttributeType().getOrderingMatchingRule();
-      byte[] upper = orderingRule.normalizeAttributeValue(
-           filter.getAssertionValue().getValue()).toByteArray();
+      // FIXME JNR this looks wrong, it should use normalizeAssertionValue()
+      byte[] normalizedValue = orderingRule.normalizeAttributeValue(
+          filter.getAssertionValue().getValue()).toByteArray();
+
+      // Set the lower and upper bounds for a range search.
+      byte[] lower;
+      byte[] upper;
+      if (greater)
+      {
+        // Set upper bound to 0 to search all keys greater than the lower bound.
+        lower = normalizedValue;
+        upper = new byte[0];
+      }
+      else
+      {
+        // Set lower bound to 0 to start the range search from the smallest key.
+        lower = new byte[0];
+        upper = normalizedValue;
+      }
 
       if(debugBuffer != null)
       {
@@ -1167,8 +1005,8 @@ public class AttributeIndex
         debugBuffer.append("ordering]");
       }
 
-      // Read the range: lower < keys <= upper.
-      EntryIDSet idSet = orderingIndex.readRange(lower, upper, false, true);
+      // Read the range: lower <= keys < upper OR lower < keys <= upper
+      EntryIDSet idSet = orderingIndex.readRange(lower, upper, greater, !greater);
       if(monitor.isFilterUseEnabled())
       {
         if(idSet.isDefined())
@@ -1506,6 +1344,7 @@ public class AttributeIndex
       ApproximateMatchingRule approximateMatchingRule =
           approximateFilter.getAttributeType().getApproximateMatchingRule();
       // Make a key from the normalized assertion value.
+      // FIXME JNR this looks wrong, it should use normalizeAssertionValue()
       byte[] keyBytes =
            approximateMatchingRule.normalizeAttributeValue(
                approximateFilter.getAssertionValue().getValue()).toByteArray();
@@ -1648,30 +1487,11 @@ public class AttributeIndex
    */
   public void listDatabases(List<DatabaseContainer> dbList)
   {
-    if (equalityIndex != null)
-    {
-      dbList.add(equalityIndex);
-    }
-
-    if (presenceIndex != null)
-    {
-      dbList.add(presenceIndex);
-    }
-
-    if (substringIndex != null)
-    {
-      dbList.add(substringIndex);
-    }
-
-    if (orderingIndex != null)
-    {
-      dbList.add(orderingIndex);
-    }
-
-    if (approximateIndex != null)
-    {
-      dbList.add(approximateIndex);
-    }
+    addIfNotNull(dbList, equalityIndex);
+    addIfNotNull(dbList, presenceIndex);
+    addIfNotNull(dbList, substringIndex);
+    addIfNotNull(dbList, orderingIndex);
+    addIfNotNull(dbList, approximateIndex);
 
     if(extensibleIndexes!=null)
     {
@@ -1679,6 +1499,14 @@ public class AttributeIndex
       {
         dbList.add(extensibleIndex);
       }
+    }
+  }
+
+  private void addIfNotNull(Collection<? super Index> dbList, Index index)
+  {
+    if (index != null)
+    {
+      dbList.add(index);
     }
   }
 
@@ -1748,7 +1576,8 @@ public class AttributeIndex
   public synchronized ConfigChangeResult applyConfigurationChange(
       LocalDBIndexCfg cfg)
   {
-    boolean adminActionRequired = false;
+    // this method is not perf sensitive, using an AtomicBoolean will not hurt
+    AtomicBoolean adminActionRequired = new AtomicBoolean(false);
     ArrayList<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
     try
     {
@@ -1762,32 +1591,16 @@ public class AttributeIndex
       {
         if (equalityIndex == null)
         {
-          // Adding equality index
-          Indexer equalityIndexer = new EqualityIndexer(attrType);
-          equalityIndex = new Index(name + ".equality",
-                                    equalityIndexer,
-                                    state,
-                                    indexEntryLimit,
-                                    cursorEntryLimit,
-                                    false,
-                                    env,
-                                    entryContainer);
-          equalityIndex.open();
-
-          if(!equalityIndex.isTrusted())
-          {
-            adminActionRequired = true;
-            messages.add(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(
-                equalityIndex.getName()));
-          }
-
+          EqualityIndexer indexer = new EqualityIndexer();
+          Indexer extIndexer = new JEExtensibleIndexer(attrType, attrType.getEqualityMatchingRule(), indexer);
+          equalityIndex = openNewIndex(name, extIndexer, indexer, adminActionRequired, messages);
         }
         else
         {
           // already exists. Just update index entry limit.
           if(this.equalityIndex.setIndexEntryLimit(indexEntryLimit))
           {
-            adminActionRequired = true;
+            adminActionRequired.set(true);
             LocalizableMessage message =
                     NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(
                             equalityIndex.getName());
@@ -1805,13 +1618,6 @@ public class AttributeIndex
           {
             entryContainer.deleteDatabase(equalityIndex);
             equalityIndex = null;
-          }
-          catch(DatabaseException de)
-          {
-            messages.add(LocalizableMessage.raw(
-                    StaticUtils.stackTraceToSingleLineString(de)));
-            return new ConfigChangeResult(
-                DirectoryServer.getServerErrorResultCode(), false, messages);
           }
           finally
           {
@@ -1837,7 +1643,7 @@ public class AttributeIndex
 
           if(!presenceIndex.isTrusted())
           {
-            adminActionRequired = true;
+            adminActionRequired.set(true);
             messages.add(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(
                 presenceIndex.getName()));
           }
@@ -1847,8 +1653,7 @@ public class AttributeIndex
           // already exists. Just update index entry limit.
           if(this.presenceIndex.setIndexEntryLimit(indexEntryLimit))
           {
-            adminActionRequired = true;
-
+            adminActionRequired.set(true);
             LocalizableMessage message =
                     NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(
                             presenceIndex.getName());
@@ -1866,13 +1671,6 @@ public class AttributeIndex
             entryContainer.deleteDatabase(presenceIndex);
             presenceIndex = null;
           }
-          catch(DatabaseException de)
-          {
-            messages.add(LocalizableMessage.raw(
-                    StaticUtils.stackTraceToSingleLineString(de)));
-            return new ConfigChangeResult(
-                DirectoryServer.getServerErrorResultCode(), false, messages);
-          }
           finally
           {
             entryContainer.exclusiveLock.unlock();
@@ -1882,43 +1680,27 @@ public class AttributeIndex
 
       if (cfg.getIndexType().contains(LocalDBIndexCfgDefn.IndexType.SUBSTRING))
       {
+        SubstringIndexer indexer = new SubstringIndexer(attrType, config);
+        Indexer extIndexer = new JEExtensibleIndexer(attrType, attrType.getSubstringMatchingRule(), indexer);
         if(substringIndex == null)
         {
-          Indexer substringIndexer = new SubstringIndexer(attrType, config);
-          substringIndex = new Index(name + ".substring",
-                                     substringIndexer,
-                                     state,
-                                     indexEntryLimit,
-                                     cursorEntryLimit,
-                                     false,
-                                     env,
-                                     entryContainer);
-          substringIndex.open();
-
-          if(!substringIndex.isTrusted())
-          {
-            adminActionRequired = true;
-            messages.add(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(
-                substringIndex.getName()));
-          }
+          substringIndex = openNewIndex(name, extIndexer, indexer, adminActionRequired, messages);
         }
         else
         {
           // already exists. Just update index entry limit.
           if(this.substringIndex.setIndexEntryLimit(indexEntryLimit))
           {
-            adminActionRequired = true;
+            adminActionRequired.set(true);
             LocalizableMessage message =
                     NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(
                             substringIndex.getName());
             messages.add(message);
           }
 
-          if(indexConfig.getSubstringLength() !=
-              cfg.getSubstringLength())
+          if (indexConfig.getSubstringLength() != cfg.getSubstringLength())
           {
-            Indexer substringIndexer = new SubstringIndexer(attrType, config);
-            this.substringIndex.setIndexer(substringIndexer);
+            this.substringIndex.setIndexer(extIndexer);
           }
         }
       }
@@ -1932,13 +1714,6 @@ public class AttributeIndex
             entryContainer.deleteDatabase(substringIndex);
             substringIndex = null;
           }
-          catch(DatabaseException de)
-          {
-            messages.add(LocalizableMessage.raw(
-                    StaticUtils.stackTraceToSingleLineString(de)));
-            return new ConfigChangeResult(
-                DirectoryServer.getServerErrorResultCode(), false, messages);
-          }
           finally
           {
             entryContainer.exclusiveLock.unlock();
@@ -1950,31 +1725,16 @@ public class AttributeIndex
       {
         if(orderingIndex == null)
         {
-          Indexer orderingIndexer = new OrderingIndexer(attrType);
-          orderingIndex = new Index(name + ".ordering",
-                                    orderingIndexer,
-                                    state,
-                                    indexEntryLimit,
-                                    cursorEntryLimit,
-                                    false,
-                                    env,
-                                    entryContainer);
-          orderingIndex.open();
-
-          if(!orderingIndex.isTrusted())
-          {
-            adminActionRequired = true;
-            messages.add(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(
-                orderingIndex.getName()));
-          }
+          OrderingIndexer indexer = new OrderingIndexer(attrType);
+          Indexer extIndexer = new JEExtensibleIndexer(attrType, attrType.getOrderingMatchingRule(), indexer);
+          orderingIndex = openNewIndex(name, extIndexer, indexer, adminActionRequired, messages);
         }
         else
         {
           // already exists. Just update index entry limit.
           if(this.orderingIndex.setIndexEntryLimit(indexEntryLimit))
           {
-            adminActionRequired = true;
-
+            adminActionRequired.set(true);
             LocalizableMessage message =
                     NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(
                             orderingIndex.getName());
@@ -1992,13 +1752,6 @@ public class AttributeIndex
             entryContainer.deleteDatabase(orderingIndex);
             orderingIndex = null;
           }
-          catch(DatabaseException de)
-          {
-            messages.add(LocalizableMessage.raw(
-                    StaticUtils.stackTraceToSingleLineString(de)));
-            return new ConfigChangeResult(
-                DirectoryServer.getServerErrorResultCode(), false, messages);
-          }
           finally
           {
             entryContainer.exclusiveLock.unlock();
@@ -2011,31 +1764,16 @@ public class AttributeIndex
       {
         if(approximateIndex == null)
         {
-          Indexer approximateIndexer = new ApproximateIndexer(attrType);
-          approximateIndex = new Index(name + ".approximate",
-                                       approximateIndexer,
-                                       state,
-                                       indexEntryLimit,
-                                       cursorEntryLimit,
-                                       false,
-                                       env,
-                                       entryContainer);
-          approximateIndex.open();
-
-          if(!approximateIndex.isTrusted())
-          {
-            adminActionRequired = true;
-            messages.add(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(
-                approximateIndex.getName()));
-          }
+          ApproximateIndexer indexer = new ApproximateIndexer(attrType);
+          Indexer extIndexer = new JEExtensibleIndexer(attrType, attrType.getApproximateMatchingRule(), indexer);
+          approximateIndex = openNewIndex(name, extIndexer, indexer, adminActionRequired, messages);
         }
         else
         {
           // already exists. Just update index entry limit.
           if(this.approximateIndex.setIndexEntryLimit(indexEntryLimit))
           {
-            adminActionRequired = true;
-
+            adminActionRequired.set(true);
             LocalizableMessage message =
                     NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(
                             approximateIndex.getName());
@@ -2052,13 +1790,6 @@ public class AttributeIndex
           {
             entryContainer.deleteDatabase(approximateIndex);
             approximateIndex = null;
-          }
-          catch(DatabaseException de)
-          {
-            messages.add(
-                    LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(de)));
-            return new ConfigChangeResult(
-                DirectoryServer.getServerErrorResultCode(), false, messages);
           }
           finally
           {
@@ -2114,7 +1845,7 @@ public class AttributeIndex
 
               if(!extensibleIndex.isTrusted())
               {
-                adminActionRequired = true;
+                adminActionRequired.set(true);
                 messages.add(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(
                     extensibleIndex.getName()));
               }
@@ -2124,7 +1855,7 @@ public class AttributeIndex
               Index extensibleIndex = extensibleIndexes.getIndex(indexID);
               if(extensibleIndex.setIndexEntryLimit(indexEntryLimit))
               {
-                adminActionRequired = true;
+                adminActionRequired.set(true);
                 LocalizableMessage message =
                       NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(
                               extensibleIndex.getName());
@@ -2201,13 +1932,6 @@ public class AttributeIndex
               }
             }
           }
-          catch(DatabaseException de)
-          {
-            messages.add(
-                  LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(de)));
-            return new ConfigChangeResult(
-                DirectoryServer.getServerErrorResultCode(), false, messages);
-          }
           finally
           {
             entryContainer.exclusiveLock.unlock();
@@ -2228,13 +1952,6 @@ public class AttributeIndex
             }
             extensibleIndexes.deleteAll();
           }
-          catch(DatabaseException de)
-          {
-            messages.add(
-                  LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(de)));
-            return new ConfigChangeResult(
-                DirectoryServer.getServerErrorResultCode(), false, messages);
-          }
           finally
           {
             entryContainer.exclusiveLock.unlock();
@@ -2244,15 +1961,32 @@ public class AttributeIndex
 
       indexConfig = cfg;
 
-      return new ConfigChangeResult(ResultCode.SUCCESS, adminActionRequired,
-                                    messages);
+      return new ConfigChangeResult(
+          ResultCode.SUCCESS, adminActionRequired.get(), messages);
     }
     catch(Exception e)
     {
       messages.add(LocalizableMessage.raw(StaticUtils.stackTraceToSingleLineString(e)));
       return new ConfigChangeResult(
-          DirectoryServer.getServerErrorResultCode(), adminActionRequired, messages);
+          DirectoryServer.getServerErrorResultCode(), adminActionRequired.get(), messages);
     }
+  }
+
+  private Index openNewIndex(String name, Indexer indexer, ExtensibleIndexer extIndexer,
+      AtomicBoolean adminActionRequired, ArrayList<LocalizableMessage> messages)
+  {
+    Index index = new Index(name + "." + extIndexer.getExtensibleIndexID(), indexer,
+        state, indexConfig.getIndexEntryLimit(), cursorEntryLimit, false, env,
+        entryContainer);
+    index.open();
+
+    if (!index.isTrusted())
+    {
+      adminActionRequired.set(true);
+      messages.add(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(index
+          .getName()));
+    }
+    return index;
   }
 
   /**
@@ -2265,30 +1999,11 @@ public class AttributeIndex
   public synchronized void setTrusted(Transaction txn, boolean trusted)
       throws DatabaseException
   {
-    if (equalityIndex != null)
-    {
-      equalityIndex.setTrusted(txn, trusted);
-    }
-
-    if (presenceIndex != null)
-    {
-      presenceIndex.setTrusted(txn, trusted);
-    }
-
-    if (substringIndex != null)
-    {
-      substringIndex.setTrusted(txn, trusted);
-    }
-
-    if (orderingIndex != null)
-    {
-      orderingIndex.setTrusted(txn, trusted);
-    }
-
-    if (approximateIndex != null)
-    {
-      approximateIndex.setTrusted(txn, trusted);
-    }
+    setTrusted(equalityIndex, txn, trusted);
+    setTrusted(presenceIndex, txn, trusted);
+    setTrusted(substringIndex, txn, trusted);
+    setTrusted(orderingIndex, txn, trusted);
+    setTrusted(approximateIndex, txn, trusted);
 
     if(extensibleIndexes!=null)
     {
@@ -2299,33 +2014,25 @@ public class AttributeIndex
     }
   }
 
+  private void setTrusted(Index index, Transaction txn, boolean trusted)
+  {
+    if (index != null)
+    {
+      index.setTrusted(txn, trusted);
+    }
+  }
+
   /**
    * Return true iff this index is trusted.
    * @return the trusted state of this index
    */
   public boolean isTrusted()
   {
-    if (equalityIndex != null && !equalityIndex.isTrusted())
-    {
-      return false;
-    }
-
-    if (presenceIndex != null && !presenceIndex.isTrusted())
-    {
-      return false;
-    }
-
-    if (substringIndex != null && !substringIndex.isTrusted())
-    {
-      return false;
-    }
-
-    if (orderingIndex != null && !orderingIndex.isTrusted())
-    {
-      return false;
-    }
-
-    if (approximateIndex != null && !approximateIndex.isTrusted())
+    if ((equalityIndex != null && !equalityIndex.isTrusted())
+        || (presenceIndex != null && !presenceIndex.isTrusted())
+        || (substringIndex != null && !substringIndex.isTrusted())
+        || (orderingIndex != null && !orderingIndex.isTrusted())
+        || (approximateIndex != null && !approximateIndex.isTrusted()))
     {
       return false;
     }
@@ -2351,30 +2058,11 @@ public class AttributeIndex
    */
   public synchronized void setRebuildStatus(boolean rebuildRunning)
   {
-    if (equalityIndex != null)
-    {
-      equalityIndex.setRebuildStatus(rebuildRunning);
-    }
-
-    if (presenceIndex != null)
-    {
-      presenceIndex.setRebuildStatus(rebuildRunning);
-    }
-
-    if (substringIndex != null)
-    {
-      substringIndex.setRebuildStatus(rebuildRunning);
-    }
-
-    if (orderingIndex != null)
-    {
-      orderingIndex.setRebuildStatus(rebuildRunning);
-    }
-
-    if (approximateIndex != null)
-    {
-      approximateIndex.setRebuildStatus(rebuildRunning);
-    }
+    setRebuildStatus(rebuildRunning, equalityIndex);
+    setRebuildStatus(rebuildRunning, presenceIndex);
+    setRebuildStatus(rebuildRunning, substringIndex);
+    setRebuildStatus(rebuildRunning, orderingIndex);
+    setRebuildStatus(rebuildRunning, approximateIndex);
 
     if(extensibleIndexes!=null)
     {
@@ -2382,6 +2070,14 @@ public class AttributeIndex
       {
         extensibleIndex.setRebuildStatus(rebuildRunning);
       }
+    }
+  }
+
+  private void setRebuildStatus(boolean rebuildRunning, Index index)
+  {
+    if (index != null)
+    {
+      index.setRebuildStatus(rebuildRunning);
     }
   }
 
@@ -2466,30 +2162,11 @@ public class AttributeIndex
   public Collection<Index> getAllIndexes() {
     LinkedHashSet<Index> indexes = new LinkedHashSet<Index>();
 
-    if (equalityIndex != null)
-    {
-      indexes.add(equalityIndex);
-    }
-
-    if (presenceIndex != null)
-    {
-      indexes.add(presenceIndex);
-    }
-
-    if (substringIndex != null)
-    {
-      indexes.add(substringIndex);
-    }
-
-    if (orderingIndex != null)
-    {
-      indexes.add(orderingIndex);
-    }
-
-    if (approximateIndex != null)
-    {
-      indexes.add(approximateIndex);
-    }
+    addIfNotNull(indexes, equalityIndex);
+    addIfNotNull(indexes, presenceIndex);
+    addIfNotNull(indexes, substringIndex);
+    addIfNotNull(indexes, orderingIndex);
+    addIfNotNull(indexes, approximateIndex);
 
     if(extensibleIndexes!=null)
     {
