@@ -22,8 +22,12 @@
  *
  *
  *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2014 ForgeRock AS.
  */
 package org.forgerock.opendj.config.client.ldap;
+
+import static org.fest.assertions.Assertions.assertThat;
+import static org.forgerock.opendj.ldap.Connections.newInternalConnection;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -32,8 +36,8 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.forgerock.opendj.config.AdminTestCase;
-import org.forgerock.opendj.config.PropertyException;
 import org.forgerock.opendj.config.LDAPProfile;
+import org.forgerock.opendj.config.PropertyException;
 import org.forgerock.opendj.config.TestCfg;
 import org.forgerock.opendj.config.TestChildCfgClient;
 import org.forgerock.opendj.config.TestChildCfgDefn;
@@ -41,7 +45,11 @@ import org.forgerock.opendj.config.TestParentCfgClient;
 import org.forgerock.opendj.config.client.ManagedObject;
 import org.forgerock.opendj.config.client.ManagedObjectDecodingException;
 import org.forgerock.opendj.config.client.ManagementContext;
+import org.forgerock.opendj.ldap.Connection;
+import org.forgerock.opendj.ldap.LinkedHashMapEntry;
+import org.forgerock.opendj.ldap.MemoryBackend;
 import org.forgerock.opendj.ldap.schema.Schema;
+import org.forgerock.opendj.ldif.LDIFEntryReader;
 import org.forgerock.opendj.server.config.client.RootCfgClient;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
@@ -54,7 +62,12 @@ public class AggregationClientTest extends AdminTestCase {
 
     // Test LDIF.
     private static final String[] TEST_LDIF = new String[] {
+        // @formatter:off
         // Base entries.
+        "dn:",
+        "objectclass: top",
+        "objectclass: ds-cfg-branch",
+        "",
         "dn: cn=config",
         "objectclass: top",
         "objectclass: ds-cfg-branch",
@@ -151,6 +164,7 @@ public class AggregationClientTest extends AdminTestCase {
         "ds-cfg-enabled: false",
         "ds-cfg-listen-port: 1689",
         "" };
+    // @formatter:on
 
     @BeforeClass
     public void setUp() throws Exception {
@@ -174,9 +188,10 @@ public class AggregationClientTest extends AdminTestCase {
      */
     @Test
     public void testAggregationEmpty() throws Exception {
-        MockLDAPConnection c = new MockLDAPConnection();
-        c.importLDIF(TEST_LDIF);
-        ManagementContext ctx = LDAPManagementContext.createFromContext(c, LDAPProfile.getInstance());
+        MemoryBackend backend = new MemoryBackend(new LDIFEntryReader(TEST_LDIF));
+        Connection c = newInternalConnection(backend);
+        ManagementContext ctx =
+                LDAPManagementContext.newManagementContext(c, LDAPProfile.getInstance());
         TestParentCfgClient parent = getTestParent(ctx, "test parent 1");
         TestChildCfgClient child = parent.getTestChild("test child 1");
         assertSetEquals(child.getAggregationProperty(), new String[0]);
@@ -191,9 +206,10 @@ public class AggregationClientTest extends AdminTestCase {
      */
     @Test
     public void testAggregationSingle() throws Exception {
-        MockLDAPConnection c = new MockLDAPConnection();
-        c.importLDIF(TEST_LDIF);
-        ManagementContext ctx = LDAPManagementContext.createFromContext(c, LDAPProfile.getInstance());
+        MemoryBackend backend = new MemoryBackend(new LDIFEntryReader(TEST_LDIF));
+        Connection c = newInternalConnection(backend);
+        ManagementContext ctx =
+                LDAPManagementContext.newManagementContext(c, LDAPProfile.getInstance());
         TestParentCfgClient parent = getTestParent(ctx, "test parent 1");
         TestChildCfgClient child = parent.getTestChild("test child 2");
 
@@ -212,12 +228,14 @@ public class AggregationClientTest extends AdminTestCase {
      */
     @Test
     public void testAggregationMultiple() throws Exception {
-        MockLDAPConnection c = new MockLDAPConnection();
-        c.importLDIF(TEST_LDIF);
-        ManagementContext ctx = LDAPManagementContext.createFromContext(c, LDAPProfile.getInstance());
+        MemoryBackend backend = new MemoryBackend(new LDIFEntryReader(TEST_LDIF));
+        Connection c = newInternalConnection(backend);
+        ManagementContext ctx =
+                LDAPManagementContext.newManagementContext(c, LDAPProfile.getInstance());
         TestParentCfgClient parent = getTestParent(ctx, "test parent 1");
         TestChildCfgClient child = parent.getTestChild("test child 3");
-        assertSetEquals(child.getAggregationProperty(), "LDAPS Connection Handler", "LDAP Connection Handler");
+        assertSetEquals(child.getAggregationProperty(), "LDAPS Connection Handler",
+                "LDAP Connection Handler");
     }
 
     /**
@@ -229,14 +247,16 @@ public class AggregationClientTest extends AdminTestCase {
      */
     @Test
     public void testAggregationBadBaseDN() throws Exception {
-        MockLDAPConnection c = new MockLDAPConnection();
-        c.importLDIF(TEST_LDIF);
-        ManagementContext ctx = LDAPManagementContext.createFromContext(c, LDAPProfile.getInstance());
+        MemoryBackend backend = new MemoryBackend(new LDIFEntryReader(TEST_LDIF));
+        Connection c = newInternalConnection(backend);
+        ManagementContext ctx =
+                LDAPManagementContext.newManagementContext(c, LDAPProfile.getInstance());
         TestParentCfgClient parent = getTestParent(ctx, "test parent 1");
 
         try {
             parent.getTestChild("test child 4");
-            Assert.fail("Unexpectedly retrieved test child 4" + " when it had a bad aggregation value");
+            Assert.fail("Unexpectedly retrieved test child 4"
+                    + " when it had a bad aggregation value");
         } catch (ManagedObjectDecodingException e) {
             Collection<PropertyException> causes = e.getCauses();
             Assert.assertEquals(causes.size(), 1);
@@ -261,27 +281,29 @@ public class AggregationClientTest extends AdminTestCase {
      */
     @Test
     public void testCreateChildManagedObject() throws Exception {
-        CreateEntryMockLDAPConnection c = new CreateEntryMockLDAPConnection(
-                "cn=test child new,cn=test children,cn=test parent 1,cn=test parents,cn=config");
-        c.importLDIF(TEST_LDIF);
-        c.addExpectedAttribute("cn", "test child new");
-        c.addExpectedAttribute("objectClass", "top", "ds-cfg-test-child-dummy");
-        c.addExpectedAttribute("ds-cfg-enabled", "true");
-        c.addExpectedAttribute("ds-cfg-java-class",
-                "org.opends.server.extensions.UserDefinedVirtualAttributeProvider");
-        c.addExpectedAttribute("ds-cfg-attribute-type", "description");
-        c.addExpectedAttribute("ds-cfg-rotation-policy",
-                "cn=LDAP Connection Handler,cn=connection handlers, cn=config");
-
-        ManagementContext ctx = LDAPManagementContext.createFromContext(c, LDAPProfile.getInstance());
+        MemoryBackend backend = new MemoryBackend(new LDIFEntryReader(TEST_LDIF));
+        Connection c = newInternalConnection(backend);
+        ManagementContext ctx =
+                LDAPManagementContext.newManagementContext(c, LDAPProfile.getInstance());
         TestParentCfgClient parent = getTestParent(ctx, "test parent 1");
-        TestChildCfgClient child = parent.createTestChild(TestChildCfgDefn.getInstance(), "test child new", null);
+        TestChildCfgClient child =
+                parent.createTestChild(TestChildCfgDefn.getInstance(), "test child new", null);
         child.setMandatoryBooleanProperty(true);
-        child.setMandatoryReadOnlyAttributeTypeProperty(Schema.getDefaultSchema().getAttributeType("description"));
+        child.setMandatoryReadOnlyAttributeTypeProperty(Schema.getDefaultSchema().getAttributeType(
+                "description"));
         child.setAggregationProperty(Collections.singleton("LDAP Connection Handler"));
         child.commit();
 
-        c.assertEntryIsCreated();
+        String dn = "cn=test child new,cn=test children,cn=test parent 1,cn=test parents,cn=config";
+        assertThat(backend.get(dn)).isEqualTo(new LinkedHashMapEntry(
+                "dn: " + dn,
+                "cn: test child new",
+                "objectClass: top",
+                "objectClass: ds-cfg-test-child-dummy",
+                "ds-cfg-enabled: true",
+                "ds-cfg-java-class: org.opends.server.extensions.UserDefinedVirtualAttributeProvider",
+                "ds-cfg-attribute-type: description",
+                "ds-cfg-rotation-policy: cn=LDAP Connection Handler,cn=connection handlers, cn=config"));
     }
 
     /**
@@ -293,30 +315,35 @@ public class AggregationClientTest extends AdminTestCase {
      */
     @Test
     public void testModifyChildManagedObject() throws Exception {
-        ModifyEntryMockLDAPConnection c = new ModifyEntryMockLDAPConnection(
-                "cn=test child 2,cn=test children,cn=test parent 1,cn=test parents,cn=config");
-        c.importLDIF(TEST_LDIF);
-        c.addExpectedModification("ds-cfg-rotation-policy",
-            "cn=HTTP Connection Handler,cn=connection handlers, cn=config",
-            "cn=JMX Connection Handler,cn=connection handlers, cn=config");
-        ManagementContext ctx = LDAPManagementContext.createFromContext(c, LDAPProfile.getInstance());
+        MemoryBackend backend = new MemoryBackend(new LDIFEntryReader(TEST_LDIF));
+        Connection c = newInternalConnection(backend);
+        ManagementContext ctx =
+                LDAPManagementContext.newManagementContext(c, LDAPProfile.getInstance());
         TestParentCfgClient parent = getTestParent(ctx, "test parent 1");
         TestChildCfgClient child = parent.getTestChild("test child 2");
-        child.setAggregationProperty(Arrays.asList("JMX Connection Handler", "HTTP Connection Handler"));
+        child.setAggregationProperty(Arrays.asList("JMX Connection Handler",
+                "HTTP Connection Handler"));
         child.commit();
-        Assert.assertTrue(c.isEntryModified());
+
+        String dn = "cn=test child 2,cn=test children,cn=test parent 1,cn=test parents,cn=config";
+        assertThat(backend.get(dn).parseAttribute("ds-cfg-rotation-policy").asSetOfString())
+                .containsOnly("cn=HTTP Connection Handler,cn=connection handlers, cn=config",
+                        "cn=JMX Connection Handler,cn=connection handlers, cn=config");
     }
 
     // Retrieve the named test parent managed object.
-    private TestParentCfgClient getTestParent(ManagementContext context, String name) throws Exception {
+    private TestParentCfgClient getTestParent(ManagementContext context, String name)
+            throws Exception {
         ManagedObject<RootCfgClient> root = context.getRootConfigurationManagedObject();
-        return root.getChild(TestCfg.getTestOneToManyParentRelationDefinition(), name).getConfiguration();
+        return root.getChild(TestCfg.getTestOneToManyParentRelationDefinition(), name)
+                .getConfiguration();
     }
 
     // Asserts that the actual set of DNs contains the expected values.
     private void assertSetEquals(SortedSet<String> actual, String... expected) {
-        SortedSet<String> values = new TreeSet<String>(TestChildCfgDefn.getInstance()
-                .getAggregationPropertyPropertyDefinition());
+        SortedSet<String> values =
+                new TreeSet<String>(TestChildCfgDefn.getInstance()
+                        .getAggregationPropertyPropertyDefinition());
         if (expected != null) {
             for (String value : expected) {
                 values.add(value);

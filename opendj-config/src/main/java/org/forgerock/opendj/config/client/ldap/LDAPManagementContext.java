@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions copyright 2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.config.client.ldap;
@@ -29,13 +30,13 @@ package org.forgerock.opendj.config.client.ldap;
 import org.forgerock.opendj.config.LDAPProfile;
 import org.forgerock.opendj.config.client.ManagementContext;
 import org.forgerock.opendj.config.client.spi.Driver;
+import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.util.Reject;
 
 /**
  * An LDAP management connection context.
  */
 public final class LDAPManagementContext extends ManagementContext {
-
     /**
      * Create a new LDAP management context using the provided LDAP connection.
      *
@@ -45,7 +46,7 @@ public final class LDAPManagementContext extends ManagementContext {
      *            The LDAP profile.
      * @return Returns the new management context.
      */
-    public static ManagementContext createFromContext(LDAPConnection connection, LDAPProfile profile) {
+    public static ManagementContext newManagementContext(Connection connection, LDAPProfile profile) {
         Reject.ifNull(connection, profile);
         LDAPDriver driver = new LDAPDriver(connection, profile);
         LDAPManagementContext context = new LDAPManagementContext(driver);

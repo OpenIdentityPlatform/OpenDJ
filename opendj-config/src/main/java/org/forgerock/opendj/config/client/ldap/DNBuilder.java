@@ -20,8 +20,8 @@
  *
  * CDDL HEADER END
  *
- *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions copyright 2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.config.client.ldap;
@@ -48,7 +48,7 @@ import org.forgerock.opendj.ldap.RDN;
 /**
  * A strategy for creating <code>DN</code>s from managed object paths.
  */
-final class LDAPNameBuilder implements ManagedObjectPathSerializer {
+final class DNBuilder implements ManagedObjectPathSerializer {
 
     /**
      * Creates a new DN representing the specified managed object path.
@@ -59,10 +59,10 @@ final class LDAPNameBuilder implements ManagedObjectPathSerializer {
      *            The LDAP profile which should be used to construct LDAP names.
      * @return Returns a new DN representing the specified managed object path.
      */
-    public static DN create(ManagedObjectPath<?, ?> path, LDAPProfile profile) {
-        LDAPNameBuilder builder = new LDAPNameBuilder(profile);
+    static DN create(ManagedObjectPath<?, ?> path, LDAPProfile profile) {
+        DNBuilder builder = new DNBuilder(profile);
         path.serialize(builder);
-        return builder.getInstance();
+        return builder.build();
     }
 
     /**
@@ -78,12 +78,12 @@ final class LDAPNameBuilder implements ManagedObjectPathSerializer {
      * @return Returns a new DN representing the specified managed object path
      *         and instantiable relation.
      */
-    public static DN create(ManagedObjectPath<?, ?> path, InstantiableRelationDefinition<?, ?> relation,
-            LDAPProfile profile) {
-        LDAPNameBuilder builder = new LDAPNameBuilder(profile);
+    static DN create(ManagedObjectPath<?, ?> path,
+            InstantiableRelationDefinition<?, ?> relation, LDAPProfile profile) {
+        DNBuilder builder = new DNBuilder(profile);
         path.serialize(builder);
         builder.appendManagedObjectPathElement(relation);
-        return builder.getInstance();
+        return builder.build();
     }
 
     /**
@@ -99,11 +99,12 @@ final class LDAPNameBuilder implements ManagedObjectPathSerializer {
      * @return Returns a new DN representing the specified managed object path
      *         and set relation.
      */
-    public static DN create(ManagedObjectPath<?, ?> path, SetRelationDefinition<?, ?> relation, LDAPProfile profile) {
-        LDAPNameBuilder builder = new LDAPNameBuilder(profile);
+    static DN create(ManagedObjectPath<?, ?> path, SetRelationDefinition<?, ?> relation,
+            LDAPProfile profile) {
+        DNBuilder builder = new DNBuilder(profile);
         path.serialize(builder);
         builder.appendManagedObjectPathElement(relation);
-        return builder.getInstance();
+        return builder.build();
     }
 
     /** The list of RDNs in big-endian order. */
@@ -117,7 +118,7 @@ final class LDAPNameBuilder implements ManagedObjectPathSerializer {
      * @param profile
      *            The LDAP profile which should be used to construct DNs.
      */
-    public LDAPNameBuilder(LDAPProfile profile) {
+    private DNBuilder(LDAPProfile profile) {
         this.rdns = new LinkedList<RDN>();
         this.profile = profile;
     }
@@ -126,8 +127,8 @@ final class LDAPNameBuilder implements ManagedObjectPathSerializer {
      * {@inheritDoc}
      */
     public <C extends ConfigurationClient, S extends Configuration> void appendManagedObjectPathElement(
-        InstantiableRelationDefinition<? super C, ? super S> r, AbstractManagedObjectDefinition<C, S> d,
-        String name) {
+            InstantiableRelationDefinition<? super C, ? super S> r,
+            AbstractManagedObjectDefinition<C, S> d, String name) {
         // Add the RDN sequence representing the relation.
         appendManagedObjectPathElement(r);
 
@@ -144,7 +145,7 @@ final class LDAPNameBuilder implements ManagedObjectPathSerializer {
      * @param r
      *            The relation definition.
      */
-    public void appendManagedObjectPathElement(RelationDefinition<?, ?> r) {
+    private void appendManagedObjectPathElement(RelationDefinition<?, ?> r) {
         // Add the RDN sequence representing the relation.
         DN dn = DN.valueOf(profile.getRelationRDNSequence(r));
         List<RDN> rdnsOfDn = getRdnsInBigEndianOrder(dn);
@@ -171,7 +172,8 @@ final class LDAPNameBuilder implements ManagedObjectPathSerializer {
      * {@inheritDoc}
      */
     public <C extends ConfigurationClient, S extends Configuration> void appendManagedObjectPathElement(
-            OptionalRelationDefinition<? super C, ? super S> r, AbstractManagedObjectDefinition<C, S> d) {
+            OptionalRelationDefinition<? super C, ? super S> r,
+            AbstractManagedObjectDefinition<C, S> d) {
         // Add the RDN sequence representing the relation.
         appendManagedObjectPathElement(r);
     }
@@ -180,7 +182,8 @@ final class LDAPNameBuilder implements ManagedObjectPathSerializer {
      * {@inheritDoc}
      */
     public <C extends ConfigurationClient, S extends Configuration> void appendManagedObjectPathElement(
-            SingletonRelationDefinition<? super C, ? super S> r, AbstractManagedObjectDefinition<C, S> d) {
+            SingletonRelationDefinition<? super C, ? super S> r,
+            AbstractManagedObjectDefinition<C, S> d) {
         // Add the RDN sequence representing the relation.
         appendManagedObjectPathElement(r);
     }
@@ -204,7 +207,7 @@ final class LDAPNameBuilder implements ManagedObjectPathSerializer {
      *
      * @return Returns the new DN instance.
      */
-    public DN getInstance() {
+    private DN build() {
         DN dn = DN.rootDN();
         for (RDN rdn : rdns) {
             dn = dn.child(rdn);
