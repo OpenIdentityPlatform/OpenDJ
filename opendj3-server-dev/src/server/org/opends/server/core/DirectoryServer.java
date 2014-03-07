@@ -1637,26 +1637,20 @@ public final class DirectoryServer
         synchronizationProviderConfigManager.initializeSynchronizationProviders();
       }
 
-      workQueue = new WorkQueueConfigManager().initializeWorkQueue();
+      workQueue = new WorkQueueConfigManager(serverContext).initializeWorkQueue();
 
-      // Invoke the startup plugins.
-      PluginResult.Startup startupPluginResult =
-           pluginConfigManager.invokeStartupPlugins();
+      PluginResult.Startup startupPluginResult = pluginConfigManager.invokeStartupPlugins();
       if (! startupPluginResult.continueProcessing())
       {
-        LocalizableMessage message = ERR_STARTUP_PLUGIN_ERROR.
-            get(startupPluginResult.getErrorMessage(),
-                startupPluginResult.getErrorMessage().ordinal());
-        throw new InitializationException(message);
+        throw new InitializationException(ERR_STARTUP_PLUGIN_ERROR.get(startupPluginResult.getErrorMessage(),
+                startupPluginResult.getErrorMessage().ordinal()));
       }
 
-     // Notify all the initialization completed listeners.
-      for (InitializationCompletedListener initializationCompletedListener :
-        directoryServer.initializationCompletedListeners)
+      for (InitializationCompletedListener listener : initializationCompletedListeners)
       {
         try
         {
-          initializationCompletedListener.initializationCompleted();
+          listener.initializationCompleted();
         }
         catch (Exception e)
         {
@@ -1664,7 +1658,6 @@ public final class DirectoryServer
         }
       }
 
-      // Start administration connector and connection handlers
       if (startConnectionHandlers)
       {
         startConnectionHandlers();
@@ -1672,18 +1665,15 @@ public final class DirectoryServer
       }
 
 
-      // Create an object to synchronize ADS with the crypto manager.
+      // Synchronization of ADS with the crypto manager.
       new CryptoManagerSync();
 
-      // If we should write a copy of the config on successful startup, then do
-      // so now.
+      // Write a copy of the config if needed.
       if (saveConfigOnSuccessfulStartup)
       {
         configHandler.writeSuccessfulStartupConfig();
       }
 
-
-      // Indicate that the server is now running.
       isRunning = true;
 
       LocalizableMessage message = NOTE_DIRECTORY_SERVER_STARTED.get();
@@ -1691,37 +1681,34 @@ public final class DirectoryServer
       sendAlertNotification(this, ALERT_TYPE_SERVER_STARTED, message);
 
       // Force the root connection to be initialized.
-      InternalClientConnection rootConnection =
-        InternalClientConnection.getRootConnection();
+      InternalClientConnection rootConnection = InternalClientConnection.getRootConnection();
 
-      // Determine whether or not we should synchronized admin data.
       if (! environmentConfig.disableAdminDataSynchronization())
       {
-        AdministrationDataSync admDataSync = new AdministrationDataSync(
-            rootConnection);
+        AdministrationDataSync admDataSync = new AdministrationDataSync(rootConnection);
         admDataSync.synchronize();
       }
 
-      // If a server.starting file exists, then remove it.
-      File serverStartingFile =
-                new File(configHandler.getInstanceRoot() + File.separator +
-                         "logs" + File.separator + "server.starting");
-      if (serverStartingFile.exists())
-      {
-        serverStartingFile.delete();
-      }
-
-      // If a host name file exists, then remove it.
-      File hostNameFile = new File(configHandler.getInstanceRoot() +
-          File.separator + SetupUtils.HOST_NAME_FILE);
-      if (hostNameFile.exists())
-      {
-        hostNameFile.delete();
-      }
+      deleteUnnecessaryFiles();
     }
   }
 
+  /** Delete "server.starting" and "hostname" files if they are present. */
+  private void deleteUnnecessaryFiles()
+  {
+    File serverStartingFile = new File(configHandler.getInstanceRoot() + File.separator + "logs"
+        + File.separator + "server.starting");
+    if (serverStartingFile.exists())
+    {
+      serverStartingFile.delete();
+    }
 
+    File hostNameFile = new File(configHandler.getInstanceRoot() + File.separator + SetupUtils.HOST_NAME_FILE);
+    if (hostNameFile.exists())
+    {
+      hostNameFile.delete();
+    }
+  }
 
   /**
    * Registers a basic set of matching rules with the server that should always
@@ -6941,8 +6928,7 @@ public final class DirectoryServer
   {
     Set<HostPort> usedListeners = new LinkedHashSet<HostPort>();
     Set<LocalizableMessage> errorMessages = new LinkedHashSet<LocalizableMessage>();
-    // Check that the port specified in the connection handlers is
-    // available.
+    // Check that the port specified in the connection handlers is available.
     for (ConnectionHandler<?> c : connectionHandlers)
     {
       for (HostPort listener : c.getListeners())
@@ -6951,11 +6937,9 @@ public final class DirectoryServer
         {
           // The port was already specified: this is a configuration error,
           // log a message.
-          LocalizableMessage message = ERR_HOST_PORT_ALREADY_SPECIFIED.get(
-              c.getConnectionHandlerName(), listener);
+          LocalizableMessage message = ERR_HOST_PORT_ALREADY_SPECIFIED.get(c.getConnectionHandlerName(), listener);
           logger.error(message);
           errorMessages.add(message);
-
         }
         else
         {
@@ -6977,11 +6961,10 @@ public final class DirectoryServer
       throw new ConfigException(ERR_ERROR_STARTING_CONNECTION_HANDLERS.get());
     }
 
-    // At this point, we should be ready to go.  Start all the connection
-    // handlers.
-    for (ConnectionHandler c : connectionHandlers)
+    // At this point, we should be ready to go.
+    for (ConnectionHandler handler : connectionHandlers)
     {
-      c.start();
+      handler.start();
     }
   }
 
