@@ -26,21 +26,22 @@
  */
 package org.opends.server.backends.jeb;
 
-import java.util.Set;
+import java.util.Collection;
 
-import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteSequence;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.schema.Schema;
+import org.forgerock.opendj.ldap.spi.IndexingOptions;
 import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.ExtensibleIndexer;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
 
 /**
  * An implementation of an Indexer for attribute approximate matching.
  */
 public class ApproximateIndexer extends ExtensibleIndexer
 {
-  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * The attribute type approximate matching rule.
@@ -75,16 +76,11 @@ public class ApproximateIndexer extends ExtensibleIndexer
 
   /** {@inheritDoc} */
   @Override
-  public void getKeys(AttributeValue value, Set<byte[]> keys)
+  public void createKeys(Schema schema, ByteSequence value,
+      IndexingOptions options, Collection<ByteString> keys)
+      throws DecodeException
   {
-    try
-    {
-      keys.add(approximateRule.normalizeAttributeValue(value.getValue()).toByteArray());
-    }
-    catch (DecodeException e)
-    {
-      logger.traceException(e);
-    }
+    keys.add(approximateRule.normalizeAttributeValue(value));
   }
 
 }
