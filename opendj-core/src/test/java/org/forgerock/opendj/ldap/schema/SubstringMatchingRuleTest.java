@@ -25,7 +25,7 @@
  */
 package org.forgerock.opendj.ldap.schema;
 
-import static org.testng.Assert.fail;
+import static org.testng.Assert.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -94,11 +94,13 @@ public abstract class SubstringMatchingRuleTest extends SchemaTestCase {
         // normalize the 2 provided values and check that they are equals
         final ByteString normalizedValue = rule.normalizeAttributeValue(ByteString.valueOf(value));
 
-        if (rule.getSubstringAssertion(null, null, ByteString.valueOf(finalValue)).matches(normalizedValue) != result
-                || rule.getAssertion(ByteString.valueOf("*" + finalValue)).matches(normalizedValue) != result) {
-            fail("final substring matching rule " + rule + " does not give expected result ("
-                    + result + ") for values : " + value + " and " + finalValue);
-        }
+        final ConditionResult substringAssertionMatches =
+            rule.getSubstringAssertion(null, null, ByteString.valueOf(finalValue)).matches(normalizedValue);
+        final ConditionResult assertionMatches =
+            rule.getAssertion(ByteString.valueOf("*" + finalValue)).matches(normalizedValue);
+        final String message = getMessage("final", rule, value, finalValue);
+        assertEquals(substringAssertionMatches, result, message);
+        assertEquals(assertionMatches, result, message);
     }
 
     /**
@@ -112,11 +114,19 @@ public abstract class SubstringMatchingRuleTest extends SchemaTestCase {
         // normalize the 2 provided values and check that they are equals
         final ByteString normalizedValue = rule.normalizeAttributeValue(ByteString.valueOf(value));
 
-        if (rule.getSubstringAssertion(ByteString.valueOf(initial), null, null).matches(normalizedValue) != result
-                || rule.getAssertion(ByteString.valueOf(initial + "*")).matches(normalizedValue) != result) {
-            fail("initial substring matching rule " + rule + " does not give expected result ("
-                    + result + ") for values : " + value + " and " + initial);
-        }
+        final ConditionResult substringAssertionMatches =
+            rule.getSubstringAssertion(ByteString.valueOf(initial), null, null).matches(normalizedValue);
+        final ConditionResult assertionMatches =
+            rule.getAssertion(ByteString.valueOf(initial + "*")).matches(normalizedValue);
+        final String message = getMessage("initial", rule, value, initial);
+        assertEquals(substringAssertionMatches, result, message);
+        assertEquals(assertionMatches, result, message);
+    }
+
+    private String getMessage(final String prefix, final MatchingRule rule,
+            final String value, final String assertionValue) {
+        return prefix + " substring matching rule " + rule
+                + " failed for values : \"" + value + "\" and \"" + assertionValue + "\".";
     }
 
     /**
@@ -182,12 +192,13 @@ public abstract class SubstringMatchingRuleTest extends SchemaTestCase {
             middleList.add(ByteString.valueOf(middleSub));
         }
 
-        if (rule.getSubstringAssertion(null, middleList, null).matches(normalizedValue) != result
-                || rule.getAssertion(ByteString.valueOf(printableMiddleSubs)).matches(
-                        normalizedValue) != result) {
-            fail("middle substring matching rule " + rule + " does not give expected result ("
-                    + result + ") for values : " + value + " and " + printableMiddleSubs);
-        }
+        final ConditionResult substringAssertionMatches =
+            rule.getSubstringAssertion(null, middleList, null).matches(normalizedValue);
+        final ConditionResult assertionMatches =
+            rule.getAssertion(ByteString.valueOf(printableMiddleSubs)).matches(normalizedValue);
+        final String message = getMessage("middle", rule, value, printableMiddleSubs.toString());
+        assertEquals(substringAssertionMatches, result, message);
+        assertEquals(assertionMatches, result, message);
     }
 
     /**

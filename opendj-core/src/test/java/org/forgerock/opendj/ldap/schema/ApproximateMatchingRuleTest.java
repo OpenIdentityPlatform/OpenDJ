@@ -62,7 +62,7 @@ public class ApproximateMatchingRuleTest extends SchemaTestCase {
     @DataProvider(name = "approximatematchingrules")
     public Object[][] createapproximateMatchingRuleTest() {
         // fill this table with tables containing :
-        // - the name of the approxiamtematchingrule to test
+        // - the name of the approximate matching rule to test
         // - 2 values that must be tested for matching
         // - a boolean indicating if the values match or not
         return new Object[][] { { metaphone, "celebre", "selebre", ConditionResult.TRUE },
