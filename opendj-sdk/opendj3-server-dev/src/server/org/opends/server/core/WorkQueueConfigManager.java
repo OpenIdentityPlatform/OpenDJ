@@ -51,14 +51,18 @@ import static org.opends.server.util.StaticUtils.*;
 public class WorkQueueConfigManager
        implements ConfigurationChangeListener<WorkQueueCfg>
 {
+  private final ServerContext serverContext;
+
   /**
    * Creates a new instance of this work queue config manager.
+   *
+   * @param serverContext
+   *            The server context.
    */
-  public WorkQueueConfigManager()
+  public WorkQueueConfigManager(ServerContext serverContext)
   {
-    // No implementation is required.
+    this.serverContext = serverContext;
   }
-
 
 
   /**
