@@ -85,12 +85,17 @@ public class EntryCacheConfigManager
   private static final String
     DEFAULT_ENTRY_CACHE_MONITOR_PROVIDER = "Entry Caches";
 
+  private final ServerContext serverContext;
+
   /**
    * Creates a new instance of this entry cache config manager.
+   *
+   * @param serverContext
+   *          The server context.
    */
-  public EntryCacheConfigManager()
+  public EntryCacheConfigManager(ServerContext serverContext)
   {
-    // No implementation is required.
+    this.serverContext = serverContext;
   }
 
 

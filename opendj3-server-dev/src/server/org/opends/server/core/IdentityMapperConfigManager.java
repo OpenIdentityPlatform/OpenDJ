@@ -67,17 +67,20 @@ public class IdentityMapperConfigManager
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // A mapping between the DNs of the config entries and the associated identity
-  // mappers.
-  private ConcurrentHashMap<DN,IdentityMapper> identityMappers;
+  /** A mapping between the DNs of the config entries and the associated identity mappers. */
+  private final ConcurrentHashMap<DN,IdentityMapper> identityMappers;
 
-
+  private final ServerContext serverContext;
 
   /**
    * Creates a new instance of this identity mapper config manager.
+   *
+   * @param serverContext
+   *          The server context.
    */
-  public IdentityMapperConfigManager()
+  public IdentityMapperConfigManager(ServerContext serverContext)
   {
+    this.serverContext = serverContext;
     identityMappers = new ConcurrentHashMap<DN,IdentityMapper>();
   }
 

@@ -29,6 +29,8 @@ import org.forgerock.i18n.LocalizableMessage;
 
 
 
+
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -73,30 +75,32 @@ public class RootDNConfigManager
   // "cn=Root DNs,cn=config" entry itself.
   private RootPrivilegeChangeListener rootPrivilegeChangeListener;
 
-
+  private final ServerContext serverContext;
 
   /**
    * Creates a new instance of this root DN config manager.
+   *
+   * @param serverContext
+   *          The server context.
    */
-  public RootDNConfigManager()
+  public RootDNConfigManager(ServerContext serverContext)
   {
-    alternateBindDNs = new ConcurrentHashMap<DN,HashSet<DN>>();
+    this.serverContext = serverContext;
+    alternateBindDNs = new ConcurrentHashMap<DN, HashSet<DN>>();
     rootPrivilegeChangeListener = new RootPrivilegeChangeListener();
   }
-
-
 
   /**
    * Initializes all of the root users currently defined in the Directory Server
    * configuration, as well as the set of privileges that root users will
    * inherit by default.
    *
-   * @throws  ConfigException  If a configuration problem causes the identity
-   *                           mapper initialization process to fail.
-   *
-   * @throws  InitializationException  If a problem occurs while initializing
-   *                                   the identity mappers that is not related
-   *                                   to the server configuration.
+   * @throws ConfigException
+   *           If a configuration problem causes the identity mapper
+   *           initialization process to fail.
+   * @throws InitializationException
+   *           If a problem occurs while initializing the identity mappers that
+   *           is not related to the server configuration.
    */
   public void initializeRootDNs()
          throws ConfigException, InitializationException

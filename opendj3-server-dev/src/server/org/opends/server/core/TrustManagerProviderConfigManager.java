@@ -70,19 +70,21 @@ public class TrustManagerProviderConfigManager
 
   // A mapping between the DNs of the config entries and the associated trust
   // manager providers.
-  private ConcurrentHashMap<DN,TrustManagerProvider> providers;
+  private final ConcurrentHashMap<DN,TrustManagerProvider> providers;
 
-
+  private final ServerContext serverContext;
 
   /**
    * Creates a new instance of this trust manager provider config manager.
+   *
+   * @param serverContext
+   *          The server context.
    */
-  public TrustManagerProviderConfigManager()
+  public TrustManagerProviderConfigManager(ServerContext serverContext)
   {
+    this.serverContext = serverContext;
     providers = new ConcurrentHashMap<DN,TrustManagerProvider>();
   }
-
-
 
   /**
    * Initializes all trust manager providers currently defined in the Directory
