@@ -33,21 +33,16 @@ import java.util.*;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.ldap.ByteSequence;
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ConditionResult;
-import org.forgerock.opendj.ldap.DecodeException;
-import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.*;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
 import org.forgerock.opendj.ldap.spi.IndexingOptions;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.CollationMatchingRuleCfgDefn.MatchingRuleType;
 import org.opends.server.admin.std.server.CollationMatchingRuleCfg;
 import org.opends.server.api.*;
-import org.opends.server.backends.jeb.AttributeIndex;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
@@ -1569,16 +1564,15 @@ public final class CollationMatchingRuleFactory extends
      *          The starting position of the substring.
      * @param len
      *          The length of the substring.
-     * @return A byte array containing a substring key.
+     * @return A byte string containing a substring key.
      */
-    private byte[] makeSubstringKey(String value, int pos, int len)
+    private ByteString makeSubstringKey(String value, int pos, int len)
     {
       String sub = value.substring(pos, pos + len);
       CollationKey col = collator.getCollationKey(sub);
-      byte[] origKey = col.toByteArray();
-      byte[] newKey = new byte[origKey.length - 4];
-      System.arraycopy(origKey, 0, newKey, 0, newKey.length);
-      return newKey;
+      byte[] key = col.toByteArray();
+      // truncate the key
+      return ByteString.wrap(key).subSequence(0, key.length - 4);
     }
 
 
@@ -1593,33 +1587,35 @@ public final class CollationMatchingRuleFactory extends
      */
     private <T> T matchInitialSubstring(String value,
         IndexQueryFactory<T> factory)
+    {
+      // Use the shared equality indexer.
+      return createRangeMatchQuery(value, factory, this.indexer);
+    }
+
+    private <T> T createRangeMatchQuery(String value,
+        IndexQueryFactory<T> factory, ExtensibleIndexer indexer)
     { // FIXME Code similar to
       // AbstractSubstringMatchingRuleImpl.DefaultSubstringAssertion.rangeMatch()
-      byte[] lower = makeSubstringKey(value, 0, value.length());
-      byte[] upper = new byte[lower.length];
-      System.arraycopy(lower, 0, upper, 0, lower.length);
-
-      for (int i = upper.length - 1; i >= 0; i--)
+      ByteString lower = makeSubstringKey(value, 0, value.length());
+      ByteStringBuilder upper = new ByteStringBuilder(lower);
+      for (int i = upper.length() - 1; i >= 0; i--)
       {
-        if (upper[i] == 0xFF)
+        if (upper.byteAt(i) == 0xFF)
         {
           // We have to carry the overflow to the more significant byte.
-          upper[i] = 0;
+          upper.setByte(i, (byte) 0);
         }
         else
         {
           // No overflow, we can stop.
-          upper[i] = (byte) (upper[i] + 1);
+          upper.setByte(i, (byte) (upper.byteAt(i) + 1));
           break;
         }
       }
-      // Use the shared equality indexer.
-      return factory.createRangeMatchQuery(indexer
-          .getExtensibleIndexID(), ByteString.wrap(lower), ByteString
-          .wrap(upper), true, false);
+      // Read the range: lower <= keys < upper.
+      return factory.createRangeMatchQuery(
+          indexer.getExtensibleIndexID(), lower, upper, true, false);
     }
-
-
 
     /**
      * Retrieves the Index Records that might contain a given substring.
@@ -1636,57 +1632,28 @@ public final class CollationMatchingRuleFactory extends
         IndexQueryFactory<T> factory)
     { // FIXME Code similar to
       // AbstractSubstringMatchingRuleImpl.DefaultSubstringAssertion.substringMatch()
-      T intersectionQuery;
       int substrLength = subIndexer.getSubstringLength();
-
       if (value.length() < substrLength)
       {
-        byte[] lower = makeSubstringKey(value, 0, value.length());
-        byte[] upper = makeSubstringKey(value, 0, value.length());
-        for (int i = upper.length - 1; i >= 0; i--)
-        {
-          if (upper[i] == 0xFF)
-          {
-            // We have to carry the overflow to the more significant
-            // byte.
-            upper[i] = 0;
-          }
-          else
-          {
-            // No overflow, we can stop.
-            upper[i] = (byte) (upper[i] + 1);
-            break;
-          }
-        }
-        // Read the range: lower <= keys < upper.
-        intersectionQuery =
-            factory.createRangeMatchQuery(subIndexer
-                .getExtensibleIndexID(), ByteString.wrap(lower),
-                ByteString.wrap(upper), true, false);
+        return createRangeMatchQuery(value, factory, subIndexer);
       }
-      else
+
+      List<T> queryList = new ArrayList<T>();
+      Set<ByteString> set = new TreeSet<ByteString>();
+      for (int first = 0, last = substrLength;
+           last <= value.length();
+           first++, last++)
       {
-        List<T> queryList = new ArrayList<T>();
-        Set<byte[]> set =
-            new TreeSet<byte[]>(new AttributeIndex.KeyComparator());
-        for (int first = 0, last = substrLength;
-             last <= value.length();
-             first++, last++)
-        {
-          set.add(makeSubstringKey(value, first, substrLength));
-        }
-
-        for (byte[] keyBytes : set)
-        {
-          queryList.add(factory.createExactMatchQuery(
-              subIndexer.getExtensibleIndexID(), ByteString.wrap(keyBytes)));
-        }
-        intersectionQuery = factory.createIntersectionQuery(queryList);
+        set.add(makeSubstringKey(value, first, substrLength));
       }
-      return intersectionQuery;
+
+      for (ByteString keyBytes : set)
+      {
+        queryList.add(factory.createExactMatchQuery(
+            subIndexer.getExtensibleIndexID(), keyBytes));
+      }
+      return factory.createIntersectionQuery(queryList);
     }
-
-
 
     /**
      * {@inheritDoc}
@@ -2091,17 +2058,11 @@ public final class CollationMatchingRuleFactory extends
      * {@inheritDoc}
      */
     @Override
-    public final void getKeys(AttributeValue value, Set<byte[]> keys)
+    public final void createKeys(Schema schema, ByteSequence value,
+        IndexingOptions options, Collection<ByteString> keys)
+        throws DecodeException
     {
-      try
-      {
-        ByteString key = matchingRule.normalizeAttributeValue(value.getValue());
-        keys.add(key.toByteArray());
-      }
-      catch (DecodeException e)
-      {
-        logger.traceException(e);
-      }
+      keys.add(matchingRule.normalizeAttributeValue(value));
     }
 
     /** {@inheritDoc} */
@@ -2148,15 +2109,15 @@ public final class CollationMatchingRuleFactory extends
      * {@inheritDoc}
      */
     @Override
-    public void getKeys(AttributeValue attValue, Set<byte[]> keys)
-    { // TODO merge with ExtensibleIndexer.getKeys(attrValue, keys);
-      // TODO and with AbstractSubstringMatchingRuleImpl.SubstringIndexer.createKeys();
-      String value = attValue.toString();
+    public void createKeys(Schema schema, ByteSequence value,
+        IndexingOptions options, Collection<ByteString> keys)
+    { // TODO merge with AbstractSubstringMatchingRuleImpl.SubstringIndexer.createKeys();
+      String normValue = value.toString();
       int keyLength = substringLen;
-      for (int i = 0, remain = value.length(); remain > 0; i++, remain--)
+      for (int i = 0, remain = normValue.length(); remain > 0; i++, remain--)
       {
         int len = Math.min(keyLength, remain);
-        keys.add(matchingRule.makeSubstringKey(value, i, len));
+        keys.add(matchingRule.makeSubstringKey(normValue, i, len));
       }
     }
 

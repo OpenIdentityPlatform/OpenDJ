@@ -870,7 +870,7 @@ public class TestBackendImpl extends JebTestCase {
   private Indexer newEqualityIndexer(AttributeIndex index)
   {
     AttributeType attrType = index.getAttributeType();
-    ExtensibleIndexer extIndexer = new EqualityIndexer();
+    ExtensibleIndexer extIndexer = new EqualityIndexer(index.getAttributeType());
     return new JEExtensibleIndexer(attrType, attrType.getSubstringMatchingRule(), extIndexer);
   }
 

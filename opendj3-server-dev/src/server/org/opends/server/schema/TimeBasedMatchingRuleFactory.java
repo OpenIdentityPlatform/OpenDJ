@@ -38,13 +38,13 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
 import org.forgerock.opendj.ldap.spi.IndexingOptions;
 import org.opends.server.admin.std.server.MatchingRuleCfg;
 import org.opends.server.api.*;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.util.StaticUtils;
@@ -89,20 +89,10 @@ public final class TimeBasedMatchingRuleFactory
 
   //Constants for generating keys.
   private static final char SECOND = 's';
-
-
   private static final char MINUTE = 'm';
-
-
   private static final char HOUR = 'h';
-
-
   private static final char MONTH = 'M';
-
-
   private static final char DATE = 'D';
-
-
   private static final char YEAR = 'Y';
 
 
@@ -619,17 +609,11 @@ public final class TimeBasedMatchingRuleFactory
      * {@inheritDoc}
      */
     @Override
-    public final void getKeys(AttributeValue value, Set<byte[]> keys)
+    public final void createKeys(Schema schema, ByteSequence value2,
+        IndexingOptions options, Collection<ByteString> keys)
+        throws DecodeException
     {
-      try
-      {
-        ByteString key = matchingRule.normalizeAttributeValue(value.getValue());
-        keys.add(key.toByteArray());
-      }
-      catch (DecodeException de)
-      {
-        //don't do anything.
-      }
+      keys.add(matchingRule.normalizeAttributeValue(value2));
     }
 
     /** {@inheritDoc} */
@@ -1108,7 +1092,7 @@ public final class TimeBasedMatchingRuleFactory
      * @param set
      *          A set into which the keys will be inserted.
      */
-    private void timeKeys(ByteString attributeValue, Set<byte[]> keys)
+    private void timeKeys(ByteSequence attributeValue, Collection<ByteString> keys)
     {
       long timeInMS = 0L;
       try
@@ -1124,46 +1108,23 @@ public final class TimeBasedMatchingRuleFactory
       //Build the information from the attribute value.
       GregorianCalendar cal = new GregorianCalendar(TIME_ZONE_UTC_OBJ);
       cal.setTimeInMillis(timeInMS);
-      int second = cal.get(Calendar.SECOND);
-      int minute = cal.get(Calendar.MINUTE);
-      int hour = cal.get(Calendar.HOUR_OF_DAY);
-      int date = cal.get(Calendar.DATE);
-      int month = cal.get(Calendar.MONTH);
-      int year = cal.get(Calendar.YEAR);
-
-      if (second >=0)
-      {
-        keys.add(getKey(second,SECOND).toByteArray());
-      }
-
-      if(minute >=0)
-      {
-        keys.add(getKey(minute,MINUTE).toByteArray());
-      }
-
-      if(hour >=0)
-      {
-        keys.add(getKey(hour,HOUR).toByteArray());
-      }
-      //Insert date.
-      if(date > 0)
-      {
-        keys.add(getKey(date,DATE).toByteArray());
-      }
-
-      //Insert month.
-      if(month >=0)
-      {
-        keys.add(getKey(month,MONTH).toByteArray());
-      }
-
-      if(year > 0)
-      {
-        keys.add(getKey(year,YEAR).toByteArray());
-      }
+      addKeyIfNotZero(keys, cal, Calendar.SECOND, SECOND);
+      addKeyIfNotZero(keys, cal, Calendar.MINUTE, MINUTE);
+      addKeyIfNotZero(keys, cal, Calendar.HOUR_OF_DAY, HOUR);
+      addKeyIfNotZero(keys, cal, Calendar.DATE, DATE);
+      addKeyIfNotZero(keys, cal, Calendar.MONTH, MONTH);
+      addKeyIfNotZero(keys, cal, Calendar.YEAR, YEAR);
     }
 
-
+    private void addKeyIfNotZero(Collection<ByteString> keys,
+        GregorianCalendar cal, int calField, char type)
+    {
+      int value = cal.get(calField);
+      if (value >= 0)
+      {
+        keys.add(getKey(value, type));
+      }
+    }
 
     private ByteString getKey(int value, char type)
     {
@@ -1205,9 +1166,10 @@ public final class TimeBasedMatchingRuleFactory
      * {@inheritDoc}
      */
     @Override
-    public void getKeys(AttributeValue value, Set<byte[]> keys)
+    public void createKeys(Schema schema, ByteSequence value,
+        IndexingOptions options, Collection<ByteString> keys)
     {
-      matchingRule.timeKeys(value.getValue(), keys);
+      matchingRule.timeKeys(value, keys);
     }
 
     /** {@inheritDoc} */

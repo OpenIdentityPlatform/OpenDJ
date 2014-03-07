@@ -155,7 +155,7 @@ public class AttributeIndex
             LocalDBIndexCfgDefn.IndexType.EQUALITY))
     {
       this.equalityIndex = buildExtIndex(
-          name, attrType, attrType.getEqualityMatchingRule(), new EqualityIndexer());
+          name, attrType, attrType.getEqualityMatchingRule(), new EqualityIndexer(attrType));
     }
 
     if (indexConfig.getIndexType().contains(
@@ -1591,7 +1591,7 @@ public class AttributeIndex
       {
         if (equalityIndex == null)
         {
-          EqualityIndexer indexer = new EqualityIndexer();
+          EqualityIndexer indexer = new EqualityIndexer(attrType);
           Indexer extIndexer = new JEExtensibleIndexer(attrType, attrType.getEqualityMatchingRule(), indexer);
           equalityIndex = openNewIndex(name, extIndexer, indexer, adminActionRequired, messages);
         }

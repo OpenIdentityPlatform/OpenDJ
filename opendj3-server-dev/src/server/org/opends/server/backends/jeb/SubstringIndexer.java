@@ -26,22 +26,22 @@
  */
 package org.opends.server.backends.jeb;
 
-import java.util.Set;
+import java.util.Collection;
 
-import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteSequence;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.spi.IndexingOptions;
 import org.opends.server.api.ExtensibleIndexer;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
 
 /**
  * An implementation of an Indexer for attribute substrings.
  */
 public class SubstringIndexer extends ExtensibleIndexer
 {
-  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   private SubstringMatchingRule substringRule;
   private IndexingOptions indexingOptions;
@@ -76,54 +76,27 @@ public class SubstringIndexer extends ExtensibleIndexer
     return "substring";
   }
 
-  /**
-   * Decompose an attribute value into a set of substring index keys.
-   * The ID of the entry containing this value should be inserted
-   * into the list of each of these keys.
-   *
-   * @param attrValue A byte array containing the normalized attribute value
-   * @param keys A set into which the keys will be inserted.
-   */
+  /** {@inheritDoc} */
   @Override
-  public void getKeys(AttributeValue attrValue, Set<byte[]> keys)
-  { // TODO merge with ExtensibleIndexer.getKeys(attrValue, keys);
-    try
-    {
-      byte[] value = substringRule.normalizeAttributeValue(attrValue.getValue()).toByteArray();
+  public void createKeys(Schema schema, ByteSequence value,
+      IndexingOptions options, Collection<ByteString> keys)
+      throws DecodeException
+  { // FIXME Code similar to
+    // AbstractSubstringMatchingRuleImpl.SubstringIndexer.createKeys()
+    ByteString normValue = substringRule.normalizeAttributeValue(value);
+    final int substringKeySize = indexingOptions.substringKeySize();
 
-      // Example: The value is ABCDE and the substring length is 3.
-      // We produce the keys ABC BCD CDE DE E
-      // To find values containing a short substring such as DE,
-      // iterate through keys with prefix DE. To find values
-      // containing a longer substring such as BCDE, read keys
-      // BCD and CDE.
-      final int substringKeySize = indexingOptions.substringKeySize();
-      for (int i = 0, remain = value.length; remain > 0; i++, remain--)
-      {
-        int len = Math.min(substringKeySize, remain);
-        keys.add(makeSubstringKey(value, i, len));
-      }
-    }
-    catch (DecodeException e)
+    // Example: The value is ABCDE and the substring length is 3.
+    // We produce the keys ABC BCD CDE DE E
+    // To find values containing a short substring such as DE,
+    // iterate through keys with prefix DE. To find values
+    // containing a longer substring such as BCDE, read keys
+    // BCD and CDE.
+    for (int i = 0, remain = normValue.length(); remain > 0; i++, remain--)
     {
-      logger.traceException(e);
+      int len = Math.min(substringKeySize, remain);
+      keys.add(normValue.subSequence(i, i + len));
     }
-  }
-
-  /**
-   * Makes a byte array representing a substring index key for
-   * one substring of a value.
-   *
-   * @param bytes The byte array containing the value
-   * @param pos The starting position of the substring
-   * @param len The length of the substring
-   * @return A byte array containing a substring key
-   */
-  private byte[] makeSubstringKey(byte[] bytes, int pos, int len)
-  {
-    byte[] keyBytes = new byte[len];
-    System.arraycopy(bytes, pos, keyBytes, 0, len);
-    return keyBytes;
   }
 
 }

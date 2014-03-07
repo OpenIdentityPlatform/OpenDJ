@@ -26,16 +26,7 @@
  */
 package org.opends.server.api;
 
-import java.util.Collection;
-import java.util.Set;
-
-import org.forgerock.opendj.ldap.ByteSequence;
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.DecodeException;
-import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.spi.Indexer;
-import org.forgerock.opendj.ldap.spi.IndexingOptions;
-import org.opends.server.types.AttributeValue;
 
 /**
  * This class is registered with a Backend and it provides call- backs
@@ -62,26 +53,5 @@ public abstract class ExtensibleIndexer implements Indexer
    *         indexer.
    */
   public abstract String getExtensibleIndexID();
-
-
-
-  /**
-   * Generates the set of index keys for an attribute.
-   *
-   * @param value
-   *          The attribute value for which keys are required.
-   * @param keys
-   *          The set into which the generated keys will be inserted.
-   */
-  public abstract void getKeys(AttributeValue value, Set<byte[]> keys);
-
-  /** {@inheritDoc} */
-  @Override
-  public void createKeys(Schema schema, ByteSequence value,
-      IndexingOptions options, Collection<ByteString> keys)
-      throws DecodeException
-  {
-    throw new RuntimeException("Not implemented yet");
-  }
 
 }
