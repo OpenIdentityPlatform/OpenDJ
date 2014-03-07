@@ -22,7 +22,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2013-2014 ForgeRock AS
- !    
+ !
  -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
@@ -34,7 +34,7 @@
   <artifactId>opendj-server3x-adapter</artifactId>
   <name>OpenDJ Server 3.x Adapter</name>
   <description>
-    This module includes an LDAP adapter which maps the SDK Connection 
+    This module includes an LDAP adapter which maps the SDK Connection
     to an Internal Client Connection.
     This module will only be used to link the opendj3-server-dev branch to
     opendj-rest2ldap.
@@ -63,6 +63,11 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
+      <groupId>org.forgerock.opendj</groupId>
+      <artifactId>opendj-config</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
       <groupId>org.forgerock</groupId>
       <artifactId>forgerock-build-tools</artifactId>
       <version>${forgerockBuildToolsVersion}</version>
@@ -79,8 +84,8 @@
       <artifactId>je</artifactId>
       <version>4.1.21</version>
       <scope>test</scope>
-    </dependency>    
-  </dependencies>  
+    </dependency>
+  </dependencies>
   <repositories>
     <repository>
       <id>oracleReleases</id>
@@ -90,7 +95,7 @@
     </repository>
   </repositories>
   <reporting>
-    <plugins>  
+    <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-project-info-reports-plugin</artifactId>
@@ -117,7 +122,7 @@
     <testResources>
      <!-- Binary data are corrupted by filtering -->
      <testResource>
-        <directory>src/test/resources</directory> 
+        <directory>src/test/resources</directory>
         <filtering>true</filtering>
         <excludes>
           <exclude>config/admin-keystore</exclude>
@@ -128,7 +133,7 @@
         </excludes>
       </testResource>
       <testResource>
-        <directory>src/test/resources</directory> 
+        <directory>src/test/resources</directory>
         <filtering>false</filtering>
         <includes>
           <include>config/admin-keystore</include>
@@ -161,6 +166,6 @@
           </execution>
         </executions>
       </plugin>
-    </plugins>   
+    </plugins>
   </build>
 </project>
