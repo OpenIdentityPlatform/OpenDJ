@@ -72,27 +72,30 @@ public class VirtualAttributeConfigManager
   private final ConcurrentMap<DN, VirtualAttributeRule> rules =
       new ConcurrentHashMap<DN, VirtualAttributeRule>();
 
+  private final ServerContext serverContext;
+
   /**
    * Creates a new instance of this virtual attribute config manager.
+   *
+   * @param serverContext
+   *            The server context.
    */
-  public VirtualAttributeConfigManager()
+  public VirtualAttributeConfigManager(ServerContext serverContext)
   {
+    this.serverContext = serverContext;
   }
-
-
 
   /**
    * Initializes all virtual attribute providers currently defined in the
-   * Directory Server configuration.  This should only be called at Directory
+   * Directory Server configuration. This should only be called at Directory
    * Server startup.
    *
-   * @throws  ConfigException  If a configuration problem causes the virtual
-   *                           attribute provider initialization process to
-   *                           fail.
-   *
-   * @throws  InitializationException  If a problem occurs while initializing
-   *                                   the virtual attribute providers that is
-   *                                   not related to the server configuration.
+   * @throws ConfigException
+   *           If a configuration problem causes the virtual attribute provider
+   *           initialization process to fail.
+   * @throws InitializationException
+   *           If a problem occurs while initializing the virtual attribute
+   *           providers that is not related to the server configuration.
    */
   public void initializeVirtualAttributes()
          throws ConfigException, InitializationException

@@ -50,26 +50,29 @@ import static org.opends.server.util.ServerConstants.*;
 public class CoreConfigManager
        implements ConfigurationChangeListener<GlobalCfg>
 {
+  private final ServerContext serverContext;
+
   /**
    * Creates a new instance of this core config manager.
+   *
+   * @param serverContext
+   *            The server context.
    */
-  public CoreConfigManager()
+  public CoreConfigManager(ServerContext serverContext)
   {
-    // No implementation is required.
+    this.serverContext = serverContext;
   }
 
-
-
   /**
-   * Initializes the Directory Server's core configuration.  This should only be
+   * Initializes the Directory Server's core configuration. This should only be
    * called at server startup.
    *
-   * @throws  ConfigException  If a configuration problem causes the identity
-   *                           mapper initialization process to fail.
-   *
-   * @throws  InitializationException  If a problem occurs while initializing
-   *                                   the identity mappers that is not related
-   *                                   to the server configuration.
+   * @throws ConfigException
+   *           If a configuration problem causes the identity mapper
+   *           initialization process to fail.
+   * @throws InitializationException
+   *           If a problem occurs while initializing the identity mappers that
+   *           is not related to the server configuration.
    */
   public void initializeCoreConfig()
          throws ConfigException, InitializationException

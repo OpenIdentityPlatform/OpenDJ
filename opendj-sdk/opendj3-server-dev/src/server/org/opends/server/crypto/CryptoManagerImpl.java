@@ -65,6 +65,7 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
+import org.opends.server.core.ServerContext;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.ExtendedRequestProtocolOp;
@@ -218,22 +219,26 @@ public class CryptoManagerImpl
   /** The set of SSL cipher suites enabled or null for the default set. */
   private final SortedSet<String> sslCipherSuites;
 
+  private final ServerContext serverContext;
 
   /**
-   Creates a new instance of this crypto manager object from a given
-   configuration, plus some static member initialization.
-
-   @param cfg  The configuration of this crypto manager.
-
-   @throws ConfigException  If a problem occurs while creating this
-   {@code CryptoManager} that is a result of a problem in the configuration.
-
-   @throws org.opends.server.types.InitializationException  If a problem
-   occurs while creating this {@code CryptoManager} that is not the result of a
-   problem in the configuration.
+   * Creates a new instance of this crypto manager object from a given
+   * configuration, plus some static member initialization.
+   *
+   * @param serverContext
+   *            The server context.
+   * @param config
+   *          The configuration of this crypto manager.
+   * @throws ConfigException
+   *           If a problem occurs while creating this {@code CryptoManager}
+   *           that is a result of a problem in the configuration.
+   * @throws InitializationException
+   *           If a problem occurs while creating this {@code CryptoManager}
+   *           that is not the result of a problem in the configuration.
    */
-  public CryptoManagerImpl(CryptoManagerCfg cfg)
+  public CryptoManagerImpl(ServerContext serverContext, CryptoManagerCfg config)
          throws ConfigException, InitializationException {
+    this.serverContext = serverContext;
     if (!schemaInitDone) {
       // Initialize various schema references.
       attrKeyID = DirectoryServer.getAttributeType(
@@ -283,19 +288,19 @@ public class CryptoManagerImpl
 
     // CryptoMangager crypto config parameters.
     List<LocalizableMessage> why = new LinkedList<LocalizableMessage>();
-    if (! isConfigurationChangeAcceptable(cfg, why)) {
+    if (! isConfigurationChangeAcceptable(config, why)) {
       throw new InitializationException(why.get(0));
     }
-    applyConfigurationChange(cfg);
+    applyConfigurationChange(config);
 
     // Secure replication related...
-    sslCertNickname = cfg.getSSLCertNickname();
-    sslEncryption   = cfg.isSSLEncryption();
-    sslProtocols    = cfg.getSSLProtocol();
-    sslCipherSuites = cfg.getSSLCipherSuite();
+    sslCertNickname = config.getSSLCertNickname();
+    sslEncryption   = config.isSSLEncryption();
+    sslProtocols    = config.getSSLProtocol();
+    sslCipherSuites = config.getSSLCipherSuite();
 
     // Register as a configuration change listener.
-    cfg.addChangeListener(this);
+    config.addChangeListener(this);
   }
 
 

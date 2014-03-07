@@ -494,7 +494,7 @@ public class RebuildIndex extends TaskTool
     // Initializes the Directory Server core configuration.
     try
     {
-      final CoreConfigManager coreConfigManager = new CoreConfigManager();
+      final CoreConfigManager coreConfigManager = new CoreConfigManager(directoryServer.getServerContext());
       coreConfigManager.initializeCoreConfig();
     }
     catch (Exception ex)

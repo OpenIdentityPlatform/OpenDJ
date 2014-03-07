@@ -60,20 +60,30 @@ public class LogRotationPolicyConfigManager implements
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
+  private final ServerContext serverContext;
+
+  /**
+   * Creates this log rotation policy manager.
+   *
+   * @param serverContext
+   *          The server context.
+   */
+  public LogRotationPolicyConfigManager(ServerContext serverContext)
+  {
+    this.serverContext = serverContext;
+  }
 
   /**
    * Initializes all the log rotation policies.
    *
    * @throws ConfigException
-   *           If an unrecoverable problem arises in the process of
-   *           performing the initialization as a result of the server
-   *           configuration.
+   *           If an unrecoverable problem arises in the process of performing
+   *           the initialization as a result of the server configuration.
    * @throws InitializationException
-   *           If a problem occurs during initialization that is not
-   *           related to the server configuration.
+   *           If a problem occurs during initialization that is not related to
+   *           the server configuration.
    */
-  public void initializeLogRotationPolicyConfig()
-      throws ConfigException, InitializationException
+  public void initializeLogRotationPolicyConfig() throws ConfigException, InitializationException
   {
     ServerManagementContext context = ServerManagementContext.getInstance();
     RootCfg root = context.getRootConfiguration();
