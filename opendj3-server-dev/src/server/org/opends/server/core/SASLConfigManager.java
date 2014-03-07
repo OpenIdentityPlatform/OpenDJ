@@ -63,23 +63,27 @@ public class SASLConfigManager implements
     ConfigurationChangeListener<SASLMechanismHandlerCfg>,
     ConfigurationAddListener<SASLMechanismHandlerCfg>,
     ConfigurationDeleteListener<SASLMechanismHandlerCfg>
-
 {
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // A mapping between the DNs of the config entries and the
-  // associated SASL
-  // mechanism handlers.
-  private ConcurrentHashMap<DN,SASLMechanismHandler> handlers;
+  /**
+   * A mapping between the DNs of the config entries and the associated SASL
+   * mechanism handlers.
+   */
+  private final ConcurrentHashMap<DN, SASLMechanismHandler> handlers;
 
-
+  private final ServerContext serverContext;
 
   /**
    * Creates a new instance of this SASL mechanism handler config manager.
+   *
+   * @param serverContext
+   *            The server context.
    */
-  public SASLConfigManager()
+  public SASLConfigManager(ServerContext serverContext)
   {
+    this.serverContext = serverContext;
     handlers = new ConcurrentHashMap<DN,SASLMechanismHandler>();
   }
 

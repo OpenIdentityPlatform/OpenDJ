@@ -68,21 +68,25 @@ public class MonitorConfigManager
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // A mapping between the DNs of the config entries and the associated monitor
-  // providers.
-  private ConcurrentHashMap<DN,MonitorProvider<?>> monitors;
+  /**
+   * A mapping between the DNs of the config entries and the associated monitor
+   * providers.
+   */
+  private final ConcurrentHashMap<DN,MonitorProvider<?>> monitors;
 
-
+  private final ServerContext serverContext;
 
   /**
    * Creates a new instance of this monitor provider config manager.
+   *
+   * @param serverContext
+   *            The server context.
    */
-  public MonitorConfigManager()
+  public MonitorConfigManager(ServerContext serverContext)
   {
+    this.serverContext = serverContext;
     monitors = new ConcurrentHashMap<DN,MonitorProvider<?>>();
   }
-
-
 
   /**
    * Initializes all monitor providers currently defined in the Directory Server

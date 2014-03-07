@@ -63,21 +63,25 @@ public class WorkflowConfigManager
                   ConfigurationDeleteListener<WorkflowCfg>
 
 {
-  // A mapping between the DNs of the config entries and the associated
-  // workflows.
-  private ConcurrentHashMap<DN, WorkflowImpl> workflows;
+  /**
+   * A mapping between the DNs of the config entries and the associated
+   * workflows.
+   */
+  private final ConcurrentHashMap<DN, WorkflowImpl> workflows;
 
-
+  private final ServerContext serverContext;
 
   /**
    * Creates a new instance of this workflow config manager.
+   *
+   * @param serverContext
+   *            The server context.
    */
-  public WorkflowConfigManager()
+  public WorkflowConfigManager(ServerContext serverContext)
   {
+    this.serverContext = serverContext;
     workflows = new ConcurrentHashMap<DN, WorkflowImpl>();
   }
-
-
 
   /**
    * Initializes all workflows currently defined in the Directory

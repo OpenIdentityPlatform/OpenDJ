@@ -63,26 +63,29 @@ public class  ExtensionConfigManager
        implements ConfigurationChangeListener<ExtensionCfg>,
                   ConfigurationAddListener<ExtensionCfg>,
                   ConfigurationDeleteListener<ExtensionCfg>
-
 {
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // A mapping between the DNs of the config entries and the associated
-  // extensions.
-  private ConcurrentHashMap<DN,Extension> extensions;
+  /**
+   * A mapping between the DNs of the config entries and the associated
+   * extensions.
+   */
+  private final ConcurrentHashMap<DN,Extension> extensions;
 
-
+  private final ServerContext serverContext;
 
   /**
    * Creates a new instance of this extension config manager.
+   *
+   * @param serverContext
+   *            The server context.
    */
-  public ExtensionConfigManager()
+  public ExtensionConfigManager(ServerContext serverContext)
   {
+    this.serverContext = serverContext;
     extensions = new ConcurrentHashMap<DN,Extension>();
   }
-
-
 
   /**
    * Initializes all extensions currently defined in the Directory

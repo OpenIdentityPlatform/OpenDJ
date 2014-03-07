@@ -69,21 +69,24 @@ public class ConnectionHandlerConfigManager implements
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
-  // The mapping between configuration entry DNs and their
-  // corresponding connection handler implementations.
-  private final Map<DN, ConnectionHandler<?>> connectionHandlers =
-        new ConcurrentHashMap<DN, ConnectionHandler<?>>();
+  /**
+   * The mapping between configuration entry DNs and their corresponding
+   * connection handler implementations.
+   */
+  private final Map<DN, ConnectionHandler<?>> connectionHandlers;
 
-
+  private final ServerContext serverContext;
 
   /**
    * Creates a new instance of this connection handler config manager.
+   *
+   * @param serverContext
+   *            The server context.
    */
-  public ConnectionHandlerConfigManager() {
-    // No implementation is required.
+  public ConnectionHandlerConfigManager(ServerContext serverContext) {
+    this.serverContext = serverContext;
+    connectionHandlers = new ConcurrentHashMap<DN, ConnectionHandler<?>>();
   }
-
-
 
   /**
    * {@inheritDoc}

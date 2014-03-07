@@ -63,16 +63,23 @@ public class PasswordStorageSchemeConfigManager
           ConfigurationAddListener    <PasswordStorageSchemeCfg>,
           ConfigurationDeleteListener <PasswordStorageSchemeCfg>
 {
-  // A mapping between the DNs of the config entries and the associated password
-  // storage schemes.
-  private ConcurrentHashMap<DN,PasswordStorageScheme> storageSchemes;
+  /**
+   * A mapping between the DNs of the config entries and the associated password
+   * storage schemes.
+   */
+  private final ConcurrentHashMap<DN,PasswordStorageScheme> storageSchemes;
 
+  private final ServerContext serverContext;
 
   /**
    * Creates a new instance of this password storage scheme config manager.
+   *
+   * @param serverContext
+   *            The server context.
    */
-  public PasswordStorageSchemeConfigManager()
+  public PasswordStorageSchemeConfigManager(ServerContext serverContext)
   {
+    this.serverContext = serverContext;
     storageSchemes = new ConcurrentHashMap<DN,PasswordStorageScheme>();
   }
 

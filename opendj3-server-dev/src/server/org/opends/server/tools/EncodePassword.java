@@ -467,7 +467,7 @@ public class EncodePassword
       try
       {
         PasswordStorageSchemeConfigManager storageSchemeConfigManager =
-             new PasswordStorageSchemeConfigManager();
+             new PasswordStorageSchemeConfigManager(directoryServer.getServerContext());
         storageSchemeConfigManager.initializePasswordStorageSchemes();
       }
       catch (ConfigException ce)

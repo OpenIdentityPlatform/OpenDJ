@@ -65,7 +65,6 @@ public final class AccessControlConfigManager
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // Fully qualified class name.
   private static final String CLASS_NAME =
     "org.opends.server.core.AccessControlConfigManager";
 
@@ -78,7 +77,7 @@ public final class AccessControlConfigManager
   // The current configuration.
   private AccessControlHandlerCfg currentConfiguration;
 
-
+  private ServerContext serverContext;
 
   /**
    * Creates a new instance of this access control configuration
@@ -140,22 +139,23 @@ public final class AccessControlConfigManager
 
 
   /**
-   * Initializes the access control sub-system. This should only be
-   * called at Directory Server startup. If an error occurs then an
-   * exception will be thrown and the Directory Server will fail to
-   * start (this prevents accidental exposure of user data due to
-   * misconfiguration).
+   * Initializes the access control sub-system. This should only be called at
+   * Directory Server startup. If an error occurs then an exception will be
+   * thrown and the Directory Server will fail to start (this prevents
+   * accidental exposure of user data due to misconfiguration).
    *
+   * @param serverContext
+   *          The server context.
    * @throws ConfigException
    *           If an access control configuration error is detected.
    * @throws InitializationException
-   *           If a problem occurs while initializing the access control
-   *           handler that is not related to the Directory Server
-   *           configuration.
+   *           If a problem occurs while initializing the access control handler
+   *           that is not related to the Directory Server configuration.
    */
-  public void initializeAccessControl()
+  public void initializeAccessControl(ServerContext serverContext)
          throws ConfigException, InitializationException
   {
+    this.serverContext = serverContext;
     // Get the root configuration object.
     ServerManagementContext managementContext =
          ServerManagementContext.getInstance();
