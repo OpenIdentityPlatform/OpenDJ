@@ -1527,38 +1527,32 @@ public final class DirectoryServer
       // registered.
       pluginConfigManager.initializePluginConfigManager();
 
-      // Initialize all the virtual attribute handlers.
+      // Virtual attribute handlers.
       virtualAttributeConfigManager.initializeVirtualAttributes();
 
-      // Initialize the core Directory Server configuration.
+      // The core Directory Server configuration.
       coreConfigManager = new CoreConfigManager(serverContext);
       coreConfigManager.initializeCoreConfig();
 
-      // Initialize the Directory Server crypto manager.
       initializeCryptoManager();
 
-      // Initialize the log rotation policies.
       rotationPolicyConfigManager = new LogRotationPolicyConfigManager(serverContext);
       rotationPolicyConfigManager.initializeLogRotationPolicyConfig();
 
-      // Initialize the log retention policies.
       retentionPolicyConfigManager = new LogRetentionPolicyConfigManager(serverContext);
       retentionPolicyConfigManager.initializeLogRetentionPolicyConfig();
 
-
-      // Initialize the server loggers.
+      // The server loggers.
       loggerConfigManager = new LoggerConfigManager(serverContext);
       loggerConfigManager.initializeLoggerConfig();
 
       RuntimeInformation.logInfo();
 
-      // Initialize the server alert handlers.
-      initializeAlertHandlers();
-
+      new AlertHandlerConfigManager(serverContext).initializeAlertHandlers();
 
       // Initialize the default entry cache. We have to have one before
       // <CODE>initializeBackends()</CODE> method kicks in further down.
-      entryCacheConfigManager = new EntryCacheConfigManager();
+      entryCacheConfigManager = new EntryCacheConfigManager(serverContext);
       entryCacheConfigManager.initializeDefaultEntryCache();
 
       // Initialize the administration connector self signed certificate if
@@ -1566,36 +1560,25 @@ public final class DirectoryServer
       // picked up.
       if (startConnectionHandlers)
       {
-        AdministrationConnector.createSelfSignedCertificateIfNeeded();
+        AdministrationConnector.createSelfSignedCertificateIfNeeded(serverContext);
       }
 
-      // Initialize the key manager provider.
-      keyManagerProviderConfigManager = new KeyManagerProviderConfigManager();
+      keyManagerProviderConfigManager = new KeyManagerProviderConfigManager(serverContext);
       keyManagerProviderConfigManager.initializeKeyManagerProviders();
 
-      // Initialize the trust manager provider.
-      trustManagerProviderConfigManager =
-           new TrustManagerProviderConfigManager();
+      trustManagerProviderConfigManager = new TrustManagerProviderConfigManager(serverContext);
       trustManagerProviderConfigManager.initializeTrustManagerProviders();
 
-      // Initialize the certificate mapper.
-      certificateMapperConfigManager = new CertificateMapperConfigManager();
+      certificateMapperConfigManager = new CertificateMapperConfigManager(serverContext);
       certificateMapperConfigManager.initializeCertificateMappers();
 
+      identityMapperConfigManager = new IdentityMapperConfigManager(serverContext);
+      identityMapperConfigManager.initializeIdentityMappers();
 
-      // Initialize the identity mappers.
-      initializeIdentityMappers();
+      initializeRootDNConfigManager();
 
-
-      // Initialize the root DNs.
-      rootDNConfigManager = new RootDNConfigManager();
-      rootDNConfigManager.initializeRootDNs();
-
-
-      // Initialize the subentry manager.
       initializeSubentryManager();
 
-      // Initialize the group manager.
       initializeGroupManager();
 
       // Now we can initialize both subentry manager and group manager
@@ -1951,25 +1934,6 @@ public final class DirectoryServer
   {
     return directoryServer.mailServerPropertySets;
   }
-
-
-
-  /**
-   * Initializes the set of alert handlers defined in the Directory Server.
-   *
-   * @throws  ConfigException  If there is a configuration problem with any of
-   *                           the alert handlers.
-   *
-   * @throws  InitializationException  If a problem occurs while initializing
-   *                                   the alert handlers that is not related to
-   *                                   the server configuration.
-   */
-  private void initializeAlertHandlers()
-          throws ConfigException, InitializationException
-  {
-    new AlertHandlerConfigManager().initializeAlertHandlers();
-  }
-
 
 
 
@@ -2735,25 +2699,6 @@ public final class DirectoryServer
 
 
   /**
-   * Initializes the set of identity mappers for the Directory Server.
-   *
-   * @throws  ConfigException  If there is a configuration problem with any of
-   *                           the extended operation handlers.
-   *
-   * @throws  InitializationException  If a problem occurs while initializing
-   *                                   the extended operation handlers that is
-   *                                   not related to the server configuration.
-   */
-  private void initializeIdentityMappers()
-          throws ConfigException, InitializationException
-  {
-    identityMapperConfigManager = new IdentityMapperConfigManager();
-    identityMapperConfigManager.initializeIdentityMappers();
-  }
-
-
-
-  /**
    * Initializes the set of extended operation handlers for the Directory
    * Server.
    *
@@ -2841,8 +2786,6 @@ public final class DirectoryServer
     }
     catch (DirectoryException de)
     {
-      logger.traceException(de);
-
       throw new InitializationException(de.getMessageObject());
     }
   }
@@ -2949,7 +2892,7 @@ public final class DirectoryServer
    */
   public void initializeRootDNConfigManager()
          throws ConfigException, InitializationException{
-    rootDNConfigManager = new RootDNConfigManager();
+    rootDNConfigManager = new RootDNConfigManager(serverContext);
     rootDNConfigManager.initializeRootDNs();
   }
 

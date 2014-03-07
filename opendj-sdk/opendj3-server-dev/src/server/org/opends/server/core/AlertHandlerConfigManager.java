@@ -66,21 +66,22 @@ public class AlertHandlerConfigManager
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // A mapping between the DNs of the config entries and the associated alert
-  // handlers.
-  private ConcurrentHashMap<DN,AlertHandler> alertHandlers;
+  /** A mapping between the DNs of the config entries and the associated alert handlers. */
+  private final ConcurrentHashMap<DN,AlertHandler> alertHandlers;
 
-
+  private final ServerContext serverContext;
 
   /**
    * Creates a new instance of this alert handler config manager.
+   *
+   * @param serverContext
+   *          The server context.
    */
-  public AlertHandlerConfigManager()
+  public AlertHandlerConfigManager(ServerContext serverContext)
   {
-    alertHandlers = new ConcurrentHashMap<DN,AlertHandler>();
+    this.serverContext = serverContext;
+    alertHandlers = new ConcurrentHashMap<DN, AlertHandler>();
   }
-
-
 
   /**
    * Initializes all alert handlers currently defined in the Directory Server

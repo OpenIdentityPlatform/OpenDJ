@@ -27,6 +27,7 @@
 package org.opends.server.admin;
 
 import static org.opends.messages.AdminMessages.*;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
@@ -35,6 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
+
 import javax.naming.ldap.Rdn;
 
 import org.forgerock.opendj.ldap.AddressMask;
@@ -51,6 +53,7 @@ import org.opends.server.admin.std.server.FileBasedTrustManagerProviderCfg;
 import org.opends.server.admin.std.server.LDAPConnectionHandlerCfg;
 import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.config.ConfigException;
+import org.opends.server.core.ServerContext;
 import org.opends.server.core.SynchronousStrategy;
 import org.opends.server.protocols.ldap.LDAPConnectionHandler;
 import org.opends.server.types.ConfigChangeResult;
@@ -592,11 +595,13 @@ public final class AdministrationConnector implements
   /**
    * Creates a self-signed JKS certificate if needed.
    *
+   * @param serverContext
+   *          The server context.
    * @throws InitializationException
    *           If an unexpected error occurred whilst trying to create the
    *           certificate.
    */
-  public static void createSelfSignedCertificateIfNeeded()
+  public static void createSelfSignedCertificateIfNeeded(ServerContext serverContext)
       throws InitializationException
   {
     try

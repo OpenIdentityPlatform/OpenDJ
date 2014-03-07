@@ -72,17 +72,19 @@ public class CertificateMapperConfigManager
   // certificate mappers.
   private ConcurrentHashMap<DN,CertificateMapper> certificateMappers;
 
-
+  private final ServerContext serverContext;
 
   /**
    * Creates a new instance of this certificate mapper config manager.
+   *
+   * @param serverContext
+   *          The server context.
    */
-  public CertificateMapperConfigManager()
+  public CertificateMapperConfigManager(ServerContext serverContext)
   {
-    certificateMappers = new ConcurrentHashMap<DN,CertificateMapper>();
+    this.serverContext = serverContext;
+    certificateMappers = new ConcurrentHashMap<DN, CertificateMapper>();
   }
-
-
 
   /**
    * Initializes all certificate mappers currently defined in the Directory
