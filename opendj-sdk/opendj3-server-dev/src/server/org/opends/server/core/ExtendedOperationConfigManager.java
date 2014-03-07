@@ -64,23 +64,25 @@ public class ExtendedOperationConfigManager implements
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
+  /**
+   * A mapping between the DNs of the config entries and the associated extended
+   * operation handlers.
+   */
+  private final ConcurrentHashMap<DN,ExtendedOperationHandler> handlers;
 
-
-  // A mapping between the DNs of the config entries and the associated extended
-  // operation handlers.
-  private ConcurrentHashMap<DN,ExtendedOperationHandler> handlers;
-
-
+  private final ServerContext serverContext;
 
   /**
    * Creates a new instance of this extended operation config manager.
+   *
+   * @param serverContext
+   *            The server context.
    */
-  public ExtendedOperationConfigManager()
+  public ExtendedOperationConfigManager(ServerContext serverContext)
   {
+    this.serverContext = serverContext;
     handlers = new ConcurrentHashMap<DN,ExtendedOperationHandler>();
   }
-
-
 
   /**
    * Initializes all extended operation handlers currently defined in the

@@ -43,6 +43,7 @@ import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.admin.std.server.WorkflowElementCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ServerContext;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
@@ -64,14 +65,18 @@ public class WorkflowElementConfigManager
 
 {
 
+  private final ServerContext serverContext;
+
   /**
    * Creates a new instance of this workflow config manager.
+   *
+   * @param serverContext
+   *            The server context.
    */
-  public WorkflowElementConfigManager()
+  public WorkflowElementConfigManager(ServerContext serverContext)
   {
+    this.serverContext = serverContext;
   }
-
-
 
   /**
    * Initializes all workflow elements currently defined in the Directory

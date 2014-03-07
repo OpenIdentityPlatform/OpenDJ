@@ -1520,14 +1520,11 @@ public final class DirectoryServer
       // Determine whether or not we should start the connection handlers.
       boolean startConnectionHandlers = !environmentConfig.disableConnectionHandlers();
 
-      // Initialize all the schema elements.
       initializeSchema();
 
-      // Initialize the plugin manager so that internal plugins can be
-      // registered.
+      // Allow internal plugins to be registered.
       pluginConfigManager.initializePluginConfigManager();
 
-      // Virtual attribute handlers.
       virtualAttributeConfigManager.initializeVirtualAttributes();
 
       // The core Directory Server configuration.
@@ -1542,7 +1539,6 @@ public final class DirectoryServer
       retentionPolicyConfigManager = new LogRetentionPolicyConfigManager(serverContext);
       retentionPolicyConfigManager.initializeLogRetentionPolicyConfig();
 
-      // The server loggers.
       loggerConfigManager = new LoggerConfigManager(serverContext);
       loggerConfigManager.initializeLoggerConfig();
 
@@ -1581,13 +1577,13 @@ public final class DirectoryServer
 
       initializeGroupManager();
 
-      // Now we can initialize both subentry manager and group manager
-      // for this backend.
+      // Initialize both subentry manager and group manager
+      // for the configuration backend.
+      // TODO : why do we initialize these now ? Can't we do them after backend initialization ?
       subentryManager.performBackendInitializationProcessing(configHandler);
       groupManager.performBackendInitializationProcessing(configHandler);
 
-      // Initialize the access control handler.
-      AccessControlConfigManager.getInstance().initializeAccessControl();
+      AccessControlConfigManager.getInstance().initializeAccessControl(serverContext);
 
       // Initialize all the backends and their associated suffixes
       // and initialize the workflows when workflow configuration mode is auto.
@@ -1605,64 +1601,43 @@ public final class DirectoryServer
         configureWorkflowsManual();
       }
 
-      // Check for and initialize user configured entry cache if any,
-      // if not stick with default entry cache initialized earlier.
+      // Check for and initialize user configured entry cache if any.
+      // If not then stick with default entry cache initialized earlier.
       entryCacheConfigManager.initializeEntryCache();
 
       // Reset the map as we can no longer guarantee offline state.
       directoryServer.offlineBackendsStateIDs.clear();
 
-      // Register the supported controls and supported features.
       initializeSupportedControls();
       initializeSupportedFeatures();
 
-
-      // Initialize all the extended operation handlers.
       initializeExtendedOperations();
 
-
-      // Initialize all the SASL mechanism handlers.
       initializeSASLMechanisms();
 
-
-      // Initialize all the connection handlers
-      // (including the administration connector).
       if (startConnectionHandlers)
       {
+        // Includes the administration connector.
         initializeConnectionHandlers();
       }
 
-
-      // Initialize all the monitor providers.
-      monitorConfigManager = new MonitorConfigManager();
+      monitorConfigManager = new MonitorConfigManager(serverContext);
       monitorConfigManager.initializeMonitorProviders();
 
-
-      // Initialize all the authentication policy components.
       initializeAuthenticationPolicyComponents();
 
-
-      // Load and initialize the user plugins.
       pluginConfigManager.initializeUserPlugins(null);
 
-
-      // Initialize the extensions.
-      extensionConfigManager = new ExtensionConfigManager();
+      extensionConfigManager = new ExtensionConfigManager(serverContext);
       extensionConfigManager.initializeExtensions();
 
-
-      // Initialize any synchronization providers that may be defined.
       if (!environmentConfig.disableSynchronization())
       {
-        synchronizationProviderConfigManager =
-          new SynchronizationProviderConfigManager();
-        synchronizationProviderConfigManager
-            .initializeSynchronizationProviders();
+        synchronizationProviderConfigManager = new SynchronizationProviderConfigManager(serverContext);
+        synchronizationProviderConfigManager.initializeSynchronizationProviders();
       }
 
-      // Create and initialize the work queue.
       workQueue = new WorkQueueConfigManager().initializeWorkQueue();
-
 
       // Invoke the startup plugins.
       PluginResult.Startup startupPluginResult =
@@ -2178,10 +2153,9 @@ public final class DirectoryServer
    *                                   the backends that is not related to the
    *                                   server configuration.
    */
-  public void initializeBackends()
-          throws ConfigException, InitializationException
+  public void initializeBackends() throws ConfigException, InitializationException
   {
-    backendConfigManager = new BackendConfigManager();
+    backendConfigManager = new BackendConfigManager(serverContext);
     backendConfigManager.initializeBackendConfig();
 
 
@@ -2190,17 +2164,14 @@ public final class DirectoryServer
     RootDSEBackendCfg rootDSECfg;
     try
     {
-      RootCfg root =
-           ServerManagementContext.getInstance().getRootConfiguration();
+      RootCfg root = ServerManagementContext.getInstance().getRootConfiguration();
       rootDSECfg = root.getRootDSEBackend();
     }
     catch (Exception e)
     {
       logger.traceException(e);
-
-      LocalizableMessage message = ERR_CANNOT_GET_ROOT_DSE_CONFIG_ENTRY.get(
-          stackTraceToSingleLineString(e));
-      throw new InitializationException(message, e);
+      throw new InitializationException(ERR_CANNOT_GET_ROOT_DSE_CONFIG_ENTRY.get(
+          stackTraceToSingleLineString(e)), e);
     }
 
     rootDSEBackend = new RootDSEBackend();
@@ -2417,8 +2388,8 @@ public final class DirectoryServer
   {
     try
     {
-      createAndRegisterWorkflowsWithDefaultNetworkGroup (configHandler);
-      createAndRegisterWorkflowsWithDefaultNetworkGroup (rootDSEBackend);
+      createAndRegisterWorkflowsWithDefaultNetworkGroup(configHandler);
+      createAndRegisterWorkflowsWithDefaultNetworkGroup(rootDSEBackend);
     }
     catch (DirectoryException de)
     {
@@ -2519,15 +2490,15 @@ public final class DirectoryServer
     createAndRegisterRemainingWorkflows();
 
     // Then configure the workflows
-    workflowElementConfigManager = new WorkflowElementConfigManager();
+    workflowElementConfigManager = new WorkflowElementConfigManager(serverContext);
     workflowElementConfigManager.initializeWorkflowElements();
 
-    workflowConfigManager = new WorkflowConfigManager();
+    workflowConfigManager = new WorkflowConfigManager(serverContext);
     workflowConfigManager.initializeWorkflows();
 
     if (networkGroupConfigManager == null)
     {
-      networkGroupConfigManager = new NetworkGroupConfigManager();
+      networkGroupConfigManager = new NetworkGroupConfigManager(serverContext);
       networkGroupConfigManager.initializeNetworkGroups();
     }
   }
@@ -2599,7 +2570,7 @@ public final class DirectoryServer
   {
     try
     {
-      groupManager = new GroupManager();
+      groupManager = new GroupManager(serverContext);
     }
     catch (DirectoryException de)
     {
@@ -2646,15 +2617,14 @@ public final class DirectoryServer
   /**
    * Initializes the set of supported controls for the Directory Server.
    *
-   * @throws  ConfigException  If there is a configuration problem with the
-   *                           list of supported controls.
-   *
-   * @throws  InitializationException  If a problem occurs while initializing
-   *                                   the set of supported controls that is not
-   *                                   related to the server configuration.
+   * @throws ConfigException
+   *           If there is a configuration problem with the list of supported
+   *           controls.
+   * @throws InitializationException
+   *           If a problem occurs while initializing the set of supported
+   *           controls that is not related to the server configuration.
    */
-  private void initializeSupportedControls()
-          throws ConfigException, InitializationException
+  private void initializeSupportedControls() throws ConfigException, InitializationException
   {
     supportedControls.add(OID_LDAP_ASSERTION);
     supportedControls.add(OID_LDAP_READENTRY_PREREAD);
@@ -2676,27 +2646,22 @@ public final class DirectoryServer
     supportedControls.add(OID_NS_PASSWORD_EXPIRING);
   }
 
-
-
   /**
    * Initializes the set of supported features for the Directory Server.
    *
-   * @throws  ConfigException  If there is a configuration problem with the
-   *                           list of supported features.
-   *
-   * @throws  InitializationException  If a problem occurs while initializing
-   *                                   the set of supported features that is not
-   *                                   related to the server configuration.
+   * @throws ConfigException
+   *           If there is a configuration problem with the list of supported
+   *           features.
+   * @throws InitializationException
+   *           If a problem occurs while initializing the set of supported
+   *           features that is not related to the server configuration.
    */
-  private void initializeSupportedFeatures()
-          throws ConfigException, InitializationException
+  private void initializeSupportedFeatures() throws ConfigException, InitializationException
   {
     supportedFeatures.add(OID_ALL_OPERATIONAL_ATTRS_FEATURE);
     supportedFeatures.add(OID_MODIFY_INCREMENT_FEATURE);
     supportedFeatures.add(OID_TRUE_FALSE_FILTERS_FEATURE);
   }
-
-
 
   /**
    * Initializes the set of extended operation handlers for the Directory
@@ -2712,7 +2677,7 @@ public final class DirectoryServer
   private void initializeExtendedOperations()
           throws ConfigException, InitializationException
   {
-    extendedOperationConfigManager = new ExtendedOperationConfigManager();
+    extendedOperationConfigManager = new ExtendedOperationConfigManager(serverContext);
     extendedOperationConfigManager.initializeExtendedOperationHandlers();
   }
 
@@ -2731,7 +2696,7 @@ public final class DirectoryServer
   private void initializeSASLMechanisms()
           throws ConfigException, InitializationException
   {
-    saslConfigManager = new SASLConfigManager();
+    saslConfigManager = new SASLConfigManager(serverContext);
     saslConfigManager.initializeSASLMechanismHandlers();
   }
 
@@ -2752,7 +2717,7 @@ public final class DirectoryServer
           throws ConfigException, InitializationException
   {
     if (connectionHandlerConfigManager == null) {
-      connectionHandlerConfigManager = new ConnectionHandlerConfigManager();
+      connectionHandlerConfigManager = new ConnectionHandlerConfigManager(serverContext);
     }
     connectionHandlerConfigManager.initializeConnectionHandlerConfig();
   }
@@ -2790,8 +2755,6 @@ public final class DirectoryServer
     }
   }
 
-
-
   /**
    * Initializes the set of authentication policy components for use by the
    * Directory Server.
@@ -2803,32 +2766,20 @@ public final class DirectoryServer
    *           If a problem occurs while initializing the authentication policy
    *           components that is not related to the server configuration.
    */
-  public void initializeAuthenticationPolicyComponents()
-         throws ConfigException, InitializationException
+  public void initializeAuthenticationPolicyComponents() throws ConfigException, InitializationException
   {
-    // Initialize all the password storage schemes.
-    storageSchemeConfigManager = new PasswordStorageSchemeConfigManager();
+    storageSchemeConfigManager = new PasswordStorageSchemeConfigManager(serverContext);
     storageSchemeConfigManager.initializePasswordStorageSchemes();
 
-
-    // Initialize all the password validators.
-    passwordValidatorConfigManager = new PasswordValidatorConfigManager();
+    passwordValidatorConfigManager = new PasswordValidatorConfigManager(serverContext);
     passwordValidatorConfigManager.initializePasswordValidators();
 
-
-    // Initialize all the password generators.
-    passwordGeneratorConfigManager = new PasswordGeneratorConfigManager();
+    passwordGeneratorConfigManager = new PasswordGeneratorConfigManager(serverContext);
     passwordGeneratorConfigManager.initializePasswordGenerators();
 
+    accountStatusNotificationHandlerConfigManager = new AccountStatusNotificationHandlerConfigManager(serverContext);
+    accountStatusNotificationHandlerConfigManager.initializeNotificationHandlers();
 
-    // Initialize the account status notification handlers.
-    accountStatusNotificationHandlerConfigManager =
-         new AccountStatusNotificationHandlerConfigManager();
-    accountStatusNotificationHandlerConfigManager.
-         initializeNotificationHandlers();
-
-
-    // Initialize all the authentication policies.
     authenticationPolicyConfigManager = new PasswordPolicyConfigManager(serverContext);
     authenticationPolicyConfigManager.initializeAuthenticationPolicies();
   }

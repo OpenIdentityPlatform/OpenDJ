@@ -68,21 +68,25 @@ public class PasswordValidatorConfigManager
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // A mapping between the DNs of the config entries and the associated
-  // password validators.
-  private ConcurrentHashMap<DN,PasswordValidator> passwordValidators;
+  /**
+   * A mapping between the DNs of the config entries and the associated password
+   * validators.
+   */
+  private final ConcurrentHashMap<DN,PasswordValidator> passwordValidators;
 
-
+  private final ServerContext serverContext;
 
   /**
    * Creates a new instance of this password validator config manager.
+   *
+   * @param serverContext
+   *            The server context.
    */
-  public PasswordValidatorConfigManager()
+  public PasswordValidatorConfigManager(ServerContext serverContext)
   {
+    this.serverContext = serverContext;
     passwordValidators = new ConcurrentHashMap<DN,PasswordValidator>();
   }
-
-
 
   /**
    * Initializes all password validators currently defined in the Directory

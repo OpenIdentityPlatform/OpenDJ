@@ -64,20 +64,24 @@ public class AccountStatusNotificationHandlerConfigManager
           ConfigurationDeleteListener <AccountStatusNotificationHandlerCfg>
 {
 
-  // A mapping between the DNs of the config entries and the associated
-  // notification handlers.
-  private ConcurrentHashMap<DN,AccountStatusNotificationHandler>
-          notificationHandlers;
+  /**
+   * A mapping between the DNs of the config entries and the associated
+   * notification handlers.
+   */
+  private final ConcurrentHashMap<DN,AccountStatusNotificationHandler> notificationHandlers;
 
+  private final ServerContext serverContext;
 
   /**
    * Creates a new instance of this account status notification handler config
    * manager.
+   * @param serverContext
+   *            The server context.
    */
-  public AccountStatusNotificationHandlerConfigManager()
+  public AccountStatusNotificationHandlerConfigManager(ServerContext serverContext)
   {
-    notificationHandlers =
-         new ConcurrentHashMap<DN,AccountStatusNotificationHandler>();
+    this.serverContext = serverContext;
+    notificationHandlers = new ConcurrentHashMap<DN,AccountStatusNotificationHandler>();
   }
 
 

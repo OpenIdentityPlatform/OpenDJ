@@ -304,8 +304,7 @@ public class SubentryManager extends InternalDirectoryServerPlugin
   @Override
   public void performBackendInitializationProcessing(Backend backend)
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = InternalClientConnection.getRootConnection();
 
     LinkedList<Control> requestControls = new LinkedList<Control>();
     requestControls.add(new SubentriesControl(true, true));

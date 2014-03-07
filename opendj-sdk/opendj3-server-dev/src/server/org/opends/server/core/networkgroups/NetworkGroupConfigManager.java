@@ -27,6 +27,7 @@
 package org.opends.server.core.networkgroups;
 
 import static org.opends.messages.ConfigMessages.*;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -40,6 +41,7 @@ import org.opends.server.admin.std.server.NetworkGroupCfg;
 import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.ServerContext;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.util.Utils;
 import org.opends.server.types.ConfigChangeResult;
@@ -62,21 +64,25 @@ public class NetworkGroupConfigManager implements
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // A mapping between the DNs of the config entries and the associated
-  // network groups.
+  /**
+   * A mapping between the DNs of the config entries and the associated
+   * network groups.
+   */
   private final ConcurrentHashMap<DN, NetworkGroup> networkGroups;
 
-
+  private final ServerContext serverContext;
 
   /**
    * Creates a new instance of this network group config manager.
+   *
+   * @param serverContext
+   *            The server context.
    */
-  public NetworkGroupConfigManager()
+  public NetworkGroupConfigManager(ServerContext serverContext)
   {
+    this.serverContext = serverContext;
     networkGroups = new ConcurrentHashMap<DN, NetworkGroup>();
   }
-
-
 
   /**
    * {@inheritDoc}

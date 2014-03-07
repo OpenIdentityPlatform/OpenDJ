@@ -110,30 +110,30 @@ public class GroupManager extends InternalDirectoryServerPlugin
   /** Dummy configuration DN for Group Manager. */
   private static final String CONFIG_DN = "cn=Group Manager,cn=config";
 
-
+  private final ServerContext serverContext;
 
   /**
    * Creates a new instance of this group manager.
    *
-   * @throws DirectoryException If a problem occurs while
-   *                            creating an instance of
-   *                            the group manager.
+   * @param serverContext
+   *          The server context.
+   * @throws DirectoryException
+   *           If a problem occurs while creating an instance of the group
+   *           manager.
    */
-  public GroupManager() throws DirectoryException
+  public GroupManager(ServerContext serverContext) throws DirectoryException
   {
-    super(DN.valueOf(CONFIG_DN), EnumSet.of(
-          PluginType.POST_OPERATION_ADD,
-          PluginType.POST_OPERATION_DELETE,
-          PluginType.POST_OPERATION_MODIFY,
-          PluginType.POST_OPERATION_MODIFY_DN,
-          PluginType.POST_SYNCHRONIZATION_ADD,
-          PluginType.POST_SYNCHRONIZATION_DELETE,
-          PluginType.POST_SYNCHRONIZATION_MODIFY,
-          PluginType.POST_SYNCHRONIZATION_MODIFY_DN),
-          true);
+    super(DN.valueOf(CONFIG_DN), EnumSet.of(PluginType.POST_OPERATION_ADD,
+        PluginType.POST_OPERATION_DELETE, PluginType.POST_OPERATION_MODIFY,
+        PluginType.POST_OPERATION_MODIFY_DN,
+        PluginType.POST_SYNCHRONIZATION_ADD,
+        PluginType.POST_SYNCHRONIZATION_DELETE,
+        PluginType.POST_SYNCHRONIZATION_MODIFY,
+        PluginType.POST_SYNCHRONIZATION_MODIFY_DN), true);
+    this.serverContext = serverContext;
 
-    groupImplementations = new ConcurrentHashMap<DN,Group>();
-    groupInstances       = new DITCacheMap<Group>();
+    groupImplementations = new ConcurrentHashMap<DN, Group>();
+    groupInstances = new DITCacheMap<Group>();
 
     lock = new ReentrantReadWriteLock();
 

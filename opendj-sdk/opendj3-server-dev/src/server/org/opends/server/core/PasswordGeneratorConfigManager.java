@@ -67,21 +67,25 @@ public class PasswordGeneratorConfigManager
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
+  /**
+   * A mapping between the DNs of the config entries and the associated password
+   * generators.
+   */
+  private final ConcurrentHashMap<DN,PasswordGenerator> passwordGenerators;
 
-  // A mapping between the DNs of the config entries and the associated password
-  // generators.
-  private ConcurrentHashMap<DN,PasswordGenerator> passwordGenerators;
-
+  private final ServerContext serverContext;
 
   /**
    * Creates a new instance of this password generator config manager.
+   *
+   * @param serverContext
+   *            The server context.
    */
-  public PasswordGeneratorConfigManager()
+  public PasswordGeneratorConfigManager(ServerContext serverContext)
   {
+    this.serverContext = serverContext;
     passwordGenerators = new ConcurrentHashMap<DN,PasswordGenerator>();
   }
-
-
 
   /**
    * Initializes all password generators currently defined in the Directory

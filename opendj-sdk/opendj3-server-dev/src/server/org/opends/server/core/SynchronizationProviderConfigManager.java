@@ -64,28 +64,25 @@ public class SynchronizationProviderConfigManager
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
+  /**
+   * The mapping between configuration entry DNs and their corresponding
+   * synchronization provider implementations.
+   */
+  private final ConcurrentHashMap<DN,SynchronizationProvider<SynchronizationProviderCfg>> registeredProviders;
 
-
-
-  // The mapping between configuration entry DNs and their corresponding
-  // synchronization provider implementations.
-  private ConcurrentHashMap<DN,
-    SynchronizationProvider<SynchronizationProviderCfg>> registeredProviders =
-      new ConcurrentHashMap<DN,
-        SynchronizationProvider<SynchronizationProviderCfg>>();
-
-
-
+  private final ServerContext serverContext;
 
   /**
    * Creates a new instance of this synchronization provider config manager.
+   *
+   * @param serverContext
+   *            The server context.
    */
-  public SynchronizationProviderConfigManager()
+  public SynchronizationProviderConfigManager(ServerContext serverContext)
   {
-    // No implementation is required.
+    this.serverContext = serverContext;
+    registeredProviders = new ConcurrentHashMap<DN,SynchronizationProvider<SynchronizationProviderCfg>>();
   }
-
-
 
   /**
    * Initializes the configuration associated with the Directory Server

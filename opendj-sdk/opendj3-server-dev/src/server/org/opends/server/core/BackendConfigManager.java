@@ -29,6 +29,8 @@ import org.forgerock.i18n.LocalizableMessage;
 
 
 
+
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
@@ -42,13 +44,13 @@ import org.opends.server.api.ConfigHandler;
 import org.opends.server.config.ConfigException;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigConstants;
-
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import static org.opends.messages.ConfigMessages.*;
 
+import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.util.StaticUtils.*;
+
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
@@ -73,41 +75,40 @@ public class BackendConfigManager implements
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
+  /**
+   * The mapping between configuration entry DNs and their corresponding backend
+   * implementations.
+   */
+  private final ConcurrentHashMap<DN,Backend> registeredBackends;
 
-
-  // The mapping between configuration entry DNs and their corresponding
-  // backend implementations.
-  private ConcurrentHashMap<DN,Backend> registeredBackends;
-
-
+  private final ServerContext serverContext;
 
   /**
    * Creates a new instance of this backend config manager.
+   *
+   * @param serverContext
+   *            The server context.
    */
-  public BackendConfigManager()
+  public BackendConfigManager(ServerContext serverContext)
   {
-    // No implementation is required.
+    this.serverContext = serverContext;
+    registeredBackends = new ConcurrentHashMap<DN,Backend>();
   }
-
-
 
   /**
    * Initializes the configuration associated with the Directory Server
-   * backends.  This should only be called at Directory Server startup.
+   * backends. This should only be called at Directory Server startup.
    *
-   * @throws  ConfigException  If a critical configuration problem prevents the
-   *                           backend initialization from succeeding.
-   *
-   * @throws  InitializationException  If a problem occurs while initializing
-   *                                   the backends that is not related to the
-   *                                   server configuration.
+   * @throws ConfigException
+   *           If a critical configuration problem prevents the backend
+   *           initialization from succeeding.
+   * @throws InitializationException
+   *           If a problem occurs while initializing the backends that is not
+   *           related to the server configuration.
    */
   public void initializeBackendConfig()
          throws ConfigException, InitializationException
   {
-    registeredBackends = new ConcurrentHashMap<DN,Backend>();
-
-
     // Create an internal server management context and retrieve
     // the root configuration.
     ServerManagementContext context = ServerManagementContext.getInstance();
