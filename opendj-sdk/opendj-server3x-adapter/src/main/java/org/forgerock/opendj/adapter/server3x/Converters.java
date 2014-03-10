@@ -30,6 +30,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Reader;
@@ -128,6 +130,46 @@ public final class Converters {
     public static org.opends.server.types.DN to(final DN dn) {
         try {
             return org.opends.server.types.DN.valueOf(dn.toString());
+        } catch (Exception e) {
+            throw new IllegalStateException(e.getMessage());
+        }
+    }
+
+    /**
+     * Converts a set of OpenDJ LDAP SDK {@link DN} to a set of
+     * OpenDJ server {@link org.opends.server.types.DN}.
+     *
+     * @param dnSet
+     *          set to convert
+     * @return the converted set
+     */
+    public static SortedSet<org.opends.server.types.DN> to(final SortedSet<DN> dnSet) {
+        try {
+            SortedSet<org.opends.server.types.DN> newSet = new TreeSet<org.opends.server.types.DN>();
+            for (DN dn : dnSet) {
+                newSet.add(org.opends.server.types.DN.valueOf(dn.toString()));
+            }
+            return newSet;
+        } catch (Exception e) {
+            throw new IllegalStateException(e.getMessage());
+        }
+    }
+
+    /**
+     * Converts an array of OpenDJ LDAP SDK {@link DN} to an array of
+     * OpenDJ server {@link org.opends.server.types.DN}.
+     *
+     * @param dns
+     *          array of values to convert
+     * @return the converted array
+     */
+    public static org.opends.server.types.DN[] to(final DN[] dns) {
+        try {
+            org.opends.server.types.DN[] newDns = new org.opends.server.types.DN[dns.length];
+            for (int i = 0; i < dns.length; i++) {
+                newDns[i] = org.opends.server.types.DN.valueOf(dns[i].toString());
+            }
+            return newDns;
         } catch (Exception e) {
             throw new IllegalStateException(e.getMessage());
         }
