@@ -37,6 +37,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import com.forgerock.opendj.cli.ArgumentParser;
+import com.forgerock.opendj.cli.ConnectionFactoryProvider;
 import com.forgerock.opendj.cli.ConsoleApplication;
 
 @SuppressWarnings("javadoc")

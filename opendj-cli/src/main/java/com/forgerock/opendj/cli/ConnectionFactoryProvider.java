@@ -24,10 +24,11 @@
  *      Copyright 2010 Sun Microsystems, Inc.
  *      Portions copyright 2011-2014 ForgeRock AS
  */
-package com.forgerock.opendj.ldap.tools;
+package com.forgerock.opendj.cli;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
-import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
+import static com.forgerock.opendj.cli.CliMessages.*;
+import static com.forgerock.opendj.cli.CliConstants.DEFAULT_LDAP_PORT;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -46,15 +47,6 @@ import javax.net.ssl.X509KeyManager;
 import javax.net.ssl.X509TrustManager;
 
 import org.forgerock.i18n.LocalizableMessage;
-
-import com.forgerock.opendj.cli.ArgumentException;
-import com.forgerock.opendj.cli.ArgumentParser;
-import com.forgerock.opendj.cli.BooleanArgument;
-import com.forgerock.opendj.cli.ClientException;
-import com.forgerock.opendj.cli.ConsoleApplication;
-import com.forgerock.opendj.cli.FileBasedArgument;
-import com.forgerock.opendj.cli.IntegerArgument;
-import com.forgerock.opendj.cli.StringArgument;
 
 import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.KeyManagers;
@@ -75,7 +67,7 @@ import org.forgerock.opendj.ldap.requests.Requests;
 /**
  * A connection factory designed for use with command line tools.
  */
-final class ConnectionFactoryProvider {
+public class ConnectionFactoryProvider extends AbstractAuthenticatedConnectionFactory {
     /**
      * The Logger.
      */
@@ -172,13 +164,14 @@ final class ConnectionFactoryProvider {
      */
     private final BooleanArgument usePasswordPolicyControlArg;
 
-    private int port = 389;
+    private int port = DEFAULT_LDAP_PORT;
 
     private SSLContext sslContext;
 
     private ConnectionFactory connFactory;
 
-    private ConnectionFactory authenticatedConnFactory;
+    /** The authenticated connection factory. */
+    protected ConnectionFactory authenticatedConnFactory;
 
     private BindRequest bindRequest = null;
 
@@ -186,25 +179,63 @@ final class ConnectionFactoryProvider {
 
     private LDAPOptions options;
 
+    /**
+     * Default constructor to create a connection factory designed for use with command line tools.
+     *
+     * @param argumentParser
+     *            The argument parser.
+     * @param app
+     *            The console application linked to this connection factory.
+     * @throws ArgumentException
+     *             If an error occurs during parsing the arguments.
+     */
     public ConnectionFactoryProvider(final ArgumentParser argumentParser,
             final ConsoleApplication app) throws ArgumentException {
-        this(argumentParser, app, "cn=Directory Manager", 389, false, null);
+        this(argumentParser, app, "cn=Directory Manager", DEFAULT_LDAP_PORT, false, null);
     }
 
+    /**
+     * Default constructor to create a connection factory designed for use with command line tools.
+     *
+     * @param argumentParser
+     *            The argument parser.
+     * @param app
+     *            The console application linked to this connection factory.
+     * @param options
+     *            The common options for this LDAP client connection.
+     * @throws ArgumentException
+     *             If an error occurs during parsing the arguments.
+     */
     public ConnectionFactoryProvider(final ArgumentParser argumentParser,
             final ConsoleApplication app, final LDAPOptions options) throws ArgumentException {
-        this(argumentParser, app, "cn=Directory Manager", 389, false, options);
+        this(argumentParser, app, "cn=Directory Manager", DEFAULT_LDAP_PORT, false, options);
     }
 
+    /**
+     * Constructor to create a connection factory designed for use with command line tools.
+     *
+     * @param argumentParser
+     *            The argument parser.
+     * @param app
+     *            The console application linked to this connection factory.
+     * @param defaultBindDN
+     *            The bind DN default's value.
+     * @param defaultPort
+     *            The LDAP port default's value.
+     * @param alwaysSSL
+     *            {@code true} if this connection should be used with SSL.
+     * @param options
+     *            The LDAP options of this connection factory.
+     * @throws ArgumentException
+     *             If an error occurs during parsing the elements.
+     */
     public ConnectionFactoryProvider(final ArgumentParser argumentParser,
             final ConsoleApplication app, final String defaultBindDN, final int defaultPort,
             final boolean alwaysSSL, final LDAPOptions options) throws ArgumentException {
         this.app = app;
         this.options = options == null ? new LDAPOptions() : options;
-        useSSLArg =
-                new BooleanArgument("useSSL", OPTION_SHORT_USE_SSL, OPTION_LONG_USE_SSL,
-                        INFO_DESCRIPTION_USE_SSL.get());
-        useSSLArg.setPropertyName(OPTION_LONG_USE_SSL);
+        useSSLArg = CommonArguments.getUseSSL();
+
         if (!alwaysSSL) {
             argumentParser.addLdapConnectionArgument(useSSLArg);
         } else {
@@ -212,10 +243,7 @@ final class ConnectionFactoryProvider {
             useSSLArg.setPresent(true);
         }
 
-        useStartTLSArg =
-                new BooleanArgument("startTLS", OPTION_SHORT_START_TLS, OPTION_LONG_START_TLS,
-                        INFO_DESCRIPTION_START_TLS.get());
-        useStartTLSArg.setPropertyName(OPTION_LONG_START_TLS);
+        useStartTLSArg = CommonArguments.getStartTLS();
         if (!alwaysSSL) {
             argumentParser.addLdapConnectionArgument(useStartTLSArg);
         }
@@ -226,11 +254,7 @@ final class ConnectionFactoryProvider {
         } catch (final Exception e) {
             defaultHostName = "Unknown (" + e + ")";
         }
-        hostNameArg =
-                new StringArgument("host", OPTION_SHORT_HOST, OPTION_LONG_HOST, false, false, true,
-                        INFO_HOST_PLACEHOLDER.get(), defaultHostName, null, INFO_DESCRIPTION_HOST
-                                .get());
-        hostNameArg.setPropertyName(OPTION_LONG_HOST);
+        hostNameArg = CommonArguments.getHostName(defaultHostName);
         argumentParser.addLdapConnectionArgument(hostNameArg);
 
         LocalizableMessage portDescription = INFO_DESCRIPTION_PORT.get();
@@ -238,104 +262,46 @@ final class ConnectionFactoryProvider {
             portDescription = INFO_DESCRIPTION_ADMIN_PORT.get();
         }
 
-        portArg =
-                new IntegerArgument("port", OPTION_SHORT_PORT, OPTION_LONG_PORT, false, false,
-                        true, INFO_PORT_PLACEHOLDER.get(), defaultPort, null, portDescription);
-        portArg.setPropertyName(OPTION_LONG_PORT);
+        portArg = CommonArguments.getPort(defaultPort, portDescription);
         argumentParser.addLdapConnectionArgument(portArg);
 
-        bindNameArg =
-                new StringArgument("bindDN", OPTION_SHORT_BINDDN, OPTION_LONG_BINDDN, false, false,
-                        true, INFO_BINDDN_PLACEHOLDER.get(), defaultBindDN, null,
-                        INFO_DESCRIPTION_BINDDN.get());
-        bindNameArg.setPropertyName(OPTION_LONG_BINDDN);
+        bindNameArg = CommonArguments.getBindDN(defaultBindDN);
         argumentParser.addLdapConnectionArgument(bindNameArg);
 
-        bindPasswordArg =
-                new StringArgument("bindPassword", OPTION_SHORT_BINDPWD, OPTION_LONG_BINDPWD,
-                        false, false, true, INFO_BINDPWD_PLACEHOLDER.get(), null, null,
-                        INFO_DESCRIPTION_BINDPASSWORD.get());
-        bindPasswordArg.setPropertyName(OPTION_LONG_BINDPWD);
+        bindPasswordArg = CommonArguments.getBindPassword();
         argumentParser.addLdapConnectionArgument(bindPasswordArg);
 
-        bindPasswordFileArg =
-                new FileBasedArgument("bindPasswordFile", OPTION_SHORT_BINDPWD_FILE,
-                        OPTION_LONG_BINDPWD_FILE, false, false,
-                        INFO_BINDPWD_FILE_PLACEHOLDER.get(), null, null,
-                        INFO_DESCRIPTION_BINDPASSWORDFILE.get());
-        bindPasswordFileArg.setPropertyName(OPTION_LONG_BINDPWD_FILE);
+        bindPasswordFileArg = CommonArguments.getBindPasswordFile();
         argumentParser.addLdapConnectionArgument(bindPasswordFileArg);
 
-        saslOptionArg =
-                new StringArgument("sasloption", OPTION_SHORT_SASLOPTION, OPTION_LONG_SASLOPTION,
-                        false, true, true, INFO_SASL_OPTION_PLACEHOLDER.get(), null, null,
-                        INFO_LDAP_CONN_DESCRIPTION_SASLOPTIONS.get());
-        saslOptionArg.setPropertyName(OPTION_LONG_SASLOPTION);
+        saslOptionArg = CommonArguments.getSASL();
         argumentParser.addLdapConnectionArgument(saslOptionArg);
 
-        trustAllArg =
-                new BooleanArgument("trustAll", OPTION_SHORT_TRUSTALL, OPTION_LONG_TRUSTALL,
-                        INFO_DESCRIPTION_TRUSTALL.get());
-        trustAllArg.setPropertyName(OPTION_LONG_TRUSTALL);
+        trustAllArg = CommonArguments.getTrustAll();
         argumentParser.addLdapConnectionArgument(trustAllArg);
 
-        trustStorePathArg =
-                new StringArgument("trustStorePath", OPTION_SHORT_TRUSTSTOREPATH,
-                        OPTION_LONG_TRUSTSTOREPATH, false, false, true,
-                        INFO_TRUSTSTOREPATH_PLACEHOLDER.get(), null, null,
-                        INFO_DESCRIPTION_TRUSTSTOREPATH.get());
-        trustStorePathArg.setPropertyName(OPTION_LONG_TRUSTSTOREPATH);
+        trustStorePathArg = CommonArguments.getTrustStorePath();
         argumentParser.addLdapConnectionArgument(trustStorePathArg);
 
-        trustStorePasswordArg =
-                new StringArgument("trustStorePassword", OPTION_SHORT_TRUSTSTORE_PWD,
-                        OPTION_LONG_TRUSTSTORE_PWD, false, false, true,
-                        INFO_TRUSTSTORE_PWD_PLACEHOLDER.get(), null, null,
-                        INFO_DESCRIPTION_TRUSTSTOREPASSWORD.get());
-        trustStorePasswordArg.setPropertyName(OPTION_LONG_TRUSTSTORE_PWD);
+        trustStorePasswordArg = CommonArguments.getTrustStorePassword();
         argumentParser.addLdapConnectionArgument(trustStorePasswordArg);
 
-        trustStorePasswordFileArg =
-                new FileBasedArgument("trustStorePasswordFile", OPTION_SHORT_TRUSTSTORE_PWD_FILE,
-                        OPTION_LONG_TRUSTSTORE_PWD_FILE, false, false,
-                        INFO_TRUSTSTORE_PWD_FILE_PLACEHOLDER.get(), null, null,
-                        INFO_DESCRIPTION_TRUSTSTOREPASSWORD_FILE.get());
-        trustStorePasswordFileArg.setPropertyName(OPTION_LONG_TRUSTSTORE_PWD_FILE);
+        trustStorePasswordFileArg = CommonArguments.getTrustStorePasswordFile();
         argumentParser.addLdapConnectionArgument(trustStorePasswordFileArg);
 
-        keyStorePathArg =
-                new StringArgument("keyStorePath", OPTION_SHORT_KEYSTOREPATH,
-                        OPTION_LONG_KEYSTOREPATH, false, false, true, INFO_KEYSTOREPATH_PLACEHOLDER
-                                .get(), null, null, INFO_DESCRIPTION_KEYSTOREPATH.get());
-        keyStorePathArg.setPropertyName(OPTION_LONG_KEYSTOREPATH);
+        keyStorePathArg = CommonArguments.getKeyStorePath();
         argumentParser.addLdapConnectionArgument(keyStorePathArg);
 
-        keyStorePasswordArg =
-                new StringArgument("keyStorePassword", OPTION_SHORT_KEYSTORE_PWD,
-                        OPTION_LONG_KEYSTORE_PWD, false, false, true, INFO_KEYSTORE_PWD_PLACEHOLDER
-                                .get(), null, null, INFO_DESCRIPTION_KEYSTOREPASSWORD.get());
-        keyStorePasswordArg.setPropertyName(OPTION_LONG_KEYSTORE_PWD);
+        keyStorePasswordArg = CommonArguments.getKeyStorePassword();
         argumentParser.addLdapConnectionArgument(keyStorePasswordArg);
 
-        keyStorePasswordFileArg =
-                new FileBasedArgument("keystorePasswordFile", OPTION_SHORT_KEYSTORE_PWD_FILE,
-                        OPTION_LONG_KEYSTORE_PWD_FILE, false, false,
-                        INFO_KEYSTORE_PWD_FILE_PLACEHOLDER.get(), null, null,
-                        INFO_DESCRIPTION_KEYSTOREPASSWORD_FILE.get());
-        keyStorePasswordFileArg.setPropertyName(OPTION_LONG_KEYSTORE_PWD_FILE);
+        keyStorePasswordFileArg = CommonArguments.getKeyStorePasswordFile();
         argumentParser.addLdapConnectionArgument(keyStorePasswordFileArg);
 
-        certNicknameArg =
-                new StringArgument("certNickname", OPTION_SHORT_CERT_NICKNAME,
-                        OPTION_LONG_CERT_NICKNAME, false, false, true, INFO_NICKNAME_PLACEHOLDER
-                                .get(), null, null, INFO_DESCRIPTION_CERT_NICKNAME.get());
-        certNicknameArg.setPropertyName(OPTION_LONG_CERT_NICKNAME);
+        certNicknameArg = CommonArguments.getCertNickName();
         argumentParser.addLdapConnectionArgument(certNicknameArg);
 
-        reportAuthzIDArg =
-                new BooleanArgument("reportauthzid", 'E', OPTION_LONG_REPORT_AUTHZ_ID,
-                        INFO_DESCRIPTION_REPORT_AUTHZID.get());
-        reportAuthzIDArg.setPropertyName(OPTION_LONG_REPORT_AUTHZ_ID);
+        reportAuthzIDArg = CommonArguments.getReportAuthzId();
         argumentParser.addArgument(reportAuthzIDArg);
 
         usePasswordPolicyControlArg =
@@ -345,6 +311,13 @@ final class ConnectionFactoryProvider {
         argumentParser.addArgument(usePasswordPolicyControlArg);
     }
 
+    /**
+     * Returns the connection factory.
+     *
+     * @return The connection factory.
+     * @throws ArgumentException
+     *             If an error occurs during the parsing of the arguments.
+     */
     public ConnectionFactory getConnectionFactory() throws ArgumentException {
         if (connFactory == null) {
             port = portArg.getIntValue();
@@ -450,13 +423,19 @@ final class ConnectionFactoryProvider {
         return connFactory;
     }
 
+    /**
+     * Returns the authenticated connection factory.
+     *
+     * @return The authenticated connection factory.
+     * @throws ArgumentException
+     *             If an error occurs during parsing the arguments.
+     */
     public ConnectionFactory getAuthenticatedConnectionFactory() throws ArgumentException {
         if (authenticatedConnFactory == null) {
             authenticatedConnFactory = getConnectionFactory();
-            BindRequest bindRequest = getBindRequest();
+            final BindRequest bindRequest = getBindRequest();
             if (bindRequest != null) {
-                authenticatedConnFactory =
-                        new AuthenticatedConnectionFactory(authenticatedConnFactory, bindRequest);
+                authenticatedConnFactory = newAuthenticatedConnectionFactory(authenticatedConnFactory, bindRequest);
             }
         }
         return authenticatedConnFactory;
@@ -535,6 +514,13 @@ final class ConnectionFactoryProvider {
         return value;
     }
 
+    /**
+     * Returns the bind request for this connection.
+     *
+     * @return The bind request for this connection.
+     * @throws ArgumentException
+     *             If the arguments of this connection are wrong.
+     */
     public BindRequest getBindRequest() throws ArgumentException {
         if (bindRequest == null) {
             String mech = null;
@@ -786,5 +772,12 @@ final class ConnectionFactoryProvider {
         }
 
         return option.substring(equalPos + 1, option.length());
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public ConnectionFactory newAuthenticatedConnectionFactory(final ConnectionFactory connection,
+            final BindRequest request) throws ArgumentException {
+        return null;
     }
 }

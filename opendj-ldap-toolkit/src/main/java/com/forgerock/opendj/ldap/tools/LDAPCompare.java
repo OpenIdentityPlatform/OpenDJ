@@ -50,6 +50,7 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.controls.AssertionRequestControl;
 import org.forgerock.opendj.ldap.controls.Control;
 import org.forgerock.opendj.ldap.controls.ProxiedAuthV2RequestControl;
+import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.opendj.ldap.requests.CompareRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.responses.Result;
@@ -58,6 +59,7 @@ import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.CommonArguments;
+import com.forgerock.opendj.cli.ConnectionFactoryProvider;
 import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.StringArgument;
@@ -145,7 +147,14 @@ public final class LDAPCompare extends ConsoleApplication {
         BooleanArgument noPropertiesFileArgument;
 
         try {
-            connectionFactoryProvider = new ConnectionFactoryProvider(argParser, this);
+            connectionFactoryProvider = new ConnectionFactoryProvider(argParser, this) {
+                @Override
+                public ConnectionFactory newAuthenticatedConnectionFactory(final ConnectionFactory connection,
+                        final BindRequest request) throws ArgumentException {
+                    return new AuthenticatedConnectionFactory(connection, request);
+
+                }
+            };
 
             propertiesFileArgument = CommonArguments.getPropertiesFile();
             argParser.addArgument(propertiesFileArgument);
@@ -155,19 +164,10 @@ public final class LDAPCompare extends ConsoleApplication {
             argParser.addArgument(noPropertiesFileArgument);
             argParser.setNoPropertiesFileArgument(noPropertiesFileArgument);
 
-            filename =
-                    new StringArgument("filename", OPTION_SHORT_FILENAME, OPTION_LONG_FILENAME,
-                            false, false, true, INFO_FILE_PLACEHOLDER.get(), null, null,
-                            INFO_LDAPMODIFY_DESCRIPTION_FILENAME.get());
-            filename.setPropertyName(OPTION_LONG_FILENAME);
+            filename = CommonArguments.getFilename(INFO_LDAPMODIFY_DESCRIPTION_FILENAME.get());
             argParser.addArgument(filename);
 
-            proxyAuthzID =
-                    new StringArgument("proxy_authzid", OPTION_SHORT_PROXYAUTHID,
-                            OPTION_LONG_PROXYAUTHID, false, false, true,
-                            INFO_PROXYAUTHID_PLACEHOLDER.get(), null, null,
-                            INFO_DESCRIPTION_PROXY_AUTHZID.get());
-            proxyAuthzID.setPropertyName(OPTION_LONG_PROXYAUTHID);
+            proxyAuthzID = CommonArguments.getProxyAuthId();
             argParser.addArgument(proxyAuthzID);
 
             assertionFilter =
@@ -177,30 +177,19 @@ public final class LDAPCompare extends ConsoleApplication {
             assertionFilter.setPropertyName(OPTION_LONG_ASSERTION_FILE);
             argParser.addArgument(assertionFilter);
 
-            controlStr =
-                    new StringArgument("control", 'J', "control", false, true, true,
-                            INFO_LDAP_CONTROL_PLACEHOLDER.get(), null, null,
-                            INFO_DESCRIPTION_CONTROLS.get());
-            controlStr.setPropertyName("control");
+            controlStr = CommonArguments.getControl();
             argParser.addArgument(controlStr);
 
             version = CommonArguments.getVersion();
             argParser.addArgument(version);
 
-            encodingStr =
-                    new StringArgument("encoding", 'i', "encoding", false, false, true,
-                            INFO_ENCODING_PLACEHOLDER.get(), null, null, INFO_DESCRIPTION_ENCODING
-                                    .get());
-            encodingStr.setPropertyName("encoding");
+            encodingStr = CommonArguments.getEncoding();
             argParser.addArgument(encodingStr);
 
             continueOnError = CommonArguments.getContinueOnError();
             argParser.addArgument(continueOnError);
 
-            noop =
-                    new BooleanArgument("no-op", OPTION_SHORT_DRYRUN, OPTION_LONG_DRYRUN,
-                            INFO_DESCRIPTION_NOOP.get());
-            noop.setPropertyName(OPTION_LONG_DRYRUN);
+            noop = CommonArguments.getNoOp();
             argParser.addArgument(noop);
 
             verbose = CommonArguments.getVerbose();

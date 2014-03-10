@@ -68,6 +68,7 @@ import org.forgerock.opendj.ldap.controls.ServerSideSortResponseControl;
 import org.forgerock.opendj.ldap.controls.SimplePagedResultsControl;
 import org.forgerock.opendj.ldap.controls.VirtualListViewRequestControl;
 import org.forgerock.opendj.ldap.controls.VirtualListViewResponseControl;
+import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.Result;
@@ -80,6 +81,7 @@ import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.CommonArguments;
+import com.forgerock.opendj.cli.ConnectionFactoryProvider;
 import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.MultiChoiceArgument;
@@ -261,7 +263,14 @@ public final class LDAPSearch extends ConsoleApplication {
         StringArgument assertionFilter;
         IntegerArgument sizeLimit;
         try {
-            connectionFactoryProvider = new ConnectionFactoryProvider(argParser, this);
+            connectionFactoryProvider = new ConnectionFactoryProvider(argParser, this) {
+                @Override
+                public ConnectionFactory newAuthenticatedConnectionFactory(final ConnectionFactory connection,
+                        final BindRequest request) throws ArgumentException {
+                    return new AuthenticatedConnectionFactory(connection, request);
+
+                }
+            };
             final StringArgument propertiesFileArgument =
                 CommonArguments.getPropertiesFile();
             argParser.addArgument(propertiesFileArgument);
@@ -419,10 +428,7 @@ public final class LDAPSearch extends ConsoleApplication {
             final BooleanArgument continueOnError = CommonArguments.getContinueOnError();
             argParser.addArgument(continueOnError);
 
-            noop =
-                    new BooleanArgument("noop", OPTION_SHORT_DRYRUN, OPTION_LONG_DRYRUN,
-                            INFO_DESCRIPTION_NOOP.get());
-            noop.setPropertyName(OPTION_LONG_DRYRUN);
+            noop = CommonArguments.getNoOp();
             argParser.addArgument(noop);
 
             verbose = CommonArguments.getVerbose();

@@ -23,9 +23,9 @@
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2009 Parametric Technology Corporation (PTC)
+ *      Portions copyright 2014 ForgeRock AS
  */
-
-package com.forgerock.opendj.ldap.tools;
+package com.forgerock.opendj.cli;
 
 import java.net.Socket;
 import java.security.KeyStore;
@@ -164,9 +164,8 @@ final class ApplicationKeyManager implements X509KeyManager {
             final Socket socket) {
         if (keyManager != null) {
             return keyManager.chooseClientAlias(keyType, issuers, socket);
-        } else {
-            return null;
         }
+        return null;
     }
 
     /**
@@ -187,13 +186,11 @@ final class ApplicationKeyManager implements X509KeyManager {
      * @return the alias name for the desired key, or null if there are no
      *         matches.
      */
-    public String chooseServerAlias(final String keyType, final Principal[] issuers,
-            final Socket socket) {
+    public String chooseServerAlias(final String keyType, final Principal[] issuers, final Socket socket) {
         if (keyManager != null) {
             return keyManager.chooseServerAlias(keyType, issuers, socket);
-        } else {
-            return null;
         }
+        return null;
     }
 
     /**
@@ -208,9 +205,8 @@ final class ApplicationKeyManager implements X509KeyManager {
     public X509Certificate[] getCertificateChain(final String alias) {
         if (keyManager != null) {
             return keyManager.getCertificateChain(alias);
-        } else {
-            return null;
         }
+        return null;
     }
 
     /**
@@ -229,9 +225,8 @@ final class ApplicationKeyManager implements X509KeyManager {
     public String[] getClientAliases(final String keyType, final Principal[] issuers) {
         if (keyManager != null) {
             return keyManager.getClientAliases(keyType, issuers);
-        } else {
-            return null;
         }
+        return null;
     }
 
     /**
@@ -244,9 +239,8 @@ final class ApplicationKeyManager implements X509KeyManager {
     public PrivateKey getPrivateKey(final String alias) {
         if (keyManager != null) {
             return keyManager.getPrivateKey(alias);
-        } else {
-            return null;
         }
+        return null;
     }
 
     /**
@@ -265,8 +259,7 @@ final class ApplicationKeyManager implements X509KeyManager {
     public String[] getServerAliases(final String keyType, final Principal[] issuers) {
         if (keyManager != null) {
             return keyManager.getServerAliases(keyType, issuers);
-        } else {
-            return null;
         }
+        return null;
     }
 }

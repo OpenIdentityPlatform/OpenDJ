@@ -185,7 +185,8 @@ public final class CommonArguments {
      */
     public static StringArgument getControl() throws ArgumentException {
         return new StringArgument(OPTION_LONG_CONTROL.toLowerCase(), OPTION_SHORT_CONTROL, OPTION_LONG_CONTROL, false,
-                true, true, INFO_LDAP_CONTROL_PLACEHOLDER.get(), null, null, INFO_DESCRIPTION_CONTROLS.get());
+                true, true, INFO_LDAP_CONTROL_PLACEHOLDER.get(), null, OPTION_LONG_CONTROL,
+                INFO_DESCRIPTION_CONTROLS.get());
     }
 
     /**
@@ -656,8 +657,8 @@ public final class CommonArguments {
      *             If there is a problem with any of the parameters used to create this argument.
      */
     public static BooleanArgument getReportAuthzId() throws ArgumentException {
-        final BooleanArgument report = new BooleanArgument("reportauthzid", 'E', "reportAuthzID",
-                INFO_DESCRIPTION_REPORT_AUTHZID.get());
+        final BooleanArgument report = new BooleanArgument(OPTION_LONG_REPORT_AUTHZ_ID.toLowerCase(), 'E',
+                OPTION_LONG_REPORT_AUTHZ_ID, INFO_DESCRIPTION_REPORT_AUTHZID.get());
         report.setPropertyName("reportAuthzID");
         return report;
     }
