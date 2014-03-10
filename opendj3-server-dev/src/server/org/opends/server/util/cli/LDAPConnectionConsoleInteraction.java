@@ -24,12 +24,7 @@
  *      Copyright 2008-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2011-2014 ForgeRock AS
  */
-
 package org.opends.server.util.cli;
-
-import static org.opends.messages.QuickSetupMessages.*;
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.messages.UtilityMessages.*;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -61,14 +56,11 @@ import org.opends.server.tools.SSLConnectionFactory;
 import org.opends.server.tools.dsconfig.ArgumentExceptionFactory;
 import org.opends.server.util.SelectableCertificateKeyManager;
 
-import com.forgerock.opendj.cli.ArgumentException;
-import com.forgerock.opendj.cli.ClientException;
-import com.forgerock.opendj.cli.CommandBuilder;
-import com.forgerock.opendj.cli.ConsoleApplication;
-import com.forgerock.opendj.cli.Menu;
-import com.forgerock.opendj.cli.MenuBuilder;
-import com.forgerock.opendj.cli.MenuResult;
-import com.forgerock.opendj.cli.ValidationCallback;
+import com.forgerock.opendj.cli.*;
+
+import static org.opends.messages.QuickSetupMessages.*;
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.messages.UtilityMessages.*;
 
 /**
  * Supports interacting with a user through the command line to
@@ -84,7 +76,7 @@ public class LDAPConnectionConsoleInteraction {
   private String providedBindDN;
   private String adminUID;
   private String providedAdminUID;
-  private char[] bindPassword;
+  private String bindPassword;
   private KeyManager keyManager;
   private ApplicationTrustManager trustManager;
 
@@ -98,7 +90,7 @@ public class LDAPConnectionConsoleInteraction {
   private boolean displayLdapIfSecureParameters = false;
 
   /** The SecureConnectionCliArgsList object. */
-  private SecureConnectionCliArgs secureArgsList = null;
+  private SecureConnectionCliArgs secureArgsList;
 
   /** Indicate if we need to display the heading. */
   private boolean isHeadingDisplayed = false;
@@ -120,13 +112,13 @@ public class LDAPConnectionConsoleInteraction {
 
   private String keystorePath;
 
-  private char[] keystorePassword;
+  private String keystorePassword;
 
   private String certifNickname;
 
   private String truststorePath;
 
-  private char[] truststorePassword;
+  private String truststorePassword;
 
   /** The timeout to be used to connect. */
   private int connectTimeout;
@@ -134,7 +126,7 @@ public class LDAPConnectionConsoleInteraction {
   private LocalizableMessage heading = INFO_LDAP_CONN_HEADING_CONNECTION_PARAMETERS.get();
 
   /** A copy of the secureArgList for convenience. */
-  private SecureConnectionCliArgs copySecureArgsList = null;
+  private SecureConnectionCliArgs copySecureArgsList;
 
   /** The command builder that we can return with the connection information. */
   private CommandBuilder commandBuilder;
@@ -374,6 +366,7 @@ public class LDAPConnectionConsoleInteraction {
       ValidationCallback<String> callback = new ValidationCallback<String>()
       {
 
+        @Override
         public String validate(ConsoleApplication app, String input)
             throws ClientException
         {
@@ -478,8 +471,7 @@ public class LDAPConnectionConsoleInteraction {
           {
             useSSL = true;
           }
-          else if (result.getValue()
-              .equals(Protocols.START_TLS.getChoice()))
+          else if (result.getValue().equals(Protocols.START_TLS.getChoice()))
           {
             useStartTLS = true;
           }
@@ -529,6 +521,7 @@ public class LDAPConnectionConsoleInteraction {
       ValidationCallback<Integer> callback = new ValidationCallback<Integer>()
       {
 
+        @Override
         public Integer validate(ConsoleApplication app, String input)
             throws ClientException
         {
@@ -621,6 +614,7 @@ public class LDAPConnectionConsoleInteraction {
         ValidationCallback<String> callback = new ValidationCallback<String>()
         {
 
+          @Override
           public String validate(ConsoleApplication app, String input)
               throws ClientException
           {
@@ -732,14 +726,14 @@ public class LDAPConnectionConsoleInteraction {
     boolean addedPasswordFileArgument = false;
     if (secureArgsList.bindPasswordArg.isPresent())
     {
-      bindPassword = secureArgsList.bindPasswordArg.getValue().toCharArray();
+      bindPassword = secureArgsList.bindPasswordArg.getValue();
     }
     if (keyManager == null)
     {
       if (secureArgsList.bindPasswordFileArg.isPresent())
       {
         // Read from file if it exists.
-        bindPassword = secureArgsList.bindPasswordFileArg.getValue().toCharArray();
+        bindPassword = secureArgsList.bindPasswordFileArg.getValue();
 
         if (bindPassword == null)
         {
@@ -789,7 +783,7 @@ public class LDAPConnectionConsoleInteraction {
           {
             prompt = INFO_LDAPAUTH_PASSWORD_PROMPT.get(adminUID);
           }
-          bindPassword = app.readPassword(prompt);
+          bindPassword = readPassword(prompt);
         }
         catch (Exception e)
         {
@@ -798,7 +792,7 @@ public class LDAPConnectionConsoleInteraction {
         }
       }
       copySecureArgsList.bindPasswordArg.clearValues();
-      copySecureArgsList.bindPasswordArg.addValue(String.valueOf(bindPassword));
+      copySecureArgsList.bindPasswordArg.addValue(bindPassword);
       if (!addedPasswordFileArgument)
       {
         commandBuilder.addObfuscatedArgument(
@@ -806,6 +800,16 @@ public class LDAPConnectionConsoleInteraction {
       }
     }
     connectTimeout = secureArgsList.connectTimeoutArg.getIntValue();
+  }
+
+  private String readPassword(LocalizableMessage prompt) throws ClientException
+  {
+    final char[] pwd = app.readPassword(prompt);
+    if (pwd != null)
+    {
+      return String.valueOf(pwd);
+    }
+    return null;
   }
 
   /**
@@ -888,8 +892,7 @@ public class LDAPConnectionConsoleInteraction {
             // just return null
             return null;
           }
-          else if (result.getValue().equals(
-              TrustMethod.TRUSTSTORE.getChoice()))
+          else if (result.getValue().equals(TrustMethod.TRUSTSTORE.getChoice()))
           {
             // We have to ask for trust store info
             askForTrustStore = true;
@@ -935,6 +938,7 @@ public class LDAPConnectionConsoleInteraction {
 
       ValidationCallback<String> callback = new ValidationCallback<String>()
       {
+        @Override
         public String validate(ConsoleApplication app, String input)
             throws ClientException
         {
@@ -987,16 +991,14 @@ public class LDAPConnectionConsoleInteraction {
     // we don't ask it in the interactive mode.
     if (secureArgsList.trustStorePasswordArg.isPresent())
     {
-      truststorePassword =
-          secureArgsList.trustStorePasswordArg.getValue().toCharArray();
+      truststorePassword = secureArgsList.trustStorePasswordArg.getValue();
     }
     if (secureArgsList.trustStorePasswordFileArg.isPresent())
     {
       // Read from file if it exists.
-      truststorePassword = secureArgsList.trustStorePasswordFileArg
-          .getValue().toCharArray();
+      truststorePassword = secureArgsList.trustStorePasswordFileArg.getValue();
     }
-    if (truststorePassword !=  null && "-".equals(truststorePassword))
+    if ("-".equals(truststorePassword))
     {
       // Read the password from the stdin.
       if (!app.isInteractive())
@@ -1012,7 +1014,7 @@ public class LDAPConnectionConsoleInteraction {
           app.println();
           LocalizableMessage prompt = INFO_LDAP_CONN_PROMPT_SECURITY_TRUSTSTORE_PASSWORD
               .get(truststorePath);
-          truststorePassword = app.readPassword(prompt);
+          truststorePassword = readPassword(prompt);
         }
         catch (Exception e)
         {
@@ -1030,7 +1032,7 @@ public class LDAPConnectionConsoleInteraction {
         FileInputStream fos = new FileInputStream(truststorePath);
         if (truststorePassword != null)
         {
-          truststore.load(fos, truststorePassword);
+          truststore.load(fos, truststorePassword.toCharArray());
         }
         else
         {
@@ -1057,7 +1059,7 @@ public class LDAPConnectionConsoleInteraction {
         // Only add the trust store password if there is one AND if the user
         // specified a trust store path.
         copySecureArgsList.trustStorePasswordArg.clearValues();
-        copySecureArgsList.trustStorePasswordArg.addValue(String.valueOf(truststorePassword));
+        copySecureArgsList.trustStorePasswordArg.addValue(truststorePassword);
         commandBuilder.addObfuscatedArgument(
             copySecureArgsList.trustStorePasswordArg);
       }
@@ -1114,6 +1116,7 @@ public class LDAPConnectionConsoleInteraction {
 
       ValidationCallback<String> callback = new ValidationCallback<String>()
       {
+        @Override
         public String validate(ConsoleApplication app, String input)
             throws ClientException
         {
@@ -1166,12 +1169,12 @@ public class LDAPConnectionConsoleInteraction {
     }
 
     // Then the keystore password.
-    keystorePassword = secureArgsList.keyStorePasswordArg.getValue().toCharArray();
+    keystorePassword = secureArgsList.keyStorePasswordArg.getValue();
 
     if (secureArgsList.keyStorePasswordFileArg.isPresent())
     {
       // Read from file if it exists.
-      keystorePassword = secureArgsList.keyStorePasswordFileArg.getValue().toCharArray();
+      keystorePassword = secureArgsList.keyStorePasswordFileArg.getValue();
 
       if (keystorePassword == null)
       {
@@ -1194,7 +1197,7 @@ public class LDAPConnectionConsoleInteraction {
         app.println();
         LocalizableMessage prompt = INFO_LDAP_CONN_PROMPT_SECURITY_KEYSTORE_PASSWORD
             .get(keystorePath);
-        keystorePassword = app.readPassword(prompt);
+        keystorePassword = readPassword(prompt);
       }
       catch (Exception e)
       {
@@ -1209,7 +1212,7 @@ public class LDAPConnectionConsoleInteraction {
     {
       FileInputStream fos = new FileInputStream(keystorePath);
       keystore = KeyStore.getInstance(KeyStore.getDefaultType());
-      keystore.load(fos, keystorePassword);
+      keystore.load(fos, keystorePassword.toCharArray());
       fos.close();
       aliasesEnum = keystore.aliases();
     }
@@ -1277,7 +1280,7 @@ public class LDAPConnectionConsoleInteraction {
 
     // We'we got all the information to get the keys manager
     ApplicationKeyManager akm = new ApplicationKeyManager(keystore,
-        keystorePassword);
+        keystorePassword.toCharArray());
 
 
     if (secureArgsList.keyStorePasswordFileArg.isPresent())
@@ -1291,7 +1294,7 @@ public class LDAPConnectionConsoleInteraction {
     else if (keystorePassword != null)
     {
       copySecureArgsList.keyStorePasswordArg.clearValues();
-      copySecureArgsList.keyStorePasswordArg.addValue(String.valueOf(keystorePassword));
+      copySecureArgsList.keyStorePasswordArg.addValue(keystorePassword);
       commandBuilder.addObfuscatedArgument(
           copySecureArgsList.keyStorePasswordArg);
     }
@@ -1306,10 +1309,7 @@ public class LDAPConnectionConsoleInteraction {
     {
       return new SelectableCertificateKeyManager(akm, certifNickname);
     }
-    else
-    {
-      return akm;
-    }
+    return akm;
   }
 
   /**
@@ -1421,7 +1421,7 @@ public class LDAPConnectionConsoleInteraction {
    * @return bind password for connections
    */
   public String getBindPassword() {
-    return String.valueOf(this.bindPassword);
+    return this.bindPassword;
   }
 
   /**
@@ -1574,21 +1574,21 @@ public class LDAPConnectionConsoleInteraction {
 
           if (result.getValue().equals(TrustOption.CERTIFICATE_DETAILS.getChoice()))
           {
-            for (int i = 0; i < chain.length; i++)
+            for (X509Certificate cert : chain)
             {
               app.println();
-              app.println(INFO_LDAP_CONN_SECURITY_SERVER_CERTIFICATE.get(chain[i]));
+              app.println(INFO_LDAP_CONN_SECURITY_SERVER_CERTIFICATE.get(cert));
             }
             continue;
           }
 
           // We should add it in the memory truststore
-          for (int i = 0; i < chain.length; i++)
+          for (X509Certificate cert : chain)
           {
-            String alias = chain[i].getSubjectDN().getName();
+            String alias = cert.getSubjectDN().getName();
             try
             {
-              truststore.setCertificateEntry(alias, chain[i]);
+              truststore.setCertificateEntry(alias, cert);
             }
             catch (KeyStoreException e1)
             {
@@ -1617,6 +1617,7 @@ public class LDAPConnectionConsoleInteraction {
             ValidationCallback<String> callback =
               new ValidationCallback<String>()
             {
+              @Override
               public String validate(ConsoleApplication app, String input)
                   throws ClientException
               {
@@ -1659,13 +1660,13 @@ public class LDAPConnectionConsoleInteraction {
             }
 
             // Read the password from the stdin.
-            char[] truststorePassword;
+            String truststorePassword;
             try
             {
               app.println();
               LocalizableMessage prompt = INFO_LDAP_CONN_PROMPT_SECURITY_KEYSTORE_PASSWORD
                   .get(truststorePath);
-              truststorePassword = app.readPassword(prompt);
+              truststorePassword = readPassword(prompt);
             }
             catch (Exception e)
             {
@@ -1683,19 +1684,22 @@ public class LDAPConnectionConsoleInteraction {
               {
                 fis = null;
               }
-              ts.load(fis, truststorePassword);
+              ts.load(fis, truststorePassword.toCharArray());
               if (fis != null)
               {
                 fis.close();
               }
-              for (int i = 0; i < chain.length; i++)
+              for (X509Certificate cert : chain)
               {
-                String alias = chain[i].getSubjectDN().getName();
-                ts.setCertificateEntry(alias, chain[i]);
+                String alias = cert.getSubjectDN().getName();
+                ts.setCertificateEntry(alias, cert);
               }
               FileOutputStream fos = new FileOutputStream(truststorePath);
-              ts.store(fos, truststorePassword);
-              if (fos != null)
+              try
+              {
+                ts.store(fos, truststorePassword.toCharArray());
+              }
+              finally
               {
                 fos.close();
               }
@@ -1741,10 +1745,9 @@ public class LDAPConnectionConsoleInteraction {
    if (this.useSSL) {
      options.setUseSSL(true);
      SSLConnectionFactory sslConnectionFactory = new SSLConnectionFactory();
-      sslConnectionFactory.init(getTrustManager() == null, String
-          .valueOf(keystorePath), String.valueOf(keystorePassword), String
-          .valueOf(certifNickname), String.valueOf(truststorePath), String
-          .valueOf(truststorePassword));
+     sslConnectionFactory.init(getTrustManager() == null, keystorePath,
+                               keystorePassword, certifNickname,
+                               truststorePath, truststorePassword);
      options.setSSLConnectionFactory(sslConnectionFactory);
    } else {
      options.setUseSSL(false);
@@ -1770,7 +1773,6 @@ public class LDAPConnectionConsoleInteraction {
      ApplicationTrustManager usedTrustManager, String usedUrl,
      boolean displayErrorMessage, LocalizedLogger logger)
  {
-   boolean returnValue = false;
    ApplicationTrustManager.Cause cause;
    if (usedTrustManager != null)
    {
@@ -1796,9 +1798,7 @@ public class LDAPConnectionConsoleInteraction {
    }
    else
    {
-     LocalizableMessage msg = Utils.getThrowableMsg(INFO_ERROR_CONNECTING_TO_LOCAL.get(),
-         t);
-     app.println(msg);
+     app.println(Utils.getThrowableMsg(INFO_ERROR_CONNECTING_TO_LOCAL.get(), t));
    }
 
    if (excType != null)
@@ -1868,10 +1868,10 @@ public class LDAPConnectionConsoleInteraction {
      }
      if (chain != null)
      {
-       returnValue = checkServerCertificate(chain, authType, host);
+       return checkServerCertificate(chain, authType, host);
      }
    }
-   return returnValue;
+   return false;
  }
 
  /**
