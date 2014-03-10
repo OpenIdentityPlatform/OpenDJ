@@ -28,14 +28,10 @@
 package org.opends.server.tools;
 
 import org.forgerock.i18n.LocalizableMessage;
-
-import static org.opends.messages.ToolMessages.*;
+import org.forgerock.opendj.ldap.DecodeException;
 
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.forgerock.opendj.ldap.DecodeException;
-
-import static com.forgerock.opendj.cli.ArgumentConstants.*;
 
 import org.opends.server.tools.tasks.TaskClient;
 import org.opends.server.tools.tasks.TaskEntry;
@@ -44,20 +40,17 @@ import org.opends.server.types.LDAPException;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.StaticUtils;
 
-import static org.opends.server.util.StaticUtils.filterExitCode;
-
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.ClientException;
 import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.StringArgument;
 
+import org.opends.server.backends.task.TaskState;
 import org.opends.server.util.args.LDAPConnectionArgumentParser;
-
-import com.forgerock.opendj.cli.ConsoleApplication;
-
 import org.opends.server.util.cli.LDAPConnectionConsoleInteraction;
 
+import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.Menu;
 import com.forgerock.opendj.cli.MenuBuilder;
 import com.forgerock.opendj.cli.MenuCallback;
@@ -75,14 +68,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.opends.server.backends.task.TaskState;
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.util.StaticUtils.filterExitCode;
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
 
 /**
  * Tool for getting information and managing tasks in the Directory Server.
  */
 public class ManageTasks extends ConsoleApplication {
 
-  // This CLI is always using the administration connector with SSL
+  /** This CLI is always using the administration connector with SSL. */
   private static final boolean alwaysSSL = true;
 
   /**
@@ -139,7 +134,6 @@ public class ManageTasks extends ConsoleApplication {
    *                         {@code null} if standard output is not needed.
    * @param err              The output stream to use for standard error, or
    *                         {@code null} if standard error is not needed.
-
    * @return int return code
    */
   public static int mainTaskInfo(String[] args,
@@ -347,7 +341,7 @@ public class ManageTasks extends ConsoleApplication {
         println(INFO_TASKINFO_LDAP_EXCEPTION.get(lce.getMessageObject()));
         return 1;
       } catch (Exception e) {
-        println(LocalizableMessage.raw(e.getMessage()));
+        println(LocalizableMessage.raw(StaticUtils.getExceptionMessage(e)));
         return 1;
       }
     }
@@ -576,7 +570,13 @@ public class ManageTasks extends ConsoleApplication {
     }
 
     /**
-     * {@inheritDoc}
+     * Invokes the task.
+     *
+     * @param app
+     *          the current application running
+     * @return how the application should proceed next
+     * @throws ClientException
+     *           if any problem occurred
      */
     protected abstract MenuResult<TaskEntry> invoke(ManageTasks app)
             throws ClientException;
@@ -600,7 +600,7 @@ public class ManageTasks extends ConsoleApplication {
   }
 
   /**
-   * Exectuable for printing a particular task's details.
+   * Exectutable for printing a particular task's details.
    */
   static private class TaskDrilldownMenu extends TopMenuCallback {
 
@@ -657,7 +657,7 @@ public class ManageTasks extends ConsoleApplication {
               System.exit(0);
             }
           } catch (Exception e) {
-            app.println(LocalizableMessage.raw(e.getMessage()));
+            app.println(LocalizableMessage.raw(StaticUtils.getExceptionMessage(e)));
           }
         }
       } else {
@@ -669,7 +669,7 @@ public class ManageTasks extends ConsoleApplication {
   }
 
   /**
-   * Exectuable for printing a particular task's details.
+   * Exectutable for printing a particular task's details.
    */
   static private class PrintTaskInfo extends TaskOperationCallback {
 
@@ -862,7 +862,7 @@ public class ManageTasks extends ConsoleApplication {
   }
 
   /**
-   * Exectuable for printing a particular task's details.
+   * Executable for printing a particular task's details.
    */
   static private class ViewTaskLogs extends TaskOperationCallback {
 
