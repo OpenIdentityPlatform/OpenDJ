@@ -23,7 +23,7 @@
   !
   !
   !      Copyright 2007-2008 Sun Microsystems, Inc.
-  !      Portions Copyright 2011 ForgeRock AS
+  !      Portions Copyright 2011-2014 ForgeRock AS
   ! -->
 <adm:managed-object name="debug-target" plural-name="debug-targets"
   package="org.forgerock.opendj.server.config"
@@ -37,7 +37,7 @@
     Debug targets allow for fine-grain control of which messages are logged
     based on the package, class, or method that generated the message. Each
     debug target configuration entry resides below the entry with RDN of
-    "cn=Debug Target" immediately below the parent ds-cfg-debug-log-publisher 
+    "cn=Debug Target" immediately below the parent ds-cfg-debug-log-publisher
     entry.
   </adm:description>
   <adm:tag name="logging" />
@@ -51,7 +51,7 @@
     <adm:synopsis>
       Specifies the fully-qualified <adm:product-name /> Java package, class, or method affected
       by the settings in this target definition. Use the number
-      character (#) to separate the class name and the method name 
+      character (#) to separate the class name and the method name
       (that is, org.opends.server.core.DirectoryServer#startUp).
     </adm:synopsis>
     <adm:syntax>
@@ -74,98 +74,37 @@
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="debug-level" mandatory="true">
+  <adm:property name="enabled" mandatory="true">
     <adm:synopsis>
-      Specifies the lowest severity level of debug messages to log.
+      Indicates whether the
+      <adm:user-friendly-name />
+      is enabled.
     </adm:synopsis>
     <adm:syntax>
-      <adm:enumeration>
-        <adm:value name="disabled">
-          <adm:synopsis>No messages are logged.</adm:synopsis>
-        </adm:value>
-        <adm:value name="error">
-          <adm:synopsis>
-            Messages with severity level of ERROR or higher are
-            logged.
-          </adm:synopsis>
-        </adm:value>
-        <adm:value name="warning">
-          <adm:synopsis>
-            Messages with severity level of WARNING or higher are
-            logged.
-          </adm:synopsis>
-        </adm:value>
-        <adm:value name="info">
-          <adm:synopsis>
-            Messages with severity level of INFO or higher are
-            logged.
-          </adm:synopsis>
-        </adm:value>
-        <adm:value name="verbose">
-          <adm:synopsis>
-            Messages with severity level of VERBOSE or higher are
-            logged.
-          </adm:synopsis>
-        </adm:value>
-        <adm:value name="all">
-          <adm:synopsis>
-            Messages with any severity level are logged.
-          </adm:synopsis>
-        </adm:value>
-      </adm:enumeration>
+      <adm:boolean />
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:name>ds-cfg-debug-level</ldap:name>
+        <ldap:name>ds-cfg-enabled</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
-  <adm:property name="debug-category" multi-valued="true">
+  <adm:property name="debug-exceptions-only">
     <adm:synopsis>
-      Specifies the debug message categories to be logged.
+      Indicates whether only logs with exception
+      should be logged.
     </adm:synopsis>
     <adm:default-behavior>
-      <adm:alias>
-        <adm:synopsis>
-          Messages with any category are logged if they have a
-          sufficient debug level.
-        </adm:synopsis>
-      </adm:alias>
+      <adm:defined>
+        <adm:value>false</adm:value>
+      </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
-      <adm:enumeration>
-        <adm:value name="caught">
-          <adm:synopsis>Exception caught</adm:synopsis>
-        </adm:value>
-        <adm:value name="constructor">
-          <adm:synopsis>Constructor entry</adm:synopsis>
-        </adm:value>
-        <adm:value name="data">
-          <adm:synopsis>Raw data dump</adm:synopsis>
-        </adm:value>
-        <adm:value name="database-access">
-          <adm:synopsis>Access to a backend database.</adm:synopsis>
-        </adm:value>
-        <adm:value name="enter">
-          <adm:synopsis>Method entry</adm:synopsis>
-        </adm:value>
-        <adm:value name="exit">
-          <adm:synopsis>Method exit</adm:synopsis>
-        </adm:value>
-        <adm:value name="message">
-          <adm:synopsis>Arbitrary debug message</adm:synopsis>
-        </adm:value>
-        <adm:value name="protocol">
-          <adm:synopsis>Protocol element dump</adm:synopsis>
-        </adm:value>
-        <adm:value name="thrown">
-          <adm:synopsis>Exception thrown from method</adm:synopsis>
-        </adm:value>
-      </adm:enumeration>
+      <adm:boolean />
     </adm:syntax>
     <adm:profile name="ldap">
       <ldap:attribute>
-        <ldap:name>ds-cfg-debug-category</ldap:name>
+        <ldap:name>ds-cfg-debug-exceptions-only</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
