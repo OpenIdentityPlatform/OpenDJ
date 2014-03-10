@@ -58,9 +58,8 @@ import static org.opends.server.schema.SchemaConstants.*;
 
 
 /**
- * This class implements the certificate attribute syntax.  This should be
- * restricted to holding only X.509 certificates, but we will accept any set of
- * bytes.  It will be treated much like the octet string attribute syntax.
+ * This class implements the certificate attribute syntax. It is restricted to
+ * accept only X.509 certificates.
  */
 public class CertificateSyntax
        extends AttributeSyntax<CertificateAttributeSyntaxCfg>
