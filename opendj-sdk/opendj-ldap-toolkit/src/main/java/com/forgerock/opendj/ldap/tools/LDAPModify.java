@@ -56,6 +56,7 @@ import org.forgerock.opendj.ldap.controls.PreReadRequestControl;
 import org.forgerock.opendj.ldap.controls.PreReadResponseControl;
 import org.forgerock.opendj.ldap.controls.ProxiedAuthV2RequestControl;
 import org.forgerock.opendj.ldap.requests.AddRequest;
+import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.opendj.ldap.requests.DeleteRequest;
 import org.forgerock.opendj.ldap.requests.ModifyDNRequest;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
@@ -71,6 +72,7 @@ import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.CommonArguments;
+import com.forgerock.opendj.cli.ConnectionFactoryProvider;
 import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.StringArgument;
@@ -265,7 +267,14 @@ public final class LDAPModify extends ConsoleApplication {
         BooleanArgument noPropertiesFileArgument;
 
         try {
-            connectionFactoryProvider = new ConnectionFactoryProvider(argParser, this);
+            connectionFactoryProvider = new ConnectionFactoryProvider(argParser, this) {
+                @Override
+                public ConnectionFactory newAuthenticatedConnectionFactory(final ConnectionFactory connection,
+                        final BindRequest request) throws ArgumentException {
+                    return new AuthenticatedConnectionFactory(connection, request);
+
+                }
+            };
 
             propertiesFileArgument = CommonArguments.getPropertiesFile();
             argParser.addArgument(propertiesFileArgument);
@@ -336,10 +345,7 @@ public final class LDAPModify extends ConsoleApplication {
             continueOnError = CommonArguments.getContinueOnError();
             argParser.addArgument(continueOnError);
 
-            noop =
-                    new BooleanArgument("no-op", OPTION_SHORT_DRYRUN, OPTION_LONG_DRYRUN,
-                            INFO_DESCRIPTION_NOOP.get());
-            noop.setPropertyName(OPTION_LONG_DRYRUN);
+            noop = CommonArguments.getNoOp();
             argParser.addArgument(noop);
 
             verbose = CommonArguments.getVerbose();

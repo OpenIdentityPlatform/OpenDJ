@@ -22,11 +22,11 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2014 ForgeRock AS
  */
+package com.forgerock.opendj.cli;
 
-package com.forgerock.opendj.ldap.tools;
-
-import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
+import static com.forgerock.opendj.cli.CliMessages.*;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -49,9 +49,6 @@ import javax.net.ssl.X509TrustManager;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.util.Reject;
-
-import com.forgerock.opendj.cli.ClientException;
-import com.forgerock.opendj.cli.ConsoleApplication;
 
 /**
  * A trust manager which prompts the user for the length of time that they would
@@ -103,12 +100,12 @@ final class PromptingTrustManager implements X509TrustManager {
         }
     }
 
-    static private final Logger LOG = Logger.getLogger(PromptingTrustManager.class.getName());
+    private static final Logger LOG = Logger.getLogger(PromptingTrustManager.class.getName());
 
-    static private final String DEFAULT_PATH = System.getProperty("user.home") + File.separator
+    private static final String DEFAULT_PATH = System.getProperty("user.home") + File.separator
             + ".opendj" + File.separator + "keystore";
 
-    static private final char[] DEFAULT_PASSWORD = "OpenDJ".toCharArray();
+    private static final char[] DEFAULT_PASSWORD = "OpenDJ".toCharArray();
 
     private final KeyStore inMemoryTrustStore;
 

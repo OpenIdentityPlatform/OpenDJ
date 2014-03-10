@@ -42,6 +42,7 @@ import org.forgerock.i18n.LocalizableMessage;
 
 import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.CommonArguments;
+import com.forgerock.opendj.cli.ConnectionFactoryProvider;
 import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.ArgumentException;
@@ -393,7 +394,14 @@ public final class AuthRate extends ConsoleApplication {
         try {
             setDefaultPerfToolProperties();
 
-            connectionFactoryProvider = new ConnectionFactoryProvider(argParser, this);
+            connectionFactoryProvider = new ConnectionFactoryProvider(argParser, this) {
+                @Override
+                public ConnectionFactory newAuthenticatedConnectionFactory(final ConnectionFactory connection,
+                        final BindRequest request) throws ArgumentException {
+                    return new AuthenticatedConnectionFactory(connection, request);
+
+                }
+            };
             runner = new BindPerformanceRunner(argParser, this);
 
             propertiesFileArgument = CommonArguments.getPropertiesFile();
