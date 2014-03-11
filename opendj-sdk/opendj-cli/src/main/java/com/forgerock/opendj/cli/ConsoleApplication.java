@@ -505,14 +505,10 @@ public abstract class ConsoleApplication {
      */
     public static final char[] readPassword() throws ClientException {
         try {
-            char[] password = System.console().readPassword();
-            if (password != null) {
-                return password;
-            }
+            return System.console().readPassword();
         } catch (IOError e) {
             throw ClientException.adaptInputException(e);
         }
-        return null;
     }
 
     /**
@@ -533,9 +529,8 @@ public abstract class ConsoleApplication {
             final String s = reader.readLine();
             if (s == null) {
                 throw ClientException.adaptInputException(new EOFException("End of input"));
-            } else {
-                return s;
             }
+            return s;
         } catch (final IOException e) {
             throw ClientException.adaptInputException(e);
         }
@@ -559,20 +554,20 @@ public abstract class ConsoleApplication {
                 final String ninput = input.trim();
                 if (ninput.length() == 0) {
                     return defaultValue;
-                } else {
-                    try {
-                        int i = Integer.parseInt(ninput);
-                        if (i < 1 || i > 65535) {
-                            throw new NumberFormatException();
-                        }
-                        return i;
-                    } catch (NumberFormatException e) {
-                        // Try again...
-                        app.println();
-                        app.println(ERR_BAD_PORT_NUMBER.get(ninput));
-                        app.println();
-                        return null;
+                }
+
+                try {
+                    int i = Integer.parseInt(ninput);
+                    if (i < 1 || i > 65535) {
+                        throw new NumberFormatException();
                     }
+                    return i;
+                } catch (NumberFormatException e) {
+                    // Try again...
+                    app.println();
+                    app.println(ERR_BAD_PORT_NUMBER.get(ninput));
+                    app.println();
+                    return null;
                 }
             }
 
@@ -658,9 +653,8 @@ public abstract class ConsoleApplication {
     private PrintStream getErrStream() {
         if (isInteractive()) {
             return out;
-        } else {
-            return err;
         }
+        return err;
     }
 
     /**
