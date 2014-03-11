@@ -26,23 +26,20 @@
  */
 package org.opends.server.backends.jeb;
 
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.server.types.DN;
-import org.opends.server.types.RDN;
-import org.forgerock.opendj.ldap.ByteStringBuilder;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.util.StaticUtils;
-
-import java.util.TreeSet;
 import java.util.Iterator;
+import java.util.TreeSet;
+
+import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.RDN;
+import org.opends.server.util.StaticUtils;
 
 /**
  * Handles the disk representation of LDAP data.
  */
 public class JebFormat
 {
-  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-
 
   /**
    * The format version used by this class to encode and decode a DatabaseEntry.
@@ -102,10 +99,7 @@ public class JebFormat
       }
       return v;
     }
-    else
-    {
-      return Long.MAX_VALUE;
-    }
+    return Long.MAX_VALUE;
   }
 
   /**
@@ -351,13 +345,12 @@ public class JebFormat
       for (int i=0; i < rdn.getNumValues(); i++)
       {
         StringBuilder b2 = new StringBuilder();
-        rdn.getAVAString(i, b2);
+        rdn.getNormalizedAVAString(i, b2);
         rdnElementStrings.add(b2.toString());
       }
 
       Iterator<String> iterator = rdnElementStrings.iterator();
       buffer.append(iterator.next().replace("\u0001", "\\\u0001"));
-
       while (iterator.hasNext())
       {
         buffer.append('\u0001');
