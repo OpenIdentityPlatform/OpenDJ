@@ -156,17 +156,13 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
   protected String getBindPassword(String dn, OutputStream out,
       OutputStream err, StringArgument pwdArg, FileBasedArgument fileArg)
   {
-    String bindPasswordValue = null;
     if (fileArg.isPresent())
     {
       return fileArg.getValue();
     }
-    else if (pwdArg.isPresent())
-    {
-      bindPasswordValue = pwdArg.getValue();
-    }
-    if ((bindPasswordValue != null && "-".equals(bindPasswordValue))
-        || bindPasswordValue == null)
+
+    String bindPasswordValue = pwdArg.isPresent() ? pwdArg.getValue() : null;
+    if (bindPasswordValue == null || "-".equals(bindPasswordValue))
     {
       // Read the password from the STDin.
       try
@@ -267,7 +263,6 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
     setNoPropertiesFileArgument(noPropertiesFileArg);
     set.add(noPropertiesFileArg);
 
-
     return set;
   }
 
@@ -296,7 +291,6 @@ public abstract class SecureConnectionCliParser extends SubCommandArgumentParser
           ArgumentGroup argGroup)
   throws ArgumentException
   {
-
     for (Argument arg : args)
     {
       addGlobalArgument(arg, argGroup);

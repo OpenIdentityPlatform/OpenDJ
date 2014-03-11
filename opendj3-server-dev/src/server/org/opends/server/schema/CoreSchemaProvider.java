@@ -85,18 +85,18 @@ public class CoreSchemaProvider implements SchemaProvider<CoreSchemaCfg>,
 
     for (final String oid : configuration.getDisabledMatchingRule())
     {
-      if (oid.equals(NONE_ELEMENT)) {
-          break;
+      if (!oid.equals(NONE_ELEMENT))
+      {
+        schemaBuilder.removeMatchingRule(oid);
       }
-      schemaBuilder.removeMatchingRule(oid);
     }
 
     for (final String oid : configuration.getDisabledSyntax())
     {
-      if (oid.equals(NONE_ELEMENT)) {
-        break;
+      if (!oid.equals(NONE_ELEMENT))
+      {
+        schemaBuilder.removeSyntax(oid);
       }
-      schemaBuilder.removeSyntax(oid);
     }
   }
 

@@ -135,7 +135,9 @@ public abstract class DebugLogPublisher<T extends DebugLogPublisherCfg>
       {
         int clipPoint = searchName.lastIndexOf('$');
         if (clipPoint == -1)
+        {
           clipPoint = searchName.lastIndexOf('.');
+        }
         if (clipPoint != -1)
         {
           searchName = searchName.substring(0, clipPoint);

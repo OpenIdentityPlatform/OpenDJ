@@ -53,6 +53,7 @@ import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.guitools.controlpanel.datamodel.ConnectionProtocolPolicy;
 import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.quicksetup.*;
+import org.opends.quicksetup.ReturnCode;
 import org.opends.quicksetup.event.ProgressUpdateEvent;
 import org.opends.quicksetup.event.ProgressUpdateListener;
 import org.opends.quicksetup.util.PlainTextProgressMessageFormatter;
@@ -62,13 +63,11 @@ import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
 import org.opends.server.tools.JavaPropertiesTool.ErrorReturnCode;
 import org.opends.server.tools.dsconfig.LDAPManagementContextFactory;
 import org.opends.server.util.StaticUtils;
-
-import com.forgerock.opendj.cli.ConsoleApplication;
-
 import org.opends.server.util.cli.LDAPConnectionConsoleInteraction;
 
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ClientException;
+import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.Menu;
 import com.forgerock.opendj.cli.MenuBuilder;
 import com.forgerock.opendj.cli.MenuResult;
@@ -76,7 +75,7 @@ import com.forgerock.opendj.cli.MenuResult;
 import static org.forgerock.util.Utils.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
-import static com.forgerock.opendj.cli.Utils.CONFIRMATION_MAX_TRIES;
+import static com.forgerock.opendj.cli.Utils.*;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 
 /**
@@ -967,9 +966,9 @@ public class UninstallCliHelper extends ConsoleApplication {
     return s;
   }
 
-  private boolean startServer(boolean supressOutput)
+  private boolean startServer(boolean suppressOutput)
   {
-    logger.info(LocalizableMessage.raw("startServer, supressOutput: "+supressOutput));
+    logger.info(LocalizableMessage.raw("startServer, suppressOutput: " + suppressOutput));
     boolean serverStarted = false;
     Application application = new Application()
     {
@@ -1083,7 +1082,7 @@ public class UninstallCliHelper extends ConsoleApplication {
     };
     application.setProgressMessageFormatter(
         new PlainTextProgressMessageFormatter());
-    if (!supressOutput)
+    if (!suppressOutput)
     {
       application.addProgressUpdateListener(
           new ProgressUpdateListener() {
@@ -1098,12 +1097,12 @@ public class UninstallCliHelper extends ConsoleApplication {
         Installation.getLocal());
     try
     {
-      if (!supressOutput)
+      if (!suppressOutput)
       {
         println();
       }
-      controller.startServer(supressOutput);
-      if (!supressOutput)
+      controller.startServer(suppressOutput);
+      if (!suppressOutput)
       {
         println();
       }
@@ -1114,7 +1113,7 @@ public class UninstallCliHelper extends ConsoleApplication {
     catch (ApplicationException ae)
     {
       logger.warn(LocalizableMessage.raw("ApplicationException: "+ae, ae));
-      if (!supressOutput)
+      if (!suppressOutput)
       {
         printErrorMessage(ae.getMessageObject());
       }
