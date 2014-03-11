@@ -271,60 +271,6 @@ public class Entry
 
 
   /**
-   * Specifies the set of objectclasses for this entry.
-   *
-   * @param  objectClassNames  The values containing the names or OIDs
-   *                           of the objectClasses for this entry.
-   *
-   * @throws  DirectoryException  If a problem occurs while attempting
-   *                              to set the objectclasses for this
-   *                              entry.
-   */
-  public void setObjectClasses(
-                   Collection<AttributeValue> objectClassNames)
-         throws DirectoryException
-  {
-    attachment = null;
-
-    // Iterate through all the provided objectclass names and make
-    // sure that they are names of valid objectclasses.
-    Map<ObjectClass, String> ocMap = new LinkedHashMap<ObjectClass, String>();
-    for (AttributeValue v : objectClassNames)
-    {
-      String name = v.getValue().toString();
-
-      String lowerName;
-      try
-      {
-        lowerName = v.getNormalizedValue().toString();
-      }
-      catch (Exception e)
-      {
-        logger.traceException(e);
-
-        lowerName = toLowerCase(v.getValue().toString());
-      }
-
-      ObjectClass oc = DirectoryServer.getObjectClass(lowerName);
-      if (oc == null)
-      {
-        LocalizableMessage message = ERR_ENTRY_ADD_UNKNOWN_OC.get(name, dn);
-        throw new DirectoryException(OBJECTCLASS_VIOLATION, message);
-      }
-
-      ocMap.put(oc, name);
-    }
-
-
-    // If we've gotten here, then everything is fine so append the new
-    // set of objectclasses.
-    objectClasses = ocMap;
-    objectClassAttribute = null;
-  }
-
-
-
-  /**
    * Adds the provided objectClass to this entry.
    *
    * @param  oc The objectClass to add to this entry.
@@ -4501,20 +4447,6 @@ public class Entry
       buffer.append(EOL);
     }
 
-    return buffer.toString();
-  }
-
-
-
-  /**
-   * Retrieves a one-line representation of this entry.
-   *
-   * @return  A one-line representation of this entry.
-   */
-  public String toSingleLineString()
-  {
-    StringBuilder buffer = new StringBuilder();
-    toSingleLineString(buffer);
     return buffer.toString();
   }
 

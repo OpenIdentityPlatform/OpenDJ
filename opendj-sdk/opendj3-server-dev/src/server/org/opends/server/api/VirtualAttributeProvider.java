@@ -33,11 +33,11 @@ import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.opends.server.admin.std.server.VirtualAttributeCfg;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.Entry;
@@ -108,10 +108,9 @@ public abstract class VirtualAttributeProvider
                       VirtualAttributeCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
   {
-    // This default implementation does not perform any special
-    // validation.  It should be overridden by virtual attribute
-    // provider implementations that wish to perform more detailed
-    // validation.
+    // This default implementation does not perform any special validation.
+    // It should be overridden by virtual attribute provider implementations
+    // that wish to perform more detailed validation.
     return true;
   }
 
@@ -300,8 +299,7 @@ public abstract class VirtualAttributeProvider
       {
         logger.traceException(e);
 
-        // The substring couldn't be normalized.  We have to return
-        // "undefined".
+        // The substring couldn't be normalized => return "undefined".
         return ConditionResult.UNDEFINED;
       }
     }
@@ -327,8 +325,7 @@ public abstract class VirtualAttributeProvider
         {
           logger.traceException(e);
 
-          // The substring couldn't be normalized.  We have to return
-          // "undefined".
+          // The substring couldn't be normalized => return "undefined".
           return ConditionResult.UNDEFINED;
         }
       }
@@ -351,8 +348,7 @@ public abstract class VirtualAttributeProvider
       {
         logger.traceException(e);
 
-        // The substring couldn't be normalized.  We have to return
-        // "undefined".
+        // The substring couldn't be normalized => return "undefined".
         return ConditionResult.UNDEFINED;
       }
     }
@@ -363,8 +359,9 @@ public abstract class VirtualAttributeProvider
     {
       try
       {
+        ByteString nv = matchingRule.normalizeAttributeValue(value.getValue());
         if (matchingRule.valueMatchesSubstring(
-                              value.getNormalizedValue(),
+                              nv,
                               normalizedSubInitial,
                               normalizedSubAny,
                               normalizedSubFinal))
@@ -376,8 +373,8 @@ public abstract class VirtualAttributeProvider
       {
         logger.traceException(e);
 
-        // The value couldn't be normalized.  If we can't find a
-        // definite match, then we should return "undefined".
+        // We couldn't normalize one of the attribute values.
+        // We will return "undefined" if we can't find a definite match
         result = ConditionResult.UNDEFINED;
       }
     }
@@ -418,14 +415,13 @@ public abstract class VirtualAttributeProvider
     ByteString normalizedValue;
     try
     {
-      normalizedValue = value.getNormalizedValue();
+      normalizedValue = matchingRule.normalizeAttributeValue(value.getValue());
     }
     catch (Exception e)
     {
       logger.traceException(e);
 
-      // We couldn't normalize the provided value.  We should return
-      // "undefined".
+      // We couldn't normalize the provided value => return "undefined".
       return ConditionResult.UNDEFINED;
     }
 
@@ -434,10 +430,8 @@ public abstract class VirtualAttributeProvider
     {
       try
       {
-        ByteString nv = v.getNormalizedValue();
-        int comparisonResult =
-                 matchingRule.compareValues(nv, normalizedValue);
-        if (comparisonResult >= 0)
+        ByteString nv = matchingRule.normalizeAttributeValue(v.getValue());
+        if (matchingRule.compareValues(nv, normalizedValue) >= 0)
         {
           return ConditionResult.TRUE;
         }
@@ -446,9 +440,8 @@ public abstract class VirtualAttributeProvider
       {
         logger.traceException(e);
 
-        // We couldn't normalize one of the attribute values.  If we
-        // can't find a definite match, then we should return
-        // "undefined".
+        // We couldn't normalize one of the attribute values.
+        // We will return "undefined" if we can't find a definite match
         result = ConditionResult.UNDEFINED;
       }
     }
@@ -489,14 +482,13 @@ public abstract class VirtualAttributeProvider
     ByteString normalizedValue;
     try
     {
-      normalizedValue = value.getNormalizedValue();
+      normalizedValue = matchingRule.normalizeAttributeValue(value.getValue());
     }
     catch (Exception e)
     {
       logger.traceException(e);
 
-      // We couldn't normalize the provided value.  We should return
-      // "undefined".
+      // We couldn't normalize the provided value => return "undefined".
       return ConditionResult.UNDEFINED;
     }
 
@@ -505,10 +497,8 @@ public abstract class VirtualAttributeProvider
     {
       try
       {
-        ByteString nv = v.getNormalizedValue();
-        int comparisonResult =
-                 matchingRule.compareValues(nv, normalizedValue);
-        if (comparisonResult <= 0)
+        ByteString nv = matchingRule.normalizeAttributeValue(v.getValue());
+        if (matchingRule.compareValues(nv, normalizedValue) <= 0)
         {
           return ConditionResult.TRUE;
         }
@@ -517,9 +507,8 @@ public abstract class VirtualAttributeProvider
       {
         logger.traceException(e);
 
-        // We couldn't normalize one of the attribute values.  If we
-        // can't find a definite match, then we should return
-        // "undefined".
+        // We couldn't normalize one of the attribute values.
+        // We will return "undefined" if we can't find a definite match
         result = ConditionResult.UNDEFINED;
       }
     }
@@ -566,8 +555,7 @@ public abstract class VirtualAttributeProvider
     {
       logger.traceException(e);
 
-      // We couldn't normalize the provided value.  We should return
-      // "undefined".
+      // We couldn't normalize the provided value => return "undefined".
       return ConditionResult.UNDEFINED;
     }
 
@@ -586,9 +574,8 @@ public abstract class VirtualAttributeProvider
       {
         logger.traceException(e);
 
-        // We couldn't normalize one of the attribute values.  If we
-        // can't find a definite match, then we should return
-        // "undefined".
+        // We couldn't normalize one of the attribute values.
+        // We will return "undefined" if we can't find a definite match
         result = ConditionResult.UNDEFINED;
       }
     }

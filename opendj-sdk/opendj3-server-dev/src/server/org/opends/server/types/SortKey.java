@@ -26,11 +26,9 @@
  */
 package org.opends.server.types;
 
-import org.opends.server.api.OrderingMatchingRule;
-
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-
-
+import org.forgerock.opendj.ldap.ByteString;
+import org.opends.server.api.OrderingMatchingRule;
 
 /**
  * This class defines a data structure that may be used as a sort key.
@@ -168,60 +166,40 @@ public final class SortKey
     }
 
 
-    // Use the ordering matching rule if one is provided.  Otherwise,
-    // fall back on the default ordering rule for the attribute type.
-    if (orderingRule == null)
+    // Use the ordering matching rule if one is provided.
+    // Otherwise, fall back on the default ordering rule for the attribute type.
+    if (orderingRule != null)
     {
-      try
-      {
-        OrderingMatchingRule rule =
-             attributeType.getOrderingMatchingRule();
-        if (rule == null)
-        {
-          return 0;
-        }
+      return compareValues(orderingRule, value1, value2);
+    }
+    final OrderingMatchingRule rule = attributeType.getOrderingMatchingRule();
+    if (rule != null)
+    {
+      return compareValues(rule, value1, value2);
+    }
+    return 0;
+  }
 
-        if (ascending)
-        {
-          return rule.compareValues(value1.getNormalizedValue(),
-                                    value2.getNormalizedValue());
-        }
-        else
-        {
-          return rule.compareValues(value2.getNormalizedValue(),
-                                    value1.getNormalizedValue());
-        }
+  private int compareValues(OrderingMatchingRule rule, AttributeValue value1,
+      AttributeValue value2)
+  {
+    try
+    {
+      final ByteString val1 = rule.normalizeAttributeValue(value1.getValue());
+      final ByteString val2 = rule.normalizeAttributeValue(value2.getValue());
+      if (ascending)
+      {
+        return rule.compareValues(val1, val2);
       }
-      catch (Exception e)
+      else
       {
-        logger.traceException(e);
-
-        return 0;
+        return rule.compareValues(val2, val1);
       }
     }
-    else
+    catch (Exception e)
     {
-      try
-      {
-        if (ascending)
-        {
-          return orderingRule.compareValues(
-                      orderingRule.normalizeAttributeValue(value1.getValue()),
-                      orderingRule.normalizeAttributeValue(value2.getValue()));
-        }
-        else
-        {
-          return orderingRule.compareValues(
-                      orderingRule.normalizeAttributeValue(value2.getValue()),
-                      orderingRule.normalizeAttributeValue(value1.getValue()));
-        }
-      }
-      catch (Exception e)
-      {
-        logger.traceException(e);
-
-        return 0;
-      }
+      logger.traceException(e);
+      return 0;
     }
   }
 
@@ -232,6 +210,7 @@ public final class SortKey
    *
    * @return  A string representation of this sort key.
    */
+  @Override
   public String toString()
   {
     StringBuilder buffer = new StringBuilder();
@@ -275,6 +254,7 @@ public final class SortKey
    *
    * @return  The hash code for this sort key.
    */
+  @Override
   public int hashCode()
   {
     int hashCode = 0;
@@ -303,6 +283,7 @@ public final class SortKey
    * @return  <CODE>true</CODE> if the provide object is equal to this
    *          sort key, or <CODE>false</CODE> if it is not.
    */
+  @Override
   public boolean equals(Object o)
   {
     if(o == null)

@@ -36,6 +36,7 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.util.Reject;
 import org.forgerock.util.Utils;
 import org.opends.server.api.*;
@@ -45,7 +46,6 @@ import org.opends.server.core.*;
 import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.types.operation.PostOperationModifyOperation;
 import org.opends.server.types.operation.PostResponseModifyOperation;
 import org.opends.server.types.operation.PostSynchronizationModifyOperation;
@@ -1469,7 +1469,10 @@ public class LocalBackendModifyOperation
    */
   private void validateObjectClasses(Attribute attr) throws DirectoryException
   {
-    Reject.ifFalse(attr.getAttributeType().isObjectClass());
+    final AttributeType attrType = attr.getAttributeType();
+    Reject.ifFalse(attrType.isObjectClass());
+    final EqualityMatchingRule eqRule = attrType.getEqualityMatchingRule();
+
     for (AttributeValue v : attr)
     {
       String name = v.getValue().toString();
@@ -1477,13 +1480,13 @@ public class LocalBackendModifyOperation
       String lowerName;
       try
       {
-        lowerName = v.getNormalizedValue().toString();
+        lowerName = eqRule.normalizeAttributeValue(v.getValue()).toString();
       }
       catch (Exception e)
       {
         logger.traceException(e);
 
-        lowerName = toLowerCase(v.getValue().toString());
+        lowerName = toLowerCase(name);
       }
 
       ObjectClass oc = DirectoryServer.getObjectClass(lowerName);
@@ -1697,12 +1700,14 @@ public class LocalBackendModifyOperation
           ERR_MODIFY_INCREMENT_REQUIRES_SINGLE_VALUE.get(entryDN, attr.getName()));
     }
 
+    EqualityMatchingRule eqRule = attr.getAttributeType().getEqualityMatchingRule();
     AttributeValue v = attr.iterator().next();
 
     long incrementValue;
     try
     {
-      incrementValue = Long.parseLong(v.getNormalizedValue().toString());
+      String nv = eqRule.normalizeAttributeValue(v.getValue()).toString();
+      incrementValue = Long.parseLong(nv);
     }
     catch (Exception e)
     {
