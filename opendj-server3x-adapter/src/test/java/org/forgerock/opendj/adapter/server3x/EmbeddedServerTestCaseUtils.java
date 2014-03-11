@@ -39,7 +39,6 @@ import java.util.logging.Logger;
 
 import org.forgerock.testng.ForgeRockTestCase;
 import org.opends.server.backends.MemoryBackend;
-import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DirectoryEnvironmentConfig;
 import org.opends.server.types.Entry;
@@ -93,8 +92,6 @@ class EmbeddedServerTestCaseUtils extends ForgeRockTestCase {
             try {
                 EmbeddedUtils.startServer(envConfig);
                 // If something went wrong starting the server, log what happened.
-            } catch (ConfigException ex) {
-                Logger.getLogger("AdaptersTestCase - Server Config").log(Level.SEVERE, null, ex);
             } catch (InitializationException ex) {
                 Logger.getLogger("AdaptersTestCase - Server Initialization").log(Level.SEVERE,
                         null, ex);
