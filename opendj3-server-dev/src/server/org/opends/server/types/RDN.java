@@ -1012,7 +1012,7 @@ public final class RDN
 
     if (attributeNames.length == 1)
     {
-      getAVAString(0, buffer);
+      getNormalizedAVAString(0, buffer);
     }
     else
     {
@@ -1022,7 +1022,7 @@ public final class RDN
       for (int i=0; i < attributeNames.length; i++)
       {
         StringBuilder b2 = new StringBuilder();
-        getAVAString(i, b2);
+        getNormalizedAVAString(i, b2);
         rdnElementStrings.add(b2.toString());
       }
 
@@ -1051,7 +1051,7 @@ public final class RDN
    *              retrieve.
    * @param  buffer  The buffer to which to append the information.
    */
-  public void getAVAString(int pos, StringBuilder buffer)
+  public void getNormalizedAVAString(int pos, StringBuilder buffer)
   {
       AttributeType type = attributeTypes[pos];
       buffer.append(type.getNormalizedPrimaryNameOrOID());
