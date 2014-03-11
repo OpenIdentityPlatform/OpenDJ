@@ -60,10 +60,7 @@ import static org.opends.server.util.StaticUtils.*;
  * It is responsible for efficiently saving the updates that is received from
  * each master server into stable storage.
  * <p>
- * This class is also able to generate a {
-
-  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-@link DBCursor} that can be used to
+ * This class is also able to generate a {@link DBCursor} that can be used to
  * read all changes from a given {@link CSN}.
  * <p>
  * This class publish some monitoring information below cn=monitor.
