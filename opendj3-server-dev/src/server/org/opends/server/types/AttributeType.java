@@ -113,9 +113,6 @@ public final class AttributeType
   // The definition string used to create this attribute type.
   private final String definition;
 
-  // The OID for the associated syntax.
-  private final String syntaxOID;
-
   // The substring matching rule for this attribute type.
   private final SubstringMatchingRule substringMatchingRule;
 
@@ -320,8 +317,6 @@ public final class AttributeType
     {
       this.syntax = syntax;
     }
-    syntaxOID = this.syntax.getOID();
-
 
     if (approximateMatchingRule == null)
     {
@@ -446,46 +441,6 @@ public final class AttributeType
   {
     return syntax;
   }
-
-
-
-  /**
-   * Indicates whether this attribute syntax requires BER encoding.
-   *
-   * @return {@code true} if this syntax required BER encoding.
-   */
-  public boolean isBinary()
-  {
-    return syntax.isBEREncodingRequired();
-  }
-
-
-
-  /**
-   * Indicates whether this attribute syntax is human readable.
-   *
-   * @return {@code true} if this syntax is human readable.
-   */
-  public boolean isHumanReadable()
-  {
-    return syntax.isHumanReadable();
-  }
-
-
-
-  /**
-   * Retrieves the OID for this syntax associated with this attribute
-   * type.
-   *
-   * @return  The OID for this syntax associated with this attribute
-   *          type.
-   */
-  public String getSyntaxOID()
-  {
-    return syntaxOID;
-  }
-
-
 
   /**
    * Retrieves the matching rule that should be used for approximate
@@ -619,7 +574,7 @@ public final class AttributeType
    * @return  <CODE>true</CODE> if this attribute type is the
    *          objectclass type, or <CODE>false</CODE> if not.
    */
-  public boolean isObjectClassType()
+  public boolean isObjectClass()
   {
     return isObjectClassType;
   }

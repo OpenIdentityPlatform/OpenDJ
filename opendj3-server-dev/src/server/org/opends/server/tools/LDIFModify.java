@@ -322,7 +322,7 @@ public class LDIFModify
       for (Attribute a : add.getAttributes())
       {
         AttributeType t = a.getAttributeType();
-        if (t.isObjectClassType())
+        if (t.isObjectClass())
         {
           for (AttributeValue v : a)
           {

@@ -255,11 +255,11 @@ public final class PasswordPolicyImportPlugin
     HashSet<AttributeType> userPWTypes = new HashSet<AttributeType>();
     for (AttributeType t : DirectoryServer.getAttributeTypes().values())
     {
-      if (t.getSyntaxOID().equals(SYNTAX_AUTH_PASSWORD_OID))
+      if (t.getSyntax().getOID().equals(SYNTAX_AUTH_PASSWORD_OID))
       {
         authPWTypes.add(t);
       }
-      else if (t.getSyntaxOID().equals(SYNTAX_USER_PASSWORD_OID))
+      else if (t.getSyntax().getOID().equals(SYNTAX_USER_PASSWORD_OID))
       {
         userPWTypes.add(t);
       }

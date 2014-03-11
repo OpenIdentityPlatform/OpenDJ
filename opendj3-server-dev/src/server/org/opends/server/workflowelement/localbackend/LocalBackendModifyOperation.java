@@ -1435,7 +1435,7 @@ public class LocalBackendModifyOperation
     // If the attribute to be added is the object class attribute then
     // make sure that all the object classes are known and not
     // obsoleted.
-    if (attr.getAttributeType().isObjectClassType())
+    if (attr.getAttributeType().isObjectClass())
     {
       validateObjectClasses(attr);
     }
@@ -1469,7 +1469,7 @@ public class LocalBackendModifyOperation
    */
   private void validateObjectClasses(Attribute attr) throws DirectoryException
   {
-    Reject.ifFalse(attr.getAttributeType().isObjectClassType());
+    Reject.ifFalse(attr.getAttributeType().isObjectClass());
     for (AttributeValue v : attr)
     {
       String name = v.getValue().toString();
@@ -1638,7 +1638,7 @@ public class LocalBackendModifyOperation
     // If the attribute to be replaced is the object class attribute
     // then make sure that all the object classes are known and not
     // obsoleted.
-    if (attr.getAttributeType().isObjectClassType())
+    if (attr.getAttributeType().isObjectClass())
     {
       validateObjectClasses(attr);
     }

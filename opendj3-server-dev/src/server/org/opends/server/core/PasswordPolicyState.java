@@ -3325,7 +3325,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
       newTimestamp++;
     }
     String newHistStr = GeneralizedTimeSyntax.format(newTimestamp) + "#" +
-                        passwordPolicy.getPasswordAttribute().getSyntaxOID() +
+                        passwordPolicy.getPasswordAttribute().getSyntax().getOID() +
                         "#" + encodedPassword;
     Attribute newHistAttr = Attributes.create(historyType, newHistStr);
 

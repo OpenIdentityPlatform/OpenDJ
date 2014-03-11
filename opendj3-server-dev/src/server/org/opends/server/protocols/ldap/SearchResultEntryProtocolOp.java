@@ -561,7 +561,7 @@ public class SearchResultEntryProtocolOp
       Attribute     attr     = a.toAttribute();
       AttributeType attrType = attr.getAttributeType();
 
-      if (attrType.isObjectClassType())
+      if (attrType.isObjectClass())
       {
         for (ByteString os : a.getValues())
         {

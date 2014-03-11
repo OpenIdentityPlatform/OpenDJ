@@ -1390,7 +1390,7 @@ public class SearchOperationBasis
     switch (filter.getFilterType())
     {
     case EQUALITY:
-      if (filter.getAttributeType().isObjectClassType())
+      if (filter.getAttributeType().isObjectClass())
       {
         AttributeValue v = filter.getAssertionValue();
         // FIXME : technically this is not correct since the presence

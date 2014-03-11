@@ -799,7 +799,7 @@ public class ManageTasksPanel extends StatusGenericPanel
       builder = new AttributeBuilder(attrDescr);
     }
 
-    if(builder.getAttributeType().isBinary())
+    if(builder.getAttributeType().getSyntax().isBEREncodingRequired())
     {
       //resetting doesn't hurt and returns false.
       builder.setOption("binary");

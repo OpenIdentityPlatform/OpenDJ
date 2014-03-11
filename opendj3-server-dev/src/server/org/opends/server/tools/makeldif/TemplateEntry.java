@@ -313,7 +313,7 @@ public class TemplateEntry
     for (AttributeType t : attributes.keySet())
     {
       ArrayList<TemplateValue> valueList = attributes.get(t);
-      if (t.isObjectClassType())
+      if (t.isObjectClass())
       {
         for (TemplateValue v : valueList)
         {
