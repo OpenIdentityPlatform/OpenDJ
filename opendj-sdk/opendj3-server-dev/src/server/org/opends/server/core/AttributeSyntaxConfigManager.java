@@ -256,7 +256,7 @@ public class AttributeSyntaxConfigManager
       String oid = syntax.getOID();
       for (AttributeType at : DirectoryServer.getAttributeTypes().values())
       {
-        if (oid.equals(at.getSyntaxOID()))
+        if (oid.equals(at.getSyntax().getOID()))
         {
           LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_DELETE_SYNTAX_IN_USE.get(
                   syntax.getSyntaxName(), at.getNameOrOID());
@@ -326,7 +326,7 @@ public class AttributeSyntaxConfigManager
         String oid = syntax.getOID();
         for (AttributeType at : DirectoryServer.getAttributeTypes().values())
         {
-          if (oid.equals(at.getSyntaxOID()))
+          if (oid.equals(at.getSyntax().getOID()))
           {
             LocalizableMessage message =
                     WARN_CONFIG_SCHEMA_CANNOT_DISABLE_SYNTAX_IN_USE.get(

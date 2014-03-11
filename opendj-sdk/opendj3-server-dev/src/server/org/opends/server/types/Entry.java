@@ -524,7 +524,7 @@ public class Entry
       boolean includeSubordinates)
   {
     // Handle object class.
-    if (attributeType.isObjectClassType())
+    if (attributeType.isObjectClass())
     {
       return !objectClasses.isEmpty() && (options == null || options.isEmpty());
     }
@@ -701,7 +701,7 @@ public class Entry
     {
       return attributes;
     }
-    if (attributeType.isObjectClassType() && !objectClasses.isEmpty())
+    if (attributeType.isObjectClass() && !objectClasses.isEmpty())
     {
       return newList(getObjectClassAttribute());
     }
@@ -839,7 +839,7 @@ public class Entry
         attrs = operationalAttributes.get(attributeType);
         if (attrs == null)
         {
-          if (attributeType.isObjectClassType()
+          if (attributeType.isObjectClass()
               && !objectClasses.isEmpty()
               && (options == null || options.isEmpty()))
           {
@@ -1425,7 +1425,7 @@ public class Entry
   {
     attachment = null;
 
-    if (attributeType.isObjectClassType())
+    if (attributeType.isObjectClass())
     {
       objectClasses.clear();
       return true;
@@ -1465,7 +1465,7 @@ public class Entry
   {
     attachment = null;
 
-    if (attribute.getAttributeType().isObjectClassType())
+    if (attribute.getAttributeType().isObjectClass())
     {
       if (attribute.isEmpty())
       {
@@ -1633,7 +1633,7 @@ public class Entry
 
     // We'll need to handle changes to the objectclass attribute in a
     // special way.
-    if (t.isObjectClassType())
+    if (t.isObjectClass())
     {
       Map<ObjectClass, String> ocs = new LinkedHashMap<ObjectClass, String>();
       for (AttributeValue v : a)
@@ -2018,7 +2018,7 @@ public class Entry
       {
         if (! (userAttributes.containsKey(t) ||
                operationalAttributes.containsKey(t) ||
-               t.isObjectClassType()))
+               t.isObjectClass()))
         {
           LocalizableMessage message =
                   ERR_ENTRY_SCHEMA_MISSING_REQUIRED_ATTR_FOR_OC.get(
@@ -2206,7 +2206,7 @@ public class Entry
     {
       if (! (userAttributes.containsKey(t) ||
              operationalAttributes.containsKey(t) ||
-             t.isObjectClassType()))
+             t.isObjectClass()))
       {
         LocalizableMessage message =
                 ERR_ENTRY_SCHEMA_MISSING_REQUIRED_ATTR_FOR_DCR.get(
@@ -4663,7 +4663,7 @@ public class Entry
 
     AttributeType attributeType = attribute.getAttributeType();
 
-    if (attribute.getAttributeType().isObjectClassType())
+    if (attribute.getAttributeType().isObjectClass())
     {
       // We will not do any validation of the object classes - this is
       // left to the caller.
@@ -4944,7 +4944,7 @@ public class Entry
         else
         {
           // Recognized attribute type.
-          if (attrType.isObjectClassType()) {
+          if (attrType.isObjectClass()) {
             if (!omitReal)
             {
               if (omitValues)

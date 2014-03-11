@@ -1082,7 +1082,7 @@ public final class LDIFReader implements Closeable
       }
 
        //The attribute is not being ignored so check for binary option.
-      if(checkSchema && !attrType.isBinary())
+      if(checkSchema && !attrType.getSyntax().isBEREncodingRequired())
       {
        if(attribute.hasOption("binary"))
         {
@@ -1371,7 +1371,7 @@ public final class LDIFReader implements Closeable
       builder = new AttributeBuilder(attrDescr);
     }
 
-    if(builder.getAttributeType().isBinary())
+    if(builder.getAttributeType().getSyntax().isBEREncodingRequired())
     {
       //resetting doesn't hurt and returns false.
       builder.setOption("binary");

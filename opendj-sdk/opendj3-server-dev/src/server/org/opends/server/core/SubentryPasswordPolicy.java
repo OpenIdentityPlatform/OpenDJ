@@ -183,7 +183,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
       }
 
       // Check the syntax.
-      final String syntaxOID = pPasswordAttribute.getSyntaxOID();
+      final String syntaxOID = pPasswordAttribute.getSyntax().getOID();
       if (SYNTAX_AUTH_PASSWORD_OID.equals(syntaxOID))
       {
         pAuthPasswordSyntax = true;

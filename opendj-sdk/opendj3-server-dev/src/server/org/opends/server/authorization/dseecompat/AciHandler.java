@@ -1151,7 +1151,7 @@ public final class AciHandler extends
    */
   private boolean isAttributeDN(AttributeType attribute)
   {
-    return SYNTAX_DN_OID.equals(attribute.getSyntaxOID());
+    return SYNTAX_DN_OID.equals(attribute.getSyntax().getOID());
   }
 
 

@@ -630,7 +630,7 @@ public final class TestAttributeType extends TestCommonSchemaElements {
 
   /**
    * Create test data for testing the
-   * {@link AttributeType#isObjectClassType()} method.
+   * {@link AttributeType#isObjectClass()} method.
    *
    * @return Returns the array of test data.
    */
@@ -661,7 +661,7 @@ public final class TestAttributeType extends TestCommonSchemaElements {
         "1.2.3");
     AttributeType type = builder.getInstance();
 
-    Assert.assertEquals(type.isObjectClassType(), result);
+    Assert.assertEquals(type.isObjectClass(), result);
   }
 
 

@@ -2239,7 +2239,7 @@ public class Utilities
       AttributeType attr = schema.getAttributeType(attrName);
       if (attr != null)
       {
-        String syntaxOID = attr.getSyntaxOID();
+        String syntaxOID = attr.getSyntax().getOID();
         hasImageSyntax = SchemaConstants.SYNTAX_JPEG_OID.equals(syntaxOID);
       }
     }
@@ -2265,7 +2265,7 @@ public class Utilities
       AttributeType attr = schema.getAttributeType(attrName);
       if (attr != null)
       {
-        String syntaxOID = attr.getSyntaxOID();
+        String syntaxOID = attr.getSyntax().getOID();
         for (String oid : binarySyntaxOIDs)
         {
           if (oid.equals(syntaxOID))
@@ -2303,7 +2303,7 @@ public class Utilities
       AttributeType attr = schema.getAttributeType(attrName);
       if (attr != null)
       {
-        String syntaxOID = attr.getSyntaxOID();
+        String syntaxOID = attr.getSyntax().getOID();
         for (String oid : passwordSyntaxOIDs)
         {
           if (oid.equals(syntaxOID))

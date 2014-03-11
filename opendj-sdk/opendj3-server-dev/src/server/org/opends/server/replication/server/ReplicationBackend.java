@@ -771,7 +771,7 @@ public class ReplicationBackend extends Backend
           for (RawAttribute a : addOperation.getRawAttributes())
           {
             Attribute attr = a.toAttribute();
-            if (attr.getAttributeType().isObjectClassType())
+            if (attr.getAttributeType().isObjectClass())
             {
               for (ByteString os : a.getValues())
               {

@@ -377,7 +377,7 @@ public class AddOperationBasis
                 ERR_ADD_ATTR_IS_NO_USER_MOD.get(entryDN, attr.getName()));
           }
 
-          if(attrType.isBinary())
+          if(attrType.getSyntax().isBEREncodingRequired())
           {
             if(!attr.hasOption("binary"))
             {
@@ -397,7 +397,7 @@ public class AddOperationBasis
             }
           }
 
-          if (attrType.isObjectClassType())
+          if (attrType.isObjectClass())
           {
             for (ByteString os : a.getValues())
             {

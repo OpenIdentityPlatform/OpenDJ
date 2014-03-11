@@ -521,8 +521,8 @@ public class ReferentialIntegrityPlugin
    */
   private boolean isAttributeSyntaxValid(AttributeType attribute)
   {
-    return (attribute.getSyntaxOID().equals(SYNTAX_DN_OID) ||
-            attribute.getSyntaxOID().equals(SYNTAX_NAME_AND_OPTIONAL_UID_OID));
+    return (attribute.getSyntax().getOID().equals(SYNTAX_DN_OID) ||
+            attribute.getSyntax().getOID().equals(SYNTAX_NAME_AND_OPTIONAL_UID_OID));
   }
 
   /**

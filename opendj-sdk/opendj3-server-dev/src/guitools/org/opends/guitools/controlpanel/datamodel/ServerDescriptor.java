@@ -772,7 +772,7 @@ public class ServerDescriptor
     boolean areEqual = attr1.getOID().equals(attr2.getOID()) &&
     attr1.isCollective() == attr2.isCollective() &&
     attr1.isNoUserModification() == attr2.isNoUserModification() &&
-    attr1.isObjectClassType() == attr2.isObjectClassType() &&
+    attr1.isObjectClass() == attr2.isObjectClass() &&
     attr1.isObsolete() == attr2.isObsolete() &&
     attr1.isOperational() == attr2.isOperational() &&
     attr1.isSingleValue() == attr2.isSingleValue();
@@ -788,7 +788,7 @@ public class ServerDescriptor
           attr1.getSubstringMatchingRule(), attr2.getSubstringMatchingRule(),
           attr1.getSuperiorType(), attr2.getSuperiorType(),
           attr1.getSyntax(), attr2.getSyntax(),
-          attr1.getSyntaxOID(), attr2.getSyntaxOID()
+          attr1.getSyntax().getOID(), attr2.getSyntax().getOID()
       };
 
       for (int i=0; i<compareWithEqual.length && areEqual; i++)

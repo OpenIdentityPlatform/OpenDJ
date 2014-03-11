@@ -224,7 +224,7 @@ public final class PasswordPolicyFactory implements
       // user password or auth password syntax.
       final AttributeType passwordAttribute = configuration
           .getPasswordAttribute();
-      final String syntaxOID = passwordAttribute.getSyntaxOID();
+      final String syntaxOID = passwordAttribute.getSyntax().getOID();
       final boolean authPasswordSyntax;
       if (syntaxOID.equals(SYNTAX_AUTH_PASSWORD_OID))
       {

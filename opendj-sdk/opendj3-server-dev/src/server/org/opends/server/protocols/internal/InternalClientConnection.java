@@ -887,7 +887,7 @@ public final class InternalClientConnection
          new ArrayList<AttributeValue>();
     for (Attribute a : addRecord.getAttributes())
     {
-      if (a.getAttributeType().isObjectClassType())
+      if (a.getAttributeType().isObjectClass())
       {
         for (AttributeValue v : a)
         {

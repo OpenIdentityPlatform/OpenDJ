@@ -237,7 +237,7 @@ public class ModifyOperationBasis
            Attribute attr = mod.getAttribute();
            AttributeType type = attr.getAttributeType();
 
-           if(type.isBinary())
+           if(type.getSyntax().isBEREncodingRequired())
            {
              if(!attr.hasOption("binary"))
              {
