@@ -35,20 +35,25 @@ import java.util.List;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.admin.std.server.GroupImplementationCfg;
 import org.opends.server.admin.std.server.StaticGroupImplementationCfg;
+import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.api.Group;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.core.DirectoryServer;
-import org.forgerock.opendj.config.server.ConfigException;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.Attributes;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.Control;
 import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.DirectoryException;
@@ -58,11 +63,8 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.MemberList;
 import org.opends.server.types.MembershipException;
 import org.opends.server.types.Modification;
-import org.forgerock.opendj.ldap.ModificationType;
 import org.opends.server.types.ObjectClass;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.types.SearchFilter;
-import org.forgerock.opendj.ldap.SearchScope;
 
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
@@ -235,13 +237,15 @@ public class StaticGroup
     {
       for (Attribute a : memberAttrList)
       {
+        EqualityMatchingRule eqRule =
+            a.getAttributeType().getEqualityMatchingRule();
         for (AttributeValue v : a)
         {
           try
           {
-            someMemberDNs.add(v.getNormalizedValue());
+            someMemberDNs.add(eqRule.normalizeAttributeValue(v.getValue()));
           }
-          catch (DirectoryException de)
+          catch (DecodeException de)
           {
             logger.traceException(de);
             logger.error(ERR_STATICGROUP_CANNOT_DECODE_MEMBER_VALUE_AS_DN, v.getValue(),
@@ -515,8 +519,7 @@ public class StaticGroup
       for(DN nestedGroupDN : nestedGroups)
       {
         Group<? extends GroupImplementationCfg> g =
-             (Group<? extends GroupImplementationCfg>)
-              DirectoryServer.getGroupManager().getGroupInstance(nestedGroupDN);
+            DirectoryServer.getGroupManager().getGroupInstance(nestedGroupDN);
         if((g != null) && (g.isMember(userDN, examinedGroups)))
         {
           return true;

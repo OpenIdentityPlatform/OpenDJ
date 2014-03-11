@@ -1347,8 +1347,9 @@ public class MatchedValuesFilter
         {
           try
           {
+            ByteString nv = orderingMatchingRule.normalizeAssertionValue(value.getValue());
             return orderingMatchingRule.compareValues(
-                         assertionValue.getNormalizedValue(),
+                         nv,
                          orderingMatchingRule.normalizeAttributeValue(
                          value.getValue())) >= 0;
           }
@@ -1369,8 +1370,9 @@ public class MatchedValuesFilter
         {
           try
           {
+            ByteString nv = orderingMatchingRule.normalizeAssertionValue(value.getValue());
             return orderingMatchingRule.compareValues(
-                         assertionValue.getNormalizedValue(),
+                         nv,
                          orderingMatchingRule.normalizeAttributeValue(
                          value.getValue())) <= 0;
           }
@@ -1395,12 +1397,9 @@ public class MatchedValuesFilter
         {
           try
           {
-            ByteString nv1 =  approximateMatchingRule.normalizeAttributeValue(
-                    assertionValue.getNormalizedValue());
-            ByteString nv2 =  approximateMatchingRule.normalizeAttributeValue(
-                    value.getValue());
-
-            return approximateMatchingRule.approximatelyMatch(nv1, nv2);
+            Assertion assertion = approximateMatchingRule.getAssertion(assertionValue.getValue());
+            ByteString nv = approximateMatchingRule.normalizeAttributeValue(value.getValue());
+            return assertion.matches(nv).toBoolean();
           }
           catch (Exception e)
           {
