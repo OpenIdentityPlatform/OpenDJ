@@ -69,6 +69,7 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 
 /**
  * This program provides a utility to rebuild the contents of the indexes of a
@@ -144,7 +145,7 @@ public class RebuildIndex extends TaskTool
   {
     final PrintStream out = NullOutputStream.wrapOrNullStream(outStream);
     final PrintStream err = NullOutputStream.wrapOrNullStream(errStream);
-    JDKLogging.disableLogging();
+    JDKLogging.enableConsoleLoggingForOpenDJ(Level.FINE);
 
     // Initialize all the command-line argument types and register them with the
     // parser.
