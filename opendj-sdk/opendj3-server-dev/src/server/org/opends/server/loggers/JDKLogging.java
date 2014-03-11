@@ -57,6 +57,7 @@ public class JDKLogging
    */
   public static void enableConsoleLoggingForOpenDJ(Level level)
   {
+    LogManager.getLogManager().reset();
     Handler handler = new ConsoleHandler();
     handler.setFormatter(getFormatter());
     handler.setLevel(level);
