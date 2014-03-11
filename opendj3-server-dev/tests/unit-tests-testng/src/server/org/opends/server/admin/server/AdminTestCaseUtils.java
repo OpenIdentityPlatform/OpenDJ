@@ -38,7 +38,7 @@ import org.opends.server.admin.RelationDefinition;
 import org.opends.server.admin.SingletonRelationDefinition;
 import org.opends.server.admin.std.meta.RootCfgDefn;
 import org.opends.server.config.ConfigEntry;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.Entry;
 
 

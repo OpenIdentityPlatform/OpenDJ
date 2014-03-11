@@ -22,13 +22,13 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.core;
 
 import org.opends.server.admin.std.server.AccessControlHandlerCfg;
 import org.opends.server.api.AccessControlHandler;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.*;
 import org.opends.server.workflowelement.localbackend.*;
 

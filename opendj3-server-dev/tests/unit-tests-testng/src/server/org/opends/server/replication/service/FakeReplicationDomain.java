@@ -32,7 +32,7 @@ import java.io.OutputStream;
 import java.util.SortedSet;
 import java.util.concurrent.BlockingQueue;
 
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.replication.plugin.DomainFakeCfg;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.types.DN;

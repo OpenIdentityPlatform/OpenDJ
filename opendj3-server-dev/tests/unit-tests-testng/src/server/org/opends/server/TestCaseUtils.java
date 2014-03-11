@@ -45,7 +45,7 @@ import org.opends.server.api.Backend;
 import org.opends.server.api.WorkQueue;
 import org.opends.server.backends.MemoryBackend;
 import org.opends.server.backends.jeb.*;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;

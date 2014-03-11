@@ -43,7 +43,7 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.admin.std.meta.DictionaryPasswordValidatorCfgDefn;
 import org.opends.server.admin.std.server.DictionaryPasswordValidatorCfg;
 import org.opends.server.admin.server.AdminTestCaseUtils;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.Attributes;

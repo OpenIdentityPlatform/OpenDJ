@@ -44,7 +44,7 @@ import org.opends.server.admin.std.server.AccountStatusNotificationHandlerCfg;
 import org.opends.server.admin.std.server.
        ErrorLogAccountStatusNotificationHandlerCfg;
 import org.opends.server.api.AccountStatusNotificationHandler;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.AccountStatusNotification;
 import org.opends.server.types.AccountStatusNotificationType;
 import org.opends.server.types.ConfigChangeResult;

@@ -260,24 +260,23 @@ public final class StringConfigAttribute
    * Retrieves the active value for this configuration attribute as a string.
    * This is only valid for single-valued attributes that have a value.
    *
-   * @return  The active value for this configuration attribute as a string.
-   *
-   * @throws  ConfigException  If this attribute does not have exactly one
-   *                           active value.
+   * @return The active value for this configuration attribute as a string.
+   * @throws org.forgerock.opendj.config.server.ConfigException
+   *           If this attribute does not have exactly one active value.
    */
   public String activeValue()
-         throws ConfigException
+         throws org.forgerock.opendj.config.server.ConfigException
   {
     if ((activeValues == null) || activeValues.isEmpty())
     {
       LocalizableMessage message = ERR_CONFIG_ATTR_NO_STRING_VALUE.get(getName());
-      throw new ConfigException(message);
+      throw new org.forgerock.opendj.config.server.ConfigException(message);
     }
 
     if (activeValues.size() > 1)
     {
       LocalizableMessage message = ERR_CONFIG_ATTR_MULTIPLE_STRING_VALUES.get(getName());
-      throw new ConfigException(message);
+      throw new org.forgerock.opendj.config.server.ConfigException(message);
     }
 
     return activeValues.get(0);
@@ -299,17 +298,16 @@ public final class StringConfigAttribute
 
   /**
    * Retrieves the pending value for this configuration attribute as a string.
-   * This is only valid for single-valued attributes that have a value.  If this
+   * This is only valid for single-valued attributes that have a value. If this
    * attribute does not have any pending values, then the active value will be
    * returned.
    *
-   * @return  The pending value for this configuration attribute as a string.
-   *
-   * @throws  ConfigException  If this attribute does not have exactly one
-   *                           pending value.
+   * @return The pending value for this configuration attribute as a string.
+   * @throws org.forgerock.opendj.config.server.ConfigException
+   *           If this attribute does not have exactly one pending value.
    */
   public String pendingValue()
-         throws ConfigException
+         throws org.forgerock.opendj.config.server.ConfigException
   {
     if (! hasPendingValues())
     {
@@ -319,13 +317,13 @@ public final class StringConfigAttribute
     if ((pendingValues == null) || pendingValues.isEmpty())
     {
       LocalizableMessage message = ERR_CONFIG_ATTR_NO_STRING_VALUE.get(getName());
-      throw new ConfigException(message);
+      throw new org.forgerock.opendj.config.server.ConfigException(message);
     }
 
     if (pendingValues.size() > 1)
     {
       LocalizableMessage message = ERR_CONFIG_ATTR_MULTIPLE_STRING_VALUES.get(getName());
-      throw new ConfigException(message);
+      throw new org.forgerock.opendj.config.server.ConfigException(message);
     }
 
     return pendingValues.get(0);

@@ -41,7 +41,7 @@ import org.opends.server.admin.PropertyDefinition;
 import org.opends.server.admin.std.meta.LocalDBBackendCfgDefn;
 import org.opends.server.admin.std.server.LocalDBBackendCfg;
 import org.opends.server.config.ConfigConstants;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import com.sleepycat.je.Durability;
 import com.sleepycat.je.EnvironmentConfig;
 import com.sleepycat.je.dbi.MemoryBudget;

@@ -43,7 +43,7 @@ import org.opends.server.admin.std.server.ErrorLogPublisherCfg;
 import org.opends.server.admin.std.server.HTTPAccessLogPublisherCfg;
 import org.opends.server.admin.std.server.LogPublisherCfg;
 import org.opends.server.admin.std.server.RootCfg;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.loggers.AbstractLogger;
 import org.opends.server.loggers.AccessLogger;
 import org.opends.server.loggers.DebugLogger;

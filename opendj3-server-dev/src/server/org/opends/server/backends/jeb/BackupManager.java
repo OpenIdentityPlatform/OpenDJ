@@ -27,7 +27,7 @@
 package org.opends.server.backends.jeb;
 import org.forgerock.i18n.LocalizableMessage;
 
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.util.DynamicConstants;
 import org.opends.server.types.CryptoManagerException;

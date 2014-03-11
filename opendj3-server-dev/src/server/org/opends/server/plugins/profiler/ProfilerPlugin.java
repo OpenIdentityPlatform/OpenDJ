@@ -41,7 +41,7 @@ import org.opends.server.admin.std.server.ProfilerPluginCfg;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.api.plugin.PluginResult;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.DN;

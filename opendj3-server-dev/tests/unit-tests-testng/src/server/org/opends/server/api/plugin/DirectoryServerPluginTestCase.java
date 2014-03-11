@@ -85,7 +85,7 @@ import static org.testng.Assert.*;
     sigList.add("void");
     sigList.add("java.util.Set");
     sigList.add("org.opends.server.admin.std.server.PluginCfg");
-    sigList.add("org.opends.server.config.ConfigException");
+    sigList.add("org.forgerock.opendj.config.server.ConfigException");
     sigList.add("org.opends.server.types.InitializationException");
     expectedAbstractMethods.add(sigList);
 

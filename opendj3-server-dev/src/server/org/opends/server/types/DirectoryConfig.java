@@ -46,7 +46,7 @@ import org.opends.server.api.ServerShutdownListener;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.config.ConfigEntry;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 
 /**

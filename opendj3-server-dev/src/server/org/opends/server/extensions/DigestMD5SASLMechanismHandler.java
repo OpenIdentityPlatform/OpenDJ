@@ -43,7 +43,7 @@ import org.opends.server.admin.std.server.SASLMechanismHandlerCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.IdentityMapper;
 import org.opends.server.api.SASLMechanismHandler;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ConfigChangeResult;

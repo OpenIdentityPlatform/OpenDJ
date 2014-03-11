@@ -41,7 +41,7 @@ import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.condition.Condition;
 import org.opends.server.admin.server.ServerConstraintHandler;
 import org.opends.server.admin.server.ServerManagedObject;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 
 
 

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.extensions;
 
@@ -33,7 +34,7 @@ import javax.net.ssl.X509TrustManager;
 
 import org.opends.server.admin.std.server.BlindTrustManagerProviderCfg;
 import org.opends.server.api.TrustManagerProvider;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 

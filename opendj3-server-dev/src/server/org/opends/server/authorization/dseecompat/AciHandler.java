@@ -41,7 +41,7 @@ import org.opends.server.api.AccessControlHandler;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConfigHandler;
 import org.opends.server.backends.jeb.EntryContainer;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.controls.GetEffectiveRightsRequestControl;
 import org.opends.server.core.*;
 import org.opends.server.protocols.internal.InternalClientConnection;

@@ -55,7 +55,7 @@ import org.opends.server.admin.std.server.JMXAlertHandlerCfg;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.AlertHandler;
 import org.opends.server.api.DirectoryServerMBean;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.config.JMXMBean;
 import org.opends.server.core.DirectoryServer;
 import org.forgerock.i18n.slf4j.LocalizedLogger;

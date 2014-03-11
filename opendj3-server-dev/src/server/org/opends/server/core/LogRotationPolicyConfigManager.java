@@ -42,7 +42,7 @@ import org.opends.server.admin.std.meta.LogRotationPolicyCfgDefn;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ConfigChangeResult;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.util.StaticUtils.*;

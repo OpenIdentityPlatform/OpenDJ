@@ -32,7 +32,7 @@ import java.util.ArrayList;
 
 import org.opends.server.admin.std.server.VersionMonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;

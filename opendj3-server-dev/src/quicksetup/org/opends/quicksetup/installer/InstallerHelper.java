@@ -39,6 +39,7 @@ import java.util.*;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
 
 import javax.naming.ldap.InitialLdapContext;
 
@@ -66,6 +67,7 @@ import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.messages.CoreMessages;
 import org.opends.messages.JebMessages;
 import org.opends.messages.ReplicationMessages;
+
 import static org.opends.messages.QuickSetupMessages.*;
 
 import org.opends.server.tools.ConfigureDS;
@@ -356,6 +358,10 @@ public class InstallerHelper {
     {
       throw new ApplicationException(
           ReturnCode.CONFIGURATION_ERROR, ode.getMessageObject(), ode);
+    }
+    catch(ConfigException ce)
+    {
+      throw new ApplicationException(ReturnCode.CONFIGURATION_ERROR, ce.getMessageObject(), ce);
     }
   }
 

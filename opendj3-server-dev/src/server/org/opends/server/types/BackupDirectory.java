@@ -39,7 +39,7 @@ import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.messages.CoreMessages.*;

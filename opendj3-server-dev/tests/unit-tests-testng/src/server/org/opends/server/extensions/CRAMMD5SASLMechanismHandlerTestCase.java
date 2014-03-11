@@ -40,7 +40,7 @@ import org.opends.server.admin.std.meta.
             CramMD5SASLMechanismHandlerCfgDefn;
 import org.opends.server.admin.std.server.
             CramMD5SASLMechanismHandlerCfg;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.DirectoryServer;

@@ -30,7 +30,7 @@ import static org.opends.messages.CoreMessages.*;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.WorkQueueCfg;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.Operation;

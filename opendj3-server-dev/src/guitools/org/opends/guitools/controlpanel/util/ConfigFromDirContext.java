@@ -46,6 +46,7 @@ import java.util.TreeSet;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
 
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
@@ -566,22 +567,26 @@ public class ConfigFromDirContext extends ConfigReader
    */
   private void readSchema(InitialLdapContext ctx) throws OpenDsException
   {
-    if (isLocal)
+    try
     {
-      super.readSchema();
-    }
-    else
-    {
-      RemoteSchemaLoader loader = new RemoteSchemaLoader();
-      try
+      if (isLocal)
       {
+        super.readSchema();
+      }
+      else
+      {
+        RemoteSchemaLoader loader = new RemoteSchemaLoader();
         loader.readSchema(ctx);
+        schema = loader.getSchema();
       }
-      catch (NamingException ne)
-      {
-        throw new OnlineUpdateException(ERR_READING_SCHEMA_LDAP.get(ne), ne);
-      }
-      schema = loader.getSchema();
+    }
+    catch (NamingException ne)
+    {
+      throw new OnlineUpdateException(ERR_READING_SCHEMA_LDAP.get(ne), ne);
+    }
+    catch (ConfigException ce)
+    {
+      throw new org.opends.server.config.ConfigException(ce.getMessageObject(), ce);
     }
   }
 

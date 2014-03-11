@@ -41,7 +41,7 @@ import org.opends.server.admin.std.meta.FileBasedAccessLogPublisherCfgDefn.*;
 import org.opends.server.admin.std.server.FileBasedAccessLogPublisherCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ExtendedOperationHandler;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.*;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ResultCode;

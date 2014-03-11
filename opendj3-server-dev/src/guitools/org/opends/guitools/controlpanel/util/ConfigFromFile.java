@@ -76,7 +76,7 @@ import org.opends.server.admin.std.server.RootDNCfg;
 import org.opends.server.admin.std.server.RootDNUserCfg;
 import org.opends.server.admin.std.server.SNMPConnectionHandlerCfg;
 import org.opends.server.admin.std.server.TaskBackendCfg;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DN;
 import org.opends.server.types.OpenDsException;
@@ -142,7 +142,7 @@ public class ConfigFromFile extends ConfigReader
       }
       catch (ConfigException ce)
       {
-        ex.add(ce);
+        ex.add(toConfigException(ce));
       }
       for (String connHandler : root.listConnectionHandlers())
       {
@@ -190,9 +190,9 @@ public class ConfigFromFile extends ConfigReader
                     null, index.getIndexType(), index.getIndexEntryLimit()));
               }
             }
-            catch (OpenDsException oe)
+            catch (ConfigException ce)
             {
-              ex.add(oe);
+              ex.add(toConfigException(ce));
             }
             indexes.add(new IndexDescriptor("dn2id", null, null,
                 new TreeSet<IndexType>(), -1));
@@ -214,9 +214,9 @@ public class ConfigFromFile extends ConfigReader
                     sortOrder, index.getMaxBlockSize()));
               }
             }
-            catch (OpenDsException oe)
+            catch (ConfigException ce)
             {
-              ex.add(oe);
+              ex.add(toConfigException(ce));
             }
           }
           else if (backend instanceof LDIFBackendCfg)
@@ -257,9 +257,9 @@ public class ConfigFromFile extends ConfigReader
 
           bs.add(desc);
         }
-        catch (OpenDsException oe)
+        catch (ConfigException ce)
         {
-          ex.add(oe);
+          ex.add(toConfigException(ce));
         }
       }
 
@@ -269,9 +269,9 @@ public class ConfigFromFile extends ConfigReader
         CryptoManagerCfg cryptoManager = root.getCryptoManager();
         isReplicationSecure = cryptoManager.isSSLEncryption();
       }
-      catch (OpenDsException oe)
+      catch (ConfigException ce)
       {
-        ex.add(oe);
+        ex.add(toConfigException(ce));
       }
 
 
@@ -282,7 +282,7 @@ public class ConfigFromFile extends ConfigReader
         sync = (ReplicationSynchronizationProviderCfg)
         root.getSynchronizationProvider("Multimaster Synchronization");
       }
-      catch (OpenDsException oe)
+      catch (ConfigException ce)
       {
         // Ignore this one
       }
@@ -337,9 +337,9 @@ public class ConfigFromFile extends ConfigReader
             }
           }
         }
-        catch (OpenDsException oe)
+        catch (ConfigException ce)
         {
-          ex.add(oe);
+          ex.add(toConfigException(ce));
         }
       }
 
@@ -358,9 +358,9 @@ public class ConfigFromFile extends ConfigReader
           }
         }
       }
-      catch (OpenDsException oe)
+      catch (ConfigException ce)
       {
-        ex.add(oe);
+        ex.add(toConfigException(ce));
       }
     }
     catch (OpenDsException oe)
@@ -389,6 +389,12 @@ public class ConfigFromFile extends ConfigReader
     administrativeUsers = Collections.unmodifiableSet(as);
     listeners = Collections.unmodifiableSet(ls);
     backends = Collections.unmodifiableSet(bs);
+  }
+
+
+  private org.opends.server.config.ConfigException toConfigException(ConfigException ce)
+  {
+    return new org.opends.server.config.ConfigException(ce.getMessageObject(), ce);
   }
 
   private ConnectionHandlerDescriptor getConnectionHandler(

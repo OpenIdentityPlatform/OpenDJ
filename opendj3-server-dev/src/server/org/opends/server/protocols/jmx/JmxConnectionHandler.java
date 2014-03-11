@@ -42,7 +42,7 @@ import org.opends.server.admin.std.server.JMXConnectionHandlerCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.api.ServerShutdownListener;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ResultCode;

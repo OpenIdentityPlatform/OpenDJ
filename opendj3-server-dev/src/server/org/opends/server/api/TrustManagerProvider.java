@@ -33,7 +33,7 @@ import java.util.List;
 import javax.net.ssl.TrustManager;
 
 import org.opends.server.admin.std.server.TrustManagerProviderCfg;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 

@@ -46,7 +46,7 @@ import org.opends.server.api.Backend;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.EntryCache;
 import org.opends.server.api.plugin.PluginResult;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.controls.*;
 import org.opends.server.core.*;
 import org.opends.server.protocols.ldap.LDAPResultCode;

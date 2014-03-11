@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.opends.server.api.PasswordValidator;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ByteString;

@@ -41,7 +41,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.opends.server.api.Backend;
 import org.opends.server.api.BackendInitializationListener;
 import org.opends.server.api.ConfigHandler;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.types.*;

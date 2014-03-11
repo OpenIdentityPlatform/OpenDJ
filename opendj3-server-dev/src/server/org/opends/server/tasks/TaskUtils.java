@@ -41,7 +41,7 @@ import org.opends.server.admin.std.server.BackendCfg;
 import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.config.ConfigEntry;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.config.StringConfigAttribute;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
@@ -86,7 +86,7 @@ public class TaskUtils
            (StringConfigAttribute) configEntry.getConfigAttribute(idStub);
       return idAttr.activeValue();
     }
-    catch (ConfigException ce)
+    catch (org.opends.server.config.ConfigException ce)
     {
       logger.error(ERR_CANNOT_DETERMINE_BACKEND_ID, configEntry.getDN(), ce.getMessage());
       return null;
@@ -168,7 +168,7 @@ public class TaskUtils
           backendID = idAttr.activeValue();
         }
       }
-      catch (ConfigException ce)
+      catch (org.opends.server.config.ConfigException ce)
       {
         logger.error(ERR_CANNOT_DETERMINE_BACKEND_ID, configEntry.getDN(), ce.getMessage());
         continue;

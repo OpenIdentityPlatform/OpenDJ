@@ -41,7 +41,7 @@ import java.util.List;
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.FileBasedAuditLogPublisherCfg;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.*;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ResultCode;

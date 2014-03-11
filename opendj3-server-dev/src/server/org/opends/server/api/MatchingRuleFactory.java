@@ -31,7 +31,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.opends.server.admin.std.server.MatchingRuleCfg;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.types.InitializationException;
 

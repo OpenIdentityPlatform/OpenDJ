@@ -27,7 +27,9 @@
 package org.opends.server.replication.plugin;
 
 import java.util.*;
+
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -40,9 +42,9 @@ import org.opends.server.admin.server.ConfigurationDeleteListener;
 import org.opends.server.admin.std.server.ReplicationDomainCfg;
 import org.opends.server.admin.std.server.ReplicationSynchronizationProviderCfg;
 import org.opends.server.api.*;
-import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.types.operation.*;
 
@@ -250,7 +252,7 @@ public class MultimasterReplication
   @Override
   public void initializeSynchronizationProvider(
       ReplicationSynchronizationProviderCfg configuration)
-  throws ConfigException
+  throws org.forgerock.opendj.config.server.ConfigException
   {
     domains.clear();
     replicationServerListener = new ReplicationServerListener(configuration);

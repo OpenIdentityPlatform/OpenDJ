@@ -22,6 +22,7 @@
   !
   !
   !      Copyright 2007-2008 Sun Microsystems, Inc.
+  !      Portions Copyright 2014 ForgeRock AS
   ! -->
 <xsl:stylesheet version="1.0" xmlns:adm="http://www.opends.org/admin"
   xmlns:admpp="http://www.opends.org/admin-preprocessor"
@@ -30,7 +31,7 @@
   <xsl:import href="preprocessor.xsl" />
   <xsl:import href="property-types.xsl" />
   <xsl:output method="text" encoding="us-ascii" />
-  <!-- 
+  <!--
     Template for generating the interface declaration.
   -->
   <xsl:template name="generate-interface-declaration">
@@ -61,7 +62,7 @@
     </xsl:choose>
     <xsl:text>{&#xa;</xsl:text>
   </xsl:template>
-  <!-- 
+  <!--
     Template for generating the configuration class getter.
   -->
   <xsl:template name="generate-configuration-definition-getter">
@@ -333,7 +334,7 @@
       </xsl:otherwise>
     </xsl:choose>
   </xsl:template>
-  <!-- 
+  <!--
     Main document parsing template.
   -->
   <xsl:template match="/">
@@ -372,7 +373,7 @@
           </import>
         </xsl:if>
         <xsl:if test="$this-local-relations">
-          <import>org.opends.server.config.ConfigException</import>
+          <import>org.forgerock.opendj.config.server.ConfigException</import>
         </xsl:if>
         <xsl:if
           test="$this-local-relations/adm:one-to-zero-or-one|$this-local-relations/adm:one-to-many">

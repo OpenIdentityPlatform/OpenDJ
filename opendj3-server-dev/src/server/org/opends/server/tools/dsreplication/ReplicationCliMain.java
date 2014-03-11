@@ -73,7 +73,7 @@ import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn;
 import org.opends.server.admin.std.meta.ReplicationServerCfgDefn;
 import org.opends.server.admin.std.meta.
     ReplicationSynchronizationProviderCfgDefn;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.tasks.PurgeConflictsHistoricalTask;
 import org.opends.server.tools.tasks.TaskEntry;

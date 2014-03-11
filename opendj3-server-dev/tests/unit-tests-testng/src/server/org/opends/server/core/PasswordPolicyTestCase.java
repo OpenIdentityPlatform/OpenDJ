@@ -41,7 +41,7 @@ import org.opends.server.admin.std.meta.PasswordPolicyCfgDefn;
 import org.opends.server.admin.std.server.PasswordPolicyCfg;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.config.ConfigEntry;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;

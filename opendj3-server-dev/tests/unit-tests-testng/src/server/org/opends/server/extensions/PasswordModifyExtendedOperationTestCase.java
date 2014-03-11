@@ -38,7 +38,7 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.PasswordModifyExtendedOperationHandlerCfgDefn;
 import org.opends.server.admin.std.server.PasswordModifyExtendedOperationHandlerCfg;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.*;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.tools.LDAPPasswordModify;

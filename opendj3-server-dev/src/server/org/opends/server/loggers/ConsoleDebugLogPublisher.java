@@ -31,7 +31,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
 import org.opends.server.admin.std.server.DebugLogPublisherCfg;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.ServerContext;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;

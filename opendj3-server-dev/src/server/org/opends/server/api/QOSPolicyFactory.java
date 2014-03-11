@@ -33,7 +33,7 @@ import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.QOSPolicyCfg;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.InitializationException;
 
 

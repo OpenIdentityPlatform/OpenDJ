@@ -42,7 +42,7 @@ import org.opends.server.admin.std.meta.SynchronizationProviderCfgDefn;
 import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.admin.std.server.SynchronizationProviderCfg;
 import org.opends.server.api.SynchronizationProvider;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;

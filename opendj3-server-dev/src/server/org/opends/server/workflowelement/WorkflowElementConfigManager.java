@@ -41,7 +41,7 @@ import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.admin.std.meta.WorkflowElementCfgDefn;
 import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.admin.std.server.WorkflowElementCfg;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
 import org.opends.server.types.ConfigChangeResult;
@@ -118,9 +118,9 @@ public class WorkflowElementConfigManager
    *
    * @param workflowName workflow identifier
    * @return workflowelement associated with the workflowName of null
-   * @throws org.opends.server.config.ConfigException Exception will reading
+   * @throws ConfigException Exception will reading
    *         the config
-   * @throws org.opends.server.types.InitializationException Exception while
+   * @throws InitializationException Exception while
    *         initializing the workflow element
    */
   public WorkflowElement<?> loadAndRegisterWorkflowElement(String workflowName)

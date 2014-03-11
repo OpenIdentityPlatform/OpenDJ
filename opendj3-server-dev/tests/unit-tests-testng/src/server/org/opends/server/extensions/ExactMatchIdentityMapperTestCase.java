@@ -36,7 +36,7 @@ import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.ExactMatchIdentityMapperCfgDefn;
 import org.opends.server.admin.std.server.ExactMatchIdentityMapperCfg;
 import org.opends.server.api.IdentityMapper;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;

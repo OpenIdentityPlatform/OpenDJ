@@ -39,7 +39,7 @@ import org.opends.server.admin.server.ConfigurationDeleteListener;
 import org.opends.server.admin.std.server.DebugTargetCfg;
 import org.opends.server.admin.std.server.FileBasedDebugLogPublisherCfg;
 import org.opends.server.api.DirectoryThread;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
 import org.opends.server.types.ConfigChangeResult;

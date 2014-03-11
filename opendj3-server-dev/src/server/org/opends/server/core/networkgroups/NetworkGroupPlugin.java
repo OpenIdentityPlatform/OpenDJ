@@ -39,7 +39,7 @@ import org.opends.server.admin.std.server.NetworkGroupPluginCfg;
 import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.plugin.*;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.AuthenticationType;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DirectoryException;

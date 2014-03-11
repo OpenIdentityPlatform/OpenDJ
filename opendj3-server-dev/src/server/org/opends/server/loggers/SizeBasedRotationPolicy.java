@@ -33,7 +33,7 @@ import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ConfigChangeResult;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 
 
 import java.util.List;

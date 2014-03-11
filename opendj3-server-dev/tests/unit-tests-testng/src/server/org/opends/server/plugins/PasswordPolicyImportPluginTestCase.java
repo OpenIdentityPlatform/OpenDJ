@@ -38,7 +38,7 @@ import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.PasswordPolicyImportPluginCfgDefn;
 import org.opends.server.admin.std.server.PasswordPolicyImportPluginCfg;
 import org.opends.server.api.plugin.PluginType;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeValue;

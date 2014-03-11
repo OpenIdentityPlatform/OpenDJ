@@ -39,7 +39,7 @@ import org.opends.server.admin.std.server.EntryCacheCfg;
 import org.opends.server.admin.std.server.FIFOEntryCacheCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.EntryCache;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.CacheEntry;
 import org.opends.server.types.ConfigChangeResult;

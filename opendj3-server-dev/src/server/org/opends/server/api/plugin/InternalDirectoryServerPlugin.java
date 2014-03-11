@@ -34,7 +34,7 @@ import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.PluginCfg;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
 

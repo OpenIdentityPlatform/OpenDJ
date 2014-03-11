@@ -44,7 +44,7 @@ import org.opends.server.admin.std.server.PasswordPolicyStateExtendedOperationHa
 import org.opends.server.api.AuthenticationPolicy;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ExtendedOperationHandler;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.*;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;

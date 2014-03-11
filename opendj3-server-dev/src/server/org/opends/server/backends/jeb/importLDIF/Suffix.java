@@ -32,7 +32,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import org.opends.server.backends.jeb.*;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.backends.jeb.importLDIF.Importer.*;

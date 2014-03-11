@@ -57,7 +57,7 @@ import org.opends.server.admin.server.ServerManagedObject;
 import org.opends.server.admin.server.ServerManagedObjectChangeListener;
 import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.admin.std.meta.RootCfgDefn;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;

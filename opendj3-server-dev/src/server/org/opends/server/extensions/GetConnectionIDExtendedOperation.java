@@ -29,7 +29,7 @@ package org.opends.server.extensions;
 import org.opends.server.admin.std.server.
             GetConnectionIdExtendedOperationHandlerCfg;
 import org.opends.server.api.ExtendedOperationHandler;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.ExtendedOperation;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.io.ASN1;

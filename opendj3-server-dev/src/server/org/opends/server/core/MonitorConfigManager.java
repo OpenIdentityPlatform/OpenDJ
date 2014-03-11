@@ -42,7 +42,7 @@ import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.api.MonitorProvider;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;

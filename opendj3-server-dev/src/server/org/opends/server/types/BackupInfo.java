@@ -37,7 +37,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.TimeZone;
 
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.util.Base64;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;

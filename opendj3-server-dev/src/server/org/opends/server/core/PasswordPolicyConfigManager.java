@@ -44,7 +44,7 @@ import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.api.AuthenticationPolicy;
 import org.opends.server.api.AuthenticationPolicyFactory;
 import org.opends.server.api.SubentryChangeListener;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.*;
 
 import static org.opends.messages.ConfigMessages.*;

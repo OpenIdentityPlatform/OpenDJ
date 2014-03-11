@@ -30,7 +30,7 @@ import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.AccessControlHandlerCfg;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.*;
 import org.opends.server.types.*;
 import org.opends.server.workflowelement.localbackend.LocalBackendAddOperation;

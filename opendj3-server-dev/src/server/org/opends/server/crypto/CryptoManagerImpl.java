@@ -61,7 +61,7 @@ import org.opends.server.admin.std.server.CryptoManagerCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.backends.TrustStoreBackend;
 import org.opends.server.config.ConfigConstants;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
@@ -920,15 +920,19 @@ public class CryptoManagerImpl
     // Retrieve instance-key-pair private key part.
     PrivateKey privateKey;
     try {
-      privateKey = (PrivateKey)getTrustStoreBackend()
+      privateKey = (PrivateKey) getTrustStoreBackend()
               .getKey(ConfigConstants.ADS_CERTIFICATE_ALIAS);
+    }
+    catch(ConfigException ce)
+    {
+      throw new CryptoManagerException(
+          ERR_CRYPTOMGR_DECODE_SYMMETRIC_KEY_ATTRIBUTE_NO_PRIVATE.get(getExceptionMessage(ce)), ce);
     }
     catch (IdentifiedException ex) {
       // ConfigException, DirectoryException
       logger.traceException(ex);
       throw new CryptoManagerException(
-          ERR_CRYPTOMGR_DECODE_SYMMETRIC_KEY_ATTRIBUTE_NO_PRIVATE.get(
-                  getExceptionMessage(ex)), ex);
+          ERR_CRYPTOMGR_DECODE_SYMMETRIC_KEY_ATTRIBUTE_NO_PRIVATE.get(getExceptionMessage(ex)), ex);
     }
 
     // Unwrap secret key.

@@ -30,7 +30,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import org.opends.server.api.Backend;
 import org.opends.server.config.ConfigEntry;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.config.StringConfigAttribute;
 import org.opends.server.config.DNConfigAttribute;
 import org.opends.server.types.DN;
@@ -137,7 +137,7 @@ public class BackendToolUtils
           backendID = idAttr.activeValue();
         }
       }
-      catch (ConfigException ce)
+      catch (org.opends.server.config.ConfigException ce)
       {
         logger.error(ERR_CANNOT_DETERMINE_BACKEND_ID, configEntry.getDN(), ce.getMessage());
         return 1;
@@ -168,7 +168,7 @@ public class BackendToolUtils
           backendClassName = classAttr.activeValue();
         }
       }
-      catch (ConfigException ce)
+      catch (org.opends.server.config.ConfigException ce)
       {
         logger.error(ERR_CANNOT_DETERMINE_BACKEND_CLASS, configEntry.getDN(), ce.getMessage());
         return 1;

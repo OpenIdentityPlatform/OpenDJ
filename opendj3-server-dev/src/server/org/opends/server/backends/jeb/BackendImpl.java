@@ -51,7 +51,7 @@ import org.opends.server.api.Backend;
 import org.opends.server.api.DiskSpaceMonitorHandler;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.backends.jeb.importLDIF.Importer;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.*;
 import org.opends.server.extensions.DiskSpaceMonitor;
 import org.opends.server.types.*;
@@ -857,6 +857,10 @@ public class BackendImpl
     {
       logger.traceException(de);
       throw createDirectoryException(de);
+    }
+    catch (ConfigException ce)
+    {
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(), ce.getMessageObject());
     }
     catch (IdentifiedException e)
     {

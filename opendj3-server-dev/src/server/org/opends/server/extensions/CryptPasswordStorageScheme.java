@@ -37,7 +37,7 @@ import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.CryptPasswordStorageSchemeCfg;
 import org.opends.server.admin.std.server.PasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ResultCode;

@@ -40,7 +40,7 @@ import org.opends.server.admin.std.server.BackendCfg;
 import org.opends.server.admin.std.server.LocalBackendWorkflowElementCfg;
 import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.api.Backend;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.controls.LDAPPostReadRequestControl;
 import org.opends.server.controls.LDAPPostReadResponseControl;
 import org.opends.server.controls.LDAPPreReadRequestControl;

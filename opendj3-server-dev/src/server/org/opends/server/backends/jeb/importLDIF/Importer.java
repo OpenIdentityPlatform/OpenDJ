@@ -44,7 +44,7 @@ import org.opends.server.admin.std.server.LocalDBIndexCfg;
 import org.opends.server.api.DiskSpaceMonitorHandler;
 import org.opends.server.backends.jeb.*;
 import org.opends.server.backends.jeb.RebuildConfig.RebuildMode;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.DiskSpaceMonitor;
 import org.opends.server.types.*;

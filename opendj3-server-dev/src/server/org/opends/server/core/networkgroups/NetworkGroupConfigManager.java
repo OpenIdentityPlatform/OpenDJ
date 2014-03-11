@@ -39,7 +39,7 @@ import org.opends.server.admin.server.ConfigurationDeleteListener;
 import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.admin.std.server.NetworkGroupCfg;
 import org.opends.server.admin.std.server.RootCfg;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ServerContext;
 import org.forgerock.i18n.slf4j.LocalizedLogger;

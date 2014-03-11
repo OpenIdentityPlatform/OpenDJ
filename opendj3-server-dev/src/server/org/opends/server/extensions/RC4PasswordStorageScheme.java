@@ -31,7 +31,7 @@ package org.opends.server.extensions;
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.RC4PasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;

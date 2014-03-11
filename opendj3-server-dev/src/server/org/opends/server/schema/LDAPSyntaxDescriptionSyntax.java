@@ -41,7 +41,7 @@ import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
 import org.opends.server.api.*;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.CommonSchemaElements;
 import org.opends.server.types.DirectoryException;

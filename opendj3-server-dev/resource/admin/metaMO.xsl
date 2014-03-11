@@ -22,7 +22,7 @@
   !
   !
   !      Copyright 2007-2010 Sun Microsystems, Inc.
-  !      Portions copyright 2011 ForgeRock AS.
+  !      Portions copyright 2011-2014 ForgeRock AS.
   ! -->
 <xsl:stylesheet version="1.0" xmlns:adm="http://www.opends.org/admin"
   xmlns:admpp="http://www.opends.org/admin-preprocessor"
@@ -1519,15 +1519,15 @@
   <xsl:template name="generate-change-listener-help">
     <xsl:param name="top-name" select="/.." />
     <xsl:param name="name" select="/.." />
-    
+
     <xsl:variable name="_top-length" select="string-length($top-name)" />
     <xsl:variable name="_length" select="string-length($name)" />
     <xsl:variable name="_diff"   select="$_length - $_top-length" />
     <xsl:variable name="_start"  select="substring($name, 1, $_diff - 1)" />
     <xsl:variable name="_middle" select="substring($name, $_diff, 1)" />
-    <xsl:variable name="_end" 
+    <xsl:variable name="_end"
       select="substring($name, $_diff + 1, $_top-length)" />
-    
+
     <xsl:variable name="short-name">
       <xsl:choose>
         <xsl:when test="not($top-name) or $top-name = $name">
@@ -1541,7 +1541,7 @@
         </xsl:otherwise>
       </xsl:choose>
     </xsl:variable>
-    
+
     <xsl:variable name="java-class">
       <xsl:call-template name="name-to-java">
         <xsl:with-param name="value" select="$name" />
@@ -1702,7 +1702,7 @@
       <!--
         Check that all advanced properties conform to one of
         the following rules:
-        
+
         * is mandatory and has a defined default value(s)
         * is mandatory and is part of an advanced managed object
         * is mandatory and is part of an abstract managed object
@@ -1734,7 +1734,7 @@
         </xsl:when>
       </xsl:choose>
     </xsl:for-each>
-    <!-- 
+    <!--
       Now generate the definition.
     -->
     <xsl:call-template name="copyright-notice" />
@@ -1976,7 +1976,7 @@
               <import>
                 org.opends.server.admin.server.ConfigurationDeleteListener
               </import>
-              <import>org.opends.server.config.ConfigException</import>
+              <import>org.forgerock.opendj.config.server.ConfigException</import>
             </xsl:if>
             <xsl:if test="$this-all-relations/adm:one-to-zero-or-one">
               <import>java.util.Collection</import>
@@ -1989,10 +1989,10 @@
               <import>
                 org.opends.server.admin.server.ConfigurationDeleteListener
               </import>
-              <import>org.opends.server.config.ConfigException</import>
+              <import>org.forgerock.opendj.config.server.ConfigException</import>
             </xsl:if>
             <xsl:if test="$this-all-relations/adm:one-to-one">
-              <import>org.opends.server.config.ConfigException</import>
+              <import>org.forgerock.opendj.config.server.ConfigException</import>
             </xsl:if>
             <xsl:if test="$this-all-properties[@multi-valued='true']">
               <import>java.util.SortedSet</import>

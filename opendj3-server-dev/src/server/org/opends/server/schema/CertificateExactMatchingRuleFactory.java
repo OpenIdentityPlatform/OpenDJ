@@ -33,7 +33,7 @@ import java.util.Collections;
 import org.opends.server.api.MatchingRuleFactory;
 import org.opends.server.admin.std.server.MatchingRuleCfg;
 import org.opends.server.api.MatchingRule;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.InitializationException;
 
 /**

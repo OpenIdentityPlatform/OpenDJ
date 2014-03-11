@@ -55,7 +55,7 @@ import org.opends.server.admin.std.server.AdministrationConnectorCfg;
 import org.opends.server.admin.std.server.FileBasedTrustManagerProviderCfg;
 import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.admin.std.server.TrustManagerProviderCfg;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 
 import com.forgerock.opendj.cli.Argument;

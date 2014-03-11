@@ -22,10 +22,11 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.types;
 
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 
 import javax.crypto.Mac;
 import javax.crypto.CipherOutputStream;
@@ -402,7 +403,7 @@ import java.util.SortedSet;
    * @param sslCertNickname The name of the local certificate to use,
    *                        or null if none is specified.
    * @return A new SSL Context.
-   * @throws org.opends.server.config.ConfigException If the context
+   * @throws ConfigException If the context
    * could not be created.
    */
   SSLContext getSslContext(String sslCertNickname)

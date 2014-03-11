@@ -41,7 +41,7 @@ import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.LastModPluginCfgDefn;
 import org.opends.server.admin.std.server.LastModPluginCfg;
 import org.opends.server.api.plugin.PluginType;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;

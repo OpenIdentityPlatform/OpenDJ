@@ -45,7 +45,7 @@ import org.opends.server.admin.std.server.AdministrationConnectorCfg;
 import org.opends.server.admin.std.server.ConnectionHandlerCfg;
 import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.api.ConnectionHandler;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.protocols.ldap.LDAPConnectionHandler;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
