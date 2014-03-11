@@ -33,6 +33,7 @@ import java.util.Set;
 import java.util.Iterator;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -49,6 +50,9 @@ import static org.opends.messages.AccessControlMessages.*;
  */
 public class PatternRDN
 {
+
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
+
   /**
    * Indicate whether the RDN contains a wildcard in any of its attribute
    * types.
@@ -269,59 +273,43 @@ public class PatternRDN
 
     try
     {
-      if (pattern.size() > 1)
+      if (pattern.size() == 1)
       {
-        // Handle this just like a substring filter.
+        // Handle this just like an equality filter.
+        EqualityMatchingRule rule = type.getEqualityMatchingRule();
+        ByteString thatNormValue = rule.normalizeAttributeValue(value.getValue());
+        return rule.getAssertion(pattern.get(0)).matches(thatNormValue).toBoolean();
+      }
 
-        ByteString subInitial = pattern.get(0);
-        if (subInitial.length() == 0)
-        {
-          subInitial = null;
-        }
+      // Handle this just like a substring filter.
+      ByteString subInitial = pattern.get(0);
+      if (subInitial.length() == 0)
+      {
+        subInitial = null;
+      }
 
-        ByteString subFinal = pattern.get(pattern.size() - 1);
-        if (subFinal.length() == 0)
-        {
-          subFinal = null;
-        }
+      ByteString subFinal = pattern.get(pattern.size() - 1);
+      if (subFinal.length() == 0)
+      {
+        subFinal = null;
+      }
 
-        List<ByteString> subAnyElements;
-        if (pattern.size() > 2)
-        {
-          subAnyElements = pattern.subList(1, pattern.size()-1);
-        }
-        else
-        {
-          subAnyElements = null;
-        }
-
-        Attribute attr = Attributes.create(type, value);
-        switch (attr.matchesSubstring(subInitial, subAnyElements, subFinal))
-        {
-          case TRUE:
-            return true;
-
-          case FALSE:
-          case UNDEFINED:
-          default:
-            return false;
-        }
+      List<ByteString> subAnyElements;
+      if (pattern.size() > 2)
+      {
+        subAnyElements = pattern.subList(1, pattern.size()-1);
       }
       else
       {
-        ByteString thisNormValue =
-            type.getEqualityMatchingRule().normalizeAttributeValue(pattern.get(0));
-        ByteString thatNormValue = value.getNormalizedValue();
-        EqualityMatchingRule mr = type.getEqualityMatchingRule();
-        return mr.areEqual(thisNormValue, thatNormValue);
+        subAnyElements = null;
       }
+
+      Attribute attr = Attributes.create(type, value);
+      return attr.matchesSubstring(subInitial, subAnyElements, subFinal).toBoolean();
     }
     catch (DecodeException e)
     {
-      return false;
-    }
-    catch (DirectoryException e)
-    {
+      logger.traceException(e);
       return false;
     }
   }

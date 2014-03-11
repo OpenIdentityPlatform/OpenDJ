@@ -39,6 +39,7 @@ import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.util.Reject;
 import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.EqualityMatchingRule;
@@ -1302,11 +1303,11 @@ public class MatchedValuesFilter
         {
           try
           {
-            return equalityMatchingRule.areEqual(
-              equalityMatchingRule.normalizeAssertionValue(rawAssertionValue),
-              value.getNormalizedValue());
+            final ByteString normValue = equalityMatchingRule.normalizeAttributeValue(value.getValue());
+            final Assertion assertion = equalityMatchingRule.getAssertion(rawAssertionValue);
+            return assertion.matches(normValue).toBoolean();
           }
-          catch (Exception e)
+          catch (DecodeException e)
           {
             logger.traceException(e);
           }
@@ -1432,7 +1433,6 @@ public class MatchedValuesFilter
           catch (Exception e)
           {
             logger.traceException(e);
-
             return false;
           }
         }
@@ -1445,14 +1445,12 @@ public class MatchedValuesFilter
 
           try
           {
-            return equalityMatchingRule.areEqual(
-              equalityMatchingRule.normalizeAssertionValue(rawAssertionValue),
-              value.getNormalizedValue());
+            ByteString normValue = equalityMatchingRule.normalizeAttributeValue(value.getValue());
+            return equalityMatchingRule.getAssertion(rawAssertionValue).matches(normValue).toBoolean();
           }
           catch (Exception e)
           {
             logger.traceException(e);
-
             return false;
           }
         }

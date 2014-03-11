@@ -32,9 +32,12 @@ import java.util.*;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.api.ClientConnection;
+import org.opends.server.api.MatchingRule;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.controls.*;
@@ -46,7 +49,12 @@ import org.opends.server.replication.protocol.*;
 import org.opends.server.replication.server.ECLServerHandler;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
+import org.opends.server.types.Modification;
+import org.opends.server.types.RDN;
 import org.opends.server.types.operation.PostOperationSearchOperation;
 import org.opends.server.types.operation.PreOperationSearchOperation;
 import org.opends.server.types.operation.SearchEntrySearchOperation;
@@ -1182,14 +1190,12 @@ public class ECLSearchOperation
     // Here are the 3 elementary cases we know how to optimize
     if (matches(sf, FilterType.GREATER_OR_EQUAL, "changeNumber"))
     {
-      int sn = Integer.decode(
-          sf.getAssertionValue().getNormalizedValue().toString());
+      int sn = extractChangeNumber(sf);
       startCLmsg.setFirstChangeNumber(sn);
     }
     else if (matches(sf, FilterType.LESS_OR_EQUAL, "changeNumber"))
     {
-      int sn = Integer.decode(
-          sf.getAssertionValue().getNormalizedValue().toString());
+      int sn = extractChangeNumber(sf);
       startCLmsg.setLastChangeNumber(sn);
     }
     else if (matches(sf, FilterType.EQUALITY, "replicationcsn"))
@@ -1199,8 +1205,7 @@ public class ECLSearchOperation
     }
     else if (matches(sf, FilterType.EQUALITY, "changenumber"))
     {
-      int sn = Integer.decode(
-          sf.getAssertionValue().getNormalizedValue().toString());
+      int sn = extractChangeNumber(sf);
       startCLmsg.setFirstChangeNumber(sn);
       startCLmsg.setLastChangeNumber(sn);
     }
@@ -1237,6 +1242,23 @@ public class ECLSearchOperation
       startCLmsg.setFirstChangeNumber(Math.max(f1,f2));
     }
     return startCLmsg;
+  }
+
+  private static int extractChangeNumber(SearchFilter sf)
+      throws DirectoryException
+  {
+    try
+    {
+      MatchingRule rule = sf.getAttributeType().getEqualityMatchingRule();
+      ByteString normValue =
+          rule.normalizeAssertionValue(sf.getAssertionValue().getValue());
+      return Integer.decode(normValue.toString());
+    }
+    catch (DecodeException e)
+    {
+      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, e
+          .getMessageObject(), e);
+    }
   }
 
   private static boolean matches(SearchFilter sf, FilterType filterType,

@@ -26,8 +26,6 @@
  */
 package org.opends.server.core;
 
-
-
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -37,6 +35,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.std.meta.PasswordPolicyCfgDefn;
 import org.opends.server.api.*;
 import org.opends.server.protocols.internal.InternalClientConnection;
@@ -45,14 +44,11 @@ import org.opends.server.schema.AuthPasswordSyntax;
 import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-
-
 
 /**
  * This class provides a data structure for holding password policy state
@@ -226,14 +222,15 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     List<Attribute> attrList = userEntry.getAttribute(attributeType);
     if (attrList != null)
     {
+      final MatchingRule rule = attributeType.getEqualityMatchingRule();
       for (Attribute a : attrList)
       {
         for (AttributeValue v : a)
         {
           try
           {
-            timeValues.add(GeneralizedTimeSyntax.decodeGeneralizedTimeValue(
-                                                       v.getNormalizedValue()));
+            ByteString normValue = rule.normalizeAttributeValue(v.getValue());
+            timeValues.add(GeneralizedTimeSyntax.decodeGeneralizedTimeValue(normValue));
           }
           catch (Exception e)
           {

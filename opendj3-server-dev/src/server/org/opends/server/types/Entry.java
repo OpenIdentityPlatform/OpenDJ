@@ -38,11 +38,13 @@ import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteSequenceReader;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.ObjectClassType;
 import org.opends.server.api.AttributeValueDecoder;
 import org.opends.server.api.CompressedSchema;
+import org.opends.server.api.MatchingRule;
 import org.opends.server.api.ProtocolElement;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.core.DirectoryServer;
@@ -1473,22 +1475,13 @@ public class Entry
 
       boolean allSuccessful = true;
 
+      MatchingRule rule =
+          attribute.getAttributeType().getEqualityMatchingRule();
       for (AttributeValue v : attribute)
       {
-        String ocName;
-        try
-        {
-          ocName = v.getNormalizedValue().toString();
-        }
-        catch (Exception e)
-        {
-          logger.traceException(e);
-
-          ocName = toLowerCase(v.getValue().toString());
-        }
+        String ocName = toLowerName(rule, v.getValue());
 
         boolean matchFound = false;
-
         for (ObjectClass oc : objectClasses.keySet())
         {
           if (oc.hasNameOrOID(ocName))
@@ -1570,6 +1563,18 @@ public class Entry
     return false;
   }
 
+  private String toLowerName(MatchingRule rule, ByteString value)
+  {
+    try
+    {
+      return normalize(rule, value).toString();
+    }
+    catch (Exception e)
+    {
+      logger.traceException(e);
+      return toLowerCase(value.toString());
+    }
+  }
 
 
   /**
@@ -3213,7 +3218,7 @@ public class Entry
               {
                 for (AttributeValue value : attr)
                 {
-                  inheritFromDN = DN.decode(value.getNormalizedValue());
+                  inheritFromDN = DN.decode(value.getValue());
                   // Respect subentry root scope.
                   if (!inheritFromDN.isDescendantOf(
                        subEntry.getDN().parent()))
@@ -3327,6 +3332,20 @@ public class Entry
           }
         }
       }
+    }
+  }
+
+  private ByteString normalize(MatchingRule matchingRule, ByteString value)
+      throws DirectoryException
+  {
+    try
+    {
+      return matchingRule.normalizeAttributeValue(value);
+    }
+    catch (DecodeException e)
+    {
+      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
+          e.getMessageObject(), e);
     }
   }
 
@@ -4653,21 +4672,12 @@ public class Entry
         objectClasses.clear();
       }
 
+      MatchingRule rule =
+          attribute.getAttributeType().getEqualityMatchingRule();
       for (AttributeValue v : attribute)
       {
         String name = v.getValue().toString();
-
-        String lowerName;
-        try
-        {
-          lowerName = v.getNormalizedValue().toString();
-        }
-        catch (Exception e)
-        {
-          logger.traceException(e);
-
-          lowerName = toLowerCase(v.getValue().toString());
-        }
+        String lowerName = toLowerName(rule, v.getValue());
 
         // Create a default object class if necessary.
         ObjectClass oc =

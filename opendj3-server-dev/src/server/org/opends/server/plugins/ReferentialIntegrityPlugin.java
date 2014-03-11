@@ -36,7 +36,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -48,6 +47,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.PluginCfgDefn;
@@ -56,6 +56,7 @@ import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.admin.std.server.ReferentialIntegrityPluginCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.DirectoryThread;
+import org.opends.server.api.MatchingRule;
 import org.opends.server.api.ServerShutdownListener;
 import org.opends.server.api.plugin.DirectoryServerPlugin;
 import org.opends.server.api.plugin.PluginResult;
@@ -67,7 +68,6 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.types.operation.SubordinateModifyDNOperation;
 import org.opends.server.types.operation.PostOperationModifyDNOperation;
 import org.opends.server.types.operation.PostOperationDeleteOperation;
@@ -1231,25 +1231,21 @@ public class ReferentialIntegrityPlugin
    * @param entryDN DN of the entry which contains the <CODE>attr</CODE>
    *                attribute.
    * @return        The SUCCESS if the integrity is maintained or
-   *                CONSTRAINT_VIOLATION oherwise
+   *                CONSTRAINT_VIOLATION otherwise
    */
   private PluginResult.PreOperation isIntegrityMaintained(Attribute attr,
                                                           DN entryDN,
                                                           DN entryBaseDN)
   {
-    /* Iterate over the list of attributes */
-
-    Iterator<AttributeValue> attrValIt = attr.iterator();
-
+    final MatchingRule rule = attr.getAttributeType().getEqualityMatchingRule();
     try
     {
-      while (attrValIt.hasNext())
+      for (AttributeValue attrVal : attr)
       {
-        AttributeValue attrVal = attrValIt.next();
-        Entry valueEntry = null;
+        DN valueEntryDN =
+            DN.decode(rule.normalizeAttributeValue(attrVal.getValue()));
 
-        DN valueEntryDN = DN.decode(attrVal.getNormalizedValue());
-
+        final Entry valueEntry;
         if (currentConfiguration.getCheckReferencesScopeCriteria()
           == CheckReferencesScopeCriteria.NAMING_CONTEXT)
         {
@@ -1270,9 +1266,7 @@ public class ReferentialIntegrityPlugin
           valueEntry = DirectoryServer.getEntry(valueEntryDN);
         }
 
-        /* Verify that the value entry exists in the backend.
-         */
-
+        // Verify that the value entry exists in the backend.
         if (valueEntry == null)
         {
           return PluginResult.PreOperation.stopProcessing(
@@ -1281,9 +1275,7 @@ public class ReferentialIntegrityPlugin
                 valueEntryDN, attr.getName(), entryDN));
         }
 
-        /* Verify that the value entry conforms to the filter.
-         */
-
+        // Verify that the value entry conforms to the filter.
         SearchFilter filter = attrFiltMap.get(attr.getAttributeType());
         if (filter != null && !filter.matchesEntry(valueEntry))
         {
@@ -1294,7 +1286,7 @@ public class ReferentialIntegrityPlugin
         }
       }
     }
-    catch (DirectoryException de)
+    catch (Exception de)
     {
       return PluginResult.PreOperation.stopProcessing(
         ResultCode.OTHER,

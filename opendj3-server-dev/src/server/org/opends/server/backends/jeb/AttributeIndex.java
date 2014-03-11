@@ -2223,9 +2223,10 @@ public class AttributeIndex
       try
       {
         // Make a key from the normalized assertion value.
-        byte[] keyBytes =
-          extensibleFilter.getAssertionValue().getNormalizedValue().
-          toByteArray();
+        MatchingRule rule =
+            extensibleFilter.getAttributeType().getEqualityMatchingRule();
+        ByteString value = extensibleFilter.getAssertionValue().getValue();
+        byte[] keyBytes = rule.normalizeAssertionValue(value).toByteArray();
         DatabaseEntry key = new DatabaseEntry(keyBytes);
 
         if(debugBuffer != null)
@@ -2265,7 +2266,7 @@ public class AttributeIndex
         }
         return idSet;
       }
-      catch (DirectoryException e)
+      catch (DecodeException e)
       {
         logger.traceException(e);
         return IndexQuery.createNullIndexQuery().evaluate(null);
