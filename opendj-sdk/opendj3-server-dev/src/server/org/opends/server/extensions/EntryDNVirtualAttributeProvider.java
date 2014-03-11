@@ -31,8 +31,10 @@ import java.util.*;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.admin.std.server.EntryDNVirtualAttributeCfg;
+import org.opends.server.api.MatchingRule;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
@@ -94,14 +96,15 @@ public class EntryDNVirtualAttributeProvider
   {
     try
     {
-      String normalizedDN    = entry.getName().toNormalizedString();
-      String normalizedValue = value.getNormalizedValue().toString();
+      MatchingRule eqRule = rule.getAttributeType().getEqualityMatchingRule();
+      ByteString dn = ByteString.valueOf(entry.getName().toString());
+      ByteString normalizedDN = eqRule.normalizeAttributeValue(dn);
+      ByteString normalizedValue = eqRule.normalizeAttributeValue(value.getValue());
       return normalizedDN.equals(normalizedValue);
     }
-    catch (Exception e)
+    catch (DecodeException e)
     {
       logger.traceException(e);
-
       return false;
     }
   }

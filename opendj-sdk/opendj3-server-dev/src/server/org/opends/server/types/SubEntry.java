@@ -24,7 +24,6 @@
  *      Copyright 2009-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2011-2014 ForgeRock AS
  */
-
 package org.opends.server.types;
 
 import java.util.ArrayList;
@@ -364,13 +363,10 @@ public class SubEntry {
           {
             for (AttributeValue value : attr)
             {
-              this.inheritFromBaseDN =
-                      DN.decode(value.getNormalizedValue());
               // Has to have a parent since subentry itself
               // cannot be a suffix entry within the server.
               this.inheritFromBaseDN =
-                      getDN().parent().child(
-                        inheritFromBaseDN);
+                  getDN().parent().child(DN.decode(value.getValue()));
               break;
             }
           }

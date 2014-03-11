@@ -24,10 +24,7 @@
  *      Portions Copyright 2011-2014 ForgeRock AS.
  *      Portions Copyright 2014 ForgeRock AS
  */
-
 package org.opends.server.api;
-
-
 
 import java.util.List;
 
@@ -35,16 +32,14 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-
-
 
 /**
  * The authentication policy context associated with a user's entry, which is
@@ -206,8 +201,9 @@ public abstract class AuthenticationPolicyState
         final AttributeValue v = a.iterator().next();
         try
         {
-          timeValue = GeneralizedTimeSyntax.decodeGeneralizedTimeValue(v
-              .getNormalizedValue());
+          EqualityMatchingRule rule = attributeType.getEqualityMatchingRule();
+          ByteString normValue = rule.normalizeAttributeValue(v.getValue());
+          timeValue = GeneralizedTimeSyntax.decodeGeneralizedTimeValue(normValue);
         }
         catch (final Exception e)
         {

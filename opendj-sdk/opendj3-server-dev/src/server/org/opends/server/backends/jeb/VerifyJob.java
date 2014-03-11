@@ -34,9 +34,8 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.opends.server.api.ApproximateMatchingRule;
+import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.api.MatchingRule;
-import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
 import org.opends.server.util.ServerConstants;
@@ -1629,18 +1628,20 @@ public class VerifyJob
 
     for (Attribute attr : attrList)
     {
+      final AttributeType attrType = attr.getAttributeType();
+      EqualityMatchingRule equalityRule = attrType.getEqualityMatchingRule();
       for (AttributeValue value : attr)
       {
-        byte[] normalizedBytes = value.getNormalizedValue().toByteArray();
+        final ByteString bsValue = value.getValue();
+        byte[] normalizedBytes = normalize(equalityRule, bsValue);
 
-        // Equality index.
         if (equalityIndex != null)
         {
+          // TODO JNR reuse DatabaseEntry object for all indexes?
           DatabaseEntry key = new DatabaseEntry(normalizedBytes);
           verifyAttributeInIndex(equalityIndex, txn, key, entryID);
         }
 
-        // Substring index.
         if (substringIndex != null)
         {
           Set<ByteString> keyBytesSet =
@@ -1653,28 +1654,16 @@ public class VerifyJob
           }
         }
 
-        // Ordering index.
         if (orderingIndex != null)
         {
-          // Use the ordering matching rule to normalize the value.
-          OrderingMatchingRule orderingRule =
-              attr.getAttributeType().getOrderingMatchingRule();
-
-          normalizedBytes = normalizeAttributeValue(orderingRule, value);
-
+          normalizedBytes = normalize(attrType.getOrderingMatchingRule(), bsValue);
           DatabaseEntry key = new DatabaseEntry(normalizedBytes);
           verifyAttributeInIndex(orderingIndex, txn, key, entryID);
         }
 
-        // Approximate index.
         if (approximateIndex != null)
         {
-          // Use the approximate matching rule to normalize the value.
-          ApproximateMatchingRule approximateRule =
-              attr.getAttributeType().getApproximateMatchingRule();
-
-          normalizedBytes = normalizeAttributeValue(approximateRule, value);
-
+          normalizedBytes = normalize(attrType.getApproximateMatchingRule(), bsValue);
           DatabaseEntry key = new DatabaseEntry(normalizedBytes);
           verifyAttributeInIndex(approximateIndex, txn, key, entryID);
         }
@@ -1717,13 +1706,12 @@ public class VerifyJob
     }
   }
 
-  private byte[] normalizeAttributeValue(MatchingRule matchingRule,
-      AttributeValue value) throws DirectoryException
+  private byte[] normalize(MatchingRule matchingRule,
+      ByteString value) throws DirectoryException
   {
     try
     {
-      return matchingRule.normalizeAttributeValue(value.getValue())
-          .toByteArray();
+      return matchingRule.normalizeAttributeValue(value).toByteArray();
     }
     catch (DecodeException e)
     {

@@ -32,7 +32,10 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.api.EqualityMatchingRule;
+import org.opends.server.api.MatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.core.DirectoryServer;
 
@@ -1050,17 +1053,21 @@ public final class RDN
    */
   public void getAVAString(int pos, StringBuilder buffer)
   {
-      buffer.append(attributeTypes[pos].getNormalizedPrimaryNameOrOID());
+      AttributeType type = attributeTypes[pos];
+      buffer.append(type.getNormalizedPrimaryNameOrOID());
       buffer.append('=');
 
+      AttributeValue value = attributeValues[pos];
       try
       {
-        buffer.append(getDNValue(attributeValues[pos].getNormalizedValue()));
+        MatchingRule rule = type.getEqualityMatchingRule();
+        ByteString normValue = rule.normalizeAttributeValue(value.getValue());
+        buffer.append(getDNValue(normValue));
       }
       catch (Exception e)
       {
         logger.traceException(e);
-        buffer.append(getDNValue(attributeValues[pos].getValue()));
+        buffer.append(getDNValue(value.getValue()));
       }
   }
 
@@ -1083,14 +1090,14 @@ public final class RDN
     if (attributeTypes.length == 1 && rdn.attributeTypes.length == 1)
     {
       // fast path
-      if (attributeTypes[0].equals(rdn.attributeTypes[0]))
+      AttributeType type = attributeTypes[0];
+      if (type.equals(rdn.attributeTypes[0]))
       {
-        OrderingMatchingRule omr = attributeTypes[0].getOrderingMatchingRule();
-        return compare(attributeValues[0], rdn.attributeValues[0], omr);
+        return compare(attributeValues[0], rdn.attributeValues[0], type);
       }
       else
       {
-        String name1 = attributeTypes[0].getNormalizedPrimaryNameOrOID();
+        String name1 = type.getNormalizedPrimaryNameOrOID();
         String name2 = rdn.attributeTypes[0].getNormalizedPrimaryNameOrOID();
         return name1.compareTo(name2);
       }
@@ -1140,8 +1147,7 @@ public final class RDN
         return name1.compareTo(name2);
       }
 
-      final OrderingMatchingRule omr = type1.getOrderingMatchingRule();
-      final int valueComparison = compare(value1, value2, omr);
+      final int valueComparison = compare(value1, value2, type1);
       if (valueComparison != 0)
       {
         // we found a difference => return result
@@ -1178,34 +1184,37 @@ public final class RDN
    *          the first attribute value to compare
    * @param value2
    *          the second attribute value to compare
-   * @param omr
-   *          if not null, the OrderingMatchingRule to use for comparison
+   * @param type
+   *          the type whose OrderingMatchingRule is to be used for comparison
    * @return A negative integer if this value1 should come before the value2, a
    *         positive integer if value1 should come after value2, or zero if
    *         there is no difference with regard to ordering.
    */
   private int compare(AttributeValue value1, AttributeValue value2,
-      OrderingMatchingRule omr)
+      AttributeType type)
   {
+    final OrderingMatchingRule omr = type.getOrderingMatchingRule();
+    final EqualityMatchingRule emr = type.getEqualityMatchingRule();
+
     ByteString val1;
     ByteString val2;
     try
     {
-      val1 = value1.getNormalizedValue();
-      val2 = value2.getNormalizedValue();
+      final MatchingRule rule = omr != null ? omr : emr;
+      val1 = rule.normalizeAttributeValue(value1.getValue());
+      val2 = rule.normalizeAttributeValue(value2.getValue());
     }
-    catch (DirectoryException e)
+    catch (DecodeException e)
     {
       logger.traceException(e);
       val1 = value1.getValue();
       val2 = value2.getValue();
     }
 
-
     if (omr != null)
     {
       return omr.compareValues(val1, val2);
     }
-    return val1.toString().compareTo(val2.toString());
+    return val1.compareTo(val2);
   }
 }

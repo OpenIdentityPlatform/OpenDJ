@@ -29,13 +29,14 @@ package org.opends.server.replication.plugin;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
 import org.opends.server.admin.std.server.ExternalChangelogDomainCfg;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
-import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.types.RDN;
 
 /**
  * This class specifies the external changelog feature for a replication
@@ -67,25 +68,15 @@ public class ExternalChangelogDomain
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public ConfigChangeResult applyConfigurationAdd(
       ExternalChangelogDomainCfg configuration)
   {
-    try
+    final ConfigChangeResult ccr = setDomain(configuration);
+    if (ccr != null)
     {
-      if (domain==null)
-      {
-        DN rdns = DN.decode(
-            configuration.dn().parent().rdn().getAttributeValue(0).
-            getNormalizedValue());
-        domain = MultimasterReplication.findDomain(rdns, null);
-      }
-    }
-    catch (Exception e)
-    {
-      return new ConfigChangeResult(ResultCode.CONSTRAINT_VIOLATION, false);
+      return ccr;
     }
 
     this.isEnabled = configuration.isEnabled();
@@ -96,9 +87,8 @@ public class ExternalChangelogDomain
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
       ExternalChangelogDomainCfg configuration)
   {
@@ -108,20 +98,29 @@ public class ExternalChangelogDomain
     // - after dsconfig set-external-changelog-domain-prop --add ecl-include:xx
     //   configuration contains attribute xx and the previous list
     // Hence in all cases, it is the complete list of attributes.
+    final ConfigChangeResult ccr = setDomain(configuration);
+    if (ccr != null)
+    {
+      return ccr;
+    }
+
+    this.isEnabled = configuration.isEnabled();
+    domain.changeConfig(configuration.getECLInclude(),
+        configuration.getECLIncludeForDeletes());
+    return new ConfigChangeResult(ResultCode.SUCCESS, false);
+  }
+
+  private ConfigChangeResult setDomain(ExternalChangelogDomainCfg configuration)
+  {
     try
     {
       if (domain==null)
       {
-        DN rdns = DN.decode(
-            configuration.dn().parent().rdn().getAttributeValue(0).
-              getNormalizedValue());
+        RDN rdn = configuration.dn().parent().rdn();
+        DN rdns = DN.decode(rdn.getAttributeValue(0).getValue());
         domain = MultimasterReplication.findDomain(rdns, null);
       }
-
-      this.isEnabled = configuration.isEnabled();
-      domain.changeConfig(configuration.getECLInclude(),
-          configuration.getECLIncludeForDeletes());
-      return new ConfigChangeResult(ResultCode.SUCCESS, false);
+      return null;
     }
     catch (Exception e)
     {
@@ -130,18 +129,16 @@ public class ExternalChangelogDomain
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public boolean isConfigurationAddAcceptable(
       ExternalChangelogDomainCfg configuration,
       List<LocalizableMessage> unacceptableReasons)
   {
     return true;
   }
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public boolean isConfigurationChangeAcceptable(
       ExternalChangelogDomainCfg configuration,
       List<LocalizableMessage> unacceptableReasons)
@@ -150,9 +147,8 @@ public class ExternalChangelogDomain
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public boolean isConfigurationDeleteAcceptable(
       ExternalChangelogDomainCfg configuration,
       List<LocalizableMessage> unacceptableReasons)
@@ -161,9 +157,8 @@ public class ExternalChangelogDomain
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public ConfigChangeResult applyConfigurationDelete(
       ExternalChangelogDomainCfg configuration)
   {

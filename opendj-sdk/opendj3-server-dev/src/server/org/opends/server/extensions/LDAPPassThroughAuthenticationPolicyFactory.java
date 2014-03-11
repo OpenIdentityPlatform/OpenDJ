@@ -1844,16 +1844,25 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
               // Ignore any attributes with options.
               if (!attribute.hasOptions())
               {
+                MatchingRule rule =
+                    attribute.getAttributeType().getEqualityMatchingRule();
                 for (AttributeValue value : attribute)
                 {
                   try
                   {
+                    ByteString normValue =
+                        rule.normalizeAttributeValue(value.getValue());
                     long cachedPasswordTime = GeneralizedTimeSyntax
-                        .decodeGeneralizedTimeValue(value.getNormalizedValue());
+                            .decodeGeneralizedTimeValue(normValue);
                     long currentTime = provider.getCurrentTimeMS();
                     long expiryTime = cachedPasswordTime
                         + (cfg.getCachedPasswordTTL() * 1000);
                     foundValidCachedPasswordTime = (expiryTime > currentTime);
+                  }
+                  catch (DecodeException e)
+                  {
+                    // Fall-through and give up immediately.
+                    logger.traceException(e);
                   }
                   catch (DirectoryException e)
                   {
