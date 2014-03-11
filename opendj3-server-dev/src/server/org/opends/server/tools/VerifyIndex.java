@@ -37,6 +37,7 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.BackendCfg;
@@ -105,7 +106,7 @@ public class VerifyIndex
   {
     PrintStream out = NullOutputStream.wrapOrNullStream(outStream);
     PrintStream err = NullOutputStream.wrapOrNullStream(errStream);
-    JDKLogging.disableLogging();
+    JDKLogging.enableConsoleLoggingForOpenDJ(Level.FINE);
 
     // Define the command-line arguments that may be used with this program.
     StringArgument  configClass             = null;
