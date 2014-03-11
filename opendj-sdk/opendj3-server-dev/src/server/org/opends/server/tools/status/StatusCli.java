@@ -58,7 +58,7 @@ import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.admin.AdministrationConnector;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import com.forgerock.opendj.cli.ClientException;
 import org.opends.server.tools.dsconfig.LDAPManagementContextFactory;
 import org.opends.server.types.DN;

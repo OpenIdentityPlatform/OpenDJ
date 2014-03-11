@@ -45,7 +45,7 @@ import org.opends.server.admin.std.server.*;
 import org.opends.server.api.Backend;
 import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.backends.jeb.BackupManager;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.*;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;

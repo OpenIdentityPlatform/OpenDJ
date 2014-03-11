@@ -36,7 +36,7 @@ import org.opends.server.admin.std.meta.RequestFilteringQOSPolicyCfgDefn.Allowed
 import org.opends.server.admin.std.meta.RequestFilteringQOSPolicyCfgDefn.AllowedSearchScopes;
 import org.opends.server.admin.std.server.RequestFilteringQOSPolicyCfg;
 import org.opends.server.api.QOSPolicyFactory;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;

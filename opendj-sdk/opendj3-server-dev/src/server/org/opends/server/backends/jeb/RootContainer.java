@@ -42,7 +42,7 @@ import org.opends.server.api.Backend;
 import org.opends.server.admin.std.server.LocalDBBackendCfg;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.InitializationException;
 import static org.opends.messages.JebMessages.*;

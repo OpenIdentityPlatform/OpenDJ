@@ -54,7 +54,7 @@ import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
 import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
 import org.opends.server.admin.client.ldap.LDAPConnection;
 import org.opends.server.admin.client.ldap.LDAPManagementContext;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.tools.JavaPropertiesTool.ErrorReturnCode;
 import org.opends.server.util.cli.LDAPConnectionConsoleInteraction;
 

@@ -30,7 +30,7 @@ package org.opends.server.tools;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.DecodeException;
 
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 
 import org.opends.server.tools.tasks.TaskClient;

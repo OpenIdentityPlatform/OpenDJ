@@ -39,7 +39,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.opends.server.api.Backend;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 
 import static org.opends.server.config.ConfigConstants.*;
 

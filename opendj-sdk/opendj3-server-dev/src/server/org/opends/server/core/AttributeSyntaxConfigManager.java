@@ -40,7 +40,7 @@ import org.opends.server.admin.std.server.AttributeSyntaxCfg;
 import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.api.AttributeSyntax;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.util.Utils;
 import org.opends.server.types.AttributeType;

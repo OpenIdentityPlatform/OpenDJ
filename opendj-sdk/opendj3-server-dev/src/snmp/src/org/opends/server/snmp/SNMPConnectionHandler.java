@@ -45,7 +45,7 @@ import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.HostPort;
 import org.opends.server.admin.std.server.SNMPConnectionHandlerCfg;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.InitializationException;
 

@@ -27,25 +27,121 @@ require 'fileutils'
 #
 class Replace
 
-  # Messages map : contains for each message its associated level
-  MESSAGES_MAP = {}
-
-  # Mapping of opendj2 log levels to opendj3 logging method
-  LOG_LEVELS = {
-    'INFO' => 'debug',
-    'MILD_WARN' => 'warn',
-    'SEVERE_WARN' => 'warn',
-    'MILD_ERR' => 'error',
-    'SEVERE_ERR' => 'error',
-    'FATAL_ERR' => 'error',
-    'DEBUG' => 'trace',
-    'NOTICE' => 'info',
-  }
-
   # All directories that contains java code
   JAVA_DIRS = ["src/server", "src/quicksetup", "src/ads", "src/guitools", "tests/unit-tests-testng/src"]
   SNMP_DIR = ["src/snmp/src"]
   DSML_DIR = ["src/dsml/org"]
+
+ # Replacement for new config framework
+  CONFIG_EXC = {
+    :dirs => JAVA_DIRS + SNMP_DIR,
+    :extensions => ["java"],
+    :stopwords => [],
+    :replacements =>
+      [
+        /import org.opends.server.config.ConfigException;/,
+        'import org.forgerock.opendj.config.server.ConfigException;',
+       ]
+  }
+
+
+  # Replacement for new config framework
+  NEW_CONFIG = {
+    :dirs => JAVA_DIRS + SNMP_DIR,
+    :extensions => ["java"],
+    :stopwords => ["org/opends/server/admin", "api/Config", "MatchingRuleConfigManager"],
+    :replacements =>
+      [
+        /import org.opends.server.admin.std.server\.([^;]+);/,
+        'import org.forgerock.opendj.server.config.server.\1;',
+
+        /import org.opends.server.admin.std.meta\.([^;]+);/,
+        'import org.forgerock.opendj.server.config.meta.\1;',
+
+        /import org.opends.server.admin.std.client\.([^;]+);/,
+        'import org.forgerock.opendj.server.config.client.\1;',
+
+        /import org.opends.server.admin.client\.(\w+);/,
+        'import org.forgerock.opendj.config.client.\1;',
+
+        /import org.opends.server.admin.client.ldap\.(\w+);/,
+        'import org.forgerock.opendj.config.client.ldap.\1;',
+
+        /import org.opends.server.admin.client.spi\.(\w+);/,
+        'import org.forgerock.opendj.config.client.spi.\1;',
+
+        /import org.opends.server.admin.server\.([^;]+);/,
+        'import org.forgerock.opendj.config.server.\1;',
+
+        /import org.opends.server.admin\.(\w+);/,
+        'import org.forgerock.opendj.config.\1;',
+
+        /import org.forgerock.opendj.config.client.AuthorizationException;/,
+        'import org.forgerock.opendj.ldap.ErrorResultException;',
+
+        /import org.forgerock.opendj.config.client.CommunicationException;$/,
+        '',
+
+        /catch \(AuthorizationException e\)/,
+        'catch (ErrorResultException e)',
+
+        /catch \(CommunicationException e\)/,
+        'catch (ErrorResultException e)',
+
+        # Now bring back removed imports that have no replacement
+        /import org.forgerock.opendj.config.client.ldap.JNDIDirContextAdaptor;/,
+        'import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;',
+
+        /import org.forgerock.opendj.config.AdministrationConnector;/,
+        'import org.opends.server.admin.AdministrationConnector;',
+
+        /import org.forgerock.opendj.config.AdministrationDataSync;/,
+        'import org.opends.server.admin.AdministrationDataSync;',
+
+        /import org.forgerock.opendj.config.ClassLoaderProvider;/,
+        'import org.forgerock.opendj.config.ConfigurationFramework;',
+
+        /import org.opends.server.types.ConfigChangeResult;/,
+        'import org.forgerock.opendj.config.server.ConfigChangeResult;',
+
+        /public ConfigChangeResult\s/,
+        "public org.forgerock.opendj.config.server.ConfigChangeResult ",
+
+        /new ConfigChangeResult\(/,
+        "new org.forgerock.opendj.config.server.ConfigChangeResult(",
+
+        /rdn\(\).getAttributeValue\(0\).getValue\(\).toString\(\)/,
+        'rdn().getFirstAVA().getAttributeValue().toString()',
+
+        /^(\s+)ServerManagementContext \w+\s*=\s*ServerManagementContext\s*.getInstance\(\);/m,
+        '',
+
+        /^(\s+)RootCfg (\w+)\s+=\s+\w+\.getRootConfiguration\(\);/m,
+        '\1RootCfg \2 = serverContext.getServerManagementContext().getRootConfiguration();',
+
+        /^(\s+)RootCfg (\w+)\s+=\s+ServerManagementContext.getInstance\(\)\.getRootConfiguration\(\);/m,
+        '\1RootCfg \2 = serverContext.getServerManagementContext().getRootConfiguration();',
+
+        #/(config|configuration|cfg|currentConfig)\.dn\(\)/,
+        #'org.forgerock.opendj.adapter.server3x.Converters.to(\1.dn())',
+
+        /(\b\w+\b)\.dn\(\)/,
+        'org.forgerock.opendj.adapter.server3x.Converters.to(\1.dn())',
+
+        /(config|configuration|cfg|currentConfig|configEntry|pluginCfg)\.get(\w+)(DN|DNs|Subtrees)\(\)/,
+        'org.forgerock.opendj.adapter.server3x.Converters.to(\1.get\2\3())',
+
+        /^(\s+)ConfigChangeResult (\b\w+\b);/,
+        '\1org.forgerock.opendj.config.server.ConfigChangeResult \2;',
+
+        /(\s+)AttributeType (\w+) = (configuration|config|cfg|\w+Cfg).get(\w+)Attribute\(\);/,
+        '\1AttributeType \2 = \3.get\4Attribute();',
+
+        /^(\s+)public DN dn\(\)/,
+        '\1public org.forgerock.opendj.ldap.DN dn()',
+
+      ]
+  }
 
 
   # Replacement for types
@@ -83,122 +179,6 @@ class Replace
         "DN.rootDN()"
 
       ]
-  }
-
-  # Replacement for exceptions
-  # Modify 36 files, for a total of 134 replacements - leaves 1277 compilation errors but mostly from generated config
-  EXCEPTIONS = {
-    :dirs => JAVA_DIRS,
-    :extensions => ["java"],
-    :replacements =>
-      [
-        /import org.opends.server.admin.client.AuthorizationException;/,
-        'import org.forgerock.opendj.ldap.ErrorResultException;',
-
-        /\bAuthorizationException\b/,
-        'ErrorResultException',
-
-        /import org.opends.server.admin.client.CommunicationException;\n/,
-        '',
-
-        /throws CommunicationException\b, /,
-        'throws ',
-
-        /, CommunicationException\b(, )?/,
-        '\1',
-
-        /\bCommunicationException\b/,
-        'ErrorResultException',
-      ]
-  }
-
-  # Replacement for loggers
-  # Modify 454 files, for a total of 2427 replacements - leaves 72 compilation errors
-  # TODO: add I18N loggers
-  LOGGERS = {
-    :dirs => SNMP_DIR,
-    :stopwords => ['src/server/org/opends/server/loggers', 'DebugLogPublisher'],
-    :extensions => ["java"],
-    :replacements =>
-      [
-        /import org.opends.server.loggers.debug.DebugTracer;/,
-        "import org.forgerock.i18n.LocalizableMessage;\nimport org.forgerock.i18n.slf4j.LocalizedLogger;",
-
-        /import java.util.logging.Logger;/,
-        "import org.forgerock.i18n.LocalizableMessage;\nimport org.forgerock.i18n.slf4j.LocalizedLogger;",
-
-        /import java.util.logging.Level;/,
-        '',
-
-        /import org.opends.server.types.DebugLogLevel;\n/,
-        '',
-
-        #/import (static )?org.opends.server.loggers.debug.DebugLogger.*;\n/,
-        #'',
-
-        /DebugTracer TRACER = (DebugLogger.)?getTracer\(\)/,
-        "LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass()",
-
-        /^\s*\/\*\*\n.*The tracer object for the debug logger.\n\s*\*\/$\n/,
-        '',
-
-        /^\s*\/\/\s*The tracer object for the debug logger.$\n/,
-        '',
-
-        /if \(debugEnabled\(\)\)\s*{\s* TRACER.debugCaught\(DebugLogLevel.ERROR, (\b.*\b)\);\s*\n\s*}$/,
-        'logger.traceException(\1);',
-
-        /TRACER\.debugCaught\(DebugLogLevel.ERROR, (\b.*\b)\);/,
-        'logger.traceException(\1);',
-
-        /TRACER.debug[^(]+\(/,
-        'logger.trace(',
-
-        /logger.trace\(DebugLogLevel.\b\w+\b, ?/,
-        'logger.trace(',
-
-        /logger.trace\((e|de)\)/,
-        'logger.traceException(\1)',
-
-        /(DebugLogger\.|\b)debugEnabled\(\)/,
-        'logger.isTraceEnabled()',
-
-        /(LOG|logger).log\((Level.)?WARNING, ?/,
-        'logger.warn(',
-
-        /(LOG|logger).log\((Level.)?CONFIG, ?/,
-        'logger.info(',
-
-        /(LOG|logger).log\((Level.)?INFO, ?/,
-        'logger.debug(',
-
-        /(LOG|logger).log\((Level.)?SEVERE, ?/,
-        'logger.error(',
-
-        /(LOG|logger).log\((Level.)?FINE, ?/,
-        'logger.trace(',
-
-        /logger.(warn|info|error|debug)([^;]+);/,
-        'logger.\1(LocalizableMessage.raw\2);',
-
-        /(private static final|static private final) Logger LOG =[^;]+;/,
-        'private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();',
-      ]
-  }
-
-  I18N_LOGGERS = {
-    :dirs => JAVA_DIRS,
-    :extensions => ["java"],
-    :replacements =>
-      [
-         # Message message = ERR_REFINT_UNABLE_TO_EVALUATE_TARGET_CONDITION.get(mo
-         #                    .getManagedObjectDefinition().getUserFriendlyName(), String
-         #                    .valueOf(mo.getDN()), StaticUtils.getExceptionMessage(e));
-         # ErrorLogger.logError(message);
-        /\bMessage\b \b(\w+)\b = (\w+\.)?\b(\w+)\b\s*.\s*get([^;]+);\n(\s+)ErrorLogger.logError\(\1\);/m,
-        "    Message message = \\2.get\\4;\n" +
-        "LocalizedLogger logger = LocalizedLogger.getLocalizedLogger(\\3.resourceName());\n\\5logger.error(\\1);",
-     ]
   }
 
   MSG_ARGN_TOSTRING = {
@@ -293,7 +273,7 @@ class Replace
   }
 
   # List of replacements to run
-  REPLACEMENTS = [ COLLAPSE_LOCALIZABLE_MESSAGE_TO_LOGGER_ONLY, LOGGER_AND_ARGN_TO_LOGGER_ONLY ]
+  REPLACEMENTS = [ CONFIG_EXC ]
 
 
   ################################### Processing methods ########################################
@@ -335,10 +315,11 @@ class Replace
         pattern, replace = replacements[index], replacements[index+1]
         replace = replace.gsub('{CLASSNAME}', classname(file))
         is_replaced = true
-        while is_replaced
+        #while is_replaced
+          #puts "pattern: " + pattern.to_s
           is_replaced = contents.gsub!(pattern, replace)
           if is_replaced then count += 1 end
-        end
+        #end
       }
       File.open(file + ".copy", "w+") { |f| f.write(contents) }
     }
@@ -360,7 +341,7 @@ class Replace
     dirs.each { |directory|
       files = files_under_directory(directory, extensions)
       files.each { |file|
-        #puts file.to_s
+        puts file.to_s + "  stopwords:" + stopwords.to_s
         exclude_file = stopwords.any? { |stopword| file.include?(stopword) }
         next if exclude_file
         count = yield file # call the block
@@ -387,97 +368,13 @@ class Replace
     count
   end
 
-
   # Return all files with provided extensions under the provided directory
   # and all its subdirectories recursively
   def files_under_directory(directory, extensions)
     Dir[directory + '/**/*.{' + extensions.join(",") + '}']
   end
 
-  def run_messages
-    prepare_messages
-    process_dirs(JAVA_DIRS, ["--nostopword--"], ['java']) { |file|
-       process_file(file) { |content|
-          count, new_content = process_message(content)
-          next count, new_content
-       }
-    }
-  end
-
-  def process_message(content)
-    has_logger = /LocalizedLogger\.getLoggerForThisClass/ =~ content
-    needs_logger = /logError/ =~ content
-    count = 0
-    if needs_logger && has_logger.nil?
-       count = 1
-
-       content.sub!(/class ([^{]+){/,
-          "class \\1{\n\n  " +
-          "private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();\n")
-
-       content.sub!(/import (.*);/,
-          "import \\1;\nimport org.forgerock.i18n.slf4j.LocalizedLogger;")
-    end
-
-    if needs_logger
-      count = 1
-      pattern = /(final )?(LocalizableMessage )?message\s*=\s*(\w+)\s*.\s*get\(\s*([^;]*)\);\s+(ErrorLogger\.)?logError\(\w+\);/m
-      mdata = pattern.match(content)
-      while !mdata.nil? do
-         msg = mdata[3]
-         args = if mdata[4].nil? || mdata[4]=="" then "" else ", " + mdata[4] end
-         level = MESSAGES_MAP[msg]
-         puts "1... #{level} - #{msg}"
-         content.sub!(pattern, "logger.#{level}(#{msg}#{args});")
-         mdata = pattern.match(content)
-      end
-
-      pattern = /logError\((\w+).get\s*\(\s*/m
-      mdata = pattern.match(content)
-      stop = {}
-      while !mdata.nil? do
-         msg = mdata[1]
-         break if !stop[msg].nil?
-         stop[msg] = msg
-         level = MESSAGES_MAP[msg]
-         puts "2... #{level} - #{msg}"
-         if !level.nil?
-            content.sub!(pattern, "logger.#{level}(#{msg}.get(")
-         end
-         mdata = pattern.match(content)
-      end
-
-      # all remaining patterns
-      content.gsub!(/(ErrorLogger\.)?logError\(/, 'logger.error(')
-
-    end
-    return count, content
-  end
-
-  def prepare_messages
-    files = Dir['src/messages/messages/*.properties']
-    files.each do |file| messages(file) end
-  end
-
-  # Build a map of error messages and error level
-  def messages(message_file)
-    File.open(message_file).each { |line|
-      line = line.chomp
-      next if line.size==0 || line[0..0]=="#" || line[0..0]==" " || line[0..0]!=line[0..0].upcase || line[0..5]=="global"
-      token = line.split("=")
-      first, *rest = token[0].split "_"
-      level_label = if %w(INFO DEBUG NOTICE).include?(first) then first else first.to_s + "_" + rest[0].to_s end
-      level = LOG_LEVELS[level_label]
-      label = first + "_" + rest.join("_")
-      label = label.gsub("MILD_", '').gsub("SEVERE_", '').gsub("FATAL_", '').gsub("NOTICE_", 'NOTE_').gsub(/_\d+$/, '')
-      MESSAGES_MAP[label] = level
-      #puts "#{label}=#{level} #{token}"
-    }
-  end
-
 end
 
 # Launch all replacements defined in the REPLACEMENTS constant
-#Replace.new.messages("src/messages/messages/admin.properties")
-#Replace.new.run_messages
 Replace.new.run

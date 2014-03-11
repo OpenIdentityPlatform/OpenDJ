@@ -40,7 +40,7 @@ import javax.naming.ldap.InitialLdapContext;
 import org.opends.guitools.controlpanel.browser.BrowserController;
 import org.opends.guitools.controlpanel.datamodel.CustomSearchResult;
 import org.opends.server.config.ConfigConstants;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.schema.AttributeTypeSyntax;
 import org.opends.server.schema.ObjectClassSyntax;
 import org.opends.server.types.AttributeType;

@@ -111,6 +111,7 @@ import org.opends.guitools.controlpanel.ui.components.
 import org.opends.guitools.controlpanel.ui.renderer.
  AccessibleTableHeaderRenderer;
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.util.Utils;
@@ -2487,9 +2488,10 @@ public class Utilities
    * subtree.
    * @param dn the DN of the subtree to be deleted.
    * @throws OpenDsException if an error occurs.
+   * @throws ConfigException if an error occurs.
    */
   public static void deleteConfigSubtree(ConfigHandler confHandler, DN dn)
-  throws OpenDsException
+  throws OpenDsException, ConfigException
   {
     ConfigEntry confEntry = confHandler.getConfigEntry(dn);
     if (confEntry != null)

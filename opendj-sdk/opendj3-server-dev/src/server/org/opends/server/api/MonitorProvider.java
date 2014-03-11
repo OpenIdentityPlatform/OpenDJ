@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.concurrent.*;
 
 import org.opends.server.admin.std.server.MonitorProviderCfg;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.InitializationException;

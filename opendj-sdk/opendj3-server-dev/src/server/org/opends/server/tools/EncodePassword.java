@@ -46,7 +46,7 @@ import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.config.ConfigEntry;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.PasswordStorageSchemeConfigManager;

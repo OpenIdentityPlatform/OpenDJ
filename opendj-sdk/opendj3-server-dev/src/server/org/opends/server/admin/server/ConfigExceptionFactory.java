@@ -30,7 +30,7 @@ import static org.opends.messages.AdminMessages.*;
 import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
 
 import org.opends.server.admin.DefinitionDecodingException;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.DN;
 
 /**

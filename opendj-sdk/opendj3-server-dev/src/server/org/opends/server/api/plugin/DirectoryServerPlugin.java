@@ -34,7 +34,7 @@ import java.util.Set;
 
 import org.opends.server.admin.std.server.PluginCfg;
 import org.opends.server.api.ClientConnection;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.*;

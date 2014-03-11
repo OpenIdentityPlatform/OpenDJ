@@ -39,7 +39,7 @@ import org.opends.server.admin.std.meta.AttributeCleanupPluginCfgDefn;
 import org.opends.server.admin.std.server.AttributeCleanupPluginCfg;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.api.plugin.PluginType;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.AddOperationBasis;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.protocols.internal.InternalClientConnection;

@@ -44,7 +44,7 @@ import com.forgerock.opendj.cli.StringArgument;
 
 import org.opends.server.util.args.LDAPConnectionArgumentParser;
 import org.opends.server.extensions.ConfigFileHandler;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.loggers.DebugLogger;
 import org.opends.server.loggers.ErrorLogPublisher;
 import org.opends.server.loggers.JDKLogging;

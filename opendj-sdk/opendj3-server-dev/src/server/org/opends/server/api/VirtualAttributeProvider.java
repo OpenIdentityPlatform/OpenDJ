@@ -37,7 +37,7 @@ import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.opends.server.admin.std.server.VirtualAttributeCfg;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.Entry;

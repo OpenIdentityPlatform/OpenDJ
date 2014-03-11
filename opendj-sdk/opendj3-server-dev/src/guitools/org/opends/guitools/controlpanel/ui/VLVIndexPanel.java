@@ -73,6 +73,7 @@ import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.util.ConfigReader;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
 import org.opends.server.admin.client.ldap.LDAPManagementContext;
@@ -86,6 +87,7 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.util.LDIFReader;
+
 import com.forgerock.opendj.cli.CommandBuilder;
 
 /**
@@ -693,7 +695,7 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
       return canLaunch;
     }
 
-    private void updateConfiguration() throws OpenDsException
+    private void updateConfiguration() throws OpenDsException, ConfigException
     {
       boolean configHandlerUpdated = false;
       try
@@ -769,7 +771,7 @@ public class VLVIndexPanel extends AbstractVLVIndexPanel
       }
     }
 
-    private void modifyIndex() throws OpenDsException
+    private void modifyIndex() throws OpenDsException, ConfigException
     {
       LDIFImportConfig ldifImportConfig = null;
       try

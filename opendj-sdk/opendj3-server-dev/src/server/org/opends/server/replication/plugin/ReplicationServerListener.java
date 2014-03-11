@@ -34,7 +34,7 @@ import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
 import org.opends.server.admin.std.server.ReplicationSynchronizationProviderCfg;
 import org.opends.server.admin.std.server.ReplicationServerCfg;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.types.ConfigChangeResult;
 import org.forgerock.opendj.ldap.ResultCode;

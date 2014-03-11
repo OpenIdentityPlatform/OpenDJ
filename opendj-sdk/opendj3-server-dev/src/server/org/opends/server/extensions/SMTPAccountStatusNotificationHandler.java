@@ -44,7 +44,7 @@ import org.opends.server.admin.std.server.AccountStatusNotificationHandlerCfg;
 import org.opends.server.admin.std.server.
             SMTPAccountStatusNotificationHandlerCfg;
 import org.opends.server.api.AccountStatusNotificationHandler;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.util.Utils;

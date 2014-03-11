@@ -33,7 +33,7 @@ import java.util.List;
 import javax.net.ssl.KeyManager;
 
 import org.opends.server.admin.std.server.KeyManagerProviderCfg;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 

@@ -84,6 +84,7 @@ import org.opends.guitools.controlpanel.ui.renderer.CustomListCellRenderer;
 import org.opends.guitools.controlpanel.util.ConfigReader;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.installer.InstallerHelper;
 import org.opends.quicksetup.util.Utils;
@@ -108,6 +109,7 @@ import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.SetupUtils;
+
 import com.forgerock.opendj.cli.CommandBuilder;
 
 /**
@@ -848,7 +850,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
       return args;
     }
 
-    private void updateConfiguration() throws OpenDsException
+    private void updateConfiguration() throws OpenDsException, ConfigException
     {
       boolean configHandlerUpdated = false;
       try
@@ -1479,7 +1481,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
     }
 
     private void addBaseDN(String backendName, String baseDN)
-    throws OpenDsException
+    throws OpenDsException, ConfigException
     {
       LinkedList<DN> baseDNs = new LinkedList<DN>();
       for (BackendDescriptor backend :

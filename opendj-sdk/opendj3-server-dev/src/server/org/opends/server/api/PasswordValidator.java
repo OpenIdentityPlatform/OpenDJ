@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.opends.server.admin.std.server.PasswordValidatorCfg;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.i18n.LocalizableMessageBuilder;

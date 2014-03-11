@@ -40,7 +40,7 @@ import org.opends.server.admin.std.meta.
             RegularExpressionIdentityMapperCfgDefn;
 import org.opends.server.admin.std.server.RegularExpressionIdentityMapperCfg;
 import org.opends.server.api.IdentityMapper;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;

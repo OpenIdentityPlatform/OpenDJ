@@ -41,7 +41,7 @@ import org.opends.server.admin.std.meta.ReferentialIntegrityPluginCfgDefn;
 import org.opends.server.admin.std.server.ReferentialIntegrityPluginCfg;
 import org.opends.server.api.Group;
 import org.opends.server.api.plugin.PluginType;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.controls.SubtreeDeleteControl;
 import org.opends.server.core.*;
 import org.opends.server.protocols.internal.InternalClientConnection;

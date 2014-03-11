@@ -37,7 +37,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.opends.server.api.AttributeSyntax;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.schema.*;
 import org.opends.server.types.*;
 import org.opends.server.util.LDIFReader;

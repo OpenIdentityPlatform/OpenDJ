@@ -28,12 +28,13 @@ package org.opends.server.util;
 
 
 
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DirectoryEnvironmentConfig;
 import org.opends.server.types.InitializationException;
 
 import static org.opends.messages.UtilityMessages.*;
+
 import org.forgerock.i18n.LocalizableMessage;
 
 
@@ -68,15 +69,12 @@ public final class EmbeddedUtils
    *
    * @param  config  The environment configuration to use for the server.
    *
-   * @throws  ConfigException  If a configuration problem is detected during
-   *                           the server initialization or startup process.
-   *
    * @throws  InitializationException  If the Directory Server is already
    *                                   running, or if an error occurs during
    *                                   server initialization or startup.
    */
   public static void startServer(DirectoryEnvironmentConfig config)
-         throws ConfigException, InitializationException
+         throws InitializationException
   {
     if (DirectoryServer.isRunning())
     {
@@ -85,7 +83,14 @@ public final class EmbeddedUtils
     }
 
     DirectoryServer directoryServer = DirectoryServer.reinitialize(config);
-    directoryServer.startServer();
+    try
+    {
+      directoryServer.startServer();
+    }
+    catch (ConfigException e)
+    {
+      throw new InitializationException(e.getMessageObject(), e);
+    }
   }
 
 
@@ -130,7 +135,7 @@ public final class EmbeddedUtils
    */
   public static void initializeForClientUse()
   {
-    DirectoryServer directoryServer = DirectoryServer.getInstance();
+    DirectoryServer.getInstance();
     DirectoryServer.bootstrapClient();
   }
 }

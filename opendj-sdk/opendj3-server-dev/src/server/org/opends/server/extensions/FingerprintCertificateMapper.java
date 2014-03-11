@@ -42,7 +42,7 @@ import org.opends.server.admin.std.server.CertificateMapperCfg;
 import org.opends.server.admin.std.server.FingerprintCertificateMapperCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.CertificateMapper;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;

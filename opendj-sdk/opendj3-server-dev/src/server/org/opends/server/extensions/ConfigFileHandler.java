@@ -61,7 +61,7 @@ import org.opends.server.api.ConfigChangeListener;
 import org.opends.server.api.ConfigDeleteListener;
 import org.opends.server.api.ConfigHandler;
 import org.opends.server.config.ConfigEntry;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
@@ -1096,7 +1096,7 @@ public class ConfigFileHandler
         configEntries.put(entryDN, newEntry);
         writeUpdatedConfig();
       }
-      catch (ConfigException ce)
+      catch (org.opends.server.config.ConfigException ce)
       {
         logger.traceException(ce);
 
@@ -1232,7 +1232,7 @@ public class ConfigFileHandler
         configEntries.remove(entryDN);
         writeUpdatedConfig();
       }
-      catch (ConfigException ce)
+      catch (org.opends.server.config.ConfigException ce)
       {
         logger.traceException(ce);
 

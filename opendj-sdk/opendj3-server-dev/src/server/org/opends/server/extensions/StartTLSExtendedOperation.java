@@ -30,7 +30,7 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.admin.std.server.StartTLSExtendedOperationHandlerCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ExtendedOperationHandler;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.ExtendedOperation;
 import org.opends.server.types.InitializationException;
 import org.forgerock.opendj.ldap.ResultCode;

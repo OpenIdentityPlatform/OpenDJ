@@ -52,6 +52,7 @@ import org.opends.guitools.controlpanel.ui.ProgressDialog;
 import org.opends.guitools.controlpanel.util.ConfigReader;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
 import org.opends.server.admin.client.ldap.LDAPManagementContext;
@@ -240,7 +241,7 @@ public class DeleteBaseDNAndBackendTask extends Task
    * Update the configuration in the server.
    * @throws OpenDsException if an error occurs.
    */
-  private void updateConfiguration() throws OpenDsException
+  private void updateConfiguration() throws OpenDsException, ConfigException
   {
     boolean configHandlerUpdated = false;
     final int totalNumber = baseDNsToDelete.size() + backendsToDelete.size();
@@ -439,7 +440,7 @@ public class DeleteBaseDNAndBackendTask extends Task
    * @throws OpenDsException if an error occurs.
    */
   private void deleteBaseDNs(Set<BaseDNDescriptor> baseDNs)
-  throws OpenDsException
+  throws OpenDsException, ConfigException
   {
     BackendDescriptor backend = baseDNs.iterator().next().getBackend();
 
@@ -507,7 +508,7 @@ public class DeleteBaseDNAndBackendTask extends Task
    * @param backend the backend to be deleted.
    * @throws OpenDsException if an error occurs.
    */
-  private void deleteBackend(BackendDescriptor backend) throws OpenDsException
+  private void deleteBackend(BackendDescriptor backend) throws OpenDsException, ConfigException
   {
     String dn = getDN(backend);
     Utilities.deleteConfigSubtree(
@@ -655,7 +656,7 @@ public class DeleteBaseDNAndBackendTask extends Task
    * @throws OpenDsException if an error occurs.
    */
   private void disableReplicationIfRequired(final BaseDNDescriptor baseDN)
-  throws OpenDsException
+  throws OpenDsException, ConfigException
   {
     if (baseDN.getType() == BaseDNDescriptor.Type.REPLICATED)
     {
@@ -710,7 +711,7 @@ public class DeleteBaseDNAndBackendTask extends Task
             sync = (ReplicationSynchronizationProviderCfg)
             root.getSynchronizationProvider("Multimaster Synchronization");
           }
-          catch (OpenDsException oe)
+          catch (ConfigException oe)
           {
             // Ignore this one
           }

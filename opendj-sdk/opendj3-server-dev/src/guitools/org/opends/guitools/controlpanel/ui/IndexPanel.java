@@ -69,6 +69,7 @@ import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.util.ConfigReader;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
 import org.opends.server.admin.client.ldap.LDAPManagementContext;
@@ -84,6 +85,7 @@ import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.ServerConstants;
+
 import com.forgerock.opendj.cli.CommandBuilder;
 
 /**
@@ -743,6 +745,10 @@ public class IndexPanel extends AbstractIndexPanel
       {
         throw new OfflineUpdateException(
             ERR_CTRL_PANEL_ERROR_UPDATING_CONFIGURATION.get(ioe), ioe);
+      }
+      catch (ConfigException ce)
+      {
+        throw new org.opends.server.config.ConfigException(ce.getMessageObject(), ce);
       }
       finally
       {

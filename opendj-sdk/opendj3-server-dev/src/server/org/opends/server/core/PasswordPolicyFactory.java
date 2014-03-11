@@ -44,7 +44,7 @@ import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.PasswordPolicyCfgDefn.*;
 import org.opends.server.admin.std.server.PasswordPolicyCfg;
 import org.opends.server.api.*;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.types.*;

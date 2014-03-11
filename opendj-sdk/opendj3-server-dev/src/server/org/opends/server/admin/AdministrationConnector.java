@@ -52,7 +52,7 @@ import org.opends.server.admin.std.server.FileBasedKeyManagerProviderCfg;
 import org.opends.server.admin.std.server.FileBasedTrustManagerProviderCfg;
 import org.opends.server.admin.std.server.LDAPConnectionHandlerCfg;
 import org.opends.server.admin.std.server.RootCfg;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.ServerContext;
 import org.opends.server.core.SynchronousStrategy;
 import org.opends.server.protocols.ldap.LDAPConnectionHandler;

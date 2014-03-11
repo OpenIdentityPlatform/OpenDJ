@@ -33,7 +33,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import java.util.Random;
 import java.util.SortedSet;
 
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 
 import static org.opends.messages.UtilityMessages.*;
 import static org.opends.server.util.StaticUtils.*;

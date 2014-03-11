@@ -45,7 +45,7 @@ import org.opends.server.api.Backend;
 import org.opends.server.api.EntryCache;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.config.ConfigEntry;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.extensions.DefaultEntryCache;
 import org.opends.server.monitors.EntryCacheMonitorProvider;
 import org.opends.server.types.ConfigChangeResult;

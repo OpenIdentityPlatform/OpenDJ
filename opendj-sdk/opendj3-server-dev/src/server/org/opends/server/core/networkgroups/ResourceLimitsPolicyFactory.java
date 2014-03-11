@@ -39,7 +39,7 @@ import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.ResourceLimitsQOSPolicyCfg;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.QOSPolicyFactory;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.ConfigChangeResult;

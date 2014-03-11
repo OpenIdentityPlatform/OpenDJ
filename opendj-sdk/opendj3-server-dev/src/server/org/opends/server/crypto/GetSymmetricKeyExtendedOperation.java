@@ -32,7 +32,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.
 GetSymmetricKeyExtendedOperationHandlerCfg;
 import org.opends.server.api.ExtendedOperationHandler;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ExtendedOperation;
 import org.forgerock.i18n.slf4j.LocalizedLogger;

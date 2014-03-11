@@ -36,7 +36,7 @@ import org.forgerock.opendj.ldap.ConditionResult;
 import org.opends.server.admin.Configuration;
 import org.opends.server.api.ConfigHandler;
 import org.opends.server.config.ConfigEntry;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;

@@ -31,7 +31,7 @@ package org.opends.server.extensions;
 import org.opends.server.admin.std.server.AnonymousSASLMechanismHandlerCfg;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.api.SASLMechanismHandler;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;

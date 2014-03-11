@@ -30,7 +30,7 @@ import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
 import org.opends.server.admin.std.server.CertificateAttributeSyntaxCfg;
 import org.opends.server.api.AttributeSyntax;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.testng.annotations.DataProvider;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DN;

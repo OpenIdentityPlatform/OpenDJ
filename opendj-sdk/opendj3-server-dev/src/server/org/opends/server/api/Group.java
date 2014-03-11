@@ -34,7 +34,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.opends.server.admin.std.server.GroupImplementationCfg;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;

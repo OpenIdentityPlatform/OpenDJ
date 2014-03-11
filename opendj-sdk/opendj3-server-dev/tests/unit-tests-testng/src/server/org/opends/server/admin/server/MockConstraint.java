@@ -35,7 +35,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.Constraint;
 import org.opends.server.admin.client.ClientConstraintHandler;
 import org.opends.server.config.ConfigEntry;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DN;
 import org.testng.Assert;

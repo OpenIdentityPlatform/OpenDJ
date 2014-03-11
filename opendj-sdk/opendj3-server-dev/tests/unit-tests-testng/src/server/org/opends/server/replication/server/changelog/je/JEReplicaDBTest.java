@@ -31,7 +31,7 @@ import java.io.IOException;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.server.ReplicationServerCfg;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.CSN;

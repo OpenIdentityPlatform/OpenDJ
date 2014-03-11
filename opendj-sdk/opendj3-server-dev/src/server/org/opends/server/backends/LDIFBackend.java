@@ -40,7 +40,7 @@ import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.LDIFBackendCfg;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.Backend;
-import org.opends.server.config.ConfigException;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.controls.SubtreeDeleteControl;
 import org.opends.server.core.*;
 import org.opends.server.types.*;
