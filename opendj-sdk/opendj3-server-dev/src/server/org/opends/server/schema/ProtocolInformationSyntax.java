@@ -129,7 +129,7 @@ public class ProtocolInformationSyntax
    *
    * @return  The common name for this attribute syntax.
    */
-  public String getSyntaxName()
+  public String getName()
   {
     return SYNTAX_PROTOCOL_INFORMATION_NAME;
   }

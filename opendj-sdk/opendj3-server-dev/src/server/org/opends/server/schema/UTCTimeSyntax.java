@@ -173,7 +173,7 @@ public class UTCTimeSyntax
    *
    * @return  The common name for this attribute syntax.
    */
-  public String getSyntaxName()
+  public String getName()
   {
     return SYNTAX_UTC_TIME_NAME;
   }

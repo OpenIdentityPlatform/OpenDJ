@@ -128,7 +128,7 @@ public class NameFormSyntax
    * {@inheritDoc}
    */
   @Override
-  public String getSyntaxName()
+  public String getName()
   {
     return SYNTAX_NAME_FORM_NAME;
   }

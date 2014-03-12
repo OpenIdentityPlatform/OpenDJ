@@ -80,7 +80,7 @@ public abstract class BinaryAttributeSyntaxTest extends SchemaTestCase
     syntax.getOID();
     syntax.getOrderingMatchingRule();
     syntax.getSubstringMatchingRule();
-    syntax.getSyntaxName();
+    syntax.getName();
     syntax.toString();
   }
 }

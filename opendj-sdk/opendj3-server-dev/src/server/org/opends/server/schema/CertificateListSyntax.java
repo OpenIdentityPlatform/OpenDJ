@@ -116,7 +116,7 @@ public class CertificateListSyntax
    *
    * @return  The common name for this attribute syntax.
    */
-  public String getSyntaxName()
+  public String getName()
   {
     return SYNTAX_CERTLIST_NAME;
   }

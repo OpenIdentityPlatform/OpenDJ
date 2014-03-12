@@ -1203,7 +1203,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     }
 
     boolean isGeneralizedTime =
-        type.getSyntax().getSyntaxName().equals(SYNTAX_GENERALIZED_TIME_NAME);
+        type.getSyntax().getName().equals(SYNTAX_GENERALIZED_TIME_NAME);
     lastLoginTime = -1;
     List<Attribute> attrList = userEntry.getAttribute(type);
 
@@ -1322,7 +1322,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     {
       SimpleDateFormat dateFormat = new SimpleDateFormat(format);
       // If the attribute has a Generalized Time syntax, make it UTC time.
-      if (type.getSyntax().getSyntaxName()
+      if (type.getSyntax().getName()
           .equals(SYNTAX_GENERALIZED_TIME_NAME))
       {
         dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));

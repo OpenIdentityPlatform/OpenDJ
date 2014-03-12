@@ -70,7 +70,7 @@ public class SchemaElementComboBoxCellRenderer extends CustomListCellRenderer
   {
     if (value instanceof AttributeSyntax<?>)
     {
-      String syntaxName = ((AttributeSyntax<?>)value).getSyntaxName();
+      String syntaxName = ((AttributeSyntax<?>)value).getName();
       if (syntaxName == null)
       {
         value = ((AttributeSyntax<?>)value).getOID();

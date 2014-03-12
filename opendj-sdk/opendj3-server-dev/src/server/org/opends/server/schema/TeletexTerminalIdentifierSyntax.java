@@ -150,7 +150,7 @@ public class TeletexTerminalIdentifierSyntax
    *
    * @return  The common name for this attribute syntax.
    */
-  public String getSyntaxName()
+  public String getName()
   {
     return SYNTAX_TELETEX_TERM_ID_NAME;
   }

@@ -132,7 +132,7 @@ public class ObjectClassSyntax
    * {@inheritDoc}
    */
   @Override
-  public String getSyntaxName()
+  public String getName()
   {
     return SYNTAX_OBJECTCLASS_NAME;
   }

@@ -928,8 +928,8 @@ public final class Schema
           AttributeSyntax<?> conflictingSyntax = syntaxes.get(oid);
 
           LocalizableMessage message = ERR_SCHEMA_CONFLICTING_SYNTAX_OID.
-              get(syntax.getSyntaxName(), oid,
-                  conflictingSyntax.getSyntaxName());
+              get(syntax.getName(), oid,
+                  conflictingSyntax.getName());
           throw new DirectoryException(
                          ResultCode.CONSTRAINT_VIOLATION, message);
         }

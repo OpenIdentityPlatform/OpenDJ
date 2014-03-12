@@ -131,7 +131,7 @@ public class MatchingRuleUseSyntax
   /**
    * {@inheritDoc}
    */
-  public String getSyntaxName()
+  public String getName()
   {
     return SYNTAX_MATCHING_RULE_USE_NAME;
   }

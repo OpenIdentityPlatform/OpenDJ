@@ -108,7 +108,7 @@ public class OtherMailboxSyntax
    *
    * @return  The common name for this attribute syntax.
    */
-  public String getSyntaxName()
+  public String getName()
   {
     return SYNTAX_OTHER_MAILBOX_NAME;
   }

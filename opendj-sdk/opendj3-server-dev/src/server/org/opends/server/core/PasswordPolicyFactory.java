@@ -236,7 +236,7 @@ public final class PasswordPolicyFactory implements
       }
       else
       {
-        String syntax = passwordAttribute.getSyntax().getSyntaxName();
+        String syntax = passwordAttribute.getSyntax().getName();
         if ((syntax == null) || (syntax.length() == 0))
         {
           syntax = syntaxOID;

@@ -115,7 +115,7 @@ public class TelexNumberSyntax
    *
    * @return  The common name for this attribute syntax.
    */
-  public String getSyntaxName()
+  public String getName()
   {
     return SYNTAX_TELEX_NAME;
   }

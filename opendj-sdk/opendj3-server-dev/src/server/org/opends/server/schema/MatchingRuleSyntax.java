@@ -126,7 +126,7 @@ public class MatchingRuleSyntax
    * @return  The common name for this attribute syntax.
    */
   @Override
-  public String getSyntaxName()
+  public String getName()
   {
     return SYNTAX_MATCHING_RULE_NAME;
   }

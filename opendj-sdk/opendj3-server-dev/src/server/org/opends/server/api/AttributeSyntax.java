@@ -123,7 +123,7 @@ public abstract class AttributeSyntax<T extends AttributeSyntaxCfg>
    *
    * @return  The common name for this attribute syntax.
    */
-  public abstract String getSyntaxName();
+  public abstract String getName();
 
 
 

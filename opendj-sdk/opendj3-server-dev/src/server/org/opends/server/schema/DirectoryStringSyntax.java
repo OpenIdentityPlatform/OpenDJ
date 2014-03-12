@@ -188,7 +188,7 @@ public class DirectoryStringSyntax
    *
    * @return  The common name for this attribute syntax.
    */
-  public String getSyntaxName()
+  public String getName()
   {
     return SYNTAX_DIRECTORY_STRING_NAME;
   }

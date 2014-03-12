@@ -131,7 +131,7 @@ public class BinarySyntax
    * @return  The common name for this attribute syntax.
    */
   @Override
-  public String getSyntaxName()
+  public String getName()
   {
     return SYNTAX_BINARY_NAME;
   }
