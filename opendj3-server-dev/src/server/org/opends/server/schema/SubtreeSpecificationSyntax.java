@@ -147,7 +147,7 @@ public final class SubtreeSpecificationSyntax
    *
    * @return The common name for this attribute syntax.
    */
-  public String getSyntaxName() {
+  public String getName() {
 
     return SYNTAX_SUBTREE_SPECIFICATION_NAME;
   }

@@ -93,7 +93,7 @@ public class BitStringSyntaxTest extends AttributeSyntaxTest
     syntax.getOID();
     syntax.getOrderingMatchingRule();
     syntax.getSubstringMatchingRule();
-    syntax.getSyntaxName();
+    syntax.getName();
     syntax.toString();
   }
 }

@@ -711,7 +711,7 @@ public class CustomAttributePanel extends SchemaElementPanel
       for (String key : schema.getSyntaxes().keySet())
       {
         AttributeSyntax<?> syntax = schema.getSyntax(key);
-        String name = syntax.getSyntaxName();
+        String name = syntax.getName();
         if (name == null)
         {
           name = syntax.getOID();

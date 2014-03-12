@@ -116,7 +116,7 @@ public class CertificateExactAssertionSyntax
   /**
    * {@inheritDoc}
    */
-  public String getSyntaxName()
+  public String getName()
   {
     return SYNTAX_CERTIFICATE_EXACT_ASSERTION_NAME;
   }

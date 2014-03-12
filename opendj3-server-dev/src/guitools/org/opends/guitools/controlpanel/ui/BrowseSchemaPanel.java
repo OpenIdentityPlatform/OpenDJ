@@ -842,7 +842,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
     {
       if (mustAdd(syntax))
       {
-        String name = syntax.getSyntaxName();
+        String name = syntax.getName();
         if (name == null)
         {
           name = syntax.getOID();
@@ -1619,7 +1619,7 @@ public class BrowseSchemaPanel extends StatusGenericPanel
         String oid = syntax.getOID();
         values.add(oid);
 
-        String name = syntax.getSyntaxName();
+        String name = syntax.getName();
         if (name != null)
         {
           values.add(name);

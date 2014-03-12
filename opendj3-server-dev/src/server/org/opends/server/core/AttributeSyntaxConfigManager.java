@@ -259,7 +259,7 @@ public class AttributeSyntaxConfigManager
         if (oid.equals(at.getSyntax().getOID()))
         {
           LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_DELETE_SYNTAX_IN_USE.get(
-                  syntax.getSyntaxName(), at.getNameOrOID());
+                  syntax.getName(), at.getNameOrOID());
           unacceptableReasons.add(message);
 
           configAcceptable = false;
@@ -330,7 +330,7 @@ public class AttributeSyntaxConfigManager
           {
             LocalizableMessage message =
                     WARN_CONFIG_SCHEMA_CANNOT_DISABLE_SYNTAX_IN_USE.get(
-                            syntax.getSyntaxName(),
+                            syntax.getName(),
                             at.getNameOrOID());
             unacceptableReasons.add(message);
             return false;

@@ -102,7 +102,7 @@ public class AuthPasswordSyntax
    * @return  The common name for this attribute syntax.
    */
   @Override
-  public String getSyntaxName()
+  public String getName()
   {
     return SYNTAX_AUTH_PASSWORD_NAME;
   }

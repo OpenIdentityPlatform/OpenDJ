@@ -194,7 +194,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
       }
       else
       {
-        String syntax = pPasswordAttribute.getSyntax().getSyntaxName();
+        String syntax = pPasswordAttribute.getSyntax().getName();
         if (syntax == null || syntax.length() == 0)
         {
           syntax = syntaxOID;

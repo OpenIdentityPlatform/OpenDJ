@@ -327,7 +327,7 @@ public class ReferentialIntegrityPlugin
         unacceptableReasons.add(
                        ERR_PLUGIN_REFERENT_INVALID_ATTRIBUTE_SYNTAX.get(
                             type.getNameOrOID(),
-                             type.getSyntax().getSyntaxName()));
+                             type.getSyntax().getName()));
       }
 
       for (DN baseDN : cfgBaseDNs)

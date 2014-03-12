@@ -109,7 +109,7 @@ public class UserPasswordSyntax
    *
    * @return  The common name for this attribute syntax.
    */
-  public String getSyntaxName()
+  public String getName()
   {
     return SYNTAX_USER_PASSWORD_NAME;
   }

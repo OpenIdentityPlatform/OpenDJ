@@ -106,7 +106,7 @@ public class AciSyntax
    *
    * @return  The common name for this attribute syntax.
    */
-  public String getSyntaxName()
+  public String getName()
   {
     return SYNTAX_ACI_NAME;
   }

@@ -128,7 +128,7 @@ public class LDAPSyntaxDescriptionSyntax
    * @return  The common name for this attribute syntax.
    */
   @Override
-  public String getSyntaxName()
+  public String getName()
   {
     return SYNTAX_LDAP_SYNTAX_NAME;
   }
@@ -962,7 +962,7 @@ public class LDAPSyntaxDescriptionSyntax
      * {@inheritDoc}
      */
      @Override
-    public String getSyntaxName()
+    public String getName()
     {
       // There is no name for a substitution syntax.
       return null;
@@ -1132,7 +1132,7 @@ public class LDAPSyntaxDescriptionSyntax
      * {@inheritDoc}
      */
      @Override
-    public String getSyntaxName()
+    public String getName()
     {
       // There is no name for a regex syntax.
       return null;
@@ -1331,7 +1331,7 @@ public class LDAPSyntaxDescriptionSyntax
      * {@inheritDoc}
      */
      @Override
-    public String getSyntaxName()
+    public String getName()
     {
       // There is no name for a enum syntax.
       return null;

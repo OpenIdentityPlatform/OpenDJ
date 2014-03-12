@@ -119,7 +119,7 @@ public class SubstringAssertionSyntax
    *
    * @return  The common name for this attribute syntax.
    */
-  public String getSyntaxName()
+  public String getName()
   {
     return SYNTAX_SUBSTRING_ASSERTION_NAME;
   }

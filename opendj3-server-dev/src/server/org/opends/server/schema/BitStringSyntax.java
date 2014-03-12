@@ -95,7 +95,7 @@ public class BitStringSyntax
    *
    * @return  The common name for this attribute syntax.
    */
-  public String getSyntaxName()
+  public String getName()
   {
     return SYNTAX_BIT_STRING_NAME;
   }

@@ -176,7 +176,7 @@ public class DeliveryMethodSyntax
    *
    * @return  The common name for this attribute syntax.
    */
-  public String getSyntaxName()
+  public String getName()
   {
     return SYNTAX_DELIVERY_METHOD_NAME;
   }

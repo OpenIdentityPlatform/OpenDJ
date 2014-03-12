@@ -2196,7 +2196,7 @@ public class Utilities
   public static String getSyntaxText(AttributeSyntax<?> syntax)
   {
     String returnValue;
-    String syntaxName = syntax.getSyntaxName();
+    String syntaxName = syntax.getName();
     String syntaxOID = syntax.getOID();
     if (syntaxName == null)
     {

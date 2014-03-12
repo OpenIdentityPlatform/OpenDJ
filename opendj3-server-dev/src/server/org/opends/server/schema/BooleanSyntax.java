@@ -130,7 +130,7 @@ public class BooleanSyntax
    *
    * @return  The common name for this attribute syntax.
    */
-  public String getSyntaxName()
+  public String getName()
   {
     return SYNTAX_BOOLEAN_NAME;
   }

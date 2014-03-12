@@ -155,7 +155,7 @@ public class AttributeTypeSyntax
    * {@inheritDoc}
    */
   @Override
-  public String getSyntaxName()
+  public String getName()
   {
     return SYNTAX_ATTRIBUTE_TYPE_NAME;
   }

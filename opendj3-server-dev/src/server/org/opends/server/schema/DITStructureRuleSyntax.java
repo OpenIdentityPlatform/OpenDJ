@@ -130,7 +130,7 @@ public class DITStructureRuleSyntax
   /**
    * {@inheritDoc}
    */
-  public String getSyntaxName()
+  public String getName()
   {
     return SYNTAX_DIT_STRUCTURE_RULE_NAME;
   }

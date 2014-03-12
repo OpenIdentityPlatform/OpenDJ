@@ -1550,7 +1550,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
         if (attr != null)
         {
           // There is no name for a regex syntax.
-          String syntaxName = attr.getSyntax().getSyntaxName();
+          String syntaxName = attr.getSyntax().getName();
           if (syntaxName!=null) {
               mustAddBrowseButton=syntaxName.equalsIgnoreCase(
                 SchemaConstants.SYNTAX_DN_NAME);

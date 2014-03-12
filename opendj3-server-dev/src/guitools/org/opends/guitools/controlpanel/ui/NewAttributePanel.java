@@ -202,7 +202,7 @@ public class NewAttributePanel extends StatusGenericPanel
       for (String key : schema.getSyntaxes().keySet())
       {
         AttributeSyntax<?> syntax = schema.getSyntax(key);
-        String name = syntax.getSyntaxName();
+        String name = syntax.getName();
         if (name == null)
         {
           name = syntax.getOID();
@@ -323,7 +323,7 @@ public class NewAttributePanel extends StatusGenericPanel
           {
             AttributeSyntax<?> syn =
               (AttributeSyntax<?>)syntax.getModel().getElementAt(i);
-            if ("DirectoryString".equals(syn.getSyntaxName()))
+            if ("DirectoryString".equals(syn.getName()))
             {
               syntax.setSelectedIndex(i);
               break;
@@ -519,7 +519,7 @@ public class NewAttributePanel extends StatusGenericPanel
 
     for (AttributeSyntax<?> attr : schema.getSyntaxes().values())
     {
-      String n = attr.getSyntaxName();
+      String n = attr.getName();
       if (n != null)
       {
         if (n.equalsIgnoreCase(name))

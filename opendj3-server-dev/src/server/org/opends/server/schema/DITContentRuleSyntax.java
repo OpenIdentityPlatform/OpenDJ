@@ -129,7 +129,7 @@ public class DITContentRuleSyntax
    * {@inheritDoc}
    */
   @Override
-  public String getSyntaxName()
+  public String getName()
   {
     return SYNTAX_DIT_CONTENT_RULE_NAME;
   }

@@ -137,7 +137,7 @@ public class GeneralizedTimeSyntax
    * @return  The common name for this attribute syntax.
    */
   @Override
-  public String getSyntaxName()
+  public String getName()
   {
     return SYNTAX_GENERALIZED_TIME_NAME;
   }

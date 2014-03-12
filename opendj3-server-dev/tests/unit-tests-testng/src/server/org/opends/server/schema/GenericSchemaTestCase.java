@@ -22,6 +22,8 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS.
+ *
  */
 package org.opends.server.schema;
 
@@ -90,7 +92,7 @@ public class GenericSchemaTestCase
     {
       if (! isNumericOID(as.getOID()))
       {
-        invalidOIDs.add(as.getSyntaxName());
+        invalidOIDs.add(as.getName());
       }
     }
 

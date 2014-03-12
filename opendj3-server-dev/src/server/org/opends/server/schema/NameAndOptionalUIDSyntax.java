@@ -111,7 +111,7 @@ public class NameAndOptionalUIDSyntax
    *
    * @return  The common name for this attribute syntax.
    */
-  public String getSyntaxName()
+  public String getName()
   {
     return SYNTAX_NAME_AND_OPTIONAL_UID_NAME;
   }

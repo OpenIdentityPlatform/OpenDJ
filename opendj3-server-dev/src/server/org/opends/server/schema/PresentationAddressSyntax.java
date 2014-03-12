@@ -129,7 +129,7 @@ public class PresentationAddressSyntax
    *
    * @return  The common name for this attribute syntax.
    */
-  public String getSyntaxName()
+  public String getName()
   {
     return SYNTAX_PRESENTATION_ADDRESS_NAME;
   }

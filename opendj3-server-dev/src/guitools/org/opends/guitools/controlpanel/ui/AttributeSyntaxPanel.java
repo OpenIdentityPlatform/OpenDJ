@@ -197,7 +197,7 @@ public class AttributeSyntaxPanel extends SchemaElementPanel
    */
   public void update(AttributeSyntax<?> syntax, Schema schema)
   {
-    String n = syntax.getSyntaxName();
+    String n = syntax.getName();
     if (n == null)
     {
       n = NOT_APPLICABLE.toString();
