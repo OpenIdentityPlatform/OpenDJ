@@ -265,6 +265,15 @@ public final class Syntax extends SchemaElement {
     }
 
     /**
+     * Retrieves the name for this attribute syntax.
+     *
+     * @return The name for this attribute syntax.
+     */
+    public String getName() {
+        return impl.getName();
+    }
+
+    /**
      * Retrieves the default ordering matching rule that will be used for
      * attributes with this syntax.
      *
