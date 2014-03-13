@@ -58,7 +58,7 @@ import javax.net.ssl.X509KeyManager;
  * parallel.
  */
 final class ApplicationKeyManager implements X509KeyManager {
-    static private final Logger LOG = Logger.getLogger(ApplicationKeyManager.class.getName());
+    private static final Logger LOG = Logger.getLogger(ApplicationKeyManager.class.getName());
 
     /**
      * The default keyManager.
@@ -69,9 +69,9 @@ final class ApplicationKeyManager implements X509KeyManager {
      * The default constructor.
      *
      * @param keystore
-     *            The keystore to use for this keymanager.
+     *            The key store to use for this key manager.
      * @param password
-     *            The keystore password to use for this keymanager.
+     *            The key store password to use for this key manager.
      */
     ApplicationKeyManager(final KeyStore keystore, final char[] password) {
         KeyManagerFactory kmf = null;
@@ -90,10 +90,10 @@ final class ApplicationKeyManager implements X509KeyManager {
             }
         }
 
-        // Have some fallbacks to choose the provider and algorithm of the
+        // Have some fall backs to choose the provider and algorithm of the
         // key manager. First see if the user wanted to use something
         // specific, then try with the SunJSSE provider and SunX509
-        // algorithm. Finally, fallback to the default algorithm of the JVM.
+        // algorithm. Finally, fall back to the default algorithm of the JVM.
         final String[] preferredProvider = { userSpecifiedProvider, "SunJSSE", null, null };
         final String[] preferredAlgo = { userSpecifiedAlgo, "SunX509", "SunX509",
                     TrustManagerFactory.getDefaultAlgorithm() };
@@ -112,7 +112,7 @@ final class ApplicationKeyManager implements X509KeyManager {
                 kmf.init(keystore, password);
                 final KeyManager[] kms = kmf.getKeyManagers();
                 /*
-                 * Iterate over the returned keymanagers, look for an instance
+                 * Iterate over the returned key managers, look for an instance
                  * of X509KeyManager. If found, use that as our "default" key
                  * manager.
                  */
@@ -124,19 +124,19 @@ final class ApplicationKeyManager implements X509KeyManager {
                 }
             } catch (final NoSuchAlgorithmException e) {
                 // Nothing to do. Maybe we should avoid this and be strict, but
-                // we are in a best effor mode.
+                // we are in a best effort mode.
                 LOG.log(Level.WARNING, "Error with the algorithm", e);
             } catch (final KeyStoreException e) {
                 // Nothing to do. Maybe we should avoid this and be strict, but
-                // we are in a best effor mode..
+                // we are in a best effort mode..
                 LOG.log(Level.WARNING, "Error with the keystore", e);
             } catch (final UnrecoverableKeyException e) {
                 // Nothing to do. Maybe we should avoid this and be strict, but
-                // we are in a best effor mode.
+                // we are in a best effort mode.
                 LOG.log(Level.WARNING, "Error with the key", e);
             } catch (final NoSuchProviderException e) {
                 // Nothing to do. Maybe we should avoid this and be strict, but
-                // we are in a best effor mode.
+                // we are in a best effort mode.
                 LOG.log(Level.WARNING, "Error with the provider", e);
             }
         }
