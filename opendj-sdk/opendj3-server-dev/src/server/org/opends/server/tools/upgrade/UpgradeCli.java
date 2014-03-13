@@ -371,9 +371,7 @@ public final class UpgradeCli extends ConsoleApplication implements
       {
         final ProgressNotificationCallback pnc =
             (ProgressNotificationCallback) c;
-        final LocalizableMessage msg = LocalizableMessage.raw("  " + pnc.getMessage());
-        print(msg);
-        printProgressBar(msg.length(), pnc.getProgress());
+        printProgressBar(pnc.getMessage(), pnc.getProgress(), 2);
       }
       else if (c instanceof FormattedNotificationCallback)
       {
