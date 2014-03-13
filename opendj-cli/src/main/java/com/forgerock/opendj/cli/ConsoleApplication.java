@@ -28,6 +28,7 @@
 package com.forgerock.opendj.cli;
 
 import static com.forgerock.opendj.cli.CliMessages.*;
+import static com.forgerock.opendj.cli.Utils.LINE_SEPARATOR;
 import static com.forgerock.opendj.cli.Utils.MAX_LINE_WIDTH;
 import static com.forgerock.opendj.cli.Utils.CONFIRMATION_MAX_TRIES;
 import static com.forgerock.opendj.cli.Utils.wrapText;
@@ -50,6 +51,8 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
  */
 public abstract class ConsoleApplication {
 
+    private static final int PROGRESS_LINE = 70;
+
     private final BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
     private final InputStream in = System.in;
@@ -59,6 +62,8 @@ public abstract class ConsoleApplication {
     private final PrintStream err;
 
     private final Console console = System.console();
+
+    private boolean isProgressSuite;
 
     /**
      * Defines the different line styles for output.
@@ -325,13 +330,13 @@ public abstract class ConsoleApplication {
      * @param progress
      *            The current percentage progress to print.
      */
-    public final void printProgressBar(final int linePos, final int progress) {
+    private final void printProgressBar(final int linePos, final int progress) {
         if (!isQuiet()) {
             final int spacesLeft = MAX_LINE_WIDTH - linePos - 10;
             StringBuilder bar = new StringBuilder();
             if (progress != 0) {
-                for (int i = 0; i < 50; i++) {
-                    if ((i < (Math.abs(progress) / 2)) && (bar.length() < spacesLeft)) {
+                for (int i = 0; i < PROGRESS_LINE; i++) {
+                    if (i < (Math.abs(progress) * spacesLeft) / 100 && bar.length() < spacesLeft) {
                         bar.append(".");
                     }
                 }
@@ -341,6 +346,7 @@ public abstract class ConsoleApplication {
                 bar.append(progress).append("%     ");
             } else {
                 bar.append("FAIL");
+                isProgressSuite = false;
             }
             final int endBuilder = linePos + bar.length();
             for (int i = 0; i < endBuilder; i++) {
@@ -348,8 +354,44 @@ public abstract class ConsoleApplication {
             }
             if (progress >= 100 || progress < 0) {
                 bar.append(EOL);
+                isProgressSuite = false;
             }
             out.print(bar.toString());
+        }
+    }
+
+    /**
+     * Prints a progress bar on the same output stream line if not in quiet mode.
+     * If the line's length is upper than the limit, the message is wrapped and the progress
+     * bar is affected to the last one.
+     * e.g.
+     * <pre>
+     *   Changing matching rule for 'userCertificate' and 'caCertificate' to
+     *   CertificateExactMatch...............................................   100%
+     * </pre>
+     *
+     * @param msg
+     *            The message to display before the progress line.
+     * @param progress
+     *            The current percentage progress to print.
+     * @param indent
+     *            Indentation of the message.
+     */
+    public final void printProgressBar(String msg, final int progress, final int indent) {
+        if (!isQuiet()) {
+            String msgToDisplay = wrapText(msg, PROGRESS_LINE, indent);
+            if (msgToDisplay.length() > PROGRESS_LINE) {
+                final String[] msgWrapped = msgToDisplay.split(LINE_SEPARATOR);
+                if (!isProgressSuite) {
+                    for (int pos = 0; pos < msgWrapped.length - 1; pos++) {
+                        println(LocalizableMessage.raw(msgWrapped[pos]));
+                    }
+                    isProgressSuite = true;
+                }
+                msgToDisplay = msgWrapped[msgWrapped.length - 1];
+            }
+            print(LocalizableMessage.raw(msgToDisplay));
+            printProgressBar(msgToDisplay.length(), progress);
         }
     }
 
@@ -682,7 +724,7 @@ public abstract class ConsoleApplication {
         boolean done = false;
         int nTries = 0;
 
-        while (!done && (nTries < CONFIRMATION_MAX_TRIES)) {
+        while (!done && nTries < CONFIRMATION_MAX_TRIES) {
             nTries++;
             try {
                 v = confirmAction(prompt, defaultValue);
