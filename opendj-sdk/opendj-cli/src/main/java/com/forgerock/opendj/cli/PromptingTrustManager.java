@@ -59,10 +59,10 @@ final class PromptingTrustManager implements X509TrustManager {
      * Enumeration description server certificate trust option.
      */
     private static enum TrustOption {
-        UNTRUSTED(1, INFO_LDAP_CONN_PROMPT_SECURITY_TRUST_OPTION_NO.get()), SESSION(2,
-                INFO_LDAP_CONN_PROMPT_SECURITY_TRUST_OPTION_SESSION.get()), PERMANENT(3,
-                INFO_LDAP_CONN_PROMPT_SECURITY_TRUST_OPTION_ALWAYS.get()), CERTIFICATE_DETAILS(4,
-                INFO_LDAP_CONN_PROMPT_SECURITY_CERTIFICATE_DETAILS.get());
+        UNTRUSTED(1, INFO_LDAP_CONN_PROMPT_SECURITY_TRUST_OPTION_NO.get()),
+        SESSION(2, INFO_LDAP_CONN_PROMPT_SECURITY_TRUST_OPTION_SESSION.get()),
+        PERMANENT(3, INFO_LDAP_CONN_PROMPT_SECURITY_TRUST_OPTION_ALWAYS.get()),
+        CERTIFICATE_DETAILS(4, INFO_LDAP_CONN_PROMPT_SECURITY_CERTIFICATE_DETAILS.get());
 
         private Integer choice;
 
