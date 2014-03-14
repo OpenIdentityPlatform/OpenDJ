@@ -26,11 +26,10 @@
  */
 package org.opends.server.types;
 
-import org.forgerock.opendj.ldap.ByteString;
+import org.opends.server.core.DirectoryServer;
+import org.testng.Assert;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import org.testng.Assert;
-import org.opends.server.core.DirectoryServer;
 
 /**
  * Test case for AttributeValues
@@ -81,32 +80,4 @@ public class TestAttributeValue extends TypesTestCase
     Assert.assertEquals(h1 == h2, result);
   }
 
-
-
-  /**
-   * Check that the {@link AttributeValue#getNormalizedValue()} method
-   * works as expected.
-   *
-   * @param value1
-   *          The first test value.
-   * @param value2
-   *          The second test value.
-   * @param result
-   *          The expected result.
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test(dataProvider = "generateHashCodeTestData")
-  public void testGetNormalizedValue(String value1, String value2,
-      boolean result) throws Exception {
-    AttributeType type = DirectoryServer.getDefaultAttributeType("test");
-
-    AttributeValue av1 = AttributeValues.create(type, value1);
-    AttributeValue av2 = AttributeValues.create(type, value2);
-
-    ByteString r1 = av1.getNormalizedValue();
-    ByteString r2 = av2.getNormalizedValue();
-
-    Assert.assertEquals(r1.equals(r2), result);
-  }
 }

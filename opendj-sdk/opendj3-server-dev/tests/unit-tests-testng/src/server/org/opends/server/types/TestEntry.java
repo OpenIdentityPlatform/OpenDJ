@@ -26,27 +26,29 @@
  */
 package org.opends.server.types;
 
-import org.forgerock.opendj.ldap.ByteString;
-import static org.testng.Assert.*;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
-import org.opends.server.TestCaseUtils;
+import org.assertj.core.api.Assertions;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
+import org.forgerock.opendj.ldap.ByteString;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.schema.*;
-import org.testng.annotations.Test;
+import org.opends.server.schema.AttributeTypeSyntax;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
+
+import static org.testng.Assert.*;
 
 /**
  * This class defines a set of tests for the {@link Entry} class.
  * <p>
- * At the moment this test suite only tests the getAttributeValue and
- * getAttributeValues methods.
+ * At the moment this test suite only tests the parseAttribute method.
  */
 public final class TestEntry extends TypesTestCase {
 
@@ -60,9 +62,7 @@ public final class TestEntry extends TypesTestCase {
    * @return The test entry.
    */
   private Entry createTestEntry(AttributeType type, String value) {
-    String[] values = new String[1];
-    values[0] = value;
-
+    String[] values = new String[] { value };
     return createTestEntry(type, values);
   }
 
@@ -131,88 +131,68 @@ public final class TestEntry extends TypesTestCase {
   }
 
   /**
-   * Test the
-   * {@link Entry#getAttributeValue(AttributeType, AttributeValueDecoder)}
-   * method.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
+   * Test the {@link Entry#parseAttribute(String)} method.
    */
   @Test
-  public void testGetAttributeValueNotFound() throws Exception {
+  public void testParseAttributeNotFound() throws Exception {
     AttributeType type1 = DirectoryServer.getAttributeType("description");
     AttributeType type2 = DirectoryServer.getAttributeType("inheritable");
 
     Entry entry = createTestEntry(type1, "hello world");
 
-    assertEquals(null, entry
-        .getAttributeValue(type2, BooleanSyntax.DECODER));
+    assertEquals(null, entry.parseAttribute(type2.getNameOrOID()).asString());
   }
 
   /**
-   * Test the
-   * {@link Entry#getAttributeValue(AttributeType, AttributeValueDecoder)}
-   * method.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
+   * Test the {@link Entry#parseAttribute(String)} method.
    */
   @Test
-  public void testGetAttributeValueBooleanTrue() throws Exception {
+  public void testParseAttributeBooleanTrue() throws Exception {
     AttributeType type = DirectoryServer.getAttributeType("inheritable");
 
     Entry entry = createTestEntry(type, "true");
 
-    assertEquals(Boolean.TRUE, entry.getAttributeValue(type,
-        BooleanSyntax.DECODER));
+    assertEquals(entry.parseAttribute(type.getNameOrOID()).asBoolean(),
+        Boolean.TRUE);
   }
 
   /**
-   * Test the
-   * {@link Entry#getAttributeValue(AttributeType, AttributeValueDecoder)}
-   * method.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
+   * Test the {@link Entry#parseAttribute(String)} method.
    */
   @Test
-  public void testGetAttributeValueBooleanFalse() throws Exception {
+  public void testParseAttributeBooleanFalse() throws Exception
+  {
     AttributeType type = DirectoryServer.getAttributeType("inheritable");
 
     Entry entry = createTestEntry(type, "false");
 
-    assertEquals(Boolean.FALSE, entry.getAttributeValue(type,
-        BooleanSyntax.DECODER));
+    assertEquals(entry.parseAttribute(type.getNameOrOID()).asBoolean(),
+        Boolean.FALSE);
   }
 
   /**
-   * Test the
-   * {@link Entry#getAttributeValue(AttributeType, AttributeValueDecoder)}
-   * method.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
+   * Test the {@link Entry#parseAttribute(String)} method.
    */
-  @Test(expectedExceptions = DirectoryException.class)
-  public void testGetAttributeValueBooleanBad() throws Exception {
+  @Test(expectedExceptions = LocalizedIllegalArgumentException.class)
+  public void testParseAttributeBooleanBad() throws Exception
+  {
     AttributeType type = DirectoryServer.getAttributeType("inheritable");
 
     Entry entry = createTestEntry(type, "bad-value");
-    entry.getAttributeValue(type, BooleanSyntax.DECODER);
+    entry.parseAttribute(type.getNameOrOID()).asBoolean();
     throw new RuntimeException(
          "An illegal boolean value did not throw an exception");
   }
 
   /**
-   * Test the
-   * {@link Entry#getAttributeValue(AttributeType, AttributeValueDecoder)}
-   * method.
+   * Test the {@link Entry#parseAttribute(String)} method.
    *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
   @Test
-  public void testGetAttributeValuesInteger() throws Exception {
+  public void testParseAttributesInteger() throws Exception
+  {
     AttributeType type = DirectoryServer
         .getAttributeType("supportedldapversion");
     String[] values = new String[] { "-4", "-2", "0", "1", "3" };
@@ -223,43 +203,33 @@ public final class TestEntry extends TypesTestCase {
     }
 
     Entry entry = createTestEntry(type, values);
-    HashSet<Integer> result = new HashSet<Integer>();
-    entry.getAttributeValues(type, IntegerSyntax.DECODER, result);
-
-    assertEquals(expected, result);
+    Set<Integer> result =
+        entry.parseAttribute("supportedldapversion").asSetOfInteger();
+    Assertions.assertThat(result).isEqualTo(expected);
   }
 
   /**
-   * Test the
-   * {@link Entry#getAttributeValue(AttributeType, AttributeValueDecoder)}
-   * method.
+   * Test the {@link Entry#parseAttribute(String)} method.
    *
    * @throws Exception
    *           If the test failed unexpectedly.
    */
-  @Test(expectedExceptions = DirectoryException.class)
-  public void testGetAttributeValueIntegerBad() throws Exception {
+  @Test(expectedExceptions = LocalizedIllegalArgumentException.class)
+  public void testParseAttributeIntegerBad() throws Exception
+  {
     AttributeType type = DirectoryServer
         .getAttributeType("supportedldapversion");
     String[] values = new String[] { "-4", "-2", "xxx", "1", "3" };
 
-    HashSet<Integer> result = new HashSet<Integer>();
     Entry entry = createTestEntry(type, values);
-    entry.getAttributeValues(type, IntegerSyntax.DECODER, result);
-    throw new RuntimeException(
-         "An illegal integer value did not throw an exception");
+    entry.parseAttribute("supportedldapversion").asSetOfInteger();
   }
 
   /**
-   * Test the
-   * {@link Entry#getAttributeValue(AttributeType, AttributeValueDecoder)}
-   * method.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
+   * Test the {@link Entry#parseAttribute(String)} method.
    */
   @Test
-  public void testGetAttributeValuesSubtreeSpecification()
+  public void testParseAttributesSubtreeSpecification()
       throws Exception {
     // Define a dummy attribute type, in case there is not one already
     // in the core schema.
@@ -279,15 +249,19 @@ public final class TestEntry extends TypesTestCase {
     // Relative to the root DN.
     DN rootDN = DN.rootDN();
 
-    SubtreeSpecificationSet expected = new SubtreeSpecificationSet();
+    Set<SubtreeSpecification> expected = new HashSet<SubtreeSpecification>();
     for (String value : values) {
       expected.add(SubtreeSpecification.valueOf(rootDN, value));
     }
 
     Entry entry = createTestEntry(type, values);
-    SubtreeSpecificationSet result = new SubtreeSpecificationSet();
-    entry.getAttributeValues(type, SubtreeSpecificationSyntax
-        .createAttributeValueDecoder(rootDN), result);
+    Set<SubtreeSpecification> result = new HashSet<SubtreeSpecification>();
+    List<Attribute> attributes = entry.getAttribute(type, true);
+    for (AttributeValue value : new AttributeValueIterable(attributes))
+    {
+      String v = value.getValue().toString();
+      result.add(SubtreeSpecification.valueOf(rootDN, v));
+    }
 
     assertEquals(expected, result);
   }

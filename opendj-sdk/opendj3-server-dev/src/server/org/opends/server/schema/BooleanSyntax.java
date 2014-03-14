@@ -26,27 +26,24 @@
  */
 package org.opends.server.schema;
 
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ByteSequence;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
 import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.AttributeSyntax;
-import org.opends.server.api.AttributeValueDecoder;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
-
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ByteSequence;
-import static org.opends.messages.SchemaMessages.*;
-import org.forgerock.i18n.LocalizableMessageBuilder;
-import static org.opends.server.schema.SchemaConstants.*;
+import org.opends.server.types.AttributeValue;
+import org.opends.server.types.AttributeValues;
 import org.opends.server.util.ServerConstants;
 
+import static org.opends.messages.SchemaMessages.*;
+import static org.opends.server.schema.SchemaConstants.*;
 
 /**
  * This class defines the Boolean attribute syntax, which only allows values of
@@ -67,36 +64,6 @@ public class BooleanSyntax
 
 
   /**
-   * A {@link Boolean} attribute value decoder for this syntax.
-   */
-  public static final AttributeValueDecoder<Boolean> DECODER =
-    new AttributeValueDecoder<Boolean>()
-  {
-    /**
-     * {@inheritDoc}
-     */
-    public Boolean decode(AttributeValue value) throws DirectoryException
-    {
-      ByteString normalizedValue = value.getNormalizedValue();
-      if (normalizedValue.equals(ServerConstants.TRUE_VALUE))
-      {
-        return true;
-      }
-      else if (normalizedValue.equals(ServerConstants.FALSE_VALUE))
-      {
-        return false;
-      }
-      else
-      {
-        throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-            WARN_ATTR_SYNTAX_ILLEGAL_BOOLEAN.get(normalizedValue));
-      }
-    }
-  };
-
-
-
-  /**
    * Creates a new instance of this syntax.  Note that the only thing that
    * should be done here is to invoke the default constructor for the
    * superclass.  All initialization should be performed in the
@@ -112,6 +79,7 @@ public class BooleanSyntax
   /**
    * {@inheritDoc}
    */
+  @Override
   public void initializeSyntax(AttributeSyntaxCfg configuration)
          throws ConfigException
   {
@@ -130,6 +98,7 @@ public class BooleanSyntax
    *
    * @return  The common name for this attribute syntax.
    */
+  @Override
   public String getName()
   {
     return SYNTAX_BOOLEAN_NAME;
@@ -142,6 +111,7 @@ public class BooleanSyntax
    *
    * @return  The OID for this attribute syntax.
    */
+  @Override
   public String getOID()
   {
     return SYNTAX_BOOLEAN_OID;
@@ -154,6 +124,7 @@ public class BooleanSyntax
    *
    * @return  A description for this attribute syntax.
    */
+  @Override
   public String getDescription()
   {
     return SYNTAX_BOOLEAN_DESCRIPTION;
@@ -169,6 +140,7 @@ public class BooleanSyntax
    *          attributes with this syntax, or <CODE>null</CODE> if equality
    *          matches will not be allowed for this type by default.
    */
+  @Override
   public EqualityMatchingRule getEqualityMatchingRule()
   {
     return defaultEqualityMatchingRule;
@@ -184,6 +156,7 @@ public class BooleanSyntax
    *          attributes with this syntax, or <CODE>null</CODE> if ordering
    *          matches will not be allowed for this type by default.
    */
+  @Override
   public OrderingMatchingRule getOrderingMatchingRule()
   {
     // Ordering matches are not allowed by default.
@@ -200,6 +173,7 @@ public class BooleanSyntax
    *          attributes with this syntax, or <CODE>null</CODE> if substring
    *          matches will not be allowed for this type by default.
    */
+  @Override
   public SubstringMatchingRule getSubstringMatchingRule()
   {
     // Substring matches are not allowed by default.
@@ -216,6 +190,7 @@ public class BooleanSyntax
    *          attributes with this syntax, or <CODE>null</CODE> if approximate
    *          matches will not be allowed for this type by default.
    */
+  @Override
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
     // Approximate matches are not allowed by default.
@@ -236,6 +211,7 @@ public class BooleanSyntax
    * @return  <CODE>true</CODE> if the provided value is acceptable for use with
    *          this syntax, or <CODE>false</CODE> if not.
    */
+  @Override
   public boolean valueIsAcceptable(ByteSequence value,
                                    LocalizableMessageBuilder invalidReason)
   {
@@ -281,6 +257,7 @@ public class BooleanSyntax
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isBEREncodingRequired()
   {
     return false;
@@ -291,6 +268,7 @@ public class BooleanSyntax
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isHumanReadable()
   {
     return true;

@@ -26,24 +26,19 @@
  */
 package org.opends.server.schema;
 
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ByteSequence;
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
 import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.AttributeSyntax;
-import org.opends.server.api.AttributeValueDecoder;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ByteSequence;
 import static org.opends.messages.SchemaMessages.*;
-import org.forgerock.i18n.LocalizableMessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
 
 
@@ -66,34 +61,6 @@ public class IntegerSyntax
 
   // The default substring matching rule for this syntax.
   private SubstringMatchingRule defaultSubstringMatchingRule;
-
-
-
-  /**
-   * An {@link Integer} attribute value decoder for this syntax.
-   */
-  public static final AttributeValueDecoder<Integer> DECODER =
-    new AttributeValueDecoder<Integer>()
-  {
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public Integer decode(AttributeValue value) throws DirectoryException
-    {
-      ByteString nvalue = value.getNormalizedValue();
-      try
-      {
-        return Integer.valueOf(nvalue.toString());
-      }
-      catch (NumberFormatException e)
-      {
-        throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-            WARN_ATTR_SYNTAX_ILLEGAL_INTEGER.get(nvalue));
-      }
-    }
-  };
-
 
 
   /**
@@ -396,6 +363,7 @@ public class IntegerSyntax
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isHumanReadable()
   {
     return true;

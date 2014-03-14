@@ -33,6 +33,7 @@ import java.util.concurrent.locks.Lock;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteSequenceReader;
@@ -42,7 +43,6 @@ import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.schema.ObjectClassType;
-import org.opends.server.api.AttributeValueDecoder;
 import org.opends.server.api.CompressedSchema;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.api.ProtocolElement;
@@ -861,87 +861,27 @@ public class Entry
   }
 
 
-
   /**
-   * Retrieves the requested attribute type from the entry and decodes
-   * a single value as an object of type T.
+   * Returns a parser for the named attribute contained in this entry.
    * <p>
-   * If the requested attribute type is not present then
-   * <code>null</code> is returned. If more than one attribute value
-   * is present, then the first value found will be decoded and
-   * returned.
-   * <p>
-   * The attribute value is decoded using the specified
-   * {@link org.opends.server.api.AttributeValueDecoder}.
+   * The attribute description will be decoded using the schema associated
+   * with this entry (usually the default schema).
    *
-   * @param <T>
-   *          Decode the attribute value to an object of this type.
-   * @param attributeType
-   *          The attribute type to retrieve.
-   * @param decoder
-   *          The attribute value decoder.
-   * @return The decoded attribute value or <code>null</code> if no
-   *         attribute value having the specified attribute type was
-   *         found.
-   * @throws DirectoryException
-   *           If the requested attribute value could not be decoded
-   *           successfully.
+   * @param attributeDescription
+   *            The name of the attribute to be parsed.
+   * @return A parser for the named attribute.
+   * @throws LocalizedIllegalArgumentException
+   *             If {@code attributeDescription} could not be decoded using
+   *             the schema associated with this entry.
+   * @throws NullPointerException
+   *             If {@code attributeDescription} was {@code null}.
    */
-  public final <T> T getAttributeValue(AttributeType attributeType,
-      AttributeValueDecoder<T> decoder) throws DirectoryException
+  public AttributeParser parseAttribute(String attributeDescription)
+      throws LocalizedIllegalArgumentException, NullPointerException
   {
-    List<Attribute> attributes = getAttribute(attributeType, true);
-    AttributeValueIterable values = new AttributeValueIterable(attributes);
-    Iterator<AttributeValue> iterator = values.iterator();
-    if (iterator.hasNext())
-    {
-      return decoder.decode(iterator.next());
-    }
-    return null;
-  }
-
-
-
-  /**
-   * Retrieves the requested attribute type from the entry and decodes
-   * any values as objects of type T and then places them in the
-   * specified collection.
-   * <p>
-   * If the requested attribute type is not present then no decoded
-   * values will be added to the container.
-   * <p>
-   * The attribute value is decoded using the specified
-   * {@link org.opends.server.api.AttributeValueDecoder}.
-   *
-   * @param <T>
-   *          Decode the attribute values to objects of this type.
-   * @param attributeType
-   *          The attribute type to retrieve.
-   * @param decoder
-   *          The attribute value decoder.
-   * @param collection
-   *          The collection to which decoded values should be added.
-   * @return The collection containing the decoded attribute value.
-   * @throws DirectoryException
-   *           If one or more of the requested attribute values could
-   *           not be decoded successfully.
-   */
-  public final <T> Collection<T> getAttributeValues(
-      AttributeType attributeType,
-      AttributeValueDecoder<? extends T> decoder,
-      Collection<T> collection)
-      throws DirectoryException
-  {
-    List<Attribute> attributes = getAttribute(attributeType, true);
-    AttributeValueIterable values =
-         new AttributeValueIterable(attributes);
-
-    for (AttributeValue value : values)
-    {
-      collection.add(decoder.decode(value));
-    }
-
-    return collection;
+    final List<Attribute> attribute = getAttribute(attributeDescription);
+    boolean notEmpty = attribute != null && !attribute.isEmpty();
+    return AttributeParser.parseAttribute(notEmpty ? attribute.get(0) : null);
   }
 
 

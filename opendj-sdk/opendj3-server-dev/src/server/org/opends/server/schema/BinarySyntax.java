@@ -28,14 +28,11 @@ package org.opends.server.schema;
 
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteSequence;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
 import org.opends.server.api.*;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.DirectoryException;
 
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.schema.SchemaConstants.*;
@@ -59,26 +56,6 @@ public class BinarySyntax
 
   // The default substring matching rule for this syntax.
   private SubstringMatchingRule defaultSubstringMatchingRule;
-
-
-
-  /**
-   * A {@code byte[]} attribute value decoder for this syntax.
-   */
-  public static final AttributeValueDecoder<ByteString> DECODER =
-    new AttributeValueDecoder<ByteString>()
-  {
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public ByteString decode(AttributeValue value) throws DirectoryException {
-      // Make sure that the value is valid.
-      value.getNormalizedValue();
-      return value.getValue();
-    }
-  };
-
 
 
   /**

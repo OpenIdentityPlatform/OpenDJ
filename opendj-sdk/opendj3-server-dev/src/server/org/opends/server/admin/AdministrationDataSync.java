@@ -26,33 +26,28 @@
  */
 package org.opends.server.admin;
 
-
-
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
+import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPFilter;
-import org.opends.server.schema.DirectoryStringSyntax;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.Attributes;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DN;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.Modification;
-import org.forgerock.opendj.ldap.ModificationType;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.types.SearchResultEntry;
-import org.forgerock.opendj.ldap.SearchScope;
-
-
 
 /**
  * Check if information found in "cn=admin data" is coherent with
@@ -197,12 +192,6 @@ public final class AdministrationDataSync
     }
 
     // Look for a local server with the Ldap Port.
-    String attrName = "hostname";
-    AttributeType hostnameType = DirectoryServer.getAttributeType(attrName);
-    if (hostnameType == null)
-    {
-      hostnameType = DirectoryServer.getDefaultAttributeType(attrName);
-    }
     try
     {
       InternalSearchOperation op = internalConnection.processSearch(
@@ -213,8 +202,8 @@ public final class AdministrationDataSync
         Entry entry = null;
         for (Entry currentEntry : op.getSearchEntries())
         {
-          String currentHostname = currentEntry.getAttributeValue(hostnameType,
-              DirectoryStringSyntax.DECODER);
+          String currentHostname =
+              currentEntry.parseAttribute("hostname").asString();
           try
           {
             String currentIPAddress = java.net.InetAddress.getByName(
@@ -222,15 +211,8 @@ public final class AdministrationDataSync
             if (currentIPAddress.equals(hostName))
             {
               // Check if one of the port match
-              attrName = "ldapport";
-              AttributeType portType = DirectoryServer
-                  .getAttributeType(attrName);
-              if (portType == null)
-              {
-                portType = DirectoryServer.getDefaultAttributeType(attrName);
-              }
-              String currentport = currentEntry.getAttributeValue(portType,
-                  DirectoryStringSyntax.DECODER);
+              String currentport =
+                  currentEntry.parseAttribute("ldapport").asString();
               if (currentport.equals(ldapPort))
               {
                 entry = currentEntry;
@@ -238,14 +220,8 @@ public final class AdministrationDataSync
               }
               if (ldapsPortEnable)
               {
-                attrName = "ldapsport";
-                portType = DirectoryServer.getAttributeType(attrName);
-                if (portType == null)
-                {
-                  portType = DirectoryServer.getDefaultAttributeType(attrName);
-                }
-                currentport = currentEntry.getAttributeValue(portType,
-                    DirectoryStringSyntax.DECODER);
+                currentport =
+                    currentEntry.parseAttribute("ldapsport").asString();
                 if (currentport.equals(ldapsPort))
                 {
                   entry = currentEntry;
