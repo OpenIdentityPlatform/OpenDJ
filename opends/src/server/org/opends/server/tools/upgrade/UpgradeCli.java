@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS
+ *      Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.tools.upgrade;
 
@@ -391,9 +391,7 @@ public final class UpgradeCli extends ConsoleApplication implements
       {
         final ProgressNotificationCallback pnc =
             (ProgressNotificationCallback) c;
-        final Message msg = Message.raw("  " + pnc.getMessage());
-        printProgress(msg);
-        printProgressBar(msg.length(), pnc.getProgress());
+        printProgressBar(pnc.getMessage(), pnc.getProgress(), 2);
       }
       else if (c instanceof FormattedNotificationCallback)
       {
