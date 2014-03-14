@@ -35,7 +35,7 @@ import org.forgerock.opendj.ldap.ByteSequence;
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
 import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.AttributeSyntax;
-import org.opends.server.api.EqualityMatchingRule;
+import org.opends.server.api.MatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.core.DirectoryServer;
@@ -59,7 +59,7 @@ public class DistinguishedNameSyntax
 
 
   // The default equality matching rule for this syntax.
-  private EqualityMatchingRule defaultEqualityMatchingRule;
+  private MatchingRule defaultEqualityMatchingRule;
 
   // The default substring matching rule for this syntax.
   private SubstringMatchingRule defaultSubstringMatchingRule;
@@ -151,7 +151,7 @@ public class DistinguishedNameSyntax
    *          matches will not be allowed for this type by default.
    */
   @Override
-  public EqualityMatchingRule getEqualityMatchingRule()
+  public MatchingRule getEqualityMatchingRule()
   {
     return defaultEqualityMatchingRule;
   }

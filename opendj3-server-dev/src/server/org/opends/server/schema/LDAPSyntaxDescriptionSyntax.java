@@ -68,7 +68,7 @@ public class LDAPSyntaxDescriptionSyntax
 
 
   // The default equality matching rule for this syntax.
-  private EqualityMatchingRule defaultEqualityMatchingRule;
+  private MatchingRule defaultEqualityMatchingRule;
 
   // The default ordering matching rule for this syntax.
   private OrderingMatchingRule defaultOrderingMatchingRule;
@@ -170,7 +170,7 @@ public class LDAPSyntaxDescriptionSyntax
    *          matches will not be allowed for this type by default.
    */
   @Override
-  public EqualityMatchingRule getEqualityMatchingRule()
+  public MatchingRule getEqualityMatchingRule()
   {
     return defaultEqualityMatchingRule;
   }
@@ -1024,7 +1024,7 @@ public class LDAPSyntaxDescriptionSyntax
      *          matches will not be allowed for this type by default.
      */
     @Override
-    public EqualityMatchingRule getEqualityMatchingRule()
+    public MatchingRule getEqualityMatchingRule()
     {
       return subSyntax.getEqualityMatchingRule();
     }
@@ -1101,7 +1101,7 @@ public class LDAPSyntaxDescriptionSyntax
     private String definition;
 
     //The equality matching rule.
-    private EqualityMatchingRule equalityMatchingRule;
+    private MatchingRule equalityMatchingRule;
 
     //The substring matching rule.
     private SubstringMatchingRule substringMatchingRule;
@@ -1201,7 +1201,7 @@ public class LDAPSyntaxDescriptionSyntax
      *          matches will not be allowed for this type by default.
      */
     @Override
-    public EqualityMatchingRule getEqualityMatchingRule()
+    public MatchingRule getEqualityMatchingRule()
     {
       if(equalityMatchingRule == null)
       {
@@ -1297,7 +1297,7 @@ public class LDAPSyntaxDescriptionSyntax
     private String oid;
 
     //The equality matching rule.
-    private EqualityMatchingRule equalityMatchingRule;
+    private MatchingRule equalityMatchingRule;
 
     //The substring matching rule.
     private SubstringMatchingRule substringMatchingRule;
@@ -1410,7 +1410,7 @@ public class LDAPSyntaxDescriptionSyntax
      *          matches will not be allowed for this type by default.
      */
     @Override
-    public EqualityMatchingRule getEqualityMatchingRule()
+    public MatchingRule getEqualityMatchingRule()
     {
       if(equalityMatchingRule == null)
       {

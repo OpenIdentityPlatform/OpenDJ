@@ -41,7 +41,7 @@ import org.opends.server.admin.std.server.*;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.AttributeSyntax;
-import org.opends.server.api.EqualityMatchingRule;
+import org.opends.server.api.MatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.forgerock.opendj.config.server.ConfigException;
@@ -75,7 +75,7 @@ public class AttributeTypeSyntax
 
 
   // The default equality matching rule for this syntax.
-  private EqualityMatchingRule defaultEqualityMatchingRule;
+  private MatchingRule defaultEqualityMatchingRule;
 
   // The default ordering matching rule for this syntax.
   private OrderingMatchingRule defaultOrderingMatchingRule;
@@ -188,7 +188,7 @@ public class AttributeTypeSyntax
    * {@inheritDoc}
    */
   @Override
-  public EqualityMatchingRule getEqualityMatchingRule()
+  public MatchingRule getEqualityMatchingRule()
   {
     return defaultEqualityMatchingRule;
   }
@@ -442,7 +442,7 @@ public class AttributeTypeSyntax
     AttributeType superiorType = null;
     AttributeSyntax<?> syntax = DirectoryServer.getDefaultAttributeSyntax();
     ApproximateMatchingRule approximateMatchingRule = null;
-    EqualityMatchingRule equalityMatchingRule = null;
+    MatchingRule equalityMatchingRule = null;
     OrderingMatchingRule orderingMatchingRule = null;
     SubstringMatchingRule substringMatchingRule = null;
     AttributeUsage attributeUsage = AttributeUsage.USER_APPLICATIONS;
@@ -656,8 +656,8 @@ public class AttributeTypeSyntax
         // for this attribute type.
         StringBuilder woidBuffer = new StringBuilder();
         pos = readWOID(lowerStr, woidBuffer, pos);
-        EqualityMatchingRule emr =
-             schema.getEqualityMatchingRule(woidBuffer.toString());
+        MatchingRule emr =
+             schema.getMatchingRule(woidBuffer.toString());
         if (emr == null)
         {
           // This is bad because we have no idea what the equality matching

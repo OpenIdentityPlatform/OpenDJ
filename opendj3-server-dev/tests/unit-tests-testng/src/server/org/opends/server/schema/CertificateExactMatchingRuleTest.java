@@ -27,7 +27,9 @@
  */
 package org.opends.server.schema;
 
+import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.util.Base64;
 import org.testng.annotations.DataProvider;
@@ -181,15 +183,10 @@ public class CertificateExactMatchingRuleTest extends SchemaTestCase
   {
     CertificateExactMatchingRule rule = getRule();
 
-    // normalize the 2 provided values and check that they are equals
-    ByteString normalizedAttributeValue =
-      rule.normalizeAttributeValue(attributeValue);
-    ByteString normalizedAssertionValue =
-      rule.normalizeAssertionValue(assertionValue);
+    Assertion assertion = rule.getAssertion(assertionValue);
+    ConditionResult condResult = assertion.matches(rule.normalizeAttributeValue(attributeValue));
 
-    Boolean liveResult = rule.areEqual(normalizedAttributeValue,
-                                       normalizedAssertionValue);
-    assertEquals(result, liveResult);
+    assertEquals(condResult, ConditionResult.valueOf(result));
   }
 
 

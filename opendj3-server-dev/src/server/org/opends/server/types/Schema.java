@@ -48,8 +48,8 @@ import org.opends.server.admin.std.server.DirectoryStringAttributeSyntaxCfg;
 import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.EqualityMatchingRule;
-import org.opends.server.api.ExtensibleMatchingRule;
 import org.opends.server.api.MatchingRule;
+import org.opends.server.api.ExtensibleMatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.core.DirectoryServer;
@@ -150,7 +150,7 @@ public final class Schema
    * The set of equality matching rules for this schema, mapped between the
    * lowercase names and OID for the definition and the matching rule itself.
    */
-  private ConcurrentHashMap<String,EqualityMatchingRule>
+  private ConcurrentHashMap<String,MatchingRule>
                equalityMatchingRules;
 
   /**
@@ -276,7 +276,7 @@ public final class Schema
     approximateMatchingRules =
          new ConcurrentHashMap<String,ApproximateMatchingRule>();
     equalityMatchingRules =
-         new ConcurrentHashMap<String,EqualityMatchingRule>();
+         new ConcurrentHashMap<String,MatchingRule>();
     orderingMatchingRules =
          new ConcurrentHashMap<String,OrderingMatchingRule>();
     substringMatchingRules =
@@ -1193,7 +1193,7 @@ public final class Schema
     else if (matchingRule instanceof EqualityMatchingRule)
     {
       registerEqualityMatchingRule(
-           (EqualityMatchingRule) matchingRule, overwriteExisting);
+           matchingRule, overwriteExisting);
     }
     else if (matchingRule instanceof OrderingMatchingRule)
     {
@@ -1279,10 +1279,10 @@ public final class Schema
       deregisterApproximateMatchingRule(
            (ApproximateMatchingRule) matchingRule);
     }
-    else if (matchingRule instanceof EqualityMatchingRule)
+    else if (matchingRule instanceof MatchingRule)
     {
       deregisterEqualityMatchingRule(
-           (EqualityMatchingRule) matchingRule);
+           matchingRule);
     }
     else if (matchingRule instanceof OrderingMatchingRule)
     {
@@ -1469,7 +1469,7 @@ public final class Schema
    *
    * @return  The equality matching rule definitions for this schema.
    */
-  public ConcurrentHashMap<String,EqualityMatchingRule>
+  public ConcurrentHashMap<String,MatchingRule>
               getEqualityMatchingRules()
   {
     return equalityMatchingRules;
@@ -1489,7 +1489,7 @@ public final class Schema
    *          equality matching rule is registered with the provided
    *          name or OID.
    */
-  public EqualityMatchingRule getEqualityMatchingRule(
+  public MatchingRule getEqualityMatchingRule(
                                    String lowerName)
   {
     return equalityMatchingRules.get(lowerName);
@@ -1511,9 +1511,7 @@ public final class Schema
    *                              <CODE>overwriteExisting</CODE> flag
    *                              is set to <CODE>false</CODE>
    */
-  public void registerEqualityMatchingRule(
-                   EqualityMatchingRule matchingRule,
-                   boolean overwriteExisting)
+  public void registerEqualityMatchingRule(MatchingRule matchingRule, boolean overwriteExisting)
          throws DirectoryException
   {
     synchronized (matchingRules)
@@ -1580,7 +1578,7 @@ public final class Schema
    *                       with this schema.
    */
   public void deregisterEqualityMatchingRule(
-                   EqualityMatchingRule matchingRule)
+                   MatchingRule matchingRule)
   {
     synchronized (matchingRules)
     {

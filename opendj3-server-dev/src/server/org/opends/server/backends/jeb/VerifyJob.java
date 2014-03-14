@@ -34,7 +34,6 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
@@ -670,8 +669,10 @@ public class VerifyJob
         }
 
         EntryIDSet entryIDList;
+
         try
         {
+          JebFormat.entryIDListFromDatabase(data.getData());
           entryIDList = new EntryIDSet(key.getData(), data.getData());
         }
         catch (Exception e)
@@ -803,6 +804,7 @@ public class VerifyJob
         EntryIDSet entryIDList;
         try
         {
+          JebFormat.entryIDListFromDatabase(data.getData());
           entryIDList = new EntryIDSet(key.getData(), data.getData());
         }
         catch (Exception e)
@@ -1092,6 +1094,7 @@ public class VerifyJob
         EntryIDSet entryIDList;
         try
         {
+          JebFormat.entryIDListFromDatabase(data.getData());
           entryIDList = new EntryIDSet(key.getData(), data.getData());
         }
         catch (Exception e)
@@ -1627,7 +1630,7 @@ public class VerifyJob
     for (Attribute attr : attrList)
     {
       final AttributeType attrType = attr.getAttributeType();
-      EqualityMatchingRule equalityRule = attrType.getEqualityMatchingRule();
+      MatchingRule equalityRule = attrType.getEqualityMatchingRule();
       for (AttributeValue value : attr)
       {
         final ByteString bsValue = value.getValue();

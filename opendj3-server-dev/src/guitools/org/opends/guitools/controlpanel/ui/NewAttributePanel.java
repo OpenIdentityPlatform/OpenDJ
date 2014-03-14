@@ -261,7 +261,7 @@ public class NewAttributePanel extends StatusGenericPanel
         {
           approximateElements.add(matchingRule);
         }
-        else if (matchingRule instanceof EqualityMatchingRule)
+        else if (matchingRule instanceof MatchingRule)
         {
           equalityElements.add(matchingRule);
         }
@@ -789,7 +789,7 @@ public class NewAttributePanel extends StatusGenericPanel
     }
   }
 
-  private EqualityMatchingRule getEqualityMatchingRule()
+  private MatchingRule getEqualityMatchingRule()
   {
     if (equality.getSelectedIndex() == 0)
     {
@@ -797,7 +797,7 @@ public class NewAttributePanel extends StatusGenericPanel
     }
     else
     {
-      return (EqualityMatchingRule)equality.getSelectedItem();
+      return (MatchingRule)equality.getSelectedItem();
     }
   }
 

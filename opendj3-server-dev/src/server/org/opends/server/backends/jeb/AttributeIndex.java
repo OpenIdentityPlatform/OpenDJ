@@ -801,7 +801,7 @@ public class AttributeIndex
     try
     {
       // Make a key from the normalized assertion value.
-      EqualityMatchingRule equalityRule = equalityFilter.getAttributeType().
+      MatchingRule equalityRule = equalityFilter.getAttributeType().
         getEqualityMatchingRule();
       byte[] keyBytes = equalityRule.normalizeAssertionValue(equalityFilter.
         getAssertionValue().getValue()).toByteArray();
@@ -2255,7 +2255,7 @@ public class AttributeIndex
      * 1. There is no matching rule provided
      * 2. The matching rule specified is actually the default equality.
      */
-    EqualityMatchingRule eqRule =
+    MatchingRule eqRule =
             indexConfig.getAttribute().getEqualityMatchingRule();
     if (nOID == null
         || nOID.equals(eqRule.getOID())

@@ -37,7 +37,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.opends.server.api.EqualityMatchingRule;
+import org.opends.server.api.MatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
 
@@ -276,7 +276,7 @@ public class PatternRDN
       if (pattern.size() == 1)
       {
         // Handle this just like an equality filter.
-        EqualityMatchingRule rule = type.getEqualityMatchingRule();
+        MatchingRule rule = type.getEqualityMatchingRule();
         ByteString thatNormValue = rule.normalizeAttributeValue(value.getValue());
         return rule.getAssertion(pattern.get(0)).matches(thatNormValue).toBoolean();
       }

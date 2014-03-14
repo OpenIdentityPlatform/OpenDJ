@@ -108,7 +108,6 @@ import org.opends.server.api.ConfigHandler;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.api.DirectoryServerMBean;
 import org.opends.server.api.EntryCache;
-import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.api.ExportTaskListener;
 import org.opends.server.api.ExtendedOperationHandler;
 import org.opends.server.api.ExtensibleMatchingRule;
@@ -3199,7 +3198,7 @@ public final class DirectoryServer
    * @return  The set of equality matching rules registered with the Directory
    *          Server.
    */
-  public static ConcurrentMap<String, EqualityMatchingRule>
+  public static ConcurrentMap<String, MatchingRule>
                      getEqualityMatchingRules()
   {
     return directoryServer.schema.getEqualityMatchingRules();
@@ -3216,7 +3215,7 @@ public final class DirectoryServer
    * @return  The requested equality matching rule, or <CODE>null</CODE> if no
    *          such matching rule has been defined in the server.
    */
-  public static EqualityMatchingRule getEqualityMatchingRule(String lowerName)
+  public static MatchingRule getEqualityMatchingRule(String lowerName)
   {
     return directoryServer.schema.getEqualityMatchingRule(lowerName);
   }
@@ -3236,7 +3235,7 @@ public final class DirectoryServer
    *                              <CODE>overwriteExisting</CODE> flag is set to
    *                              <CODE>false</CODE>
    */
-  public static void registerEqualityMatchingRule(EqualityMatchingRule
+  public static void registerEqualityMatchingRule(MatchingRule
                                                        matchingRule,
                                                   boolean overwriteExisting)
          throws DirectoryException
@@ -3252,7 +3251,7 @@ public final class DirectoryServer
    *
    * @param  matchingRule  The matching rule to deregister with the server.
    */
-  public static void deregisterEqualityMatchingRule(EqualityMatchingRule
+  public static void deregisterEqualityMatchingRule(MatchingRule
                                                     matchingRule)
   {
     directoryServer.schema.deregisterEqualityMatchingRule(matchingRule);

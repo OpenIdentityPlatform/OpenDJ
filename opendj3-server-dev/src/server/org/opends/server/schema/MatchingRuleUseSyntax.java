@@ -37,7 +37,6 @@ import java.util.List;
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
 import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.AttributeSyntax;
-import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
@@ -69,7 +68,7 @@ public class MatchingRuleUseSyntax
 
 
   // The default equality matching rule for this syntax.
-  private EqualityMatchingRule defaultEqualityMatchingRule;
+  private MatchingRule defaultEqualityMatchingRule;
 
   // The default ordering matching rule for this syntax.
   private OrderingMatchingRule defaultOrderingMatchingRule;
@@ -161,7 +160,7 @@ public class MatchingRuleUseSyntax
   /**
    * {@inheritDoc}
    */
-  public EqualityMatchingRule getEqualityMatchingRule()
+  public MatchingRule getEqualityMatchingRule()
   {
     return defaultEqualityMatchingRule;
   }

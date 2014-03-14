@@ -30,7 +30,7 @@ import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DecodeException;
-import org.opends.server.api.EqualityMatchingRule;
+import org.opends.server.api.MatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.AcceptRejectWarn;
 import org.testng.annotations.DataProvider;
@@ -65,27 +65,7 @@ public abstract class EqualityMatchingRuleTest extends SchemaTestCase
    *
    * @return An instance of the matching rule to test.
    */
-  protected abstract EqualityMatchingRule getRule();
-
-  /**
-   * Test the normalization and the comparison of valid values.
-   */
-  @Test(dataProvider= "equalitymatchingrules")
-  public void equalityMatchingRules(String value1,
-                             String value2, Boolean result) throws Exception
-  {
-    EqualityMatchingRule rule = getRule();
-
-    // normalize the 2 provided values and check that they are equals
-    ByteString normalizedValue1 =
-      rule.normalizeAttributeValue(ByteString.valueOf(value1));
-    ByteString normalizedValue2 =
-      rule.normalizeAttributeValue(ByteString.valueOf(value2));
-
-    Boolean liveResult = rule.areEqual(normalizedValue1, normalizedValue2);
-    assertEquals(result, liveResult);
-  }
-
+  protected abstract MatchingRule getRule();
 
   /**
    * Generate data for the EqualityMatching Rule test in warn mode.
@@ -110,7 +90,7 @@ public abstract class EqualityMatchingRuleTest extends SchemaTestCase
     DirectoryServer.setSyntaxEnforcementPolicy(AcceptRejectWarn.WARN);
     try
     {
-      equalityMatchingRules(value1, value2, result);
+      testValuesMatch(value1, value2, result);
     }
     finally
     {
@@ -125,7 +105,7 @@ public abstract class EqualityMatchingRuleTest extends SchemaTestCase
   public void equalityMatchingRulesInvalidValues(String value) throws Exception
     {
     // Get the instance of the rule to be tested.
-    EqualityMatchingRule rule = getRule();
+    MatchingRule rule = getRule();
 
     // normalize the 2 provided values
     try
@@ -157,7 +137,7 @@ public abstract class EqualityMatchingRuleTest extends SchemaTestCase
   public void testValuesMatch(String value1,
                              String value2, Boolean result) throws Exception
   {
-    EqualityMatchingRule rule = getRule();
+    MatchingRule rule = getRule();
 
     // normalize the 2 provided values and check that they are equals
     ByteString normalizedValue1 =

@@ -201,7 +201,7 @@ public abstract class AuthenticationPolicyState
         final AttributeValue v = a.iterator().next();
         try
         {
-          EqualityMatchingRule rule = attributeType.getEqualityMatchingRule();
+          MatchingRule rule = attributeType.getEqualityMatchingRule();
           ByteString normValue = rule.normalizeAttributeValue(v.getValue());
           timeValue = GeneralizedTimeSyntax.decodeGeneralizedTimeValue(normValue);
         }
