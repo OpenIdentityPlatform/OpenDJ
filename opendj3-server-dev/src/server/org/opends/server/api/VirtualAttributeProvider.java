@@ -34,6 +34,7 @@ import java.util.Set;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
@@ -539,23 +540,20 @@ public abstract class VirtualAttributeProvider
                               VirtualAttributeRule rule,
                               AttributeValue value)
   {
-    ApproximateMatchingRule matchingRule =
-         rule.getAttributeType().getApproximateMatchingRule();
+    ApproximateMatchingRule matchingRule = rule.getAttributeType().getApproximateMatchingRule();
     if (matchingRule == null)
     {
       return ConditionResult.UNDEFINED;
     }
 
-    ByteString normalizedValue;
+    Assertion assertion = null;
     try
     {
-      normalizedValue = matchingRule.normalizeAttributeValue(value.getValue());
+      assertion = matchingRule.getAssertion(value.getValue());
     }
     catch (Exception e)
     {
       logger.traceException(e);
-
-      // We couldn't normalize the provided value => return "undefined".
       return ConditionResult.UNDEFINED;
     }
 
@@ -565,21 +563,16 @@ public abstract class VirtualAttributeProvider
       try
       {
         ByteString nv = matchingRule.normalizeAttributeValue(v.getValue());
-        if (matchingRule.approximatelyMatch(nv, normalizedValue))
-        {
-          return ConditionResult.TRUE;
-        }
+        result = assertion.matches(nv);
       }
       catch (Exception e)
       {
         logger.traceException(e);
-
         // We couldn't normalize one of the attribute values.
         // We will return "undefined" if we can't find a definite match
         result = ConditionResult.UNDEFINED;
       }
     }
-
     return result;
   }
 

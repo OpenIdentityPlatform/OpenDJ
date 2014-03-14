@@ -39,11 +39,12 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.util.Reject;
-import org.opends.server.api.ApproximateMatchingRule;
+import org.opends.server.api.MatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.core.DirectoryServer;
@@ -149,33 +150,26 @@ public final class AttributeBuilder
     }
 
 
-
     /**
      * {@inheritDoc}
      */
     @Override
-    public final ConditionResult approximatelyEqualTo(
-        AttributeValue value)
+    public final ConditionResult approximatelyEqualTo(AttributeValue value)
     {
-      ApproximateMatchingRule matchingRule = attributeType
-          .getApproximateMatchingRule();
+      MatchingRule matchingRule = attributeType.getApproximateMatchingRule();
       if (matchingRule == null)
       {
         return ConditionResult.UNDEFINED;
       }
 
-      ByteString normalizedValue;
+      Assertion assertion = null;
       try
       {
-        normalizedValue =
-          matchingRule.normalizeAttributeValue(value.getValue());
+        assertion = matchingRule.getAssertion(value.getValue());
       }
       catch (Exception e)
       {
         logger.traceException(e);
-
-        // We couldn't normalize the provided value. We should return
-        // "undefined".
         return ConditionResult.UNDEFINED;
       }
 
@@ -184,16 +178,11 @@ public final class AttributeBuilder
       {
         try
         {
-          ByteString nv = matchingRule.normalizeAttributeValue(v.getValue());
-          if (matchingRule.approximatelyMatch(nv, normalizedValue))
-          {
-            return ConditionResult.TRUE;
-          }
+          result = assertion.matches(matchingRule.normalizeAttributeValue(v.getValue()));
         }
         catch (Exception e)
         {
           logger.traceException(e);
-
           // We couldn't normalize one of the attribute values. If we
           // can't find a definite match, then we should return
           // "undefined".

@@ -28,12 +28,14 @@ package org.opends.server.schema;
 
 import static org.testng.Assert.*;
 
-import org.opends.server.api.ApproximateMatchingRule;
+import org.opends.server.api.MatchingRule;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ConditionResult;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-public class ApproximatematchingRule extends SchemaTestCase
+@SuppressWarnings("javadoc")
+public class ApproximateMatchingRuleTest extends SchemaTestCase
 {
   /**
    * Build the data for the approximateMatchingRules test.
@@ -141,22 +143,15 @@ public class ApproximatematchingRule extends SchemaTestCase
     assertNotNull(rule);
 
     // Make sure that the specified class can be instantiated as a task.
-    ApproximateMatchingRule ruleInstance =
-      (ApproximateMatchingRule) rule.newInstance();
+    MatchingRule ruleInstance = (MatchingRule) rule.newInstance();
 
     // we should call initializeMatchingRule but they all seem empty at the
     // moment.
     // ruleInstance.initializeMatchingRule(configEntry);
 
-    // normalize the 2 provided values
-    ByteString normalizedValue1 =
-      ruleInstance.normalizeAttributeValue(ByteString.valueOf(value1));
-    ByteString normalizedValue2 =
-      ruleInstance.normalizeAttributeValue(ByteString.valueOf(value2));
+    ByteString normalizedValue1 = ruleInstance.normalizeAttributeValue(ByteString.valueOf(value1));
+    ConditionResult liveResult = ruleInstance.getAssertion(ByteString.valueOf(value2)).matches(normalizedValue1);
 
-    // check that the approximatelyMatch return the expected result.
-    Boolean liveResult = ruleInstance.approximatelyMatch(normalizedValue1,
-        normalizedValue2);
-    assertEquals(result, liveResult);
+    assertEquals(liveResult, ConditionResult.valueOf(result));
   }
 }
