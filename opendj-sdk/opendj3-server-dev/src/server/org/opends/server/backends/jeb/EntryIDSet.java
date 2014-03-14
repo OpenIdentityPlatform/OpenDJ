@@ -39,7 +39,6 @@ import org.forgerock.opendj.ldap.ByteString;
 public class EntryIDSet implements Iterable<EntryID>
 {
 
-
   /**
    * The IDs are stored here in an array in ascending order.
    * A null array implies not defined, rather than zero IDs.
@@ -118,7 +117,8 @@ public class EntryIDSet implements Iterable<EntryID>
     {
       // Entry limit has exceeded and there is an encoded undefined set size.
       values = null;
-      undefinedSize = bytes.toLong();
+      undefinedSize =
+          JebFormat.entryIDUndefinedSizeFromDatabase(bytes.toByteArray());
     }
     else
     {
@@ -126,7 +126,6 @@ public class EntryIDSet implements Iterable<EntryID>
       // list of entry IDs.
       values = JebFormat.entryIDListFromDatabase(bytes.toByteArray());
     }
-
   }
 
   /**
@@ -154,7 +153,6 @@ public class EntryIDSet implements Iterable<EntryID>
   public static EntryIDSet unionOfSets(ArrayList<EntryIDSet> sets,
                                          boolean allowDuplicates)
   {
-    boolean needSort = false;
     int count = 0;
 
     boolean undefined = false;
@@ -179,6 +177,7 @@ public class EntryIDSet implements Iterable<EntryID>
       return new EntryIDSet(count);
     }
 
+    boolean needSort = false;
     long[] n = new long[count];
     int pos = 0;
     for (EntryIDSet l : sets)
@@ -232,14 +231,11 @@ public class EntryIDSet implements Iterable<EntryID>
    */
   public long size()
   {
-    if (values == null)
-    {
-      return undefinedSize;
-    }
-    else
+    if (values != null)
     {
       return values.length;
     }
+    return undefinedSize;
   }
 
   /**
@@ -432,27 +428,11 @@ public class EntryIDSet implements Iterable<EntryID>
     }
 
     long id = entryID.longValue();
-    if (values.length == 0)
+    if (values.length == 0 || id > values[values.length - 1])
     {
       return false;
     }
-
-    if (id > values[values.length-1])
-    {
-      return false;
-    }
-    else
-    {
-      int pos = Arrays.binarySearch(values, id);
-      if (pos >= 0)
-      {
-        return true;
-      }
-      else
-      {
-        return false;
-      }
-    }
+    return Arrays.binarySearch(values, id) >= 0;
   }
 
   /**
