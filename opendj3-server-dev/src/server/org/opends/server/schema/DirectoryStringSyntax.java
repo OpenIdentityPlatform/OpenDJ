@@ -25,31 +25,25 @@
  *      Portions Copyright 2012-2014 ForgeRock AS
  */
 package org.opends.server.schema;
-import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-
-
-
 import java.util.List;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ByteSequence;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.DirectoryStringAttributeSyntaxCfg;
 import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.AttributeSyntax;
-import org.opends.server.api.AttributeValueDecoder;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.types.ConfigChangeResult;
 
-
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ByteSequence;
 import static org.opends.messages.SchemaMessages.*;
-
-import org.forgerock.i18n.LocalizableMessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
 
 
@@ -85,26 +79,6 @@ public class DirectoryStringSyntax
   private SubstringMatchingRule defaultSubstringMatchingRule;
 
 
-
-  /**
-   * A {@link String} attribute value decoder for this syntax.
-   */
-  public static final AttributeValueDecoder<String> DECODER =
-    new AttributeValueDecoder<String>()
-  {
-    /**
-     * {@inheritDoc}
-     */
-    public String decode(AttributeValue value) throws DirectoryException
-    {
-      // Make sure that the value is valid.
-      value.getNormalizedValue();
-      return value.getValue().toString();
-    }
-  };
-
-
-
   /**
    * Creates a new instance of this syntax.  Note that the only thing that
    * should be done here is to invoke the default constructor for the
@@ -121,6 +95,7 @@ public class DirectoryStringSyntax
   /**
    * {@inheritDoc}
    */
+  @Override
   public void initializeSyntax(DirectoryStringAttributeSyntaxCfg configuration)
          throws ConfigException
   {
@@ -176,6 +151,7 @@ public class DirectoryStringSyntax
   /**
    * Performs any finalization that may be necessary for this attribute syntax.
    */
+  @Override
   public void finalizeSyntax()
   {
     currentConfig.removeDirectoryStringChangeListener(this);
@@ -188,6 +164,7 @@ public class DirectoryStringSyntax
    *
    * @return  The common name for this attribute syntax.
    */
+  @Override
   public String getName()
   {
     return SYNTAX_DIRECTORY_STRING_NAME;
@@ -200,6 +177,7 @@ public class DirectoryStringSyntax
    *
    * @return  The OID for this attribute syntax.
    */
+  @Override
   public String getOID()
   {
     return SYNTAX_DIRECTORY_STRING_OID;
@@ -212,6 +190,7 @@ public class DirectoryStringSyntax
    *
    * @return  A description for this attribute syntax.
    */
+  @Override
   public String getDescription()
   {
     return SYNTAX_DIRECTORY_STRING_DESCRIPTION;
@@ -227,6 +206,7 @@ public class DirectoryStringSyntax
    *          attributes with this syntax, or <CODE>null</CODE> if equality
    *          matches will not be allowed for this type by default.
    */
+  @Override
   public EqualityMatchingRule getEqualityMatchingRule()
   {
     return defaultEqualityMatchingRule;
@@ -242,6 +222,7 @@ public class DirectoryStringSyntax
    *          attributes with this syntax, or <CODE>null</CODE> if ordering
    *          matches will not be allowed for this type by default.
    */
+  @Override
   public OrderingMatchingRule getOrderingMatchingRule()
   {
     return defaultOrderingMatchingRule;
@@ -257,6 +238,7 @@ public class DirectoryStringSyntax
    *          attributes with this syntax, or <CODE>null</CODE> if substring
    *          matches will not be allowed for this type by default.
    */
+  @Override
   public SubstringMatchingRule getSubstringMatchingRule()
   {
     return defaultSubstringMatchingRule;
@@ -272,6 +254,7 @@ public class DirectoryStringSyntax
    *          attributes with this syntax, or <CODE>null</CODE> if approximate
    *          matches will not be allowed for this type by default.
    */
+  @Override
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
     return defaultApproximateMatchingRule;
@@ -291,6 +274,7 @@ public class DirectoryStringSyntax
    * @return  <CODE>true</CODE> if the provided value is acceptable for use with
    *          this syntax, or <CODE>false</CODE> if not.
    */
+  @Override
   public boolean valueIsAcceptable(ByteSequence value,
                                    LocalizableMessageBuilder invalidReason)
   {
@@ -328,6 +312,7 @@ public class DirectoryStringSyntax
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
                       DirectoryStringAttributeSyntaxCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -341,6 +326,7 @@ public class DirectoryStringSyntax
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
               DirectoryStringAttributeSyntaxCfg configuration)
   {
@@ -355,6 +341,7 @@ public class DirectoryStringSyntax
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isBEREncodingRequired()
   {
     return false;
@@ -365,6 +352,7 @@ public class DirectoryStringSyntax
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isHumanReadable()
   {
     return true;

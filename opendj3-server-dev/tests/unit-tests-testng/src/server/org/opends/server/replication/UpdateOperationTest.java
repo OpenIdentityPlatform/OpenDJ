@@ -35,6 +35,7 @@ import org.assertj.core.api.Assertions;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
@@ -47,9 +48,7 @@ import org.opends.server.replication.common.CSNGenerator;
 import org.opends.server.replication.plugin.LDAPReplicationDomain;
 import org.opends.server.replication.protocol.*;
 import org.opends.server.replication.service.ReplicationBroker;
-import org.opends.server.schema.DirectoryStringSyntax;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.TimeThread;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
@@ -1315,8 +1314,7 @@ public class UpdateOperationTest extends ReplicationTestCase
 
       // Get the UUID of the test entry.
       Entry resultEntry = getEntry(tmp.getName(), 1, true);
-      AttributeType uuidType = DirectoryServer.getAttributeType("entryuuid");
-      String uuid = resultEntry.getAttributeValue(uuidType, DirectoryStringSyntax.DECODER);
+      String uuid = resultEntry.parseAttribute("entryuuid").asString();
 
       // Register a short circuit that will fake a no-such-object result code
       // on a delete.  This will cause a replication replay loop.

@@ -26,8 +26,9 @@
  */
 package org.opends.server.tasks;
 
-import java.util.ArrayList;
+import java.util.Set;
 
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.backends.task.Task;
@@ -37,9 +38,9 @@ import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.schema.DirectoryStringSyntax;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
+import org.opends.server.types.SearchFilter;
 import org.testng.annotations.Test;
 
 import static org.opends.server.config.ConfigConstants.*;
@@ -88,8 +89,6 @@ public class TasksTestCase extends DirectoryServerTestCase {
                  "Add of the task definition was not successful");
 
     // Wait until the task completes.
-    AttributeType completionTimeType = DirectoryServer.getAttributeType(
-         ATTR_TASK_COMPLETION_TIME.toLowerCase());
     SearchFilter filter =
          SearchFilter.createFilterFromString("(objectclass=*)");
     Entry resultEntry = null;
@@ -110,9 +109,8 @@ public class TasksTestCase extends DirectoryServerTestCase {
 //        fail("Task entry was not returned from the search.");
         continue;
       }
-      completionTime =
-           resultEntry.getAttributeValue(completionTimeType,
-                                         DirectoryStringSyntax.DECODER);
+      completionTime = resultEntry.parseAttribute(
+          ATTR_TASK_COMPLETION_TIME.toLowerCase()).asString();
 
       if (completionTime == null)
       {
@@ -130,22 +128,15 @@ public class TasksTestCase extends DirectoryServerTestCase {
     }
 
     // Check that the task state is as expected.
-    AttributeType taskStateType =
-         DirectoryServer.getAttributeType(ATTR_TASK_STATE.toLowerCase());
     String stateString =
-         resultEntry.getAttributeValue(taskStateType,
-                                       DirectoryStringSyntax.DECODER);
+        resultEntry.parseAttribute(ATTR_TASK_STATE.toLowerCase()).asString();
     TaskState taskState = TaskState.fromString(stateString);
     assertEquals(taskState, expectedState,
                  "The task completed in an unexpected state");
 
     // Check that the task contains some log messages.
-    AttributeType logMessagesType = DirectoryServer.getAttributeType(
-         ATTR_TASK_LOG_MESSAGES.toLowerCase());
-    ArrayList<String> logMessages = new ArrayList<String>();
-    resultEntry.getAttributeValues(logMessagesType,
-                                   DirectoryStringSyntax.DECODER,
-                                   logMessages);
+    Set<String> logMessages = resultEntry.parseAttribute(
+        ATTR_TASK_LOG_MESSAGES.toLowerCase()).asSetOfString();
     if (taskState != TaskState.COMPLETED_SUCCESSFULLY &&
         logMessages.size() == 0)
     {

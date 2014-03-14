@@ -31,11 +31,11 @@ import java.util.*;
 import org.assertj.core.api.Assertions;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.core.AddOperation;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.replication.common.ServerStatus;
@@ -45,9 +45,10 @@ import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.ReplicationServerDomain;
 import org.opends.server.replication.service.ReplicationBroker;
-import org.opends.server.schema.DirectoryStringSyntax;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.SearchFilter;
 import org.opends.server.util.Base64;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -230,22 +231,15 @@ public class InitOnLineTest extends ReplicationTestCase
       Entry resultEntry = getCompletionTime(taskEntry);
 
       // Check that the task state is as expected.
-      AttributeType taskStateType =
-          DirectoryServer.getAttributeType(ATTR_TASK_STATE.toLowerCase());
       String stateString =
-          resultEntry.getAttributeValue(taskStateType,
-              DirectoryStringSyntax.DECODER);
+          resultEntry.parseAttribute(ATTR_TASK_STATE.toLowerCase()).asString();
       TaskState taskState = TaskState.fromString(stateString);
       assertEquals(taskState, expectedState,
           "The task completed in an unexpected state");
 
       // Check that the task contains some log messages.
-      AttributeType logMessagesType = DirectoryServer.getAttributeType(
-          ATTR_TASK_LOG_MESSAGES.toLowerCase());
-      List<String> logMessages = new ArrayList<String>();
-      resultEntry.getAttributeValues(logMessagesType,
-          DirectoryStringSyntax.DECODER,
-          logMessages);
+      Set<String> logMessages = resultEntry.parseAttribute(
+          ATTR_TASK_LOG_MESSAGES.toLowerCase()).asSetOfString();
       if (taskState != TaskState.COMPLETED_SUCCESSFULLY &&
           logMessages.isEmpty())
       {
@@ -268,8 +262,6 @@ public class InitOnLineTest extends ReplicationTestCase
     // Wait until the task completes.
     int timeout = 2000;
 
-    AttributeType completionTimeType = DirectoryServer.getAttributeType(
-        ATTR_TASK_COMPLETION_TIME.toLowerCase());
     SearchFilter filter =
         SearchFilter.createFilterFromString("(objectclass=*)");
 
@@ -280,9 +272,8 @@ public class InitOnLineTest extends ReplicationTestCase
           taskEntry.getName(), SearchScope.BASE_OBJECT, filter);
       Entry resultEntry = searchOperation.getSearchEntries().getFirst();
 
-      String completionTime = resultEntry.getAttributeValue(
-          completionTimeType, DirectoryStringSyntax.DECODER);
-
+      String completionTime = resultEntry.parseAttribute(
+          ATTR_TASK_COMPLETION_TIME.toLowerCase()).asString();
       if (completionTime != null)
       {
         return resultEntry;
@@ -300,8 +291,7 @@ public class InitOnLineTest extends ReplicationTestCase
   private void assertAttributeValue(Entry resultEntry, String lowerAttrName,
       long expected, String message) throws DirectoryException
   {
-    AttributeType type = DirectoryServer.getAttributeType(lowerAttrName, true);
-    String value = resultEntry.getAttributeValue(type, DirectoryStringSyntax.DECODER);
+    String value = resultEntry.parseAttribute(lowerAttrName).asString();
     assertEquals(Long.decode(value).longValue(), expected, message);
   }
 

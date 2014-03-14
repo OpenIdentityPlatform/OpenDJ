@@ -4334,13 +4334,10 @@ public class LDAPPassThroughAuthenticationPolicyTestCase extends
     Entry updatedTestUser = DirectoryServer.getEntry(DN
         .valueOf("cn=test user,o=test"));
 
-    String newCachedPassword = updatedTestUser.getAttributeValue(
-        DirectoryServer.getAttributeType("ds-pta-cached-password"),
-        DirectoryStringSyntax.DECODER);
-
-    String newCachedPasswordTime = updatedTestUser.getAttributeValue(
-        DirectoryServer.getAttributeType("ds-pta-cached-password-time"),
-        DirectoryStringSyntax.DECODER);
+    String newCachedPassword =
+        updatedTestUser.parseAttribute("ds-pta-cached-password").asString();
+    String newCachedPasswordTime =
+        updatedTestUser.parseAttribute("ds-pta-cached-password-time").asString();
 
     if (expectCacheInfo)
     {

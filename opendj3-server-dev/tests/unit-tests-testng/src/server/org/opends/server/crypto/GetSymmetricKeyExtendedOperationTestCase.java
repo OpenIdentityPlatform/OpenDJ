@@ -30,6 +30,7 @@ import java.util.LinkedHashSet;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.admin.ads.ADSContext;
 import org.opends.server.TestCaseUtils;
@@ -38,13 +39,14 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ExtendedOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.schema.DirectoryStringSyntax;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
+import org.opends.server.types.SearchFilter;
 import org.opends.server.util.ServerConstants;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import static org.opends.server.config.ConfigConstants.*;
 import static org.testng.Assert.*;
 
 /**
@@ -124,11 +126,9 @@ public class GetSymmetricKeyExtendedOperationTestCase
     final InternalClientConnection internalConnection =
          InternalClientConnection.getRootConnection();
     final String instanceKeyID = cm.getInstanceKeyID();
-    final AttributeType attrSymmetricKey = DirectoryServer.getAttributeType(
-         ConfigConstants.ATTR_CRYPTO_SYMMETRIC_KEY);
     for (Entry e : searchOp.getSearchEntries()) {
-      final String symmetricKeyAttributeValue
-              = e.getAttributeValue(attrSymmetricKey, DirectoryStringSyntax.DECODER);
+      final String symmetricKeyAttributeValue =
+          e.parseAttribute(ATTR_CRYPTO_SYMMETRIC_KEY).asString();
       final ByteString requestValue =
            GetSymmetricKeyExtendedOperation.encodeRequestValue(
                 symmetricKeyAttributeValue, instanceKeyID);

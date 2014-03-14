@@ -49,6 +49,7 @@ import javax.net.ssl.X509ExtendedKeyManager;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ModificationType;
@@ -61,7 +62,6 @@ import org.opends.server.admin.std.server.CryptoManagerCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.backends.TrustStoreBackend;
 import org.opends.server.config.ConfigConstants;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
@@ -72,20 +72,24 @@ import org.opends.server.protocols.ldap.ExtendedRequestProtocolOp;
 import org.opends.server.protocols.ldap.ExtendedResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.LDAPResultCode;
-import org.opends.server.schema.BinarySyntax;
-import org.opends.server.schema.DirectoryStringSyntax;
-import org.opends.server.schema.IntegerSyntax;
 import org.opends.server.tools.LDAPConnection;
 import org.opends.server.tools.LDAPConnectionOptions;
 import org.opends.server.tools.LDAPReader;
 import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
+import org.opends.server.types.Modification;
+import org.opends.server.types.RDN;
 import org.opends.server.util.Base64;
 import org.opends.server.util.SelectableCertificateKeyManager;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
 
 import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
@@ -534,8 +538,8 @@ public class CryptoManagerImpl
           for (Entry e : searchOp.getSearchEntries()) {
             /* attribute ds-cfg-public-key-certificate is a MUST in
                the schema */
-            certificate = e.getAttributeValue(
-                  attrPublicKeyCertificate, BinarySyntax.DECODER).toByteArray();
+            certificate = e.parseAttribute(
+                ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE).asByteString().toByteArray();
           }
           break;
         }
@@ -744,10 +748,9 @@ public class CryptoManagerImpl
       for (Entry e : searchOp.getSearchEntries()) {
         /* attribute ds-cfg-key-id is the RDN and attribute
            ds-cfg-public-key-certificate is a MUST in the schema */
-        final String keyID = e.getAttributeValue(
-                attrKeyID, DirectoryStringSyntax.DECODER);
-        final byte[] certificate = e.getAttributeValue(
-                attrPublicKeyCertificate, BinarySyntax.DECODER).toByteArray();
+        final String keyID = e.parseAttribute(ATTR_CRYPTO_KEY_ID).asString();
+        final byte[] certificate = e.parseAttribute(
+            ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE).asByteString().toByteArray();
         certificateMap.put(keyID, certificate);
       }
     }
@@ -1001,7 +1004,7 @@ public class CryptoManagerImpl
    * @return The symmetric key value for this server, or null if
    *         none could be obtained.
    */
-  private String getSymmetricKey(List<String> symmetricKeys)
+  private String getSymmetricKey(Set<String> symmetricKeys)
   {
     InternalClientConnection internalConnection =
          InternalClientConnection.getRootConnection();
@@ -1028,14 +1031,8 @@ public class CryptoManagerImpl
              internalSearch.getSearchEntries();
         for (SearchResultEntry resultEntry : resultEntries)
         {
-          AttributeType hostnameAttr =
-               DirectoryServer.getAttributeType("hostname", true);
-          String hostname = resultEntry.getAttributeValue(
-               hostnameAttr, DirectoryStringSyntax.DECODER);
-          AttributeType ldapPortAttr =
-               DirectoryServer.getAttributeType("ldapport", true);
-          Integer ldapPort = resultEntry.getAttributeValue(
-               ldapPortAttr, IntegerSyntax.DECODER);
+          String hostname = resultEntry.parseAttribute("hostname").asString();
+          Integer ldapPort = resultEntry.parseAttribute("ldapport").asInteger();
 
           // Connect to the server.
           AtomicInteger nextMessageID = new AtomicInteger(1);
@@ -1127,28 +1124,20 @@ public class CryptoManagerImpl
 
     try
     {
-      String keyID =
-           entry.getAttributeValue(attrKeyID,
-                                   DirectoryStringSyntax.DECODER);
-      int ivLengthBits =
-           entry.getAttributeValue(attrInitVectorLength,
-                                   IntegerSyntax.DECODER);
-      int keyLengthBits =
-           entry.getAttributeValue(attrKeyLength,
-                                   IntegerSyntax.DECODER);
-      String transformation =
-           entry.getAttributeValue(attrTransformation,
-                                   DirectoryStringSyntax.DECODER);
-      String compromisedTime =
-           entry.getAttributeValue(attrCompromisedTime,
-                                   DirectoryStringSyntax.DECODER);
+      String keyID = entry.parseAttribute(ATTR_CRYPTO_KEY_ID).asString();
+      int ivLengthBits = entry.parseAttribute(
+          ATTR_CRYPTO_INIT_VECTOR_LENGTH_BITS).asInteger();
+      int keyLengthBits = entry.parseAttribute(
+          ATTR_CRYPTO_KEY_LENGTH_BITS).asInteger();
+      String transformation = entry.parseAttribute(
+          ATTR_CRYPTO_CIPHER_TRANSFORMATION_NAME).asString();
+      String compromisedTime = entry.parseAttribute(
+          ATTR_CRYPTO_KEY_COMPROMISED_TIME).asString();
 
       boolean isCompromised = compromisedTime != null;
 
-      ArrayList<String> symmetricKeys = new ArrayList<String>();
-      entry.getAttributeValues(attrSymmetricKey,
-                             DirectoryStringSyntax.DECODER,
-                             symmetricKeys);
+      Set<String> symmetricKeys =
+          entry.parseAttribute(ATTR_CRYPTO_SYMMETRIC_KEY).asSetOfString();
 
       // Find the symmetric key value that was wrapped using
       // our instance key.
@@ -1194,7 +1183,11 @@ public class CryptoManagerImpl
                 ERR_CRYPTOMGR_IMPORT_KEY_ENTRY_FAILED_TO_ADD_KEY.get(entry.getName()));
       }
     }
-    catch (DirectoryException ex)
+    catch (CryptoManagerException e)
+    {
+      throw e;
+    }
+    catch (Exception ex)
     {
       logger.traceException(ex);
       throw new CryptoManagerException(
@@ -1226,25 +1219,18 @@ public class CryptoManagerImpl
 
     try
     {
-      String keyID =
-           entry.getAttributeValue(attrKeyID,
-                                   DirectoryStringSyntax.DECODER);
-      int keyLengthBits =
-           entry.getAttributeValue(attrKeyLength,
-                                   IntegerSyntax.DECODER);
-      String algorithm =
-           entry.getAttributeValue(attrMacAlgorithm,
-                                   DirectoryStringSyntax.DECODER);
-      String compromisedTime =
-           entry.getAttributeValue(attrCompromisedTime,
-                                   DirectoryStringSyntax.DECODER);
+      String keyID = entry.parseAttribute(ATTR_CRYPTO_KEY_ID).asString();
+      int keyLengthBits = entry.parseAttribute(
+          ATTR_CRYPTO_KEY_LENGTH_BITS).asInteger();
+      String algorithm = entry.parseAttribute(
+          ATTR_CRYPTO_MAC_ALGORITHM_NAME).asString();
+      String compromisedTime = entry.parseAttribute(
+          ATTR_CRYPTO_KEY_COMPROMISED_TIME).asString();
 
       boolean isCompromised = compromisedTime != null;
 
-      ArrayList<String> symmetricKeys = new ArrayList<String>();
-      entry.getAttributeValues(attrSymmetricKey,
-                             DirectoryStringSyntax.DECODER,
-                             symmetricKeys);
+      Set<String> symmetricKeys =
+          entry.parseAttribute(ATTR_CRYPTO_SYMMETRIC_KEY).asSetOfString();
 
       // Find the symmetric key value that was wrapped using our
       // instance key.
@@ -1294,9 +1280,12 @@ public class CryptoManagerImpl
                                       secretKey, keyLengthBits,
                                       isCompromised);
       }
-
     }
-    catch (DirectoryException ex)
+    catch (CryptoManagerException e)
+    {
+      throw e;
+    }
+    catch (Exception ex)
     {
       logger.traceException(ex);
       throw new CryptoManagerException(
@@ -1602,6 +1591,15 @@ public class CryptoManagerImpl
     private boolean fIsCompromised = false;
   }
 
+  private static void putSingleValueAttribute(
+      Map<AttributeType, List<Attribute>> attrs, AttributeType type,
+      String value)
+  {
+    ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
+    attrList.add(Attributes.create(type, AttributeValues.create(type, value)));
+    attrs.put(type, attrList);
+  }
+
   /**
    * This class corresponds to the cipher key entry in ADS. It is
    * used in the local cache of key entries that have been requested
@@ -1704,27 +1702,15 @@ public class CryptoManagerImpl
       userAttrs.put(attrKeyID, attrList);
 
       // Add the transformation name attribute.
-      attrList = new ArrayList<Attribute>(1);
-      attrList.add(Attributes.create(attrTransformation,
-          AttributeValues.create(attrTransformation,
-              keyEntry.getType())));
-      userAttrs.put(attrTransformation, attrList);
+      putSingleValueAttribute(userAttrs, attrTransformation, keyEntry.getType());
 
       // Add the init vector length attribute.
-      attrList = new ArrayList<Attribute>(1);
-      attrList.add(Attributes.create(attrInitVectorLength,
-          AttributeValues.create(attrInitVectorLength,
-              String.valueOf(keyEntry
-              .getIVLengthBits()))));
-      userAttrs.put(attrInitVectorLength, attrList);
-
+      putSingleValueAttribute(userAttrs, attrInitVectorLength,
+          String.valueOf(keyEntry.getIVLengthBits()));
 
       // Add the key length attribute.
-      attrList = new ArrayList<Attribute>(1);
-      attrList.add(Attributes.create(attrKeyLength,
-          AttributeValues.create(attrKeyLength,
-              String.valueOf(keyEntry.getKeyLengthBits()))));
-      userAttrs.put(attrKeyLength, attrList);
+      putSingleValueAttribute(userAttrs, attrKeyLength,
+          String.valueOf(keyEntry.getKeyLengthBits()));
 
 
       // Get the trusted certificates.
@@ -2243,23 +2229,14 @@ public class CryptoManagerImpl
 
       // Add the key ID attribute.
       ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-      attrList.add(Attributes.create(attrKeyID,
-                                 distinguishedValue));
+      attrList.add(Attributes.create(attrKeyID, distinguishedValue));
       userAttrs.put(attrKeyID, attrList);
 
       // Add the mac algorithm name attribute.
-      attrList = new ArrayList<Attribute>(1);
-      attrList.add(Attributes.create(attrMacAlgorithm,
-          AttributeValues.create(attrMacAlgorithm, keyEntry.getType())));
-      userAttrs.put(attrMacAlgorithm, attrList);
-
+      putSingleValueAttribute(userAttrs, attrMacAlgorithm, keyEntry.getType());
 
       // Add the key length attribute.
-      attrList = new ArrayList<Attribute>(1);
-      attrList.add(Attributes.create(attrKeyLength, AttributeValues.create(
-          attrKeyLength, String.valueOf(keyEntry.getKeyLengthBits()))));
-      userAttrs.put(attrKeyLength, attrList);
-
+      putSingleValueAttribute(userAttrs, attrKeyLength, String.valueOf(keyEntry.getKeyLengthBits()));
 
       // Get the trusted certificates.
       Map<String, byte[]> trustedCerts =

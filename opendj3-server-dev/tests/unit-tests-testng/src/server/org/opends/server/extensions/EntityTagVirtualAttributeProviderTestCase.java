@@ -37,6 +37,10 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
+import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.EntityTagVirtualAttributeCfgDefn.ChecksumAlgorithm;
@@ -58,21 +62,16 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.ldap.LDAPModification;
-import org.opends.server.schema.DirectoryStringSyntax;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.AttributeValues;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
-import org.forgerock.opendj.ldap.ModificationType;
 import org.opends.server.types.RawAttribute;
 import org.opends.server.types.RawModification;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.types.SearchFilter;
-import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.types.VirtualAttributeRule;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.BeforeClass;
@@ -623,8 +622,6 @@ public class EntityTagVirtualAttributeProviderTestCase extends
   public void testOptimisticConcurrency() throws Exception
   {
     // Use an internal connection.
-    AttributeType etagType = DirectoryServer.getAttributeType(ETAG);
-    AttributeType descrType = DirectoryServer.getAttributeType(DESCRIPTION);
     String userDN = "uid=test.user,ou=People,o=test";
     InternalClientConnection conn = InternalClientConnection
         .getRootConnection();
@@ -653,8 +650,7 @@ public class EntityTagVirtualAttributeProviderTestCase extends
 
     // Read the user entry and get the etag.
     Entry e1 = readEntry(conn, userDN);
-    String etag1 = e1
-        .getAttributeValue(etagType, DirectoryStringSyntax.DECODER);
+    String etag1 = e1.parseAttribute(ETAG).asString();
     assertNotNull(etag1);
 
     // Apply a change using the assertion control for optimistic concurrency.
@@ -672,13 +668,11 @@ public class EntityTagVirtualAttributeProviderTestCase extends
     // the etag has changed.
     Entry e2 = readEntry(conn, userDN);
 
-    String etag2 = e2
-        .getAttributeValue(etagType, DirectoryStringSyntax.DECODER);
+    String etag2 = e2.parseAttribute(ETAG).asString();
     assertNotNull(etag2);
     assertFalse(etag1.equals(etag2));
 
-    String description2 = e2.getAttributeValue(descrType,
-        DirectoryStringSyntax.DECODER);
+    String description2 = e2.parseAttribute(DESCRIPTION).asString();
     assertNotNull(description2);
     assertEquals(description2, "first modify");
 
@@ -693,13 +687,11 @@ public class EntityTagVirtualAttributeProviderTestCase extends
     // changed.
     Entry e3 = readEntry(conn, userDN);
 
-    String etag3 = e3
-        .getAttributeValue(etagType, DirectoryStringSyntax.DECODER);
+    String etag3 = e3.parseAttribute(ETAG).asString();
     assertNotNull(etag3);
     assertEquals(etag2, etag3);
 
-    String description3 = e3.getAttributeValue(descrType,
-        DirectoryStringSyntax.DECODER);
+    String description3 = e3.parseAttribute(DESCRIPTION).asString();
     assertNotNull(description3);
     assertEquals(description3, description2);
   }
@@ -716,8 +708,6 @@ public class EntityTagVirtualAttributeProviderTestCase extends
   @Test
   public void testPreReadControl() throws Exception
   {
-    AttributeType etagType = DirectoryServer.getAttributeType(ETAG);
-    AttributeType descrType = DirectoryServer.getAttributeType(DESCRIPTION);
     String userDN = "uid=test.user,ou=People,o=test";
 
     // Use an internal connection.
@@ -749,8 +739,7 @@ public class EntityTagVirtualAttributeProviderTestCase extends
 
     // Read the user entry and get the etag.
     Entry e1 = readEntry(conn, userDN);
-    String etag1 = e1
-        .getAttributeValue(etagType, DirectoryStringSyntax.DECODER);
+    String etag1 = e1.parseAttribute(ETAG).asString();
     assertNotNull(etag1);
 
     // Apply a change using the pre and post read controls.
@@ -767,13 +756,11 @@ public class EntityTagVirtualAttributeProviderTestCase extends
     // the etag has changed.
     Entry e2 = readEntry(conn, userDN);
 
-    String etag2 = e2
-        .getAttributeValue(etagType, DirectoryStringSyntax.DECODER);
+    String etag2 = e2.parseAttribute(ETAG).asString();
     assertNotNull(etag2);
     assertFalse(etag1.equals(etag2));
 
-    String description2 = e2.getAttributeValue(descrType,
-        DirectoryStringSyntax.DECODER);
+    String description2 = e2.parseAttribute(DESCRIPTION).asString();
     assertNotNull(description2);
     assertEquals(description2, "modified value");
 
@@ -788,8 +775,8 @@ public class EntityTagVirtualAttributeProviderTestCase extends
       }
     }
     assertNotNull(preReadControl);
-    String etagPreRead = preReadControl.getSearchEntry().getAttributeValue(
-        etagType, DirectoryStringSyntax.DECODER);
+    String etagPreRead =
+        preReadControl.getSearchEntry().parseAttribute(ETAG).asString();
     assertEquals(etagPreRead, etag1);
   }
 
@@ -805,8 +792,6 @@ public class EntityTagVirtualAttributeProviderTestCase extends
   @Test
   public void testPostReadControl() throws Exception
   {
-    AttributeType etagType = DirectoryServer.getAttributeType(ETAG);
-    AttributeType descrType = DirectoryServer.getAttributeType(DESCRIPTION);
     String userDN = "uid=test.user,ou=People,o=test";
 
     // Use an internal connection.
@@ -838,8 +823,7 @@ public class EntityTagVirtualAttributeProviderTestCase extends
 
     // Read the user entry and get the etag.
     Entry e1 = readEntry(conn, userDN);
-    String etag1 = e1
-        .getAttributeValue(etagType, DirectoryStringSyntax.DECODER);
+    String etag1 = e1.parseAttribute(ETAG).asString();
     assertNotNull(etag1);
 
     // Apply a change using the pre and post read controls.
@@ -856,13 +840,11 @@ public class EntityTagVirtualAttributeProviderTestCase extends
     // the etag has changed.
     Entry e2 = readEntry(conn, userDN);
 
-    String etag2 = e2
-        .getAttributeValue(etagType, DirectoryStringSyntax.DECODER);
+    String etag2 = e2.parseAttribute(ETAG).asString();
     assertNotNull(etag2);
     assertFalse(etag1.equals(etag2));
 
-    String description2 = e2.getAttributeValue(descrType,
-        DirectoryStringSyntax.DECODER);
+    String description2 = e2.parseAttribute(DESCRIPTION).asString();
     assertNotNull(description2);
     assertEquals(description2, "modified value");
 
@@ -877,8 +859,8 @@ public class EntityTagVirtualAttributeProviderTestCase extends
       }
     }
     assertNotNull(postReadControl);
-    String etagPostRead = postReadControl.getSearchEntry().getAttributeValue(
-        etagType, DirectoryStringSyntax.DECODER);
+    String etagPostRead =
+        postReadControl.getSearchEntry().parseAttribute(ETAG).asString();
     assertEquals(etagPostRead, etag2);
   }
 

@@ -26,22 +26,23 @@
  */
 package org.opends.server.schema;
 
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.messages.SchemaMessages.*;
-import org.forgerock.i18n.LocalizableMessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
 
+import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ByteSequence;
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
 import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.AttributeSyntax;
-import org.opends.server.api.AttributeValueDecoder;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteSequence;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.SubtreeSpecification;
 
 
 /**
@@ -63,48 +64,6 @@ public final class SubtreeSpecificationSyntax
   private SubstringMatchingRule defaultSubstringMatchingRule;
 
   /**
-   * Create a new attribute value decoder with the specified root DN.
-   *
-   * @param rootDN
-   *          The root DN for all decoded subtree specifications.
-   * @return The attribute value decoder.
-   */
-  public static AttributeValueDecoder<SubtreeSpecification>
-      createAttributeValueDecoder(DN rootDN) {
-    return new Decoder(rootDN);
-  }
-
-  /**
-   * Internal class implementing an attribute value decoder.
-   */
-  private static class Decoder implements
-      AttributeValueDecoder<SubtreeSpecification> {
-
-    // The root DN for all decoded relative subtree specifications.
-    private DN rootDN;
-
-    /**
-     * Create a new decoder with the specified root DN.
-     *
-     * @param rootDN
-     *          The root DN for all decoded relative subtree
-     *          specifications.
-     */
-    public Decoder(DN rootDN) {
-      this.rootDN = rootDN;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public SubtreeSpecification decode(AttributeValue value)
-        throws DirectoryException {
-      return SubtreeSpecification.valueOf(rootDN, value
-          .getValue().toString());
-    }
-  }
-
-  /**
    * Creates a new instance of this syntax. Note that the only thing
    * that should be done here is to invoke the default constructor for
    * the superclass. All initialization should be performed in the
@@ -117,6 +76,7 @@ public final class SubtreeSpecificationSyntax
   /**
    * {@inheritDoc}
    */
+  @Override
   public void initializeSyntax(AttributeSyntaxCfg configuration)
       throws ConfigException {
 
@@ -147,6 +107,7 @@ public final class SubtreeSpecificationSyntax
    *
    * @return The common name for this attribute syntax.
    */
+  @Override
   public String getName() {
 
     return SYNTAX_SUBTREE_SPECIFICATION_NAME;
@@ -157,6 +118,7 @@ public final class SubtreeSpecificationSyntax
    *
    * @return The OID for this attribute syntax.
    */
+  @Override
   public String getOID() {
 
     return SYNTAX_SUBTREE_SPECIFICATION_OID;
@@ -167,6 +129,7 @@ public final class SubtreeSpecificationSyntax
    *
    * @return A description for this attribute syntax.
    */
+  @Override
   public String getDescription() {
 
     return SYNTAX_SUBTREE_SPECIFICATION_DESCRIPTION;
@@ -181,6 +144,7 @@ public final class SubtreeSpecificationSyntax
    *         equality matches will not be allowed for this type by
    *         default.
    */
+  @Override
   public EqualityMatchingRule getEqualityMatchingRule() {
 
     return defaultEqualityMatchingRule;
@@ -195,6 +159,7 @@ public final class SubtreeSpecificationSyntax
    *         ordering matches will not be allowed for this type by
    *         default.
    */
+  @Override
   public OrderingMatchingRule getOrderingMatchingRule() {
 
     return defaultOrderingMatchingRule;
@@ -209,6 +174,7 @@ public final class SubtreeSpecificationSyntax
    *         substring matches will not be allowed for this type by
    *         default.
    */
+  @Override
   public SubstringMatchingRule getSubstringMatchingRule() {
 
     return defaultSubstringMatchingRule;
@@ -223,6 +189,7 @@ public final class SubtreeSpecificationSyntax
    *         approximate matches will not be allowed for this type by
    *         default.
    */
+  @Override
   public ApproximateMatchingRule getApproximateMatchingRule() {
 
     // There is no approximate matching rule by default.
@@ -241,6 +208,7 @@ public final class SubtreeSpecificationSyntax
    * @return <CODE>true</CODE> if the provided value is acceptable for
    *         use with this syntax, or <CODE>false</CODE> if not.
    */
+  @Override
   public boolean valueIsAcceptable(ByteSequence value,
                                    LocalizableMessageBuilder invalidReason) {
 
@@ -260,6 +228,7 @@ public final class SubtreeSpecificationSyntax
  /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isBEREncodingRequired()
   {
     return false;
@@ -270,6 +239,7 @@ public final class SubtreeSpecificationSyntax
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isHumanReadable()
   {
     return true;

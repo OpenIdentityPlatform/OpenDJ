@@ -32,13 +32,14 @@ import java.util.concurrent.locks.Lock;
 import org.assertj.core.api.Assertions;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.server.ReplicationDomainCfg;
 import org.opends.server.backends.task.TaskState;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
@@ -52,18 +53,15 @@ import org.opends.server.replication.protocol.Session;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.changelog.je.JEChangelogDB;
 import org.opends.server.replication.service.ReplicationBroker;
-import org.opends.server.schema.IntegerSyntax;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import static org.forgerock.opendj.ldap.ResultCode.*;
 import static org.forgerock.opendj.ldap.SearchScope.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.schema.DirectoryStringSyntax.*;
-import static org.forgerock.opendj.ldap.ResultCode.*;
 import static org.testng.Assert.*;
 
 /**
@@ -499,8 +497,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     assertFalse(op.getSearchEntries().isEmpty(), "Could not read monitoring information");
 
     SearchResultEntry entry = op.getSearchEntries().getFirst();
-    AttributeType attrType = DirectoryServer.getDefaultAttributeType(attr);
-    return entry.getAttributeValue(attrType, IntegerSyntax.DECODER).longValue();
+    return entry.parseAttribute(attr).asLong();
   }
 
   /**
@@ -632,8 +629,6 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
                  "Add of the task definition was not successful");
 
     // Wait until the task completes.
-    AttributeType completionTimeType = DirectoryServer.getAttributeType(
-         ATTR_TASK_COMPLETION_TIME.toLowerCase());
     SearchFilter filter = SearchFilter.createFilterFromString("(objectclass=*)");
     Entry resultEntry = null;
     String completionTime = null;
@@ -649,7 +644,8 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
         continue;
       }
       resultEntry = searchOperation.getSearchEntries().get(0);
-      completionTime = resultEntry.getAttributeValue(completionTimeType, DECODER);
+      completionTime = resultEntry.parseAttribute(
+          ATTR_TASK_COMPLETION_TIME.toLowerCase()).asString();
       if (completionTime == null)
       {
         if (System.currentTimeMillis() - startMillisecs > 1000*30)
@@ -663,9 +659,8 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     assertNotNull(completionTime, "The task has not completed after 30 seconds.");
 
     // Check that the task state is as expected.
-    AttributeType taskStateType =
-         DirectoryServer.getAttributeType(ATTR_TASK_STATE.toLowerCase());
-    String stateString = resultEntry.getAttributeValue(taskStateType, DECODER);
+    String stateString = resultEntry.parseAttribute(
+        ATTR_TASK_STATE.toLowerCase()).asString();
     TaskState taskState = TaskState.fromString(stateString);
     assertEquals(taskState, TaskState.COMPLETED_SUCCESSFULLY,
                  "The task completed in an unexpected state");
@@ -744,9 +739,8 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       resultEntry = searchOperation.getSearchEntries().getFirst();
 
       // Check that the task state is as expected.
-      AttributeType taskStateType =
-          DirectoryServer.getAttributeType(ATTR_TASK_STATE.toLowerCase());
-      String stateString = resultEntry.getAttributeValue(taskStateType, DECODER);
+      String stateString = resultEntry.parseAttribute(
+          ATTR_TASK_STATE.toLowerCase()).asString();
       taskState = TaskState.fromString(stateString);
 
       Thread.sleep(100);
@@ -757,10 +751,8 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
         && (System.currentTimeMillis() - startTime < maxWaitTimeInMillis));
 
     // Check that the task contains some log messages.
-    AttributeType logMessagesType =
-        DirectoryServer.getAttributeType(ATTR_TASK_LOG_MESSAGES.toLowerCase());
-    List<String> logMessages = new ArrayList<String>();
-    resultEntry.getAttributeValues(logMessagesType, DECODER, logMessages);
+    Set<String> logMessages = resultEntry.parseAttribute(
+        ATTR_TASK_LOG_MESSAGES.toLowerCase()).asSetOfString();
 
     if (taskState != TaskState.COMPLETED_SUCCESSFULLY
         && taskState != TaskState.RUNNING)
@@ -768,13 +760,14 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       assertFalse(logMessages.isEmpty(),
           "No log messages were written to the task entry on a failed task");
     }
-    if (logMessages.size() != 0)
+    if (!logMessages.isEmpty())
     {
-      logger.trace(logMessages.get(0));
+      String firstLogMsg = logMessages.iterator().next();
+      logger.trace(firstLogMsg);
       if (expectedMessage != null)
       {
         logger.trace(expectedMessage);
-        assertTrue(logMessages.get(0).indexOf(expectedMessage.toString()) > 0);
+        assertTrue(firstLogMsg.indexOf(expectedMessage.toString()) > 0);
       }
     }
 

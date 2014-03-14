@@ -28,21 +28,21 @@ package org.opends.server.schema;
 
 
 
+import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ByteSequence;
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
 import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.AttributeSyntax;
-import org.opends.server.api.AttributeValueDecoder;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
 
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteSequence;
 import static org.opends.messages.SchemaMessages.*;
-import org.forgerock.i18n.LocalizableMessageBuilder;
 import static org.opends.server.schema.SchemaConstants.*;
 
 
@@ -67,23 +67,6 @@ public class DistinguishedNameSyntax
 
 
   /**
-   * A {@link DN} attribute value decoder for this syntax.
-   */
-  public static final AttributeValueDecoder<DN> DECODER =
-    new AttributeValueDecoder<DN>()
-  {
-    /**
-     * {@inheritDoc}
-     */
-    public DN decode(AttributeValue value) throws DirectoryException
-    {
-      return DN.valueOf(value.getValue().toString());
-    }
-  };
-
-
-
-  /**
    * Creates a new instance of this syntax.  Note that the only thing that
    * should be done here is to invoke the default constructor for the
    * superclass.  All initialization should be performed in the
@@ -99,6 +82,7 @@ public class DistinguishedNameSyntax
   /**
    * {@inheritDoc}
    */
+  @Override
   public void initializeSyntax(AttributeSyntaxCfg configuration)
          throws ConfigException
   {
@@ -124,6 +108,7 @@ public class DistinguishedNameSyntax
    *
    * @return  The common name for this attribute syntax.
    */
+  @Override
   public String getName()
   {
     return SYNTAX_DN_NAME;
@@ -136,6 +121,7 @@ public class DistinguishedNameSyntax
    *
    * @return  The OID for this attribute syntax.
    */
+  @Override
   public String getOID()
   {
     return SYNTAX_DN_OID;
@@ -148,6 +134,7 @@ public class DistinguishedNameSyntax
    *
    * @return  A description for this attribute syntax.
    */
+  @Override
   public String getDescription()
   {
     return SYNTAX_DN_DESCRIPTION;
@@ -163,6 +150,7 @@ public class DistinguishedNameSyntax
    *          attributes with this syntax, or <CODE>null</CODE> if equality
    *          matches will not be allowed for this type by default.
    */
+  @Override
   public EqualityMatchingRule getEqualityMatchingRule()
   {
     return defaultEqualityMatchingRule;
@@ -178,6 +166,7 @@ public class DistinguishedNameSyntax
    *          attributes with this syntax, or <CODE>null</CODE> if ordering
    *          matches will not be allowed for this type by default.
    */
+  @Override
   public OrderingMatchingRule getOrderingMatchingRule()
   {
     // There is no ordering matching rule by default.
@@ -194,6 +183,7 @@ public class DistinguishedNameSyntax
    *          attributes with this syntax, or <CODE>null</CODE> if substring
    *          matches will not be allowed for this type by default.
    */
+  @Override
   public SubstringMatchingRule getSubstringMatchingRule()
   {
     return defaultSubstringMatchingRule;
@@ -209,6 +199,7 @@ public class DistinguishedNameSyntax
    *          attributes with this syntax, or <CODE>null</CODE> if approximate
    *          matches will not be allowed for this type by default.
    */
+  @Override
   public ApproximateMatchingRule getApproximateMatchingRule()
   {
     // There is no approximate matching rule by default.
@@ -229,6 +220,7 @@ public class DistinguishedNameSyntax
    * @return  <CODE>true</CODE> if the provided value is acceptable for use with
    *          this syntax, or <CODE>false</CODE> if not.
    */
+  @Override
   public boolean valueIsAcceptable(ByteSequence value,
                                    LocalizableMessageBuilder invalidReason)
   {
@@ -259,6 +251,7 @@ public class DistinguishedNameSyntax
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isBEREncodingRequired()
   {
     return false;
@@ -269,6 +262,7 @@ public class DistinguishedNameSyntax
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isHumanReadable()
   {
     return true;

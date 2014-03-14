@@ -45,6 +45,8 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.admin.AbsoluteInheritedDefaultBehaviorProvider;
 import org.opends.server.admin.AbstractManagedObjectDefinition;
 import org.opends.server.admin.AggregationPropertyDefinition;
@@ -72,17 +74,13 @@ import org.opends.server.admin.UndefinedDefaultBehaviorProvider;
 import org.opends.server.admin.DefinitionDecodingException.Reason;
 import org.opends.server.admin.std.meta.RootCfgDefn;
 import org.opends.server.admin.std.server.RootCfg;
-import org.opends.server.api.AttributeValueDecoder;
 import org.opends.server.config.ConfigEntry;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeValueIterable;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DN;
-import org.opends.server.types.DirectoryException;
-
-
 
 /**
  * Server management connection context.
@@ -125,6 +123,7 @@ public final class ServerManagementContext {
     /**
      * {@inheritDoc}
      */
+    @Override
     public Collection<T> visitAbsoluteInherited(
         AbsoluteInheritedDefaultBehaviorProvider<T> d, Void p) {
       try {
@@ -141,6 +140,7 @@ public final class ServerManagementContext {
     /**
      * {@inheritDoc}
      */
+    @Override
     public Collection<T> visitAlias(AliasDefaultBehaviorProvider<T> d, Void p) {
       return Collections.emptySet();
     }
@@ -150,6 +150,7 @@ public final class ServerManagementContext {
     /**
      * {@inheritDoc}
      */
+    @Override
     public Collection<T> visitDefined(DefinedDefaultBehaviorProvider<T> d,
         Void p) {
       Collection<String> stringValues = d.getDefaultValues();
@@ -172,6 +173,7 @@ public final class ServerManagementContext {
     /**
      * {@inheritDoc}
      */
+    @Override
     public Collection<T> visitRelativeInherited(
         RelativeInheritedDefaultBehaviorProvider<T> d, Void p) {
       try {
@@ -188,6 +190,7 @@ public final class ServerManagementContext {
     /**
      * {@inheritDoc}
      */
+    @Override
     public Collection<T> visitUndefined(UndefinedDefaultBehaviorProvider<T> d,
         Void p) {
       return Collections.emptySet();
@@ -313,6 +316,7 @@ public final class ServerManagementContext {
     /**
      * {@inheritDoc}
      */
+    @Override
     public boolean matches(AbstractManagedObjectDefinition<?, ?> d) {
       String oc = LDAPProfile.getInstance().getObjectClass(d);
       return entry.hasObjectClass(oc);
@@ -899,23 +903,14 @@ public final class ServerManagementContext {
     // since the attribute should have been defined.
     String attrID = LDAPProfile.getInstance().getAttributeName(d, pd);
     AttributeType type = DirectoryServer.getAttributeType(attrID, true);
-    AttributeValueDecoder<AttributeValue> decoder =
-      new AttributeValueDecoder<AttributeValue>() {
+    List<Attribute> attributes = configEntry.getEntry().getAttribute(type, true);
 
-      public AttributeValue decode(AttributeValue value)
-          throws DirectoryException {
-        return value;
-      }
-    };
-
-    List<AttributeValue> values = new LinkedList<AttributeValue>();
-    try {
-      configEntry.getEntry().getAttributeValues(type, decoder, values);
-    } catch (DirectoryException e) {
-      // Should not happen.
-      throw new RuntimeException(e);
+    List<AttributeValue> results = new LinkedList<AttributeValue>();
+    for (AttributeValue v : new AttributeValueIterable(attributes))
+    {
+      results.add(v);
     }
-    return values;
+    return results;
   }
 
 
