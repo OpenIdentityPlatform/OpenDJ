@@ -36,6 +36,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.util.Utils;
 import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn;
 import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn.IndexType;
@@ -48,7 +49,6 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.DiskSpaceMonitor;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.Platform;
 import org.opends.server.util.StaticUtils;
@@ -1431,8 +1431,8 @@ public final class Importer implements DiskSpaceMonitorHandler
    */
   private class AppendReplaceTask extends ImportTask
   {
-    private final Set<byte[]> insertKeySet = new HashSet<byte[]>(),
-        deleteKeySet = new HashSet<byte[]>();
+    private final Set<ByteString> insertKeySet = new HashSet<ByteString>();
+    private final Set<ByteString> deleteKeySet = new HashSet<ByteString>();
     private final EntryInformation entryInfo = new EntryInformation();
     private Entry oldEntry;
     private EntryID entryID;
@@ -1536,16 +1536,16 @@ public final class Importer implements DiskSpaceMonitorHandler
       {
         deleteKeySet.clear();
         index.indexer.indexEntry(oldEntry, deleteKeySet);
-        for (byte[] delKey : deleteKeySet)
+        for (ByteString delKey : deleteKeySet)
         {
-          processKey(index, delKey, entryID, indexComparator, indexKey, false);
+          processKey(index, delKey.toByteArray(), entryID, indexComparator, indexKey, false);
         }
       }
       insertKeySet.clear();
       index.indexer.indexEntry(entry, insertKeySet);
-      for (byte[] key : insertKeySet)
+      for (ByteString key : insertKeySet)
       {
-        processKey(index, key, entryID, indexComparator, indexKey, true);
+        processKey(index, key.toByteArray(), entryID, indexComparator, indexKey, true);
       }
     }
   }
@@ -1558,7 +1558,7 @@ public final class Importer implements DiskSpaceMonitorHandler
   {
     private final Map<IndexKey, IndexOutputBuffer> indexBufferMap =
         new HashMap<IndexKey, IndexOutputBuffer>();
-    private final Set<byte[]> insertKeySet = new HashSet<byte[]>();
+    private final Set<ByteString> insertKeySet = new HashSet<ByteString>();
     private final EntryInformation entryInfo = new EntryInformation();
     private DatabaseEntry keyEntry = new DatabaseEntry(),
         valEntry = new DatabaseEntry();
@@ -1745,9 +1745,9 @@ public final class Importer implements DiskSpaceMonitorHandler
     {
       insertKeySet.clear();
       index.indexer.indexEntry(entry, insertKeySet);
-      for (byte[] key : insertKeySet)
+      for (ByteString key : insertKeySet)
       {
-        processKey(index, key, entryID, indexComparator, indexKey, true);
+        processKey(index, key.toByteArray(), entryID, indexComparator, indexKey, true);
       }
     }
 

@@ -22,12 +22,15 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 
-import java.util.Iterator;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
+
+import org.forgerock.opendj.ldap.ByteString;
 
 /**
  * Represents a set of Entry IDs.  It can represent a set where the IDs are
@@ -53,7 +56,7 @@ public class EntryIDSet implements Iterable<EntryID>
    * The database key containing this set, if the set was constructed
    * directly from the database.
    */
-  private byte[] keyBytes = null;
+  private ByteString keyBytes;
 
   /**
    * Create a new undefined set.
@@ -82,6 +85,19 @@ public class EntryIDSet implements Iterable<EntryID>
    * @param bytes The database value, or null if there are no entry IDs.
    */
   public EntryIDSet(byte[] keyBytes, byte[] bytes)
+  {
+    this(keyBytes != null ? ByteString.wrap(keyBytes) : null, bytes);
+  }
+
+  /**
+   * Create a new entry ID set from the raw database value.
+   *
+   * @param keyBytes
+   *          The database key that contains this value.
+   * @param bytes
+   *          The database value, or null if there are no entry IDs.
+   */
+  public EntryIDSet(ByteString keyBytes, byte[] bytes)
   {
     this.keyBytes = keyBytes;
 
@@ -189,11 +205,11 @@ public class EntryIDSet implements Iterable<EntryID>
     long[] n1 = new long[n.length];
     long last = -1;
     int j = 0;
-    for (int i = 0; i < n.length; i++)
+    for (long l : n)
     {
-      if (n[i] != last)
+      if (l != last)
       {
-        last = n1[j++] = n[i];
+        last = n1[j++] = l;
       }
     }
     if (j == n1.length)
@@ -229,6 +245,7 @@ public class EntryIDSet implements Iterable<EntryID>
    * Get a string representation of this object.
    * @return A string representation of this object.
    */
+  @Override
   public String toString()
   {
     StringBuilder buffer = new StringBuilder(16);
@@ -679,6 +696,7 @@ public class EntryIDSet implements Iterable<EntryID>
    *
    * @return An EntryID iterator.
    */
+  @Override
   public Iterator<EntryID> iterator()
   {
     if (values == null)

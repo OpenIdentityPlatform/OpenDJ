@@ -27,6 +27,7 @@ package org.opends.server.backends.jeb;
 import java.util.List;
 import java.util.Set;
 
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.opends.server.backends.jeb.importLDIF.ImportIDSet;
 import org.opends.server.types.DirectoryException;
@@ -53,7 +54,7 @@ final class NullIndex extends Index
    * @param state
    *          The state database to persist index state info.
    * @param env
-   *          The JE Environemnt
+   *          The JE Environment
    * @param entryContainer
    *          The database entryContainer holding this index.
    * @throws DatabaseException
@@ -69,7 +70,8 @@ final class NullIndex extends Index
 
   /** {@inheritDoc} */
   @Override
-  public boolean insertID(IndexBuffer buffer, byte[] keyBytes, EntryID entryID)
+  public boolean insertID(IndexBuffer buffer, ByteString keyBytes,
+      EntryID entryID)
   {
     return true;
   }
@@ -129,7 +131,8 @@ final class NullIndex extends Index
 
   /** {@inheritDoc} */
   @Override
-  public boolean removeID(IndexBuffer buffer, byte[] keyBytes, EntryID entryID)
+  public boolean removeID(IndexBuffer buffer, ByteString keyBytes,
+      EntryID entryID)
   {
     return true;
   }
@@ -158,7 +161,7 @@ final class NullIndex extends Index
 
   /** {@inheritDoc} */
   @Override
-  public void delete(IndexBuffer buffer, byte[] keyBytes)
+  public void delete(IndexBuffer buffer, ByteString keyBytes)
   {
     // Do nothing.
   }

@@ -1313,6 +1313,59 @@ public class AttributeIndex
   }
 
   /**
+   * Byte string key comparator. The default lexicographic byte string
+   * comparator.
+   * <p>
+   * This is the byte string equivalent of {@link KeyComparator}.
+   * <p>
+   * Note: Matt reckons we could simply use ByteString.compareTo(),
+   * but I am using this for now as an intermediate step.
+   */
+  public static class BSKeyComparator implements Comparator<ByteString>
+  {
+    /**
+     * Compares its two arguments for order. Returns a negative integer, zero,
+     * or a positive integer as the first argument is less than, equal to, or
+     * greater than the second.
+     *
+     * @param a
+     *          the first object to be compared.
+     * @param b
+     *          the second object to be compared.
+     * @return a negative integer, zero, or a positive integer as the first
+     *         argument is less than, equal to, or greater than the second.
+     */
+    @Override
+    public int compare(ByteString a, ByteString b)
+    {
+      int i;
+      for (i = 0; i < a.length() && i < b.length(); i++)
+      {
+        if (a.byteAt(i) > b.byteAt(i))
+        {
+          return 1;
+        }
+        else if (a.byteAt(i) < b.byteAt(i))
+        {
+          return -1;
+        }
+      }
+      if (a.length() == b.length())
+      {
+        return 0;
+      }
+      if (a.length() > b.length())
+      {
+        return 1;
+      }
+      else
+      {
+        return -1;
+      }
+    }
+  }
+
+  /**
    * Retrieve the entry IDs that might match an approximate filter.
    *
    * @param approximateFilter The approximate filter.

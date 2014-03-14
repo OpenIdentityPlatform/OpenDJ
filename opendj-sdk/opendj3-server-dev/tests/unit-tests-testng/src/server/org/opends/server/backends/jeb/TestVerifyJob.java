@@ -26,26 +26,27 @@
  */
 package org.opends.server.backends.jeb;
 
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.TestCaseUtils;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.util.StaticUtils;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 
-import static org.opends.server.util.ServerConstants.OC_TOP;
-import static org.opends.server.util.ServerConstants.OC_EXTENSIBLE_OBJECT;
-import org.testng.annotations.BeforeClass;
+import org.forgerock.opendj.ldap.ByteString;
+import org.opends.server.TestCaseUtils;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.types.*;
+import org.opends.server.util.StaticUtils;
 import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-import static org.testng.Assert.*;
 
 import com.sleepycat.je.DatabaseEntry;
+import com.sleepycat.je.LockMode;
 import com.sleepycat.je.OperationStatus;
 import com.sleepycat.je.Transaction;
-import com.sleepycat.je.LockMode;
 
-import java.util.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.testng.Assert.*;
 
 public class TestVerifyJob extends JebTestCase
 {
@@ -280,7 +281,7 @@ public class TestVerifyJob extends JebTestCase
       idBytes[15] = (byte)1;
       //bad jeb format
       idBytes[23] = (byte) 0x04;
-      idSet=new EntryIDSet(null, idBytes);
+      idSet = newEntryIDSet(idBytes);
       id2child.writeKey(txn, key, idSet);
       performBECleanVerify("id2children", 6);
     }
@@ -288,6 +289,11 @@ public class TestVerifyJob extends JebTestCase
     {
       eContainer.sharedLock.unlock();
     }
+  }
+
+  private EntryIDSet newEntryIDSet(byte[] idBytes)
+  {
+    return new EntryIDSet((ByteString) null, idBytes);
   }
 
   /**
@@ -313,17 +319,17 @@ public class TestVerifyJob extends JebTestCase
       idBytes[3] = (byte)0xff;
       //non-subordinate
       idBytes[15] = (byte)1;
-      idSet=new EntryIDSet(null, idBytes);
+      idSet = newEntryIDSet(idBytes);
       id2subtree.writeKey(txn, key, idSet);
       //Try to break JebFormat version of key entry
       key=addID2EntryReturnKey(junkDN, 4, true);
       idBytes[3]=(byte) 0x04;
       idBytes[15]=(byte)0x00;
-      EntryIDSet idSet1=new EntryIDSet(null, idBytes);
+      EntryIDSet idSet1 = newEntryIDSet(idBytes);
       id2subtree.writeKey(txn, key, idSet1);
       //put invalid key -- no EntryID matches
       key= new EntryID(45).getDatabaseEntry();
-      idSet=new EntryIDSet(null, idBytes);
+      idSet = newEntryIDSet(idBytes);
       id2subtree.writeKey(txn, key, idSet);
       performBECleanVerify("id2subtree", 7);
     }
@@ -518,7 +524,7 @@ public class TestVerifyJob extends JebTestCase
       DatabaseEntry key=addID2EntryReturnKey(noParentDN, 10, false);
       byte[] idBytes=new byte[16];
       idBytes[7]=(byte) 0x0A;
-      EntryIDSet idSet=new EntryIDSet(null, idBytes);
+      EntryIDSet idSet = newEntryIDSet(idBytes);
       id2child.writeKey(txn, key, idSet);
       //Add child entry - don't worry about key
       addID2EntryReturnKey(cDN, 11, false);
@@ -527,7 +533,7 @@ public class TestVerifyJob extends JebTestCase
       //add parent key/IDSet with bad IDset id
       byte[] idBytesp=new byte[16];
       idBytesp[7]=(byte) 0xFF;
-      EntryIDSet idSetp=new EntryIDSet(null, idBytesp);
+      EntryIDSet idSetp = newEntryIDSet(idBytesp);
       id2child.writeKey(txn, keyp, idSetp);
       performBECompleteVerify("id2children", 3);
     }

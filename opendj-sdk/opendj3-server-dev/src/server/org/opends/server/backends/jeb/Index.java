@@ -29,6 +29,7 @@ package org.opends.server.backends.jeb;
 import java.util.*;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.opends.server.backends.jeb.importLDIF.ImportIDSet;
 import org.opends.server.types.DirectoryException;
@@ -59,6 +60,11 @@ public class Index extends DatabaseContainer
    * The comparator for index keys.
    */
   private final Comparator<byte[]> comparator;
+
+  /**
+   * The comparator for index keys.
+   */
+  private final Comparator<ByteString> bsComparator;
 
   /**
    * The limit on the number of entry IDs that may be indexed by one key.
@@ -106,8 +112,8 @@ public class Index extends DatabaseContainer
    * A flag to indicate if a rebuild process is running on this index.
    * During the rebuild process, we assume that no entryIDSets are
    * accurate and return an undefined set on all read operations.
-   * However all write opeations will succeed. The rebuildRunning
-   * flag overrides all behaviours of the trusted flag.
+   * However all write operations will succeed. The rebuildRunning
+   * flag overrides all behaviors of the trusted flag.
    */
   private boolean rebuildRunning = false;
 
@@ -126,7 +132,7 @@ public class Index extends DatabaseContainer
    * @param cursorEntryLimit The configured limit on the number of entry IDs
    * @param maintainCount Whether to maintain a count of IDs for a key once
    * the entry limit has exceeded.
-   * @param env The JE Environemnt
+   * @param env The JE Environment
    * @param entryContainer The database entryContainer holding this index.
    * @throws DatabaseException If an error occurs in the JE database.
    */
@@ -139,6 +145,7 @@ public class Index extends DatabaseContainer
     super(name, env, entryContainer);
     this.indexer = indexer;
     this.comparator = indexer.getComparator();
+    this.bsComparator = indexer.getBSComparator();
     this.indexEntryLimit = indexEntryLimit;
     this.cursorEntryLimit = cursorEntryLimit;
     this.maintainCount = maintainCount;
@@ -191,17 +198,17 @@ public class Index extends DatabaseContainer
    *         count is exceeded. False if it already exists in the entry ID set
    *         for the given key.
    */
-  public boolean insertID(IndexBuffer buffer, byte[] keyBytes,
+  public boolean insertID(IndexBuffer buffer, ByteString keyBytes,
                           EntryID entryID)
   {
-    TreeMap<byte[], IndexBuffer.BufferedIndexValues> bufferedOperations =
+    TreeMap<ByteString, IndexBuffer.BufferedIndexValues> bufferedOperations =
         buffer.getBufferedIndex(this);
     IndexBuffer.BufferedIndexValues values = null;
 
     if(bufferedOperations == null)
     {
-      bufferedOperations = new TreeMap<byte[],
-          IndexBuffer.BufferedIndexValues>(comparator);
+      bufferedOperations =
+          new TreeMap<ByteString, IndexBuffer.BufferedIndexValues>(bsComparator);
       buffer.putBufferedIndex(this, bufferedOperations);
     }
     else
@@ -244,10 +251,8 @@ public class Index extends DatabaseContainer
   public boolean insertID(Transaction txn, DatabaseEntry key, EntryID entryID)
        throws DatabaseException
   {
-    OperationStatus status;
     DatabaseEntry entryIDData = entryID.getDatabaseEntry();
     DatabaseEntry data = new DatabaseEntry();
-    boolean success = false;
 
     if(maintainCount)
     {
@@ -262,7 +267,7 @@ public class Index extends DatabaseContainer
     }
     else
     {
-      status = read(txn, key, data, LockMode.READ_COMMITTED);
+      final OperationStatus status = read(txn, key, data, LockMode.READ_COMMITTED);
       if(status == OperationStatus.SUCCESS)
       {
         EntryIDSet entryIDList =
@@ -284,8 +289,7 @@ public class Index extends DatabaseContainer
       {
         if(rebuildRunning || trusted)
         {
-          status = insert(txn, key, entryIDData);
-          if(status == OperationStatus.KEYEXIST)
+          if (insert(txn, key, entryIDData) == OperationStatus.KEYEXIST)
           {
             for(int i = 1; i < phantomWriteRetires; i++)
             {
@@ -303,8 +307,7 @@ public class Index extends DatabaseContainer
         }
       }
     }
-
-    return success;
+    return false;
   }
 
 
@@ -705,17 +708,17 @@ public class Index extends DatabaseContainer
    *         count is exceeded. False if it already exists in the entry ID set
    *         for the given key.
    */
-  public boolean removeID(IndexBuffer buffer, byte[] keyBytes,
+  public boolean removeID(IndexBuffer buffer, ByteString keyBytes,
                           EntryID entryID)
   {
-    TreeMap<byte[], IndexBuffer.BufferedIndexValues> bufferedOperations =
+    TreeMap<ByteString, IndexBuffer.BufferedIndexValues> bufferedOperations =
         buffer.getBufferedIndex(this);
     IndexBuffer.BufferedIndexValues values = null;
 
     if(bufferedOperations == null)
     {
-      bufferedOperations = new TreeMap<byte[],
-          IndexBuffer.BufferedIndexValues>(comparator);
+      bufferedOperations =
+          new TreeMap<ByteString, IndexBuffer.BufferedIndexValues>(bsComparator);
       buffer.putBufferedIndex(this, bufferedOperations);
     }
     else
@@ -878,16 +881,16 @@ public class Index extends DatabaseContainer
    * @param buffer The index buffer to use to store the deleted keys
    * @param keyBytes The index key bytes.
    */
-  public void delete(IndexBuffer buffer, byte[] keyBytes)
+  public void delete(IndexBuffer buffer, ByteString keyBytes)
   {
-    TreeMap<byte[], IndexBuffer.BufferedIndexValues> bufferedOperations =
+    TreeMap<ByteString, IndexBuffer.BufferedIndexValues> bufferedOperations =
         buffer.getBufferedIndex(this);
     IndexBuffer.BufferedIndexValues values = null;
 
     if(bufferedOperations == null)
     {
-      bufferedOperations = new TreeMap<byte[],
-          IndexBuffer.BufferedIndexValues>(comparator);
+      bufferedOperations =
+          new TreeMap<ByteString, IndexBuffer.BufferedIndexValues>(bsComparator);
       buffer.putBufferedIndex(this, bufferedOperations);
     }
     else
@@ -1182,19 +1185,17 @@ public class Index extends DatabaseContainer
   public boolean addEntry(IndexBuffer buffer, EntryID entryID, Entry entry)
        throws DatabaseException, DirectoryException
   {
-    HashSet<byte[]> addKeys = new HashSet<byte[]>();
-    boolean success = true;
-
+    HashSet<ByteString> addKeys = new HashSet<ByteString>();
     indexer.indexEntry(entry, addKeys);
 
-    for (byte[] keyBytes : addKeys)
+    boolean success = true;
+    for (ByteString keyBytes : addKeys)
     {
       if(!insertID(buffer, keyBytes, entryID))
       {
         success = false;
       }
     }
-
     return success;
   }
 
@@ -1212,21 +1213,20 @@ public class Index extends DatabaseContainer
   public boolean addEntry(Transaction txn, EntryID entryID, Entry entry)
        throws DatabaseException, DirectoryException
   {
-    TreeSet<byte[]> addKeys = new TreeSet<byte[]>(indexer.getComparator());
-    boolean success = true;
-
+    TreeSet<ByteString> addKeys =
+        new TreeSet<ByteString>(indexer.getBSComparator());
     indexer.indexEntry(entry, addKeys);
 
     DatabaseEntry key = new DatabaseEntry();
-    for (byte[] keyBytes : addKeys)
+    boolean success = true;
+    for (ByteString keyBytes : addKeys)
     {
-      key.setData(keyBytes);
+      key.setData(keyBytes.toByteArray());
       if(!insertID(txn, key, entryID))
       {
         success = false;
       }
     }
-
     return success;
   }
 
@@ -1242,11 +1242,10 @@ public class Index extends DatabaseContainer
   public void removeEntry(IndexBuffer buffer, EntryID entryID, Entry entry)
        throws DatabaseException, DirectoryException
   {
-    HashSet<byte[]> delKeys = new HashSet<byte[]>();
-
+    HashSet<ByteString> delKeys = new HashSet<ByteString>();
     indexer.indexEntry(entry, delKeys);
 
-    for (byte[] keyBytes : delKeys)
+    for (ByteString keyBytes : delKeys)
     {
       removeID(buffer, keyBytes, entryID);
     }
@@ -1264,14 +1263,14 @@ public class Index extends DatabaseContainer
   public void removeEntry(Transaction txn, EntryID entryID, Entry entry)
        throws DatabaseException, DirectoryException
   {
-    TreeSet<byte[]> delKeys = new TreeSet<byte[]>(indexer.getComparator());
-
+    TreeSet<ByteString> delKeys =
+        new TreeSet<ByteString>(indexer.getBSComparator());
     indexer.indexEntry(entry, delKeys);
 
     DatabaseEntry key = new DatabaseEntry();
-    for (byte[] keyBytes : delKeys)
+    for (ByteString keyBytes : delKeys)
     {
-      key.setData(keyBytes);
+      key.setData(keyBytes.toByteArray());
       removeID(txn, key, entryID);
     }
   }
@@ -1295,15 +1294,14 @@ public class Index extends DatabaseContainer
                           List<Modification> mods)
        throws DatabaseException
   {
-    TreeMap<byte[], Boolean> modifiedKeys =
-        new TreeMap<byte[], Boolean>(indexer.getComparator());
-
+    TreeMap<ByteString, Boolean> modifiedKeys =
+        new TreeMap<ByteString, Boolean>(indexer.getBSComparator());
     indexer.modifyEntry(oldEntry, newEntry, mods, modifiedKeys);
 
     DatabaseEntry key = new DatabaseEntry();
-    for (Map.Entry<byte[], Boolean> modifiedKey : modifiedKeys.entrySet())
+    for (Map.Entry<ByteString, Boolean> modifiedKey : modifiedKeys.entrySet())
     {
-      key.setData(modifiedKey.getKey());
+      key.setData(modifiedKey.getKey().toByteArray());
       if(modifiedKey.getValue())
       {
         insertID(txn, key, entryID);
@@ -1333,11 +1331,11 @@ public class Index extends DatabaseContainer
                           List<Modification> mods)
       throws DatabaseException
   {
-    TreeMap<byte[], Boolean> modifiedKeys =
-      new TreeMap<byte[], Boolean>(indexer.getComparator());
-
+    TreeMap<ByteString, Boolean> modifiedKeys =
+        new TreeMap<ByteString, Boolean>(indexer.getBSComparator());
     indexer.modifyEntry(oldEntry, newEntry, mods, modifiedKeys);
-    for (Map.Entry<byte[], Boolean> modifiedKey : modifiedKeys.entrySet())
+
+    for (Map.Entry<ByteString, Boolean> modifiedKey : modifiedKeys.entrySet())
     {
       if(modifiedKey.getValue())
       {
