@@ -24,7 +24,9 @@
  */
 package org.opends.server.schema;
 
+import org.forgerock.opendj.ldap.*;
 import org.opends.server.api.AbstractMatchingRule;
+import org.opends.server.api.NotImplementedAssertion;
 import org.opends.server.api.OrderingMatchingRule;
 
 /**
@@ -48,6 +50,23 @@ public abstract class AbstractOrderingMatchingRule
   {
     // There is no standard description for this matching rule.
     return null;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public Assertion getAssertion(final ByteSequence value)
+      throws DecodeException
+  {
+    final ByteString assertionValue = normalizeAssertionValue(value);
+    return new NotImplementedAssertion()
+    {
+      @Override
+      public ConditionResult matches(ByteSequence attributeValue)
+      {
+        return ConditionResult.valueOf(
+            compareValues(assertionValue, attributeValue) < 0);
+      }
+    };
   }
 
 }
