@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2013 ForgeRock AS
+ *      Portions Copyright 2012-2014 ForgeRock AS
  */
 package org.opends.server.util.cli;
 
@@ -75,6 +75,7 @@ import org.opends.server.util.SetupUtils;
 public abstract class ConsoleApplication
 {
 
+  private static final int PROGRESS_LINE = 70;
   /**
    * A null reader.
    */
@@ -138,6 +139,8 @@ public abstract class ConsoleApplication
 
   // The output stream which this application should use.
   private final PrintStream out;
+
+  private boolean isProgressSuite;
 
   /**
    * The maximum number of times we try to confirm.
@@ -513,7 +516,7 @@ public abstract class ConsoleApplication
    * @param progress
    *          The current percentage progress to print.
    */
-  public final void printProgressBar(final int linePos, final int progress)
+  private final void printProgressBar(final int linePos, final int progress)
   {
     if (!isQuiet())
     {
@@ -521,9 +524,10 @@ public abstract class ConsoleApplication
       StringBuilder bar = new StringBuilder();
       if (progress != 0)
       {
-        for (int i = 0; i < 50; i++)
+        for (int i = 0; i < PROGRESS_LINE; i++)
         {
-          if ((i < (Math.abs(progress) / 2)) && (bar.length() < spacesLeft))
+          if (i < (Math.abs(progress) * spacesLeft) / 100
+              && bar.length() < spacesLeft)
           {
             bar.append(".");
           }
@@ -537,6 +541,7 @@ public abstract class ConsoleApplication
       else
       {
         bar.append("FAIL");
+        isProgressSuite = false;
       }
       final int endBuilder = linePos + bar.length();
       for (int i = 0; i < endBuilder; i++)
@@ -546,8 +551,51 @@ public abstract class ConsoleApplication
       if (progress >= 100 || progress < 0)
       {
         bar.append(EOL);
+        isProgressSuite = false;
       }
       out.print(bar.toString());
+    }
+  }
+
+
+  /**
+   * Prints a progress bar on the same output stream line if not in quiet mode.
+   * If the line's length is upper than the limit, the message is wrapped and
+   * the progress bar is affected to the last one. e.g.
+   *
+   * <pre>
+   *   Changing matching rule for 'userCertificate' and 'caCertificate' to
+   *   CertificateExactMatch...........................................  100%
+   * </pre>
+   *
+   * @param msg
+   *          The message to display before the progress line.
+   * @param progress
+   *          The current percentage progress to print.
+   * @param indent
+   *          Indentation of the message.
+   */
+  public final void printProgressBar(String msg, final int progress,
+      final int indent)
+  {
+    if (!isQuiet())
+    {
+      String msgToDisplay = wrapText(msg, PROGRESS_LINE, indent);
+      if (msgToDisplay.length() > PROGRESS_LINE)
+      {
+        final String[] msgWrapped = msgToDisplay.split(EOL);
+        if (!isProgressSuite)
+        {
+          for (int pos = 0; pos < msgWrapped.length - 1; pos++)
+          {
+            println(Message.raw(msgWrapped[pos]));
+          }
+          isProgressSuite = true;
+        }
+        msgToDisplay = msgWrapped[msgWrapped.length - 1];
+      }
+      print(Message.raw(msgToDisplay));
+      printProgressBar(msgToDisplay.length(), progress);
     }
   }
 
