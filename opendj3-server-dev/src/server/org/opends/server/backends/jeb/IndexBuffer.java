@@ -22,16 +22,18 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
 
-import com.sleepycat.je.Transaction;
-import com.sleepycat.je.DatabaseException;
-import com.sleepycat.je.DatabaseEntry;
-
 import java.util.*;
 
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DirectoryException;
+
+import com.sleepycat.je.DatabaseEntry;
+import com.sleepycat.je.DatabaseException;
+import com.sleepycat.je.Transaction;
 
 /**
  * A buffered index is used to buffer multiple reads or writes to the
@@ -48,8 +50,7 @@ public class IndexBuffer
    * The buffered records stored as a map from the record key to the
    * buffered value for that key for each index.
    */
-  private LinkedHashMap<Index,
-      TreeMap<byte[], BufferedIndexValues>> bufferedIndexes;
+  private LinkedHashMap<Index, TreeMap<ByteString, BufferedIndexValues>> bufferedIndexes;
 
   /**
    * The buffered records stored as a set of buffered VLV values
@@ -60,7 +61,8 @@ public class IndexBuffer
   /**
    * A simple class representing a pair of added and deleted indexed IDs.
    */
-  public static class BufferedIndexValues {
+  static class BufferedIndexValues
+  {
     EntryIDSet addedIDs;
     EntryIDSet deletedIDs;
   }
@@ -68,7 +70,8 @@ public class IndexBuffer
   /**
    * A simple class representing a pair of added and deleted VLV values.
    */
-  public static class BufferedVLVValues {
+  static class BufferedVLVValues
+  {
     TreeSet<SortValues> addedValues;
     TreeSet<SortValues> deletedValues;
   }
@@ -82,7 +85,7 @@ public class IndexBuffer
   public IndexBuffer(EntryContainer entryContainer)
   {
     bufferedIndexes =
-        new LinkedHashMap<Index, TreeMap<byte[], BufferedIndexValues>>();
+        new LinkedHashMap<Index, TreeMap<ByteString, BufferedIndexValues>>();
     bufferedVLVIndexes = new LinkedHashMap<VLVIndex, BufferedVLVValues>();
     this.entryContainer = entryContainer;
   }
@@ -94,7 +97,7 @@ public class IndexBuffer
    * @return The buffered values or <code>null</code> if there are
    * no buffered values for the specified index.
    */
-  public TreeMap<byte[], BufferedIndexValues> getBufferedIndex(Index index)
+  public TreeMap<ByteString, BufferedIndexValues> getBufferedIndex(Index index)
   {
     return bufferedIndexes.get(index);
   }
@@ -105,8 +108,8 @@ public class IndexBuffer
    * @param index The index affected by the buffered values.
    * @param bufferedValues The buffered values for the index.
    */
-  public void putBufferedIndex(Index index, TreeMap<byte[],
-      BufferedIndexValues> bufferedValues)
+  public void putBufferedIndex(Index index,
+      TreeMap<ByteString, BufferedIndexValues> bufferedValues)
   {
     bufferedIndexes.put(index, bufferedValues);
   }
@@ -146,9 +149,6 @@ public class IndexBuffer
   public void flush(Transaction txn)
       throws DatabaseException, DirectoryException
   {
-    TreeMap<byte[], BufferedIndexValues> bufferedValues;
-    BufferedVLVValues bufferedVLVValues;
-    byte[] keyBytes;
     DatabaseEntry key = new DatabaseEntry();
 
     for(AttributeIndex attributeIndex :
@@ -156,18 +156,18 @@ public class IndexBuffer
     {
       for(Index index : attributeIndex.getAllIndexes())
       {
-        bufferedValues = bufferedIndexes.remove(index);
+        TreeMap<ByteString, BufferedIndexValues> bufferedValues =
+            bufferedIndexes.remove(index);
 
         if(bufferedValues != null)
         {
-          Iterator<Map.Entry<byte[], BufferedIndexValues>> keyIterator =
+          Iterator<Map.Entry<ByteString, BufferedIndexValues>> keyIterator =
               bufferedValues.entrySet().iterator();
           while(keyIterator.hasNext())
           {
-            Map.Entry<byte[], BufferedIndexValues> bufferedKey =
+            Map.Entry<ByteString, BufferedIndexValues> bufferedKey =
                 keyIterator.next();
-            keyBytes = bufferedKey.getKey();
-            key.setData(keyBytes);
+            key.setData(bufferedKey.getKey().toByteArray());
 
             index.updateKey(txn, key, bufferedKey.getValue().deletedIDs,
                 bufferedKey.getValue().addedIDs);
@@ -180,8 +180,7 @@ public class IndexBuffer
 
     for(VLVIndex vlvIndex : entryContainer.getVLVIndexes())
     {
-      bufferedVLVValues = bufferedVLVIndexes.remove(vlvIndex);
-
+      BufferedVLVValues bufferedVLVValues = bufferedVLVIndexes.remove(vlvIndex);
       if(bufferedVLVValues != null)
       {
         vlvIndex.updateIndex(txn, bufferedVLVValues.addedValues,
@@ -190,18 +189,18 @@ public class IndexBuffer
     }
 
     Index id2children = entryContainer.getID2Children();
-    bufferedValues = bufferedIndexes.remove(id2children);
+    TreeMap<ByteString, BufferedIndexValues> bufferedValues =
+        bufferedIndexes.remove(id2children);
 
     if(bufferedValues != null)
     {
-      Iterator<Map.Entry<byte[], BufferedIndexValues>> keyIterator =
+      Iterator<Map.Entry<ByteString, BufferedIndexValues>> keyIterator =
           bufferedValues.entrySet().iterator();
       while(keyIterator.hasNext())
       {
-        Map.Entry<byte[], BufferedIndexValues> bufferedKey =
+        Map.Entry<ByteString, BufferedIndexValues> bufferedKey =
             keyIterator.next();
-        keyBytes = bufferedKey.getKey();
-        key.setData(keyBytes);
+        key.setData(bufferedKey.getKey().toByteArray());
 
         id2children.updateKey(txn, key, bufferedKey.getValue().deletedIDs,
             bufferedKey.getValue().addedIDs);
@@ -215,14 +214,13 @@ public class IndexBuffer
 
     if(bufferedValues != null)
     {
-      Iterator<Map.Entry<byte[], BufferedIndexValues>> keyIterator =
+      Iterator<Map.Entry<ByteString, BufferedIndexValues>> keyIterator =
           bufferedValues.entrySet().iterator();
       while(keyIterator.hasNext())
       {
-        Map.Entry<byte[], BufferedIndexValues> bufferedKey =
+        Map.Entry<ByteString, BufferedIndexValues> bufferedKey =
             keyIterator.next();
-        keyBytes = bufferedKey.getKey();
-        key.setData(keyBytes);
+        key.setData(bufferedKey.getKey().toByteArray());
 
         id2subtree.updateKey(txn, key, bufferedKey.getValue().deletedIDs,
             bufferedKey.getValue().addedIDs);

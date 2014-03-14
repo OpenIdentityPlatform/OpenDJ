@@ -34,7 +34,9 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -46,12 +48,10 @@ import org.opends.server.api.Backend;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.EntryCache;
 import org.opends.server.api.plugin.PluginResult;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.controls.*;
 import org.opends.server.core.*;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
 
@@ -2045,8 +2045,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     // Remove the id2c and id2s records for this entry.
     if(indexBuffer != null)
     {
-      byte[] leafIDKeyBytes =
-        JebFormat.entryIDToDatabase(leafID.longValue());
+      ByteString leafIDKeyBytes = ByteString.valueOf(leafID.longValue());
       id2children.delete(indexBuffer, leafIDKeyBytes);
       id2subtree.delete(indexBuffer, leafIDKeyBytes);
     }
@@ -2073,8 +2072,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
 
       if(indexBuffer != null)
       {
-        byte[] parentIDBytes =
-          JebFormat.entryIDToDatabase(parentID.longValue());
+        ByteString parentIDBytes = ByteString.valueOf(parentID.longValue());
         // Remove from id2children.
         if (isParent)
         {
@@ -2636,15 +2634,12 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     // Add the new ID to id2children and id2subtree of new apex parent entry.
     if(isApexEntryMoved)
     {
-      EntryID parentID;
-      byte[] parentIDKeyBytes;
       boolean isParent = true;
       for (DN dn = getParentWithinBase(newEntry.getName()); dn != null;
            dn = getParentWithinBase(dn))
       {
-        parentID = dn2id.get(txn, dn, LockMode.DEFAULT);
-        parentIDKeyBytes =
-            JebFormat.entryIDToDatabase(parentID.longValue());
+        EntryID parentID = dn2id.get(txn, dn, LockMode.DEFAULT);
+        ByteString parentIDKeyBytes = ByteString.valueOf(parentID.longValue());
         if(isParent)
         {
           id2children.insertID(buffer, parentIDKeyBytes, newID);
@@ -2685,14 +2680,11 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     // the old apex parent entry.
     if(oldSuperiorDN != null && isApexEntryMoved)
     {
-      EntryID parentID;
-      byte[] parentIDKeyBytes;
       boolean isParent = true;
       for (DN dn = oldSuperiorDN; dn != null; dn = getParentWithinBase(dn))
       {
-        parentID = dn2id.get(txn, dn, LockMode.DEFAULT);
-        parentIDKeyBytes =
-          JebFormat.entryIDToDatabase(parentID.longValue());
+        EntryID parentID = dn2id.get(txn, dn, LockMode.DEFAULT);
+        ByteString parentIDKeyBytes = ByteString.valueOf(parentID.longValue());
         if(isParent)
         {
           id2children.removeID(buffer, parentIDKeyBytes, oldID);
@@ -2706,7 +2698,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     {
       // All the subordinates will be renumbered so we have to rebuild
       // id2c and id2s with the new ID.
-      byte[] oldIDKeyBytes = JebFormat.entryIDToDatabase(oldID.longValue());
+      ByteString oldIDKeyBytes = ByteString.valueOf(oldID.longValue());
       id2children.delete(buffer, oldIDKeyBytes);
       id2subtree.delete(buffer, oldIDKeyBytes);
 
@@ -2800,8 +2792,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
       for (DN dn = oldSuperiorDN; dn != null; dn = getParentWithinBase(dn))
       {
         EntryID parentID = dn2id.get(txn, dn, LockMode.DEFAULT);
-        byte[] parentIDKeyBytes =
-          JebFormat.entryIDToDatabase(parentID.longValue());
+        ByteString parentIDKeyBytes = ByteString.valueOf(parentID.longValue());
         id2subtree.removeID(buffer, parentIDKeyBytes, oldID);
       }
     }
@@ -2810,7 +2801,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
     {
       // All the subordinates will be renumbered so we have to rebuild
       // id2c and id2s with the new ID.
-      byte[] oldIDKeyBytes = JebFormat.entryIDToDatabase(oldID.longValue());
+      ByteString oldIDKeyBytes = ByteString.valueOf(oldID.longValue());
       id2children.delete(buffer, oldIDKeyBytes);
       id2subtree.delete(buffer, oldIDKeyBytes);
 

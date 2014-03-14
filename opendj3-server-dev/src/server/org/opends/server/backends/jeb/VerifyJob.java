@@ -1116,7 +1116,7 @@ public class VerifyJob
 
         if (entryIDList.isDefined())
         {
-          final byte[] value = key.getData();
+          final ByteString value = ByteString.wrap(key.getData());
           EntryID prevID = null;
 
           for (EntryID id : entryIDList)
@@ -1163,13 +1163,13 @@ public class VerifyJob
             // require referenced external variables to be final.
             final AtomicBoolean foundMatchingKey = new AtomicBoolean(false);
 
-            Set<byte[]> dummySet = new AbstractSet<byte[]>()
+            Set<ByteString> dummySet = new AbstractSet<ByteString>()
             {
               @Override
-              public Iterator<byte[]> iterator()
+              public Iterator<ByteString> iterator()
               {
                 // The set is always empty.
-                return Collections.<byte[]>emptySet().iterator();
+                return Collections.<ByteString> emptySet().iterator();
               }
 
               @Override
@@ -1180,9 +1180,10 @@ public class VerifyJob
               }
 
               @Override
-              public boolean add(byte[] e)
+              public boolean add(ByteString e)
               {
-                if (Arrays.equals(e, value)) {
+                if (value.equals(e))
+                {
                   // We could terminate processing at this point by throwing an
                   // UnsupportedOperationException, but this optimization is
                   // already ugly enough.
@@ -1203,7 +1204,7 @@ public class VerifyJob
                 logger.trace("Reference to entry "
                     + "<%s> which does not match the value%n%s",
                     entry.getName(),
-                    keyDump(index, value));
+                    keyDump(index, value.toByteArray()));
               }
             }
           }
@@ -1626,6 +1627,7 @@ public class VerifyJob
       verifyAttributeInIndex(presenceIndex, txn, presenceKey, entryID);
     }
 
+    final DatabaseEntry key = new DatabaseEntry();
     for (Attribute attr : attrList)
     {
       final AttributeType attrType = attr.getAttributeType();
@@ -1637,17 +1639,13 @@ public class VerifyJob
 
         if (equalityIndex != null)
         {
-          // TODO JNR reuse DatabaseEntry object for all indexes?
-          DatabaseEntry key = new DatabaseEntry(normalizedBytes);
+          key.setData(normalizedBytes);
           verifyAttributeInIndex(equalityIndex, txn, key, entryID);
         }
 
         if (substringIndex != null)
         {
-          Set<ByteString> keyBytesSet =
-              attrIndex.substringKeys(normalizedBytes);
-          DatabaseEntry key = new DatabaseEntry();
-          for (ByteString keyBytes : keyBytesSet)
+          for (ByteString keyBytes : attrIndex.substringKeys(normalizedBytes))
           {
             key.setData(keyBytes.toByteArray());
             verifyAttributeInIndex(substringIndex, txn, key, entryID);
@@ -1656,15 +1654,13 @@ public class VerifyJob
 
         if (orderingIndex != null)
         {
-          normalizedBytes = normalize(attrType.getOrderingMatchingRule(), bsValue);
-          DatabaseEntry key = new DatabaseEntry(normalizedBytes);
+          key.setData(normalize(attrType.getOrderingMatchingRule(), bsValue));
           verifyAttributeInIndex(orderingIndex, txn, key, entryID);
         }
 
         if (approximateIndex != null)
         {
-          normalizedBytes = normalize(attrType.getApproximateMatchingRule(), bsValue);
-          DatabaseEntry key = new DatabaseEntry(normalizedBytes);
+          key.setData(normalize(attrType.getApproximateMatchingRule(), bsValue));
           verifyAttributeInIndex(approximateIndex, txn, key, entryID);
         }
       }

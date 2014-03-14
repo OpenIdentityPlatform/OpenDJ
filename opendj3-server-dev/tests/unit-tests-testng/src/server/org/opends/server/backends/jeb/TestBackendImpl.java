@@ -28,6 +28,7 @@ package org.opends.server.backends.jeb;
 
 import java.util.*;
 
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -47,6 +48,12 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
+import org.opends.server.types.Modification;
+import org.opends.server.types.RDN;
 import org.opends.server.util.Base64;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -887,13 +894,13 @@ public class TestBackendImpl extends JebTestCase {
   private void assertIndexContainsID(Indexer indexer, Entry entry, Index index,
       EntryID entryID)
   {
-    Set<byte[]> addKeys = new HashSet<byte[]>();
+    Set<ByteString> addKeys = new HashSet<ByteString>();
     indexer.indexEntry(entry, addKeys);
 
     DatabaseEntry key = new DatabaseEntry();
-    for (byte[] keyBytes : addKeys)
+    for (ByteString keyBytes : addKeys)
     {
-      key.setData(keyBytes);
+      key.setData(keyBytes.toByteArray());
       assertEquals(index.containsID(null, key, entryID), TRUE);
     }
   }
@@ -901,20 +908,21 @@ public class TestBackendImpl extends JebTestCase {
   private void assertIndexContainsID(Indexer indexer, Entry entry,
       Index index, EntryID entryID, ConditionResult expected)
   {
-    Set<byte[]> addKeys = new HashSet<byte[]>();
+    Set<ByteString> addKeys = new HashSet<ByteString>();
     indexer.indexEntry(entry, addKeys);
 
     assertIndexContainsID(addKeys, index, entryID, expected);
   }
 
-  private void assertIndexContainsID(Set<byte[]> addKeys, Index index,
+  private void assertIndexContainsID(Set<ByteString> addKeys, Index index,
       EntryID entryID, ConditionResult expected)
   {
     DatabaseEntry key = new DatabaseEntry();
-    for (byte[] keyBytes : addKeys) {
-      key.setData(keyBytes);
+    for (ByteString keyBytes : addKeys)
+    {
+      key.setData(keyBytes.toByteArray());
+      assertEquals(index.containsID(null, key, entryID), expected);
     }
-    assertEquals(index.containsID(null, key, entryID), expected);
   }
 
   @Test(dependsOnMethods = {"testSearchNotIndexed", "testAdd",
@@ -987,7 +995,7 @@ public class TestBackendImpl extends JebTestCase {
     AttributeType attribute;
     AttributeIndex titleIndex;
     AttributeIndex nameIndex;
-    Set<byte[]> addKeys;
+    Set<ByteString> addKeys;
     Indexer presenceIndexer;
     Indexer equalityIndexer;
     Indexer substringIndexer;
@@ -1039,15 +1047,14 @@ public class TestBackendImpl extends JebTestCase {
       attribute = DirectoryServer.getAttributeType("name");
       nameIndex = ec.getAttributeIndex(attribute);
 
-      // This current entry in the DB shouldn't be in the presence
-      // titleIndex.
-      addKeys = new HashSet<byte[]>();
-      addKeys.add(AttributeIndex.presenceKey.getData());
+      // This current entry in the DB shouldn't be in the presence titleIndex.
+      addKeys = new HashSet<ByteString>();
+      addKeys.add(ByteString.wrap(AttributeIndex.presenceKey.getData()));
       assertIndexContainsID(addKeys, titleIndex.presenceIndex, entryID, FALSE);
 
       // This current entry should be in the presence nameIndex.
-      addKeys = new HashSet<byte[]>();
-      addKeys.add(AttributeIndex.presenceKey.getData());
+      addKeys = new HashSet<ByteString>();
+      addKeys.add(ByteString.wrap(AttributeIndex.presenceKey.getData()));
       assertIndexContainsID(addKeys, nameIndex.presenceIndex, entryID, TRUE);
 
       List<Control> noControls = new ArrayList<Control>(0);
