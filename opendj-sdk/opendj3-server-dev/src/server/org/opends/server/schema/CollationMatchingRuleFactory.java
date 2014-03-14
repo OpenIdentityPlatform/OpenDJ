@@ -33,6 +33,7 @@ import java.util.*;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.*;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
@@ -41,7 +42,6 @@ import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.CollationMatchingRuleCfgDefn.MatchingRuleType;
 import org.opends.server.admin.std.server.CollationMatchingRuleCfg;
 import org.opends.server.api.*;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DirectoryException;
@@ -369,8 +369,7 @@ public final class CollationMatchingRuleFactory extends
     // If it comes here we don't need to verify MatchingRuleType; it
     // should be okay as its syntax is verified by the admin framework.
     // Iterate over the collations and verify if the format is okay.
-    // Also,
-    // verify if the locale is allowed by the JVM.
+    // Also, verify if the locale is allowed by the JVM.
     for (String collation : configuration.getCollation())
     {
       CollationMapper mapper = new CollationMapper(collation);
@@ -404,6 +403,18 @@ public final class CollationMatchingRuleFactory extends
 
 
 
+  private Collection<String> copyNames(MatchingRule matchingRule)
+  {
+    Collection<String> defaultNames = new HashSet<String>();
+    if (matchingRule != null)
+    {
+      defaultNames.addAll(matchingRule.getNames());
+    }
+    return defaultNames;
+  }
+
+
+
   /**
    * Creates Less-than Matching Rule.
    *
@@ -420,20 +431,11 @@ public final class CollationMatchingRuleFactory extends
     String oid = mapper.getNumericOID() + ".1";
     String lTag = mapper.getLanguageTag();
 
-    Collection<String> names = new HashSet<String>();
-    MatchingRule matchingRule = getMatchingRule(oid);
-    if (matchingRule != null)
-    {
-      for (String name : matchingRule.getNames())
-      {
-        names.add(name);
-      }
-    }
-
+    Collection<String> names = copyNames(getMatchingRule(oid));
     names.add(lTag + ".lt");
     names.add(lTag + ".1");
 
-    matchingRule =
+    MatchingRule matchingRule =
         new CollationLessThanMatchingRule(oid, names, locale);
     addMatchingRule(oid, matchingRule);
   }
@@ -456,20 +458,11 @@ public final class CollationMatchingRuleFactory extends
     String oid = mapper.getNumericOID() + ".2";
     String lTag = mapper.getLanguageTag();
 
-    Collection<String> names = new HashSet<String>();
-    MatchingRule matchingRule = getMatchingRule(oid);
-    if (matchingRule != null)
-    {
-      for (String name : matchingRule.getNames())
-      {
-        names.add(name);
-      }
-    }
-
+    Collection<String> names = copyNames(getMatchingRule(oid));
     names.add(lTag + ".lte");
     names.add(lTag + ".2");
 
-    matchingRule =
+    MatchingRule matchingRule =
         new CollationLessThanOrEqualToMatchingRule(oid, names, locale);
     addMatchingRule(oid, matchingRule);
   }
@@ -496,38 +489,19 @@ public final class CollationMatchingRuleFactory extends
     String lTag = mapper.getLanguageTag();
     String nOID = mapper.getNumericOID();
 
-    MatchingRule matchingRule = getMatchingRule(nOID);
-    Collection<String> defaultNames = new HashSet<String>();
-    if (matchingRule != null)
-    {
-      for (String name : matchingRule.getNames())
-      {
-        defaultNames.add(name);
-      }
-    }
-
+    Collection<String> defaultNames = copyNames(getMatchingRule(nOID));
     defaultNames.add(lTag);
-    matchingRule =
-        new CollationEqualityMatchingRule(nOID,
-                                      defaultNames, locale);
+    MatchingRule matchingRule =
+        new CollationEqualityMatchingRule(nOID, defaultNames, locale);
     addMatchingRule(nOID, matchingRule);
 
-    Collection<String> names = new HashSet<String>();
     // Register OID.3 as the equality matching rule.
     String OID = mapper.getNumericOID() + ".3";
-    MatchingRule equalityMatchingRule = getMatchingRule(OID);
-    if (equalityMatchingRule != null)
-    {
-      for (String name : equalityMatchingRule.getNames())
-      {
-        names.add(name);
-      }
-    }
-
+    Collection<String> names = copyNames(getMatchingRule(OID));
     names.add(lTag + ".eq");
     names.add(lTag + ".3");
 
-    equalityMatchingRule =
+    MatchingRule equalityMatchingRule =
         new CollationEqualityMatchingRule(OID, names, locale);
     addMatchingRule(OID, equalityMatchingRule);
   }
@@ -550,21 +524,12 @@ public final class CollationMatchingRuleFactory extends
     String oid = mapper.getNumericOID() + ".4";
     String lTag = mapper.getLanguageTag();
 
-    Collection<String> names = new HashSet<String>();
-    MatchingRule matchingRule = getMatchingRule(oid);
-    if (matchingRule != null)
-    {
-      for (String name : matchingRule.getNames())
-      {
-        names.add(name);
-      }
-    }
-
+    Collection<String> names = copyNames(getMatchingRule(oid));
     names.add(lTag + ".gte");
     names.add(lTag + ".4");
-    matchingRule =
-        new CollationGreaterThanOrEqualToMatchingRule(oid, names,
-            locale);
+
+    MatchingRule matchingRule =
+        new CollationGreaterThanOrEqualToMatchingRule(oid, names, locale);
     addMatchingRule(oid, matchingRule);
   }
 
@@ -586,19 +551,11 @@ public final class CollationMatchingRuleFactory extends
     String oid = mapper.getNumericOID() + ".5";
     String lTag = mapper.getLanguageTag();
 
-    Collection<String> names = new HashSet<String>();
-    MatchingRule matchingRule = getMatchingRule(oid);
-    if (matchingRule != null)
-    {
-      for (String name : matchingRule.getNames())
-      {
-        names.add(name);
-      }
-    }
-
+    Collection<String> names = copyNames(getMatchingRule(oid));
     names.add(lTag + ".gt");
     names.add(lTag + ".5");
-    matchingRule =
+
+    MatchingRule matchingRule =
         new CollationGreaterThanMatchingRule(oid, names, locale);
     addMatchingRule(oid, matchingRule);
   }
@@ -621,18 +578,11 @@ public final class CollationMatchingRuleFactory extends
     String oid = mapper.getNumericOID() + ".6";
     String lTag = mapper.getLanguageTag();
 
-    Collection<String> names = new HashSet<String>();
-    MatchingRule matchingRule = getMatchingRule(oid);
-    if (matchingRule != null)
-    {
-      for (String name : matchingRule.getNames())
-      {
-        names.add(name);
-      }
-    }
+    Collection<String> names = copyNames(getMatchingRule(oid));
     names.add(lTag + ".sub");
     names.add(lTag + ".6");
-    matchingRule =
+
+    MatchingRule matchingRule =
         new CollationSubstringMatchingRule(oid, names, locale);
     addMatchingRule(oid, matchingRule);
   }

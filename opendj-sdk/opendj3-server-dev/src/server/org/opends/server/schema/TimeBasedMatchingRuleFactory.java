@@ -24,8 +24,6 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  *      Portions Copyright 2011-2014 ForgeRock AS
  */
-
-
 package org.opends.server.schema;
 
 import java.nio.ByteBuffer;
@@ -33,6 +31,8 @@ import java.util.*;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
@@ -43,7 +43,6 @@ import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
 import org.forgerock.opendj.ldap.spi.IndexingOptions;
 import org.opends.server.admin.std.server.MatchingRuleCfg;
 import org.opends.server.api.*;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
@@ -56,8 +55,6 @@ import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.util.TimeThread.*;
 
-
-
 /**
  * This class acts as a factory for time-based matching rules.
  */
@@ -67,27 +64,23 @@ public final class TimeBasedMatchingRuleFactory
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  //Greater-than RelativeTimeMatchingRule.
+  /** Greater-than RelativeTimeMatchingRule. */
   private MatchingRule greaterThanRTMRule;
 
-
-  //Less-than RelativeTimeMatchingRule.
+  /** Less-than RelativeTimeMatchingRule. */
   private MatchingRule lessThanRTMRule;
 
-
-  //PartialDayAndTimeMatchingRule.
+  /** PartialDayAndTimeMatchingRule. */
   private MatchingRule partialDTMatchingRule;
 
-
-  //A Collection of matching rules managed by this factory.
+  /** A Collection of matching rules managed by this factory. */
   private Set<MatchingRule> matchingRules;
-
 
   private static final TimeZone TIME_ZONE_UTC_OBJ =
       TimeZone.getTimeZone(TIME_ZONE_UTC);
 
 
-  //Constants for generating keys.
+  /** Constants for generating keys. */
   private static final char SECOND = 's';
   private static final char MINUTE = 'm';
   private static final char HOUR = 'h';
@@ -96,9 +89,7 @@ public final class TimeBasedMatchingRuleFactory
   private static final char YEAR = 'Y';
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeMatchingRule(MatchingRuleCfg configuration)
           throws ConfigException, InitializationException
@@ -114,9 +105,7 @@ public final class TimeBasedMatchingRuleFactory
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Collection<MatchingRule> getMatchingRules()
   {
@@ -131,9 +120,7 @@ public final class TimeBasedMatchingRuleFactory
   private  abstract class TimeBasedMatchingRule extends AbstractMatchingRule
           implements ExtensibleMatchingRule
   {
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String getDescription()
     {
@@ -143,9 +130,7 @@ public final class TimeBasedMatchingRuleFactory
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String getSyntaxOID()
     {
@@ -154,9 +139,7 @@ public final class TimeBasedMatchingRuleFactory
 
 
 
-    /**
-      * {@inheritDoc}
-      */
+    /** {@inheritDoc} */
     @Override
     public ByteString normalizeAttributeValue(ByteSequence value)
             throws DecodeException
@@ -198,19 +181,17 @@ public final class TimeBasedMatchingRuleFactory
      * This value was generated using the <CODE>serialver</CODE> command-line
      * utility included with the Java SDK.
      */
-     private static final long serialVersionUID = -3501812894473163490L;
+    private static final long serialVersionUID = -3501812894473163490L;
 
 
 
-     /**
-      * Indexer associated with this instance.
-      */
-     protected ExtensibleIndexer indexer;
+    /**
+     * Indexer associated with this instance.
+     */
+    protected ExtensibleIndexer indexer;
 
 
-     /**
-      * {@inheritDoc}
-      */
+    /** {@inheritDoc} */
     @Override
     public ByteString normalizeAssertionValue(ByteSequence value)
         throws DecodeException
@@ -257,55 +238,14 @@ public final class TimeBasedMatchingRuleFactory
       long week = 0;
 
       boolean containsTimeUnit = false;
-      long number = 0;
+      int number = 0;
 
       for(; index<value.length(); index++)
       {
         byte b = value.byteAt(index);
         if(isDigit((char)b))
         {
-          switch (value.byteAt(index))
-          {
-            case '0':
-              number = (number * 10);
-              break;
-
-            case '1':
-              number = (number * 10) + 1;
-              break;
-
-            case '2':
-              number = (number * 10) + 2;
-              break;
-
-            case '3':
-              number = (number * 10) + 3;
-              break;
-
-            case '4':
-              number = (number * 10) + 4;
-              break;
-
-            case '5':
-              number = (number * 10) + 5;
-              break;
-
-            case '6':
-              number = (number * 10) + 6;
-              break;
-
-            case '7':
-              number = (number * 10) + 7;
-              break;
-
-            case '8':
-              number = (number * 10) + 8;
-              break;
-
-            case '9':
-              number = (number * 10) + 9;
-              break;
-          }
+          number = multiplyByTenThenAddUnits(number, b);
         }
         else
         {
@@ -317,7 +257,7 @@ public final class TimeBasedMatchingRuleFactory
           }
           else
           {
-            switch(value.byteAt(index))
+            switch(b)
             {
               case 's':
                 second = number;
@@ -335,8 +275,7 @@ public final class TimeBasedMatchingRuleFactory
                 week = number;
                 break;
               default:
-                  message = WARN_ATTR_INVALID_RELATIVE_TIME_ASSERTION_FORMAT.
-                          get(value,(char)value.byteAt(index));
+                message = WARN_ATTR_INVALID_RELATIVE_TIME_ASSERTION_FORMAT.get(value, (char) b);
             }
           }
           if(message !=null)
@@ -345,11 +284,8 @@ public final class TimeBasedMatchingRuleFactory
             logger.error(message);
             throw DecodeException.error(message);
           }
-          else
-          {
-            containsTimeUnit = true;
-            number = 0;
-          }
+          containsTimeUnit = true;
+          number = 0;
         }
       }
 
@@ -362,15 +298,12 @@ public final class TimeBasedMatchingRuleFactory
       long delta = (second + minute*60 +  hour*3600 + day*24*3600 +
               week*7*24*3600)*1000 ;
       long now = getTime();
-      return signed?ByteString.valueOf(now-delta):
-                            ByteString.valueOf(now+delta);
+      return ByteString.valueOf(signed ? now - delta : now + delta);
     }
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public int compareValues(ByteSequence value1, ByteSequence value2)
     {
@@ -379,9 +312,7 @@ public final class TimeBasedMatchingRuleFactory
 
 
 
-    /**
-      * {@inheritDoc}
-      */
+    /** {@inheritDoc} */
     @Override
     public int compare(byte[] arg0, byte[] arg1)
     {
@@ -390,9 +321,7 @@ public final class TimeBasedMatchingRuleFactory
 
 
 
-    /**
-    * {@inheritDoc}
-    */
+    /** {@inheritDoc} */
     @Override
     public Collection<ExtensibleIndexer> getIndexers(
         IndexingOptions indexingOptions)
@@ -401,7 +330,7 @@ public final class TimeBasedMatchingRuleFactory
       {
         indexer = new RelativeTimeExtensibleIndexer(this);
       }
-       return Collections.singletonList(indexer);
+      return Collections.singletonList(indexer);
     }
   }
 
@@ -414,7 +343,7 @@ public final class TimeBasedMatchingRuleFactory
   private final class RelativeTimeGTOrderingMatchingRule
           extends RelativeTimeOrderingMatchingRule
   {
-    //All the names for this matching rule.
+    /** All the names for this matching rule. */
     private final List<String> names;
 
 
@@ -436,9 +365,7 @@ public final class TimeBasedMatchingRuleFactory
     }
 
 
-    /**
-      * {@inheritDoc}
-      */
+    /** {@inheritDoc} */
     @Override
     public Collection<String> getNames()
     {
@@ -447,9 +374,7 @@ public final class TimeBasedMatchingRuleFactory
 
 
 
-    /**
-      * {@inheritDoc}
-      */
+    /** {@inheritDoc} */
     @Override
     public String getOID()
     {
@@ -458,9 +383,7 @@ public final class TimeBasedMatchingRuleFactory
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public ConditionResult valuesMatch(ByteSequence attributeValue,
         ByteSequence assertionValue)
@@ -469,18 +392,37 @@ public final class TimeBasedMatchingRuleFactory
       return ConditionResult.valueOf(ret > 0);
     }
 
+    /** {@inheritDoc} */
+    @Override
+    public Assertion getAssertion(final ByteSequence value)
+        throws DecodeException
+    {
+      final ByteString assertionValue = normalizeAssertionValue(value);
+      return new Assertion()
+      {
+        @Override
+        public ConditionResult matches(ByteSequence attributeValue)
+        {
+          return valuesMatch(attributeValue, assertionValue);
+        }
+
+        @Override
+        public <T> T createIndexQuery(IndexQueryFactory<T> factory)
+            throws DecodeException
+        {
+          return factory.createRangeMatchQuery(indexer.getExtensibleIndexID(),
+              assertionValue, ByteString.empty(), false, false);
+        }
+      };
+    }
 
 
-    /**
-    * {@inheritDoc}
-    */
+    /** {@inheritDoc} */
     @Override
     public <T> T createIndexQuery(ByteSequence assertionValue,
         IndexQueryFactory<T> factory) throws DecodeException
     {
-      return factory.createRangeMatchQuery(indexer
-          .getExtensibleIndexID(), normalizeAssertionValue(assertionValue),
-          ByteString.empty(), false, false);
+      return getAssertion(assertionValue).createIndexQuery(factory);
     }
   }
 
@@ -493,7 +435,7 @@ public final class TimeBasedMatchingRuleFactory
   private final class RelativeTimeLTOrderingMatchingRule
           extends RelativeTimeOrderingMatchingRule
   {
-    //All the names for this matching rule.
+    /** All the names for this matching rule. */
     private final List<String> names;
 
 
@@ -516,9 +458,7 @@ public final class TimeBasedMatchingRuleFactory
     }
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public Collection<String> getNames()
     {
@@ -527,9 +467,7 @@ public final class TimeBasedMatchingRuleFactory
 
 
 
-    /**
-      * {@inheritDoc}
-      */
+    /** {@inheritDoc} */
     @Override
     public String getOID()
     {
@@ -538,9 +476,7 @@ public final class TimeBasedMatchingRuleFactory
 
 
 
-     /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public ConditionResult valuesMatch(ByteSequence attributeValue,
         ByteSequence assertionValue)
@@ -549,17 +485,36 @@ public final class TimeBasedMatchingRuleFactory
       return ConditionResult.valueOf(ret < 0);
     }
 
+    /** {@inheritDoc} */
+    @Override
+    public Assertion getAssertion(final ByteSequence value)
+        throws DecodeException
+    {
+      final ByteString assertionValue = normalizeAssertionValue(value);
+      return new Assertion()
+      {
+        @Override
+        public ConditionResult matches(ByteSequence attributeValue)
+        {
+          return valuesMatch(attributeValue, assertionValue);
+        }
 
-    /**
-    * {@inheritDoc}
-    */
+        @Override
+        public <T> T createIndexQuery(IndexQueryFactory<T> factory)
+            throws DecodeException
+        {
+          return factory.createRangeMatchQuery(indexer.getExtensibleIndexID(),
+              ByteString.empty(), assertionValue, false, false);
+        }
+      };
+    }
+
+    /** {@inheritDoc} */
     @Override
     public <T> T createIndexQuery(ByteSequence assertionValue,
         IndexQueryFactory<T> factory) throws DecodeException
     {
-      return factory.createRangeMatchQuery(indexer
-          .getExtensibleIndexID(), ByteString.empty(),
-          normalizeAssertionValue(assertionValue),false, false);
+      return getAssertion(assertionValue).createIndexQuery(factory);
     }
   }
 
@@ -594,9 +549,7 @@ public final class TimeBasedMatchingRuleFactory
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String getExtensibleIndexID()
     {
@@ -605,9 +558,7 @@ public final class TimeBasedMatchingRuleFactory
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public final void createKeys(Schema schema, ByteSequence value2,
         IndexingOptions options, Collection<ByteString> keys)
@@ -632,16 +583,14 @@ public final class TimeBasedMatchingRuleFactory
   private final class PartialDateAndTimeMatchingRule
           extends TimeBasedMatchingRule
   {
-     /**
-      * Indexer associated with this instance.
-      */
-     private ExtensibleIndexer indexer;
-
-
-
     /**
-     * {@inheritDoc}
+     * Indexer associated with this instance.
      */
+    private ExtensibleIndexer indexer;
+
+
+
+    /** {@inheritDoc} */
     @Override
     public String getOID()
     {
@@ -650,9 +599,7 @@ public final class TimeBasedMatchingRuleFactory
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public Collection<String> getNames()
     {
@@ -661,9 +608,7 @@ public final class TimeBasedMatchingRuleFactory
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public ByteString normalizeAssertionValue(ByteSequence value)
         throws DecodeException
@@ -684,13 +629,15 @@ public final class TimeBasedMatchingRuleFactory
       into a format to be recognized by the compare routine. The normalized
       value is actually the format of : smhDMY.
       */
-      int second = -1;
-      int minute = -1;
-      int hour = -1;
-      int date = 0;
-      int year = 0;
+      final int initDate = 0;
+      final int initVal = -1;
+      int second = initVal;
+      int minute = initVal;
+      int hour = initVal;
+      int date = initDate;
+      int month = initVal;
+      int year = initDate;
       int number = 0;
-      int month = -1;
 
       int length = value.length();
       for(int index=0; index<length; index++)
@@ -698,56 +645,15 @@ public final class TimeBasedMatchingRuleFactory
         byte b = value.byteAt(index);
         if(isDigit((char)b))
         {
-          switch (value.byteAt(index))
-          {
-            case '0':
-              number = (number * 10);
-              break;
-
-            case '1':
-              number = (number * 10) + 1;
-              break;
-
-            case '2':
-              number = (number * 10) + 2;
-              break;
-
-            case '3':
-              number = (number * 10) + 3;
-              break;
-
-            case '4':
-              number = (number * 10) + 4;
-              break;
-
-            case '5':
-              number = (number * 10) + 5;
-              break;
-
-            case '6':
-              number = (number * 10) + 6;
-              break;
-
-            case '7':
-              number = (number * 10) + 7;
-              break;
-
-            case '8':
-              number = (number * 10) + 8;
-              break;
-
-            case '9':
-              number = (number * 10) + 9;
-              break;
-          }
+          number = multiplyByTenThenAddUnits(number, b);
         }
         else
         {
           LocalizableMessage message = null;
-          switch(value.byteAt(index))
+          switch(b)
           {
             case 's':
-              if(second >0)
+              if (second != initVal)
               {
                  message = WARN_ATTR_DUPLICATE_SECOND_ASSERTION_FORMAT.get(value, date);
               }
@@ -757,7 +663,7 @@ public final class TimeBasedMatchingRuleFactory
               }
               break;
             case 'm':
-              if(minute >0)
+              if (minute != initVal)
               {
                  message = WARN_ATTR_DUPLICATE_MINUTE_ASSERTION_FORMAT.get(value, date);
               }
@@ -767,7 +673,7 @@ public final class TimeBasedMatchingRuleFactory
               }
               break;
             case 'h':
-              if(hour >0)
+              if (hour != initVal)
               {
                  message = WARN_ATTR_DUPLICATE_HOUR_ASSERTION_FORMAT.get(value, date);
               }
@@ -781,7 +687,7 @@ public final class TimeBasedMatchingRuleFactory
               {
                 message = WARN_ATTR_INVALID_DATE_ASSERTION_FORMAT.get(value, number);
               }
-              else if(date > 0)
+            else if (date != initDate)
               {
                 message = WARN_ATTR_DUPLICATE_DATE_ASSERTION_FORMAT.get(value, date);
               }
@@ -791,11 +697,11 @@ public final class TimeBasedMatchingRuleFactory
               }
               break;
             case 'M':
-               if(number == 0)
+              if (number == 0)
               {
                 message = WARN_ATTR_INVALID_MONTH_ASSERTION_FORMAT.get(value, number);
               }
-              else if(month > 0)
+              else if (month != initVal)
               {
                 message = WARN_ATTR_DUPLICATE_MONTH_ASSERTION_FORMAT.get(value, month);
               }
@@ -809,7 +715,7 @@ public final class TimeBasedMatchingRuleFactory
               {
                 message = WARN_ATTR_INVALID_YEAR_ASSERTION_FORMAT.get(value, number);
               }
-              else if(year >0)
+              else if (year != initDate)
               {
                 message = WARN_ATTR_DUPLICATE_YEAR_ASSERTION_FORMAT.get(value, year);
               }
@@ -819,133 +725,45 @@ public final class TimeBasedMatchingRuleFactory
               }
               break;
             default:
-                message = WARN_ATTR_INVALID_PARTIAL_TIME_ASSERTION_FORMAT.
-                        get(value,(char)value.byteAt(index));
+              message = WARN_ATTR_INVALID_PARTIAL_TIME_ASSERTION_FORMAT.get(value, (char) b);
           }
           if(message !=null)
           {
             logger.error(message);
             throw DecodeException.error(message);
           }
-          else
-          {
-            number = 0;
-          }
+          number = 0;
         }
       }
 
+      month = toCalendarMonth(month, value);
+
       //Validate year, month , date , hour, minute and second in that order.
-      if(year < 0)
+      // -1 values are allowed when these values have not been provided
+      if (year < 0)
       {
         //A future date is allowed.
-        LocalizableMessage message = WARN_ATTR_INVALID_YEAR_ASSERTION_FORMAT.get(value, year);
-        logger.warn(message);
-        throw DecodeException.error(message);
+        logAndThrow(WARN_ATTR_INVALID_YEAR_ASSERTION_FORMAT.get(value, year));
+      }
+      if (isDateInvalid(date, month, year))
+      {
+        logAndThrow(WARN_ATTR_INVALID_DATE_ASSERTION_FORMAT.get(value, date));
+      }
+      if (hour < initVal || hour > 23)
+      {
+        logAndThrow(WARN_ATTR_INVALID_HOUR_ASSERTION_FORMAT.get(value, hour));
+      }
+      if (minute < initVal || minute > 59)
+      {
+        logAndThrow(WARN_ATTR_INVALID_MINUTE_ASSERTION_FORMAT.get(value, minute));
+      }
+      if (second < initVal || second > 60) // Consider leap seconds.
+      {
+        logAndThrow(WARN_ATTR_INVALID_SECOND_ASSERTION_FORMAT.get(value, second));
       }
 
-      switch(month)
-      {
-        case -1:
-          //just allow this.
-          break;
-        case 1:
-          month = Calendar.JANUARY;
-          break;
-        case 2:
-          month = Calendar.FEBRUARY;
-          break;
-        case 3:
-          month = Calendar.MARCH;
-          break;
-        case 4:
-          month = Calendar.APRIL;
-          break;
-        case 5:
-          month = Calendar.MAY;
-          break;
-        case 6:
-          month = Calendar.JUNE;
-          break;
-        case 7:
-          month = Calendar.JULY;
-          break;
-        case 8:
-          month = Calendar.AUGUST;
-          break;
-        case 9:
-          month = Calendar.SEPTEMBER;
-          break;
-        case 10:
-          month = Calendar.OCTOBER;
-          break;
-        case 11:
-          month = Calendar.NOVEMBER;
-          break;
-        case 12:
-          month = Calendar.DECEMBER;
-          break;
-        default:
-          LocalizableMessage message = WARN_ATTR_INVALID_MONTH_ASSERTION_FORMAT.get(value, month);
-          logger.warn(message);
-          throw DecodeException.error(message);
-      }
-
-      boolean invalidDate = false;
-      switch(date)
-      {
-        case 29:
-          if(month == Calendar.FEBRUARY && year%4 !=0)
-          {
-            invalidDate = true;
-          }
-          break;
-        case 31:
-          if(month != -1 && month != Calendar.JANUARY && month!= Calendar.MARCH
-                  && month != Calendar.MAY && month != Calendar.JULY
-                  && month != Calendar.AUGUST && month != Calendar.OCTOBER
-                  && month != Calendar.DECEMBER)
-          {
-            invalidDate = true;
-          }
-          break;
-        default:
-          if(!(date >=0 && date <=31))
-          {
-            invalidDate = true;
-          }
-      }
-      if(invalidDate)
-      {
-        LocalizableMessage message = WARN_ATTR_INVALID_DATE_ASSERTION_FORMAT.get(value, date);
-        logger.warn(message);
-        throw DecodeException.error(message);
-      }
-
-      if(!(hour >=-1 && hour <=23))
-      {
-        LocalizableMessage message = WARN_ATTR_INVALID_HOUR_ASSERTION_FORMAT.get(value, date);
-        logger.warn(message);
-        throw DecodeException.error(message);
-      }
-
-      if(!(minute >=-1 && minute <=59))
-      {
-        LocalizableMessage message = WARN_ATTR_INVALID_MINUTE_ASSERTION_FORMAT.get(value, date);
-        logger.warn(message);
-        throw DecodeException.error(message);
-      }
-
-      if(!(second >=-1 && second <=60)) //Consider leap seconds.
-      {
-        LocalizableMessage message = WARN_ATTR_INVALID_SECOND_ASSERTION_FORMAT.get(value, date);
-        logger.warn(message);
-        throw DecodeException.error(message);
-      }
-
-      /**
-       * Since we reached here we have a valid assertion value. Construct
-       * a normalized value in the order: SECOND MINUTE HOUR  DATE MONTH YEAR.
-       */
+      // Since we reached here we have a valid assertion value.
+      // Construct a normalized value in the order: SECOND MINUTE HOUR  DATE MONTH YEAR.
       ByteBuffer bb = ByteBuffer.allocate(6*4);
       bb.putInt(second);
       bb.putInt(minute);
@@ -956,27 +774,96 @@ public final class TimeBasedMatchingRuleFactory
       return ByteString.wrap(bb.array());
     }
 
+    private void logAndThrow(LocalizableMessage message) throws DecodeException
+    {
+      logger.warn(message);
+      throw DecodeException.error(message);
+    }
 
+    private boolean isDateInvalid(int date, int month, int year)
+    {
+      switch (date)
+      {
+      case 29:
+        return month == Calendar.FEBRUARY && !isLeapYear(year);
+      case 30:
+        return month == Calendar.FEBRUARY;
+      case 31:
+        return month != -1 && month != Calendar.JANUARY
+            && month != Calendar.MARCH && month != Calendar.MAY
+            && month != Calendar.JULY && month != Calendar.AUGUST
+            && month != Calendar.OCTOBER && month != Calendar.DECEMBER;
+      default:
+        return date < 0 || date > 31;
+      }
+    }
 
-     /**
-     * {@inheritDoc}
-     */
+    private boolean isLeapYear(int year)
+    {
+      if (year % 400 == 0)
+      {
+        return true;
+      }
+      if (year % 100 == 0)
+      {
+        return false;
+      }
+      return year % 4 == 0;
+    }
+
+    private int toCalendarMonth(int month, ByteSequence value) throws DecodeException
+    {
+      switch (month)
+      {
+      case -1:
+        // just allow this.
+        return -1;
+      case 1:
+        return Calendar.JANUARY;
+      case 2:
+        return Calendar.FEBRUARY;
+      case 3:
+        return Calendar.MARCH;
+      case 4:
+        return Calendar.APRIL;
+      case 5:
+        return Calendar.MAY;
+      case 6:
+        return Calendar.JUNE;
+      case 7:
+        return Calendar.JULY;
+      case 8:
+        return Calendar.AUGUST;
+      case 9:
+        return Calendar.SEPTEMBER;
+      case 10:
+        return Calendar.OCTOBER;
+      case 11:
+        return Calendar.NOVEMBER;
+      case 12:
+        return Calendar.DECEMBER;
+      default:
+        LocalizableMessage message = WARN_ATTR_INVALID_MONTH_ASSERTION_FORMAT.get(value, month);
+        logger.warn(message);
+        throw DecodeException.error(message);
+      }
+    }
+
+    /** {@inheritDoc} */
     @Override
     public ConditionResult valuesMatch(ByteSequence attributeValue,
         ByteSequence assertionValue)
     {
-      long timeInMS = ((ByteString)attributeValue).toLong();
-      //Build the information from the attribute value.
+      // Build the information from the attribute value.
       GregorianCalendar cal = new GregorianCalendar(TIME_ZONE_UTC_OBJ);
       cal.setLenient(false);
-      cal.setTimeInMillis(timeInMS);
+      cal.setTimeInMillis(((ByteString) attributeValue).toLong());
       int second = cal.get(Calendar.SECOND);
       int minute = cal.get(Calendar.MINUTE);
       int hour = cal.get(Calendar.HOUR_OF_DAY);
       int date = cal.get(Calendar.DATE);
       int month = cal.get(Calendar.MONTH);
       int year = cal.get(Calendar.YEAR);
-
 
       //Build the information from the assertion value.
       ByteBuffer bb = ByteBuffer.wrap(assertionValue.toByteArray());
@@ -987,10 +874,10 @@ public final class TimeBasedMatchingRuleFactory
       int assertMonth = bb.getInt(16);
       int assertYear = bb.getInt(20);
 
+      // All the non-zero and non -1 values should match.
       if ((assertSecond != -1 && assertSecond != second)
           || (assertMinute != -1 && assertMinute != minute)
           || (assertHour != -1 && assertHour != hour)
-          // All the non-zero values should match.
           || (assertDate != 0 && assertDate != date)
           || (assertMonth != -1 && assertMonth != month)
           || (assertYear != 0 && assertYear != year))
@@ -1002,9 +889,7 @@ public final class TimeBasedMatchingRuleFactory
 
 
 
-    /**
-      * {@inheritDoc}
-      */
+    /** {@inheritDoc} */
     @Override
     public Collection<ExtensibleIndexer> getIndexers(
         IndexingOptions indexingOptions)
@@ -1018,9 +903,7 @@ public final class TimeBasedMatchingRuleFactory
 
 
 
-    /**
-      * {@inheritDoc}
-      */
+    /** {@inheritDoc} */
     @Override
     public <T> T createIndexQuery(ByteSequence assertionValue,
             IndexQueryFactory<T> factory) throws DecodeException
@@ -1035,52 +918,41 @@ public final class TimeBasedMatchingRuleFactory
       int assertDate = bb.getInt(12);
       int assertMonth = bb.getInt(16);
       int assertYear = bb.getInt(20);
-      List<T> queries = new ArrayList<T>();
 
+      List<T> queries = new ArrayList<T>();
       if(assertSecond >= 0)
       {
-        queries.add(factory.createExactMatchQuery(
-                indexer.getExtensibleIndexID(),
-               getKey(assertSecond,SECOND)));
+        queries.add(createExactMatchQuery(factory, assertSecond, SECOND));
       }
-
       if(assertMinute >=0)
       {
-         queries.add(factory.createExactMatchQuery(
-                indexer.getExtensibleIndexID(),
-               getKey(assertMinute,MINUTE)));
+        queries.add(createExactMatchQuery(factory, assertMinute, MINUTE));
       }
-
       if(assertHour >=0)
       {
-         queries.add(factory.createExactMatchQuery(
-                indexer.getExtensibleIndexID(),
-               getKey(assertHour,HOUR)));
+        queries.add(createExactMatchQuery(factory, assertHour, HOUR));
       }
-
       if(assertDate >0)
       {
-        queries.add(factory.createExactMatchQuery(
-                indexer.getExtensibleIndexID(),
-                getKey(assertDate,DATE)));
+        queries.add(createExactMatchQuery(factory, assertDate, DATE));
       }
-
       if(assertMonth >=0)
       {
-        queries.add(factory.createExactMatchQuery(
-                indexer.getExtensibleIndexID(),
-                getKey(assertMonth,MONTH)));
+        queries.add(createExactMatchQuery(factory, assertMonth, MONTH));
       }
-
       if(assertYear > 0)
       {
-        queries.add(factory.createExactMatchQuery(
-                indexer.getExtensibleIndexID(),
-                getKey(assertYear,YEAR)));
+        queries.add(createExactMatchQuery(factory, assertYear, YEAR));
       }
       return factory.createIntersectionQuery(queries);
     }
 
+    private <T> T createExactMatchQuery(IndexQueryFactory<T> factory,
+        int assertionValue, char type)
+    {
+      return factory.createExactMatchQuery(
+          indexer.getExtensibleIndexID(), getKey(assertionValue, type));
+    }
 
 
     /**
@@ -1135,6 +1007,33 @@ public final class TimeBasedMatchingRuleFactory
     }
   }
 
+  private int multiplyByTenThenAddUnits(int number, byte b)
+  {
+    switch (b)
+    {
+    case '0':
+      return number * 10;
+    case '1':
+      return number * 10 + 1;
+    case '2':
+      return number * 10 + 2;
+    case '3':
+      return number * 10 + 3;
+    case '4':
+      return number * 10 + 4;
+    case '5':
+      return number * 10 + 5;
+    case '6':
+      return number * 10 + 6;
+    case '7':
+      return number * 10 + 7;
+    case '8':
+      return number * 10 + 8;
+    case '9':
+      return number * 10 + 9;
+    }
+    return number;
+  }
 
 
    /**
@@ -1143,7 +1042,7 @@ public final class TimeBasedMatchingRuleFactory
   private final class PartialDateAndTimeExtensibleIndexer extends
       ExtensibleIndexer
   {
-    // The partial date and Time matching Rule.
+    /** The partial date and Time matching Rule. */
     private final PartialDateAndTimeMatchingRule matchingRule;
 
 
@@ -1162,9 +1061,7 @@ public final class TimeBasedMatchingRuleFactory
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void createKeys(Schema schema, ByteSequence value,
         IndexingOptions options, Collection<ByteString> keys)
@@ -1181,9 +1078,7 @@ public final class TimeBasedMatchingRuleFactory
 
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String getExtensibleIndexID()
     {

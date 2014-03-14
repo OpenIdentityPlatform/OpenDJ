@@ -31,6 +31,7 @@ import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.TimeZone;
 
+import org.assertj.core.api.Assertions;
 import org.forgerock.opendj.ldap.*;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.MatchingRule;
@@ -107,7 +108,7 @@ public final class TimeBasedMatchingRuleTest
     "objectclasses: ( testoc-oid NAME 'testOC' SUP top AUXILIARY MUST test-time)",
     "objectclasses: ( testoc2-oid NAME 'testOC2' SUP top AUXILIARY MUST test-date)"
     );
-    assertTrue(resultCode == 0);
+    assertEquals(0, resultCode);
   }
 
 
@@ -222,7 +223,8 @@ public final class TimeBasedMatchingRuleTest
       searchOperation.run();
       assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
       List<SearchResultEntry> entries = searchOperation.getSearchEntries();
-      assertTrue(entries.size()==3 && dnFoundInEntryList(entries,user3,user4,user5));
+      Assertions.assertThat(entries).hasSize(3);
+      assertTrue(dnFoundInEntryList(entries, user3, user4, user5));
     }
     finally
     {
@@ -479,30 +481,27 @@ public final class TimeBasedMatchingRuleTest
     };
   }
 
-
-
-//validate if the args are found in the entries list.
-  private boolean dnFoundInEntryList( List<SearchResultEntry> entries,DN ... dns)
+  // validate if the args are found in the entries list.
+  private boolean dnFoundInEntryList(List<SearchResultEntry> entries, DN... dns)
   {
-    for(DN dn: dns)
+    for (DN dn : dns)
     {
-      boolean found = false;
-      for(SearchResultEntry entry: entries)
-      {
-        System.out.println("dn from the current entry is " + entry.getName());
-        if(entry.getName().equals(dn))
-        {
-          found = true;
-        }
-      }
-      if(!found)
-      {
-        return false;
-      }
+      assertTrue(find(entries, dn), "Could not find dn " + dn + " in list " + entries);
     }
     return true;
   }
 
+  private boolean find(List<SearchResultEntry> entries, DN dn)
+  {
+    for (SearchResultEntry entry : entries)
+    {
+      if (entry.getName().equals(dn))
+      {
+        return true;
+      }
+    }
+    return false;
+  }
 
   //Creates the entries.
   private void populateEntries() throws Exception
