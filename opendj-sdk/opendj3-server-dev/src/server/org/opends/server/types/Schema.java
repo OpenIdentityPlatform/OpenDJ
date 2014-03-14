@@ -45,13 +45,8 @@ import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.std.server.DirectoryStringAttributeSyntaxCfg;
-import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.AttributeSyntax;
-import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.api.MatchingRule;
-import org.opends.server.api.ExtensibleMatchingRule;
-import org.opends.server.api.OrderingMatchingRule;
-import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SchemaConfigManager;
 import org.opends.server.schema.AttributeTypeSyntax;
@@ -139,40 +134,7 @@ public final class Schema
    */
   private ConcurrentHashMap<String,MatchingRule> matchingRules;
 
-  /**
-   * The set of approximate matching rules for this schema, mapped between the
-   * lowercase names and OID for the definition and the matching rule itself.
-   */
-  private ConcurrentHashMap<String,ApproximateMatchingRule>
-               approximateMatchingRules;
 
-  /**
-   * The set of equality matching rules for this schema, mapped between the
-   * lowercase names and OID for the definition and the matching rule itself.
-   */
-  private ConcurrentHashMap<String,MatchingRule>
-               equalityMatchingRules;
-
-  /**
-   * The set of ordering matching rules for this schema, mapped between the
-   * lowercase names and OID for the definition and the matching rule itself.
-   */
-  private ConcurrentHashMap<String,OrderingMatchingRule>
-               orderingMatchingRules;
-
-  /**
-   * The set of substring matching rules for this schema, mapped between the
-   * lowercase names and OID for the definition and the matching rule itself.
-   */
-  private ConcurrentHashMap<String,SubstringMatchingRule>
-               substringMatchingRules;
-
-  /**
-   * The set of extensible matching rules for this schema, mapped between the
-   * lowercase names and OID for the definition and the matching rule itself.
-   */
-  private ConcurrentHashMap<String,ExtensibleMatchingRule>
-               extensibleMatchingRules;
 
   /**
    * The set of matching rule uses for this schema, mapped between the matching
@@ -273,16 +235,6 @@ public final class Schema
     objectClasses = new ConcurrentHashMap<String,ObjectClass>();
     syntaxes = new ConcurrentHashMap<String,AttributeSyntax<?>>();
     matchingRules = new ConcurrentHashMap<String,MatchingRule>();
-    approximateMatchingRules =
-         new ConcurrentHashMap<String,ApproximateMatchingRule>();
-    equalityMatchingRules =
-         new ConcurrentHashMap<String,MatchingRule>();
-    orderingMatchingRules =
-         new ConcurrentHashMap<String,OrderingMatchingRule>();
-    substringMatchingRules =
-         new ConcurrentHashMap<String,SubstringMatchingRule>();
-    extensibleMatchingRules =
-        new ConcurrentHashMap<String,ExtensibleMatchingRule>();
     matchingRuleUses =
          new ConcurrentHashMap<MatchingRule,MatchingRuleUse>();
     ditContentRules =
@@ -1181,88 +1133,54 @@ public final class Schema
    *                              <CODE>overwriteExisting</CODE> flag
    *                              is set to <CODE>false</CODE>
    */
-  public void registerMatchingRule(MatchingRule matchingRule,
-                                   boolean overwriteExisting)
+  public void registerMatchingRule(MatchingRule matchingRule, boolean overwriteExisting)
          throws DirectoryException
   {
-    if (matchingRule instanceof ApproximateMatchingRule)
+    synchronized (matchingRules)
     {
-      registerApproximateMatchingRule(
-           (ApproximateMatchingRule) matchingRule, overwriteExisting);
-    }
-    else if (matchingRule instanceof EqualityMatchingRule)
-    {
-      registerEqualityMatchingRule(
-           matchingRule, overwriteExisting);
-    }
-    else if (matchingRule instanceof OrderingMatchingRule)
-    {
-      registerOrderingMatchingRule(
-           (OrderingMatchingRule) matchingRule, overwriteExisting);
-    }
-    else if (matchingRule instanceof SubstringMatchingRule)
-    {
-      registerSubstringMatchingRule(
-           (SubstringMatchingRule) matchingRule, overwriteExisting);
-    }
-   else if(matchingRule instanceof ExtensibleMatchingRule)
-   {
-      registerExtensibleMatchingRule(
-           (ExtensibleMatchingRule) matchingRule,overwriteExisting);
-   }
-    else
-    {
-      synchronized (matchingRules)
+      if (!overwriteExisting)
       {
-        if (! overwriteExisting)
+        String oid = toLowerCase(matchingRule.getOID());
+        if (matchingRules.containsKey(oid))
         {
-          String oid = toLowerCase(matchingRule.getOID());
-          if (matchingRules.containsKey(oid))
-          {
-            MatchingRule conflictingRule = matchingRules.get(oid);
+          MatchingRule conflictingRule = matchingRules.get(oid);
 
-            LocalizableMessage message = ERR_SCHEMA_CONFLICTING_MR_OID.
-                get(matchingRule.getNameOrOID(), oid,
-                    conflictingRule.getNameOrOID());
-            throw new DirectoryException(
-                           ResultCode.CONSTRAINT_VIOLATION, message);
-          }
-
-          for(String name:matchingRule.getNames())
-          {
-            if (name != null)
-            {
-              name = toLowerCase(name);
-              if (matchingRules.containsKey(name))
-              {
-                MatchingRule conflictingRule =
-                        matchingRules.get(name);
-
-                LocalizableMessage message = ERR_SCHEMA_CONFLICTING_MR_NAME.
-                    get(matchingRule.getOID(), name,
-                        conflictingRule.getOID());
-                throw new DirectoryException(
-                              ResultCode.CONSTRAINT_VIOLATION,
-                              message);
-              }
-            }
-          }
+          LocalizableMessage message =
+              ERR_SCHEMA_CONFLICTING_MR_OID.get(matchingRule.getNameOrOID(),
+                  oid, conflictingRule.getNameOrOID());
+          throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
         }
-        matchingRules.put(toLowerCase(matchingRule.getOID()),
-                          matchingRule);
 
-        for(String name:matchingRule.getNames())
+        for (String name : matchingRule.getNames())
         {
           if (name != null)
           {
-            matchingRules.put(toLowerCase(name), matchingRule);
+            name = toLowerCase(name);
+            if (matchingRules.containsKey(name))
+            {
+              MatchingRule conflictingRule = matchingRules.get(name);
+
+              LocalizableMessage message =
+                  ERR_SCHEMA_CONFLICTING_MR_NAME.get(matchingRule.getOID(),
+                      name, conflictingRule.getOID());
+              throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+                  message);
+            }
           }
         }
-        matchingRuleSet.add(createAttrValueForAdd(matchingRule));
       }
+      matchingRules.put(toLowerCase(matchingRule.getOID()), matchingRule);
+
+      for (String name : matchingRule.getNames())
+      {
+        if (name != null)
+        {
+          matchingRules.put(toLowerCase(name), matchingRule);
+        }
+      }
+      matchingRuleSet.add(createAttrValueForAdd(matchingRule));
     }
   }
-
 
 
   /**
@@ -1274,766 +1192,20 @@ public final class Schema
    */
   public void deregisterMatchingRule(MatchingRule matchingRule)
   {
-    if (matchingRule instanceof ApproximateMatchingRule)
-    {
-      deregisterApproximateMatchingRule(
-           (ApproximateMatchingRule) matchingRule);
-    }
-    else if (matchingRule instanceof MatchingRule)
-    {
-      deregisterEqualityMatchingRule(
-           matchingRule);
-    }
-    else if (matchingRule instanceof OrderingMatchingRule)
-    {
-      deregisterOrderingMatchingRule(
-           (OrderingMatchingRule) matchingRule);
-    }
-    else if (matchingRule instanceof SubstringMatchingRule)
-    {
-      deregisterSubstringMatchingRule(
-           (SubstringMatchingRule) matchingRule);
-    }
-    else
-    {
-      synchronized (matchingRules)
-      {
-        matchingRules.remove(toLowerCase(matchingRule.getOID()),
-                             matchingRule);
-
-        for(String name:matchingRule.getNames())
-        {
-          if (name != null)
-          {
-            matchingRules.remove(toLowerCase(name), matchingRule);
-          }
-        }
-        matchingRuleSet.remove(createAttrValueForRemove(matchingRule));
-      }
-    }
-  }
-
-
-
-  /**
-   * Retrieves the approximate matching rule definitions for this
-   * schema, as a mapping between the lowercase names and OIDs for the
-   * matching rule and the matching rule itself.  Each matching rule
-   * may be associated with multiple keys (once for the OID and again
-   * for each name).  The contents of the returned mapping must not be
-   * altered.
-   *
-   * @return  The approximate matching rule definitions for this
-   *          schema.
-   */
-  public ConcurrentHashMap<String,ApproximateMatchingRule>
-              getApproximateMatchingRules()
-  {
-    return approximateMatchingRules;
-  }
-
-
-
-  /**
-   * Retrieves the approximate matching rule definition with the
-   * specified name or OID.
-   *
-   * @param  lowerName  The name or OID of the matching rule to
-   *                    retrieve, formatted in all lowercase
-   *                    characters.
-   *
-   * @return  The requested matching rule, or <CODE>null</CODE> if no
-   *          approximate matching rule is registered with the
-   *          provided name or OID.
-   */
-  public ApproximateMatchingRule getApproximateMatchingRule(
-                                      String lowerName)
-  {
-    return approximateMatchingRules.get(lowerName);
-  }
-
-
-
-  /**
-   * Registers the provided approximate matching rule with this
-   * schema.
-   *
-   * @param  matchingRule       The approximate matching rule to
-   *                            register.
-   * @param  overwriteExisting  Indicates whether to overwrite an
-   *                            existing mapping if there are any
-   *                            conflicts (i.e., another matching rule
-   *                            with the same OID or name).
-   *
-   * @throws  DirectoryException  If a conflict is encountered and the
-   *                              <CODE>overwriteExisting</CODE> flag
-   *                              is set to <CODE>false</CODE>
-   */
-  public void registerApproximateMatchingRule(
-                   ApproximateMatchingRule matchingRule,
-                   boolean overwriteExisting)
-         throws DirectoryException
-  {
     synchronized (matchingRules)
     {
-      if (! overwriteExisting)
-      {
-        String oid = toLowerCase(matchingRule.getOID());
-        if (matchingRules.containsKey(oid))
-        {
-          MatchingRule conflictingRule = matchingRules.get(oid);
+      matchingRules.remove(toLowerCase(matchingRule.getOID()), matchingRule);
 
-          LocalizableMessage message = ERR_SCHEMA_CONFLICTING_MR_OID.
-              get(matchingRule.getNameOrOID(), oid,
-                  conflictingRule.getNameOrOID());
-          throw new DirectoryException(
-                         ResultCode.CONSTRAINT_VIOLATION, message);
-        }
-
-       for(String name:matchingRule.getNames())
-       {
-        if (name != null)
-        {
-          name = toLowerCase(name);
-          if (matchingRules.containsKey(name))
-          {
-            MatchingRule conflictingRule = matchingRules.get(name);
-
-            LocalizableMessage message = ERR_SCHEMA_CONFLICTING_MR_NAME.
-                get(matchingRule.getOID(), name,
-                    conflictingRule.getOID());
-            throw new DirectoryException(
-                           ResultCode.CONSTRAINT_VIOLATION, message);
-          }
-        }
-       }
-      }
-
-      String oid = toLowerCase(matchingRule.getOID());
-      approximateMatchingRules.put(oid, matchingRule);
-      matchingRules.put(oid, matchingRule);
-
-      for(String name:matchingRule.getNames())
+      for (String name : matchingRule.getNames())
       {
         if (name != null)
         {
-          name = toLowerCase(name);
-          approximateMatchingRules.put(name, matchingRule);
-          matchingRules.put(name, matchingRule);
-        }
-      }
-      matchingRuleSet.add(createAttrValueForAdd(matchingRule));
-    }
-  }
-
-
-
-  /**
-   * Deregisters the provided approximate matching rule definition
-   * with this schema.
-   *
-   * @param  matchingRule  The approximate matching rule to deregister
-   *                       with this schema.
-   */
-  public void deregisterApproximateMatchingRule(
-                   ApproximateMatchingRule matchingRule)
-  {
-    synchronized (matchingRules)
-    {
-      String oid = matchingRule.getOID();
-      approximateMatchingRules.remove(oid, matchingRule);
-      matchingRules.remove(oid, matchingRule);
-
-      for(String name:matchingRule.getNames())
-      {
-        if (name != null)
-        {
-          name = toLowerCase(name);
-          approximateMatchingRules.remove(name, matchingRule);
-          matchingRules.remove(name, matchingRule);
+          matchingRules.remove(toLowerCase(name), matchingRule);
         }
       }
       matchingRuleSet.remove(createAttrValueForRemove(matchingRule));
     }
   }
-
-
-
-  /**
-   * Retrieves the equality matching rule definitions for this schema,
-   * as a mapping between the lowercase names and OIDs for the
-   * matching rule and the matching rule itself.  Each matching rule
-   * may be associated with multiple keys (once for the OID and again
-   * for each name).  The contents of the returned mapping must not be
-   * altered.
-   *
-   * @return  The equality matching rule definitions for this schema.
-   */
-  public ConcurrentHashMap<String,MatchingRule>
-              getEqualityMatchingRules()
-  {
-    return equalityMatchingRules;
-  }
-
-
-
-  /**
-   * Retrieves the equality matching rule definition with the
-   * specified name or OID.
-   *
-   * @param  lowerName  The name or OID of the matching rule to
-   *                    retrieve, formatted in all lowercase
-   *                    characters.
-   *
-   * @return  The requested matching rule, or <CODE>null</CODE> if no
-   *          equality matching rule is registered with the provided
-   *          name or OID.
-   */
-  public MatchingRule getEqualityMatchingRule(
-                                   String lowerName)
-  {
-    return equalityMatchingRules.get(lowerName);
-  }
-
-
-
-  /**
-   * Registers the provided equality matching rule with this schema.
-   *
-   * @param  matchingRule       The equality matching rule to
-   *                            register.
-   * @param  overwriteExisting  Indicates whether to overwrite an
-   *                            existing mapping if there are any
-   *                            conflicts (i.e., another matching rule
-   *                            with the same OID or name).
-   *
-   * @throws  DirectoryException  If a conflict is encountered and the
-   *                              <CODE>overwriteExisting</CODE> flag
-   *                              is set to <CODE>false</CODE>
-   */
-  public void registerEqualityMatchingRule(MatchingRule matchingRule, boolean overwriteExisting)
-         throws DirectoryException
-  {
-    synchronized (matchingRules)
-    {
-      if (! overwriteExisting)
-      {
-        String oid = toLowerCase(matchingRule.getOID());
-        if (matchingRules.containsKey(oid))
-        {
-          MatchingRule conflictingRule = matchingRules.get(oid);
-
-          LocalizableMessage message = ERR_SCHEMA_CONFLICTING_MR_OID.
-              get(matchingRule.getNameOrOID(), oid,
-                  conflictingRule.getNameOrOID());
-          throw new DirectoryException(
-                         ResultCode.CONSTRAINT_VIOLATION, message);
-        }
-
-        for(String name:matchingRule.getNames())
-        {
-           if (name != null)
-           {
-              name = toLowerCase(name);
-              if (matchingRules.containsKey(name))
-              {
-                MatchingRule conflictingRule =
-                        matchingRules.get(name);
-
-                LocalizableMessage message = ERR_SCHEMA_CONFLICTING_MR_NAME.
-                    get(matchingRule.getOID(), name,
-                        conflictingRule.getOID());
-                throw new DirectoryException(
-                               ResultCode.CONSTRAINT_VIOLATION,
-                               message);
-              }
-           }
-        }
-      }
-
-      String oid = toLowerCase(matchingRule.getOID());
-      equalityMatchingRules.put(oid, matchingRule);
-      matchingRules.put(oid, matchingRule);
-
-      for(String name:matchingRule.getNames())
-      {
-        if (name != null)
-        {
-          name = toLowerCase(name);
-          equalityMatchingRules.put(name, matchingRule);
-          matchingRules.put(name, matchingRule);
-        }
-      }
-      matchingRuleSet.add(createAttrValueForAdd(matchingRule));
-    }
-  }
-
-
-
-  /**
-   * Deregisters the provided equality matching rule definition with
-   * this schema.
-   *
-   * @param  matchingRule  The equality matching rule to deregister
-   *                       with this schema.
-   */
-  public void deregisterEqualityMatchingRule(
-                   MatchingRule matchingRule)
-  {
-    synchronized (matchingRules)
-    {
-      String oid = matchingRule.getOID();
-      equalityMatchingRules.remove(oid, matchingRule);
-      matchingRules.remove(oid, matchingRule);
-
-      for(String name:matchingRule.getNames())
-      {
-        if (name != null)
-        {
-          name = toLowerCase(name);
-          equalityMatchingRules.remove(name, matchingRule);
-          matchingRules.remove(name, matchingRule);
-        }
-      }
-      matchingRuleSet.remove(createAttrValueForRemove(matchingRule));
-    }
-  }
-
-
-
-  /**
-   * Retrieves the ordering matching rule definitions for this schema,
-   * as a mapping between the lowercase names and OIDs for the
-   * matching rule and the matching rule itself.  Each matching rule
-   * may be associated with multiple keys (once for the OID and again
-   * for each name).  The contents of the returned mapping must not be
-   * altered.
-   *
-   * @return  The ordering matching rule definitions for this schema.
-   */
-  public ConcurrentHashMap<String,OrderingMatchingRule>
-              getOrderingMatchingRules()
-  {
-    return orderingMatchingRules;
-  }
-
-
-
-  /**
-   * Retrieves the ordering matching rule definition with the
-   * specified name or OID.
-   *
-   * @param  lowerName  The name or OID of the matching rule to
-   *                    retrieve, formatted in all lowercase
-   *                    characters.
-   *
-   * @return  The requested matching rule, or <CODE>null</CODE> if no
-   *          ordering matching rule is registered with the provided
-   *          name or OID.
-   */
-  public OrderingMatchingRule getOrderingMatchingRule(
-                                   String lowerName)
-  {
-    return orderingMatchingRules.get(lowerName);
-  }
-
-
-
-  /**
-   * Registers the provided ordering matching rule with this schema.
-   *
-   * @param  matchingRule       The ordering matching rule to
-   *                            register.
-   * @param  overwriteExisting  Indicates whether to overwrite an
-   *                            existing mapping if there are any
-   *                            conflicts (i.e., another matching rule
-   *                            with the same OID or name).
-   *
-   * @throws  DirectoryException  If a conflict is encountered and the
-   *                              <CODE>overwriteExisting</CODE> flag
-   *                              is set to <CODE>false</CODE>
-   */
-  public void registerOrderingMatchingRule(
-                   OrderingMatchingRule matchingRule,
-                   boolean overwriteExisting)
-         throws DirectoryException
-  {
-    synchronized (matchingRules)
-    {
-      if (! overwriteExisting)
-      {
-        String oid = toLowerCase(matchingRule.getOID());
-        if (matchingRules.containsKey(oid))
-        {
-          MatchingRule conflictingRule = matchingRules.get(oid);
-
-          LocalizableMessage message = ERR_SCHEMA_CONFLICTING_MR_OID.
-              get(matchingRule.getNameOrOID(), oid,
-                  conflictingRule.getNameOrOID());
-          throw new DirectoryException(
-                         ResultCode.CONSTRAINT_VIOLATION, message);
-        }
-
-        for(String name:matchingRule.getNames())
-        {
-          if (name != null)
-          {
-            name = toLowerCase(name);
-            if (matchingRules.containsKey(name))
-            {
-              MatchingRule conflictingRule = matchingRules.get(name);
-
-              LocalizableMessage message = ERR_SCHEMA_CONFLICTING_MR_NAME.
-                  get(matchingRule.getOID(), name,
-                      conflictingRule.getOID());
-              throw new DirectoryException(
-                             ResultCode.CONSTRAINT_VIOLATION,
-                             message);
-            }
-          }
-        }
-      }
-
-      String oid = toLowerCase(matchingRule.getOID());
-      orderingMatchingRules.put(oid, matchingRule);
-      matchingRules.put(oid, matchingRule);
-
-      for(String name:matchingRule.getNames())
-      {
-        if (name != null)
-        {
-          name = toLowerCase(name);
-          orderingMatchingRules.put(name, matchingRule);
-          matchingRules.put(name, matchingRule);
-        }
-      }
-      matchingRuleSet.add(createAttrValueForAdd(matchingRule));
-    }
-  }
-
-
-
-  /**
-   * Deregisters the provided ordering matching rule definition with
-   * this schema.
-   *
-   * @param  matchingRule  The ordering matching rule to deregister
-   *                       with this schema.
-   */
-  public void deregisterOrderingMatchingRule(
-                   OrderingMatchingRule matchingRule)
-  {
-    synchronized (matchingRules)
-    {
-      String oid = matchingRule.getOID();
-      orderingMatchingRules.remove(oid, matchingRule);
-      matchingRules.remove(oid, matchingRule);
-
-      for(String name:matchingRule.getNames())
-      {
-        if (name != null)
-        {
-          name = toLowerCase(name);
-          orderingMatchingRules.remove(name, matchingRule);
-          matchingRules.remove(name, matchingRule);
-        }
-      }
-      matchingRuleSet.remove(createAttrValueForRemove(matchingRule));
-    }
-  }
-
-
-
-  /**
-   * Retrieves the substring matching rule definitions for this
-   * schema, as a mapping between the lowercase names and OIDs for the
-   * matching rule and the matching rule itself.  Each matching rule
-   * may be associated with multiple keys (once for the OID and again
-   * for each name).  The contents of the returned mapping must not be
-   * altered.
-   *
-   * @return  The substring matching rule definitions for this schema.
-   */
-  public ConcurrentHashMap<String,SubstringMatchingRule>
-              getSubstringMatchingRules()
-  {
-    return substringMatchingRules;
-  }
-
-
-
-  /**
-   * Retrieves the substring matching rule definition with the
-   * specified name or OID.
-   *
-   * @param  lowerName  The name or OID of the matching rule to
-   *                    retrieve, formatted in all lowercase
-   *                    characters.
-   *
-   * @return  The requested matching rule, or <CODE>null</CODE> if no
-   *          substring matching rule is registered with the provided
-   *          name or OID.
-   */
-  public SubstringMatchingRule getSubstringMatchingRule(
-                                    String lowerName)
-  {
-    return substringMatchingRules.get(lowerName);
-  }
-
-
-
-  /**
-   * Registers the provided substring matching rule with this schema.
-   *
-   * @param  matchingRule       The substring matching rule to
-   *                            register.
-   * @param  overwriteExisting  Indicates whether to overwrite an
-   *                            existing mapping if there are any
-   *                            conflicts (i.e., another matching rule
-   *                            with the same OID or name).
-   *
-   * @throws  DirectoryException  If a conflict is encountered and the
-   *                              <CODE>overwriteExisting</CODE> flag
-   *                              is set to <CODE>false</CODE>
-   */
-  public void registerSubstringMatchingRule(
-                   SubstringMatchingRule matchingRule,
-                   boolean overwriteExisting)
-         throws DirectoryException
-  {
-    synchronized (matchingRules)
-    {
-      if (! overwriteExisting)
-      {
-        String oid = toLowerCase(matchingRule.getOID());
-        if (matchingRules.containsKey(oid))
-        {
-          MatchingRule conflictingRule = matchingRules.get(oid);
-
-          LocalizableMessage message = ERR_SCHEMA_CONFLICTING_MR_OID.
-              get(matchingRule.getNameOrOID(), oid,
-                  conflictingRule.getNameOrOID());
-          throw new DirectoryException(
-                         ResultCode.CONSTRAINT_VIOLATION, message);
-        }
-
-        for(String name:matchingRule.getNames())
-        {
-          if (name != null)
-          {
-            name = toLowerCase(name);
-            if (matchingRules.containsKey(name))
-            {
-              MatchingRule conflictingRule = matchingRules.get(name);
-
-              LocalizableMessage message = ERR_SCHEMA_CONFLICTING_MR_NAME.
-                  get(matchingRule.getOID(), name,
-                      conflictingRule.getOID());
-              throw new DirectoryException(
-                             ResultCode.CONSTRAINT_VIOLATION,
-                             message);
-            }
-          }
-        }
-      }
-
-      String oid = toLowerCase(matchingRule.getOID());
-      substringMatchingRules.put(oid, matchingRule);
-      matchingRules.put(oid, matchingRule);
-
-      for(String name:matchingRule.getNames())
-      {
-        if (name != null)
-        {
-          name = toLowerCase(name);
-          substringMatchingRules.put(name, matchingRule);
-          matchingRules.put(name, matchingRule);
-        }
-      }
-      matchingRuleSet.add(createAttrValueForAdd(matchingRule));
-    }
-  }
-
-
-
-  /**
-   * Deregisters the provided substring matching rule definition with
-   * this schema.
-   *
-   * @param  matchingRule  The substring matching rule to deregister
-   *                       with this schema.
-   */
-  public void deregisterSubstringMatchingRule(
-                   SubstringMatchingRule matchingRule)
-  {
-    synchronized (matchingRules)
-    {
-      String oid = matchingRule.getOID();
-      substringMatchingRules.remove(oid, matchingRule);
-      matchingRules.remove(oid, matchingRule);
-
-      for(String name:matchingRule.getNames())
-      {
-        if (name != null)
-        {
-          name = toLowerCase(name);
-          substringMatchingRules.remove(name, matchingRule);
-          matchingRules.remove(name, matchingRule);
-        }
-      }
-      matchingRuleSet.remove(createAttrValueForRemove(matchingRule));
-    }
-  }
-
-
-
-  /**
-   * Retrieves the extensible matching rule definitions for this
-   * schema, as a mapping between the lowercase names and OIDs for the
-   * matching rule and the matching rule itself.  Each matching rule
-   * may be associated with multiple keys (once for the OID and again
-   * for each name).
-   *
-   * @return  The extensible matching rule definitions for this
-   *          schema.
-   */
-  public Map<String,ExtensibleMatchingRule>
-              getExtensibleMatchingRules()
-  {
-    return Collections.unmodifiableMap(extensibleMatchingRules);
-  }
-
-
-
-  /**
-   * Retrieves the extensible matching rule definition with the
-   * specified name or OID.
-   *
-   * @param  lowerName  The name or OID of the matching rule to
-   *                    retrieve, formatted in all lowercase
-   *                    characters.
-   *
-   * @return  The requested matching rule, or <CODE>null</CODE> if no
-   *          extensible matching rule is registered with the
-   *          provided name or OID.
-   */
-  public ExtensibleMatchingRule getExtensibleMatchingRule(
-                                      String lowerName)
-  {
-    //An ExtensibleMatchingRule can be of multiple types.
-    MatchingRule rule = matchingRules.get(lowerName);
-    if(rule instanceof ExtensibleMatchingRule)
-    {
-      return (ExtensibleMatchingRule)rule;
-    }
-    return null;
-  }
-
-
-
-  /**
-   * Registers the provided extensible matching rule with this
-   * schema.
-   *
-   * @param  matchingRule       The extensible matching rule to
-   *                            register.
-   * @param  overwriteExisting  Indicates whether to overwrite an
-   *                            existing mapping if there are any
-   *                            conflicts (i.e., another matching rule
-   *                            with the same OID or name).
-   *
-   * @throws  DirectoryException  If a conflict is encountered and the
-   *                              <CODE>overwriteExisting</CODE> flag
-   *                              is set to <CODE>false</CODE>
-   */
-  public void registerExtensibleMatchingRule(
-                   ExtensibleMatchingRule matchingRule,
-                   boolean overwriteExisting)
-         throws DirectoryException
-  {
-    synchronized (matchingRules)
-    {
-      if (! overwriteExisting)
-      {
-        String oid = toLowerCase(matchingRule.getOID());
-        if (matchingRules.containsKey(oid))
-        {
-          MatchingRule conflictingRule = matchingRules.get(oid);
-
-          LocalizableMessage message = ERR_SCHEMA_CONFLICTING_MR_OID.
-              get(matchingRule.getNameOrOID(), oid,
-                  conflictingRule.getNameOrOID());
-          throw new DirectoryException(
-                         ResultCode.CONSTRAINT_VIOLATION, message);
-        }
-
-       for(String name:matchingRule.getNames())
-       {
-        if (name != null)
-        {
-          name = toLowerCase(name);
-          if (matchingRules.containsKey(name))
-          {
-            MatchingRule conflictingRule = matchingRules.get(name);
-
-            LocalizableMessage message = ERR_SCHEMA_CONFLICTING_MR_NAME.
-                get(matchingRule.getOID(), name,
-                    conflictingRule.getOID());
-            throw new DirectoryException(
-                           ResultCode.CONSTRAINT_VIOLATION, message);
-          }
-        }
-       }
-      }
-
-      String oid = toLowerCase(matchingRule.getOID());
-      extensibleMatchingRules.put(oid, matchingRule);
-      matchingRules.put(oid, matchingRule);
-
-      for(String name:matchingRule.getNames())
-      {
-        if (name != null)
-        {
-          name = toLowerCase(name);
-          extensibleMatchingRules.put(name, matchingRule);
-          matchingRules.put(name, matchingRule);
-        }
-      }
-      matchingRuleSet.add(createAttrValueForAdd(matchingRule));
-    }
-  }
-
-
-
-  /**
-   * Deregisters the provided extensible  matching rule definition
-   * with this schema.
-   *
-   * @param  matchingRule  The extensible matching rule to deregister
-   *                       with this schema.
-   */
-    public void deregisterExtensibleMatchingRule(
-                   ExtensibleMatchingRule matchingRule)
-   {
-    synchronized (matchingRules)
-    {
-      String oid = matchingRule.getOID();
-      extensibleMatchingRules.remove(oid, matchingRule);
-      matchingRules.remove(oid, matchingRule);
-
-      for(String name:matchingRule.getNames())
-      {
-        if (name != null)
-        {
-          name = toLowerCase(name);
-          extensibleMatchingRules.remove(name, matchingRule);
-          matchingRules.remove(name, matchingRule);
-        }
-      }
-      matchingRuleSet.remove(createAttrValueForRemove(matchingRule));
-    }
-  }
-
 
 
   /**
@@ -3101,12 +2273,6 @@ public final class Schema
     dupSchema.objectClasses.putAll(objectClasses);
     dupSchema.syntaxes.putAll(syntaxes);
     dupSchema.matchingRules.putAll(matchingRules);
-    dupSchema.approximateMatchingRules.putAll(
-         approximateMatchingRules);
-    dupSchema.equalityMatchingRules.putAll(equalityMatchingRules);
-    dupSchema.orderingMatchingRules.putAll(orderingMatchingRules);
-    dupSchema.substringMatchingRules.putAll(substringMatchingRules);
-    dupSchema.extensibleMatchingRules.putAll(extensibleMatchingRules);
     dupSchema.matchingRuleUses.putAll(matchingRuleUses);
     dupSchema.ditContentRules.putAll(ditContentRules);
     dupSchema.ditStructureRulesByID.putAll(ditStructureRulesByID);
@@ -3608,12 +2774,6 @@ public final class Schema
        mayInvoke=true)
   public synchronized void destroy()
   {
-    if (approximateMatchingRules != null)
-    {
-      approximateMatchingRules.clear();
-      approximateMatchingRules = null;
-    }
-
     if (attributeTypes != null)
     {
       attributeTypes.clear();
@@ -3654,12 +2814,6 @@ public final class Schema
     {
       ditStructureRuleSet.clear();
       ditStructureRuleSet = null;
-    }
-
-    if (equalityMatchingRules != null)
-    {
-      equalityMatchingRules.clear();
-      equalityMatchingRules = null;
     }
 
     if (matchingRules != null)
@@ -3716,22 +2870,10 @@ public final class Schema
       objectClassSet = null;
     }
 
-    if (orderingMatchingRules != null)
-    {
-      orderingMatchingRules.clear();
-      orderingMatchingRules = null;
-    }
-
     if (subordinateTypes != null)
     {
       subordinateTypes.clear();
       subordinateTypes = null;
-    }
-
-    if (substringMatchingRules != null)
-    {
-      substringMatchingRules.clear();
-      substringMatchingRules = null;
     }
 
     if (extraAttributes != null)
@@ -3750,12 +2892,6 @@ public final class Schema
     {
       syntaxSet.clear();
       syntaxSet = null;
-    }
-
-    if (extensibleMatchingRules != null)
-    {
-      extensibleMatchingRules.clear();
-      extensibleMatchingRules = null;
     }
 
     if(ldapSyntaxDescriptions != null)

@@ -677,7 +677,7 @@ public class AttributeTypeSyntax
         StringBuilder woidBuffer = new StringBuilder();
         pos = readWOID(lowerStr, woidBuffer, pos);
         OrderingMatchingRule omr =
-             schema.getOrderingMatchingRule(woidBuffer.toString());
+             (OrderingMatchingRule) schema.getMatchingRule(woidBuffer.toString());
         if (omr == null)
         {
           // This is bad because we have no idea what the ordering matching
@@ -697,7 +697,7 @@ public class AttributeTypeSyntax
         StringBuilder woidBuffer = new StringBuilder();
         pos = readWOID(lowerStr, woidBuffer, pos);
         SubstringMatchingRule smr =
-             schema.getSubstringMatchingRule(woidBuffer.toString());
+             (SubstringMatchingRule) schema.getMatchingRule(woidBuffer.toString());
         if (smr == null)
         {
           // This is bad because we have no idea what the substring matching
@@ -915,7 +915,7 @@ public class AttributeTypeSyntax
       String ruleName  = approxRules.get(0);
       String lowerName = toLowerCase(ruleName);
       ApproximateMatchingRule amr =
-           schema.getApproximateMatchingRule(lowerName);
+           (ApproximateMatchingRule) schema.getMatchingRule(lowerName);
       if (amr == null)
       {
         // This is bad because we have no idea what the approximate matching
