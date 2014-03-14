@@ -29,7 +29,7 @@ package org.opends.server.schema;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.SaltedMD5PasswordStorageSchemeCfgDefn;
 import org.opends.server.admin.std.server.SaltedMD5PasswordStorageSchemeCfg;
-import org.opends.server.api.EqualityMatchingRule;
+import org.opends.server.api.MatchingRule;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.SaltedMD5PasswordStorageScheme;
@@ -125,7 +125,7 @@ public class AuthPasswordEqualityMatchingRuleTest extends
    * {@inheritDoc}
    */
   @Override
-  protected EqualityMatchingRule getRule()
+  protected MatchingRule getRule()
   {
     return new AuthPasswordEqualityMatchingRule();
   }

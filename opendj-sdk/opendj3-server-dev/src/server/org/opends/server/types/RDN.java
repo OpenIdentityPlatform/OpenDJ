@@ -34,7 +34,6 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.core.DirectoryServer;
@@ -1194,7 +1193,7 @@ public final class RDN
       AttributeType type)
   {
     final OrderingMatchingRule omr = type.getOrderingMatchingRule();
-    final EqualityMatchingRule emr = type.getEqualityMatchingRule();
+    final MatchingRule emr = type.getEqualityMatchingRule();
 
     ByteString val1;
     ByteString val2;

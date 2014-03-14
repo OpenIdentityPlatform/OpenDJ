@@ -43,7 +43,6 @@ import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.admin.std.meta.MatchingRuleCfgDefn;
 import org.opends.server.api.ApproximateMatchingRule;
-import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.api.MatchingRuleFactory;
 import org.opends.server.api.OrderingMatchingRule;
@@ -277,7 +276,7 @@ public class MatchingRuleConfigManager
             continue;
           }
 
-          EqualityMatchingRule emr = at.getEqualityMatchingRule();
+          MatchingRule emr = at.getEqualityMatchingRule();
           if ((emr != null) && oid.equals(emr.getOID()))
           {
             LocalizableMessage message =
@@ -414,7 +413,7 @@ public class MatchingRuleConfigManager
               continue;
             }
 
-            EqualityMatchingRule emr = at.getEqualityMatchingRule();
+            MatchingRule emr = at.getEqualityMatchingRule();
             if ((emr != null) && oid.equals(emr.getOID()))
             {
               LocalizableMessage message =

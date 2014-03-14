@@ -29,21 +29,72 @@ class Replace
 
   # All directories that contains java code
   JAVA_DIRS = ["src/server", "src/quicksetup", "src/ads", "src/guitools", "tests/unit-tests-testng/src"]
+  TOOLS_DIR = ["src/server/org/opends/server/tools", "src/quicksetup", "src/ads", "src/guitools",
+    "tests/unit-tests-testng/src/server/org/opends/server/tools" ]
   SNMP_DIR = ["src/snmp/src"]
   DSML_DIR = ["src/dsml/org"]
 
- # Replacement for new config framework
-  CONFIG_EXC = {
+  # Replacement for matching rules
+  MRULES = {
+    :dirs => JAVA_DIRS + SNMP_DIR,
+    :extensions => ["java"],
+    :stopwords => ["MatchingRule"],
+    :replacements =>
+      [
+
+        /import org.opends.server.api.EqualityMatchingRule;/,
+        'import org.opends.server.api.MatchingRule;',
+
+        /\bEqualityMatchingRule\b/,
+        "MatchingRule",
+
+       ]
+  }
+
+ # Replacement for syntaxes
+  SYNTAX = {
+    :dirs => JAVA_DIRS + SNMP_DIR,
+    :extensions => ["java"],
+    :stopwords => ["Syntax"],
+    :replacements =>
+      [
+
+        /import org.opends.server.api.AttributeSyntax;/,
+        'import org.forgerock.opendj.ldap.schema.Syntax;',
+
+        /package org.opends.server.api;/,
+        "package org.opends.server.api;\n\nimport org.forgerock.opendj.ldap.schema.Syntax;",
+
+        /import org.opends.server.api.\*;/,
+        "import org.forgerock.opendj.ldap.schema.Syntax;\nimport org.opends.server.api.*;",
+
+        /\bAttributeSyntax\b<[^>]+>/,
+        'Syntax',
+
+        /\bAttributeSyntax\b/,
+        'Syntax'
+       ]
+  }
+
+ # Replacement for attribute type
+  ATTRTYPE = {
     :dirs => JAVA_DIRS + SNMP_DIR,
     :extensions => ["java"],
     :stopwords => [],
     :replacements =>
       [
-        /import org.opends.server.config.ConfigException;/,
-        'import org.forgerock.opendj.config.server.ConfigException;',
+
+        /import org.opends.server.types.AttributeType;/,
+        'import org.forgerock.opendj.ldap.schema.AttributeType;',
+
+        /package org.opends.server.types;/,
+        "package org.opends.server.types;\n\nimport org.forgerock.opendj.ldap.schema.AttributeType;",
+
+        /import org.opends.server.types.\*;/,
+        "import org.forgerock.opendj.ldap.schema.AttributeType;\nimport org.opends.server.types.*;",
+
        ]
   }
-
 
   # Replacement for new config framework
   NEW_CONFIG = {
@@ -273,7 +324,7 @@ class Replace
   }
 
   # List of replacements to run
-  REPLACEMENTS = [ CONFIG_EXC ]
+  REPLACEMENTS = [ MRULES ]
 
 
   ################################### Processing methods ########################################

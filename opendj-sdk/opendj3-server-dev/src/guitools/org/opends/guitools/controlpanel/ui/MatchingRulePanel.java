@@ -273,19 +273,20 @@ public class MatchingRulePanel extends SchemaElementPanel
   static LocalizableMessage getTypeValue(MatchingRule matchingRule)
   {
     LocalizableMessage text;
-    if (matchingRule instanceof EqualityMatchingRule)
+    String matchingRuleName = matchingRule.getClass().getSimpleName().toLowerCase();
+    if (matchingRuleName.contains("equality"))
     {
       text = INFO_CTRL_PANEL_INDEX_EQUALITY.get();
     }
-    else if (matchingRule instanceof OrderingMatchingRule)
+    else if (matchingRuleName.contains("ordering"))
     {
       text = INFO_CTRL_PANEL_INDEX_ORDERING.get();
     }
-    else if (matchingRule instanceof SubstringMatchingRule)
+    else if (matchingRuleName.contains("substring"))
     {
       text = INFO_CTRL_PANEL_INDEX_SUBSTRING.get();
     }
-    else if (matchingRule instanceof ApproximateMatchingRule)
+    else if (matchingRuleName.contains("approximate"))
     {
       text = INFO_CTRL_PANEL_INDEX_APPROXIMATE.get();
     }

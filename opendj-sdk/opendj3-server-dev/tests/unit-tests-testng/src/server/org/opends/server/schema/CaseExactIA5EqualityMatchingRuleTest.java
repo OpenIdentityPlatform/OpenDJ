@@ -22,10 +22,11 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.schema;
 
-import org.opends.server.api.EqualityMatchingRule;
+import org.opends.server.api.MatchingRule;
 import org.testng.annotations.DataProvider;
 
 /**
@@ -71,7 +72,7 @@ public class CaseExactIA5EqualityMatchingRuleTest extends
    * {@inheritDoc}
    */
   @Override
-  protected EqualityMatchingRule getRule()
+  protected MatchingRule getRule()
   {
     return new CaseExactIA5EqualityMatchingRule();
   }

@@ -37,14 +37,13 @@ import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.ChangeNotificationListener;
 import org.opends.server.api.ConfigHandler;
-import org.opends.server.api.EqualityMatchingRule;
+import org.opends.server.api.MatchingRule;
 import org.opends.server.api.ExtendedOperationHandler;
 import org.opends.server.api.InvokableComponent;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SASLMechanismHandler;
 import org.opends.server.api.ServerShutdownListener;
 import org.opends.server.api.SubstringMatchingRule;
-import org.opends.server.api.MatchingRule;
 import org.opends.server.config.ConfigEntry;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
@@ -244,7 +243,7 @@ public final class DirectoryConfig
    *          <CODE>null</CODE> if no such matching rule has been
    *          defined in the server.
    */
-  public static EqualityMatchingRule
+  public static MatchingRule
        getEqualityMatchingRule(String lowerName)
   {
     return DirectoryServer.getEqualityMatchingRule(lowerName);

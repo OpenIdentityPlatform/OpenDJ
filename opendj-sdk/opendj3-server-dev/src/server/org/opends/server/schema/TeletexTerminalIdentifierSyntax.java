@@ -34,7 +34,7 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
 import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.AttributeSyntax;
-import org.opends.server.api.EqualityMatchingRule;
+import org.opends.server.api.MatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.forgerock.opendj.config.server.ConfigException;
@@ -89,7 +89,7 @@ public class TeletexTerminalIdentifierSyntax
 
 
   // The default equality matching rule for this syntax.
-  private EqualityMatchingRule defaultEqualityMatchingRule;
+  private MatchingRule defaultEqualityMatchingRule;
 
   // The default ordering matching rule for this syntax.
   private OrderingMatchingRule defaultOrderingMatchingRule;
@@ -189,7 +189,7 @@ public class TeletexTerminalIdentifierSyntax
    *          attributes with this syntax, or <CODE>null</CODE> if equality
    *          matches will not be allowed for this type by default.
    */
-  public EqualityMatchingRule getEqualityMatchingRule()
+  public MatchingRule getEqualityMatchingRule()
   {
     return defaultEqualityMatchingRule;
   }

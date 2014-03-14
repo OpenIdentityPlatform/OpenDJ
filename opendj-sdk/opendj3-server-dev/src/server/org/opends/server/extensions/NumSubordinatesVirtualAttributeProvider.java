@@ -38,7 +38,7 @@ import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.std.server.NumSubordinatesVirtualAttributeCfg;
 import org.opends.server.api.Backend;
-import org.opends.server.api.EqualityMatchingRule;
+import org.opends.server.api.MatchingRule;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
@@ -123,7 +123,7 @@ public class NumSubordinatesVirtualAttributeProvider
                           AttributeValue value)
   {
     Backend backend = DirectoryServer.getBackend(entry.getName());
-    EqualityMatchingRule eqRule = rule.getAttributeType().getEqualityMatchingRule();
+    MatchingRule eqRule = rule.getAttributeType().getEqualityMatchingRule();
 
     try
     {

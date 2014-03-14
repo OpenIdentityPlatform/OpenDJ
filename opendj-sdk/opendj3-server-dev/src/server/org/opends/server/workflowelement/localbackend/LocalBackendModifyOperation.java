@@ -1471,7 +1471,7 @@ public class LocalBackendModifyOperation
   {
     final AttributeType attrType = attr.getAttributeType();
     Reject.ifFalse(attrType.isObjectClass());
-    final EqualityMatchingRule eqRule = attrType.getEqualityMatchingRule();
+    final MatchingRule eqRule = attrType.getEqualityMatchingRule();
 
     for (AttributeValue v : attr)
     {
@@ -1700,7 +1700,7 @@ public class LocalBackendModifyOperation
           ERR_MODIFY_INCREMENT_REQUIRES_SINGLE_VALUE.get(entryDN, attr.getName()));
     }
 
-    EqualityMatchingRule eqRule = attr.getAttributeType().getEqualityMatchingRule();
+    MatchingRule eqRule = attr.getAttributeType().getEqualityMatchingRule();
     AttributeValue v = attr.iterator().next();
 
     long incrementValue;

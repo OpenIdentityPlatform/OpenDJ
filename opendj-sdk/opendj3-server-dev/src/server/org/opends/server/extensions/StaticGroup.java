@@ -44,7 +44,7 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.admin.std.server.GroupImplementationCfg;
 import org.opends.server.admin.std.server.StaticGroupImplementationCfg;
-import org.opends.server.api.EqualityMatchingRule;
+import org.opends.server.api.MatchingRule;
 import org.opends.server.api.Group;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.core.DirectoryServer;
@@ -237,7 +237,7 @@ public class StaticGroup
     {
       for (Attribute a : memberAttrList)
       {
-        EqualityMatchingRule eqRule =
+        MatchingRule eqRule =
             a.getAttributeType().getEqualityMatchingRule();
         for (AttributeValue v : a)
         {

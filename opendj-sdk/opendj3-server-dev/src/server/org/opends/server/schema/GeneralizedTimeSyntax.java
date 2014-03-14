@@ -39,7 +39,7 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
 import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.AttributeSyntax;
-import org.opends.server.api.EqualityMatchingRule;
+import org.opends.server.api.MatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.forgerock.opendj.config.server.ConfigException;
@@ -74,7 +74,7 @@ public class GeneralizedTimeSyntax
 
 
   // The default equality matching rule for this syntax.
-  private EqualityMatchingRule defaultEqualityMatchingRule;
+  private MatchingRule defaultEqualityMatchingRule;
 
   // The default ordering matching rule for this syntax.
   private OrderingMatchingRule defaultOrderingMatchingRule;
@@ -179,7 +179,7 @@ public class GeneralizedTimeSyntax
    *          matches will not be allowed for this type by default.
    */
   @Override
-  public EqualityMatchingRule getEqualityMatchingRule()
+  public MatchingRule getEqualityMatchingRule()
   {
     return defaultEqualityMatchingRule;
   }

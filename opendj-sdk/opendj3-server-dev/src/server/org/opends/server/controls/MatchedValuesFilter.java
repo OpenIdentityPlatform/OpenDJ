@@ -42,7 +42,6 @@ import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.util.Reject;
 import org.opends.server.api.ApproximateMatchingRule;
-import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
@@ -150,7 +149,7 @@ public class MatchedValuesFilter
   private final byte matchType;
 
   // The equality matching rule for this matched values filter.
-  private EqualityMatchingRule equalityMatchingRule;
+  private MatchingRule equalityMatchingRule;
 
   // The set of normalized subAny values for this matched values filter.
   private List<ByteString> normalizedSubAny;
@@ -1190,7 +1189,7 @@ public class MatchedValuesFilter
    * @return  The equality matching rule that should be used for this matched
    *          values filter, or <CODE>null</CODE> if there is none.
    */
-  public EqualityMatchingRule getEqualityMatchingRule()
+  public MatchingRule getEqualityMatchingRule()
   {
     if (equalityMatchingRule == null)
     {

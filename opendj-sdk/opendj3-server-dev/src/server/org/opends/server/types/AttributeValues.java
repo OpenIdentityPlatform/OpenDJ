@@ -32,6 +32,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.api.EqualityMatchingRule;
+import org.opends.server.api.MatchingRule;
 
 import static org.opends.messages.CoreMessages.*;
 
@@ -169,7 +170,7 @@ public final class AttributeValues
     {
       if (normalizedValue == null)
       {
-        EqualityMatchingRule equalityMatchingRule = attributeType
+        MatchingRule equalityMatchingRule = attributeType
             .getEqualityMatchingRule();
         if (equalityMatchingRule == null)
         {
@@ -242,8 +243,8 @@ public final class AttributeValues
     @Override
     public int hashCode()
     {
-      EqualityMatchingRule equalityMatchingRule = attributeType
-          .getEqualityMatchingRule();
+      EqualityMatchingRule equalityMatchingRule =
+          (EqualityMatchingRule) attributeType.getEqualityMatchingRule();
 
       ByteString valueToHash;
       try

@@ -28,7 +28,9 @@
 
 package org.opends.server.schema;
 
-import org.opends.server.api.EqualityMatchingRule;
+import org.opends.server.api.MatchingRule;
+import org.opends.server.api.MatchingRule;
+
 import static org.testng.Assert.*;
 
 import java.util.List;
@@ -37,7 +39,9 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPFilter;
+import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.types.SearchResultEntry;
@@ -137,14 +141,13 @@ public final class StringPrepProfileTestCase
                              String value2, Boolean result) throws Exception
   {
     //Take any caseExact matching rule.
-    EqualityMatchingRule rule = new CaseExactIA5EqualityMatchingRule();
-    ByteString normalizedValue1 =
-      rule.normalizeAttributeValue(ByteString.valueOf(value1));
-    ByteString normalizedValue2 =
-      rule.normalizeAttributeValue(ByteString.valueOf(value2));
+    MatchingRule rule = new CaseExactIA5EqualityMatchingRule();
 
-    Boolean liveResult = rule.areEqual(normalizedValue1, normalizedValue2);
-    assertEquals(result, liveResult);
+    Assertion assertion = rule.getAssertion(ByteString.valueOf(value2));
+    ConditionResult condResult = assertion.matches(rule.normalizeAttributeValue(ByteString.valueOf(value1)));
+
+    assertEquals(condResult, ConditionResult.valueOf(result));
+
   }
 
 
@@ -173,14 +176,12 @@ public final class StringPrepProfileTestCase
                              String value2, Boolean result) throws Exception
   {
     //Take any caseExact matching rule.
-    EqualityMatchingRule rule = new CaseIgnoreEqualityMatchingRule();
-    ByteString normalizedValue1 =
-      rule.normalizeAttributeValue(ByteString.valueOf(value1));
-    ByteString normalizedValue2 =
-      rule.normalizeAttributeValue(ByteString.valueOf(value2));
+    MatchingRule rule = new CaseIgnoreEqualityMatchingRule();
 
-    Boolean liveResult = rule.areEqual(normalizedValue1, normalizedValue2);
-    assertEquals(result, liveResult);
+    Assertion assertion = rule.getAssertion(ByteString.valueOf(value2));
+    ConditionResult condResult = assertion.matches(rule.normalizeAttributeValue(ByteString.valueOf(value1)));
+
+    assertEquals(condResult, ConditionResult.valueOf(result));
   }
 
 
