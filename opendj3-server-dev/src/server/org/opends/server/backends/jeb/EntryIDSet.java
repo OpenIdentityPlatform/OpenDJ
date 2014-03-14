@@ -86,7 +86,8 @@ public class EntryIDSet implements Iterable<EntryID>
    */
   public EntryIDSet(byte[] keyBytes, byte[] bytes)
   {
-    this(keyBytes != null ? ByteString.wrap(keyBytes) : null, bytes);
+    this(keyBytes != null ? ByteString.wrap(keyBytes) : null,
+        bytes != null ? ByteString.wrap(bytes) : null);
   }
 
   /**
@@ -97,7 +98,7 @@ public class EntryIDSet implements Iterable<EntryID>
    * @param bytes
    *          The database value, or null if there are no entry IDs.
    */
-  public EntryIDSet(ByteString keyBytes, byte[] bytes)
+  public EntryIDSet(ByteString keyBytes, ByteString bytes)
   {
     this.keyBytes = keyBytes;
 
@@ -107,23 +108,23 @@ public class EntryIDSet implements Iterable<EntryID>
       return;
     }
 
-    if (bytes.length == 0)
+    if (bytes.length() == 0)
     {
       // Entry limit has exceeded and there is no encoded undefined set size.
       values = null;
       undefinedSize = Long.MAX_VALUE;
     }
-    else if ((bytes[0] & 0x80) == 0x80)
+    else if ((bytes.byteAt(0) & 0x80) == 0x80)
     {
       // Entry limit has exceeded and there is an encoded undefined set size.
       values = null;
-      undefinedSize = JebFormat.entryIDUndefinedSizeFromDatabase(bytes);
+      undefinedSize = bytes.toLong();
     }
     else
     {
       // Seems like entry limit has not been exceeded and the bytes is a
       // list of entry IDs.
-      values = JebFormat.entryIDListFromDatabase(bytes);
+      values = JebFormat.entryIDListFromDatabase(bytes.toByteArray());
     }
 
   }

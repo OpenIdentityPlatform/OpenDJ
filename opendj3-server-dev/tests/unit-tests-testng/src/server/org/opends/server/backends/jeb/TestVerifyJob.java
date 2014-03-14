@@ -48,6 +48,7 @@ import com.sleepycat.je.Transaction;
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
+@SuppressWarnings("javadoc")
 public class TestVerifyJob extends JebTestCase
 {
   //Root suffix for verify backend
@@ -228,10 +229,8 @@ public class TestVerifyJob extends JebTestCase
       id=new EntryID(3);
       assertTrue(dn2id.insert(txn, testDN, id));
       //Add badDN key with bad entry id
-      DatabaseEntry key=
-           new DatabaseEntry(StaticUtils.getBytes(badDN));
-      DatabaseEntry data =
-           new EntryID(37).getDatabaseEntry();
+      DatabaseEntry key = new DatabaseEntry(StaticUtils.getBytes(badDN));
+      DatabaseEntry data = new EntryID(37).getDatabaseEntry();
       assertEquals(dn2id.put(txn, key, data), OperationStatus.SUCCESS);
       //Add DN key with malformed entryID
       key=new DatabaseEntry(StaticUtils.getBytes(junkDN2));
@@ -281,7 +280,7 @@ public class TestVerifyJob extends JebTestCase
       idBytes[15] = (byte)1;
       //bad jeb format
       idBytes[23] = (byte) 0x04;
-      idSet = newEntryIDSet(idBytes);
+      idSet = new EntryIDSet(null, idBytes);
       id2child.writeKey(txn, key, idSet);
       performBECleanVerify("id2children", 6);
     }
@@ -289,11 +288,6 @@ public class TestVerifyJob extends JebTestCase
     {
       eContainer.sharedLock.unlock();
     }
-  }
-
-  private EntryIDSet newEntryIDSet(byte[] idBytes)
-  {
-    return new EntryIDSet((ByteString) null, idBytes);
   }
 
   /**
@@ -319,17 +313,17 @@ public class TestVerifyJob extends JebTestCase
       idBytes[3] = (byte)0xff;
       //non-subordinate
       idBytes[15] = (byte)1;
-      idSet = newEntryIDSet(idBytes);
+      idSet = new EntryIDSet(null, idBytes);
       id2subtree.writeKey(txn, key, idSet);
       //Try to break JebFormat version of key entry
       key=addID2EntryReturnKey(junkDN, 4, true);
       idBytes[3]=(byte) 0x04;
       idBytes[15]=(byte)0x00;
-      EntryIDSet idSet1 = newEntryIDSet(idBytes);
+      EntryIDSet idSet1 = new EntryIDSet(null, idBytes);
       id2subtree.writeKey(txn, key, idSet1);
       //put invalid key -- no EntryID matches
       key= new EntryID(45).getDatabaseEntry();
-      idSet = newEntryIDSet(idBytes);
+      idSet = new EntryIDSet(null, idBytes);
       id2subtree.writeKey(txn, key, idSet);
       performBECleanVerify("id2subtree", 7);
     }
@@ -370,7 +364,7 @@ public class TestVerifyJob extends JebTestCase
       dataBytes[31] = (byte) 0x04;
       DatabaseEntry data= new DatabaseEntry(dataBytes);
       OperationStatus status = index.put(txn, key, data);
-      assertTrue(status == OperationStatus.SUCCESS);
+      assertEquals(status, OperationStatus.SUCCESS);
       //really 5 errors, but duplicate reference doesn't increment error
       //count for some reason
       performBECleanVerify(phoneType, 4);
@@ -524,7 +518,7 @@ public class TestVerifyJob extends JebTestCase
       DatabaseEntry key=addID2EntryReturnKey(noParentDN, 10, false);
       byte[] idBytes=new byte[16];
       idBytes[7]=(byte) 0x0A;
-      EntryIDSet idSet = newEntryIDSet(idBytes);
+      EntryIDSet idSet = new EntryIDSet(null, idBytes);
       id2child.writeKey(txn, key, idSet);
       //Add child entry - don't worry about key
       addID2EntryReturnKey(cDN, 11, false);
@@ -533,7 +527,7 @@ public class TestVerifyJob extends JebTestCase
       //add parent key/IDSet with bad IDset id
       byte[] idBytesp=new byte[16];
       idBytesp[7]=(byte) 0xFF;
-      EntryIDSet idSetp = newEntryIDSet(idBytesp);
+      EntryIDSet idSetp = new EntryIDSet(null, idBytesp);
       id2child.writeKey(txn, keyp, idSetp);
       performBECompleteVerify("id2children", 3);
     }
@@ -656,29 +650,26 @@ public class TestVerifyJob extends JebTestCase
       dataBytes[15] = (byte)0xfe;
       DatabaseEntry data= new DatabaseEntry(dataBytes);
       OperationStatus status = eqIndex.put(txn, key, data);
-      assertTrue(status == OperationStatus.SUCCESS);
+      assertEquals(status, OperationStatus.SUCCESS);
       status = ordIndex.put(txn, key, data);
-      assertTrue(status == OperationStatus.SUCCESS);
+      assertEquals(status, OperationStatus.SUCCESS);
       //Add null idlist to both equality and ordering indexes.
-      key =
-           new DatabaseEntry(StaticUtils.getBytes("user.1@example.com"));
+      key = new DatabaseEntry(StaticUtils.getBytes("user.1@example.com"));
       data= new DatabaseEntry(new EntryIDSet().toDatabase());
       status = eqIndex.put(txn, key, data);
-      assertTrue(status == OperationStatus.SUCCESS);
+      assertEquals(status, OperationStatus.SUCCESS);
       status = ordIndex.put(txn, key, data);
-      assertTrue(status == OperationStatus.SUCCESS);
+      assertEquals(status, OperationStatus.SUCCESS);
       //Add invalid idlist ids to presence index.
-      key =
-           new DatabaseEntry(StaticUtils.getBytes("+"));
+      key = new DatabaseEntry(StaticUtils.getBytes("+"));
       data = new DatabaseEntry(dataBytes);
       status = presIndex.put(txn, key, data);
-      assertTrue(status == OperationStatus.SUCCESS);
+      assertEquals(status, OperationStatus.SUCCESS);
       //Add invalid idlist ids to substring index.
-      key =
-           new DatabaseEntry(StaticUtils.getBytes("@examp"));
+      key = new DatabaseEntry(StaticUtils.getBytes("@examp"));
       data = new DatabaseEntry(dataBytes);
       status = subIndex.put(txn, key, data);
-      assertTrue(status == OperationStatus.SUCCESS);
+      assertEquals(status, OperationStatus.SUCCESS);
       performBECompleteVerify(mailType, 6);
     }
     finally
