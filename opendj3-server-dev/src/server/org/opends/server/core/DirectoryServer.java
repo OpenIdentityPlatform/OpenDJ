@@ -91,7 +91,7 @@ import org.opends.server.api.AccessControlHandler;
 import org.opends.server.api.AccountStatusNotificationHandler;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.AlertHandler;
-import org.opends.server.api.ApproximateMatchingRule;
+import org.opends.server.api.MatchingRule;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.AuthenticationPolicy;
 import org.opends.server.api.Backend;
@@ -117,7 +117,6 @@ import org.opends.server.api.ImportTaskListener;
 import org.opends.server.api.InitializationCompletedListener;
 import org.opends.server.api.InvokableComponent;
 import org.opends.server.api.KeyManagerProvider;
-import org.opends.server.api.MatchingRule;
 import org.opends.server.api.MatchingRuleFactory;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.api.OrderingMatchingRule;
@@ -3121,10 +3120,10 @@ public final class DirectoryServer
    * @return  The requested approximate matching rule, or <CODE>null</CODE> if
    *          no such matching rule has been defined in the server.
    */
-  public static ApproximateMatchingRule
+  public static MatchingRule
                      getApproximateMatchingRule(String lowerName)
   {
-    return (ApproximateMatchingRule) directoryServer.schema.getMatchingRule(lowerName);
+    return (MatchingRule) directoryServer.schema.getMatchingRule(lowerName);
   }
 
 
@@ -3143,7 +3142,7 @@ public final class DirectoryServer
    *                              <CODE>overwriteExisting</CODE> flag is set to
    *                              <CODE>false</CODE>
    */
-  public static void registerApproximateMatchingRule(ApproximateMatchingRule
+  public static void registerApproximateMatchingRule(MatchingRule
                                                           matchingRule,
                                                      boolean overwriteExisting)
          throws DirectoryException
@@ -3159,7 +3158,7 @@ public final class DirectoryServer
    *
    * @param  matchingRule  The matching rule to deregister with the server.
    */
-  public static void deregisterApproximateMatchingRule(ApproximateMatchingRule
+  public static void deregisterApproximateMatchingRule(MatchingRule
                                                             matchingRule)
   {
     directoryServer.schema.deregisterMatchingRule(matchingRule);

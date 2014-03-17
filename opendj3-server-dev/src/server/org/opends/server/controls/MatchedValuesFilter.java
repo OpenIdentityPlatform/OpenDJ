@@ -41,7 +41,6 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.util.Reject;
-import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
@@ -118,7 +117,7 @@ public class MatchedValuesFilter
 
 
   // The approximate matching rule for this matched values filter.
-  private ApproximateMatchingRule approximateMatchingRule;
+  private MatchingRule approximateMatchingRule;
 
   // The normalized subFinal value for this matched values filter.
   private ByteString normalizedSubFinal;
@@ -1166,7 +1165,7 @@ public class MatchedValuesFilter
    * @return  The approximate matching rule that should be used for this matched
    *          values filter, or <CODE>null</CODE> if there is none.
    */
-  public ApproximateMatchingRule getApproximateMatchingRule()
+  public MatchingRule getApproximateMatchingRule()
   {
     if (approximateMatchingRule == null)
     {

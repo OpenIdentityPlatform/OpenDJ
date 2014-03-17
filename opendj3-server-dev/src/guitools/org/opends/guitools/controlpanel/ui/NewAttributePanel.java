@@ -257,19 +257,19 @@ public class NewAttributePanel extends StatusGenericPanel
       for (String key : orderedKeys)
       {
         MatchingRule matchingRule = matchingRuleNameMap.get(key);
-        if (matchingRule instanceof ApproximateMatchingRule)
+        if (Utilities.isApproximateMatchingRule(matchingRule))
         {
           approximateElements.add(matchingRule);
         }
-        else if (matchingRule instanceof MatchingRule)
+        else if (Utilities.isEqualityMatchingRule(matchingRule))
         {
           equalityElements.add(matchingRule);
         }
-        else if (matchingRule instanceof OrderingMatchingRule)
+        else if (Utilities.isOrderingMatchingRule(matchingRule))
         {
           orderingElements.add(matchingRule);
         }
-        else if (matchingRule instanceof SubstringMatchingRule)
+        else if (Utilities.isSubstringMatchingRule(matchingRule))
         {
           substringElements.add(matchingRule);
         }
@@ -777,7 +777,7 @@ public class NewAttributePanel extends StatusGenericPanel
     }
   }
 
-  private ApproximateMatchingRule getApproximateMatchingRule()
+  private MatchingRule getApproximateMatchingRule()
   {
     if (approximate.getSelectedIndex() == 0)
     {
@@ -785,7 +785,7 @@ public class NewAttributePanel extends StatusGenericPanel
     }
     else
     {
-      return (ApproximateMatchingRule)approximate.getSelectedItem();
+      return (MatchingRule)approximate.getSelectedItem();
     }
   }
 

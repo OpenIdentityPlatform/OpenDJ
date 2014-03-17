@@ -35,9 +35,8 @@ import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.DirectoryStringAttributeSyntaxCfg;
-import org.opends.server.api.ApproximateMatchingRule;
-import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.MatchingRule;
+import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.core.DirectoryServer;
@@ -61,7 +60,7 @@ public class DirectoryStringSyntax
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   // The default approximate matching rule for this syntax.
-  private ApproximateMatchingRule defaultApproximateMatchingRule;
+  private MatchingRule defaultApproximateMatchingRule;
 
   // Indicates whether we will allow zero-length values.
   private boolean allowZeroLengthValues;
@@ -255,7 +254,7 @@ public class DirectoryStringSyntax
    *          matches will not be allowed for this type by default.
    */
   @Override
-  public ApproximateMatchingRule getApproximateMatchingRule()
+  public MatchingRule getApproximateMatchingRule()
   {
     return defaultApproximateMatchingRule;
   }

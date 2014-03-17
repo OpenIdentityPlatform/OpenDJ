@@ -115,9 +115,13 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.util.Utils;
+import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.ConfigHandler;
+import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.api.MatchingRule;
+import org.opends.server.api.OrderingMatchingRule;
+import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
@@ -2854,4 +2858,49 @@ public class Utilities
       }
     }
   }
+
+  /**
+   * Indicates if the provided matching rule is an equality matching rule.
+   *
+   * @param matchingRule
+   *            The matching rule.
+   * @return {@code true} if this matching rule is an equality mathing rule.
+   */
+  public static boolean isEqualityMatchingRule(MatchingRule matchingRule) {
+    return matchingRule instanceof EqualityMatchingRule;
+  }
+
+  /**
+   * Indicates if the provided matching rule is an approximate matching rule.
+   *
+   * @param matchingRule
+   *            The matching rule.
+   * @return {@code true} if this matching rule is an approximate mathing rule.
+   */
+  public static boolean isApproximateMatchingRule(MatchingRule matchingRule) {
+    return matchingRule instanceof ApproximateMatchingRule;
+  }
+
+  /**
+   * Indicates if the provided matching rule is a substring matching rule.
+   *
+   * @param matchingRule
+   *            The matching rule.
+   * @return {@code true} if this matching rule is a substring mathing rule.
+   */
+  public static boolean isSubstringMatchingRule(MatchingRule matchingRule) {
+    return matchingRule instanceof SubstringMatchingRule;
+  }
+
+  /**
+   * Indicates if the provided matching rule is an ordering matching rule.
+   *
+   * @param matchingRule
+   *            The matching rule.
+   * @return {@code true} if this matching rule is an ordering mathing rule.
+   */
+  public static boolean isOrderingMatchingRule(MatchingRule matchingRule) {
+    return matchingRule instanceof OrderingMatchingRule;
+  }
+
 }

@@ -33,11 +33,10 @@ import java.util.Set;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.api.AlertGenerator;
-import org.opends.server.api.ApproximateMatchingRule;
+import org.opends.server.api.MatchingRule;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.ChangeNotificationListener;
 import org.opends.server.api.ConfigHandler;
-import org.opends.server.api.MatchingRule;
 import org.opends.server.api.ExtendedOperationHandler;
 import org.opends.server.api.InvokableComponent;
 import org.opends.server.api.OrderingMatchingRule;
@@ -224,7 +223,7 @@ public final class DirectoryConfig
    *          <CODE>null</CODE> if no such matching rule has been
    *          defined in the server.
    */
-  public static ApproximateMatchingRule
+  public static MatchingRule
        getApproximateMatchingRule(String lowerName)
   {
     return DirectoryServer.getApproximateMatchingRule(lowerName);

@@ -34,9 +34,8 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
-import org.opends.server.api.ApproximateMatchingRule;
-import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.MatchingRule;
+import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.core.DirectoryServer;
@@ -190,7 +189,7 @@ public final class SubtreeSpecificationSyntax
    *         default.
    */
   @Override
-  public ApproximateMatchingRule getApproximateMatchingRule() {
+  public MatchingRule getApproximateMatchingRule() {
 
     // There is no approximate matching rule by default.
     return null;

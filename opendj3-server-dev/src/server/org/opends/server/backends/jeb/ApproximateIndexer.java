@@ -33,8 +33,8 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.spi.IndexingOptions;
-import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.ExtensibleIndexer;
+import org.opends.server.api.MatchingRule;
 import org.opends.server.types.AttributeType;
 
 /**
@@ -46,7 +46,7 @@ public class ApproximateIndexer extends ExtensibleIndexer
   /**
    * The attribute type approximate matching rule.
    */
-  private ApproximateMatchingRule approximateRule;
+  private MatchingRule approximateRule;
 
   /**
    * Create a new attribute approximate indexer for the given index

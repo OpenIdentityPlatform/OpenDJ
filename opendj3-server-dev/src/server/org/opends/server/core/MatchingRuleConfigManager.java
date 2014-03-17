@@ -42,7 +42,6 @@ import org.opends.server.admin.std.server.MatchingRuleCfg;
 import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.admin.std.meta.MatchingRuleCfgDefn;
-import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.api.MatchingRuleFactory;
 import org.opends.server.api.OrderingMatchingRule;
@@ -263,7 +262,7 @@ public class MatchingRuleConfigManager
         String oid = matchingRule.getOID();
         for (AttributeType at : DirectoryServer.getAttributeTypes().values())
         {
-          ApproximateMatchingRule amr = at.getApproximateMatchingRule();
+          MatchingRule amr = at.getApproximateMatchingRule();
           if ((amr != null) && oid.equals(amr.getOID()))
           {
             LocalizableMessage message =
@@ -401,7 +400,7 @@ public class MatchingRuleConfigManager
           String oid = matchingRule.getOID();
           for (AttributeType at : DirectoryServer.getAttributeTypes().values())
           {
-            ApproximateMatchingRule amr = at.getApproximateMatchingRule();
+            MatchingRule amr = at.getApproximateMatchingRule();
             if ((amr != null) && oid.equals(amr.getOID()))
             {
               LocalizableMessage message =

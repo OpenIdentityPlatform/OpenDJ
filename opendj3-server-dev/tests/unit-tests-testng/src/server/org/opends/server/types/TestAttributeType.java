@@ -33,9 +33,8 @@ import java.util.Map;
 
 import org.forgerock.opendj.ldap.schema.AttributeUsage;
 import org.forgerock.util.Utils;
-import org.opends.server.api.ApproximateMatchingRule;
-import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.MatchingRule;
+import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.core.DirectoryServer;
@@ -61,7 +60,7 @@ public final class TestAttributeType extends TestCommonSchemaElements {
     private AttributeSyntax syntax;
 
     // The approximate matching rule for this attribute type.
-    private ApproximateMatchingRule approximateMatchingRule;
+    private MatchingRule approximateMatchingRule;
 
     // The equality matching rule for this attribute type.
     private MatchingRule equalityMatchingRule;
@@ -287,8 +286,7 @@ public final class TestAttributeType extends TestCommonSchemaElements {
      * @param approximateMatchingRule
      *          The approximateMatchingRule.
      */
-    public void setApproximateMatchingRule(
-        ApproximateMatchingRule approximateMatchingRule) {
+    public void setApproximateMatchingRule(MatchingRule approximateMatchingRule) {
       this.approximateMatchingRule = approximateMatchingRule;
     }
 

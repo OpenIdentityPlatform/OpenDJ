@@ -39,9 +39,8 @@ import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.schema.AttributeUsage;
 import org.opends.server.admin.std.server.*;
 import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.api.ApproximateMatchingRule;
-import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.MatchingRule;
+import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.forgerock.opendj.config.server.ConfigException;
@@ -221,7 +220,7 @@ public class AttributeTypeSyntax
    * {@inheritDoc}
    */
   @Override
-  public ApproximateMatchingRule getApproximateMatchingRule()
+  public MatchingRule getApproximateMatchingRule()
   {
     // There is no approximate matching rule by default.
     return null;
@@ -441,7 +440,7 @@ public class AttributeTypeSyntax
     String description = null;
     AttributeType superiorType = null;
     AttributeSyntax<?> syntax = DirectoryServer.getDefaultAttributeSyntax();
-    ApproximateMatchingRule approximateMatchingRule = null;
+    MatchingRule approximateMatchingRule = null;
     MatchingRule equalityMatchingRule = null;
     OrderingMatchingRule orderingMatchingRule = null;
     SubstringMatchingRule substringMatchingRule = null;
@@ -914,8 +913,8 @@ public class AttributeTypeSyntax
     {
       String ruleName  = approxRules.get(0);
       String lowerName = toLowerCase(ruleName);
-      ApproximateMatchingRule amr =
-           (ApproximateMatchingRule) schema.getMatchingRule(lowerName);
+      MatchingRule amr =
+           (MatchingRule) schema.getMatchingRule(lowerName);
       if (amr == null)
       {
         // This is bad because we have no idea what the approximate matching
