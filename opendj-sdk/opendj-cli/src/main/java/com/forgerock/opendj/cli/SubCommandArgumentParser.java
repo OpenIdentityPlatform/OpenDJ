@@ -28,6 +28,7 @@ package com.forgerock.opendj.cli;
 
 import static com.forgerock.opendj.util.StaticUtils.*;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.Utils.MAX_LINE_WIDTH;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -133,7 +134,6 @@ public class SubCommandArgumentParser extends ArgumentParser {
     private boolean versionPresent;
 
     private static final String INDENT = "    ";
-    private final static int MAX_LENGTH = 80;
 
     /**
      * Creates a new instance of this subcommand argument parser with no arguments.
@@ -963,7 +963,7 @@ public class SubCommandArgumentParser extends ArgumentParser {
                     }
 
                     int lineLength = (buffer.length() - currentLength) + newBuffer.length();
-                    if (lineLength > MAX_LENGTH) {
+                    if (lineLength > MAX_LINE_WIDTH) {
                         buffer.append(EOL);
                     }
                     buffer.append(newBuffer.toString());
@@ -1001,7 +1001,7 @@ public class SubCommandArgumentParser extends ArgumentParser {
      * FIXME Try to merge with #indentAndWrap(LocalizableMessage, LocalizableMessage, LocalizableMessageBuilder).
      */
     private void indentAndWrap2(String indent, LocalizableMessage text, LocalizableMessageBuilder buffer) {
-        int actualSize = MAX_LENGTH - indent.length() - 1;
+        int actualSize = MAX_LINE_WIDTH - indent.length() - 1;
         indentAndWrap(indent, actualSize, text, buffer);
     }
 
@@ -1127,9 +1127,8 @@ public class SubCommandArgumentParser extends ArgumentParser {
     private void getFullUsage(Collection<SubCommand> c, boolean showGlobalOptions, LocalizableMessageBuilder buffer) {
         usageOrVersionDisplayed = true;
         if (toolDescription != null && toolDescription.length() > 0) {
-            buffer.append(wrapText(toolDescription, MAX_LENGTH - 1));
-            buffer.append(EOL);
-            buffer.append(EOL);
+            buffer.append(wrapText(toolDescription, MAX_LINE_WIDTH - 1));
+            buffer.append(EOL).append(EOL);
         }
 
         String scriptName = System.getProperty(PROPERTY_SCRIPT_NAME);
@@ -1193,8 +1192,7 @@ public class SubCommandArgumentParser extends ArgumentParser {
             } else {
                 buffer.append(INFO_SUBCMDPARSER_GLOBAL_HEADING.get());
             }
-            buffer.append(EOL);
-            buffer.append(EOL);
+            buffer.append(EOL).append(EOL);
 
             boolean printGroupHeaders = printUsageGroupHeaders();
 
@@ -1205,9 +1203,8 @@ public class SubCommandArgumentParser extends ArgumentParser {
                     LocalizableMessage groupDesc = argGroup.getDescription();
                     if (groupDesc != null && !LocalizableMessage.EMPTY.equals(groupDesc)) {
                         buffer.append(EOL);
-                        buffer.append(wrapText(groupDesc.toString(), MAX_LENGTH - 1));
-                        buffer.append(EOL);
-                        buffer.append(EOL);
+                        buffer.append(wrapText(groupDesc.toString(), MAX_LINE_WIDTH - 1));
+                        buffer.append(EOL).append(EOL);
                     }
                 }
 
@@ -1292,7 +1289,7 @@ public class SubCommandArgumentParser extends ArgumentParser {
      * try our best to wrap at or before column 79 so it will be friendly to 80-column displays.
      */
     private void indentAndWrap(String indent, LocalizableMessage text, LocalizableMessageBuilder buffer) {
-        int actualSize = MAX_LENGTH - indent.length();
+        int actualSize = MAX_LINE_WIDTH - indent.length();
         indentAndWrap(indent, actualSize, text, buffer);
     }
 
@@ -1313,9 +1310,7 @@ public class SubCommandArgumentParser extends ArgumentParser {
                     spacePos = s.indexOf(' ');
                 }
                 if (spacePos == -1) {
-                    buffer.append(indent);
-                    buffer.append(s);
-                    buffer.append(EOL);
+                    buffer.append(indent).append(s).append(EOL);
                     return;
                 }
                 buffer.append(indent);
@@ -1325,9 +1320,7 @@ public class SubCommandArgumentParser extends ArgumentParser {
             }
 
             if (s.length() > 0) {
-                buffer.append(indent);
-                buffer.append(s);
-                buffer.append(EOL);
+                buffer.append(indent).append(s).append(EOL);
             }
         }
     }
