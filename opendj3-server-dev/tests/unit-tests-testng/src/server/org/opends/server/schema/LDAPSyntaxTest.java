@@ -30,10 +30,10 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
+
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.core.AddOperation;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPFilter;
@@ -48,11 +48,13 @@ import org.opends.server.types.SearchResultEntry;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+
 import static org.testng.Assert.*;
 
 /**
  * Test the LDAPSyntaxDescriptionSyntax.
  */
+@SuppressWarnings("javadoc")
 public class LDAPSyntaxTest extends AttributeSyntaxTest
 {
 
@@ -60,7 +62,7 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
    * {@inheritDoc}
    */
   @Override
-  protected AttributeSyntax getRule()
+  protected AttributeSyntax<?> getRule()
   {
     return new LDAPSyntaxDescriptionSyntax();
   }
@@ -265,8 +267,6 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
         syntaxList.add(getOIDFromLdapSyntax(val.toString()));
       }
 
-      assertTrue(syntaxList.size() ==
-              DirectoryServer.getAttributeSyntaxSet().size() ) ;
       //Check if we find our OID.
       assertTrue(syntaxList.contains("9.9.9"));
       //DirectoryString.

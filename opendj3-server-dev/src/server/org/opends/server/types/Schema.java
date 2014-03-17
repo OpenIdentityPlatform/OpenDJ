@@ -41,7 +41,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.std.server.DirectoryStringAttributeSyntaxCfg;
@@ -55,7 +54,6 @@ import org.opends.server.schema.DITStructureRuleSyntax;
 import org.opends.server.schema.MatchingRuleUseSyntax;
 import org.opends.server.schema.NameFormSyntax;
 import org.opends.server.schema.ObjectClassSyntax;
-import org.opends.server.schema.CaseIgnoreEqualityMatchingRule;
 import org.opends.server.util.StaticUtils;
 
 import static org.opends.messages.BackendMessages.*;
@@ -89,15 +87,6 @@ import static org.opends.server.util.StaticUtils.*;
 public final class Schema
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
-
-
-
-
-  /**
-   * The matching rule that will be used to normalize schema element
-   * definitions.
-   */
-  private MatchingRule normalizationMatchingRule;
 
   /**
    * The set of subordinate attribute types registered within the server schema.
@@ -184,30 +173,6 @@ public final class Schema
   private ConcurrentHashMap<String,LDAPSyntaxDescription>
           ldapSyntaxDescriptions;
 
-  /** The set of pre-encoded attribute syntax representations. */
-  private Set<AttributeValue> syntaxSet;
-
-  /** The set of pre-encoded attribute type representations. */
-  private Set<AttributeValue> attributeTypeSet;
-
-  /** The set of pre-encoded DIT content rule representations. */
-  private Set<AttributeValue> ditContentRuleSet;
-
-  /** The set of pre-encoded DIT structure rule representations. */
-  private Set<AttributeValue> ditStructureRuleSet;
-
-  /** The set of pre-encoded matching rule representations. */
-  private Set<AttributeValue> matchingRuleSet;
-
-  /** The set of pre-encoded matching rule use representations. */
-  private Set<AttributeValue> matchingRuleUseSet;
-
-  /** The set of pre-encoded name form representations. */
-  private Set<AttributeValue> nameFormSet;
-
-  /** The set of pre-encoded objectclass representations. */
-  private Set<AttributeValue> objectClassSet;
-
   /** The oldest modification timestamp for any schema configuration file. */
   private long oldestModificationTime;
 
@@ -251,17 +216,6 @@ public final class Schema
     subordinateTypes =
          new ConcurrentHashMap<AttributeType,List<AttributeType>>();
 
-
-    syntaxSet           = new LinkedHashSet<AttributeValue>();
-    attributeTypeSet    = new LinkedHashSet<AttributeValue>();
-    ditContentRuleSet   = new LinkedHashSet<AttributeValue>();
-    ditStructureRuleSet = new LinkedHashSet<AttributeValue>();
-    matchingRuleSet     = new LinkedHashSet<AttributeValue>();
-    matchingRuleUseSet  = new LinkedHashSet<AttributeValue>();
-    nameFormSet         = new LinkedHashSet<AttributeValue>();
-    objectClassSet      = new LinkedHashSet<AttributeValue>();
-
-    normalizationMatchingRule = new CaseIgnoreEqualityMatchingRule();
     oldestModificationTime    = System.currentTimeMillis();
     youngestModificationTime  = oldestModificationTime;
   }
@@ -281,18 +235,6 @@ public final class Schema
   public ConcurrentHashMap<String,AttributeType> getAttributeTypes()
   {
     return attributeTypes;
-  }
-
-
-
-  /**
-   * Retrieves the set of defined attribute types for this schema.
-   *
-   * @return  The set of defined attribute types for this schema.
-   */
-  public Set<AttributeValue> getAttributeTypeSet()
-  {
-    return attributeTypeSet;
   }
 
 
@@ -402,21 +344,6 @@ public final class Schema
       {
         registerSubordinateType(attributeType, superiorType);
       }
-      attributeTypeSet.add(createAttrValueForAdd(attributeType));
-    }
-  }
-
-  private ByteString normalizeAttributeValue(ByteString rawValue)
-      throws DirectoryException
-  {
-    try
-    {
-      return normalizationMatchingRule.normalizeAttributeValue(rawValue);
-    }
-    catch (DecodeException e)
-    {
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-          e.getMessageObject(), e);
     }
   }
 
@@ -449,44 +376,7 @@ public final class Schema
       {
         deregisterSubordinateType(attributeType, superiorType);
       }
-      attributeTypeSet.remove(createAttrValueForRemove(attributeType));
     }
-  }
-
-
-
-  /**
-   * We'll use an attribute value including the normalized value rather than the
-   * attribute type because otherwise it would use a very expensive matching
-   * rule (OID first component match) that would kill performance.
-   */
-  private AttributeValue createAttrValueForRemove(Object elem)
-  {
-    final String valueString = elem.toString();
-    final ByteString rawValue = ByteString.valueOf(valueString);
-    final ByteString normValue = normalizeAttrValue(valueString, rawValue);
-    return AttributeValues.create(rawValue, normValue);
-  }
-
-  private ByteString normalizeAttrValue(String valueString, ByteString rawValue)
-  {
-    try
-    {
-      return normalizeAttributeValue(rawValue);
-    }
-    catch (Exception e)
-    {
-      return ByteString.valueOf(toLowerCase(valueString));
-    }
-  }
-
-  private AttributeValue createAttrValueForAdd(Object elem)
-      throws DirectoryException
-  {
-    final String valueString = elem.toString();
-    final ByteString rawValue = ByteString.valueOf(valueString);
-    final ByteString normValue = normalizeAttributeValue(rawValue);
-    return AttributeValues.create(rawValue, normValue);
   }
 
 
@@ -600,18 +490,6 @@ public final class Schema
 
 
   /**
-   * Retrieves the set of defined objectclasses for this schema.
-   *
-   * @return  The set of defined objectclasses for this schema.
-   */
-  public Set<AttributeValue> getObjectClassSet()
-  {
-    return objectClassSet;
-  }
-
-
-
-  /**
    * Indicates whether this schema definition includes an objectclass
    * with the provided name or OID.
    *
@@ -709,7 +587,6 @@ public final class Schema
       {
         objectClasses.put(name, objectClass);
       }
-      objectClassSet.add(createAttrValueForAdd(objectClass));
     }
   }
 
@@ -736,7 +613,6 @@ public final class Schema
       {
         objectClasses.remove(name, objectClass);
       }
-      objectClassSet.remove(createAttrValueForRemove(objectClass));
     }
   }
 
@@ -754,18 +630,6 @@ public final class Schema
   public ConcurrentHashMap<String,AttributeSyntax<?>> getSyntaxes()
   {
     return syntaxes;
-  }
-
-
-
-  /**
-   * Retrieves the set of defined attribute syntaxes for this schema.
-   *
-   * @return  The set of defined attribute syntaxes for this schema.
-   */
-  public Set<AttributeValue> getSyntaxSet()
-  {
-    return syntaxSet;
   }
 
 
@@ -798,9 +662,9 @@ public final class Schema
    *         syntax is unknown and the caller has indicated that the default is
    *         acceptable, or <CODE>null</CODE> otherwise.
    */
-  public AttributeSyntax getSyntax(String oid, boolean allowDefault)
+  public AttributeSyntax<?> getSyntax(String oid, boolean allowDefault)
   {
-    AttributeSyntax syntax = getSyntax(oid);
+    AttributeSyntax<?> syntax = getSyntax(oid);
     if (syntax == null && allowDefault)
     {
       return getDefaultSyntax();
@@ -830,7 +694,7 @@ public final class Schema
    * @return  The default attribute syntax that should be used for attributes
    *          that are not defined in the server schema.
    */
-  public AttributeSyntax getDefaultSyntax()
+  public AttributeSyntax<?> getDefaultSyntax()
   {
     return defaultSyntax;
   }
@@ -888,7 +752,6 @@ public final class Schema
       }
 
       syntaxes.put(toLowerCase(syntax.getOID()), syntax);
-      syntaxSet.add(createAttrValueForAdd(syntax));
     }
   }
 
@@ -906,7 +769,6 @@ public final class Schema
     synchronized (syntaxes)
     {
       syntaxes.remove(toLowerCase(syntax.getOID()), syntax);
-      syntaxSet.remove(createAttrValueForRemove(syntax));
     }
   }
 
@@ -1071,18 +933,6 @@ public final class Schema
 
 
   /**
-   * Retrieves the set of defined matching rules for this schema.
-   *
-   * @return  The set of defined matching rules for this schema.
-   */
-  public Set<AttributeValue> getMatchingRuleSet()
-  {
-    return matchingRuleSet;
-  }
-
-
-
-  /**
    * Indicates whether this schema definition includes a matching rule
    * with the provided name or OID.
    *
@@ -1178,7 +1028,6 @@ public final class Schema
           matchingRules.put(toLowerCase(name), matchingRule);
         }
       }
-      matchingRuleSet.add(createAttrValueForAdd(matchingRule));
     }
   }
 
@@ -1203,7 +1052,6 @@ public final class Schema
           matchingRules.remove(toLowerCase(name), matchingRule);
         }
       }
-      matchingRuleSet.remove(createAttrValueForRemove(matchingRule));
     }
   }
 
@@ -1222,18 +1070,6 @@ public final class Schema
               getMatchingRuleUses()
   {
     return matchingRuleUses;
-  }
-
-
-
-  /**
-   * Retrieves the set of defined matching rule uses for this schema.
-   *
-   * @return  The set of defined matching rule uses for this schema.
-   */
-  public Set<AttributeValue> getMatchingRuleUseSet()
-  {
-    return matchingRuleUseSet;
   }
 
 
@@ -1312,7 +1148,6 @@ public final class Schema
       }
 
       matchingRuleUses.put(matchingRule, matchingRuleUse);
-      matchingRuleUseSet.add(createAttrValueForAdd(matchingRuleUse));
     }
   }
 
@@ -1332,7 +1167,6 @@ public final class Schema
     {
       matchingRuleUses.remove(matchingRuleUse.getMatchingRule(),
                               matchingRuleUse);
-      matchingRuleUseSet.remove(createAttrValueForRemove(matchingRuleUse));
     }
   }
 
@@ -1351,18 +1185,6 @@ public final class Schema
               getDITContentRules()
   {
     return ditContentRules;
-  }
-
-
-
-  /**
-   * Retrieves the set of defined DIT content rules for this schema.
-   *
-   * @return  The set of defined DIT content rules for this schema.
-   */
-  public Set<AttributeValue> getDITContentRuleSet()
-  {
-    return ditContentRuleSet;
   }
 
 
@@ -1441,7 +1263,6 @@ public final class Schema
       }
 
       ditContentRules.put(objectClass, ditContentRule);
-      ditContentRuleSet.add(createAttrValueForAdd(ditContentRule));
     }
   }
 
@@ -1460,20 +1281,7 @@ public final class Schema
     {
       ditContentRules.remove(ditContentRule.getStructuralClass(),
                              ditContentRule);
-      ditContentRuleSet.remove(createAttrValueForRemove(ditContentRule));
     }
-  }
-
-
-
-  /**
-   * Retrieves the set of defined DIT structure rules for this schema.
-   *
-   * @return  The set of defined DIT structure rules for this schema.
-   */
-  public Set<AttributeValue> getDITStructureRuleSet()
-  {
-    return ditStructureRuleSet;
   }
 
 
@@ -1638,7 +1446,6 @@ public final class Schema
 
       ditStructureRulesByNameForm.put(nameForm, ditStructureRule);
       ditStructureRulesByID.put(ruleID, ditStructureRule);
-      ditStructureRuleSet.add(createAttrValueForAdd(ditStructureRule));
     }
   }
 
@@ -1660,20 +1467,7 @@ public final class Schema
            ditStructureRule.getNameForm(), ditStructureRule);
       ditStructureRulesByID.remove(ditStructureRule.getRuleID(),
                                    ditStructureRule);
-      ditStructureRuleSet.remove(createAttrValueForRemove(ditStructureRule));
     }
-  }
-
-
-
-  /**
-   * Retrieves the set of defined name forms for this schema.
-   *
-   * @return  The set of defined name forms for this schema.
-   */
-  public Set<AttributeValue> getNameFormSet()
-  {
-    return nameFormSet;
   }
 
 
@@ -1859,7 +1653,6 @@ public final class Schema
       {
         nameFormsByName.put(name, nameForm);
       }
-      nameFormSet.add(createAttrValueForAdd(nameForm));
     }
   }
 
@@ -1892,7 +1685,6 @@ public final class Schema
       {
         nameFormsByName.remove(name, nameForm);
       }
-      nameFormSet.remove(createAttrValueForRemove(nameForm));
     }
   }
 
@@ -2281,14 +2073,6 @@ public final class Schema
     dupSchema.nameFormsByOC.putAll(nameFormsByOC);
     dupSchema.nameFormsByName.putAll(nameFormsByName);
     dupSchema.ldapSyntaxDescriptions.putAll(ldapSyntaxDescriptions);
-    dupSchema.syntaxSet.addAll(syntaxSet);
-    dupSchema.attributeTypeSet.addAll(attributeTypeSet);
-    dupSchema.ditContentRuleSet.addAll(ditContentRuleSet);
-    dupSchema.ditStructureRuleSet.addAll(ditStructureRuleSet);
-    dupSchema.matchingRuleSet.addAll(matchingRuleSet);
-    dupSchema.matchingRuleUseSet.addAll(matchingRuleUseSet);
-    dupSchema.nameFormSet.addAll(nameFormSet);
-    dupSchema.objectClassSet.addAll(objectClassSet);
     dupSchema.oldestModificationTime   = oldestModificationTime;
     dupSchema.youngestModificationTime = youngestModificationTime;
     if (extraAttributes != null)
@@ -2780,22 +2564,10 @@ public final class Schema
       attributeTypes = null;
     }
 
-    if (attributeTypeSet != null)
-    {
-      attributeTypeSet.clear();
-      attributeTypeSet = null;
-    }
-
     if (ditContentRules != null)
     {
       ditContentRules.clear();
       ditContentRules = null;
-    }
-
-    if (ditContentRuleSet != null)
-    {
-      ditContentRuleSet.clear();
-      ditContentRuleSet = null;
     }
 
     if (ditStructureRulesByID != null)
@@ -2810,34 +2582,16 @@ public final class Schema
       ditStructureRulesByNameForm = null;
     }
 
-    if (ditStructureRuleSet != null)
-    {
-      ditStructureRuleSet.clear();
-      ditStructureRuleSet = null;
-    }
-
     if (matchingRules != null)
     {
       matchingRules.clear();
       matchingRules = null;
     }
 
-    if (matchingRuleSet != null)
-    {
-      matchingRuleSet.clear();
-      matchingRuleSet = null;
-    }
-
     if (matchingRuleUses != null)
     {
       matchingRuleUses.clear();
       matchingRuleUses = null;
-    }
-
-    if (matchingRuleUseSet != null)
-    {
-      matchingRuleUseSet.clear();
-      matchingRuleUseSet = null;
     }
 
     if (nameFormsByName != null)
@@ -2852,22 +2606,10 @@ public final class Schema
       nameFormsByOC = null;
     }
 
-    if (nameFormSet != null)
-    {
-      nameFormSet.clear();
-      nameFormSet = null;
-    }
-
     if (objectClasses != null)
     {
       objectClasses.clear();
       objectClasses = null;
-    }
-
-    if (objectClassSet != null)
-    {
-      objectClassSet.clear();
-      objectClassSet = null;
     }
 
     if (subordinateTypes != null)
@@ -2886,12 +2628,6 @@ public final class Schema
     {
       syntaxes.clear();
       syntaxes = null;
-    }
-
-    if (syntaxSet != null)
-    {
-      syntaxSet.clear();
-      syntaxSet = null;
     }
 
     if(ldapSyntaxDescriptions != null)
