@@ -28,6 +28,7 @@ package com.forgerock.opendj.cli;
 
 import static com.forgerock.opendj.cli.CliMessages.*;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.Utils.MAX_LINE_WIDTH;
 import static com.forgerock.opendj.cli.Utils.wrapText;
 import static com.forgerock.opendj.util.StaticUtils.EOL;
 import static com.forgerock.opendj.util.StaticUtils.getBytes;
@@ -218,8 +219,6 @@ public class ArgumentParser {
             .get(), Integer.MIN_VALUE);
 
     private static final String INDENT = "    ";
-
-    private static final int MAX_LENGTH = 80;
 
     /**
      * Creates a new instance of this argument parser with no arguments. Unnamed
@@ -762,7 +761,7 @@ public class ArgumentParser {
         buffer.append(EOL);
         buffer.append(EOL);
         if (toolDescription != null && toolDescription.length() > 0) {
-            buffer.append(wrapText(toolDescription.toString(), MAX_LENGTH - 1));
+            buffer.append(wrapText(toolDescription.toString(), MAX_LINE_WIDTH - 1));
             buffer.append(EOL);
             buffer.append(EOL);
         }
@@ -779,7 +778,7 @@ public class ArgumentParser {
                 final LocalizableMessage groupDesc = argGroup.getDescription();
                 if (groupDesc != null && !LocalizableMessage.EMPTY.equals(groupDesc)) {
                     buffer.append(EOL);
-                    buffer.append(wrapText(groupDesc.toString(), MAX_LENGTH - 1));
+                    buffer.append(wrapText(groupDesc.toString(), MAX_LINE_WIDTH - 1));
                     buffer.append(EOL);
                     buffer.append(EOL);
                 }
@@ -1510,7 +1509,7 @@ public class ArgumentParser {
                 }
 
                 final int lineLength = (buffer.length() - currentLength) + newBuffer.length();
-                if (lineLength > MAX_LENGTH) {
+                if (lineLength > MAX_LINE_WIDTH) {
                     buffer.append(EOL);
                 }
                 buffer.append(newBuffer);
@@ -1537,7 +1536,7 @@ public class ArgumentParser {
         // Write one or more lines with the description of the argument.
         // We will indent the description five characters and try our best to wrap
         // at or before column 79 so it will be friendly to 80-column displays.
-        buffer.append(wrapText(a.getDescription(), MAX_LENGTH, indentLength));
+        buffer.append(wrapText(a.getDescription(), MAX_LINE_WIDTH, indentLength));
         buffer.append(EOL);
 
         if (a.needsValue() && a.getDefaultValue() != null && a.getDefaultValue().length() > 0) {
