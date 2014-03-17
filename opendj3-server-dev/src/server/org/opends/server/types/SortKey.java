@@ -37,6 +37,8 @@ import org.opends.server.api.OrderingMatchingRule;
  * contain a specific ordering matching rule that should be used for
  * the sorting process, although if none is provided it will use the
  * default ordering matching rule for the attribute type.
+ * <p>
+ * FIXME: replace with the equivalent SDK type. 
  */
 @org.opends.server.types.PublicAPI(
      stability=org.opends.server.types.StabilityLevel.VOLATILE,
