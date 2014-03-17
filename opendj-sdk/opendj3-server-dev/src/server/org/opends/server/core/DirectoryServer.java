@@ -196,7 +196,6 @@ import org.opends.server.schema.TelephoneNumberSyntax;
 import org.opends.server.tools.ConfigureWindowsService;
 import org.opends.server.types.AcceptRejectWarn;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.Control;
 import org.opends.server.types.DITContentRule;
@@ -3049,20 +3048,6 @@ public final class DirectoryServer
 
 
   /**
-   * Retrieves the set of encoded matching rules that have been defined in the
-   * Directory Server.
-   *
-   * @return  The set of encoded matching rules that have been defined in the
-   *          Directory Server.
-   */
-  public static Set<AttributeValue> getMatchingRuleSet()
-  {
-    return directoryServer.schema.getMatchingRuleSet();
-  }
-
-
-
-  /**
    * Retrieves the matching rule with the specified name or OID.
    *
    * @param  lowerName  The lowercase name or OID for the matching rule to
@@ -3123,7 +3108,7 @@ public final class DirectoryServer
   public static MatchingRule
                      getApproximateMatchingRule(String lowerName)
   {
-    return (MatchingRule) directoryServer.schema.getMatchingRule(lowerName);
+    return directoryServer.schema.getMatchingRule(lowerName);
   }
 
 
@@ -3293,20 +3278,6 @@ public final class DirectoryServer
   public static ConcurrentMap<String, ObjectClass> getObjectClasses()
   {
     return directoryServer.schema.getObjectClasses();
-  }
-
-
-
-  /**
-   * Retrieves the set of encoded objectclasses that have been defined in the
-   * Directory Server.
-   *
-   * @return  The set of encoded objectclasses that have been defined in the
-   *          Directory Server.
-   */
-  public static Set<AttributeValue> getObjectClassSet()
-  {
-    return directoryServer.schema.getObjectClassSet();
   }
 
 
@@ -3497,20 +3468,6 @@ public final class DirectoryServer
   public static ConcurrentMap<String, AttributeType> getAttributeTypes()
   {
     return directoryServer.schema.getAttributeTypes();
-  }
-
-
-
-  /**
-   * Retrieves the set of encoded attribute types that have been defined in the
-   * Directory Server.
-   *
-   * @return  The set of encoded attribute types that have been defined in the
-   *          Directory Server.
-   */
-  public static Set<AttributeValue> getAttributeTypeSet()
-  {
-    return directoryServer.schema.getAttributeTypeSet();
   }
 
 
@@ -3712,20 +3669,6 @@ public final class DirectoryServer
     return directoryServer.schema.getSyntaxes();
   }
 
-
-
-  /**
-   * Retrieves the set of encoded attribute syntaxes that have been defined in
-   * the Directory Server.
-   *
-   * @return  The set of encoded attribute syntaxes that have been defined in
-   *          the Directory Server.
-   */
-  public static Set<AttributeValue> getAttributeSyntaxSet()
-  {
-    return directoryServer.schema.getSyntaxSet();
-  }
-
   /**
    * Retrieves the default attribute syntax that should be used for attributes
    * that are not defined in the server schema.
@@ -3833,20 +3776,6 @@ public final class DirectoryServer
 
 
   /**
-   * Retrieves the set of encoded matching rule uses that have been defined in
-   * the Directory Server.
-   *
-   * @return  The set of encoded matching rule uses that have been defined in
-   *          the Directory Server.
-   */
-  public static Set<AttributeValue> getMatchingRuleUseSet()
-  {
-    return directoryServer.schema.getMatchingRuleUseSet();
-  }
-
-
-
-  /**
    * Retrieves the matching rule use associated with the provided matching rule.
    *
    * @param  matchingRule  The matching rule for which to retrieve the matching
@@ -3913,20 +3842,6 @@ public final class DirectoryServer
 
 
   /**
-   * Retrieves the set of encoded DIT content rules that have been defined in
-   * the Directory Server.
-   *
-   * @return  The set of encoded DIT content rules that have been defined in the
-   *          Directory Server.
-   */
-  public static Set<AttributeValue> getDITContentRuleSet()
-  {
-    return directoryServer.schema.getDITContentRuleSet();
-  }
-
-
-
-  /**
    * Retrieves the DIT content rule associated with the specified objectclass.
    *
    * @param  objectClass  The objectclass for which to retrieve the associated
@@ -3987,20 +3902,6 @@ public final class DirectoryServer
                      getDITStructureRules()
   {
     return directoryServer.schema.getDITStructureRulesByNameForm();
-  }
-
-
-
-  /**
-   * Retrieves the set of encoded DIT structure rules that have been defined in
-   * the Directory Server.
-   *
-   * @return  The set of encoded DIT structure rules that have been defined in
-   *          the Directory Server.
-   */
-  public static Set<AttributeValue> getDITStructureRuleSet()
-  {
-    return directoryServer.schema.getDITStructureRuleSet();
   }
 
 
@@ -4083,20 +3984,6 @@ public final class DirectoryServer
   public static ConcurrentMap<ObjectClass, List<NameForm>> getNameForms()
   {
     return directoryServer.schema.getNameFormsByObjectClass();
-  }
-
-
-
-  /**
-   * Retrieves the set of encoded name forms that have been defined in the
-   * Directory Server.
-   *
-   * @return  The set of encoded name forms that have been defined in the
-   *          Directory Server.
-   */
-  public static Set<AttributeValue> getNameFormSet()
-  {
-    return directoryServer.schema.getNameFormSet();
   }
 
 

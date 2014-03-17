@@ -913,8 +913,7 @@ public class AttributeTypeSyntax
     {
       String ruleName  = approxRules.get(0);
       String lowerName = toLowerCase(ruleName);
-      MatchingRule amr =
-           (MatchingRule) schema.getMatchingRule(lowerName);
+      MatchingRule amr = schema.getMatchingRule(lowerName);
       if (amr == null)
       {
         // This is bad because we have no idea what the approximate matching

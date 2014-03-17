@@ -35,6 +35,7 @@ import java.io.OutputStream;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -55,7 +56,6 @@ import javax.crypto.Mac;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -713,271 +713,47 @@ public class SchemaBackend
       for (int i = 0; i < numAVAs; i++)
       {
         AttributeType attrType = rdn.getAttributeType(i);
-        Attribute a = Attributes.create(attrType, rdn
-            .getAttributeValue(i));
-        ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-        attrList.add(a);
-
-        if (attrType.isOperational())
-        {
-          operationalAttrs.put(attrType, attrList);
-        }
-        else
-        {
-          userAttrs.put(attrType, attrList);
-        }
+        Attribute attribute = Attributes.create(attrType,
+            rdn.getAttributeValue(i));
+        addAttributeToSchemaEntry(attribute, userAttrs, operationalAttrs);
       }
     }
 
+    /*
+     * Add the schema definition attributes.
+     */
     Schema schema = DirectoryServer.getSchema();
+    buildSchemaAttribute(schema.getAttributeTypes().values(), userAttrs,
+        operationalAttrs, attributeTypesType, includeSchemaFile,
+        AttributeTypeSyntax.isStripSyntaxMinimumUpperBound(),
+        ignoreShowAllOption);
+    buildSchemaAttribute(schema.getObjectClasses().values(), userAttrs,
+        operationalAttrs, objectClassesType, includeSchemaFile, false,
+        ignoreShowAllOption);
+    buildSchemaAttribute(schema.getMatchingRules().values(), userAttrs,
+        operationalAttrs, matchingRulesType, includeSchemaFile, false,
+        ignoreShowAllOption);
 
-    // Add the "attributeTypes" attribute.
-    Set<AttributeValue> valueSet = DirectoryServer.getAttributeTypeSet();
-
-    // Add the file name to the description of the attribute type if
-    // this was requested by the caller.
-    if (includeSchemaFile)
-    {
-      Set<AttributeValue> newValueSet =
-        new LinkedHashSet<AttributeValue>(valueSet.size());
-
-      for (AttributeValue value : valueSet)
-      {
-        try
-        {
-          // Build a new attribute from this value,
-          // get the File name from this attribute, build a new
-          // attribute including this file name.
-          AttributeType attrType = AttributeTypeSyntax.decodeAttributeType(
-              value.getValue(), schema, false);
-          attrType = DirectoryServer.getAttributeType(attrType.getOID());
-
-          newValueSet.add(
-              AttributeValues.create(attributeTypesType,
-              getDefinitionWithFileName(attrType)));
-        }
-        catch (DirectoryException e)
-        {
-          newValueSet.add(value);
-        }
-      }
-      valueSet = newValueSet;
-    }
-
-    AttributeBuilder builder = new AttributeBuilder(attributeTypesType,
-        ATTR_ATTRIBUTE_TYPES);
-    builder.setInitialCapacity(valueSet.size());
-    if (AttributeTypeSyntax.isStripSyntaxMinimumUpperBound())
-    {
-      for (AttributeValue v : valueSet)
-      {
-        // If it exists, strip the minimum upper bound value from the
-        // attribute value.
-        if (v.toString().indexOf('{') != -1)
-        {
-          // Create an attribute value from the stripped string and
-          // add it to the valueset.
-          String strippedStr = v.toString().replaceFirst(
-              stripMinUpperBoundRegEx, "");
-          ByteString s = ByteString.valueOf(strippedStr);
-          AttributeValue strippedVal = AttributeValues.create(s, s);
-          builder.add(strippedVal);
-        }
-        else
-        {
-          builder.add(v);
-        }
-      }
-    }
-    else
-    {
-      builder.addAll(valueSet);
-    }
-
-    ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-    attrList.add(builder.toAttribute());
-    if (attributeTypesType.isOperational() &&
-        (ignoreShowAllOption || (!showAllAttributes)))
-    {
-      operationalAttrs.put(attributeTypesType, attrList);
-    }
-    else
-    {
-      userAttrs.put(attributeTypesType, attrList);
-    }
-
-    // Add the "objectClasses" attribute.
-    valueSet = DirectoryServer.getObjectClassSet();
-
-    // Add the file name to the description if this was requested by
-    // the caller.
-    if (includeSchemaFile)
-    {
-      Set<AttributeValue> newValueSet =
-        new LinkedHashSet<AttributeValue>(valueSet.size());
-
-      for (AttributeValue value : valueSet)
-      {
-        try
-        {
-          // Build a new attribute from this value, get the File name
-          // from this attribute, build a new attribute including this
-          // file name.
-          ObjectClass oc = ObjectClassSyntax.decodeObjectClass(
-              value.getValue(), schema, false);
-          oc = DirectoryServer.getObjectClass(oc.getOID());
-          newValueSet.add(AttributeValues.create(
-              objectClassesType, getDefinitionWithFileName(oc)));
-        }
-        catch (DirectoryException e)
-        {
-          newValueSet.add(value);
-        }
-      }
-      valueSet = newValueSet;
-    }
-
-    builder = new AttributeBuilder(objectClassesType, ATTR_OBJECTCLASSES);
-    builder.addAll(valueSet);
-    attrList = new ArrayList<Attribute>(1);
-    attrList.add(builder.toAttribute());
-
-    if (objectClassesType.isOperational() &&
-        (ignoreShowAllOption || (!showAllAttributes)))
-    {
-      operationalAttrs.put(objectClassesType, attrList);
-    }
-    else
-    {
-      userAttrs.put(objectClassesType, attrList);
-    }
-
-    // Add the "matchingRules" attribute.
-    builder = new AttributeBuilder(matchingRulesType, ATTR_MATCHING_RULES);
-    builder.addAll(DirectoryServer.getMatchingRuleSet());
-    attrList = new ArrayList<Attribute>(1);
-    attrList.add(builder.toAttribute());
-
-    if (matchingRulesType.isOperational() &&
-        (ignoreShowAllOption || (!showAllAttributes)))
-    {
-      operationalAttrs.put(matchingRulesType, attrList);
-    }
-    else
-    {
-      userAttrs.put(matchingRulesType, attrList);
-    }
-
-    // Add the "ldapSyntaxes" attribute.
-    builder = new AttributeBuilder(ldapSyntaxesType, ATTR_LDAP_SYNTAXES);
-    builder.addAll(DirectoryServer.getAttributeSyntaxSet());
-    attrList = new ArrayList<Attribute>(1);
-    attrList.add(builder.toAttribute());
-
-    // Note that we intentionally ignore showAllAttributes for
-    // attribute syntaxes, name forms, matching rule uses, DIT content
-    // rules, and DIT structure rules because those attributes aren't
-    // allowed in the subschema objectclass, and treating them as user
-    // attributes would cause schema updates to fail. This means that
-    // you'll always have to explicitly request these attributes in
-    // order to be able to see them.
-    if (ldapSyntaxesType.isOperational())
-    {
-      operationalAttrs.put(ldapSyntaxesType, attrList);
-    }
-    else
-    {
-      userAttrs.put(ldapSyntaxesType, attrList);
-    }
-
-    // If there are any name forms defined, then add them.
-    valueSet = DirectoryServer.getNameFormSet();
-    if (!valueSet.isEmpty())
-    {
-      builder = new AttributeBuilder(nameFormsType, ATTR_NAME_FORMS);
-      builder.addAll(valueSet);
-      attrList = new ArrayList<Attribute>(1);
-      attrList.add(builder.toAttribute());
-
-      if (nameFormsType.isOperational())
-      {
-        operationalAttrs.put(nameFormsType, attrList);
-      }
-      else
-      {
-        userAttrs.put(nameFormsType, attrList);
-      }
-    }
-
-    // If there are any DIT content rules defined, then add them.
-    valueSet = DirectoryServer.getDITContentRuleSet();
-    if (!valueSet.isEmpty())
-    {
-      builder = new AttributeBuilder(ditContentRulesType,
-          ATTR_DIT_CONTENT_RULES);
-      builder.addAll(valueSet);
-      attrList = new ArrayList<Attribute>(1);
-      attrList.add(builder.toAttribute());
-
-      if (ditContentRulesType.isOperational())
-      {
-        operationalAttrs.put(ditContentRulesType, attrList);
-      }
-      else
-      {
-        userAttrs.put(ditContentRulesType, attrList);
-      }
-    }
-
-    // If there are any DIT structure rules defined, then add them.
-    valueSet = DirectoryServer.getDITStructureRuleSet();
-    if (!valueSet.isEmpty())
-    {
-      builder = new AttributeBuilder(ditStructureRulesType,
-          ATTR_DIT_STRUCTURE_RULES);
-      builder.addAll(valueSet);
-      attrList = new ArrayList<Attribute>(1);
-      attrList.add(builder.toAttribute());
-
-      if (ditStructureRulesType.isOperational())
-      {
-        operationalAttrs.put(ditStructureRulesType, attrList);
-      }
-      else
-      {
-        userAttrs.put(ditStructureRulesType, attrList);
-      }
-    }
-
-    // If there are any matching rule uses defined, then add them.
-    valueSet = DirectoryServer.getMatchingRuleUseSet();
-    if (!valueSet.isEmpty())
-    {
-      builder = new AttributeBuilder(matchingRuleUsesType,
-          ATTR_MATCHING_RULE_USE);
-      builder.addAll(valueSet);
-      attrList = new ArrayList<Attribute>(1);
-      attrList.add(builder.toAttribute());
-
-      if (matchingRuleUsesType.isOperational())
-      {
-        operationalAttrs.put(matchingRuleUsesType, attrList);
-      }
-      else
-      {
-        userAttrs.put(matchingRuleUsesType, attrList);
-      }
-    }
+    /*
+     * Note that we intentionally ignore showAllAttributes for attribute
+     * syntaxes, name forms, matching rule uses, DIT content rules, and DIT
+     * structure rules because those attributes aren't allowed in the subschema
+     * objectclass, and treating them as user attributes would cause schema
+     * updates to fail. This means that you'll always have to explicitly request
+     * these attributes in order to be able to see them.
+     */
+    buildSchemaAttribute(schema.getSyntaxes().values(), userAttrs,
+        operationalAttrs, ldapSyntaxesType, includeSchemaFile, false, true);
+    buildSchemaAttribute(schema.getNameFormsByNameOrOID().values(), userAttrs,
+        operationalAttrs, nameFormsType, includeSchemaFile, false, true);
+    buildSchemaAttribute(schema.getDITContentRules().values(), userAttrs,
+        operationalAttrs, ditContentRulesType, includeSchemaFile, false, true);
+    buildSchemaAttribute(schema.getDITStructureRulesByID().values(), userAttrs,
+        operationalAttrs, ditStructureRulesType, includeSchemaFile, false, true);
+    buildSchemaAttribute(schema.getMatchingRuleUses().values(), userAttrs,
+        operationalAttrs, matchingRuleUsesType, includeSchemaFile, false, true);
 
     // Add the lastmod attributes.
-    attrList = new ArrayList<Attribute>(1);
-    attrList.add(Attributes.create(creatorsNameType, creatorsName));
-    operationalAttrs.put(creatorsNameType, attrList);
-
-    attrList = new ArrayList<Attribute>(1);
-    attrList.add(Attributes.create(createTimestampType, createTimestamp));
-    operationalAttrs.put(createTimestampType, attrList);
-
     if (DirectoryServer.getSchema().getYoungestModificationTime() != modifyTime)
     {
       synchronized (this)
@@ -987,58 +763,30 @@ public class SchemaBackend
             .createGeneralizedTimeValue(modifyTime);
       }
     }
-
-    attrList = new ArrayList<Attribute>(1);
-    attrList.add(Attributes.create(modifiersNameType, modifiersName));
-    operationalAttrs.put(modifiersNameType, attrList);
-
-    attrList = new ArrayList<Attribute>(1);
-    attrList.add(Attributes.create(modifyTimestampType, modifyTimestamp));
-    operationalAttrs.put(modifyTimestampType, attrList);
+    addAttributeToSchemaEntry(
+        Attributes.create(creatorsNameType, creatorsName), userAttrs,
+        operationalAttrs);
+    addAttributeToSchemaEntry(
+        Attributes.create(createTimestampType, createTimestamp), userAttrs,
+        operationalAttrs);
+    addAttributeToSchemaEntry(
+        Attributes.create(modifiersNameType, modifiersName), userAttrs,
+        operationalAttrs);
+    addAttributeToSchemaEntry(
+        Attributes.create(modifyTimestampType, modifyTimestamp), userAttrs,
+        operationalAttrs);
 
     // Add the extra attributes.
-    Map<String, Attribute> attributes = DirectoryServer.getSchema()
-        .getExtraAttributes();
-    for (Attribute attribute : attributes.values())
+    for (Attribute attribute : DirectoryServer.getSchema().getExtraAttributes()
+        .values())
     {
-      attrList = new ArrayList<Attribute>(1);
-      attrList.add(attribute);
-      operationalAttrs.put(attribute.getAttributeType(), attrList);
+      addAttributeToSchemaEntry(attribute, userAttrs, operationalAttrs);
     }
 
     // Add all the user-defined attributes.
-    for (Attribute a : userDefinedAttributes)
+    for (Attribute attribute : userDefinedAttributes)
     {
-      AttributeType type = a.getAttributeType();
-
-      if (type.isOperational())
-      {
-        List<Attribute> attrs = operationalAttrs.get(type);
-        if (attrs == null)
-        {
-          attrs = new ArrayList<Attribute>();
-          attrs.add(a);
-          operationalAttrs.put(type, attrs);
-        }
-        else
-        {
-          attrs.add(a);
-        }
-      }
-      else
-      {
-        List<Attribute> attrs = userAttrs.get(type);
-        if (attrs == null)
-        {
-          attrs = new ArrayList<Attribute>();
-          attrs.add(a);
-          userAttrs.put(type, attrs);
-        }
-        else
-        {
-          attrs.add(a);
-        }
-      }
+      addAttributeToSchemaEntry(attribute, userAttrs, operationalAttrs);
     }
 
     // Construct and return the entry.
@@ -1046,6 +794,88 @@ public class SchemaBackend
         operationalAttrs);
     e.processVirtualAttributes();
     return e;
+  }
+
+
+
+  private void addAttributeToSchemaEntry(Attribute attribute,
+      Map<AttributeType, List<Attribute>> userAttrs,
+      Map<AttributeType, List<Attribute>> operationalAttrs)
+  {
+    AttributeType type = attribute.getAttributeType();
+    if (type.isOperational())
+    {
+      List<Attribute> attrs = operationalAttrs.get(type);
+      if (attrs == null)
+      {
+        attrs = new ArrayList<Attribute>(1);
+        operationalAttrs.put(type, attrs);
+      }
+      attrs.add(attribute);
+    }
+    else
+    {
+      List<Attribute> attrs = userAttrs.get(type);
+      if (attrs == null)
+      {
+        attrs = new ArrayList<Attribute>();
+        userAttrs.put(type, attrs);
+      }
+      attrs.add(attribute);
+    }
+  }
+
+
+
+  private void buildSchemaAttribute(Collection<?> elements,
+      Map<AttributeType, List<Attribute>> userAttrs,
+      Map<AttributeType, List<Attribute>> operationalAttrs,
+      AttributeType schemaAttributeType, boolean includeSchemaFile,
+      final boolean stripSyntaxMinimumUpperBound, boolean ignoreShowAllOption)
+  {
+    // Skip the schema attribute if it is empty.
+    if (elements.isEmpty())
+    {
+      return;
+    }
+
+    AttributeBuilder builder = new AttributeBuilder(schemaAttributeType);
+    builder.setInitialCapacity(elements.size());
+    for (Object element : elements)
+    {
+      /*
+       * Add the file name to the description of the element if this was
+       * requested by the caller.
+       */
+      String value;
+      if (includeSchemaFile && element instanceof CommonSchemaElements)
+      {
+        value = getDefinitionWithFileName((CommonSchemaElements) element);
+      }
+      else
+      {
+        value = element.toString();
+      }
+      if (stripSyntaxMinimumUpperBound && value.indexOf('{') != -1)
+      {
+        // Strip the minimum upper bound value from the attribute value.
+        value = value.replaceFirst(stripMinUpperBoundRegEx, "");
+      }
+      builder.add(value);
+    }
+
+    ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
+    Attribute attribute = builder.toAttribute();
+    attrList.add(attribute);
+    if (attribute.getAttributeType().isOperational()
+        && (ignoreShowAllOption || (!showAllAttributes)))
+    {
+      operationalAttrs.put(attribute.getAttributeType(), attrList);
+    }
+    else
+    {
+      userAttrs.put(attribute.getAttributeType(), attrList);
+    }
   }
 
 
