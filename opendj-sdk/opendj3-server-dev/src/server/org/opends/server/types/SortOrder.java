@@ -39,6 +39,8 @@ package org.opends.server.types;
  * will only be used if the first and second values are equal, etc.
  * If all of the sort key attributes for two entries are identical,
  * then the relative order for those entries is undefined.
+ * <p>
+ * FIXME: replace with the SDK's SortKey?
  */
 @org.opends.server.types.PublicAPI(
      stability=org.opends.server.types.StabilityLevel.VOLATILE,
