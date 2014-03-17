@@ -35,7 +35,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
-import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
@@ -190,7 +189,7 @@ public class MatchingRuleUseSyntax
   /**
    * {@inheritDoc}
    */
-  public ApproximateMatchingRule getApproximateMatchingRule()
+  public MatchingRule getApproximateMatchingRule()
   {
     // There is no approximate matching rule by default.
     return null;

@@ -32,9 +32,8 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
-import org.opends.server.api.ApproximateMatchingRule;
-import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.MatchingRule;
+import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.core.DirectoryServer;
@@ -191,7 +190,7 @@ public class BooleanSyntax
    *          matches will not be allowed for this type by default.
    */
   @Override
-  public ApproximateMatchingRule getApproximateMatchingRule()
+  public MatchingRule getApproximateMatchingRule()
   {
     // Approximate matches are not allowed by default.
     return null;

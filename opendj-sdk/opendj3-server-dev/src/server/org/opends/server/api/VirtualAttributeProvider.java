@@ -540,7 +540,7 @@ public abstract class VirtualAttributeProvider
                               VirtualAttributeRule rule,
                               AttributeValue value)
   {
-    ApproximateMatchingRule matchingRule = rule.getAttributeType().getApproximateMatchingRule();
+    MatchingRule matchingRule = rule.getAttributeType().getApproximateMatchingRule();
     if (matchingRule == null)
     {
       return ConditionResult.UNDEFINED;

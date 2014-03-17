@@ -53,7 +53,6 @@ import org.opends.server.extensions.LDAPPassThroughAuthenticationPolicyFactory.C
 import org.opends.server.extensions.LDAPPassThroughAuthenticationPolicyFactory.ConnectionPool;
 import org.opends.server.extensions.LDAPPassThroughAuthenticationPolicyFactory.LDAPConnectionFactory;
 import org.opends.server.protocols.ldap.*;
-import org.opends.server.schema.DirectoryStringSyntax;
 import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.tools.LDAPReader;

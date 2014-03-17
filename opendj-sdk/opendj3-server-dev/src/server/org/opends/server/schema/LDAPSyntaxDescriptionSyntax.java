@@ -218,7 +218,7 @@ public class LDAPSyntaxDescriptionSyntax
    *          matches will not be allowed for this type by default.
    */
   @Override
-  public ApproximateMatchingRule getApproximateMatchingRule()
+  public MatchingRule getApproximateMatchingRule()
   {
     // There is no approximate matching rule by default.
     return null;
@@ -1072,7 +1072,7 @@ public class LDAPSyntaxDescriptionSyntax
      *          matches will not be allowed for this type by default.
      */
     @Override
-    public ApproximateMatchingRule getApproximateMatchingRule()
+    public MatchingRule getApproximateMatchingRule()
     {
       return subSyntax.getApproximateMatchingRule();
     }
@@ -1110,7 +1110,7 @@ public class LDAPSyntaxDescriptionSyntax
     private OrderingMatchingRule orderingMatchingRule;
 
     //The approximate matching rule.
-    private ApproximateMatchingRule approximateMatchingRule;
+    private MatchingRule approximateMatchingRule;
 
 
     //Creates a new instance of this syntax.
@@ -1265,7 +1265,7 @@ public class LDAPSyntaxDescriptionSyntax
      *          matches will not be allowed for this type by default.
      */
     @Override
-    public ApproximateMatchingRule getApproximateMatchingRule()
+    public MatchingRule getApproximateMatchingRule()
     {
       if(approximateMatchingRule == null)
       {
@@ -1306,7 +1306,7 @@ public class LDAPSyntaxDescriptionSyntax
     private OrderingMatchingRule orderingMatchingRule;
 
     //The approximate matching rule.
-    private ApproximateMatchingRule approximateMatchingRule;
+    private MatchingRule approximateMatchingRule;
 
     //The definition of this syntax.
     private String definition;
@@ -1481,7 +1481,7 @@ public class LDAPSyntaxDescriptionSyntax
      *          matches will not be allowed for this type by default.
      */
     @Override
-    public ApproximateMatchingRule getApproximateMatchingRule()
+    public MatchingRule getApproximateMatchingRule()
     {
       if(approximateMatchingRule == null)
       {

@@ -34,7 +34,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
-import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
@@ -218,7 +217,7 @@ public class MatchingRuleSyntax
    *          matches will not be allowed for this type by default.
    */
   @Override
-  public ApproximateMatchingRule getApproximateMatchingRule()
+  public MatchingRule getApproximateMatchingRule()
   {
     // There is no approximate matching rule by default.
     return null;

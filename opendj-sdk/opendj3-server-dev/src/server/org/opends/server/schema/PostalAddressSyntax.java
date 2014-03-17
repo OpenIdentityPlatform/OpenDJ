@@ -30,9 +30,8 @@ package org.opends.server.schema;
 
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.server.api.ApproximateMatchingRule;
-import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.MatchingRule;
+import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.forgerock.opendj.config.server.ConfigException;
@@ -194,7 +193,7 @@ public class PostalAddressSyntax
    *          attributes with this syntax, or <CODE>null</CODE> if approximate
    *          matches will not be allowed for this type by default.
    */
-  public ApproximateMatchingRule getApproximateMatchingRule()
+  public MatchingRule getApproximateMatchingRule()
   {
     // Approximate matching will not be allowed by default.
     return null;

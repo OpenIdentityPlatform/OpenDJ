@@ -1394,7 +1394,7 @@ public class AttributeIndex
 
     try
     {
-      ApproximateMatchingRule approximateMatchingRule =
+      MatchingRule approximateMatchingRule =
           approximateFilter.getAttributeType().getApproximateMatchingRule();
       // Make a key from the normalized assertion value.
       // FIXME JNR this looks wrong, it should use normalizeAssertionValue()

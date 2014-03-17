@@ -32,7 +32,6 @@ import java.util.Map;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.schema.AttributeUsage;
-import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
@@ -69,7 +68,7 @@ public final class AttributeType
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   // The approximate matching rule for this attribute type.
-  private final ApproximateMatchingRule approximateMatchingRule;
+  private final MatchingRule approximateMatchingRule;
 
   // The syntax for this attribute type.
   private final AttributeSyntax<?> syntax;
@@ -251,8 +250,7 @@ public final class AttributeType
                        String oid, String description,
                        AttributeType superiorType,
                        AttributeSyntax<?> syntax,
-                       ApproximateMatchingRule
-                            approximateMatchingRule,
+                       MatchingRule approximateMatchingRule,
                        MatchingRule equalityMatchingRule,
                        OrderingMatchingRule orderingMatchingRule,
                        SubstringMatchingRule substringMatchingRule,
@@ -449,7 +447,7 @@ public final class AttributeType
    * @return  The matching rule that should be used for approximate
    *          matching with this attribute type.
    */
-  public ApproximateMatchingRule getApproximateMatchingRule()
+  public MatchingRule getApproximateMatchingRule()
   {
     return approximateMatchingRule;
   }

@@ -33,9 +33,8 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.CountryStringAttributeSyntaxCfg;
-import org.opends.server.api.ApproximateMatchingRule;
-import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.MatchingRule;
+import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.forgerock.opendj.config.server.ConfigException;
@@ -66,7 +65,7 @@ public class CountryStringSyntax
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   // The default approximate matching rule for this syntax.
-  private ApproximateMatchingRule defaultApproximateMatchingRule;
+  private MatchingRule defaultApproximateMatchingRule;
 
   // The default equality matching rule for this syntax.
   private MatchingRule defaultEqualityMatchingRule;
@@ -256,7 +255,7 @@ public class CountryStringSyntax
    *          attributes with this syntax, or <CODE>null</CODE> if approximate
    *          matches will not be allowed for this type by default.
    */
-  public ApproximateMatchingRule getApproximateMatchingRule()
+  public MatchingRule getApproximateMatchingRule()
   {
     return defaultApproximateMatchingRule;
   }

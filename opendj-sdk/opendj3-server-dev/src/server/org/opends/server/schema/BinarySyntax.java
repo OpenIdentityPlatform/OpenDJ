@@ -198,7 +198,7 @@ public class BinarySyntax
    *          matches will not be allowed for this type by default.
    */
   @Override
-  public ApproximateMatchingRule getApproximateMatchingRule()
+  public MatchingRule getApproximateMatchingRule()
   {
     // There is no approximate matching rule by default.
     return null;

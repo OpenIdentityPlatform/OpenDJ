@@ -191,8 +191,7 @@ public abstract class AttributeSyntax<T extends AttributeSyntaxCfg>
    *          approximate matches will not be allowed for this type by
    *          default.
    */
-  public abstract ApproximateMatchingRule
-                       getApproximateMatchingRule();
+  public abstract MatchingRule getApproximateMatchingRule();
 
 
 
