@@ -32,9 +32,11 @@ import java.util.TreeSet;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.api.MatchingRule;
 import org.opends.server.controls.ServerSideSortRequestControl;
 import org.opends.server.controls.ServerSideSortResponseControl;
 import org.opends.server.controls.VLVRequestControl;
@@ -45,7 +47,6 @@ import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -260,18 +261,12 @@ public class TestVLVIndex extends DirectoryServerTestCase {
     {
       if(vlvIndex.getName().contains("testvlvindex"))
       {
-        SortValuesSet svs1 =
-            vlvIndex.getSortValuesSet(null, 0,
-                                      expectedSortedValues.first().getValues());
-
-        assertNotNull(svs1);
+        SortValues sv1 = expectedSortedValues.first();
+        SortValuesSet svs1 = getSortValuesSet(vlvIndex, sv1);
         assertEquals(svs1.size(), 3);
 
-        SortValuesSet svs2 =
-            vlvIndex.getSortValuesSet(null, 0,
-                                      expectedSortedValues.last().getValues());
-
-        assertNotNull(svs2);
+        SortValues sv2 = expectedSortedValues.last();
+        SortValuesSet svs2 = getSortValuesSet(vlvIndex, sv2);
         assertEquals(svs2.size(), 5);
       }
     }
@@ -287,23 +282,26 @@ public class TestVLVIndex extends DirectoryServerTestCase {
     {
       if(vlvIndex.getName().contains("testvlvindex"))
       {
-        SortValuesSet svs1 =
-            vlvIndex.getSortValuesSet(null, 0,
-                                      expectedSortedValues.first().getValues());
-
-        assertNotNull(svs1);
+        SortValues sv1 = expectedSortedValues.first();
+        SortValuesSet svs1 = getSortValuesSet(vlvIndex, sv1);
         assertEquals(svs1.size(), 0);
         assertNull(svs1.getKeyBytes());
 
-        SortValuesSet svs2 =
-            vlvIndex.getSortValuesSet(null, 0,
-                                      expectedSortedValues.last().getValues());
-
-        assertNotNull(svs2);
-        assertEquals(svs1.size(), 0);
-        assertNull(svs1.getKeyBytes());
+        SortValues sv2 = expectedSortedValues.last();
+        SortValuesSet svs2 = getSortValuesSet(vlvIndex, sv2);
+        assertEquals(svs2.size(), 0);
+        assertNull(svs2.getKeyBytes());
       }
     }
+  }
+
+  private SortValuesSet getSortValuesSet(VLVIndex vlvIndex, SortValues sv)
+      throws DirectoryException
+  {
+    SortValuesSet result =
+        vlvIndex.getSortValuesSet(null, 0, sv.getValues(), sv.getTypes());
+    assertNotNull(result);
+    return result;
   }
 
   @Test( dependsOnMethods = { "testDel" } )
@@ -319,24 +317,20 @@ public class TestVLVIndex extends DirectoryServerTestCase {
     {
       if(vlvIndex.getName().contains("testvlvindex"))
       {
-        SortValuesSet svs1 =
-            vlvIndex.getSortValuesSet(null, 0,
-                                      expectedSortedValues.first().getValues());
-
-        assertNotNull(svs1);
+        SortValues sv1 = expectedSortedValues.first();
+        SortValuesSet svs1 = getSortValuesSet(vlvIndex, sv1);
         assertEquals(svs1.size(), 4);
 
-        SortValuesSet svs2 =
-            vlvIndex.getSortValuesSet(null, 0,
-                                      expectedSortedValues.last().getValues());
-
-        assertNotNull(svs2);
+        SortValues sv2 = expectedSortedValues.last();
+        SortValuesSet svs2 = getSortValuesSet(vlvIndex, sv2);
         assertEquals(svs2.size(), 6);
 
         int i = 0;
         for(SortValues values : expectedSortedValues)
         {
-          for(int j = 0; j < values.getValues().length; j++)
+          AttributeValue[] attrValues = values.getValues();
+          AttributeType[] attrTypes = values.getTypes();
+          for(int j = 0; j < attrValues.length; j++)
           {
             ByteString value;
             if(i < 4)
@@ -348,9 +342,10 @@ public class TestVLVIndex extends DirectoryServerTestCase {
               value = svs2.getValue((i - 4) * 3 + j);
             }
             ByteString oValue = null;
-            if(values.getValues()[j] != null)
+            if(attrValues[j] != null)
             {
-              oValue = values.getValues()[j].getNormalizedValue();
+              MatchingRule eqRule = attrTypes[j].getEqualityMatchingRule();
+              oValue = eqRule.normalizeAttributeValue(attrValues[j].getValue());
             }
             assertEquals(value, oValue);
           }

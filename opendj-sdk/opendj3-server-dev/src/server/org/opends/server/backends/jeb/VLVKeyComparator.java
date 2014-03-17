@@ -26,13 +26,17 @@
  */
 package org.opends.server.backends.jeb;
 
+import java.io.Serializable;
+import java.util.Comparator;
+
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.api.MatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
+import org.opends.server.types.AttributeType;
 import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DirectoryException;
-import org.forgerock.opendj.ldap.ByteString;
-
-import java.util.Comparator;
-import java.io.Serializable;
 
 import com.sleepycat.je.DatabaseException;
 
@@ -94,6 +98,7 @@ public class VLVKeyComparator implements Comparator<byte[]>, Serializable
    *          order, or zero if there is no difference between the values with
    *          regard to ordering.
    */
+  @Override
   public int compare(byte[] b1, byte[] b2)
   {
     // A 0 length byte array is a special key used for the unbound max
@@ -259,6 +264,7 @@ public class VLVKeyComparator implements Comparator<byte[]>, Serializable
    * @param  index The index of the values in the set.
    * @param  entryID The entry ID to use in the comparasion.
    * @param  values The values to use in the comparasion.
+   * @param  types The types of the values to use in the comparasion.
    *
    * @return  A negative integer if the values in the set should come before
    *          the given values in ascending order, a positive integer if
@@ -272,9 +278,9 @@ public class VLVKeyComparator implements Comparator<byte[]>, Serializable
    *                              not acceptable for use with the
    *                              associated equality matching rule).
    */
-  public int compare(SortValuesSet set, int index,
-                                long entryID, AttributeValue[] values)
-      throws DatabaseException, DirectoryException
+  public int compare(SortValuesSet set, int index, long entryID,
+      AttributeValue[] values, AttributeType[] types) throws DatabaseException,
+      DirectoryException
   {
     for (int j=0; j < orderingRules.length; j++)
     {
@@ -288,7 +294,16 @@ public class VLVKeyComparator implements Comparator<byte[]>, Serializable
 
       if(values[j] != null)
       {
-        b2Bytes = values[j].getNormalizedValue();
+        try
+        {
+          final MatchingRule eqRule = types[j].getEqualityMatchingRule();
+          b2Bytes = eqRule.normalizeAttributeValue(values[j].getValue());
+        }
+        catch (DecodeException e)
+        {
+          throw new DirectoryException(
+              ResultCode.INVALID_ATTRIBUTE_SYNTAX, e.getMessageObject(), e);
+        }
       }
 
       // A null value will always come after a non-null value.

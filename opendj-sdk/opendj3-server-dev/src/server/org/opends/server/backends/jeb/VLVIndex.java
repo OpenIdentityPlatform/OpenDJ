@@ -31,16 +31,19 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.ByteSequence;
+import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope.Enum;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.LocalDBVLVIndexCfgDefn.Scope;
 import org.opends.server.admin.std.server.LocalDBVLVIndexCfg;
+import org.opends.server.api.MatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.controls.ServerSideSortRequestControl;
 import org.opends.server.controls.VLVRequestControl;
 import org.opends.server.controls.VLVResponseControl;
@@ -48,7 +51,11 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
+import org.opends.server.types.Modification;
+import org.opends.server.types.SortKey;
 import org.opends.server.util.StaticUtils;
 
 import com.sleepycat.je.*;
@@ -649,6 +656,7 @@ public class VLVIndex extends DatabaseContainer
    *            not required.
    * @param entryID The entry ID to use.
    * @param values The values to use.
+   * @param types The types of the values to use.
    * @return The SortValuesSet that should contain the entry with the given
    *         information.
    * @throws DatabaseException If an error occurs during an operation on a
@@ -656,8 +664,8 @@ public class VLVIndex extends DatabaseContainer
    * @throws DirectoryException If a Directory Server error occurs.
    */
   public SortValuesSet getSortValuesSet(Transaction txn, long entryID,
-                                        AttributeValue[] values)
-      throws DatabaseException, DirectoryException
+      AttributeValue[] values, AttributeType[] types) throws DatabaseException,
+      DirectoryException
   {
     SortValuesSet sortValuesSet = null;
     DatabaseEntry key = new DatabaseEntry();
@@ -669,7 +677,7 @@ public class VLVIndex extends DatabaseContainer
 
     try
     {
-      key.setData(encodeKey(entryID, values));
+      key.setData(encodeKey(entryID, values, types));
       status = cursor.getSearchKeyRange(key, data,lockMode);
 
       if(status != OperationStatus.SUCCESS)
@@ -715,6 +723,7 @@ public class VLVIndex extends DatabaseContainer
    * @param txn The JE transaction to use for database updates.
    * @param entryID The entry ID to search for.
    * @param values The values to search for.
+   * @param types The types of the values to search for.
    * @return The index of the entry ID matching the values or -1 if its not
    * found.
    * @throws DatabaseException If an error occurs during an operation on a
@@ -724,34 +733,28 @@ public class VLVIndex extends DatabaseContainer
    * @throws DirectoryException If a Directory Server error occurs.
    */
   public boolean containsValues(Transaction txn, long entryID,
-                             AttributeValue[] values)
-      throws JebException, DatabaseException, DirectoryException
+      AttributeValue[] values, AttributeType[] types) throws JebException,
+      DatabaseException, DirectoryException
   {
-    SortValuesSet valuesSet = getSortValuesSet(txn, entryID, values);
-    int pos = valuesSet.binarySearch(entryID, values);
-    if(pos < 0)
-    {
-      return false;
-    }
-    return true;
+    SortValuesSet valuesSet = getSortValuesSet(txn, entryID, values, types);
+    int pos = valuesSet.binarySearch(entryID, values, types);
+    return pos >= 0;
   }
 
   private boolean insertValues(Transaction txn, long entryID, Entry entry)
       throws JebException, DatabaseException, DirectoryException
   {
-    SortValuesSet sortValuesSet;
     AttributeValue[] values = getSortValues(entry);
+    AttributeType[] types = getSortTypes();
     DatabaseEntry key = new DatabaseEntry();
     OperationStatus status;
     LockMode lockMode = LockMode.RMW;
     DatabaseEntry data = new DatabaseEntry();
-    boolean success = true;
 
     Cursor cursor = openCursor(txn, CursorConfig.READ_COMMITTED);
-
     try
     {
-      key.setData(encodeKey(entryID, values));
+      key.setData(encodeKey(entryID, values, types));
       status = cursor.getSearchKeyRange(key, data,lockMode);
     }
     finally
@@ -759,6 +762,7 @@ public class VLVIndex extends DatabaseContainer
       cursor.close();
     }
 
+    SortValuesSet sortValuesSet;
     if(status != OperationStatus.SUCCESS)
     {
       // There are no records in the database
@@ -791,7 +795,7 @@ public class VLVIndex extends DatabaseContainer
 
 
 
-    success = sortValuesSet.add(entryID, values);
+    boolean success = sortValuesSet.add(entryID, values, types);
 
     int newSize = sortValuesSet.size();
     if(newSize >= sortedSetCapacity)
@@ -831,11 +835,29 @@ public class VLVIndex extends DatabaseContainer
     return success;
   }
 
+  /**
+   * Gets the types of the attribute values to sort.
+   *
+   * @return The types of the attribute values to sort on.
+   */
+  AttributeType[] getSortTypes()
+  {
+    SortKey[] sortKeys = sortOrder.getSortKeys();
+    AttributeType[] types = new AttributeType[sortKeys.length];
+    for (int i = 0; i < sortKeys.length; i++)
+    {
+      SortKey sortKey = sortKeys[i];
+      types[i] = sortKey.getAttributeType();
+    }
+    return types;
+  }
+
   private boolean removeValues(Transaction txn, long entryID, Entry entry)
       throws JebException, DatabaseException, DirectoryException
   {
     SortValuesSet sortValuesSet;
     AttributeValue[] values = getSortValues(entry);
+    AttributeType[] types = getSortTypes();
     DatabaseEntry key = new DatabaseEntry();
     OperationStatus status;
     LockMode lockMode = LockMode.RMW;
@@ -845,7 +867,7 @@ public class VLVIndex extends DatabaseContainer
 
     try
     {
-      key.setData(encodeKey(entryID, values));
+      key.setData(encodeKey(entryID, values, types));
       status = cursor.getSearchKeyRange(key, data,lockMode);
     }
     finally
@@ -869,7 +891,7 @@ public class VLVIndex extends DatabaseContainer
       }
       sortValuesSet = new SortValuesSet(key.getData(), data.getData(),
                                         this);
-      boolean success = sortValuesSet.remove(entryID, values);
+      boolean success = sortValuesSet.remove(entryID, values, types);
       byte[] after = sortValuesSet.toDatabase();
 
       if(after == null)
@@ -889,10 +911,7 @@ public class VLVIndex extends DatabaseContainer
 
       return success;
     }
-    else
-    {
-      return false;
-    }
+    return false;
   }
 
   /**
@@ -948,21 +967,21 @@ public class VLVIndex extends DatabaseContainer
           // Start from the smallest values from either set.
           if(av.compareTo(dv) < 0)
           {
-            key.setData(encodeKey(av.getEntryID(), av.getValues()));
+            key.setData(encodeKey(av));
           }
           else
           {
-            key.setData(encodeKey(dv.getEntryID(), dv.getValues()));
+            key.setData(encodeKey(dv));
           }
         }
         else
         {
-          key.setData(encodeKey(av.getEntryID(), av.getValues()));
+          key.setData(encodeKey(av));
         }
       }
       else if(dv != null)
       {
-        key.setData(encodeKey(dv.getEntryID(), dv.getValues()));
+        key.setData(encodeKey(dv));
       }
       else
       {
@@ -1015,7 +1034,7 @@ public class VLVIndex extends DatabaseContainer
         // This is the last unbounded set.
         while(av != null)
         {
-          sortValuesSet.add(av.getEntryID(), av.getValues());
+          sortValuesSet.add(av.getEntryID(), av.getValues(), av.getTypes());
           aValues.remove();
           if(aValues.hasNext())
           {
@@ -1029,7 +1048,7 @@ public class VLVIndex extends DatabaseContainer
 
         while(dv != null)
         {
-          sortValuesSet.remove(dv.getEntryID(), dv.getValues());
+          sortValuesSet.remove(dv.getEntryID(), dv.getValues(), dv.getTypes());
           dValues.remove();
           if(dValues.hasNext())
           {
@@ -1047,7 +1066,7 @@ public class VLVIndex extends DatabaseContainer
 
         while(av != null && av.compareTo(maxValues) <= 0)
         {
-          sortValuesSet.add(av.getEntryID(), av.getValues());
+          sortValuesSet.add(av.getEntryID(), av.getValues(), av.getTypes());
           aValues.remove();
           if(aValues.hasNext())
           {
@@ -1061,7 +1080,7 @@ public class VLVIndex extends DatabaseContainer
 
         while(dv != null && dv.compareTo(maxValues) <= 0)
         {
-          sortValuesSet.remove(dv.getEntryID(), dv.getValues());
+          sortValuesSet.remove(dv.getEntryID(), dv.getValues(), dv.getTypes());
           dValues.remove();
           if(dValues.hasNext())
           {
@@ -1109,6 +1128,11 @@ public class VLVIndex extends DatabaseContainer
 
       count.getAndAdd(newSize - oldSize);
     }
+  }
+
+  private byte[] encodeKey(SortValues sv) throws DirectoryException
+  {
+    return encodeKey(sv.getEntryID(), sv.getValues(), sv.getTypes());
   }
 
   /**
@@ -1326,14 +1350,15 @@ public class VLVIndex extends DatabaseContainer
             }
             SortValuesSet sortValuesSet =
                 new SortValuesSet(key.getData(), data.getData(), this);
-            AttributeValue[] assertionValue = new AttributeValue[1];
-            assertionValue[0] =
+            AttributeType type = sortOrder.getSortKeys()[0].getAttributeType();
+            AttributeValue[] assertionValue = new AttributeValue[] {
                 AttributeValues.create(
-                    sortOrder.getSortKeys()[0].getAttributeType(),
-                        vlvRequest.getGreaterThanOrEqualAssertion());
+                    type, vlvRequest.getGreaterThanOrEqualAssertion())
+            };
+            AttributeType[] assertionType = new AttributeType[] { type };
 
             int adjustedTargetOffset =
-                sortValuesSet.binarySearch(-1, assertionValue);
+                sortValuesSet.binarySearch(-1, assertionValue, assertionType);
             if(adjustedTargetOffset < 0)
             {
               // For a negative return value r, the vlvIndex -(r+1) gives the
@@ -1580,30 +1605,42 @@ public class VLVIndex extends DatabaseContainer
    *
    * @param entryID The entry ID to encode.
    * @param values The values to encode.
+   * @param types The types of the values to encode.
    * @return The encoded bytes.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  byte[] encodeKey(long entryID, AttributeValue[] values)
+  byte[] encodeKey(long entryID, AttributeValue[] values, AttributeType[] types)
       throws DirectoryException
   {
-    ByteStringBuilder builder = new ByteStringBuilder();
-
-    for (AttributeValue v : values)
+    try
     {
-      if(v == null)
-      {
-        builder.appendBERLength(0);
-      }
-      else
-      {
-        builder.appendBERLength(v.getNormalizedValue().length());
-        builder.append(v.getNormalizedValue());
-      }
-    }
-    builder.append(entryID);
-    builder.trimToSize();
+      final ByteStringBuilder builder = new ByteStringBuilder();
 
-    return builder.getBackingArray();
+      for (int i = 0; i < values.length; i++)
+      {
+        final AttributeValue v = values[i];
+        if (v == null)
+        {
+          builder.appendBERLength(0);
+        }
+        else
+        {
+          final MatchingRule eqRule = types[i].getEqualityMatchingRule();
+          final ByteString nv = eqRule.normalizeAttributeValue(v.getValue());
+          builder.appendBERLength(nv.length());
+          builder.append(nv);
+        }
+      }
+      builder.append(entryID);
+      builder.trimToSize();
+
+      return builder.getBackingArray();
+    }
+    catch (DecodeException e)
+    {
+      throw new DirectoryException(
+          ResultCode.INVALID_ATTRIBUTE_SYNTAX, e.getMessageObject(), e);
+    }
   }
 
   /**
@@ -1688,11 +1725,8 @@ public class VLVIndex extends DatabaseContainer
   public boolean shouldInclude(Entry entry) throws DirectoryException
   {
     DN entryDN = entry.getName();
-    if(entryDN.matchesBaseAndScope(baseDN, scope) && filter.matchesEntry(entry))
-    {
-      return true;
-    }
-    return false;
+    return entryDN.matchesBaseAndScope(baseDN, scope)
+        && filter.matchesEntry(entry);
   }
 
   /**

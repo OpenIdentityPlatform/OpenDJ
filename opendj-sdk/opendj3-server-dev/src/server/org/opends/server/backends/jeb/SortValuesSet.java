@@ -26,9 +26,13 @@
  */
 package org.opends.server.backends.jeb;
 
-import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.api.MatchingRule;
+import org.opends.server.types.*;
+
 import com.sleepycat.je.DatabaseException;
 
 /**
@@ -40,7 +44,6 @@ public class SortValuesSet
   private long[] entryIDs;
 
   private int[] valuesBytesOffsets;
-
   private byte[] valuesBytes;
 
   private byte[] keyBytes;
@@ -95,13 +98,14 @@ public class SortValuesSet
    *
    * @param entryID The entry ID to add.
    * @param values The values to add.
+   * @param types The types of the values to add.
    * @return True if the information was successfully added or False
    * otherwise.
    * @throws DirectoryException If a Directory Server error occurs.
    * @throws DatabaseException If an error occurs in the JE database.
    */
-  public boolean add(long entryID, AttributeValue[] values)
-      throws DatabaseException, DirectoryException
+  public boolean add(long entryID, AttributeValue[] values,
+      AttributeType[] types) throws DatabaseException, DirectoryException
   {
     if(values == null)
     {
@@ -110,24 +114,22 @@ public class SortValuesSet
 
     if(entryIDs == null || entryIDs.length == 0)
     {
-      entryIDs = new long[1];
-      entryIDs[0] = entryID;
-      valuesBytes = attributeValuesToDatabase(values);
+      entryIDs = new long[] { entryID };
+      valuesBytes = attributeValuesToDatabase(values, types);
       if(valuesBytesOffsets != null)
       {
-        valuesBytesOffsets = new int[1];
-        valuesBytesOffsets[0] = 0;
+        valuesBytesOffsets = new int[] { 0 };
       }
       return true;
     }
-    if(vlvIndex.comparator.compare(this, entryIDs.length - 1, entryID,
-                                              values) < 0)
+    if (vlvIndex.comparator.compare(
+        this, entryIDs.length - 1, entryID, values, types) < 0)
     {
       long[] updatedEntryIDs = new long[entryIDs.length + 1];
       System.arraycopy(entryIDs, 0, updatedEntryIDs, 0, entryIDs.length);
       updatedEntryIDs[entryIDs.length] = entryID;
 
-      byte[] newValuesBytes = attributeValuesToDatabase(values);
+      byte[] newValuesBytes = attributeValuesToDatabase(values, types);
       byte[] updatedValuesBytes = new byte[valuesBytes.length +
           newValuesBytes.length];
       System.arraycopy(valuesBytes, 0, updatedValuesBytes, 0,
@@ -153,7 +155,7 @@ public class SortValuesSet
     }
     else
     {
-      int pos = binarySearch(entryID, values);
+      int pos = binarySearch(entryID, values, types);
       if(pos >= 0)
       {
         if(entryIDs[pos] == entryID)
@@ -176,7 +178,7 @@ public class SortValuesSet
                        entryIDs.length-pos);
       updatedEntryIDs[pos] = entryID;
 
-      byte[] newValuesBytes = attributeValuesToDatabase(values);
+      byte[] newValuesBytes = attributeValuesToDatabase(values, types);
       // BUG valuesBytesOffsets might be null ? If not why testing below ?
       int valuesPos = valuesBytesOffsets[pos];
       byte[] updatedValuesBytes = new byte[valuesBytes.length +
@@ -216,12 +218,13 @@ public class SortValuesSet
    *
    * @param entryID The entry ID to remove.
    * @param values The values to remove.
+   * @param types The types of the values to remove.
    * @return True if the information was successfully removed or False
    * otherwise.
    * @throws DirectoryException If a Directory Server error occurs.
    * @throws DatabaseException If an error occurs in the JE database.
    */
-  public boolean remove(long entryID, AttributeValue[] values)
+  public boolean remove(long entryID, AttributeValue[] values, AttributeType[] types)
       throws DatabaseException, DirectoryException
   {
     if(entryIDs == null || entryIDs.length == 0)
@@ -234,7 +237,7 @@ public class SortValuesSet
       updateValuesBytesOffsets();
     }
 
-    int pos = binarySearch(entryID, values);
+    int pos = binarySearch(entryID, values, types);
     if(pos < 0)
     {
       // Not found.
@@ -408,12 +411,13 @@ public class SortValuesSet
    *
    * @param entryID The entry ID to match or -1 if not matching on entry ID.
    * @param values The values to match.
+   * @param types The types of the values to match.
    * @return Index of the entry matching the values and optionally the entry ID
    * if it is found or a negative index if its not found.
    * @throws DirectoryException If a Directory Server error occurs.
    * @throws DatabaseException If an error occurs in the JE database.
    */
-  int binarySearch(long entryID, AttributeValue[] values)
+  int binarySearch(long entryID, AttributeValue[] values, AttributeType[] types)
       throws DatabaseException, DirectoryException
   {
     if(entryIDs == null || entryIDs.length == 0)
@@ -425,14 +429,19 @@ public class SortValuesSet
     for(int j = entryIDs.length - 1; i <= j;)
     {
       int k = i + j >> 1;
-      int l = vlvIndex.comparator.compare(this, k, entryID, values);
-      if(l < 0)
+      int l = vlvIndex.comparator.compare(this, k, entryID, values, types);
+      if (l < 0)
+      {
         i = k + 1;
-      else
-      if(l > 0)
+      }
+      else if (l > 0)
+      {
         j = k - 1;
+      }
       else
+      {
         return k;
+      }
     }
 
     return -(i + 1);
@@ -463,26 +472,37 @@ public class SortValuesSet
     return entryIDs;
   }
 
-  private byte[] attributeValuesToDatabase(AttributeValue[] values)
-      throws DirectoryException
+  private byte[] attributeValuesToDatabase(AttributeValue[] values,
+      AttributeType[] types) throws DirectoryException
   {
-    ByteStringBuilder builder = new ByteStringBuilder();
-
-    for (AttributeValue v : values)
+    try
     {
-      if(v == null)
-      {
-        builder.appendBERLength(0);
-      }
-      else
-      {
-        builder.appendBERLength(v.getNormalizedValue().length());
-        builder.append(v.getNormalizedValue());
-      }
-    }
-    builder.trimToSize();
+      final ByteStringBuilder builder = new ByteStringBuilder();
 
-    return builder.getBackingArray();
+      for (int i = 0; i < values.length; i++)
+      {
+        final AttributeValue v = values[i];
+        if (v == null)
+        {
+          builder.appendBERLength(0);
+        }
+        else
+        {
+          final MatchingRule eqRule = types[i].getEqualityMatchingRule();
+          final ByteString nv = eqRule.normalizeAttributeValue(v.getValue());
+          builder.appendBERLength(nv.length());
+          builder.append(nv);
+        }
+      }
+      builder.trimToSize();
+
+      return builder.getBackingArray();
+    }
+    catch (DecodeException e)
+    {
+      throw new DirectoryException(
+          ResultCode.INVALID_ATTRIBUTE_SYNTAX, e.getMessageObject(), e);
+    }
   }
 
   /**
@@ -583,8 +603,7 @@ public class SortValuesSet
     EntryID id = new EntryID(entryIDs[index]);
     SortKey[] sortKeys = vlvIndex.sortOrder.getSortKeys();
     int numValues = sortKeys.length;
-    AttributeValue[] values =
-        new AttributeValue[numValues];
+    AttributeValue[] values = new AttributeValue[numValues];
     for (int i = index * numValues, j = 0;
          i < (index + 1) * numValues;
          i++, j++)
@@ -683,6 +702,6 @@ public class SortValuesSet
         vBytesPos += valueLength;
       }
     }
-    return ByteString.wrap(new byte[0]);
+    return ByteString.empty();
   }
 }
