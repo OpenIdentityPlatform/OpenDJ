@@ -22,10 +22,9 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.backends.jeb;
-
-
 
 import java.util.List;
 
@@ -36,7 +35,6 @@ import org.opends.server.types.Entry;
 import org.opends.server.types.SortKey;
 import org.opends.server.types.SortOrder;
 
-
 /**
  * This class defines a data structure that holds a set of attribute values that
  * are associated with a sort order for a given entry.  Any or all of the
@@ -46,17 +44,25 @@ import org.opends.server.types.SortOrder;
  * This class implements the {@code Comparable} interface and may therefore be
  * used to order the elements in components like {@code TreeMap} and
  * {@code TreeSet}.
+ * <p>
+ * FIXME: replace with the SDK's SortKey?
  */
 public class SortValues
        implements Comparable<SortValues>
 {
-  // The set of sort keys in this sort order.
+  /** The set of sort keys (attribute values) in this sort order. */
   private AttributeValue[] values;
+  /**
+   * The types of sort keys.
+   *
+   * @see #values
+   */
+  private AttributeType[] types;
 
-  // The entry ID for the entry associated with this sort values.
+  /** The entry ID for the entry associated with this sort values. */
   private EntryID entryID;
 
-  // The sort order for this set of sort values.
+  /** The sort order for this set of sort values. */
   private SortOrder sortOrder;
 
 
@@ -75,6 +81,13 @@ public class SortValues
     this.entryID = entryID;
     this.sortOrder = sortOrder;
     this.values = values;
+
+    final SortKey[] sortKeys = sortOrder.getSortKeys();
+    this.types = new AttributeType[sortKeys.length];
+    for (int i = 0; i < sortKeys.length; i++)
+    {
+      types[i] = sortKeys[i].getAttributeType();
+    }
   }
 
   /**
@@ -92,12 +105,13 @@ public class SortValues
     this.sortOrder = sortOrder;
 
     SortKey[] sortKeys = sortOrder.getSortKeys();
-    values = new AttributeValue[sortKeys.length];
+    this.values = new AttributeValue[sortKeys.length];
+    this.types = new AttributeType[sortKeys.length];
     for (int i=0; i < sortKeys.length; i++)
     {
       SortKey sortKey = sortKeys[i];
-      AttributeType attrType = sortKey.getAttributeType();
-      List<Attribute> attrList = entry.getAttribute(attrType);
+      types[i] = sortKey.getAttributeType();
+      List<Attribute> attrList = entry.getAttribute(types[i]);
       if (attrList != null)
       {
         AttributeValue sortValue = null;
@@ -145,6 +159,7 @@ public class SortValues
    *          list, or zero if there is no significant difference in their
    *          relative order.
    */
+  @Override
   public int compareTo(SortValues sortValues)
   {
     SortKey[] sortKeys = sortOrder.getSortKeys();
@@ -205,6 +220,7 @@ public class SortValues
    *
    * @return  A string representation of this sort values object.
    */
+  @Override
   public String toString()
   {
     StringBuilder buffer = new StringBuilder();
@@ -266,6 +282,16 @@ public class SortValues
   public AttributeValue[] getValues()
   {
     return values;
+  }
+
+  /**
+   * Retrieve the type of the attribute values in this sort values.
+   *
+   * @return The array of type of the attribute values for this sort values.
+   */
+  public AttributeType[] getTypes()
+  {
+    return types;
   }
 
   /**

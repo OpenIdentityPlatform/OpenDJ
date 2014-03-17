@@ -995,8 +995,8 @@ public class VerifyJob
           {
             // If this is the last one in a bounded set, make sure it is the
             // same as the database key.
-            byte[] encodedKey = vlvIndex.encodeKey(values.getEntryID(),
-                                                   values.getValues());
+            byte[] encodedKey = vlvIndex.encodeKey(
+                values.getEntryID(), values.getValues(), values.getTypes());
             if(!Arrays.equals(key.getData(), encodedKey))
             {
               if(logger.isTraceEnabled())
@@ -1548,8 +1548,8 @@ public class VerifyJob
       {
         if(vlvIndex.shouldInclude(entry))
         {
-          if(!vlvIndex.containsValues(null, entryID.longValue(),
-                                  vlvIndex.getSortValues(entry)))
+          if (!vlvIndex.containsValues(null, entryID.longValue(),
+              vlvIndex.getSortValues(entry), vlvIndex.getSortTypes()))
           {
             if(logger.isTraceEnabled())
             {

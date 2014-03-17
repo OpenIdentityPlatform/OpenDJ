@@ -387,18 +387,19 @@ public class TestVerifyJob extends JebTestCase
     try
     {
       VLVIndex vlvIndex = eContainer.getVLVIndex(indexName);
+      AttributeType[] types = vlvIndex.getSortTypes();
 
       // Add an incorrectly ordered values.
       SortValuesSet svs =
-          vlvIndex.getSortValuesSet(null, 0, new AttributeValue[3]);
+          vlvIndex.getSortValuesSet(null, 0, new AttributeValue[3], new AttributeType[3]);
       long id = svs.getEntryIDs()[0];
       Entry entry = eContainer.getID2Entry().get(null, new EntryID(id), LockMode.DEFAULT);
 
       SortValuesSet svs2 = svs.split(2);
-      svs2.add(id, vlvIndex.getSortValues(entry));
+      svs2.add(id, vlvIndex.getSortValues(entry), types);
 
       // Add an invalid ID
-      svs2.add(1000, vlvIndex.getSortValues(entry));
+      svs2.add(1000, vlvIndex.getSortValues(entry), types);
 
       // Muck up the values of another ID
       id = svs.getEntryIDs()[0];
@@ -407,8 +408,8 @@ public class TestVerifyJob extends JebTestCase
       AttributeValue[] badValues = new AttributeValue[values.length];
       System.arraycopy(values, 1, badValues, 0, values.length - 1);
       badValues[badValues.length-1] = values[0];
-      svs.remove(id, values);
-      svs.add(id, badValues);
+      svs.remove(id, values, types);
+      svs.add(id, badValues, types);
 
       vlvIndex.putSortValuesSet(null, svs);
       vlvIndex.putSortValuesSet(null, svs2);
@@ -690,17 +691,18 @@ public class TestVerifyJob extends JebTestCase
     try
     {
       VLVIndex vlvIndex = eContainer.getVLVIndex(indexName);
+      AttributeType[] types = vlvIndex.getSortTypes();
 
       // Remove an ID
       SortValuesSet svs =
-          vlvIndex.getSortValuesSet(null, 0, new AttributeValue[3]);
+          vlvIndex.getSortValuesSet(null, 0, new AttributeValue[3], types);
       long id = svs.getEntryIDs()[0];
       Entry entry = eContainer.getID2Entry().get(null, new EntryID(id), LockMode.DEFAULT);
-      svs.remove(id, vlvIndex.getSortValues(entry));
+      svs.remove(id, vlvIndex.getSortValues(entry), types);
 
       // Add an incorrectly ordered values.
       SortValuesSet svs2 = svs.split(2);
-      svs2.add(1000, vlvIndex.getSortValues(entry));
+      svs2.add(1000, vlvIndex.getSortValues(entry), types);
 
       // Muck up the values of another ID
       id = svs.getEntryIDs()[0];
@@ -709,8 +711,8 @@ public class TestVerifyJob extends JebTestCase
       AttributeValue[] badValues = new AttributeValue[values.length];
       System.arraycopy(values, 1, badValues, 0, values.length - 1);
       badValues[badValues.length-1] = values[0];
-      svs.remove(id, values);
-      svs.add(id, badValues);
+      svs.remove(id, values, types);
+      svs.add(id, badValues, types);
 
       vlvIndex.putSortValuesSet(null, svs);
       vlvIndex.putSortValuesSet(null, svs2);

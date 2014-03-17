@@ -24,32 +24,27 @@
  *      Copyright 2008-2009 Sun Microsystems, Inc.
  *      Portions Copyright 2014 ForgeRock AS
  */
-
-
 package org.opends.server.schema;
-
-import org.opends.server.api.MatchingRule;
-import org.opends.server.api.MatchingRule;
-
-import static org.testng.Assert.*;
 
 import java.util.List;
 
-import org.opends.server.TestCaseUtils;
-import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.protocols.ldap.LDAPFilter;
 import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.opends.server.types.SearchResultEntry;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.opends.server.TestCaseUtils;
+import org.opends.server.api.MatchingRule;
+import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.ldap.LDAPFilter;
+import org.opends.server.types.SearchResultEntry;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
 import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
+import static org.testng.Assert.*;
 
 /**
  * This Test Class tests various matching rules for their compatibility
