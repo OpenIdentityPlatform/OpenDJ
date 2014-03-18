@@ -25,19 +25,7 @@
  */
 package org.forgerock.opendj.ldap;
 
-import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_EMPTY_FRACTION;
-import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_FRACTION_CHAR;
-import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_ILLEGAL_TIME;
-import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR;
-import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_DAY;
-import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_HOUR;
-import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_MINUTE;
-import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_MONTH;
-import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_OFFSET;
-import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_SECOND;
-import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_YEAR;
-import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_NO_TIME_ZONE_INFO;
-import static com.forgerock.opendj.ldap.CoreMessages.WARN_ATTR_SYNTAX_GENERALIZED_TIME_TOO_SHORT;
+import static com.forgerock.opendj.ldap.CoreMessages.*;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -45,6 +33,7 @@ import java.util.GregorianCalendar;
 import java.util.TimeZone;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageDescriptor.Arg2;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.util.Reject;
 
@@ -156,59 +145,17 @@ public final class GeneralizedTime implements Comparable<GeneralizedTime> {
         // The first four characters are the century and year, and they must
         // be numeric digits between 0 and 9.
         for (int i = 0; i < 4; i++) {
-            switch (valueString.charAt(i)) {
-            case '0':
-                year = year * 10;
-                break;
-
-            case '1':
-                year = (year * 10) + 1;
-                break;
-
-            case '2':
-                year = (year * 10) + 2;
-                break;
-
-            case '3':
-                year = (year * 10) + 3;
-                break;
-
-            case '4':
-                year = (year * 10) + 4;
-                break;
-
-            case '5':
-                year = (year * 10) + 5;
-                break;
-
-            case '6':
-                year = (year * 10) + 6;
-                break;
-
-            case '7':
-                year = (year * 10) + 7;
-                break;
-
-            case '8':
-                year = (year * 10) + 8;
-                break;
-
-            case '9':
-                year = (year * 10) + 9;
-                break;
-
-            default:
-                final LocalizableMessage message =
-                        WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_YEAR.get(valueString, String
-                                .valueOf(valueString.charAt(i)));
-                throw new LocalizedIllegalArgumentException(message);
-            }
+            char c = valueString.charAt(i);
+            final int val = toInt(c,
+                    WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_YEAR, valueString, String.valueOf(c));
+            year = (year * 10) + val;
         }
 
         // The next two characters are the month, and they must form the
         // string representation of an integer between 01 and 12.
         char m1 = valueString.charAt(4);
         final char m2 = valueString.charAt(5);
+        final String monthValue = valueString.substring(4, 6);
         switch (m1) {
         case '0':
             // m2 must be a digit between 1 and 9.
@@ -250,10 +197,8 @@ public final class GeneralizedTime implements Comparable<GeneralizedTime> {
                 break;
 
             default:
-                final LocalizableMessage message =
-                        WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_MONTH.get(valueString,
-                                valueString.substring(4, 6));
-                throw new LocalizedIllegalArgumentException(message);
+                throw new LocalizedIllegalArgumentException(
+                        WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_MONTH.get(valueString, monthValue));
             }
             break;
         case '1':
@@ -272,17 +217,13 @@ public final class GeneralizedTime implements Comparable<GeneralizedTime> {
                 break;
 
             default:
-                final LocalizableMessage message =
-                        WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_MONTH.get(valueString,
-                                valueString.substring(4, 6));
-                throw new LocalizedIllegalArgumentException(message);
+                throw new LocalizedIllegalArgumentException(
+                        WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_MONTH.get(valueString, monthValue));
             }
             break;
         default:
-            final LocalizableMessage message =
-                    WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_MONTH.get(valueString, valueString
-                            .substring(4, 6));
-            throw new LocalizedIllegalArgumentException(message);
+            throw new LocalizedIllegalArgumentException(
+                    WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_MONTH.get(valueString, monthValue));
         }
 
         // The next two characters should be the day of the month, and they
@@ -292,154 +233,25 @@ public final class GeneralizedTime implements Comparable<GeneralizedTime> {
         // year, but we'll let those slide.
         final char d1 = valueString.charAt(6);
         final char d2 = valueString.charAt(7);
+        final String dayValue = valueString.substring(6, 8);
         switch (d1) {
         case '0':
             // d2 must be a digit between 1 and 9.
-            switch (d2) {
-            case '1':
-                day = 1;
-                break;
-
-            case '2':
-                day = 2;
-                break;
-
-            case '3':
-                day = 3;
-                break;
-
-            case '4':
-                day = 4;
-                break;
-
-            case '5':
-                day = 5;
-                break;
-
-            case '6':
-                day = 6;
-                break;
-
-            case '7':
-                day = 7;
-                break;
-
-            case '8':
-                day = 8;
-                break;
-
-            case '9':
-                day = 9;
-                break;
-
-            default:
-                final LocalizableMessage message =
-                        WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_DAY.get(valueString, valueString
-                                .substring(6, 8));
-                throw new LocalizedIllegalArgumentException(message);
+            day = toInt(d2, WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_DAY, valueString, dayValue);
+            if (day == 0) {
+                throw new LocalizedIllegalArgumentException(
+                        WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_DAY.get(valueString, dayValue));
             }
             break;
 
         case '1':
             // d2 must be a digit between 0 and 9.
-            switch (d2) {
-            case '0':
-                day = 10;
-                break;
-
-            case '1':
-                day = 11;
-                break;
-
-            case '2':
-                day = 12;
-                break;
-
-            case '3':
-                day = 13;
-                break;
-
-            case '4':
-                day = 14;
-                break;
-
-            case '5':
-                day = 15;
-                break;
-
-            case '6':
-                day = 16;
-                break;
-
-            case '7':
-                day = 17;
-                break;
-
-            case '8':
-                day = 18;
-                break;
-
-            case '9':
-                day = 19;
-                break;
-
-            default:
-                final LocalizableMessage message =
-                        WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_DAY.get(valueString, valueString
-                                .substring(6, 8));
-                throw new LocalizedIllegalArgumentException(message);
-            }
+            day = 10 + toInt(d2, WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_DAY, valueString, dayValue);
             break;
 
         case '2':
             // d2 must be a digit between 0 and 9.
-            switch (d2) {
-            case '0':
-                day = 20;
-                break;
-
-            case '1':
-                day = 21;
-                break;
-
-            case '2':
-                day = 22;
-                break;
-
-            case '3':
-                day = 23;
-                break;
-
-            case '4':
-                day = 24;
-                break;
-
-            case '5':
-                day = 25;
-                break;
-
-            case '6':
-                day = 26;
-                break;
-
-            case '7':
-                day = 27;
-                break;
-
-            case '8':
-                day = 28;
-                break;
-
-            case '9':
-                day = 29;
-                break;
-
-            default:
-                final LocalizableMessage message =
-                        WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_DAY.get(valueString, valueString
-                                .substring(6, 8));
-                throw new LocalizedIllegalArgumentException(message);
-            }
+            day = 20 + toInt(d2, WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_DAY, valueString, dayValue);
             break;
 
         case '3':
@@ -454,123 +266,28 @@ public final class GeneralizedTime implements Comparable<GeneralizedTime> {
                 break;
 
             default:
-                final LocalizableMessage message =
-                        WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_DAY.get(valueString, valueString
-                                .substring(6, 8));
-                throw new LocalizedIllegalArgumentException(message);
+                throw new LocalizedIllegalArgumentException(
+                        WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_DAY.get(valueString, dayValue));
             }
             break;
 
         default:
-            final LocalizableMessage message =
-                    WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_DAY.get(valueString, valueString
-                            .substring(6, 8));
-            throw new LocalizedIllegalArgumentException(message);
+            throw new LocalizedIllegalArgumentException(
+                    WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_DAY.get(valueString, dayValue));
         }
 
         // The next two characters must be the hour, and they must form the
         // string representation of an integer between 00 and 23.
         final char h1 = valueString.charAt(8);
         final char h2 = valueString.charAt(9);
+        final String hourValue = valueString.substring(8, 10);
         switch (h1) {
         case '0':
-            switch (h2) {
-            case '0':
-                hour = 0;
-                break;
-
-            case '1':
-                hour = 1;
-                break;
-
-            case '2':
-                hour = 2;
-                break;
-
-            case '3':
-                hour = 3;
-                break;
-
-            case '4':
-                hour = 4;
-                break;
-
-            case '5':
-                hour = 5;
-                break;
-
-            case '6':
-                hour = 6;
-                break;
-
-            case '7':
-                hour = 7;
-                break;
-
-            case '8':
-                hour = 8;
-                break;
-
-            case '9':
-                hour = 9;
-                break;
-
-            default:
-                final LocalizableMessage message =
-                        WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_HOUR.get(valueString, valueString
-                                .substring(8, 10));
-                throw new LocalizedIllegalArgumentException(message);
-            }
+            hour = toInt(h2, WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_HOUR, valueString, hourValue);
             break;
 
         case '1':
-            switch (h2) {
-            case '0':
-                hour = 10;
-                break;
-
-            case '1':
-                hour = 11;
-                break;
-
-            case '2':
-                hour = 12;
-                break;
-
-            case '3':
-                hour = 13;
-                break;
-
-            case '4':
-                hour = 14;
-                break;
-
-            case '5':
-                hour = 15;
-                break;
-
-            case '6':
-                hour = 16;
-                break;
-
-            case '7':
-                hour = 17;
-                break;
-
-            case '8':
-                hour = 18;
-                break;
-
-            case '9':
-                hour = 19;
-                break;
-
-            default:
-                final LocalizableMessage message =
-                        WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_HOUR.get(valueString, valueString
-                                .substring(8, 10));
-                throw new LocalizedIllegalArgumentException(message);
-            }
+            hour = 10 + toInt(h2, WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_HOUR, valueString, hourValue);
             break;
 
         case '2':
@@ -592,18 +309,14 @@ public final class GeneralizedTime implements Comparable<GeneralizedTime> {
                 break;
 
             default:
-                final LocalizableMessage message =
-                        WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_HOUR.get(valueString, valueString
-                                .substring(8, 10));
-                throw new LocalizedIllegalArgumentException(message);
+                throw new LocalizedIllegalArgumentException(
+                        WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_HOUR.get(valueString, hourValue));
             }
             break;
 
         default:
-            final LocalizableMessage message =
-                    WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_HOUR.get(valueString, valueString
-                            .substring(8, 10));
-            throw new LocalizedIllegalArgumentException(message);
+            throw new LocalizedIllegalArgumentException(
+                    WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_HOUR.get(valueString, hourValue));
         }
 
         // Next, there should be either two digits comprising an integer
@@ -622,60 +335,12 @@ public final class GeneralizedTime implements Comparable<GeneralizedTime> {
             // There must be at least two more characters, and the next one
             // must be a digit between 0 and 9.
             if (length < 13) {
-                final LocalizableMessage message =
-                        WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(valueString, String
-                                .valueOf(m1), 10);
-                throw new LocalizedIllegalArgumentException(message);
+                throw invalidChar(valueString, m1, 10);
             }
 
             minute = 10 * (m1 - '0');
-
-            switch (valueString.charAt(11)) {
-            case '0':
-                break;
-
-            case '1':
-                minute += 1;
-                break;
-
-            case '2':
-                minute += 2;
-                break;
-
-            case '3':
-                minute += 3;
-                break;
-
-            case '4':
-                minute += 4;
-                break;
-
-            case '5':
-                minute += 5;
-                break;
-
-            case '6':
-                minute += 6;
-                break;
-
-            case '7':
-                minute += 7;
-                break;
-
-            case '8':
-                minute += 8;
-                break;
-
-            case '9':
-                minute += 9;
-                break;
-
-            default:
-                final LocalizableMessage message =
-                        WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_MINUTE.get(valueString,
-                                valueString.substring(10, 12));
-                throw new LocalizedIllegalArgumentException(message);
-            }
+            minute += toInt(valueString.charAt(11),
+                    WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_MINUTE, valueString, valueString.substring(10, 12));
 
             break;
 
@@ -685,10 +350,7 @@ public final class GeneralizedTime implements Comparable<GeneralizedTime> {
                 final TimeZone tz = TIME_ZONE_UTC_OBJ;
                 return createTime(valueString, year, month, day, hour, minute, second, tz);
             } else {
-                final LocalizableMessage message =
-                        WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(valueString, String
-                                .valueOf(m1), 10);
-                throw new LocalizedIllegalArgumentException(message);
+                throw invalidChar(valueString, m1, 10);
             }
 
         case '+':
@@ -699,10 +361,7 @@ public final class GeneralizedTime implements Comparable<GeneralizedTime> {
                 final TimeZone tz = getTimeZoneForOffset(valueString, 10);
                 return createTime(valueString, year, month, day, hour, minute, second, tz);
             } else {
-                final LocalizableMessage message =
-                        WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(valueString, String
-                                .valueOf(m1), 10);
-                throw new LocalizedIllegalArgumentException(message);
+                throw invalidChar(valueString, m1, 10);
             }
 
         case '.':
@@ -711,10 +370,7 @@ public final class GeneralizedTime implements Comparable<GeneralizedTime> {
                     3600000);
 
         default:
-            final LocalizableMessage message =
-                    WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(valueString, String
-                            .valueOf(m1), 10);
-            throw new LocalizedIllegalArgumentException(message);
+            throw invalidChar(valueString, m1, 10);
         }
 
         // Next, there should be either two digits comprising an integer
@@ -733,60 +389,12 @@ public final class GeneralizedTime implements Comparable<GeneralizedTime> {
             // There must be at least two more characters, and the next one
             // must be a digit between 0 and 9.
             if (length < 15) {
-                final LocalizableMessage message =
-                        WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(valueString, String
-                                .valueOf(s1), 12);
-                throw new LocalizedIllegalArgumentException(message);
+                throw invalidChar(valueString, s1, 12);
             }
 
             second = 10 * (s1 - '0');
-
-            switch (valueString.charAt(13)) {
-            case '0':
-                break;
-
-            case '1':
-                second += 1;
-                break;
-
-            case '2':
-                second += 2;
-                break;
-
-            case '3':
-                second += 3;
-                break;
-
-            case '4':
-                second += 4;
-                break;
-
-            case '5':
-                second += 5;
-                break;
-
-            case '6':
-                second += 6;
-                break;
-
-            case '7':
-                second += 7;
-                break;
-
-            case '8':
-                second += 8;
-                break;
-
-            case '9':
-                second += 9;
-                break;
-
-            default:
-                final LocalizableMessage message =
-                        WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_MINUTE.get(valueString,
-                                valueString.substring(12, 14));
-                throw new LocalizedIllegalArgumentException(message);
-            }
+            second += toInt(valueString.charAt(13),
+                WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_MINUTE, valueString, valueString.substring(12, 14));
 
             break;
 
@@ -794,17 +402,13 @@ public final class GeneralizedTime implements Comparable<GeneralizedTime> {
             // There must be at least two more characters and the next one
             // must be a 0.
             if (length < 15) {
-                final LocalizableMessage message =
-                        WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(valueString, String
-                                .valueOf(s1), 12);
-                throw new LocalizedIllegalArgumentException(message);
+                throw invalidChar(valueString, s1, 12);
             }
 
             if (valueString.charAt(13) != '0') {
-                final LocalizableMessage message =
-                        WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_SECOND.get(valueString,
-                                valueString.substring(12, 14));
-                throw new LocalizedIllegalArgumentException(message);
+                throw new LocalizedIllegalArgumentException(
+                        WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_SECOND.get(
+                                valueString, valueString.substring(12, 14)));
             }
 
             second = 60;
@@ -816,10 +420,7 @@ public final class GeneralizedTime implements Comparable<GeneralizedTime> {
                 final TimeZone tz = TIME_ZONE_UTC_OBJ;
                 return createTime(valueString, year, month, day, hour, minute, second, tz);
             } else {
-                final LocalizableMessage message =
-                        WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(valueString, String
-                                .valueOf(s1), 12);
-                throw new LocalizedIllegalArgumentException(message);
+                throw invalidChar(valueString, s1, 12);
             }
 
         case '+':
@@ -830,10 +431,7 @@ public final class GeneralizedTime implements Comparable<GeneralizedTime> {
                 final TimeZone tz = getTimeZoneForOffset(valueString, 12);
                 return createTime(valueString, year, month, day, hour, minute, second, tz);
             } else {
-                final LocalizableMessage message =
-                        WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(valueString, String
-                                .valueOf(s1), 12);
-                throw new LocalizedIllegalArgumentException(message);
+                throw invalidChar(valueString, s1, 12);
             }
 
         case '.':
@@ -842,10 +440,7 @@ public final class GeneralizedTime implements Comparable<GeneralizedTime> {
                     60000);
 
         default:
-            final LocalizableMessage message =
-                    WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(valueString, String
-                            .valueOf(s1), 12);
-            throw new LocalizedIllegalArgumentException(message);
+            throw invalidChar(valueString, s1, 12);
         }
 
         // Next, there should be either a period or comma followed by
@@ -864,10 +459,7 @@ public final class GeneralizedTime implements Comparable<GeneralizedTime> {
                 final TimeZone tz = TIME_ZONE_UTC_OBJ;
                 return createTime(valueString, year, month, day, hour, minute, second, tz);
             } else {
-                final LocalizableMessage message =
-                        WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(valueString, String
-                                .valueOf(valueString.charAt(14)), 14);
-                throw new LocalizedIllegalArgumentException(message);
+                throw invalidChar(valueString, valueString.charAt(14), 14);
             }
 
         case '+':
@@ -878,17 +470,45 @@ public final class GeneralizedTime implements Comparable<GeneralizedTime> {
                 final TimeZone tz = getTimeZoneForOffset(valueString, 14);
                 return createTime(valueString, year, month, day, hour, minute, second, tz);
             } else {
-                final LocalizableMessage message =
-                        WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(valueString, String
-                                .valueOf(valueString.charAt(14)), 14);
-                throw new LocalizedIllegalArgumentException(message);
+                throw invalidChar(valueString, valueString.charAt(14), 14);
             }
 
         default:
-            final LocalizableMessage message =
-                    WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(valueString, String
-                            .valueOf(valueString.charAt(14)), 14);
-            throw new LocalizedIllegalArgumentException(message);
+            throw invalidChar(valueString, valueString.charAt(14), 14);
+        }
+    }
+
+    private static LocalizedIllegalArgumentException invalidChar(String valueString, char c, int pos) {
+        return new LocalizedIllegalArgumentException(
+                WARN_ATTR_SYNTAX_GENERALIZED_TIME_INVALID_CHAR.get(
+                        valueString, String.valueOf(c), pos));
+    }
+
+    private static int toInt(char c, Arg2<Object, Object> invalidSyntaxMsg, String valueString, String unitValue) {
+        switch (c) {
+        case '0':
+            return 0;
+        case '1':
+            return 1;
+        case '2':
+            return 2;
+        case '3':
+            return 3;
+        case '4':
+            return 4;
+        case '5':
+            return 5;
+        case '6':
+            return 6;
+        case '7':
+            return 7;
+        case '8':
+            return 8;
+        case '9':
+            return 9;
+        default:
+            throw new LocalizedIllegalArgumentException(
+                invalidSyntaxMsg.get(valueString, unitValue));
         }
     }
 
