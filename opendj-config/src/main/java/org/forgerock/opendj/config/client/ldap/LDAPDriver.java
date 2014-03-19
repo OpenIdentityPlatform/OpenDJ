@@ -405,7 +405,7 @@ final class LDAPDriver extends Driver {
         // Delete the entry and any subordinate entries.
         DN dn = DNBuilder.create(path, profile);
         try {
-            connection.deleteSubtree(dn.toString());
+            deleteSubtree(dn);
         } catch (ErrorResultException e) {
             if (e.getResult().getResultCode() == ResultCode.UNWILLING_TO_PERFORM) {
                 AbstractManagedObjectDefinition<?, ?> d = path.getManagedObjectDefinition();
@@ -555,6 +555,20 @@ final class LDAPDriver extends Driver {
         };
 
         return d.resolveManagedObjectDefinition(resolver);
+    }
+
+    /*
+     * Delete a subtree of entries. We cannot use the subtree delete control because it is not supported by the config
+     * backend.
+     */
+    private void deleteSubtree(DN dn) throws ErrorResultException {
+        // Delete the children first.
+        for (DN child : listEntries(dn, Filter.objectClassPresent())) {
+            deleteSubtree(child);
+        }
+
+        // Delete the named entry.
+        connection.delete(dn.toString());
     }
 
     private Collection<DN> listEntries(DN dn, Filter filter) throws ErrorResultException {
