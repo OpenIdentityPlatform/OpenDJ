@@ -1631,10 +1631,9 @@ public class VerifyJob
     {
       final AttributeType attrType = attr.getAttributeType();
       MatchingRule equalityRule = attrType.getEqualityMatchingRule();
-      for (AttributeValue value : attr)
+      for (ByteString value : attr)
       {
-        final ByteString bsValue = value.getValue();
-        byte[] normalizedBytes = normalize(equalityRule, bsValue);
+        byte[] normalizedBytes = normalize(equalityRule, value);
 
         if (equalityIndex != null)
         {
@@ -1653,13 +1652,13 @@ public class VerifyJob
 
         if (orderingIndex != null)
         {
-          key.setData(normalize(attrType.getOrderingMatchingRule(), bsValue));
+          key.setData(normalize(attrType.getOrderingMatchingRule(), value));
           verifyAttributeInIndex(orderingIndex, txn, key, entryID);
         }
 
         if (approximateIndex != null)
         {
-          key.setData(normalize(attrType.getApproximateMatchingRule(), bsValue));
+          key.setData(normalize(attrType.getApproximateMatchingRule(), value));
           verifyAttributeInIndex(approximateIndex, txn, key, entryID);
         }
       }

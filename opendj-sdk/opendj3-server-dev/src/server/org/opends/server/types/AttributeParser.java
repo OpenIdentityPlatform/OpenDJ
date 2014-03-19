@@ -120,7 +120,7 @@ public final class AttributeParser {
      */
     public <T> T as(final Function<ByteString, ? extends T, Void> f, final T defaultValue) {
         if (!isEmpty(attribute)) {
-            return f.apply(attribute.iterator().next().getValue(), null);
+            return f.apply(attribute.iterator().next(), null);
         } else {
             return defaultValue;
         }
@@ -255,8 +255,8 @@ public final class AttributeParser {
             final Collection<? extends T> defaultValues) {
         if (!isEmpty(attribute)) {
             final LinkedHashSet<T> result = new LinkedHashSet<T>(attribute.size());
-            for (final AttributeValue v : attribute) {
-                result.add(f.apply(v.getValue(), null));
+            for (final ByteString v : attribute) {
+                result.add(f.apply(v, null));
             }
             return result;
         } else if (defaultValues != null) {

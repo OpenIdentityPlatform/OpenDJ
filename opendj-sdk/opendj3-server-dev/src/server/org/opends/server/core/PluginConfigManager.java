@@ -1011,8 +1011,7 @@ public class PluginConfigManager
       for (DirectoryServerPlugin p : pluginArray)
       {
         DN dn = p.getPluginEntryDN();
-        String lowerName =
-            toLowerCase(dn.rdn().getAttributeValue(0).getValue().toString());
+        String lowerName = toLowerCase(dn.rdn().getAttributeValue(0).toString());
         if (initialPluginNames.contains(lowerName))
         {
           initialPlugins.put(lowerName, p);
@@ -1031,8 +1030,7 @@ public class PluginConfigManager
       // Get the name of the provided plugin from its RDN value and put it in
       // the correct category.
       DN dn = plugin.getPluginEntryDN();
-      String lowerName =
-           toLowerCase(dn.rdn().getAttributeValue(0).getValue().toString());
+      String lowerName = toLowerCase(dn.rdn().getAttributeValue(0).toString());
       if (initialPluginNames.contains(lowerName))
       {
         initialPlugins.put(lowerName, plugin);

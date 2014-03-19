@@ -26,12 +26,12 @@
  */
 package org.opends.server.types;
 
-import static org.opends.server.util.StaticUtils.*;
-
 import java.util.Collection;
 import java.util.Set;
 
+import org.forgerock.opendj.ldap.ByteString;
 
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * An abstract base class for implementing new types of
@@ -60,18 +60,18 @@ public abstract class AbstractAttribute implements Attribute
    * <p>
    * This implementation iterates through each attribute value in the
    * provided collection, checking to see if this attribute contains
-   * the value using {@link #contains(AttributeValue)}.
+   * the value using {@link #contains(ByteString)}.
    */
-  public boolean containsAll(Collection<AttributeValue> values)
+  @Override
+  public boolean containsAll(Collection<ByteString> values)
   {
-    for (AttributeValue value : values)
+    for (ByteString value : values)
     {
       if (!contains(value))
       {
         return false;
       }
     }
-
     return true;
   }
 
@@ -101,7 +101,7 @@ public abstract class AbstractAttribute implements Attribute
         return false;
       }
 
-      for (AttributeValue v : a)
+      for (ByteString v : a)
       {
         if (!contains(v))
         {
@@ -126,6 +126,7 @@ public abstract class AbstractAttribute implements Attribute
    * attribute's attribute type or, if there is no primary name, the
    * attribute type's OID.
    */
+  @Override
   public String getName()
   {
     return getAttributeType().getNameOrOID();
@@ -141,6 +142,7 @@ public abstract class AbstractAttribute implements Attribute
    * this attribute's name followed by a semi-colon and a semi-colon
    * separated list of its attribute options.
    */
+  @Override
   public String getNameWithOptions()
   {
     if (!hasOptions())
@@ -173,6 +175,7 @@ public abstract class AbstractAttribute implements Attribute
    * {@link #hasOption(String)} and <code>true</code> is
    * returned if all the provided options are present.
    */
+  @Override
   public boolean hasAllOptions(Collection<String> options)
   {
     if (options == null || options.isEmpty())
@@ -202,15 +205,13 @@ public abstract class AbstractAttribute implements Attribute
    * {@inheritDoc}
    */
   @Override
-  public final int hashCode()
+  public int hashCode()
   {
     int hashCode = getAttributeType().hashCode();
-
-    for (AttributeValue value : this)
+    for (ByteString value : this)
     {
       hashCode += value.hashCode();
     }
-
     return hashCode;
   }
 
@@ -225,6 +226,7 @@ public abstract class AbstractAttribute implements Attribute
    * case insensitive (this is why we iterate through the set of
    * options, rather than doing a simpler set membership test).
    */
+  @Override
   public boolean hasOption(String option)
   {
     String noption = toLowerCase(option);
@@ -250,6 +252,7 @@ public abstract class AbstractAttribute implements Attribute
    * This implementation retrieves the set of options associated with
    * this attribute and tests to see if it is empty.
    */
+  @Override
   public boolean hasOptions()
   {
     return !getOptions().isEmpty();
@@ -263,6 +266,7 @@ public abstract class AbstractAttribute implements Attribute
    * This implementation returns <code>true</code> if the
    * {@link #size()} of this attribute is zero.
    */
+  @Override
   public boolean isEmpty()
   {
     return size() == 0;
@@ -282,6 +286,7 @@ public abstract class AbstractAttribute implements Attribute
    * {@link #hasOption(String)} and <code>true</code> is
    * returned if all the provided options are present.
    */
+  @Override
   public boolean optionsEqual(Set<String> options)
   {
     if (options == null)

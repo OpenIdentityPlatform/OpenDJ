@@ -328,7 +328,7 @@ public class TestVLVIndex extends DirectoryServerTestCase {
         int i = 0;
         for(SortValues values : expectedSortedValues)
         {
-          AttributeValue[] attrValues = values.getValues();
+          ByteString[] attrValues = values.getValues();
           AttributeType[] attrTypes = values.getTypes();
           for(int j = 0; j < attrValues.length; j++)
           {
@@ -345,7 +345,7 @@ public class TestVLVIndex extends DirectoryServerTestCase {
             if(attrValues[j] != null)
             {
               MatchingRule eqRule = attrTypes[j].getEqualityMatchingRule();
-              oValue = eqRule.normalizeAttributeValue(attrValues[j].getValue());
+              oValue = eqRule.normalizeAttributeValue(attrValues[j]);
             }
             assertEquals(value, oValue);
           }

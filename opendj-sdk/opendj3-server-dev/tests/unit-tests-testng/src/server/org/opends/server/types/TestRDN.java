@@ -28,20 +28,15 @@ package org.opends.server.types;
 
 import java.util.ArrayList;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.assertNull;
-import static org.testng.Assert.fail;
+import static org.testng.Assert.*;
 
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.util.Platform;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-
 
 /**
  * This class defines a set of tests for the
@@ -56,13 +51,13 @@ public final class TestRDN extends TypesTestCase {
   private AttributeType AT_CN;
 
   // Test attribute value.
-  private AttributeValue AV_DC_ORG;
+  private ByteString AV_DC_ORG;
 
   // Test attribute value.
-  private AttributeValue AV_DC_OPENDS;
+  private ByteString AV_DC_OPENDS;
 
   // Test attribute value.
-  private AttributeValue AV_CN;
+  private ByteString AV_CN;
 
 
 
@@ -86,9 +81,9 @@ public final class TestRDN extends TypesTestCase {
             .getDefaultIntegerSyntax());
     DirectoryServer.getSchema().registerAttributeType(dummy, true);
 
-    AV_DC_ORG = AttributeValues.create(AT_DC, "org");
-    AV_DC_OPENDS = AttributeValues.create(AT_DC, "opends");
-    AV_CN = AttributeValues.create(AT_DC, "hello world");
+    AV_DC_ORG = ByteString.valueOf("org");
+    AV_DC_OPENDS = ByteString.valueOf("opends");
+    AV_CN = ByteString.valueOf("hello world");
   }
 
 
@@ -140,7 +135,7 @@ public final class TestRDN extends TypesTestCase {
     AttributeType[]  attrTypes  = { AT_DC, AT_CN };
     String[]         attrNames  = { AT_DC.getNameOrOID(),
                                     AT_CN.getNameOrOID() };
-    AttributeValue[] attrValues = { AV_DC_ORG, AV_CN };
+    ByteString[]     attrValues = { AV_DC_ORG, AV_CN };
 
     RDN rdn = new RDN(attrTypes, attrNames, attrValues);
 
@@ -167,7 +162,7 @@ public final class TestRDN extends TypesTestCase {
   public void testConstructorMultiAVAList() throws Exception {
     ArrayList<AttributeType>  typeList  = new ArrayList<AttributeType>();
     ArrayList<String>         nameList  = new ArrayList<String>();
-    ArrayList<AttributeValue> valueList = new ArrayList<AttributeValue>();
+    ArrayList<ByteString>     valueList = new ArrayList<ByteString>();
 
     typeList.add(AT_DC);
     nameList.add(AT_DC.getNameOrOID());
@@ -320,7 +315,7 @@ public final class TestRDN extends TypesTestCase {
     AttributeType[]  attrTypes  = { AT_DC, AT_CN };
     String[]         attrNames  = { AT_DC.getNameOrOID(),
                                     AT_CN.getNameOrOID() };
-    AttributeValue[] attrValues = { AV_DC_ORG, AV_CN };
+    ByteString[]     attrValues = { AV_DC_ORG, AV_CN };
 
     RDN rdn = new RDN(attrTypes, attrNames, attrValues);
 
@@ -338,9 +333,7 @@ public final class TestRDN extends TypesTestCase {
    */
   @Test(expectedExceptions = IndexOutOfBoundsException.class)
   public void testGetAttributeNameException() throws Exception {
-    RDN rdn = new RDN(new AttributeType[0], new String[0],
-                      new AttributeValue[0]);
-
+    RDN rdn = new RDN(new AttributeType[0], new String[0], new ByteString[0]);
     rdn.getAttributeName(1);
   }
 
@@ -357,7 +350,7 @@ public final class TestRDN extends TypesTestCase {
     AttributeType[]  attrTypes  = { AT_DC, AT_CN };
     String[]         attrNames  = { AT_DC.getNameOrOID(),
                                     AT_CN.getNameOrOID() };
-    AttributeValue[] attrValues = { AV_DC_ORG, AV_CN };
+    ByteString[]     attrValues = { AV_DC_ORG, AV_CN };
 
     RDN rdn = new RDN(attrTypes, attrNames, attrValues);
 
@@ -375,9 +368,7 @@ public final class TestRDN extends TypesTestCase {
    */
   @Test(expectedExceptions = IndexOutOfBoundsException.class)
   public void testGetAttributeTypeException() throws Exception {
-    RDN rdn = new RDN(new AttributeType[0], new String[0],
-                      new AttributeValue[0]);
-
+    RDN rdn = new RDN(new AttributeType[0], new String[0], new ByteString[0]);
     rdn.getAttributeType(1);
   }
 
@@ -394,7 +385,7 @@ public final class TestRDN extends TypesTestCase {
     AttributeType[]  attrTypes  = { AT_DC, AT_CN };
     String[]         attrNames  = { AT_DC.getNameOrOID(),
                                     AT_CN.getNameOrOID() };
-    AttributeValue[] attrValues = { AV_DC_ORG, AV_CN };
+    ByteString[]     attrValues = { AV_DC_ORG, AV_CN };
 
     RDN rdn = new RDN(attrTypes, attrNames, attrValues);
 
@@ -412,9 +403,7 @@ public final class TestRDN extends TypesTestCase {
    */
   @Test(expectedExceptions = IndexOutOfBoundsException.class)
   public void testGetAttributeValueException() throws Exception {
-    RDN rdn = new RDN(new AttributeType[0], new String[0],
-                      new AttributeValue[0]);
-
+    RDN rdn = new RDN(new AttributeType[0], new String[0], new ByteString[0]);
     rdn.getAttributeValue(1);
   }
 
@@ -571,7 +560,7 @@ public final class TestRDN extends TypesTestCase {
   public void testDuplicateMultiValued() {
     AttributeType[]  types  = new AttributeType[] { AT_DC, AT_CN };
     String[]         names  = new String[] { "dc", "cn" };
-    AttributeValue[] values = new AttributeValue[] { AV_DC_ORG, AV_CN };
+    ByteString[]     values = new ByteString[] { AV_DC_ORG, AV_CN };
 
     RDN rdn1 = new RDN(types, names, values);
     RDN rdn2 = rdn1.duplicate();

@@ -391,7 +391,7 @@ public class TestVerifyJob extends JebTestCase
 
       // Add an incorrectly ordered values.
       SortValuesSet svs =
-          vlvIndex.getSortValuesSet(null, 0, new AttributeValue[3], new AttributeType[3]);
+          vlvIndex.getSortValuesSet(null, 0, new ByteString[3], new AttributeType[3]);
       long id = svs.getEntryIDs()[0];
       Entry entry = eContainer.getID2Entry().get(null, new EntryID(id), LockMode.DEFAULT);
 
@@ -404,8 +404,8 @@ public class TestVerifyJob extends JebTestCase
       // Muck up the values of another ID
       id = svs.getEntryIDs()[0];
       entry = eContainer.getID2Entry().get(null, new EntryID(id), LockMode.DEFAULT);
-      AttributeValue[] values = vlvIndex.getSortValues(entry);
-      AttributeValue[] badValues = new AttributeValue[values.length];
+      ByteString[] values = vlvIndex.getSortValues(entry);
+      ByteString[] badValues = new ByteString[values.length];
       System.arraycopy(values, 1, badValues, 0, values.length - 1);
       badValues[badValues.length-1] = values[0];
       svs.remove(id, values, types);
@@ -694,8 +694,7 @@ public class TestVerifyJob extends JebTestCase
       AttributeType[] types = vlvIndex.getSortTypes();
 
       // Remove an ID
-      SortValuesSet svs =
-          vlvIndex.getSortValuesSet(null, 0, new AttributeValue[3], types);
+      SortValuesSet svs = vlvIndex.getSortValuesSet(null, 0, new ByteString[3], types);
       long id = svs.getEntryIDs()[0];
       Entry entry = eContainer.getID2Entry().get(null, new EntryID(id), LockMode.DEFAULT);
       svs.remove(id, vlvIndex.getSortValues(entry), types);
@@ -707,8 +706,8 @@ public class TestVerifyJob extends JebTestCase
       // Muck up the values of another ID
       id = svs.getEntryIDs()[0];
       entry = eContainer.getID2Entry().get(null, new EntryID(id), LockMode.DEFAULT);
-      AttributeValue[] values = vlvIndex.getSortValues(entry);
-      AttributeValue[] badValues = new AttributeValue[values.length];
+      ByteString[] values = vlvIndex.getSortValues(entry);
+      ByteString[] badValues = new ByteString[values.length];
       System.arraycopy(values, 1, badValues, 0, values.length - 1);
       badValues[badValues.length-1] = values[0];
       svs.remove(id, values, types);
@@ -877,9 +876,8 @@ public class TestVerifyJob extends JebTestCase
     if (attrType == null)
       attrType = DirectoryServer.getDefaultAttributeType(type);
     List<Attribute> attrList = e.getAttribute(attrType, null);
-    AttributeValue v = attrList.get(0).iterator().next();
-    long retVal = Long.parseLong(v.getValue().toString());
-    return (retVal);
+    ByteString v = attrList.get(0).iterator().next();
+    return Long.parseLong(v.toString());
   }
 
   /**

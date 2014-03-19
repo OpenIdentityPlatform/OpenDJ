@@ -98,6 +98,7 @@ import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.guitools.controlpanel.ui.renderer.CustomListCellRenderer;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.quicksetup.UserDataCertificateException;
 import org.opends.quicksetup.ui.CertificateDialog;
 import org.opends.quicksetup.util.UIKeyStore;
@@ -876,8 +877,7 @@ implements BackendPopulatedListener
             getInfo().getServerDescriptor().getSchema().getAttributeType(
                 attr.toString().toLowerCase());
           LDAPFilter ldapFilter =
-            new LDAPFilter(SearchFilter.createEqualityFilter(
-              attrType, AttributeValues.create(attrType, s)));
+            new LDAPFilter(SearchFilter.createEqualityFilter( attrType, ByteString.valueOf(s)));
           returnValue = ldapFilter.toString();
         }
       }

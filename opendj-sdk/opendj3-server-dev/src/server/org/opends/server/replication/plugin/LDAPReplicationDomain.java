@@ -818,14 +818,14 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    */
   public static class AttributeValueStringIterator implements Iterator<String>
   {
-    private Iterator<AttributeValue> attrValIt;
+    private Iterator<ByteString> attrValIt;
 
     /**
      * Creates a new AttributeValueStringIterator object.
      * @param attrValIt The underlying attribute iterator to use, assuming
      * internal values are strings.
      */
-    public AttributeValueStringIterator(Iterator<AttributeValue> attrValIt)
+    public AttributeValueStringIterator(Iterator<ByteString> attrValIt)
     {
       this.attrValIt = attrValIt;
     }
@@ -841,7 +841,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     @Override
     public String next()
     {
-      return attrValIt.next().getValue().toString();
+      return attrValIt.next().toString();
     }
 
     /** {@inheritDoc} */
@@ -1224,16 +1224,16 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         support remove so we have to create a new list, keeping only the
         attribute value which is the same as in the RDN
         */
-        AttributeValue rdnAttributeValue =
+        ByteString rdnAttributeValue =
           entryRdn.getAttributeValue(attributeType);
         List<Attribute> attrList = attributesMap.get(attributeType);
-        AttributeValue sameAttrValue = null;
+        ByteString sameAttrValue = null;
         // Locate the attribute value identical to the one in the RDN
         for (Attribute attr : attrList)
         {
           if (attr.contains(rdnAttributeValue))
           {
-            for (AttributeValue attrValue : attr) {
+            for (ByteString attrValue : attr) {
               if (rdnAttributeValue.equals(attrValue)) {
                 // Keep the value we want
                 sameAttrValue = attrValue;
@@ -3102,8 +3102,7 @@ private boolean solveNamingConflict(ModifyDNOperation op,
     // create new internal modify operation and run it.
     AttributeType attrType = DirectoryServer.getAttributeType(DS_SYNC_CONFLICT,
         true);
-    Attribute attr = Attributes.create(attrType, AttributeValues.create(
-        attrType, conflictDN.toNormalizedString()));
+    Attribute attr = Attributes.create(attrType, conflictDN.toNormalizedString());
     List<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE, attr));
 

@@ -29,6 +29,7 @@ package org.opends.server.replication.plugin;
 import java.util.*;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.common.CSN;
@@ -320,7 +321,7 @@ public class EntryHistorical
     // Get the CSN from the attached synchronization context
     // Create the attribute (encoded)
     CSN addCSN = OperationContext.getCSN(addOperation);
-    AttributeValue attrValue = encodeHistorical(addCSN, "add");
+    String attrValue = encodeHistorical(addCSN, "add");
     Attribute attr = Attributes.create(historicalAttrType, attrValue);
 
     // Set the created attribute to the operation
@@ -341,13 +342,9 @@ public class EntryHistorical
    * @return The attribute value containing the historical information for the
    *         Operation type.
    */
-  private static AttributeValue encodeHistorical(CSN csn, String operationType)
+  private static String encodeHistorical(CSN csn, String operationType)
   {
-    AttributeType historicalAttrType =
-      DirectoryServer.getSchema().getAttributeType(HISTORICAL_ATTRIBUTE_NAME);
-
-    String strValue = "dn:" + csn + ":" + operationType;
-    return AttributeValues.create(historicalAttrType, strValue);
+    return "dn:" + csn + ":" + operationType;
   }
 
   /**
@@ -465,7 +462,7 @@ public class EntryHistorical
         for (AttrValueHistorical attrValHist : attrHist.getValuesHistorical()
             .keySet())
         {
-          final AttributeValue value = attrValHist.getAttributeValue();
+          final ByteString value = attrValHist.getAttributeValue();
 
           // Encode an attribute value
           final String strValue;
@@ -478,7 +475,7 @@ public class EntryHistorical
             }
             strValue = encode("del", type, optionsString, attrValHist
                     .getValueDeleteTime(), value);
-            builder.add(AttributeValues.create(historicalAttrType, strValue));
+            builder.add(strValue);
           }
           else if (attrValHist.getValueUpdateTime() != null)
           {
@@ -507,7 +504,7 @@ public class EntryHistorical
               strValue = encode("add", type, optionsString, updateTime);
             }
 
-            builder.add(AttributeValues.create(historicalAttrType, strValue));
+            builder.add(strValue);
           }
         }
 
@@ -519,7 +516,7 @@ public class EntryHistorical
             continue;
           }
           String strValue = encode("attrDel", type, optionsString, deleteTime);
-          builder.add(AttributeValues.create(historicalAttrType, strValue));
+          builder.add(strValue);
         }
       }
     }
@@ -560,7 +557,7 @@ public class EntryHistorical
   }
 
   private String encode(String operation, AttributeType type,
-      String optionsString, CSN changeTime, AttributeValue value)
+      String optionsString, CSN changeTime, ByteString value)
   {
     return type.getNormalizedPrimaryName() + optionsString + ":" + changeTime
         + ":" + operation + ":" + value;
@@ -650,16 +647,16 @@ public class EntryHistorical
       for (Attribute histAttrFromEntry : histAttrWithOptionsFromEntry)
       {
         // For each Attribute (option), traverse the values
-        for (AttributeValue histAttrValueFromEntry : histAttrFromEntry)
+        for (ByteString histAttrValueFromEntry : histAttrFromEntry)
         {
           // From each value of the hist attr, create an object
           HistoricalAttributeValue histVal = new HistoricalAttributeValue(
-              histAttrValueFromEntry.getValue().toString());
+              histAttrValueFromEntry.toString());
 
           AttributeType attrType = histVal.getAttrType();
           Set<String> options = histVal.getOptions();
           CSN csn = histVal.getCSN();
-          AttributeValue value = histVal.getAttributeValue();
+          ByteString value = histVal.getAttributeValue();
           HistAttrModificationKey histKey = histVal.getHistKey();
 
           // update the oldest CSN stored in the new entry historical
@@ -753,10 +750,10 @@ public class EntryHistorical
     {
       for (Attribute attr : attrs)
       {
-        for (AttributeValue val : attr)
+        for (ByteString val : attr)
         {
           HistoricalAttributeValue histVal =
-            new HistoricalAttributeValue(val.getValue().toString());
+            new HistoricalAttributeValue(val.toString());
           if (histVal.isADDOperation())
           {
             // Found some historical information indicating that this
@@ -903,11 +900,10 @@ public class EntryHistorical
   {
     if (entryUUIDAttributes != null)
     {
-      Attribute uuid = entryUUIDAttributes.get(0);
-      if (!uuid.isEmpty())
+      Attribute uuidAttr = entryUUIDAttributes.get(0);
+      if (!uuidAttr.isEmpty())
       {
-        AttributeValue uuidVal = uuid.iterator().next();
-        return uuidVal.getValue().toString();
+        return uuidAttr.iterator().next().toString();
       }
     }
 

@@ -138,7 +138,7 @@ public class MatchedValuesFilter
   private AttributeType attributeType;
 
   // The processed assertion value for this matched values filter.
-  private AttributeValue assertionValue;
+  private ByteString assertionValue;
 
   // Indicates whether the elements of this matched values filter have been
   // fully decoded.
@@ -242,15 +242,14 @@ public class MatchedValuesFilter
    */
   public static MatchedValuesFilter createEqualityFilter(
                                          AttributeType attributeType,
-                                         AttributeValue assertionValue)
+                                         ByteString assertionValue)
   {
     Reject.ifNull(attributeType, assertionValue);
     String rawAttributeType = attributeType.getNameOrOID();
-    ByteString rawAssertionValue = assertionValue.getValue();
 
     MatchedValuesFilter filter =
          new MatchedValuesFilter(EQUALITY_MATCH_TYPE, rawAttributeType,
-                                 rawAssertionValue, null, null, null, null);
+                                 assertionValue, null, null, null, null);
     filter.attributeType  = attributeType;
     filter.assertionValue = assertionValue;
 
@@ -341,16 +340,15 @@ public class MatchedValuesFilter
    */
   public static MatchedValuesFilter createGreaterOrEqualFilter(
                                          AttributeType attributeType,
-                                         AttributeValue assertionValue)
+                                         ByteString assertionValue)
   {
     Reject.ifNull(attributeType, assertionValue);
 
     String          rawAttributeType  = attributeType.getNameOrOID();
-    ByteString rawAssertionValue = assertionValue.getValue();
 
     MatchedValuesFilter filter =
          new MatchedValuesFilter(GREATER_OR_EQUAL_TYPE, rawAttributeType,
-                                 rawAssertionValue, null, null, null, null);
+                                 assertionValue, null, null, null, null);
     filter.attributeType  = attributeType;
     filter.assertionValue = assertionValue;
 
@@ -388,16 +386,15 @@ public class MatchedValuesFilter
    */
   public static MatchedValuesFilter createLessOrEqualFilter(
                                          AttributeType attributeType,
-                                         AttributeValue assertionValue)
+                                         ByteString assertionValue)
   {
     Reject.ifNull(attributeType, assertionValue);
 
     String          rawAttributeType = attributeType.getNameOrOID();
-    ByteString rawAssertionValue = assertionValue.getValue();
 
     MatchedValuesFilter filter =
          new MatchedValuesFilter(LESS_OR_EQUAL_TYPE, rawAttributeType,
-                                 rawAssertionValue, null, null, null, null);
+                                 assertionValue, null, null, null, null);
     filter.attributeType  = attributeType;
     filter.assertionValue = assertionValue;
 
@@ -475,15 +472,14 @@ public class MatchedValuesFilter
    */
   public static MatchedValuesFilter createApproximateFilter(
                                          AttributeType attributeType,
-                                         AttributeValue assertionValue)
+                                         ByteString assertionValue)
   {
     Reject.ifNull(attributeType,assertionValue);
     String          rawAttributeType  = attributeType.getNameOrOID();
-    ByteString rawAssertionValue = assertionValue.getValue();
 
     MatchedValuesFilter filter =
          new MatchedValuesFilter(APPROXIMATE_MATCH_TYPE, rawAttributeType,
-                                 rawAssertionValue, null, null, null, null);
+                                 assertionValue, null, null, null, null);
     filter.attributeType  = attributeType;
     filter.assertionValue = assertionValue;
 
@@ -526,16 +522,15 @@ public class MatchedValuesFilter
   public static MatchedValuesFilter createExtensibleMatchFilter(
                                          AttributeType attributeType,
                                          MatchingRule matchingRule,
-                                         AttributeValue assertionValue)
+                                         ByteString assertionValue)
   {
     Reject.ifNull(attributeType, matchingRule, assertionValue);
     String rawAttributeType = attributeType.getNameOrOID();
     String matchingRuleID = matchingRule.getOID();
-    ByteString rawAssertionValue = assertionValue.getValue();
 
     MatchedValuesFilter filter =
          new MatchedValuesFilter(EXTENSIBLE_MATCH_TYPE, rawAttributeType,
-                                 rawAssertionValue, null, null, null,
+                                 assertionValue, null, null, null,
                                  matchingRuleID);
     filter.attributeType  = attributeType;
     filter.assertionValue = assertionValue;
@@ -849,7 +844,6 @@ public class MatchedValuesFilter
 
           String     rawAttributeType  = null;
           String     matchingRuleID    = null;
-          ByteString rawAssertionValue;
 
           if(reader.peekType() == TYPE_MATCHING_RULE_ID)
           {
@@ -860,7 +854,7 @@ public class MatchedValuesFilter
           {
              rawAttributeType = reader.readOctetStringAsString();
           }
-          rawAssertionValue = reader.readOctetString();
+          ByteString rawAssertionValue = reader.readOctetString();
           reader.readEndSequence();
 
           return new MatchedValuesFilter(type, rawAttributeType,
@@ -958,17 +952,12 @@ public class MatchedValuesFilter
    * @return  The assertion value for this matched values filter, or
    *          <CODE>null</CODE> if there is none.
    */
-  public AttributeValue getAssertionValue()
+  public ByteString getAssertionValue()
   {
-    if (assertionValue == null)
+    if (assertionValue == null && rawAssertionValue != null)
     {
-      if (rawAssertionValue != null)
-      {
-        assertionValue = AttributeValues.create(
-            getAttributeType(), rawAssertionValue);
-      }
+      assertionValue = rawAssertionValue;
     }
-
     return assertionValue;
   }
 
@@ -1286,7 +1275,7 @@ public class MatchedValuesFilter
    *          criteria defined in this matched values filter, or
    *          <CODE>false</CODE> if not.
    */
-  public boolean valueMatches(AttributeType type, AttributeValue value)
+  public boolean valueMatches(AttributeType type, ByteString value)
   {
     fullyDecode();
 
@@ -1301,7 +1290,7 @@ public class MatchedValuesFilter
         {
           try
           {
-            final ByteString normValue = equalityMatchingRule.normalizeAttributeValue(value.getValue());
+            final ByteString normValue = equalityMatchingRule.normalizeAttributeValue(value);
             final Assertion assertion = equalityMatchingRule.getAssertion(rawAssertionValue);
             return assertion.matches(normValue).toBoolean();
           }
@@ -1322,11 +1311,9 @@ public class MatchedValuesFilter
           {
             ArrayList<ByteSequence> normalizedSubAnyBS =
                  new ArrayList<ByteSequence>(normalizedSubAny);
-
             return substringMatchingRule.valueMatchesSubstring(
-                 substringMatchingRule.normalizeAttributeValue(value.getValue()),
-                 normalizedSubInitial,
-                 normalizedSubAnyBS, normalizedSubFinal);
+                 substringMatchingRule.normalizeAttributeValue(value),
+                 normalizedSubInitial, normalizedSubAnyBS, normalizedSubFinal);
           }
           catch (Exception e)
           {
@@ -1345,11 +1332,9 @@ public class MatchedValuesFilter
         {
           try
           {
-            ByteString nv = orderingMatchingRule.normalizeAssertionValue(value.getValue());
+            ByteString nv = orderingMatchingRule.normalizeAssertionValue(value);
             return orderingMatchingRule.compareValues(
-                         nv,
-                         orderingMatchingRule.normalizeAttributeValue(
-                         value.getValue())) >= 0;
+                nv, orderingMatchingRule.normalizeAttributeValue(value)) >= 0;
           }
           catch (Exception e)
           {
@@ -1368,11 +1353,9 @@ public class MatchedValuesFilter
         {
           try
           {
-            ByteString nv = orderingMatchingRule.normalizeAssertionValue(value.getValue());
+            ByteString nv = orderingMatchingRule.normalizeAssertionValue(value);
             return orderingMatchingRule.compareValues(
-                         nv,
-                         orderingMatchingRule.normalizeAttributeValue(
-                         value.getValue())) <= 0;
+                nv, orderingMatchingRule.normalizeAttributeValue(value)) <= 0;
           }
           catch (Exception e)
           {
@@ -1395,8 +1378,8 @@ public class MatchedValuesFilter
         {
           try
           {
-            Assertion assertion = approximateMatchingRule.getAssertion(assertionValue.getValue());
-            ByteString nv = approximateMatchingRule.normalizeAttributeValue(value.getValue());
+            Assertion assertion = approximateMatchingRule.getAssertion(assertionValue);
+            ByteString nv = approximateMatchingRule.normalizeAttributeValue(value);
             return assertion.matches(nv).toBoolean();
           }
           catch (Exception e)
@@ -1422,9 +1405,8 @@ public class MatchedValuesFilter
 
           try
           {
-            ByteString nv1 =
-                 matchingRule.normalizeAttributeValue(value.getValue());
-            Assertion assertion = matchingRule.getAssertion(assertionValue.getValue());
+            ByteString nv1 = matchingRule.normalizeAttributeValue(value);
+            Assertion assertion = matchingRule.getAssertion(assertionValue);
             return assertion.matches(nv1) == ConditionResult.TRUE;
           }
           catch (Exception e)
@@ -1442,7 +1424,7 @@ public class MatchedValuesFilter
 
           try
           {
-            ByteString normValue = equalityMatchingRule.normalizeAttributeValue(value.getValue());
+            ByteString normValue = equalityMatchingRule.normalizeAttributeValue(value);
             return equalityMatchingRule.getAssertion(rawAssertionValue).matches(normValue).toBoolean();
           }
           catch (Exception e)

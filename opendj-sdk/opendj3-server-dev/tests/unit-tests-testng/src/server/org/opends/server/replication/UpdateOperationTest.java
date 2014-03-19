@@ -434,8 +434,7 @@ public class UpdateOperationTest extends ReplicationTestCase
       // Read the entry back to get its UUID.
       Entry entry = DirectoryServer.getEntry(dn1);
       List<Attribute> attrs = entry.getAttribute(entryuuidType);
-      String entryuuid =
-          attrs.get(0).iterator().next().getValue().toString();
+      String entryuuid = attrs.get(0).iterator().next().toString();
 
       // A change on a first server.
       long changeTime = TimeThread.getTime();
@@ -471,8 +470,7 @@ public class UpdateOperationTest extends ReplicationTestCase
       // Read the entry to see how the conflict was resolved.
       entry = DirectoryServer.getEntry(dn1);
       attrs = entry.getAttribute(attrType);
-      String attrValue1 =
-          attrs.get(0).iterator().next().getValue().toString();
+      String attrValue1 = attrs.get(0).iterator().next().toString();
 
       // the value should be the last (time t2) value added
       assertEquals(attrValue1, "B");

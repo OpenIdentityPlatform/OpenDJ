@@ -30,10 +30,11 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn;
@@ -43,7 +44,6 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -133,7 +133,7 @@ public class EntryUUIDVirtualAttributeProviderTestCase
     {
       assertTrue(!a.isEmpty());
       assertEquals(a.size(), 1);
-      assertTrue(a.contains(AttributeValues.create(entryUUIDType, uuidString)));
+      assertTrue(a.contains(ByteString.valueOf(uuidString)));
     }
   }
 
@@ -177,7 +177,7 @@ public class EntryUUIDVirtualAttributeProviderTestCase
     {
       assertTrue(!a.isEmpty());
       assertEquals(a.size(), 1);
-      assertFalse(a.contains(AttributeValues.create(entryUUIDType, uuidString)));
+      assertFalse(a.contains(ByteString.valueOf(uuidString)));
     }
   }
 
@@ -478,10 +478,10 @@ public class EntryUUIDVirtualAttributeProviderTestCase
                   VirtualAttributeCfgDefn.ConflictBehavior.
                        VIRTUAL_OVERRIDES_REAL);
 
-    Set<AttributeValue> values = provider.getValues(entry, rule);
+    Attribute values = provider.getValues(entry, rule);
     assertNotNull(values);
     assertEquals(values.size(), 1);
-    assertTrue(values.contains(AttributeValues.create(entryUUIDType, uuidString)));
+    assertTrue(values.contains(ByteString.valueOf(uuidString)));
   }
 
 
@@ -549,9 +549,7 @@ public class EntryUUIDVirtualAttributeProviderTestCase
                   VirtualAttributeCfgDefn.ConflictBehavior.
                        VIRTUAL_OVERRIDES_REAL);
 
-    assertTrue(provider.hasValue(entry, rule,
-        AttributeValues.create(entryUUIDType,
-                                                    uuidString)));
+    assertTrue(provider.hasValue(entry, rule, ByteString.valueOf(uuidString)));
   }
 
 
@@ -584,193 +582,6 @@ public class EntryUUIDVirtualAttributeProviderTestCase
                   VirtualAttributeCfgDefn.ConflictBehavior.
                        VIRTUAL_OVERRIDES_REAL);
 
-    assertFalse(provider.hasValue(entry, rule,
-        AttributeValues.create(entryUUIDType, "wrong")));
-  }
-
-
-
-  /**
-   * Tests the {@code hasAnyValue} method with an empty set of values.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testHasAnyValueEmptySet()
-         throws Exception
-  {
-    EntryUUIDVirtualAttributeProvider provider =
-         new EntryUUIDVirtualAttributeProvider();
-
-    Entry entry = TestCaseUtils.makeEntry(
-      "dn: o=test",
-      "objectClass: top",
-      "objectClass: organization",
-      "o: test");
-    entry.processVirtualAttributes();
-
-    VirtualAttributeRule rule =
-         new VirtualAttributeRule(entryUUIDType, provider,
-                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
-                  Collections.<DN>emptySet(),
-                  Collections.<SearchFilter>emptySet(),
-                  VirtualAttributeCfgDefn.ConflictBehavior.
-                       VIRTUAL_OVERRIDES_REAL);
-
-    assertFalse(provider.hasAnyValue(entry, rule,
-                                     Collections.<AttributeValue>emptySet()));
-  }
-
-
-
-  /**
-   * Tests the {@code hasAnyValue} method with a set of values containing only
-   * the correct value.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testHasAnyValueOnlyCorrect()
-         throws Exception
-  {
-    String uuidString = UUID.nameUUIDFromBytes(getBytes("o=test")).toString();
-
-    EntryUUIDVirtualAttributeProvider provider =
-         new EntryUUIDVirtualAttributeProvider();
-
-    Entry entry = TestCaseUtils.makeEntry(
-      "dn: o=test",
-      "objectClass: top",
-      "objectClass: organization",
-      "o: test");
-    entry.processVirtualAttributes();
-
-    VirtualAttributeRule rule =
-         new VirtualAttributeRule(entryUUIDType, provider,
-                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
-                  Collections.<DN>emptySet(),
-                  Collections.<SearchFilter>emptySet(),
-                  VirtualAttributeCfgDefn.ConflictBehavior.
-                       VIRTUAL_OVERRIDES_REAL);
-
-    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>(1);
-    values.add(AttributeValues.create(entryUUIDType, uuidString));
-
-    assertTrue(provider.hasAnyValue(entry, rule, values));
-  }
-
-
-
-  /**
-   * Tests the {@code hasAnyValue} method with a set of values containing only
-   * an incorrect value.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testHasAnyValueOnlyIncorrect()
-         throws Exception
-  {
-    EntryUUIDVirtualAttributeProvider provider =
-         new EntryUUIDVirtualAttributeProvider();
-
-    Entry entry = TestCaseUtils.makeEntry(
-      "dn: o=test",
-      "objectClass: top",
-      "objectClass: organization",
-      "o: test");
-    entry.processVirtualAttributes();
-
-    VirtualAttributeRule rule =
-         new VirtualAttributeRule(entryUUIDType, provider,
-                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
-                  Collections.<DN>emptySet(),
-                  Collections.<SearchFilter>emptySet(),
-                  VirtualAttributeCfgDefn.ConflictBehavior.
-                       VIRTUAL_OVERRIDES_REAL);
-
-    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>(1);
-    values.add(AttributeValues.create(entryUUIDType, "wrong"));
-
-    assertFalse(provider.hasAnyValue(entry, rule, values));
-  }
-
-
-
-  /**
-   * Tests the {@code hasAnyValue} method with a set of values containing the
-   * correct value as well as multiple incorrect values.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testHasAnyValueIncludesCorrect()
-         throws Exception
-  {
-    String uuidString = UUID.nameUUIDFromBytes(getBytes("o=test")).toString();
-
-    EntryUUIDVirtualAttributeProvider provider =
-         new EntryUUIDVirtualAttributeProvider();
-
-    Entry entry = TestCaseUtils.makeEntry(
-      "dn: o=test",
-      "objectClass: top",
-      "objectClass: organization",
-      "o: test");
-    entry.processVirtualAttributes();
-
-    VirtualAttributeRule rule =
-         new VirtualAttributeRule(entryUUIDType, provider,
-                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
-                  Collections.<DN>emptySet(),
-                  Collections.<SearchFilter>emptySet(),
-                  VirtualAttributeCfgDefn.ConflictBehavior.
-                       VIRTUAL_OVERRIDES_REAL);
-
-    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>(3);
-    values.add(AttributeValues.create(entryUUIDType, uuidString));
-    values.add(AttributeValues.create(entryUUIDType, "wrong"));
-    values.add(AttributeValues.create(entryUUIDType, "also wrong"));
-
-    assertTrue(provider.hasAnyValue(entry, rule, values));
-  }
-
-
-
-  /**
-   * Tests the {@code hasAnyValue} method with a set of multiple values, none of
-   * which are correct.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testHasAnyValueMissingCorrect()
-         throws Exception
-  {
-    EntryUUIDVirtualAttributeProvider provider =
-         new EntryUUIDVirtualAttributeProvider();
-
-    Entry entry = TestCaseUtils.makeEntry(
-      "dn: o=test",
-      "objectClass: top",
-      "objectClass: organization",
-      "o: test");
-    entry.processVirtualAttributes();
-
-    VirtualAttributeRule rule =
-         new VirtualAttributeRule(entryUUIDType, provider,
-                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
-                  Collections.<DN>emptySet(),
-                  Collections.<SearchFilter>emptySet(),
-                  VirtualAttributeCfgDefn.ConflictBehavior.
-                       VIRTUAL_OVERRIDES_REAL);
-
-    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>(3);
-    values.add(AttributeValues.create(entryUUIDType, "wrong"));
-    values.add(AttributeValues.create(entryUUIDType, "also wrong"));
-    values.add(AttributeValues.create(entryUUIDType, "still wrong"));
-
-    assertFalse(provider.hasAnyValue(entry, rule, values));
+    assertFalse(provider.hasValue(entry, rule, ByteString.valueOf("wrong")));
   }
 }
-

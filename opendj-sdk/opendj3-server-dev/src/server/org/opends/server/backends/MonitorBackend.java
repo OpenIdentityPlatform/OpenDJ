@@ -30,6 +30,7 @@ import java.util.*;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.util.Reject;
@@ -1000,7 +1001,7 @@ public class MonitorBackend extends Backend implements
       for (int i = 0; i < rdn.getNumValues(); i++)
       {
         final AttributeType attributeType = rdn.getAttributeType(i);
-        final AttributeValue value = rdn.getAttributeValue(attributeType);
+        final ByteString value = rdn.getAttributeValue(attributeType);
         final Attribute attr = Attributes.create(attributeType, value);
         final List<Attribute> attrList = new ArrayList<Attribute>(1);
         attrList.add(attr);
@@ -1114,7 +1115,7 @@ public class MonitorBackend extends Backend implements
     // Make sure to include the RDN attribute.
     final RDN entryRDN = entryDN.rdn();
     final AttributeType rdnType = entryRDN.getAttributeType(0);
-    final AttributeValue rdnValue = entryRDN.getAttributeValue(0);
+    final ByteString rdnValue = entryRDN.getAttributeValue(0);
 
     final Attribute rdnAttr = Attributes.create(rdnType, rdnValue);
     final ArrayList<Attribute> rdnList = new ArrayList<Attribute>(1);

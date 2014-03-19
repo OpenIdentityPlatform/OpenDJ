@@ -551,7 +551,7 @@ public class ModifyOperationBasis
    * This method always returns null.
    */
   @Override
-  public List<AttributeValue> getCurrentPasswords()
+  public List<ByteString> getCurrentPasswords()
   {
     return null;
   }
@@ -573,7 +573,7 @@ public class ModifyOperationBasis
    * This method always returns null.
    */
   @Override
-  public List<AttributeValue> getNewPasswords()
+  public List<ByteString> getNewPasswords()
   {
     return null;
   }

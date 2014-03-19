@@ -117,7 +117,7 @@ public class ExternalChangelogDomain
       if (domain==null)
       {
         RDN rdn = configuration.dn().parent().rdn();
-        DN rdns = DN.decode(rdn.getAttributeValue(0).getValue());
+        DN rdns = DN.decode(rdn.getAttributeValue(0));
         domain = MultimasterReplication.findDomain(rdns, null);
       }
       return null;

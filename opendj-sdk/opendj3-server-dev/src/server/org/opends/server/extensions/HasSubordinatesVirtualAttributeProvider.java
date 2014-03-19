@@ -26,9 +26,7 @@
  */
 package org.opends.server.extensions;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -74,8 +72,7 @@ public class HasSubordinatesVirtualAttributeProvider
 
   /** {@inheritDoc} */
   @Override()
-  public Set<AttributeValue> getValues(Entry entry,
-                                       VirtualAttributeRule rule)
+  public Attribute getValues(Entry entry, VirtualAttributeRule rule)
   {
     Backend backend = DirectoryServer.getBackend(entry.getName());
 
@@ -84,10 +81,7 @@ public class HasSubordinatesVirtualAttributeProvider
       ConditionResult ret = backend.hasSubordinates(entry.getName());
       if(ret != null && ret != ConditionResult.UNDEFINED)
       {
-        AttributeValue value =
-            AttributeValues.create(ByteString.valueOf(ret.toString()),
-                ByteString.valueOf(ret.toString()));
-        return Collections.singleton(value);
+        return Attributes.create(rule.getAttributeType(), ret.toString());
       }
     }
     catch(DirectoryException de)
@@ -95,7 +89,7 @@ public class HasSubordinatesVirtualAttributeProvider
       logger.traceException(de);
     }
 
-    return Collections.emptySet();
+    return Attributes.empty(rule.getAttributeType());
   }
 
   /** {@inheritDoc} */
@@ -119,8 +113,7 @@ public class HasSubordinatesVirtualAttributeProvider
 
   /** {@inheritDoc} */
   @Override()
-  public boolean hasValue(Entry entry, VirtualAttributeRule rule,
-                          AttributeValue value)
+  public boolean hasValue(Entry entry, VirtualAttributeRule rule, ByteString value)
   {
     Backend backend = DirectoryServer.getBackend(entry.getName());
     MatchingRule matchingRule =
@@ -128,8 +121,7 @@ public class HasSubordinatesVirtualAttributeProvider
 
     try
     {
-      ByteString normValue =
-          matchingRule.normalizeAttributeValue(value.getValue());
+      ByteString normValue = matchingRule.normalizeAttributeValue(value);
       ConditionResult ret = backend.hasSubordinates(entry.getName());
       return ret != null
           && ret != ConditionResult.UNDEFINED
@@ -158,7 +150,7 @@ public class HasSubordinatesVirtualAttributeProvider
   @Override()
   public ConditionResult greaterThanOrEqualTo(Entry entry,
                               VirtualAttributeRule rule,
-                              AttributeValue value)
+                              ByteString value)
   {
     // This virtual attribute does not support ordering matching.
     return ConditionResult.UNDEFINED;
@@ -168,7 +160,7 @@ public class HasSubordinatesVirtualAttributeProvider
   @Override()
   public ConditionResult lessThanOrEqualTo(Entry entry,
                               VirtualAttributeRule rule,
-                              AttributeValue value)
+                              ByteString value)
   {
     // This virtual attribute does not support ordering matching.
     return ConditionResult.UNDEFINED;
@@ -178,7 +170,7 @@ public class HasSubordinatesVirtualAttributeProvider
   @Override()
   public ConditionResult approximatelyEqualTo(Entry entry,
                               VirtualAttributeRule rule,
-                              AttributeValue value)
+                              ByteString value)
   {
     // This virtual attribute does not support approximate matching.
     return ConditionResult.UNDEFINED;

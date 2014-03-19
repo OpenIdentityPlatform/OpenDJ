@@ -255,18 +255,16 @@ public class AciList {
     int validAcis=0;
     ArrayList<Aci> acis = new ArrayList<Aci>();
     for (Attribute attribute : attributeList) {
-      for (AttributeValue value : attribute) {
+      for (ByteString value : attribute) {
         try {
-          Aci aci= Aci.decode(value.getValue(),dn);
-          acis.add(aci);
+          acis.add(Aci.decode(value, dn));
           validAcis++;
         } catch (AciException ex) {
           DN msgDN=dn;
           if(dn == DN.rootDN()) {
             msgDN=configDN;
           }
-          failedACIMsgs.add(WARN_ACI_ADD_LIST_FAILED_DECODE.get(
-              value.getValue(), msgDN, ex.getMessage()));
+          failedACIMsgs.add(WARN_ACI_ADD_LIST_FAILED_DECODE.get(value, msgDN, ex.getMessage()));
         }
       }
     }

@@ -387,11 +387,9 @@ public class GeneralizedTimeSyntax
    *
    * @return  The attribute value created from the date.
    */
-  public static AttributeValue createGeneralizedTimeValue(long time)
+  public static ByteString createGeneralizedTimeValue(long time)
   {
-    String valueString = format(time);
-    return AttributeValues.create(ByteString.valueOf(valueString),
-        ByteString.valueOf(valueString));
+    return ByteString.valueOf(format(time));
   }
 
 

@@ -22,10 +22,9 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.monitors;
-
-
 
 import static org.opends.server.util.ServerConstants.*;
 
@@ -38,7 +37,6 @@ import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConnectionHandler;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.types.*;
-
 
 /**
  * This class implements a monitor provider that will report generic information
@@ -167,7 +165,7 @@ public class ConnectionHandlerMonitor
       AttributeBuilder builder = new AttributeBuilder(listenerType);
       for (HostPort hp : listeners)
       {
-        builder.add(AttributeValues.create(listenerType, hp.toString()));
+        builder.add(hp.toString());
       }
       attrs.add(builder.toAttribute());
     }
@@ -178,8 +176,7 @@ public class ConnectionHandlerMonitor
       for (ClientConnection c : conns)
       {
         numConnections++;
-        builder.add(AttributeValues.create(connectionsType, c
-            .getMonitorSummary()));
+        builder.add(c.getMonitorSummary());
       }
       attrs.add(builder.toAttribute());
     }

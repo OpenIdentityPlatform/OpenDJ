@@ -1239,8 +1239,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       return null;
     }
     Attribute a = attrs.iterator().next();
-    AttributeValue av = a.iterator().next();
-    return av.toString();
+    return a.iterator().next().toString();
   }
 
   private static void checkValues(Entry entry, String attrName,
@@ -1248,7 +1247,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   {
     for (Attribute a : entry.getAttribute(attrName))
     {
-      for (AttributeValue av : a)
+      for (ByteString av : a)
       {
         assertThat(expectedValues)
             .as("In entry " + entry + " incorrect value for attr '" + attrName + "'")

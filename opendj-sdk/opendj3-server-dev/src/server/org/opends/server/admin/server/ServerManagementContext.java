@@ -79,7 +79,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeValueIterable;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DN;
 
 /**
@@ -264,7 +264,7 @@ public final class ServerManagementContext {
           throw new PropertyNotFoundException(propertyName);
         }
 
-        List<AttributeValue> values = getAttribute(mod, pd2, configEntry);
+        List<ByteString> values = getAttribute(mod, pd2, configEntry);
         if (values.isEmpty()) {
           // Recursively retrieve this property's default values.
           Collection<T> tmp = find(target, pd2);
@@ -276,7 +276,7 @@ public final class ServerManagementContext {
           return pvalues;
         } else {
           Collection<T> pvalues = new ArrayList<T>(values.size());
-          for (AttributeValue value : values) {
+          for (ByteString value : values) {
             pvalues.add(ValueDecoder.decode(pd1, value));
           }
           return pvalues;
@@ -346,9 +346,8 @@ public final class ServerManagementContext {
      *           was invalid.
      */
     public static <PD> PD decode(PropertyDefinition<PD> pd,
-        AttributeValue value) throws PropertyException {
-      String s = value.getValue().toString();
-      return pd.castValue(pd.accept(new ValueDecoder(), s));
+        ByteString value) throws PropertyException {
+      return pd.castValue(pd.accept(new ValueDecoder(), value.toString()));
     }
 
 
@@ -579,7 +578,7 @@ public final class ServerManagementContext {
     // definition.
     pd = (PropertyDefinition<PD>) mod.getPropertyDefinition(pd.getName());
 
-    List<AttributeValue> values = getAttribute(mod, pd, configEntry);
+    List<ByteString> values = getAttribute(mod, pd, configEntry);
     return decodeProperty(path.asSubType(mod), pd, values, null);
   }
 
@@ -654,8 +653,8 @@ public final class ServerManagementContext {
     ArrayList<String> names = new ArrayList<String>(children.size());
     for (DN child : children) {
       // Assume that RDNs are single-valued and can be trimmed.
-      AttributeValue av = child.rdn().getAttributeValue(0);
-      names.add(av.getValue().toString().trim());
+      ByteString av = child.rdn().getAttributeValue(0);
+      names.add(av.toString().trim());
     }
 
     return names.toArray(new String[names.size()]);
@@ -706,7 +705,7 @@ public final class ServerManagementContext {
     ArrayList<String> names = new ArrayList<String>(children.size());
     for (DN child : children) {
       // Assume that RDNs are single-valued and can be trimmed.
-      AttributeValue av = child.rdn().getAttributeValue(0);
+      ByteString av = child.rdn().getAttributeValue(0);
       names.add(av.toString().trim());
     }
 
@@ -811,7 +810,7 @@ public final class ServerManagementContext {
     Map<PropertyDefinition<?>, SortedSet<?>> properties =
       new HashMap<PropertyDefinition<?>, SortedSet<?>>();
     for (PropertyDefinition<?> pd : mod.getAllPropertyDefinitions()) {
-      List<AttributeValue> values = getAttribute(mod, pd, configEntry);
+      List<ByteString> values = getAttribute(mod, pd, configEntry);
       try {
         SortedSet<?> pvalues = decodeProperty(path, pd, values, newConfigEntry);
         properties.put(pd, pvalues);
@@ -848,14 +847,14 @@ public final class ServerManagementContext {
 
   // Create a property using the provided string values.
   private <T> SortedSet<T> decodeProperty(ManagedObjectPath<?, ?> path,
-      PropertyDefinition<T> pd, List<AttributeValue> values,
+      PropertyDefinition<T> pd, List<ByteString> values,
       ConfigEntry newConfigEntry) throws PropertyException {
     PropertyException exception = null;
     SortedSet<T> pvalues = new TreeSet<T>(pd);
 
     if (!values.isEmpty()) {
       // The property has values defined for it.
-      for (AttributeValue value : values) {
+      for (ByteString value : values) {
         try {
           pvalues.add(ValueDecoder.decode(pd, value));
         } catch (PropertyException e) {
@@ -896,7 +895,7 @@ public final class ServerManagementContext {
 
 
   // Gets the attribute associated with a property from a ConfigEntry.
-  private List<AttributeValue> getAttribute(ManagedObjectDefinition<?, ?> d,
+  private List<ByteString> getAttribute(ManagedObjectDefinition<?, ?> d,
       PropertyDefinition<?> pd, ConfigEntry configEntry) {
     // TODO: we create a default attribute type if it is
     // undefined. We should log a warning here if this is the case
@@ -905,8 +904,8 @@ public final class ServerManagementContext {
     AttributeType type = DirectoryServer.getAttributeType(attrID, true);
     List<Attribute> attributes = configEntry.getEntry().getAttribute(type, true);
 
-    List<AttributeValue> results = new LinkedList<AttributeValue>();
-    for (AttributeValue v : new AttributeValueIterable(attributes))
+    List<ByteString> results = new LinkedList<ByteString>();
+    for (ByteString v : new AttributeValueIterable(attributes))
     {
       results.add(v);
     }

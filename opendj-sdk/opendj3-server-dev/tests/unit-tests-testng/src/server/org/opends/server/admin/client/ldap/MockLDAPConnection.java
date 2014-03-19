@@ -43,8 +43,8 @@ import javax.naming.directory.BasicAttribute;
 import javax.naming.directory.BasicAttributes;
 import javax.naming.ldap.LdapName;
 
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.TestCaseUtils;
-import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -161,6 +161,7 @@ public class MockLDAPConnection extends LDAPConnection {
   /**
    * {@inheritDoc}
    */
+  @Override
   public void createEntry(LdapName dn, Attributes attributes)
       throws NamingException {
     throw new UnsupportedOperationException("createEntry");
@@ -171,6 +172,7 @@ public class MockLDAPConnection extends LDAPConnection {
   /**
    * {@inheritDoc}
    */
+  @Override
   public void deleteSubtree(LdapName dn) throws NamingException {
     throw new UnsupportedOperationException("deleteSubtree");
   }
@@ -211,16 +213,16 @@ public class MockLDAPConnection extends LDAPConnection {
   @Override
   public Collection<LdapName> listEntries(LdapName dn, String filter) throws NamingException {
     MockEntry entry = getEntry(dn);
-
     if (entry == null) {
       throw new NameNotFoundException("could not find entry " + dn);
-    } else {
-      LinkedList<LdapName> names = new LinkedList<LdapName>();
-      for (MockEntry child : entry.children) {
-        names.add(new LdapName(child.getDN().toString()));
-      }
-      return names;
     }
+
+    LinkedList<LdapName> names = new LinkedList<LdapName>();
+    for (MockEntry child : entry.children)
+    {
+      names.add(new LdapName(child.getDN().toString()));
+    }
+    return names;
   }
 
 
@@ -228,6 +230,7 @@ public class MockLDAPConnection extends LDAPConnection {
   /**
    * {@inheritDoc}
    */
+  @Override
   public void modifyEntry(LdapName dn, Attributes mods) throws NamingException {
     throw new UnsupportedOperationException("modifyEntry");
   }
@@ -316,8 +319,8 @@ public class MockLDAPConnection extends LDAPConnection {
     Attributes attributes = new BasicAttributes();
     for (org.opends.server.types.Attribute attribute : entry.getAttributes()) {
       BasicAttribute ba = new BasicAttribute(attribute.getName());
-      for (AttributeValue value : attribute) {
-        ba.add(value.getValue().toString());
+      for (ByteString value : attribute) {
+        ba.add(value.toString());
       }
       attributes.put(ba);
     }

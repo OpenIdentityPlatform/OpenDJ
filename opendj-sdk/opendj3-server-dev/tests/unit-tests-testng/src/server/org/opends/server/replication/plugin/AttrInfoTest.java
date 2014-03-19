@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.replication.plugin;
 
@@ -33,8 +33,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.AttributeValues;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.Attributes;
 import org.opends.server.util.TimeThread;
 import org.testng.annotations.DataProvider;
@@ -55,11 +54,9 @@ public class AttrInfoTest extends ReplicationTestCase
   @DataProvider(name = "attrInfo")
   public Object[][] createData()
   {
-    AttributeType type = DirectoryServer.getAttributeType("description");
-
-    AttributeValue att1 = AttributeValues.create(type, "string");
-    AttributeValue att2 = AttributeValues.create(type, "value");
-    AttributeValue att3 = AttributeValues.create(type, "again");
+    ByteString att1 = ByteString.valueOf("string");
+    ByteString att2 = ByteString.valueOf("value");
+    ByteString att3 = ByteString.valueOf("again");
 
     CSN del1 = new CSN(1,  0,  1);
     CSN del2 = new CSN(1,  1,  1);
@@ -81,9 +78,7 @@ public class AttrInfoTest extends ReplicationTestCase
    * Create a AttrInfo and check the methods
    */
   @Test(dataProvider = "attrInfo")
-  public void attrInfo(
-      AttributeValue att, CSN deleteTime, CSN updateTime)
-      throws Exception
+  public void attrInfo(ByteString att, CSN deleteTime, CSN updateTime) throws Exception
   {
     // Create an empty AttrInfo
     AttrHistoricalMultiple attrInfo1 = new AttrHistoricalMultiple();

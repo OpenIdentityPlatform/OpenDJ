@@ -631,12 +631,12 @@ public final class IntegerConfigAttribute
       {
         if (requiresAdminAction())
         {
-          setPendingValues(new LinkedHashSet<AttributeValue>(0));
+          setPendingValues(new LinkedHashSet<ByteString>(0));
           pendingValues = new ArrayList<Long>();
         }
         else
         {
-          setActiveValues(new LinkedHashSet<AttributeValue>(0));
+          setActiveValues(new LinkedHashSet<ByteString>(0));
           activeValues.clear();
         }
       }
@@ -655,8 +655,7 @@ public final class IntegerConfigAttribute
 
     // Iterate through all the provided values, make sure that they are
     // acceptable, and build the value set.
-    LinkedHashSet<AttributeValue> valueSet =
-         new LinkedHashSet<AttributeValue>(numValues);
+    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<ByteString>(numValues);
     for (long value : values)
     {
       if (hasLowerBound && (value < lowerBound))
@@ -674,10 +673,7 @@ public final class IntegerConfigAttribute
       }
 
       String valueString = String.valueOf(value);
-      AttributeValue attrValue =
-          AttributeValues.create(ByteString.valueOf(valueString),
-              ByteString.valueOf(valueString));
-
+      ByteString attrValue = ByteString.valueOf(valueString);
       if (valueSet.contains(attrValue))
       {
         LocalizableMessage message = ERR_CONFIG_ATTR_ADD_VALUES_ALREADY_EXISTS.get(
@@ -712,15 +708,10 @@ public final class IntegerConfigAttribute
    *
    * @return  The constructed value set.
    */
-  private static LinkedHashSet<AttributeValue> getValueSet(long value)
+  private static LinkedHashSet<ByteString> getValueSet(long value)
   {
-    LinkedHashSet<AttributeValue> valueSet =
-         new LinkedHashSet<AttributeValue>(1);
-
-    String valueString = String.valueOf(value);
-    valueSet.add(AttributeValues.create(ByteString.valueOf(valueString),
-        ByteString.valueOf(valueString)));
-
+    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<ByteString>(1);
+    valueSet.add(ByteString.valueOf(String.valueOf(value)));
     return valueSet;
   }
 
@@ -733,23 +724,18 @@ public final class IntegerConfigAttribute
    *
    * @return  The constructed value set.
    */
-  private static LinkedHashSet<AttributeValue> getValueSet(List<Long> values)
+  private static LinkedHashSet<ByteString> getValueSet(List<Long> values)
   {
     if (values == null)
     {
       return null;
     }
 
-    LinkedHashSet<AttributeValue> valueSet =
-         new LinkedHashSet<AttributeValue>(values.size());
-
+    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<ByteString>(values.size());
     for (long value : values)
     {
-      String valueString = String.valueOf(value);
-      valueSet.add(AttributeValues.create(ByteString.valueOf(valueString),
-          ByteString.valueOf(valueString)));
+      valueSet.add(ByteString.valueOf(String.valueOf(value)));
     }
-
     return valueSet;
   }
 
@@ -785,11 +771,10 @@ public final class IntegerConfigAttribute
    * @return  <CODE>true</CODE> if the provided value is acceptable for use in
    *          this attribute, or <CODE>false</CODE> if not.
    */
-  public boolean valueIsAcceptable(AttributeValue value,
-                                   StringBuilder rejectReason)
+  public boolean valueIsAcceptable(ByteString value, StringBuilder rejectReason)
   {
     // First, make sure we can represent it as a long.
-    String stringValue = value.getValue().toString();
+    String stringValue = value.toString();
     long longValue;
     try
     {
@@ -846,9 +831,8 @@ public final class IntegerConfigAttribute
    * @throws  ConfigException  If an unrecoverable problem occurs while
    *                           performing the conversion.
    */
-  public LinkedHashSet<AttributeValue>
-              stringsToValues(List<String> valueStrings,
-                              boolean allowFailures)
+  public LinkedHashSet<ByteString>
+              stringsToValues(List<String> valueStrings, boolean allowFailures)
          throws ConfigException
   {
     if ((valueStrings == null) || valueStrings.isEmpty())
@@ -860,7 +844,7 @@ public final class IntegerConfigAttribute
       }
       else
       {
-        return new LinkedHashSet<AttributeValue>();
+        return new LinkedHashSet<ByteString>();
       }
     }
 
@@ -874,8 +858,7 @@ public final class IntegerConfigAttribute
     }
 
 
-    LinkedHashSet<AttributeValue> valueSet =
-         new LinkedHashSet<AttributeValue>(numValues);
+    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<ByteString>(numValues);
     for (String valueString : valueStrings)
     {
       long longValue;
@@ -933,9 +916,7 @@ public final class IntegerConfigAttribute
         }
       }
 
-
-      valueSet.add(AttributeValues.create(ByteString.valueOf(valueString),
-          ByteString.valueOf(valueString)));
+      valueSet.add(ByteString.valueOf(valueString));
     }
 
 
@@ -1079,17 +1060,17 @@ public final class IntegerConfigAttribute
             }
 
             pendingValues = new ArrayList<Long>(numValues);
-            for (AttributeValue v : a)
+            for (ByteString v : a)
             {
               long longValue;
               try
               {
-                longValue = Long.parseLong(v.getValue().toString());
+                longValue = Long.parseLong(v.toString());
               }
               catch (Exception e)
               {
                 LocalizableMessage message = ERR_CONFIG_ATTR_INT_COULD_NOT_PARSE.get(
-                    v.getValue(), a.getName(), e);
+                    v, a.getName(), e);
                 throw new ConfigException(message, e);
               }
 
@@ -1161,17 +1142,17 @@ public final class IntegerConfigAttribute
           }
 
           activeValues = new ArrayList<Long>(numValues);
-          for (AttributeValue v : a)
+          for (ByteString v : a)
           {
             long longValue;
             try
             {
-              longValue = Long.parseLong(v.getValue().toString());
+              longValue = Long.parseLong(v.toString());
             }
             catch (Exception e)
             {
               LocalizableMessage message = ERR_CONFIG_ATTR_INT_COULD_NOT_PARSE.get(
-                  v.getValue(), a.getName(), e);
+                  v, a.getName(), e);
               throw new ConfigException(message, e);
             }
 

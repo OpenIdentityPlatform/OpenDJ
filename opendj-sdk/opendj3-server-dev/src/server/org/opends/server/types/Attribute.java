@@ -55,7 +55,7 @@ import org.forgerock.opendj.ldap.ConditionResult;
     mayInstantiate = false,
     mayExtend = false,
     mayInvoke = true)
-public interface Attribute extends Iterable<AttributeValue>
+public interface Attribute extends Iterable<ByteString>
 {
 
   /**
@@ -69,7 +69,7 @@ public interface Attribute extends Iterable<AttributeValue>
    *         least one value is approximately equal to the provided
    *         value, or <CODE>false</CODE> otherwise.
    */
-  ConditionResult approximatelyEqualTo(AttributeValue value);
+  ConditionResult approximatelyEqualTo(ByteString value);
 
 
 
@@ -81,7 +81,7 @@ public interface Attribute extends Iterable<AttributeValue>
    * @return <CODE>true</CODE> if this attribute has the specified
    *         value, or <CODE>false</CODE> if not.
    */
-  boolean contains(AttributeValue value);
+  boolean contains(ByteString value);
 
 
 
@@ -95,7 +95,7 @@ public interface Attribute extends Iterable<AttributeValue>
    *         values in the provided collection, or <CODE>false</CODE>
    *         if it does not contain at least one of them.
    */
-  boolean containsAll(Collection<AttributeValue> values);
+  boolean containsAll(Collection<ByteString> values);
 
 
 
@@ -166,7 +166,7 @@ public interface Attribute extends Iterable<AttributeValue>
    *         least one value is greater than or equal to the provided
    *         value, or <CODE>false</CODE> otherwise.
    */
-  ConditionResult greaterThanOrEqualTo(AttributeValue value);
+  ConditionResult greaterThanOrEqualTo(ByteString value);
 
 
 
@@ -249,7 +249,7 @@ public interface Attribute extends Iterable<AttributeValue>
    * @return An iterator over the attribute values in this attribute.
    */
   @Override
-  Iterator<AttributeValue> iterator();
+  Iterator<ByteString> iterator();
 
 
 
@@ -264,7 +264,7 @@ public interface Attribute extends Iterable<AttributeValue>
    *         least one value is less than or equal to the provided
    *         value, or <CODE>false</CODE> otherwise.
    */
-  ConditionResult lessThanOrEqualTo(AttributeValue value);
+  ConditionResult lessThanOrEqualTo(ByteString value);
 
 
 

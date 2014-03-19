@@ -26,14 +26,14 @@
  */
 package org.opends.server.extensions;
 
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
@@ -42,7 +42,6 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -638,17 +637,12 @@ public class VirtualStaticGroupTestCase
 
     assertTrue(provider.isMultiValued());
 
-    Set<AttributeValue> values = provider.getValues(entry, rule);
+    Attribute values = provider.getValues(entry, rule);
     assertNotNull(values);
     assertFalse(values.isEmpty());
     assertTrue(provider.hasValue(entry, rule));
-    assertTrue(provider.hasValue(entry, rule,
-        AttributeValues.create(memberType, u1.toString())));
-    assertFalse(provider.hasValue(entry, rule,
-        AttributeValues.create(memberType, ne.toString())));
-    assertTrue(provider.hasAnyValue(entry, rule, values));
-    assertFalse(provider.hasAnyValue(entry, rule,
-                                     Collections.<AttributeValue>emptySet()));
+    assertTrue(provider.hasValue(entry, rule, ByteString.valueOf(u1.toString())));
+    assertFalse(provider.hasValue(entry, rule, ByteString.valueOf(ne.toString())));
     assertEquals(provider.matchesSubstring(entry, rule, null, null, null),
                  ConditionResult.UNDEFINED);
     assertEquals(provider.greaterThanOrEqualTo(entry, rule, null),
@@ -712,17 +706,12 @@ public class VirtualStaticGroupTestCase
 
     assertTrue(provider.isMultiValued());
 
-    Set<AttributeValue> values = provider.getValues(entry, rule);
+    Attribute values = provider.getValues(entry, rule);
     assertNotNull(values);
     assertTrue(values.isEmpty());
     assertFalse(provider.hasValue(entry, rule));
-    assertFalse(provider.hasValue(entry, rule,
-        AttributeValues.create(memberType, u1.toString())));
-    assertFalse(provider.hasValue(entry, rule,
-        AttributeValues.create(memberType, ne.toString())));
-    assertFalse(provider.hasAnyValue(entry, rule, values));
-    assertFalse(provider.hasAnyValue(entry, rule,
-                                     Collections.<AttributeValue>emptySet()));
+    assertFalse(provider.hasValue(entry, rule, ByteString.valueOf(u1.toString())));
+    assertFalse(provider.hasValue(entry, rule, ByteString.valueOf(ne.toString())));
     assertEquals(provider.matchesSubstring(entry, rule, null, null, null),
                  ConditionResult.UNDEFINED);
     assertEquals(provider.greaterThanOrEqualTo(entry, rule, null),
@@ -770,9 +759,7 @@ public class VirtualStaticGroupTestCase
 
     Attribute a = e.getAttribute(memberType).get(0);
     assertEquals(a.size(), 4);
-
-    AttributeValue v = AttributeValues.create(memberType, u1.toString());
-    assertTrue(a.contains(v));
+    assertTrue(a.contains(ByteString.valueOf(u1.toString())));
 
     cleanUp();
   }
@@ -801,7 +788,7 @@ public class VirtualStaticGroupTestCase
     Attribute a = e.getAttribute(memberType).get(0);
     assertEquals(a.size(), 1);
 
-    AttributeValue v = AttributeValues.create(memberType, u4.toString());
+    ByteString v = ByteString.valueOf(u4.toString());
     assertTrue(a.contains(v));
 
     InternalClientConnection conn =
@@ -843,7 +830,7 @@ public class VirtualStaticGroupTestCase
     Attribute a = e.getAttribute(memberType).get(0);
     assertEquals(a.size(), 1);
 
-    AttributeValue v = AttributeValues.create(memberType, u4.toString());
+    ByteString v = ByteString.valueOf(u4.toString());
     assertTrue(a.contains(v));
 
 
@@ -866,7 +853,7 @@ public class VirtualStaticGroupTestCase
     a = e.getAttribute(memberType).get(0);
     assertEquals(a.size(), 0);
 
-    v = AttributeValues.create(memberType, u4.toString());
+    v = ByteString.valueOf(u4.toString());
     assertTrue(a.contains(v));
 
 

@@ -40,8 +40,6 @@ import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.AttributeValues;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
@@ -134,11 +132,9 @@ public class IsMemberOfVirtualAttributeProviderTestCase
       assertEquals(a.size(), 1);
 
       assertTrue(!a.isEmpty());
-      assertTrue(a.contains(AttributeValues.create(isMemberOfType,
-                                     "cn=test static group,ou=groups,o=test")));
-      assertFalse(a.contains(AttributeValues.create(isMemberOfType,
-                                      "cn=not a group,ou=groups,o=test")));
-      assertFalse(a.contains(AttributeValues.create(isMemberOfType, "invalid")));
+      assertTrue(a.contains(ByteString.valueOf("cn=test static group,ou=groups,o=test")));
+      assertFalse(a.contains(ByteString.valueOf("cn=not a group,ou=groups,o=test")));
+      assertFalse(a.contains(ByteString.valueOf("invalid")));
     }
 
     InternalClientConnection conn =
@@ -200,11 +196,9 @@ public class IsMemberOfVirtualAttributeProviderTestCase
       assertEquals(a.size(), 1);
 
       assertTrue(!a.isEmpty());
-      assertTrue(a.contains(AttributeValues.create(isMemberOfType,
-                                     "cn=test static group,ou=groups,o=test")));
-      assertFalse(a.contains(AttributeValues.create(isMemberOfType,
-                                      "cn=not a group,ou=groups,o=test")));
-      assertFalse(a.contains(AttributeValues.create(isMemberOfType, "invalid")));
+      assertTrue(a.contains(ByteString.valueOf("cn=test static group,ou=groups,o=test")));
+      assertFalse(a.contains(ByteString.valueOf("cn=not a group,ou=groups,o=test")));
+      assertFalse(a.contains(ByteString.valueOf("invalid")));
     }
 
     InternalClientConnection conn =
@@ -265,11 +259,9 @@ public class IsMemberOfVirtualAttributeProviderTestCase
       assertEquals(a.size(), 1);
 
       assertTrue(!a.isEmpty());
-      assertTrue(a.contains(AttributeValues.create(isMemberOfType,
-                      "cn=test dynamic group,ou=groups,o=test")));
-      assertFalse(a.contains(AttributeValues.create(isMemberOfType,
-                                      "cn=not a group,ou=groups,o=test")));
-      assertFalse(a.contains(AttributeValues.create(isMemberOfType, "invalid")));
+      assertTrue(a.contains(ByteString.valueOf("cn=test dynamic group,ou=groups,o=test")));
+      assertFalse(a.contains(ByteString.valueOf("cn=not a group,ou=groups,o=test")));
+      assertFalse(a.contains(ByteString.valueOf("invalid")));
     }
 
     InternalClientConnection conn =
@@ -355,15 +347,11 @@ public class IsMemberOfVirtualAttributeProviderTestCase
       assertEquals(a.size(), 2);
 
       assertTrue(!a.isEmpty());
-      assertTrue(a.contains(AttributeValues.create(isMemberOfType,
-                                     "cn=test group 1,ou=groups,o=test")));
-      assertFalse(a.contains(AttributeValues.create(isMemberOfType,
-                                      "cn=test group 2,ou=groups,o=test")));
-      assertTrue(a.contains(AttributeValues.create(isMemberOfType,
-                                     "cn=test group 3,ou=groups,o=test")));
-      assertFalse(a.contains(AttributeValues.create(isMemberOfType,
-                                      "cn=not a group,ou=groups,o=test")));
-      assertFalse(a.contains(AttributeValues.create(isMemberOfType, "invalid")));
+      assertTrue(a.contains(ByteString.valueOf("cn=test group 1,ou=groups,o=test")));
+      assertFalse(a.contains(ByteString.valueOf("cn=test group 2,ou=groups,o=test")));
+      assertTrue(a.contains(ByteString.valueOf("cn=test group 3,ou=groups,o=test")));
+      assertFalse(a.contains(ByteString.valueOf("cn=not a group,ou=groups,o=test")));
+      assertFalse(a.contains(ByteString.valueOf("invalid")));
     }
 
     InternalClientConnection conn =
@@ -474,21 +462,14 @@ public class IsMemberOfVirtualAttributeProviderTestCase
       assertEquals(a.size(), 4);
 
       assertTrue(!a.isEmpty());
-      assertTrue(a.contains(AttributeValues.create(isMemberOfType,
-                                     "cn=test group 1,ou=groups,o=test")));
-      assertFalse(a.contains(AttributeValues.create(isMemberOfType,
-                                      "cn=test group 2,ou=groups,o=test")));
-      assertTrue(a.contains(AttributeValues.create(isMemberOfType,
-                                     "cn=test group 3,ou=groups,o=test")));
-      assertTrue(a.contains(AttributeValues.create(isMemberOfType,
-                                     "cn=test group 4,ou=groups,o=test")));
-      assertFalse(a.contains(AttributeValues.create(isMemberOfType,
-                                      "cn=test group 5,ou=groups,o=test")));
-      assertTrue(a.contains(AttributeValues.create(isMemberOfType,
-                                     "cn=test group 6,ou=groups,o=test")));
-      assertFalse(a.contains(AttributeValues.create(isMemberOfType,
-                                      "cn=not a group,ou=groups,o=test")));
-      assertFalse(a.contains(AttributeValues.create(isMemberOfType, "invalid")));
+      assertTrue(a.contains(ByteString.valueOf("cn=test group 1,ou=groups,o=test")));
+      assertFalse(a.contains(ByteString.valueOf("cn=test group 2,ou=groups,o=test")));
+      assertTrue(a.contains(ByteString.valueOf("cn=test group 3,ou=groups,o=test")));
+      assertTrue(a.contains(ByteString.valueOf("cn=test group 4,ou=groups,o=test")));
+      assertFalse(a.contains(ByteString.valueOf("cn=test group 5,ou=groups,o=test")));
+      assertTrue(a.contains(ByteString.valueOf("cn=test group 6,ou=groups,o=test")));
+      assertFalse(a.contains(ByteString.valueOf("cn=not a group,ou=groups,o=test")));
+      assertFalse(a.contains(ByteString.valueOf("invalid")));
     }
 
     InternalClientConnection conn =
@@ -529,346 +510,6 @@ public class IsMemberOfVirtualAttributeProviderTestCase
     IsMemberOfVirtualAttributeProvider provider =
          new IsMemberOfVirtualAttributeProvider();
     assertTrue(provider.isMultiValued());
-  }
-
-
-
-  /**
-   * Tests the {@code hasAnyValue} method with an empty set of values.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testHasAnyValueEmptySet()
-         throws Exception
-  {
-    TestCaseUtils.initializeTestBackend(true);
-
-    TestCaseUtils.addEntries(
-      "dn: ou=People,o=test",
-      "objectClass: top",
-      "objectClass: organizationalUnit",
-      "ou: People",
-      "",
-      "dn: uid=test.user,ou=People,o=test",
-      "objectClass: top",
-      "objectClass: person",
-      "objectClass: organizationalPerson",
-      "objectClass: inetOrgPerson",
-      "uid: test.user",
-      "givenName: Test",
-      "sn: User",
-      "cn: Test User",
-      "userPassword: password",
-      "",
-      "dn: ou=Groups,o=test",
-      "objectClass: top",
-      "objectClass: organizationalUnit",
-      "ou: Groups",
-      "",
-      "dn: cn=Test Static Group,ou=Groups,o=test",
-      "objectClass: top",
-      "objectClass: groupOfNames",
-      "cn: Test Static Group",
-      "member: uid=test.user,ou=People,o=test");
-
-    Entry e =
-         DirectoryServer.getEntry(DN.valueOf("uid=test.user,ou=People,o=test"));
-
-    IsMemberOfVirtualAttributeProvider provider =
-         new IsMemberOfVirtualAttributeProvider();
-    VirtualAttributeRule rule =
-         new VirtualAttributeRule(isMemberOfType, provider,
-                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
-                  Collections.<DN>emptySet(),
-                  Collections.<SearchFilter>emptySet(),
-                  VirtualAttributeCfgDefn.ConflictBehavior.
-                       VIRTUAL_OVERRIDES_REAL);
-
-    assertFalse(provider.hasAnyValue(e, rule,
-                                     Collections.<AttributeValue>emptySet()));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    DeleteOperation deleteOperation =
-         conn.processDelete(DN.valueOf("cn=test static group,ou=groups,o=test"));
-    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
-  }
-
-
-
-  /**
-   * Tests the {@code hasAnyValue} method with a set of values containing only
-   * the correct value.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testHasAnyValueOnlyCorrect()
-         throws Exception
-  {
-    TestCaseUtils.initializeTestBackend(true);
-
-    TestCaseUtils.addEntries(
-      "dn: ou=People,o=test",
-      "objectClass: top",
-      "objectClass: organizationalUnit",
-      "ou: People",
-      "",
-      "dn: uid=test.user,ou=People,o=test",
-      "objectClass: top",
-      "objectClass: person",
-      "objectClass: organizationalPerson",
-      "objectClass: inetOrgPerson",
-      "uid: test.user",
-      "givenName: Test",
-      "sn: User",
-      "cn: Test User",
-      "userPassword: password",
-      "",
-      "dn: ou=Groups,o=test",
-      "objectClass: top",
-      "objectClass: organizationalUnit",
-      "ou: Groups",
-      "",
-      "dn: cn=Test Static Group,ou=Groups,o=test",
-      "objectClass: top",
-      "objectClass: groupOfNames",
-      "cn: Test Static Group",
-      "member: uid=test.user,ou=People,o=test");
-
-    Entry e =
-         DirectoryServer.getEntry(DN.valueOf("uid=test.user,ou=People,o=test"));
-
-    IsMemberOfVirtualAttributeProvider provider =
-         new IsMemberOfVirtualAttributeProvider();
-    VirtualAttributeRule rule =
-         new VirtualAttributeRule(isMemberOfType, provider,
-                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
-                  Collections.<DN>emptySet(),
-                  Collections.<SearchFilter>emptySet(),
-                  VirtualAttributeCfgDefn.ConflictBehavior.
-                       VIRTUAL_OVERRIDES_REAL);
-
-    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>();
-    values.add(AttributeValues.create(isMemberOfType,
-                                  "cn=test static group,ou=groups,o=test"));
-
-    assertTrue(provider.hasAnyValue(e, rule, values));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    DeleteOperation deleteOperation =
-         conn.processDelete(DN.valueOf("cn=test static group,ou=groups,o=test"));
-    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
-  }
-
-
-
-  /**
-   * Tests the {@code hasAnyValue} method with a set of values containing only
-   * an incorrect value.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testHasAnyValueOnlyIncorrect()
-         throws Exception
-  {
-    TestCaseUtils.initializeTestBackend(true);
-
-    TestCaseUtils.addEntries(
-      "dn: ou=People,o=test",
-      "objectClass: top",
-      "objectClass: organizationalUnit",
-      "ou: People",
-      "",
-      "dn: uid=test.user,ou=People,o=test",
-      "objectClass: top",
-      "objectClass: person",
-      "objectClass: organizationalPerson",
-      "objectClass: inetOrgPerson",
-      "uid: test.user",
-      "givenName: Test",
-      "sn: User",
-      "cn: Test User",
-      "userPassword: password",
-      "",
-      "dn: ou=Groups,o=test",
-      "objectClass: top",
-      "objectClass: organizationalUnit",
-      "ou: Groups",
-      "",
-      "dn: cn=Test Static Group,ou=Groups,o=test",
-      "objectClass: top",
-      "objectClass: groupOfNames",
-      "cn: Test Static Group",
-      "member: uid=test.user,ou=People,o=test");
-
-    Entry e =
-         DirectoryServer.getEntry(DN.valueOf("uid=test.user,ou=People,o=test"));
-
-    IsMemberOfVirtualAttributeProvider provider =
-         new IsMemberOfVirtualAttributeProvider();
-    VirtualAttributeRule rule =
-         new VirtualAttributeRule(isMemberOfType, provider,
-                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
-                  Collections.<DN>emptySet(),
-                  Collections.<SearchFilter>emptySet(),
-                  VirtualAttributeCfgDefn.ConflictBehavior.
-                       VIRTUAL_OVERRIDES_REAL);
-
-    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>();
-    values.add(AttributeValues.create(isMemberOfType,
-                                  "cn=test dynamic group,ou=groups,o=test"));
-
-    assertFalse(provider.hasAnyValue(e, rule, values));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    DeleteOperation deleteOperation =
-         conn.processDelete(DN.valueOf("cn=test static group,ou=groups,o=test"));
-    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
-  }
-
-
-
-  /**
-   * Tests the {@code hasAnyValue} method with a set of values containing the
-   * correct value as well as multiple incorrect values.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testHasAnyValueIncludesCorrect()
-         throws Exception
-  {
-    TestCaseUtils.initializeTestBackend(true);
-
-    TestCaseUtils.addEntries(
-      "dn: ou=People,o=test",
-      "objectClass: top",
-      "objectClass: organizationalUnit",
-      "ou: People",
-      "",
-      "dn: uid=test.user,ou=People,o=test",
-      "objectClass: top",
-      "objectClass: person",
-      "objectClass: organizationalPerson",
-      "objectClass: inetOrgPerson",
-      "uid: test.user",
-      "givenName: Test",
-      "sn: User",
-      "cn: Test User",
-      "userPassword: password",
-      "",
-      "dn: ou=Groups,o=test",
-      "objectClass: top",
-      "objectClass: organizationalUnit",
-      "ou: Groups",
-      "",
-      "dn: cn=Test Static Group,ou=Groups,o=test",
-      "objectClass: top",
-      "objectClass: groupOfNames",
-      "cn: Test Static Group",
-      "member: uid=test.user,ou=People,o=test");
-
-    Entry e =
-         DirectoryServer.getEntry(DN.valueOf("uid=test.user,ou=People,o=test"));
-
-    IsMemberOfVirtualAttributeProvider provider =
-         new IsMemberOfVirtualAttributeProvider();
-    VirtualAttributeRule rule =
-         new VirtualAttributeRule(isMemberOfType, provider,
-                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
-                  Collections.<DN>emptySet(),
-                  Collections.<SearchFilter>emptySet(),
-                  VirtualAttributeCfgDefn.ConflictBehavior.
-                       VIRTUAL_OVERRIDES_REAL);
-
-    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>();
-    values.add(AttributeValues.create(isMemberOfType,
-                                  "cn=test static group,ou=groups,o=test"));
-    values.add(AttributeValues.create(isMemberOfType,
-                                  "cn=test dynamic group,ou=groups,o=test"));
-
-    assertTrue(provider.hasAnyValue(e, rule, values));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    DeleteOperation deleteOperation =
-         conn.processDelete(DN.valueOf("cn=test static group,ou=groups,o=test"));
-    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
-  }
-
-
-
-  /**
-   * Tests the {@code hasAnyValue} method with a set of multiple values, none of
-   * which are correct.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testHasAnyValueMissingCorrect()
-         throws Exception
-  {
-    TestCaseUtils.initializeTestBackend(true);
-
-    TestCaseUtils.addEntries(
-      "dn: ou=People,o=test",
-      "objectClass: top",
-      "objectClass: organizationalUnit",
-      "ou: People",
-      "",
-      "dn: uid=test.user,ou=People,o=test",
-      "objectClass: top",
-      "objectClass: person",
-      "objectClass: organizationalPerson",
-      "objectClass: inetOrgPerson",
-      "uid: test.user",
-      "givenName: Test",
-      "sn: User",
-      "cn: Test User",
-      "userPassword: password",
-      "",
-      "dn: ou=Groups,o=test",
-      "objectClass: top",
-      "objectClass: organizationalUnit",
-      "ou: Groups",
-      "",
-      "dn: cn=Test Static Group,ou=Groups,o=test",
-      "objectClass: top",
-      "objectClass: groupOfNames",
-      "cn: Test Static Group",
-      "member: uid=test.user,ou=People,o=test");
-
-    Entry e =
-         DirectoryServer.getEntry(DN.valueOf("uid=test.user,ou=People,o=test"));
-
-    IsMemberOfVirtualAttributeProvider provider =
-         new IsMemberOfVirtualAttributeProvider();
-    VirtualAttributeRule rule =
-         new VirtualAttributeRule(isMemberOfType, provider,
-                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
-                  Collections.<DN>emptySet(),
-                  Collections.<SearchFilter>emptySet(),
-                  VirtualAttributeCfgDefn.ConflictBehavior.
-                       VIRTUAL_OVERRIDES_REAL);
-
-    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>();
-    values.add(AttributeValues.create(isMemberOfType,
-                                  "cn=test nonstatic group,ou=groups,o=test"));
-    values.add(AttributeValues.create(isMemberOfType,
-                                  "cn=test dynamic group,ou=groups,o=test"));
-
-    assertFalse(provider.hasAnyValue(e, rule, values));
-
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-    DeleteOperation deleteOperation =
-         conn.processDelete(DN.valueOf("cn=test static group,ou=groups,o=test"));
-    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
 
@@ -938,7 +579,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
                   VirtualAttributeCfgDefn.ConflictBehavior.
                        VIRTUAL_OVERRIDES_REAL);
 
-    AttributeValue value = AttributeValues.create(isMemberOfType, "o=test2");
+    ByteString value = ByteString.valueOf("o=test2");
     assertEquals(provider.greaterThanOrEqualTo(entry, rule, value),
                  ConditionResult.UNDEFINED);
   }
@@ -973,7 +614,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
                   VirtualAttributeCfgDefn.ConflictBehavior.
                        VIRTUAL_OVERRIDES_REAL);
 
-    AttributeValue value = AttributeValues.create(isMemberOfType, "o=test2");
+    ByteString value = ByteString.valueOf("o=test2");
     assertEquals(provider.lessThanOrEqualTo(entry, rule, value),
                  ConditionResult.UNDEFINED);
   }
@@ -1008,7 +649,7 @@ public class IsMemberOfVirtualAttributeProviderTestCase
                   VirtualAttributeCfgDefn.ConflictBehavior.
                        VIRTUAL_OVERRIDES_REAL);
 
-    AttributeValue value = AttributeValues.create(isMemberOfType, "o=test2");
+    ByteString value = ByteString.valueOf("o=test2");
     assertEquals(provider.approximatelyEqualTo(entry, rule, value),
                  ConditionResult.UNDEFINED);
   }

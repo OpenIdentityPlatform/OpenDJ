@@ -46,6 +46,8 @@ import javax.naming.ldap.InitialLdapContext;
 import javax.swing.SwingUtilities;
 import javax.swing.tree.TreePath;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.guitools.controlpanel.browser.BrowserController;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
@@ -59,15 +61,12 @@ import org.opends.guitools.controlpanel.ui.ViewEntryPanel;
 import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.messages.AdminToolMessages;
-import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
 
 /**
  * The task that is called when we must modify an entry.
- *
  */
 public class ModifyEntryTask extends Task
 {
@@ -512,8 +511,8 @@ public class ModifyEntryTask extends Task
         attrType = DirectoryServer.getDefaultAttributeType(
             attr.getName().toLowerCase());
       }
-      List<AttributeValue> newValues = new ArrayList<AttributeValue>();
-      Iterator<AttributeValue> it = attr.iterator();
+      List<ByteString> newValues = new ArrayList<ByteString>();
+      Iterator<ByteString> it = attr.iterator();
       while (it.hasNext())
       {
         newValues.add(it.next());
@@ -521,7 +520,7 @@ public class ModifyEntryTask extends Task
       List<Object> oldValues = oldEntry.getAttributeValues(attrName);
 
       boolean isAttributeInNewRdn = false;
-      AttributeValue rdnValue = null;
+      ByteString rdnValue = null;
       RDN rdn = newEntry.getName().rdn();
       for (int i=0; i<rdn.getNumValues() && !isAttributeInNewRdn; i++)
       {
@@ -537,13 +536,13 @@ public class ModifyEntryTask extends Task
        * will be deleted.  Check that they are on the new entry but not in
        * the new RDN. If it is the case we must add them after the renaming.
        */
-      AttributeValue oldRdnValueToAdd = null;
+      ByteString oldRdnValueToAdd = null;
       /* Check the value in the RDN that will be deleted.  If the value was
        * on the previous RDN but not in the new entry it will be deleted.  So
        * we must avoid to include it as a delete modification in the
        * modifications.
        */
-      AttributeValue oldRdnValueDeleted = null;
+      ByteString oldRdnValueDeleted = null;
       RDN oldRDN = null;
       try
       {
@@ -558,7 +557,7 @@ public class ModifyEntryTask extends Task
       {
         if (oldRDN.getAttributeName(i).equalsIgnoreCase(attrName))
         {
-          AttributeValue value = oldRDN.getAttributeValue(i);
+          ByteString value = oldRDN.getAttributeValue(i);
           boolean containsValue = false;
           it = attr.iterator();
           while (it.hasNext())
@@ -585,8 +584,7 @@ public class ModifyEntryTask extends Task
       }
       if (oldValues == null)
       {
-        Set<AttributeValue> vs = new HashSet<AttributeValue>();
-        vs.addAll(newValues);
+        Set<ByteString> vs = new HashSet<ByteString>(newValues);
         if (rdnValue != null)
         {
           vs.remove(rdnValue);
@@ -598,14 +596,12 @@ public class ModifyEntryTask extends Task
               createAttribute(attrName, newValues)));
         }
       } else {
-        List<AttributeValue> toDelete = getValuesToDelete(oldValues, newValues,
-            attrType);
+        List<ByteString> toDelete = getValuesToDelete(oldValues, newValues);
         if (oldRdnValueDeleted != null)
         {
           toDelete.remove(oldRdnValueDeleted);
         }
-        List<AttributeValue> toAdd = getValuesToAdd(oldValues, newValues,
-            attrType);
+        List<ByteString> toAdd = getValuesToAdd(oldValues, newValues);
         if (oldRdnValueToAdd != null)
         {
           toAdd.add(oldRdnValueToAdd);
@@ -627,8 +623,7 @@ public class ModifyEntryTask extends Task
           }
           if (toAdd.size() > 0)
           {
-            List<AttributeValue> vs = new ArrayList<AttributeValue>();
-            vs.addAll(toAdd);
+            List<ByteString> vs = new ArrayList<ByteString>(toAdd);
             if (rdnValue != null)
             {
               vs.remove(rdnValue);
@@ -685,56 +680,47 @@ public class ModifyEntryTask extends Task
    * @param values the values.
    * @return a JNDI attribute using an attribute name and a set of values.
    */
-  private static Attribute createAttribute(String attrName,
-      List<AttributeValue> values) {
+  private static Attribute createAttribute(String attrName, List<ByteString> values) {
     Attribute attribute = new BasicAttribute(attrName);
-    for (AttributeValue value : values)
+    for (ByteString value : values)
     {
-      attribute.add(value.getValue().toByteArray());
+      attribute.add(value.toByteArray());
     }
     return attribute;
   }
 
   /**
-   * Creates an AttributeValue for an attribute and a value (the one we got
+   * Creates an ByteString for an attribute and a value (the one we got
    * using JNDI).
-   * @param attrType the attribute type.
    * @param value the value found using JNDI.
-   * @return an AttributeValue object.
+   * @return an ByteString object.
    */
-  private static AttributeValue createAttributeValue(AttributeType attrType,
-      Object value)
+  private static ByteString createAttributeValue(Object value)
   {
-    ByteString v;
     if (value instanceof String)
     {
-      v = ByteString.valueOf((String)value);
+      return ByteString.valueOf((String) value);
     }
     else if (value instanceof byte[])
     {
-      v = ByteString.wrap((byte[])value);
+      return ByteString.wrap((byte[]) value);
     }
-    else
-    {
-      v = ByteString.valueOf(String.valueOf(value));
-    }
-    return AttributeValues.create(attrType, v);
+    return ByteString.valueOf(String.valueOf(value));
   }
 
   /**
-   * Returns the set of AttributeValue that must be deleted.
+   * Returns the set of ByteString that must be deleted.
    * @param oldValues the old values of the entry.
    * @param newValues the new values of the entry.
-   * @param attrType the attribute type.
-   * @return the set of AttributeValue that must be deleted.
+   * @return the set of ByteString that must be deleted.
    */
-  private static List<AttributeValue> getValuesToDelete(List<Object> oldValues,
-      List<AttributeValue> newValues, AttributeType attrType)
+  private static List<ByteString> getValuesToDelete(List<Object> oldValues,
+      List<ByteString> newValues)
   {
-    List<AttributeValue> valuesToDelete = new ArrayList<AttributeValue>();
+    List<ByteString> valuesToDelete = new ArrayList<ByteString>();
     for (Object o : oldValues)
     {
-      AttributeValue oldValue = createAttributeValue(attrType, o);
+      ByteString oldValue = createAttributeValue(o);
       if (!newValues.contains(oldValue))
       {
         valuesToDelete.add(oldValue);
@@ -744,32 +730,34 @@ public class ModifyEntryTask extends Task
   }
 
   /**
-   * Returns the set of AttributeValue that must be added.
+   * Returns the set of ByteString that must be added.
    * @param oldValues the old values of the entry.
    * @param newValues the new values of the entry.
-   * @param attrType the attribute type.
-   * @return the set of AttributeValue that must be added.
+   * @return the set of ByteString that must be added.
    */
-  private static List<AttributeValue> getValuesToAdd(List<Object> oldValues,
-    List<AttributeValue> newValues, AttributeType attrType)
+  private static List<ByteString> getValuesToAdd(List<Object> oldValues,
+    List<ByteString> newValues)
   {
-    List<AttributeValue> valuesToAdd = new ArrayList<AttributeValue>();
-    for (AttributeValue newValue : newValues)
+    List<ByteString> valuesToAdd = new ArrayList<ByteString>();
+    for (ByteString newValue : newValues)
     {
-      boolean found = false;
-      for (Object o : oldValues)
-      {
-        found = newValue.equals(createAttributeValue(attrType, o));
-        if (found)
-        {
-          break;
-        }
-      }
-      if (!found)
+      if (!contains(oldValues, newValue))
       {
         valuesToAdd.add(newValue);
       }
     }
     return valuesToAdd;
+  }
+
+  private static boolean contains(List<Object> oldValues, ByteString newValue)
+  {
+    for (Object o : oldValues)
+    {
+      if (createAttributeValue(o).equals(newValue))
+      {
+        return true;
+      }
+    }
+    return false;
   }
 }

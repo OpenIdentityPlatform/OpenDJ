@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.core.DirectoryServer;
 
@@ -158,22 +159,22 @@ public class SubEntry {
   private boolean isInheritedFromRDNCollective = false;
 
   // Inherited collective DN attribute type.
-  private AttributeType inheritFromDNType = null;
+  private AttributeType inheritFromDNType;
 
   // Inherited collective RDN attribute type.
-  private AttributeType inheritFromRDNAttrType = null;
+  private AttributeType inheritFromRDNAttrType;
 
   // Inherited collective RDN type attribute type.
-  private AttributeType inheritFromRDNType = null;
+  private AttributeType inheritFromRDNType;
 
   // Inherited collective RDN attribute value.
-  private AttributeValue inheritFromRDNAttrValue = null;
+  private ByteString inheritFromRDNAttrValue;
 
   // Inherited collective from DN value.
-  private AttributeValue inheritFromDNAttrValue = null;
+  private ByteString inheritFromDNAttrValue;
 
   // Inherited collective from base DN.
-  private DN inheritFromBaseDN = null;
+  private DN inheritFromBaseDN;
 
   // Collective attributes.
   private List<Attribute> collectiveAttributes;
@@ -205,7 +206,7 @@ public class SubEntry {
     {
       for (Attribute attr : specAttrList)
       {
-        for (AttributeValue value : attr)
+        for (ByteString value : attr)
         {
           specString = value.toString();
           try
@@ -307,7 +308,7 @@ public class SubEntry {
         {
           for (Attribute attr : attrList)
           {
-            for (AttributeValue value : attr)
+            for (ByteString value : attr)
             {
               this.inheritFromDNType =
                       DirectoryServer.getAttributeType(
@@ -328,7 +329,7 @@ public class SubEntry {
         {
           for (Attribute attr : attrList)
           {
-            for (AttributeValue value : attr)
+            for (ByteString value : attr)
             {
               this.inheritFromRDNAttrType =
                       DirectoryServer.getAttributeType(
@@ -345,7 +346,7 @@ public class SubEntry {
         {
           for (Attribute attr : attrList)
           {
-            for (AttributeValue value : attr)
+            for (ByteString value : attr)
             {
               this.inheritFromRDNType =
                       DirectoryServer.getAttributeType(
@@ -361,12 +362,11 @@ public class SubEntry {
         {
           for (Attribute attr : attrList)
           {
-            for (AttributeValue value : attr)
+            for (ByteString value : attr)
             {
               // Has to have a parent since subentry itself
               // cannot be a suffix entry within the server.
-              this.inheritFromBaseDN =
-                  getDN().parent().child(DN.decode(value.getValue()));
+              this.inheritFromBaseDN = getDN().parent().child(DN.decode(value));
               break;
             }
           }
@@ -379,7 +379,7 @@ public class SubEntry {
       {
         for (Attribute attr : attrList)
         {
-          for (AttributeValue value : attr)
+          for (ByteString value : attr)
           {
             CollectiveVirtualAttribute collectiveAttr =
               new CollectiveVirtualAttribute(
@@ -399,7 +399,7 @@ public class SubEntry {
       {
         for (Attribute attr : attrList)
         {
-          for (AttributeValue value : attr)
+          for (ByteString value : attr)
           {
             for (CollectiveConflictBehavior behavior :
               CollectiveConflictBehavior.values())
@@ -509,10 +509,10 @@ public class SubEntry {
   /**
    * Getter to retrieve inheritFromRDNAttribute value
    * for inherited collective attribute subentry.
-   * @return AttributeValue of inheritFromRDNAttribute
+   * @return ByteString of inheritFromRDNAttribute
    *         or, <code>null</code> if there is none.
    */
-  public AttributeValue getInheritFromRDNAttrValue()
+  public ByteString getInheritFromRDNAttrValue()
   {
     return this.inheritFromRDNAttrValue;
   }
@@ -531,10 +531,10 @@ public class SubEntry {
   /**
    * Getter to retrieve inheritFromDNAttribute value
    * for inherited collective attribute subentry.
-   * @return AttributeValue of inheritFromDNAttribute
+   * @return ByteString of inheritFromDNAttribute
    *         or, <code>null</code> if there is none.
    */
-  public AttributeValue getInheritFromDNAttrValue()
+  public ByteString getInheritFromDNAttrValue()
   {
     return this.inheritFromDNAttrValue;
   }

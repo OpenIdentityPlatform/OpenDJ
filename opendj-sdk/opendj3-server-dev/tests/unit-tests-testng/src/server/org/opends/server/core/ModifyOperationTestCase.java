@@ -2045,9 +2045,9 @@ public class ModifyOperationTestCase
     boolean found = false;
     for (Attribute a : attrList)
     {
-      for (AttributeValue v : a)
+      for (ByteString v : a)
       {
-        assertEquals(Integer.parseInt(v.getValue().toString()), expectedValue);
+        assertEquals(Integer.parseInt(v.toString()), expectedValue);
         found = true;
       }
     }
@@ -3515,7 +3515,7 @@ responseLoop:
     String passwd = null;
     for (Attribute a : attrList)
     {
-      for (AttributeValue v : a)
+      for (ByteString v : a)
       {
         passwd = v.toString();
       }
@@ -3760,7 +3760,7 @@ responseLoop:
     Attribute a = attrList.get(0);
     assertTrue(a.hasOption("binary"));
     assertEquals(a.size(), 1);
-    assertEquals(Base64.encode(a.iterator().next().getValue()), certificateValue);
+    assertEquals(Base64.encode(a.iterator().next()), certificateValue);
   }
 
 

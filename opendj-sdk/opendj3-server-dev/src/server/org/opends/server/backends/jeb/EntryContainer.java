@@ -1086,7 +1086,7 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
 
       Entry debugEntry =
           new Entry(DN.valueOf("cn=debugsearch"), null, null, null);
-      debugEntry.addAttribute(attr, new ArrayList<AttributeValue>());
+      debugEntry.addAttribute(attr, new ArrayList<ByteString>());
 
       searchOperation.returnEntry(debugEntry, null);
       return;

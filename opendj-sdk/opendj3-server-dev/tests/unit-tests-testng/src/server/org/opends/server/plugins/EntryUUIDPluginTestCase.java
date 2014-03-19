@@ -45,9 +45,7 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.Entry;
@@ -133,7 +131,7 @@ public class EntryUUIDPluginTestCase
   /**
    * Tests the process of initializing the server with valid configurations.
    *
-   * @param  entry  The configuration entry to use for the initialization.
+   * @param  e  The configuration entry to use for the initialization.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
@@ -141,17 +139,7 @@ public class EntryUUIDPluginTestCase
   public void testInitializeWithValidConfigs(Entry e)
          throws Exception
   {
-    HashSet<PluginType> pluginTypes = new HashSet<PluginType>();
-    List<Attribute> attrList = e.getAttribute("ds-cfg-plugin-type");
-    for (Attribute a : attrList)
-    {
-      for (AttributeValue v : a)
-      {
-        pluginTypes.add(PluginType.forName(
-            v.getValue().toString().toLowerCase()));
-      }
-    }
-
+    HashSet<PluginType> pluginTypes = TestCaseUtils.getPluginTypes(e);
 
     EntryUUIDPluginCfg configuration =
          AdminTestCaseUtils.getConfiguration(
@@ -168,7 +156,7 @@ public class EntryUUIDPluginTestCase
    * Tests the process of initializing the server with valid configurations but
    * without the entryUUID attribute type defined in the server.
    *
-   * @param  entry  The configuration entry to use for the initialization.
+   * @param  e  The configuration entry to use for the initialization.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
@@ -180,18 +168,7 @@ public class EntryUUIDPluginTestCase
                                                                    false);
     DirectoryServer.deregisterAttributeType(entryUUIDType);
 
-
-    HashSet<PluginType> pluginTypes = new HashSet<PluginType>();
-    List<Attribute> attrList = e.getAttribute("ds-cfg-plugin-type");
-    for (Attribute a : attrList)
-    {
-      for (AttributeValue v : a)
-      {
-        pluginTypes.add(PluginType.forName(
-            v.getValue().toString().toLowerCase()));
-      }
-    }
-
+    HashSet<PluginType> pluginTypes = TestCaseUtils.getPluginTypes(e);
 
     EntryUUIDPluginCfg configuration =
          AdminTestCaseUtils.getConfiguration(
@@ -252,7 +229,7 @@ public class EntryUUIDPluginTestCase
   /**
    * Tests the process of initializing the server with valid configurations.
    *
-   * @param  entry  The configuration entry to use for the initialization.
+   * @param  e  The configuration entry to use for the initialization.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
@@ -261,17 +238,7 @@ public class EntryUUIDPluginTestCase
   public void testInitializeWithInvalidConfigs(Entry e)
          throws Exception
   {
-    HashSet<PluginType> pluginTypes = new HashSet<PluginType>();
-    List<Attribute> attrList = e.getAttribute("ds-cfg-plugin-type");
-    for (Attribute a : attrList)
-    {
-      for (AttributeValue v : a)
-      {
-        pluginTypes.add(PluginType.forName(
-            v.getValue().toString().toLowerCase()));
-      }
-    }
-
+    HashSet<PluginType> pluginTypes = TestCaseUtils.getPluginTypes(e);
 
     EntryUUIDPluginCfg configuration =
          AdminTestCaseUtils.getConfiguration(

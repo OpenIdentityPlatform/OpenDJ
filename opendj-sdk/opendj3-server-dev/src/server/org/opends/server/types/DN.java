@@ -635,11 +635,8 @@ public final class DN implements Comparable<DN>, Serializable
               attributeNameString);
         }
 
-        AttributeValue value =
-            AttributeValues.create(ByteString.empty(),
-                               ByteString.empty());
         rdnComponents.add(
-            new RDN(attrType, attributeNameString, value));
+            new RDN(attrType, attributeNameString, ByteString.empty()));
         return new DN(rdnComponents);
       }
 
@@ -666,9 +663,7 @@ public final class DN implements Comparable<DN>, Serializable
             attributeNameString);
       }
 
-      AttributeValue value =
-           AttributeValues.create(attrType, parsedValue);
-      RDN rdn = new RDN(attrType, attributeNameString, value);
+      RDN rdn = new RDN(attrType, attributeNameString, parsedValue);
 
 
       // Skip over any spaces that might be after the attribute value.
@@ -788,9 +783,7 @@ public final class DN implements Comparable<DN>, Serializable
                 attributeNameString);
           }
 
-          value = AttributeValues.create(ByteString.empty(),
-                                     ByteString.empty());
-          rdn.addValue(attrType, attributeNameString, value);
+          rdn.addValue(attrType, attributeNameString, ByteString.empty());
           rdnComponents.add(rdn);
           return new DN(rdnComponents);
         }
@@ -817,8 +810,7 @@ public final class DN implements Comparable<DN>, Serializable
               attributeNameString);
         }
 
-        value = AttributeValues.create(attrType, parsedValue);
-        rdn.addValue(attrType, attributeNameString, value);
+        rdn.addValue(attrType, attributeNameString, parsedValue);
 
 
         // Skip over any spaces that might be after the attribute
@@ -995,10 +987,7 @@ public final class DN implements Comparable<DN>, Serializable
           attrType = DirectoryServer.getDefaultAttributeType(name);
         }
 
-        AttributeValue value =
-            AttributeValues.create(ByteString.empty(),
-                                ByteString.empty());
-        rdnComponents.add(new RDN(attrType, name, value));
+        rdnComponents.add(new RDN(attrType, name, ByteString.empty()));
         return new DN(rdnComponents);
       }
 
@@ -1023,10 +1012,7 @@ public final class DN implements Comparable<DN>, Serializable
         attrType = DirectoryServer.getDefaultAttributeType(name);
       }
 
-      AttributeValue value =
-          AttributeValues.create(attrType,
-              parsedValue.toByteString());
-      RDN rdn = new RDN(attrType, name, value);
+      RDN rdn = new RDN(attrType, name, parsedValue.toByteString());
 
 
       // Skip over any spaces that might be after the attribute value.
@@ -1157,9 +1143,7 @@ public final class DN implements Comparable<DN>, Serializable
             attrType = DirectoryServer.getDefaultAttributeType(name);
           }
 
-          value = AttributeValues.create(ByteString.empty(),
-                                     ByteString.empty());
-          rdn.addValue(attrType, name, value);
+          rdn.addValue(attrType, name, ByteString.empty());
           rdnComponents.add(rdn);
           return new DN(rdnComponents);
         }
@@ -1184,9 +1168,7 @@ public final class DN implements Comparable<DN>, Serializable
           attrType = DirectoryServer.getDefaultAttributeType(name);
         }
 
-        value = AttributeValues.create(attrType,
-            parsedValue.toByteString());
-        rdn.addValue(attrType, name, value);
+        rdn.addValue(attrType, name, parsedValue.toByteString());
 
 
         // Skip over any spaces that might be after the attribute

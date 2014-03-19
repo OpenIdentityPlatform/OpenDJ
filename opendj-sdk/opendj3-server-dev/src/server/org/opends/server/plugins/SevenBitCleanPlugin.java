@@ -26,8 +26,6 @@
  */
 package org.opends.server.plugins;
 
-
-
 import java.util.List;
 import java.util.Set;
 
@@ -36,7 +34,9 @@ import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.PluginCfgDefn;
 import org.opends.server.admin.std.server.SevenBitCleanPluginCfg;
 import org.opends.server.admin.std.server.PluginCfg;
-import org.opends.server.api.plugin.*;
+import org.opends.server.api.plugin.DirectoryServerPlugin;
+import org.opends.server.api.plugin.PluginResult;
+import org.opends.server.api.plugin.PluginType;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
@@ -48,8 +48,6 @@ import org.opends.server.types.operation.PreParseModifyOperation;
 import org.opends.server.types.operation.PreParseModifyDNOperation;
 
 import static org.opends.messages.PluginMessages.*;
-
-
 
 /**
  * This class implements a Directory Server plugin that can be used to ensure
@@ -172,9 +170,9 @@ public final class SevenBitCleanPlugin
       {
         for (Attribute a : attrList)
         {
-          for (AttributeValue v : a)
+          for (ByteString v : a)
           {
-            if (! is7BitClean(v.getValue()))
+            if (!is7BitClean(v))
             {
               LocalizableMessage rejectMessage =
                    ERR_PLUGIN_7BIT_IMPORT_ATTR_NOT_CLEAN.get(
@@ -239,9 +237,9 @@ public final class SevenBitCleanPlugin
           continue;
         }
 
-        for (AttributeValue v : a)
+        for (ByteString v : a)
         {
-          if (! is7BitClean(v.getValue()))
+          if (!is7BitClean(v))
           {
             return PluginResult.PreParse.stopProcessing(
                 ResultCode.CONSTRAINT_VIOLATION,
@@ -317,9 +315,9 @@ public final class SevenBitCleanPlugin
           continue;
         }
 
-        for (AttributeValue v : a)
+        for (ByteString v : a)
         {
-          if (! is7BitClean(v.getValue()))
+          if (!is7BitClean(v))
           {
             return PluginResult.PreParse.stopProcessing(
                 ResultCode.CONSTRAINT_VIOLATION,
@@ -384,7 +382,7 @@ public final class SevenBitCleanPlugin
           continue;
         }
 
-        if (! is7BitClean(newRDN.getAttributeValue(i).getValue()))
+        if (!is7BitClean(newRDN.getAttributeValue(i)))
         {
           return PluginResult.PreParse.stopProcessing(
               ResultCode.CONSTRAINT_VIOLATION,
@@ -474,6 +472,7 @@ public final class SevenBitCleanPlugin
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
                       SevenBitCleanPluginCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -507,6 +506,7 @@ public final class SevenBitCleanPlugin
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
                                  SevenBitCleanPluginCfg configuration)
   {

@@ -38,7 +38,7 @@ import javax.management.MBeanParameterInfo;
 
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeValue;
+import org.forgerock.opendj.ldap.ByteString;
 
 import static org.opends.messages.ConfigMessages.*;
 /**
@@ -69,11 +69,11 @@ public abstract class ConfigAttribute
 
   // The value or set of values that are currently in effect for this
   // configuration attribute.
-  private LinkedHashSet<AttributeValue> activeValues;
+  private LinkedHashSet<ByteString> activeValues;
 
   // The value or set of values that will be in effect once the appropriate
   // administrative action has been taken.
-  private LinkedHashSet<AttributeValue> pendingValues;
+  private LinkedHashSet<ByteString> pendingValues;
 
   // The description for this configuration attribute.
   private LocalizableMessage description;
@@ -110,7 +110,7 @@ public abstract class ConfigAttribute
     this.requiresAdminAction = requiresAdminAction;
 
     hasPendingValues = false;
-    activeValues     = new LinkedHashSet<AttributeValue>();
+    activeValues     = new LinkedHashSet<ByteString>();
     pendingValues    = activeValues;
   }
 
@@ -135,7 +135,7 @@ public abstract class ConfigAttribute
   protected ConfigAttribute(String name, LocalizableMessage description,
                             boolean isRequired, boolean isMultiValued,
                             boolean requiresAdminAction,
-                            LinkedHashSet<AttributeValue> activeValues)
+                            LinkedHashSet<ByteString> activeValues)
   {
     this.name                = name;
     this.description         = description;
@@ -146,7 +146,7 @@ public abstract class ConfigAttribute
 
     if (activeValues == null)
     {
-      this.activeValues = new LinkedHashSet<AttributeValue>();
+      this.activeValues = new LinkedHashSet<ByteString>();
     }
     else
     {
@@ -185,9 +185,9 @@ public abstract class ConfigAttribute
   protected ConfigAttribute(String name, LocalizableMessage description,
                             boolean isRequired, boolean isMultiValued,
                             boolean requiresAdminAction,
-                            LinkedHashSet<AttributeValue> activeValues,
+                            LinkedHashSet<ByteString> activeValues,
                             boolean hasPendingValues,
-                            LinkedHashSet<AttributeValue> pendingValues)
+                            LinkedHashSet<ByteString> pendingValues)
   {
     this.name                = name;
     this.description         = description;
@@ -198,7 +198,7 @@ public abstract class ConfigAttribute
 
     if (activeValues == null)
     {
-      this.activeValues = new LinkedHashSet<AttributeValue>();
+      this.activeValues = new LinkedHashSet<ByteString>();
     }
     else
     {
@@ -213,7 +213,7 @@ public abstract class ConfigAttribute
     {
       if (pendingValues == null)
       {
-        this.pendingValues = new LinkedHashSet<AttributeValue>();
+        this.pendingValues = new LinkedHashSet<ByteString>();
       }
       else
       {
@@ -318,7 +318,7 @@ public abstract class ConfigAttribute
    *
    * @return  The set of active values for this configuration attribute.
    */
-  public LinkedHashSet<AttributeValue> getActiveValues()
+  public LinkedHashSet<ByteString> getActiveValues()
   {
     return activeValues;
   }
@@ -349,7 +349,7 @@ public abstract class ConfigAttribute
    * @return  The set of values that this configuration attribute will have
    *          after any appropriate administrative action is taken.
    */
-  public LinkedHashSet<AttributeValue> getPendingValues()
+  public LinkedHashSet<ByteString> getPendingValues()
   {
     if (requiresAdminAction)
     {
@@ -375,7 +375,7 @@ public abstract class ConfigAttribute
    * @return  <CODE>true</CODE> if the provided value is acceptable for use in
    *          this attribute, or <CODE>false</CODE> if not.
    */
-  public abstract boolean valueIsAcceptable(AttributeValue value,
+  public abstract boolean valueIsAcceptable(ByteString value,
                                             StringBuilder rejectReason);
 
 
@@ -394,7 +394,7 @@ public abstract class ConfigAttribute
    * @throws  ConfigException  If the provided set of values is not acceptable
    *                           for some reason.
    */
-  protected void setValues(LinkedHashSet<AttributeValue> values)
+  protected void setValues(LinkedHashSet<ByteString> values)
          throws ConfigException
   {
     // If no values are provided, then check to see if this is a required
@@ -412,7 +412,7 @@ public abstract class ConfigAttribute
         {
           if (values == null)
           {
-            pendingValues = new LinkedHashSet<AttributeValue>();
+            pendingValues = new LinkedHashSet<ByteString>();
           }
           else
           {
@@ -425,7 +425,7 @@ public abstract class ConfigAttribute
         {
           if (values == null)
           {
-            activeValues = new LinkedHashSet<AttributeValue>();
+            activeValues = new LinkedHashSet<ByteString>();
           }
           else
           {
@@ -442,14 +442,14 @@ public abstract class ConfigAttribute
 
 
     // We know that we have at least one value, so get it and see if it is OK.
-    Iterator<AttributeValue> iterator     = values.iterator();
-    AttributeValue           value        = iterator.next();
+    Iterator<ByteString>     iterator     = values.iterator();
+    ByteString               value        = iterator.next();
     StringBuilder            rejectReason = new StringBuilder();
 
     if (! valueIsAcceptable(value, rejectReason))
     {
       throw new ConfigException(ERR_CONFIG_ATTR_REJECTED_VALUE.get(
-          value.getValue(), name, rejectReason));
+          value, name, rejectReason));
     }
 
 
@@ -469,7 +469,7 @@ public abstract class ConfigAttribute
       if (! valueIsAcceptable(value, rejectReason))
       {
         throw new ConfigException(ERR_CONFIG_ATTR_REJECTED_VALUE.get(
-            value.getValue(), name, rejectReason));
+            value, name, rejectReason));
       }
     }
 
@@ -499,7 +499,7 @@ public abstract class ConfigAttribute
    *
    * @param  values  The set of active values for this configuration attribute.
    */
-  protected void setActiveValues(LinkedHashSet<AttributeValue> values)
+  protected void setActiveValues(LinkedHashSet<ByteString> values)
   {
     activeValues = values;
   }
@@ -513,7 +513,7 @@ public abstract class ConfigAttribute
    *
    * @param  values  The set of pending values for this configuration attribute.
    */
-  protected void setPendingValues(LinkedHashSet<AttributeValue> values)
+  protected void setPendingValues(LinkedHashSet<ByteString> values)
   {
     pendingValues    = values;
     hasPendingValues = true;
@@ -533,8 +533,7 @@ public abstract class ConfigAttribute
    *                           provided set of values to this configuration
    *                           attribute.
    */
-  protected void addValues(List<AttributeValue> values)
-         throws ConfigException
+  protected void addValues(List<ByteString> values) throws ConfigException
   {
     // If there are no values provided, then do nothing.
     if (values == null)
@@ -564,17 +563,17 @@ public abstract class ConfigAttribute
 
     // Create a temporary set of values that we will use for this change.  It
     // may not actually be applied if an error occurs for some reason.
-    LinkedHashSet<AttributeValue> tempValues;
+    LinkedHashSet<ByteString> tempValues;
     if (requiresAdminAction && hasPendingValues)
     {
       tempValues =
-           new LinkedHashSet<AttributeValue>(pendingValues.size() + numValues);
+           new LinkedHashSet<ByteString>(pendingValues.size() + numValues);
       tempValues.addAll(pendingValues);
     }
     else
     {
       tempValues =
-           new LinkedHashSet<AttributeValue>(activeValues.size() + numValues);
+           new LinkedHashSet<ByteString>(activeValues.size() + numValues);
       tempValues.addAll(activeValues);
     }
 
@@ -582,18 +581,18 @@ public abstract class ConfigAttribute
     // Iterate through all of the provided values.  Make sure that each is
     // acceptable for use and that it is not already contained in the value set.
     StringBuilder rejectReason = new StringBuilder();
-    for (AttributeValue value : values)
+    for (ByteString value : values)
     {
       if (tempValues.contains(value))
       {
         throw new ConfigException(ERR_CONFIG_ATTR_ADD_VALUES_ALREADY_EXISTS.get(
-            name, value.getValue()));
+            name, value));
       }
 
       if (! valueIsAcceptable(value, rejectReason))
       {
         throw new ConfigException(ERR_CONFIG_ATTR_REJECTED_VALUE.get(
-            value.getValue(), name, rejectReason));
+            value, name, rejectReason));
       }
     }
 
@@ -625,22 +624,20 @@ public abstract class ConfigAttribute
    *                           value set, or if this is a required attribute and
    *                           the resulting value list would be empty.
    */
-  protected void removeValues(List<AttributeValue> values)
+  protected void removeValues(List<ByteString> values)
          throws ConfigException
   {
     // Create a temporary set of values that we will use for this change.  It
     // may not actually be applied if an error occurs for some reason.
-    LinkedHashSet<AttributeValue> tempValues;
+    LinkedHashSet<ByteString> tempValues;
     if (requiresAdminAction && hasPendingValues)
     {
-      tempValues =
-           new LinkedHashSet<AttributeValue>(pendingValues.size());
+      tempValues = new LinkedHashSet<ByteString>(pendingValues.size());
       tempValues.addAll(pendingValues);
     }
     else
     {
-      tempValues =
-           new LinkedHashSet<AttributeValue>(activeValues.size());
+      tempValues = new LinkedHashSet<ByteString>(activeValues.size());
       tempValues.addAll(activeValues);
     }
 
@@ -648,12 +645,11 @@ public abstract class ConfigAttribute
     // Iterate through all the provided values and make sure that they are
     // contained in the list.  If not, then throw an exception.  If so, then
     // remove it.
-    for (AttributeValue value : values)
+    for (ByteString value : values)
     {
       if (! tempValues.remove(value))
       {
-        throw new ConfigException(
-            ERR_CONFIG_ATTR_NO_SUCH_VALUE.get(name, value.getValue()));
+        throw new ConfigException(ERR_CONFIG_ATTR_NO_SUCH_VALUE.get(name, value));
       }
     }
 
@@ -704,7 +700,7 @@ public abstract class ConfigAttribute
     {
       if (pendingValues == null)
       {
-        pendingValues = new LinkedHashSet<AttributeValue>();
+        pendingValues = new LinkedHashSet<ByteString>();
       }
       else
       {
@@ -733,11 +729,11 @@ public abstract class ConfigAttribute
    * @param  values  The initial set of values to assign to this configuration
    *                 attribute.
    */
-  public void setInitialValues(LinkedHashSet<AttributeValue> values)
+  public void setInitialValues(LinkedHashSet<ByteString> values)
   {
     if (values == null)
     {
-      values = new LinkedHashSet<AttributeValue>();
+      values = new LinkedHashSet<ByteString>();
     }
 
     activeValues     = values;
@@ -782,10 +778,8 @@ public abstract class ConfigAttribute
    * @throws  ConfigException  If an unrecoverable problem occurs while
    *                           performing the conversion.
    */
-  public abstract LinkedHashSet<AttributeValue>
-                       stringsToValues(List<String> valueStrings,
-                                       boolean allowFailures)
-         throws ConfigException;
+  public abstract LinkedHashSet<ByteString> stringsToValues(
+      List<String> valueStrings, boolean allowFailures) throws ConfigException;
 
 
 

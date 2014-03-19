@@ -29,6 +29,7 @@ package org.opends.server.replication.plugin;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.common.CSN;
@@ -70,7 +71,7 @@ public class HistoricalAttributeValue
 {
   private AttributeType attrType;
   private String attrString;
-  private AttributeValue attributeValue;
+  private ByteString attributeValue;
   private CSN csn;
   private Set<String> options;
   private HistAttrModificationKey histKey;
@@ -136,10 +137,12 @@ public class HistoricalAttributeValue
       if (token.length == 4)
       {
         stringValue = token[3];
-        attributeValue = AttributeValues.create(attrType, stringValue);
+        attributeValue = ByteString.valueOf(stringValue);
       }
       else
+      {
         attributeValue = null;
+      }
     }
     else
     {
@@ -200,7 +203,7 @@ public class HistoricalAttributeValue
    * Get the Attribute Value.
    * @return The Attribute Value.
    */
-  public AttributeValue getAttributeValue()
+  public ByteString getAttributeValue()
   {
     return attributeValue;
   }

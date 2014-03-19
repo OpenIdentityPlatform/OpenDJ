@@ -35,10 +35,12 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.task.Task;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.CSNGenerator;
@@ -51,7 +53,6 @@ import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.service.ReplicationDomain;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -663,7 +664,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
         Attribute attr = attrs.get(0);
         if (attr.size() == 1)
         {
-          return Long.decode(attr.iterator().next().getValue().toString());
+          return Long.decode(attr.iterator().next().toString());
         }
       }
     }
@@ -892,10 +893,10 @@ public class FractionalReplicationTest extends ReplicationTestCase {
     assertEquals(attrs.size(), 1);
     Attribute attr = attrs.get(0);
     assertNotNull(attr);
-    Iterator<AttributeValue> attrValues = attr.iterator();
+    Iterator<ByteString> attrValues = attr.iterator();
     assertNotNull(attrValues);
     assertTrue(attrValues.hasNext());
-    AttributeValue attrValue = attrValues.next();
+    ByteString attrValue = attrValues.next();
     assertNotNull(attrValue);
     assertFalse(attrValues.hasNext());
     assertEquals(attrValue.toString(), attributeValue, "Was expecting attribute " +

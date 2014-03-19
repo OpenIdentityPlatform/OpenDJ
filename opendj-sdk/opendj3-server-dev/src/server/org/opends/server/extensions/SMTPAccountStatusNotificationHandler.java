@@ -53,7 +53,7 @@ import org.opends.server.types.AccountStatusNotificationProperty;
 import org.opends.server.types.AccountStatusNotificationType;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
@@ -541,15 +541,15 @@ public class SMTPAccountStatusNotificationHandler
         {
           for (Attribute a : attrList)
           {
-            for (AttributeValue v : a)
+            for (ByteString v : a)
             {
               if (logger.isTraceEnabled())
               {
                 logger.trace("Adding end user recipient %s from attr %s",
-                    v.getValue(), a.getNameWithOptions());
+                    v, a.getNameWithOptions());
               }
 
-              recipients.add(v.getValue().toString());
+              recipients.add(v.toString());
             }
           }
         }

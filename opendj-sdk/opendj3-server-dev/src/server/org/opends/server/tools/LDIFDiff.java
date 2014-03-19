@@ -46,8 +46,7 @@ import org.opends.server.loggers.JDKLogging;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.AttributeValues;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -789,7 +788,7 @@ public class LDIFDiff
       AttributeBuilder builder = new AttributeBuilder(attrType);
       for (ObjectClass oc : sourceClasses)
       {
-        builder.add(AttributeValues.create(attrType, oc.getNameOrOID()));
+        builder.add(oc.getNameOrOID());
       }
 
       modifications.add(new Modification(ModificationType.DELETE, builder
@@ -803,7 +802,7 @@ public class LDIFDiff
       AttributeBuilder builder = new AttributeBuilder(attrType);
       for (ObjectClass oc : targetClasses)
       {
-        builder.add(AttributeValues.create(attrType, oc.getNameOrOID()));
+        builder.add(oc.getNameOrOID());
       }
 
       modifications.add(new Modification(ModificationType.ADD, builder
@@ -940,7 +939,7 @@ public class LDIFDiff
           else
           {
             LinkedList<Modification> attrMods = new LinkedList<Modification>();
-            for (AttributeValue v : a)
+            for (ByteString v : a)
             {
               AttributeBuilder builder = new AttributeBuilder(a, true);
               builder.add(v);

@@ -43,6 +43,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SchemaConfigManager;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
 import static org.opends.messages.TaskMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
@@ -59,7 +60,7 @@ public class AddSchemaFileTask
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The list of files to be added to the server schema. */
-  TreeSet<String> filesToAdd;
+  private TreeSet<String> filesToAdd;
 
   /**
    * {@inheritDoc}
@@ -111,9 +112,9 @@ public class AddSchemaFileTask
     filesToAdd = new TreeSet<String>();
     for (Attribute a : attrList)
     {
-      for (AttributeValue v  : a)
+      for (ByteString v  : a)
       {
-        String filename = v.getValue().toString();
+        String filename = v.toString();
         filesToAdd.add(filename);
 
         try
@@ -207,9 +208,9 @@ public class AddSchemaFileTask
             Attribute a = m.getAttribute();
             AttributeBuilder builder = new AttributeBuilder(a
                 .getAttributeType(), a.getName());
-            for (AttributeValue v : a)
+            for (ByteString v : a)
             {
-              String s = v.getValue().toString();
+              String s = v.toString();
               if (!s.contains(SCHEMA_PROPERTY_FILENAME))
               {
                 if (s.endsWith(" )"))
@@ -224,7 +225,7 @@ public class AddSchemaFileTask
                 }
               }
 
-              builder.add(AttributeValues.create(a.getAttributeType(), s));
+              builder.add(s);
             }
 
             mods.add(new Modification(m.getModificationType(), builder

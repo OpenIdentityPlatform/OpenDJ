@@ -120,21 +120,18 @@ public class VirtualAttributeTestCase
          throws Exception
   {
     assertEquals(virtualAttribute.size(), 1);
-    assertTrue(virtualAttribute.contains(AttributeValues.create(entryDNType, "o=test")));
+    assertTrue(virtualAttribute.contains(ByteString.valueOf("o=test")));
 
     assertTrue(!virtualAttribute.isEmpty());
 
-    assertTrue(virtualAttribute.contains(AttributeValues.create(entryDNType,
-                                                            "o=test")));
-    assertFalse(virtualAttribute.contains(AttributeValues.create(entryDNType,
-                                                             "o=not test")));
+    assertTrue(virtualAttribute.contains(ByteString.valueOf("o=test")));
+    assertFalse(virtualAttribute.contains(ByteString.valueOf("o=not test")));
 
-    LinkedHashSet<AttributeValue> testValues =
-         new LinkedHashSet<AttributeValue>();
-    testValues.add(AttributeValues.create(entryDNType, "o=test"));
+    LinkedHashSet<ByteString> testValues = new LinkedHashSet<ByteString>();
+    testValues.add(ByteString.valueOf("o=test"));
     assertTrue(virtualAttribute.containsAll(testValues));
 
-    testValues.add(AttributeValues.create(entryDNType, "o=not test"));
+    testValues.add(ByteString.valueOf("o=not test"));
     assertFalse(virtualAttribute.containsAll(testValues));
   }
 
@@ -154,7 +151,7 @@ public class VirtualAttributeTestCase
         ByteString.valueOf("test")),
                  ConditionResult.UNDEFINED);
 
-    AttributeValue assertionValue = AttributeValues.create(entryDNType, "o=test");
+    ByteString assertionValue = ByteString.valueOf("o=test");
     assertEquals(virtualAttribute.greaterThanOrEqualTo(assertionValue),
                  ConditionResult.UNDEFINED);
     assertEquals(virtualAttribute.lessThanOrEqualTo(assertionValue),

@@ -461,12 +461,12 @@ public final class MultiChoiceConfigAttribute
       {
         if (requiresAdminAction())
         {
-          setPendingValues(new LinkedHashSet<AttributeValue>(0));
+          setPendingValues(new LinkedHashSet<ByteString>(0));
           pendingValues = new ArrayList<String>();
         }
         else
         {
-          setActiveValues(new LinkedHashSet<AttributeValue>(0));
+          setActiveValues(new LinkedHashSet<ByteString>(0));
           activeValues.clear();
         }
       }
@@ -485,8 +485,7 @@ public final class MultiChoiceConfigAttribute
 
     // Iterate through all the provided values, make sure that they are
     // acceptable, and build the value set.
-    LinkedHashSet<AttributeValue> valueSet =
-         new LinkedHashSet<AttributeValue>(numValues);
+    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<ByteString>(numValues);
     for (String value : values)
     {
       if ((value == null) || (value.length() == 0))
@@ -503,10 +502,7 @@ public final class MultiChoiceConfigAttribute
         throw new ConfigException(message);
       }
 
-      AttributeValue attrValue =
-          AttributeValues.create(ByteString.valueOf(value),
-              ByteString.valueOf(value));
-
+      ByteString attrValue = ByteString.valueOf(value);
       if (valueSet.contains(attrValue))
       {
         LocalizableMessage message =
@@ -541,14 +537,10 @@ public final class MultiChoiceConfigAttribute
    *
    * @return  The constructed value set.
    */
-  private static LinkedHashSet<AttributeValue> getValueSet(String value)
+  private static LinkedHashSet<ByteString> getValueSet(String value)
   {
-    LinkedHashSet<AttributeValue> valueSet =
-         new LinkedHashSet<AttributeValue>(1);
-
-    valueSet.add(AttributeValues.create(ByteString.valueOf(value),
-        ByteString.valueOf(value)));
-
+    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<ByteString>(1);
+    valueSet.add(ByteString.valueOf(value));
     return valueSet;
   }
 
@@ -561,22 +553,18 @@ public final class MultiChoiceConfigAttribute
    *
    * @return  The constructed value set.
    */
-  private static LinkedHashSet<AttributeValue> getValueSet(List<String> values)
+  private static LinkedHashSet<ByteString> getValueSet(List<String> values)
   {
     if (values == null)
     {
       return null;
     }
 
-    LinkedHashSet<AttributeValue> valueSet =
-         new LinkedHashSet<AttributeValue>(values.size());
-
+    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<ByteString>(values.size());
     for (String value : values)
     {
-      valueSet.add(AttributeValues.create(ByteString.valueOf(value),
-          ByteString.valueOf(value)));
+      valueSet.add(ByteString.valueOf(value));
     }
-
     return valueSet;
   }
 
@@ -612,13 +600,12 @@ public final class MultiChoiceConfigAttribute
    * @return  <CODE>true</CODE> if the provided value is acceptable for use in
    *          this attribute, or <CODE>false</CODE> if not.
    */
-  public boolean valueIsAcceptable(AttributeValue value,
+  public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder rejectReason)
   {
     // Make sure that the value is non-empty.
     String stringValue;
-    if ((value == null) ||
-        ((stringValue = value.getValue().toString()).length() == 0))
+    if (value == null || ((stringValue = value.toString()).length() == 0))
     {
       rejectReason.append(ERR_CONFIG_ATTR_EMPTY_STRING_VALUE.get(getName()));
       return false;
@@ -658,9 +645,8 @@ public final class MultiChoiceConfigAttribute
    * @throws  ConfigException  If an unrecoverable problem occurs while
    *                           performing the conversion.
    */
-  public LinkedHashSet<AttributeValue>
-              stringsToValues(List<String> valueStrings,
-                              boolean allowFailures)
+  public LinkedHashSet<ByteString>
+              stringsToValues(List<String> valueStrings, boolean allowFailures)
          throws ConfigException
   {
     if ((valueStrings == null) || valueStrings.isEmpty())
@@ -670,10 +656,7 @@ public final class MultiChoiceConfigAttribute
         LocalizableMessage message = ERR_CONFIG_ATTR_IS_REQUIRED.get(getName());
         throw new ConfigException(message);
       }
-      else
-      {
-        return new LinkedHashSet<AttributeValue>();
-      }
+      return new LinkedHashSet<ByteString>();
     }
 
 
@@ -686,8 +669,7 @@ public final class MultiChoiceConfigAttribute
     }
 
 
-    LinkedHashSet<AttributeValue> valueSet =
-         new LinkedHashSet<AttributeValue>(numValues);
+    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<ByteString>(numValues);
     for (String valueString : valueStrings)
     {
       if ((valueString == null) || (valueString.length() == 0))
@@ -719,8 +701,7 @@ public final class MultiChoiceConfigAttribute
         }
       }
 
-      valueSet.add(AttributeValues.create(ByteString.valueOf(valueString),
-          ByteString.valueOf(valueString)));
+      valueSet.add(ByteString.valueOf(valueString));
     }
 
 
@@ -773,10 +754,7 @@ public final class MultiChoiceConfigAttribute
     {
       return pendingValues;
     }
-    else
-    {
-      return null;
-    }
+    return null;
   }
 
 
@@ -829,14 +807,10 @@ public final class MultiChoiceConfigAttribute
             if (isRequired())
             {
               // This is illegal -- it must have a value.
-              LocalizableMessage message = ERR_CONFIG_ATTR_IS_REQUIRED.get(a.getName());
-              throw new ConfigException(message);
+              throw new ConfigException(ERR_CONFIG_ATTR_IS_REQUIRED.get(a.getName()));
             }
-            else
-            {
-              // This is fine.  The pending value set can be empty.
-              pendingValues = new ArrayList<String>(0);
-            }
+            // This is fine. The pending value set can be empty.
+            pendingValues = new ArrayList<String>(0);
           }
           else
           {
@@ -850,17 +824,17 @@ public final class MultiChoiceConfigAttribute
             }
 
             pendingValues = new ArrayList<String>(numValues);
-            for (AttributeValue v : a)
+            for (ByteString v : a)
             {
-              String lowerValue = v.getValue().toString().toLowerCase();
+              String lowerValue = v.toString().toLowerCase();
               if (! allowedValues.contains(lowerValue))
               {
                 // This is illegal -- the value is not allowed.
                 throw new ConfigException(ERR_CONFIG_ATTR_VALUE_NOT_ALLOWED.get(
-                    v.getValue(), a.getName()));
+                    v, a.getName()));
               }
 
-              pendingValues.add(v.getValue().toString());
+              pendingValues.add(v.toString());
             }
           }
         }
@@ -893,11 +867,8 @@ public final class MultiChoiceConfigAttribute
             LocalizableMessage message = ERR_CONFIG_ATTR_IS_REQUIRED.get(a.getName());
             throw new ConfigException(message);
           }
-          else
-          {
-            // This is fine.  The active value set can be empty.
-            activeValues = new ArrayList<String>(0);
-          }
+          // This is fine. The active value set can be empty.
+          activeValues = new ArrayList<String>(0);
         }
         else
         {
@@ -911,17 +882,17 @@ public final class MultiChoiceConfigAttribute
           }
 
           activeValues = new ArrayList<String>(numValues);
-          for (AttributeValue v : a)
+          for (ByteString v : a)
           {
-            String lowerValue = v.getValue().toString().toLowerCase();
+            String lowerValue = v.toString().toLowerCase();
             if (! allowedValues.contains(lowerValue))
             {
               // This is illegal -- the value is not allowed.
               throw new ConfigException(ERR_CONFIG_ATTR_VALUE_NOT_ALLOWED.get(
-                  v.getValue(), a.getName()));
+                  v, a.getName()));
             }
 
-            activeValues.add(v.getValue().toString());
+            activeValues.add(v.toString());
           }
         }
       }
@@ -980,17 +951,11 @@ public final class MultiChoiceConfigAttribute
 
       return new javax.management.Attribute(name, values);
     }
-    else
+    else if (!requestedValues.isEmpty())
     {
-      if (requestedValues.isEmpty())
-      {
-        return null;
-      }
-      else
-      {
-        return new javax.management.Attribute(name, requestedValues.get(0));
-      }
+      return new javax.management.Attribute(name, requestedValues.get(0));
     }
+    return null;
   }
 
   /**

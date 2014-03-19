@@ -31,6 +31,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
@@ -346,7 +347,7 @@ public class UserDN implements KeywordBindRule {
      * TODO Evaluate making this method more efficient.
      *
      * The evalDNEntryAttr method isn't as efficient as it could be.  It would
-     * probably be faster to to convert the clientDN to an AttributeValue and
+     * probably be faster to to convert the clientDN to an ByteString and
      * see if the entry has that value than to decode each value as a DN and
      * see if it matches the clientDN.
      */
@@ -363,9 +364,9 @@ public class UserDN implements KeywordBindRule {
                                            AttributeType attrType) {
         EnumEvalResult matched= EnumEvalResult.FALSE;
         List<Attribute> attrs =  e.getAttribute(attrType);
-        for(AttributeValue v : attrs.get(0)) {
+        for(ByteString v : attrs.get(0)) {
             try {
-                DN dn=DN.valueOf(v.getValue().toString());
+                DN dn = DN.valueOf(v.toString());
                 if(dn.equals(clientDN)) {
                     matched=EnumEvalResult.TRUE;
                     break;

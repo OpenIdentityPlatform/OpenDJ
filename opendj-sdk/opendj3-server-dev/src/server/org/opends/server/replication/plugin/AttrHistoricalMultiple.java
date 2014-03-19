@@ -30,6 +30,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.types.*;
@@ -54,7 +55,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
    * LinkedHashMap here because we want:
    * <ol>
    * <li>Fast access for removing/adding a AttrValueHistorical keyed by the
-   * AttributeValue => Use a Map</li>
+   * attribute value => Use a Map</li>
    * <li>Ordering changes according to the CSN of each changes => Use a
    * LinkedHashMap</li>
    * </ol>
@@ -157,7 +158,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
     * @param val value that was deleted
     * @param csn time when the delete was done
     */
-   protected void delete(AttributeValue val, CSN csn)
+   protected void delete(ByteString val, CSN csn)
    {
      AttrValueHistorical info = new AttrValueHistorical(val, null, csn);
      valuesHist.remove(info);
@@ -179,7 +180,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
      */
   protected void delete(Attribute attr, CSN csn)
   {
-    for (AttributeValue val : attr)
+    for (ByteString val : attr)
     {
       AttrValueHistorical info = new AttrValueHistorical(val, null, csn);
       valuesHist.remove(info);
@@ -199,7 +200,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
      * @param csn
      *          time when the value was added
      */
-   protected void add(AttributeValue addedValue, CSN csn)
+   protected void add(ByteString addedValue, CSN csn)
    {
      AttrValueHistorical info = new AttrValueHistorical(addedValue, csn, null);
      valuesHist.remove(info);
@@ -220,7 +221,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
      */
   private void add(Attribute attr, CSN csn)
   {
-    for (AttributeValue val : attr)
+    for (ByteString val : attr)
     {
       AttrValueHistorical info = new AttrValueHistorical(val, csn, null);
       valuesHist.remove(info);
@@ -466,7 +467,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
       // we are processing DELETE of some attribute values
       AttributeBuilder builder = new AttributeBuilder(modAttr);
 
-      for (AttributeValue val : modAttr)
+      for (ByteString val : modAttr)
       {
         boolean deleteIt = true;  // true if the delete must be done
         boolean addedInCurrentOp = false;
@@ -564,7 +565,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
     }
 
     AttributeBuilder builder = new AttributeBuilder(m.getAttribute());
-    for (AttributeValue addVal : m.getAttribute())
+    for (ByteString addVal : m.getAttribute())
     {
       AttrValueHistorical valInfo =
         new AttrValueHistorical(addVal, csn, null);
@@ -641,8 +642,7 @@ public class AttrHistoricalMultiple extends AttrHistorical
    * {@inheritDoc}
    */
   @Override
-  public void assign(HistAttrModificationKey histKey, AttributeValue value,
-      CSN csn)
+  public void assign(HistAttrModificationKey histKey, ByteString value, CSN csn)
   {
     switch (histKey)
     {

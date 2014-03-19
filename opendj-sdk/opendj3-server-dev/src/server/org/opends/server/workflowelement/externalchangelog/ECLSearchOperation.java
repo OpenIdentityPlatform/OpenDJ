@@ -760,10 +760,10 @@ public class ECLSearchOperation
           }
 
           String attrName = a.getNameWithOptions();
-          for (AttributeValue v : a)
+          for (ByteString v : a)
           {
             builder.append(attrName);
-            appendLDIFSeparatorAndValue(builder, v.getValue());
+            appendLDIFSeparatorAndValue(builder, v);
             builder.append('\n');
           }
         }
@@ -817,10 +817,10 @@ public class ECLSearchOperation
           builder.append(attrName);
           builder.append('\n');
 
-          for (AttributeValue v : a)
+          for (ByteString v : a)
           {
             builder.append(attrName);
-            appendLDIFSeparatorAndValue(builder, v.getValue());
+            appendLDIFSeparatorAndValue(builder, v);
             builder.append('\n');
           }
           builder.append("-\n");
@@ -1142,7 +1142,7 @@ public class ECLSearchOperation
         at = DirectoryServer.getDefaultAttributeType("changeNumber");
       }
 
-      AttributeValue av = rdn.getAttributeValue(at);
+      ByteString av = rdn.getAttributeValue(at);
       if (av != null)
       {
         sf = SearchFilter.createEqualityFilter(at, av);
@@ -1250,8 +1250,7 @@ public class ECLSearchOperation
     try
     {
       MatchingRule rule = sf.getAttributeType().getEqualityMatchingRule();
-      ByteString normValue =
-          rule.normalizeAssertionValue(sf.getAssertionValue().getValue());
+      ByteString normValue = rule.normalizeAssertionValue(sf.getAssertionValue());
       return Integer.decode(normValue.toString());
     }
     catch (DecodeException e)

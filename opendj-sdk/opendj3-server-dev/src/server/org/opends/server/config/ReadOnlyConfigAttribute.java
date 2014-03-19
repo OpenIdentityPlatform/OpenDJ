@@ -25,9 +25,8 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.config;
+
 import org.forgerock.i18n.LocalizableMessage;
-
-
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -39,9 +38,7 @@ import javax.management.MBeanParameterInfo;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeValue;
 import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.types.AttributeValues;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.messages.ConfigMessages.*;
@@ -276,14 +273,10 @@ public final class ReadOnlyConfigAttribute
    *
    * @return  The constructed value set.
    */
-  private static LinkedHashSet<AttributeValue> getValueSet(String value)
+  private static LinkedHashSet<ByteString> getValueSet(String value)
   {
-    LinkedHashSet<AttributeValue> valueSet =
-         new LinkedHashSet<AttributeValue>(1);
-
-    valueSet.add(AttributeValues.create(ByteString.valueOf(value),
-        ByteString.valueOf(value)));
-
+    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<ByteString>(1);
+    valueSet.add(ByteString.valueOf(value));
     return valueSet;
   }
 
@@ -296,23 +289,13 @@ public final class ReadOnlyConfigAttribute
    *
    * @return  The constructed value set.
    */
-  private static LinkedHashSet<AttributeValue> getValueSet(List<String> values)
+  private static LinkedHashSet<ByteString> getValueSet(List<String> values)
   {
-    if (values == null)
+    if (values != null)
     {
-      return null;
+      return toByteStrings(values);
     }
-
-    LinkedHashSet<AttributeValue> valueSet =
-         new LinkedHashSet<AttributeValue>(values.size());
-
-    for (String value : values)
-    {
-      valueSet.add(AttributeValues.create(ByteString.valueOf(value),
-          ByteString.valueOf(value)));
-    }
-
-    return valueSet;
+    return null;
   }
 
 
@@ -340,8 +323,7 @@ public final class ReadOnlyConfigAttribute
    * @return  <CODE>true</CODE> if the provided value is acceptable for use in
    *          this attribute, or <CODE>false</CODE> if not.
    */
-  public boolean valueIsAcceptable(AttributeValue value,
-                                   StringBuilder rejectReason)
+  public boolean valueIsAcceptable(ByteString value, StringBuilder rejectReason)
   {
     rejectReason.append(ERR_CONFIG_ATTR_READ_ONLY.get(getName()));
     return false;
@@ -368,27 +350,24 @@ public final class ReadOnlyConfigAttribute
    * @throws  ConfigException  If an unrecoverable problem occurs while
    *                           performing the conversion.
    */
-  public LinkedHashSet<AttributeValue>
-              stringsToValues(List<String> valueStrings,
-                              boolean allowFailures)
+  public LinkedHashSet<ByteString>
+              stringsToValues(List<String> valueStrings, boolean allowFailures)
          throws ConfigException
   {
     if ((valueStrings == null) || valueStrings.isEmpty())
     {
-      return new LinkedHashSet<AttributeValue>();
+      return new LinkedHashSet<ByteString>();
     }
+    return toByteStrings(valueStrings);
+  }
 
-
-    int numValues = valueStrings.size();
-    LinkedHashSet<AttributeValue> valueSet =
-         new LinkedHashSet<AttributeValue>(numValues);
-    for (String valueString : valueStrings)
+  private static LinkedHashSet<ByteString> toByteStrings(List<String> strings)
+  {
+    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<ByteString>(strings.size());
+    for (String valueString : strings)
     {
-      valueSet.add(AttributeValues.create(ByteString.valueOf(valueString),
-          ByteString.valueOf(valueString)));
+      valueSet.add(ByteString.valueOf(valueString));
     }
-
-
     return valueSet;
   }
 

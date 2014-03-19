@@ -26,8 +26,7 @@
  */
 package org.opends.server.backends.jeb;
 
-
-
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.tasks.TaskUtils;
 import org.opends.server.core.DirectoryServer;
@@ -45,8 +44,7 @@ import java.io.PrintStream;
 import java.io.ByteArrayOutputStream;
 import java.util.*;
 
-
-
+@SuppressWarnings("javadoc")
 public class TestImportJob extends JebTestCase
 {
   private String beID = "importRoot";
@@ -523,8 +521,7 @@ public class TestImportJob extends JebTestCase
       AttributeType attribute = entry.getAttribute("cn").get(0)
           .getAttributeType();
 
-      assertTrue(entry.hasValue(attribute, null,
-          AttributeValues.create(attribute, "Annalee Bogard")));
+      assertTrue(entry.hasValue(attribute, null, ByteString.valueOf("Annalee Bogard")));
 
       VerifyConfig verifyConfig = new VerifyConfig();
       verifyConfig.setBaseDN(DN.valueOf("dc=importtest1,dc=com"));
@@ -762,8 +759,7 @@ public class TestImportJob extends JebTestCase
     if (attrType == null)
       attrType = DirectoryServer.getDefaultAttributeType(type);
     List<Attribute> attrList = e.getAttribute(attrType, null);
-    AttributeValue v = attrList.get(0).iterator().next();
-    long retVal = Long.parseLong(v.getValue().toString());
-    return (retVal);
+    ByteString v = attrList.get(0).iterator().next();
+    return Long.parseLong(v.toString());
   }
 }

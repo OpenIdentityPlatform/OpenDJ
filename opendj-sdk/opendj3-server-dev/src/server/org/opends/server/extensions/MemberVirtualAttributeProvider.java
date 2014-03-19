@@ -26,32 +26,29 @@
  */
 package org.opends.server.extensions;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.MemberVirtualAttributeCfg;
 import org.opends.server.api.Group;
 import org.opends.server.api.VirtualAttributeProvider;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
+import org.opends.server.types.Attributes;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.AttributeValues;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.MemberList;
 import org.opends.server.types.MembershipException;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.types.VirtualAttributeRule;
 
 /**
@@ -112,22 +109,21 @@ public class MemberVirtualAttributeProvider
    * {@inheritDoc}
    */
   @Override()
-  public Set<AttributeValue> getValues(Entry entry,
-                                       VirtualAttributeRule rule)
+  public Attribute getValues(Entry entry, VirtualAttributeRule rule)
   {
     if (! currentConfig.isAllowRetrievingMembership())
     {
-      return Collections.emptySet();
+      return Attributes.empty(rule.getAttributeType());
     }
 
     Group<?> g =
       DirectoryServer.getGroupManager().getGroupInstance(entry.getName());
     if (g == null)
     {
-      return Collections.emptySet();
+      return Attributes.empty(rule.getAttributeType());
     }
 
-    HashSet<AttributeValue> values = new HashSet<AttributeValue>();
+    AttributeBuilder builder = new AttributeBuilder(rule.getAttributeType());
     try
     {
       MemberList memberList = g.getMembers();
@@ -138,8 +134,7 @@ public class MemberVirtualAttributeProvider
           DN memberDN = memberList.nextMemberDN();
           if (memberDN != null)
           {
-            values.add(AttributeValues.create(rule.getAttributeType(),
-                                          memberDN.toString()));
+            builder.add(ByteString.valueOf(memberDN.toString()));
           }
         }
         catch (MembershipException me)
@@ -156,7 +151,7 @@ public class MemberVirtualAttributeProvider
       logger.traceException(e);
     }
 
-    return Collections.unmodifiableSet(values);
+    return builder.toAttribute();
   }
 
 
@@ -211,8 +206,7 @@ public class MemberVirtualAttributeProvider
    * {@inheritDoc}
    */
   @Override()
-  public boolean hasValue(Entry entry, VirtualAttributeRule rule,
-                          AttributeValue value)
+  public boolean hasValue(Entry entry, VirtualAttributeRule rule, ByteString value)
   {
     Group<?> g =
       DirectoryServer.getGroupManager().getGroupInstance(entry.getName());
@@ -223,31 +217,11 @@ public class MemberVirtualAttributeProvider
 
     try
     {
-      return g.isMember(DN.decode(value.getValue()));
+      return g.isMember(DN.decode(value));
     }
     catch (Exception e)
     {
       logger.traceException(e);
-    }
-
-    return false;
-  }
-
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public boolean hasAnyValue(Entry entry, VirtualAttributeRule rule,
-                             Collection<AttributeValue> values)
-  {
-    for (AttributeValue v : values)
-    {
-      if (hasValue(entry, rule, v))
-      {
-        return true;
-      }
     }
 
     return false;
@@ -277,7 +251,7 @@ public class MemberVirtualAttributeProvider
   @Override()
   public ConditionResult greaterThanOrEqualTo(Entry entry,
                               VirtualAttributeRule rule,
-                              AttributeValue value)
+                              ByteString value)
   {
     // DNs cannot be used in ordering matching.
     return ConditionResult.UNDEFINED;
@@ -291,7 +265,7 @@ public class MemberVirtualAttributeProvider
   @Override()
   public ConditionResult lessThanOrEqualTo(Entry entry,
                               VirtualAttributeRule rule,
-                              AttributeValue value)
+                              ByteString value)
   {
     // DNs cannot be used in ordering matching.
     return ConditionResult.UNDEFINED;
@@ -305,7 +279,7 @@ public class MemberVirtualAttributeProvider
   @Override()
   public ConditionResult approximatelyEqualTo(Entry entry,
                               VirtualAttributeRule rule,
-                              AttributeValue value)
+                              ByteString value)
   {
     // DNs cannot be used in approximate matching.
     return ConditionResult.UNDEFINED;

@@ -276,7 +276,7 @@ public class PersistentServerState
     if (attrs != null)
     {
       Attribute attr = attrs.get(0);
-      for (AttributeValue value : attr)
+      for (ByteString value : attr)
       {
         update(new CSN(value.toString()));
       }
@@ -413,8 +413,7 @@ public class PersistentServerState
         dbMaxCsn = serverStateMaxCsn;
         for (SearchResultEntry resEntry : op.getSearchEntries())
         {
-          for (AttributeValue attrValue :
-                    resEntry.getAttribute(histType).get(0))
+          for (ByteString attrValue : resEntry.getAttribute(histType).get(0))
           {
             HistoricalAttributeValue histVal =
                 new HistoricalAttributeValue(attrValue.toString());

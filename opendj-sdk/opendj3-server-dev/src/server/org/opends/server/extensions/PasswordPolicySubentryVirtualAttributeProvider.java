@@ -26,19 +26,15 @@
  */
 package org.opends.server.extensions;
 
-import java.util.Collections;
-import java.util.Set;
-
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.std.server.
         PasswordPolicySubentryVirtualAttributeCfg;
 import org.opends.server.api.AuthenticationPolicy;
 import org.opends.server.api.VirtualAttributeProvider;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import static org.opends.messages.ExtensionMessages.*;
 
 /**
@@ -73,8 +69,7 @@ public class PasswordPolicySubentryVirtualAttributeProvider
 
   /** {@inheritDoc} */
   @Override()
-  public Set<AttributeValue> getValues(Entry entry,
-                                       VirtualAttributeRule rule)
+  public Attribute getValues(Entry entry, VirtualAttributeRule rule)
   {
     if (!entry.isSubentry() && !entry.isLDAPSubentry())
     {
@@ -102,12 +97,8 @@ public class PasswordPolicySubentryVirtualAttributeProvider
       }
       else if (policy.isPasswordPolicy())
       {
-        AttributeType dnAttrType = DirectoryServer
-            .getAttributeType("1.3.6.1.4.1.42.2.27.8.1.23");
-        DN policyDN = policy.getDN();
-        AttributeValue value = AttributeValues.create(dnAttrType,
-            policyDN.toString());
-        return Collections.singleton(value);
+        return Attributes.create(rule.getAttributeType(),
+            policy.getDN().toString());
       }
       else
       {
@@ -120,7 +111,7 @@ public class PasswordPolicySubentryVirtualAttributeProvider
       }
     }
 
-    return Collections.emptySet();
+    return Attributes.empty(rule.getAttributeType());
   }
 
   /** {@inheritDoc} */

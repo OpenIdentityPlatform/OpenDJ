@@ -28,6 +28,7 @@ package org.opends.server.authorization.dseecompat;
 
 import static org.opends.server.authorization.dseecompat.Aci.*;
 
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
 import java.util.LinkedList;
@@ -377,17 +378,17 @@ public class AciEffectiveRights {
       //Write right is more complicated. Create a dummy value and set that as
       //the attribute's value. Call the special writeRightsString method, rather
       //than rightsString.
-      AttributeValue val= AttributeValues.create(a, "dum###Val");
+      ByteString val= ByteString.valueOf("dum###Val");
       container.setCurrentAttributeValue(val);
       evalInfo.append(attributeLevelWriteRights(container, handler, skipCheck));
       addAttrLevelRightsInfo(container, mask, a, retEntry, "write");
       evalInfo.append(',');
       //Perform both selfwrite_add and selfwrite_delete and append results.
-      AttributeValue val1=
-          AttributeValues.create(a,
-              container.getClientDN().toString());
+      ByteString val1 = ByteString.valueOf(container.getClientDN().toString());
       if(!specificAttr)
+      {
         container.setCurrentAttributeType(dnAttributeType);
+      }
       container.setCurrentAttributeValue(val1);
       container.setRights(ACI_WRITE_ADD | ACI_SKIP_PROXY_CHECK);
       evalInfo.append(rightsString(container, handler, skipCheck,

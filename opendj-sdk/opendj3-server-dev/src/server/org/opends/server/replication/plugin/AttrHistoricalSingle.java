@@ -30,9 +30,13 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.opends.server.replication.common.CSN;
-import org.opends.server.types.*;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.Entry;
+import org.opends.server.types.Modification;
 
 /**
  * This class is used to store historical information for single valued
@@ -45,17 +49,17 @@ import org.opends.server.types.*;
 public class AttrHistoricalSingle extends AttrHistorical
 {
   /** Last time when the attribute was deleted. */
-  private CSN deleteTime = null;
+  private CSN deleteTime;
   /** Last time when a value was added. */
-  private CSN addTime = null;
+  private CSN addTime;
   /** Last added value. */
-  private AttributeValue value = null;
+  private ByteString value;
 
 /**
  * last operation applied. This is only used for multiple mods on the same
  * single valued attribute in the same modification.
  */
-  private HistAttrModificationKey lastMod = null;
+  private HistAttrModificationKey lastMod;
 
   /**
    * {@inheritDoc}
@@ -89,7 +93,7 @@ public class AttrHistoricalSingle extends AttrHistorical
   @Override
   public void processLocalOrNonConflictModification(CSN csn, Modification mod)
   {
-    AttributeValue newValue = null;
+    ByteString newValue = null;
     Attribute modAttr = mod.getAttribute();
     if (modAttr != null && !modAttr.isEmpty())
     {
@@ -143,7 +147,7 @@ public class AttrHistoricalSingle extends AttrHistorical
   {
     boolean conflict = false;
 
-    AttributeValue newValue = null;
+    ByteString newValue = null;
     Attribute modAttr = mod.getAttribute();
     if (modAttr != null && !modAttr.isEmpty())
     {
@@ -287,8 +291,7 @@ public class AttrHistoricalSingle extends AttrHistorical
    * {@inheritDoc}
    */
   @Override
-  public void assign(HistAttrModificationKey histKey,
-      AttributeValue value, CSN csn)
+  public void assign(HistAttrModificationKey histKey, ByteString value, CSN csn)
   {
     switch (histKey)
     {

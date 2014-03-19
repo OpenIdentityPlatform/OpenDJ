@@ -97,8 +97,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
      */
     public TestChildCfg getChild(String expectedName) {
       Assert.assertNotNull(child);
-      Assert.assertEquals(child.dn().rdn().getAttributeValue(0)
-          .getValue().toString(), expectedName);
+      Assert.assertEquals(child.dn().rdn().getAttributeValue(0).toString(), expectedName);
       return child;
     }
 
@@ -157,8 +156,7 @@ public final class DefaultBehaviorTest extends AdminTestCase {
      */
     public TestChildCfg getChild(String expectedName) {
       Assert.assertNotNull(child);
-      Assert.assertEquals(child.dn().rdn().getAttributeValue(0)
-          .getValue().toString(), expectedName);
+      Assert.assertEquals(child.dn().rdn().getAttributeValue(0).toString(), expectedName);
       return child;
     }
 

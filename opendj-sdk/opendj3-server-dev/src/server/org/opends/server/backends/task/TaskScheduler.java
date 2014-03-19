@@ -26,8 +26,6 @@
  */
 package org.opends.server.backends.task;
 
-
-
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -47,13 +45,12 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.*;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.TimeThread;
-
-
 
 /**
  * This class defines a task scheduler for the Directory Server that will
@@ -1897,8 +1894,8 @@ public class TaskScheduler
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
-    Iterator<AttributeValue> iterator = attr.iterator();
-    AttributeValue value = iterator.next();
+    Iterator<ByteString> iterator = attr.iterator();
+    ByteString value = iterator.next();
     if (iterator.hasNext())
     {
       LocalizableMessage message = ERR_TASKSCHED_MULTIPLE_CLASS_VALUES.get(ATTR_TASK_ID);
@@ -1906,7 +1903,7 @@ public class TaskScheduler
     }
 
     // Try to load the specified class.
-    String taskClassName = value.getValue().toString();
+    String taskClassName = value.toString();
     Class<?> taskClass;
     try
     {

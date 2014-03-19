@@ -25,28 +25,27 @@
  */
 package org.opends.server.extensions;
 
-
-
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.zip.Adler32;
 import java.util.zip.CRC32;
 import java.util.zip.Checksum;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.EntityTagVirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.StaticUtils;
 
 import static org.opends.messages.ExtensionMessages.*;
-
-
 
 /**
  * This class implements a virtual attribute provider which ensures that all
@@ -107,7 +106,7 @@ public final class EntityTagVirtualAttributeProvider extends
    */
   @Override()
   public ConditionResult approximatelyEqualTo(final Entry entry,
-      final VirtualAttributeRule rule, final AttributeValue value)
+      final VirtualAttributeRule rule, final ByteString value)
   {
     // ETags cannot be used in approximate matching.
     return ConditionResult.UNDEFINED;
@@ -130,8 +129,7 @@ public final class EntityTagVirtualAttributeProvider extends
    * {@inheritDoc}
    */
   @Override()
-  public Set<AttributeValue> getValues(final Entry entry,
-      final VirtualAttributeRule rule)
+  public Attribute getValues(final Entry entry, final VirtualAttributeRule rule)
   {
     // Save reference to current configuration in case it changes.
     final EntityTagVirtualAttributeCfg cfg = config;
@@ -149,8 +147,7 @@ public final class EntityTagVirtualAttributeProvider extends
     }
 
     final ByteString etag = checksumEntry(cfg, checksummer, entry);
-    final AttributeValue value = AttributeValues.create(etag, etag);
-    return Collections.singleton(value);
+    return Attributes.create(rule.getAttributeType(), etag);
   }
 
 
@@ -160,7 +157,7 @@ public final class EntityTagVirtualAttributeProvider extends
    */
   @Override()
   public ConditionResult greaterThanOrEqualTo(final Entry entry,
-      final VirtualAttributeRule rule, final AttributeValue value)
+      final VirtualAttributeRule rule, final ByteString value)
   {
     // ETags cannot be used in ordering matching.
     return ConditionResult.UNDEFINED;
@@ -240,7 +237,7 @@ public final class EntityTagVirtualAttributeProvider extends
    */
   @Override()
   public ConditionResult lessThanOrEqualTo(final Entry entry,
-      final VirtualAttributeRule rule, final AttributeValue value)
+      final VirtualAttributeRule rule, final ByteString value)
   {
     // ETags cannot be used in ordering matching.
     return ConditionResult.UNDEFINED;
@@ -318,15 +315,15 @@ public final class EntityTagVirtualAttributeProvider extends
       break;
     case 1:
       // Avoid sorting single valued attributes.
-      checksumValue(checksummer, attribute.iterator().next().getValue());
+      checksumValue(checksummer, attribute.iterator().next());
       break;
     default:
       // Multi-valued attributes need sorting.
       final ByteString[] values = new ByteString[size];
       int i = 0;
-      for (final AttributeValue av : attribute)
+      for (final ByteString av : attribute)
       {
-        values[i++] = av.getValue();
+        values[i++] = av;
       }
       Arrays.sort(values);
       for (final ByteString value : values)

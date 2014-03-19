@@ -32,8 +32,12 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.util.Utils;
+import org.opends.server.api.MatchingRule;
 import org.opends.server.api.VirtualAttributeProvider;
 
 /**
@@ -48,19 +52,19 @@ import org.opends.server.api.VirtualAttributeProvider;
     mayInvoke = true)
 public final class VirtualAttribute
   extends AbstractAttribute
-  implements Attribute
 {
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-  // The attribute type.
+  /** The attribute type. */
   private final AttributeType attributeType;
 
-  // The entry with which this virtual attribute is associated.
+  /** The entry with which this virtual attribute is associated. */
   private final Entry entry;
 
-  // The virtual attribute provider for this virtual attribute.
+  /** The virtual attribute provider for this virtual attribute. */
   private final VirtualAttributeProvider<?> provider;
 
-  // The virtual attribute rule for this virtual attribute.
+  /** The virtual attribute rule for this virtual attribute. */
   private final VirtualAttributeRule rule;
 
 
@@ -87,42 +91,34 @@ public final class VirtualAttribute
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
-  public ConditionResult approximatelyEqualTo(AttributeValue value)
+  public ConditionResult approximatelyEqualTo(ByteString value)
   {
     return provider.approximatelyEqualTo(entry, rule, value);
   }
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
-  public boolean contains(AttributeValue value)
+  public boolean contains(ByteString value)
   {
     return provider.hasValue(entry, rule, value);
   }
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
-  public boolean containsAll(Collection<AttributeValue> values)
+  public boolean containsAll(Collection<ByteString> values)
   {
     return provider.hasAllValues(entry, rule, values);
   }
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public AttributeType getAttributeType()
   {
@@ -131,9 +127,7 @@ public final class VirtualAttribute
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getNameWithOptions()
   {
@@ -142,9 +136,7 @@ public final class VirtualAttribute
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Set<String> getOptions()
   {
@@ -167,31 +159,25 @@ public final class VirtualAttribute
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
-  public ConditionResult greaterThanOrEqualTo(AttributeValue value)
+  public ConditionResult greaterThanOrEqualTo(ByteString value)
   {
     return provider.greaterThanOrEqualTo(entry, rule, value);
   }
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean hasAllOptions(Collection<String> options)
   {
-    return (options == null || options.isEmpty());
+    return options == null || options.isEmpty();
   }
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean hasOption(String option)
   {
@@ -200,9 +186,7 @@ public final class VirtualAttribute
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean hasOptions()
   {
@@ -211,9 +195,7 @@ public final class VirtualAttribute
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isEmpty()
   {
@@ -222,9 +204,7 @@ public final class VirtualAttribute
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isVirtual()
   {
@@ -233,93 +213,83 @@ public final class VirtualAttribute
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
-  public Iterator<AttributeValue> iterator()
+  public Iterator<ByteString> iterator()
   {
-    Set<AttributeValue> values = provider.getValues(entry, rule);
-    return values.iterator();
+    return provider.getValues(entry, rule).iterator();
   }
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
-  public ConditionResult lessThanOrEqualTo(AttributeValue value)
+  public ConditionResult lessThanOrEqualTo(ByteString value)
   {
     return provider.lessThanOrEqualTo(entry, rule, value);
   }
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConditionResult matchesSubstring(ByteString subInitial,
       List<ByteString> subAny, ByteString subFinal)
   {
-    return provider.matchesSubstring(entry, rule, subInitial, subAny,
-        subFinal);
+    return provider.matchesSubstring(entry, rule, subInitial, subAny, subFinal);
   }
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean optionsEqual(Set<String> options)
   {
-    return (options == null || options.isEmpty());
+    return options == null || options.isEmpty();
   }
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public int size()
   {
-    if (!provider.isMultiValued())
-    {
-      return provider.hasValue(entry, rule) ? 1 : 0;
-    }
-    else
+    if (provider.isMultiValued())
     {
       return provider.getValues(entry, rule).size();
     }
+    return provider.hasValue(entry, rule) ? 1 : 0;
   }
 
+  /** {@inheritDoc} */
+  @Override
+  public int hashCode()
+  {
+    int hashCode = getAttributeType().hashCode();
+    for (ByteString value : this)
+    {
+      try
+      {
+        final MatchingRule eqRule = attributeType.getEqualityMatchingRule();
+        final ByteString nv = eqRule.normalizeAttributeValue(value);
+        hashCode += nv.hashCode();
+      }
+      catch (DecodeException e)
+      {
+        logger.traceException(e);
+      }
+    }
+    return hashCode;
+  }
 
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void toString(StringBuilder buffer)
   {
     buffer.append("VirtualAttribute(");
     buffer.append(getAttributeType().getNameOrOID());
     buffer.append(", {");
-
-    boolean firstValue = true;
-    for (AttributeValue value : this)
-    {
-      if (!firstValue)
-      {
-        buffer.append(", ");
-      }
-
-      value.toString(buffer);
-      firstValue = false;
-    }
-
+    buffer.append(Utils.joinAsString(", ", this));
     buffer.append("})");
   }
 

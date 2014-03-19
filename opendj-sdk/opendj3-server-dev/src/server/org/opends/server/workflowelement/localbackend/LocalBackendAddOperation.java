@@ -669,7 +669,7 @@ public class LocalBackendAddOperation
     for (int i=0; i < numAVAs; i++)
     {
       AttributeType  t = rdn.getAttributeType(i);
-      AttributeValue v = rdn.getAttributeValue(i);
+      ByteString     v = rdn.getAttributeValue(i);
       String         n = rdn.getAttributeName(i);
       if (t.isOperational())
       {
@@ -686,7 +686,7 @@ public class LocalBackendAddOperation
 
   private void addRDNAttributesIfNecessary(
       Map<AttributeType, List<Attribute>> attributes, AttributeType t,
-      AttributeValue v, String n) throws DirectoryException
+      ByteString v, String n) throws DirectoryException
   {
     List<Attribute> attrList = attributes.get(t);
     if (attrList == null)
@@ -841,10 +841,8 @@ public class LocalBackendAddOperation
          passwordPolicy.getDefaultPasswordStorageSchemes();
     AttributeBuilder builder = new AttributeBuilder(passwordAttr, true);
     builder.setInitialCapacity(defaultStorageSchemes.size());
-    for (AttributeValue v : passwordAttr)
+    for (ByteString value : passwordAttr)
     {
-      ByteString value = v.getValue();
-
       // See if the password is pre-encoded.
       if (passwordPolicy.isAuthPasswordSyntax())
       {
@@ -853,7 +851,7 @@ public class LocalBackendAddOperation
           if (isInternalOperation() ||
               passwordPolicy.isAllowPreEncodedPasswords())
           {
-            builder.add(v);
+            builder.add(value);
             continue;
           }
           else
@@ -875,7 +873,7 @@ public class LocalBackendAddOperation
           if (isInternalOperation() ||
               passwordPolicy.isAllowPreEncodedPasswords())
           {
-            builder.add(v);
+            builder.add(value);
             continue;
           }
           else
@@ -923,18 +921,14 @@ public class LocalBackendAddOperation
       {
         for (PasswordStorageScheme<?> s : defaultStorageSchemes)
         {
-          ByteString encodedValue = s.encodeAuthPassword(value);
-          builder.add(AttributeValues.create(
-              passwordAttribute, encodedValue));
+          builder.add(s.encodeAuthPassword(value));
         }
       }
       else
       {
         for (PasswordStorageScheme<?> s : defaultStorageSchemes)
         {
-          ByteString encodedValue = s.encodePasswordWithScheme(value);
-          builder.add(AttributeValues.create(
-              passwordAttribute, encodedValue));
+          builder.add(s.encodePasswordWithScheme(value));
         }
       }
     }
@@ -1050,9 +1044,9 @@ public class LocalBackendAddOperation
         AttributeSyntax<?> syntax = a.getAttributeType().getSyntax();
         if (syntax != null)
         {
-          for (AttributeValue v : a)
+          for (ByteString v : a)
           {
-            if (!syntax.valueIsAcceptable(v.getValue(), invalidReason))
+            if (!syntax.valueIsAcceptable(v, invalidReason))
             {
               LocalizableMessage message;
               if (!syntax.isHumanReadable() || syntax.isBEREncodingRequired())
@@ -1064,7 +1058,7 @@ public class LocalBackendAddOperation
               else
               {
                 message = WARN_ADD_OP_INVALID_SYNTAX.
-                    get(entryDN, v.getValue(), a.getName(), invalidReason);
+                    get(entryDN, v, a.getName(), invalidReason);
               }
 
               switch (DirectoryServer.getSyntaxEnforcementPolicy())

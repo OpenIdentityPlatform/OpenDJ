@@ -26,8 +26,6 @@
  */
 package org.opends.server.plugins;
 
-
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -46,8 +44,6 @@ import org.opends.server.api.plugin.PluginType;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeValue;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
@@ -56,8 +52,6 @@ import org.opends.server.types.SearchFilter;
 import org.forgerock.opendj.ldap.SearchScope;
 
 import static org.testng.Assert.*;
-
-
 
 /**
  * This class defines a set of tests for the
@@ -114,7 +108,7 @@ public class LDAPADListPluginTestCase
   /**
    * Tests the process of initializing the server with valid configurations.
    *
-   * @param  entry  The configuration entry to use for the initialization.
+   * @param  e  The configuration entry to use for the initialization.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
@@ -122,16 +116,7 @@ public class LDAPADListPluginTestCase
   public void testInitializeWithValidConfigs(Entry e)
          throws Exception
   {
-    HashSet<PluginType> pluginTypes = new HashSet<PluginType>();
-    List<Attribute> attrList = e.getAttribute("ds-cfg-plugin-type");
-    for (Attribute a : attrList)
-    {
-      for (AttributeValue v : a)
-      {
-        pluginTypes.add(PluginType.forName(v.getValue().toString().toLowerCase()));
-      }
-    }
-
+    HashSet<PluginType> pluginTypes = TestCaseUtils.getPluginTypes(e);
 
     LDAPAttributeDescriptionListPluginCfg configuration =
          AdminTestCaseUtils.getConfiguration(
@@ -197,7 +182,7 @@ public class LDAPADListPluginTestCase
   /**
    * Tests the process of initializing the server with valid configurations.
    *
-   * @param  entry  The configuration entry to use for the initialization.
+   * @param  e  The configuration entry to use for the initialization.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
@@ -206,20 +191,7 @@ public class LDAPADListPluginTestCase
   public void testInitializeWithInvalidConfigs(Entry e)
          throws Exception
   {
-    HashSet<PluginType> pluginTypes = new HashSet<PluginType>();
-    List<Attribute> attrList = e.getAttribute("ds-cfg-plugin-type");
-    if (attrList != null)
-    {
-      for (Attribute a : attrList)
-      {
-        for (AttributeValue v : a)
-        {
-          pluginTypes.add(PluginType.forName(
-              v.getValue().toString().toLowerCase()));
-        }
-      }
-    }
-
+    HashSet<PluginType> pluginTypes = TestCaseUtils.getPluginTypes(e);
 
     LDAPAttributeDescriptionListPluginCfg configuration =
          AdminTestCaseUtils.getConfiguration(

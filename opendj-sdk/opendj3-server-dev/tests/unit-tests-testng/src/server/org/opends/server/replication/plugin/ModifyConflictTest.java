@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.opends.server.core.AddOperationBasis;
 import org.opends.server.core.DirectoryServer;
@@ -359,7 +360,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     builder.add("value1");
     builder.add("value2");
 
-    List<AttributeValue> duplicateValues = new LinkedList<AttributeValue>();
+    List<ByteString> duplicateValues = new LinkedList<ByteString>();
     entry.addAttribute(builder.toAttribute(), duplicateValues);
 
 
@@ -414,7 +415,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     builder.add("value3");
     builder.add("value4");
 
-    List<AttributeValue> duplicateValues = new LinkedList<AttributeValue>();
+    List<ByteString> duplicateValues = new LinkedList<ByteString>();
     entry.addAttribute(builder.toAttribute(), duplicateValues);
 
 
@@ -460,7 +461,7 @@ public class ModifyConflictTest extends ReplicationTestCase
 
     // Create a single valued attribute with value : "value1"
     // add this attribute to the entry.
-    List<AttributeValue> duplicateValues = new LinkedList<AttributeValue>();
+    List<ByteString> duplicateValues = new LinkedList<ByteString>();
     Attribute attribute = Attributes.create(EMPLOYEENUMBER, "value1");
     entry.addAttribute(attribute, duplicateValues);
 
@@ -493,7 +494,7 @@ public class ModifyConflictTest extends ReplicationTestCase
 
     // Create a single valued attribute with value : "value1"
     // add this attribute to the entry.
-    List<AttributeValue> duplicateValues = new LinkedList<AttributeValue>();
+    List<ByteString> duplicateValues = new LinkedList<ByteString>();
     Attribute attribute = Attributes.create(EMPLOYEENUMBER, "value1");
     entry.addAttribute(attribute, duplicateValues);
 
@@ -531,7 +532,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     builder.add("value1");
     builder.add("value2");
 
-    List<AttributeValue> duplicateValues = new LinkedList<AttributeValue>();
+    List<ByteString> duplicateValues = new LinkedList<ByteString>();
     entry.addAttribute(builder.toAttribute(), duplicateValues);
 
     // load historical from the entry
@@ -580,7 +581,7 @@ public class ModifyConflictTest extends ReplicationTestCase
 
     // Create a single valued attribute with value : "value1"
     // add this attribute to the entry.
-    List<AttributeValue> duplicateValues = new LinkedList<AttributeValue>();
+    List<ByteString> duplicateValues = new LinkedList<ByteString>();
     Attribute attribute = Attributes.create(DISPLAYNAME, "value1");
     entry.addAttribute(attribute, duplicateValues);
     Attribute attrDel = buildSyncHist(DISPLAYNAME,
@@ -663,7 +664,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     builder.add("value3");
     builder.add("value4");
 
-    List<AttributeValue> duplicateValues = new LinkedList<AttributeValue>();
+    List<ByteString> duplicateValues = new LinkedList<ByteString>();
     entry.addAttribute(builder.toAttribute(), duplicateValues);
 
     // load historical from the entry
@@ -741,7 +742,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     builder.add("value3");
     builder.add("value4");
 
-    List<AttributeValue> duplicateValues = new LinkedList<AttributeValue>();
+    List<ByteString> duplicateValues = new LinkedList<ByteString>();
     entry.addAttribute(builder.toAttribute(), duplicateValues);
 
     // load historical from the entry
@@ -803,7 +804,7 @@ public class ModifyConflictTest extends ReplicationTestCase
 
     // Create a single valued attribute with value : "value1"
     // add this attribute to the entry.
-    List<AttributeValue> duplicateValues = new LinkedList<AttributeValue>();
+    List<ByteString> duplicateValues = new LinkedList<ByteString>();
     Attribute attribute = Attributes.create(DISPLAYNAME, "value1");
     entry.addAttribute(attribute, duplicateValues);
 
@@ -890,13 +891,13 @@ public class ModifyConflictTest extends ReplicationTestCase
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     // simulate a add of the description attribute done at time t10
-    testModify(entry, hist, 10, true, buildMod(DESCRIPTION, ModificationType.ADD, "init value"));
+    testModify(entry, hist, 10, true, buildMod(DESCRIPTION, ModificationType.ADD, "Init Value"));
     Attribute attr = buildSyncHist(DESCRIPTION,
-        ":000000000000000a000000000000:add:init value");
+        ":000000000000000a000000000000:add:Init Value");
     assertEquals(hist.encodeAndPurge(), attr);
 
     // Now simulate a del and a add in the same operation
-    attr = Attributes.create(DESCRIPTION, "init value");
+    attr = Attributes.create(DESCRIPTION, "Init Value");
     Modification mod1 = new Modification(ModificationType.DELETE, attr);
 
     attr = Attributes.create(DESCRIPTION, "Init Value");
@@ -997,7 +998,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     EntryHistorical hist = EntryHistorical.newInstanceFromEntry(entry);
 
     // Now simulate a del and a add in the same operation
-    Attribute attr = Attributes.create(DESCRIPTION, "init value");
+    Attribute attr = Attributes.create(DESCRIPTION, "Init Value");
     Modification mod1 = new Modification(ModificationType.ADD, attr);
 
     attr = Attributes.create(DESCRIPTION, "Init Value");
@@ -1220,8 +1221,8 @@ public class ModifyConflictTest extends ReplicationTestCase
     assertEquals(size, mods.size());
     Modification newMod = mods.get(0);
     assertTrue(newMod.getModificationType().equals(modType));
-    AttributeValue val = newMod.getAttribute().iterator().next();
-    assertEquals(val.getValue().toString(), value);
+    ByteString val = newMod.getAttribute().iterator().next();
+    assertEquals(val.toString(), value);
   }
 
   /**
@@ -1426,7 +1427,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     assertEquals(expectedValues.length, attr.size());
     for (String value : expectedValues)
     {
-      attr.contains(AttributeValues.create(attr.getAttributeType(), value));
+      attr.contains(ByteString.valueOf(value));
     }
   }
 
@@ -1566,7 +1567,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     builder.add("value1");
     builder.add("value2");
 
-    List<AttributeValue> duplicateValues = new LinkedList<AttributeValue>();
+    List<ByteString> duplicateValues = new LinkedList<ByteString>();
     entry.addAttribute(builder.toAttribute(), duplicateValues);
 
     // load historical from the entry
@@ -1625,7 +1626,7 @@ public class ModifyConflictTest extends ReplicationTestCase
     builder.add("value2");
     builder.add("value3");
 
-    List<AttributeValue> duplicateValues = new LinkedList<AttributeValue>();
+    List<ByteString> duplicateValues = new LinkedList<ByteString>();
     entry.addAttribute(builder.toAttribute(), duplicateValues);
 
     // load historical from the entry

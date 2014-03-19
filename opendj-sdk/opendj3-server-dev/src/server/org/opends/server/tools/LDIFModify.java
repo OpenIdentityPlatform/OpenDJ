@@ -38,13 +38,13 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.loggers.JDKLogging;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -324,9 +324,9 @@ public class LDIFModify
         AttributeType t = a.getAttributeType();
         if (t.isObjectClass())
         {
-          for (AttributeValue v : a)
+          for (ByteString v : a)
           {
-            String stringValue = v.getValue().toString();
+            String stringValue = v.toString();
             String lowerValue  = toLowerCase(stringValue);
             ObjectClass oc = DirectoryServer.getObjectClass(lowerValue, true);
             objectClasses.put(oc, stringValue);

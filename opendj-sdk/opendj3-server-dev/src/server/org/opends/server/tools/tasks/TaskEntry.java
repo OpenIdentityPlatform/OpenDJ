@@ -33,7 +33,7 @@ import org.opends.server.backends.task.TaskState;
 import org.opends.server.types.Entry;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeValue;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DN;
 
 import java.util.Map;
@@ -143,13 +143,13 @@ public class TaskEntry {
                 type.getNormalizedPrimaryName());
         List<Attribute> attrList = entry.getUserAttribute(type);
         for (Attribute attr : attrList) {
-          for (AttributeValue av : attr) {
+          for (ByteString av : attr) {
             List<String> valueList = taskSpecificAttrValues.get(attrTypeName);
             if (valueList == null) {
               valueList = new ArrayList<String>();
               taskSpecificAttrValues.put(attrTypeName, valueList);
             }
-            valueList.add(av.getValue().toString());
+            valueList.add(av.toString());
           }
         }
       }
@@ -441,7 +441,7 @@ public class TaskEntry {
     if (attrList != null && attrList.size() == 1) {
       Attribute attr = attrList.get(0);
       if (!attr.isEmpty()) {
-        return attr.iterator().next().getValue().toString();
+        return attr.iterator().next().toString();
       }
     }
     return "";
@@ -452,8 +452,8 @@ public class TaskEntry {
     List<Attribute> attrList = entry.getAttribute(attrName);
     if (attrList != null) {
       for (Attribute attr : attrList) {
-        for (AttributeValue value : attr) {
-          valuesList.add(value.getValue().toString());
+        for (ByteString value : attr) {
+          valuesList.add(value.toString());
         }
       }
     }

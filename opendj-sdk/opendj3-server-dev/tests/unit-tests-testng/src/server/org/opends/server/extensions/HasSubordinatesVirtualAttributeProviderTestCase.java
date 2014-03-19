@@ -225,11 +225,7 @@ public class HasSubordinatesVirtualAttributeProviderTestCase extends DirectorySe
     {
       assertTrue(!a.isEmpty());
       assertEquals(a.size(), 1);
-      assertTrue(a.contains(AttributeValues.create(
-          ByteString.valueOf(toUpperCase(String.valueOf(hasSubs))),
-          ByteString.valueOf(toUpperCase(String.valueOf(hasSubs))))));
-      assertTrue(a.contains(AttributeValues.create(hasSubordinatesType,
-          toUpperCase(String.valueOf(hasSubs)))));
+      assertTrue(a.contains(ByteString.valueOf(toUpperCase(String.valueOf(hasSubs)))));
     }
   }
 

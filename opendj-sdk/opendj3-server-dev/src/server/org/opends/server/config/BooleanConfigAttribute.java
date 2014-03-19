@@ -25,9 +25,8 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.config;
+
 import org.forgerock.i18n.LocalizableMessage;
-
-
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -41,15 +40,11 @@ import javax.management.MBeanParameterInfo;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.AttributeValues;
 import org.forgerock.opendj.ldap.ByteString;
 
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.util.ServerConstants.*;
-
-
 
 /**
  * This class defines a Boolean configuration attribute, which can hold a single
@@ -236,23 +231,11 @@ public final class BooleanConfigAttribute
    *
    * @return  The value set constructed from the provided value.
    */
-  private static LinkedHashSet<AttributeValue> getValueSet(boolean booleanValue)
+  private static LinkedHashSet<ByteString> getValueSet(boolean booleanValue)
   {
-    LinkedHashSet<AttributeValue> valueSet =
-         new LinkedHashSet<AttributeValue>(1);
-    if (booleanValue)
-    {
-      valueSet.add(AttributeValues.create(
-          ByteString.valueOf(CONFIG_VALUE_TRUE),
-          ByteString.valueOf(CONFIG_VALUE_TRUE)));
-    }
-    else
-    {
-      valueSet.add(AttributeValues.create(
-          ByteString.valueOf(CONFIG_VALUE_FALSE),
-          ByteString.valueOf(CONFIG_VALUE_FALSE)));
-    }
-
+    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<ByteString>(1);
+    valueSet.add(ByteString.valueOf(
+        booleanValue ? CONFIG_VALUE_TRUE : CONFIG_VALUE_FALSE));
     return valueSet;
   }
 
@@ -288,10 +271,10 @@ public final class BooleanConfigAttribute
    * @return  <CODE>true</CODE> if the provided value is acceptable for use in
    *          this attribute, or <CODE>false</CODE> if not.
    */
-  public boolean valueIsAcceptable(AttributeValue value,
+  public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder rejectReason)
   {
-    String stringValue = value.getValue().toString();
+    String stringValue = value.toString();
     if (stringValue.equalsIgnoreCase(CONFIG_VALUE_TRUE) ||
         stringValue.equalsIgnoreCase(CONFIG_VALUE_FALSE))
     {
@@ -324,10 +307,8 @@ public final class BooleanConfigAttribute
    * @throws  ConfigException  If an unrecoverable problem occurs while
    *                           performing the conversion.
    */
-  public LinkedHashSet<AttributeValue>
-              stringsToValues(List<String> valueStrings,
-                              boolean allowFailures)
-         throws ConfigException
+  public LinkedHashSet<ByteString> stringsToValues(List<String> valueStrings,
+      boolean allowFailures) throws ConfigException
   {
     if ((valueStrings == null) || valueStrings.isEmpty())
     {
@@ -466,9 +447,8 @@ public final class BooleanConfigAttribute
           else
           {
             // Get the value and parse it as a Boolean.
-            Iterator<AttributeValue> iterator = a.iterator();
-            String valueString =
-                iterator.next().getValue().toString().toLowerCase();
+            Iterator<ByteString> iterator = a.iterator();
+            String valueString = iterator.next().toString().toLowerCase();
 
             if (valueString.equals("true") || valueString.equals("yes") ||
                 valueString.equals("on") || valueString.equals("1"))
@@ -529,9 +509,8 @@ public final class BooleanConfigAttribute
         else
         {
           // Get the value and parse it as a Boolean.
-          Iterator<AttributeValue> iterator = a.iterator();
-          String valueString =
-              iterator.next().getValue().toString().toLowerCase();
+          Iterator<ByteString> iterator = a.iterator();
+          String valueString = iterator.next().toString().toLowerCase();
 
           if (valueString.equals("true") || valueString.equals("yes") ||
               valueString.equals("on") || valueString.equals("1"))

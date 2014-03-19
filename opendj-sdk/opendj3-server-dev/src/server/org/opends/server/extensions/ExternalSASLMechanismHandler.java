@@ -243,22 +243,8 @@ public class ExternalSASLMechanismHandler
         {
           try
           {
-            byte[] certBytes = clientCertChain[0].getEncoded();
-            AttributeValue v =
-                AttributeValues.create(
-                    certificateAttributeType, ByteString.wrap(certBytes));
-
-            boolean found = false;
-            for (Attribute a : certAttrList)
-            {
-              if (a.contains(v))
-              {
-                found = true;
-                break;
-              }
-            }
-
-            if (! found)
+            ByteString certBytes = ByteString.wrap(clientCertChain[0].getEncoded());
+            if (!find(certAttrList, certBytes))
             {
               bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
@@ -286,22 +272,8 @@ public class ExternalSASLMechanismHandler
         {
           try
           {
-            byte[] certBytes = clientCertChain[0].getEncoded();
-            AttributeValue v =
-                AttributeValues.create(
-                    certificateAttributeType, ByteString.wrap(certBytes));
-
-            boolean found = false;
-            for (Attribute a : certAttrList)
-            {
-              if (a.contains(v))
-              {
-                found = true;
-                break;
-              }
-            }
-
-            if (! found)
+            ByteString certBytes = ByteString.wrap(clientCertChain[0].getEncoded());
+            if (!find(certAttrList, certBytes))
             {
               bindOperation.setResultCode(ResultCode.INVALID_CREDENTIALS);
 
@@ -329,6 +301,20 @@ public class ExternalSASLMechanismHandler
         SASL_MECHANISM_EXTERNAL, DirectoryServer.isRootDN(userEntry.getName()));
     bindOperation.setAuthenticationInfo(authInfo);
     bindOperation.setResultCode(ResultCode.SUCCESS);
+  }
+
+
+
+  private boolean find(List<Attribute> certAttrList, ByteString certBytes)
+  {
+    for (Attribute a : certAttrList)
+    {
+      if (a.contains(certBytes))
+      {
+        return true;
+      }
+    }
+    return false;
   }
 
 

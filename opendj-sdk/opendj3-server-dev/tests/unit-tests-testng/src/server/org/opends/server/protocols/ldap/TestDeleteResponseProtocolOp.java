@@ -26,17 +26,22 @@
  */
 package org.opends.server.protocols.ldap;
 
-import static org.testng.Assert.*;
-import org.testng.annotations.*;
-import org.forgerock.opendj.io.*;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteStringBuilder;
-import org.opends.server.core.DirectoryServer;
-import static org.opends.server.util.ServerConstants.EOL;
-import org.forgerock.i18n.LocalizableMessage;
-
 import java.util.ArrayList;
 import java.util.Iterator;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.io.ASN1;
+import org.forgerock.opendj.io.ASN1Reader;
+import org.forgerock.opendj.io.ASN1Writer;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.types.*;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
+
+import static org.opends.server.util.ServerConstants.*;
+import static org.testng.Assert.*;
 
 /**
  * This class defines a set of tests for the
@@ -73,15 +78,10 @@ public class TestDeleteResponseProtocolOp extends LdapTestCase
   public void setupDN()
   {
     //Setup the DN to use in the response tests.
-
     AttributeType attribute =
         DirectoryServer.getDefaultAttributeType("testAttribute");
-
-    AttributeValue attributeValue = AttributeValues.create(attribute, "testValue");
-
-    RDN[] rdns = new RDN[1];
-    rdns[0] = RDN.create(attribute, attributeValue);
-    dn = new DN(rdns);
+    ByteString attributeValue = ByteString.valueOf("testValue");
+    dn = new DN(new RDN[] { RDN.create(attribute, attributeValue) });
   }
 
   /**
@@ -119,8 +119,6 @@ public class TestDeleteResponseProtocolOp extends LdapTestCase
   public void testConstructors() throws Exception
   {
     DeleteResponseProtocolOp deleteResponse;
-    ArrayList<LDAPAttribute> attributes;
-
     //Test to make sure the constructor with result code param works.
     deleteResponse = new DeleteResponseProtocolOp(resultCode);
     assertEquals(deleteResponse.getResultCode(), resultCode);

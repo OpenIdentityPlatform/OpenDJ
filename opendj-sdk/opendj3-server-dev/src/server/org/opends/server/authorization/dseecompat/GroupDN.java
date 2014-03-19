@@ -35,6 +35,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.api.Group;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.GroupManager;
@@ -142,12 +143,13 @@ public class GroupDN implements KeywordBindRule {
                                            DN suffixDN) {
         EnumEvalResult matched= EnumEvalResult.FALSE;
         List<Attribute> attrs = e.getAttribute(attributeType);
-        for(AttributeValue v : attrs.get(0)) {
+        for(ByteString v : attrs.get(0)) {
             try {
-                DN groupDN=DN.valueOf(v.getValue().toString());
-                if(suffixDN != null &&
-                   !groupDN.isDescendantOf(suffixDN))
-                        continue;
+                DN groupDN = DN.valueOf(v.toString());
+                if(suffixDN != null && !groupDN.isDescendantOf(suffixDN))
+                {
+                  continue;
+                }
                 Group<?> group = getGroupManager().getGroupInstance(groupDN);
                 if((group != null) && (evalCtx.isMemberOf(group))) {
                     matched=EnumEvalResult.TRUE;

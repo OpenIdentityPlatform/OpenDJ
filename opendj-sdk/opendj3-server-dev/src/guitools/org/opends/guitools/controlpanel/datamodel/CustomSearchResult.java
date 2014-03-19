@@ -49,8 +49,6 @@ import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.AttributeValues;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
@@ -359,9 +357,7 @@ public class CustomSearchResult implements Comparable<CustomSearchResult>
           {
             bs = ByteString.valueOf(value.toString());
           }
-          AttributeValue attributeValue =
-            AttributeValues.create(attrType, bs);
-          builder.add(attributeValue);
+          builder.add(bs);
         }
         List<org.opends.server.types.Attribute> attrList =
           new ArrayList<org.opends.server.types.Attribute>(1);

@@ -26,22 +26,20 @@
  */
 package org.opends.server.replication.common;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.UserDefinedVirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.workflowelement.externalchangelog.ECLWorkflowElement;
 
@@ -87,7 +85,7 @@ public class LastCookieVirtualProvider
 
   /** {@inheritDoc} */
   @Override()
-  public Set<AttributeValue> getValues(Entry entry,VirtualAttributeRule rule)
+  public Attribute getValues(Entry entry, VirtualAttributeRule rule)
   {
     try
     {
@@ -102,15 +100,14 @@ public class LastCookieVirtualProvider
 
         final ReplicationServer rs = eclwe.getReplicationServer();
         String newestCookie = rs.getNewestECLCookie(excludedDomains).toString();
-        final ByteString cookie = ByteString.valueOf(newestCookie);
-        return Collections.singleton(AttributeValues.create(cookie, cookie));
+        return Attributes.create(rule.getAttributeType(), newestCookie);
       }
     }
     catch (Exception e)
     {
       logger.traceException(e);
     }
-    return Collections.emptySet();
+    return Attributes.empty(rule.getAttributeType());
   }
 
   /** {@inheritDoc} */

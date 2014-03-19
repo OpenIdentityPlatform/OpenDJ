@@ -24,10 +24,7 @@
  *      Copyright 2008-2009 Sun Microsystems, Inc.
  *      Portions Copyright 2011-2014 ForgeRock AS
  */
-
 package org.opends.server.admin;
-
-
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -35,12 +32,12 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.admin.std.client.RootCfgClient;
 import org.opends.server.admin.std.meta.RootCfgDefn;
 import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
-
 
 /**
  * A path which can be used to determine the location of a managed
@@ -157,7 +154,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient,
       String type = profile.getRelationChildRDNType(r);
       AttributeType atype = DirectoryServer.getAttributeType(
           type.toLowerCase(), true);
-      AttributeValue avalue = AttributeValues.create(atype, name);
+      ByteString avalue = ByteString.valueOf(name);
       dn = dn.child(RDN.create(atype, avalue));
     }
 
@@ -177,7 +174,7 @@ public final class ManagedObjectPath<C extends ConfigurationClient,
       String type = profile.getRelationChildRDNType(r);
       AttributeType atype = DirectoryServer.getAttributeType(
           type.toLowerCase(), true);
-      AttributeValue avalue = AttributeValues.create(atype, d.getName());
+      ByteString avalue = ByteString.valueOf(d.getName());
       dn = dn.child(RDN.create(atype, avalue));
     }
 

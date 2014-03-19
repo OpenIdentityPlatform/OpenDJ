@@ -26,18 +26,13 @@
  */
 package org.opends.server.types.operation;
 
-
-
 import java.util.List;
 
-import org.opends.server.types.AttributeValue;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 import org.opends.server.types.RawModification;
-
-
 
 /**
  * This class defines a set of methods that are available for use by
@@ -129,7 +124,7 @@ public interface PostOperationModifyOperation
    *          provided in the modify request, or <CODE>null</CODE> if
    *          there were none.
    */
-  public List<AttributeValue> getCurrentPasswords();
+  List<ByteString> getCurrentPasswords();
 
 
 
@@ -143,6 +138,6 @@ public interface PostOperationModifyOperation
    * @return  The set of clear-text new passwords as provided in the
    *          modify request, or <CODE>null</CODE> if there were none.
    */
-  public List<AttributeValue> getNewPasswords();
+  List<ByteString> getNewPasswords();
 }
 

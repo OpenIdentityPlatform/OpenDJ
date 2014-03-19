@@ -56,6 +56,7 @@ import javax.crypto.Mac;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -194,20 +195,20 @@ public class SchemaBackend
   /**
    * The value containing DN of the user we'll say created the configuration.
    */
-  private AttributeValue creatorsName;
+  private ByteString creatorsName;
 
   /**
    * The value containing the DN of the last user to modify the configuration.
    */
-  private AttributeValue modifiersName;
+  private ByteString modifiersName;
 
   /** The timestamp that will be used for the schema creation time. */
-  private AttributeValue createTimestamp;
+  private ByteString createTimestamp;
 
   /**
    * The timestamp that will be used for the latest schema modification time.
    */
-  private AttributeValue modifyTimestamp;
+  private ByteString modifyTimestamp;
 
   /**
    * Indicates whether the attributes of the schema entry should always be
@@ -330,10 +331,8 @@ public class SchemaBackend
     cfg.getBaseDN().toArray(newBaseDNs);
     this.baseDNs = newBaseDNs;
 
-    creatorsName  = AttributeValues.create(
-        creatorsNameType, newBaseDNs[0].toString());
-    modifiersName = AttributeValues.create(
-        modifiersNameType, newBaseDNs[0].toString());
+    creatorsName  = ByteString.valueOf(newBaseDNs[0].toString());
+    modifiersName = ByteString.valueOf(newBaseDNs[0].toString());
 
     long createTime = DirectoryServer.getSchema().getOldestModificationTime();
     createTimestamp =
@@ -974,20 +973,19 @@ public class SchemaBackend
         case ADD:
           if (at.equals(attributeTypesType))
           {
-            for (AttributeValue v : a)
+            for (ByteString v : a)
             {
               AttributeType type;
               try
               {
-                type = AttributeTypeSyntax.decodeAttributeType(v.getValue(),
-                    newSchema, false);
+                type = AttributeTypeSyntax.decodeAttributeType(v, newSchema, false);
               }
               catch (DirectoryException de)
               {
                 logger.traceException(de);
 
                 LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_ATTRTYPE.get(
-                    v.getValue(), de.getMessageObject());
+                    v, de.getMessageObject());
                 throw new DirectoryException(
                     ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
               }
@@ -997,20 +995,19 @@ public class SchemaBackend
           }
           else if (at.equals(objectClassesType))
           {
-            for (AttributeValue v : a)
+            for (ByteString v : a)
             {
               ObjectClass oc;
               try
               {
-                oc = ObjectClassSyntax.decodeObjectClass(v.getValue(),
-                    newSchema, false);
+                oc = ObjectClassSyntax.decodeObjectClass(v, newSchema, false);
               }
               catch (DirectoryException de)
               {
                 logger.traceException(de);
 
                 LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_OBJECTCLASS.
-                    get(v.getValue(), de.getMessageObject());
+                    get(v, de.getMessageObject());
                 throw new DirectoryException(
                     ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
               }
@@ -1020,20 +1017,19 @@ public class SchemaBackend
           }
           else if (at.equals(nameFormsType))
           {
-            for (AttributeValue v : a)
+            for (ByteString v : a)
             {
               NameForm nf;
               try
               {
-                nf = NameFormSyntax.decodeNameForm(v.getValue(), newSchema,
-                    false);
+                nf = NameFormSyntax.decodeNameForm(v, newSchema, false);
               }
               catch (DirectoryException de)
               {
                 logger.traceException(de);
 
                 LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_NAME_FORM.get(
-                    v.getValue(), de.getMessageObject());
+                    v, de.getMessageObject());
                 throw new DirectoryException(
                     ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
               }
@@ -1043,20 +1039,19 @@ public class SchemaBackend
           }
           else if (at.equals(ditContentRulesType))
           {
-            for (AttributeValue v : a)
+            for (ByteString v : a)
             {
               DITContentRule dcr;
               try
               {
-                dcr = DITContentRuleSyntax.decodeDITContentRule(v.getValue(),
-                    newSchema, false);
+                dcr = DITContentRuleSyntax.decodeDITContentRule(v, newSchema, false);
               }
               catch (DirectoryException de)
               {
                 logger.traceException(de);
 
                 LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_DCR.get(
-                    v.getValue(), de.getMessageObject());
+                    v, de.getMessageObject());
                 throw new DirectoryException(
                     ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
               }
@@ -1066,20 +1061,19 @@ public class SchemaBackend
           }
           else if (at.equals(ditStructureRulesType))
           {
-            for (AttributeValue v : a)
+            for (ByteString v : a)
             {
               DITStructureRule dsr;
               try
               {
-                dsr = DITStructureRuleSyntax.decodeDITStructureRule(
-                    v.getValue(), newSchema, false);
+                dsr = DITStructureRuleSyntax.decodeDITStructureRule(v, newSchema, false);
               }
               catch (DirectoryException de)
               {
                 logger.traceException(de);
 
                 LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_DSR.get(
-                    v.getValue(), de.getMessageObject());
+                    v, de.getMessageObject());
                 throw new DirectoryException(
                     ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
               }
@@ -1089,20 +1083,19 @@ public class SchemaBackend
           }
           else if (at.equals(matchingRuleUsesType))
           {
-            for (AttributeValue v : a)
+            for (ByteString v : a)
             {
               MatchingRuleUse mru;
               try
               {
-                mru = MatchingRuleUseSyntax.decodeMatchingRuleUse(v.getValue(),
-                    newSchema, false);
+                mru = MatchingRuleUseSyntax.decodeMatchingRuleUse(v, newSchema, false);
               }
               catch (DirectoryException de)
               {
                 logger.traceException(de);
 
                 LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_MR_USE.get(
-                    v.getValue(), de.getMessageObject());
+                    v, de.getMessageObject());
                 throw new DirectoryException(
                     ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
               }
@@ -1112,21 +1105,19 @@ public class SchemaBackend
           }
           else if (at.equals(ldapSyntaxesType))
           {
-            for (AttributeValue v : a)
+            for (ByteString v : a)
             {
               LDAPSyntaxDescription lsd;
               try
               {
-                lsd = LDAPSyntaxDescriptionSyntax.decodeLDAPSyntax(
-                    v.getValue(), newSchema, false);
+                lsd = LDAPSyntaxDescriptionSyntax.decodeLDAPSyntax(v, newSchema, false);
               }
               catch (DirectoryException de)
               {
                 logger.traceException(de);
 
                 LocalizableMessage message =
-                    ERR_SCHEMA_MODIFY_CANNOT_DECODE_LDAP_SYNTAX.get(
-                        v.getValue(), de.getMessageObject());
+                    ERR_SCHEMA_MODIFY_CANNOT_DECODE_LDAP_SYNTAX.get(v, de.getMessageObject());
                 throw new DirectoryException(
                     ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
               }
@@ -1155,20 +1146,19 @@ public class SchemaBackend
 
           if (at.equals(attributeTypesType))
           {
-            for (AttributeValue v : a)
+            for (ByteString v : a)
             {
               AttributeType type;
               try
               {
-                type = AttributeTypeSyntax.decodeAttributeType(v.getValue(),
-                    newSchema, false);
+                type = AttributeTypeSyntax.decodeAttributeType(v, newSchema, false);
               }
               catch (DirectoryException de)
               {
                 logger.traceException(de);
 
                 LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_ATTRTYPE.get(
-                    v.getValue(), de.getMessageObject());
+                    v, de.getMessageObject());
                 throw new DirectoryException(
                     ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
               }
@@ -1179,20 +1169,19 @@ public class SchemaBackend
           }
           else if (at.equals(objectClassesType))
           {
-            for (AttributeValue v : a)
+            for (ByteString v : a)
             {
               ObjectClass oc;
               try
               {
-                oc = ObjectClassSyntax.decodeObjectClass(v.getValue(),
-                    newSchema, false);
+                oc = ObjectClassSyntax.decodeObjectClass(v, newSchema, false);
               }
               catch (DirectoryException de)
               {
                 logger.traceException(de);
 
                 LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_OBJECTCLASS.
-                    get(v.getValue(), de.getMessageObject());
+                    get(v, de.getMessageObject());
                 throw new DirectoryException(
                     ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
               }
@@ -1202,20 +1191,19 @@ public class SchemaBackend
           }
           else if (at.equals(nameFormsType))
           {
-            for (AttributeValue v : a)
+            for (ByteString v : a)
             {
               NameForm nf;
               try
               {
-                nf = NameFormSyntax.decodeNameForm(v.getValue(), newSchema,
-                    false);
+                nf = NameFormSyntax.decodeNameForm(v, newSchema, false);
               }
               catch (DirectoryException de)
               {
                 logger.traceException(de);
 
                 LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_NAME_FORM.get(
-                    v.getValue(), de.getMessageObject());
+                    v, de.getMessageObject());
                 throw new DirectoryException(
                     ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
               }
@@ -1225,20 +1213,19 @@ public class SchemaBackend
           }
           else if (at.equals(ditContentRulesType))
           {
-            for (AttributeValue v : a)
+            for (ByteString v : a)
             {
               DITContentRule dcr;
               try
               {
-                dcr = DITContentRuleSyntax.decodeDITContentRule(v.getValue(),
-                    newSchema, false);
+                dcr = DITContentRuleSyntax.decodeDITContentRule(v, newSchema, false);
               }
               catch (DirectoryException de)
               {
                 logger.traceException(de);
 
                 LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_DCR.get(
-                    v.getValue(), de.getMessageObject());
+                    v, de.getMessageObject());
                 throw new DirectoryException(
                     ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
               }
@@ -1248,20 +1235,19 @@ public class SchemaBackend
           }
           else if (at.equals(ditStructureRulesType))
           {
-            for (AttributeValue v : a)
+            for (ByteString v : a)
             {
               DITStructureRule dsr;
               try
               {
-                dsr = DITStructureRuleSyntax.decodeDITStructureRule(
-                    v.getValue(), newSchema, false);
+                dsr = DITStructureRuleSyntax.decodeDITStructureRule(v, newSchema, false);
               }
               catch (DirectoryException de)
               {
                 logger.traceException(de);
 
                 LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_DSR.get(
-                    v.getValue(), de.getMessageObject());
+                    v, de.getMessageObject());
                 throw new DirectoryException(
                     ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
               }
@@ -1272,20 +1258,19 @@ public class SchemaBackend
           }
           else if (at.equals(matchingRuleUsesType))
           {
-            for (AttributeValue v : a)
+            for (ByteString v : a)
             {
               MatchingRuleUse mru;
               try
               {
-                mru = MatchingRuleUseSyntax.decodeMatchingRuleUse(v.getValue(),
-                    newSchema, false);
+                mru = MatchingRuleUseSyntax.decodeMatchingRuleUse(v, newSchema, false);
               }
               catch (DirectoryException de)
               {
                 logger.traceException(de);
 
                 LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_MR_USE.get(
-                    v.getValue(), de.getMessageObject());
+                    v, de.getMessageObject());
                 throw new DirectoryException(
                     ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
               }
@@ -1295,13 +1280,12 @@ public class SchemaBackend
           }
           else if (at.equals(ldapSyntaxesType))
           {
-            for (AttributeValue v : a)
+            for (ByteString v : a)
             {
               LDAPSyntaxDescription lsd;
               try
               {
-                lsd = LDAPSyntaxDescriptionSyntax.decodeLDAPSyntax(
-                    v.getValue(), newSchema, false);
+                lsd = LDAPSyntaxDescriptionSyntax.decodeLDAPSyntax(v, newSchema, false);
               }
               catch (DirectoryException de)
               {
@@ -1309,7 +1293,7 @@ public class SchemaBackend
 
                 LocalizableMessage message =
                     ERR_SCHEMA_MODIFY_CANNOT_DECODE_LDAP_SYNTAX.get(
-                        v.getValue(), de.getMessageObject());
+                        v, de.getMessageObject());
                 throw new DirectoryException(
                     ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
               }
@@ -1371,8 +1355,7 @@ public class SchemaBackend
       authzDN = DN.rootDN();
     }
 
-    modifiersName = AttributeValues.create(
-        modifiersNameType, authzDN.toString());
+    modifiersName = ByteString.valueOf(authzDN.toString());
     modifyTimestamp = GeneralizedTimeSyntax.createGeneralizedTimeValue(
                            System.currentTimeMillis());
   }
@@ -1665,23 +1648,21 @@ public class SchemaBackend
         continue;
       }
 
-      for (AttributeValue v : a)
+      for (ByteString v : a)
       {
         AttributeType at;
         try
         {
-          at = AttributeTypeSyntax.decodeAttributeType(v.getValue(), schema,
-                                                       true);
+          at = AttributeTypeSyntax.decodeAttributeType(v, schema, true);
         }
         catch (DirectoryException de)
         {
           logger.traceException(de);
 
           LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_ATTRTYPE.get(
-              v.getValue(), de.getMessageObject());
+              v, de.getMessageObject());
           throw new DirectoryException(
-                         ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                         de);
+                         ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
         }
 
         if (attributeType.getOID().equals(at.getOID()))
@@ -1961,22 +1942,21 @@ public class SchemaBackend
         continue;
       }
 
-      for (AttributeValue v : a)
+      for (ByteString v : a)
       {
         ObjectClass oc;
         try
         {
-          oc = ObjectClassSyntax.decodeObjectClass(v.getValue(), schema, true);
+          oc = ObjectClassSyntax.decodeObjectClass(v, schema, true);
         }
         catch (DirectoryException de)
         {
           logger.traceException(de);
 
           LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_OBJECTCLASS.get(
-              v.getValue(), de.getMessageObject());
+              v, de.getMessageObject());
           throw new DirectoryException(
-                         ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                         de);
+                         ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
         }
 
         if (objectClass.getOID().equals(oc.getOID()))
@@ -2230,22 +2210,21 @@ public class SchemaBackend
         continue;
       }
 
-      for (AttributeValue v : a)
+      for (ByteString v : a)
       {
         NameForm nf;
         try
         {
-          nf = NameFormSyntax.decodeNameForm(v.getValue(), schema, true);
+          nf = NameFormSyntax.decodeNameForm(v, schema, true);
         }
         catch (DirectoryException de)
         {
           logger.traceException(de);
 
           LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_NAME_FORM.get(
-              v.getValue(), de.getMessageObject());
+              v, de.getMessageObject());
           throw new DirectoryException(
-                         ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                         de);
+                         ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
         }
 
         if (nameForm.getOID().equals(nf.getOID()))
@@ -2700,23 +2679,21 @@ public class SchemaBackend
         continue;
       }
 
-      for (AttributeValue v : a)
+      for (ByteString v : a)
       {
         DITStructureRule dsr;
         try
         {
-          dsr = DITStructureRuleSyntax.decodeDITStructureRule(
-                     v.getValue(), schema, true);
+          dsr = DITStructureRuleSyntax.decodeDITStructureRule(v, schema, true);
         }
         catch (DirectoryException de)
         {
           logger.traceException(de);
 
           LocalizableMessage message = ERR_SCHEMA_MODIFY_CANNOT_DECODE_DSR.get(
-              v.getValue(), de.getMessageObject());
+              v, de.getMessageObject());
           throw new DirectoryException(
-                         ResultCode.INVALID_ATTRIBUTE_SYNTAX, message,
-                         de);
+                         ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, de);
         }
 
         if (ditStructureRule.getRuleID() == dsr.getRuleID())
@@ -3082,14 +3059,13 @@ public class SchemaBackend
      * this only for the real part of the ldapsyntaxes attribute. The real part
      * is read and write to/from the schema files.
      */
-    Set<AttributeValue> values = new LinkedHashSet<AttributeValue>();
+    Set<ByteString> values = new LinkedHashSet<ByteString>();
     for (LDAPSyntaxDescription ldapSyntax :
                                    schema.getLdapSyntaxDescriptions().values())
     {
       if (schemaFile.equals(getSchemaFile(ldapSyntax)))
       {
-        values.add(AttributeValues.create(ldapSyntaxesType,
-                ldapSyntax.toString()));
+        values.add(ByteString.valueOf(ldapSyntax.toString()));
       }
     }
 
@@ -3106,7 +3082,7 @@ public class SchemaBackend
     // to be careful of the ordering to ensure that any superior types in the
     // same file are written before the subordinate types.
     Set<AttributeType> addedTypes = new HashSet<AttributeType>();
-    values = new LinkedHashSet<AttributeValue>();
+    values = new LinkedHashSet<ByteString>();
     for (AttributeType at : schema.getAttributeTypes().values())
     {
       if (schemaFile.equals(getSchemaFile(at)))
@@ -3129,7 +3105,7 @@ public class SchemaBackend
     // to be careful of the ordering to ensure that any superior classes in the
     // same file are written before the subordinate classes.
     Set<ObjectClass> addedClasses = new HashSet<ObjectClass>();
-    values = new LinkedHashSet<AttributeValue>();
+    values = new LinkedHashSet<ByteString>();
     for (ObjectClass oc : schema.getObjectClasses().values())
     {
       if (schemaFile.equals(getSchemaFile(oc)))
@@ -3152,14 +3128,14 @@ public class SchemaBackend
     // Add all of the appropriate name forms to the schema entry.  Since there
     // is no hierarchical relationship between name forms, we don't need to
     // worry about ordering.
-    values = new LinkedHashSet<AttributeValue>();
+    values = new LinkedHashSet<ByteString>();
     for (List<NameForm> forms : schema.getNameFormsByObjectClass().values())
     {
       for(NameForm nf : forms)
       {
         if (schemaFile.equals(getSchemaFile(nf)))
         {
-          values.add(AttributeValues.create(nameFormsType, nf.toString()));
+          values.add(ByteString.valueOf(nf.toString()));
         }
       }
     }
@@ -3177,13 +3153,12 @@ public class SchemaBackend
     // Add all of the appropriate DIT content rules to the schema entry.  Since
     // there is no hierarchical relationship between DIT content rules, we don't
     // need to worry about ordering.
-    values = new LinkedHashSet<AttributeValue>();
+    values = new LinkedHashSet<ByteString>();
     for (DITContentRule dcr : schema.getDITContentRules().values())
     {
       if (schemaFile.equals(getSchemaFile(dcr)))
       {
-        values.add(AttributeValues.create(ditContentRulesType,
-                                      dcr.toString()));
+        values.add(ByteString.valueOf(dcr.toString()));
       }
     }
 
@@ -3201,7 +3176,7 @@ public class SchemaBackend
     // need to be careful of the ordering to ensure that any superior rules in
     // the same file are written before the subordinate rules.
     Set<DITStructureRule> addedDSRs = new HashSet<DITStructureRule>();
-    values = new LinkedHashSet<AttributeValue>();
+    values = new LinkedHashSet<ByteString>();
     for (DITStructureRule dsr : schema.getDITStructureRulesByID().values())
     {
       if (schemaFile.equals(getSchemaFile(dsr)))
@@ -3224,13 +3199,12 @@ public class SchemaBackend
     // Add all of the appropriate matching rule uses to the schema entry.  Since
     // there is no hierarchical relationship between matching rule uses, we
     // don't need to worry about ordering.
-    values = new LinkedHashSet<AttributeValue>();
+    values = new LinkedHashSet<ByteString>();
     for (MatchingRuleUse mru : schema.getMatchingRuleUses().values())
     {
       if (schemaFile.equals(getSchemaFile(mru)))
       {
-        values.add(AttributeValues.create(matchingRuleUsesType,
-                                      mru.toString()));
+        values.add(ByteString.valueOf(mru.toString()));
       }
     }
 
@@ -3287,7 +3261,7 @@ public class SchemaBackend
    */
   private void addAttrTypeToSchemaFile(Schema schema, String schemaFile,
                                        AttributeType attributeType,
-                                       Set<AttributeValue> values,
+                                       Set<ByteString> values,
                                        Set<AttributeType> addedTypes,
                                        int depth)
           throws DirectoryException
@@ -3313,8 +3287,7 @@ public class SchemaBackend
                               addedTypes, depth+1);
     }
 
-    values.add(AttributeValues.create(attributeTypesType,
-                                  attributeType.toString()));
+    values.add(ByteString.valueOf(attributeType.toString()));
     addedTypes.add(attributeType);
   }
 
@@ -3338,7 +3311,7 @@ public class SchemaBackend
    */
   private void addObjectClassToSchemaFile(Schema schema, String schemaFile,
                                           ObjectClass objectClass,
-                                          Set<AttributeValue> values,
+                                          Set<ByteString> values,
                                           Set<ObjectClass> addedClasses,
                                           int depth)
           throws DirectoryException
@@ -3364,8 +3337,7 @@ public class SchemaBackend
                                    addedClasses, depth+1);
       }
     }
-    values.add(AttributeValues.create(objectClassesType,
-                                  objectClass.toString()));
+    values.add(ByteString.valueOf(objectClass.toString()));
     addedClasses.add(objectClass);
   }
 
@@ -3390,7 +3362,7 @@ public class SchemaBackend
    */
   private void addDITStructureRuleToSchemaFile(Schema schema, String schemaFile,
                     DITStructureRule ditStructureRule,
-                    Set<AttributeValue> values,
+                    Set<ByteString> values,
                     Set<DITStructureRule> addedDSRs, int depth)
           throws DirectoryException
   {
@@ -3415,8 +3387,7 @@ public class SchemaBackend
       }
     }
 
-    values.add(AttributeValues.create(ditStructureRulesType,
-                                  ditStructureRule.toString()));
+    values.add(ByteString.valueOf(ditStructureRule.toString()));
     addedDSRs.add(ditStructureRule);
   }
 
@@ -3951,11 +3922,10 @@ public class SchemaBackend
       {
         // Look for attributetypes that could have been added to the schema
         // or modified in the schema
-        for (AttributeValue v : a)
+        for (ByteString v : a)
         {
           // Parse the attribute type.
-          AttributeType attrType = AttributeTypeSyntax.decodeAttributeType(
-              v.getValue(), schema, false);
+          AttributeType attrType = AttributeTypeSyntax.decodeAttributeType(v, schema, false);
           String schemaFile = getSchemaFile(attrType);
           if ((schemaFile != null) &&
               (schemaFile.equals(CONFIG_SCHEMA_ELEMENTS_FILE)))
@@ -4058,12 +4028,11 @@ public class SchemaBackend
     {
       for (Attribute a : ocList)
       {
-        for (AttributeValue v : a)
+        for (ByteString v : a)
         {
           // It IS important here to allow the unknown elements that could
           // appear in the new config schema.
-          ObjectClass newObjectClass = ObjectClassSyntax.decodeObjectClass(
-              v.getValue(), newSchema, true);
+          ObjectClass newObjectClass = ObjectClassSyntax.decodeObjectClass(v, newSchema, true);
           String schemaFile = getSchemaFile(newObjectClass);
           if ((schemaFile != null) &&
               (schemaFile.equals(CONFIG_SCHEMA_ELEMENTS_FILE)))
@@ -4077,8 +4046,7 @@ public class SchemaBackend
           // Now we know we are not in the config schema, let's check
           // the unknown elements ... sadly but simply by redoing the
           // whole decoding.
-          newObjectClass = ObjectClassSyntax.decodeObjectClass(
-              v.getValue(), newSchema, false);
+          newObjectClass = ObjectClassSyntax.decodeObjectClass(v, newSchema, false);
           oidList.add(newObjectClass.getOID());
           try
           {

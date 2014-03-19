@@ -26,21 +26,18 @@
  */
 package org.opends.server.replication.common;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.UserDefinedVirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.workflowelement.externalchangelog.ECLWorkflowElement;
 
 import static org.opends.messages.ExtensionMessages.*;
@@ -83,7 +80,7 @@ public class FirstChangeNumberVirtualAttributeProvider
 
   /** {@inheritDoc} */
   @Override()
-  public Set<AttributeValue> getValues(Entry entry,VirtualAttributeRule rule)
+  public Attribute getValues(Entry entry,VirtualAttributeRule rule)
   {
     String value = "0";
     try
@@ -105,8 +102,7 @@ public class FirstChangeNumberVirtualAttributeProvider
       value = "-1";
       logger.traceException(e);
     }
-    ByteString valueBS = ByteString.valueOf(value);
-    return Collections.singleton(AttributeValues.create(valueBS, valueBS));
+    return Attributes.create(rule.getAttributeType(), value);
   }
 
   /** {@inheritDoc} */

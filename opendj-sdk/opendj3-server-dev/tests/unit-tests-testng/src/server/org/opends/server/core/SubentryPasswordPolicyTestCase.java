@@ -40,9 +40,9 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.api.AuthenticationPolicy;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValues;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.AfterClass;
@@ -475,9 +475,7 @@ public class SubentryPasswordPolicyTestCase
     // for the user entry.
     assertTrue(testEntry.hasAttribute(attrType));
     assertTrue(testEntry.hasValue(attrType, null,
-            AttributeValues.create(attrType,
-            defaultPolicy.getDN(
-            ).toString())));
+            ByteString.valueOf(defaultPolicy.getDN().toString())));
 
     // Add new subentry policy with the
     // scope to apply to the user entry.
@@ -512,8 +510,7 @@ public class SubentryPasswordPolicyTestCase
 
     assertTrue(testEntry.hasAttribute(attrType));
     assertTrue(testEntry.hasValue(attrType, null,
-            AttributeValues.create(attrType,
-            "cn=Temp Policy," + SUFFIX)));
+            ByteString.valueOf("cn=Temp Policy," + SUFFIX)));
 
     // Remove subentry policy and make sure
     // default policy is in effect again.
@@ -525,8 +522,6 @@ public class SubentryPasswordPolicyTestCase
 
     assertTrue(testEntry.hasAttribute(attrType));
     assertTrue(testEntry.hasValue(attrType, null,
-            AttributeValues.create(attrType,
-            defaultPolicy.getDN(
-            ).toString())));
+            ByteString.valueOf(defaultPolicy.getDN().toString())));
   }
 }

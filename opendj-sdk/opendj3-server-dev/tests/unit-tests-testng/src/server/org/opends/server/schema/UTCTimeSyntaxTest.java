@@ -31,9 +31,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
 
-import org.opends.server.api.AttributeSyntax;
-import org.opends.server.types.AttributeValue;
 import org.forgerock.opendj.ldap.ByteString;
+import org.opends.server.api.AttributeSyntax;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -127,8 +126,8 @@ public class UTCTimeSyntaxTest extends AttributeSyntaxTest
          throws Exception
   {
     Date d = new Date();
-    AttributeValue timeValue = UTCTimeSyntax.createUTCTimeValue(d);
-    Date decodedDate = UTCTimeSyntax.decodeUTCTimeValue(timeValue.getValue());
+    ByteString timeValue = UTCTimeSyntax.createUTCTimeValue(d);
+    Date decodedDate = UTCTimeSyntax.decodeUTCTimeValue(timeValue);
 
     // UTCTime does not have support for sub-second values, so we need to make
     // sure that the decoded value is within 1000 milliseconds.
@@ -151,7 +150,7 @@ public class UTCTimeSyntaxTest extends AttributeSyntaxTest
 
     // values from 50 through 99 inclusive shall have 1900 added to it
     for (int yy = 50; yy <= 99; yy++) {
-      String utcString = String.format("%02d0819120000Z", new Integer(yy));
+      String utcString = String.format("%02d0819120000Z", yy);
       Date decodedDate = UTCTimeSyntax.decodeUTCTimeValue(ByteString.valueOf(utcString));
       cal.clear();
       cal.setTime(decodedDate);

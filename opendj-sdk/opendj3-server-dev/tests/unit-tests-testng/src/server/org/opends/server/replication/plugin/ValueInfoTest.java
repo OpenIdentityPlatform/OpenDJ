@@ -22,16 +22,13 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.CSN;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.AttributeValues;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.util.TimeThread;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
@@ -50,11 +47,9 @@ public class ValueInfoTest extends ReplicationTestCase
    */
   @DataProvider(name = "valueInfo")
   public Object[][] createData() {
-    AttributeType type = DirectoryServer.getAttributeType("description");
-
-    AttributeValue att1 = AttributeValues.create(type, "string");
-    AttributeValue att2 = AttributeValues.create(type, "value");
-    AttributeValue att3 = AttributeValues.create(type, "again");
+    ByteString att1 = ByteString.valueOf("string");
+    ByteString att2 = ByteString.valueOf("value");
+    ByteString att3 = ByteString.valueOf("again");
 
     CSN del1 = new CSN(1,  0,  1);
     CSN del2 = new CSN(1,  1,  1);
@@ -75,12 +70,11 @@ public class ValueInfoTest extends ReplicationTestCase
    * Create a ValueInfo and check the methods
    */
   @Test(dataProvider = "valueInfo")
-  public void valueInfo(AttributeValue value, CSN csnUpdate, CSN csnDelete) throws Exception
+  public void valueInfo(ByteString value, CSN csnUpdate, CSN csnDelete) throws Exception
   {
-    AttributeType type = DirectoryServer.getAttributeType("description");
     AttrValueHistorical valInfo1 = new AttrValueHistorical(value, csnUpdate, csnDelete);
     AttrValueHistorical valInfo2 = new AttrValueHistorical(value, csnUpdate, csnUpdate);
-    AttrValueHistorical valInfo3 = new AttrValueHistorical(AttributeValues.create(type,"Test"),
+    AttrValueHistorical valInfo3 = new AttrValueHistorical(ByteString.valueOf("Test"),
             csnUpdate, csnUpdate);
 
     // Check equals

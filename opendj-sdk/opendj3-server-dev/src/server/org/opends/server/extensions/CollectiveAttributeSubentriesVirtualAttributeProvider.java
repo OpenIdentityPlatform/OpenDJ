@@ -26,19 +26,17 @@
  */
 package org.opends.server.extensions;
 
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.std.server.
         CollectiveAttributeSubentriesVirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
+
 import static org.opends.messages.ExtensionMessages.*;
 
 /**
@@ -71,51 +69,25 @@ public class CollectiveAttributeSubentriesVirtualAttributeProvider
 
   /** {@inheritDoc} */
   @Override()
-  public Set<AttributeValue> getValues(Entry entry,
-                                       VirtualAttributeRule rule)
+  public Attribute getValues(Entry entry, VirtualAttributeRule rule)
   {
-    Set<AttributeValue> values = null;
 
+    AttributeBuilder builder = new AttributeBuilder(rule.getAttributeType());
     if (!entry.isSubentry() && !entry.isLDAPSubentry())
     {
       List<SubEntry> subentries = DirectoryServer.getSubentryManager()
           .getCollectiveSubentries(entry);
 
-      AttributeType dnAttrType =
-              DirectoryServer.getAttributeType("2.5.4.49");
       for (SubEntry subentry : subentries)
       {
         if (subentry.isCollective() ||
             subentry.isInheritedCollective())
         {
-          DN subentryDN = subentry.getDN();
-          AttributeValue value = AttributeValues.create(
-                  dnAttrType, subentryDN.toString());
-
-          if (values == null)
-          {
-            values = Collections.singleton(value);
-          }
-          else if (values.size() == 1)
-          {
-            Set<AttributeValue> tmp = new HashSet<AttributeValue>(2);
-            tmp.addAll(values);
-            tmp.add(value);
-            values = tmp;
-          }
-          else
-          {
-            values.add(value);
-          }
+          builder.add(subentry.getDN().toString());
         }
       }
     }
-
-    if (values != null)
-    {
-      return Collections.unmodifiableSet(values);
-    }
-    return Collections.emptySet();
+    return builder.toAttribute();
   }
 
   /** {@inheritDoc} */

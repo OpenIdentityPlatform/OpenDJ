@@ -31,6 +31,7 @@ import java.util.*;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.core.DirectoryServer;
@@ -295,9 +296,9 @@ public class DN2URI extends DatabaseContainer
           case ADD:
             if (a != null)
             {
-              for (AttributeValue v : a)
+              for (ByteString v : a)
               {
-                insert(txn, entryDN, v.getValue().toString());
+                insert(txn, entryDN, v.toString());
               }
             }
             break;
@@ -309,9 +310,9 @@ public class DN2URI extends DatabaseContainer
             }
             else
             {
-              for (AttributeValue v : a)
+              for (ByteString v : a)
               {
-                delete(txn, entryDN, v.getValue().toString());
+                delete(txn, entryDN, v.toString());
               }
             }
             break;
@@ -324,9 +325,9 @@ public class DN2URI extends DatabaseContainer
             delete(txn, entryDN);
             if (a != null)
             {
-              for (AttributeValue v : a)
+              for (ByteString v : a)
               {
-                insert(txn, entryDN, v.getValue().toString());
+                insert(txn, entryDN, v.toString());
               }
             }
             break;

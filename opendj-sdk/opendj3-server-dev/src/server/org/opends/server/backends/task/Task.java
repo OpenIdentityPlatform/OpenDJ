@@ -42,6 +42,7 @@ import javax.mail.MessagingException;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.opends.messages.Severity;
 import org.opends.server.core.DirectoryServer;
@@ -383,7 +384,7 @@ public abstract class Task
       throw new InitializationException(ERR_TASK_MULTIPLE_ATTRS_FOR_TYPE.get(attributeName, taskEntry.getName()));
     }
 
-    Iterator<AttributeValue> iterator = attrList.get(0).iterator();
+    Iterator<ByteString> iterator = attrList.get(0).iterator();
     if (! iterator.hasNext())
     {
       if (isRequired)
@@ -396,13 +397,12 @@ public abstract class Task
       }
     }
 
-    AttributeValue value = iterator.next();
+    ByteString value = iterator.next();
     if (iterator.hasNext())
     {
       throw new InitializationException(ERR_TASK_MULTIPLE_VALUES_FOR_ATTR.get(attributeName, taskEntry.getName()));
     }
-
-    return value.getValue().toString();
+    return value.toString();
   }
 
 
@@ -437,12 +437,11 @@ public abstract class Task
       throw new InitializationException(ERR_TASK_MULTIPLE_ATTRS_FOR_TYPE.get(attributeName, taskEntry.getName()));
     }
 
-    Iterator<AttributeValue> iterator = attrList.get(0).iterator();
+    Iterator<ByteString> iterator = attrList.get(0).iterator();
     while (iterator.hasNext())
     {
-      valueStrings.add(iterator.next().getValue().toString());
+      valueStrings.add(iterator.next().toString());
     }
-
     return valueStrings;
   }
 
@@ -981,7 +980,7 @@ public abstract class Task
       }
 
       List<Attribute> attrList = taskEntry.getAttribute(type);
-      AttributeValue value = AttributeValues.create(type, messageString);
+      ByteString value = ByteString.valueOf(messageString);
       if (attrList == null)
       {
         attrList = new ArrayList<Attribute>();

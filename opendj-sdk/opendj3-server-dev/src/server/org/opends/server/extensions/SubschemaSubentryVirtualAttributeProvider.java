@@ -26,19 +26,17 @@
  */
 package org.opends.server.extensions;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.std.server.SubschemaSubentryVirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 
 import static org.opends.messages.ExtensionMessages.*;
 
@@ -70,18 +68,14 @@ public class SubschemaSubentryVirtualAttributeProvider
 
   /** {@inheritDoc} */
   @Override()
-  public Set<AttributeValue> getValues(Entry entry,
-                                       VirtualAttributeRule rule)
+  public Attribute getValues(Entry entry, VirtualAttributeRule rule)
   {
     DN schemaDN = DirectoryServer.getSchemaDN();
     if (schemaDN == null)
     {
-      return Collections.emptySet();
+      return Attributes.empty(rule.getAttributeType());
     }
-    AttributeValue value =
-        AttributeValues.create(rule.getAttributeType(),
-        schemaDN.toString());
-    return Collections.singleton(value);
+    return Attributes.create(rule.getAttributeType(), schemaDN.toString());
   }
 
   /** {@inheritDoc} */
@@ -100,7 +94,7 @@ public class SubschemaSubentryVirtualAttributeProvider
   @Override()
   public ConditionResult greaterThanOrEqualTo(Entry entry,
                               VirtualAttributeRule rule,
-                              AttributeValue value)
+                              ByteString value)
   {
     // DNs cannot be used in ordering matching.
     return ConditionResult.UNDEFINED;
@@ -110,7 +104,7 @@ public class SubschemaSubentryVirtualAttributeProvider
   @Override()
   public ConditionResult lessThanOrEqualTo(Entry entry,
                               VirtualAttributeRule rule,
-                              AttributeValue value)
+                              ByteString value)
   {
     // DNs cannot be used in ordering matching.
     return ConditionResult.UNDEFINED;
@@ -120,7 +114,7 @@ public class SubschemaSubentryVirtualAttributeProvider
   @Override()
   public ConditionResult approximatelyEqualTo(Entry entry,
                               VirtualAttributeRule rule,
-                              AttributeValue value)
+                              ByteString value)
   {
     // DNs cannot be used in approximate matching.
     return ConditionResult.UNDEFINED;

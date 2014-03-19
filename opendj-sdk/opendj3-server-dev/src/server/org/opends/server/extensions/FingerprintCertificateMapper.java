@@ -35,6 +35,7 @@ import javax.security.auth.x500.X500Principal;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -215,8 +216,7 @@ public class FingerprintCertificateMapper
 
 
     // Create the search filter from the fingerprint.
-    AttributeValue value =
-        AttributeValues.create(fingerprintAttributeType, fingerprintString);
+    ByteString value = ByteString.valueOf(fingerprintString);
     SearchFilter filter =
          SearchFilter.createEqualityFilter(fingerprintAttributeType, value);
 

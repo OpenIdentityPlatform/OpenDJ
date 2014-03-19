@@ -37,6 +37,7 @@ import org.assertj.core.api.Assertions;
 import org.assertj.core.data.MapEntry;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.AddOperation;
@@ -1497,7 +1498,7 @@ public class AssuredReplicationPluginTest extends ReplicationTestCase
 
     // Parse and store values
     Map<Integer,Integer> resultMap = new HashMap<Integer,Integer>();
-    for (AttributeValue val : attrs.get(0))
+    for (ByteString val : attrs.get(0))
     {
       StringTokenizer strtok = new StringTokenizer(val.toString(), ":");
 

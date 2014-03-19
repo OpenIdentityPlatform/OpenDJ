@@ -705,8 +705,7 @@ public class ReplicationBackend extends Backend
       {
         try
         {
-          CSN startingCSN =
-             new CSN(filter.getAssertionValue().getValue().toString());
+          CSN startingCSN = new CSN(filter.getAssertionValue().toString());
           return new CSN(startingCSN.getTime(),
               startingCSN.getSeqnum() - 1, startingCSN.getServerId());
         }

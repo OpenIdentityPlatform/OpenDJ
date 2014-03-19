@@ -212,8 +212,7 @@ public class PatternRDN
     // Sort the attribute-value pairs by attribute type.
     TreeMap<String,ArrayList<ByteString>> patternMap =
          new TreeMap<String, ArrayList<ByteString>>();
-    TreeMap<String,AttributeValue> rdnMap =
-         new TreeMap<String, AttributeValue>();
+    TreeMap<String, ByteString> rdnMap = new TreeMap<String, ByteString>();
 
     for (int i = 0; i < rdn.getNumValues(); i++)
     {
@@ -264,7 +263,7 @@ public class PatternRDN
    */
   private boolean matchValuePattern(List<ByteString> pattern,
                                     AttributeType type,
-                                    AttributeValue value)
+                                    ByteString value)
   {
     if (pattern == null)
     {
@@ -277,7 +276,7 @@ public class PatternRDN
       {
         // Handle this just like an equality filter.
         MatchingRule rule = type.getEqualityMatchingRule();
-        ByteString thatNormValue = rule.normalizeAttributeValue(value.getValue());
+        ByteString thatNormValue = rule.normalizeAttributeValue(value);
         return rule.getAssertion(pattern.get(0)).matches(thatNormValue).toBoolean();
       }
 

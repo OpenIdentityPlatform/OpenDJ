@@ -124,7 +124,7 @@ public interface PostResponseModifyOperation
    *          provided in the modify request, or <CODE>null</CODE> if
    *          there were none.
    */
-  public List<AttributeValue> getCurrentPasswords();
+  List<ByteString> getCurrentPasswords();
 
 
 
@@ -138,6 +138,6 @@ public interface PostResponseModifyOperation
    * @return  The set of clear-text new passwords as provided in the
    *          modify request, or <CODE>null</CODE> if there were none.
    */
-  public List<AttributeValue> getNewPasswords();
+  List<ByteString> getNewPasswords();
 }
 

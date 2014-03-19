@@ -32,8 +32,11 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
@@ -41,13 +44,16 @@ import org.opends.server.admin.std.meta.ReferentialIntegrityPluginCfgDefn;
 import org.opends.server.admin.std.server.ReferentialIntegrityPluginCfg;
 import org.opends.server.api.Group;
 import org.opends.server.api.plugin.PluginType;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.controls.SubtreeDeleteControl;
 import org.opends.server.core.*;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
+import org.opends.server.types.Modification;
+import org.opends.server.types.RDN;
 import org.testng.annotations.*;
 
 import static org.testng.Assert.*;
@@ -529,13 +535,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
   public void testInitializeWithValidConfigs(Entry e)
           throws Exception
   {
-    HashSet<PluginType> pluginTypes = new HashSet<PluginType>();
-    List<Attribute> attrList = e.getAttribute("ds-cfg-plugin-type");
-    for (Attribute a : attrList){
-      for (AttributeValue v : a)
-        pluginTypes.add(PluginType.forName(
-            v.getValue().toString().toLowerCase()));
-    }
+    HashSet<PluginType> pluginTypes = TestCaseUtils.getPluginTypes(e);
     ReferentialIntegrityPluginCfg configuration =
             AdminTestCaseUtils.getConfiguration(
                     ReferentialIntegrityPluginCfgDefn.getInstance(), e);
@@ -793,13 +793,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
   public void testInitializeWithInValidConfigs(Entry e)
           throws Exception
   {
-    HashSet<PluginType> pluginTypes = new HashSet<PluginType>();
-    List<Attribute> attrList = e.getAttribute("ds-cfg-plugin-type");
-    for (Attribute a : attrList){
-      for (AttributeValue v : a)
-        pluginTypes.add(PluginType.forName(
-            v.getValue().toString().toLowerCase()));
-    }
+    HashSet<PluginType> pluginTypes = TestCaseUtils.getPluginTypes(e);
     ReferentialIntegrityPluginCfg configuration =
             AdminTestCaseUtils.getConfiguration(
                     ReferentialIntegrityPluginCfgDefn.getInstance(), e);
@@ -812,7 +806,6 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
    * Ensures that the Directory Server is running.
    *
    * @throws  Exception  If an unexpected problem occurs.
-   *
    */
   @BeforeClass()
   public void startServer()
@@ -1186,7 +1179,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
             null);
     for (SearchResultEntry entry : operation.getSearchEntries()) {
       for(String dn : dns) {
-        AttributeValue value = AttributeValues.create(type, dn);
+        ByteString value = ByteString.valueOf(dn);
         assertEquals(entry.hasValue(type, null, value), expected);
       }
     }

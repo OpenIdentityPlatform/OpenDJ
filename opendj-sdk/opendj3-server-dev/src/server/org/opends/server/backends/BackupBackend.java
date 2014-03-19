@@ -31,15 +31,16 @@ import java.util.*;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.util.Reject;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.BackupBackendCfg;
 import org.opends.server.api.Backend;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
@@ -49,7 +50,6 @@ import org.opends.server.core.SearchOperation;
 import org.opends.server.schema.BooleanSyntax;
 import org.opends.server.schema.GeneralizedTimeSyntax;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
@@ -396,13 +396,12 @@ public class BackupBackend
       List<Attribute> attrList = backupDirEntry.getAttribute(t);
       if ((attrList != null) && (! attrList.isEmpty()))
       {
-        for (AttributeValue v : attrList.get(0))
+        for (ByteString v : attrList.get(0))
         {
           try
           {
             BackupDirectory backupDirectory =
-                BackupDirectory.readBackupDirectoryDescriptor(
-                    v.getValue().toString());
+                BackupDirectory.readBackupDirectoryDescriptor(v.toString());
             count += backupDirectory.getBackups().keySet().size();
           }
           catch (Exception e)
@@ -495,7 +494,7 @@ public class BackupBackend
     // Make sure that the DN specifies a backup directory.
     AttributeType t =
          DirectoryServer.getAttributeType(ATTR_BACKUP_DIRECTORY_PATH, true);
-    AttributeValue v = entryDN.rdn().getAttributeValue(t);
+    ByteString v = entryDN.rdn().getAttributeValue(t);
     if (v == null)
     {
       LocalizableMessage message =
@@ -510,9 +509,7 @@ public class BackupBackend
     BackupDirectory backupDirectory;
     try
     {
-      backupDirectory =
-           BackupDirectory.readBackupDirectoryDescriptor(
-               v.getValue().toString());
+      backupDirectory = BackupDirectory.readBackupDirectoryDescriptor(v.toString());
     }
     catch (ConfigException ce)
     {
@@ -552,8 +549,7 @@ public class BackupBackend
 
     t = DirectoryServer.getAttributeType(ATTR_BACKUP_BACKEND_DN, true);
     attrList = new ArrayList<Attribute>(1);
-    attrList.add(Attributes.create(t, AttributeValues.create(t,
-        backupDirectory.getConfigEntryDN().toString())));
+    attrList.add(Attributes.create(t, ByteString.valueOf(backupDirectory.getConfigEntryDN().toString())));
     userAttrs.put(t, attrList);
 
     Entry e = new Entry(entryDN, ocMap, userAttrs, opAttrs);
@@ -581,12 +577,12 @@ public class BackupBackend
     // First, get the backup ID from the entry DN.
     AttributeType idType = DirectoryServer.getAttributeType(ATTR_BACKUP_ID,
         true);
-    AttributeValue idValue = entryDN.rdn().getAttributeValue(idType);
+    ByteString idValue = entryDN.rdn().getAttributeValue(idType);
     if (idValue == null) {
       LocalizableMessage message = ERR_BACKUP_NO_BACKUP_ID_IN_DN.get(entryDN);
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
-    String backupID = idValue.getValue().toString();
+    String backupID = idValue.toString();
 
     // Next, get the backup directory from the parent DN.
     DN parentDN = entryDN.getParentDNInSuffix();
@@ -597,7 +593,7 @@ public class BackupBackend
 
     AttributeType t = DirectoryServer.getAttributeType(
         ATTR_BACKUP_DIRECTORY_PATH, true);
-    AttributeValue v = parentDN.rdn().getAttributeValue(t);
+    ByteString v = parentDN.rdn().getAttributeValue(t);
     if (v == null) {
       LocalizableMessage message = ERR_BACKUP_NO_BACKUP_DIR_IN_DN.get(entryDN);
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
@@ -605,8 +601,7 @@ public class BackupBackend
 
     BackupDirectory backupDirectory;
     try {
-      backupDirectory = BackupDirectory.readBackupDirectoryDescriptor(v
-          .getValue().toString());
+      backupDirectory = BackupDirectory.readBackupDirectoryDescriptor(v.toString());
     } catch (ConfigException ce) {
       logger.traceException(ce);
 
@@ -658,8 +653,7 @@ public class BackupBackend
     if (backupDate != null) {
       t = DirectoryServer.getAttributeType(ATTR_BACKUP_DATE, true);
       attrList = new ArrayList<Attribute>(1);
-      attrList.add(Attributes.create(t, AttributeValues.create(t,
-          GeneralizedTimeSyntax.format(backupDate))));
+      attrList.add(Attributes.create(t, ByteString.valueOf(GeneralizedTimeSyntax.format(backupDate))));
       userAttrs.put(t, attrList);
     }
 
@@ -686,7 +680,7 @@ public class BackupBackend
       t = DirectoryServer.getAttributeType(ATTR_BACKUP_DEPENDENCY, true);
       AttributeBuilder builder = new AttributeBuilder(t);
       for (String s : dependencies) {
-        builder.add(AttributeValues.create(t, s));
+        builder.add(s);
       }
       attrList = new ArrayList<Attribute>(1);
       attrList.add(builder.toAttribute());
@@ -697,9 +691,7 @@ public class BackupBackend
     if (signedHash != null) {
       t = DirectoryServer.getAttributeType(ATTR_BACKUP_SIGNED_HASH, true);
       attrList = new ArrayList<Attribute>(1);
-      attrList.add(Attributes.create(t,
-          AttributeValues.create(t,
-              ByteString.wrap(signedHash))));
+      attrList.add(Attributes.create(t, ByteString.wrap(signedHash)));
       userAttrs.put(t, attrList);
     }
 
@@ -707,9 +699,7 @@ public class BackupBackend
     if (unsignedHash != null) {
       t = DirectoryServer.getAttributeType(ATTR_BACKUP_UNSIGNED_HASH, true);
       attrList = new ArrayList<Attribute>(1);
-      attrList.add(Attributes.create(t,
-          AttributeValues.create(t,
-              ByteString.wrap(unsignedHash))));
+      attrList.add(Attributes.create(t, ByteString.wrap(unsignedHash)));
       userAttrs.put(t, attrList);
     }
 
@@ -718,8 +708,7 @@ public class BackupBackend
       for (Map.Entry<String, String> e : properties.entrySet()) {
         t = DirectoryServer.getAttributeType(toLowerCase(e.getKey()), true);
         attrList = new ArrayList<Attribute>(1);
-        attrList.add(Attributes.create(t, AttributeValues.create(
-            t, e.getValue())));
+        attrList.add(Attributes.create(t, ByteString.valueOf(e.getValue())));
         userAttrs.put(t, attrList);
       }
     }
@@ -854,13 +843,12 @@ public class BackupBackend
                  backupDirEntry.getAttribute(backupPathType);
             if ((attrList != null) && (! attrList.isEmpty()))
             {
-              for (AttributeValue v : attrList.get(0))
+              for (ByteString v : attrList.get(0))
               {
                 try
                 {
                   BackupDirectory backupDirectory =
-                       BackupDirectory.readBackupDirectoryDescriptor(
-                            v.getValue().toString());
+                       BackupDirectory.readBackupDirectoryDescriptor(v.toString());
                   AttributeType idType =
                        DirectoryServer.getAttributeType(ATTR_BACKUP_ID,
                                                         true);
@@ -908,13 +896,12 @@ public class BackupBackend
         List<Attribute> attrList = backupDirEntry.getAttribute(t);
         if ((attrList != null) && (! attrList.isEmpty()))
         {
-          for (AttributeValue v : attrList.get(0))
+          for (ByteString v : attrList.get(0))
           {
             try
             {
               BackupDirectory backupDirectory =
-                   BackupDirectory.readBackupDirectoryDescriptor(
-                        v.getValue().toString());
+                   BackupDirectory.readBackupDirectoryDescriptor(v.toString());
               AttributeType idType =
                    DirectoryServer.getAttributeType(ATTR_BACKUP_ID,
                                                     true);
@@ -1171,8 +1158,7 @@ public class BackupBackend
   public static DN makeChildDN(DN parentDN, AttributeType rdnAttrType,
                                String rdnStringValue)
   {
-    AttributeValue attrValue =
-        AttributeValues.create(rdnAttrType, rdnStringValue);
+    ByteString attrValue = ByteString.valueOf(rdnStringValue);
     return parentDN.child(RDN.create(rdnAttrType, attrValue));
   }
 

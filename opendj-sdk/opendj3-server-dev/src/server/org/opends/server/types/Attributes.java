@@ -26,14 +26,13 @@
  */
 package org.opends.server.types;
 
-import static org.opends.server.util.StaticUtils.*;
-
 import java.util.Collection;
 import java.util.Collections;
 
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.core.DirectoryServer;
 
-
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class contains various methods for manipulating
@@ -70,8 +69,7 @@ public final class Attributes
    *          The attribute value.
    * @return A new attribute with the attribute type and value.
    */
-  public static Attribute create(AttributeType attributeType,
-      AttributeValue value)
+  public static Attribute create(AttributeType attributeType, ByteString value)
   {
     return create(attributeType, attributeType.getNameOrOID(), value);
   }
@@ -110,7 +108,7 @@ public final class Attributes
    * @return A new attribute with the attribute type and value.
    */
   public static Attribute create(AttributeType attributeType,
-      String name, AttributeValue value)
+      String name, ByteString value)
   {
     return AttributeBuilder.create(attributeType, name, Collections
         .singleton(value));
@@ -133,8 +131,7 @@ public final class Attributes
   public static Attribute create(AttributeType attributeType,
       String name, String valueString)
   {
-    AttributeValue value = AttributeValues.create(attributeType,
-        valueString);
+    ByteString value = ByteString.valueOf(valueString);
     return create(attributeType, name, value);
   }
 
@@ -253,7 +250,7 @@ public final class Attributes
       String name)
   {
     return AttributeBuilder.create(attributeType, name, Collections
-        .<AttributeValue> emptySet());
+        .<ByteString> emptySet());
   }
 
 
@@ -320,10 +317,10 @@ public final class Attributes
    *         provided attributes.
    */
   public static Attribute merge(Attribute a1, Attribute a2,
-      Collection<AttributeValue> duplicateValues)
+      Collection<ByteString> duplicateValues)
   {
     AttributeBuilder builder = new AttributeBuilder(a1);
-    for (AttributeValue av : a2)
+    for (ByteString av : a2)
     {
       if (!builder.add(av) && duplicateValues != null)
       {
@@ -381,10 +378,10 @@ public final class Attributes
    *         attribute which are not in the second attribute.
    */
   public static Attribute subtract(Attribute a1, Attribute a2,
-      Collection<AttributeValue> missingValues)
+      Collection<ByteString> missingValues)
   {
     AttributeBuilder builder = new AttributeBuilder(a1);
-    for (AttributeValue av : a2)
+    for (ByteString av : a2)
     {
       if (!builder.remove(av) && missingValues != null)
       {

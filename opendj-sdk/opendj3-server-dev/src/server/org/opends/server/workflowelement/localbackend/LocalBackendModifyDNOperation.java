@@ -33,6 +33,7 @@ import java.util.concurrent.locks.Lock;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ChangeNotificationListener;
@@ -747,7 +748,7 @@ public class LocalBackendModifyDNOperation
           }
         }
 
-        List<AttributeValue> missingValues = new LinkedList<AttributeValue>();
+        List<ByteString> missingValues = new LinkedList<ByteString>();
         newEntry.removeAttribute(a, missingValues);
 
         if (missingValues.isEmpty())
@@ -767,7 +768,7 @@ public class LocalBackendModifyDNOperation
           newRDN.getAttributeName(i),
           newRDN.getAttributeValue(i));
 
-      List<AttributeValue> duplicateValues = new LinkedList<AttributeValue>();
+      List<ByteString> duplicateValues = new LinkedList<ByteString>();
       newEntry.addAttribute(a, duplicateValues);
 
       if (duplicateValues.isEmpty())
@@ -842,13 +843,12 @@ public class LocalBackendModifyDNOperation
       switch (m.getModificationType().asEnum())
       {
         case ADD:
-          List<AttributeValue> duplicateValues =
-               new LinkedList<AttributeValue>();
+          List<ByteString> duplicateValues = new LinkedList<ByteString>();
           newEntry.addAttribute(a, duplicateValues);
           break;
 
         case DELETE:
-          List<AttributeValue> missingValues = new LinkedList<AttributeValue>();
+          List<ByteString> missingValues = new LinkedList<ByteString>();
           newEntry.removeAttribute(a, missingValues);
           break;
 

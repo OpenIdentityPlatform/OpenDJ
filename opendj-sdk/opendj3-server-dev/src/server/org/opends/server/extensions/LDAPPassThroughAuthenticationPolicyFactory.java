@@ -61,7 +61,6 @@ import org.opends.server.tools.LDAPReader;
 import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
 import org.opends.server.types.ConfigChangeResult;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.opends.server.types.DN;
@@ -1660,7 +1659,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
                 {
                   if (!attribute.isEmpty())
                   {
-                    username = attribute.iterator().next().getValue();
+                    username = attribute.iterator().next();
                     break mapBind;
                   }
                 }
@@ -1696,7 +1695,7 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
               {
                 for (final Attribute attribute : attributes)
                 {
-                  for (final AttributeValue value : attribute)
+                  for (final ByteString value : attribute)
                   {
                     filterComponents.add(SearchFilter.createEqualityFilter(at,
                         value));
@@ -1846,12 +1845,11 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
               {
                 MatchingRule rule =
                     attribute.getAttributeType().getEqualityMatchingRule();
-                for (AttributeValue value : attribute)
+                for (ByteString value : attribute)
                 {
                   try
                   {
-                    ByteString normValue =
-                        rule.normalizeAttributeValue(value.getValue());
+                    ByteString normValue = rule.normalizeAttributeValue(value);
                     long cachedPasswordTime = GeneralizedTimeSyntax
                             .decodeGeneralizedTimeValue(normValue);
                     long currentTime = provider.getCurrentTimeMS();
@@ -1898,9 +1896,9 @@ public final class LDAPPassThroughAuthenticationPolicyFactory implements
               // Ignore any attributes with options.
               if (!attribute.hasOptions())
               {
-                for (AttributeValue value : attribute)
+                for (ByteString value : attribute)
                 {
-                  cachedPassword = value.getValue();
+                  cachedPassword = value;
                   break foundCachedPassword;
                 }
               }

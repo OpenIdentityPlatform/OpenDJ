@@ -831,17 +831,14 @@ public class UTCTimeSyntax
    *
    * @return  The attribute value created from the date.
    */
-  public static AttributeValue createUTCTimeValue(Date d)
+  public static ByteString createUTCTimeValue(Date d)
   {
     String valueString;
-
     synchronized (dateFormatLock)
     {
       valueString = dateFormat.format(d);
     }
-
-    return AttributeValues.create(ByteString.valueOf(valueString),
-        ByteString.valueOf(valueString));
+    return ByteString.valueOf(valueString);
   }
 
 

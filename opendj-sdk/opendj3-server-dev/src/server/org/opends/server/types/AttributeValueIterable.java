@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -29,7 +30,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-
+import org.forgerock.opendj.ldap.ByteString;
 
 /**
  * An iterable read-only view of of a set of attribute values returned
@@ -45,8 +46,7 @@ import java.util.NoSuchElementException;
      mayInstantiate=false,
      mayExtend=false,
      mayInvoke=true)
-public final class AttributeValueIterable implements
-    Iterable<AttributeValue> {
+public final class AttributeValueIterable implements Iterable<ByteString> {
 
   // The set of attributes having the same type and options.
   private Iterable<Attribute> attributes;
@@ -90,16 +90,14 @@ public final class AttributeValueIterable implements
    * @return  An iterator that can be used to cursor through the set
    *          of attribute values.
    */
-  public Iterator<AttributeValue> iterator() {
-
+  public Iterator<ByteString> iterator() {
     return new AttributeValueIterator();
   }
 
   /**
    * Private iterator implementation.
    */
-  private class AttributeValueIterator
-          implements Iterator<AttributeValue> {
+  private class AttributeValueIterator implements Iterator<ByteString> {
     // Flag indicating whether iteration can proceed.
     private boolean hasNext;
 
@@ -107,7 +105,7 @@ public final class AttributeValueIterable implements
     private Iterator<Attribute> attributeIterator;
 
     // The current value iterator.
-    private Iterator<AttributeValue> valueIterator;
+    private Iterator<ByteString> valueIterator;
 
     /**
      * Create a new attribute value iterator over the attribute set.
@@ -132,7 +130,6 @@ public final class AttributeValueIterable implements
      *          return, or {@code false} if not.
      */
     public boolean hasNext() {
-
       return hasNext;
     }
 
@@ -144,14 +141,13 @@ public final class AttributeValueIterable implements
      * @throws  NoSuchElementException  If there are no more values to
      *                                  return.
      */
-    public AttributeValue next()
-           throws NoSuchElementException
+    public ByteString next() throws NoSuchElementException
     {
       if (hasNext == false) {
         throw new NoSuchElementException();
       }
 
-      AttributeValue value = valueIterator.next();
+      ByteString value = valueIterator.next();
 
       // We've reached the end of this array list, so skip to the next
       // non-empty one.
@@ -170,8 +166,7 @@ public final class AttributeValueIterable implements
      * @throws  UnsupportedOperationException  If the last value
      *                                         cannot be removed.
      */
-    public void remove()
-           throws UnsupportedOperationException
+    public void remove() throws UnsupportedOperationException
     {
       throw new UnsupportedOperationException();
     }

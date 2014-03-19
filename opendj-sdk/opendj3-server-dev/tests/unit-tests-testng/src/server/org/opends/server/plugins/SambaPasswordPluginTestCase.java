@@ -24,7 +24,6 @@
  *      Copyright 2011-2012 profiq s.r.o.
  *      Portions Copyright 2011-2014 ForgeRock AS.
  */
-
 package org.opends.server.plugins;
 
 import java.util.LinkedList;
@@ -32,8 +31,10 @@ import java.util.List;
 
 import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Writer;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ExtendedOperation;
@@ -43,7 +44,6 @@ import org.opends.server.plugins.SambaPasswordPlugin.MD4MessageDigest;
 import org.opends.server.plugins.SambaPasswordPlugin.TimeStampProvider;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.ServerConstants;
 import org.testng.annotations.*;
 
@@ -252,7 +252,7 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
     boolean foundNTPassword = false;
     for (Attribute a : sambaAttribute)
     {
-      for (AttributeValue val : a)
+      for (ByteString val : a)
       {
         foundNTPassword = true;
         assertEquals(val.toString(), ntPassword);
@@ -265,7 +265,7 @@ public class SambaPasswordPluginTestCase extends PluginTestCase
     boolean foundLMPassword = false;
     for (Attribute a : sambaAttribute)
     {
-      for (AttributeValue val : a)
+      for (ByteString val : a)
       {
         foundLMPassword = true;
         assertEquals(val.toString(), lmPassword);

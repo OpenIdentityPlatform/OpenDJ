@@ -26,9 +26,7 @@
  */
 package org.opends.server.extensions;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -76,8 +74,7 @@ public class NumSubordinatesVirtualAttributeProvider
 
   /** {@inheritDoc} */
   @Override()
-  public Set<AttributeValue> getValues(Entry entry,
-                                       VirtualAttributeRule rule)
+  public Attribute getValues(Entry entry, VirtualAttributeRule rule)
   {
     Backend backend = DirectoryServer.getBackend(entry.getName());
 
@@ -86,10 +83,7 @@ public class NumSubordinatesVirtualAttributeProvider
       long count = backend.numSubordinates(entry.getName(), false);
       if(count >= 0)
       {
-        AttributeValue value =
-            AttributeValues.create(ByteString.valueOf(String.valueOf(count)),
-                ByteString.valueOf(String.valueOf(count)));
-        return Collections.singleton(value);
+        return Attributes.create(rule.getAttributeType(), String.valueOf(count));
       }
     }
     catch(DirectoryException de)
@@ -97,7 +91,7 @@ public class NumSubordinatesVirtualAttributeProvider
       logger.traceException(de);
     }
 
-    return Collections.emptySet();
+    return Attributes.empty(rule.getAttributeType());
   }
 
   /** {@inheritDoc} */
@@ -119,15 +113,14 @@ public class NumSubordinatesVirtualAttributeProvider
 
   /** {@inheritDoc} */
   @Override()
-  public boolean hasValue(Entry entry, VirtualAttributeRule rule,
-                          AttributeValue value)
+  public boolean hasValue(Entry entry, VirtualAttributeRule rule, ByteString value)
   {
     Backend backend = DirectoryServer.getBackend(entry.getName());
     MatchingRule eqRule = rule.getAttributeType().getEqualityMatchingRule();
 
     try
     {
-      String nv = eqRule.normalizeAttributeValue(value.getValue()).toString();
+      String nv = eqRule.normalizeAttributeValue(value).toString();
       long count = backend.numSubordinates(entry.getName(), false);
       return count >= 0 && Long.parseLong(nv) == count;
     }
@@ -159,7 +152,7 @@ public class NumSubordinatesVirtualAttributeProvider
   @Override()
   public ConditionResult approximatelyEqualTo(Entry entry,
                               VirtualAttributeRule rule,
-                              AttributeValue value)
+                              ByteString value)
   {
     // This virtual attribute does not support approximate matching.
     return ConditionResult.UNDEFINED;

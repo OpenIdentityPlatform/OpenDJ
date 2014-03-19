@@ -297,7 +297,7 @@ outerLoop:
       AddChangeRecordEntry addRecord = (AddChangeRecordEntry) changeRecord;
       for (Attribute a : addRecord.getAttributes())
       {
-        for (AttributeValue v : a)
+        for (ByteString v : a)
         {
           final String attrName = a.getNameWithOptions();
           writeAttribute(attrName, v, writer, wrapLines, wrapColumn);
@@ -440,7 +440,7 @@ outerLoop:
           attrName.append(o);
         }
 
-        for (AttributeValue v : a)
+        for (ByteString v : a)
         {
           writeAttribute(attrName, v, writer, wrapLines, wrapColumn);
         }
@@ -512,7 +512,7 @@ outerLoop:
             attrName.append(o);
           }
 
-          for (AttributeValue v : a)
+          for (ByteString v : a)
           {
             writeAttribute(attrName, v, writer, wrapLines, wrapColumn);
           }
@@ -584,7 +584,7 @@ outerLoop:
       modTypeLine.append(name);
       writeLDIFLine(modTypeLine, writer, wrapLines, wrapColumn);
 
-      for (AttributeValue v : a)
+      for (ByteString v : a)
       {
         writeAttribute(name, v, writer, wrapLines, wrapColumn);
       }
@@ -680,12 +680,12 @@ outerLoop:
     writeLDIFLine(newLine, writer, wrapLines, wrapColumn);
   }
 
-  private void writeAttribute(CharSequence attrName, AttributeValue v,
+  private void writeAttribute(CharSequence attrName, ByteString v,
       BufferedWriter writer, boolean wrapLines, int wrapColumn)
       throws IOException
   {
     StringBuilder newLine = new StringBuilder(attrName);
-    appendLDIFSeparatorAndValue(newLine, v.getValue());
+    appendLDIFSeparatorAndValue(newLine, v);
     writeLDIFLine(newLine, writer, wrapLines, wrapColumn);
   }
 

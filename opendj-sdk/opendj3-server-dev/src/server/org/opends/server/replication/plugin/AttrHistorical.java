@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock, AS.
+ *      Portions Copyright 2013-2014 ForgeRock, AS.
  */
 package org.opends.server.replication.plugin;
 
@@ -31,7 +31,7 @@ import java.util.Map;
 
 import org.opends.server.replication.common.CSN;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 
@@ -111,7 +111,7 @@ public abstract class AttrHistorical
    * @param csn     the associated CSN.
    */
   public abstract void assign(
-      HistAttrModificationKey histKey, AttributeValue value, CSN csn);
+      HistAttrModificationKey histKey, ByteString value, CSN csn);
 
 }
 

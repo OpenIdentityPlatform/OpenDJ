@@ -1114,7 +1114,7 @@ public final class LDIFReader implements Closeable
         }
       }
 
-      AttributeValue attributeValue = AttributeValues.create(attrType, value);
+      ByteString attributeValue = value;
       final Map<AttributeType, List<AttributeBuilder>> attrBuilders;
       if (attrType.isOperational())
       {
@@ -1214,9 +1214,7 @@ public final class LDIFReader implements Closeable
         colonPos, attrName);
 
     AttributeBuilder builder = new AttributeBuilder(attribute, true);
-    AttributeType attrType = attribute.getAttributeType();
-    builder.add(AttributeValues.create(attrType, value));
-
+    builder.add(value);
     return builder.toAttribute();
   }
 
@@ -1551,7 +1549,7 @@ public final class LDIFReader implements Closeable
   {
     Attribute attr =
       readSingleValueAttribute(lines, line, entryDN, attributeName);
-    return attr.iterator().next().getValue().toString();
+    return attr.iterator().next().toString();
   }
 
 
@@ -1578,7 +1576,7 @@ public final class LDIFReader implements Closeable
       String name = attr.getName();
 
       // Get the attribute description
-      String attrDescr = attr.iterator().next().getValue().toString();
+      String attrDescr = attr.iterator().next().toString();
 
       ModificationType modType;
       String lowerName = toLowerCase(name);
@@ -1681,7 +1679,7 @@ public final class LDIFReader implements Closeable
     AttributeType ocType = DirectoryServer.getObjectClassAttributeType();
     AttributeBuilder builder = new AttributeBuilder(ocType, "objectClass");
     for (String value : objectClasses.values()) {
-      builder.add(AttributeValues.create(ocType, value));
+      builder.add(value);
     }
     Map<AttributeType, List<Attribute>> attributes =
         toAttributesMap(attrBuilders);
@@ -1924,7 +1922,7 @@ public final class LDIFReader implements Closeable
     for (int i=0; i < numAVAs; i++)
     {
       AttributeType  t = rdn.getAttributeType(i);
-      AttributeValue v = rdn.getAttributeValue(i);
+      ByteString v = rdn.getAttributeValue(i);
       String         n = rdn.getAttributeName(i);
       if (t.isOperational())
       {
@@ -1940,7 +1938,7 @@ public final class LDIFReader implements Closeable
 
   private void addRDNAttributesIfNecessary(
       Map<AttributeType, List<Attribute>> attributes, AttributeType t,
-      AttributeValue v, String n)
+      ByteString v, String n)
   {
     List<Attribute> attrList = attributes.get(t);
     if (attrList == null)

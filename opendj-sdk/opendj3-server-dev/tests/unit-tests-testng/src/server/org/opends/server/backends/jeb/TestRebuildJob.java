@@ -26,22 +26,25 @@
  */
 package org.opends.server.backends.jeb;
 
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.Test;
-import static org.testng.Assert.*;
-import org.opends.server.TestCaseUtils;
-import org.opends.server.backends.jeb.RebuildConfig.RebuildMode;
-import org.opends.server.tasks.TaskUtils;
-import static org.opends.server.util.ServerConstants.OC_TOP;
-import static org.opends.server.util.ServerConstants.OC_EXTENSIBLE_OBJECT;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.*;
-import java.util.List;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 
+import org.forgerock.opendj.ldap.ByteString;
+import org.opends.server.TestCaseUtils;
+import org.opends.server.backends.jeb.RebuildConfig.RebuildMode;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.tasks.TaskUtils;
+import org.opends.server.types.*;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
+
+import static org.opends.server.util.ServerConstants.*;
+import static org.testng.Assert.*;
+
+@SuppressWarnings("javadoc")
 public class TestRebuildJob extends JebTestCase
 {
   private  String beID="rebuildRoot";
@@ -423,8 +426,7 @@ public class TestRebuildJob extends JebTestCase
     if (attrType == null)
       attrType = DirectoryServer.getDefaultAttributeType(type);
     List<Attribute> attrList = e.getAttribute(attrType, null);
-    AttributeValue v = attrList.get(0).iterator().next();
-    long retVal = Long.parseLong(v.getValue().toString());
-    return (retVal);
+    ByteString v = attrList.get(0).iterator().next();
+    return Long.parseLong(v.toString());
   }
 }

@@ -33,23 +33,26 @@ import java.util.Map;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.messages.TaskMessages;
 import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.admin.std.server.BackendCfg;
 import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.config.ConfigEntry;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.config.StringConfigAttribute;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPModification;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.RawModification;
 import org.opends.server.util.ServerConstants;
 
 import static org.opends.messages.ConfigMessages.*;
@@ -329,9 +332,9 @@ public class TaskUtils
 
     for (Attribute a : attrList)
     {
-      for (AttributeValue v  : a)
+      for (ByteString v  : a)
       {
-        String valueString = toLowerCase(v.getValue().toString());
+        String valueString = toLowerCase(v.toString());
         if (valueString.equals("true") || valueString.equals("yes") ||
             valueString.equals("on") || valueString.equals("1"))
         {
@@ -367,9 +370,9 @@ public class TaskUtils
       Attribute attr = attrList.get(0);
       if (!attr.isEmpty())
       {
-        for (AttributeValue value : attr)
+        for (ByteString value : attr)
         {
-          valueStrings.add(value.getValue().toString());
+          valueStrings.add(value.toString());
         }
       }
     }
@@ -388,17 +391,15 @@ public class TaskUtils
    */
   public static String getSingleValueString(List<Attribute> attrList)
   {
-    if (attrList == null || attrList.isEmpty())
+    if (attrList != null && !attrList.isEmpty())
     {
-      return null;
+      Attribute attr = attrList.get(0);
+      if (!attr.isEmpty())
+      {
+        return attr.iterator().next().toString();
+      }
     }
-    String valueString = null;
-    Attribute attr = attrList.get(0);
-    if (!attr.isEmpty())
-    {
-      valueString = attr.iterator().next().getValue().toString();
-    }
-    return valueString;
+    return null;
   }
 
 
@@ -421,11 +422,9 @@ public class TaskUtils
       Attribute attr = attrList.get(0);
       if (!attr.isEmpty())
       {
-        String valueString = attr.iterator().next()
-            .getValue().toString();
         try
         {
-          return Integer.parseInt(valueString);
+          return Integer.parseInt(attr.iterator().next().toString());
         }
         catch (NumberFormatException e)
         {

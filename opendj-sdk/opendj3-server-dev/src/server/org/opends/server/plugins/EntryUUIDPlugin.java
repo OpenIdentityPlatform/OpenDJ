@@ -34,7 +34,6 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.schema.AttributeUsage;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.PluginCfgDefn;
@@ -175,9 +174,7 @@ public final class EntryUUIDPlugin
     byte[] dnBytes = getBytes(entry.getName().toNormalizedString());
     UUID uuid = UUID.nameUUIDFromBytes(dnBytes);
 
-    Attribute uuidAttr = Attributes.create(entryUUIDType,
-        AttributeValues.create(entryUUIDType,
-            ByteString.valueOf(uuid.toString())));
+    Attribute uuidAttr = Attributes.create(entryUUIDType, uuid.toString());
     uuidList = new ArrayList<Attribute>(1);
     uuidList.add(uuidAttr);
     entry.putAttribute(entryUUIDType, uuidList);
@@ -210,8 +207,7 @@ public final class EntryUUIDPlugin
 
     // Construct a new random UUID.
     UUID uuid = UUID.randomUUID();
-    Attribute uuidAttr = Attributes.create(entryUUIDType,
-        AttributeValues.create(entryUUIDType,uuid.toString()));
+    Attribute uuidAttr = Attributes.create(entryUUIDType, uuid.toString());
     uuidList = new ArrayList<Attribute>(1);
     uuidList.add(uuidAttr);
 

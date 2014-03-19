@@ -240,12 +240,7 @@ public class SystemInfoMonitorProvider
   private Attribute createAttribute(String name, String value)
   {
     AttributeType attrType = DirectoryServer.getDefaultAttributeType(name);
-
-    AttributeBuilder builder = new AttributeBuilder(attrType);
-
-    builder.add(AttributeValues.create(attrType, value));
-
-    return builder.toAttribute();
+    return Attributes.create(attrType, value);
   }
 }
 

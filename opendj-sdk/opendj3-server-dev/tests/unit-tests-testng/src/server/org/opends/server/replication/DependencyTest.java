@@ -32,6 +32,7 @@ import java.util.LinkedList;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.MemoryBackend;
 import org.opends.server.core.DirectoryServer;
@@ -46,7 +47,10 @@ import org.opends.server.replication.protocol.ModifyMsg;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.service.ReplicationBroker;
-import org.opends.server.types.*;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -149,7 +153,7 @@ public class DependencyTest extends ReplicationTestCase
       {
         entry.removeAttribute(uidType);
         entry.addAttribute(Attributes.create("entryuuid", stringUID(sequence+1)),
-                           new LinkedList<AttributeValue>());
+                           new LinkedList<ByteString>());
         addDN = DN.valueOf("dc=dependency" + sequence + "," + addDN);
         AddMsg addMsg =
           new AddMsg(gen.newCSN(), addDN, stringUID(sequence+1),
@@ -288,7 +292,7 @@ public class DependencyTest extends ReplicationTestCase
       entry.removeAttribute(uidType);
       entry.addAttribute(Attributes.create("entryuuid",
                          stringUID(renamedEntryUuid)),
-                         new LinkedList<AttributeValue>());
+                         new LinkedList<ByteString>());
       DN addDN = DN.valueOf("dc=moddndel" + "," + TEST_ROOT_DN_STRING);
       AddMsg addMsg =
           new AddMsg(gen.newCSN(), addDN, stringUID(renamedEntryUuid),
@@ -415,7 +419,7 @@ public class DependencyTest extends ReplicationTestCase
         // add the entry a first time
         entry.removeAttribute(uidType);
         entry.addAttribute(Attributes.create("entryuuid", stringUID(sequence+1)),
-                           new LinkedList<AttributeValue>());
+                           new LinkedList<ByteString>());
         DN addDN = DN.valueOf("dc=dependency" + sequence + "," + TEST_ROOT_DN_STRING);
         AddMsg addMsg =
           new AddMsg(gen.newCSN(), addDN, stringUID(sequence+1),
@@ -432,7 +436,7 @@ public class DependencyTest extends ReplicationTestCase
         // add again the entry with a new entryuuid.
         entry.removeAttribute(uidType);
         entry.addAttribute(Attributes.create("entryuuid", stringUID(sequence+1025)),
-                           new LinkedList<AttributeValue>());
+                           new LinkedList<ByteString>());
         addMsg =
           new AddMsg(gen.newCSN(), addDN, stringUID(sequence+1025),
                      stringUID(1),
@@ -536,7 +540,7 @@ public class DependencyTest extends ReplicationTestCase
         // add the entry
         entry.removeAttribute(uidType);
         entry.addAttribute(Attributes.create("entryuuid", stringUID(sequence+1)),
-                           new LinkedList<AttributeValue>());
+                           new LinkedList<ByteString>());
         addDN = DN.valueOf("dc=dependency" + sequence + "," + TEST_ROOT_DN_STRING);
         AddMsg addMsg =
           new AddMsg(gen.newCSN(), addDN, stringUID(sequence+1),

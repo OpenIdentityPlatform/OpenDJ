@@ -157,7 +157,7 @@ public class BackendMonitor
     DN[] baseDNs = backend.getBaseDNs();
     for (DN dn : baseDNs)
     {
-      builder.add(AttributeValues.create(baseDNType, dn.toString()));
+      builder.add(dn.toString());
     }
     attrs.add(builder.toAttribute());
 
@@ -182,8 +182,7 @@ public class BackendMonitor
         {
           logger.traceException(ex);
         }
-        String s = entryCount + " " + dn.toString();
-        builder.add(AttributeValues.create(baseDNEntryCountType, s));
+        builder.add(entryCount + " " + dn.toString());
       }
     }
     else
@@ -191,8 +190,7 @@ public class BackendMonitor
       // This is done to avoid recalculating the number of entries
       // using the numSubordinates method in the case where the
       // backend has a single base DN.
-      String s = backendCount + " " + baseDNs[0].toString();
-      builder.add(AttributeValues.create(baseDNEntryCountType, s));
+      builder.add(backendCount + " " + baseDNs[0].toString());
     }
     attrs.add(builder.toAttribute());
 

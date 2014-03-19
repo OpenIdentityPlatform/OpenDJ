@@ -26,8 +26,6 @@
  */
 package org.opends.server.extensions;
 
-
-
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
@@ -35,18 +33,17 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn;
+import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.AttributeValues;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
@@ -58,8 +55,6 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-
 
 /**
  * A set of test cases for the governing structure rule virtual attribute
@@ -197,8 +192,7 @@ public class GoverningStructureRuleVirtualAttributeProviderTestCase
     {
       assertTrue(!a.isEmpty());
       assertEquals(a.size(), 1);
-      assertTrue(a.contains(AttributeValues.create(governingStructureRuleType,
-                              ruleId)));
+      assertTrue(a.contains(ByteString.valueOf(ruleId)));
     }
   }
 
@@ -489,19 +483,10 @@ public class GoverningStructureRuleVirtualAttributeProviderTestCase
       "o: test");
     entry.processVirtualAttributes();
 
-    VirtualAttributeRule rule =
-         new VirtualAttributeRule(governingStructureRuleType, provider,
-                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
-                  Collections.<DN>emptySet(),
-                  Collections.<SearchFilter>emptySet(),
-                  VirtualAttributeCfgDefn.ConflictBehavior.
-                       VIRTUAL_OVERRIDES_REAL);
-
-    Set<AttributeValue> values = provider.getValues(entry, rule);
+    Attribute values = provider.getValues(entry, getRule(provider));
     assertNotNull(values);
     assertEquals(values.size(), 1);
-    assertTrue(values.contains(AttributeValues.create(governingStructureRuleType,
-                                  "22")));
+    assertTrue(values.contains(ByteString.valueOf("22")));
   }
 
 
@@ -526,15 +511,7 @@ public class GoverningStructureRuleVirtualAttributeProviderTestCase
       "o: test");
     entry.processVirtualAttributes();
 
-    VirtualAttributeRule rule =
-         new VirtualAttributeRule(governingStructureRuleType, provider,
-                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
-                  Collections.<DN>emptySet(),
-                  Collections.<SearchFilter>emptySet(),
-                  VirtualAttributeCfgDefn.ConflictBehavior.
-                       VIRTUAL_OVERRIDES_REAL);
-
-    assertTrue(provider.hasValue(entry, rule));
+    assertTrue(provider.hasValue(entry, getRule(provider)));
   }
 
 
@@ -559,16 +536,7 @@ public class GoverningStructureRuleVirtualAttributeProviderTestCase
       "o: test");
     entry.processVirtualAttributes();
 
-    VirtualAttributeRule rule =
-         new VirtualAttributeRule(governingStructureRuleType, provider,
-                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
-                  Collections.<DN>emptySet(),
-                  Collections.<SearchFilter>emptySet(),
-                  VirtualAttributeCfgDefn.ConflictBehavior.
-                       VIRTUAL_OVERRIDES_REAL);
-
-    assertTrue(provider.hasValue(entry, rule,
-        AttributeValues.create(governingStructureRuleType,"22")));
+    assertTrue(provider.hasValue(entry, getRule(provider), ByteString.valueOf("22")));
   }
 
 
@@ -593,198 +561,16 @@ public class GoverningStructureRuleVirtualAttributeProviderTestCase
       "o: test");
     entry.processVirtualAttributes();
 
-    VirtualAttributeRule rule =
-         new VirtualAttributeRule(governingStructureRuleType, provider,
-                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
-                  Collections.<DN>emptySet(),
-                  Collections.<SearchFilter>emptySet(),
-                  VirtualAttributeCfgDefn.ConflictBehavior.
-                       VIRTUAL_OVERRIDES_REAL);
-
-    assertFalse(provider.hasValue(entry, rule,
-        AttributeValues.create(governingStructureRuleType,
-                                        "1")));
+    assertFalse(provider.hasValue(entry, getRule(provider), ByteString.valueOf("1")));
   }
 
 
-
-  /**
-   * Tests the {@code hasAnyValue} method with an empty set of values.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testHasAnyValueEmptySet()
-         throws Exception
+  private VirtualAttributeRule getRule(VirtualAttributeProvider<?> provider)
   {
-    GoverningStructureRuleVirtualAttributeProvider provider =
-         new GoverningStructureRuleVirtualAttributeProvider();
-
-    Entry entry = TestCaseUtils.makeEntry(
-      "dn: o=test",
-      "objectClass: top",
-      "objectclass: organization",
-      "o: test");
-    entry.processVirtualAttributes();
-
-    VirtualAttributeRule rule =
-         new VirtualAttributeRule(governingStructureRuleType, provider,
+    return new VirtualAttributeRule(governingStructureRuleType, provider,
                   Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
                   Collections.<DN>emptySet(),
                   Collections.<SearchFilter>emptySet(),
-                  VirtualAttributeCfgDefn.ConflictBehavior.
-                       VIRTUAL_OVERRIDES_REAL);
-
-    assertFalse(provider.hasAnyValue(entry, rule,
-                                     Collections.<AttributeValue>emptySet()));
-  }
-
-
-
-  /**
-   * Tests the {@code hasAnyValue} method with a set of values containing only
-   * the correct value.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testHasAnyValueOnlyCorrect()
-         throws Exception
-  {
-    GoverningStructureRuleVirtualAttributeProvider provider =
-         new GoverningStructureRuleVirtualAttributeProvider();
-
-    Entry entry = TestCaseUtils.makeEntry(
-      "dn: o=test",
-      "objectClass: top",
-      "objectClass: organization",
-      "o: test");
-    entry.processVirtualAttributes();
-
-    VirtualAttributeRule rule =
-         new VirtualAttributeRule(governingStructureRuleType, provider,
-                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
-                  Collections.<DN>emptySet(),
-                  Collections.<SearchFilter>emptySet(),
-                  VirtualAttributeCfgDefn.ConflictBehavior.
-                       VIRTUAL_OVERRIDES_REAL);
-
-    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>(1);
-    values.add(AttributeValues.create(governingStructureRuleType, "22"));
-
-    assertTrue(provider.hasAnyValue(entry, rule, values));
-  }
-
-
-
-  /**
-   * Tests the {@code hasAnyValue} method with a set of values containing only
-   * an incorrect value.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testHasAnyValueOnlyIncorrect()
-         throws Exception
-  {
-    GoverningStructureRuleVirtualAttributeProvider provider =
-         new GoverningStructureRuleVirtualAttributeProvider();
-
-    Entry entry = TestCaseUtils.makeEntry(
-      "dn: o=test",
-      "objectClass: top",
-      "objectclass: organization",
-      "o: test");
-    entry.processVirtualAttributes();
-
-    VirtualAttributeRule rule =
-         new VirtualAttributeRule(governingStructureRuleType, provider,
-                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
-                  Collections.<DN>emptySet(),
-                  Collections.<SearchFilter>emptySet(),
-                  VirtualAttributeCfgDefn.ConflictBehavior.
-                       VIRTUAL_OVERRIDES_REAL);
-
-    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>(1);
-    values.add(AttributeValues.create(governingStructureRuleType, "1"));
-
-    assertFalse(provider.hasAnyValue(entry, rule, values));
-  }
-
-
-
-  /**
-   * Tests the {@code hasAnyValue} method with a set of values containing the
-   * correct value as well as multiple incorrect values.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testHasAnyValueIncludesCorrect()
-         throws Exception
-  {
-    GoverningStructureRuleVirtualAttributeProvider provider =
-         new GoverningStructureRuleVirtualAttributeProvider();
-
-    Entry entry = TestCaseUtils.makeEntry(
-      "dn: o=test",
-      "objectClass: top",
-      "objectClass: organization",
-      "o: test");
-    entry.processVirtualAttributes();
-
-    VirtualAttributeRule rule =
-         new VirtualAttributeRule(governingStructureRuleType, provider,
-                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
-                  Collections.<DN>emptySet(),
-                  Collections.<SearchFilter>emptySet(),
-                  VirtualAttributeCfgDefn.ConflictBehavior.
-                       VIRTUAL_OVERRIDES_REAL);
-
-    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>(3);
-    values.add(AttributeValues.create(governingStructureRuleType, "22"));
-    values.add(AttributeValues.create(governingStructureRuleType, "1"));
-    values.add(AttributeValues.create(governingStructureRuleType,"2"));
-
-    assertTrue(provider.hasAnyValue(entry, rule, values));
-  }
-
-
-
-  /**
-   * Tests the {@code hasAnyValue} method with a set of multiple values, none of
-   * which are correct.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testHasAnyValueMissingCorrect()
-         throws Exception
-  {
-    GoverningStructureRuleVirtualAttributeProvider provider =
-         new GoverningStructureRuleVirtualAttributeProvider();
-
-    Entry entry = TestCaseUtils.makeEntry(
-      "dn: o=test",
-      "objectClass: top",
-      "objectclass: organization",
-      "o: test");
-    entry.processVirtualAttributes();
-
-    VirtualAttributeRule rule =
-         new VirtualAttributeRule(governingStructureRuleType, provider,
-                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
-                  Collections.<DN>emptySet(),
-                  Collections.<SearchFilter>emptySet(),
-                  VirtualAttributeCfgDefn.ConflictBehavior.
-                       VIRTUAL_OVERRIDES_REAL);
-
-    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>(3);
-    values.add(AttributeValues.create(governingStructureRuleType, "1"));
-    values.add(AttributeValues.create(governingStructureRuleType, "2"));
-    values.add(AttributeValues.create(governingStructureRuleType,"3"));
-
-    assertFalse(provider.hasAnyValue(entry, rule, values));
+                  VirtualAttributeCfgDefn.ConflictBehavior.VIRTUAL_OVERRIDES_REAL);
   }
 }
-

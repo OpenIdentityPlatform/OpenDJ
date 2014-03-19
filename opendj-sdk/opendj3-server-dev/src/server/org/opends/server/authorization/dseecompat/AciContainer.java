@@ -36,6 +36,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.Group;
 import org.opends.server.controls.GetEffectiveRightsRequestControl;
@@ -67,7 +68,7 @@ implements AciTargetMatchContext, AciEvalContext {
      * The attribute type value in the resource entry currently being
      * evaluated.
      */
-    private AttributeValue attributeValue;
+    private ByteString attributeValue;
 
     /**
      * True if this is the first attribute type in the resource entry being
@@ -557,7 +558,7 @@ implements AciTargetMatchContext, AciEvalContext {
     * {@inheritDoc}
     */
     @Override
-    public AttributeValue getCurrentAttributeValue() {
+    public ByteString getCurrentAttributeValue() {
         return attributeValue;
     }
 
@@ -573,7 +574,7 @@ implements AciTargetMatchContext, AciEvalContext {
     * {@inheritDoc}
     */
     @Override
-    public void setCurrentAttributeValue(AttributeValue value) {
+    public void setCurrentAttributeValue(ByteString value) {
         attributeValue=value;
     }
 

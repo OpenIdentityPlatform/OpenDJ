@@ -170,9 +170,9 @@ public class LDAPAttribute
       values = new ArrayList<ByteString>(attribute.size());
     }
 
-    for (AttributeValue v : attribute)
+    for (ByteString v : attribute)
     {
-      values.add(v.getValue());
+      values.add(v);
     }
   }
 
@@ -261,11 +261,9 @@ public class LDAPAttribute
       builder = new AttributeBuilder(attributeType);
     }
 
-    AttributeType attrType = builder.getAttributeType();
     for (ByteString value : values)
     {
-      if (!builder.add(
-          AttributeValues.create(attrType, value)))
+      if (!builder.add(value))
       {
         LocalizableMessage message =
             ERR_LDAP_ATTRIBUTE_DUPLICATE_VALUES.get(attributeType);

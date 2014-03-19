@@ -32,7 +32,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.SortedSet;
@@ -43,7 +46,9 @@ import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.util.Reject;
+import org.forgerock.util.Utils;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
@@ -59,7 +64,7 @@ import static org.opends.server.util.StaticUtils.*;
  * {@link #AttributeBuilder(AttributeType)} or
  * {@link #AttributeBuilder(AttributeType, String)}. The caller is
  * then free to add new options using {@link #setOption(String)} and
- * new values using {@link #add(AttributeValue)} or
+ * new values using {@link #add(ByteString)} or
  * {@link #addAll(Collection)}. Once all the options and values have
  * been added, the attribute can be retrieved using the
  * {@link #toAttribute()} method.
@@ -107,7 +112,7 @@ import static org.opends.server.util.StaticUtils.*;
     mayExtend = false,
     mayInvoke = true)
 public final class AttributeBuilder
-  implements Iterable<AttributeValue>
+  implements Iterable<ByteString>
 {
 
   /**
@@ -125,7 +130,7 @@ public final class AttributeBuilder
     private final String name;
 
     // The unmodifiable set of values for this attribute.
-    private final Set<AttributeValue> values;
+    private final Map<ByteString, ByteString> values;
 
 
 
@@ -142,7 +147,7 @@ public final class AttributeBuilder
     private RealAttribute(
         AttributeType attributeType,
         String name,
-        Set<AttributeValue> values)
+        Map<ByteString, ByteString> values)
     {
       this.attributeType = attributeType;
       this.name = name;
@@ -154,7 +159,7 @@ public final class AttributeBuilder
      * {@inheritDoc}
      */
     @Override
-    public final ConditionResult approximatelyEqualTo(AttributeValue value)
+    public final ConditionResult approximatelyEqualTo(ByteString value)
     {
       MatchingRule matchingRule = attributeType.getApproximateMatchingRule();
       if (matchingRule == null)
@@ -165,7 +170,7 @@ public final class AttributeBuilder
       Assertion assertion = null;
       try
       {
-        assertion = matchingRule.getAssertion(value.getValue());
+        assertion = matchingRule.getAssertion(value);
       }
       catch (Exception e)
       {
@@ -174,11 +179,11 @@ public final class AttributeBuilder
       }
 
       ConditionResult result = ConditionResult.FALSE;
-      for (AttributeValue v : values)
+      for (ByteString v : values.values())
       {
         try
         {
-          result = assertion.matches(matchingRule.normalizeAttributeValue(v.getValue()));
+          result = assertion.matches(matchingRule.normalizeAttributeValue(v));
         }
         catch (Exception e)
         {
@@ -199,23 +204,10 @@ public final class AttributeBuilder
      * {@inheritDoc}
      */
     @Override
-    public final boolean contains(AttributeValue value)
+    public final boolean contains(ByteString value)
     {
-      return values.contains(value);
+      return values.containsKey(normalize(attributeType, value));
     }
-
-
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public final boolean containsAll(
-        Collection<AttributeValue> values)
-    {
-      return this.values.containsAll(values);
-    }
-
 
 
     /**
@@ -244,8 +236,7 @@ public final class AttributeBuilder
      * {@inheritDoc}
      */
     @Override
-    public final ConditionResult greaterThanOrEqualTo(
-        AttributeValue value)
+    public final ConditionResult greaterThanOrEqualTo(ByteString value)
     {
       OrderingMatchingRule matchingRule = attributeType
           .getOrderingMatchingRule();
@@ -257,7 +248,7 @@ public final class AttributeBuilder
       ByteString normalizedValue;
       try
       {
-        normalizedValue = matchingRule.normalizeAttributeValue(value.getValue());
+        normalizedValue = matchingRule.normalizeAttributeValue(value);
       }
       catch (Exception e)
       {
@@ -269,14 +260,12 @@ public final class AttributeBuilder
       }
 
       ConditionResult result = ConditionResult.FALSE;
-      for (AttributeValue v : values)
+      for (ByteString v : values.values())
       {
         try
         {
-          ByteString nv = matchingRule.normalizeAttributeValue(v.getValue());
-          int comparisonResult = matchingRule
-              .compareValues(nv, normalizedValue);
-          if (comparisonResult >= 0)
+          ByteString nv = matchingRule.normalizeAttributeValue(v);
+          if (matchingRule.compareValues(nv, normalizedValue) >= 0)
           {
             return ConditionResult.TRUE;
           }
@@ -312,9 +301,9 @@ public final class AttributeBuilder
      * {@inheritDoc}
      */
     @Override
-    public final Iterator<AttributeValue> iterator()
+    public final Iterator<ByteString> iterator()
     {
-      return values.iterator();
+      return values.values().iterator();
     }
 
 
@@ -323,8 +312,7 @@ public final class AttributeBuilder
      * {@inheritDoc}
      */
     @Override
-    public final ConditionResult lessThanOrEqualTo(
-        AttributeValue value)
+    public final ConditionResult lessThanOrEqualTo(ByteString value)
     {
       OrderingMatchingRule matchingRule = attributeType
           .getOrderingMatchingRule();
@@ -336,7 +324,7 @@ public final class AttributeBuilder
       ByteString normalizedValue;
       try
       {
-        normalizedValue = matchingRule.normalizeAttributeValue(value.getValue());
+        normalizedValue = matchingRule.normalizeAttributeValue(value);
       }
       catch (Exception e)
       {
@@ -348,14 +336,12 @@ public final class AttributeBuilder
       }
 
       ConditionResult result = ConditionResult.FALSE;
-      for (AttributeValue v : values)
+      for (ByteString v : values.values())
       {
         try
         {
-          ByteString nv = matchingRule.normalizeAttributeValue(v.getValue());
-          int comparisonResult = matchingRule
-              .compareValues(nv, normalizedValue);
-          if (comparisonResult <= 0)
+          ByteString nv = matchingRule.normalizeAttributeValue(v);
+          if (matchingRule.compareValues(nv, normalizedValue) <= 0)
           {
             return ConditionResult.TRUE;
           }
@@ -462,13 +448,12 @@ public final class AttributeBuilder
       }
 
       ConditionResult result = ConditionResult.FALSE;
-      for (AttributeValue value : values)
+      for (ByteString value : values.values())
       {
         try
         {
           if (matchingRule.valueMatchesSubstring(
-              attributeType.getSubstringMatchingRule().
-                    normalizeAttributeValue(value.getValue()),
+              matchingRule.normalizeAttributeValue(value),
               normalizedSubInitial,
               normalizedSubAny,
               normalizedSubFinal))
@@ -500,7 +485,17 @@ public final class AttributeBuilder
       return values.size();
     }
 
-
+    /** {@inheritDoc} */
+    @Override
+    public int hashCode()
+    {
+      int hashCode = getAttributeType().hashCode();
+      for (ByteString value : values.keySet())
+      {
+        hashCode += value.hashCode();
+      }
+      return hashCode;
+    }
 
     /**
      * {@inheritDoc}
@@ -511,19 +506,7 @@ public final class AttributeBuilder
       buffer.append("Attribute(");
       buffer.append(getNameWithOptions());
       buffer.append(", {");
-
-      boolean firstValue = true;
-      for (AttributeValue value : values)
-      {
-        if (!firstValue)
-        {
-          buffer.append(", ");
-        }
-
-        value.toString(buffer);
-        firstValue = false;
-      }
-
+      buffer.append(Utils.joinAsString(", ", values.keySet()));
       buffer.append("})");
     }
 
@@ -563,7 +546,7 @@ public final class AttributeBuilder
     private RealAttributeManyOptions(
         AttributeType attributeType,
         String name,
-        Set<AttributeValue> values,
+        Map<ByteString, ByteString> values,
         Set<String> options,
         SortedSet<String> normalizedOptions)
     {
@@ -630,7 +613,7 @@ public final class AttributeBuilder
     private RealAttributeNoOptions(
         AttributeType attributeType,
         String name,
-        Set<AttributeValue> values)
+        Map<ByteString, ByteString> values)
     {
       super(attributeType, name, values);
     }
@@ -735,7 +718,7 @@ public final class AttributeBuilder
     private RealAttributeSingleOption(
         AttributeType attributeType,
         String name,
-        Set<AttributeValue> values,
+        Map<ByteString, ByteString> values,
         String option)
     {
       super(attributeType, name, values);
@@ -794,7 +777,6 @@ public final class AttributeBuilder
    */
   private static final class SmallSet<T>
     extends AbstractSet<T>
-    implements Set<T>
   {
 
     // The set of elements if there are more than one.
@@ -1065,9 +1047,11 @@ public final class AttributeBuilder
    * @return The new attribute.
    */
   static Attribute create(AttributeType attributeType, String name,
-      Set<AttributeValue> values)
+      Set<ByteString> values)
   {
-    return new RealAttributeNoOptions(attributeType, name, values);
+    final AttributeBuilder builder = new AttributeBuilder(attributeType, name);
+    builder.addAll(values);
+    return builder.toAttribute();
   }
 
 
@@ -1104,9 +1088,9 @@ public final class AttributeBuilder
   // The set of options.
   private final SmallSet<String> options = new SmallSet<String>();
 
-  // The set of values for this attribute.
-  private final SmallSet<AttributeValue> values =
-    new SmallSet<AttributeValue>();
+  /** The map of normalized values => values for this attribute. */
+  private LinkedHashMap<ByteString, ByteString> values =
+      new LinkedHashMap<ByteString, ByteString>();
 
 
 
@@ -1225,23 +1209,6 @@ public final class AttributeBuilder
    * Adds the specified attribute value to this attribute builder if
    * it is not already present.
    *
-   * @param value
-   *          The attribute value to be added to this attribute
-   *          builder.
-   * @return <code>true</code> if this attribute builder did not
-   *         already contain the specified attribute value.
-   */
-  public boolean add(AttributeValue value)
-  {
-    return values.add(value);
-  }
-
-
-
-  /**
-   * Adds the specified attribute value to this attribute builder if
-   * it is not already present.
-   *
    * @param valueString
    *          The string representation of the attribute value to be
    *          added to this attribute builder.
@@ -1250,7 +1217,7 @@ public final class AttributeBuilder
    */
   public boolean add(String valueString)
   {
-    return add(AttributeValues.create(attributeType, valueString));
+    return add(ByteString.valueOf(valueString));
   }
 
 
@@ -1267,7 +1234,29 @@ public final class AttributeBuilder
    */
   public boolean add(ByteString value)
   {
-    return add(AttributeValues.create(attributeType, value));
+    return values.put(normalize(value), value) == null;
+  }
+
+  private ByteString normalize(ByteString value)
+  {
+    return normalize(attributeType, value);
+  }
+
+  private static ByteString normalize(AttributeType attributeType, ByteString value)
+  {
+    try
+    {
+      if (attributeType != null)
+      {
+        final MatchingRule eqRule = attributeType.getEqualityMatchingRule();
+        return eqRule.normalizeAttributeValue(value);
+      }
+    }
+    catch (DecodeException e)
+    {
+      // nothing to do here
+    }
+    return value;
   }
 
   /**
@@ -1283,7 +1272,7 @@ public final class AttributeBuilder
   public boolean addAll(Attribute attribute)
   {
     boolean wasModified = false;
-    for (AttributeValue v : attribute)
+    for (ByteString v : attribute)
     {
       wasModified |= add(v);
     }
@@ -1302,9 +1291,14 @@ public final class AttributeBuilder
    * @return <code>true</code> if this attribute builder was
    *         modified.
    */
-  public boolean addAll(Collection<AttributeValue> values)
+  public boolean addAll(Collection<ByteString> values)
   {
-    return this.values.addAll(values);
+    boolean wasModified = false;
+    for (ByteString v : values)
+    {
+      wasModified |= add(v);
+    }
+    return wasModified;
   }
 
 
@@ -1328,9 +1322,9 @@ public final class AttributeBuilder
    * @return <CODE>true</CODE> if this attribute builder has the
    *         specified value, or <CODE>false</CODE> if not.
    */
-  public boolean contains(AttributeValue value)
+  public boolean contains(ByteString value)
   {
-    return values.contains(value);
+    return values.containsKey(normalize(value));
   }
 
 
@@ -1346,9 +1340,16 @@ public final class AttributeBuilder
    *         <CODE>false</CODE> if it does not contain at least one
    *         of them.
    */
-  public boolean containsAll(Collection<AttributeValue> values)
+  public boolean containsAll(Collection<ByteString> values)
   {
-    return this.values.containsAll(values);
+    for (ByteString v : values)
+    {
+      if (!contains(v))
+      {
+        return false;
+      }
+    }
+    return true;
   }
 
 
@@ -1391,9 +1392,9 @@ public final class AttributeBuilder
    *         builder.
    */
   @Override
-  public Iterator<AttributeValue> iterator()
+  public Iterator<ByteString> iterator()
   {
-    return values.iterator();
+    return values.values().iterator();
   }
 
 
@@ -1408,9 +1409,9 @@ public final class AttributeBuilder
    * @return <code>true</code> if this attribute builder contained
    *         the specified attribute value.
    */
-  public boolean remove(AttributeValue value)
+  public boolean remove(ByteString value)
   {
-    return values.remove(value);
+    return values.remove(normalize(value)) != null;
   }
 
 
@@ -1427,9 +1428,7 @@ public final class AttributeBuilder
    */
   public boolean remove(String valueString)
   {
-    AttributeValue value =
-        AttributeValues.create(attributeType, valueString);
-    return remove(value);
+    return remove(ByteString.valueOf(valueString));
   }
 
 
@@ -1447,7 +1446,7 @@ public final class AttributeBuilder
   public boolean removeAll(Attribute attribute)
   {
     boolean wasModified = false;
-    for (AttributeValue v : attribute)
+    for (ByteString v : attribute)
     {
       wasModified |= remove(v);
     }
@@ -1466,9 +1465,14 @@ public final class AttributeBuilder
    * @return <code>true</code> if this attribute builder was
    *         modified.
    */
-  public boolean removeAll(Collection<AttributeValue> values)
+  public boolean removeAll(Collection<ByteString> values)
   {
-    return this.values.removeAll(values);
+    boolean wasModified = false;
+    for (ByteString v : values)
+    {
+      wasModified |= remove(v);
+    }
+    return wasModified;
   }
 
 
@@ -1480,7 +1484,7 @@ public final class AttributeBuilder
    * @param value
    *          The attribute value to replace all existing values.
    */
-  public void replace(AttributeValue value)
+  public void replace(ByteString value)
   {
     clear();
     add(value);
@@ -1498,9 +1502,7 @@ public final class AttributeBuilder
    */
   public void replace(String valueString)
   {
-    AttributeValue value =
-        AttributeValues.create(attributeType, valueString);
-    replace(value);
+    replace(ByteString.valueOf(valueString));
   }
 
 
@@ -1528,7 +1530,7 @@ public final class AttributeBuilder
    * @param values
    *          The attribute values to replace all existing values.
    */
-  public void replaceAll(Collection<AttributeValue> values)
+  public void replaceAll(Collection<ByteString> values)
   {
     clear();
     addAll(values);
@@ -1609,7 +1611,7 @@ public final class AttributeBuilder
   public AttributeBuilder setInitialCapacity(int initialCapacity)
       throws IllegalStateException
   {
-    values.setInitialCapacity(initialCapacity);
+    // This is now a no op.
     return this;
   }
 
@@ -1761,18 +1763,22 @@ public final class AttributeBuilder
 
     // First determine the minimum representation required for the set
     // of values.
-    Set<AttributeValue> newValues;
-    if (values.elements != null)
+    final int size = values.size();
+    Map<ByteString, ByteString> newValues;
+    if (size == 0)
     {
-      newValues = Collections.unmodifiableSet(values.elements);
+      newValues = Collections.emptyMap();
     }
-    else if (values.firstElement != null)
+    else if (size == 1)
     {
-      newValues = Collections.singleton(values.firstElement);
+      Entry<ByteString, ByteString> entry = values.entrySet().iterator().next();
+      newValues = Collections.singletonMap(entry.getKey(), entry.getValue());
+      values.clear();
     }
     else
     {
-      newValues = Collections.emptySet();
+      newValues = Collections.unmodifiableMap(values);
+      values = new LinkedHashMap<ByteString, ByteString>();
     }
 
     // Now create the appropriate attribute based on the options.
@@ -1780,8 +1786,7 @@ public final class AttributeBuilder
     switch (options.size())
     {
     case 0:
-      attribute =
-        new RealAttributeNoOptions(attributeType, name, newValues);
+      attribute = new RealAttributeNoOptions(attributeType, name, newValues);
       break;
     case 1:
       attribute =
@@ -1801,7 +1806,6 @@ public final class AttributeBuilder
     name = null;
     normalizedOptions = null;
     options.clear();
-    values.clear();
 
     return attribute;
   }
@@ -1817,7 +1821,7 @@ public final class AttributeBuilder
     StringBuilder builder = new StringBuilder();
 
     builder.append("AttributeBuilder(");
-    builder.append(String.valueOf(name));
+    builder.append(name);
 
     for (String option : options)
     {
@@ -1826,19 +1830,7 @@ public final class AttributeBuilder
     }
 
     builder.append(", {");
-
-    boolean firstValue = true;
-    for (AttributeValue value : values)
-    {
-      if (!firstValue)
-      {
-        builder.append(", ");
-      }
-
-      value.toString(builder);
-      firstValue = false;
-    }
-
+    builder.append(Utils.joinAsString(", ", values.keySet()));
     builder.append("})");
 
     return builder.toString();
