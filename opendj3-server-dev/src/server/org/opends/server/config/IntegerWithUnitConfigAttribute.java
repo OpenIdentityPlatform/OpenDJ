@@ -586,7 +586,7 @@ public final class IntegerWithUnitConfigAttribute
    *
    * @return  The constructed value set.
    */
-  private static LinkedHashSet<AttributeValue> getValueSet(long intValue,
+  private static LinkedHashSet<ByteString> getValueSet(long intValue,
                                                            String unit)
   {
     if (unit == null)
@@ -594,13 +594,8 @@ public final class IntegerWithUnitConfigAttribute
       return null;
     }
 
-    LinkedHashSet<AttributeValue> valueSet =
-         new LinkedHashSet<AttributeValue>(1);
-
-    String valueString = intValue + " " + unit;
-    valueSet.add(AttributeValues.create(ByteString.valueOf(valueString),
-        ByteString.valueOf(valueString)));
-
+    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<ByteString>(1);
+    valueSet.add(ByteString.valueOf(intValue + " " + unit));
     return valueSet;
   }
 
@@ -638,12 +633,11 @@ public final class IntegerWithUnitConfigAttribute
    * @return  <CODE>true</CODE> if the provided value is acceptable for use in
    *          this attribute, or <CODE>false</CODE> if not.
    */
-  public boolean valueIsAcceptable(AttributeValue value,
+  public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder rejectReason)
   {
     // Get a string representation of the value and convert it to lowercase.
-    String lowerValue = value.getValue().toString().toLowerCase();
-
+    String lowerValue = value.toString().toLowerCase();
     return valueIsAcceptable(lowerValue, rejectReason);
   }
 
@@ -749,7 +743,7 @@ public final class IntegerWithUnitConfigAttribute
    * @throws  ConfigException  If an unrecoverable problem occurs while
    *                           performing the conversion.
    */
-  public LinkedHashSet<AttributeValue>
+  public LinkedHashSet<ByteString>
               stringsToValues(List<String> valueStrings, boolean allowFailures)
          throws ConfigException
   {
@@ -762,7 +756,7 @@ public final class IntegerWithUnitConfigAttribute
       }
       else
       {
-        return new LinkedHashSet<AttributeValue>();
+        return new LinkedHashSet<ByteString>();
       }
     }
 
@@ -776,8 +770,7 @@ public final class IntegerWithUnitConfigAttribute
     }
 
 
-    LinkedHashSet<AttributeValue> valueSet =
-         new LinkedHashSet<AttributeValue>(numValues);
+    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<ByteString>(numValues);
     for (String valueString : valueStrings)
     {
       if ((valueString == null) || (valueString.length() == 0))
@@ -811,9 +804,7 @@ public final class IntegerWithUnitConfigAttribute
         }
       }
 
-
-      valueSet.add(AttributeValues.create(ByteString.valueOf(valueString),
-          ByteString.valueOf(valueString)));
+      valueSet.add(ByteString.valueOf(valueString));
     }
 
 
@@ -933,10 +924,8 @@ public final class IntegerWithUnitConfigAttribute
           }
           else
           {
-            Iterator<AttributeValue> iterator = a.iterator();
-
-            String valueString = iterator.next().getValue().toString();
-
+            Iterator<ByteString> iterator = a.iterator();
+            String valueString = iterator.next().toString();
             if (iterator.hasNext())
             {
               // This is illegal -- the attribute is single-valued.
@@ -1017,10 +1006,8 @@ public final class IntegerWithUnitConfigAttribute
         }
         else
         {
-          Iterator<AttributeValue> iterator = a.iterator();
-
-          String valueString = iterator.next().getValue().toString();
-
+          Iterator<ByteString> iterator = a.iterator();
+          String valueString = iterator.next().toString();
           if (iterator.hasNext())
           {
             // This is illegal -- the attribute is single-valued.

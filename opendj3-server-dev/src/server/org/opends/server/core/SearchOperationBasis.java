@@ -717,10 +717,8 @@ public class SearchOperationBasis
            filteredEntry.getObjectClasses().values().iterator();
       while (ocIterator.hasNext())
       {
-        String ocName = ocIterator.next();
-        AttributeValue v =
-            AttributeValues.create(attrType,ocName);
-        if (! matchedValuesControl.valueMatches(attrType, v))
+        ByteString ocName = ByteString.valueOf(ocIterator.next());
+        if (! matchedValuesControl.valueMatches(attrType, ocName))
         {
           ocIterator.remove();
         }
@@ -741,7 +739,7 @@ public class SearchOperationBasis
           // Assume that the attribute will be either empty or contain
           // very few values.
           AttributeBuilder builder = new AttributeBuilder(a, true);
-          for (AttributeValue v : a)
+          for (ByteString v : a)
           {
             if (matchedValuesControl.valueMatches(t, v))
             {
@@ -768,7 +766,7 @@ public class SearchOperationBasis
           // Assume that the attribute will be either empty or contain
           // very few values.
           AttributeBuilder builder = new AttributeBuilder(a, true);
-          for (AttributeValue v : a)
+          for (ByteString v : a)
           {
             if (matchedValuesControl.valueMatches(t, v))
             {
@@ -1392,10 +1390,10 @@ public class SearchOperationBasis
     case EQUALITY:
       if (filter.getAttributeType().isObjectClass())
       {
-        AttributeValue v = filter.getAssertionValue();
+        ByteString v = filter.getAssertionValue();
         // FIXME : technically this is not correct since the presence
         // of draft oc would trigger rfc oc visibility and visa versa.
-        String stringValueLC = toLowerCase(v.getValue().toString());
+        String stringValueLC = toLowerCase(v.toString());
         if (stringValueLC.equals(OC_LDAP_SUBENTRY_LC) ||
             stringValueLC.equals(OC_SUBENTRY))
         {

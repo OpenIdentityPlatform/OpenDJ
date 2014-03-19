@@ -664,11 +664,7 @@ public class LDAPStatistics extends MonitorProvider<MonitorProviderCfg>
   {
     AttributeType attrType =
       DirectoryServer.getAttributeType(name.toLowerCase());
-
-    AttributeBuilder builder = new AttributeBuilder(attrType, name);
-    builder.add(AttributeValues.create(attrType, value));
-
-    return builder.toAttribute();
+    return Attributes.create(attrType, value);
   }
 
 

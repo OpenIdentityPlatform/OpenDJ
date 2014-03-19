@@ -26,18 +26,19 @@
  */
 package org.opends.server.extensions;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.std.server.StructuralObjectClassVirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.Entry;
+import org.opends.server.types.VirtualAttributeRule;
 
 import static org.opends.messages.ExtensionMessages.*;
 
@@ -69,13 +70,10 @@ public class StructuralObjectClassVirtualAttributeProvider
 
   /** {@inheritDoc} */
   @Override()
-  public Set<AttributeValue> getValues(Entry entry,
-                                       VirtualAttributeRule rule)
+  public Attribute getValues(Entry entry, VirtualAttributeRule rule)
   {
-    AttributeValue value =
-        AttributeValues.create(rule.getAttributeType(),
-        entry.getStructuralObjectClass().getNameOrOID());
-    return Collections.singleton(value);
+    return Attributes.create(rule.getAttributeType(), entry
+        .getStructuralObjectClass().getNameOrOID());
   }
 
   /** {@inheritDoc} */
@@ -102,7 +100,7 @@ public class StructuralObjectClassVirtualAttributeProvider
   @Override()
   public ConditionResult greaterThanOrEqualTo(Entry entry,
                               VirtualAttributeRule rule,
-                              AttributeValue value)
+                              ByteString value)
   {
     // An object class can not be used for ordering.
     return ConditionResult.UNDEFINED;
@@ -112,7 +110,7 @@ public class StructuralObjectClassVirtualAttributeProvider
   @Override()
   public ConditionResult lessThanOrEqualTo(Entry entry,
                               VirtualAttributeRule rule,
-                              AttributeValue value)
+                              ByteString value)
   {
     // An object class can not be used for ordering.
     return ConditionResult.UNDEFINED;
@@ -122,7 +120,7 @@ public class StructuralObjectClassVirtualAttributeProvider
   @Override()
   public ConditionResult approximatelyEqualTo(Entry entry,
                               VirtualAttributeRule rule,
-                              AttributeValue value)
+                              ByteString value)
   {
     // An object class can not be used in approximate matching.
     return ConditionResult.UNDEFINED;

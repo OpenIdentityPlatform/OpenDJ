@@ -33,6 +33,7 @@ import org.assertj.core.api.Assertions;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
@@ -525,10 +526,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
           if ((tmpAttrList != null) && (!tmpAttrList.isEmpty()))
           {
             Attribute tmpAttr = tmpAttrList.get(0);
-
-            AttributeType attrType =
-              DirectoryServer.getAttributeType(attrTypeStr, true);
-            found = tmpAttr.contains(AttributeValues.create(attrType, valueString));
+            found = tmpAttr.contains(ByteString.valueOf(valueString));
           }
         }
       }
@@ -828,9 +826,9 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
         if (newEntry != null)
         {
           Attribute attribute = newEntry.getAttribute("entryuuid").get(0);
-          for (AttributeValue val : attribute)
+          for (ByteString val : attribute)
           {
-            found = val.getValue().toString();
+            found = val.toString();
             break;
           }
         }

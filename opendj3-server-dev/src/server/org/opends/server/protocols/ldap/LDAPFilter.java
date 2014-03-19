@@ -37,7 +37,6 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
-import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.core.DirectoryServer;
@@ -176,7 +175,7 @@ public class LDAPFilter
       case LESS_OR_EQUAL:
       case APPROXIMATE_MATCH:
         attributeType  = filter.getAttributeType().getNameOrOID();
-        assertionValue = filter.getAssertionValue().getValue();
+        assertionValue = filter.getAssertionValue();
 
         filterComponents  = null;
         notComponent      = null;
@@ -251,16 +250,7 @@ public class LDAPFilter
           attributeType = attrType.getNameOrOID();
         }
 
-        AttributeValue av = filter.getAssertionValue();
-        if (av == null)
-        {
-          assertionValue = null;
-        }
-        else
-        {
-          assertionValue = av.getValue();
-        }
-
+        assertionValue    = filter.getAssertionValue();
         filterComponents  = null;
         notComponent      = null;
         subInitialElement = null;
@@ -1942,64 +1932,27 @@ public class LDAPFilter
     }
 
 
-    AttributeValue value;
-    if (assertionValue == null)
-    {
-      value = null;
-    }
-    else if (attrType == null)
+    if (assertionValue != null && attrType == null)
     {
       if (matchingRuleID == null)
       {
-        LocalizableMessage message = ERR_LDAP_FILTER_VALUE_WITH_NO_ATTR_OR_MR.get();
-        throw new DirectoryException(ResultCode.PROTOCOL_ERROR, message);
+        throw new DirectoryException(ResultCode.PROTOCOL_ERROR,
+            ERR_LDAP_FILTER_VALUE_WITH_NO_ATTR_OR_MR.get());
       }
-      else
+
+      MatchingRule mr = DirectoryServer.getMatchingRule(toLowerCase(matchingRuleID));
+      if (mr == null)
       {
-        MatchingRule mr =
-             DirectoryServer.getMatchingRule(toLowerCase(matchingRuleID));
-        if (mr == null)
-        {
-          LocalizableMessage message =
-              ERR_LDAP_FILTER_UNKNOWN_MATCHING_RULE.get(matchingRuleID);
-          throw new DirectoryException(ResultCode.INAPPROPRIATE_MATCHING,
-                                       message);
-        }
-        else
-        {
-          try
-          {
-            ByteString normalizedValue =
-                mr.normalizeAttributeValue(assertionValue);
-            value = AttributeValues.create(assertionValue, normalizedValue);
-          }
-          catch (DecodeException e)
-          {
-            throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                e.getMessageObject(), e);
-          }
-        }
+        throw new DirectoryException(ResultCode.INAPPROPRIATE_MATCHING,
+            ERR_LDAP_FILTER_UNKNOWN_MATCHING_RULE.get(matchingRuleID));
       }
     }
-    else
-    {
-      value = AttributeValues.create(attrType, assertionValue);
-    }
 
-
-    ArrayList<ByteString> subAnyComps;
-    if (subAnyElements == null)
-    {
-      subAnyComps = null;
-    }
-    else
-    {
-      subAnyComps = new ArrayList<ByteString>(subAnyElements);
-    }
-
+    ArrayList<ByteString> subAnyComps =
+        subAnyElements != null ? new ArrayList<ByteString>(subAnyElements) : null;
 
     return new SearchFilter(filterType, subComps, notComp, attrType,
-                            options, value, subInitialElement, subAnyComps,
+                            options, assertionValue, subInitialElement, subAnyComps,
                             subFinalElement, matchingRuleID, dnAttributes);
   }
 

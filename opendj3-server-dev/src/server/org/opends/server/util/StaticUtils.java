@@ -48,6 +48,7 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.LocalizableMessageDescriptor;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteSequence;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.util.Reject;
 import org.opends.messages.ToolMessages;
 import org.opends.server.api.ClientConnection;
@@ -3635,7 +3636,7 @@ public final class StaticUtils
     for (int i=0; i < numAVAs; i++)
     {
       AttributeType attrType = rdn.getAttributeType(i);
-      AttributeValue attrValue = rdn.getAttributeValue(i);
+      ByteString attrValue = rdn.getAttributeValue(i);
       String attrName = rdn.getAttributeName(i);
 
       // First, see if this type is allowed by the untypedObject class.  If not,

@@ -192,7 +192,7 @@ public class MatchedValuesControl
    *          this matched values control does match the provided attribute
    *          value, or <CODE>false</CODE> if none of the filters match.
    */
-  public boolean valueMatches(AttributeType type, AttributeValue value)
+  public boolean valueMatches(AttributeType type, ByteString value)
   {
     for (MatchedValuesFilter f : filters)
     {

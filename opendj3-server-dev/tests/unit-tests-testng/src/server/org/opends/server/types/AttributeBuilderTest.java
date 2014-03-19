@@ -48,51 +48,20 @@ public class AttributeBuilderTest extends TypesTestCase
 {
 
   /** CN attribute type used in all tests. */
-  private AttributeType cnType = null;
+  private AttributeType cnType;
 
   /** CN attribute value used in all tests. */
-  private AttributeValue cnValue = null;
+  private ByteString cnValue;
 
   private final String[] noOptions = new String[] {};
-
   private final String[] noValues = new String[] {};
-
-  private final String[] oneOption = new String[]
-  {
-    "option1"
-  };
-
-  private final String[] oneValue = new String[]
-  {
-    "value1"
-  };
-
-  private final String[] replaceValues = new String[]
-  {
-      "value2", "value4"
-  };
-
-  private final String[] threeOptions = new String[]
-  {
-      "option1", "option2", "option3"
-  };
-
-  private final String[] threeValues = new String[]
-  {
-      "value1", "value2", "value3"
-  };
-
-  private final String[] twoOptions = new String[]
-  {
-      "option1", "option2"
-  };
-
-  private final String[] twoValues = new String[]
-  {
-      "value1", "value2"
-  };
-
-
+  private final String[] oneOption = new String[] { "option1" };
+  private final String[] oneValue = new String[] { "value1" };
+  private final String[] replaceValues = new String[] { "value2", "value4" };
+  private final String[] threeOptions = new String[] { "option1", "option2", "option3" };
+  private final String[] threeValues = new String[] { "value1", "value2", "value3" };
+  private final String[] twoOptions = new String[] { "option1", "option2" };
+  private final String[] twoValues = new String[] { "value1", "value2" };
 
   /**
    * Attribute data provider.
@@ -133,10 +102,7 @@ public class AttributeBuilderTest extends TypesTestCase
             cnType,
             "cn",
             noOptions,
-            new String[]
-            {
-              cnValue.getValue().toString()
-            }
+            new String[] { cnValue.toString() }
         },
         {
             8,
@@ -144,10 +110,7 @@ public class AttributeBuilderTest extends TypesTestCase
             cnType,
             "cn",
             noOptions,
-            new String[]
-            {
-              cnValue.getValue().toString()
-            }
+            new String[] { cnValue.toString() }
         },
         {
             9,
@@ -155,10 +118,7 @@ public class AttributeBuilderTest extends TypesTestCase
             cnType,
             "cn",
             noOptions,
-            new String[]
-            {
-              cnValue.getValue().toString()
-            }
+            new String[] { cnValue.toString() }
         },
         {
             10,
@@ -166,10 +126,7 @@ public class AttributeBuilderTest extends TypesTestCase
             cnType,
             "CN",
             noOptions,
-            new String[]
-            {
-              cnValue.getValue().toString()
-            }
+            new String[] { cnValue.toString() }
         },
         {
             11,
@@ -177,10 +134,7 @@ public class AttributeBuilderTest extends TypesTestCase
             cnType,
             "CN",
             noOptions,
-            new String[]
-            {
-              cnValue.getValue().toString()
-            }
+            new String[] { cnValue.toString() }
         },
         {
             12,
@@ -188,10 +142,7 @@ public class AttributeBuilderTest extends TypesTestCase
             cnType,
             "CN",
             noOptions,
-            new String[]
-            {
-              cnValue.getValue().toString()
-            }
+            new String[] { cnValue.toString() }
         },
         {
             13,
@@ -580,7 +531,7 @@ public class AttributeBuilderTest extends TypesTestCase
     cnType = DirectoryServer.getAttributeType("cn");
     Assert.assertNotNull(cnType);
 
-    cnValue = AttributeValues.create(cnType, "john doe");
+    cnValue = ByteString.valueOf("john doe");
   }
 
 
@@ -604,8 +555,8 @@ public class AttributeBuilderTest extends TypesTestCase
 
     Attribute a = builder.toAttribute();
     Assert.assertEquals(a.size(), 2);
-    Assert.assertTrue(a.contains(AttributeValues.create(cnType, "value1")));
-    Assert.assertTrue(a.contains(AttributeValues.create(cnType, "value2")));
+    Assert.assertTrue(a.contains(ByteString.valueOf("value1")));
+    Assert.assertTrue(a.contains(ByteString.valueOf("value2")));
   }
 
 
@@ -619,27 +570,23 @@ public class AttributeBuilderTest extends TypesTestCase
     AttributeBuilder builder = new AttributeBuilder(cnType);
 
     // Note duplicate values.
-    Assert.assertTrue(builder.addAll(Arrays.asList(AttributeValues.create(cnType,
-        "value1"), AttributeValues.create(cnType, "value1"), AttributeValues.create(
-        cnType, "value2"))));
+    Assert.assertTrue(builder.addAll(Arrays.asList(ByteString.valueOf("value1"), ByteString.valueOf("value1"), ByteString.valueOf("value2"))));
     Assert.assertEquals(builder.size(), 2);
 
     // Add same values.
-    Assert.assertFalse(builder.addAll(Arrays.asList(AttributeValues.create(cnType,
-        "value1"), AttributeValues.create(cnType, "value1"), AttributeValues.create(
-        cnType, "value2"))));
+    Assert.assertFalse(builder.addAll(Arrays.asList(ByteString.valueOf("value1"), ByteString.valueOf("value1"), ByteString.valueOf("value2"))));
     Assert.assertEquals(builder.size(), 2);
 
     Attribute a = builder.toAttribute();
     Assert.assertEquals(a.size(), 2);
-    Assert.assertTrue(a.contains(AttributeValues.create(cnType, "value1")));
-    Assert.assertTrue(a.contains(AttributeValues.create(cnType, "value2")));
+    Assert.assertTrue(a.contains(ByteString.valueOf("value1")));
+    Assert.assertTrue(a.contains(ByteString.valueOf("value2")));
   }
 
 
 
   /**
-   * Tests {@link AttributeBuilder#add(AttributeValue)}.
+   * Tests {@link AttributeBuilder#add(ByteString)}.
    */
   @Test
   public void testAttributeBuilderAddAttributeValue() throws Exception
@@ -652,13 +599,13 @@ public class AttributeBuilderTest extends TypesTestCase
     Assert.assertFalse(builder.add(cnValue));
     Assert.assertEquals(builder.size(), 1);
 
-    Assert.assertTrue(builder.add(AttributeValues.create(cnType, "jane doe")));
+    Assert.assertTrue(builder.add(ByteString.valueOf("jane doe")));
     Assert.assertEquals(builder.size(), 2);
 
     Attribute a = builder.toAttribute();
     Assert.assertEquals(a.size(), 2);
     Assert.assertTrue(a.contains(cnValue));
-    Assert.assertTrue(a.contains(AttributeValues.create(cnType, "jane doe")));
+    Assert.assertTrue(a.contains(ByteString.valueOf("jane doe")));
   }
 
 
@@ -682,8 +629,8 @@ public class AttributeBuilderTest extends TypesTestCase
 
     Attribute a = builder.toAttribute();
     Assert.assertEquals(a.size(), 2);
-    Assert.assertTrue(a.contains(AttributeValues.create(cnType, "value1")));
-    Assert.assertTrue(a.contains(AttributeValues.create(cnType, "value2")));
+    Assert.assertTrue(a.contains(ByteString.valueOf("value1")));
+    Assert.assertTrue(a.contains(ByteString.valueOf("value2")));
   }
 
 
@@ -707,8 +654,8 @@ public class AttributeBuilderTest extends TypesTestCase
 
     Attribute a = builder.toAttribute();
     assertEquals(a.size(), 2);
-    assertTrue(a.contains(AttributeValues.create(cnType, "value1")));
-    assertTrue(a.contains(AttributeValues.create(cnType, "value2")));
+    assertTrue(a.contains(ByteString.valueOf("value1")));
+    assertTrue(a.contains(ByteString.valueOf("value2")));
   }
 
 
@@ -733,7 +680,7 @@ public class AttributeBuilderTest extends TypesTestCase
 
 
   /**
-   * Tests {@link AttributeBuilder#contains(AttributeValue)}.
+   * Tests {@link AttributeBuilder#contains(ByteString)}.
    */
   @Test
   public void testAttributeBuilderContains() throws Exception
@@ -742,9 +689,9 @@ public class AttributeBuilderTest extends TypesTestCase
 
     builder.addAll(createAttribute(cnType, "cn", noOptions, twoValues));
 
-    Assert.assertTrue(builder.contains(AttributeValues.create(cnType, "value1")));
-    Assert.assertTrue(builder.contains(AttributeValues.create(cnType, "value2")));
-    Assert.assertFalse(builder.contains(AttributeValues.create(cnType, "value3")));
+    Assert.assertTrue(builder.contains(ByteString.valueOf("value1")));
+    Assert.assertTrue(builder.contains(ByteString.valueOf("value2")));
+    Assert.assertFalse(builder.contains(ByteString.valueOf("value3")));
   }
 
 
@@ -759,12 +706,11 @@ public class AttributeBuilderTest extends TypesTestCase
 
     builder.addAll(createAttribute(cnType, "cn", noOptions, twoValues));
 
-    AttributeValue av1 = AttributeValues.create(cnType, "value1");
-    AttributeValue av2 = AttributeValues.create(cnType, "value2");
-    AttributeValue av3 = AttributeValues.create(cnType, "value3");
+    ByteString av1 = ByteString.valueOf("value1");
+    ByteString av2 = ByteString.valueOf("value2");
+    ByteString av3 = ByteString.valueOf("value3");
 
-    Assert.assertTrue(builder.containsAll(Collections
-        .<AttributeValue> emptySet()));
+    Assert.assertTrue(builder.containsAll(Collections.<ByteString> emptySet()));
 
     Assert.assertTrue(builder.containsAll(Collections.singleton(av1)));
     Assert.assertTrue(builder.containsAll(Collections.singleton(av2)));
@@ -868,8 +814,7 @@ public class AttributeBuilderTest extends TypesTestCase
 
     builder.add("value1");
     Assert.assertTrue(builder.iterator().hasNext());
-    Assert.assertEquals(builder.iterator().next(), AttributeValues.create(cnType,
-        "value1"));
+    Assert.assertEquals(builder.iterator().next(), ByteString.valueOf("value1"));
   }
 
 
@@ -905,7 +850,7 @@ public class AttributeBuilderTest extends TypesTestCase
 
     Attribute a = builder.toAttribute();
     Assert.assertEquals(a.size(), 1);
-    Assert.assertTrue(a.contains(AttributeValues.create(cnType, "value3")));
+    Assert.assertTrue(a.contains(ByteString.valueOf("value3")));
   }
 
 
@@ -921,34 +866,31 @@ public class AttributeBuilderTest extends TypesTestCase
     builder.addAll(createAttribute(cnType, "cn", noOptions, threeValues));
 
     // Remove existing values.
-    Assert.assertTrue(builder.removeAll(Arrays.asList(AttributeValues.create(
-        cnType, "value1"), AttributeValues.create(cnType, "value2"))));
+    Assert.assertTrue(builder.removeAll(Arrays.asList(ByteString.valueOf("value1"), ByteString.valueOf("value2"))));
     Assert.assertEquals(builder.size(), 1);
 
     // Remove removed values.
-    Assert.assertFalse(builder.removeAll(Arrays.asList(AttributeValues.create(
-        cnType, "value1"), AttributeValues.create(cnType, "value2"))));
+    Assert.assertFalse(builder.removeAll(Arrays.asList(ByteString.valueOf("value1"), ByteString.valueOf("value2"))));
     Assert.assertEquals(builder.size(), 1);
 
     // Remove nothing.
-    Assert.assertFalse(builder.removeAll(Collections
-        .<AttributeValue> emptySet()));
+    Assert.assertFalse(builder.removeAll(Collections.<ByteString> emptySet()));
     Assert.assertEquals(builder.size(), 1);
 
     // Remove non existent value.
     Assert.assertFalse(builder.removeAll(Collections
-        .singleton(AttributeValues.create(cnType, "value4"))));
+        .singleton(ByteString.valueOf("value4"))));
     Assert.assertEquals(builder.size(), 1);
 
     Attribute a = builder.toAttribute();
     Assert.assertEquals(a.size(), 1);
-    Assert.assertTrue(a.contains(AttributeValues.create(cnType, "value3")));
+    Assert.assertTrue(a.contains(ByteString.valueOf("value3")));
   }
 
 
 
   /**
-   * Tests {@link AttributeBuilder#remove(AttributeValue)}.
+   * Tests {@link AttributeBuilder#remove(ByteString)}.
    */
   @Test
   public void testAttributeBuilderRemoveAttributeValue() throws Exception
@@ -957,21 +899,21 @@ public class AttributeBuilderTest extends TypesTestCase
 
     builder.addAll(createAttribute(cnType, "cn", noOptions, threeValues));
 
-    Assert.assertTrue(builder.remove(AttributeValues.create(cnType, "value1")));
+    Assert.assertTrue(builder.remove(ByteString.valueOf("value1")));
     Assert.assertEquals(builder.size(), 2);
 
     // Already removed.
-    Assert.assertFalse(builder.remove(AttributeValues.create(cnType, "value1")));
+    Assert.assertFalse(builder.remove(ByteString.valueOf("value1")));
     Assert.assertEquals(builder.size(), 2);
 
     // Non existent.
-    Assert.assertFalse(builder.remove(AttributeValues.create(cnType, "value4")));
+    Assert.assertFalse(builder.remove(ByteString.valueOf("value4")));
     Assert.assertEquals(builder.size(), 2);
 
     Attribute a = builder.toAttribute();
     Assert.assertEquals(a.size(), 2);
-    Assert.assertTrue(a.contains(AttributeValues.create(cnType, "value2")));
-    Assert.assertTrue(a.contains(AttributeValues.create(cnType, "value3")));
+    Assert.assertTrue(a.contains(ByteString.valueOf("value2")));
+    Assert.assertTrue(a.contains(ByteString.valueOf("value3")));
   }
 
 
@@ -999,8 +941,8 @@ public class AttributeBuilderTest extends TypesTestCase
 
     Attribute a = builder.toAttribute();
     Assert.assertEquals(a.size(), 2);
-    Assert.assertTrue(a.contains(AttributeValues.create(cnType, "value2")));
-    Assert.assertTrue(a.contains(AttributeValues.create(cnType, "value3")));
+    Assert.assertTrue(a.contains(ByteString.valueOf("value2")));
+    Assert.assertTrue(a.contains(ByteString.valueOf("value3")));
   }
 
 
@@ -1019,8 +961,8 @@ public class AttributeBuilderTest extends TypesTestCase
 
     Attribute a = builder.toAttribute();
     Assert.assertEquals(a.size(), 2);
-    Assert.assertTrue(a.contains(AttributeValues.create(cnType, "value2")));
-    Assert.assertTrue(a.contains(AttributeValues.create(cnType, "value4")));
+    Assert.assertTrue(a.contains(ByteString.valueOf("value2")));
+    Assert.assertTrue(a.contains(ByteString.valueOf("value4")));
   }
 
 
@@ -1035,21 +977,20 @@ public class AttributeBuilderTest extends TypesTestCase
     builder.addAll(createAttribute(cnType, "cn", noOptions, threeValues));
 
     // Note duplicate values.
-    builder.replaceAll(Arrays.asList(AttributeValues.create(cnType, "value2"),
-        AttributeValues.create(cnType, "value2"), AttributeValues.create(cnType,
-            "value4")));
+    builder.replaceAll(Arrays.asList(ByteString.valueOf("value2"),
+        ByteString.valueOf("value2"), ByteString.valueOf("value4")));
     Assert.assertEquals(builder.size(), 2);
 
     Attribute a = builder.toAttribute();
     Assert.assertEquals(a.size(), 2);
-    Assert.assertTrue(a.contains(AttributeValues.create(cnType, "value2")));
-    Assert.assertTrue(a.contains(AttributeValues.create(cnType, "value4")));
+    Assert.assertTrue(a.contains(ByteString.valueOf("value2")));
+    Assert.assertTrue(a.contains(ByteString.valueOf("value4")));
   }
 
 
 
   /**
-   * Tests {@link AttributeBuilder#replace(AttributeValue)}.
+   * Tests {@link AttributeBuilder#replace(ByteString)}.
    */
   @Test
   public void testAttributeBuilderReplaceAttributeValue() throws Exception
@@ -1057,12 +998,12 @@ public class AttributeBuilderTest extends TypesTestCase
     AttributeBuilder builder = new AttributeBuilder(cnType);
     builder.addAll(createAttribute(cnType, "cn", noOptions, threeValues));
 
-    builder.replace(AttributeValues.create(cnType, "value4"));
+    builder.replace(ByteString.valueOf("value4"));
     Assert.assertEquals(builder.size(), 1);
 
     Attribute a = builder.toAttribute();
     Assert.assertEquals(a.size(), 1);
-    Assert.assertTrue(a.contains(AttributeValues.create(cnType, "value4")));
+    Assert.assertTrue(a.contains(ByteString.valueOf("value4")));
   }
 
 
@@ -1081,7 +1022,7 @@ public class AttributeBuilderTest extends TypesTestCase
 
     Attribute a = builder.toAttribute();
     Assert.assertEquals(a.size(), 1);
-    Assert.assertTrue(a.contains(AttributeValues.create(cnType, "value4")));
+    Assert.assertTrue(a.contains(ByteString.valueOf("value4")));
   }
 
 
@@ -1206,7 +1147,7 @@ public class AttributeBuilderTest extends TypesTestCase
 
 
   /**
-   * Tests {@link Attribute#contains(AttributeValue)}.
+   * Tests {@link Attribute#contains(ByteString)}.
    *
    * @param testCase
    *          Test case index (useful for debugging).
@@ -1229,14 +1170,13 @@ public class AttributeBuilderTest extends TypesTestCase
     // Check contains().
     for (String value : values)
     {
-      Assert.assertTrue(a.contains(AttributeValues.create(type, value)));
+      Assert.assertTrue(a.contains(ByteString.valueOf(value)));
 
       // Assumes internal normalization to lower-case.
-      Assert.assertTrue(a
-          .contains(AttributeValues.create(type, value.toUpperCase())));
+      Assert.assertTrue(a.contains(ByteString.valueOf(value.toUpperCase())));
     }
 
-    Assert.assertFalse(a.contains(AttributeValues.create(type, "xxxx")));
+    Assert.assertFalse(a.contains(ByteString.valueOf("xxxx")));
   }
 
 
@@ -1263,31 +1203,31 @@ public class AttributeBuilderTest extends TypesTestCase
       throws Exception
   {
     // Check containsAll().
-    Set<AttributeValue> expectedValues = new HashSet<AttributeValue>();
+    Set<ByteString> expectedValues = new HashSet<ByteString>();
     for (String value : values)
     {
-      expectedValues.add(AttributeValues.create(type, value));
+      expectedValues.add(ByteString.valueOf(value));
     }
 
-    Assert.assertTrue(a.containsAll(Collections.<AttributeValue> emptySet()));
+    Assert.assertTrue(a.containsAll(Collections.<ByteString> emptySet()));
     Assert.assertTrue(a.containsAll(expectedValues));
 
     if (values.length > 1)
     {
-      Set<AttributeValue> subSet = new HashSet<AttributeValue>(expectedValues);
+      Set<ByteString> subSet = new HashSet<ByteString>(expectedValues);
       subSet.remove(subSet.iterator());
       Assert.assertTrue(a.containsAll(subSet));
     }
 
-    Set<AttributeValue> bigSet = new HashSet<AttributeValue>(expectedValues);
-    bigSet.add(AttributeValues.create(type, "xxxx"));
+    Set<ByteString> bigSet = new HashSet<ByteString>(expectedValues);
+    bigSet.add(ByteString.valueOf("xxxx"));
     Assert.assertFalse(a.containsAll(bigSet));
 
     expectedValues.clear();
     for (String value : values)
     {
       // Assumes internal normalization to lower-case.
-      expectedValues.add(AttributeValues.create(type, value.toUpperCase()));
+      expectedValues.add(ByteString.valueOf(value.toUpperCase()));
     }
     Assert.assertTrue(a.containsAll(expectedValues));
   }
@@ -1683,13 +1623,14 @@ public class AttributeBuilderTest extends TypesTestCase
     else
     {
       // Values must be returned in the correct order.
-      Iterator<AttributeValue> i = a.iterator();
+      Iterator<ByteString> i = a.iterator();
       for (String value : values)
       {
         Assert.assertTrue(i.hasNext());
 
-        AttributeValue v = i.next();
-        Assert.assertEquals(v, AttributeValues.create(type, value));
+        ByteString v = i.next();
+        ByteString nv = a.getAttributeType().getEqualityMatchingRule().normalizeAttributeValue(v);
+        Assert.assertEquals(nv, ByteString.valueOf(value));
 
         try
         {

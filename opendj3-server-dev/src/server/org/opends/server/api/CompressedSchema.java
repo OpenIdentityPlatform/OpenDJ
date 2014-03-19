@@ -46,11 +46,9 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.AttributeValues;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.Attributes;
 import org.forgerock.opendj.ldap.ByteSequenceReader;
-import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.ObjectClass;
@@ -143,8 +141,7 @@ public class CompressedSchema
       final int valueLength = reader.getBERLength();
       final ByteString valueBytes = reader.getByteSequence(valueLength)
           .toByteString();
-      return Attributes.create(attrType,
-          AttributeValues.create(attrType, valueBytes));
+      return Attributes.create(attrType, valueBytes);
     }
     else
     {
@@ -157,7 +154,7 @@ public class CompressedSchema
         final int valueLength = reader.getBERLength();
         final ByteString valueBytes = reader.getByteSequence(valueLength)
             .toByteString();
-        builder.add(AttributeValues.create(attrType, valueBytes));
+        builder.add(valueBytes);
       }
       return builder.toAttribute();
     }
@@ -251,10 +248,10 @@ public class CompressedSchema
     builder.appendBERLength(idBytes.length);
     builder.append(idBytes);
     builder.appendBERLength(attribute.size());
-    for (final AttributeValue v : attribute)
+    for (final ByteString v : attribute)
     {
-      builder.appendBERLength(v.getValue().length());
-      builder.append(v.getValue());
+      builder.appendBERLength(v.length());
+      builder.append(v);
     }
   }
 

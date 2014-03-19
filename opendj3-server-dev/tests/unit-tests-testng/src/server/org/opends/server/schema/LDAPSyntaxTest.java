@@ -38,7 +38,6 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeValue;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DN;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
@@ -254,7 +253,7 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
       //An entry must be returned.
       assertNotNull(e);
       Attribute attr = e.getAttribute("ldapsyntaxes").get(0);
-      Iterator<AttributeValue> iter = attr.iterator();
+      Iterator<ByteString> iter = attr.iterator();
 
       //There are other ways of doing it but we will extract the OID
       //from the attribute values and then check to see if our
@@ -262,9 +261,8 @@ public class LDAPSyntaxTest extends AttributeSyntaxTest
       List<String> syntaxList = new ArrayList<String>();
       while(iter.hasNext())
       {
-        AttributeValue val = iter.next();
         //parse the OIDs.
-        syntaxList.add(getOIDFromLdapSyntax(val.toString()));
+        syntaxList.add(getOIDFromLdapSyntax(iter.next().toString()));
       }
 
       //Check if we find our OID.

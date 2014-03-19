@@ -79,8 +79,6 @@ import org.opends.server.tools.tasks.TaskEntry;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.AttributeValues;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
@@ -738,9 +736,7 @@ public class ManageTasksPanel extends StatusGenericPanel
           {
             bs = ByteString.valueOf(value.toString());
           }
-          AttributeValue attributeValue =
-            AttributeValues.create(attrType, bs);
-          builder.add(attributeValue);
+          builder.add(bs);
         }
         List<Attribute> attrList = new ArrayList<Attribute>(1);
         attrList.add(builder.toAttribute());

@@ -33,6 +33,7 @@ import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -83,32 +84,30 @@ public abstract class AuthenticationPolicy
       {
         if (a.isEmpty()) continue;
 
-        AttributeValue v = a.iterator().next();
+        ByteString v = a.iterator().next();
         DN subentryDN;
         try
         {
-          subentryDN = DN.decode(v.getValue());
+          subentryDN = DN.decode(v);
         }
         catch (Exception e)
         {
           logger.traceException(e);
 
-          logger.trace(
-              "Could not parse password policy subentry DN %s for user %s", v
-                  .getValue(), userDNString, e);
+          logger.trace("Could not parse password policy subentry DN %s for user %s",
+              v, userDNString, e);
 
           if (useDefaultOnError)
           {
             logger.error(ERR_PWPSTATE_CANNOT_DECODE_SUBENTRY_VALUE_AS_DN,
-                v.getValue(), userDNString, e.getMessage());
+                v, userDNString, e.getMessage());
             return DirectoryServer.getDefaultPasswordPolicy();
           }
           else
           {
             LocalizableMessage message = ERR_PWPSTATE_CANNOT_DECODE_SUBENTRY_VALUE_AS_DN
-                .get(v.getValue(), userDNString, e.getMessage());
-            throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message,
-                e);
+                .get(v, userDNString, e.getMessage());
+            throw new DirectoryException(ResultCode.INVALID_DN_SYNTAX, message, e);
           }
         }
 

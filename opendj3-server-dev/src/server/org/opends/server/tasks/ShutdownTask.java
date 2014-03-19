@@ -102,7 +102,7 @@ public class ShutdownTask
       Attribute attr = attrList.get(0);
       if (!attr.isEmpty())
       {
-        String valueString = attr.iterator().next().getValue().toString();
+        String valueString = attr.iterator().next().toString();
         shutdownMessage = INFO_TASK_SHUTDOWN_CUSTOM_MESSAGE.get(taskEntry.getName(), valueString);
       }
     }
@@ -115,9 +115,7 @@ public class ShutdownTask
       Attribute attr = attrList.get(0);
       if (!attr.isEmpty())
       {
-        String valueString = toLowerCase(attr.iterator().next()
-            .getValue().toString());
-
+        String valueString = toLowerCase(attr.iterator().next().toString());
         restart = (valueString.equals("true") || valueString.equals("yes")
             || valueString.equals("on") || valueString.equals("1"));
       }

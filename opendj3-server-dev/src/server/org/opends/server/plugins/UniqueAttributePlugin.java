@@ -31,7 +31,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.PluginCfgDefn;
@@ -42,13 +45,11 @@ import org.opends.server.api.Backend;
 import org.opends.server.api.plugin.*;
 import org.opends.server.api.plugin.PluginResult.PostOperation;
 import org.opends.server.api.plugin.PluginResult.PreOperation;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.types.operation.*;
 
 import static org.opends.messages.PluginMessages.*;
@@ -97,7 +98,7 @@ public class UniqueAttributePlugin
    * The data structure to store the mapping between the attribute value and the
    * corresponding dn.
    */
-  private ConcurrentHashMap<AttributeValue,DN> uniqueAttrValue2Dn;
+  private ConcurrentHashMap<ByteString,DN> uniqueAttrValue2Dn;
 
 
 
@@ -152,7 +153,7 @@ public class UniqueAttributePlugin
       }
     }
 
-    uniqueAttrValue2Dn  = new ConcurrentHashMap<AttributeValue,DN>();
+    uniqueAttrValue2Dn  = new ConcurrentHashMap<ByteString,DN>();
     DirectoryServer.registerAlertGenerator(this);
   }
 
@@ -188,7 +189,7 @@ public class UniqueAttributePlugin
     }
 
     DN entryDN = entry.getName();
-    List<AttributeValue> recordedValues = new LinkedList<AttributeValue>();
+    List<ByteString> recordedValues = new LinkedList<ByteString>();
     for (AttributeType t : config.getType())
     {
       List<Attribute> attrList = entry.getAttribute(t);
@@ -196,7 +197,7 @@ public class UniqueAttributePlugin
       {
         for (Attribute a : attrList)
         {
-          for (AttributeValue v : a)
+          for (ByteString v : a)
           {
             PreOperation stop =
                 checkUniqueness(entryDN, t, v, baseDNs, recordedValues, config);
@@ -231,7 +232,7 @@ public class UniqueAttributePlugin
       return PluginResult.PreOperation.continueOperationProcessing();
     }
 
-    List<AttributeValue> recordedValues = new LinkedList<AttributeValue>();
+    List<ByteString> recordedValues = new LinkedList<ByteString>();
     for (Modification m : modifyOperation.getModifications())
     {
       Attribute a = m.getAttribute();
@@ -246,7 +247,7 @@ public class UniqueAttributePlugin
       {
         case ADD:
         case REPLACE:
-          for (AttributeValue v : a)
+          for (ByteString v : a)
           {
             PreOperation stop =
               checkUniqueness(entryDN, t, v, baseDNs, recordedValues, config);
@@ -272,7 +273,7 @@ public class UniqueAttributePlugin
                 continue;
               }
 
-              for (AttributeValue v : updatedAttr)
+              for (ByteString v : updatedAttr)
               {
                 PreOperation stop = checkUniqueness(
                     entryDN, t, v, baseDNs, recordedValues, config);
@@ -298,7 +299,7 @@ public class UniqueAttributePlugin
 
 
   private PreOperation checkUniqueness(DN entryDN, AttributeType t,
-      AttributeValue v, Set<DN> baseDNs, List<AttributeValue> recordedValues,
+      ByteString v, Set<DN> baseDNs, List<ByteString> recordedValues,
       UniqueAttributePluginCfg config)
   {
     try
@@ -318,12 +319,12 @@ public class UniqueAttributePlugin
         // Before returning, we need to remove all values added
         // in the uniqueAttrValue2Dn map, because PostOperation
         // plugin does not get called.
-        for (AttributeValue v2 : recordedValues)
+        for (ByteString v2 : recordedValues)
         {
           uniqueAttrValue2Dn.remove(v2);
         }
         LocalizableMessage msg = ERR_PLUGIN_UNIQUEATTR_ATTR_NOT_UNIQUE.get(
-            t.getNameOrOID(), v.getValue(), conflictDN);
+            t.getNameOrOID(), v, conflictDN);
         return PluginResult.PreOperation.stopProcessing(
             ResultCode.CONSTRAINT_VIOLATION, msg);
       }
@@ -336,7 +337,7 @@ public class UniqueAttributePlugin
           de.getResultCode(), de.getMessageObject());
 
       // Try some cleanup before returning, to avoid memory leaks
-      for (AttributeValue v2 : recordedValues)
+      for (ByteString v2 : recordedValues)
       {
         uniqueAttrValue2Dn.remove(v2);
       }
@@ -364,7 +365,7 @@ public class UniqueAttributePlugin
       return PluginResult.PreOperation.continueOperationProcessing();
     }
 
-    List<AttributeValue> recordedValues = new LinkedList<AttributeValue>();
+    List<ByteString> recordedValues = new LinkedList<ByteString>();
     RDN newRDN = modifyDNOperation.getNewRDN();
     for (int i=0; i < newRDN.getNumValues(); i++)
     {
@@ -375,7 +376,7 @@ public class UniqueAttributePlugin
         continue;
       }
 
-      AttributeValue v = newRDN.getAttributeValue(i);
+      ByteString v = newRDN.getAttributeValue(i);
       DN entryDN = modifyDNOperation.getEntryDN();
       PreOperation stop =
           checkUniqueness(entryDN, t, v, baseDNs, recordedValues, config);
@@ -415,7 +416,7 @@ public class UniqueAttributePlugin
       {
         for (Attribute a : attrList)
         {
-          for (AttributeValue v : a)
+          for (ByteString v : a)
           {
             sendAlertForUnresolvedConflict(addOperation, entryDN, entryDN, t,
                 v, baseDNs, config);
@@ -458,7 +459,7 @@ public class UniqueAttributePlugin
       {
         case ADD:
         case REPLACE:
-          for (AttributeValue v : a)
+          for (ByteString v : a)
           {
             sendAlertForUnresolvedConflict(modifyOperation, entryDN, entryDN, t,
                 v, baseDNs, config);
@@ -480,7 +481,7 @@ public class UniqueAttributePlugin
                 continue;
               }
 
-              for (AttributeValue v : updatedAttr)
+              for (ByteString v : updatedAttr)
               {
                 sendAlertForUnresolvedConflict(modifyOperation, entryDN,
                     entryDN, t, v, baseDNs, config);
@@ -528,7 +529,7 @@ public class UniqueAttributePlugin
         continue;
       }
 
-      AttributeValue v = newRDN.getAttributeValue(i);
+      ByteString v = newRDN.getAttributeValue(i);
       sendAlertForUnresolvedConflict(modifyDNOperation, entryDN,
           updatedEntryDN, t, v, baseDNs, config);
     }
@@ -537,7 +538,7 @@ public class UniqueAttributePlugin
 
 
   private void sendAlertForUnresolvedConflict(PluginOperation operation,
-      DN entryDN, DN updatedEntryDN, AttributeType t, AttributeValue v,
+      DN entryDN, DN updatedEntryDN, AttributeType t, ByteString v,
       Set<DN> baseDNs, UniqueAttributePluginCfg config)
   {
     try
@@ -553,7 +554,7 @@ public class UniqueAttributePlugin
                                t.getNameOrOID(),
                                operation.getConnectionID(),
                                operation.getOperationID(),
-                               v.getValue(),
+                               v,
                                updatedEntryDN,
                                conflictDN);
         DirectoryServer.sendAlertNotification(this,
@@ -629,7 +630,7 @@ public class UniqueAttributePlugin
    */
   private DN getConflictingEntryDN(Set<DN> baseDNs, DN targetDN,
                                    UniqueAttributePluginCfg config,
-                                   AttributeValue value)
+                                   ByteString value)
           throws DirectoryException
   {
     SearchFilter filter;
@@ -837,7 +838,7 @@ public class UniqueAttributePlugin
       {
         for (Attribute a : attrList)
         {
-          for (AttributeValue v : a)
+          for (ByteString v : a)
           {
             uniqueAttrValue2Dn.remove(v);
           }
@@ -882,7 +883,7 @@ public class UniqueAttributePlugin
       {
         case ADD:
         case REPLACE:
-          for (AttributeValue v : a)
+          for (ByteString v : a)
           {
             uniqueAttrValue2Dn.remove(v);
           }
@@ -903,7 +904,7 @@ public class UniqueAttributePlugin
                 continue;
               }
 
-              for (AttributeValue v : updatedAttr)
+              for (ByteString v : updatedAttr)
               {
                 uniqueAttrValue2Dn.remove(v);
               }
@@ -948,8 +949,7 @@ public class UniqueAttributePlugin
         // We aren't interested in this attribute type.
         continue;
       }
-      AttributeValue v = newRDN.getAttributeValue(i);
-      uniqueAttrValue2Dn.remove(v);
+      uniqueAttrValue2Dn.remove(newRDN.getAttributeValue(i));
     }
     return PostOperation.continueOperationProcessing();
   }

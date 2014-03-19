@@ -26,18 +26,15 @@
  */
 package org.opends.server.replication.common;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.UserDefinedVirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.util.ServerConstants;
 
 import static org.opends.messages.ExtensionMessages.*;
@@ -56,7 +53,7 @@ public class ChangelogBaseDNVirtualAttributeProvider
    * TODO: This shouldn't be a virtual attribute, but directly
    * registered in the RootDSE.
    */
-  private final Set<AttributeValue> values;
+  private Attribute values;
 
 
   /**
@@ -65,10 +62,6 @@ public class ChangelogBaseDNVirtualAttributeProvider
   public ChangelogBaseDNVirtualAttributeProvider()
   {
     super();
-
-    ByteString dn =
-        ByteString.valueOf(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT);
-    values = Collections.singleton(AttributeValues.create(dn, dn));
   }
 
   /** {@inheritDoc} */
@@ -80,8 +73,13 @@ public class ChangelogBaseDNVirtualAttributeProvider
 
   /** {@inheritDoc} */
   @Override()
-  public Set<AttributeValue> getValues(Entry entry,VirtualAttributeRule rule)
+  public Attribute getValues(Entry entry, VirtualAttributeRule rule)
   {
+    if (values == null)
+    {
+      values = Attributes.create(rule.getAttributeType(),
+          ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT);
+    }
     return values;
   }
 

@@ -803,8 +803,8 @@ public class AttributeIndex
       // Make a key from the normalized assertion value.
       MatchingRule equalityRule = equalityFilter.getAttributeType().
         getEqualityMatchingRule();
-      byte[] keyBytes = equalityRule.normalizeAssertionValue(equalityFilter.
-        getAssertionValue().getValue()).toByteArray();
+      byte[] keyBytes = equalityRule.normalizeAssertionValue(
+          equalityFilter.getAssertionValue()).toByteArray();
       DatabaseEntry key = new DatabaseEntry(keyBytes);
 
       if(debugBuffer != null)
@@ -979,7 +979,7 @@ public class AttributeIndex
            filter.getAttributeType().getOrderingMatchingRule();
       // FIXME JNR this looks wrong, it should use normalizeAssertionValue()
       byte[] normalizedValue = orderingRule.normalizeAttributeValue(
-          filter.getAssertionValue().getValue()).toByteArray();
+          filter.getAssertionValue()).toByteArray();
 
       // Set the lower and upper bounds for a range search.
       byte[] lower;
@@ -1233,8 +1233,7 @@ public class AttributeIndex
    * @param upperValue The upper bound value
    * @return The candidate entry IDs.
    */
-  public EntryIDSet evaluateBoundedRange(AttributeValue lowerValue,
-                                          AttributeValue upperValue)
+  public EntryIDSet evaluateBoundedRange(ByteString lowerValue, ByteString upperValue)
   {
     if (orderingIndex == null)
     {
@@ -1247,13 +1246,9 @@ public class AttributeIndex
       OrderingMatchingRule orderingRule =
            getAttributeType().getOrderingMatchingRule();
 
-      // Set the lower bound for a range search.
-      byte[] lower =
-          orderingRule.normalizeAttributeValue(lowerValue.getValue()).toByteArray();
-
-      // Set the upper bound for a range search.
-      byte[] upper =
-          orderingRule.normalizeAttributeValue(upperValue.getValue()).toByteArray();
+      // Set the lower and upper bounds for a range search.
+      byte[] lower = orderingRule.normalizeAttributeValue(lowerValue).toByteArray();
+      byte[] upper = orderingRule.normalizeAttributeValue(upperValue).toByteArray();
 
       // Read the range: lower <= keys <= upper.
       return orderingIndex.readRange(lower, upper, true, true);
@@ -1398,9 +1393,8 @@ public class AttributeIndex
           approximateFilter.getAttributeType().getApproximateMatchingRule();
       // Make a key from the normalized assertion value.
       // FIXME JNR this looks wrong, it should use normalizeAssertionValue()
-      byte[] keyBytes =
-           approximateMatchingRule.normalizeAttributeValue(
-               approximateFilter.getAssertionValue().getValue()).toByteArray();
+      byte[] keyBytes = approximateMatchingRule.normalizeAttributeValue(
+          approximateFilter.getAssertionValue()).toByteArray();
       DatabaseEntry key = new DatabaseEntry(keyBytes);
 
       if(debugBuffer != null)
@@ -2278,7 +2272,7 @@ public class AttributeIndex
         // Make a key from the normalized assertion value.
         MatchingRule rule =
             extensibleFilter.getAttributeType().getEqualityMatchingRule();
-        ByteString value = extensibleFilter.getAssertionValue().getValue();
+        ByteString value = extensibleFilter.getAssertionValue();
         byte[] keyBytes = rule.normalizeAssertionValue(value).toByteArray();
         DatabaseEntry key = new DatabaseEntry(keyBytes);
 
@@ -2357,8 +2351,7 @@ public class AttributeIndex
         }
         debugBuffer.append("]");
       }
-      ByteString assertionValue =
-              extensibleFilter.getAssertionValue().getValue();
+      ByteString assertionValue = extensibleFilter.getAssertionValue();
       IndexQuery expression = rule.createIndexQuery(assertionValue, factory);
       List<LocalizableMessage> debugMessages =
           monitor.isFilterUseEnabled() ? new ArrayList<LocalizableMessage>() : null;

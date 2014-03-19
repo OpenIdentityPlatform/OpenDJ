@@ -370,18 +370,11 @@ public class Entry
 
     if(objectClassAttribute == null)
     {
-      AttributeType ocType =
-          DirectoryServer.getObjectClassAttributeType();
-      AttributeBuilder builder =
-          new AttributeBuilder(ocType, ATTR_OBJECTCLASS);
-
-      for (Map.Entry<ObjectClass, String> e :
-          objectClasses.entrySet())
+      AttributeType ocType = DirectoryServer.getObjectClassAttributeType();
+      AttributeBuilder builder = new AttributeBuilder(ocType, ATTR_OBJECTCLASS);
+      for (Map.Entry<ObjectClass, String> e : objectClasses.entrySet())
       {
-        builder.add(AttributeValues.create(
-            ByteString.valueOf(e.getValue()),
-            ByteString.valueOf(e.getKey()
-                .getNormalizedPrimaryName())));
+        builder.add(e.getValue());
       }
 
       objectClassAttribute = builder.toAttribute();
@@ -1175,8 +1168,7 @@ public class Entry
    * @param duplicateValues
    *          A list to which any duplicate values will be added.
    */
-  public void addAttribute(Attribute attribute,
-      List<AttributeValue> duplicateValues)
+  public void addAttribute(Attribute attribute, List<ByteString> duplicateValues)
   {
     setAttribute(attribute, duplicateValues, false /* merge */);
   }
@@ -1235,7 +1227,7 @@ public class Entry
     }
 
     // Decode the increment.
-    Iterator<AttributeValue> i = attribute.iterator();
+    Iterator<ByteString> i = attribute.iterator();
     if (!i.hasNext())
     {
       LocalizableMessage message = ERR_ENTRY_INCREMENT_INVALID_VALUE_COUNT.get(
@@ -1243,7 +1235,7 @@ public class Entry
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
-    String incrementValue = i.next().getValue().toString();
+    String incrementValue = i.next().toString();
     long increment;
     try
     {
@@ -1266,13 +1258,12 @@ public class Entry
     // Increment each attribute value by the specified amount.
     AttributeBuilder builder = new AttributeBuilder(a, true);
 
-    for (AttributeValue v : a)
+    for (ByteString v : a)
     {
-      String s = v.getValue().toString();
       long currentValue;
       try
       {
-        currentValue = Long.parseLong(s);
+        currentValue = Long.parseLong(v.toString());
       }
       catch (NumberFormatException e)
       {
@@ -1283,8 +1274,7 @@ public class Entry
       }
 
       long newValue = currentValue + increment;
-      builder.add(AttributeValues.create(attributeType, String
-          .valueOf(newValue)));
+      builder.add(String.valueOf(newValue));
     }
 
     replaceAttribute(builder.toAttribute());
@@ -1347,7 +1337,7 @@ public class Entry
    *         but will add those values to the provided list.
    */
   public boolean removeAttribute(Attribute attribute,
-      List<AttributeValue> missingValues)
+      List<ByteString> missingValues)
   {
     attachment = null;
 
@@ -1363,9 +1353,9 @@ public class Entry
 
       MatchingRule rule =
           attribute.getAttributeType().getEqualityMatchingRule();
-      for (AttributeValue v : attribute)
+      for (ByteString v : attribute)
       {
-        String ocName = toLowerName(rule, v.getValue());
+        String ocName = toLowerName(rule, v);
 
         boolean matchFound = false;
         for (ObjectClass oc : objectClasses.keySet())
@@ -1393,7 +1383,7 @@ public class Entry
     if (attributes == null)
     {
       // There are no attributes with the same attribute type.
-      for (AttributeValue v : attribute)
+      for (ByteString v : attribute)
       {
         missingValues.add(v);
       }
@@ -1416,7 +1406,7 @@ public class Entry
         {
           // Remove Specified values.
           AttributeBuilder builder = new AttributeBuilder(a);
-          for (AttributeValue v : attribute)
+          for (ByteString v : attribute)
           {
             if (!builder.remove(v))
             {
@@ -1475,7 +1465,7 @@ public class Entry
    *          attribute value, or <CODE>false</CODE> if it does not.
    */
   public boolean hasValue(AttributeType attributeType,
-                          Set<String> options, AttributeValue value)
+                          Set<String> options, ByteString value)
   {
     List<Attribute> attrList = getAttribute(attributeType, true);
     if (attrList == null || attrList.isEmpty())
@@ -1522,9 +1512,9 @@ public class Entry
     if (t.isObjectClass())
     {
       Map<ObjectClass, String> ocs = new LinkedHashMap<ObjectClass, String>();
-      for (AttributeValue v : a)
+      for (ByteString v : a)
       {
-        String ocName    = v.getValue().toString();
+        String ocName    = v.toString();
         String lowerName = toLowerCase(ocName);
         ObjectClass oc   =
              DirectoryServer.getObjectClass(lowerName, true);
@@ -1584,7 +1574,7 @@ public class Entry
     switch (mod.getModificationType().asEnum())
     {
       case ADD:
-        List<AttributeValue> duplicateValues = new LinkedList<AttributeValue>();
+        List<ByteString> duplicateValues = new LinkedList<ByteString>();
         addAttribute(a, duplicateValues);
         if (!duplicateValues.isEmpty() && !relaxConstraints)
         {
@@ -1594,7 +1584,7 @@ public class Entry
         break;
 
       case DELETE:
-        List<AttributeValue> missingValues = new LinkedList<AttributeValue>();
+        List<ByteString> missingValues = new LinkedList<ByteString>();
         removeAttribute(a, missingValues);
         if (!missingValues.isEmpty() && !relaxConstraints)
         {
@@ -2792,9 +2782,9 @@ public class Entry
     Set<String> referralURLs = new LinkedHashSet<String>();
     for (Attribute a : refAttrs)
     {
-      for (AttributeValue v : a)
+      for (ByteString v : a)
       {
-        referralURLs.add(v.getValue().toString());
+        referralURLs.add(v.toString());
       }
     }
 
@@ -2867,7 +2857,7 @@ public class Entry
       Attribute aliasAttr = aliasAttrs.get(0);
       if (!aliasAttr.isEmpty())
       {
-        return DN.valueOf(aliasAttr.iterator().next().getValue().toString());
+        return DN.valueOf(aliasAttr.iterator().next().toString());
       }
     }
     return null;
@@ -3072,7 +3062,7 @@ public class Entry
     {
       for (Attribute attr : exclusionsAttrList)
       {
-        for (AttributeValue attrValue : attr)
+        for (ByteString attrValue : attr)
         {
           String exclusionsName = attrValue.toString().toLowerCase();
           if (VALUE_COLLECTIVE_EXCLUSIONS_EXCLUDE_ALL_LC.equals(exclusionsName)
@@ -3102,9 +3092,9 @@ public class Entry
               for (Attribute attr : getAttribute(
                    subEntry.getInheritFromDNType()))
               {
-                for (AttributeValue value : attr)
+                for (ByteString value : attr)
                 {
-                  inheritFromDN = DN.decode(value.getValue());
+                  inheritFromDN = DN.decode(value);
                   // Respect subentry root scope.
                   if (!inheritFromDN.isDescendantOf(
                        subEntry.getDN().parent()))
@@ -3139,7 +3129,7 @@ public class Entry
                    subEntry.getInheritFromRDNAttrType()))
                 {
                   inheritFromDN = subEntry.getInheritFromBaseDN();
-                  for (AttributeValue value : attr)
+                  for (ByteString value : attr)
                   {
                     inheritFromDN = inheritFromDN.child(
                         RDN.create(subEntry.getInheritFromRDNType(),
@@ -3533,10 +3523,10 @@ public class Entry
           buffer.append((byte)0x00);
 
           buffer.appendBERLength(a.size());
-          for(AttributeValue v : a)
+          for(ByteString v : a)
           {
-            buffer.appendBERLength(v.getValue().length());
-            buffer.append(v.getValue());
+            buffer.appendBERLength(v.length());
+            buffer.append(v);
           }
         }
       }
@@ -3866,7 +3856,7 @@ public class Entry
 
           ByteString valueBytes =
               entryBuffer.getByteSequence(valueLength).toByteString();
-          builder.add(AttributeValues.create(attributeType, valueBytes));
+          builder.add(valueBytes);
         }
 
 
@@ -3939,10 +3929,10 @@ public class Entry
           attrName.append(o);
         }
 
-        for (AttributeValue v : a)
+        for (ByteString v : a)
         {
           StringBuilder attrLine = new StringBuilder(attrName);
-          appendLDIFSeparatorAndValue(attrLine, v.getValue());
+          appendLDIFSeparatorAndValue(attrLine, v);
           ldifLines.add(attrLine);
         }
       }
@@ -4182,10 +4172,10 @@ public class Entry
     }
     else
     {
-      for (AttributeValue v : attribute)
+      for (ByteString v : attribute)
       {
         StringBuilder attrLine = new StringBuilder(attrName);
-        appendLDIFSeparatorAndValue(attrLine, v.getValue());
+        appendLDIFSeparatorAndValue(attrLine, v);
         LDIFWriter.writeLDIFLine(attrLine, writer, wrapLines, wrapColumn);
       }
     }
@@ -4461,15 +4451,15 @@ public class Entry
         }
 
         buffer.append("={");
-        Iterator<AttributeValue> valueIterator = a.iterator();
+        Iterator<ByteString> valueIterator = a.iterator();
         if (valueIterator.hasNext())
         {
-          buffer.append(valueIterator.next().getValue().toString());
+          buffer.append(valueIterator.next().toString());
 
           while (valueIterator.hasNext())
           {
             buffer.append(",");
-            buffer.append(valueIterator.next().getValue().toString());
+            buffer.append(valueIterator.next().toString());
           }
         }
 
@@ -4529,7 +4519,7 @@ public class Entry
    *          existing attribute.
    */
   private void setAttribute(Attribute attribute,
-      List<AttributeValue> duplicateValues, boolean replace)
+      List<ByteString> duplicateValues, boolean replace)
   {
     attachment = null;
 
@@ -4546,10 +4536,10 @@ public class Entry
 
       MatchingRule rule =
           attribute.getAttributeType().getEqualityMatchingRule();
-      for (AttributeValue v : attribute)
+      for (ByteString v : attribute)
       {
-        String name = v.getValue().toString();
-        String lowerName = toLowerName(rule, v.getValue());
+        String name = v.toString();
+        String lowerName = toLowerName(rule, v);
 
         // Create a default object class if necessary.
         ObjectClass oc =
@@ -4615,7 +4605,7 @@ public class Entry
         else
         {
           AttributeBuilder builder = new AttributeBuilder(a);
-          for (AttributeValue v : attribute)
+          for (ByteString v : attribute)
           {
             if (!builder.add(v))
             {

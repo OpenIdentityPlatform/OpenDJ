@@ -41,7 +41,7 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
@@ -148,16 +148,16 @@ public class DynamicGroup
     {
       for (Attribute a : attrList)
       {
-        for (AttributeValue v : a)
+        for (ByteString v : a)
         {
           try
           {
-            memberURLs.add(LDAPURL.decode(v.getValue().toString(), true));
+            memberURLs.add(LDAPURL.decode(v.toString(), true));
           }
           catch (DirectoryException de)
           {
             logger.traceException(de);
-            logger.error(ERR_DYNAMICGROUP_CANNOT_DECODE_MEMBERURL, v.getValue(),
+            logger.error(ERR_DYNAMICGROUP_CANNOT_DECODE_MEMBERURL, v,
                     groupEntry.getName(), de.getMessageObject());
           }
         }

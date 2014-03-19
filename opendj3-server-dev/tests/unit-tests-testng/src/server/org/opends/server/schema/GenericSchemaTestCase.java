@@ -43,7 +43,7 @@ import org.opends.server.api.MatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.NameForm;
@@ -199,11 +199,10 @@ public class GenericSchemaTestCase
 
       for (Attribute a : attrList)
       {
-        for (AttributeValue v : a)
+        for (ByteString v : a)
         {
           AttributeType at = AttributeTypeSyntax.decodeAttributeType(
-                                  v.getValue(), DirectoryServer.getSchema(),
-                                  true);
+              v, DirectoryServer.getSchema(),true);
           if (! isNumericOID(at.getOID()))
           {
             invalidOIDs.add(at.getNameOrOID());
@@ -277,11 +276,10 @@ public class GenericSchemaTestCase
 
       for (Attribute a : attrList)
       {
-        for (AttributeValue v : a)
+        for (ByteString v : a)
         {
           ObjectClass oc = ObjectClassSyntax.decodeObjectClass(
-                                v.getValue(), DirectoryServer.getSchema(),
-                                true);
+              v, DirectoryServer.getSchema(), true);
           if (! isNumericOID(oc.getOID()))
           {
             invalidOIDs.add(oc.getNameOrOID());
@@ -354,10 +352,10 @@ public class GenericSchemaTestCase
 
       for (Attribute a : attrList)
       {
-        for (AttributeValue v : a)
+        for (ByteString v : a)
         {
-          NameForm nf = NameFormSyntax.decodeNameForm(v.getValue(),
-                             DirectoryServer.getSchema(), true);
+          NameForm nf = NameFormSyntax.decodeNameForm(
+              v, DirectoryServer.getSchema(), true);
           if (! isNumericOID(nf.getOID()))
           {
             invalidOIDs.add(nf.getNameOrOID());

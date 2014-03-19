@@ -56,7 +56,7 @@ import org.opends.server.api.AttributeSyntax;
 import org.opends.server.replication.plugin.EntryHistorical;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.Entry;
 import org.opends.server.types.ObjectClass;
@@ -346,7 +346,7 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
     for (int i=0; i<rdn.getNumValues(); i++)
     {
       String attrName = rdn.getAttributeName(i);
-      AttributeValue value = rdn.getAttributeValue(i);
+      ByteString value = rdn.getAttributeValue(i);
       List<org.opends.server.types.Attribute> attrs =
         entry.getAttribute(attrName.toLowerCase());
       boolean done = false;
@@ -356,9 +356,8 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
         {
           if (attr.getNameWithOptions().equals(attrName))
           {
-            ArrayList<AttributeValue> newValues =
-              new ArrayList<AttributeValue>();
-            Iterator<AttributeValue> it = attr.iterator();
+            ArrayList<ByteString> newValues = new ArrayList<ByteString>();
+            Iterator<ByteString> it = attr.iterator();
             while (it.hasNext())
             {
               newValues.add(it.next());
@@ -374,8 +373,7 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
       {
         org.opends.server.types.Attribute attr =
           Attributes.create(rdn.getAttributeType(i), value);
-        ArrayList<AttributeValue> newValues =
-          new ArrayList<AttributeValue>();
+        ArrayList<ByteString> newValues = new ArrayList<ByteString>();
         newValues.add(value);
         entry.addAttribute(attr, newValues);
       }

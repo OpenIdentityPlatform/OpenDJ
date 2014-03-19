@@ -48,7 +48,6 @@ import org.opends.server.types.*;
 import org.opends.server.types.operation.PostOperationAddOperation;
 
 import static org.opends.server.replication.protocol.OperationContext.*;
-import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class is used to exchange Add operation between LDAP servers
@@ -333,8 +332,7 @@ public class AddMsg extends LDAPUpdateMsg
       builder.setInitialCapacity(objectClasses.size());
       for (String s : objectClasses.values())
       {
-        builder.add(AttributeValues.create(ByteString.valueOf(s),
-            ByteString.valueOf(toLowerCase(s))));
+        builder.add(s);
       }
       Attribute attr = builder.toAttribute();
 
@@ -345,9 +343,10 @@ public class AddMsg extends LDAPUpdateMsg
       {
         for (Attribute a : list)
         {
-          if (!EntryHistorical.isHistoricalAttribute(a))
-            if (!a.isVirtual())
-              new LDAPAttribute(a).write(writer);
+          if (!EntryHistorical.isHistoricalAttribute(a) && !a.isVirtual())
+          {
+            new LDAPAttribute(a).write(writer);
+          }
         }
       }
 

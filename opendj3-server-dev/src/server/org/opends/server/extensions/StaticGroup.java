@@ -26,8 +26,6 @@
  */
 package org.opends.server.extensions;
 
-
-
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -52,7 +50,6 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.Control;
 import org.opends.server.types.DirectoryConfig;
@@ -70,8 +67,6 @@ import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.forgerock.util.Reject.*;
-
-
 
 /**
  * This class provides a static group implementation, in which the DNs
@@ -237,24 +232,22 @@ public class StaticGroup
     {
       for (Attribute a : memberAttrList)
       {
-        MatchingRule eqRule =
-            a.getAttributeType().getEqualityMatchingRule();
-        for (AttributeValue v : a)
+        MatchingRule eqRule = a.getAttributeType().getEqualityMatchingRule();
+        for (ByteString v : a)
         {
           try
           {
-            someMemberDNs.add(eqRule.normalizeAttributeValue(v.getValue()));
+            someMemberDNs.add(eqRule.normalizeAttributeValue(v));
           }
           catch (DecodeException de)
           {
             logger.traceException(de);
-            logger.error(ERR_STATICGROUP_CANNOT_DECODE_MEMBER_VALUE_AS_DN, v.getValue(),
+            logger.error(ERR_STATICGROUP_CANNOT_DECODE_MEMBER_VALUE_AS_DN, v,
                 someMemberAttributeType.getNameOrOID(), groupEntry.getName(), de.getMessageObject());
           }
         }
       }
     }
-
 
     return new StaticGroup(groupEntry.getName(),
             someMemberAttributeType, someMemberDNs);

@@ -111,7 +111,7 @@ public class StackTraceMonitorProvider
       buffer.append(" ---------- ");
       buffer.append(t.getName());
       buffer.append(" ----------");
-      builder.add(AttributeValues.create(attrType, buffer.toString()));
+      builder.add(buffer.toString());
 
       // Create an attribute for the stack trace.
       if (stackElements != null)
@@ -141,7 +141,7 @@ public class StackTraceMonitorProvider
           }
           buffer.append(")");
 
-          builder.add(AttributeValues.create(attrType, buffer.toString()));
+          builder.add(buffer.toString());
         }
       }
     }

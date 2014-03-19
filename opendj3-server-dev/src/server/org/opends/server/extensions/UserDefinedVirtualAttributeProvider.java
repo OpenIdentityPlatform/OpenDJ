@@ -25,23 +25,18 @@
  *      Portions Copyright 2012-2014 ForgeRock AS
  */
 package org.opends.server.extensions;
-import org.forgerock.i18n.LocalizableMessage;
 
-
-
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.UserDefinedVirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
-
 
 /**
  * This class implements a virtual attribute provider that allows administrators
@@ -103,14 +98,11 @@ public class UserDefinedVirtualAttributeProvider
   @Override()
   public boolean isMultiValued()
   {
-    if (currentConfig == null)
+    if (currentConfig != null)
     {
-      return true;
+      return currentConfig.getValue().size() > 1;
     }
-    else
-    {
-      return (currentConfig.getValue().size() > 1);
-    }
+    return true;
   }
 
 
@@ -119,28 +111,23 @@ public class UserDefinedVirtualAttributeProvider
    * {@inheritDoc}
    */
   @Override()
-  public Set<AttributeValue> getValues(Entry entry,
-                                       VirtualAttributeRule rule)
+  public Attribute getValues(Entry entry, VirtualAttributeRule rule)
   {
-    AttributeType attributeType = rule.getAttributeType();
     Set<String> userDefinedValues = currentConfig.getValue();
 
     switch (userDefinedValues.size()) {
     case 0:
-      return Collections.emptySet();
+      return Attributes.empty(rule.getAttributeType());
     case 1:
       String valueString = userDefinedValues.iterator().next();
-      AttributeValue value =
-          AttributeValues.create(attributeType, valueString);
-      return Collections.singleton(value);
+      return Attributes.create(rule.getAttributeType(), valueString);
     default:
-      HashSet<AttributeValue> values =
-          new HashSet<AttributeValue>(userDefinedValues.size());
-      for (String valueString2 : userDefinedValues)
+      AttributeBuilder builder = new AttributeBuilder(rule.getAttributeType());
+      for (String valueStr : userDefinedValues)
       {
-        values.add(AttributeValues.create(attributeType, valueString2));
+        builder.add(valueStr);
       }
-      return Collections.unmodifiableSet(values);
+      return builder.toAttribute();
     }
   }
 
@@ -176,6 +163,7 @@ public class UserDefinedVirtualAttributeProvider
   /**
    * {@inheritDoc}
    */
+  @Override
   public boolean isConfigurationChangeAcceptable(
                       UserDefinedVirtualAttributeCfg configuration,
                       List<LocalizableMessage> unacceptableReasons)
@@ -189,6 +177,7 @@ public class UserDefinedVirtualAttributeProvider
   /**
    * {@inheritDoc}
    */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
                                  UserDefinedVirtualAttributeCfg configuration)
   {

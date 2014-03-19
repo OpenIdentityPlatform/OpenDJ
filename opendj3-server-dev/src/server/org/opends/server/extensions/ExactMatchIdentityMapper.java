@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -179,7 +180,7 @@ public class ExactMatchIdentityMapper
     SearchFilter filter;
     if (attributeTypes.length == 1)
     {
-      AttributeValue value = AttributeValues.create(attributeTypes[0], id);
+      ByteString value = ByteString.valueOf(id);
       filter = SearchFilter.createEqualityFilter(attributeTypes[0], value);
     }
     else
@@ -188,7 +189,7 @@ public class ExactMatchIdentityMapper
            new ArrayList<SearchFilter>(attributeTypes.length);
       for (AttributeType t : attributeTypes)
       {
-        AttributeValue value = AttributeValues.create(t, id);
+        ByteString value = ByteString.valueOf(id);
         filterComps.add(SearchFilter.createEqualityFilter(t, value));
       }
 
@@ -268,15 +269,7 @@ public class ExactMatchIdentityMapper
       }
     }
 
-
-    if (matchingEntry == null)
-    {
-      return null;
-    }
-    else
-    {
-      return matchingEntry;
-    }
+    return matchingEntry;
   }
 
 

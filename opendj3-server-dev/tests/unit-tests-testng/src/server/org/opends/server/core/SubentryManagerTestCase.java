@@ -153,17 +153,13 @@ public class SubentryManagerTestCase extends CoreTestCase
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
     Entry entry = DirectoryServer.getEntry(testEntry.getName());
-    AttributeType attrType = DirectoryServer.getAttributeType(
-            "c-l");
+    AttributeType attrType = DirectoryServer.getAttributeType("c-l");
     assertTrue(entry.hasAttribute(attrType));
-    assertTrue(entry.hasValue(attrType, null,
-            AttributeValues.create(attrType, "Savoie")));
+    assertTrue(entry.hasValue(attrType, null, ByteString.valueOf("Savoie")));
 
-    attrType = DirectoryServer.getAttributeType(
-            "preferredlanguage");
+    attrType = DirectoryServer.getAttributeType("preferredlanguage");
     assertTrue(entry.hasAttribute(attrType));
-    assertTrue(entry.hasValue(attrType, null,
-            AttributeValues.create(attrType, "fr")));
+    assertTrue(entry.hasValue(attrType, null, ByteString.valueOf("fr")));
   }
 
 
@@ -246,8 +242,7 @@ public class SubentryManagerTestCase extends CoreTestCase
       Attribute attribute = description.get(0);
       assertEquals(attribute.size(), 1);
       assertFalse(attribute.hasOptions());
-      assertTrue(attribute.contains(AttributeValues.create(
-          attribute.getAttributeType(), "inherited description")));
+      assertTrue(attribute.contains(ByteString.valueOf("inherited description")));
     }
     finally
     {
@@ -307,19 +302,15 @@ public class SubentryManagerTestCase extends CoreTestCase
 
     // Test Inherited Collective Attributes on test entry.
     Entry entry = DirectoryServer.getEntry(testEntry.getName());
-    AttributeType attrType = DirectoryServer.getAttributeType(
-            "postaladdress");
+    AttributeType attrType = DirectoryServer.getAttributeType("postaladdress");
     assertTrue(entry.hasAttribute(attrType));
     assertTrue(entry.hasValue(attrType, null,
-            AttributeValues.create(attrType,
-            "Sub City, Collective Street, AK 47")));
+            ByteString.valueOf("Sub City, Collective Street, AK 47")));
 
-    attrType = DirectoryServer.getAttributeType(
-            "telephonenumber");
+    attrType = DirectoryServer.getAttributeType("telephonenumber");
     assertTrue(entry.hasAttribute(attrType));
     assertTrue(entry.hasValue(attrType, null,
-            AttributeValues.create(attrType,
-            "+1 999 999 9999")));
+            ByteString.valueOf("+1 999 999 9999")));
 
     // Cleanup.
     TestCaseUtils.deleteEntry(collectiveRDNInheritedSubentry.getName());
@@ -356,13 +347,10 @@ public class SubentryManagerTestCase extends CoreTestCase
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
     Entry entry = DirectoryServer.getEntry(testEntry.getName());
-    AttributeType attrType = DirectoryServer.getAttributeType(
-            "preferredlanguage");
+    AttributeType attrType = DirectoryServer.getAttributeType("preferredlanguage");
     assertTrue(entry.hasAttribute(attrType));
-    assertTrue(entry.hasValue(attrType, null,
-            AttributeValues.create(attrType, "ja")));
-    assertFalse(entry.hasValue(attrType, null,
-            AttributeValues.create(attrType, "fr")));
+    assertTrue(entry.hasValue(attrType, null, ByteString.valueOf("ja")));
+    assertFalse(entry.hasValue(attrType, null, ByteString.valueOf("fr")));
 
     // virtual-overrides-real.
     values = new ArrayList<ByteString>();
@@ -377,13 +365,10 @@ public class SubentryManagerTestCase extends CoreTestCase
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
     entry = DirectoryServer.getEntry(testEntry.getName());
-    attrType = DirectoryServer.getAttributeType(
-            "preferredlanguage");
+    attrType = DirectoryServer.getAttributeType("preferredlanguage");
     assertTrue(entry.hasAttribute(attrType));
-    assertTrue(entry.hasValue(attrType, null,
-            AttributeValues.create(attrType, "fr")));
-    assertFalse(entry.hasValue(attrType, null,
-            AttributeValues.create(attrType, "ja")));
+    assertTrue(entry.hasValue(attrType, null, ByteString.valueOf("fr")));
+    assertFalse(entry.hasValue(attrType, null, ByteString.valueOf("ja")));
 
     // merge-real-and-virtual.
     values = new ArrayList<ByteString>();
@@ -398,13 +383,10 @@ public class SubentryManagerTestCase extends CoreTestCase
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
     entry = DirectoryServer.getEntry(testEntry.getName());
-    attrType = DirectoryServer.getAttributeType(
-            "preferredlanguage");
+    attrType = DirectoryServer.getAttributeType("preferredlanguage");
     assertTrue(entry.hasAttribute(attrType));
-    assertTrue(entry.hasValue(attrType, null,
-            AttributeValues.create(attrType, "ja")));
-    assertTrue(entry.hasValue(attrType, null,
-            AttributeValues.create(attrType, "fr")));
+    assertTrue(entry.hasValue(attrType, null, ByteString.valueOf("ja")));
+    assertTrue(entry.hasValue(attrType, null, ByteString.valueOf("fr")));
 
     // cleanup.
     values = new ArrayList<ByteString>();
@@ -444,11 +426,9 @@ public class SubentryManagerTestCase extends CoreTestCase
     searchOperation.run();
     assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
     assertEquals(searchOperation.getEntriesSent(), 1);
-    AttributeType attrType = DirectoryServer.getAttributeType(
-            "collectiveattributesubentries");
+    AttributeType attrType = DirectoryServer.getAttributeType("collectiveattributesubentries");
     assertTrue(searchOperation.getSearchEntries().getFirst().hasValue(
-            attrType, null, AttributeValues.create(attrType,
-            collectiveSubentry.getName().toNormalizedString())));
+            attrType, null, ByteString.valueOf(collectiveSubentry.getName())));
   }
 
   @Test
@@ -478,14 +458,11 @@ public class SubentryManagerTestCase extends CoreTestCase
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
     Entry entry = DirectoryServer.getEntry(testEntry.getName());
-    AttributeType attrType = DirectoryServer.getAttributeType(
-            "c-l");
+    AttributeType attrType = DirectoryServer.getAttributeType("c-l");
     assertFalse(entry.hasAttribute(attrType));
-    attrType = DirectoryServer.getAttributeType(
-            "preferredlanguage");
+    attrType = DirectoryServer.getAttributeType("preferredlanguage");
     assertTrue(entry.hasAttribute(attrType));
-    assertTrue(entry.hasValue(attrType, null,
-            AttributeValues.create(attrType, "fr")));
+    assertTrue(entry.hasValue(attrType, null, ByteString.valueOf("fr")));
 
     values = new ArrayList<ByteString>();
     values.add(ByteString.valueOf("preferredLanguage"));
@@ -498,14 +475,11 @@ public class SubentryManagerTestCase extends CoreTestCase
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
     entry = DirectoryServer.getEntry(testEntry.getName());
-    attrType = DirectoryServer.getAttributeType(
-            "preferredlanguage");
+    attrType = DirectoryServer.getAttributeType("preferredlanguage");
     assertFalse(entry.hasAttribute(attrType));
-    attrType = DirectoryServer.getAttributeType(
-            "c-l");
+    attrType = DirectoryServer.getAttributeType("c-l");
     assertTrue(entry.hasAttribute(attrType));
-    assertTrue(entry.hasValue(attrType, null,
-            AttributeValues.create(attrType, "Savoie")));
+    assertTrue(entry.hasValue(attrType, null, ByteString.valueOf("Savoie")));
 
     values = new ArrayList<ByteString>();
     values.add(ByteString.valueOf("excludeAllCollectiveAttributes"));
@@ -518,11 +492,9 @@ public class SubentryManagerTestCase extends CoreTestCase
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
 
     entry = DirectoryServer.getEntry(testEntry.getName());
-    attrType = DirectoryServer.getAttributeType(
-            "preferredlanguage");
+    attrType = DirectoryServer.getAttributeType("preferredlanguage");
     assertFalse(entry.hasAttribute(attrType));
-    attrType = DirectoryServer.getAttributeType(
-            "c-l");
+    attrType = DirectoryServer.getAttributeType("c-l");
     assertFalse(entry.hasAttribute(attrType));
 
     // cleanup.

@@ -27,28 +27,28 @@
 package org.opends.server.plugins;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.AttributeCleanupPluginCfgDefn;
 import org.opends.server.admin.std.server.AttributeCleanupPluginCfg;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.api.plugin.PluginType;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.AddOperationBasis;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.opends.server.TestCaseUtils.*;
 import static org.testng.Assert.*;
 
 /**
@@ -194,21 +194,7 @@ public class AttributeCleanupPluginTestCase extends PluginTestCase
   public void testInitializeWithInvalidConfigs(Entry e)
     throws ConfigException, InitializationException
   {
-    Set<PluginType> pluginTypes = new HashSet<PluginType>();
-    List<Attribute> attrList = e.getAttribute("ds-cfg-plugin-type");
-
-    assertNotNull(attrList);
-
-    for (Attribute attr : attrList)
-    {
-      for (AttributeValue value : attr)
-      {
-        pluginTypes.add(
-          PluginType.forName(
-            value.getValue().toString().toLowerCase()));
-      }
-    }
-
+    Set<PluginType> pluginTypes = getPluginTypes(e);
     assertTrue(!pluginTypes.isEmpty());
 
     AttributeCleanupPluginCfg config =
@@ -684,30 +670,6 @@ public class AttributeCleanupPluginTestCase extends PluginTestCase
     }
 
     fail();
-  }
-
-
-  /**
-   * Helper method to get the plugin types from the configuration entry.
-   *
-   * @param e Configuration entry.
-   * @return Set of plugin types.
-   */
-  private Set<PluginType> getPluginTypes(Entry e)
-  {
-    Set<PluginType> pluginTypes = new HashSet<PluginType>();
-    List<Attribute> attrList = e.getAttribute("ds-cfg-plugin-type");
-
-    for(Attribute a : attrList)
-    {
-      for (AttributeValue v : a)
-      {
-      pluginTypes.add(
-        PluginType.forName(v.getValue().toString().toLowerCase()));
-      }
-    }
-
-    return pluginTypes;
   }
 
 }

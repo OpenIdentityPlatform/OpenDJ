@@ -29,7 +29,6 @@ package org.opends.server.api;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -40,7 +39,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.opends.server.admin.std.server.VirtualAttributeCfg;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.types.AttributeValue;
+import org.opends.server.types.Attribute;
 import org.opends.server.types.Entry;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.VirtualAttributeRule;
@@ -140,18 +139,17 @@ public abstract class VirtualAttributeProvider
 
 
   /**
-   * Generates an unmodifiable set of values for the provided entry.
+   * Generates an unmodifiable attribute with the values for the provided entry.
    *
    * @param entry
    *          The entry for which the values are to be generated.
    * @param rule
    *          The virtual attribute rule which defines the constraints
    *          for the virtual attribute.
-   * @return The unmodifiable set of values generated for the provided
-   *         entry. It may be empty, but it must not be {@code null}.
+   * @return The unmodifiable attribute with the values generated for the
+   *         provided entry. It may be empty, but it must not be {@code null}.
    */
-  public abstract Set<AttributeValue> getValues(
-      Entry entry, VirtualAttributeRule rule);
+  public abstract Attribute getValues(Entry entry, VirtualAttributeRule rule);
 
 
 
@@ -169,7 +167,7 @@ public abstract class VirtualAttributeProvider
    */
   public boolean hasValue(Entry entry, VirtualAttributeRule rule)
   {
-    return (! getValues(entry, rule).isEmpty());
+    return !getValues(entry, rule).isEmpty();
   }
 
 
@@ -187,8 +185,7 @@ public abstract class VirtualAttributeProvider
    *          generate the specified value for the provided entry, or
    *          {@code false} if not.
    */
-  public boolean hasValue(Entry entry, VirtualAttributeRule rule,
-                          AttributeValue value)
+  public boolean hasValue(Entry entry, VirtualAttributeRule rule, ByteString value)
   {
     return getValues(entry, rule).contains(value);
   }
@@ -211,41 +208,9 @@ public abstract class VirtualAttributeProvider
    *          them.
    */
   public boolean hasAllValues(Entry entry, VirtualAttributeRule rule,
-                              Collection<AttributeValue> values)
+                              Collection<ByteString> values)
   {
-    Set<AttributeValue> virtualValues = getValues(entry, rule);
-    return virtualValues.containsAll(values);
-  }
-
-
-
-  /**
-   * Indicates whether this virtual attribute provider will generate
-   * any of the values in the provided collection.
-   *
-   * @param  entry   The entry for which to make the determination.
-   * @param  rule    The virtual attribute rule which defines the
-   *                 constraints for the virtual attribute.
-   * @param  values  The set of values for which to make the
-   *                 determination.
-   *
-   * @return  {@code true} if this attribute provider will generate
-   *          at least one of the values in the provided collection,
-   *          or {@code false} if it will not generate any of them.
-   */
-  public boolean hasAnyValue(Entry entry, VirtualAttributeRule rule,
-                             Collection<AttributeValue> values)
-  {
-    Set<AttributeValue> virtualValues = getValues(entry, rule);
-    for (AttributeValue value : values)
-    {
-      if (virtualValues.contains(value))
-      {
-        return true;
-      }
-    }
-
-    return false;
+    return getValues(entry, rule).containsAll(values);
   }
 
 
@@ -356,11 +321,11 @@ public abstract class VirtualAttributeProvider
 
 
     ConditionResult result = ConditionResult.FALSE;
-    for (AttributeValue value : getValues(entry, rule))
+    for (ByteString value : getValues(entry, rule))
     {
       try
       {
-        ByteString nv = matchingRule.normalizeAttributeValue(value.getValue());
+        ByteString nv = matchingRule.normalizeAttributeValue(value);
         if (matchingRule.valueMatchesSubstring(
                               nv,
                               normalizedSubInitial,
@@ -404,7 +369,7 @@ public abstract class VirtualAttributeProvider
    */
   public ConditionResult greaterThanOrEqualTo(Entry entry,
                               VirtualAttributeRule rule,
-                              AttributeValue value)
+                              ByteString value)
   {
     OrderingMatchingRule matchingRule =
          rule.getAttributeType().getOrderingMatchingRule();
@@ -416,7 +381,7 @@ public abstract class VirtualAttributeProvider
     ByteString normalizedValue;
     try
     {
-      normalizedValue = matchingRule.normalizeAttributeValue(value.getValue());
+      normalizedValue = matchingRule.normalizeAttributeValue(value);
     }
     catch (Exception e)
     {
@@ -427,11 +392,11 @@ public abstract class VirtualAttributeProvider
     }
 
     ConditionResult result = ConditionResult.FALSE;
-    for (AttributeValue v : getValues(entry, rule))
+    for (ByteString v : getValues(entry, rule))
     {
       try
       {
-        ByteString nv = matchingRule.normalizeAttributeValue(v.getValue());
+        ByteString nv = matchingRule.normalizeAttributeValue(v);
         if (matchingRule.compareValues(nv, normalizedValue) >= 0)
         {
           return ConditionResult.TRUE;
@@ -471,7 +436,7 @@ public abstract class VirtualAttributeProvider
    */
   public ConditionResult lessThanOrEqualTo(Entry entry,
                               VirtualAttributeRule rule,
-                              AttributeValue value)
+                              ByteString value)
   {
     OrderingMatchingRule matchingRule =
          rule.getAttributeType().getOrderingMatchingRule();
@@ -483,7 +448,7 @@ public abstract class VirtualAttributeProvider
     ByteString normalizedValue;
     try
     {
-      normalizedValue = matchingRule.normalizeAttributeValue(value.getValue());
+      normalizedValue = matchingRule.normalizeAttributeValue(value);
     }
     catch (Exception e)
     {
@@ -494,11 +459,11 @@ public abstract class VirtualAttributeProvider
     }
 
     ConditionResult result = ConditionResult.FALSE;
-    for (AttributeValue v : getValues(entry, rule))
+    for (ByteString v : getValues(entry, rule))
     {
       try
       {
-        ByteString nv = matchingRule.normalizeAttributeValue(v.getValue());
+        ByteString nv = matchingRule.normalizeAttributeValue(v);
         if (matchingRule.compareValues(nv, normalizedValue) <= 0)
         {
           return ConditionResult.TRUE;
@@ -538,7 +503,7 @@ public abstract class VirtualAttributeProvider
    */
   public ConditionResult approximatelyEqualTo(Entry entry,
                               VirtualAttributeRule rule,
-                              AttributeValue value)
+                              ByteString value)
   {
     MatchingRule matchingRule = rule.getAttributeType().getApproximateMatchingRule();
     if (matchingRule == null)
@@ -549,7 +514,7 @@ public abstract class VirtualAttributeProvider
     Assertion assertion = null;
     try
     {
-      assertion = matchingRule.getAssertion(value.getValue());
+      assertion = matchingRule.getAssertion(value);
     }
     catch (Exception e)
     {
@@ -558,12 +523,11 @@ public abstract class VirtualAttributeProvider
     }
 
     ConditionResult result = ConditionResult.FALSE;
-    for (AttributeValue v : getValues(entry, rule))
+    for (ByteString v : getValues(entry, rule))
     {
       try
       {
-        ByteString nv = matchingRule.normalizeAttributeValue(v.getValue());
-        result = assertion.matches(nv);
+        result = assertion.matches(matchingRule.normalizeAttributeValue(v));
       }
       catch (Exception e)
       {

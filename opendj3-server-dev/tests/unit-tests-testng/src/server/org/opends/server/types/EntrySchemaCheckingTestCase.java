@@ -32,12 +32,11 @@ import static org.testng.Assert.*;
 import java.util.LinkedList;
 
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.tools.LDAPModify;
 import org.testng.annotations.Test;
-
-
 
 /**
  * This class provides a set of test cases that cover the schema validation
@@ -403,8 +402,7 @@ public class EntrySchemaCheckingTestCase
          "objectClass: domain",
          "dc: example");
 
-    e.addAttribute(Attributes.create("dc", "foo"),
-                   new LinkedList<AttributeValue>());
+    e.addAttribute(Attributes.create("dc", "foo"), new LinkedList<ByteString>());
 
     assertFalse(e.conformsToSchema(null, false, true, true, new LocalizableMessageBuilder()));
   }
@@ -437,7 +435,7 @@ public class EntrySchemaCheckingTestCase
         "creatorsName");
     builder.add("cn=Directory Manager");
     builder.add("cn=Another User");
-    e.addAttribute(builder.toAttribute(), new LinkedList<AttributeValue>());
+    e.addAttribute(builder.toAttribute(), new LinkedList<ByteString>());
 
     assertFalse(e.conformsToSchema(null, false, true, true, new LocalizableMessageBuilder()));
   }
@@ -1446,8 +1444,7 @@ public class EntrySchemaCheckingTestCase
          "sn: User",
          "cn: Test User");
 
-    e.addAttribute(Attributes.create("name", "foo"),
-                   new LinkedList<AttributeValue>());
+    e.addAttribute(Attributes.create("name", "foo"), new LinkedList<ByteString>());
 
     assertFalse(e.conformsToSchema(null, false, true, true, new LocalizableMessageBuilder()));
   }

@@ -29,15 +29,16 @@ package org.opends.server.backends;
 import java.io.File;
 import java.util.Map;
 
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.*;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -5346,7 +5347,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     assertTrue(schemaEntry.hasAttribute(mnType));
     assertTrue(schemaEntry.hasAttribute(mtType));
 
-    AttributeValue oldMTValue =
+    ByteString oldMTValue =
          schemaEntry.getAttribute(mtType).get(0).iterator().next();
 
     String path = TestCaseUtils.createTempFile(
@@ -5379,7 +5380,7 @@ public class SchemaBackendTestCase extends BackendTestCase
     assertTrue(schemaEntry.hasAttribute(mnType));
     assertTrue(schemaEntry.hasAttribute(mtType));
 
-    AttributeValue newMTValue =
+    ByteString newMTValue =
          schemaEntry.getAttribute(mtType).get(0).iterator().next();
     assertFalse(oldMTValue.equals(newMTValue));
   }

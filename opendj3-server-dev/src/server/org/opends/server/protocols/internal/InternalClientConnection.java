@@ -169,7 +169,7 @@ public final class InternalClientConnection
       AttributeBuilder builder = new AttributeBuilder(privType);
       for (Privilege p : Privilege.getDefaultRootPrivileges())
       {
-        builder.add(AttributeValues.create(privType, p.getName()));
+        builder.add(p.getName());
       }
       attrList = new LinkedList<Attribute>();
       attrList.add(builder.toAttribute());
@@ -704,8 +704,7 @@ public final class InternalClientConnection
   public AddOperation processAdd(String rawEntryDN,
                                  List<RawAttribute> rawAttributes)
   {
-    return processAdd(ByteString.valueOf(rawEntryDN), rawAttributes,
-                      null);
+    return processAdd(ByteString.valueOf(rawEntryDN), rawAttributes, null);
   }
 
 
@@ -880,21 +879,18 @@ public final class InternalClientConnection
     LinkedHashMap<AttributeType,List<Attribute>> opAttrs =
          new LinkedHashMap<AttributeType,List<Attribute>>();
 
-    Entry e = new Entry(addRecord.getDN(), objectClasses, userAttrs,
-                        opAttrs);
+    Entry e = new Entry(addRecord.getDN(), objectClasses, userAttrs, opAttrs);
 
-    ArrayList<AttributeValue> duplicateValues =
-         new ArrayList<AttributeValue>();
+    ArrayList<ByteString> duplicateValues = new ArrayList<ByteString>();
     for (Attribute a : addRecord.getAttributes())
     {
       if (a.getAttributeType().isObjectClass())
       {
-        for (AttributeValue v : a)
+        for (ByteString v : a)
         {
-          String ocName = v.getValue().toString();
+          String ocName = v.toString();
           String lowerName = toLowerCase(ocName);
-          ObjectClass oc = DirectoryServer.getObjectClass(lowerName,
-                                                          true);
+          ObjectClass oc = DirectoryServer.getObjectClass(lowerName, true);
           objectClasses.put(oc, ocName);
         }
       }
@@ -904,8 +900,7 @@ public final class InternalClientConnection
       }
     }
 
-    return processAdd(addRecord.getDN(), objectClasses, userAttrs,
-                      opAttrs);
+    return processAdd(addRecord.getDN(), objectClasses, userAttrs, opAttrs);
   }
 
 
@@ -926,8 +921,7 @@ public final class InternalClientConnection
                                          String password)
   {
     return processSimpleBind(ByteString.valueOf(rawBindDN),
-        ByteString.valueOf(password),
-                             null);
+        ByteString.valueOf(password), null);
   }
 
 
@@ -1184,8 +1178,7 @@ public final class InternalClientConnection
                                          String attributeType,
                                          String assertionValue)
   {
-    return processCompare(ByteString.valueOf(rawEntryDN),
-                          attributeType,
+    return processCompare(ByteString.valueOf(rawEntryDN), attributeType,
         ByteString.valueOf(assertionValue), null);
   }
 
@@ -1212,10 +1205,8 @@ public final class InternalClientConnection
                                          String assertionValue,
                                          List<Control> controls)
   {
-    return processCompare(ByteString.valueOf(rawEntryDN),
-                          attributeType,
-        ByteString.valueOf(assertionValue),
-                          controls);
+    return processCompare(ByteString.valueOf(rawEntryDN), attributeType,
+        ByteString.valueOf(assertionValue), controls);
   }
 
 
@@ -1791,8 +1782,7 @@ public final class InternalClientConnection
                                            String rawNewSuperior)
   {
     return processModifyDN(ByteString.valueOf(rawEntryDN),
-        ByteString.valueOf(rawNewRDN),
-                           deleteOldRDN,
+        ByteString.valueOf(rawNewRDN), deleteOldRDN,
         ByteString.valueOf(rawNewSuperior), null);
   }
 
@@ -1823,10 +1813,8 @@ public final class InternalClientConnection
                                            List<Control> controls)
   {
     return processModifyDN(ByteString.valueOf(rawEntryDN),
-        ByteString.valueOf(rawNewRDN),
-                           deleteOldRDN,
-        ByteString.valueOf(rawNewSuperior),
-                           controls);
+        ByteString.valueOf(rawNewRDN), deleteOldRDN,
+        ByteString.valueOf(rawNewSuperior), controls);
   }
 
 
@@ -2039,8 +2027,7 @@ public final class InternalClientConnection
                      le.getErrorMessage(), le);
     }
 
-    return processSearch(ByteString.valueOf(rawBaseDN), scope,
-                         rawFilter);
+    return processSearch(ByteString.valueOf(rawBaseDN), scope, rawFilter);
   }
 
 

@@ -404,12 +404,12 @@ public final class DNConfigAttribute
       {
         if (requiresAdminAction())
         {
-          setPendingValues(new LinkedHashSet<AttributeValue>(0));
+          setPendingValues(new LinkedHashSet<ByteString>(0));
           pendingValues = new ArrayList<DN>();
         }
         else
         {
-          setActiveValues(new LinkedHashSet<AttributeValue>(0));
+          setActiveValues(new LinkedHashSet<ByteString>(0));
           activeValues.clear();
         }
       }
@@ -428,8 +428,7 @@ public final class DNConfigAttribute
 
     // Iterate through all the provided values, make sure that they are
     // acceptable, and build the value set.
-    LinkedHashSet<AttributeValue> valueSet =
-         new LinkedHashSet<AttributeValue>(numValues);
+    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<ByteString>(numValues);
     for (DN value : values)
     {
       if (value == null)
@@ -438,10 +437,7 @@ public final class DNConfigAttribute
         throw new ConfigException(message);
       }
 
-      AttributeValue attrValue =
-          AttributeValues.create(ByteString.valueOf(value.toString()),
-              ByteString.valueOf(value.toNormalizedString()));
-
+      ByteString attrValue = ByteString.valueOf(value.toString());
       if (valueSet.contains(attrValue))
       {
         LocalizableMessage message =
@@ -476,20 +472,18 @@ public final class DNConfigAttribute
    *
    * @return  The constructed value set.
    */
-  private static LinkedHashSet<AttributeValue> getValueSet(DN value)
+  private static LinkedHashSet<ByteString> getValueSet(DN value)
   {
-    LinkedHashSet<AttributeValue> valueSet;
+    LinkedHashSet<ByteString> valueSet;
     if (value == null)
     {
-      valueSet = new LinkedHashSet<AttributeValue>(0);
+      valueSet = new LinkedHashSet<ByteString>(0);
     }
     else
     {
-      valueSet = new LinkedHashSet<AttributeValue>(1);
-      valueSet.add(AttributeValues.create(ByteString.valueOf(value.toString()),
-          ByteString.valueOf(value.toNormalizedString())));
+      valueSet = new LinkedHashSet<ByteString>(1);
+      valueSet.add(ByteString.valueOf(value.toString()));
     }
-
     return valueSet;
   }
 
@@ -502,22 +496,18 @@ public final class DNConfigAttribute
    *
    * @return  The constructed value set.
    */
-  private static LinkedHashSet<AttributeValue> getValueSet(List<DN> values)
+  private static LinkedHashSet<ByteString> getValueSet(List<DN> values)
   {
     if (values == null)
     {
       return null;
     }
 
-    LinkedHashSet<AttributeValue> valueSet =
-         new LinkedHashSet<AttributeValue>(values.size());
-
+    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<ByteString>(values.size());
     for (DN value : values)
     {
-      valueSet.add(AttributeValues.create(ByteString.valueOf(value.toString()),
-          ByteString.valueOf(value.toNormalizedString())));
+      valueSet.add(ByteString.valueOf(value.toString()));
     }
-
     return valueSet;
   }
 
@@ -553,8 +543,7 @@ public final class DNConfigAttribute
    * @return  <CODE>true</CODE> if the provided value is acceptable for use in
    *          this attribute, or <CODE>false</CODE> if not.
    */
-  public boolean valueIsAcceptable(AttributeValue value,
-                                   StringBuilder rejectReason)
+  public boolean valueIsAcceptable(ByteString value, StringBuilder rejectReason)
   {
     // Make sure that the value is not null.
     if (value == null)
@@ -567,18 +556,15 @@ public final class DNConfigAttribute
     // Make sure that it can be parsed as a DN.
     try
     {
-      DN.valueOf(value.getValue().toString());
+      DN.valueOf(value.toString());
     }
     catch (Exception e)
     {
       logger.traceException(e);
 
-      rejectReason.append(ERR_CONFIG_ATTR_DN_CANNOT_PARSE.get(
-              value.getValue(), getName(), e));
+      rejectReason.append(ERR_CONFIG_ATTR_DN_CANNOT_PARSE.get(value, getName(), e));
       return false;
     }
-
-
     return true;
   }
 
@@ -603,7 +589,7 @@ public final class DNConfigAttribute
    * @throws  ConfigException  If an unrecoverable problem occurs while
    *                           performing the conversion.
    */
-  public LinkedHashSet<AttributeValue>
+  public LinkedHashSet<ByteString>
               stringsToValues(List<String> valueStrings,
                               boolean allowFailures)
          throws ConfigException
@@ -617,7 +603,7 @@ public final class DNConfigAttribute
       }
       else
       {
-        return new LinkedHashSet<AttributeValue>();
+        return new LinkedHashSet<ByteString>();
       }
     }
 
@@ -631,8 +617,7 @@ public final class DNConfigAttribute
     }
 
 
-    LinkedHashSet<AttributeValue> valueSet =
-         new LinkedHashSet<AttributeValue>(numValues);
+    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<ByteString>(numValues);
     for (String valueString : valueStrings)
     {
       if (valueString == null)
@@ -672,8 +657,7 @@ public final class DNConfigAttribute
       }
 
 
-      valueSet.add(AttributeValues.create(ByteString.valueOf(dn.toString()),
-          ByteString.valueOf(dn.toNormalizedString())));
+      valueSet.add(ByteString.valueOf(dn.toString()));
     }
 
 
@@ -816,19 +800,19 @@ public final class DNConfigAttribute
             }
 
             pendingValues = new ArrayList<DN>(numValues);
-            for (AttributeValue v : a)
+            for (ByteString v : a)
             {
               DN dn;
               try
               {
-                dn = DN.valueOf(v.getValue().toString());
+                dn = DN.valueOf(v.toString());
               }
               catch (Exception e)
               {
                 logger.traceException(e);
 
                 LocalizableMessage message = ERR_CONFIG_ATTR_DN_CANNOT_PARSE.get(
-                    v.getValue(), getName(), e);
+                    v, getName(), e);
                 throw new ConfigException(message, e);
               }
 
@@ -881,19 +865,19 @@ public final class DNConfigAttribute
           }
 
           activeValues = new ArrayList<DN>(numValues);
-          for (AttributeValue v : a)
+          for (ByteString v : a)
           {
             DN dn;
             try
             {
-              dn = DN.valueOf(v.getValue().toString());
+              dn = DN.valueOf(v.toString());
             }
             catch (Exception e)
             {
               logger.traceException(e);
 
               LocalizableMessage message = ERR_CONFIG_ATTR_DN_CANNOT_PARSE.get(
-                  v.getValue(), getName(), e);
+                  v, getName(), e);
               throw new ConfigException(message, e);
             }
 

@@ -54,7 +54,7 @@ import org.opends.guitools.controlpanel.ui.nodes.BrowserNodeInfo;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.config.ConfigConstants;
-import org.opends.server.types.AttributeValue;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 
@@ -214,16 +214,16 @@ public class NewEntryTask extends Task
       for (org.opends.server.types.Attribute attr : newEntry.getAttributes())
       {
         String attrName = attr.getNameWithOptions();
-        Set<AttributeValue> values = new LinkedHashSet<AttributeValue>();
-        Iterator<AttributeValue> it = attr.iterator();
+        Set<ByteString> values = new LinkedHashSet<ByteString>();
+        Iterator<ByteString> it = attr.iterator();
         while (it.hasNext())
         {
           values.add(it.next());
         }
         BasicAttribute a = new BasicAttribute(attrName);
-        for (AttributeValue value : values)
+        for (ByteString value : values)
         {
-          a.add(value.getValue().toByteArray());
+          a.add(value.toByteArray());
         }
         attrs.put(a);
       }

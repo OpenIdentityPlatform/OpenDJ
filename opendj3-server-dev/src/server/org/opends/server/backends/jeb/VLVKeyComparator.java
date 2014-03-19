@@ -35,7 +35,6 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DirectoryException;
 
 import com.sleepycat.je.DatabaseException;
@@ -279,7 +278,7 @@ public class VLVKeyComparator implements Comparator<byte[]>, Serializable
    *                              associated equality matching rule).
    */
   public int compare(SortValuesSet set, int index, long entryID,
-      AttributeValue[] values, AttributeType[] types) throws DatabaseException,
+      ByteString[] values, AttributeType[] types) throws DatabaseException,
       DirectoryException
   {
     for (int j=0; j < orderingRules.length; j++)
@@ -297,7 +296,7 @@ public class VLVKeyComparator implements Comparator<byte[]>, Serializable
         try
         {
           final MatchingRule eqRule = types[j].getEqualityMatchingRule();
-          b2Bytes = eqRule.normalizeAttributeValue(values[j].getValue());
+          b2Bytes = eqRule.normalizeAttributeValue(values[j]);
         }
         catch (DecodeException e)
         {

@@ -253,30 +253,7 @@ public class TestJebFormat extends JebTestCase {
     // Encoded one-to-five byte number of attributes
     buffer.appendBERLength(numAttributes);
 
-
-    // The attributes will be encoded as a sequence of:
-    // - A UTF-8 byte representation of the attribute name.
-    // - A zero delimiter
-    // - A one-to-five byte number of values for the attribute
-    // - A sequence of:
-    //   - A one-to-five byte length for the value
-    //   - A UTF-8 byte representation for the value
-    for (List<Attribute> attrList : attributes.values())
-    {
-      for (Attribute a : attrList)
-      {
-        byte[] nameBytes = getBytes(a.getNameWithOptions());
-        buffer.append(nameBytes);
-        buffer.append((byte)0x00);
-
-        buffer.appendBERLength(a.size());
-        for(AttributeValue v : a)
-        {
-          buffer.appendBERLength(v.getValue().length());
-          buffer.append(v.getValue());
-        }
-      }
-    }
+    append(buffer, attributes);
   }
 
     /**
@@ -387,27 +364,35 @@ public class TestJebFormat extends JebTestCase {
     }
     else
     {
-      // The attributes will be encoded as a sequence of:
-      // - A UTF-8 byte representation of the attribute name.
-      // - A zero delimiter
-      // - A one-to-five byte number of values for the attribute
-      // - A sequence of:
-      //   - A one-to-five byte length for the value
-      //   - A UTF-8 byte representation for the value
-      for (List<Attribute> attrList : attributes.values())
-      {
-        for (Attribute a : attrList)
-        {
-          byte[] nameBytes = getBytes(a.getNameWithOptions());
-          buffer.append(nameBytes);
-          buffer.append((byte)0x00);
+      append(buffer, attributes);
+    }
+  }
 
-          buffer.appendBERLength(a.size());
-          for(AttributeValue v : a)
-          {
-            buffer.appendBERLength(v.getValue().length());
-            buffer.append(v.getValue());
-          }
+  /**
+   * The attributes will be encoded as a sequence of:
+   * - A UTF-8 byte representation of the attribute name.
+   * - A zero delimiter
+   * - A one-to-five byte number of values for the attribute
+   * - A sequence of:
+   *   - A one-to-five byte length for the value
+   *   - A UTF-8 byte representation for the value
+   */
+  private void append(ByteStringBuilder buffer,
+      Map<AttributeType, List<Attribute>> attributes)
+  {
+    for (List<Attribute> attrList : attributes.values())
+    {
+      for (Attribute a : attrList)
+      {
+        byte[] nameBytes = getBytes(a.getNameWithOptions());
+        buffer.append(nameBytes);
+        buffer.append((byte)0x00);
+
+        buffer.appendBERLength(a.size());
+        for (ByteString v : a)
+        {
+          buffer.appendBERLength(v.length());
+          buffer.append(v);
         }
       }
     }

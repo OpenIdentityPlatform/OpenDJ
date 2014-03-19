@@ -22,32 +22,30 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.replication.plugin;
 
 import org.opends.server.replication.common.CSN;
-import org.opends.server.types.AttributeValue;
+import org.forgerock.opendj.ldap.ByteString;
 
 /**
  * Store historical information for an attribute value.
  */
 public class AttrValueHistorical
 {
-  private AttributeValue value;
+  private ByteString value;
   private CSN valueDeleteTime;
   private CSN valueUpdateTime;
 
   /**
-   * Build an AttrValueHistorical for a provided AttributeValue, providing
+   * Build an AttrValueHistorical for a provided attribute value, providing
    * the last time the provided value is either updated or deleted.
    * @param value    the provided attributeValue
    * @param csnUpdate last time when this value was updated
    * @param csnDelete last time when this value for deleted
    */
-  public AttrValueHistorical(AttributeValue value,
-                   CSN csnUpdate,
-                   CSN csnDelete)
+  public AttrValueHistorical(ByteString value, CSN csnUpdate, CSN csnDelete)
   {
     this.value = value;
     this.valueUpdateTime = csnUpdate;
@@ -104,7 +102,7 @@ public class AttrValueHistorical
    * Get the attributeValue for which this object was generated.
    * @return the value for which this object was generated
    */
-  public AttributeValue getAttributeValue()
+  public ByteString getAttributeValue()
   {
     return value;
   }

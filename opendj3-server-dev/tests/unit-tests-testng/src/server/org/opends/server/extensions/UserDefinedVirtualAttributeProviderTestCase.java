@@ -29,6 +29,7 @@ package org.opends.server.extensions;
 import java.util.LinkedHashSet;
 import java.util.List;
 
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
@@ -277,8 +278,7 @@ public class UserDefinedVirtualAttributeProviderTestCase
 
       Attribute attr = attrList.get(0);
       assertEquals(attr.size(), 1);
-      assertTrue(attr.contains(AttributeValues.create(descriptionType,
-          value)));
+      assertTrue(attr.contains(ByteString.valueOf(value)));
     }
     finally
     {
@@ -350,10 +350,8 @@ public class UserDefinedVirtualAttributeProviderTestCase
 
       Attribute attr = attrList.get(0);
       assertEquals(attr.size(), 2);
-      assertTrue(attr.contains(AttributeValues.create(descriptionType,
-          value1)));
-      assertTrue(attr.contains(AttributeValues.create(descriptionType,
-          value2)));
+      assertTrue(attr.contains(ByteString.valueOf(value1)));
+      assertTrue(attr.contains(ByteString.valueOf(value2)));
     }
     finally
     {
@@ -425,8 +423,7 @@ public class UserDefinedVirtualAttributeProviderTestCase
 
       Attribute attr = attrList.get(0);
       assertEquals(attr.size(), 1);
-      assertTrue(attr.contains(AttributeValues.create(descriptionType,
-          realValue)));
+      assertTrue(attr.contains(ByteString.valueOf(realValue)));
     }
     finally
     {
@@ -498,8 +495,7 @@ public class UserDefinedVirtualAttributeProviderTestCase
 
       Attribute attr = attrList.get(0);
       assertEquals(attr.size(), 1);
-      assertTrue(attr.contains(AttributeValues.create(descriptionType,
-          virtualValue)));
+      assertTrue(attr.contains(ByteString.valueOf(virtualValue)));
     }
     finally
     {
@@ -572,10 +568,8 @@ public class UserDefinedVirtualAttributeProviderTestCase
       Attribute a = attrList.get(0);
       assertEquals(a.size(), 2);
 
-      assertTrue(a.contains(AttributeValues.create(
-          descriptionType, realValue)));
-      assertTrue(a.contains(AttributeValues.create(
-          descriptionType, virtualValue)));
+      assertTrue(a.contains(ByteString.valueOf(realValue)));
+      assertTrue(a.contains(ByteString.valueOf(virtualValue)));
 
     }
     finally
@@ -658,10 +652,8 @@ public class UserDefinedVirtualAttributeProviderTestCase
       Attribute a = attrList.get(0);
       assertEquals(a.size(), 2);
 
-      assertTrue(a.contains(AttributeValues.create(
-          descriptionType, realValue)));
-      assertTrue(a.contains(AttributeValues.create(
-          descriptionType, virtualValue)));
+      assertTrue(a.contains(ByteString.valueOf(realValue)));
+      assertTrue(a.contains(ByteString.valueOf(virtualValue)));
     }
     finally
     {

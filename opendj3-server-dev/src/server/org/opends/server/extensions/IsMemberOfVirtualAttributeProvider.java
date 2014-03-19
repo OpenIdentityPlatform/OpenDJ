@@ -26,7 +26,7 @@
  */
 package org.opends.server.extensions;
 
-import java.util.*;
+import java.util.List;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
@@ -71,34 +71,17 @@ public class IsMemberOfVirtualAttributeProvider
 
   /** {@inheritDoc} */
   @Override()
-  public Set<AttributeValue> getValues(Entry entry,
-                                       VirtualAttributeRule rule)
+  public Attribute getValues(Entry entry, VirtualAttributeRule rule)
   {
     // FIXME -- This probably isn't the most efficient implementation.
-    Set<AttributeValue> values = null;
+    AttributeBuilder builder = new AttributeBuilder(rule.getAttributeType());
     for (Group<?> g : DirectoryServer.getGroupManager().getGroupInstances())
     {
       try
       {
         if (g.isMember(entry))
         {
-          AttributeValue value = AttributeValues.create(
-              rule.getAttributeType(), g.getGroupDN().toString());
-          if (values == null)
-          {
-            values = Collections.singleton(value);
-          }
-          else if (values.size() == 1)
-          {
-            Set<AttributeValue> tmp = new HashSet<AttributeValue>(2);
-            tmp.addAll(values);
-            tmp.add(value);
-            values = tmp;
-          }
-          else
-          {
-            values.add(value);
-          }
+          builder.add(g.getGroupDN().toString());
         }
       }
       catch (Exception e)
@@ -106,12 +89,7 @@ public class IsMemberOfVirtualAttributeProvider
         logger.traceException(e);
       }
     }
-
-    if (values != null)
-    {
-      return Collections.unmodifiableSet(values);
-    }
-    return Collections.emptySet();
+    return builder.toAttribute();
   }
 
   /** {@inheritDoc} */
@@ -140,11 +118,11 @@ public class IsMemberOfVirtualAttributeProvider
   /** {@inheritDoc} */
   @Override()
   public boolean hasValue(Entry entry, VirtualAttributeRule rule,
-                          AttributeValue value)
+                          ByteString value)
   {
     try
     {
-      DN groupDN = DN.decode(value.getValue());
+      DN groupDN = DN.decode(value);
       Group<?> g = DirectoryServer.getGroupManager().getGroupInstance(groupDN);
       return g != null && g.isMember(entry);
     }
@@ -154,22 +132,6 @@ public class IsMemberOfVirtualAttributeProvider
 
       return false;
     }
-  }
-
-  /** {@inheritDoc} */
-  @Override()
-  public boolean hasAnyValue(Entry entry, VirtualAttributeRule rule,
-                             Collection<AttributeValue> values)
-  {
-    for (AttributeValue value : values)
-    {
-      if (hasValue(entry, rule, value))
-      {
-        return true;
-      }
-    }
-
-    return false;
   }
 
   /** {@inheritDoc} */
@@ -188,7 +150,7 @@ public class IsMemberOfVirtualAttributeProvider
   @Override()
   public ConditionResult greaterThanOrEqualTo(Entry entry,
                               VirtualAttributeRule rule,
-                              AttributeValue value)
+                              ByteString value)
   {
     // DNs cannot be used in ordering matching.
     return ConditionResult.UNDEFINED;
@@ -198,7 +160,7 @@ public class IsMemberOfVirtualAttributeProvider
   @Override()
   public ConditionResult lessThanOrEqualTo(Entry entry,
                               VirtualAttributeRule rule,
-                              AttributeValue value)
+                              ByteString value)
   {
     // DNs cannot be used in ordering matching.
     return ConditionResult.UNDEFINED;
@@ -208,7 +170,7 @@ public class IsMemberOfVirtualAttributeProvider
   @Override()
   public ConditionResult approximatelyEqualTo(Entry entry,
                               VirtualAttributeRule rule,
-                              AttributeValue value)
+                              ByteString value)
   {
     // DNs cannot be used in approximate matching.
     return ConditionResult.UNDEFINED;
@@ -354,7 +316,7 @@ public class IsMemberOfVirtualAttributeProvider
         {
           try
           {
-            DN dn = DN.decode(filter.getAssertionValue().getValue());
+            DN dn = DN.decode(filter.getAssertionValue());
             return DirectoryServer.getGroupManager().getGroupInstance(dn);
           }
           catch (Exception e)

@@ -33,14 +33,13 @@ import java.util.List;
 import java.util.Map;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.core.PasswordPolicy;
 import org.opends.server.core.PasswordPolicyState;
 
 import static org.opends.server.types.
                    AccountStatusNotificationProperty.*;
 import static org.opends.server.util.StaticUtils.*;
-
-
 
 /**
  * This class defines a data type for storing information associated
@@ -227,8 +226,8 @@ public final class AccountStatusNotification
                      createProperties(
                           PasswordPolicyState pwPolicyState,
                           boolean tempLocked, int timeToExpiration,
-                          List<AttributeValue> oldPasswords,
-                          List<AttributeValue> newPasswords)
+                          List<ByteString> oldPasswords,
+                          List<ByteString> newPasswords)
   {
     HashMap<AccountStatusNotificationProperty,List<String>> props =
          new HashMap<AccountStatusNotificationProperty,
@@ -282,27 +281,25 @@ public final class AccountStatusNotification
 
     if ((oldPasswords != null) && (! oldPasswords.isEmpty()))
     {
-      propList = new ArrayList<String>(oldPasswords.size());
-      for (AttributeValue v : oldPasswords)
-      {
-        propList.add(v.getValue().toString());
-      }
-
-      props.put(OLD_PASSWORD, propList);
+      props.put(OLD_PASSWORD, toStrings(oldPasswords));
     }
 
     if ((newPasswords != null) && (! newPasswords.isEmpty()))
     {
-      propList = new ArrayList<String>(newPasswords.size());
-      for (AttributeValue v : newPasswords)
-      {
-        propList.add(v.getValue().toString());
-      }
-
-      props.put(NEW_PASSWORD, propList);
+      props.put(NEW_PASSWORD, toStrings(newPasswords));
     }
 
     return props;
+  }
+
+  private static ArrayList<String> toStrings(List<ByteString> byteStrings)
+  {
+    ArrayList<String> results = new ArrayList<String>(byteStrings.size());
+    for (ByteString v : byteStrings)
+    {
+      results.add(v.toString());
+    }
+    return results;
   }
 
 

@@ -32,6 +32,7 @@ import java.util.concurrent.locks.Lock;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -365,11 +366,8 @@ public final class AciHandler extends
       baseName = toLowerCase(rawAttributeType);
     }
 
-    AttributeType attributeType = getAttributeType(baseName);
-    AttributeValue attributeValue =
-        AttributeValues.create(attributeType, operation.getAssertionValue());
-    container.setCurrentAttributeType(attributeType);
-    container.setCurrentAttributeValue(attributeValue);
+    container.setCurrentAttributeType(getAttributeType(baseName));
+    container.setCurrentAttributeValue(operation.getAssertionValue());
     return isAllowed(container, operation);
   }
 
@@ -527,7 +525,7 @@ public final class AciHandler extends
     final List<String> URLStrings = reference.getReferralURLs();
     for (String URLString : URLStrings)
     {
-      builder.add(AttributeValues.create(refAttrType, URLString));
+      builder.add(URLString);
     }
 
     final Entry e = new Entry(dn, null, null, null);
@@ -620,12 +618,11 @@ public final class AciHandler extends
         && container.hasRights(ACI_WRITE)
         && isAttributeDN(container.getCurrentAttributeType()))
     {
-      String DNString = null;
+      String dnString = null;
       try
       {
-        DNString =
-            container.getCurrentAttributeValue().getValue().toString();
-        DN tmpDN = DN.valueOf(DNString);
+        dnString = container.getCurrentAttributeValue().toString();
+        DN tmpDN = DN.valueOf(dnString);
         // Have a valid DN, compare to clientDN to see if the ACI_SELF
         // right should be set.
         if (tmpDN.equals(container.getClientDN()))
@@ -636,7 +633,7 @@ public final class AciHandler extends
       catch (DirectoryException ex)
       {
         // Log a message and keep going.
-        logger.warn(WARN_ACI_NOT_VALID_DN, DNString);
+        logger.warn(WARN_ACI_NOT_VALID_DN, dnString);
       }
     }
 
@@ -847,7 +844,7 @@ public final class AciHandler extends
           {
             for (Attribute a : attrList)
             {
-              for (AttributeValue v : a)
+              for (ByteString v : a)
               {
                 container.setCurrentAttributeValue(v);
                 container.setRights(ACI_WRITE_DELETE);
@@ -863,7 +860,7 @@ public final class AciHandler extends
 
       if (!modAttr.isEmpty())
       {
-        for (AttributeValue v : modAttr)
+        for (ByteString v : modAttr)
         {
           container.setCurrentAttributeType(modAttrType);
           switch (m.getModificationType().asEnum())
@@ -893,7 +890,7 @@ public final class AciHandler extends
             {
               for (Attribute attr : modifiedAttrs)
               {
-                for (AttributeValue val : attr)
+                for (ByteString val : attr)
                 {
                   container.setCurrentAttributeValue(val);
                   container.setRights(ACI_WRITE_ADD);
@@ -922,7 +919,8 @@ public final class AciHandler extends
               {
                 dn = DN.rootDN();
               }
-              Aci.decode(v.getValue(), dn);
+              // validate ACI syntax
+              Aci.decode(v, dn);
             }
             catch (AciException ex)
             {
@@ -1456,11 +1454,12 @@ public final class AciHandler extends
           entry.getOperationalAttribute(aciType, null);
       for (Attribute attribute : attributeList)
       {
-        for (AttributeValue value : attribute)
+        for (ByteString value : attribute)
         {
           try
           {
-            Aci.decode(value.getValue(), entry.getName());
+            // validate ACI syntax
+            Aci.decode(value, entry.getName());
           }
           catch (AciException ex)
           {

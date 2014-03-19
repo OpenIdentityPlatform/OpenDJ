@@ -145,10 +145,10 @@ public class LocalBackendModifyOperation
   private LDAPPreReadRequestControl preReadRequest;
 
   /** The set of clear-text current passwords (if any were provided).*/
-  private List<AttributeValue> currentPasswords = null;
+  private List<ByteString> currentPasswords;
 
   /** The set of clear-text new passwords (if any were provided).*/
-  private List<AttributeValue> newPasswords = null;
+  private List<ByteString> newPasswords;
 
   /**
    * The set of modifications contained in this request.
@@ -208,7 +208,7 @@ public class LocalBackendModifyOperation
    *          information is not yet available.
    */
   @Override
-  public final List<AttributeValue> getCurrentPasswords()
+  public final List<ByteString> getCurrentPasswords()
   {
     return currentPasswords;
   }
@@ -243,7 +243,7 @@ public class LocalBackendModifyOperation
    *          information is not yet available.
    */
   @Override
-  public final List<AttributeValue> getNewPasswords()
+  public final List<ByteString> getNewPasswords()
   {
     return newPasswords;
   }
@@ -1143,9 +1143,9 @@ public class LocalBackendModifyOperation
     // Otherwise, store the clear-text values for later validation and
     // update the attribute with the encoded values.
     AttributeBuilder builder = new AttributeBuilder(pwAttr, true);
-    for (AttributeValue v : pwAttr)
+    for (ByteString v : pwAttr)
     {
-      if (pwPolicyState.passwordIsPreEncoded(v.getValue()))
+      if (pwPolicyState.passwordIsPreEncoded(v))
       {
         if ((!isInternalOperation())
             && !pwPolicyState.getAuthenticationPolicy()
@@ -1165,7 +1165,7 @@ public class LocalBackendModifyOperation
         if (m.getModificationType() == ModificationType.ADD)
         {
           // Make sure that the password value doesn't already exist.
-          if (pwPolicyState.passwordMatches(v.getValue()))
+          if (pwPolicyState.passwordMatches(v))
           {
             pwpErrorType = PasswordPolicyErrorType.PASSWORD_IN_HISTORY;
             throw new DirectoryException(ResultCode.ATTRIBUTE_OR_VALUE_EXISTS,
@@ -1175,16 +1175,12 @@ public class LocalBackendModifyOperation
 
         if (newPasswords == null)
         {
-          newPasswords = new LinkedList<AttributeValue>();
+          newPasswords = new LinkedList<ByteString>();
         }
 
         newPasswords.add(v);
 
-        for (ByteString s : pwPolicyState.encodePassword(v.getValue()))
-        {
-          builder.add(AttributeValues.create(
-              pwAttr.getAttributeType(), s));
-        }
+        builder.addAll(pwPolicyState.encodePassword(v));
       }
     }
 
@@ -1218,9 +1214,9 @@ public class LocalBackendModifyOperation
       numPasswords = 0;
     }
 
-    for (AttributeValue v : pwAttr)
+    for (ByteString v : pwAttr)
     {
-      if (pwPolicyState.passwordIsPreEncoded(v.getValue()))
+      if (pwPolicyState.passwordIsPreEncoded(v))
       {
         if ((!isInternalOperation()) && selfChange)
         {
@@ -1242,7 +1238,7 @@ public class LocalBackendModifyOperation
           boolean found = false;
           for (Attribute attr : attrList)
           {
-            for (AttributeValue av : attr)
+            for (ByteString av : attr)
             {
               if (av.equals(v))
               {
@@ -1269,20 +1265,20 @@ public class LocalBackendModifyOperation
         boolean found = false;
         for (Attribute attr : attrList)
         {
-          for (AttributeValue av : attr)
+          for (ByteString av : attr)
           {
             if (pwPolicyState.getAuthenticationPolicy().isAuthPasswordSyntax())
             {
-              if (AuthPasswordSyntax.isEncoded(av.getValue()))
+              if (AuthPasswordSyntax.isEncoded(av))
               {
                 StringBuilder[] components = AuthPasswordSyntax
-                    .decodeAuthPassword(av.getValue().toString());
+                    .decodeAuthPassword(av.toString());
                 PasswordStorageScheme<?> scheme = DirectoryServer
                     .getAuthPasswordStorageScheme(components[0].toString());
                 if (scheme != null)
                 {
-                  if (scheme.authPasswordMatches(v.getValue(), components[1]
-                      .toString(), components[2].toString()))
+                  if (scheme.authPasswordMatches(v,
+                      components[1].toString(), components[2].toString()))
                   {
                     builder.add(av);
                     found = true;
@@ -1300,20 +1296,16 @@ public class LocalBackendModifyOperation
             }
             else
             {
-              if (UserPasswordSyntax.isEncoded(av.getValue()))
+              if (UserPasswordSyntax.isEncoded(av))
               {
-                String[] components = UserPasswordSyntax.decodeUserPassword(av
-                    .getValue().toString());
+                String[] components = UserPasswordSyntax.decodeUserPassword(av.toString());
                 PasswordStorageScheme<?> scheme = DirectoryServer
                     .getPasswordStorageScheme(toLowerCase(components[0]));
-                if (scheme != null)
+                if (scheme != null
+                    && scheme.passwordMatches(v, ByteString.valueOf(components[1])))
                 {
-                  if (scheme.passwordMatches(v.getValue(), ByteString.valueOf(
-                      components[1])))
-                  {
-                    builder.add(av);
-                    found = true;
-                  }
+                  builder.add(av);
+                  found = true;
                 }
               }
               else
@@ -1332,7 +1324,7 @@ public class LocalBackendModifyOperation
         {
           if (currentPasswords == null)
           {
-            currentPasswords = new LinkedList<AttributeValue>();
+            currentPasswords = new LinkedList<ByteString>();
           }
           currentPasswords.add(v);
           numPasswords--;
@@ -1385,9 +1377,9 @@ public class LocalBackendModifyOperation
       if (syntaxPolicy == AcceptRejectWarn.REJECT)
       {
         LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
-        for (AttributeValue v : attr)
+        for (ByteString v : attr)
         {
-          if (!syntax.valueIsAcceptable(v.getValue(), invalidReason))
+          if (!syntax.valueIsAcceptable(v, invalidReason))
           {
             if (!syntax.isHumanReadable() || syntax.isBEREncodingRequired())
             {
@@ -1401,7 +1393,7 @@ public class LocalBackendModifyOperation
               throw newDirectoryException(currentEntry,
                   ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                   ERR_MODIFY_ADD_INVALID_SYNTAX.get(
-                      entryDN, attr.getName(), v.getValue(), invalidReason));
+                      entryDN, attr.getName(), v, invalidReason));
             }
           }
         }
@@ -1409,9 +1401,9 @@ public class LocalBackendModifyOperation
       else if (syntaxPolicy == AcceptRejectWarn.WARN)
       {
         LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
-        for (AttributeValue v : attr)
+        for (ByteString v : attr)
         {
-          if (!syntax.valueIsAcceptable(v.getValue(), invalidReason))
+          if (!syntax.valueIsAcceptable(v, invalidReason))
           {
             // FIXME remove next line of code. According to Matt, since this is
             // just a warning, the code should not set the resultCode
@@ -1424,7 +1416,7 @@ public class LocalBackendModifyOperation
             else
             {
               logger.error(ERR_MODIFY_ADD_INVALID_SYNTAX,
-                  entryDN, attr.getName(), v.getValue(), invalidReason);
+                  entryDN, attr.getName(), v, invalidReason);
             }
             invalidReason = new LocalizableMessageBuilder();
           }
@@ -1443,7 +1435,7 @@ public class LocalBackendModifyOperation
     // Add the provided attribute or merge an existing attribute with
     // the values of the new attribute. If there are any duplicates,
     // then fail.
-    List<AttributeValue> duplicateValues = new LinkedList<AttributeValue>();
+    List<ByteString> duplicateValues = new LinkedList<ByteString>();
     modifiedEntry.addAttribute(attr, duplicateValues);
     if (!duplicateValues.isEmpty() && !permissiveModify)
     {
@@ -1473,14 +1465,14 @@ public class LocalBackendModifyOperation
     Reject.ifFalse(attrType.isObjectClass());
     final MatchingRule eqRule = attrType.getEqualityMatchingRule();
 
-    for (AttributeValue v : attr)
+    for (ByteString v : attr)
     {
-      String name = v.getValue().toString();
+      String name = v.toString();
 
       String lowerName;
       try
       {
-        lowerName = eqRule.normalizeAttributeValue(v.getValue()).toString();
+        lowerName = eqRule.normalizeAttributeValue(v).toString();
       }
       catch (Exception e)
       {
@@ -1524,7 +1516,7 @@ public class LocalBackendModifyOperation
     // Remove the specified attribute values or the entire attribute from the
     // value.  If there are any specified values that were not present, then
     // fail.  If the RDN attribute value would be removed, then fail.
-    List<AttributeValue> missingValues = new LinkedList<AttributeValue>();
+    List<ByteString> missingValues = new LinkedList<ByteString>();
     boolean attrExists = modifiedEntry.removeAttribute(attr, missingValues);
 
     if (attrExists)
@@ -1592,9 +1584,9 @@ public class LocalBackendModifyOperation
       if (syntaxPolicy == AcceptRejectWarn.REJECT)
       {
         LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
-        for (AttributeValue v : attr)
+        for (ByteString v : attr)
         {
-          if (!syntax.valueIsAcceptable(v.getValue(), invalidReason))
+          if (!syntax.valueIsAcceptable(v, invalidReason))
           {
             if (!syntax.isHumanReadable() || syntax.isBEREncodingRequired())
             {
@@ -1608,7 +1600,7 @@ public class LocalBackendModifyOperation
               throw newDirectoryException(currentEntry,
                   ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                   ERR_MODIFY_REPLACE_INVALID_SYNTAX.get(
-                      entryDN, attr.getName(), v.getValue(), invalidReason));
+                      entryDN, attr.getName(), v, invalidReason));
             }
           }
         }
@@ -1616,9 +1608,9 @@ public class LocalBackendModifyOperation
       else if (syntaxPolicy == AcceptRejectWarn.WARN)
       {
         LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
-        for (AttributeValue v : attr)
+        for (ByteString v : attr)
         {
-          if (!syntax.valueIsAcceptable(v.getValue(), invalidReason))
+          if (!syntax.valueIsAcceptable(v, invalidReason))
           {
             setResultCode(ResultCode.INVALID_ATTRIBUTE_SYNTAX);
             if (!syntax.isHumanReadable() || syntax.isBEREncodingRequired())
@@ -1630,7 +1622,7 @@ public class LocalBackendModifyOperation
             else
             {
               logger.error(ERR_MODIFY_REPLACE_INVALID_SYNTAX,
-                  entryDN, attr.getName(), v.getValue(), invalidReason);
+                  entryDN, attr.getName(), v, invalidReason);
             }
             invalidReason = new LocalizableMessageBuilder();
           }
@@ -1701,12 +1693,12 @@ public class LocalBackendModifyOperation
     }
 
     MatchingRule eqRule = attr.getAttributeType().getEqualityMatchingRule();
-    AttributeValue v = attr.iterator().next();
+    ByteString v = attr.iterator().next();
 
     long incrementValue;
     try
     {
-      String nv = eqRule.normalizeAttributeValue(v.getValue()).toString();
+      String nv = eqRule.normalizeAttributeValue(v).toString();
       incrementValue = Long.parseLong(nv);
     }
     catch (Exception e)
@@ -1714,7 +1706,7 @@ public class LocalBackendModifyOperation
       logger.traceException(e);
 
       throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-          ERR_MODIFY_INCREMENT_PROVIDED_VALUE_NOT_INTEGER.get(entryDN, attr.getName(), v.getValue()), e);
+          ERR_MODIFY_INCREMENT_PROVIDED_VALUE_NOT_INTEGER.get(entryDN, attr.getName(), v), e);
     }
 
     // Get the attribute that is to be incremented.
@@ -1728,13 +1720,12 @@ public class LocalBackendModifyOperation
 
     // Increment each attribute value by the specified amount.
     AttributeBuilder builder = new AttributeBuilder(a, true);
-    for (AttributeValue existingValue : a)
+    for (ByteString existingValue : a)
     {
-      String s = existingValue.getValue().toString();
       long currentValue;
       try
       {
-        currentValue = Long.parseLong(s);
+        currentValue = Long.parseLong(existingValue.toString());
       }
       catch (Exception e)
       {
@@ -1742,13 +1733,12 @@ public class LocalBackendModifyOperation
 
         throw new DirectoryException(
             ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-            ERR_MODIFY_INCREMENT_REQUIRES_INTEGER_VALUE.get(
-                entryDN, a.getName(), existingValue.getValue()),
+            ERR_MODIFY_INCREMENT_REQUIRES_INTEGER_VALUE.get(entryDN, a.getName(), existingValue),
             e);
       }
 
       long newValue = currentValue + incrementValue;
-      builder.add(AttributeValues.create(t, String.valueOf(newValue)));
+      builder.add(String.valueOf(newValue));
     }
 
     // Replace the existing attribute with the incremented version.
@@ -1820,10 +1810,7 @@ public class LocalBackendModifyOperation
         {
           if (clearPasswords.isEmpty())
           {
-            for (AttributeValue v : currentPasswords)
-            {
-              clearPasswords.add(v.getValue());
-            }
+            clearPasswords.addAll(currentPasswords);
           }
           else
           {
@@ -1833,21 +1820,9 @@ public class LocalBackendModifyOperation
             // (like 0x04 for a standard universal octet string type versus 0x80
             // for a simple password in a bind operation).  So we have to
             // manually check for duplicates.
-            for (AttributeValue v : currentPasswords)
+            for (ByteString pw : currentPasswords)
             {
-              ByteString pw = v.getValue();
-
-              boolean found = false;
-              for (ByteString s : clearPasswords)
-              {
-                if (s.equals(pw))
-                {
-                  found = true;
-                  break;
-                }
-              }
-
-              if (! found)
+              if (!clearPasswords.contains(pw))
               {
                 clearPasswords.add(pw);
               }
@@ -1855,11 +1830,11 @@ public class LocalBackendModifyOperation
           }
         }
 
-        for (AttributeValue v : newPasswords)
+        for (ByteString v : newPasswords)
         {
           LocalizableMessageBuilder invalidReason = new LocalizableMessageBuilder();
           if (! pwPolicyState.passwordIsAcceptable(this, modifiedEntry,
-                                   v.getValue(), clearPasswords, invalidReason))
+                                   v, clearPasswords, invalidReason))
           {
             pwpErrorType =
                  PasswordPolicyErrorType.INSUFFICIENT_PASSWORD_QUALITY;
@@ -1877,9 +1852,9 @@ public class LocalBackendModifyOperation
     {
       if (newPasswords != null)
       {
-        for (AttributeValue v : newPasswords)
+        for (ByteString v : newPasswords)
         {
-          if (pwPolicyState.isPasswordInHistory(v.getValue()))
+          if (pwPolicyState.isPasswordInHistory(v))
           {
             if (selfChange || (! pwPolicyState.getAuthenticationPolicy().
                                       isSkipValidationForAdministrators()))

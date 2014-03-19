@@ -32,6 +32,8 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.controls.VLVRequestControl;
 import org.opends.server.controls.VLVResponseControl;
@@ -39,7 +41,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.protocols.ldap.LDAPResultCode;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 
 import com.sleepycat.je.LockMode;
 
@@ -197,10 +198,7 @@ public class EntryIDSetSorter
       }
       else
       {
-        AttributeValue assertionValue =
-            AttributeValues.create(
-                sortOrder.getSortKeys()[0].getAttributeType(),
-                vlvRequest.getGreaterThanOrEqualAssertion());
+        ByteString assertionValue = vlvRequest.getGreaterThanOrEqualAssertion();
 
         boolean targetFound     = false;
         int targetOffset        = 0;

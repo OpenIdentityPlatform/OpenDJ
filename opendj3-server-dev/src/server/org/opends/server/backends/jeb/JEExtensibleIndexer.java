@@ -36,11 +36,10 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.api.ExtensibleIndexer;
 import org.opends.server.api.MatchingRule;
+import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
-import org.opends.server.types.Attribute;
 
 /**
  *This class implements an Indexer for extensible matching rules in JE Backend.
@@ -158,11 +157,11 @@ public final class JEExtensibleIndexer extends Indexer
     {
       if (!attr.isVirtual())
       {
-        for (AttributeValue value : attr)
+        for (ByteString value : attr)
         {
           try
           {
-            extensibleIndexer.createKeys(null, value.getValue(), null, keys);
+            extensibleIndexer.createKeys(null, value, null, keys);
           }
           catch (DecodeException e)
           {

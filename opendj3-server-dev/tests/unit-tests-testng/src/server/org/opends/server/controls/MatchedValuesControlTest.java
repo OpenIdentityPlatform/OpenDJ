@@ -148,20 +148,19 @@ public class MatchedValuesControlTest
     }
 
     //
-    // ( AttributeType attributeType, AttributeValue assertionValue
+    // ( AttributeType attributeType, ByteString assertionValue
     //
     AttributeType attType = DirectoryServer.getAttributeType(type);
-    AttributeValue attVal = null;
+    ByteString attVal = null;
     if (attType != null)
     {
-      attVal = AttributeValues.create(attType, value);
+      attVal = ByteString.valueOf(value);
     }
 
     // Check null, null
     try
     {
-      mvf = MatchedValuesFilter.createEqualityFilter((AttributeType) null,
-          (AttributeValue) null);
+      mvf = MatchedValuesFilter.createEqualityFilter((AttributeType) null, null);
       assertTrue(false, "Expected NullPointerException");
     }
     catch (NullPointerException e)
@@ -176,8 +175,7 @@ public class MatchedValuesControlTest
     // Check type, null
     try
     {
-      mvf = MatchedValuesFilter.createEqualityFilter(attType,
-          (AttributeValue) null);
+      mvf = MatchedValuesFilter.createEqualityFilter(attType, null);
       assertTrue(false, "Expected NullPointerException");
     }
     catch (NullPointerException e)
@@ -444,20 +442,19 @@ public class MatchedValuesControlTest
     }
 
     //
-    // ( AttributeType attributeType, AttributeValue assertionValue
+    // ( AttributeType attributeType, ByteString assertionValue
     //
     AttributeType attType = DirectoryServer.getAttributeType(type);
-    AttributeValue attVal = null;
+    ByteString attVal = null;
     if (attType != null)
     {
-      attVal = AttributeValues.create(attType, value);
+      attVal = ByteString.valueOf(value);
     }
 
     // Check null, null
     try
     {
-      mvf = MatchedValuesFilter.createGreaterOrEqualFilter(
-          (AttributeType) null, (AttributeValue) null);
+      mvf = MatchedValuesFilter.createGreaterOrEqualFilter((AttributeType) null, null);
       assertTrue(false, "Expected NullPointerException");
     }
     catch (NullPointerException e)
@@ -472,8 +469,7 @@ public class MatchedValuesControlTest
     // Check type, null
     try
     {
-      mvf = MatchedValuesFilter.createGreaterOrEqualFilter(attType,
-          (AttributeValue) null);
+      mvf = MatchedValuesFilter.createGreaterOrEqualFilter(attType, null);
       assertTrue(false, "Expected NullPointerException");
     }
     catch (NullPointerException e)
@@ -579,20 +575,19 @@ public class MatchedValuesControlTest
     ;
 
     //
-    // ( AttributeType attributeType, AttributeValue assertionValue
+    // ( AttributeType attributeType, ByteString assertionValue
     //
     AttributeType attType = DirectoryServer.getAttributeType(type);
-    AttributeValue attVal = null ;
+    ByteString attVal = null ;
     if (attType != null)
     {
-      attVal = AttributeValues.create(attType, value);
+      attVal = ByteString.valueOf(value);
     }
 
     // Check null, null
     try
     {
-      mvf = MatchedValuesFilter.createLessOrEqualFilter((AttributeType) null,
-          (AttributeValue) null);
+      mvf = MatchedValuesFilter.createLessOrEqualFilter((AttributeType) null, null);
     }
     catch (NullPointerException e)
     {
@@ -606,8 +601,7 @@ public class MatchedValuesControlTest
     // Check type, null
     try
     {
-      mvf = MatchedValuesFilter.createLessOrEqualFilter(attType,
-          (AttributeValue) null);
+      mvf = MatchedValuesFilter.createLessOrEqualFilter(attType, null);
     }
     catch (NullPointerException e)
     {
@@ -777,20 +771,19 @@ public class MatchedValuesControlTest
     }
 
     //
-    // ( AttributeType attributeType, AttributeValue assertionValue
+    // ( AttributeType attributeType, ByteString assertionValue
     //
     AttributeType attType = DirectoryServer.getAttributeType(type);
-    AttributeValue attVal = null ;
+    ByteString attVal = null ;
     if (attType != null)
     {
-      attVal = AttributeValues.create(attType, value);
+      attVal = ByteString.valueOf(value);
     }
 
     // Check null, null
     try
     {
-      mvf = MatchedValuesFilter.createApproximateFilter((AttributeType) null,
-          (AttributeValue) null);
+      mvf = MatchedValuesFilter.createApproximateFilter((AttributeType) null, null);
       assertTrue(false, "Expected NullPointerException");
     }
     catch (NullPointerException e)
@@ -805,8 +798,7 @@ public class MatchedValuesControlTest
     // Check type, null
     try
     {
-      mvf = MatchedValuesFilter.createApproximateFilter(attType,
-          (AttributeValue) null);
+      mvf = MatchedValuesFilter.createApproximateFilter(attType, null);
       assertTrue(false, "Expected NullPointerException");
     }
     catch (NullPointerException e)
@@ -881,16 +873,14 @@ public class MatchedValuesControlTest
     String          rawAttTypeTest = type ;
     AttributeType      attTypeTest = DirectoryServer.getAttributeType(type) ;
     String             matchingRuleIdTest = matchingRule.getOID() ;
-    ByteString rawAttValueTest = (attTypeTest == null) ? null : ByteString.valueOf(value);
-    AttributeValue     attValueTest = (attTypeTest == null) ? null : AttributeValues.create(attTypeTest, value);
+    ByteString    attValueTest = (attTypeTest == null) ? null : ByteString.valueOf(value);
     //
     // parameter used for the test.
     String          rawAttTypeTestCurrent;
     AttributeType      attTypeTestCurrent ;
     String          rawMatchingRuleidTestCurrent ;
     MatchingRule        matchingRuleidTestCurrent ;
-    ByteString      rawAttValueTestCurrent;
-    AttributeValue     attValueTestCurrent;
+    ByteString     attValueTestCurrent;
 
 
     for (int i= 0 ; i <= 7 ; i++)
@@ -898,7 +888,6 @@ public class MatchedValuesControlTest
       rawAttTypeTestCurrent = null;
       rawMatchingRuleidTestCurrent = null;
       matchingRuleidTestCurrent = null ;
-      rawAttValueTestCurrent = null;
       attTypeTestCurrent = null;
       attValueTestCurrent = null ;
 
@@ -906,7 +895,6 @@ public class MatchedValuesControlTest
       if ((i & 0x4) != 0) rawAttTypeTestCurrent = rawAttTypeTest;
       if ((i & 0x2) != 0) rawMatchingRuleidTestCurrent = matchingRuleIdTest;
       if ((i & 0x2) != 0) matchingRuleidTestCurrent = matchingRule ;
-      if ((i & 0x1) != 0) rawAttValueTestCurrent = rawAttValueTest;
       if ((i & 0x1) != 0) attValueTestCurrent = attValueTest;
 
       boolean exceptionExpected = (attTypeTestCurrent == null)
@@ -917,7 +905,7 @@ public class MatchedValuesControlTest
       {
         // Create filter with raw value
         mvf = MatchedValuesFilter.createExtensibleMatchFilter(rawAttTypeTestCurrent,
-            rawMatchingRuleidTestCurrent, rawAttValueTestCurrent);
+            rawMatchingRuleidTestCurrent, attValueTestCurrent);
         if ( exceptionExpected)
         {
           assertTrue(false, "Expected NullPointerException");
@@ -928,7 +916,7 @@ public class MatchedValuesControlTest
           assertEquals(mvf.getMatchType(),
               MatchedValuesFilter.EXTENSIBLE_MATCH_TYPE);
           assertEquals(rawMatchingRuleidTestCurrent, mvf.getMatchingRuleID());
-          assertEquals(rawAttValueTestCurrent, mvf.getRawAssertionValue());
+          assertEquals(attValueTestCurrent, mvf.getRawAssertionValue());
 
           mvf = MatchedValuesFilter.createExtensibleMatchFilter(
               attTypeTestCurrent, matchingRuleidTestCurrent, attValueTestCurrent);
@@ -941,10 +929,7 @@ public class MatchedValuesControlTest
       }
       catch (Throwable t)
       {
-        if ( ! exceptionExpected)
-        {
-          assertTrue(false, "Exception not excepted" + t.getMessage());
-        }
+        assertTrue(exceptionExpected, "Exception not excepted" + t.getMessage());
       }
     }
   }
@@ -952,27 +937,18 @@ public class MatchedValuesControlTest
   /**
    * Check encode/decode method
    */
-  private void checkEncodeDecode(MatchedValuesFilter mvf)
+  private void checkEncodeDecode(MatchedValuesFilter mvf) throws Exception
   {
     ByteStringBuilder bsb = new ByteStringBuilder();
     ASN1Writer writer = ASN1.getWriter(bsb);
-    try
     {
       mvf.encode(writer);
       MatchedValuesFilter newMvf = MatchedValuesFilter.decode(ASN1
           .getReader(bsb));
       assertEquals(newMvf.toString(), mvf.toString());
     }
-    catch (Exception e)
-    {
-      assertTrue(false, "Unexpected LDAPException ; msg=" + e.getMessage());
-    }
-
   }
 
-  /**
-   *
-   */
   @DataProvider(name = "differentNormalization")
   public Object[][] differentNormalizationData() throws ParseException
   {
@@ -1000,18 +976,12 @@ public class MatchedValuesControlTest
         CERT_EXACT_ASSERTION}};
   }
 
-  /**
-   *
-   */
   @Test(dataProvider = "differentNormalization")
   public void testDifferentNormalization(String type, ByteString value,
                                          String assertion)
   {
-    MatchedValuesFilter mvf;
     AttributeType attrType = DirectoryServer.getAttributeType("usercertificate");
-    AttributeValue attrValue = AttributeValues.create(attrType, value);
-
-    mvf = MatchedValuesFilter.createEqualityFilter(type, ByteString.valueOf(assertion));
-    assertTrue(mvf.valueMatches(attrType, attrValue));
+    MatchedValuesFilter mvf = MatchedValuesFilter.createEqualityFilter(type, ByteString.valueOf(assertion));
+    assertTrue(mvf.valueMatches(attrType, value));
   }
 }

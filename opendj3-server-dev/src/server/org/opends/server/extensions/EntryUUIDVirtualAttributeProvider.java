@@ -26,9 +26,7 @@
  */
 package org.opends.server.extensions;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -40,8 +38,8 @@ import org.opends.server.admin.std.server.EntryUUIDVirtualAttributeCfg;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.core.SearchOperation;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.AttributeValues;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.Attributes;
 import org.opends.server.types.Entry;
 import org.opends.server.types.VirtualAttributeRule;
 
@@ -81,16 +79,12 @@ public class EntryUUIDVirtualAttributeProvider
 
   /** {@inheritDoc} */
   @Override()
-  public Set<AttributeValue> getValues(Entry entry,
-                                       VirtualAttributeRule rule)
+  public Attribute getValues(Entry entry, VirtualAttributeRule rule)
   {
     String normDNString = entry.getName().toNormalizedString();
     String uuidString =
          UUID.nameUUIDFromBytes(getBytes(normDNString)).toString();
-    AttributeValue value = AttributeValues.create(
-         ByteString.valueOf(uuidString),
-         ByteString.valueOf(uuidString));
-    return Collections.singleton(value);
+    return Attributes.create(rule.getAttributeType(), uuidString);
   }
 
   /** {@inheritDoc} */
@@ -103,8 +97,7 @@ public class EntryUUIDVirtualAttributeProvider
 
   /** {@inheritDoc} */
   @Override()
-  public boolean hasValue(Entry entry, VirtualAttributeRule rule,
-                          AttributeValue value)
+  public boolean hasValue(Entry entry, VirtualAttributeRule rule, ByteString value)
   {
     MatchingRule matchingRule =
         rule.getAttributeType().getEqualityMatchingRule();
@@ -114,7 +107,7 @@ public class EntryUUIDVirtualAttributeProvider
       String uuidString =
            UUID.nameUUIDFromBytes(getBytes(normalizedDN)).toString();
 
-      ByteString normValue = matchingRule.normalizeAttributeValue(value.getValue());
+      ByteString normValue = matchingRule.normalizeAttributeValue(value);
       return uuidString.equals(normValue.toString());
     }
     catch (Exception e)
@@ -140,7 +133,7 @@ public class EntryUUIDVirtualAttributeProvider
   @Override()
   public ConditionResult greaterThanOrEqualTo(Entry entry,
                               VirtualAttributeRule rule,
-                              AttributeValue value)
+                              ByteString value)
   {
     // DNs cannot be used in ordering matching.
     return ConditionResult.UNDEFINED;
@@ -150,7 +143,7 @@ public class EntryUUIDVirtualAttributeProvider
   @Override()
   public ConditionResult lessThanOrEqualTo(Entry entry,
                               VirtualAttributeRule rule,
-                              AttributeValue value)
+                              ByteString value)
   {
     // DNs cannot be used in ordering matching.
     return ConditionResult.UNDEFINED;
@@ -160,7 +153,7 @@ public class EntryUUIDVirtualAttributeProvider
   @Override()
   public ConditionResult approximatelyEqualTo(Entry entry,
                               VirtualAttributeRule rule,
-                              AttributeValue value)
+                              ByteString value)
   {
     // DNs cannot be used in approximate matching.
     return ConditionResult.UNDEFINED;

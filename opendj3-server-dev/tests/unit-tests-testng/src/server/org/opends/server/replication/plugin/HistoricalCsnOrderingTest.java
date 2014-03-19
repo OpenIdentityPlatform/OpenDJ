@@ -35,10 +35,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.assertj.core.api.Assertions;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn.AssuredType;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.CSN;
@@ -155,8 +155,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
     List<Attribute> attrs1 = entry.getAttribute(histType);
       Assertions.assertThat(attrs1).isNotEmpty();
 
-    String histValue =
-      attrs1.get(0).iterator().next().getValue().toString();
+    String histValue = attrs1.get(0).iterator().next().toString();
 
     logger.error(LocalizableMessage.raw("First historical value:" + histValue));
 
@@ -173,8 +172,8 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
     List<Attribute> attrs2 = entry2.getAttribute(histType);
       Assertions.assertThat(attrs2).isNotEmpty();
 
-    for (AttributeValue av : attrs2.get(0)) {
-      logger.error(LocalizableMessage.raw("Second historical value:" + av.getValue()));
+    for (ByteString av : attrs2.get(0)) {
+      logger.error(LocalizableMessage.raw("Second historical value: %s", av));
     }
 
     LinkedList<ReplicationMsg> opList = new LinkedList<ReplicationMsg>();

@@ -30,7 +30,6 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
@@ -38,6 +37,7 @@ import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn;
+import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
@@ -133,8 +133,7 @@ public class EntryDNVirtualAttributeProviderTestCase
     {
       assertTrue(!a.isEmpty());
       assertEquals(a.size(), 1);
-      assertTrue(a.contains(AttributeValues.create(entryDNType,
-                                               entryDN.toNormalizedString())));
+      assertTrue(a.contains(ByteString.valueOf(entryDN.toNormalizedString())));
     }
   }
 
@@ -424,18 +423,10 @@ public class EntryDNVirtualAttributeProviderTestCase
       "o: test");
     entry.processVirtualAttributes();
 
-    VirtualAttributeRule rule =
-         new VirtualAttributeRule(entryDNType, provider,
-                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
-                  Collections.<DN>emptySet(),
-                  Collections.<SearchFilter>emptySet(),
-                  VirtualAttributeCfgDefn.ConflictBehavior.
-                       VIRTUAL_OVERRIDES_REAL);
-
-    Set<AttributeValue> values = provider.getValues(entry, rule);
+    Attribute values = provider.getValues(entry, getRule(provider));
     assertNotNull(values);
     assertEquals(values.size(), 1);
-    assertTrue(values.contains(AttributeValues.create(entryDNType, "o=test")));
+    assertTrue(values.contains(ByteString.valueOf("o=test")));
   }
 
 
@@ -460,15 +451,7 @@ public class EntryDNVirtualAttributeProviderTestCase
       "o: test");
     entry.processVirtualAttributes();
 
-    VirtualAttributeRule rule =
-         new VirtualAttributeRule(entryDNType, provider,
-                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
-                  Collections.<DN>emptySet(),
-                  Collections.<SearchFilter>emptySet(),
-                  VirtualAttributeCfgDefn.ConflictBehavior.
-                       VIRTUAL_OVERRIDES_REAL);
-
-    assertTrue(provider.hasValue(entry, rule));
+    assertTrue(provider.hasValue(entry, getRule(provider)));
   }
 
 
@@ -493,16 +476,18 @@ public class EntryDNVirtualAttributeProviderTestCase
       "o: test");
     entry.processVirtualAttributes();
 
-    VirtualAttributeRule rule =
-         new VirtualAttributeRule(entryDNType, provider,
+    assertTrue(provider.hasValue(entry, getRule(provider), ByteString.valueOf("o=test")));
+  }
+
+
+
+  private VirtualAttributeRule getRule(VirtualAttributeProvider<?> provider)
+  {
+    return new VirtualAttributeRule(entryDNType, provider,
                   Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
                   Collections.<DN>emptySet(),
                   Collections.<SearchFilter>emptySet(),
-                  VirtualAttributeCfgDefn.ConflictBehavior.
-                       VIRTUAL_OVERRIDES_REAL);
-
-    assertTrue(provider.hasValue(entry, rule,
-        AttributeValues.create(entryDNType, "o=test")));
+                  VirtualAttributeCfgDefn.ConflictBehavior.VIRTUAL_OVERRIDES_REAL);
   }
 
 
@@ -527,197 +512,7 @@ public class EntryDNVirtualAttributeProviderTestCase
       "o: test");
     entry.processVirtualAttributes();
 
-    VirtualAttributeRule rule =
-         new VirtualAttributeRule(entryDNType, provider,
-                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
-                  Collections.<DN>emptySet(),
-                  Collections.<SearchFilter>emptySet(),
-                  VirtualAttributeCfgDefn.ConflictBehavior.
-                       VIRTUAL_OVERRIDES_REAL);
-
-    assertFalse(provider.hasValue(entry, rule,
-        AttributeValues.create(entryDNType, "o=not test")));
-  }
-
-
-
-  /**
-   * Tests the {@code hasAnyValue} method with an empty set of values.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testHasAnyValueEmptySet()
-         throws Exception
-  {
-    EntryDNVirtualAttributeProvider provider =
-         new EntryDNVirtualAttributeProvider();
-
-    Entry entry = TestCaseUtils.makeEntry(
-      "dn: o=test",
-      "objectClass: top",
-      "objectClass: organization",
-      "o: test");
-    entry.processVirtualAttributes();
-
-    VirtualAttributeRule rule =
-         new VirtualAttributeRule(entryDNType, provider,
-                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
-                  Collections.<DN>emptySet(),
-                  Collections.<SearchFilter>emptySet(),
-                  VirtualAttributeCfgDefn.ConflictBehavior.
-                       VIRTUAL_OVERRIDES_REAL);
-
-    assertFalse(provider.hasAnyValue(entry, rule,
-                                     Collections.<AttributeValue>emptySet()));
-  }
-
-
-
-  /**
-   * Tests the {@code hasAnyValue} method with a set of values containing only
-   * the correct value.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testHasAnyValueOnlyCorrect()
-         throws Exception
-  {
-    EntryDNVirtualAttributeProvider provider =
-         new EntryDNVirtualAttributeProvider();
-
-    Entry entry = TestCaseUtils.makeEntry(
-      "dn: o=test",
-      "objectClass: top",
-      "objectClass: organization",
-      "o: test");
-    entry.processVirtualAttributes();
-
-    VirtualAttributeRule rule =
-         new VirtualAttributeRule(entryDNType, provider,
-                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
-                  Collections.<DN>emptySet(),
-                  Collections.<SearchFilter>emptySet(),
-                  VirtualAttributeCfgDefn.ConflictBehavior.
-                       VIRTUAL_OVERRIDES_REAL);
-
-    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>(1);
-    values.add(AttributeValues.create(entryDNType, "o=test"));
-
-    assertTrue(provider.hasAnyValue(entry, rule, values));
-  }
-
-
-
-  /**
-   * Tests the {@code hasAnyValue} method with a set of values containing only
-   * an incorrect value.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testHasAnyValueOnlyIncorrect()
-         throws Exception
-  {
-    EntryDNVirtualAttributeProvider provider =
-         new EntryDNVirtualAttributeProvider();
-
-    Entry entry = TestCaseUtils.makeEntry(
-      "dn: o=test",
-      "objectClass: top",
-      "objectClass: organization",
-      "o: test");
-    entry.processVirtualAttributes();
-
-    VirtualAttributeRule rule =
-         new VirtualAttributeRule(entryDNType, provider,
-                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
-                  Collections.<DN>emptySet(),
-                  Collections.<SearchFilter>emptySet(),
-                  VirtualAttributeCfgDefn.ConflictBehavior.
-                       VIRTUAL_OVERRIDES_REAL);
-
-    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>(1);
-    values.add(AttributeValues.create(entryDNType, "o=not test"));
-
-    assertFalse(provider.hasAnyValue(entry, rule, values));
-  }
-
-
-
-  /**
-   * Tests the {@code hasAnyValue} method with a set of values containing the
-   * correct value as well as multiple incorrect values.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testHasAnyValueIncludesCorrect()
-         throws Exception
-  {
-    EntryDNVirtualAttributeProvider provider =
-         new EntryDNVirtualAttributeProvider();
-
-    Entry entry = TestCaseUtils.makeEntry(
-      "dn: o=test",
-      "objectClass: top",
-      "objectClass: organization",
-      "o: test");
-    entry.processVirtualAttributes();
-
-    VirtualAttributeRule rule =
-         new VirtualAttributeRule(entryDNType, provider,
-                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
-                  Collections.<DN>emptySet(),
-                  Collections.<SearchFilter>emptySet(),
-                  VirtualAttributeCfgDefn.ConflictBehavior.
-                       VIRTUAL_OVERRIDES_REAL);
-
-    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>(3);
-    values.add(AttributeValues.create(entryDNType, "o=test"));
-    values.add(AttributeValues.create(entryDNType, "o=not test"));
-    values.add(AttributeValues.create(entryDNType, "o=not test either"));
-
-    assertTrue(provider.hasAnyValue(entry, rule, values));
-  }
-
-
-
-  /**
-   * Tests the {@code hasAnyValue} method with a set of multiple values, none of
-   * which are correct.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testHasAnyValueMissingCorrect()
-         throws Exception
-  {
-    EntryDNVirtualAttributeProvider provider =
-         new EntryDNVirtualAttributeProvider();
-
-    Entry entry = TestCaseUtils.makeEntry(
-      "dn: o=test",
-      "objectClass: top",
-      "objectClass: organization",
-      "o: test");
-    entry.processVirtualAttributes();
-
-    VirtualAttributeRule rule =
-         new VirtualAttributeRule(entryDNType, provider,
-                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
-                  Collections.<DN>emptySet(),
-                  Collections.<SearchFilter>emptySet(),
-                  VirtualAttributeCfgDefn.ConflictBehavior.
-                       VIRTUAL_OVERRIDES_REAL);
-
-    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>(3);
-    values.add(AttributeValues.create(entryDNType, "o=not test"));
-    values.add(AttributeValues.create(entryDNType, "o=not test either"));
-    values.add(AttributeValues.create(entryDNType, "o=still not test"));
-
-    assertFalse(provider.hasAnyValue(entry, rule, values));
+    assertFalse(provider.hasValue(entry, getRule(provider), ByteString.valueOf("o=not test")));
   }
 
 
@@ -742,18 +537,10 @@ public class EntryDNVirtualAttributeProviderTestCase
       "o: test");
     entry.processVirtualAttributes();
 
-    VirtualAttributeRule rule =
-         new VirtualAttributeRule(entryDNType, provider,
-                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
-                  Collections.<DN>emptySet(),
-                  Collections.<SearchFilter>emptySet(),
-                  VirtualAttributeCfgDefn.ConflictBehavior.
-                       VIRTUAL_OVERRIDES_REAL);
-
     LinkedList<ByteString> subAny = new LinkedList<ByteString>();
     subAny.add(ByteString.valueOf("="));
 
-    assertEquals(provider.matchesSubstring(entry, rule, null, subAny, null),
+    assertEquals(provider.matchesSubstring(entry, getRule(provider), null, subAny, null),
                  ConditionResult.UNDEFINED);
   }
 
@@ -779,16 +566,8 @@ public class EntryDNVirtualAttributeProviderTestCase
       "o: test");
     entry.processVirtualAttributes();
 
-    VirtualAttributeRule rule =
-         new VirtualAttributeRule(entryDNType, provider,
-                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
-                  Collections.<DN>emptySet(),
-                  Collections.<SearchFilter>emptySet(),
-                  VirtualAttributeCfgDefn.ConflictBehavior.
-                       VIRTUAL_OVERRIDES_REAL);
-
-    AttributeValue value = AttributeValues.create(entryDNType, "o=test2");
-    assertEquals(provider.greaterThanOrEqualTo(entry, rule, value),
+    ByteString value = ByteString.valueOf("o=test2");
+    assertEquals(provider.greaterThanOrEqualTo(entry, getRule(provider), value),
                  ConditionResult.UNDEFINED);
   }
 
@@ -814,16 +593,8 @@ public class EntryDNVirtualAttributeProviderTestCase
       "o: test");
     entry.processVirtualAttributes();
 
-    VirtualAttributeRule rule =
-         new VirtualAttributeRule(entryDNType, provider,
-                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
-                  Collections.<DN>emptySet(),
-                  Collections.<SearchFilter>emptySet(),
-                  VirtualAttributeCfgDefn.ConflictBehavior.
-                       VIRTUAL_OVERRIDES_REAL);
-
-    AttributeValue value = AttributeValues.create(entryDNType, "o=test2");
-    assertEquals(provider.lessThanOrEqualTo(entry, rule, value),
+    ByteString value = ByteString.valueOf("o=test2");
+    assertEquals(provider.lessThanOrEqualTo(entry, getRule(provider), value),
                  ConditionResult.UNDEFINED);
   }
 
@@ -849,16 +620,8 @@ public class EntryDNVirtualAttributeProviderTestCase
       "o: test");
     entry.processVirtualAttributes();
 
-    VirtualAttributeRule rule =
-         new VirtualAttributeRule(entryDNType, provider,
-                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
-                  Collections.<DN>emptySet(),
-                  Collections.<SearchFilter>emptySet(),
-                  VirtualAttributeCfgDefn.ConflictBehavior.
-                       VIRTUAL_OVERRIDES_REAL);
-
-    AttributeValue value = AttributeValues.create(entryDNType, "o=test2");
-    assertEquals(provider.approximatelyEqualTo(entry, rule, value),
+    ByteString value = ByteString.valueOf("o=test2");
+    assertEquals(provider.approximatelyEqualTo(entry, getRule(provider), value),
                  ConditionResult.UNDEFINED);
   }
 
@@ -917,13 +680,7 @@ public class EntryDNVirtualAttributeProviderTestCase
     EntryDNVirtualAttributeProvider provider =
          new EntryDNVirtualAttributeProvider();
 
-    VirtualAttributeRule rule =
-         new VirtualAttributeRule(entryDNType, provider,
-                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
-                  Collections.<DN>emptySet(),
-                  Collections.<SearchFilter>emptySet(),
-                  VirtualAttributeCfgDefn.ConflictBehavior.
-                       VIRTUAL_OVERRIDES_REAL);
+    VirtualAttributeRule rule = getRule(provider);
 
     SearchFilter filter = SearchFilter.createFilterFromString(filterString);
 
@@ -970,13 +727,7 @@ public class EntryDNVirtualAttributeProviderTestCase
     EntryDNVirtualAttributeProvider provider =
          new EntryDNVirtualAttributeProvider();
 
-    VirtualAttributeRule rule =
-         new VirtualAttributeRule(entryDNType, provider,
-                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
-                  Collections.<DN>emptySet(),
-                  Collections.<SearchFilter>emptySet(),
-                  VirtualAttributeCfgDefn.ConflictBehavior.
-                       VIRTUAL_OVERRIDES_REAL);
+    VirtualAttributeRule rule = getRule(provider);
 
     SearchFilter filter = SearchFilter.createFilterFromString(filterString);
 

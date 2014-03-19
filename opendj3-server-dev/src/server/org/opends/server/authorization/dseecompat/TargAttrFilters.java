@@ -35,6 +35,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.*;
 
 /**
@@ -319,7 +320,7 @@ public class TargAttrFilters {
         // If the filter list does not contain the attribute type skip the
         // attribute type.
         if((attrType != null) && (filterList.containsKey(attrType))) {
-            AttributeValue value=matchCtx.getCurrentAttributeValue();
+            ByteString value = matchCtx.getCurrentAttributeValue();
             SearchFilter filter = filterList.get(attrType);
             attrMatched=matchFilterAttributeValue(attrType, value, filter);
             //This flag causes any targattr checks to be bypassed in AciTargets.
@@ -405,7 +406,7 @@ public class TargAttrFilters {
                                                AttributeType attrType,
                                                SearchFilter filter) {
         //Iterate through each value and apply the filter against it.
-        for (AttributeValue value : a) {
+        for (ByteString value : a) {
             if (!matchFilterAttributeValue(attrType, value, filter)) {
                 return false;
             }
@@ -424,11 +425,11 @@ public class TargAttrFilters {
      * @return  True if the value matches the filter.
      */
     private boolean matchFilterAttributeValue(AttributeType attrType,
-                                              AttributeValue value,
+                                              ByteString value,
                                               SearchFilter filter) {
         Attribute attr = Attributes.create(attrType, value);
         Entry e = new Entry(DN.rootDN(), null, null, null);
-        e.addAttribute(attr, new ArrayList<AttributeValue>());
+        e.addAttribute(attr, new ArrayList<ByteString>());
         try {
             return filter.matchesEntry(e);
         } catch(DirectoryException ex) {

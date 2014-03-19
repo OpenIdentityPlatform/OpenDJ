@@ -406,12 +406,12 @@ public final class StringConfigAttribute
       {
         if (requiresAdminAction())
         {
-          setPendingValues(new LinkedHashSet<AttributeValue>(0));
+          setPendingValues(new LinkedHashSet<ByteString>(0));
           pendingValues = new ArrayList<String>();
         }
         else
         {
-          setActiveValues(new LinkedHashSet<AttributeValue>(0));
+          setActiveValues(new LinkedHashSet<ByteString>(0));
           activeValues.clear();
         }
       }
@@ -430,8 +430,7 @@ public final class StringConfigAttribute
 
     // Iterate through all the provided values, make sure that they are
     // acceptable, and build the value set.
-    LinkedHashSet<AttributeValue> valueSet =
-         new LinkedHashSet<AttributeValue>(numValues);
+    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<ByteString>(numValues);
     for (String value : values)
     {
       if ((value == null) || (value.length() == 0))
@@ -440,10 +439,7 @@ public final class StringConfigAttribute
         throw new ConfigException(message);
       }
 
-      AttributeValue attrValue =
-          AttributeValues.create(ByteString.valueOf(value),
-              ByteString.valueOf(value));
-
+      ByteString attrValue = ByteString.valueOf(value);
       if (valueSet.contains(attrValue))
       {
         LocalizableMessage message =
@@ -478,14 +474,10 @@ public final class StringConfigAttribute
    *
    * @return  The constructed value set.
    */
-  private static LinkedHashSet<AttributeValue> getValueSet(String value)
+  private static LinkedHashSet<ByteString> getValueSet(String value)
   {
-    LinkedHashSet<AttributeValue> valueSet =
-         new LinkedHashSet<AttributeValue>(1);
-
-    valueSet.add(AttributeValues.create(ByteString.valueOf(value),
-        ByteString.valueOf(value)));
-
+    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<ByteString>(1);
+    valueSet.add(ByteString.valueOf(value));
     return valueSet;
   }
 
@@ -498,22 +490,18 @@ public final class StringConfigAttribute
    *
    * @return  The constructed value set.
    */
-  private static LinkedHashSet<AttributeValue> getValueSet(List<String> values)
+  private static LinkedHashSet<ByteString> getValueSet(List<String> values)
   {
     if (values == null)
     {
       return null;
     }
 
-    LinkedHashSet<AttributeValue> valueSet =
-         new LinkedHashSet<AttributeValue>(values.size());
-
+    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<ByteString>(values.size());
     for (String value : values)
     {
-      valueSet.add(AttributeValues.create(ByteString.valueOf(value),
-          ByteString.valueOf(value)));
+      valueSet.add(ByteString.valueOf(value));
     }
-
     return valueSet;
   }
 
@@ -549,17 +537,15 @@ public final class StringConfigAttribute
    * @return  <CODE>true</CODE> if the provided value is acceptable for use in
    *          this attribute, or <CODE>false</CODE> if not.
    */
-  public boolean valueIsAcceptable(AttributeValue value,
+  public boolean valueIsAcceptable(ByteString value,
                                    StringBuilder rejectReason)
   {
     // The only requirement is that the value is not null or empty.
-    if ((value == null) || (value.getValue().toString().length() == 0))
+    if (value == null || value.toString().length() == 0)
     {
       rejectReason.append(ERR_CONFIG_ATTR_EMPTY_STRING_VALUE.get(getName()));
       return false;
     }
-
-
     return true;
   }
 
@@ -584,7 +570,7 @@ public final class StringConfigAttribute
    * @throws  ConfigException  If an unrecoverable problem occurs while
    *                           performing the conversion.
    */
-  public LinkedHashSet<AttributeValue>
+  public LinkedHashSet<ByteString>
               stringsToValues(List<String> valueStrings,
                               boolean allowFailures)
          throws ConfigException
@@ -598,7 +584,7 @@ public final class StringConfigAttribute
       }
       else
       {
-        return new LinkedHashSet<AttributeValue>();
+        return new LinkedHashSet<ByteString>();
       }
     }
 
@@ -612,8 +598,7 @@ public final class StringConfigAttribute
     }
 
 
-    LinkedHashSet<AttributeValue> valueSet =
-         new LinkedHashSet<AttributeValue>(numValues);
+    LinkedHashSet<ByteString> valueSet = new LinkedHashSet<ByteString>(numValues);
     for (String valueString : valueStrings)
     {
       if ((valueString == null) || (valueString.length() == 0))
@@ -631,10 +616,8 @@ public final class StringConfigAttribute
         }
       }
 
-      valueSet.add(AttributeValues.create(ByteString.valueOf(valueString),
-          ByteString.valueOf(valueString)));
+      valueSet.add(ByteString.valueOf(valueString));
     }
-
 
     // If this method was configured to continue on error, then it is possible
     // that we ended up with an empty list.  Check to see if this is a required
@@ -644,7 +627,6 @@ public final class StringConfigAttribute
       LocalizableMessage message = ERR_CONFIG_ATTR_IS_REQUIRED.get(getName());
       throw new ConfigException(message);
     }
-
 
     return valueSet;
   }
@@ -762,9 +744,9 @@ public final class StringConfigAttribute
             }
 
             pendingValues = new ArrayList<String>(numValues);
-            for (AttributeValue v : a)
+            for (ByteString v : a)
             {
-              pendingValues.add(v.getValue().toString());
+              pendingValues.add(v.toString());
             }
           }
         }
@@ -815,9 +797,9 @@ public final class StringConfigAttribute
           }
 
           activeValues = new ArrayList<String>(numValues);
-          for (AttributeValue v : a)
+          for (ByteString v : a)
           {
-            activeValues.add(v.getValue().toString());
+            activeValues.add(v.toString());
           }
         }
       }

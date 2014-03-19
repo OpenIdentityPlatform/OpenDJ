@@ -120,7 +120,7 @@ public class ReplicationMonitor extends MonitorProvider<MonitorProviderCfg>
     AttributeBuilder builder = new AttributeBuilder(type, ATTR_SERVER_STATE);
     for (String str : domain.getServerState().toStringSet())
     {
-      builder.add(AttributeValues.create(type,str));
+      builder.add(str);
     }
     attributes.add(builder.toAttribute());
 
@@ -203,7 +203,7 @@ public class ReplicationMonitor extends MonitorProvider<MonitorProviderCfg>
       {
         final Integer serverId = entry.getKey();
         final Integer nb = entry.getValue();
-        builder.add(AttributeValues.create(type, serverId + ":" + nb));
+        builder.add(serverId + ":" + nb);
       }
       attributes.add(builder.toAttribute());
     }
@@ -220,9 +220,7 @@ public class ReplicationMonitor extends MonitorProvider<MonitorProviderCfg>
   public static void addMonitorData(List<Attribute> attributes, String name,
       int value)
   {
-    AttributeType type = DirectoryServer.getDefaultAttributeType(name);
-    attributes.add(Attributes.create(type, AttributeValues.create(type,
-        String.valueOf(value))));
+    addMonitorData(attributes, name, String.valueOf(value));
   }
 
   /**
@@ -236,9 +234,7 @@ public class ReplicationMonitor extends MonitorProvider<MonitorProviderCfg>
   public static void addMonitorData(List<Attribute> attributes, String name,
       long value)
   {
-    AttributeType type = DirectoryServer.getDefaultAttributeType(name);
-    attributes.add(Attributes.create(type, AttributeValues.create(type,
-        String.valueOf(value))));
+    addMonitorData(attributes, name, String.valueOf(value));
   }
 
   /**
@@ -253,7 +249,6 @@ public class ReplicationMonitor extends MonitorProvider<MonitorProviderCfg>
       String value)
   {
     AttributeType type = DirectoryServer.getDefaultAttributeType(name);
-    attributes
-        .add(Attributes.create(type, AttributeValues.create(type, value)));
+    attributes.add(Attributes.create(type, value));
   }
 }

@@ -27,6 +27,7 @@
 package org.opends.server.protocols.ldap;
 
 import org.forgerock.opendj.io.*;
+import org.forgerock.opendj.ldap.ByteString;
 import static org.opends.server.util.ServerConstants.EOL;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
@@ -78,13 +79,8 @@ public class TestAddResponseProtocolOp extends DirectoryServerTestCase {
 
     AttributeType attribute =
         DirectoryServer.getDefaultAttributeType("testAttribute");
-
-    AttributeValue attributeValue = AttributeValues.create(attribute, "testValue");
-
-    RDN[] rdns = new RDN[1];
-    rdns[0] = RDN.create(attribute, attributeValue);
-
-    dn = new DN(rdns);
+    ByteString attributeValue = ByteString.valueOf("testValue");
+    dn = new DN(new RDN[] { RDN.create(attribute, attributeValue) });
   }
 
   /**

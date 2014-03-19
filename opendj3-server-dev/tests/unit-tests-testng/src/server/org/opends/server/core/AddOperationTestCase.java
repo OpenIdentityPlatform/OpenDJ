@@ -26,9 +26,6 @@
  */
 package org.opends.server.core;
 
-import static org.opends.server.protocols.ldap.LDAPConstants.*;
-import static org.testng.Assert.*;
-
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,6 +33,8 @@ import java.util.Map;
 import java.util.concurrent.locks.Lock;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.api.Backend;
 import org.opends.server.plugins.DisconnectClientPlugin;
@@ -47,12 +46,13 @@ import org.opends.server.tools.LDAPModify;
 import org.opends.server.tools.LDAPReader;
 import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+
+import static org.opends.server.protocols.ldap.LDAPConstants.*;
+import static org.testng.Assert.*;
 
 /**
  * A set of test cases for add operations
@@ -438,14 +438,12 @@ public class AddOperationTestCase
     boolean foundBar = false;
     for (Attribute attr : attrList)
     {
-      if (attr.contains(AttributeValues.create(a.getAttributeType(),
-                                           ByteString.valueOf("foo"))))
+      if (attr.contains(ByteString.valueOf("foo")))
       {
         foundFoo = true;
       }
 
-      if (attr.contains(AttributeValues.create(a.getAttributeType(),
-                                                ByteString.valueOf("bar"))))
+      if (attr.contains(ByteString.valueOf("bar")))
       {
         foundBar = true;
       }
@@ -1239,9 +1237,9 @@ public class AddOperationTestCase
     boolean found = false;
     for (Attribute a : attrList)
     {
-      for (AttributeValue v : a)
+      for (ByteString v : a)
       {
-        if (v.getValue().toString().equalsIgnoreCase("top"))
+        if (v.toString().equalsIgnoreCase("top"))
         {
           found = true;
           break;

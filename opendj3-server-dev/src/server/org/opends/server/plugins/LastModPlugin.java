@@ -166,13 +166,11 @@ public final class LastModPlugin
     {
       // This must mean that the operation was performed anonymously.
       // Even so, we still need to update the creatorsName attribute.
-      builder.add(AttributeValues.create(creatorsNameType,
-          ByteString.empty()));
+      builder.add(ByteString.empty());
     }
     else
     {
-      builder.add(AttributeValues.create(creatorsNameType,
-          ByteString.valueOf(creatorDN.toString())));
+      builder.add(creatorDN.toString());
     }
     Attribute nameAttr = builder.toAttribute();
     ArrayList<Attribute> nameList = new ArrayList<Attribute>(1);
@@ -182,9 +180,7 @@ public final class LastModPlugin
 
     //  Create the attribute list for the createTimestamp attribute.
     Attribute timeAttr = Attributes.create(createTimestampType,
-        OP_ATTR_CREATE_TIMESTAMP,
-        AttributeValues.create(createTimestampType,
-            ByteString.valueOf(getGMTTime())));
+        OP_ATTR_CREATE_TIMESTAMP, getGMTTime());
     ArrayList<Attribute> timeList = new ArrayList<Attribute>(1);
     timeList.add(timeAttr);
     addOperation.setAttribute(createTimestampType, timeList);
@@ -211,13 +207,11 @@ public final class LastModPlugin
     {
       // This must mean that the operation was performed anonymously.
       // Even so, we still need to update the modifiersName attribute.
-      builder.add(AttributeValues.create(modifiersNameType,
-          ByteString.empty()));
+      builder.add(ByteString.empty());
     }
     else
     {
-      builder.add(AttributeValues.create(modifiersNameType,
-          ByteString.valueOf(modifierDN.toString())));
+      builder.add(modifierDN.toString());
     }
     Attribute nameAttr = builder.toAttribute();
     try
@@ -237,9 +231,7 @@ public final class LastModPlugin
 
     //  Create the modifyTimestamp attribute.
     Attribute timeAttr = Attributes.create(modifyTimestampType,
-        OP_ATTR_MODIFY_TIMESTAMP,
-        AttributeValues.create(modifyTimestampType,
-            ByteString.valueOf(getGMTTime())));
+        OP_ATTR_MODIFY_TIMESTAMP, getGMTTime());
     try
     {
       modifyOperation.addModification(new Modification(ModificationType.REPLACE,
@@ -276,13 +268,11 @@ public final class LastModPlugin
     {
       // This must mean that the operation was performed anonymously.
       // Even so, we still need to update the modifiersName attribute.
-      builder.add(AttributeValues.create(modifiersNameType,
-          ByteString.empty()));
+      builder.add(ByteString.empty());
     }
     else
     {
-      builder.add(AttributeValues.create(modifiersNameType,
-          ByteString.valueOf(modifierDN.toString())));
+      builder.add(modifierDN.toString());
     }
     Attribute nameAttr = builder.toAttribute();
     modifyDNOperation.addModification(new Modification(
@@ -291,9 +281,7 @@ public final class LastModPlugin
 
     // Create the modifyTimestamp attribute.
     Attribute timeAttr = Attributes.create(modifyTimestampType,
-        OP_ATTR_MODIFY_TIMESTAMP,
-        AttributeValues.create(modifyTimestampType,
-            ByteString.valueOf(getGMTTime())));
+        OP_ATTR_MODIFY_TIMESTAMP, getGMTTime());
     modifyDNOperation.addModification(new Modification(
         ModificationType.REPLACE, timeAttr, true));
 

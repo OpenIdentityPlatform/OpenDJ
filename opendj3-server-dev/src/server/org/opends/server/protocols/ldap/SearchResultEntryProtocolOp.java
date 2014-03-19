@@ -26,8 +26,6 @@
  */
 package org.opends.server.protocols.ldap;
 
-
-
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -45,7 +43,6 @@ import org.forgerock.opendj.io.ASN1Writer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeBuilder;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
@@ -53,8 +50,6 @@ import org.opends.server.types.LDAPException;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.util.Base64;
-
-
 
 /**
  * This class defines the structures and methods for an LDAP search result entry
@@ -637,9 +632,9 @@ public class SearchResultEntryProtocolOp
     stream.writeStartSequence();
     stream.writeOctetString(a.getNameWithOptions());
     stream.writeStartSet();
-    for (AttributeValue value : a)
+    for (ByteString value : a)
     {
-      stream.writeOctetString(value.getValue());
+      stream.writeOctetString(value);
     }
     stream.writeEndSequence();
     stream.writeEndSequence();

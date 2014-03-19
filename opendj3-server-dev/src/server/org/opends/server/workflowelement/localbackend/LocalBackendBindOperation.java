@@ -1102,7 +1102,7 @@ public class LocalBackendBindOperation
     }
 
     // See if the user's entry contains a custom idle time limit.
-    // idleTimeLimit = 1000L * Long.parseLong(v.getValue().toString());
+    // idleTimeLimit = 1000L * Long.parseLong(v.toString());
     Integer customIdleTimeLimitInSec =
         getIntegerUserAttribute(userEntry, OP_ATTR_USER_IDLE_TIME_LIMIT,
             WARN_BIND_MULTIPLE_USER_IDLE_TIME_LIMITS,
@@ -1136,15 +1136,15 @@ public class LocalBackendBindOperation
       Attribute a = attrList.get(0);
       if (a.size() == 1)
       {
-        AttributeValue v = a.iterator().next();
+        ByteString v = a.iterator().next();
         try
         {
-          return Integer.valueOf(v.getValue().toString());
+          return Integer.valueOf(v.toString());
         }
         catch (Exception e)
         {
           logger.traceException(e);
-          logger.error(cannotProcessAttributeMessage.get(v.getValue(), userEntry.getName()));
+          logger.error(cannotProcessAttributeMessage.get(v, userEntry.getName()));
         }
       }
       else if (a.size() > 1)

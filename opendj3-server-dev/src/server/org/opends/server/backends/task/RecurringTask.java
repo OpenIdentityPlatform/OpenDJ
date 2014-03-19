@@ -41,7 +41,7 @@ import java.util.regex.Pattern;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
@@ -183,8 +183,8 @@ public class RecurringTask
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
-    Iterator<AttributeValue> iterator = attr.iterator();
-    AttributeValue value = iterator.next();
+    Iterator<ByteString> iterator = attr.iterator();
+    ByteString value = iterator.next();
     if (iterator.hasNext())
     {
       LocalizableMessage message =
@@ -192,7 +192,7 @@ public class RecurringTask
       throw new DirectoryException(ResultCode.OBJECTCLASS_VIOLATION, message);
     }
 
-    recurringTaskID = value.getValue().toString();
+    recurringTaskID = value.toString();
 
 
     // Get the schedule for this task.
@@ -288,7 +288,7 @@ public class RecurringTask
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
     }
 
-    taskClassName = value.getValue().toString();
+    taskClassName = value.toString();
 
 
     // Make sure that the specified class can be loaded.

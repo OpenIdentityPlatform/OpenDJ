@@ -34,7 +34,7 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.server.types.AccountStatusNotification;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.Entry;
 
 
@@ -78,9 +78,9 @@ public class UserAttributeNotificationMessageTemplateElement
     {
       for (Attribute a : attrList)
       {
-        for (AttributeValue v : a)
+        for (ByteString v : a)
         {
-          buffer.append(v.getValue().toString());
+          buffer.append(v.toString());
           return;
         }
       }

@@ -640,8 +640,7 @@ public class PluginConfigManagerTestCase
       expectedOrder.append(expectedNameOrder[i]);
 
       DN dn = pluginArray[i].getPluginEntryDN();
-      String name =
-           dn.rdn().getAttributeValue(0).getValue().toString().toLowerCase();
+      String name = dn.rdn().getAttributeValue(0).toString().toLowerCase();
       actualOrder.append(name);
 
       if (! name.equals(expectedNameOrder[i]))

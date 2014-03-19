@@ -47,9 +47,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.DirectoryConfig;
 import org.opends.server.types.DN;
@@ -147,7 +145,7 @@ public class LastModPluginTestCase
   /**
    * Tests the process of initializing the server with valid configurations.
    *
-   * @param  entry  The configuration entry to use for the initialization.
+   * @param  e  The configuration entry to use for the initialization.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
@@ -155,17 +153,7 @@ public class LastModPluginTestCase
   public void testInitializeWithValidConfigs(Entry e)
          throws Exception
   {
-    HashSet<PluginType> pluginTypes = new HashSet<PluginType>();
-    List<Attribute> attrList = e.getAttribute("ds-cfg-plugin-type");
-    for (Attribute a : attrList)
-    {
-      for (AttributeValue v : a)
-      {
-        pluginTypes.add(PluginType.forName(
-            v.getValue().toString().toLowerCase()));
-      }
-    }
-
+    HashSet<PluginType> pluginTypes = TestCaseUtils.getPluginTypes(e);
 
     LastModPluginCfg configuration =
          AdminTestCaseUtils.getConfiguration(
@@ -182,7 +170,7 @@ public class LastModPluginTestCase
    * Tests the process of initializing the server with valid configurations but
    * without the lastmod schema defined in the server.
    *
-   * @param  entry  The configuration entry to use for the initialization.
+   * @param  e  The configuration entry to use for the initialization.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
@@ -190,14 +178,10 @@ public class LastModPluginTestCase
   public void testInitializeWithValidConfigsWithoutSchema(Entry e)
          throws Exception
   {
-    AttributeType ctType = DirectoryConfig.getAttributeType("createtimestamp",
-                                                            false);
-    AttributeType cnType = DirectoryConfig.getAttributeType("creatorsname",
-                                                            false);
-    AttributeType mtType = DirectoryConfig.getAttributeType("modifytimestamp",
-                                                            false);
-    AttributeType mnType = DirectoryConfig.getAttributeType("modifiersname",
-                                                            false);
+    AttributeType ctType = DirectoryConfig.getAttributeType("createtimestamp", false);
+    AttributeType cnType = DirectoryConfig.getAttributeType("creatorsname", false);
+    AttributeType mtType = DirectoryConfig.getAttributeType("modifytimestamp", false);
+    AttributeType mnType = DirectoryConfig.getAttributeType("modifiersname", false);
 
     DirectoryServer.deregisterAttributeType(ctType);
     DirectoryServer.deregisterAttributeType(cnType);
@@ -205,17 +189,7 @@ public class LastModPluginTestCase
     DirectoryServer.deregisterAttributeType(mnType);
 
 
-    HashSet<PluginType> pluginTypes = new HashSet<PluginType>();
-    List<Attribute> attrList = e.getAttribute("ds-cfg-plugin-type");
-    for (Attribute a : attrList)
-    {
-      for (AttributeValue v : a)
-      {
-        pluginTypes.add(PluginType.forName(
-            v.getValue().toString().toLowerCase()));
-      }
-    }
-
+    HashSet<PluginType> pluginTypes = TestCaseUtils.getPluginTypes(e);
 
     LastModPluginCfg configuration =
          AdminTestCaseUtils.getConfiguration(
@@ -280,7 +254,7 @@ public class LastModPluginTestCase
   /**
    * Tests the process of initializing the server with valid configurations.
    *
-   * @param  entry  The configuration entry to use for the initialization.
+   * @param  e  The configuration entry to use for the initialization.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
@@ -289,17 +263,7 @@ public class LastModPluginTestCase
   public void testInitializeWithInvalidConfigs(Entry e)
          throws Exception
   {
-    HashSet<PluginType> pluginTypes = new HashSet<PluginType>();
-    List<Attribute> attrList = e.getAttribute("ds-cfg-plugin-type");
-    for (Attribute a : attrList)
-    {
-      for (AttributeValue v : a)
-      {
-        pluginTypes.add(PluginType.forName(
-            v.getValue().toString().toLowerCase()));
-      }
-    }
-
+    HashSet<PluginType> pluginTypes = TestCaseUtils.getPluginTypes(e);
 
     LastModPluginCfg configuration =
          AdminTestCaseUtils.getConfiguration(

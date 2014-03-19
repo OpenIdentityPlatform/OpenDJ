@@ -44,7 +44,9 @@ import javax.net.ssl.SSLParameters;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.util.Reject;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.server.ConfigurationChangeListener;
@@ -52,7 +54,6 @@ import org.opends.server.admin.std.server.RootDSEBackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.config.ConfigEntry;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
@@ -61,7 +62,6 @@ import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.core.WorkflowTopologyNode;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.LDIFWriter;
 
 import static org.opends.messages.BackendMessages.*;
@@ -946,10 +946,8 @@ public class RootDSEBackend
 
     AttributeBuilder builder = new AttributeBuilder(type, name);
     for (DN dn : values) {
-      builder.add(
-          AttributeValues.create(type, dn.toString()));
+      builder.add(dn.toString());
     }
-
     return builder.toAttribute();
   }
 
@@ -980,9 +978,8 @@ public class RootDSEBackend
     AttributeBuilder builder = new AttributeBuilder(type, name);
     builder.setInitialCapacity(values.size());
     for (String s : values) {
-      builder.add(AttributeValues.create(type, s));
+      builder.add(s);
     }
-
     return builder.toAttribute();
   }
 

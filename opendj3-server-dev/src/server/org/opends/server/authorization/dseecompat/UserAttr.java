@@ -31,6 +31,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.core.DirectoryServer;
@@ -215,12 +216,14 @@ public class UserAttr implements KeywordBindRule {
                         filter, null);
         LinkedList<SearchResultEntry> result = op.getSearchEntries();
         if (!result.isEmpty()) {
-            AttributeValue val= AttributeValues.create(attrType, attrVal);
+            ByteString val= ByteString.valueOf(attrVal);
             SearchResultEntry resultEntry = result.getFirst();
             if(resultEntry.hasValue(attrType, null, val)) {
                 Entry e=evalCtx.getResourceEntry();
                 if(e.hasValue(attrType, null, val))
+                {
                     matched=EnumEvalResult.TRUE;
+                }
             }
         }
         return matched.getRet(type, undefined);
@@ -277,21 +280,25 @@ public class UserAttr implements KeywordBindRule {
         List<Attribute> attrs=evalCtx.getResourceEntry().getAttribute(attrType);
         if(!attrs.isEmpty()) {
             for(Attribute a : attrs) {
-                for(AttributeValue v : a) {
-                    String urlStr=v.getValue().toString();
+                for(ByteString v : a) {
                     LDAPURL url;
                     try {
-                       url=LDAPURL.decode(urlStr, true);
+                       url = LDAPURL.decode(v.toString(), true);
                     } catch (DirectoryException e) {
                         break;
                     }
                     matched=UserDN.evalURL(evalCtx, url);
                     if(matched != EnumEvalResult.FALSE)
+                    {
                         break;
+                    }
                 }
-                if(matched == EnumEvalResult.TRUE)
+                if (matched == EnumEvalResult.TRUE)
+                {
                     break;
-                if(matched == EnumEvalResult.ERR) {
+                }
+                if (matched == EnumEvalResult.ERR)
+                {
                     undefined=true;
                     break;
                 }

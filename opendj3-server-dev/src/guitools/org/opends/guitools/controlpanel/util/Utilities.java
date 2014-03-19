@@ -112,6 +112,7 @@ import org.opends.guitools.controlpanel.ui.renderer.
  AccessibleTableHeaderRenderer;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.ui.UIFactory;
 import org.opends.quicksetup.util.Utils;
@@ -1541,9 +1542,7 @@ public class Utilities
   public static String getRDNString(String attrName, String attrValue)
   {
     AttributeType attrType = DirectoryServer.getDefaultAttributeType(attrName);
-    AttributeValue value =
-        AttributeValues.create(attrType, attrValue);
-    RDN rdn = new RDN(attrType, attrName, value);
+    RDN rdn = new RDN(attrType, attrName, ByteString.valueOf(attrValue));
     return rdn.toString();
   }
 

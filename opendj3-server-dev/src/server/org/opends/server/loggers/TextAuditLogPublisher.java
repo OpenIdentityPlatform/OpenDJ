@@ -26,8 +26,6 @@
  */
 package org.opends.server.loggers;
 
-
-
 import static org.opends.messages.ConfigMessages.*;
 import static org.forgerock.opendj.ldap.ResultCode.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -44,13 +42,12 @@ import org.opends.server.admin.std.server.FileBasedAuditLogPublisherCfg;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.*;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ByteSequence;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.Base64;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;
-
-
 
 /**
  * This class provides the implementation of the audit logger used by
@@ -323,13 +320,7 @@ public final class TextAuditLogPublisher extends
     {
       for (Attribute a : attrList)
       {
-        for (AttributeValue v : a)
-        {
-          buffer.append(a.getName());
-          buffer.append(":");
-          encodeValue(v.getValue(), buffer);
-          buffer.append(EOL);
-        }
+        append(buffer, a);
       }
     }
 
@@ -338,13 +329,7 @@ public final class TextAuditLogPublisher extends
     {
       for (Attribute a : attrList)
       {
-        for (AttributeValue v : a)
-        {
-          buffer.append(a.getName());
-          buffer.append(":");
-          encodeValue(v.getValue(), buffer);
-          buffer.append(EOL);
-        }
+        append(buffer, a);
       }
     }
 
@@ -484,16 +469,23 @@ public final class TextAuditLogPublisher extends
       buffer.append(a.getName());
       buffer.append(EOL);
 
-      for (AttributeValue v : a)
-      {
-        buffer.append(a.getName());
-        buffer.append(":");
-        encodeValue(v.getValue(), buffer);
-        buffer.append(EOL);
-      }
+      append(buffer, a);
     }
 
     writer.writeRecord(buffer.toString());
+  }
+
+
+
+  private void append(StringBuilder buffer, Attribute a)
+  {
+    for (ByteString v : a)
+    {
+      buffer.append(a.getName());
+      buffer.append(":");
+      encodeValue(v, buffer);
+      buffer.append(EOL);
+    }
   }
 
 

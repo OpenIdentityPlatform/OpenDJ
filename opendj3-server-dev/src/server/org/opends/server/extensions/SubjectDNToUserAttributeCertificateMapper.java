@@ -37,7 +37,9 @@ import javax.security.auth.x500.X500Principal;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.CertificateMapperCfg;
@@ -49,7 +51,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 
 import static org.opends.messages.ExtensionMessages.*;
 
@@ -182,10 +183,8 @@ public class SubjectDNToUserAttributeCertificateMapper
     // filter.
     X500Principal peerPrincipal = peerCertificate.getSubjectX500Principal();
     String peerName = peerPrincipal.getName(X500Principal.RFC2253);
-    AttributeValue value =
-        AttributeValues.create(subjectAttributeType, peerName);
-    SearchFilter filter =
-         SearchFilter.createEqualityFilter(subjectAttributeType, value);
+    SearchFilter filter = SearchFilter.createEqualityFilter(
+        subjectAttributeType, ByteString.valueOf(peerName));
 
 
     // If we have an explicit set of base DNs, then use it.  Otherwise, use the

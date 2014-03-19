@@ -30,20 +30,20 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.UniqueAttributePluginCfgDefn;
 import org.opends.server.admin.std.server.UniqueAttributePluginCfg;
 import org.opends.server.api.plugin.PluginType;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.testng.annotations.*;
 
 import static org.testng.Assert.*;
@@ -213,13 +213,7 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
   public void testInitializeWithValidConfigs(Entry e)
           throws Exception
   {
-    HashSet<PluginType> pluginTypes = new HashSet<PluginType>();
-    List<Attribute> attrList = e.getAttribute("ds-cfg-plugin-type");
-    for (Attribute a : attrList){
-      for (AttributeValue v : a)
-        pluginTypes.add(PluginType.forName(
-            v.getValue().toString().toLowerCase()));
-    }
+    HashSet<PluginType> pluginTypes = TestCaseUtils.getPluginTypes(e);
     UniqueAttributePluginCfg configuration =
             AdminTestCaseUtils.getConfiguration(
                     UniqueAttributePluginCfgDefn.getInstance(), e);
@@ -331,14 +325,7 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
   public void testInitializeWithInvalidConfigs(Entry e)
          throws Exception
   {
-    HashSet<PluginType> pluginTypes = new HashSet<PluginType>();
-    List<Attribute> attrList = e.getAttribute("ds-cfg-plugin-type");
-    for (Attribute a : attrList)
-    {
-      for (AttributeValue v : a)
-        pluginTypes.add(PluginType.forName(
-            v.getValue().toString().toLowerCase()));
-    }
+    HashSet<PluginType> pluginTypes = TestCaseUtils.getPluginTypes(e);
     UniqueAttributePluginCfg configuration =
          AdminTestCaseUtils.getConfiguration(
               UniqueAttributePluginCfgDefn.getInstance(), e);
@@ -762,7 +749,7 @@ public class UniqueAttributePluginTestCase extends PluginTestCase {
     AttributeType attrType = getAttrType(attrTypeString);
     AttributeBuilder builder = new AttributeBuilder(attrType, attrTypeString);
     for(String valString : attrValStrings) {
-      builder.add(AttributeValues.create(attrType, valString));
+      builder.add(valString);
     }
     mods.add(new Modification(ModificationType.REPLACE, builder.toAttribute()));
     InternalClientConnection conn =

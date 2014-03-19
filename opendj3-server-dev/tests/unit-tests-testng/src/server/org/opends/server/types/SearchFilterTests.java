@@ -57,7 +57,8 @@ import static org.testng.Assert.*;
  * with extensible match, attribute options, and there is a lot of code
  * that is not reachable because it's in exception handling code that
  * is not exercisable externally.
-   */
+ */
+@SuppressWarnings("javadoc")
 public class SearchFilterTests extends DirectoryServerTestCase {
 
   @BeforeClass
@@ -133,7 +134,7 @@ public class SearchFilterTests extends DirectoryServerTestCase {
         char lowNibble = CHAR_NIBBLES[j];
         byte lowByteNibble = BYTE_NIBBLES[j];
         String inputChar = "\\" + highNibble + lowNibble;
-        byte byteValue = (byte)((((int)highByteNibble) << 4) | lowByteNibble);
+        byte byteValue = (byte)((highByteNibble << 4) | lowByteNibble);
         String outputChar = getFilterValueForChar(byteValue);
 
         // Exact match
@@ -168,7 +169,7 @@ public class SearchFilterTests extends DirectoryServerTestCase {
       }
     }
 
-    return (Object[][]) allParameters.toArray(new String[][]{});
+    return allParameters.toArray(new String[][]{});
   }
 
 
@@ -184,11 +185,10 @@ public class SearchFilterTests extends DirectoryServerTestCase {
 
     List<String> invalidEscapeSequences = new ArrayList<String>();
 
-    for (int i = 0; i < VALID_NIBBLES.length; i++) {
-      char validNibble = VALID_NIBBLES[i];
-      for (int j = 0; j < INVALID_NIBBBLES.length; j++) {
-        char invalidNibble = INVALID_NIBBBLES[j];
-
+    for (char validNibble : VALID_NIBBLES)
+    {
+      for (char invalidNibble : INVALID_NIBBBLES)
+      {
         invalidEscapeSequences.add("\\" + validNibble + invalidNibble);
         invalidEscapeSequences.add("\\" + invalidNibble + validNibble);
       }
@@ -223,7 +223,7 @@ public class SearchFilterTests extends DirectoryServerTestCase {
       allParameters.add(new String[]{"(sn:caseExactMatch:=" + invalidEscape});
     }
 
-    return (Object[][]) allParameters.toArray(new String[][]{});
+    return allParameters.toArray(new String[][]{});
   }
 
 
@@ -240,9 +240,8 @@ public class SearchFilterTests extends DirectoryServerTestCase {
          (value == 0x7F))             // Delete character
     {
       return "\\" + StaticUtils.byteToHex(value);
-    } else {
-      return "" + ((char)value);
     }
+    return String.valueOf((char) value);
   }
 
   @Test(dataProvider = "escapeSequenceFilters")
@@ -459,9 +458,6 @@ public class SearchFilterTests extends DirectoryServerTestCase {
   ////////////////////////////////////////////////////////////////////////////
 
 
-  /**
-   *
-   */
   private static final String makeSimpleLdif(String givenname, String sn) {
     String cn = givenname + " " + sn;
     return TestCaseUtils.makeLdif(
@@ -485,9 +481,6 @@ public class SearchFilterTests extends DirectoryServerTestCase {
                                               JOE_AUSTIN_LDIF));
 
 
-  /**
-   *
-   */
   private List<String> getEntriesExcluding(List<String> matchedEntries) {
     List<String> unmatched = new ArrayList<String>(ALL_ENTRIES_LDIF);
     unmatched.removeAll(matchedEntries);
@@ -495,9 +488,6 @@ public class SearchFilterTests extends DirectoryServerTestCase {
   }
 
 
-  /**
-   *
-   */
   private static class FilterDescription {
     private SearchFilter searchFilter;
 
@@ -507,7 +497,7 @@ public class SearchFilterTests extends DirectoryServerTestCase {
     private FilterType filterType;
     private LinkedHashSet<SearchFilter> filterComponents = new LinkedHashSet<SearchFilter>();
     private SearchFilter notComponent;
-    private AttributeValue assertionValue;
+    private ByteString assertionValue;
     private AttributeType attributeType;
     private ByteString subInitialElement;
     private List<ByteString> subAnyElements = new ArrayList<ByteString>();
@@ -516,9 +506,6 @@ public class SearchFilterTests extends DirectoryServerTestCase {
     private boolean dnAttributes;
 
 
-    /**
-     *
-     */
     public void validateFilterFields() throws AssertionError {
       if (!searchFilter.getFilterType().equals(filterType)) {
         throwUnequalError("filterTypes");
@@ -562,17 +549,11 @@ public class SearchFilterTests extends DirectoryServerTestCase {
     }
 
 
-    /**
-     *
-     */
     private void throwUnequalError(String message) throws AssertionError {
       throw new AssertionError("Filter differs from what is expected '" + message + "' differ.\n" + toString());
     }
 
 
-    /**
-     *
-     */
     @Override
     public String toString() {
       return "FilterDescription: \n" +
@@ -589,9 +570,6 @@ public class SearchFilterTests extends DirectoryServerTestCase {
     }
 
 
-    /**
-     *
-     */
     private FilterDescription negate() {
       FilterDescription negation = new FilterDescription();
       negation.searchFilter = SearchFilter.createNOTFilter(searchFilter);
@@ -607,9 +585,7 @@ public class SearchFilterTests extends DirectoryServerTestCase {
     }
 
 
-    /**
-     *
-     */
+    @Override
     public FilterDescription clone() {
       FilterDescription that = new FilterDescription();
 
@@ -632,9 +608,6 @@ public class SearchFilterTests extends DirectoryServerTestCase {
   }
 
 
-  /**
-   *
-   */
   private FilterDescription assertionFilterDescription(FilterType filterType,
                                                        String attributeType,
                                                        String attributeValue,
@@ -643,7 +616,7 @@ public class SearchFilterTests extends DirectoryServerTestCase {
 
     description.filterType = filterType;
     description.attributeType = DirectoryServer.getAttributeType(attributeType);
-    description.assertionValue = AttributeValues.create(description.attributeType, attributeValue);
+    description.assertionValue = ByteString.valueOf(attributeValue);
 
     if (filterType == FilterType.EQUALITY) {
       description.searchFilter = SearchFilter.createEqualityFilter(description.attributeType,
@@ -668,9 +641,6 @@ public class SearchFilterTests extends DirectoryServerTestCase {
   }
 
 
-  /**
-   *
-   */
   private FilterDescription equalityFilterDescription(String attributeType,
                                                       String attributeValue,
                                                       List<String> matchedEntries) {
@@ -678,9 +648,6 @@ public class SearchFilterTests extends DirectoryServerTestCase {
   }
 
 
-  /**
-   *
-   */
   private FilterDescription lessEqualFilterDescription(String attributeType,
                                                        String attributeValue,
                                                        List<String> matchedEntries) {
@@ -688,9 +655,6 @@ public class SearchFilterTests extends DirectoryServerTestCase {
   }
 
 
-  /**
-   *
-   */
   private FilterDescription greaterEqualFilterDescription(String attributeType,
                                                           String attributeValue,
                                                           List<String> matchedEntries) {
@@ -698,9 +662,6 @@ public class SearchFilterTests extends DirectoryServerTestCase {
   }
 
 
-  /**
-   *
-   */
   private FilterDescription approximateFilterDescription(String attributeType,
                                                          String attributeValue,
                                                          List<String> matchedEntries) {
@@ -708,9 +669,6 @@ public class SearchFilterTests extends DirectoryServerTestCase {
   }
 
 
-  /**
-   *
-   */
   private FilterDescription substringFilterDescription(String attributeType,
                                                        String subInitial,
                                                        List<String> subAny,
@@ -742,9 +700,6 @@ public class SearchFilterTests extends DirectoryServerTestCase {
   }
 
 
-  /**
-   *
-   */
   private List<FilterDescription> getNotFilters(List<FilterDescription> filters) {
     List<FilterDescription> notFilters = new ArrayList<FilterDescription>();
 
@@ -756,9 +711,6 @@ public class SearchFilterTests extends DirectoryServerTestCase {
   }
 
 
-  /**
-   *
-   */
   private FilterDescription getAndFilter(List<FilterDescription> filters) {
     FilterDescription andFilter = new FilterDescription();
 
@@ -782,9 +734,6 @@ public class SearchFilterTests extends DirectoryServerTestCase {
   }
 
 
-  /**
-   *
-   */
   private List<FilterDescription> getAndFilters(List<FilterDescription> filters) {
     List<FilterDescription> andFilters = new ArrayList<FilterDescription>();
 
@@ -798,9 +747,6 @@ public class SearchFilterTests extends DirectoryServerTestCase {
   }
 
 
-  /**
-   *
-   */
   private FilterDescription getOrFilter(List<FilterDescription> filters) {
     FilterDescription orFilter = new FilterDescription();
 
@@ -827,9 +773,6 @@ public class SearchFilterTests extends DirectoryServerTestCase {
   }
 
 
-  /**
-   *
-   */
   private List<FilterDescription> getOrFilters(List<FilterDescription> filters) {
     List<FilterDescription> orFilters = new ArrayList<FilterDescription>();
 
@@ -843,9 +786,6 @@ public class SearchFilterTests extends DirectoryServerTestCase {
   }
 
 
-  /**
-   *
-   */
   private List<FilterDescription> getEqualityFilters() throws Exception {
     List<FilterDescription> descriptions = new ArrayList<FilterDescription>();
 
@@ -859,9 +799,6 @@ public class SearchFilterTests extends DirectoryServerTestCase {
   }
 
 
-  /**
-   *
-   */
   private List<FilterDescription> getApproximateFilters() throws Exception {
     List<FilterDescription> descriptions = new ArrayList<FilterDescription>();
 
@@ -872,9 +809,6 @@ public class SearchFilterTests extends DirectoryServerTestCase {
   }
 
 
-  /**
-   *
-   */
   private List<FilterDescription> getSubstringFilters() throws Exception {
     List<FilterDescription> descriptions = new ArrayList<FilterDescription>();
 
@@ -887,14 +821,11 @@ public class SearchFilterTests extends DirectoryServerTestCase {
   }
 
 
-  /**
-   *
-   */
   private List<FilterDescription> getInequalityFilters() throws Exception {
     List<FilterDescription> descriptions = new ArrayList<FilterDescription>();
 
     descriptions.add(lessEqualFilterDescription("sn", "Aus",
-            (List<String>)(new ArrayList<String>())));
+            new ArrayList<String>()));
 
     descriptions.add(greaterEqualFilterDescription("sn", "Aus",
             asList(JANE_AUSTIN_LDIF, JOE_AUSTIN_LDIF,
@@ -943,9 +874,6 @@ public class SearchFilterTests extends DirectoryServerTestCase {
   }
 
 
-  /**
-   *
-   */
   protected List<FilterDescription> getMinimalFilterDescriptionList() throws Exception {
     List<FilterDescription> baseDescriptions = new ArrayList<FilterDescription>();
     List<FilterDescription> allDescriptions = new ArrayList<FilterDescription>();
@@ -964,9 +892,6 @@ public class SearchFilterTests extends DirectoryServerTestCase {
 
 
 
-  /**
-   *
-   */
   @DataProvider(name = "filterDescriptions")
   public Object[][] getFilterDescriptions() throws Exception {
     List<FilterDescription> allDescriptions = getFilterDescriptionList();
@@ -1112,18 +1037,12 @@ public class SearchFilterTests extends DirectoryServerTestCase {
   };
 
 
-  /**
-   *
-   */
   @DataProvider(name = "equalsTest")
   public Object[][] getEqualsTests() throws Exception {
     return TEST_EQUALS_PARAMS;
   }
 
 
-  /**
-   *
-   */
   @Test(dataProvider = "equalsTest")
   public void testEquals(String stringFilter1, String stringFilter2, boolean expectEquals, boolean expectStringEquals) throws Exception {
     SearchFilter filter1 = SearchFilter.createFilterFromString(stringFilter1);
@@ -1192,16 +1111,11 @@ public class SearchFilterTests extends DirectoryServerTestCase {
   }
 
   @Test(dataProvider = "differentNormalization")
-  public void testdifferentNormalization(String ldifEntry, String filterStr,
+  public void testDifferentNormalization(String ldifEntry, String filterStr,
                                          boolean expectMatch) throws Exception
   {
     Entry entry = TestCaseUtils.entryFromLdifString(ldifEntry);
     boolean matches = SearchFilter.createFilterFromString(filterStr).matchesEntry(entry);
     Assert.assertEquals(matches, expectMatch, "Filter=" + filterStr + "\nEntry=" + entry);
   }
-
-
-
-
 }
-

@@ -664,7 +664,7 @@ public class VLVIndex extends DatabaseContainer
    * @throws DirectoryException If a Directory Server error occurs.
    */
   public SortValuesSet getSortValuesSet(Transaction txn, long entryID,
-      AttributeValue[] values, AttributeType[] types) throws DatabaseException,
+      ByteString[] values, AttributeType[] types) throws DatabaseException,
       DirectoryException
   {
     SortValuesSet sortValuesSet = null;
@@ -733,7 +733,7 @@ public class VLVIndex extends DatabaseContainer
    * @throws DirectoryException If a Directory Server error occurs.
    */
   public boolean containsValues(Transaction txn, long entryID,
-      AttributeValue[] values, AttributeType[] types) throws JebException,
+      ByteString[] values, AttributeType[] types) throws JebException,
       DatabaseException, DirectoryException
   {
     SortValuesSet valuesSet = getSortValuesSet(txn, entryID, values, types);
@@ -744,7 +744,7 @@ public class VLVIndex extends DatabaseContainer
   private boolean insertValues(Transaction txn, long entryID, Entry entry)
       throws JebException, DatabaseException, DirectoryException
   {
-    AttributeValue[] values = getSortValues(entry);
+    ByteString[] values = getSortValues(entry);
     AttributeType[] types = getSortTypes();
     DatabaseEntry key = new DatabaseEntry();
     OperationStatus status;
@@ -855,8 +855,7 @@ public class VLVIndex extends DatabaseContainer
   private boolean removeValues(Transaction txn, long entryID, Entry entry)
       throws JebException, DatabaseException, DirectoryException
   {
-    SortValuesSet sortValuesSet;
-    AttributeValue[] values = getSortValues(entry);
+    ByteString[] values = getSortValues(entry);
     AttributeType[] types = getSortTypes();
     DatabaseEntry key = new DatabaseEntry();
     OperationStatus status;
@@ -889,8 +888,7 @@ public class VLVIndex extends DatabaseContainer
                             searchKeyHex,
                             foundKeyHex);
       }
-      sortValuesSet = new SortValuesSet(key.getData(), data.getData(),
-                                        this);
+      SortValuesSet sortValuesSet = new SortValuesSet(key.getData(), data.getData(), this);
       boolean success = sortValuesSet.remove(entryID, values, types);
       byte[] after = sortValuesSet.toDatabase();
 
@@ -1350,12 +1348,12 @@ public class VLVIndex extends DatabaseContainer
             }
             SortValuesSet sortValuesSet =
                 new SortValuesSet(key.getData(), data.getData(), this);
-            AttributeType type = sortOrder.getSortKeys()[0].getAttributeType();
-            AttributeValue[] assertionValue = new AttributeValue[] {
-                AttributeValues.create(
-                    type, vlvRequest.getGreaterThanOrEqualAssertion())
+            ByteString[] assertionValue = new ByteString[] {
+                vlvRequest.getGreaterThanOrEqualAssertion()
             };
-            AttributeType[] assertionType = new AttributeType[] { type };
+            AttributeType[] assertionType = new AttributeType[] {
+                sortOrder.getSortKeys()[0].getAttributeType()
+            };
 
             int adjustedTargetOffset =
                 sortValuesSet.binarySearch(-1, assertionValue, assertionType);
@@ -1559,10 +1557,10 @@ public class VLVIndex extends DatabaseContainer
    * @param entry The entry to get the values from.
    * @return The attribute values to sort on.
    */
-  AttributeValue[] getSortValues(Entry entry)
+  ByteString[] getSortValues(Entry entry)
   {
     SortKey[] sortKeys = sortOrder.getSortKeys();
-    AttributeValue[] values = new AttributeValue[sortKeys.length];
+    ByteString[] values = new ByteString[sortKeys.length];
     for (int i=0; i < sortKeys.length; i++)
     {
       SortKey sortKey = sortKeys[i];
@@ -1570,7 +1568,7 @@ public class VLVIndex extends DatabaseContainer
       List<Attribute> attrList = entry.getAttribute(attrType);
       if (attrList != null)
       {
-        AttributeValue sortValue = null;
+        ByteString sortValue = null;
 
         // There may be multiple versions of this attribute in the target entry
         // (e.g., with different sets of options), and it may also be a
@@ -1581,7 +1579,7 @@ public class VLVIndex extends DatabaseContainer
         // handled by the SortKey.compareValues method.
         for (Attribute a : attrList)
         {
-          for (AttributeValue v : a)
+          for (ByteString v : a)
           {
             if (sortValue == null)
             {
@@ -1609,7 +1607,7 @@ public class VLVIndex extends DatabaseContainer
    * @return The encoded bytes.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  byte[] encodeKey(long entryID, AttributeValue[] values, AttributeType[] types)
+  byte[] encodeKey(long entryID, ByteString[] values, AttributeType[] types)
       throws DirectoryException
   {
     try
@@ -1618,7 +1616,7 @@ public class VLVIndex extends DatabaseContainer
 
       for (int i = 0; i < values.length; i++)
       {
-        final AttributeValue v = values[i];
+        final ByteString v = values[i];
         if (v == null)
         {
           builder.appendBERLength(0);
@@ -1626,7 +1624,7 @@ public class VLVIndex extends DatabaseContainer
         else
         {
           final MatchingRule eqRule = types[i].getEqualityMatchingRule();
-          final ByteString nv = eqRule.normalizeAttributeValue(v.getValue());
+          final ByteString nv = eqRule.normalizeAttributeValue(v);
           builder.appendBERLength(nv.length());
           builder.append(nv);
         }
@@ -1658,8 +1656,7 @@ public class VLVIndex extends DatabaseContainer
       return null;
     }
 
-    AttributeValue[] attributeValues =
-        new AttributeValue[sortOrder.getSortKeys().length];
+    ByteString[] attributeValues = new ByteString[sortOrder.getSortKeys().length];
     int vBytesPos = 0;
 
     for(int i = 0; i < attributeValues.length; i++)
@@ -1683,10 +1680,7 @@ public class VLVIndex extends DatabaseContainer
       {
         byte[] valueBytes = new byte[valueLength];
         System.arraycopy(keyBytes, vBytesPos, valueBytes, 0, valueLength);
-        attributeValues[i] =
-            AttributeValues.create(
-                sortOrder.getSortKeys()[i].getAttributeType(),
-                ByteString.wrap(valueBytes));
+        attributeValues[i] = ByteString.wrap(valueBytes);
       }
 
       vBytesPos += valueLength;

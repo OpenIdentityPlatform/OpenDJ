@@ -50,7 +50,7 @@ import org.opends.server.core.SearchOperation;
 import org.opends.server.core.networkgroups.NetworkGroup;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.AuthenticationInfo;
 import org.opends.server.types.CancelRequest;
 import org.opends.server.types.CancelResult;
@@ -1192,9 +1192,9 @@ public abstract class ClientConnection
     {
       for (Attribute a : attrList)
       {
-        for (AttributeValue v : a)
+        for (ByteString v : a)
         {
-          String privName = toLowerCase(v.getValue().toString());
+          String privName = toLowerCase(v.toString());
 
           // If the name of the privilege is prefixed with a minus
           // sign, then we will take away that privilege from the

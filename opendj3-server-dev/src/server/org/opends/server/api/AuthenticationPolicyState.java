@@ -115,8 +115,7 @@ public abstract class AuthenticationPolicyState
           continue;
         }
 
-        final String valueString = toLowerCase(a.iterator().next().getValue()
-            .toString());
+        final String valueString = toLowerCase(a.iterator().next().toString());
 
         if (valueString.equals("true") || valueString.equals("yes")
             || valueString.equals("on") || valueString.equals("1"))
@@ -198,20 +197,20 @@ public abstract class AuthenticationPolicyState
           continue;
         }
 
-        final AttributeValue v = a.iterator().next();
+        final ByteString v = a.iterator().next();
         try
         {
           MatchingRule rule = attributeType.getEqualityMatchingRule();
-          ByteString normValue = rule.normalizeAttributeValue(v.getValue());
+          ByteString normValue = rule.normalizeAttributeValue(v);
           timeValue = GeneralizedTimeSyntax.decodeGeneralizedTimeValue(normValue);
         }
         catch (final Exception e)
         {
           logger.traceException(e, "Unable to decode value %s for attribute %s in user entry %s",
-              v.getValue(), attributeType.getNameOrOID(), entry.getName());
+              v, attributeType.getNameOrOID(), entry.getName());
 
           final LocalizableMessage message = ERR_PWPSTATE_CANNOT_DECODE_GENERALIZED_TIME
-              .get(v.getValue(), attributeType.getNameOrOID(), entry.getName(), e);
+              .get(v, attributeType.getNameOrOID(), entry.getName(), e);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
               message, e);
         }

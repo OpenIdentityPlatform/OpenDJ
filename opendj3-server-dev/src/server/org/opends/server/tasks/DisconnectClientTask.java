@@ -39,7 +39,7 @@ import org.opends.server.api.ConnectionHandler;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.Entry;
@@ -113,17 +113,16 @@ public class DisconnectClientTask
 connIDLoop:
       for (Attribute a : attrList)
       {
-        for (AttributeValue v : a)
+        for (ByteString v : a)
         {
           try
           {
-            connectionID = Long.parseLong(v.getValue().toString());
+            connectionID = Long.parseLong(v.toString());
             break connIDLoop;
           }
           catch (Exception e)
           {
-            LocalizableMessage message =
-               ERR_TASK_DISCONNECT_INVALID_CONN_ID.get(v.getValue());
+            LocalizableMessage message = ERR_TASK_DISCONNECT_INVALID_CONN_ID.get(v);
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                          message, e);
           }
@@ -151,9 +150,9 @@ connIDLoop:
 notifyClientLoop:
       for (Attribute a : attrList)
       {
-        for (AttributeValue v : a)
+        for (ByteString v : a)
         {
-          String stringValue = toLowerCase(v.getValue().toString());
+          String stringValue = toLowerCase(v.toString());
           if (stringValue.equals("true"))
           {
             notifyClient = true;
@@ -185,9 +184,9 @@ notifyClientLoop:
 disconnectMessageLoop:
       for (Attribute a : attrList)
       {
-        for (AttributeValue v : a)
+        for (ByteString v : a)
         {
-          disconnectMessage = LocalizableMessage.raw(v.getValue().toString());
+          disconnectMessage = LocalizableMessage.raw(v.toString());
           break disconnectMessageLoop;
         }
       }

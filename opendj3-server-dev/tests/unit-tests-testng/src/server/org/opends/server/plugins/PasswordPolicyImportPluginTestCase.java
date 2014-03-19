@@ -26,8 +26,6 @@
  */
 package org.opends.server.plugins;
 
-
-
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -40,16 +38,12 @@ import org.opends.server.admin.std.server.PasswordPolicyImportPluginCfg;
 import org.opends.server.api.plugin.PluginType;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeValue;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-
 
 /**
  * This class defines a set of tests for the
@@ -160,7 +154,7 @@ public class PasswordPolicyImportPluginTestCase
   /**
    * Tests the process of initializing the server with valid configurations.
    *
-   * @param  entry  The configuration entry to use for the initialization.
+   * @param  e  The configuration entry to use for the initialization.
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
@@ -168,16 +162,7 @@ public class PasswordPolicyImportPluginTestCase
   public void testInitializeWithValidConfigs(Entry e)
          throws Exception
   {
-    HashSet<PluginType> pluginTypes = new HashSet<PluginType>();
-    List<Attribute> attrList = e.getAttribute("ds-cfg-plugin-type");
-    for (Attribute a : attrList)
-    {
-      for (AttributeValue v : a)
-      {
-        pluginTypes.add(PluginType.forName(
-            v.getValue().toString().toLowerCase()));
-      }
-    }
+    HashSet<PluginType> pluginTypes = TestCaseUtils.getPluginTypes(e);
 
     PasswordPolicyImportPluginCfg configuration =
          AdminTestCaseUtils.getConfiguration(
@@ -243,20 +228,7 @@ public class PasswordPolicyImportPluginTestCase
   public void testInitializeWithInvalidConfigs(Entry e)
          throws Exception
   {
-    HashSet<PluginType> pluginTypes = new HashSet<PluginType>();
-    List<Attribute> attrList = e.getAttribute("ds-cfg-plugin-type");
-    if (attrList != null)
-    {
-      for (Attribute a : attrList)
-      {
-        for (AttributeValue v : a)
-        {
-          pluginTypes.add(PluginType.forName(
-              v.getValue().toString().toLowerCase()));
-        }
-      }
-    }
-
+    HashSet<PluginType> pluginTypes = TestCaseUtils.getPluginTypes(e);
 
     PasswordPolicyImportPluginCfg configuration =
          AdminTestCaseUtils.getConfiguration(

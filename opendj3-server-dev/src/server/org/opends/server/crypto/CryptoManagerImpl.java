@@ -503,8 +503,7 @@ public class CryptoManagerImpl
   static byte[] getInstanceKeyCertificateFromLocalTruststore()
           throws CryptoManagerException {
     // Construct the key entry DN.
-    final AttributeValue distinguishedValue = AttributeValues.create(
-            attrKeyID, ConfigConstants.ADS_CERTIFICATE_ALIAS);
+    final ByteString distinguishedValue = ByteString.valueOf(ConfigConstants.ADS_CERTIFICATE_ALIAS);
     final DN entryDN = localTruststoreDN.child(
             RDN.create(attrKeyID, distinguishedValue));
     // Construct the search filter.
@@ -644,8 +643,7 @@ public class CryptoManagerImpl
     final String instanceKeyID
             = getInstanceKeyID(instanceKeyCertificate);
     // Construct the key entry DN.
-    final AttributeValue distinguishedValue =
-        AttributeValues.create(attrKeyID, instanceKeyID);
+    final ByteString distinguishedValue = ByteString.valueOf(instanceKeyID);
     final DN entryDN = instanceKeysDN.child(
          RDN.create(attrKeyID, distinguishedValue));
     // Construct the search filter.
@@ -675,18 +673,15 @@ public class CryptoManagerImpl
         // Add the key ID attribute.
         final Attribute keyIDAttr = Attributes.create(attrKeyID,
             distinguishedValue);
-        entry.addAttribute(keyIDAttr, new ArrayList<AttributeValue>(0));
+        entry.addAttribute(keyIDAttr, new ArrayList<ByteString>(0));
 
         // Add the public key certificate attribute.
         AttributeBuilder builder = new AttributeBuilder(
             attrPublicKeyCertificate);
         builder.setOption("binary");
-        builder.add(AttributeValues.create(
-            attrPublicKeyCertificate,
-            ByteString.wrap(instanceKeyCertificate)));
+        builder.add(ByteString.wrap(instanceKeyCertificate));
         final Attribute certificateAttr = builder.toAttribute();
-        entry.addAttribute(certificateAttr,
-                new ArrayList<AttributeValue>(0));
+        entry.addAttribute(certificateAttr, new ArrayList<ByteString>(0));
 
         AddOperation addOperation = icc.processAdd(entry.getName(),
                 entry.getObjectClasses(),
@@ -1596,7 +1591,7 @@ public class CryptoManagerImpl
       String value)
   {
     ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-    attrList.add(Attributes.create(type, AttributeValues.create(type, value)));
+    attrList.add(Attributes.create(type, value));
     attrs.put(type, attrList);
   }
 
@@ -1678,9 +1673,8 @@ public class CryptoManagerImpl
          throws CryptoManagerException
     {
       // Construct the key entry DN.
-      AttributeValue distinguishedValue =
-           AttributeValues.create(attrKeyID,
-               keyEntry.getKeyID().getStringValue());
+      ByteString distinguishedValue =
+           ByteString.valueOf(keyEntry.getKeyID().getStringValue());
       DN entryDN = secretKeysDN.child(
            RDN.create(attrKeyID, distinguishedValue));
 
@@ -1730,7 +1724,7 @@ public class CryptoManagerImpl
         String symmetricKey = cryptoManager.encodeSymmetricKeyAttribute(
             mapEntry.getKey(), mapEntry.getValue(), keyEntry.getSecretKey());
 
-        builder.add(AttributeValues.create(attrSymmetricKey, symmetricKey));
+        builder.add(symmetricKey);
       }
       attrList = new ArrayList<Attribute>(1);
       attrList.add(builder.toAttribute());
@@ -2209,9 +2203,8 @@ public class CryptoManagerImpl
          throws CryptoManagerException
     {
       // Construct the key entry DN.
-      AttributeValue distinguishedValue =
-           AttributeValues.create(attrKeyID,
-                              keyEntry.getKeyID().getStringValue());
+      ByteString distinguishedValue =
+           ByteString.valueOf(keyEntry.getKeyID().getStringValue());
       DN entryDN = secretKeysDN.child(
            RDN.create(attrKeyID, distinguishedValue));
 
@@ -2258,9 +2251,7 @@ public class CryptoManagerImpl
                   mapEntry.getKey(),
                   mapEntry.getValue(),
                   keyEntry.getSecretKey());
-
-        builder.add(
-            AttributeValues.create(attrSymmetricKey, symmetricKey));
+        builder.add(symmetricKey);
       }
 
       attrList = new ArrayList<Attribute>(1);

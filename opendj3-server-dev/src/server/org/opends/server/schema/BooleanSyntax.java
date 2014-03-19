@@ -37,8 +37,6 @@ import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.AttributeValues;
 import org.opends.server.util.ServerConstants;
 
 import static org.opends.messages.SchemaMessages.*;
@@ -243,12 +241,9 @@ public class BooleanSyntax
    *
    * @return  The attribute value created from the provided boolean value.
    */
-  public static AttributeValue createBooleanValue(boolean b)
+  public static ByteString createBooleanValue(boolean b)
   {
-    ByteString value = b
-        ? ServerConstants.TRUE_VALUE
-        : ServerConstants.FALSE_VALUE;
-    return AttributeValues.create(value, value);
+    return b ? ServerConstants.TRUE_VALUE : ServerConstants.FALSE_VALUE;
   }
 
 

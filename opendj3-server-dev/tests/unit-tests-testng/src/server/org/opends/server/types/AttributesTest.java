@@ -29,13 +29,12 @@ package org.opends.server.types;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.TestCaseUtils;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-
 
 /**
  * This class defines a set of tests for the
@@ -218,7 +217,7 @@ public class AttributesTest extends TypesTestCase
   public void testMergeWithDuplicates(int testCase, Attribute a1, Attribute a2,
       Attribute e, Attribute d) throws Exception
   {
-    List<AttributeValue> duplicates = new LinkedList<AttributeValue>();
+    List<ByteString> duplicates = new LinkedList<ByteString>();
     Attribute actual = Attributes.merge(a1, a2, duplicates);
     Assert.assertEquals(actual, e);
 
@@ -276,7 +275,7 @@ public class AttributesTest extends TypesTestCase
   public void testSubtractWithMissingValues(int testCase, Attribute a1,
       Attribute a2, Attribute e, Attribute m) throws Exception
   {
-    List<AttributeValue> missingValues = new LinkedList<AttributeValue>();
+    List<ByteString> missingValues = new LinkedList<ByteString>();
     Attribute actual = Attributes.subtract(a1, a2, missingValues);
     Assert.assertEquals(actual, e);
 

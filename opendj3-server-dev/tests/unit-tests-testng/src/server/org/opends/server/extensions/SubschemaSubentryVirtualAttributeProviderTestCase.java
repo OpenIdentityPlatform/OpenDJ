@@ -26,8 +26,6 @@
  */
 package org.opends.server.extensions;
 
-
-
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
@@ -35,7 +33,6 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn;
@@ -45,8 +42,7 @@ import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.AttributeValues;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
@@ -57,8 +53,6 @@ import org.opends.server.types.VirtualAttributeRule;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-
 
 /**
  * A set of test cases for the subschemaSubentry virtual attribute provider.
@@ -143,8 +137,7 @@ public class SubschemaSubentryVirtualAttributeProviderTestCase
     {
       assertTrue(!a.isEmpty());
       assertEquals(a.size(), 1);
-      assertTrue(a.contains(AttributeValues.create(subschemaSubentryType,
-                                               "cn=schema")));
+      assertTrue(a.contains(ByteString.valueOf("cn=schema")));
     }
   }
 
@@ -443,11 +436,10 @@ public class SubschemaSubentryVirtualAttributeProviderTestCase
                   VirtualAttributeCfgDefn.ConflictBehavior.
                        VIRTUAL_OVERRIDES_REAL);
 
-    Set<AttributeValue> values = provider.getValues(entry, rule);
+    Attribute values = provider.getValues(entry, rule);
     assertNotNull(values);
     assertEquals(values.size(), 1);
-    assertTrue(values.contains(AttributeValues.create(subschemaSubentryType,
-                                                  "cn=schema")));
+    assertTrue(values.contains(ByteString.valueOf("cn=schema")));
   }
 
 
@@ -513,9 +505,7 @@ public class SubschemaSubentryVirtualAttributeProviderTestCase
                   VirtualAttributeCfgDefn.ConflictBehavior.
                        VIRTUAL_OVERRIDES_REAL);
 
-    assertTrue(provider.hasValue(entry, rule,
-        AttributeValues.create(subschemaSubentryType,
-                                                    "cn=schema")));
+    assertTrue(provider.hasValue(entry, rule, ByteString.valueOf("cn=schema")));
   }
 
 
@@ -548,193 +538,6 @@ public class SubschemaSubentryVirtualAttributeProviderTestCase
                   VirtualAttributeCfgDefn.ConflictBehavior.
                        VIRTUAL_OVERRIDES_REAL);
 
-    assertFalse(provider.hasValue(entry, rule,
-        AttributeValues.create(subschemaSubentryType,
-                                        "cn=not schema")));
-  }
-
-
-
-  /**
-   * Tests the {@code hasAnyValue} method with an empty set of values.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testHasAnyValueEmptySet()
-         throws Exception
-  {
-    SubschemaSubentryVirtualAttributeProvider provider =
-         new SubschemaSubentryVirtualAttributeProvider();
-
-    Entry entry = TestCaseUtils.makeEntry(
-      "dn: o=test",
-      "objectClass: top",
-      "objectClass: organization",
-      "o: test");
-    entry.processVirtualAttributes();
-
-    VirtualAttributeRule rule =
-         new VirtualAttributeRule(subschemaSubentryType, provider,
-                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
-                  Collections.<DN>emptySet(),
-                  Collections.<SearchFilter>emptySet(),
-                  VirtualAttributeCfgDefn.ConflictBehavior.
-                       VIRTUAL_OVERRIDES_REAL);
-
-    assertFalse(provider.hasAnyValue(entry, rule,
-                                     Collections.<AttributeValue>emptySet()));
-  }
-
-
-
-  /**
-   * Tests the {@code hasAnyValue} method with a set of values containing only
-   * the correct value.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testHasAnyValueOnlyCorrect()
-         throws Exception
-  {
-    SubschemaSubentryVirtualAttributeProvider provider =
-         new SubschemaSubentryVirtualAttributeProvider();
-
-    Entry entry = TestCaseUtils.makeEntry(
-      "dn: o=test",
-      "objectClass: top",
-      "objectClass: organization",
-      "o: test");
-    entry.processVirtualAttributes();
-
-    VirtualAttributeRule rule =
-         new VirtualAttributeRule(subschemaSubentryType, provider,
-                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
-                  Collections.<DN>emptySet(),
-                  Collections.<SearchFilter>emptySet(),
-                  VirtualAttributeCfgDefn.ConflictBehavior.
-                       VIRTUAL_OVERRIDES_REAL);
-
-    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>(1);
-    values.add(AttributeValues.create(subschemaSubentryType, "cn=schema"));
-
-    assertTrue(provider.hasAnyValue(entry, rule, values));
-  }
-
-
-
-  /**
-   * Tests the {@code hasAnyValue} method with a set of values containing only
-   * an incorrect value.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testHasAnyValueOnlyIncorrect()
-         throws Exception
-  {
-    SubschemaSubentryVirtualAttributeProvider provider =
-         new SubschemaSubentryVirtualAttributeProvider();
-
-    Entry entry = TestCaseUtils.makeEntry(
-      "dn: o=test",
-      "objectClass: top",
-      "objectClass: organization",
-      "o: test");
-    entry.processVirtualAttributes();
-
-    VirtualAttributeRule rule =
-         new VirtualAttributeRule(subschemaSubentryType, provider,
-                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
-                  Collections.<DN>emptySet(),
-                  Collections.<SearchFilter>emptySet(),
-                  VirtualAttributeCfgDefn.ConflictBehavior.
-                       VIRTUAL_OVERRIDES_REAL);
-
-    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>(1);
-    values.add(AttributeValues.create(subschemaSubentryType, "cn=not schema"));
-
-    assertFalse(provider.hasAnyValue(entry, rule, values));
-  }
-
-
-
-  /**
-   * Tests the {@code hasAnyValue} method with a set of values containing the
-   * correct value as well as multiple incorrect values.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testHasAnyValueIncludesCorrect()
-         throws Exception
-  {
-    SubschemaSubentryVirtualAttributeProvider provider =
-         new SubschemaSubentryVirtualAttributeProvider();
-
-    Entry entry = TestCaseUtils.makeEntry(
-      "dn: o=test",
-      "objectClass: top",
-      "objectClass: organization",
-      "o: test");
-    entry.processVirtualAttributes();
-
-    VirtualAttributeRule rule =
-         new VirtualAttributeRule(subschemaSubentryType, provider,
-                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
-                  Collections.<DN>emptySet(),
-                  Collections.<SearchFilter>emptySet(),
-                  VirtualAttributeCfgDefn.ConflictBehavior.
-                       VIRTUAL_OVERRIDES_REAL);
-
-    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>(3);
-    values.add(AttributeValues.create(subschemaSubentryType, "cn=schema"));
-    values.add(AttributeValues.create(subschemaSubentryType, "cn=not schema"));
-    values.add(AttributeValues.create(subschemaSubentryType,
-                                  "cn=not schema either"));
-
-    assertTrue(provider.hasAnyValue(entry, rule, values));
-  }
-
-
-
-  /**
-   * Tests the {@code hasAnyValue} method with a set of multiple values, none of
-   * which are correct.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testHasAnyValueMissingCorrect()
-         throws Exception
-  {
-    SubschemaSubentryVirtualAttributeProvider provider =
-         new SubschemaSubentryVirtualAttributeProvider();
-
-    Entry entry = TestCaseUtils.makeEntry(
-      "dn: o=test",
-      "objectClass: top",
-      "objectClass: organization",
-      "o: test");
-    entry.processVirtualAttributes();
-
-    VirtualAttributeRule rule =
-         new VirtualAttributeRule(subschemaSubentryType, provider,
-                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
-                  Collections.<DN>emptySet(),
-                  Collections.<SearchFilter>emptySet(),
-                  VirtualAttributeCfgDefn.ConflictBehavior.
-                       VIRTUAL_OVERRIDES_REAL);
-
-    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>(3);
-    values.add(AttributeValues.create(subschemaSubentryType, "cn=not schema"));
-    values.add(AttributeValues.create(subschemaSubentryType,
-                                  "cn=not schema either"));
-    values.add(AttributeValues.create(subschemaSubentryType,
-                                  "cn=still not schema"));
-
-    assertFalse(provider.hasAnyValue(entry, rule, values));
+    assertFalse(provider.hasValue(entry, rule, ByteString.valueOf("cn=not schema")));
   }
 }
-

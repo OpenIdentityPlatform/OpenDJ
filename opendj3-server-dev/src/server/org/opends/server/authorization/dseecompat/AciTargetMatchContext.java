@@ -22,11 +22,12 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.authorization.dseecompat;
 
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.Entry;
 import java.util.List;
 
@@ -69,7 +70,7 @@ public interface AciTargetMatchContext {
      * The current attribute type value being evaluated.
      * @return The current attribute type value being evaluated.
      */
-    public AttributeValue getCurrentAttributeValue();
+    public ByteString getCurrentAttributeValue();
 
     /**
      * True if the first attribute of the resource entry is being evaluated.
@@ -95,7 +96,7 @@ public interface AciTargetMatchContext {
      * Set the attribute value to be evaluated.
      * @param v The current attribute value to set to.
      */
-    public void setCurrentAttributeValue(AttributeValue v);
+    public void setCurrentAttributeValue(ByteString v);
 
     /**
      * True if the target matching code found an entry test rule. An

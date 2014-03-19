@@ -102,7 +102,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.tools.ImportLDIF;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.tools.makeldif.MakeLDIF;
-import org.opends.server.types.AttributeValue;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
@@ -1381,12 +1381,10 @@ public class NewBaseDNPanel extends StatusGenericPanel
           Attributes attrs = new BasicAttributes();
 
           BasicAttribute oc = new BasicAttribute("objectClass");
-          Iterator<AttributeValue> it =
-            indexEntry.getObjectClassAttribute().iterator();
-
+          Iterator<ByteString> it = indexEntry.getObjectClassAttribute().iterator();
           while (it.hasNext())
           {
-            oc.add(it.next().getValue().toString());
+            oc.add(it.next().toString());
           }
           attrs.put(oc);
 
@@ -1399,16 +1397,14 @@ public class NewBaseDNPanel extends StatusGenericPanel
             it = odsAttr.iterator();
             while (it.hasNext())
             {
-              attr.add(it.next().getValue().toString());
+              attr.add(it.next().toString());
             }
             attrs.put(attr);
 
             if (attrName.equalsIgnoreCase("ds-cfg-attribute"))
             {
               args.add("--index-name");
-              AttributeValue value =
-                odsAttr.iterator().next();
-              args.add(value.getValue().toString());
+              args.add(odsAttr.iterator().next().toString());
             }
             else if (attrName.equalsIgnoreCase("ds-cfg-index-type"))
             {
@@ -1416,7 +1412,7 @@ public class NewBaseDNPanel extends StatusGenericPanel
               while (it.hasNext())
               {
                 args.add("--set");
-                args.add("index-type:"+it.next().getValue().toString());
+                args.add("index-type:" + it.next().toString());
               }
             }
           }

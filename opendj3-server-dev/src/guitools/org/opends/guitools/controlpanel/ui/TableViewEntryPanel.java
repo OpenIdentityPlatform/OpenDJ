@@ -24,7 +24,6 @@
  *      Copyright 2008-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2014 ForgeRock AS
  */
-
 package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.messages.AdminToolMessages.*;
@@ -64,15 +63,14 @@ import org.opends.guitools.controlpanel.ui.renderer.AttributeCellEditor;
 import org.opends.guitools.controlpanel.ui.renderer.LDAPEntryTableCellRenderer;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.*;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.ServerConstants;
 
 /**
  * The panel displaying a table view of an LDAP entry.
- *
  */
-
 public class TableViewEntryPanel extends ViewEntryPanel
 {
   private static final long serialVersionUID = 2135331526526472175L;
@@ -303,16 +301,14 @@ public class TableViewEntryPanel extends ViewEntryPanel
         RDN rdn = oldDN.rdn();
         List<AttributeType> attributeTypes = new ArrayList<AttributeType>();
         List<String> attributeNames = new ArrayList<String>();
-        List<AttributeValue> attributeValues = new ArrayList<AttributeValue>();
+        List<ByteString> attributeValues = new ArrayList<ByteString>();
         for (int i=0; i<rdn.getNumValues(); i++)
         {
           String attrName = rdn.getAttributeName(i);
-          AttributeValue value = rdn.getAttributeValue(i);
-
-          String sValue = value.getValue().toString();
+          ByteString value = rdn.getAttributeValue(i);
 
           Set<String> values = getDisplayedStringValues(attrName);
-          if (!values.contains(sValue))
+          if (!values.contains(value.toString()))
           {
             if (values.size() > 0)
             {
@@ -331,8 +327,7 @@ public class TableViewEntryPanel extends ViewEntryPanel
                 AttributeType attr = rdn.getAttributeType(i);
                 attributeTypes.add(attr);
                 attributeNames.add(rdn.getAttributeName(i));
-                attributeValues.add(AttributeValues.create(
-                    attr, firstNonEmpty));
+                attributeValues.add(ByteString.valueOf(firstNonEmpty));
               }
             }
           }
@@ -371,8 +366,7 @@ public class TableViewEntryPanel extends ViewEntryPanel
                 {
                   attributeTypes.add(attr);
                   attributeNames.add(attrName);
-                  attributeValues.add(AttributeValues.create(
-                      attr, (String)o));
+                  attributeValues.add(ByteString.valueOf((String) o));
                 }
                 break;
               }

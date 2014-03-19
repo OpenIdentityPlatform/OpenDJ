@@ -26,19 +26,17 @@
  */
 package org.opends.server.extensions;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.std.server.GoverningStructureRuleVirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 
 import static org.opends.messages.ExtensionMessages.*;
 
@@ -70,19 +68,15 @@ public class GoverningStructureRuleVirtualAttributeProvider  extends
 
   /** {@inheritDoc} */
   @Override()
-  public Set<AttributeValue> getValues(Entry entry,
-                                       VirtualAttributeRule rule)
+  public Attribute getValues(Entry entry, VirtualAttributeRule rule)
   {
     DITStructureRule ditRule = getDITStructureRule(entry);
-
     if(ditRule !=null)
     {
-      return Collections.singleton(AttributeValues.create(
-                  rule.getAttributeType(),
-                  String.valueOf(ditRule.getRuleID())));
+      return Attributes.create(
+          rule.getAttributeType(), String.valueOf(ditRule.getRuleID()));
     }
-
-    return Collections.<AttributeValue>emptySet();
+    return Attributes.empty(rule.getAttributeType());
   }
 
   /** {@inheritDoc} */
@@ -108,7 +102,7 @@ public class GoverningStructureRuleVirtualAttributeProvider  extends
   @Override()
   public ConditionResult greaterThanOrEqualTo(Entry entry,
                               VirtualAttributeRule rule,
-                              AttributeValue value)
+                              ByteString value)
   {
     // DITStructureRule cannot be used in ordering matching.
     return ConditionResult.UNDEFINED;
@@ -118,7 +112,7 @@ public class GoverningStructureRuleVirtualAttributeProvider  extends
   @Override()
   public ConditionResult lessThanOrEqualTo(Entry entry,
                               VirtualAttributeRule rule,
-                              AttributeValue value)
+                              ByteString value)
   {
     // DITStructureRule cannot be used in ordering matching.
     return ConditionResult.UNDEFINED;
@@ -128,7 +122,7 @@ public class GoverningStructureRuleVirtualAttributeProvider  extends
   @Override()
   public ConditionResult approximatelyEqualTo(Entry entry,
                               VirtualAttributeRule rule,
-                              AttributeValue value)
+                              ByteString value)
   {
     // DITStructureRule cannot be used in approximate matching.
     return ConditionResult.UNDEFINED;

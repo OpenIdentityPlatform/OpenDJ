@@ -32,6 +32,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
@@ -237,15 +238,14 @@ public class PasswordExpirationTimeVirtualAttributeProviderTestCase
     Attribute attr = attrs.get(0);
     assertNotNull(attr);
 
-    Iterator<AttributeValue> it = attr.iterator();
+    Iterator<ByteString> it = attr.iterator();
     assertTrue(it.hasNext());
 
-    AttributeValue val = it.next();
+    ByteString val = it.next();
 
     conn.disconnect(DisconnectReason.UNBIND, true, LocalizableMessage.EMPTY);
 
-    return
-      GeneralizedTimeSyntax.decodeGeneralizedTimeValue(val.getValue());
+    return GeneralizedTimeSyntax.decodeGeneralizedTimeValue(val);
   }
 
 }

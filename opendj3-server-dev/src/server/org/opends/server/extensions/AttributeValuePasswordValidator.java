@@ -117,10 +117,12 @@ public class AttributeValuePasswordValidator
       {
         Attribute substring = Attributes.create(a.getAttributeType(),
             password.substring(i, j));
-        for (AttributeValue val : a)
+        for (ByteString val : a)
         {
           if (substring.contains(val))
+          {
             return true;
+          }
         }
       }
     }
@@ -175,8 +177,8 @@ public class AttributeValuePasswordValidator
         continue;
       }
 
-      AttributeValue vf = AttributeValues.create(t, password);
-      AttributeValue vr = AttributeValues.create(t, reversed);
+      ByteString vf = ByteString.valueOf(password);
+      ByteString vr = ByteString.valueOf(reversed);
 
       for (Attribute a : attrList)
       {

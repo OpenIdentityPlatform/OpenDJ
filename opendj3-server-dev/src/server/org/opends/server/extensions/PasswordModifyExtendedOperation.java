@@ -812,17 +812,17 @@ public class PasswordModifyExtendedOperation
       if (oldPassword != null)
       {
         // Remove all existing encoded values that match the old password.
-        Set<AttributeValue> existingValues = pwPolicyState.getPasswordValues();
-        Set<AttributeValue> deleteValues =
-             new LinkedHashSet<AttributeValue>(existingValues.size());
+        Set<ByteString> existingValues = pwPolicyState.getPasswordValues();
+        Set<ByteString> deleteValues =
+             new LinkedHashSet<ByteString>(existingValues.size());
         if (pwPolicyState.getAuthenticationPolicy().isAuthPasswordSyntax())
         {
-          for (AttributeValue v : existingValues)
+          for (ByteString v : existingValues)
           {
             try
             {
               StringBuilder[] components =
-                 AuthPasswordSyntax.decodeAuthPassword(v.getValue().toString());
+                 AuthPasswordSyntax.decodeAuthPassword(v.toString());
               PasswordStorageScheme<?> scheme =
                    DirectoryServer.getAuthPasswordStorageScheme(
                         components[0].toString());
@@ -854,12 +854,12 @@ public class PasswordModifyExtendedOperation
         }
         else
         {
-          for (AttributeValue v : existingValues)
+          for (ByteString v : existingValues)
           {
             try
             {
               String[] components =
-                 UserPasswordSyntax.decodeUserPassword(v.getValue().toString());
+                 UserPasswordSyntax.decodeUserPassword(v.toString());
               PasswordStorageScheme<?> scheme =
                    DirectoryServer.getPasswordStorageScheme(
                         toLowerCase(components[0]));
@@ -896,14 +896,14 @@ public class PasswordModifyExtendedOperation
 
 
         builder = new AttributeBuilder(attrType);
-        builder.addAll(toAttributeValues(attrType, encodedPasswords));
+        builder.addAll(toAttributeValues(encodedPasswords));
         Attribute addAttr = builder.toAttribute();
         modList.add(new Modification(ModificationType.ADD, addAttr));
       }
       else
       {
         AttributeBuilder builder = new AttributeBuilder(attrType);
-        builder.addAll(toAttributeValues(attrType, encodedPasswords));
+        builder.addAll(toAttributeValues(encodedPasswords));
         Attribute addAttr = builder.toAttribute();
         modList.add(new Modification(ModificationType.REPLACE, addAttr));
       }
@@ -1050,19 +1050,17 @@ public class PasswordModifyExtendedOperation
 
       // Handle Account Status Notifications that may be needed.
       // They are not handled by the backend for internal operations.
-      List<AttributeValue> currentPasswords = null;
+      List<ByteString> currentPasswords = null;
       if (oldPassword != null)
       {
-        currentPasswords = new ArrayList<AttributeValue>(1);
-        currentPasswords.add(AttributeValues
-                            .create(oldPassword, oldPassword));
+        currentPasswords = new ArrayList<ByteString>(1);
+        currentPasswords.add(oldPassword);
       }
-      List<AttributeValue> newPasswords = null;
+      List<ByteString> newPasswords = null;
       if (newPassword != null)
       {
-        newPasswords = new ArrayList<AttributeValue>(1);
-        newPasswords.add(AttributeValues
-                         .create(newPassword, newPassword));
+        newPasswords = new ArrayList<ByteString>(1);
+        newPasswords.add(newPassword);
       }
       if (selfChange)
       {
@@ -1092,14 +1090,12 @@ public class PasswordModifyExtendedOperation
     }
   }
 
-  private Collection<AttributeValue> toAttributeValues(AttributeType attrType,
-      Collection<ByteString> values)
+  private Collection<ByteString> toAttributeValues(Collection<ByteString> values)
   {
-    Set<AttributeValue> results =
-        new LinkedHashSet<AttributeValue>(values.size());
+    Set<ByteString> results = new LinkedHashSet<ByteString>(values.size());
     for (ByteString s : values)
     {
-      results.add(AttributeValues.create(attrType, s));
+      results.add(s);
     }
     return results;
   }

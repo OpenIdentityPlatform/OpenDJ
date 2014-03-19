@@ -344,11 +344,11 @@ public final class PasswordPolicyImportPlugin
 policyLoop:
       for (Attribute a : attrList)
       {
-        for (AttributeValue v : a)
+        for (ByteString v : a)
         {
           try
           {
-            policyDN = DN.decode(v.getValue());
+            policyDN = DN.decode(v);
             AuthenticationPolicy authPolicy = DirectoryServer
                 .getAuthenticationPolicy(policyDN);
             if (authPolicy == null)
@@ -386,10 +386,8 @@ policyLoop:
             AttributeBuilder builder = new AttributeBuilder(a, true);
             boolean gotError = false;
 
-            for (AttributeValue v : a)
+            for (ByteString value : a)
             {
-              ByteString value = v.getValue();
-
               if (policy.isAuthPasswordSyntax())
               {
                 if (!AuthPasswordSyntax.isEncoded(value))
@@ -398,9 +396,7 @@ policyLoop:
                   {
                     for (PasswordStorageScheme<?> s : schemes)
                     {
-                      ByteString nv = s.encodeAuthPassword(value);
-                      builder.add(AttributeValues.create(policy
-                          .getPasswordAttribute(), nv));
+                      builder.add(s.encodeAuthPassword(value));
                     }
                   }
                   catch (Exception e)
@@ -416,7 +412,7 @@ policyLoop:
                 }
                 else
                 {
-                  builder.add(v);
+                  builder.add(value);
                 }
               }
               else
@@ -427,9 +423,7 @@ policyLoop:
                   {
                     for (PasswordStorageScheme<?> s : schemes)
                     {
-                      ByteString nv = s.encodePasswordWithScheme(value);
-                      builder.add(AttributeValues.create(policy
-                          .getPasswordAttribute(), nv));
+                      builder.add(s.encodePasswordWithScheme(value));
                     }
                   }
                   catch (Exception e)
@@ -445,7 +439,7 @@ policyLoop:
                 }
                 else
                 {
-                  builder.add(v);
+                  builder.add(value);
                 }
               }
             }
@@ -478,17 +472,15 @@ policyLoop:
         AttributeBuilder builder = new AttributeBuilder(a, true);
         boolean gotError = false;
 
-        for (AttributeValue v : a)
+        for (ByteString value : a)
         {
-          ByteString value = v.getValue();
           if (!AuthPasswordSyntax.isEncoded(value))
           {
             try
             {
               for (PasswordStorageScheme<?> s : defaultAuthPasswordSchemes)
               {
-                ByteString nv = s.encodeAuthPassword(value);
-                builder.add(AttributeValues.create(t, nv));
+                builder.add(s.encodeAuthPassword(value));
               }
             }
             catch (Exception e)
@@ -502,7 +494,7 @@ policyLoop:
           }
           else
           {
-            builder.add(v);
+            builder.add(value);
           }
         }
 
@@ -530,17 +522,15 @@ policyLoop:
         AttributeBuilder builder = new AttributeBuilder(a, true);
         boolean gotError = false;
 
-        for (AttributeValue v : a)
+        for (ByteString value : a)
         {
-          ByteString value = v.getValue();
           if (!UserPasswordSyntax.isEncoded(value))
           {
             try
             {
               for (PasswordStorageScheme<?> s : defaultUserPasswordSchemes)
               {
-                ByteString nv = s.encodePasswordWithScheme(value);
-                builder.add(AttributeValues.create(t, nv));
+                builder.add(s.encodePasswordWithScheme(value));
               }
             }
             catch (Exception e)
@@ -554,7 +544,7 @@ policyLoop:
           }
           else
           {
-            builder.add(v);
+            builder.add(value);
           }
         }
 

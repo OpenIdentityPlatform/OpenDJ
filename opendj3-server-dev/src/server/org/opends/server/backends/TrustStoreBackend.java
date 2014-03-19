@@ -519,14 +519,14 @@ public class TrustStoreBackend
     // Make sure that the DN specifies a certificate alias.
     AttributeType t =
          DirectoryServer.getAttributeType(ATTR_CRYPTO_KEY_ID, true);
-    AttributeValue v = entryDN.rdn().getAttributeValue(t);
+    ByteString v = entryDN.rdn().getAttributeValue(t);
     if (v == null)
     {
       LocalizableMessage message = ERR_TRUSTSTORE_DN_DOES_NOT_SPECIFY_CERTIFICATE.get(entryDN);
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message, baseDN, null);
     }
 
-    String certAlias = v.getValue().toString();
+    String certAlias = v.toString();
     ByteString certValue;
     try
     {
@@ -571,7 +571,7 @@ public class TrustStoreBackend
         true);
     AttributeBuilder builder = new AttributeBuilder(t);
     builder.setOption("binary");
-    builder.add(AttributeValues.create(t, certValue));
+    builder.add(certValue);
     attrList = new ArrayList<Attribute>(1);
     attrList.add(builder.toAttribute());
     userAttrs.put(t, attrList);
@@ -1249,8 +1249,7 @@ public class TrustStoreBackend
   public static DN makeChildDN(DN parentDN, AttributeType rdnAttrType,
                                String rdnStringValue)
   {
-    AttributeValue attrValue =
-        AttributeValues.create(rdnAttrType, rdnStringValue);
+    ByteString attrValue = ByteString.valueOf(rdnStringValue);
     return parentDN.child(RDN.create(rdnAttrType, attrValue));
   }
 
@@ -1440,14 +1439,14 @@ public class TrustStoreBackend
     // Make sure that the DN specifies a certificate alias.
     AttributeType t =
          DirectoryServer.getAttributeType(ATTR_CRYPTO_KEY_ID, true);
-    AttributeValue v = entryDN.rdn().getAttributeValue(t);
+    ByteString v = entryDN.rdn().getAttributeValue(t);
     if (v == null)
     {
       LocalizableMessage message = ERR_TRUSTSTORE_DN_DOES_NOT_SPECIFY_CERTIFICATE.get(entryDN);
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message, baseDN, null);
     }
-    String certAlias = v.getValue().toString();
 
+    String certAlias = v.toString();
     try
     {
       if (certificateManager.aliasInUse(certAlias))
@@ -1495,7 +1494,7 @@ public class TrustStoreBackend
         }
 
         Attribute certAttr = certAttrs.get(0);
-        Iterator<AttributeValue> i = certAttr.iterator();
+        Iterator<ByteString> i = certAttr.iterator();
 
         if (!i.hasNext())
         {
@@ -1505,7 +1504,7 @@ public class TrustStoreBackend
                DirectoryServer.getServerErrorResultCode(), message);
         }
 
-        ByteString certBytes = i.next().getValue();
+        ByteString certBytes = i.next();
 
         if (i.hasNext())
         {
@@ -1566,14 +1565,14 @@ public class TrustStoreBackend
     // Make sure that the DN specifies a certificate alias.
     AttributeType t =
          DirectoryServer.getAttributeType(ATTR_CRYPTO_KEY_ID, true);
-    AttributeValue v = entryDN.rdn().getAttributeValue(t);
+    ByteString v = entryDN.rdn().getAttributeValue(t);
     if (v == null)
     {
       LocalizableMessage message = ERR_TRUSTSTORE_DN_DOES_NOT_SPECIFY_CERTIFICATE.get(entryDN);
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message, baseDN, null);
     }
-    String certAlias = v.getValue().toString();
 
+    String certAlias = v.toString();
     try
     {
       if (!certificateManager.aliasInUse(certAlias))
@@ -1591,7 +1590,6 @@ public class TrustStoreBackend
       throw new DirectoryException(
            DirectoryServer.getServerErrorResultCode(), message, e);
     }
-
   }
 
 

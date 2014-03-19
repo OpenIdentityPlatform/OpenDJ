@@ -943,17 +943,17 @@ public class TestBackendImpl extends JebTestCase {
           DN.valueOf("uid=user.0,ou=People,dc=test,dc=com"), LockMode.DEFAULT);
 
       assertNotNull(entry);
-      for (AttributeValue value : entry.getAttribute("cn").get(0)) {
-        assertEquals(value.getValue().toString(), "Testing Test");
+      for (ByteString value : entry.getAttribute("cn").get(0)) {
+        assertEquals(value.toString(), "Testing Test");
       }
-      for (AttributeValue value : entry.getAttribute("sn").get(0)) {
-        assertEquals(value.getValue().toString(), "Test");
+      for (ByteString value : entry.getAttribute("sn").get(0)) {
+        assertEquals(value.toString(), "Test");
       }
-      for (AttributeValue value : entry.getAttribute("givenname").get(0)) {
-        assertEquals(value.getValue().toString(), "Testing");
+      for (ByteString value : entry.getAttribute("givenname").get(0)) {
+        assertEquals(value.toString(), "Testing");
       }
-      for (AttributeValue value : entry.getAttribute("employeenumber").get(0)) {
-        assertEquals(value.getValue().toString(), "777");
+      for (ByteString value : entry.getAttribute("employeenumber").get(0)) {
+        assertEquals(value.toString(), "777");
       }
 
       AttributeType attribute =
@@ -1073,27 +1073,21 @@ public class TestBackendImpl extends JebTestCase {
           Attributes.create("title", "debugger")));
 
       final Attribute cnAttr = entry.getAttribute("cn").get(0);
-      assertTrue(cnAttr.contains(AttributeValues.create(
-              cnAttr.getAttributeType(), "Aaren Rigor")));
-      assertTrue(cnAttr.contains(AttributeValues.create(
-              cnAttr.getAttributeType(), "Aarenister Rigor")));
-      assertFalse(cnAttr.contains(AttributeValues.create(
-              cnAttr.getAttributeType(), "Aaren Atp")));
+      assertTrue(cnAttr.contains(ByteString.valueOf("Aaren Rigor")));
+      assertTrue(cnAttr.contains(ByteString.valueOf("Aarenister Rigor")));
+      assertFalse(cnAttr.contains(ByteString.valueOf("Aaren Atp")));
 
       Set<String> options = Collections.singleton("lang-de");
       assertTrue(entry.getAttribute("givenname", options).get(0).contains(
-          AttributeValues.create(entry.getAttribute("givenname", options).get(0)
-              .getAttributeType(), "test")));
+          ByteString.valueOf("test")));
       options = Collections.singleton("lang-cn");
       assertNull(entry.getAttribute("givenname", options));
       options = Collections.singleton("lang-es");
       assertTrue(entry.getAttribute("givenname", options).get(0).contains(
-          AttributeValues.create(entry.getAttribute("givenname", options).get(0)
-              .getAttributeType(), "newtest3")));
+          ByteString.valueOf("newtest3")));
       options = Collections.singleton("lang-fr");
       assertTrue(entry.getAttribute("givenname", options).get(0).contains(
-          AttributeValues.create(entry.getAttribute("givenname", options).get(0)
-              .getAttributeType(), "test2")));
+          ByteString.valueOf("test2")));
 
       assertTrue(entry.getAttribute("employeenumber").contains(
           Attributes.create("employeenumber", "222")));
@@ -1331,7 +1325,7 @@ public class TestBackendImpl extends JebTestCase {
     //No indexes should be used.
     String debugString =
         result.get(0).getAttribute("debugsearchindex").get(0).toString();
-    assertTrue(debugString.contains("NOT-INDEXED"));
+    assertThat(debugString).contains("not-indexed");
 
     resultCode = TestCaseUtils.applyModifications(true,
         "dn: ds-cfg-attribute=givenName,cn=Index," +
@@ -1509,7 +1503,7 @@ public class TestBackendImpl extends JebTestCase {
     //No indexes should be used.
     String debugString =
         result.get(0).getAttribute("debugsearchindex").get(0).toString();
-    assertThat(debugString).contains("NOT-INDEXED");
+    assertThat(debugString).contains("not-indexed");
   }
 
   @Test(dependsOnMethods = "testSearchNotIndexed")

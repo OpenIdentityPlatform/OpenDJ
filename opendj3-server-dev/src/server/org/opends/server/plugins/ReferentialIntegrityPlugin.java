@@ -45,6 +45,7 @@ import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -695,7 +696,7 @@ public class ReferentialIntegrityPlugin
     for(AttributeType attributeType : attributeTypes)
     {
       componentFilters.add(SearchFilter.createEqualityFilter(attributeType,
-          AttributeValues.create(attributeType, oldEntryDN.toString())));
+          ByteString.valueOf(oldEntryDN.toString())));
     }
 
     InternalClientConnection conn =
@@ -784,15 +785,13 @@ public class ReferentialIntegrityPlugin
     {
       if(e.hasAttribute(type))
       {
-        AttributeValue value = AttributeValues
-            .create(type, oldEntryDN.toString());
+        ByteString value = ByteString.valueOf(oldEntryDN.toString());
         if (e.hasValue(type, null, value))
         {
           mods.add(new Modification(ModificationType.DELETE, Attributes
               .create(type, value)));
 
-          // If the new entry DN exists, create an ADD modification for
-          // it.
+          // If the new entry DN exists, create an ADD modification for it.
           if(newEntryDN != null)
           {
             mods.add(new Modification(ModificationType.ADD, Attributes
@@ -1240,10 +1239,9 @@ public class ReferentialIntegrityPlugin
     final MatchingRule rule = attr.getAttributeType().getEqualityMatchingRule();
     try
     {
-      for (AttributeValue attrVal : attr)
+      for (ByteString attrVal : attr)
       {
-        DN valueEntryDN =
-            DN.decode(rule.normalizeAttributeValue(attrVal.getValue()));
+        DN valueEntryDN = DN.decode(rule.normalizeAttributeValue(attrVal));
 
         final Entry valueEntry;
         if (currentConfiguration.getCheckReferencesScopeCriteria()

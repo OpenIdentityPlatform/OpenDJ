@@ -71,14 +71,10 @@ public class EntryDNVirtualAttributeProvider
 
   /** {@inheritDoc} */
   @Override()
-  public Set<AttributeValue> getValues(Entry entry,
-                                       VirtualAttributeRule rule)
+  public Attribute getValues(Entry entry, VirtualAttributeRule rule)
   {
     String normDNString = entry.getName().toNormalizedString();
-    AttributeValue value = AttributeValues.create(
-                                  ByteString.valueOf(normDNString),
-                                  ByteString.valueOf(normDNString));
-    return Collections.singleton(value);
+    return Attributes.create(rule.getAttributeType(), normDNString);
   }
 
   /** {@inheritDoc} */
@@ -91,15 +87,14 @@ public class EntryDNVirtualAttributeProvider
 
   /** {@inheritDoc} */
   @Override()
-  public boolean hasValue(Entry entry, VirtualAttributeRule rule,
-                          AttributeValue value)
+  public boolean hasValue(Entry entry, VirtualAttributeRule rule, ByteString value)
   {
     try
     {
       MatchingRule eqRule = rule.getAttributeType().getEqualityMatchingRule();
       ByteString dn = ByteString.valueOf(entry.getName().toString());
       ByteString normalizedDN = eqRule.normalizeAttributeValue(dn);
-      ByteString normalizedValue = eqRule.normalizeAttributeValue(value.getValue());
+      ByteString normalizedValue = eqRule.normalizeAttributeValue(value);
       return normalizedDN.equals(normalizedValue);
     }
     catch (DecodeException e)
@@ -107,18 +102,6 @@ public class EntryDNVirtualAttributeProvider
       logger.traceException(e);
       return false;
     }
-  }
-
-  /** {@inheritDoc} */
-  @Override()
-  public boolean hasAnyValue(Entry entry, VirtualAttributeRule rule,
-                             Collection<AttributeValue> values)
-  {
-    String ndnString = entry.getName().toNormalizedString();
-
-    AttributeValue v = AttributeValues.create(ByteString.valueOf(ndnString),
-        ByteString.valueOf(ndnString));
-    return values.contains(v);
   }
 
   /** {@inheritDoc} */
@@ -137,7 +120,7 @@ public class EntryDNVirtualAttributeProvider
   @Override()
   public ConditionResult greaterThanOrEqualTo(Entry entry,
                               VirtualAttributeRule rule,
-                              AttributeValue value)
+                              ByteString value)
   {
     // DNs cannot be used in ordering matching.
     return ConditionResult.UNDEFINED;
@@ -147,7 +130,7 @@ public class EntryDNVirtualAttributeProvider
   @Override()
   public ConditionResult lessThanOrEqualTo(Entry entry,
                               VirtualAttributeRule rule,
-                              AttributeValue value)
+                              ByteString value)
   {
     // DNs cannot be used in ordering matching.
     return ConditionResult.UNDEFINED;
@@ -157,7 +140,7 @@ public class EntryDNVirtualAttributeProvider
   @Override()
   public ConditionResult approximatelyEqualTo(Entry entry,
                               VirtualAttributeRule rule,
-                              AttributeValue value)
+                              ByteString value)
   {
     // DNs cannot be used in approximate matching.
     return ConditionResult.UNDEFINED;
@@ -313,7 +296,7 @@ public class EntryDNVirtualAttributeProvider
         {
           try
           {
-            dnSet.add(DN.decode(filter.getAssertionValue().getValue()));
+            dnSet.add(DN.decode(filter.getAssertionValue()));
           }
           catch (Exception e)
           {

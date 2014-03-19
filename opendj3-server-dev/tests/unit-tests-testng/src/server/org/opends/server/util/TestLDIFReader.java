@@ -35,6 +35,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
@@ -326,10 +327,8 @@ public final class TestLDIFReader extends UtilTestCase {
           .valueOf("cn=john, dc=foo, dc=com"));
       Assert.assertTrue(entry.hasObjectClass(OC_TOP));
       Assert.assertTrue(entry.hasObjectClass(OC_PERSON));
-      Assert.assertTrue(entry.hasValue(AT_CN, null, AttributeValues.create(
-          AT_CN, "john")));
-      Assert.assertTrue(entry.hasValue(AT_SN, null, AttributeValues.create(
-          AT_SN, "smith")));
+      Assert.assertTrue(entry.hasValue(AT_CN, null, ByteString.valueOf("john")));
+      Assert.assertTrue(entry.hasValue(AT_SN, null, ByteString.valueOf("smith")));
 
       Assert.assertNull(reader.readEntry());
 
@@ -360,9 +359,7 @@ public final class TestLDIFReader extends UtilTestCase {
     try {
       Entry entry = reader.readEntry();
       Assert.assertNotNull(entry);
-
-      Assert.assertTrue(entry.hasValue(AT_DESCR, null, AttributeValues.create(
-          AT_DESCR, "once upon a time in the west")));
+      Assert.assertTrue(entry.hasValue(AT_DESCR, null, ByteString.valueOf("once upon a time in the west")));
     } finally {
       reader.close();
     }
@@ -386,9 +383,7 @@ public final class TestLDIFReader extends UtilTestCase {
     try {
       Entry entry = reader.readEntry();
       Assert.assertNotNull(entry);
-
-      Assert.assertTrue(entry.hasValue(AT_DESCR, null, AttributeValues.create(
-          AT_DESCR, "once upon a time in the west")));
+      Assert.assertTrue(entry.hasValue(AT_DESCR, null, ByteString.valueOf("once upon a time in the west")));
     } finally {
       reader.close();
     }
@@ -420,10 +415,8 @@ public final class TestLDIFReader extends UtilTestCase {
           .valueOf("cn=anne, dc=foo, dc=com"));
       Assert.assertTrue(entry.hasObjectClass(OC_TOP));
       Assert.assertTrue(entry.hasObjectClass(OC_PERSON));
-      Assert.assertTrue(entry.hasValue(AT_CN, null, AttributeValues.create(
-          AT_CN, "anne")));
-      Assert.assertTrue(entry.hasValue(AT_SN, null, AttributeValues.create(
-          AT_SN, "other")));
+      Assert.assertTrue(entry.hasValue(AT_CN, null, ByteString.valueOf("anne")));
+      Assert.assertTrue(entry.hasValue(AT_SN, null, ByteString.valueOf("other")));
 
       Assert.assertNull(reader.readEntry());
 
@@ -468,9 +461,9 @@ public final class TestLDIFReader extends UtilTestCase {
 
       List<Attribute> attrs = new ArrayList<Attribute>();
       AttributeBuilder builder = new AttributeBuilder(AT_OC, "objectclass");
-      builder.add(AttributeValues.create(AT_OC, "top"));
-      builder.add(AttributeValues.create(AT_OC, "person"));
-      builder.add(AttributeValues.create(AT_OC, "organizationalPerson"));
+      builder.add("top");
+      builder.add("person");
+      builder.add("organizationalPerson");
 
       attrs.add(builder.toAttribute());
       attrs.add(Attributes.create("cn", "Fiona Jensen"));
@@ -546,8 +539,8 @@ public final class TestLDIFReader extends UtilTestCase {
       Assert.assertEquals(mod.getModificationType(),
           ModificationType.REPLACE);
       builder = new AttributeBuilder(AT_TELN, "telephonenumber");
-      builder.add(AttributeValues.create(AT_TELN, "+1 408 555 1234"));
-      builder.add(AttributeValues.create(AT_TELN, "+1 408 555 5678"));
+      builder.add("+1 408 555 1234");
+      builder.add("+1 408 555 5678");
       Assert.assertEquals(mod.getAttribute(), builder.toAttribute());
 
       Assert.assertTrue(i.hasNext());

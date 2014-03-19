@@ -48,7 +48,7 @@ import org.opends.server.api.ConfigDeleteListener;
 import org.opends.server.config.ConfigEntry;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.server.types.AttributeValue;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.DN;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -207,8 +207,8 @@ final class ConfigDeleteListenerAdaptor<S extends Configuration> extends
   public boolean configDeleteIsAcceptable(ConfigEntry configEntry,
       LocalizableMessageBuilder unacceptableReason) {
     DN dn = configEntry.getDN();
-    AttributeValue av = dn.rdn().getAttributeValue(0);
-    String name = av.getValue().toString().trim();
+    ByteString av = dn.rdn().getAttributeValue(0);
+    String name = av.toString().trim();
 
     try {
       ManagedObjectPath<?, ? extends S> childPath;

@@ -60,7 +60,7 @@ public final class RDN
   private AttributeType[] attributeTypes;
 
   /** The set of values for the elements in this RDN. */
-  private AttributeValue[] attributeValues;
+  private ByteString[] attributeValues;
 
   /** The number of values for this RDN. */
   private int numValues;
@@ -85,11 +85,11 @@ public final class RDN
    *                         {@code null}.
    */
   public RDN(AttributeType attributeType,
-             AttributeValue attributeValue)
+             ByteString attributeValue)
   {
     attributeTypes  = new AttributeType[] { attributeType };
     attributeNames  = new String[] { attributeType.getPrimaryName() };
-    attributeValues = new AttributeValue[] { attributeValue };
+    attributeValues = new ByteString[] { attributeValue };
 
     numValues     = 1;
     rdnString     = null;
@@ -109,11 +109,11 @@ public final class RDN
    *                         {@code null}.
    */
   public RDN(AttributeType attributeType, String attributeName,
-             AttributeValue attributeValue)
+             ByteString attributeValue)
   {
     attributeTypes  = new AttributeType[] { attributeType };
     attributeNames  = new String[] { attributeName };
-    attributeValues = new AttributeValue[] { attributeValue };
+    attributeValues = new ByteString[] { attributeValue };
 
     numValues     = 1;
     rdnString     = null;
@@ -138,11 +138,11 @@ public final class RDN
    */
   public RDN(List<AttributeType> attributeTypes,
              List<String> attributeNames,
-             List<AttributeValue> attributeValues)
+             List<ByteString> attributeValues)
   {
     this.attributeTypes  = new AttributeType[attributeTypes.size()];
     this.attributeNames  = new String[attributeNames.size()];
-    this.attributeValues = new AttributeValue[attributeValues.size()];
+    this.attributeValues = new ByteString[attributeValues.size()];
 
     attributeTypes.toArray(this.attributeTypes);
     attributeNames.toArray(this.attributeNames);
@@ -170,7 +170,7 @@ public final class RDN
    *                          {@code attributeTypes} argument.
    */
   public RDN(AttributeType[] attributeTypes, String[] attributeNames,
-             AttributeValue[] attributeValues)
+             ByteString[] attributeValues)
   {
     this.numValues       = attributeTypes.length;
     this.attributeTypes  = attributeTypes;
@@ -193,8 +193,7 @@ public final class RDN
    *
    * @return  The RDN created with the provided information.
    */
-  public static RDN create(AttributeType attributeType,
-                           AttributeValue attributeValue)
+  public static RDN create(AttributeType attributeType, ByteString attributeValue)
   {
     return new RDN(attributeType, attributeValue);
   }
@@ -316,7 +315,7 @@ public final class RDN
    *          <CODE>null</CODE> if the specified attribute type is not
    *          present in the RDN.
    */
-  public AttributeValue getAttributeValue(AttributeType attributeType)
+  public ByteString getAttributeValue(AttributeType attributeType)
   {
     for (int i=0; i < numValues; i++)
     {
@@ -341,7 +340,7 @@ public final class RDN
    * @return  The value for the attribute type at the specified
    *          position in the set of attribute types for this RDN.
    */
-  public AttributeValue getAttributeValue(int pos)
+  public ByteString getAttributeValue(int pos)
   {
     return attributeValues[pos];
   }
@@ -372,7 +371,7 @@ public final class RDN
    * @return  <CODE>true</CODE> if this RDN contains the specified
    *          attribute value, or <CODE>false</CODE> if not.
    */
-  public boolean hasValue(AttributeType type, AttributeValue value)
+  public boolean hasValue(AttributeType type, ByteString value)
   {
     for (int i=0; i < numValues; i++)
     {
@@ -400,7 +399,7 @@ public final class RDN
    *          this RDN, or <CODE>false</CODE> if it was not (e.g., it
    *          was already present).
    */
-  boolean addValue(AttributeType type, String name, AttributeValue value)
+  boolean addValue(AttributeType type, String name, ByteString value)
   {
     for (int i=0; i < numValues; i++)
     {
@@ -423,7 +422,7 @@ public final class RDN
     newNames[attributeNames.length] = name;
     attributeNames = newNames;
 
-    AttributeValue[] newValues = new AttributeValue[numValues];
+    ByteString[] newValues = new ByteString[numValues];
     System.arraycopy(attributeValues, 0, newValues, 0, attributeValues.length);
     newValues[attributeValues.length] = value;
     attributeValues = newValues;
@@ -679,9 +678,7 @@ public final class RDN
       attrType = DirectoryServer.getDefaultAttributeType(name);
     }
 
-    AttributeValue value = AttributeValues.create(attrType,
-        parsedValue.toByteString());
-    RDN rdn = new RDN(attrType, name, value);
+    RDN rdn = new RDN(attrType, name, parsedValue.toByteString());
 
 
     // Skip over any spaces that might be after the attribute value.
@@ -801,8 +798,7 @@ public final class RDN
           attrType = DirectoryServer.getDefaultAttributeType(name);
         }
 
-        value = AttributeValues.create(ByteString.empty(), ByteString.empty());
-        rdn.addValue(attrType, name, value);
+        rdn.addValue(attrType, name, ByteString.empty());
         return rdn;
       }
 
@@ -826,8 +822,7 @@ public final class RDN
         attrType = DirectoryServer.getDefaultAttributeType(name);
       }
 
-      value = AttributeValues.create(attrType, parsedValue.toByteString());
-      rdn.addValue(attrType, name, value);
+      rdn.addValue(attrType, name, parsedValue.toByteString());
 
 
       // Skip over any spaces that might be after the attribute value.
@@ -879,7 +874,7 @@ public final class RDN
     String[] newNames = new String[numValues];
     System.arraycopy(attributeNames, 0, newNames, 0, numValues);
 
-    AttributeValue[] newValues = new AttributeValue[numValues];
+    ByteString[] newValues = new ByteString[numValues];
     System.arraycopy(attributeValues, 0, newValues, 0, numValues);
 
     return new RDN(newTypes, newNames, newValues);
@@ -946,14 +941,14 @@ public final class RDN
 
       buffer.append(attributeNames[0]);
       buffer.append("=");
-      buffer.append(getDNValue(attributeValues[0].getValue()));
+      buffer.append(getDNValue(attributeValues[0]));
 
       for (int i=1; i < numValues; i++)
       {
         buffer.append("+");
         buffer.append(attributeNames[i]);
         buffer.append("=");
-        buffer.append(getDNValue(attributeValues[i].getValue()));
+        buffer.append(getDNValue(attributeValues[i]));
       }
 
       rdnString = buffer.toString();
@@ -1056,17 +1051,17 @@ public final class RDN
       buffer.append(type.getNormalizedPrimaryNameOrOID());
       buffer.append('=');
 
-      AttributeValue value = attributeValues[pos];
+      ByteString value = attributeValues[pos];
       try
       {
         MatchingRule rule = type.getEqualityMatchingRule();
-        ByteString normValue = rule.normalizeAttributeValue(value.getValue());
+        ByteString normValue = rule.normalizeAttributeValue(value);
         buffer.append(getDNValue(normValue));
       }
       catch (Exception e)
       {
         logger.traceException(e);
-        buffer.append(getDNValue(value.getValue()));
+        buffer.append(getDNValue(value));
       }
   }
 
@@ -1109,8 +1104,7 @@ public final class RDN
 
     TreeMap<String,AttributeType> typeMap1 =
          new TreeMap<String,AttributeType>();
-    TreeMap<String,AttributeValue> valueMap1 =
-         new TreeMap<String,AttributeValue>();
+    TreeMap<String, ByteString> valueMap1 = new TreeMap<String, ByteString>();
     for (int i=0; i < attributeTypes.length; i++)
     {
       String lowerName = attributeTypes[i].getNormalizedPrimaryNameOrOID();
@@ -1120,8 +1114,7 @@ public final class RDN
 
     TreeMap<String,AttributeType> typeMap2 =
          new TreeMap<String,AttributeType>();
-    TreeMap<String,AttributeValue> valueMap2 =
-         new TreeMap<String,AttributeValue>();
+    TreeMap<String, ByteString> valueMap2 = new TreeMap<String, ByteString>();
     for (int i=0; i < rdn.attributeTypes.length; i++)
     {
       String lowerName = rdn.attributeTypes[i].getNormalizedPrimaryNameOrOID();
@@ -1135,8 +1128,8 @@ public final class RDN
     String           name2     = iterator2.next();
     AttributeType    type1     = typeMap1.get(name1);
     AttributeType    type2     = typeMap2.get(name2);
-    AttributeValue   value1    = valueMap1.get(name1);
-    AttributeValue   value2    = valueMap2.get(name2);
+    ByteString       value1    = valueMap1.get(name1);
+    ByteString       value2    = valueMap2.get(name2);
 
     while (true)
     {
@@ -1189,8 +1182,7 @@ public final class RDN
    *         positive integer if value1 should come after value2, or zero if
    *         there is no difference with regard to ordering.
    */
-  private int compare(AttributeValue value1, AttributeValue value2,
-      AttributeType type)
+  private int compare(ByteString value1, ByteString value2, AttributeType type)
   {
     final OrderingMatchingRule omr = type.getOrderingMatchingRule();
     final MatchingRule emr = type.getEqualityMatchingRule();
@@ -1200,14 +1192,14 @@ public final class RDN
     try
     {
       final MatchingRule rule = omr != null ? omr : emr;
-      val1 = rule.normalizeAttributeValue(value1.getValue());
-      val2 = rule.normalizeAttributeValue(value2.getValue());
+      val1 = rule.normalizeAttributeValue(value1);
+      val2 = rule.normalizeAttributeValue(value2);
     }
     catch (DecodeException e)
     {
       logger.traceException(e);
-      val1 = value1.getValue();
-      val2 = value2.getValue();
+      val1 = value1;
+      val2 = value2;
     }
 
     if (omr != null)

@@ -31,7 +31,9 @@ import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.api.MatchingRule;
-import org.opends.server.types.*;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.SortKey;
 
 import com.sleepycat.je.DatabaseException;
 
@@ -104,8 +106,8 @@ public class SortValuesSet
    * @throws DirectoryException If a Directory Server error occurs.
    * @throws DatabaseException If an error occurs in the JE database.
    */
-  public boolean add(long entryID, AttributeValue[] values,
-      AttributeType[] types) throws DatabaseException, DirectoryException
+  public boolean add(long entryID, ByteString[] values, AttributeType[] types)
+      throws DatabaseException, DirectoryException
   {
     if(values == null)
     {
@@ -224,7 +226,7 @@ public class SortValuesSet
    * @throws DirectoryException If a Directory Server error occurs.
    * @throws DatabaseException If an error occurs in the JE database.
    */
-  public boolean remove(long entryID, AttributeValue[] values, AttributeType[] types)
+  public boolean remove(long entryID, ByteString[] values, AttributeType[] types)
       throws DatabaseException, DirectoryException
   {
     if(entryIDs == null || entryIDs.length == 0)
@@ -417,7 +419,7 @@ public class SortValuesSet
    * @throws DirectoryException If a Directory Server error occurs.
    * @throws DatabaseException If an error occurs in the JE database.
    */
-  int binarySearch(long entryID, AttributeValue[] values, AttributeType[] types)
+  int binarySearch(long entryID, ByteString[] values, AttributeType[] types)
       throws DatabaseException, DirectoryException
   {
     if(entryIDs == null || entryIDs.length == 0)
@@ -472,7 +474,7 @@ public class SortValuesSet
     return entryIDs;
   }
 
-  private byte[] attributeValuesToDatabase(AttributeValue[] values,
+  private byte[] attributeValuesToDatabase(ByteString[] values,
       AttributeType[] types) throws DirectoryException
   {
     try
@@ -481,7 +483,7 @@ public class SortValuesSet
 
       for (int i = 0; i < values.length; i++)
       {
-        final AttributeValue v = values[i];
+        final ByteString v = values[i];
         if (v == null)
         {
           builder.appendBERLength(0);
@@ -489,7 +491,7 @@ public class SortValuesSet
         else
         {
           final MatchingRule eqRule = types[i].getEqualityMatchingRule();
-          final ByteString nv = eqRule.normalizeAttributeValue(v.getValue());
+          final ByteString nv = eqRule.normalizeAttributeValue(v);
           builder.appendBERLength(nv.length());
           builder.append(nv);
         }
@@ -569,15 +571,12 @@ public class SortValuesSet
     EntryID id = new EntryID(entryIDs[entryIDs.length - 1]);
     SortKey[] sortKeys = vlvIndex.sortOrder.getSortKeys();
     int numValues = sortKeys.length;
-    AttributeValue[] values =
-        new AttributeValue[numValues];
+    ByteString[] values = new ByteString[numValues];
     for (int i = (entryIDs.length - 1) * numValues, j = 0;
          i < entryIDs.length * numValues;
          i++, j++)
     {
-      values[j] = AttributeValues.create(
-          sortKeys[j].getAttributeType(),
-          getValue(i));
+      values[j] = getValue(i);
     }
 
     return new SortValues(id, values, vlvIndex.sortOrder);
@@ -603,18 +602,12 @@ public class SortValuesSet
     EntryID id = new EntryID(entryIDs[index]);
     SortKey[] sortKeys = vlvIndex.sortOrder.getSortKeys();
     int numValues = sortKeys.length;
-    AttributeValue[] values = new AttributeValue[numValues];
+    ByteString[] values = new ByteString[numValues];
     for (int i = index * numValues, j = 0;
          i < (index + 1) * numValues;
          i++, j++)
     {
-      ByteString value = getValue(i);
-
-      if(value != null)
-      {
-        values[j] = AttributeValues.create(
-            sortKeys[j].getAttributeType(), value);
-      }
+      values[j] = getValue(i);
     }
 
     return new SortValues(id, values, vlvIndex.sortOrder);

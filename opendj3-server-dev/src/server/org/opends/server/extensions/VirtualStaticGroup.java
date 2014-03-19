@@ -40,7 +40,7 @@ import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
@@ -142,7 +142,7 @@ public class VirtualStaticGroup
     {
       for (Attribute a : attrList)
       {
-        for (AttributeValue v : a)
+        for (ByteString v : a)
         {
           if (targetDN != null)
           {
@@ -152,14 +152,14 @@ public class VirtualStaticGroup
 
           try
           {
-            targetDN = DN.decode(v.getValue());
+            targetDN = DN.decode(v);
           }
           catch (DirectoryException de)
           {
             logger.traceException(de);
 
             LocalizableMessage message = ERR_VIRTUAL_STATIC_GROUP_CANNOT_DECODE_TARGET.
-                get(v.getValue(), groupEntry.getName(), de.getMessageObject());
+                get(v, groupEntry.getName(), de.getMessageObject());
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                          message, de);
           }

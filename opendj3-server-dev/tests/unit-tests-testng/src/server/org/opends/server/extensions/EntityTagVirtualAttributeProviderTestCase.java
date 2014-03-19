@@ -29,7 +29,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -62,9 +61,8 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.ldap.LDAPModification;
+import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.AttributeValues;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
@@ -90,8 +88,7 @@ public class EntityTagVirtualAttributeProviderTestCase extends
   private static final String DESCRIPTION = "description";
   private static final String ETAG = "etag";
 
-  private final AttributeValue dummyValue = AttributeValues.create(
-      ByteString.valueOf("dummy"), ByteString.valueOf("dummy"));
+  private final ByteString dummyValue = ByteString.valueOf("dummy");
   private final EntityTagVirtualAttributeProvider provider = new EntityTagVirtualAttributeProvider();
   private boolean changeListenerRemoved = false;
   private boolean changeListenerAdded = false;
@@ -301,7 +298,7 @@ public class EntityTagVirtualAttributeProviderTestCase extends
   {
     final Entry e = TestCaseUtils.makeEntry("dn: dc=example,dc=com",
         "objectClass: top", "objectClass: domain", "dc: example");
-    getEntityTag(e);
+    getEntityTag(e, getRule());
   }
 
 
@@ -320,7 +317,8 @@ public class EntityTagVirtualAttributeProviderTestCase extends
         "objectClass: top", "objectClass: domain", "dc: example1");
     final Entry e2 = TestCaseUtils.makeEntry("dn: dc=example2,dc=com",
         "objectClass: top", "objectClass: domain", "dc: example2");
-    assertFalse(getEntityTag(e1).equals(getEntityTag(e2)));
+    VirtualAttributeRule rule = getRule();
+    assertFalse(getEntityTag(e1, rule).equals(getEntityTag(e2, rule)));
   }
 
 
@@ -339,7 +337,8 @@ public class EntityTagVirtualAttributeProviderTestCase extends
     final Entry e2 = TestCaseUtils.makeEntry("dn: dc=example,dc=com",
         "objectClass: top", "objectClass: domain", "dc: example",
         "modifyTimestamp: 20120222232918Z");
-    assertEquals(getEntityTag(e1), getEntityTag(e2));
+    VirtualAttributeRule rule = getRule();
+    assertEquals(getEntityTag(e1, rule), getEntityTag(e2, rule));
   }
 
 
@@ -360,7 +359,8 @@ public class EntityTagVirtualAttributeProviderTestCase extends
     final Entry e2 = TestCaseUtils.makeEntry("dn: dc=example,dc=com",
         "objectClass: top", "objectClass: domain", "dc: example",
         "description: two", "description: one");
-    assertEquals(getEntityTag(e1), getEntityTag(e2));
+    VirtualAttributeRule rule = getRule();
+    assertEquals(getEntityTag(e1, rule), getEntityTag(e2, rule));
   }
 
 
@@ -379,7 +379,8 @@ public class EntityTagVirtualAttributeProviderTestCase extends
         "objectClass: top", "objectClass: domain", "dc: example");
     final Entry e2 = TestCaseUtils.makeEntry("dn: dc=example,dc=com",
         "objectClass: top", "objectClass: domain", "dc: example");
-    assertEquals(getEntityTag(e1), getEntityTag(e2));
+    VirtualAttributeRule rule = getRule();
+    assertEquals(getEntityTag(e1, rule), getEntityTag(e2, rule));
   }
 
 
@@ -407,34 +408,12 @@ public class EntityTagVirtualAttributeProviderTestCase extends
   {
     final Entry e = TestCaseUtils.makeEntry("dn: dc=example,dc=com",
         "objectClass: top", "objectClass: domain", "dc: example");
-    final AttributeValue value = getEntityTag(e);
-    assertTrue(provider.hasAllValues(e, null,
-        Collections.<AttributeValue> emptySet()));
-    assertTrue(provider.hasAllValues(e, null, Collections.singleton(value)));
-    assertFalse(provider.hasAllValues(e, null,
-        Collections.singleton(dummyValue)));
-    assertFalse(provider
-        .hasAllValues(e, null, Arrays.asList(value, dummyValue)));
-  }
-
-
-
-  /**
-   * Tests hasAnyValues() membership.
-   *
-   * @throws Exception
-   *           If an unexpected exception occurred.
-   */
-  @Test
-  public void testHasAnyValue() throws Exception
-  {
-    final Entry e = TestCaseUtils.makeEntry("dn: dc=example,dc=com",
-        "objectClass: top", "objectClass: domain", "dc: example");
-    final AttributeValue value = getEntityTag(e);
-    assertTrue(provider.hasAnyValue(e, null, Collections.singleton(value)));
-    assertFalse(provider
-        .hasAnyValue(e, null, Collections.singleton(dummyValue)));
-    assertTrue(provider.hasAnyValue(e, null, Arrays.asList(value, dummyValue)));
+    VirtualAttributeRule rule = getRule();
+    final ByteString value = getEntityTag(e, rule);
+    assertTrue(provider.hasAllValues(e, rule, Collections.<ByteString> emptySet()));
+    assertTrue(provider.hasAllValues(e, rule, Collections.singleton(value)));
+    assertFalse(provider.hasAllValues(e, rule, Collections.singleton(dummyValue)));
+    assertFalse(provider.hasAllValues(e, rule, Arrays.asList(value, dummyValue)));
   }
 
 
@@ -461,9 +440,10 @@ public class EntityTagVirtualAttributeProviderTestCase extends
   {
     final Entry e = TestCaseUtils.makeEntry("dn: dc=example,dc=com",
         "objectClass: top", "objectClass: domain", "dc: example");
-    final AttributeValue value = getEntityTag(e);
-    assertTrue(provider.hasValue(e, null, value));
-    assertFalse(provider.hasValue(e, null, dummyValue));
+    VirtualAttributeRule rule = getRule();
+    final ByteString value = getEntityTag(e, rule);
+    assertTrue(provider.hasValue(e, rule, value));
+    assertFalse(provider.hasValue(e, rule, dummyValue));
   }
 
 
@@ -884,24 +864,33 @@ public class EntityTagVirtualAttributeProviderTestCase extends
 
 
 
-  private AttributeValue getEntityTag(final Entry e)
+  private ByteString getEntityTag(final Entry e, VirtualAttributeRule rule)
   {
-    final Set<AttributeValue> values = provider.getValues(e, null);
+    final Attribute values = provider.getValues(e, rule);
     assertEquals(values.size(), 1);
-    final AttributeValue value = values.iterator().next();
-    final ByteString bs = value.getValue();
-    assertEquals(bs.length(), 16);
+    final ByteString value = values.iterator().next();
+    assertEquals(value.length(), 16);
     boolean gotNonZeroByte = false;
     for (int i = 0; i < 16; i++)
     {
-      assertTrue(StaticUtils.isHexDigit(bs.byteAt(i)));
-      if (bs.byteAt(i) != 0x30)
+      assertTrue(StaticUtils.isHexDigit(value.byteAt(i)));
+      if (value.byteAt(i) != 0x30)
       {
         gotNonZeroByte = true;
       }
     }
     assertTrue(gotNonZeroByte);
     return value;
+  }
+
+  private VirtualAttributeRule getRule()
+  {
+    AttributeType type = DirectoryServer.getAttributeType("etag", false);
+    return new VirtualAttributeRule(type, provider,
+        Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
+        Collections.<DN>emptySet(),
+        Collections.<SearchFilter>emptySet(),
+        VirtualAttributeCfgDefn.ConflictBehavior.VIRTUAL_OVERRIDES_REAL);
   }
 
 }

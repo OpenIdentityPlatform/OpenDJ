@@ -37,7 +37,7 @@ import java.util.Map;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 
@@ -146,15 +146,13 @@ public class Branch
     {
       for (Attribute a : attrList)
       {
-        for (AttributeValue v : a)
+        for (ByteString v : a)
         {
           try
           {
-            String[] valueStrings = new String[] { v.getValue().toString()};
-            Tag[] tags = new Tag[1];
-            tags[0] = new StaticTextTag();
-            tags[0].initializeForBranch(templateFile, this, valueStrings, 0,
-                                        warnings);
+            String[] valueStrings = new String[] { v.toString() };
+            Tag[] tags = new Tag[] { new StaticTextTag() };
+            tags[0].initializeForBranch(templateFile, this, valueStrings, 0, warnings);
             lineList.add(new TemplateLine(a.getAttributeType(), 0, tags));
           }
           catch (Exception e)
@@ -170,15 +168,13 @@ public class Branch
     {
       for (Attribute a : attrList)
       {
-        for (AttributeValue v : a)
+        for (ByteString v : a)
         {
           try
           {
-            String[] valueStrings = new String[] { v.getValue().toString()};
-            Tag[] tags = new Tag[1];
-            tags[0] = new StaticTextTag();
-            tags[0].initializeForBranch(templateFile, this, valueStrings, 0,
-                                        warnings);
+            String[] valueStrings = new String[] { v.toString() };
+            Tag[] tags = new Tag[] { new StaticTextTag() };
+            tags[0].initializeForBranch(templateFile, this, valueStrings, 0, warnings);
             lineList.add(new TemplateLine(a.getAttributeType(), 0, tags));
           }
           catch (Exception e)

@@ -173,7 +173,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
       {
         if (a.isEmpty()) continue;
 
-        stringValue = a.iterator().next().getValue().toString();
+        stringValue = a.iterator().next().toString();
         break ;
       }
     }
@@ -225,22 +225,21 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
       final MatchingRule rule = attributeType.getEqualityMatchingRule();
       for (Attribute a : attrList)
       {
-        for (AttributeValue v : a)
+        for (ByteString v : a)
         {
           try
           {
-            ByteString normValue = rule.normalizeAttributeValue(v.getValue());
+            ByteString normValue = rule.normalizeAttributeValue(v);
             timeValues.add(GeneralizedTimeSyntax.decodeGeneralizedTimeValue(normValue));
           }
           catch (Exception e)
           {
             logger.traceException(e, "Unable to decode value %s for attribute %s in user entry %s",
-                v.getValue(), attributeType.getNameOrOID(), userDNString);
+                v, attributeType.getNameOrOID(), userDNString);
 
             LocalizableMessage message = ERR_PWPSTATE_CANNOT_DECODE_GENERALIZED_TIME.
-                get(v.getValue(), attributeType.getNameOrOID(), userDNString, e);
-            throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                         message, e);
+                get(v, attributeType.getNameOrOID(), userDNString, e);
+            throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message, e);
           }
         }
       }
@@ -355,7 +354,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
    * @return The unmodifiable set of values for the password attribute
    *         from the user entry.
    */
-  public Set<AttributeValue> getPasswordValues()
+  public Set<ByteString> getPasswordValues()
   {
     List<Attribute> attrList = userEntry.getAttribute(passwordPolicy
         .getPasswordAttribute());
@@ -365,9 +364,8 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
       {
         if (a.isEmpty()) continue;
 
-        Set<AttributeValue> values =
-          new LinkedHashSet<AttributeValue>(a.size());
-        for (AttributeValue value : a)
+        Set<ByteString> values = new LinkedHashSet<ByteString>(a.size());
+        for (ByteString value : a)
         {
           values.add(value);
         }
@@ -710,7 +708,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     // Remove any expired failures from the list.
     if (passwordPolicy.getLockoutFailureExpirationInterval() > 0)
     {
-      LinkedHashSet<AttributeValue> valuesToRemove = null;
+      LinkedHashSet<ByteString> valuesToRemove = null;
 
       long expirationTime = currentTime -
            (passwordPolicy.getLockoutFailureExpirationInterval() * 1000L);
@@ -730,11 +728,10 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
           if (valuesToRemove == null)
           {
-            valuesToRemove = new LinkedHashSet<AttributeValue>();
+            valuesToRemove = new LinkedHashSet<ByteString>();
           }
 
-          valuesToRemove.add(AttributeValues.create(type,
-                                              GeneralizedTimeSyntax.format(l)));
+          valuesToRemove.add(ByteString.valueOf(GeneralizedTimeSyntax.format(l)));
         }
       }
 
@@ -806,9 +803,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
                                   OP_ATTR_PWPOLICY_FAILURE_TIME);
     }
 
-    Attribute addAttr = Attributes.create(type, AttributeValues.create(type,
-        GeneralizedTimeSyntax.format(highestFailureTime)));
-
+    Attribute addAttr = Attributes.create(type, GeneralizedTimeSyntax.format(highestFailureTime));
     modifications.add(new Modification(ModificationType.ADD, addAttr, true));
 
     // Now check to see if there have been sufficient failures to lock the
@@ -856,8 +851,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     for (Long l : authFailureTimes)
     {
       highestFailureTime = Math.max(l, highestFailureTime);
-      builder
-          .add(AttributeValues.create(type, GeneralizedTimeSyntax.format(l)));
+      builder.add(GeneralizedTimeSyntax.format(l));
     }
     Attribute a = builder.toAttribute();
 
@@ -974,9 +968,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
                                   OP_ATTR_PWPOLICY_LOCKED_TIME);
     }
 
-    Attribute a = Attributes.create(type, AttributeValues.create(type,
-        GeneralizedTimeSyntax.format(failureLockedTime)));
-
+    Attribute a = Attributes.create(type, GeneralizedTimeSyntax.format(failureLockedTime));
     modifications.add(new Modification(ModificationType.REPLACE, a, true));
   }
 
@@ -1213,8 +1205,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
       {
         if (a.isEmpty()) continue;
 
-        String valueString = a.iterator().next().getValue().toString();
-
+        String valueString = a.iterator().next().toString();
         try
         {
           SimpleDateFormat dateFormat = new SimpleDateFormat(format);
@@ -2306,9 +2297,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
                                   OP_ATTR_PWPOLICY_GRACE_LOGIN_TIME);
     }
 
-    Attribute addAttr = Attributes.create(type, AttributeValues.create(
-        type, GeneralizedTimeSyntax.format(highestGraceTime)));
-
+    Attribute addAttr = Attributes.create(type, GeneralizedTimeSyntax.format(highestGraceTime));
     modifications.add(new Modification(ModificationType.ADD, addAttr, true));
   }
 
@@ -2342,8 +2331,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     AttributeBuilder builder = new AttributeBuilder(type);
     for (Long l : graceLoginTimes)
     {
-      builder
-          .add(AttributeValues.create(type, GeneralizedTimeSyntax.format(l)));
+      builder.add(GeneralizedTimeSyntax.format(l));
     }
     Attribute a = builder.toAttribute();
 
@@ -2406,26 +2394,12 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     {
       boolean usesAuthPasswordSyntax = passwordPolicy.isAuthPasswordSyntax();
 
-      for (AttributeValue v : a)
+      for (ByteString v : a)
       {
         try
         {
-          StringBuilder[] pwComponents;
-          if (usesAuthPasswordSyntax)
-          {
-            pwComponents =
-                 AuthPasswordSyntax.decodeAuthPassword(v.getValue().toString());
-          }
-          else
-          {
-            String[] userPwComponents =
-                 UserPasswordSyntax.decodeUserPassword(v.getValue().toString());
-            pwComponents = new StringBuilder[userPwComponents.length];
-            for (int i = 0; i < userPwComponents.length; ++i)
-            {
-              pwComponents[i] = new StringBuilder(userPwComponents[i]);
-            }
-          }
+          StringBuilder[] pwComponents =
+              getPwComponents(usesAuthPasswordSyntax, v);
 
           String schemeName = pwComponents[0].toString();
           PasswordStorageScheme<?> scheme = (usesAuthPasswordSyntax)
@@ -2496,26 +2470,12 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     {
       boolean usesAuthPasswordSyntax = passwordPolicy.isAuthPasswordSyntax();
 
-      for (AttributeValue v : a)
+      for (ByteString v : a)
       {
         try
         {
-          StringBuilder[] pwComponents;
-          if (usesAuthPasswordSyntax)
-          {
-            pwComponents =
-                 AuthPasswordSyntax.decodeAuthPassword(v.getValue().toString());
-          }
-          else
-          {
-            String[] userPwComponents =
-                 UserPasswordSyntax.decodeUserPassword(v.getValue().toString());
-            pwComponents = new StringBuilder[userPwComponents.length];
-            for (int i = 0; i < userPwComponents.length; ++i)
-            {
-              pwComponents[i] = new StringBuilder(userPwComponents[i]);
-            }
-          }
+          StringBuilder[] pwComponents =
+              getPwComponents(usesAuthPasswordSyntax, v);
 
           String schemeName = pwComponents[0].toString();
           PasswordStorageScheme<?> scheme = (usesAuthPasswordSyntax)
@@ -2565,6 +2525,25 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
         userDNString);
 
     return false;
+  }
+
+
+
+  private StringBuilder[] getPwComponents(boolean usesAuthPasswordSyntax,
+      ByteString v) throws DirectoryException
+  {
+    if (usesAuthPasswordSyntax)
+    {
+      return AuthPasswordSyntax.decodeAuthPassword(v.toString());
+    }
+
+    String[] userPwComponents = UserPasswordSyntax.decodeUserPassword(v.toString());
+    StringBuilder[] pwComponents = new StringBuilder[userPwComponents.length];
+    for (int i = 0; i < userPwComponents.length; ++i)
+    {
+      pwComponents[i] = new StringBuilder(userPwComponents[i]);
+    }
+    return pwComponents;
   }
 
 
@@ -2706,38 +2685,22 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
 
     HashSet<String> existingDefaultSchemes = new HashSet<String>();
-    LinkedHashSet<AttributeValue> removedValues =
-         new LinkedHashSet<AttributeValue>();
-    LinkedHashSet<AttributeValue> updatedValues =
-         new LinkedHashSet<AttributeValue>();
+    LinkedHashSet<ByteString> removedValues = new LinkedHashSet<ByteString>();
+    LinkedHashSet<ByteString> updatedValues = new LinkedHashSet<ByteString>();
 
     boolean usesAuthPasswordSyntax = passwordPolicy.isAuthPasswordSyntax();
 
     for (Attribute a : attrList)
     {
-      Iterator<AttributeValue> iterator = a.iterator();
+      Iterator<ByteString> iterator = a.iterator();
       while (iterator.hasNext())
       {
-        AttributeValue v = iterator.next();
+        ByteString v = iterator.next();
 
         try
         {
-          StringBuilder[] pwComponents;
-          if (usesAuthPasswordSyntax)
-          {
-            pwComponents =
-                 AuthPasswordSyntax.decodeAuthPassword(v.getValue().toString());
-          }
-          else
-          {
-            String[] userPwComponents =
-                 UserPasswordSyntax.decodeUserPassword(v.getValue().toString());
-            pwComponents = new StringBuilder[userPwComponents.length];
-            for (int i = 0; i < userPwComponents.length; ++i)
-            {
-              pwComponents[i] = new StringBuilder(userPwComponents[i]);
-            }
-          }
+          StringBuilder[] pwComponents =
+              getPwComponents(usesAuthPasswordSyntax, v);
 
           String schemeName = pwComponents[0].toString();
           PasswordStorageScheme<?> scheme = (usesAuthPasswordSyntax)
@@ -2801,8 +2764,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
       return;
     }
 
-    LinkedHashSet<AttributeValue> addedValues = new
-         LinkedHashSet<AttributeValue>();
+    LinkedHashSet<ByteString> addedValues = new LinkedHashSet<ByteString>();
     for (PasswordStorageScheme<?> s :
          passwordPolicy.getDefaultPasswordStorageSchemes())
     {
@@ -2814,10 +2776,8 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
           ByteString encodedPassword = (usesAuthPasswordSyntax)
                                        ? s.encodeAuthPassword(password)
                                        : s.encodePasswordWithScheme(password);
-          AttributeValue v =
-              AttributeValues.create(type, encodedPassword);
-          addedValues.add(v);
-          updatedValues.add(v);
+          addedValues.add(encodedPassword);
+          updatedValues.add(encodedPassword);
         }
         catch (Exception e)
         {
@@ -2921,7 +2881,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     // Get the attribute containing the history and check to see if any of the
     // values is equal to the provided password.  However, first prune the list
     // by size and duration if necessary.
-    TreeMap<Long,AttributeValue> historyMap = getSortedHistoryValues(null);
+    TreeMap<Long, ByteString> historyMap = getSortedHistoryValues(null);
 
     int historyCount = passwordPolicy.getPasswordHistoryCount();
     if ((historyCount > 0) && (historyMap.size() > historyCount))
@@ -2955,7 +2915,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
       }
     }
 
-    for (AttributeValue v : historyMap.values())
+    for (ByteString v : historyMap.values())
     {
       if (historyValueMatches(password, v))
       {
@@ -2990,11 +2950,10 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
    *                      not be properly decoded.  It may be {@code null} if
    *                      this is not needed.
    */
-  private TreeMap<Long,AttributeValue> getSortedHistoryValues(List<Attribute>
+  private TreeMap<Long,ByteString> getSortedHistoryValues(List<Attribute>
                                                                    removeAttrs)
   {
-    TreeMap<Long,AttributeValue> historyMap =
-         new TreeMap<Long,AttributeValue>();
+    TreeMap<Long, ByteString> historyMap = new TreeMap<Long, ByteString>();
     AttributeType historyType =
          DirectoryServer.getAttributeType(OP_ATTR_PWPOLICY_HISTORY_LC, true);
     List<Attribute> attrList = userEntry.getAttribute(historyType);
@@ -3002,9 +2961,9 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     {
       for (Attribute a : attrList)
       {
-        for (AttributeValue v : a)
+        for (ByteString v : a)
         {
-          String histStr = v.getValue().toString();
+          String histStr = v.toString();
           int    hashPos = histStr.indexOf('#');
           if (hashPos <= 0)
           {
@@ -3068,14 +3027,14 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
    *          or {@code false} if not.
    */
   private boolean historyValueMatches(ByteString password,
-                                      AttributeValue historyValue)
+                                      ByteString historyValue)
   {
     // According to draft-behera-ldap-password-policy, password history values
     // should be in the format time#syntaxoid#encodedvalue.  In this method,
     // we only care about the syntax OID and encoded password.
     try
     {
-      String histStr  = historyValue.getValue().toString();
+      String histStr  = historyValue.toString();
       int    hashPos1 = histStr.indexOf('#');
       if (hashPos1 <= 0)
       {
@@ -3203,9 +3162,9 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     {
       for (Attribute a : attrList)
       {
-        for (AttributeValue v : a)
+        for (ByteString v : a)
         {
-          addPasswordToHistory(v.getValue().toString());
+          addPasswordToHistory(v.toString());
         }
       }
     }
@@ -3239,8 +3198,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     // Get a sorted list of the existing values to see if there are any that
     // should be removed.
     LinkedList<Attribute> removeAttrs = new LinkedList<Attribute>();
-    TreeMap<Long,AttributeValue> historyMap =
-         getSortedHistoryValues(removeAttrs);
+    TreeMap<Long, ByteString> historyMap = getSortedHistoryValues(removeAttrs);
 
 
     // If there is a maximum number of values to retain and we would be over the
@@ -3252,19 +3210,19 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     if  ((historyCount > 0) && (historyMap.size() >= historyCount))
     {
       int numToDelete = (historyMap.size() - historyCount) + 1;
-      LinkedHashSet<AttributeValue> removeValues =
-           new LinkedHashSet<AttributeValue>(numToDelete);
-      Iterator<AttributeValue> iterator = historyMap.values().iterator();
+      LinkedHashSet<ByteString> removeValues =
+           new LinkedHashSet<ByteString>(numToDelete);
+      Iterator<ByteString> iterator = historyMap.values().iterator();
       while (iterator.hasNext() && (numToDelete > 0))
       {
-        AttributeValue v = iterator.next();
+        ByteString v = iterator.next();
         removeValues.add(v);
         iterator.remove();
         numToDelete--;
 
         if (logger.isTraceEnabled())
         {
-          logger.trace("Removing history value %s to preserve the history count.", v.getValue());
+          logger.trace("Removing history value %s to preserve the history count.", v);
         }
       }
 
@@ -3284,20 +3242,19 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     {
       long minAgeToKeep = currentTime - (1000L * historyDuration);
       Iterator<Long> iterator = historyMap.keySet().iterator();
-      LinkedHashSet<AttributeValue> removeValues =
-           new LinkedHashSet<AttributeValue>();
+      LinkedHashSet<ByteString> removeValues = new LinkedHashSet<ByteString>();
       while (iterator.hasNext())
       {
         long timestamp = iterator.next();
         if (timestamp < minAgeToKeep)
         {
-          AttributeValue v = historyMap.get(timestamp);
+          ByteString v = historyMap.get(timestamp);
           removeValues.add(v);
           iterator.remove();
 
           if (logger.isTraceEnabled())
           {
-            logger.trace("Removing history value %s to preserve the history duration.", v.getValue());
+            logger.trace("Removing history value %s to preserve the history duration.", v);
           }
         }
         else
@@ -3364,9 +3321,9 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     {
       for (Attribute a : attrList)
       {
-        for (AttributeValue v : a)
+        for (ByteString v : a)
         {
-          historyValues.add(v.getValue().toString());
+          historyValues.add(v.toString());
         }
       }
     }

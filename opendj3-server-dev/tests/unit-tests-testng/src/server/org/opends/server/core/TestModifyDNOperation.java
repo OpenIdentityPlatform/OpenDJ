@@ -306,10 +306,8 @@ public class TestModifyDNOperation extends OperationTestCase
     for (int i = 0; i < rdn.getNumValues(); i++)
     {
       AttributeType attribute = rdn.getAttributeType(i);
-      assertEquals(newEntry.hasValue(attribute, null, AttributeValues.create(
-          attribute, "user.0")), user0Exists);
-      assertEquals(newEntry.hasValue(attribute, null, AttributeValues.create(
-          attribute, "user.test0")), userTest0Exists);
+      assertEquals(newEntry.hasValue(attribute, null, ByteString.valueOf("user.0")), user0Exists);
+      assertEquals(newEntry.hasValue(attribute, null, ByteString.valueOf("user.test0")), userTest0Exists);
     }
   }
 
@@ -395,8 +393,8 @@ public class TestModifyDNOperation extends OperationTestCase
     assertEquals(attrList.size(),1);
 
     // Because deleteOldRDN is true, the values from RDN and the entry have to be identical
-    ByteString valueFromEntry = attrList.get(0).iterator().next().getValue();
-    ByteString valueFromRDN = newEntry.getName().rdn().getAttributeValue(at).getValue();
+    ByteString valueFromEntry = attrList.get(0).iterator().next();
+    ByteString valueFromRDN = newEntry.getName().rdn().getAttributeValue(at);
     assertEquals(valueFromEntry,valueFromRDN);
 
     examineCompletedOperation(modifyDNOperation);
@@ -460,9 +458,10 @@ public class TestModifyDNOperation extends OperationTestCase
     assertEquals(attrList.size(),1);
 
     // Even though the value of the RDN changed, the representation of the entry's value should be preserved
-    ByteString valueFromEntry = attrList.get(0).iterator().next().getValue();
-    ByteString valueFromRDN = newEntry.getName().rdn().getAttributeValue(at).getValue();
-    assertEquals(valueFromEntry,ByteString.valueOf("userid.0"));
+    ByteString valueFromEntry = attrList.get(0).iterator().next();
+    ByteString valueFromRDN = newEntry.getName().rdn().getAttributeValue(at);
+    assertEquals(valueFromEntry, valueFromRDN);
+    assertEquals(valueFromEntry, ByteString.valueOf("UserID.0"));
 
     examineCompletedOperation(modifyDNOperation);
     TestCaseUtils.deleteEntry(DN.valueOf("uid=UserID.0+cn=Test,ou=People,dc=example,dc=com"));
@@ -511,9 +510,10 @@ public class TestModifyDNOperation extends OperationTestCase
 
     // Even though the representation of the sn value differs in the RDN,
     // the representation of the entry's value should be preserved
-    ByteString valueFromEntry = attrList.get(0).iterator().next().getValue();
-    ByteString valueFromRDN = newEntry.getName().rdn().getAttributeValue(at).getValue();
-    assertEquals(valueFromEntry,ByteString.valueOf("Jensen"));
+    ByteString valueFromEntry = attrList.get(0).iterator().next();
+    ByteString valueFromRDN = newEntry.getName().rdn().getAttributeValue(at);
+    assertEquals(valueFromEntry, valueFromRDN);
+    assertEquals(valueFromEntry, ByteString.valueOf("JENSEN"));
 
     examineCompletedOperation(modifyDNOperation);
     TestCaseUtils.deleteEntry(DN.valueOf("uid=userid.0+sn=Jensen,ou=People,dc=example,dc=com"));
@@ -663,8 +663,8 @@ public class TestModifyDNOperation extends OperationTestCase
 
     for(Attribute attribute : newEntry.getAttribute("cn"))
     {
-      assertTrue(attribute.contains(AttributeValues.create(attribute.getAttributeType(), "Aaccf Amar Test")));
-      assertTrue(attribute.contains(AttributeValues.create(attribute.getAttributeType(), "Aaccf Amar")));
+      assertTrue(attribute.contains(ByteString.valueOf("Aaccf Amar Test")));
+      assertTrue(attribute.contains(ByteString.valueOf("Aaccf Amar")));
     }
 
     examineCompletedOPNoExtraPluginCounts(modifyDNOperation);
@@ -685,12 +685,12 @@ public class TestModifyDNOperation extends OperationTestCase
     assertNull(DirectoryServer.getEntry(DN.valueOf("cn=Aaccf Amar Test,dc=example,dc=com")));
     for(Attribute attribute : newOldEntry.getAttribute("cn"))
     {
-      assertTrue(attribute.contains(AttributeValues.create(attribute.getAttributeType(), "Aaccf Amar Test")));
-      assertTrue(attribute.contains(AttributeValues.create(attribute.getAttributeType(), "Aaccf Amar")));
+      assertTrue(attribute.contains(ByteString.valueOf("Aaccf Amar Test")));
+      assertTrue(attribute.contains(ByteString.valueOf("Aaccf Amar")));
     }
     for(Attribute attribute : newOldEntry.getAttribute("uid"))
     {
-      assertTrue(attribute.contains(AttributeValues.create(attribute.getAttributeType(), "user.0")));
+      assertTrue(attribute.contains(ByteString.valueOf("user.0")));
     }
     examineCompletedOPNoExtraPluginCounts(modifyDNOperation);
   }

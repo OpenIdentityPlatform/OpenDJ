@@ -30,7 +30,7 @@ import java.util.List;
 
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.Entry;
 import org.opends.server.types.SortKey;
 import org.opends.server.types.SortOrder;
@@ -51,7 +51,7 @@ public class SortValues
        implements Comparable<SortValues>
 {
   /** The set of sort keys (attribute values) in this sort order. */
-  private AttributeValue[] values;
+  private ByteString[] values;
   /**
    * The types of sort keys.
    *
@@ -75,7 +75,7 @@ public class SortValues
    * @param values     The attribute values for this sort values.
    * @param sortOrder  The sort order to use to obtain the necessary values.
    */
-  public SortValues(EntryID entryID, AttributeValue[] values,
+  public SortValues(EntryID entryID, ByteString[] values,
                     SortOrder sortOrder)
   {
     this.entryID = entryID;
@@ -105,7 +105,7 @@ public class SortValues
     this.sortOrder = sortOrder;
 
     SortKey[] sortKeys = sortOrder.getSortKeys();
-    this.values = new AttributeValue[sortKeys.length];
+    this.values = new ByteString[sortKeys.length];
     this.types = new AttributeType[sortKeys.length];
     for (int i=0; i < sortKeys.length; i++)
     {
@@ -114,7 +114,7 @@ public class SortValues
       List<Attribute> attrList = entry.getAttribute(types[i]);
       if (attrList != null)
       {
-        AttributeValue sortValue = null;
+        ByteString sortValue = null;
 
         // There may be multiple versions of this attribute in the target entry
         // (e.g., with different sets of options), and it may also be a
@@ -125,7 +125,7 @@ public class SortValues
         // handled by the SortKey.compareValues method.
         for (Attribute a : attrList)
         {
-          for (AttributeValue v : a)
+          for (ByteString v : a)
           {
             if (sortValue == null)
             {
@@ -207,7 +207,7 @@ public class SortValues
    *          is equal to the first sort value, or a positive value if the
    *          provided assertion value should come after the first sort value.
    */
-  public int compareTo(AttributeValue assertionValue)
+  public int compareTo(ByteString assertionValue)
   {
     SortKey sortKey = sortOrder.getSortKeys()[0];
     return sortKey.compareValues(values[0], assertionValue);
@@ -265,7 +265,7 @@ public class SortValues
       }
       else
       {
-        buffer.append(values[i].getValue().toString());
+        buffer.append(values[i].toString());
       }
     }
 
@@ -279,7 +279,7 @@ public class SortValues
    *
    * @return The array of attribute values for this sort values.
    */
-  public AttributeValue[] getValues()
+  public ByteString[] getValues()
   {
     return values;
   }

@@ -28,7 +28,7 @@ package org.opends.server.admin;
 
 
 
-import org.opends.server.types.AttributeValue;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.RDN;
@@ -98,13 +98,13 @@ public final class Reference<C extends ConfigurationClient,
           + s + "\"");
     }
 
-    AttributeValue av = rdn.getAttributeValue(0);
+    ByteString av = rdn.getAttributeValue(0);
     if (av == null) {
       throw new IllegalArgumentException("Unabled to decode the DN string: \""
           + s + "\"");
     }
 
-    String name = av.getValue().toString();
+    String name = av.toString();
 
     // Check that the DN was valid.
     DN expected = p.child(rd, name).toDN();

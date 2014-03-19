@@ -2517,7 +2517,7 @@ public final class Schema
     {
       if (!newElements.contains(s))
       {
-        builder.add(AttributeValues.create(attributeTypesType, s));
+        builder.add(s);
       }
     }
 
@@ -2532,7 +2532,7 @@ public final class Schema
     {
       if (!oldElements.contains(s))
       {
-        builder.add(AttributeValues.create(attributeTypesType, s));
+        builder.add(s);
       }
     }
 

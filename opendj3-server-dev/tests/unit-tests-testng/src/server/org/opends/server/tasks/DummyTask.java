@@ -34,7 +34,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.backends.task.Task;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeValue;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 
@@ -81,9 +81,9 @@ public class DummyTask
       {
         for (Attribute a : attrList)
         {
-          for (AttributeValue v : a)
+          for (ByteString v : a)
           {
-            sleepTime = Long.parseLong(v.getValue().toString());
+            sleepTime = Long.parseLong(v.toString());
           }
         }
       }

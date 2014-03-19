@@ -147,8 +147,7 @@ public final class SortKey
    *          list, or zero if there is no relative difference between
    *          the values.
    */
-  public int compareValues(AttributeValue value1,
-                           AttributeValue value2)
+  public int compareValues(ByteString value1, ByteString value2)
   {
     // A null value will always come after a non-null value.
     if (value1 == null)
@@ -182,13 +181,13 @@ public final class SortKey
     return 0;
   }
 
-  private int compareValues(OrderingMatchingRule rule, AttributeValue value1,
-      AttributeValue value2)
+  private int compareValues(OrderingMatchingRule rule, ByteString value1,
+      ByteString value2)
   {
     try
     {
-      final ByteString val1 = rule.normalizeAttributeValue(value1.getValue());
-      final ByteString val2 = rule.normalizeAttributeValue(value2.getValue());
+      final ByteString val1 = rule.normalizeAttributeValue(value1);
+      final ByteString val2 = rule.normalizeAttributeValue(value2);
       if (ascending)
       {
         return rule.compareValues(val1, val2);

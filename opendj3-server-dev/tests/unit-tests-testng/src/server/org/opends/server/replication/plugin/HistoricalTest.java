@@ -32,6 +32,7 @@ import java.util.UUID;
 
 import org.assertj.core.api.Assertions;
 import org.forgerock.opendj.ldap.ModificationType;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
@@ -45,7 +46,6 @@ import org.opends.server.replication.protocol.ModifyMsg;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -327,7 +327,7 @@ public class HistoricalTest extends ReplicationTestCase
   {
     Entry entry = DirectoryServer.getEntry(dn);
     List<Attribute> attrs = entry.getAttribute(attrType);
-    return attrs.get(0).iterator().next().getValue().toString();
+    return attrs.get(0).iterator().next().toString();
   }
 
   private static void publishModify(ReplicationBroker broker, CSN changeNum,

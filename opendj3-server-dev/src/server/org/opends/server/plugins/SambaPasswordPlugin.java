@@ -808,7 +808,7 @@ public final class SambaPasswordPlugin extends
      * the getNewPasswords() method. If they are encoded the method would return
      * null. The list of passwords should not be modified.
      */
-    final List<AttributeValue> passwords = modifyOperation.getNewPasswords();
+    final List<ByteString> passwords = modifyOperation.getNewPasswords();
 
     /*
      * If the password list is not empty, we can be sure the current operation
@@ -1039,7 +1039,7 @@ public final class SambaPasswordPlugin extends
    */
   private void processModification(
       final PreOperationModifyOperation modifyOperation,
-      final List<AttributeValue> passwords)
+      final List<ByteString> passwords)
   {
     // Get the last password (in case there is more then one).
     final String password = passwords.get(passwords.size() - 1).toString();

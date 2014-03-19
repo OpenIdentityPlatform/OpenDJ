@@ -69,7 +69,7 @@ import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn.IndexType;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
@@ -81,7 +81,6 @@ import com.forgerock.opendj.cli.CommandBuilder;
 
 /**
  * Panel that appears when the user defines a new index.
- *
  */
 public class NewIndexPanel extends AbstractIndexPanel
 {
@@ -353,18 +352,9 @@ public class NewIndexPanel extends AbstractIndexPanel
 
   private String getAttributeName()
   {
-    String attrName;
     CategorizedComboBoxElement o =
       (CategorizedComboBoxElement)attributes.getSelectedItem();
-    if (o != null)
-    {
-      attrName = o.getValue().toString();
-    }
-    else
-    {
-      attrName = null;
-    }
-    return attrName;
+    return o != null ? o.toString() : null;
   }
 
   /**
@@ -623,11 +613,11 @@ public class NewIndexPanel extends AbstractIndexPanel
         Attributes attrs = new BasicAttributes();
 
         BasicAttribute oc = new BasicAttribute("objectClass");
-        Iterator<AttributeValue> it =
+        Iterator<ByteString> it =
           indexEntry.getObjectClassAttribute().iterator();
         while (it.hasNext())
         {
-          oc.add(it.next().getValue().toString());
+          oc.add(it.next().toString());
         }
         attrs.put(oc);
 
@@ -639,7 +629,7 @@ public class NewIndexPanel extends AbstractIndexPanel
           it = odsAttr.iterator();
           while (it.hasNext())
           {
-            attr.add(it.next().getValue().toString());
+            attr.add(it.next().toString());
           }
           attrs.put(attr);
         }

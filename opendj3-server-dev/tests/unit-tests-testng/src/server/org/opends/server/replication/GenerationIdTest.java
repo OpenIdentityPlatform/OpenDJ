@@ -468,7 +468,7 @@ public class GenerationIdTest extends ReplicationTestCase
         Attribute attr = attrs.get(0);
         if (attr.size() == 1)
         {
-          return Long.decode(attr.iterator().next().getValue().toString());
+          return Long.decode(attr.iterator().next().toString());
         }
       }
     }

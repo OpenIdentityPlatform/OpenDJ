@@ -36,6 +36,12 @@ import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.io.ASN1;
+import org.forgerock.opendj.io.ASN1Reader;
+import org.forgerock.opendj.io.ASN1Writer;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
 import org.opends.server.admin.client.ldap.LDAPConnection;
@@ -43,18 +49,15 @@ import org.opends.server.admin.client.ldap.LDAPManagementContext;
 import org.opends.server.admin.std.client.RootCfgClient;
 import org.opends.server.api.Backend;
 import org.opends.server.api.WorkQueue;
+import org.opends.server.api.plugin.PluginType;
 import org.opends.server.backends.MemoryBackend;
 import org.opends.server.backends.jeb.*;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.ConfigFileHandler;
 import org.opends.server.loggers.*;
 import org.opends.server.plugins.InvocationCounterPlugin;
-import org.forgerock.opendj.io.ASN1;
-import org.forgerock.opendj.io.ASN1Reader;
-import org.forgerock.opendj.io.ASN1Writer;
 import org.opends.server.protocols.ldap.BindRequestProtocolOp;
 import org.opends.server.protocols.ldap.BindResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPMessage;
@@ -62,8 +65,6 @@ import org.opends.server.protocols.ldap.LDAPReader;
 import org.opends.server.tools.LDAPModify;
 import org.opends.server.tools.dsconfig.DSConfig;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.FilePermission;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.EmbeddedUtils;
@@ -1922,6 +1923,23 @@ public final class TestCaseUtils {
   public static <T> List<T> newList(T... elems)
   {
     return new ArrayList<T>(Arrays.asList(elems));
+  }
+
+  public static HashSet<PluginType> getPluginTypes(Entry e)
+  {
+    HashSet<PluginType> pluginTypes = new HashSet<PluginType>();
+    List<Attribute> attrList = e.getAttribute("ds-cfg-plugin-type");
+    if (attrList != null)
+    {
+      for (Attribute a : attrList)
+      {
+        for (ByteString v : a)
+        {
+          pluginTypes.add(PluginType.forName(v.toString().toLowerCase()));
+        }
+      }
+    }
+    return pluginTypes;
   }
 
 }

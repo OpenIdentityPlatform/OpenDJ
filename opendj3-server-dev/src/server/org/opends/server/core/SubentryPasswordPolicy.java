@@ -256,9 +256,9 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
       {
         for (Attribute attr : pwdAttrList)
         {
-          for (AttributeValue val : attr)
+          for (ByteString val : attr)
           {
-            DN validatorDN = DN.decode(val.getValue());
+            DN validatorDN = DN.decode(val);
             if (DirectoryServer.getPasswordValidator(validatorDN) == null)
             {
               throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
@@ -386,7 +386,7 @@ public final class SubentryPasswordPolicy extends PasswordPolicy
     {
       for (Attribute attr : pwdAttrList)
       {
-        for (AttributeValue value : attr)
+        for (ByteString value : attr)
         {
           return value.toString();
         }

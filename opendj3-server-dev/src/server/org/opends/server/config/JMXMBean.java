@@ -414,18 +414,18 @@ public final class JMXMBean
             continue;
           }
 
-          Iterator<AttributeValue> iterator = a.iterator();
-          AttributeValue value = iterator.next();
+          Iterator<ByteString> iterator = a.iterator();
+          ByteString value = iterator.next();
 
           if (iterator.hasNext())
           {
             List<String> stringValues = new ArrayList<String>();
-            stringValues.add(value.getValue().toString());
+            stringValues.add(value.toString());
 
             while (iterator.hasNext())
             {
               value = iterator.next();
-              stringValues.add(value.getValue().toString());
+              stringValues.add(value.toString());
             }
 
             String[] valueArray = new String[stringValues.size()];
@@ -434,7 +434,7 @@ public final class JMXMBean
           }
           else
           {
-            return new Attribute(name, value.getValue().toString());
+            return new Attribute(name, value.toString());
           }
         }
       }
@@ -638,18 +638,18 @@ monitorLoop:
               continue;
             }
 
-            Iterator<AttributeValue> iterator = a.iterator();
-            AttributeValue value = iterator.next();
+            Iterator<ByteString> iterator = a.iterator();
+            ByteString value = iterator.next();
 
             if (iterator.hasNext())
             {
               List<String> stringValues = new ArrayList<String>();
-              stringValues.add(value.getValue().toString());
+              stringValues.add(value.toString());
 
               while (iterator.hasNext())
               {
                 value = iterator.next();
-                stringValues.add(value.getValue().toString());
+                stringValues.add(value.toString());
               }
 
               String[] valueArray = new String[stringValues.size()];
@@ -659,7 +659,7 @@ monitorLoop:
             }
             else
             {
-              attrList.add(new Attribute(name, value.getValue().toString()));
+              attrList.add(new Attribute(name, value.toString()));
               break monitorLoop;
             }
           }

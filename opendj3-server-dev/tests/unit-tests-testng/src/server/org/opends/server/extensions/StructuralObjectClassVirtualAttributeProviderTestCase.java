@@ -26,8 +26,6 @@
  */
 package org.opends.server.extensions;
 
-
-
 import static org.opends.server.util.ServerConstants.*;
 import static org.testng.Assert.*;
 
@@ -35,7 +33,6 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn;
@@ -45,8 +42,7 @@ import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.AttributeValues;
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.Control;
 import org.opends.server.types.DN;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
@@ -57,8 +53,6 @@ import org.opends.server.types.VirtualAttributeRule;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-
 
 /**
  * A set of test cases for the structural object class virtual attribute
@@ -165,8 +159,7 @@ public class StructuralObjectClassVirtualAttributeProviderTestCase
     {
       assertTrue(!a.isEmpty());
       assertEquals(a.size(), 1);
-      assertTrue(a.contains(AttributeValues.create(structuralObjectClassType,
-                              e.getStructuralObjectClass().getNameOrOID())));
+      assertTrue(a.contains(ByteString.valueOf(e.getStructuralObjectClass().getNameOrOID())));
     }
   }
 
@@ -444,8 +437,7 @@ public class StructuralObjectClassVirtualAttributeProviderTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test()
-  public void testGetValues()
-         throws Exception
+  public void testGetValues() throws Exception
   {
     StructuralObjectClassVirtualAttributeProvider provider =
          new StructuralObjectClassVirtualAttributeProvider();
@@ -465,11 +457,10 @@ public class StructuralObjectClassVirtualAttributeProviderTestCase
                   VirtualAttributeCfgDefn.ConflictBehavior.
                        VIRTUAL_OVERRIDES_REAL);
 
-    Set<AttributeValue> values = provider.getValues(entry, rule);
+    Attribute values = provider.getValues(entry, rule);
     assertNotNull(values);
     assertEquals(values.size(), 1);
-    assertTrue(values.contains(AttributeValues.create(structuralObjectClassType,
-                                  entry.getStructuralObjectClass().getNameOrOID())));
+    assertTrue(values.contains(ByteString.valueOf(entry.getStructuralObjectClass().getNameOrOID())));
   }
 
 
@@ -536,8 +527,7 @@ public class StructuralObjectClassVirtualAttributeProviderTestCase
                        VIRTUAL_OVERRIDES_REAL);
 
     assertTrue(provider.hasValue(entry, rule,
-        AttributeValues.create(structuralObjectClassType,
-                          entry.getStructuralObjectClass().getNameOrOID())));
+        ByteString.valueOf(entry.getStructuralObjectClass().getNameOrOID())));
   }
 
 
@@ -570,193 +560,6 @@ public class StructuralObjectClassVirtualAttributeProviderTestCase
                   VirtualAttributeCfgDefn.ConflictBehavior.
                        VIRTUAL_OVERRIDES_REAL);
 
-    assertFalse(provider.hasValue(entry, rule,
-        AttributeValues.create(structuralObjectClassType,
-                                        "inetorgperson")));
-  }
-
-
-
-  /**
-   * Tests the {@code hasAnyValue} method with an empty set of values.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testHasAnyValueEmptySet()
-         throws Exception
-  {
-    StructuralObjectClassVirtualAttributeProvider provider =
-         new StructuralObjectClassVirtualAttributeProvider();
-
-    Entry entry = TestCaseUtils.makeEntry(
-      "dn: o=test",
-      "objectClass: top",
-      "objectClass: organization",
-      "o: test");
-    entry.processVirtualAttributes();
-
-    VirtualAttributeRule rule =
-         new VirtualAttributeRule(structuralObjectClassType, provider,
-                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
-                  Collections.<DN>emptySet(),
-                  Collections.<SearchFilter>emptySet(),
-                  VirtualAttributeCfgDefn.ConflictBehavior.
-                       VIRTUAL_OVERRIDES_REAL);
-
-    assertFalse(provider.hasAnyValue(entry, rule,
-                                     Collections.<AttributeValue>emptySet()));
-  }
-
-
-
-  /**
-   * Tests the {@code hasAnyValue} method with a set of values containing only
-   * the correct value.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testHasAnyValueOnlyCorrect()
-         throws Exception
-  {
-    StructuralObjectClassVirtualAttributeProvider provider =
-         new StructuralObjectClassVirtualAttributeProvider();
-
-    Entry entry = TestCaseUtils.makeEntry(
-      "dn: o=test",
-      "objectClass: top",
-      "objectClass: organization",
-      "o: test");
-    entry.processVirtualAttributes();
-
-    VirtualAttributeRule rule =
-         new VirtualAttributeRule(structuralObjectClassType, provider,
-                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
-                  Collections.<DN>emptySet(),
-                  Collections.<SearchFilter>emptySet(),
-                  VirtualAttributeCfgDefn.ConflictBehavior.
-                       VIRTUAL_OVERRIDES_REAL);
-
-    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>(1);
-    values.add(AttributeValues.create(structuralObjectClassType, "organization"));
-
-    assertTrue(provider.hasAnyValue(entry, rule, values));
-  }
-
-
-
-  /**
-   * Tests the {@code hasAnyValue} method with a set of values containing only
-   * an incorrect value.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testHasAnyValueOnlyIncorrect()
-         throws Exception
-  {
-    StructuralObjectClassVirtualAttributeProvider provider =
-         new StructuralObjectClassVirtualAttributeProvider();
-
-    Entry entry = TestCaseUtils.makeEntry(
-      "dn: o=test",
-      "objectClass: top",
-      "objectClass: organization",
-      "o: test");
-    entry.processVirtualAttributes();
-
-    VirtualAttributeRule rule =
-         new VirtualAttributeRule(structuralObjectClassType, provider,
-                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
-                  Collections.<DN>emptySet(),
-                  Collections.<SearchFilter>emptySet(),
-                  VirtualAttributeCfgDefn.ConflictBehavior.
-                       VIRTUAL_OVERRIDES_REAL);
-
-    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>(1);
-    values.add(AttributeValues.create(structuralObjectClassType, "inetorgperson"));
-
-    assertFalse(provider.hasAnyValue(entry, rule, values));
-  }
-
-
-
-  /**
-   * Tests the {@code hasAnyValue} method with a set of values containing the
-   * correct value as well as multiple incorrect values.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testHasAnyValueIncludesCorrect()
-         throws Exception
-  {
-    StructuralObjectClassVirtualAttributeProvider provider =
-         new StructuralObjectClassVirtualAttributeProvider();
-
-    Entry entry = TestCaseUtils.makeEntry(
-      "dn: o=test",
-      "objectClass: top",
-      "objectClass: organization",
-      "o: test");
-    entry.processVirtualAttributes();
-
-    VirtualAttributeRule rule =
-         new VirtualAttributeRule(structuralObjectClassType, provider,
-                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
-                  Collections.<DN>emptySet(),
-                  Collections.<SearchFilter>emptySet(),
-                  VirtualAttributeCfgDefn.ConflictBehavior.
-                       VIRTUAL_OVERRIDES_REAL);
-
-    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>(3);
-    values.add(AttributeValues.create(structuralObjectClassType, "organization"));
-    values.add(AttributeValues.create(structuralObjectClassType, "inetorgperson"));
-    values.add(AttributeValues.create(structuralObjectClassType,
-                                  "top"));
-
-    assertTrue(provider.hasAnyValue(entry, rule, values));
-  }
-
-
-
-  /**
-   * Tests the {@code hasAnyValue} method with a set of multiple values, none of
-   * which are correct.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test()
-  public void testHasAnyValueMissingCorrect()
-         throws Exception
-  {
-    StructuralObjectClassVirtualAttributeProvider provider =
-         new StructuralObjectClassVirtualAttributeProvider();
-
-    Entry entry = TestCaseUtils.makeEntry(
-      "dn: o=test",
-      "objectClass: top",
-      "objectClass: organization",
-      "o: test");
-    entry.processVirtualAttributes();
-
-    VirtualAttributeRule rule =
-         new VirtualAttributeRule(structuralObjectClassType, provider,
-                  Collections.<DN>emptySet(), SearchScope.WHOLE_SUBTREE,
-                  Collections.<DN>emptySet(),
-                  Collections.<SearchFilter>emptySet(),
-                  VirtualAttributeCfgDefn.ConflictBehavior.
-                       VIRTUAL_OVERRIDES_REAL);
-
-    LinkedHashSet<AttributeValue> values = new LinkedHashSet<AttributeValue>(3);
-    values.add(AttributeValues.create(structuralObjectClassType, "inetorgperson"));
-    values.add(AttributeValues.create(structuralObjectClassType,
-                                  "top"));
-    values.add(AttributeValues.create(structuralObjectClassType,
-                                  "domain"));
-
-    assertFalse(provider.hasAnyValue(entry, rule, values));
+    assertFalse(provider.hasValue(entry, rule, ByteString.valueOf("inetorgperson")));
   }
 }
-

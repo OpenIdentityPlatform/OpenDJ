@@ -26,24 +26,19 @@
  */
 package org.opends.server.tools.makeldif;
 
-
-
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 
+import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.util.LDIFException;
 
-import static org.opends.server.util.LDIFWriter.appendLDIFSeparatorAndValue;
-import static org.opends.server.util.LDIFWriter.writeLDIFLine;
+import static org.opends.server.util.LDIFWriter.*;
 import static org.opends.server.util.StaticUtils.*;
-
-
 
 /**
  * This class defines an entry that is generated using a MakeLDIF branch or
@@ -167,14 +162,12 @@ public class TemplateEntry
           return null;
         }
 
-        AttributeValue value =
-            AttributeValues.create(t, v.getValue().toString());
-        rdn = new RDN(t, value);
+        rdn = new RDN(t, ByteString.valueOf(v.getValue().toString()));
       }
       else
       {
         String[]         names  = new String[rdnAttrs.length];
-        AttributeValue[] values = new AttributeValue[rdnAttrs.length];
+        ByteString[] values = new ByteString[rdnAttrs.length];
         for (int i=0; i < rdnAttrs.length; i++)
         {
           AttributeType t = rdnAttrs[i];
@@ -185,7 +178,7 @@ public class TemplateEntry
           }
 
           names[i]  = t.getPrimaryName();
-          values[i] = AttributeValues.create(t, v.getValue().toString());
+          values[i] = ByteString.valueOf(v.getValue().toString());
         }
 
         rdn = new RDN(rdnAttrs, names, values);
@@ -228,14 +221,11 @@ public class TemplateEntry
   public TemplateValue getValue(AttributeType attributeType)
   {
     ArrayList<TemplateValue> valueList = attributes.get(attributeType);
-    if ((valueList == null) || valueList.isEmpty())
-    {
-      return null;
-    }
-    else
+    if (valueList != null && !valueList.isEmpty())
     {
       return valueList.get(0);
     }
+    return null;
   }
 
 
@@ -251,8 +241,7 @@ public class TemplateEntry
    */
   public List<TemplateValue> getValues(AttributeType attributeType)
   {
-    ArrayList<TemplateValue> valueList = attributes.get(attributeType);
-    return valueList;
+    return attributes.get(attributeType);
   }
 
 
@@ -269,13 +258,9 @@ public class TemplateEntry
     if (valueList == null)
     {
       valueList = new ArrayList<TemplateValue>();
-      valueList.add(value);
       attributes.put(value.getAttributeType(), valueList);
     }
-    else
-    {
-      valueList.add(value);
-    }
+    valueList.add(value);
   }
 
 
@@ -327,7 +312,7 @@ public class TemplateEntry
         AttributeBuilder builder = new AttributeBuilder(t, t.getNameOrOID());
         for (TemplateValue v : valueList)
         {
-          builder.add(AttributeValues.create(t, v.getValue().toString()));
+          builder.add(v.getValue().toString());
         }
 
         ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
@@ -341,8 +326,7 @@ public class TemplateEntry
         AttributeBuilder base64Builder = null;
         for (TemplateValue v : valueList)
         {
-          AttributeValue value =
-            AttributeValues.create(t, v.getValue().toString());
+          ByteString value = ByteString.valueOf(v.getValue().toString());
           builder.add(value);
           if (v.getTemplateLine().isURL())
           {
@@ -456,7 +440,7 @@ public class TemplateEntry
             List<Attribute> urlAttrList = urlAttributes.get(attrType);
             List<Attribute> base64AttrList = base64Attributes.get(attrType);
 
-            for (AttributeValue v : a)
+            for (ByteString v : a)
             {
               StringBuilder attrLine = new StringBuilder();
               attrLine.append(attrName);
@@ -465,7 +449,7 @@ public class TemplateEntry
               {
                 for (Attribute urlAttr : urlAttrList)
                 {
-                  for (AttributeValue urlValue : urlAttr)
+                  for (ByteString urlValue : urlAttr)
                   {
                     if (urlValue.equals(v))
                     {
@@ -484,7 +468,7 @@ public class TemplateEntry
               {
                 for (Attribute base64Attr : base64AttrList)
                 {
-                  for (AttributeValue base64Value : base64Attr)
+                  for (ByteString base64Value : base64Attr)
                   {
                     if (base64Value.equals(v))
                     {
@@ -499,7 +483,7 @@ public class TemplateEntry
                 }
               }
               appendLDIFSeparatorAndValue(attrLine,
-                                          v.getValue(),
+                                          v,
                                           isURLValue,
                                           isBase64Value);
               writeLDIFLine(attrLine, writer, wrapLines, wrapColumn);
@@ -548,14 +532,12 @@ public class TemplateEntry
                 attrName.append(o);
               }
 
-              for (AttributeValue v : a)
+              for (ByteString v : a)
               {
                 StringBuilder attrLine = new StringBuilder();
                 attrLine.append(attrName);
-                appendLDIFSeparatorAndValue(attrLine,
-                                            v.getValue());
-                writeLDIFLine(attrLine, writer, wrapLines,
-                              wrapColumn);
+                appendLDIFSeparatorAndValue(attrLine, v);
+                writeLDIFLine(attrLine, writer, wrapLines, wrapColumn);
               }
             }
           }

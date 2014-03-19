@@ -35,9 +35,10 @@ import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.opends.server.api.AttributeSyntax;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.schema.*;
 import org.opends.server.types.*;
 import org.opends.server.util.LDIFReader;
@@ -710,13 +711,12 @@ public class SchemaConfigManager
     {
       for (Attribute a : ldapSyntaxList)
       {
-        for (AttributeValue v : a)
+        for (ByteString v : a)
         {
           LDAPSyntaxDescription syntaxDescription;
           try
           {
-            syntaxDescription = LDAPSyntaxDescriptionSyntax.decodeLDAPSyntax(
-                    v.getValue(),schema,false);
+            syntaxDescription = LDAPSyntaxDescriptionSyntax.decodeLDAPSyntax(v, schema, false);
             setExtraProperty(syntaxDescription, SCHEMA_PROPERTY_FILENAME, null);
             setSchemaFile(syntaxDescription, schemaFile);
           }
@@ -735,8 +735,7 @@ public class SchemaConfigManager
             logger.traceException(e);
 
             LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_LDAP_SYNTAX.get(
-                    schemaFile,
-                    v.getValue() + ":  " + getExceptionMessage(e));
+                    schemaFile, v + ":  " + getExceptionMessage(e));
             reportError(failOnError, e, message);
             continue;
           }
@@ -779,14 +778,13 @@ public class SchemaConfigManager
     {
       for (Attribute a : attrList)
       {
-        for (AttributeValue v : a)
+        for (ByteString v : a)
         {
           // Parse the attribute type.
           AttributeType attrType;
           try
           {
-            attrType = AttributeTypeSyntax.decodeAttributeType(v.getValue(),
-                                                          schema, false);
+            attrType = AttributeTypeSyntax.decodeAttributeType(v, schema, false);
             setExtraProperty(attrType, SCHEMA_PROPERTY_FILENAME, null);
             setSchemaFile(attrType, schemaFile);
           }
@@ -804,7 +802,7 @@ public class SchemaConfigManager
             logger.traceException(e);
 
             LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_ATTR_TYPE.get(
-                    schemaFile, v.getValue() + ":  " + getExceptionMessage(e));
+                    schemaFile, v + ":  " + getExceptionMessage(e));
             reportError(failOnError, e, message);
             continue;
           }
@@ -846,14 +844,13 @@ public class SchemaConfigManager
     {
       for (Attribute a : ocList)
       {
-        for (AttributeValue v : a)
+        for (ByteString v : a)
         {
           // Parse the objectclass.
           ObjectClass oc;
           try
           {
-            oc =
-              ObjectClassSyntax.decodeObjectClass(v.getValue(), schema, false);
+            oc = ObjectClassSyntax.decodeObjectClass(v, schema, false);
             setExtraProperty(oc, SCHEMA_PROPERTY_FILENAME, null);
             setSchemaFile(oc, schemaFile);
           }
@@ -872,8 +869,7 @@ public class SchemaConfigManager
             logger.traceException(e);
 
             LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_OC.get(
-                    schemaFile,
-                    v.getValue() + ":  " + getExceptionMessage(e));
+                    schemaFile, v + ":  " + getExceptionMessage(e));
             reportError(failOnError, e, message);
             continue;
           }
@@ -915,13 +911,13 @@ public class SchemaConfigManager
     {
       for (Attribute a : nfList)
       {
-        for (AttributeValue v : a)
+        for (ByteString v : a)
         {
           // Parse the name form.
           NameForm nf;
           try
           {
-            nf = NameFormSyntax.decodeNameForm(v.getValue(), schema, false);
+            nf = NameFormSyntax.decodeNameForm(v, schema, false);
             nf.getExtraProperties().remove(SCHEMA_PROPERTY_FILENAME);
             setSchemaFile(nf, schemaFile);
           }
@@ -939,7 +935,7 @@ public class SchemaConfigManager
             logger.traceException(e);
 
             LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_NAME_FORM.get(
-                    schemaFile,  v.getValue() + ":  " + getExceptionMessage(e));
+                    schemaFile,  v + ":  " + getExceptionMessage(e));
             reportError(failOnError, e, message);
             continue;
           }
@@ -981,14 +977,13 @@ public class SchemaConfigManager
     {
       for (Attribute a : dcrList)
       {
-        for (AttributeValue v : a)
+        for (ByteString v : a)
         {
           // Parse the DIT content rule.
           DITContentRule dcr;
           try
           {
-            dcr = DITContentRuleSyntax.decodeDITContentRule(
-                v.getValue(), schema, false);
+            dcr = DITContentRuleSyntax.decodeDITContentRule(v, schema, false);
             dcr.getExtraProperties().remove(SCHEMA_PROPERTY_FILENAME);
             setSchemaFile(dcr, schemaFile);
           }
@@ -1006,7 +1001,7 @@ public class SchemaConfigManager
             logger.traceException(e);
 
             LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_DCR.get(
-                    schemaFile,v.getValue() + ":  " + getExceptionMessage(e));
+                    schemaFile, v + ":  " + getExceptionMessage(e));
             reportError(failOnError, e, message);
             continue;
           }
@@ -1058,14 +1053,13 @@ public class SchemaConfigManager
     {
       for (Attribute a : dsrList)
       {
-        for (AttributeValue v : a)
+        for (ByteString v : a)
         {
           // Parse the DIT content rule.
           DITStructureRule dsr;
           try
           {
-            dsr = DITStructureRuleSyntax.decodeDITStructureRule(
-                v.getValue(), schema, false);
+            dsr = DITStructureRuleSyntax.decodeDITStructureRule(v, schema, false);
             dsr.getExtraProperties().remove(SCHEMA_PROPERTY_FILENAME);
             setSchemaFile(dsr, schemaFile);
           }
@@ -1083,7 +1077,7 @@ public class SchemaConfigManager
             logger.traceException(e);
 
             LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_DSR.get(
-                    schemaFile, v.getValue() + ":  " + getExceptionMessage(e));
+                    schemaFile, v + ":  " + getExceptionMessage(e));
             reportError(failOnError, e, message);
             continue;
           }
@@ -1125,14 +1119,13 @@ public class SchemaConfigManager
     {
       for (Attribute a : mruList)
       {
-        for (AttributeValue v : a)
+        for (ByteString v : a)
         {
           // Parse the matching rule use definition.
           MatchingRuleUse mru;
           try
           {
-            mru = MatchingRuleUseSyntax.decodeMatchingRuleUse(
-                            v.getValue(), schema, false);
+            mru = MatchingRuleUseSyntax.decodeMatchingRuleUse(v, schema, false);
             mru.getExtraProperties().remove(SCHEMA_PROPERTY_FILENAME);
             setSchemaFile(mru, schemaFile);
           }
@@ -1150,8 +1143,7 @@ public class SchemaConfigManager
             logger.traceException(e);
 
             LocalizableMessage message = WARN_CONFIG_SCHEMA_CANNOT_PARSE_MRU.get(
-                    schemaFile,
-                    v.getValue() + ":  " + getExceptionMessage(e));
+                    schemaFile, v + ":  " + getExceptionMessage(e));
             reportError(failOnError, e, message);
             continue;
           }
