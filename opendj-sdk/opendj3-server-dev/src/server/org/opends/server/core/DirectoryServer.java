@@ -119,7 +119,6 @@ import org.opends.server.api.InvokableComponent;
 import org.opends.server.api.KeyManagerProvider;
 import org.opends.server.api.MatchingRuleFactory;
 import org.opends.server.api.MonitorProvider;
-import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.PasswordGenerator;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.api.PasswordValidator;
@@ -3173,9 +3172,9 @@ public final class DirectoryServer
    * @return  The requested ordering matching rule, or <CODE>null</CODE> if no
    *          such matching rule has been defined in the server.
    */
-  public static OrderingMatchingRule getOrderingMatchingRule(String lowerName)
+  public static MatchingRule getOrderingMatchingRule(String lowerName)
   {
-    return (OrderingMatchingRule) directoryServer.schema.getMatchingRule(lowerName);
+    return (MatchingRule) directoryServer.schema.getMatchingRule(lowerName);
   }
 
   /**
@@ -3192,7 +3191,7 @@ public final class DirectoryServer
    *                              <CODE>false</CODE>
    */
   public static void registerOrderingMatchingRule(
-      OrderingMatchingRule matchingRule, boolean overwriteExisting)
+      MatchingRule matchingRule, boolean overwriteExisting)
       throws DirectoryException
   {
     directoryServer.schema.registerMatchingRule(matchingRule, overwriteExisting);
@@ -3204,7 +3203,7 @@ public final class DirectoryServer
    *
    * @param  matchingRule  The matching rule to deregister with the server.
    */
-  public static void deregisterOrderingMatchingRule(OrderingMatchingRule
+  public static void deregisterOrderingMatchingRule(MatchingRule
                                                     matchingRule)
   {
     directoryServer.schema.deregisterMatchingRule(matchingRule);

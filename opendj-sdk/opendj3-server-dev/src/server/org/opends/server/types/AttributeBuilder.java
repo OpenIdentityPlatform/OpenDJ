@@ -50,7 +50,6 @@ import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.util.Reject;
 import org.forgerock.util.Utils;
 import org.opends.server.api.MatchingRule;
-import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.core.DirectoryServer;
 
@@ -238,24 +237,20 @@ public final class AttributeBuilder
     @Override
     public final ConditionResult greaterThanOrEqualTo(ByteString value)
     {
-      OrderingMatchingRule matchingRule = attributeType
-          .getOrderingMatchingRule();
+      MatchingRule matchingRule = attributeType.getOrderingMatchingRule();
       if (matchingRule == null)
       {
         return ConditionResult.UNDEFINED;
       }
 
-      ByteString normalizedValue;
+      Assertion assertion;
       try
       {
-        normalizedValue = matchingRule.normalizeAttributeValue(value);
+        assertion = matchingRule.getGreaterOrEqualAssertion(value);
       }
-      catch (Exception e)
+      catch (DecodeException e)
       {
         logger.traceException(e);
-
-        // We couldn't normalize the provided value. We should return
-        // "undefined".
         return ConditionResult.UNDEFINED;
       }
 
@@ -264,8 +259,7 @@ public final class AttributeBuilder
       {
         try
         {
-          ByteString nv = matchingRule.normalizeAttributeValue(v);
-          if (matchingRule.compareValues(nv, normalizedValue) >= 0)
+          if (assertion.matches(matchingRule.normalizeAttributeValue(v)).toBoolean())
           {
             return ConditionResult.TRUE;
           }
@@ -273,7 +267,6 @@ public final class AttributeBuilder
         catch (Exception e)
         {
           logger.traceException(e);
-
           // We couldn't normalize one of the attribute values. If we
           // can't find a definite match, then we should return
           // "undefined".
@@ -314,24 +307,20 @@ public final class AttributeBuilder
     @Override
     public final ConditionResult lessThanOrEqualTo(ByteString value)
     {
-      OrderingMatchingRule matchingRule = attributeType
-          .getOrderingMatchingRule();
+      MatchingRule matchingRule = attributeType.getOrderingMatchingRule();
       if (matchingRule == null)
       {
         return ConditionResult.UNDEFINED;
       }
 
-      ByteString normalizedValue;
+      Assertion assertion;
       try
       {
-        normalizedValue = matchingRule.normalizeAttributeValue(value);
+        assertion = matchingRule.getLessOrEqualAssertion(value);
       }
-      catch (Exception e)
+      catch (DecodeException e)
       {
         logger.traceException(e);
-
-        // We couldn't normalize the provided value. We should return
-        // "undefined".
         return ConditionResult.UNDEFINED;
       }
 
@@ -340,8 +329,7 @@ public final class AttributeBuilder
       {
         try
         {
-          ByteString nv = matchingRule.normalizeAttributeValue(v);
-          if (matchingRule.compareValues(nv, normalizedValue) <= 0)
+          if (assertion.matches(matchingRule.normalizeAttributeValue(v)).toBoolean())
           {
             return ConditionResult.TRUE;
           }
@@ -351,8 +339,7 @@ public final class AttributeBuilder
           logger.traceException(e);
 
           // We couldn't normalize one of the attribute values. If we
-          // can't find a definite match, then we should return
-          // "undefined".
+          // can't find a definite match, then we should return "undefined".
           result = ConditionResult.UNDEFINED;
         }
       }

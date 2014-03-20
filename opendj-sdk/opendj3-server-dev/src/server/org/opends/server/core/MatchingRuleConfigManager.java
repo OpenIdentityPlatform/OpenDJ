@@ -44,7 +44,6 @@ import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.admin.std.meta.MatchingRuleCfgDefn;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.api.MatchingRuleFactory;
-import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.AttributeType;
@@ -287,7 +286,7 @@ public class MatchingRuleConfigManager
             continue;
           }
 
-          OrderingMatchingRule omr = at.getOrderingMatchingRule();
+          MatchingRule omr = at.getOrderingMatchingRule();
           if ((omr != null) && oid.equals(omr.getOID()))
           {
             LocalizableMessage message =
@@ -424,7 +423,7 @@ public class MatchingRuleConfigManager
               continue;
             }
 
-            OrderingMatchingRule omr = at.getOrderingMatchingRule();
+            MatchingRule omr = at.getOrderingMatchingRule();
             if ((omr != null) && oid.equals(omr.getOID()))
             {
               LocalizableMessage message =

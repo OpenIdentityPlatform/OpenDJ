@@ -27,6 +27,7 @@
 package org.opends.server.api;
 
 import java.util.Collection;
+import java.util.Comparator;
 
 import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteSequence;
@@ -110,13 +111,41 @@ public interface MatchingRule
   /**
    * Whole class to be replaced by the equivalent SDK class.
    *
-   * @param value
+   * @param assertionValue
    *          the value
    * @return SDK syntax
    * @throws DecodeException
    *           if problem
    */
-  Assertion getAssertion(final ByteSequence value) throws DecodeException;
+  Assertion getAssertion(final ByteSequence assertionValue) throws DecodeException;
+
+  /**
+   * Returns the normalized form of the provided assertion value, which is
+   * best suited for efficiently performing greater than or equal ordering
+   * matching operations on that value. The assertion value is guaranteed to
+   * be valid against this matching rule's assertion syntax.
+   *
+   * @param assertionValue
+   *            The syntax checked assertion value to be normalized.
+   * @return The normalized version of the provided assertion value.
+   * @throws DecodeException
+   *             if the syntax of the value is not valid.
+   */
+  public Assertion getGreaterOrEqualAssertion(final ByteSequence assertionValue) throws DecodeException;
+
+  /**
+   * Returns the normalized form of the provided assertion value, which is
+   * best suited for efficiently performing greater than or equal ordering
+   * matching operations on that value. The assertion value is guaranteed to
+   * be valid against this matching rule's assertion syntax.
+   *
+   * @param assertionValue
+   *            The syntax checked assertion value to be normalized.
+   * @return The normalized version of the provided assertion value.
+   * @throws DecodeException
+   *             if the syntax of the value is not valid.
+   */
+  public Assertion getLessOrEqualAssertion(final ByteSequence assertionValue) throws DecodeException;
 
   /**
    * Indicates whether this matching rule is declared "OBSOLETE". The
@@ -155,4 +184,13 @@ public interface MatchingRule
    *          The buffer to which the information should be appended.
    */
   void toString(StringBuilder buffer);
+
+  /**
+   * Get a comparator that can be used to compare the attribute values
+   * normalized by this matching rule.
+   *
+   * @return A comparator that can be used to compare the attribute values
+   *         normalized by this matching rule.
+   */
+  Comparator<ByteSequence> comparator();
 }

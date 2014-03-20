@@ -41,7 +41,6 @@ import org.opends.server.admin.std.server.*;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.api.AttributeSyntax;
-import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
@@ -77,7 +76,7 @@ public class AttributeTypeSyntax
   private MatchingRule defaultEqualityMatchingRule;
 
   // The default ordering matching rule for this syntax.
-  private OrderingMatchingRule defaultOrderingMatchingRule;
+  private MatchingRule defaultOrderingMatchingRule;
 
   // The default substring matching rule for this syntax.
   private SubstringMatchingRule defaultSubstringMatchingRule;
@@ -198,7 +197,7 @@ public class AttributeTypeSyntax
    * {@inheritDoc}
    */
   @Override
-  public OrderingMatchingRule getOrderingMatchingRule()
+  public MatchingRule getOrderingMatchingRule()
   {
     return defaultOrderingMatchingRule;
   }
@@ -442,7 +441,7 @@ public class AttributeTypeSyntax
     AttributeSyntax<?> syntax = DirectoryServer.getDefaultAttributeSyntax();
     MatchingRule approximateMatchingRule = null;
     MatchingRule equalityMatchingRule = null;
-    OrderingMatchingRule orderingMatchingRule = null;
+    MatchingRule orderingMatchingRule = null;
     SubstringMatchingRule substringMatchingRule = null;
     AttributeUsage attributeUsage = AttributeUsage.USER_APPLICATIONS;
     boolean isCollective = false;
@@ -675,8 +674,8 @@ public class AttributeTypeSyntax
         // for this attribute type.
         StringBuilder woidBuffer = new StringBuilder();
         pos = readWOID(lowerStr, woidBuffer, pos);
-        OrderingMatchingRule omr =
-             (OrderingMatchingRule) schema.getMatchingRule(woidBuffer.toString());
+        MatchingRule omr =
+             (MatchingRule) schema.getMatchingRule(woidBuffer.toString());
         if (omr == null)
         {
           // This is bad because we have no idea what the ordering matching

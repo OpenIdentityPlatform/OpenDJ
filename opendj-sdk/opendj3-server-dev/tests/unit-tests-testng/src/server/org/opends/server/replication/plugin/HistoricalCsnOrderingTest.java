@@ -35,8 +35,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.assertj.core.api.Assertions;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ConditionResult;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn.AssuredType;
 import org.opends.server.core.DirectoryServer;
@@ -92,7 +94,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
   public void basicRuleTest() throws Exception
   {
     // Creates a rule
-    HistoricalCsnOrderingMatchingRule r =
+    HistoricalCsnOrderingMatchingRule rule =
       new HistoricalCsnOrderingMatchingRule();
 
     CSN del1 = new CSN(1,  0,  1);
@@ -101,9 +103,18 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
     ByteString v1 = ByteString.valueOf("a" + ":" + del1);
     ByteString v2 = ByteString.valueOf("a" + ":" + del2);
 
-    assertEquals(r.compareValues(v1, v1), 0);
-    assertEquals(r.compareValues(v1, v2), -1);
-    assertEquals(r.compareValues(v2, v1), 1);
+    Assertion assert1 = rule.getAssertion(v2);
+    assertEquals(assert1.matches(rule.normalizeAttributeValue(v1)), ConditionResult.TRUE);
+    assertEquals(assert1.matches(rule.normalizeAttributeValue(v2)), ConditionResult.FALSE);
+
+    Assertion assert2 = rule.getLessOrEqualAssertion(v2);
+    assertEquals(assert2.matches(rule.normalizeAttributeValue(v1)), ConditionResult.TRUE);
+    assertEquals(assert2.matches(rule.normalizeAttributeValue(v2)), ConditionResult.TRUE);
+
+    Assertion assert3 = rule.getGreaterOrEqualAssertion(v2);
+    assertEquals(assert3.matches(rule.normalizeAttributeValue(v1)), ConditionResult.FALSE);
+    assertEquals(assert3.matches(rule.normalizeAttributeValue(v2)), ConditionResult.TRUE);
+
   }
 
   /**

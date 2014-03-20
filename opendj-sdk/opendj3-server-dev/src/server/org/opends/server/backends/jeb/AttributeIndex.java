@@ -975,7 +975,7 @@ public class AttributeIndex
     try
     {
       // Use the ordering matching rule to normalize the value.
-      OrderingMatchingRule orderingRule =
+      MatchingRule orderingRule =
            filter.getAttributeType().getOrderingMatchingRule();
       // FIXME JNR this looks wrong, it should use normalizeAssertionValue()
       byte[] normalizedValue = orderingRule.normalizeAttributeValue(
@@ -1243,7 +1243,7 @@ public class AttributeIndex
     try
     {
       // Use the ordering matching rule to normalize the values.
-      OrderingMatchingRule orderingRule =
+      MatchingRule orderingRule =
            getAttributeType().getOrderingMatchingRule();
 
       // Set the lower and upper bounds for a range search.

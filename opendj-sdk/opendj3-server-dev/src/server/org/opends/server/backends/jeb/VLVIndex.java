@@ -43,7 +43,6 @@ import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.LocalDBVLVIndexCfgDefn.Scope;
 import org.opends.server.admin.std.server.LocalDBVLVIndexCfg;
 import org.opends.server.api.MatchingRule;
-import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.controls.ServerSideSortRequestControl;
 import org.opends.server.controls.VLVRequestControl;
 import org.opends.server.controls.VLVResponseControl;
@@ -162,8 +161,8 @@ public class VLVIndex extends DatabaseContainer
 
     String[] sortAttrs = config.getSortOrder().split(" ");
     SortKey[] sortKeys = new SortKey[sortAttrs.length];
-    OrderingMatchingRule[] orderingRules =
-        new OrderingMatchingRule[sortAttrs.length];
+    MatchingRule[] orderingRules =
+        new MatchingRule[sortAttrs.length];
     boolean[] ascending = new boolean[sortAttrs.length];
     for(int i = 0; i < sortAttrs.length; i++)
     {
@@ -1747,8 +1746,8 @@ public class VLVIndex extends DatabaseContainer
 
     String[] sortAttrs = cfg.getSortOrder().split(" ");
     SortKey[] sortKeys = new SortKey[sortAttrs.length];
-    OrderingMatchingRule[] orderingRules =
-        new OrderingMatchingRule[sortAttrs.length];
+    MatchingRule[] orderingRules =
+        new MatchingRule[sortAttrs.length];
     boolean[] ascending = new boolean[sortAttrs.length];
     for(int i = 0; i < sortAttrs.length; i++)
     {
@@ -1858,8 +1857,8 @@ public class VLVIndex extends DatabaseContainer
     {
       String[] sortAttrs = cfg.getSortOrder().split(" ");
       SortKey[] sortKeys = new SortKey[sortAttrs.length];
-      OrderingMatchingRule[] orderingRules =
-          new OrderingMatchingRule[sortAttrs.length];
+      MatchingRule[] orderingRules =
+          new MatchingRule[sortAttrs.length];
       boolean[] ascending = new boolean[sortAttrs.length];
       for(int i = 0; i < sortAttrs.length; i++)
       {

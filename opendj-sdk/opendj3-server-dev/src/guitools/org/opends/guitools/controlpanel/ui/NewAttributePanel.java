@@ -813,7 +813,7 @@ public class NewAttributePanel extends StatusGenericPanel
     }
   }
 
-  private OrderingMatchingRule getOrderingMatchingRule()
+  private MatchingRule getOrderingMatchingRule()
   {
     if (ordering.getSelectedIndex() == 0)
     {
@@ -821,7 +821,7 @@ public class NewAttributePanel extends StatusGenericPanel
     }
     else
     {
-      return (OrderingMatchingRule)ordering.getSelectedItem();
+      return (MatchingRule)ordering.getSelectedItem();
     }
   }
 

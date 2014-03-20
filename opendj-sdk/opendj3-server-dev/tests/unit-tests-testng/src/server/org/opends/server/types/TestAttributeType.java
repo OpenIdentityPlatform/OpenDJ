@@ -35,7 +35,7 @@ import org.forgerock.opendj.ldap.schema.AttributeUsage;
 import org.forgerock.util.Utils;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.api.AttributeSyntax;
-import org.opends.server.api.OrderingMatchingRule;
+import org.opends.server.api.MatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.testng.Assert;
@@ -66,7 +66,7 @@ public final class TestAttributeType extends TestCommonSchemaElements {
     private MatchingRule equalityMatchingRule;
 
     // The ordering matching rule for this attribute type.
-    private OrderingMatchingRule orderingMatchingRule;
+    private MatchingRule orderingMatchingRule;
 
     // The substring matching rule for this attribute type.
     private SubstringMatchingRule substringMatchingRule;
@@ -360,7 +360,7 @@ public final class TestAttributeType extends TestCommonSchemaElements {
      *          The orderingMatchingRule.
      */
     public void setOrderingMatchingRule(
-        OrderingMatchingRule orderingMatchingRule) {
+        MatchingRule orderingMatchingRule) {
       this.orderingMatchingRule = orderingMatchingRule;
     }
 

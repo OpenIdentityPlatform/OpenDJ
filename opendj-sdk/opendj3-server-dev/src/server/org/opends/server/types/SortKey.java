@@ -28,7 +28,7 @@ package org.opends.server.types;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.api.OrderingMatchingRule;
+import org.opends.server.api.MatchingRule;
 
 /**
  * This class defines a data structure that may be used as a sort key.
@@ -56,7 +56,7 @@ public final class SortKey
   private boolean ascending;
 
   // The ordering matching rule to use with this sort key.
-  private OrderingMatchingRule orderingRule;
+  private MatchingRule orderingRule;
 
 
 
@@ -86,8 +86,7 @@ public final class SortKey
    * @param  orderingRule   The ordering matching rule to use with
    *                        this sort key.
    */
-  public SortKey(AttributeType attributeType, boolean ascending,
-                 OrderingMatchingRule orderingRule)
+  public SortKey(AttributeType attributeType, boolean ascending, MatchingRule orderingRule)
   {
     this.attributeType = attributeType;
     this.ascending     = ascending;
@@ -128,7 +127,7 @@ public final class SortKey
    *
    * @return  The ordering matching rule to use with this sort key.
    */
-  public OrderingMatchingRule getOrderingRule()
+  public MatchingRule getOrderingRule()
   {
     return orderingRule;
   }
@@ -173,7 +172,7 @@ public final class SortKey
     {
       return compareValues(orderingRule, value1, value2);
     }
-    final OrderingMatchingRule rule = attributeType.getOrderingMatchingRule();
+    final MatchingRule rule = attributeType.getOrderingMatchingRule();
     if (rule != null)
     {
       return compareValues(rule, value1, value2);
@@ -181,7 +180,7 @@ public final class SortKey
     return 0;
   }
 
-  private int compareValues(OrderingMatchingRule rule, ByteString value1,
+  private int compareValues(MatchingRule rule, ByteString value1,
       ByteString value2)
   {
     try
@@ -190,11 +189,11 @@ public final class SortKey
       final ByteString val2 = rule.normalizeAttributeValue(value2);
       if (ascending)
       {
-        return rule.compareValues(val1, val2);
+        return rule.comparator().compare(val1, val2);
       }
       else
       {
-        return rule.compareValues(val2, val1);
+        return rule.comparator().compare(val2, val1);
       }
     }
     catch (Exception e)

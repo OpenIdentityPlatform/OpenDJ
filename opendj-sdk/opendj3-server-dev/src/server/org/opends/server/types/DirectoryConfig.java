@@ -39,7 +39,6 @@ import org.opends.server.api.ChangeNotificationListener;
 import org.opends.server.api.ConfigHandler;
 import org.opends.server.api.ExtendedOperationHandler;
 import org.opends.server.api.InvokableComponent;
-import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SASLMechanismHandler;
 import org.opends.server.api.ServerShutdownListener;
 import org.opends.server.api.SubstringMatchingRule;
@@ -261,7 +260,7 @@ public final class DirectoryConfig
    *          <CODE>null</CODE> if no such matching rule has been
    *          defined in the server.
    */
-  public static OrderingMatchingRule
+  public static MatchingRule
        getOrderingMatchingRule(String lowerName)
   {
     return DirectoryServer.getOrderingMatchingRule(lowerName);

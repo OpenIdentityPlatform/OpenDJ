@@ -29,11 +29,11 @@ package org.opends.server.backends.jeb;
 import java.io.Serializable;
 import java.util.Comparator;
 
+import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.api.MatchingRule;
-import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.DirectoryException;
 
@@ -54,7 +54,7 @@ public class VLVKeyComparator implements Comparator<byte[]>, Serializable
    */
   static final long serialVersionUID = 1585167927344130604L;
 
-  private OrderingMatchingRule[] orderingRules;
+  private MatchingRule[] orderingRules;
 
   private boolean[] ascending;
 
@@ -66,7 +66,7 @@ public class VLVKeyComparator implements Comparator<byte[]>, Serializable
    * @param ascending     The array of booleans indicating the ordering for
    *                      each value.
    */
-  public VLVKeyComparator(OrderingMatchingRule[] orderingRules,
+  public VLVKeyComparator(MatchingRule[] orderingRules,
                           boolean[] ascending)
   {
     this.orderingRules = orderingRules;
@@ -189,15 +189,10 @@ public class VLVKeyComparator implements Comparator<byte[]>, Serializable
         return -1;
       }
 
-      int result;
-      if(ascending[j])
-      {
-        result = orderingRules[j].compare(b1Bytes, b2Bytes);
-      }
-      else
-      {
-        result = orderingRules[j].compare(b2Bytes, b1Bytes);
-      }
+      final Comparator<ByteSequence> comp = orderingRules[j].comparator();
+      final ByteString val1 = ByteString.valueOf(b1Bytes);
+      final ByteString val2 = ByteString.valueOf(b2Bytes);
+      final int result = ascending[j] ? comp.compare(val1, val2) : comp.compare(val2, val1);
 
       if(result != 0)
       {
@@ -322,15 +317,8 @@ public class VLVKeyComparator implements Comparator<byte[]>, Serializable
         return -1;
       }
 
-      int result;
-      if(ascending[j])
-      {
-        result = orderingRules[j].compareValues(b1Bytes, b2Bytes);
-      }
-      else
-      {
-        result = orderingRules[j].compareValues(b2Bytes, b1Bytes);
-      }
+      final Comparator<ByteSequence> comp = orderingRules[j].comparator();
+      final int result = ascending[j] ? comp.compare(b1Bytes, b2Bytes) : comp.compare(b2Bytes, b1Bytes);
 
       if(result != 0)
       {

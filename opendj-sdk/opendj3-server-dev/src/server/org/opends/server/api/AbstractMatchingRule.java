@@ -27,6 +27,7 @@
 package org.opends.server.api;
 
 import java.util.Collection;
+import java.util.Comparator;
 
 import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteSequence;
@@ -35,6 +36,7 @@ import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.Syntax;
+import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
 
 /**
  * This class provides default implementation of MatchingRule. A
@@ -48,6 +50,24 @@ import org.forgerock.opendj.ldap.schema.Syntax;
     mayInvoke = false)
 public abstract class AbstractMatchingRule implements MatchingRule
 {
+
+  private static final Assertion UNDEFINED_ASSERTION = new Assertion()
+  {
+    @Override
+    public ConditionResult matches(final ByteSequence normalizedAttributeValue)
+    {
+      return ConditionResult.UNDEFINED;
+    }
+
+    @Override
+    public <T> T createIndexQuery(IndexQueryFactory<T> factory)
+        throws DecodeException
+    {
+      // Subclassing this class will always work, albeit inefficiently.
+      // This is better than throwing an exception for no good reason.
+      return factory.createMatchAllQuery();
+    }
+  };
 
   /**
    * {@inheritDoc}
@@ -110,6 +130,24 @@ public abstract class AbstractMatchingRule implements MatchingRule
 
   /** {@inheritDoc} */
   @Override
+  public Assertion getGreaterOrEqualAssertion(ByteSequence value)
+      throws DecodeException
+  {
+    return UNDEFINED_ASSERTION;
+  }
+
+
+
+  /** {@inheritDoc} */
+  @Override
+  public Assertion getLessOrEqualAssertion(ByteSequence value)
+      throws DecodeException
+  {
+    return UNDEFINED_ASSERTION;
+  }
+
+  /** {@inheritDoc} */
+  @Override
   public boolean isObsolete()
   {
     return false;
@@ -138,6 +176,23 @@ public abstract class AbstractMatchingRule implements MatchingRule
   {
     //Default implementation of most rule types.
     return ConditionResult.UNDEFINED;
+  }
+
+  private static final Comparator<ByteSequence> DEFAULT_COMPARATOR =
+      new Comparator<ByteSequence>()
+      {
+        @Override
+        public int compare(final ByteSequence o1, final ByteSequence o2)
+        {
+          return o1.compareTo(o2);
+        }
+      };
+
+  /** {@inheritDoc} */
+  @Override
+  public Comparator<ByteSequence> comparator()
+  {
+    return DEFAULT_COMPARATOR;
   }
 
 
