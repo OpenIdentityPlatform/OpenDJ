@@ -66,8 +66,6 @@ import org.opends.server.core.SearchOperation;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.AttributeValues;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.FilterType;
@@ -185,7 +183,6 @@ public class ConvertersTestCase extends ForgeRockTestCase {
      */
     @Test()
     public final void testToControl() throws DirectoryException {
-
         final PersistentSearchRequestControl control =
                 PersistentSearchRequestControl.newControl(false, true,
                         true, // isCritical, changesOnly, returnECs
@@ -335,7 +332,7 @@ public class ConvertersTestCase extends ForgeRockTestCase {
         assertThat(srvAttribute.getAttributeType().getNameOrOID().toString())
             .isEqualTo("testMultiValuedAttribute");
         assertThat(srvAttribute.size()).isEqualTo(2);
-        Iterator<AttributeValue> iter = srvAttribute.iterator();
+        Iterator<ByteString> iter = srvAttribute.iterator();
         assertThat(iter.next().toString()).isEqualTo("value1");
         assertThat(iter.next().toString()).isEqualTo("value2");
 
@@ -436,7 +433,6 @@ public class ConvertersTestCase extends ForgeRockTestCase {
      */
     @Test(groups = { "needRunningServer" })
     public final void testFromAttribute() throws DirectoryException {
-
         final org.opends.server.types.Attribute srvAttribute = Attributes.create("CN", "JOHN DOE");
         final org.forgerock.opendj.ldap.Attribute sdkAttribute = from(srvAttribute);
 
@@ -450,11 +446,10 @@ public class ConvertersTestCase extends ForgeRockTestCase {
      */
     @Test(groups = { "needRunningServer" })
     public final void testFromAttributeUsingBinary() throws DirectoryException {
-
         byte[] data = { 0x00, 0x01, 0x02, (byte) 0xff };
 
-        AttributeValue value = AttributeValues.create(ByteString.wrap(data), ByteString.wrap(data));
-        Attribute attribute = Attributes.create(DirectoryServer.getAttributeType("cn"), value);
+        ByteString attrValue = ByteString.wrap(data);
+        Attribute attribute = Attributes.create(DirectoryServer.getAttributeType("cn"), attrValue);
         assertThat(from(attribute).firstValue().toByteArray()).isEqualTo(data);
     }
 

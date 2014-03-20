@@ -59,7 +59,6 @@ import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.ldap.LDAPModification;
 import org.opends.server.types.AttributeBuilder;
-import org.opends.server.types.AttributeValue;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.Operation;
 
@@ -86,7 +85,7 @@ public final class Converters {
         if (sdkEntry != null) {
             org.opends.server.types.Entry entry =
                 new org.opends.server.types.Entry(to(sdkEntry.getName()), null, null, null);
-            List<AttributeValue> duplicateValues = new ArrayList<AttributeValue>();
+            List<ByteString> duplicateValues = new ArrayList<ByteString>();
             for (org.opends.server.types.Attribute attribute : toAttributes(sdkEntry.getAllAttributes())) {
                 entry.addAttribute(attribute, duplicateValues);
             }
@@ -110,7 +109,7 @@ public final class Converters {
                 new org.opends.server.types.Entry(to(value.getName()), null, null, null);
             org.opends.server.types.SearchResultEntry searchResultEntry =
                 new org.opends.server.types.SearchResultEntry(entry, to(value.getControls()));
-            List<AttributeValue> duplicateValues = new ArrayList<AttributeValue>();
+            List<ByteString> duplicateValues = new ArrayList<ByteString>();
             for (org.opends.server.types.Attribute attribute : toAttributes(value.getAllAttributes())) {
                 searchResultEntry.addAttribute(attribute, duplicateValues);
             }
@@ -503,8 +502,8 @@ public final class Converters {
     public static org.forgerock.opendj.ldap.Attribute from(
             final org.opends.server.types.Attribute attribute) {
         Attribute sdkAttribute = new LinkedAttribute(attribute.getNameWithOptions());
-        for (AttributeValue value : attribute) {
-            sdkAttribute.add(value.getValue());
+        for (ByteString value : attribute) {
+            sdkAttribute.add(value);
         }
         return sdkAttribute;
     }
