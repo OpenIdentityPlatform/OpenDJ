@@ -34,7 +34,6 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.schema.AttributeUsage;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.MatchingRule;
-import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.core.DirectoryServer;
 
@@ -107,7 +106,7 @@ public final class AttributeType
   private final MatchingRule equalityMatchingRule;
 
   // The ordering matching rule for this attribute type.
-  private final OrderingMatchingRule orderingMatchingRule;
+  private final MatchingRule orderingMatchingRule;
 
   // The definition string used to create this attribute type.
   private final String definition;
@@ -252,7 +251,7 @@ public final class AttributeType
                        AttributeSyntax<?> syntax,
                        MatchingRule approximateMatchingRule,
                        MatchingRule equalityMatchingRule,
-                       OrderingMatchingRule orderingMatchingRule,
+                       MatchingRule orderingMatchingRule,
                        SubstringMatchingRule substringMatchingRule,
                        AttributeUsage attributeUsage,
                        boolean isCollective,
@@ -475,7 +474,7 @@ public final class AttributeType
    * @return  The matching rule that should be used for ordering with
    *          this attribute type.
    */
-  public OrderingMatchingRule getOrderingMatchingRule()
+  public MatchingRule getOrderingMatchingRule()
   {
     return orderingMatchingRule;
   }

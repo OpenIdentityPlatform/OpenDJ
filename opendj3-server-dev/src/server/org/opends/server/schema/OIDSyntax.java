@@ -32,7 +32,6 @@ import org.opends.server.admin.std.server.AttributeSyntaxCfg;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.api.AttributeSyntax;
-import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
@@ -158,7 +157,7 @@ public class OIDSyntax
    *          attributes with this syntax, or <CODE>null</CODE> if ordering
    *          matches will not be allowed for this type by default.
    */
-  public OrderingMatchingRule getOrderingMatchingRule()
+  public MatchingRule getOrderingMatchingRule()
   {
     // There is no ordering matching rule by default.
     return null;

@@ -24,6 +24,9 @@
  */
 package org.opends.server.schema;
 
+
+import java.util.Comparator;
+
 import org.forgerock.opendj.ldap.*;
 import org.opends.server.api.AbstractMatchingRule;
 import org.opends.server.api.NotImplementedAssertion;
@@ -63,10 +66,54 @@ public abstract class AbstractOrderingMatchingRule
       @Override
       public ConditionResult matches(ByteSequence attributeValue)
       {
-        return ConditionResult.valueOf(
-            compareValues(assertionValue, attributeValue) < 0);
+        return ConditionResult.valueOf(compareValues(attributeValue, assertionValue) < 0);
       }
     };
   }
+
+  /** {@inheritDoc} */
+  @Override
+  public Assertion getGreaterOrEqualAssertion(ByteSequence value) throws DecodeException
+  {
+    final ByteString normAssertion = normalizeAssertionValue(value);
+    return new NotImplementedAssertion()
+    {
+      @Override
+      public ConditionResult matches(final ByteSequence normalizedAttributeValue)
+      {
+        return ConditionResult.valueOf(compareValues(normalizedAttributeValue, normAssertion) >= 0);
+      }
+    };
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public Assertion getLessOrEqualAssertion(ByteSequence value) throws DecodeException
+  {
+    final ByteString normAssertion = normalizeAssertionValue(value);
+    return new NotImplementedAssertion()
+    {
+      @Override
+      public ConditionResult matches(final ByteSequence normalizedAttributeValue)
+      {
+        return ConditionResult.valueOf(compareValues(normalizedAttributeValue, normAssertion) <= 0);
+      }
+    };
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public Comparator<ByteSequence> comparator()
+  {
+    return new Comparator<ByteSequence>()
+    {
+      @Override
+      public int compare(ByteSequence o1, ByteSequence o2)
+      {
+        return AbstractOrderingMatchingRule.this.compare(o1.toByteArray(), o2.toByteArray());
+      }
+    };
+  }
+
 
 }

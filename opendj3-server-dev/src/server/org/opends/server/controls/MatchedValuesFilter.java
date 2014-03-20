@@ -38,11 +38,9 @@ import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.util.Reject;
 import org.opends.server.api.MatchingRule;
-import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.ldap.LDAPResultCode;
@@ -160,7 +158,7 @@ public class MatchedValuesFilter
   private MatchingRule matchingRule;
 
   // The ordering matching rule for this matched values filter.
-  private OrderingMatchingRule orderingMatchingRule;
+  private MatchingRule orderingMatchingRule;
 
   // The matching rule ID for this matched values filter.
   private final String matchingRuleID;
@@ -1200,7 +1198,7 @@ public class MatchedValuesFilter
    * @return  The ordering matching rule that should be used for this matched
    *          values filter, or <CODE>null</CODE> if there is none.
    */
-  public OrderingMatchingRule getOrderingMatchingRule()
+  public MatchingRule getOrderingMatchingRule()
   {
     if (orderingMatchingRule == null)
     {
@@ -1332,11 +1330,11 @@ public class MatchedValuesFilter
         {
           try
           {
-            ByteString nv = orderingMatchingRule.normalizeAssertionValue(value);
-            return orderingMatchingRule.compareValues(
-                nv, orderingMatchingRule.normalizeAttributeValue(value)) >= 0;
+            ByteString normValue = orderingMatchingRule.normalizeAttributeValue(value);
+            Assertion assertion = orderingMatchingRule.getGreaterOrEqualAssertion(assertionValue);
+            return assertion.matches(normValue).toBoolean();
           }
-          catch (Exception e)
+          catch (DecodeException e)
           {
             logger.traceException(e);
           }
@@ -1353,11 +1351,11 @@ public class MatchedValuesFilter
         {
           try
           {
-            ByteString nv = orderingMatchingRule.normalizeAssertionValue(value);
-            return orderingMatchingRule.compareValues(
-                nv, orderingMatchingRule.normalizeAttributeValue(value)) <= 0;
+            ByteString normValue = orderingMatchingRule.normalizeAttributeValue(value);
+            Assertion assertion = orderingMatchingRule.getLessOrEqualAssertion(assertionValue);
+            return assertion.matches(normValue).toBoolean();
           }
-          catch (Exception e)
+          catch (DecodeException e)
           {
             logger.traceException(e);
           }
@@ -1378,9 +1376,9 @@ public class MatchedValuesFilter
         {
           try
           {
+            ByteString normValue = approximateMatchingRule.normalizeAttributeValue(value);
             Assertion assertion = approximateMatchingRule.getAssertion(assertionValue);
-            ByteString nv = approximateMatchingRule.normalizeAttributeValue(value);
-            return assertion.matches(nv).toBoolean();
+            return assertion.matches(normValue).toBoolean();
           }
           catch (Exception e)
           {
@@ -1405,9 +1403,9 @@ public class MatchedValuesFilter
 
           try
           {
-            ByteString nv1 = matchingRule.normalizeAttributeValue(value);
+            ByteString normValue = matchingRule.normalizeAttributeValue(value);
             Assertion assertion = matchingRule.getAssertion(assertionValue);
-            return assertion.matches(nv1) == ConditionResult.TRUE;
+            return assertion.matches(normValue).toBoolean();
           }
           catch (Exception e)
           {

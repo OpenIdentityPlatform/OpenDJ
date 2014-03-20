@@ -33,7 +33,7 @@ import java.util.ArrayList;
 import java.util.StringTokenizer;
 import java.io.IOException;
 
-import org.opends.server.api.OrderingMatchingRule;
+import org.opends.server.api.MatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.forgerock.opendj.io.*;
 import org.opends.server.protocols.ldap.LDAPResultCode;
@@ -121,7 +121,7 @@ public class ServerSideSortRequestControl
             new SortOrder(sortKeys.toArray(new SortKey[0])));
           }
 
-          OrderingMatchingRule orderingRule = null;
+          MatchingRule orderingRule = null;
           boolean ascending = true;
           if(reader.hasNextElement() &&
               reader.peekType() == TYPE_ORDERING_RULE_ID)
@@ -455,7 +455,7 @@ public class ServerSideSortRequestControl
         return new SortOrder(sortKeys.toArray(new SortKey[0]));
       }
 
-      OrderingMatchingRule orderingRule = null;
+      MatchingRule orderingRule = null;
       if(decodedKey[1] != null)
       {
         orderingRule =

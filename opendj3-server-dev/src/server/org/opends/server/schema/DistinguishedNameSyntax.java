@@ -35,7 +35,6 @@ import org.forgerock.opendj.ldap.ByteSequence;
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.api.AttributeSyntax;
-import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.DN;
@@ -166,7 +165,7 @@ public class DistinguishedNameSyntax
    *          matches will not be allowed for this type by default.
    */
   @Override
-  public OrderingMatchingRule getOrderingMatchingRule()
+  public MatchingRule getOrderingMatchingRule()
   {
     // There is no ordering matching rule by default.
     return null;

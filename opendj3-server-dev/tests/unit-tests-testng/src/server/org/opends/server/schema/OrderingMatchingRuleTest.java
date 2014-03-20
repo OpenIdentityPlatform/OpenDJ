@@ -26,7 +26,9 @@
  */
 package org.opends.server.schema;
 
+import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.core.DirectoryServer;
@@ -54,26 +56,50 @@ public abstract class OrderingMatchingRuleTest extends SchemaTestCase
    * Test the comparison of valid values.
    */
   @Test(dataProvider= "Orderingmatchingrules")
-  public void OrderingMatchingRules(String value1,String value2, int result)
+  public void testAssertionMatches(String attributeValue, String assertionValue, int expectedResult)
          throws Exception
   {
     // Make sure that the specified class can be instantiated as a task.
     OrderingMatchingRule ruleInstance = getRule();
 
-    // we should call initializeMatchingRule but they all seem empty at the
-    // moment.
+    // we should call initializeMatchingRule but they all seem empty at the moment.
     // ruleInstance.initializeMatchingRule(configEntry);
 
-    ByteString normalizedValue1 =
-      ruleInstance.normalizeAttributeValue(ByteString.valueOf(value1));
-    ByteString normalizedValue2 =
-      ruleInstance.normalizeAttributeValue(ByteString.valueOf(value2));
-    int res = ruleInstance.compareValues(normalizedValue1, normalizedValue2);
+    ByteString normalizedAttrValue = ruleInstance.normalizeAttributeValue(ByteString.valueOf(attributeValue));
+
+    Assertion assert1 = ruleInstance.getAssertion(ByteString.valueOf(assertionValue));
+    ConditionResult result = assert1.matches(normalizedAttrValue);
+    assertEquals(result.toBoolean(), expectedResult < 0);
+
+    Assertion assert2 = ruleInstance.getLessOrEqualAssertion(ByteString.valueOf(assertionValue));
+    ConditionResult result2 = assert2.matches(normalizedAttrValue);
+    assertEquals(result2.toBoolean(), expectedResult <= 0);
+
+    Assertion assert3 = ruleInstance.getGreaterOrEqualAssertion(ByteString.valueOf(assertionValue));
+    ConditionResult result3 = assert3.matches(normalizedAttrValue);
+    assertEquals(result3.toBoolean(), expectedResult >= 0);
+
+  }
+
+  /**
+   * Test the comparison of valid values.
+   */
+  @Test(dataProvider= "Orderingmatchingrules")
+  public void testComparison(String value1, String value2, int result) throws Exception
+  {
+    OrderingMatchingRule rule = getRule();
+
+    // we should call initializeMatchingRule but they all seem empty at the moment.
+    // ruleInstance.initializeMatchingRule(configEntry);
+
+    ByteString normalizedValue1 = rule.normalizeAttributeValue(ByteString.valueOf(value1));
+    ByteString normalizedValue2 = rule.normalizeAttributeValue(ByteString.valueOf(value2));
+    int res = rule.comparator().compare(normalizedValue1, normalizedValue2);
     if (result == 0)
     {
       if (res != 0)
       {
-        fail(ruleInstance + ".compareValues should return 0 for values " +
+        fail(rule + ".compareValues should return 0 for values " +
             value1 + " and " + value2);
       }
     }
@@ -81,7 +107,7 @@ public abstract class OrderingMatchingRuleTest extends SchemaTestCase
     {
       if (res <= 0)
       {
-        fail(ruleInstance + ".compareValues should return a positive integer "
+        fail(rule + ".compareValues should return a positive integer "
             + "for values : " + value1 + " and " + value2);
       }
     }
@@ -89,7 +115,7 @@ public abstract class OrderingMatchingRuleTest extends SchemaTestCase
     {
       if (res >= 0)
       {
-        fail(ruleInstance + ".compareValues should return a negative integer "
+        fail(rule + ".compareValues should return a negative integer "
             + "for values : " + value1 + " and " + value2);
       }
     }
@@ -116,7 +142,7 @@ public abstract class OrderingMatchingRuleTest extends SchemaTestCase
    * Test that invalid values are rejected.
    */
   @Test(dataProvider= "OrderingMatchingRuleInvalidValues")
-  public void OrderingMatchingRulesInvalidValues(String value) throws Exception
+  public void orderingMatchingRulesInvalidValues(String value) throws Exception
   {
     // Make sure that the specified class can be instantiated as a task.
     OrderingMatchingRule ruleInstance = getRule();
@@ -140,7 +166,7 @@ public abstract class OrderingMatchingRuleTest extends SchemaTestCase
    * Test that invalid values are rejected.
    */
   @Test(dataProvider= "OrderingMatchingRuleInvalidValues")
-  public void OrderingMatchingRulesInvalidValuesWarn(String value)
+  public void orderingMatchingRulesInvalidValuesWarn(String value)
          throws Exception
   {
     // Make sure that the specified class can be instantiated as a task.

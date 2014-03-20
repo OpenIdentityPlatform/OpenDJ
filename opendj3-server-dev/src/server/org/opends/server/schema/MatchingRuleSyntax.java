@@ -36,7 +36,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.MatchingRule;
-import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
@@ -70,7 +69,7 @@ public class MatchingRuleSyntax
   private MatchingRule defaultEqualityMatchingRule;
 
   // The default ordering matching rule for this syntax.
-  private OrderingMatchingRule defaultOrderingMatchingRule;
+  private MatchingRule defaultOrderingMatchingRule;
 
   // The default substring matching rule for this syntax.
   private SubstringMatchingRule defaultSubstringMatchingRule;
@@ -185,7 +184,7 @@ public class MatchingRuleSyntax
    *          matches will not be allowed for this type by default.
    */
   @Override
-  public OrderingMatchingRule getOrderingMatchingRule()
+  public MatchingRule getOrderingMatchingRule()
   {
     return defaultOrderingMatchingRule;
   }

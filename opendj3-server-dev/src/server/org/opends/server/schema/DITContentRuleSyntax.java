@@ -39,7 +39,6 @@ import org.forgerock.opendj.ldap.schema.ObjectClassType;
 import org.opends.server.admin.std.server.AttributeSyntaxCfg;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.api.AttributeSyntax;
-import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
@@ -67,7 +66,7 @@ public class DITContentRuleSyntax
   private MatchingRule defaultEqualityMatchingRule;
 
   // The default ordering matching rule for this syntax.
-  private OrderingMatchingRule defaultOrderingMatchingRule;
+  private MatchingRule defaultOrderingMatchingRule;
 
   // The default substring matching rule for this syntax.
   private SubstringMatchingRule defaultSubstringMatchingRule;
@@ -172,7 +171,7 @@ public class DITContentRuleSyntax
    * {@inheritDoc}
    */
   @Override
-  public OrderingMatchingRule getOrderingMatchingRule()
+  public MatchingRule getOrderingMatchingRule()
   {
     return defaultOrderingMatchingRule;
   }

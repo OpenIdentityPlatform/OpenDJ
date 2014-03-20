@@ -35,7 +35,6 @@ import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.api.MatchingRule;
-import org.opends.server.api.OrderingMatchingRule;
 import org.opends.server.core.DirectoryServer;
 
 import static org.opends.messages.CoreMessages.*;
@@ -1169,7 +1168,7 @@ public final class RDN
   }
 
   /**
-   * Compares two attribute values by using the provided OrderingMatchingRule if
+   * Compares two attribute values by using the provided MatchingRule if
    * it is not null, or relying on alphabetical ordering otherwise.
    *
    * @param value1
@@ -1177,21 +1176,20 @@ public final class RDN
    * @param value2
    *          the second attribute value to compare
    * @param type
-   *          the type whose OrderingMatchingRule is to be used for comparison
+   *          the type whose MatchingRule is to be used for comparison
    * @return A negative integer if this value1 should come before the value2, a
    *         positive integer if value1 should come after value2, or zero if
    *         there is no difference with regard to ordering.
    */
   private int compare(ByteString value1, ByteString value2, AttributeType type)
   {
-    final OrderingMatchingRule omr = type.getOrderingMatchingRule();
-    final MatchingRule emr = type.getEqualityMatchingRule();
+    final MatchingRule orderingRule = type.getOrderingMatchingRule();
+    final MatchingRule rule = orderingRule != null ? orderingRule : type.getEqualityMatchingRule();
 
     ByteString val1;
     ByteString val2;
     try
     {
-      final MatchingRule rule = omr != null ? omr : emr;
       val1 = rule.normalizeAttributeValue(value1);
       val2 = rule.normalizeAttributeValue(value2);
     }
@@ -1201,11 +1199,6 @@ public final class RDN
       val1 = value1;
       val2 = value2;
     }
-
-    if (omr != null)
-    {
-      return omr.compareValues(val1, val2);
-    }
-    return val1.compareTo(val2);
+    return rule.comparator().compare(val1, val2);
   }
 }

@@ -349,45 +349,41 @@ public abstract class VirtualAttributeProvider
   }
 
 
-
   /**
-   * Indicates whether this virtual attribute provider will generate
-   * any value for the provided entry that is greater than or equal to
-   * the given value.
+   * Indicates whether this virtual attribute provider will generate any value
+   * for the provided entry that is greater than or equal to the given value.
    *
-   * @param  entry  The entry for which to make the determination.
-   * @param  rule   The virtual attribute rule which defines the
-   *                constraints for the virtual attribute.
-   * @param  value  The value for which to make the determination.
-   *
-   * @return  {@code UNDEFINED} if the associated attribute type does
-   *          not have an ordering matching rule, {@code TRUE} if at
-   *          least one of the generated values will be greater than
-   *          or equal to the specified value, or {@code FALSE} if
-   *          none of the generated values will be greater than or
-   *          equal to the specified value.
+   * @param entry
+   *          The entry for which to make the determination.
+   * @param rule
+   *          The virtual attribute rule which defines the constraints for the
+   *          virtual attribute.
+   * @param assertionValue
+   *          The value for which to make the determination.
+   * @return {@code UNDEFINED} if the associated attribute type does not have an
+   *         ordering matching rule, {@code TRUE} if at least one of the
+   *         generated values will be greater than or equal to the specified
+   *         value, or {@code FALSE} if none of the generated values will be
+   *         greater than or equal to the specified value.
    */
   public ConditionResult greaterThanOrEqualTo(Entry entry,
                               VirtualAttributeRule rule,
-                              ByteString value)
+                              ByteString assertionValue)
   {
-    OrderingMatchingRule matchingRule =
-         rule.getAttributeType().getOrderingMatchingRule();
+    MatchingRule matchingRule = rule.getAttributeType().getOrderingMatchingRule();
     if (matchingRule == null)
     {
       return ConditionResult.UNDEFINED;
     }
 
-    ByteString normalizedValue;
+    Assertion assertion = null;
     try
     {
-      normalizedValue = matchingRule.normalizeAttributeValue(value);
+      assertion = matchingRule.getGreaterOrEqualAssertion(assertionValue);
     }
     catch (Exception e)
     {
       logger.traceException(e);
-
-      // We couldn't normalize the provided value => return "undefined".
       return ConditionResult.UNDEFINED;
     }
 
@@ -396,8 +392,7 @@ public abstract class VirtualAttributeProvider
     {
       try
       {
-        ByteString nv = matchingRule.normalizeAttributeValue(v);
-        if (matchingRule.compareValues(nv, normalizedValue) >= 0)
+        if (assertion.matches(matchingRule.normalizeAttributeValue(v)).toBoolean())
         {
           return ConditionResult.TRUE;
         }
@@ -405,7 +400,6 @@ public abstract class VirtualAttributeProvider
       catch (Exception e)
       {
         logger.traceException(e);
-
         // We couldn't normalize one of the attribute values.
         // We will return "undefined" if we can't find a definite match
         result = ConditionResult.UNDEFINED;
@@ -418,43 +412,40 @@ public abstract class VirtualAttributeProvider
 
 
   /**
-   * Indicates whether this virtual attribute provider will generate
-   * any value for the provided entry that is less than or equal to
-   * the given value.
+   * Indicates whether this virtual attribute provider will generate any value
+   * for the provided entry that is less than or equal to the given value.
    *
-   * @param  entry  The entry for which to make the determination.
-   * @param  rule   The virtual attribute rule which defines the
-   *                constraints for the virtual attribute.
-   * @param  value  The value for which to make the determination.
-   *
-   * @return  {@code UNDEFINED} if the associated attribute type does
-   *          not have an ordering matching rule, {@code TRUE} if at
-   *          least one of the generated values will be less than or
-   *          equal to the specified value, or {@code FALSE} if none
-   *          of the generated values will be greater than or equal to
-   *          the specified value.
+   * @param entry
+   *          The entry for which to make the determination.
+   * @param rule
+   *          The virtual attribute rule which defines the constraints for the
+   *          virtual attribute.
+   * @param assertionValue
+   *          The value for which to make the determination.
+   * @return {@code UNDEFINED} if the associated attribute type does not have an
+   *         ordering matching rule, {@code TRUE} if at least one of the
+   *         generated values will be less than or equal to the specified value,
+   *         or {@code FALSE} if none of the generated values will be greater
+   *         than or equal to the specified value.
    */
   public ConditionResult lessThanOrEqualTo(Entry entry,
                               VirtualAttributeRule rule,
-                              ByteString value)
+                              ByteString assertionValue)
   {
-    OrderingMatchingRule matchingRule =
-         rule.getAttributeType().getOrderingMatchingRule();
+    MatchingRule matchingRule = rule.getAttributeType().getOrderingMatchingRule();
     if (matchingRule == null)
     {
       return ConditionResult.UNDEFINED;
     }
 
-    ByteString normalizedValue;
+    Assertion assertion = null;
     try
     {
-      normalizedValue = matchingRule.normalizeAttributeValue(value);
+      assertion = matchingRule.getLessOrEqualAssertion(assertionValue);
     }
     catch (Exception e)
     {
       logger.traceException(e);
-
-      // We couldn't normalize the provided value => return "undefined".
       return ConditionResult.UNDEFINED;
     }
 
@@ -463,8 +454,7 @@ public abstract class VirtualAttributeProvider
     {
       try
       {
-        ByteString nv = matchingRule.normalizeAttributeValue(v);
-        if (matchingRule.compareValues(nv, normalizedValue) <= 0)
+        if (assertion.matches(matchingRule.normalizeAttributeValue(v)).toBoolean())
         {
           return ConditionResult.TRUE;
         }
@@ -492,7 +482,7 @@ public abstract class VirtualAttributeProvider
    * @param  entry  The entry for which to make the determination.
    * @param  rule   The virtual attribute rule which defines the
    *                constraints for the virtual attribute.
-   * @param  value  The value for which to make the determination.
+   * @param  assertionValue  The value for which to make the determination.
    *
    * @return  {@code UNDEFINED} if the associated attribute type does
    *          not have an approximate matching rule, {@code TRUE} if at
@@ -503,7 +493,7 @@ public abstract class VirtualAttributeProvider
    */
   public ConditionResult approximatelyEqualTo(Entry entry,
                               VirtualAttributeRule rule,
-                              ByteString value)
+                              ByteString assertionValue)
   {
     MatchingRule matchingRule = rule.getAttributeType().getApproximateMatchingRule();
     if (matchingRule == null)
@@ -514,7 +504,7 @@ public abstract class VirtualAttributeProvider
     Assertion assertion = null;
     try
     {
-      assertion = matchingRule.getAssertion(value);
+      assertion = matchingRule.getAssertion(assertionValue);
     }
     catch (Exception e)
     {
@@ -527,7 +517,10 @@ public abstract class VirtualAttributeProvider
     {
       try
       {
-        result = assertion.matches(matchingRule.normalizeAttributeValue(v));
+        if  (assertion.matches(matchingRule.normalizeAttributeValue(v)).toBoolean())
+        {
+          return ConditionResult.TRUE;
+        }
       }
       catch (Exception e)
       {

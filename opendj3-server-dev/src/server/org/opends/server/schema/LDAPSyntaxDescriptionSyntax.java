@@ -71,7 +71,7 @@ public class LDAPSyntaxDescriptionSyntax
   private MatchingRule defaultEqualityMatchingRule;
 
   // The default ordering matching rule for this syntax.
-  private OrderingMatchingRule defaultOrderingMatchingRule;
+  private MatchingRule defaultOrderingMatchingRule;
 
   // The default substring matching rule for this syntax.
   private SubstringMatchingRule defaultSubstringMatchingRule;
@@ -186,7 +186,7 @@ public class LDAPSyntaxDescriptionSyntax
    *          matches will not be allowed for this type by default.
    */
   @Override
-  public OrderingMatchingRule getOrderingMatchingRule()
+  public MatchingRule getOrderingMatchingRule()
   {
     return defaultOrderingMatchingRule;
   }
@@ -1040,7 +1040,7 @@ public class LDAPSyntaxDescriptionSyntax
      *          matches will not be allowed for this type by default.
      */
     @Override
-    public OrderingMatchingRule getOrderingMatchingRule()
+    public MatchingRule getOrderingMatchingRule()
     {
       return subSyntax.getOrderingMatchingRule();
     }
@@ -1107,7 +1107,7 @@ public class LDAPSyntaxDescriptionSyntax
     private SubstringMatchingRule substringMatchingRule;
 
     //The ordering matching rule.
-    private OrderingMatchingRule orderingMatchingRule;
+    private MatchingRule orderingMatchingRule;
 
     //The approximate matching rule.
     private MatchingRule approximateMatchingRule;
@@ -1223,7 +1223,7 @@ public class LDAPSyntaxDescriptionSyntax
      *          matches will not be allowed for this type by default.
      */
     @Override
-    public OrderingMatchingRule getOrderingMatchingRule()
+    public MatchingRule getOrderingMatchingRule()
     {
       if(orderingMatchingRule == null)
       {
@@ -1303,7 +1303,7 @@ public class LDAPSyntaxDescriptionSyntax
     private SubstringMatchingRule substringMatchingRule;
 
     //The ordering matching rule.
-    private OrderingMatchingRule orderingMatchingRule;
+    private MatchingRule orderingMatchingRule;
 
     //The approximate matching rule.
     private MatchingRule approximateMatchingRule;
@@ -1432,7 +1432,7 @@ public class LDAPSyntaxDescriptionSyntax
      *          matches will not be allowed for this type by default.
      */
     @Override
-    public OrderingMatchingRule getOrderingMatchingRule()
+    public MatchingRule getOrderingMatchingRule()
     {
       if(orderingMatchingRule == null)
       {
