@@ -20,15 +20,15 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2013 ForgeRock AS
+  !      Copyright 2013-2014 ForgeRock AS
   !
 -->
 <chapter xml:id='chap-rest-operations'
          xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
          xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-         xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
-         xmlns:xlink='http://www.w3.org/1999/xlink'
-         xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+         xsi:schemaLocation='http://docbook.org/ns/docbook
+                             http://docbook.org/xml/5.0/xsd/docbook.xsd'
+         xmlns:xlink='http://www.w3.org/1999/xlink'>
  <title>Performing RESTful Operations</title>
  <indexterm><primary>HTTP</primary></indexterm>
  <indexterm><primary>JSON</primary></indexterm>
@@ -1243,8 +1243,9 @@ $ curl
   -->
 
   <variablelist>
-   <para>You can page through search results using the following query string
-   parameters.</para>
+   <para>
+    You can page through search results using the following query string parameters.
+   </para>
 
    <varlistentry>
     <term><literal>_pagedResultsCookie=<replaceable>string</replaceable></literal></term>
@@ -1252,9 +1253,13 @@ $ curl
      <para>
       Opaque cookie used by the server to keep track of the position
       in the search results.
+     </para>
 
-      In the request <literal>_pageSize</literal> must also be set and non-zero.
+     <para>
+      In the request also set <literal>_pageSize</literal> greater than zero.
+     </para>
 
+     <para>
       You receive the cookie value from the server on the first request,
       and then supply the cookie value in subsequent requests
       until the server returns a <literal>null</literal> cookie,
@@ -1267,15 +1272,39 @@ $ curl
     <term><literal>_pagedResultsOffset=<replaceable>integer</replaceable></literal></term>
     <listitem>
      <para>
-      When <literal>_pageSize</literal> is non-zero, use this as
-      an index in the result set indicating the first page to return.
+      When <literal>_pageSize</literal> is greater than zero,
+      use this as an index in the result set indicating the page to return.
+     </para>
 
-      When the value of <literal>_pagedResultsOffset</literal>
-      is less than 1, the server returns the next page after
-      the last page returned.
-
-      When the value is greater than or equal to 1,
+     <para>
+      When the value of <literal>_pagedResultsOffset</literal> is 1 or more,
       the server returns the page starting from the specified index.
+     </para>
+
+     <para>
+      When <literal>_pagedResultsCookie</literal> is also set,
+      the starting point is the position tracked by the cookie.
+      Otherwise the offset is relative to the beginning of the result set.
+     </para>
+
+     <para>
+      For example, <literal>_pageSize=2&amp;_pagedResultsOffset=1</literal>
+      returns the third and fourth entries of the results.
+      <literal>_pageSize=3&amp;_pagedResultsOffset=2&amp;_pagedResultsCookie=<replaceable>cookie</replaceable></literal>
+      returns the seventh, eighth, and ninth entries
+      counting from the position tracked by the cookie.
+     </para>
+
+     <para>
+      When <literal>_pageSize</literal> is not set,
+      or when the value of <literal>_pagedResultsOffset</literal> is 0 or less,
+      the setting has no effect.
+     </para>
+
+     <para>
+      If other <literal>_pageSize</literal> is set,
+      but the offset points to a page beyond the last of the search results,
+      the result set returned is empty.
      </para>
     </listitem>
    </varlistentry>
@@ -1284,8 +1313,18 @@ $ curl
     <term><literal>_pageSize=<replaceable>integer</replaceable></literal></term>
     <listitem>
      <para>
-      Return query results in pages of this size.
+      Return query results in pages of this size,
+      where <replaceable>integer</replaceable> should be greater than zero.
+     </para>
 
+     <para>
+      Page sizes of zero or less have no effect,
+      with the outcome that all results are returned,
+      and <literal>_pagedResultsCookie</literal> is <literal>null</literal>
+      in the response.
+     </para>
+
+     <para>
       After the initial request, use <literal>_pagedResultsCookie</literal>
       to page through the results.
      </para>
@@ -1299,7 +1338,7 @@ $ curl
       The next call provides the cookie to request the next 5 results.
 
       The final call provides the cookie and requests the 10th page of results
-      after the last page of results that the server returned.
+      after the last page of results specified by the cookie.
      </para>
 
      <screen>$ curl "http://bjensen:hifalutin@opendj.example.com:8080/users
