@@ -408,7 +408,7 @@ public class TestVerifyJob extends JebTestCase
       ByteString[] badValues = new ByteString[values.length];
       System.arraycopy(values, 1, badValues, 0, values.length - 1);
       badValues[badValues.length-1] = values[0];
-      svs.remove(id, values, types);
+      svs.remove(id, values);
       svs.add(id, badValues, types);
 
       vlvIndex.putSortValuesSet(null, svs);
@@ -697,7 +697,7 @@ public class TestVerifyJob extends JebTestCase
       SortValuesSet svs = vlvIndex.getSortValuesSet(null, 0, new ByteString[3], types);
       long id = svs.getEntryIDs()[0];
       Entry entry = eContainer.getID2Entry().get(null, new EntryID(id), LockMode.DEFAULT);
-      svs.remove(id, vlvIndex.getSortValues(entry), types);
+      svs.remove(id, vlvIndex.getSortValues(entry));
 
       // Add an incorrectly ordered values.
       SortValuesSet svs2 = svs.split(2);
@@ -710,7 +710,7 @@ public class TestVerifyJob extends JebTestCase
       ByteString[] badValues = new ByteString[values.length];
       System.arraycopy(values, 1, badValues, 0, values.length - 1);
       badValues[badValues.length-1] = values[0];
-      svs.remove(id, values, types);
+      svs.remove(id, values);
       svs.add(id, badValues, types);
 
       vlvIndex.putSortValuesSet(null, svs);

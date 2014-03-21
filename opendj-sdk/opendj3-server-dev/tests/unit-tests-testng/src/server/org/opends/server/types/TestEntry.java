@@ -257,11 +257,13 @@ public final class TestEntry extends TypesTestCase {
     Entry entry = createTestEntry(type, values);
     Set<SubtreeSpecification> result = new HashSet<SubtreeSpecification>();
     List<Attribute> attributes = entry.getAttribute(type, true);
-    for (ByteString value : new AttributeValueIterable(attributes))
+    for (Attribute a : attributes)
     {
-      result.add(SubtreeSpecification.valueOf(rootDN, value.toString()));
+      for (ByteString value : a)
+      {
+        result.add(SubtreeSpecification.valueOf(rootDN, value.toString()));
+      }
     }
-
     assertEquals(expected, result);
   }
 

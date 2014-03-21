@@ -34,7 +34,6 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.api.MatchingRule;
-import org.opends.server.types.AttributeType;
 import org.opends.server.types.DirectoryException;
 
 import com.sleepycat.je.DatabaseException;
@@ -66,8 +65,7 @@ public class VLVKeyComparator implements Comparator<byte[]>, Serializable
    * @param ascending     The array of booleans indicating the ordering for
    *                      each value.
    */
-  public VLVKeyComparator(MatchingRule[] orderingRules,
-                          boolean[] ascending)
+  public VLVKeyComparator(MatchingRule[] orderingRules, boolean[] ascending)
   {
     this.orderingRules = orderingRules;
     this.ascending = ascending;
@@ -205,19 +203,8 @@ public class VLVKeyComparator implements Comparator<byte[]>, Serializable
 
     if(b1Pos + 8 <= b1.length && b2Pos + 8 <= b2.length)
     {
-      long b1ID = 0;
-      for (int i = b1Pos; i < b1Pos + 8; i++)
-      {
-        b1ID <<= 8;
-        b1ID |= (b1[i] & 0xFF);
-      }
-
-      long b2ID = 0;
-      for (int i = b2Pos; i < b2Pos + 8; i++)
-      {
-        b2ID <<= 8;
-        b2ID |= (b2[i] & 0xFF);
-      }
+      long b1ID = JebFormat.toLong(b1, b1Pos, b1Pos + 8);
+      long b2ID = JebFormat.toLong(b2, b2Pos, b2Pos + 8);
 
       long idDifference = (b1ID - b2ID);
       if (idDifference < 0)
@@ -235,10 +222,8 @@ public class VLVKeyComparator implements Comparator<byte[]>, Serializable
     }
 
     // If we've gotten here, then we can't tell the difference between the sets
-    // of available values and entry IDs are not all available, so just return
-    // 0
+    // of available values and entry IDs are not all available, so just return 0
     return 0;
-
   }
 
   /**
@@ -256,10 +241,8 @@ public class VLVKeyComparator implements Comparator<byte[]>, Serializable
    *
    * @param  set  The sort values set to containing the values.
    * @param  index The index of the values in the set.
-   * @param  entryID The entry ID to use in the comparasion.
-   * @param  values The values to use in the comparasion.
-   * @param  types The types of the values to use in the comparasion.
-   *
+   * @param  entryID The entry ID to use in the comparison.
+   * @param  values The values to use in the comparison.
    * @return  A negative integer if the values in the set should come before
    *          the given values in ascending order, a positive integer if
    *          the values in the set should come after the given values in
@@ -273,8 +256,7 @@ public class VLVKeyComparator implements Comparator<byte[]>, Serializable
    *                              associated equality matching rule).
    */
   public int compare(SortValuesSet set, int index, long entryID,
-      ByteString[] values, AttributeType[] types) throws DatabaseException,
-      DirectoryException
+      ByteString[] values) throws DatabaseException, DirectoryException
   {
     for (int j=0; j < orderingRules.length; j++)
     {
@@ -290,8 +272,7 @@ public class VLVKeyComparator implements Comparator<byte[]>, Serializable
       {
         try
         {
-          final MatchingRule eqRule = types[j].getEqualityMatchingRule();
-          b2Bytes = eqRule.normalizeAttributeValue(values[j]);
+          b2Bytes = orderingRules[j].normalizeAttributeValue(values[j]);
         }
         catch (DecodeException e)
         {

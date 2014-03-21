@@ -2723,44 +2723,35 @@ public final class SearchFilter
       return ConditionResult.UNDEFINED;
     }
 
-    ByteString normAssertionValue;
-    try
-    {
-      normAssertionValue = matchingRule.normalizeAssertionValue(assertionValue);
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-
-      // We can't normalize the assertion value, so the result must be
-      // undefined.
-      return ConditionResult.UNDEFINED;
-    }
-
     // Iterate through all the attributes and see if we can find a match.
+    ConditionResult result = ConditionResult.FALSE;
     for (Attribute a : attrs)
     {
-      // FIXME next if is incorrect
-      if (a.contains(normAssertionValue))
+      final ConditionResult cr = a.matchesEqualityAssertion(assertionValue);
+      if (cr == ConditionResult.TRUE)
       {
         if (logger.isTraceEnabled())
         {
           logger.trace(
-            "Returning TRUE for equality component %s in " +
-            "filter %s for entry %s", this, completeFilter, entry.getName());
+              "Returning TRUE for equality component %s in filter %s " +
+                  "for entry %s", this, completeFilter, entry.getName());
         }
         return ConditionResult.TRUE;
+      }
+      else if (cr == ConditionResult.UNDEFINED)
+      {
+        result = ConditionResult.UNDEFINED;
       }
     }
 
     if (logger.isTraceEnabled())
     {
       logger.trace(
-          "Returning FALSE for equality component %s in filter " +
-          "%s because entry %s didn't have attribute type %s with value %s",
-          this, completeFilter, entry.getName(), attributeType.getNameOrOID(), assertionValue);
+          "Returning %s for equality component %s in filter %s " +
+              "because entry %s didn't have attribute type %s with value %s",
+          result, this, completeFilter, entry.getName(), attributeType.getNameOrOID(), assertionValue);
     }
-    return ConditionResult.FALSE;
+    return result;
   }
 
 

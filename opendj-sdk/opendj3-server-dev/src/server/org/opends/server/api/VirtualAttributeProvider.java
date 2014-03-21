@@ -190,6 +190,26 @@ public abstract class VirtualAttributeProvider
     return getValues(entry, rule).contains(value);
   }
 
+  /**
+   * Indicates whether this virtual attribute provider matches the assertion
+   * value.
+   *
+   * @param entry
+   *          The entry for which to make the determination.
+   * @param rule
+   *          The virtual attribute rule which defines the constraints for the
+   *          virtual attribute.
+   * @param assertionValue
+   *          The assertion value for which to make the determination.
+   * @return {@code true} if this virtual attribute provider matches the
+   *         specified assertion value for the provided entry, or {@code false}
+   *         if not.
+   */
+  public ConditionResult matchesEqualityAssertion(Entry entry,
+      VirtualAttributeRule rule, ByteString assertionValue)
+  {
+    return getValues(entry, rule).matchesEqualityAssertion(assertionValue);
+  }
 
 
   /**
@@ -359,12 +379,12 @@ public abstract class VirtualAttributeProvider
    *          The virtual attribute rule which defines the constraints for the
    *          virtual attribute.
    * @param assertionValue
-   *          The value for which to make the determination.
+   *          The assertion value for which to make the determination.
    * @return {@code UNDEFINED} if the associated attribute type does not have an
    *         ordering matching rule, {@code TRUE} if at least one of the
    *         generated values will be greater than or equal to the specified
-   *         value, or {@code FALSE} if none of the generated values will be
-   *         greater than or equal to the specified value.
+   *         assertion value, or {@code FALSE} if none of the generated values
+   *         will be greater than or equal to the specified value.
    */
   public ConditionResult greaterThanOrEqualTo(Entry entry,
                               VirtualAttributeRule rule,
@@ -421,12 +441,12 @@ public abstract class VirtualAttributeProvider
    *          The virtual attribute rule which defines the constraints for the
    *          virtual attribute.
    * @param assertionValue
-   *          The value for which to make the determination.
+   *          The assertion value for which to make the determination.
    * @return {@code UNDEFINED} if the associated attribute type does not have an
    *         ordering matching rule, {@code TRUE} if at least one of the
-   *         generated values will be less than or equal to the specified value,
-   *         or {@code FALSE} if none of the generated values will be greater
-   *         than or equal to the specified value.
+   *         generated values will be less than or equal to the specified
+   *         assertion value, or {@code FALSE} if none of the generated values
+   *         will be greater than or equal to the specified value.
    */
   public ConditionResult lessThanOrEqualTo(Entry entry,
                               VirtualAttributeRule rule,
@@ -482,14 +502,15 @@ public abstract class VirtualAttributeProvider
    * @param  entry  The entry for which to make the determination.
    * @param  rule   The virtual attribute rule which defines the
    *                constraints for the virtual attribute.
-   * @param  assertionValue  The value for which to make the determination.
+   * @param  assertionValue
+   *          The assertion value for which to make the determination.
    *
    * @return  {@code UNDEFINED} if the associated attribute type does
    *          not have an approximate matching rule, {@code TRUE} if at
    *          least one of the generated values will be approximately
    *          equal to the specified value, or {@code FALSE} if none
    *          of the generated values will be approximately equal to
-   *          the specified value.
+   *          the specified assertion value.
    */
   public ConditionResult approximatelyEqualTo(Entry entry,
                               VirtualAttributeRule rule,

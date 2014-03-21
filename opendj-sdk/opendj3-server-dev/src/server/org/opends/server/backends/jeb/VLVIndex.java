@@ -149,8 +149,7 @@ public class VLVIndex extends DatabaseContainer
 
     try
     {
-      this.filter =
-          SearchFilter.createFilterFromString(config.getFilter());
+      this.filter = SearchFilter.createFilterFromString(config.getFilter());
     }
     catch(Exception e)
     {
@@ -161,8 +160,7 @@ public class VLVIndex extends DatabaseContainer
 
     String[] sortAttrs = config.getSortOrder().split(" ");
     SortKey[] sortKeys = new SortKey[sortAttrs.length];
-    MatchingRule[] orderingRules =
-        new MatchingRule[sortAttrs.length];
+    MatchingRule[] orderingRules = new MatchingRule[sortAttrs.length];
     boolean[] ascending = new boolean[sortAttrs.length];
     for(int i = 0; i < sortAttrs.length; i++)
     {
@@ -666,53 +664,45 @@ public class VLVIndex extends DatabaseContainer
       ByteString[] values, AttributeType[] types) throws DatabaseException,
       DirectoryException
   {
-    SortValuesSet sortValuesSet = null;
     DatabaseEntry key = new DatabaseEntry();
-    OperationStatus status;
-    LockMode lockMode = LockMode.DEFAULT;
     DatabaseEntry data = new DatabaseEntry();
+    key.setData(encodeKey(entryID, values, types));
+    return getSortValuesSet(txn, key, data, LockMode.DEFAULT);
+  }
 
-    Cursor cursor = openCursor(txn, CursorConfig.READ_COMMITTED);
-
-    try
+  private SortValuesSet getSortValuesSet(Transaction txn, DatabaseEntry key,
+      DatabaseEntry data, LockMode lockMode)
+  {
+    OperationStatus status = getSearchKeyRange(txn, key, data, lockMode);
+    if (status != OperationStatus.SUCCESS)
     {
-      key.setData(encodeKey(entryID, values, types));
-      status = cursor.getSearchKeyRange(key, data,lockMode);
-
-      if(status != OperationStatus.SUCCESS)
+      // There are no records in the database
+      if (logger.isTraceEnabled())
       {
-        // There are no records in the database
-        if(logger.isTraceEnabled())
-        {
-          logger.trace("No sort values set exist in VLV vlvIndex %s. " +
-              "Creating unbound set.", config.getName());
-        }
-        sortValuesSet = new SortValuesSet(this);
+        logger.trace("No sort values set exist in VLV vlvIndex %s. "
+            + "Creating unbound set.", config.getName());
       }
-      else
-      {
-        if(logger.isTraceEnabled())
-        {
-          StringBuilder searchKeyHex = new StringBuilder();
-          StaticUtils.byteArrayToHexPlusAscii(searchKeyHex, key.getData(), 4);
-          StringBuilder foundKeyHex = new StringBuilder();
-          StaticUtils.byteArrayToHexPlusAscii(foundKeyHex, key.getData(), 4);
-          logger.trace("Retrieved a sort values set in VLV vlvIndex " +
-              "%s\nSearch Key:%s\nFound Key:%s\n",
-                              config.getName(),
-                              searchKeyHex,
-                              foundKeyHex);
-        }
-        sortValuesSet = new SortValuesSet(key.getData(), data.getData(),
-                                          this);
-      }
-    }
-    finally
-    {
-      cursor.close();
+      // this could not be found, so clean the key for later reuse
+      key.setData(new byte[0]);
+      return new SortValuesSet(this);
     }
 
-    return sortValuesSet;
+    if (logger.isTraceEnabled())
+    {
+      logSearchKeyResult(key);
+    }
+    return new SortValuesSet(key.getData(), data.getData(), this);
+  }
+
+  private void logSearchKeyResult(DatabaseEntry key)
+  {
+    StringBuilder searchKeyHex = new StringBuilder();
+    StaticUtils.byteArrayToHexPlusAscii(searchKeyHex, key.getData(), 4);
+    StringBuilder foundKeyHex = new StringBuilder();
+    StaticUtils.byteArrayToHexPlusAscii(foundKeyHex, key.getData(), 4);
+    logger.trace("Retrieved a sort values set in VLV vlvIndex %s\n" +
+        "Search Key:%s\nFound Key:%s\n",
+        config.getName(), searchKeyHex, foundKeyHex);
   }
 
   /**
@@ -736,7 +726,7 @@ public class VLVIndex extends DatabaseContainer
       DatabaseException, DirectoryException
   {
     SortValuesSet valuesSet = getSortValuesSet(txn, entryID, values, types);
-    int pos = valuesSet.binarySearch(entryID, values, types);
+    int pos = valuesSet.binarySearch(entryID, values);
     return pos >= 0;
   }
 
@@ -746,68 +736,19 @@ public class VLVIndex extends DatabaseContainer
     ByteString[] values = getSortValues(entry);
     AttributeType[] types = getSortTypes();
     DatabaseEntry key = new DatabaseEntry();
-    OperationStatus status;
-    LockMode lockMode = LockMode.RMW;
     DatabaseEntry data = new DatabaseEntry();
 
-    Cursor cursor = openCursor(txn, CursorConfig.READ_COMMITTED);
-    try
-    {
-      key.setData(encodeKey(entryID, values, types));
-      status = cursor.getSearchKeyRange(key, data,lockMode);
-    }
-    finally
-    {
-      cursor.close();
-    }
-
-    SortValuesSet sortValuesSet;
-    if(status != OperationStatus.SUCCESS)
-    {
-      // There are no records in the database
-      if(logger.isTraceEnabled())
-      {
-        logger.trace("No sort values set exist in VLV vlvIndex %s. " +
-            "Creating unbound set.", config.getName());
-      }
-      sortValuesSet = new SortValuesSet(this);
-      key.setData(new byte[0]);
-    }
-    else
-    {
-      if(logger.isTraceEnabled())
-      {
-        StringBuilder searchKeyHex = new StringBuilder();
-        StaticUtils.byteArrayToHexPlusAscii(searchKeyHex, key.getData(), 4);
-        StringBuilder foundKeyHex = new StringBuilder();
-        StaticUtils.byteArrayToHexPlusAscii(foundKeyHex, key.getData(), 4);
-        logger.trace("Retrieved a sort values set in VLV vlvIndex " +
-            "%s\nSearch Key:%s\nFound Key:%s\n",
-                            config.getName(),
-                            searchKeyHex,
-                            foundKeyHex);
-      }
-      sortValuesSet = new SortValuesSet(key.getData(), data.getData(),
-                                        this);
-    }
-
-
-
-
+    key.setData(encodeKey(entryID, values, types));
+    SortValuesSet sortValuesSet =
+        getSortValuesSet(txn, key, data, LockMode.RMW);
     boolean success = sortValuesSet.add(entryID, values, types);
 
     int newSize = sortValuesSet.size();
     if(newSize >= sortedSetCapacity)
     {
       SortValuesSet splitSortValuesSet = sortValuesSet.split(newSize / 2);
-      byte[] splitAfter = splitSortValuesSet.toDatabase();
-      key.setData(splitSortValuesSet.getKeyBytes());
-      data.setData(splitAfter);
-      put(txn, key, data);
-      byte[] after = sortValuesSet.toDatabase();
-      key.setData(sortValuesSet.getKeyBytes());
-      data.setData(after);
-      put(txn, key, data);
+      put(txn, key, data, splitSortValuesSet); // splitAfter
+      put(txn, key, data, sortValuesSet); // after
 
       if(logger.isTraceEnabled())
       {
@@ -820,8 +761,7 @@ public class VLVIndex extends DatabaseContainer
     }
     else
     {
-      byte[] after = sortValuesSet.toDatabase();
-      data.setData(after);
+      data.setData(sortValuesSet.toDatabase()); // after
       put(txn, key, data);
       // TODO: What about phantoms?
     }
@@ -832,6 +772,14 @@ public class VLVIndex extends DatabaseContainer
     }
 
     return success;
+  }
+
+  private void put(Transaction txn, DatabaseEntry key, DatabaseEntry data,
+      SortValuesSet set) throws DirectoryException
+  {
+    key.setData(set.getKeyBytes());
+    data.setData(set.toDatabase());
+    put(txn, key, data);
   }
 
   /**
@@ -845,8 +793,7 @@ public class VLVIndex extends DatabaseContainer
     AttributeType[] types = new AttributeType[sortKeys.length];
     for (int i = 0; i < sortKeys.length; i++)
     {
-      SortKey sortKey = sortKeys[i];
-      types[i] = sortKey.getAttributeType();
+      types[i] = sortKeys[i].getAttributeType();
     }
     return types;
   }
@@ -857,38 +804,18 @@ public class VLVIndex extends DatabaseContainer
     ByteString[] values = getSortValues(entry);
     AttributeType[] types = getSortTypes();
     DatabaseEntry key = new DatabaseEntry();
-    OperationStatus status;
-    LockMode lockMode = LockMode.RMW;
     DatabaseEntry data = new DatabaseEntry();
 
-    Cursor cursor = openCursor(txn, CursorConfig.READ_COMMITTED);
-
-    try
-    {
-      key.setData(encodeKey(entryID, values, types));
-      status = cursor.getSearchKeyRange(key, data,lockMode);
-    }
-    finally
-    {
-      cursor.close();
-    }
-
+    key.setData(encodeKey(entryID, values, types));
+    OperationStatus status = getSearchKeyRange(txn, key, data, LockMode.RMW);
     if(status == OperationStatus.SUCCESS)
     {
       if(logger.isTraceEnabled())
       {
-        StringBuilder searchKeyHex = new StringBuilder();
-        StaticUtils.byteArrayToHexPlusAscii(searchKeyHex, key.getData(), 4);
-        StringBuilder foundKeyHex = new StringBuilder();
-        StaticUtils.byteArrayToHexPlusAscii(foundKeyHex, key.getData(), 4);
-        logger.trace("Retrieved a sort values set in VLV vlvIndex " +
-            "%s\nSearch Key:%s\nFound Key:%s\n",
-                            config.getName(),
-                            searchKeyHex,
-                            foundKeyHex);
+        logSearchKeyResult(key);
       }
       SortValuesSet sortValuesSet = new SortValuesSet(key.getData(), data.getData(), this);
-      boolean success = sortValuesSet.remove(entryID, values, types);
+      boolean success = sortValuesSet.remove(entryID, values);
       byte[] after = sortValuesSet.toDatabase();
 
       if(after == null)
@@ -909,6 +836,20 @@ public class VLVIndex extends DatabaseContainer
       return success;
     }
     return false;
+  }
+
+  private OperationStatus getSearchKeyRange(Transaction txn, DatabaseEntry key,
+      DatabaseEntry data, LockMode lockMode)
+  {
+    Cursor cursor = openCursor(txn, CursorConfig.READ_COMMITTED);
+    try
+    {
+      return cursor.getSearchKeyRange(key, data, lockMode);
+    }
+    finally
+    {
+      cursor.close();
+    }
   }
 
   /**
@@ -935,10 +876,7 @@ public class VLVIndex extends DatabaseContainer
     }
 
     DatabaseEntry key = new DatabaseEntry();
-    OperationStatus status;
-    LockMode lockMode = LockMode.RMW;
     DatabaseEntry data = new DatabaseEntry();
-    SortValuesSet sortValuesSet;
     Iterator<SortValues> aValues = null;
     Iterator<SortValues> dValues = null;
     SortValues av = null;
@@ -985,46 +923,7 @@ public class VLVIndex extends DatabaseContainer
         break;
       }
 
-      Cursor cursor = openCursor(txn, CursorConfig.READ_COMMITTED);
-
-      try
-      {
-        status = cursor.getSearchKeyRange(key, data,lockMode);
-      }
-      finally
-      {
-        cursor.close();
-      }
-
-      if(status != OperationStatus.SUCCESS)
-      {
-        // There are no records in the database
-        if(logger.isTraceEnabled())
-        {
-          logger.trace("No sort values set exist in VLV vlvIndex %s. " +
-              "Creating unbound set.", config.getName());
-        }
-        sortValuesSet = new SortValuesSet(this);
-        key.setData(new byte[0]);
-      }
-      else
-      {
-        if(logger.isTraceEnabled())
-        {
-          StringBuilder searchKeyHex = new StringBuilder();
-          StaticUtils.byteArrayToHexPlusAscii(searchKeyHex, key.getData(), 4);
-          StringBuilder foundKeyHex = new StringBuilder();
-          StaticUtils.byteArrayToHexPlusAscii(foundKeyHex, key.getData(), 4);
-          logger.trace("Retrieved a sort values set in VLV vlvIndex " +
-              "%s\nSearch Key:%s\nFound Key:%s\n",
-              config.getName(),
-              searchKeyHex,
-              foundKeyHex);
-        }
-        sortValuesSet = new SortValuesSet(key.getData(), data.getData(),
-            this);
-      }
-
+      final SortValuesSet sortValuesSet = getSortValuesSet(txn, data, data, LockMode.RMW);
       int oldSize = sortValuesSet.size();
       if(key.getData().length == 0)
       {
@@ -1032,29 +931,13 @@ public class VLVIndex extends DatabaseContainer
         while(av != null)
         {
           sortValuesSet.add(av.getEntryID(), av.getValues(), av.getTypes());
-          aValues.remove();
-          if(aValues.hasNext())
-          {
-            av = aValues.next();
-          }
-          else
-          {
-            av = null;
-          }
+          av = moveToNextSortValues(aValues);
         }
 
         while(dv != null)
         {
-          sortValuesSet.remove(dv.getEntryID(), dv.getValues(), dv.getTypes());
-          dValues.remove();
-          if(dValues.hasNext())
-          {
-            dv = dValues.next();
-          }
-          else
-          {
-            dv = null;
-          }
+          sortValuesSet.remove(dv.getEntryID(), dv.getValues());
+          dv = moveToNextSortValues(dValues);
         }
       }
       else
@@ -1064,29 +947,13 @@ public class VLVIndex extends DatabaseContainer
         while(av != null && av.compareTo(maxValues) <= 0)
         {
           sortValuesSet.add(av.getEntryID(), av.getValues(), av.getTypes());
-          aValues.remove();
-          if(aValues.hasNext())
-          {
-            av = aValues.next();
-          }
-          else
-          {
-            av = null;
-          }
+          av = moveToNextSortValues(aValues);
         }
 
         while(dv != null && dv.compareTo(maxValues) <= 0)
         {
-          sortValuesSet.remove(dv.getEntryID(), dv.getValues(), dv.getTypes());
-          dValues.remove();
-          if(dValues.hasNext())
-          {
-            dv = dValues.next();
-          }
-          else
-          {
-            dv = null;
-          }
+          sortValuesSet.remove(dv.getEntryID(), dv.getValues());
+          dv = moveToNextSortValues(dValues);
         }
       }
 
@@ -1094,14 +961,8 @@ public class VLVIndex extends DatabaseContainer
       if(newSize >= sortedSetCapacity)
       {
         SortValuesSet splitSortValuesSet = sortValuesSet.split(newSize / 2);
-        byte[] splitAfter = splitSortValuesSet.toDatabase();
-        key.setData(splitSortValuesSet.getKeyBytes());
-        data.setData(splitAfter);
-        put(txn, key, data);
-        byte[] after = sortValuesSet.toDatabase();
-        key.setData(sortValuesSet.getKeyBytes());
-        data.setData(after);
-        put(txn, key, data);
+        put(txn, key, data, splitSortValuesSet); // splitAfter
+        put(txn, key, data, sortValuesSet); // after
 
         if(logger.isTraceEnabled())
         {
@@ -1125,6 +986,16 @@ public class VLVIndex extends DatabaseContainer
 
       count.getAndAdd(newSize - oldSize);
     }
+  }
+
+  private SortValues moveToNextSortValues(Iterator<SortValues> sortValues)
+  {
+    sortValues.remove();
+    if (sortValues.hasNext())
+    {
+      return sortValues.next();
+    }
+    return null;
   }
 
   private byte[] encodeKey(SortValues sv) throws DirectoryException
@@ -1156,23 +1027,11 @@ public class VLVIndex extends DatabaseContainer
                              StringBuilder debugBuilder)
       throws DirectoryException, DatabaseException
   {
-    if(!trusted || rebuildRunning)
-    {
-      return null;
-    }
-    if(!searchOperation.getBaseDN().equals(baseDN))
-    {
-      return null;
-    }
-    if(!searchOperation.getScope().equals(scope))
-    {
-      return null;
-    }
-    if(!searchOperation.getFilter().equals(filter))
-    {
-      return null;
-    }
-    if(!sortControl.getSortOrder().equals(this.sortOrder))
+    if (!trusted || rebuildRunning
+        || !searchOperation.getBaseDN().equals(baseDN)
+        || !searchOperation.getScope().equals(scope)
+        || !searchOperation.getFilter().equals(filter)
+        || !sortControl.getSortOrder().equals(sortOrder))
     {
       return null;
     }
@@ -1241,34 +1100,21 @@ public class VLVIndex extends DatabaseContainer
         int count = 1 + beforeCount + afterCount;
         selectedIDs = new long[count];
 
-        DatabaseEntry key = new DatabaseEntry();
-        OperationStatus status;
-        LockMode lockMode = LockMode.DEFAULT;
-        DatabaseEntry data = new DatabaseEntry();
-
         Cursor cursor = openCursor(txn, CursorConfig.READ_COMMITTED);
-
         try
         {
+          DatabaseEntry key = new DatabaseEntry();
+          DatabaseEntry data = new DatabaseEntry();
+          LockMode lockMode = LockMode.DEFAULT;
           //Locate the set that contains the target entry.
           int cursorCount = 0;
           int selectedPos = 0;
-          status = cursor.getFirst(key, data,lockMode);
+          OperationStatus status = cursor.getFirst(key, data, lockMode);
           while(status == OperationStatus.SUCCESS)
           {
             if(logger.isTraceEnabled())
             {
-              StringBuilder searchKeyHex = new StringBuilder();
-              StaticUtils.byteArrayToHexPlusAscii(searchKeyHex, key.getData(),
-                                                  4);
-              StringBuilder foundKeyHex = new StringBuilder();
-              StaticUtils.byteArrayToHexPlusAscii(foundKeyHex, key.getData(),
-                                                  4);
-              logger.trace("Retrieved a sort values set in VLV " +
-                  "vlvIndex %s\nSearch Key:%s\nFound Key:%s\n",
-                                  config.getName(),
-                                  searchKeyHex,
-                                  foundKeyHex);
+              logSearchKeyResult(key);
             }
             long[] IDs = SortValuesSet.getEncodedIDs(data.getData(), 0);
             for(int i = startPos + selectedPos - cursorCount;
@@ -1313,14 +1159,12 @@ public class VLVIndex extends DatabaseContainer
         int includedAfterCount  = 0;
         LinkedList<EntryID> idList = new LinkedList<EntryID>();
         DatabaseEntry key = new DatabaseEntry();
-        OperationStatus status;
-        LockMode lockMode = LockMode.DEFAULT;
         DatabaseEntry data = new DatabaseEntry();
 
         Cursor cursor = openCursor(txn, CursorConfig.READ_COMMITTED);
-
         try
         {
+          LockMode lockMode = LockMode.DEFAULT;
           ByteSequence vBytes = vlvRequest.getGreaterThanOrEqualAssertion();
           ByteStringBuilder keyBytes =
               new ByteStringBuilder(vBytes.length() + 4);
@@ -1328,34 +1172,18 @@ public class VLVIndex extends DatabaseContainer
           vBytes.copyTo(keyBytes);
 
           key.setData(keyBytes.getBackingArray(), 0, keyBytes.length());
-          status = cursor.getSearchKeyRange(key, data, lockMode);
+          OperationStatus status = cursor.getSearchKeyRange(key, data, lockMode);
           if(status == OperationStatus.SUCCESS)
           {
             if(logger.isTraceEnabled())
             {
-              StringBuilder searchKeyHex = new StringBuilder();
-              StaticUtils.byteArrayToHexPlusAscii(searchKeyHex, key.getData(),
-                                                  4);
-              StringBuilder foundKeyHex = new StringBuilder();
-              StaticUtils.byteArrayToHexPlusAscii(foundKeyHex, key.getData(),
-                                                  4);
-              logger.trace("Retrieved a sort values set in VLV " +
-                  "vlvIndex %s\nSearch Key:%s\nFound Key:%s\n",
-                                  config.getName(),
-                                  searchKeyHex,
-                                  foundKeyHex);
+              logSearchKeyResult(key);
             }
             SortValuesSet sortValuesSet =
                 new SortValuesSet(key.getData(), data.getData(), this);
-            ByteString[] assertionValue = new ByteString[] {
-                vlvRequest.getGreaterThanOrEqualAssertion()
-            };
-            AttributeType[] assertionType = new AttributeType[] {
-                sortOrder.getSortKeys()[0].getAttributeType()
-            };
 
-            int adjustedTargetOffset =
-                sortValuesSet.binarySearch(-1, assertionValue, assertionType);
+            int adjustedTargetOffset = sortValuesSet.binarySearch(
+                -1, vlvRequest.getGreaterThanOrEqualAssertion());
             if(adjustedTargetOffset < 0)
             {
               // For a negative return value r, the vlvIndex -(r+1) gives the
@@ -1379,7 +1207,6 @@ public class VLVIndex extends DatabaseContainer
               }
 
               status = cursor.getPrev(key, data, lockMode);
-
               if(status != OperationStatus.SUCCESS)
               {
                 break;
@@ -1387,8 +1214,7 @@ public class VLVIndex extends DatabaseContainer
 
               if(includedBeforeCount < beforeCount)
               {
-                lastIDs =
-                    SortValuesSet.getEncodedIDs(data.getData(), 0);
+                lastIDs = SortValuesSet.getEncodedIDs(data.getData(), 0);
                 lastOffset = lastIDs.length - 1;
                 targetOffset += lastIDs.length;
               }
@@ -1423,14 +1249,12 @@ public class VLVIndex extends DatabaseContainer
               }
 
               status = cursor.getNext(key, data, lockMode);
-
               if(status != OperationStatus.SUCCESS)
               {
                 break;
               }
 
-              lastIDs =
-                  SortValuesSet.getEncodedIDs(data.getData(), 0);
+              lastIDs = SortValuesSet.getEncodedIDs(data.getData(), 0);
               lastOffset = 0;
               afterIDCount += lastIDs.length;
             }
@@ -1465,28 +1289,18 @@ public class VLVIndex extends DatabaseContainer
       LinkedList<long[]> idSets = new LinkedList<long[]>();
       int currentCount = 0;
       DatabaseEntry key = new DatabaseEntry();
-      OperationStatus status;
-      LockMode lockMode = LockMode.RMW;
       DatabaseEntry data = new DatabaseEntry();
 
       Cursor cursor = openCursor(txn, CursorConfig.READ_COMMITTED);
-
       try
       {
-        status = cursor.getFirst(key, data, lockMode);
+        LockMode lockMode = LockMode.RMW;
+        OperationStatus status = cursor.getFirst(key, data, lockMode);
         while(status == OperationStatus.SUCCESS)
         {
           if(logger.isTraceEnabled())
           {
-            StringBuilder searchKeyHex = new StringBuilder();
-            StaticUtils.byteArrayToHexPlusAscii(searchKeyHex, key.getData(), 4);
-            StringBuilder foundKeyHex = new StringBuilder();
-            StaticUtils.byteArrayToHexPlusAscii(foundKeyHex, key.getData(), 4);
-            logger.trace("Retrieved a sort values set in VLV vlvIndex " +
-                "%s\nSearch Key:%s\nFound Key:%s\n",
-                                config.getName(),
-                                searchKeyHex,
-                                foundKeyHex);
+            logSearchKeyResult(key);
           }
           long[] ids = SortValuesSet.getEncodedIDs(data.getData(), 0);
           idSets.add(ids);
@@ -1563,12 +1377,9 @@ public class VLVIndex extends DatabaseContainer
     for (int i=0; i < sortKeys.length; i++)
     {
       SortKey sortKey = sortKeys[i];
-      AttributeType attrType = sortKey.getAttributeType();
-      List<Attribute> attrList = entry.getAttribute(attrType);
+      List<Attribute> attrList = entry.getAttribute(sortKey.getAttributeType());
       if (attrList != null)
       {
-        ByteString sortValue = null;
-
         // There may be multiple versions of this attribute in the target entry
         // (e.g., with different sets of options), and it may also be a
         // multivalued attribute.  In that case, we need to find the value that
@@ -1576,15 +1387,12 @@ public class VLVIndex extends DatabaseContainer
         // in ascending order, we want to find the lowest value; for sorting in
         // descending order, we want to find the highest value).  This is
         // handled by the SortKey.compareValues method.
+        ByteString sortValue = null;
         for (Attribute a : attrList)
         {
           for (ByteString v : a)
           {
-            if (sortValue == null)
-            {
-              sortValue = v;
-            }
-            else if (sortKey.compareValues(v, sortValue) < 0)
+            if (sortValue == null || sortKey.compareValues(v, sortValue) < 0)
             {
               sortValue = v;
             }
@@ -1647,8 +1455,7 @@ public class VLVIndex extends DatabaseContainer
    * @return The sort values represented by the key bytes.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  SortValues decodeKey(byte[] keyBytes)
-      throws DirectoryException
+  SortValues decodeKey(byte[] keyBytes) throws DirectoryException
   {
     if(keyBytes == null || keyBytes.length == 0)
     {
@@ -1685,16 +1492,8 @@ public class VLVIndex extends DatabaseContainer
       vBytesPos += valueLength;
     }
 
-    // FIXME: Should pos+offset method for decoding IDs be added to
-    // JebFormat?
-    long v = 0;
-    for (int i = vBytesPos; i < keyBytes.length; i++)
-    {
-      v <<= 8;
-      v |= (keyBytes[i] & 0xFF);
-    }
-
-    return new SortValues(new EntryID(v), attributeValues, sortOrder);
+    final long id = JebFormat.toLong(keyBytes, vBytesPos, keyBytes.length);
+    return new SortValues(new EntryID(id), attributeValues, sortOrder);
   }
 
   /**
@@ -1732,8 +1531,7 @@ public class VLVIndex extends DatabaseContainer
   {
     try
     {
-      this.filter =
-          SearchFilter.createFilterFromString(cfg.getFilter());
+      this.filter = SearchFilter.createFilterFromString(cfg.getFilter());
     }
     catch(Exception e)
     {
@@ -1746,8 +1544,7 @@ public class VLVIndex extends DatabaseContainer
 
     String[] sortAttrs = cfg.getSortOrder().split(" ");
     SortKey[] sortKeys = new SortKey[sortAttrs.length];
-    MatchingRule[] orderingRules =
-        new MatchingRule[sortAttrs.length];
+    MatchingRule[] orderingRules = new MatchingRule[sortAttrs.length];
     boolean[] ascending = new boolean[sortAttrs.length];
     for(int i = 0; i < sortAttrs.length; i++)
     {
@@ -1815,15 +1612,13 @@ public class VLVIndex extends DatabaseContainer
     }
 
     // Update sort set capacity only if changed.
-    if(config.getMaxBlockSize() !=
-        cfg.getMaxBlockSize())
+    if (config.getMaxBlockSize() != cfg.getMaxBlockSize())
     {
       this.sortedSetCapacity = cfg.getMaxBlockSize();
 
       // Require admin action only if the new capacity is larger. Otherwise,
       // we will lazyly update the sorted sets.
-      if(config.getMaxBlockSize() <
-          cfg.getMaxBlockSize())
+      if (config.getMaxBlockSize() < cfg.getMaxBlockSize())
       {
         adminActionRequired = true;
       }
@@ -1834,8 +1629,7 @@ public class VLVIndex extends DatabaseContainer
     {
       try
       {
-        this.filter =
-            SearchFilter.createFilterFromString(cfg.getFilter());
+        this.filter = SearchFilter.createFilterFromString(cfg.getFilter());
         adminActionRequired = true;
       }
       catch(Exception e)
@@ -1852,13 +1646,11 @@ public class VLVIndex extends DatabaseContainer
     }
 
     // Update the sort order only if changed.
-    if(!config.getSortOrder().equals(
-        cfg.getSortOrder()))
+    if (!config.getSortOrder().equals(cfg.getSortOrder()))
     {
       String[] sortAttrs = cfg.getSortOrder().split(" ");
       SortKey[] sortKeys = new SortKey[sortAttrs.length];
-      MatchingRule[] orderingRules =
-          new MatchingRule[sortAttrs.length];
+      MatchingRule[] orderingRules = new MatchingRule[sortAttrs.length];
       boolean[] ascending = new boolean[sortAttrs.length];
       for(int i = 0; i < sortAttrs.length; i++)
       {
@@ -1935,8 +1727,7 @@ public class VLVIndex extends DatabaseContainer
     if(adminActionRequired)
     {
       trusted = false;
-      LocalizableMessage message = NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(name);
-      messages.add(message);
+      messages.add(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(name));
       try
       {
         state.putIndexTrustState(null, this, false);

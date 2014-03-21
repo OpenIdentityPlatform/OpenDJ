@@ -66,8 +66,28 @@ public class JebFormat
    */
   public static long entryIDFromDatabase(byte[] bytes)
   {
+    return toLong(bytes, 0, 8);
+  }
+
+  /**
+   * Decode a long from a byte array, starting at start index and ending at end
+   * index.
+   *
+   * @param bytes
+   *          The bytes value of the long.
+   * @param start
+   *          the array index where to start computing the long
+   * @param end
+   *          the array index exclusive where to end computing the long
+   * @return the long representation of the read bytes.
+   * @throws ArrayIndexOutOfBoundsException
+   *           if the bytes array length is less than end.
+   */
+  public static long toLong(byte[] bytes, int start, int end)
+      throws ArrayIndexOutOfBoundsException
+  {
     long v = 0;
-    for (int i = 0; i < 8; i++)
+    for (int i = start; i < end; i++)
     {
       v <<= 8;
       v |= (bytes[i] & 0xFF);
@@ -90,14 +110,7 @@ public class JebFormat
 
     if(bytes.length == 8)
     {
-      long v = 0;
-      v |= (bytes[0] & 0x7F);
-      for (int i = 1; i < 8; i++)
-      {
-        v <<= 8;
-        v |= (bytes[i] & 0xFF);
-      }
-      return v;
+      return entryIDFromDatabase(bytes);
     }
     return Long.MAX_VALUE;
   }

@@ -32,7 +32,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -128,7 +127,11 @@ public final class AttributeBuilder
     // The name of this attribute as provided by the end user.
     private final String name;
 
-    // The unmodifiable set of values for this attribute.
+    /**
+     * The unmodifiable map of values for this attribute. The key is the
+     * attribute value normalized according to the equality matching rule and
+     * the value is the non normalized value.
+     */
     private final Map<ByteString, ByteString> values;
 
 
@@ -158,7 +161,7 @@ public final class AttributeBuilder
      * {@inheritDoc}
      */
     @Override
-    public final ConditionResult approximatelyEqualTo(ByteString value)
+    public final ConditionResult approximatelyEqualTo(ByteString assertionValue)
     {
       MatchingRule matchingRule = attributeType.getApproximateMatchingRule();
       if (matchingRule == null)
@@ -169,7 +172,7 @@ public final class AttributeBuilder
       Assertion assertion = null;
       try
       {
-        assertion = matchingRule.getAssertion(value);
+        assertion = matchingRule.getAssertion(assertionValue);
       }
       catch (Exception e)
       {
@@ -208,6 +211,28 @@ public final class AttributeBuilder
       return values.containsKey(normalize(attributeType, value));
     }
 
+    /** {@inheritDoc} */
+    @Override
+    public ConditionResult matchesEqualityAssertion(ByteString assertionValue)
+    {
+      try
+      {
+        MatchingRule eqRule = getAttributeType().getEqualityMatchingRule();
+        final Assertion assertion = eqRule.getAssertion(assertionValue);
+        for (ByteString normalizedValue : values.keySet())
+        {
+          if (assertion.matches(normalizedValue).toBoolean())
+          {
+            return ConditionResult.TRUE;
+          }
+        }
+        return ConditionResult.FALSE;
+      }
+      catch (DecodeException e)
+      {
+        return ConditionResult.UNDEFINED;
+      }
+    }
 
     /**
      * {@inheritDoc}
@@ -235,7 +260,7 @@ public final class AttributeBuilder
      * {@inheritDoc}
      */
     @Override
-    public final ConditionResult greaterThanOrEqualTo(ByteString value)
+    public final ConditionResult greaterThanOrEqualTo(ByteString assertionValue)
     {
       MatchingRule matchingRule = attributeType.getOrderingMatchingRule();
       if (matchingRule == null)
@@ -246,7 +271,7 @@ public final class AttributeBuilder
       Assertion assertion;
       try
       {
-        assertion = matchingRule.getGreaterOrEqualAssertion(value);
+        assertion = matchingRule.getGreaterOrEqualAssertion(assertionValue);
       }
       catch (DecodeException e)
       {
@@ -268,8 +293,7 @@ public final class AttributeBuilder
         {
           logger.traceException(e);
           // We couldn't normalize one of the attribute values. If we
-          // can't find a definite match, then we should return
-          // "undefined".
+          // can't find a definite match, then we should return "undefined".
           result = ConditionResult.UNDEFINED;
         }
       }
@@ -305,7 +329,7 @@ public final class AttributeBuilder
      * {@inheritDoc}
      */
     @Override
-    public final ConditionResult lessThanOrEqualTo(ByteString value)
+    public final ConditionResult lessThanOrEqualTo(ByteString assertionValue)
     {
       MatchingRule matchingRule = attributeType.getOrderingMatchingRule();
       if (matchingRule == null)
@@ -316,7 +340,7 @@ public final class AttributeBuilder
       Assertion assertion;
       try
       {
-        assertion = matchingRule.getLessOrEqualAssertion(value);
+        assertion = matchingRule.getLessOrEqualAssertion(assertionValue);
       }
       catch (DecodeException e)
       {
@@ -1076,8 +1100,8 @@ public final class AttributeBuilder
   private final SmallSet<String> options = new SmallSet<String>();
 
   /** The map of normalized values => values for this attribute. */
-  private LinkedHashMap<ByteString, ByteString> values =
-      new LinkedHashMap<ByteString, ByteString>();
+  private Map<ByteString, ByteString> values =
+      new SmallMap<ByteString, ByteString>();
 
 
 
@@ -1213,37 +1237,38 @@ public final class AttributeBuilder
    * Adds the specified attribute value to this attribute builder if it is not
    * already present.
    *
-   * @param value
+   * @param attributeValue
    *          The {@link ByteString} representation of the attribute value to be
    *          added to this attribute builder.
    * @return <code>true</code> if this attribute builder did not already contain
    *         the specified attribute value.
    */
-  public boolean add(ByteString value)
+  public boolean add(ByteString attributeValue)
   {
-    return values.put(normalize(value), value) == null;
+    return values.put(normalize(attributeValue), attributeValue) == null;
   }
 
-  private ByteString normalize(ByteString value)
+  private ByteString normalize(ByteString attributeValue)
   {
-    return normalize(attributeType, value);
+    return normalize(attributeType, attributeValue);
   }
 
-  private static ByteString normalize(AttributeType attributeType, ByteString value)
+  private static ByteString normalize(AttributeType attributeType,
+      ByteString attributeValue)
   {
     try
     {
       if (attributeType != null)
       {
         final MatchingRule eqRule = attributeType.getEqualityMatchingRule();
-        return eqRule.normalizeAttributeValue(value);
+        return eqRule.normalizeAttributeValue(attributeValue);
       }
     }
     catch (DecodeException e)
     {
       // nothing to do here
     }
-    return value;
+    return attributeValue;
   }
 
   /**
@@ -1765,7 +1790,7 @@ public final class AttributeBuilder
     else
     {
       newValues = Collections.unmodifiableMap(values);
-      values = new LinkedHashMap<ByteString, ByteString>();
+      values = new SmallMap<ByteString, ByteString>();
     }
 
     // Now create the appropriate attribute based on the options.

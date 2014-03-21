@@ -62,14 +62,14 @@ public interface Attribute extends Iterable<ByteString>
    * Indicates whether this attribute has any value(s) that are
    * approximately equal to the provided value.
    *
-   * @param value
-   *          The value for which to make the determination.
+   * @param assertionValue
+   *          The assertion value for which to make the determination.
    * @return <CODE>UNDEFINED</CODE> if this attribute does not have
    *         an approximate matching rule, <CODE>TRUE</CODE> if at
    *         least one value is approximately equal to the provided
    *         value, or <CODE>false</CODE> otherwise.
    */
-  ConditionResult approximatelyEqualTo(ByteString value);
+  ConditionResult approximatelyEqualTo(ByteString assertionValue);
 
 
 
@@ -96,6 +96,18 @@ public interface Attribute extends Iterable<ByteString>
    *         if it does not contain at least one of them.
    */
   boolean containsAll(Collection<ByteString> values);
+
+
+
+  /**
+   * Indicates whether this attribute matches the specified assertion value.
+   *
+   * @param assertionValue
+   *          The assertion value for which to make the determination.
+   * @return <CODE>true</CODE> if this attribute matches the specified assertion
+   *         value, or <CODE>false</CODE> if not.
+   */
+  ConditionResult matchesEqualityAssertion(ByteString assertionValue);
 
 
 
@@ -159,14 +171,14 @@ public interface Attribute extends Iterable<ByteString>
    * Indicates whether this attribute has any value(s) that are
    * greater than or equal to the provided value.
    *
-   * @param value
-   *          The value for which to make the determination.
+   * @param assertionValue
+   *          The assertion value for which to make the determination.
    * @return <CODE>UNDEFINED</CODE> if this attribute does not have
    *         an ordering matching rule, <CODE>TRUE</CODE> if at
    *         least one value is greater than or equal to the provided
-   *         value, or <CODE>false</CODE> otherwise.
+   *         assertion value, or <CODE>false</CODE> otherwise.
    */
-  ConditionResult greaterThanOrEqualTo(ByteString value);
+  ConditionResult greaterThanOrEqualTo(ByteString assertionValue);
 
 
 
@@ -257,14 +269,14 @@ public interface Attribute extends Iterable<ByteString>
    * Indicates whether this attribute has any value(s) that are less
    * than or equal to the provided value.
    *
-   * @param value
-   *          The value for which to make the determination.
+   * @param assertionValue
+   *          The assertion value for which to make the determination.
    * @return <CODE>UNDEFINED</CODE> if this attribute does not have
    *         an ordering matching rule, <CODE>TRUE</CODE> if at
    *         least one value is less than or equal to the provided
-   *         value, or <CODE>false</CODE> otherwise.
+   *         assertion value, or <CODE>false</CODE> otherwise.
    */
-  ConditionResult lessThanOrEqualTo(ByteString value);
+  ConditionResult lessThanOrEqualTo(ByteString assertionValue);
 
 
 

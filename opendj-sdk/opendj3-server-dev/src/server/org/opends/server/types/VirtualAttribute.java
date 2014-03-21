@@ -35,9 +35,7 @@ import java.util.Set;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
-import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.util.Utils;
-import org.opends.server.api.MatchingRule;
 import org.opends.server.api.VirtualAttributeProvider;
 
 /**
@@ -93,9 +91,9 @@ public final class VirtualAttribute
 
   /** {@inheritDoc} */
   @Override
-  public ConditionResult approximatelyEqualTo(ByteString value)
+  public ConditionResult approximatelyEqualTo(ByteString assertionValue)
   {
-    return provider.approximatelyEqualTo(entry, rule, value);
+    return provider.approximatelyEqualTo(entry, rule, assertionValue);
   }
 
 
@@ -116,6 +114,12 @@ public final class VirtualAttribute
     return provider.hasAllValues(entry, rule, values);
   }
 
+  /** {@inheritDoc} */
+  @Override
+  public ConditionResult matchesEqualityAssertion(ByteString assertionValue)
+  {
+    return provider.matchesEqualityAssertion(entry, rule, assertionValue);
+  }
 
 
   /** {@inheritDoc} */
@@ -161,9 +165,9 @@ public final class VirtualAttribute
 
   /** {@inheritDoc} */
   @Override
-  public ConditionResult greaterThanOrEqualTo(ByteString value)
+  public ConditionResult greaterThanOrEqualTo(ByteString assertionValue)
   {
-    return provider.greaterThanOrEqualTo(entry, rule, value);
+    return provider.greaterThanOrEqualTo(entry, rule, assertionValue);
   }
 
 
@@ -224,9 +228,9 @@ public final class VirtualAttribute
 
   /** {@inheritDoc} */
   @Override
-  public ConditionResult lessThanOrEqualTo(ByteString value)
+  public ConditionResult lessThanOrEqualTo(ByteString assertionValue)
   {
-    return provider.lessThanOrEqualTo(entry, rule, value);
+    return provider.lessThanOrEqualTo(entry, rule, assertionValue);
   }
 
 
@@ -259,27 +263,6 @@ public final class VirtualAttribute
       return provider.getValues(entry, rule).size();
     }
     return provider.hasValue(entry, rule) ? 1 : 0;
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public int hashCode()
-  {
-    int hashCode = getAttributeType().hashCode();
-    for (ByteString value : this)
-    {
-      try
-      {
-        final MatchingRule eqRule = attributeType.getEqualityMatchingRule();
-        final ByteString nv = eqRule.normalizeAttributeValue(value);
-        hashCode += nv.hashCode();
-      }
-      catch (DecodeException e)
-      {
-        logger.traceException(e);
-      }
-    }
-    return hashCode;
   }
 
   /** {@inheritDoc} */
