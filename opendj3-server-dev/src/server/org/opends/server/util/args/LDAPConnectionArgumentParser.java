@@ -27,37 +27,36 @@
 
 package org.opends.server.util.args;
 
-import org.forgerock.i18n.LocalizableMessage;
+import java.io.PrintStream;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.opends.messages.ToolMessages.*;
+import javax.net.ssl.SSLException;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
 
 import org.opends.server.tools.LDAPConnection;
 import org.opends.server.tools.LDAPConnectionOptions;
 import org.opends.server.tools.SSLConnectionFactory;
 import org.opends.server.tools.SSLConnectionException;
 import org.opends.server.tools.LDAPConnectionException;
-
-import static org.opends.server.util.ServerConstants.MAX_LINE_WIDTH;
-import static org.opends.server.util.StaticUtils.wrapText;
-
-import org.opends.server.util.cli.LDAPConnectionConsoleInteraction;
-import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
 import org.opends.server.types.OpenDsException;
+import org.opends.server.util.cli.LDAPConnectionConsoleInteraction;
 
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.ArgumentGroup;
+import com.forgerock.opendj.cli.ClientException;
 import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.FileBasedArgument;
 import com.forgerock.opendj.cli.StringArgument;
 
-import java.util.LinkedList;
-import java.util.LinkedHashSet;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.io.PrintStream;
-
-import javax.net.ssl.SSLException;
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * Creates an argument parser pre-populated with arguments for specifying
@@ -493,39 +492,63 @@ public class LDAPConnectionArgumentParser extends ArgumentParser {
                                         PrintStream out,
                                         PrintStream err)
   {
-    String pwd = bindPwdArg.getValue();
-    String bindDN = bindDnArg.getValue();
-    if(pwd != null && pwd.equals("-")  ||
-      (!bindPwdFileArg.isPresent()  &&
-      (bindDN != null && pwd == null)))
+    try
+    {
+      return getPasswordValue(bindPwdArg, bindPwdFileArg, bindDnArg.getValue(), out,
+          err);
+    }
+    catch (Exception ex)
+    {
+      err.println(wrapText(ex.getMessage(), MAX_LINE_WIDTH));
+      return null;
+    }
+  }
+
+  /**
+   * Commodity method that retrieves the password value analyzing the contents
+   * of a string argument and of a file based argument.  It assumes that the
+   * arguments have already been parsed and validated.
+   * If the string is a dash, or no password is available, it will prompt for
+   * it on the command line.
+   *
+   * @param bindPassword the string argument for the password.
+   * @param bindPasswordFile the file based argument for the password.
+   * @param bindDNValue the string value for the bindDN.
+   * @param out stream to write message.
+   * @param err stream to write error message.
+   * @return the password value.
+   * @throws ClientException if the password cannot be read
+   */
+  public static String getPasswordValue(StringArgument bindPassword,
+      FileBasedArgument bindPasswordFile, String bindDNValue, PrintStream out,
+      PrintStream err) throws ClientException
+  {
+    String bindPasswordValue = bindPassword.getValue();
+    if ("-".equals(bindPasswordValue)
+        || (!bindPasswordFile.isPresent()
+            && bindDNValue != null
+            && bindPasswordValue == null))
     {
       // read the password from the stdin.
-      try
+      out.print(INFO_LDAPAUTH_PASSWORD_PROMPT.get(bindDNValue));
+      char[] pwChars = ConsoleApplication.readPassword();
+      // As per rfc 4513(section-5.1.2) a client should avoid sending
+      // an empty password to the server.
+      while (pwChars.length == 0)
       {
-        out.print(INFO_LDAPAUTH_PASSWORD_PROMPT.get(bindDN));
-        char[] pwChars = ConsoleApplication.readPassword();
-        pwd = new String(pwChars);
-        //As per rfc 4513(section-5.1.2) a client should avoid sending
-        //an empty password to the server.
-        while(pwChars.length ==0)
-        {
-          err.println(wrapText(
-                  INFO_LDAPAUTH_NON_EMPTY_PASSWORD.get(),
-                  MAX_LINE_WIDTH));
-          out.print(INFO_LDAPAUTH_PASSWORD_PROMPT.get(bindDN));
-          pwChars = ConsoleApplication.readPassword();
-        }
-        pwd = new String(pwChars);
-      } catch(Exception ex)
-      {
-        err.println(wrapText(ex.getMessage(), MAX_LINE_WIDTH));
-        return null;
+        err.println(wrapText(INFO_LDAPAUTH_NON_EMPTY_PASSWORD.get(),
+            MAX_LINE_WIDTH));
+        out.print(INFO_LDAPAUTH_PASSWORD_PROMPT.get(bindDNValue));
+        pwChars = ConsoleApplication.readPassword();
       }
+      return new String(pwChars);
     }
-    else if (pwd == null)    {
-      pwd = bindPwdFileArg.getValue();
+    else if (bindPasswordValue == null)
+    {
+      // Read from file if it exists.
+      return bindPasswordFile.getValue();
     }
-    return pwd;
+    return bindPasswordValue;
   }
 
   private void addLdapConnectionArguments(ArgumentGroup argGroup,

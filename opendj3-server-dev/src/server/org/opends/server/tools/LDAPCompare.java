@@ -25,6 +25,7 @@
  *      Portions Copyright 2012-2014 ForgeRock AS
  */
 package org.opends.server.tools;
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -37,25 +38,27 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.opends.admin.ads.util.ConnectionUtils;
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.controls.LDAPAssertionRequestControl;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
+import org.opends.admin.ads.util.ConnectionUtils;
+import org.opends.server.controls.LDAPAssertionRequestControl;
 import org.opends.server.protocols.ldap.CompareRequestProtocolOp;
 import org.opends.server.protocols.ldap.CompareResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.ProtocolOp;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
+import org.opends.server.types.Control;
+import org.opends.server.types.LDAPException;
+import org.opends.server.types.NullOutputStream;
 import org.opends.server.util.Base64;
 import org.opends.server.util.EmbeddedUtils;
 
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.ClientException;
 import com.forgerock.opendj.cli.CommonArguments;
-import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.FileBasedArgument;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.StringArgument;
@@ -65,7 +68,7 @@ import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-
+import static org.opends.server.util.args.LDAPConnectionArgumentParser.*;
 
 /**
  * This class provides a tool that can be used to issue compare requests to the
@@ -803,37 +806,16 @@ public class LDAPCompare
 
     String bindDNValue = bindDN.getValue();
     String fileNameValue = filename.getValue();
-    String bindPasswordValue = bindPassword.getValue();
-    if(bindPasswordValue != null && bindPasswordValue.equals("-")  ||
-       (!bindPasswordFile.isPresent()  &&
-       (bindDNValue != null && bindPasswordValue == null)))
+    String bindPasswordValue;
+    try
     {
-      // read the password from the stdin.
-      try
-      {
-        out.print(INFO_LDAPAUTH_PASSWORD_PROMPT.get(bindDNValue));
-        char[] pwChars = ConsoleApplication.readPassword();
-        bindPasswordValue = new String(pwChars);
-        //As per rfc 4513(section-5.1.2) a client should avoid sending
-        //an empty password to the server.
-        while(pwChars.length==0)
-        {
-          err.println(wrapText(
-                  INFO_LDAPAUTH_NON_EMPTY_PASSWORD.get(),
-                  MAX_LINE_WIDTH));
-          out.print(INFO_LDAPAUTH_PASSWORD_PROMPT.get(bindDNValue));
-          pwChars = ConsoleApplication.readPassword();
-        }
-        bindPasswordValue = new String(pwChars);
-      } catch(Exception ex)
-      {
-        err.println(wrapText(ex.getMessage(), MAX_LINE_WIDTH));
-        return CLIENT_SIDE_PARAM_ERROR;
-      }
-    } else if(bindPasswordValue == null)
+      bindPasswordValue = getPasswordValue(
+          bindPassword, bindPasswordFile, bindDNValue, out, err);
+    }
+    catch (ClientException ex)
     {
-      // Read from file if it exists.
-      bindPasswordValue = bindPasswordFile.getValue();
+      err.println(wrapText(ex.getMessage(), MAX_LINE_WIDTH));
+      return CLIENT_SIDE_PARAM_ERROR;
     }
 
     String keyStorePathValue = keyStorePath.getValue();

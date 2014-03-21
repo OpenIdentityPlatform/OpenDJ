@@ -27,13 +27,14 @@ package org.opends.server.types;
 import java.util.*;
 import java.util.Map.Entry;
 
+import org.opends.server.DirectoryServerTestCase;
 import org.testng.annotations.Test;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.testng.Assert.*;
 
 @SuppressWarnings("javadoc")
-public class SmallMapTest
+public class SmallMapTest extends DirectoryServerTestCase
 {
 
   @Test
