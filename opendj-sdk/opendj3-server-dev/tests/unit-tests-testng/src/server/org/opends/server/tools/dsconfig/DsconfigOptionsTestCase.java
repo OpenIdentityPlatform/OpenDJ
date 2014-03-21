@@ -48,26 +48,99 @@ public class DsconfigOptionsTestCase extends DirectoryServerTestCase {
   {
     TestCaseUtils.startServer();
   }
-
-  /**
-   * Ensures ADS is removed.
-   */
-  @AfterClass()
-  public void afterClass() throws Exception
-  {
+  
+  @AfterClass(alwaysRun = true)
+  public void tearDown() throws Exception {
+    
+    TestCaseUtils.dsconfig(
+        "delete-connection-handler",
+        "--handler-name", "HTTP Connection Handler",
+        "-f");
+   }  
+  
+  @Test()
+  public void testSetEnableHTTPConnectionHandler() {
+    
+    final String[] args =
+    {
+      "set-connection-handler-prop",
+      "-p", String.valueOf(TestCaseUtils.getServerAdminPort()),
+      "--trustAll",
+      "--bindDN","cn=Directory Manager",
+      "--bindPassword" , "password",
+      "--no-prompt",
+      "--handler-name", "HTTP Connection Handler",
+      "--set", "authentication-required:false"     
+    };
+    assertTrue(dsconfigMain(args) == SUCCESSFUL.getReturnCode());
+  }
+  
+  @Test()
+  public void testSetSASLHandler() {    
+    final String[] args =
+    {
+      "set-sasl-mechanism-handler-prop",
+      "-p", String.valueOf(TestCaseUtils.getServerAdminPort()),
+      "--trustAll",
+      "--bindDN","cn=Directory Manager",
+      "--bindPassword" , "password",
+      "--no-prompt",
+      "--handler-name", "DIGEST-MD5",
+      "--set", "server-fqdn:" + "127.0.0.1"
+    };
+    assertTrue(dsconfigMain(args) == SUCCESSFUL.getReturnCode());
+    
+    TestCaseUtils.dsconfig(
+            "set-sasl-mechanism-handler-prop",
+            "--handler-name", "DIGEST-MD5",
+            "--reset", "server-fqdn",
+            "--reset", "quality-of-protection");
   }
 
+    
+  @Test()
+  public void testSetMaxAllowedClientConnections() {
+    final String[] args =
+    {
+      "set-global-configuration-prop",
+      "-p", String.valueOf(TestCaseUtils.getServerAdminPort()),
+      "--trustAll",
+      "--bindDN","cn=Directory Manager",
+      "--bindPassword" , "password",
+      "--no-prompt",
+      "--set", "max-allowed-client-connections:32768"
+    };
+    assertTrue(dsconfigMain(args) == SUCCESSFUL.getReturnCode());
+  }
+  
+  @Test()
+  public void testSetReturnBindPassword() throws Exception
+  {    
+    final String[] args =
+    {
+      "set-global-configuration-prop",
+      "-p", String.valueOf(TestCaseUtils.getServerAdminPort()),
+      "--trustAll",
+      "--bindDN","cn=Directory Manager",
+      "--bindPassword" , "password",
+      "--no-prompt",
+      "--set", "return-bind-error-messages:true"
+    };
+    assertTrue(dsconfigMain(args) == SUCCESSFUL.getReturnCode());
+  }
+  
+
   /**
-   * Tests that multiple  "--set" option cannot be used with a singlevalued
+   * Tests that multiple  "--set" option cannot be used with a single valued
    * property
    */
   @Test()
   public void testMultipleSetSingleValuedProperty() throws Exception
   {
-    String[] args =
+    final String[] args =
     {
           "set-global-configuration-prop",
-          "-p",String.valueOf(TestCaseUtils.getServerAdminPort()),
+          "-p", String.valueOf(TestCaseUtils.getServerAdminPort()),
           "--trustAll",
           "--bindDN","cn=Directory Manager",
           "--bindPassword" , "password",
@@ -77,7 +150,7 @@ public class DsconfigOptionsTestCase extends DirectoryServerTestCase {
     };
     assertTrue(dsconfigMain(args) != SUCCESSFUL.getReturnCode());
   }
-
+  
   /**
    * Tests that multiple  "--set" option are allowed to be used with a multivalued
    * property (see OPENDJ-255)
@@ -85,11 +158,11 @@ public class DsconfigOptionsTestCase extends DirectoryServerTestCase {
   @Test()
   public void testMultipleSetMultiValuedProperty() throws Exception
   {
-    String[] args =
+    final String[] args =
     {
           "set-connection-handler-prop",
           "--handler-name", "LDAP Connection Handler",
-          "-p",String.valueOf(TestCaseUtils.getServerAdminPort()),
+          "-p", String.valueOf(TestCaseUtils.getServerAdminPort()),
           "--trustAll",
           "--bindDN","cn=Directory Manager",
           "--bindPassword" , "password",
@@ -99,12 +172,12 @@ public class DsconfigOptionsTestCase extends DirectoryServerTestCase {
     };
     assertEquals(dsconfigMain(args), SUCCESSFUL.getReturnCode());
   }
-
-  @Test
+  
+  @Test()
   public void testGenerateDoc() throws Exception
   {
     System.setProperty("org.forgerock.opendj.gendoc", "true");
-    String[] args = {
+    final String[] args = {
       "--no-prompt",
       "-?",
     };
@@ -120,7 +193,7 @@ public class DsconfigOptionsTestCase extends DirectoryServerTestCase {
 
   private int dsconfigMain(String[] args)
   {
-    return DSConfig.main(args, false, System.out, System.err);
+    return DSConfig.main(args, System.out, System.err);
   }
 
 }

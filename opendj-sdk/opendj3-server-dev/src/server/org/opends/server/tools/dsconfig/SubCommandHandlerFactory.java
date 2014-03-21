@@ -31,17 +31,17 @@ package org.opends.server.tools.dsconfig;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.opends.server.admin.AbstractManagedObjectDefinition;
-import org.opends.server.admin.Configuration;
-import org.opends.server.admin.ConfigurationClient;
-import org.opends.server.admin.InstantiableRelationDefinition;
-import org.opends.server.admin.ManagedObjectPath;
-import org.opends.server.admin.OptionalRelationDefinition;
-import org.opends.server.admin.RelationDefinition;
-import org.opends.server.admin.RelationDefinitionVisitor;
-import org.opends.server.admin.RelationOption;
-import org.opends.server.admin.SetRelationDefinition;
-import org.opends.server.admin.SingletonRelationDefinition;
+import org.forgerock.opendj.config.AbstractManagedObjectDefinition;
+import org.forgerock.opendj.config.Configuration;
+import org.forgerock.opendj.config.ConfigurationClient;
+import org.forgerock.opendj.config.InstantiableRelationDefinition;
+import org.forgerock.opendj.config.ManagedObjectPath;
+import org.forgerock.opendj.config.OptionalRelationDefinition;
+import org.forgerock.opendj.config.RelationDefinition;
+import org.forgerock.opendj.config.RelationDefinitionVisitor;
+import org.forgerock.opendj.config.RelationOption;
+import org.forgerock.opendj.config.SetRelationDefinition;
+import org.forgerock.opendj.config.SingletonRelationDefinition;
 
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.SubCommandArgumentParser;

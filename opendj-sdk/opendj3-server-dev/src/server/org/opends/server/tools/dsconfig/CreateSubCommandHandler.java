@@ -34,8 +34,6 @@ import static org.opends.messages.ToolMessages.INFO_NAME_PLACEHOLDER;
 import static org.opends.messages.ToolMessages.INFO_PROPERTY_PLACEHOLDER;
 import static org.opends.messages.ToolMessages.INFO_TYPE_PLACEHOLDER;
 import static org.opends.messages.ToolMessages.INFO_VALUE_SET_PLACEHOLDER;
-import static org.opends.server.admin.PropertyException.
-propertyIsSingleValuedException;
 import static org.opends.server.tools.dsconfig.ArgumentExceptionFactory.
 displayMissingMandatoryPropertyException;
 import static org.opends.server.tools.dsconfig.ArgumentExceptionFactory.
@@ -55,36 +53,37 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.admin.AbstractManagedObjectDefinition;
-import org.opends.server.admin.AggregationPropertyDefinition;
-import org.opends.server.admin.Configuration;
-import org.opends.server.admin.ConfigurationClient;
-import org.opends.server.admin.DefinitionDecodingException;
-import org.opends.server.admin.InstantiableRelationDefinition;
-import org.opends.server.admin.ManagedObjectAlreadyExistsException;
-import org.opends.server.admin.ManagedObjectDefinition;
-import org.opends.server.admin.ManagedObjectNotFoundException;
-import org.opends.server.admin.ManagedObjectOption;
-import org.opends.server.admin.ManagedObjectPath;
-import org.opends.server.admin.OptionalRelationDefinition;
-import org.opends.server.admin.PropertyDefinition;
-import org.opends.server.admin.PropertyDefinitionUsageBuilder;
-import org.opends.server.admin.PropertyException;
-import org.opends.server.admin.PropertyOption;
-import org.opends.server.admin.PropertyProvider;
-import org.opends.server.admin.RelationDefinition;
-import org.opends.server.admin.SetRelationDefinition;
-import org.opends.server.admin.client.AuthorizationException;
+import org.forgerock.opendj.config.AbstractManagedObjectDefinition;
+import org.forgerock.opendj.config.AggregationPropertyDefinition;
+import org.forgerock.opendj.config.Configuration;
+import org.forgerock.opendj.config.ConfigurationClient;
+import org.forgerock.opendj.config.DefinitionDecodingException;
+import org.forgerock.opendj.config.InstantiableRelationDefinition;
+import org.forgerock.opendj.config.ManagedObjectAlreadyExistsException;
+import org.forgerock.opendj.config.ManagedObjectDefinition;
+import org.forgerock.opendj.config.ManagedObjectNotFoundException;
+import org.forgerock.opendj.config.ManagedObjectOption;
+import org.forgerock.opendj.config.ManagedObjectPath;
+import org.forgerock.opendj.config.OptionalRelationDefinition;
+import org.forgerock.opendj.config.PropertyDefinition;
+import org.forgerock.opendj.config.PropertyDefinitionUsageBuilder;
+import org.forgerock.opendj.config.PropertyException;
+import org.forgerock.opendj.config.PropertyOption;
+import org.forgerock.opendj.config.PropertyProvider;
+import org.forgerock.opendj.config.RelationDefinition;
+import org.forgerock.opendj.config.SetRelationDefinition;
+import org.forgerock.opendj.config.client.ConcurrentModificationException;
+import org.forgerock.opendj.config.client.IllegalManagedObjectNameException;
+import org.forgerock.opendj.config.client.ManagedObject;
+import org.forgerock.opendj.config.client.ManagedObjectDecodingException;
+import org.forgerock.opendj.config.client.ManagementContext;
+import org.forgerock.opendj.config.client.MissingMandatoryPropertiesException;
+import org.forgerock.opendj.config.client.OperationRejectedException;
+import org.forgerock.opendj.config.conditions.Condition;
+import org.forgerock.opendj.config.conditions.ContainsCondition;
+import org.forgerock.opendj.ldap.AuthorizationException;
+import org.forgerock.opendj.ldap.ErrorResultException;
 import org.opends.server.admin.client.CommunicationException;
-import org.opends.server.admin.client.ConcurrentModificationException;
-import org.opends.server.admin.client.IllegalManagedObjectNameException;
-import org.opends.server.admin.client.ManagedObject;
-import org.opends.server.admin.client.ManagedObjectDecodingException;
-import org.opends.server.admin.client.ManagementContext;
-import org.opends.server.admin.client.MissingMandatoryPropertiesException;
-import org.opends.server.admin.client.OperationRejectedException;
-import org.opends.server.admin.condition.Condition;
-import org.opends.server.admin.condition.ContainsCondition;
 
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
@@ -227,7 +226,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
       values.add(value);
 
       if (values.size() > 1 && !pd.hasOption(PropertyOption.MULTI_VALUED)) {
-        PropertyException e = propertyIsSingleValuedException(pd);
+        PropertyException e = PropertyException.propertyIsSingleValuedException(pd);
         throw ArgumentExceptionFactory.adaptPropertyException(e, d);
       }
 
@@ -697,7 +696,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
     } catch (AuthorizationException e) {
       LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_AUTHZ.get(ufn);
       throw new ClientException(ReturnCode.INSUFFICIENT_ACCESS_RIGHTS, msg);
-    } catch (CommunicationException e) {
+    } catch (ErrorResultException e) {
       LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_CE.get(ufn, e.getMessage());
       throw new ClientException(ReturnCode.OTHER, msg);
     }
@@ -814,7 +813,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
           throw new ClientException(ReturnCode.CONSTRAINT_VIOLATION, e
               .getMessageObject(), e);
         }
-      } catch (CommunicationException e) {
+      } catch (ErrorResultException e) {
         LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_CE.get(ufn, e.getMessage());
         if (app.isInteractive()) {
           app.println();
@@ -878,7 +877,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
           LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_CME.get(irelation
               .getUserFriendlyName());
           throw new ClientException(ReturnCode.TODO, msg);
-        } catch (CommunicationException e) {
+        } catch (ErrorResultException e) {
           LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_CE.get(irelation
               .getUserFriendlyName(), e.getMessage());
           throw new ClientException(ReturnCode.TODO, msg);
@@ -1238,7 +1237,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
         LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_CME.get(ufn);
         throw new ClientException(ReturnCode.CONSTRAINT_VIOLATION, msg);
       }
-      catch (CommunicationException e)
+      catch (ErrorResultException e)
       {
         LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_CE.get(ufn, e
             .getMessage());

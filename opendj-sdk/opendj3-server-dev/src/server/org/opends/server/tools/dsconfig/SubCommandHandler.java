@@ -48,32 +48,33 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.admin.AbstractManagedObjectDefinition;
-import org.opends.server.admin.Configuration;
-import org.opends.server.admin.ConfigurationClient;
-import org.opends.server.admin.DefinitionDecodingException;
-import org.opends.server.admin.DurationUnit;
-import org.opends.server.admin.InstantiableRelationDefinition;
-import org.opends.server.admin.ManagedObjectDefinition;
-import org.opends.server.admin.ManagedObjectNotFoundException;
-import org.opends.server.admin.ManagedObjectOption;
-import org.opends.server.admin.ManagedObjectPath;
-import org.opends.server.admin.ManagedObjectPathSerializer;
-import org.opends.server.admin.OptionalRelationDefinition;
-import org.opends.server.admin.PropertyDefinition;
-import org.opends.server.admin.PropertyDefinitionUsageBuilder;
-import org.opends.server.admin.RelationDefinition;
-import org.opends.server.admin.SetRelationDefinition;
-import org.opends.server.admin.SingletonRelationDefinition;
-import org.opends.server.admin.SizeUnit;
-import org.opends.server.admin.Tag;
-import org.opends.server.admin.client.AuthorizationException;
+import org.forgerock.opendj.config.AbstractManagedObjectDefinition;
+import org.forgerock.opendj.config.Configuration;
+import org.forgerock.opendj.config.ConfigurationClient;
+import org.forgerock.opendj.config.DefinitionDecodingException;
+import org.forgerock.opendj.config.DurationUnit;
+import org.forgerock.opendj.config.InstantiableRelationDefinition;
+import org.forgerock.opendj.config.ManagedObjectDefinition;
+import org.forgerock.opendj.config.ManagedObjectNotFoundException;
+import org.forgerock.opendj.config.ManagedObjectOption;
+import org.forgerock.opendj.config.ManagedObjectPath;
+import org.forgerock.opendj.config.ManagedObjectPathSerializer;
+import org.forgerock.opendj.config.OptionalRelationDefinition;
+import org.forgerock.opendj.config.PropertyDefinition;
+import org.forgerock.opendj.config.PropertyDefinitionUsageBuilder;
+import org.forgerock.opendj.config.RelationDefinition;
+import org.forgerock.opendj.config.SetRelationDefinition;
+import org.forgerock.opendj.config.SingletonRelationDefinition;
+import org.forgerock.opendj.config.SizeUnit;
+import org.forgerock.opendj.config.Tag;
+import org.forgerock.opendj.config.client.ConcurrentModificationException;
+import org.forgerock.opendj.config.client.IllegalManagedObjectNameException;
+import org.forgerock.opendj.config.client.ManagedObject;
+import org.forgerock.opendj.config.client.ManagedObjectDecodingException;
+import org.forgerock.opendj.config.client.ManagementContext;
+import org.forgerock.opendj.ldap.AuthorizationException;
+import org.forgerock.opendj.ldap.ErrorResultException;
 import org.opends.server.admin.client.CommunicationException;
-import org.opends.server.admin.client.ConcurrentModificationException;
-import org.opends.server.admin.client.IllegalManagedObjectNameException;
-import org.opends.server.admin.client.ManagedObject;
-import org.opends.server.admin.client.ManagedObjectDecodingException;
-import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.util.ServerConstants;
 
 import com.forgerock.opendj.cli.Argument;
@@ -116,6 +117,8 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
     private AuthorizationException authze;
 
     private CommunicationException ce;
+
+    private ErrorResultException ere;
 
     /**
      * Any CLI exception that was caught when attempting to find the managed
@@ -205,6 +208,9 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
         } catch (ConcurrentModificationException e) {
           cme = e;
           result = MenuResult.quit();
+        } catch (ErrorResultException e) {
+          ere = e;
+          result = MenuResult.quit();
         } catch (CommunicationException e) {
           ce = e;
           result = MenuResult.quit();
@@ -247,8 +253,8 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
         } catch (ConcurrentModificationException e) {
           cme = e;
           result = MenuResult.quit();
-        } catch (CommunicationException e) {
-          ce = e;
+        } catch (ErrorResultException e) {
+          ere = e;
           result = MenuResult.quit();
         }
       }
@@ -339,6 +345,9 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
         } catch (ConcurrentModificationException e) {
           cme = e;
           result = MenuResult.quit();
+        } catch (ErrorResultException e) {
+          ere = e;
+          result = MenuResult.quit();
         } catch (CommunicationException e) {
           ce = e;
           result = MenuResult.quit();
@@ -381,8 +390,8 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
         } catch (ConcurrentModificationException e) {
           cme = e;
           result = MenuResult.quit();
-        } catch (CommunicationException e) {
-          ce = e;
+        } catch (ErrorResultException e) {
+          ere = e;
           result = MenuResult.quit();
         }
       }
@@ -1148,13 +1157,22 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
     app.println();
 
     // Filter out advanced and hidden types if required.
-    String[] childNames;
-    if (r instanceof InstantiableRelationDefinition) {
-      childNames =
-        parent.listChildren((InstantiableRelationDefinition<C,S>)r, d);
-    } else {
-      childNames = parent.listChildren((SetRelationDefinition<C,S>)r, d);
+    String[] childNames = null;
+    try {
+      if (r instanceof InstantiableRelationDefinition)
+      {
+        childNames =
+            parent.listChildren((InstantiableRelationDefinition<C, S>) r, d);
+      }
+      else
+      {
+        childNames = parent.listChildren((SetRelationDefinition<C, S>) r, d);
+      }
+    } catch (ErrorResultException e) {
+      // FIXME check exceptions
+      System.out.println(String.format("An error occured %s", e.getMessage()));
     }
+
     SortedMap<String, String> children = new TreeMap<String, String>(
         String.CASE_INSENSITIVE_ORDER);
 
@@ -1193,6 +1211,9 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
         children.put(childName, childName);
       } catch (ManagedObjectNotFoundException e) {
         // Skip it - the managed object has been concurrently removed.
+      } catch (ErrorResultException e) {
+        // Add it anyway: maybe the user is trying to fix the problem.
+        children.put(childName, childName);
       }
     }
 

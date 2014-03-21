@@ -34,21 +34,22 @@ import java.util.List;
 import java.util.SortedMap;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.admin.DefinitionDecodingException;
-import org.opends.server.admin.InstantiableRelationDefinition;
-import org.opends.server.admin.ManagedObjectDefinition;
-import org.opends.server.admin.ManagedObjectNotFoundException;
-import org.opends.server.admin.ManagedObjectPath;
-import org.opends.server.admin.OptionalRelationDefinition;
-import org.opends.server.admin.RelationDefinition;
-import org.opends.server.admin.SetRelationDefinition;
-import org.opends.server.admin.client.AuthorizationException;
+import org.forgerock.opendj.config.DefinitionDecodingException;
+import org.forgerock.opendj.config.InstantiableRelationDefinition;
+import org.forgerock.opendj.config.ManagedObjectDefinition;
+import org.forgerock.opendj.config.ManagedObjectNotFoundException;
+import org.forgerock.opendj.config.ManagedObjectPath;
+import org.forgerock.opendj.config.OptionalRelationDefinition;
+import org.forgerock.opendj.config.RelationDefinition;
+import org.forgerock.opendj.config.SetRelationDefinition;
+import org.forgerock.opendj.config.client.ConcurrentModificationException;
+import org.forgerock.opendj.config.client.ManagedObject;
+import org.forgerock.opendj.config.client.ManagedObjectDecodingException;
+import org.forgerock.opendj.config.client.ManagementContext;
+import org.forgerock.opendj.config.client.OperationRejectedException;
+import org.forgerock.opendj.ldap.AuthorizationException;
+import org.forgerock.opendj.ldap.ErrorResultException;
 import org.opends.server.admin.client.CommunicationException;
-import org.opends.server.admin.client.ConcurrentModificationException;
-import org.opends.server.admin.client.ManagedObject;
-import org.opends.server.admin.client.ManagedObjectDecodingException;
-import org.opends.server.admin.client.ManagementContext;
-import org.opends.server.admin.client.OperationRejectedException;
 
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
@@ -388,6 +389,9 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
       LocalizableMessage msg = ERR_DSCFG_ERROR_DELETE_CME.get(ufn);
       throw new ClientException(ReturnCode.CONSTRAINT_VIOLATION, msg);
     } catch (CommunicationException e) {
+      LocalizableMessage msg = ERR_DSCFG_ERROR_DELETE_CE.get(ufn, e.getMessage());
+      throw new ClientException(ReturnCode.CLIENT_SIDE_SERVER_DOWN, msg);
+    } catch (ErrorResultException e) {
       LocalizableMessage msg = ERR_DSCFG_ERROR_DELETE_CE.get(ufn, e.getMessage());
       throw new ClientException(ReturnCode.CLIENT_SIDE_SERVER_DOWN, msg);
     }

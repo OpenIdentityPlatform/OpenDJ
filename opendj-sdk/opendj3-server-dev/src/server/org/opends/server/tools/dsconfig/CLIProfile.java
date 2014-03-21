@@ -34,10 +34,10 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import org.opends.server.admin.AbstractManagedObjectDefinition;
-import org.opends.server.admin.ManagedObjectDefinitionResource;
-import org.opends.server.admin.RelationDefinition;
-import org.opends.server.admin.SetRelationDefinition;
+import org.forgerock.opendj.config.AbstractManagedObjectDefinition;
+import org.forgerock.opendj.config.ManagedObjectDefinitionResource;
+import org.forgerock.opendj.config.RelationDefinition;
+import org.forgerock.opendj.config.SetRelationDefinition;
 
 
 

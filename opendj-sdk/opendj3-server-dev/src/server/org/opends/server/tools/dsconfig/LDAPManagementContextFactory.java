@@ -31,30 +31,35 @@ package org.opends.server.tools.dsconfig;
 import static com.forgerock.opendj.cli.ArgumentConstants.OPTION_LONG_HELP;
 import static com.forgerock.opendj.cli.ArgumentConstants.OPTION_SHORT_HELP;
 import static org.opends.messages.DSConfigMessages.*;
+import static org.forgerock.util.Utils.closeSilently;
 
+import java.security.GeneralSecurityException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.LinkedHashSet;
+import java.util.concurrent.TimeUnit;
 
-import javax.naming.NamingException;
-import javax.naming.ldap.InitialLdapContext;
+import javax.naming.AuthenticationException;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLException;
-import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.TrustManager;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.opendj.config.client.ManagementContext;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.config.client.ldap.LDAPManagementContext;
+import org.forgerock.opendj.config.LDAPProfile;
+import org.forgerock.opendj.ldap.AuthorizationException;
+import org.forgerock.opendj.ldap.Connection;
+import org.forgerock.opendj.ldap.LDAPConnectionFactory;
+import org.forgerock.opendj.ldap.LDAPOptions;
+import org.forgerock.opendj.ldap.SSLContextBuilder;
+import org.forgerock.opendj.ldap.TrustManagers;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
-import org.opends.admin.ads.util.OpendsCertificateException;
-import org.opends.server.admin.client.AuthenticationException;
-import org.opends.server.admin.client.AuthenticationNotSupportedException;
-import org.opends.server.admin.client.CommunicationException;
-import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
-import org.opends.server.admin.client.ldap.JNDIDirContextAdaptor;
-import org.opends.server.admin.client.ldap.LDAPConnection;
-import org.opends.server.admin.client.ldap.LDAPManagementContext;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.tools.JavaPropertiesTool.ErrorReturnCode;
 import org.opends.server.util.cli.LDAPConnectionConsoleInteraction;
 
@@ -119,10 +124,7 @@ public final class LDAPManagementContextFactory implements
   @Override
   public void close()
   {
-    if (context != null)
-    {
-      context.close();
-    }
+    closeSilently(context);
   }
 
   /** {@inheritDoc} */
@@ -166,157 +168,182 @@ public final class LDAPManagementContextFactory implements
       KeyManager keyManager = ci.getKeyManager();
 
       // Do we have a secure connection ?
-      LDAPConnection conn ;
+      Connection connection;
+      final LDAPOptions options = new LDAPOptions();
+      options.setConnectTimeout(ci.getConnectTimeout(), TimeUnit.MILLISECONDS);
+      LDAPConnectionFactory factory = null;
       if (ci.useSSL())
       {
-        InitialLdapContext ctx;
-        String ldapsUrl = "ldaps://" + hostName + ":" + portNumber;
         while (true)
         {
           try
           {
-            ctx = ConnectionUtils.createLdapsContext(ldapsUrl, bindDN,
-                bindPassword, ci.getConnectTimeout(), null,
-                trustManager, keyManager);
-            ctx.reconnect(null);
-            conn = JNDIDirContextAdaptor.adapt(ctx);
+            final SSLContextBuilder sslBuilder = new SSLContextBuilder();
+            sslBuilder.setTrustManager((trustManager==null?TrustManagers.trustAll():trustManager));
+            sslBuilder.setKeyManager(keyManager);
+            sslBuilder.setProtocol(SSLContextBuilder.PROTOCOL_SSL);
+            options.setUseStartTLS(false);
+            options.setSSLContext(sslBuilder.getSSLContext());
+
+            factory = new LDAPConnectionFactory(hostName, portNumber, options);
+            connection = factory.getConnection();
+            connection.bind(bindDN, bindPassword.toCharArray());
             break;
           }
-          catch (NamingException e)
+          catch (ErrorResultException e)
           {
             if (app.isInteractive()
                 && ci.isTrustStoreInMemory()
-                && e.getRootCause() != null
-                && e.getRootCause().getCause() instanceof OpendsCertificateException)
+                && e.getCause() != null
+                && e.getCause() instanceof SSLException
+                && e.getCause().getCause() instanceof CertificateException)
             {
-              OpendsCertificateException oce =
-                  (OpendsCertificateException) e.getRootCause().getCause();
               String authType = null;
               if (trustManager instanceof ApplicationTrustManager)
-              {
+              { // FIXME use PromptingTrustManager
                 ApplicationTrustManager appTrustManager =
                     (ApplicationTrustManager) trustManager;
                 authType = appTrustManager.getLastRefusedAuthType();
-              }
-              if (ci.checkServerCertificate(oce.getChain(), authType, hostName))
-              {
-                // If the certificate is trusted, update the trust manager.
-                trustManager = ci.getTrustManager();
-                // Try to connect again.
-                continue;
-              }
-            }
-            if (e.getRootCause() != null) {
-              if (e.getRootCause().getCause() != null
-                  && (e.getRootCause().getCause() instanceof OpendsCertificateException
-                  || e.getRootCause() instanceof SSLHandshakeException))
-              {
-                final LocalizableMessage message =
-                    ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT_NOT_TRUSTED.get(
-                        hostName, portNumber);
-                throw new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR,
-                    message);
-              }
-              if (e.getRootCause() instanceof SSLException) {
-                final LocalizableMessage message =
-                  ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT_WRONG_PORT.get(hostName, portNumber);
-                throw new ClientException(
-                    ReturnCode.CLIENT_SIDE_CONNECT_ERROR, message);
+                X509Certificate[] cert = appTrustManager.getLastRefusedChain();
+
+                if (ci.checkServerCertificate(cert, authType, hostName))
+                {
+                  // If the certificate is trusted, update the trust manager.
+                  trustManager = ci.getTrustManager();
+                  // Try to connect again.
+                  continue;
+                }
               }
             }
-            final LocalizableMessage message = ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(hostName, portNumber);
-            throw new ClientException(
-                ReturnCode.CLIENT_SIDE_CONNECT_ERROR, message);
+            if (e.getCause() != null && e.getCause() instanceof SSLException)
+            {
+              LocalizableMessage message =
+                  ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT_NOT_TRUSTED.get(
+                      hostName, portNumber);
+              throw new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR,
+                  message);
+            }
+            LocalizableMessage message =
+                ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT
+                    .get(hostName, portNumber);
+            throw new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR,
+                message);
+          }
+          catch (GeneralSecurityException e)
+          {
+            LocalizableMessage message =
+                ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT
+                    .get(hostName, portNumber);
+            throw new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR,
+                message);
           }
         }
       }
       else if (ci.useStartTLS())
       {
-        InitialLdapContext ctx;
-        String ldapUrl = "ldap://" + hostName + ":" + portNumber;
         while (true)
         {
           try
           {
-            ctx = ConnectionUtils.createStartTLSContext(ldapUrl, bindDN,
-                bindPassword, ConnectionUtils.getDefaultLDAPTimeout(), null,
-                trustManager, keyManager, null);
-            ctx.reconnect(null);
-            conn = JNDIDirContextAdaptor.adapt(ctx);
+            final SSLContextBuilder sslBuilder = new SSLContextBuilder();
+            sslBuilder.setTrustManager((trustManager == null ? TrustManagers
+                .trustAll() : trustManager));
+            sslBuilder.setKeyManager(keyManager);
+            sslBuilder.setProtocol(SSLContextBuilder.PROTOCOL_SSL);
+            options.setUseStartTLS(true);
+            options.setSSLContext(sslBuilder.getSSLContext());
+
+            factory = new LDAPConnectionFactory(hostName, portNumber, options);
+            connection = factory.getConnection();
+            connection.bind(bindDN, bindPassword.toCharArray());
             break;
           }
-          catch (NamingException e)
+          catch (ErrorResultException e)
           {
-            if ( app.isInteractive() && ci.isTrustStoreInMemory())
+            if (app.isInteractive()
+                && ci.isTrustStoreInMemory()
+                && e.getCause() != null
+                && e.getCause() instanceof SSLException
+                && e.getCause().getCause() instanceof CertificateException)
             {
-              if (e.getRootCause() != null
-                  && e.getRootCause().getCause() instanceof OpendsCertificateException)
-              {
-                String authType = null;
-                if (trustManager instanceof ApplicationTrustManager)
-                {
-                  ApplicationTrustManager appTrustManager =
-                    (ApplicationTrustManager)trustManager;
-                  authType = appTrustManager.getLastRefusedAuthType();
-                }
-                OpendsCertificateException oce =
-                  (OpendsCertificateException) e.getRootCause().getCause();
-                  if (ci.checkServerCertificate(oce.getChain(), authType,
-                      hostName))
-                  {
-                    // If the certificate is trusted, update the trust manager.
-                    trustManager = ci.getTrustManager();
+              String authType = null;
+              if (trustManager instanceof ApplicationTrustManager)
+              { // FIXME use PromptingTrustManager
+                ApplicationTrustManager appTrustManager =
+                    (ApplicationTrustManager) trustManager;
+                authType = appTrustManager.getLastRefusedAuthType();
+                X509Certificate[] cert = appTrustManager.getLastRefusedChain();
 
-                    // Try to connect again.
-                    continue ;
-                  }
-              }
-              else
-              {
-                LocalizableMessage message = ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(
-                    hostName, portNumber);
-                throw new ClientException(
-                    ReturnCode.CLIENT_SIDE_CONNECT_ERROR, message);
+                if (ci.checkServerCertificate(cert, authType, hostName))
+                {
+                  // If the certificate is trusted, update the trust manager.
+                  trustManager = ci.getTrustManager();
+                  // Try to connect again.
+                  continue;
+                }
               }
             }
-            LocalizableMessage message = ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(
-                hostName, portNumber);
-            throw new ClientException(
-                ReturnCode.CLIENT_SIDE_CONNECT_ERROR, message);
+            if (e.getCause() != null && e.getCause() instanceof SSLException)
+            {
+              LocalizableMessage message =
+                  ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT_NOT_TRUSTED.get(
+                      hostName, portNumber);
+              throw new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR,
+                  message);
+            }
+            LocalizableMessage message =
+                ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT
+                    .get(hostName, portNumber);
+            throw new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR,
+                message);
+          }
+          catch (GeneralSecurityException e)
+          {
+            LocalizableMessage message =
+                ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT
+                    .get(hostName, portNumber);
+            throw new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR,
+                message);
           }
         }
       }
       else
-      {
+      { // FIXME The dsconfig is always using secure connection. This code can be
+        // removed in this case but statusCli and uninstall are also using it. Cleanup needed.
         // Create the management context.
         try
         {
-          conn = JNDIDirContextAdaptor.simpleBind(hostName, portNumber,
-              bindDN, bindPassword);
+          factory = new LDAPConnectionFactory(hostName, portNumber, options);
+          connection = factory.getConnection();
+          connection.bind(bindDN, bindPassword.toCharArray());
         }
-        catch (AuthenticationNotSupportedException e)
+        catch (ErrorResultException e)
         {
-          LocalizableMessage message = ERR_DSCFG_ERROR_LDAP_SIMPLE_BIND_NOT_SUPPORTED
-              .get();
-          throw new ClientException(ReturnCode.AUTH_METHOD_NOT_SUPPORTED,
-              message);
-        }
-        catch (AuthenticationException e)
-        {
-          LocalizableMessage message = ERR_DSCFG_ERROR_LDAP_SIMPLE_BIND_FAILED
-              .get(bindDN);
-          throw new ClientException(ReturnCode.INVALID_CREDENTIALS,
-              message);
-        }
-        catch (CommunicationException e)
-        {
-          LocalizableMessage message = ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(
-              hostName, portNumber);
+          if (e.getCause() instanceof AuthorizationException)
+          {
+            LocalizableMessage message =
+                ERR_DSCFG_ERROR_LDAP_SIMPLE_BIND_NOT_SUPPORTED.get();
+            throw new ClientException(ReturnCode.AUTH_METHOD_NOT_SUPPORTED,
+                message);
+          }
+          else if (e.getCause() instanceof AuthenticationException)
+          {
+            LocalizableMessage message =
+                ERR_DSCFG_ERROR_LDAP_SIMPLE_BIND_FAILED.get(bindDN);
+            throw new ClientException(ReturnCode.INVALID_CREDENTIALS, message);
+          }
+          LocalizableMessage message =
+              ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(hostName, portNumber);
           throw new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR,
               message);
         }
+        finally
+        {
+          factory.close();
+        }
       }
-      context = LDAPManagementContext.createFromContext(conn);
+      context =
+          LDAPManagementContext.newManagementContext(connection, LDAPProfile.getInstance());
     }
     return context;
   }

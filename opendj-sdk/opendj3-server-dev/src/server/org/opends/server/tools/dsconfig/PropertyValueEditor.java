@@ -42,34 +42,34 @@ import java.util.TreeSet;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.opendj.config.AbsoluteInheritedDefaultBehaviorProvider;
+import org.forgerock.opendj.config.AbstractManagedObjectDefinition;
+import org.forgerock.opendj.config.AggregationPropertyDefinition;
+import org.forgerock.opendj.config.AliasDefaultBehaviorProvider;
+import org.forgerock.opendj.config.BooleanPropertyDefinition;
+import org.forgerock.opendj.config.Configuration;
+import org.forgerock.opendj.config.ConfigurationClient;
+import org.forgerock.opendj.config.DefaultBehaviorProviderVisitor;
+import org.forgerock.opendj.config.DefinedDefaultBehaviorProvider;
+import org.forgerock.opendj.config.DefinitionDecodingException;
+import org.forgerock.opendj.config.EnumPropertyDefinition;
+import org.forgerock.opendj.config.InstantiableRelationDefinition;
+import org.forgerock.opendj.config.ManagedObjectDefinition;
+import org.forgerock.opendj.config.ManagedObjectNotFoundException;
+import org.forgerock.opendj.config.ManagedObjectPath;
+import org.forgerock.opendj.config.PropertyDefinition;
+import org.forgerock.opendj.config.PropertyDefinitionUsageBuilder;
+import org.forgerock.opendj.config.PropertyDefinitionVisitor;
+import org.forgerock.opendj.config.PropertyException;
+import org.forgerock.opendj.config.PropertyOption;
+import org.forgerock.opendj.config.RelativeInheritedDefaultBehaviorProvider;
+import org.forgerock.opendj.config.UndefinedDefaultBehaviorProvider;
+import org.forgerock.opendj.config.client.ManagedObject;
+import org.forgerock.opendj.config.client.ManagedObjectDecodingException;
+import org.forgerock.opendj.config.client.ManagementContext;
+import org.forgerock.opendj.ldap.AuthorizationException;
+import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.util.Reject;
-import org.opends.server.admin.AbsoluteInheritedDefaultBehaviorProvider;
-import org.opends.server.admin.AbstractManagedObjectDefinition;
-import org.opends.server.admin.AggregationPropertyDefinition;
-import org.opends.server.admin.AliasDefaultBehaviorProvider;
-import org.opends.server.admin.BooleanPropertyDefinition;
-import org.opends.server.admin.Configuration;
-import org.opends.server.admin.ConfigurationClient;
-import org.opends.server.admin.DefaultBehaviorProviderVisitor;
-import org.opends.server.admin.DefinedDefaultBehaviorProvider;
-import org.opends.server.admin.DefinitionDecodingException;
-import org.opends.server.admin.EnumPropertyDefinition;
-import org.opends.server.admin.InstantiableRelationDefinition;
-import org.opends.server.admin.ManagedObjectDefinition;
-import org.opends.server.admin.ManagedObjectNotFoundException;
-import org.opends.server.admin.ManagedObjectPath;
-import org.opends.server.admin.PropertyDefinition;
-import org.opends.server.admin.PropertyDefinitionUsageBuilder;
-import org.opends.server.admin.PropertyDefinitionVisitor;
-import org.opends.server.admin.PropertyException;
-import org.opends.server.admin.PropertyOption;
-import org.opends.server.admin.RelativeInheritedDefaultBehaviorProvider;
-import org.opends.server.admin.UndefinedDefaultBehaviorProvider;
-import org.opends.server.admin.client.AuthorizationException;
-import org.opends.server.admin.client.CommunicationException;
-import org.opends.server.admin.client.ManagedObject;
-import org.opends.server.admin.client.ManagedObjectDecodingException;
-import org.opends.server.admin.client.ManagementContext;
 
 import com.forgerock.opendj.cli.ClientException;
 import com.forgerock.opendj.cli.ConsoleApplication;
@@ -139,7 +139,7 @@ final class PropertyValueEditor {
               .getUserFriendlyName();
           LocalizableMessage msg = ERR_DSCFG_ERROR_GET_PARENT_MODE.get(pufn);
           throw new ClientException(ReturnCode.OTHER, msg, e);
-        } catch (CommunicationException e) {
+        } catch (ErrorResultException e) {
           LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_CE.get(ufn, e.getMessage());
           throw new ClientException(ReturnCode.CLIENT_SIDE_SERVER_DOWN,
               msg);
@@ -476,13 +476,13 @@ final class PropertyValueEditor {
       try {
         values.addAll(Arrays.asList(context.listManagedObjects(path, rd)));
       } catch (AuthorizationException e) {
-        this.e = new ClientException(ReturnCode.TODO, e.getMessageObject());
+        this.e = new ClientException(ReturnCode.TODO, LocalizableMessage.raw(e.getMessage()));
         return MenuResult.quit();
       } catch (ManagedObjectNotFoundException e) {
         this.e = new ClientException(ReturnCode.TODO, e.getMessageObject());
         return MenuResult.cancel();
-      } catch (CommunicationException e) {
-        this.e = new ClientException(ReturnCode.TODO, e.getMessageObject());
+      } catch (ErrorResultException e) {
+        this.e = new ClientException(ReturnCode.TODO, LocalizableMessage.raw(e.getMessage()));
         return MenuResult.quit();
       }
 
@@ -737,13 +737,13 @@ final class PropertyValueEditor {
         try {
           values.addAll(Arrays.asList(context.listManagedObjects(path, rd)));
         } catch (AuthorizationException e) {
-          this.e = new ClientException(ReturnCode.TODO, e.getMessageObject());
+          this.e = new ClientException(ReturnCode.TODO, LocalizableMessage.raw(e.getMessage()));
           return MenuResult.quit();
         } catch (ManagedObjectNotFoundException e) {
           this.e = new ClientException(ReturnCode.TODO, e.getMessageObject());
           return MenuResult.cancel();
-        } catch (CommunicationException e) {
-          this.e = new ClientException(ReturnCode.TODO, e.getMessageObject());
+        } catch (ErrorResultException e) {
+          this.e = new ClientException(ReturnCode.TODO, LocalizableMessage.raw(e.getMessage()));
           return MenuResult.quit();
         }
 
@@ -1630,13 +1630,13 @@ final class PropertyValueEditor {
       try {
         values.addAll(Arrays.asList(context.listManagedObjects(path, rd)));
       } catch (AuthorizationException e) {
-        this.e = new ClientException(ReturnCode.TODO, e.getMessageObject());
+        this.e = new ClientException(ReturnCode.TODO, LocalizableMessage.raw(e.getMessage()));
         return MenuResult.quit();
       } catch (ManagedObjectNotFoundException e) {
         this.e = new ClientException(ReturnCode.TODO, e.getMessageObject());
         return MenuResult.cancel();
-      } catch (CommunicationException e) {
-        this.e = new ClientException(ReturnCode.TODO, e.getMessageObject());
+      } catch (ErrorResultException e) {
+        this.e = new ClientException(ReturnCode.TODO, LocalizableMessage.raw(e.getMessage()));
         return MenuResult.quit();
       }
 

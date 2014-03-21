@@ -28,32 +28,34 @@ package org.opends.server.extensions;
 
 
 
+import static org.opends.server.util.ServerConstants.SASL_MECHANISM_DIGEST_MD5;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertTrue;
+
 import java.util.List;
 
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
-
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
-import org.opends.server.admin.std.meta.
-            DigestMD5SASLMechanismHandlerCfgDefn;
-import org.opends.server.admin.std.server.
-            DigestMD5SASLMechanismHandlerCfg;
-import org.forgerock.opendj.config.server.ConfigException;
+import org.opends.server.admin.std.meta.DigestMD5SASLMechanismHandlerCfgDefn;
+import org.opends.server.admin.std.server.DigestMD5SASLMechanismHandlerCfg;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.tools.LDAPSearch;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ByteString;
-import static org.testng.Assert.*;
-
-import static org.opends.server.util.ServerConstants.*;
+import org.opends.server.types.AuthenticationInfo;
+import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
+import org.opends.server.types.InitializationException;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 
 
@@ -81,7 +83,7 @@ public class DigestMD5SASLMechanismHandlerTestCase
   }
 
 
-  @AfterClass
+  @AfterClass(alwaysRun = true)
   public void tearDown() throws Exception {
     TestCaseUtils.dsconfig(
             "set-sasl-mechanism-handler-prop",
