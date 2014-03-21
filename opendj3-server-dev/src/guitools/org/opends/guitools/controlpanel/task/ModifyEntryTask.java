@@ -690,10 +690,9 @@ public class ModifyEntryTask extends Task
   }
 
   /**
-   * Creates an ByteString for an attribute and a value (the one we got
-   * using JNDI).
+   * Creates a ByteString for an attribute and a value (the one we got using JNDI).
    * @param value the value found using JNDI.
-   * @return an ByteString object.
+   * @return a ByteString object.
    */
   private static ByteString createAttributeValue(Object value)
   {

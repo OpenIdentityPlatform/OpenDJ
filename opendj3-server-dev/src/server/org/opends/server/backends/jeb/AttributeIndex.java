@@ -32,6 +32,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -42,7 +43,6 @@ import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn;
 import org.opends.server.admin.std.server.LocalDBIndexCfg;
 import org.opends.server.api.*;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.monitors.DatabaseEnvironmentMonitor;
 import org.opends.server.types.*;
@@ -975,10 +975,8 @@ public class AttributeIndex
     try
     {
       // Use the ordering matching rule to normalize the value.
-      MatchingRule orderingRule =
-           filter.getAttributeType().getOrderingMatchingRule();
-      // FIXME JNR this looks wrong, it should use normalizeAssertionValue()
-      byte[] normalizedValue = orderingRule.normalizeAttributeValue(
+      MatchingRule orderingRule = filter.getAttributeType().getOrderingMatchingRule();
+      byte[] normalizedValue = orderingRule.normalizeAssertionValue(
           filter.getAssertionValue()).toByteArray();
 
       // Set the lower and upper bounds for a range search.
@@ -1229,8 +1227,8 @@ public class AttributeIndex
    * equal to the lower bound value, and less than or equal to the
    * upper bound value.
    *
-   * @param lowerValue The lower bound value
-   * @param upperValue The upper bound value
+   * @param lowerValue The lower bound assertion value
+   * @param upperValue The upper bound assertion value
    * @return The candidate entry IDs.
    */
   public EntryIDSet evaluateBoundedRange(ByteString lowerValue, ByteString upperValue)
@@ -1242,13 +1240,10 @@ public class AttributeIndex
 
     try
     {
-      // Use the ordering matching rule to normalize the values.
-      MatchingRule orderingRule =
-           getAttributeType().getOrderingMatchingRule();
-
       // Set the lower and upper bounds for a range search.
-      byte[] lower = orderingRule.normalizeAttributeValue(lowerValue).toByteArray();
-      byte[] upper = orderingRule.normalizeAttributeValue(upperValue).toByteArray();
+      MatchingRule orderingRule = getAttributeType().getOrderingMatchingRule();
+      byte[] lower = orderingRule.normalizeAssertionValue(lowerValue).toByteArray();
+      byte[] upper = orderingRule.normalizeAssertionValue(upperValue).toByteArray();
 
       // Read the range: lower <= keys <= upper.
       return orderingIndex.readRange(lower, upper, true, true);
@@ -1392,8 +1387,7 @@ public class AttributeIndex
       MatchingRule approximateMatchingRule =
           approximateFilter.getAttributeType().getApproximateMatchingRule();
       // Make a key from the normalized assertion value.
-      // FIXME JNR this looks wrong, it should use normalizeAssertionValue()
-      byte[] keyBytes = approximateMatchingRule.normalizeAttributeValue(
+      byte[] keyBytes = approximateMatchingRule.normalizeAssertionValue(
           approximateFilter.getAssertionValue()).toByteArray();
       DatabaseEntry key = new DatabaseEntry(keyBytes);
 

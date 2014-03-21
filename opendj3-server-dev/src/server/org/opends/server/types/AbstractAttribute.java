@@ -30,6 +30,8 @@ import java.util.Collection;
 import java.util.Set;
 
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.DecodeException;
+import org.opends.server.api.MatchingRule;
 
 import static org.opends.server.util.StaticUtils.*;
 
@@ -201,16 +203,22 @@ public abstract class AbstractAttribute implements Attribute
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public int hashCode()
   {
     int hashCode = getAttributeType().hashCode();
     for (ByteString value : this)
     {
-      hashCode += value.hashCode();
+      try
+      {
+        MatchingRule eqRule = getAttributeType().getEqualityMatchingRule();
+        hashCode += eqRule.normalizeAttributeValue(value).hashCode();
+      }
+      catch (DecodeException e)
+      {
+        hashCode += value.hashCode();
+      }
     }
     return hashCode;
   }
@@ -231,8 +239,7 @@ public abstract class AbstractAttribute implements Attribute
   {
     String noption = toLowerCase(option);
 
-    // Cannot use Set.contains() because the options are not
-    // normalized.
+    // Cannot use Set.contains() because the options are not normalized.
     for (String o : getOptions())
     {
       String no = toLowerCase(o);
@@ -299,8 +306,7 @@ public abstract class AbstractAttribute implements Attribute
       return false;
     }
 
-    // Cannot use Set.containsAll() because the set of options are
-    // not normalized.
+    // Cannot use Set.containsAll() because the set of options are not normalized.
     for (String option : options)
     {
       if (!hasOption(option))
@@ -308,7 +314,6 @@ public abstract class AbstractAttribute implements Attribute
         return false;
       }
     }
-
     return true;
   }
 

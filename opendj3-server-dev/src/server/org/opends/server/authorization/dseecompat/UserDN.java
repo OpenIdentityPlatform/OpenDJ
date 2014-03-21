@@ -346,10 +346,10 @@ public class UserDN implements KeywordBindRule {
     /*
      * TODO Evaluate making this method more efficient.
      *
-     * The evalDNEntryAttr method isn't as efficient as it could be.  It would
-     * probably be faster to to convert the clientDN to an ByteString and
-     * see if the entry has that value than to decode each value as a DN and
-     * see if it matches the clientDN.
+     * The evalDNEntryAttr method isn't as efficient as it could be.
+     * It would probably be faster to to convert the clientDN to a ByteString
+     * and see if the entry has that value than to decode each value as a DN
+     * and see if it matches the clientDN.
      */
     /**
      * This method searches an entry for an attribute value that is

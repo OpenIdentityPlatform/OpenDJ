@@ -24,10 +24,7 @@
  *      Copyright 2009 Sun Microsystems, Inc.
  *      Portions Copyright 2014 ForgeRock AS
  */
-
 package org.opends.server.admin.server;
-
-
 
 import static org.opends.messages.AdminMessages.*;
 import static org.opends.server.admin.PropertyException.*;
@@ -77,7 +74,6 @@ import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeValueIterable;
 import org.opends.server.types.AttributeType;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DN;
@@ -905,9 +901,15 @@ public final class ServerManagementContext {
     List<Attribute> attributes = configEntry.getEntry().getAttribute(type, true);
 
     List<ByteString> results = new LinkedList<ByteString>();
-    for (ByteString v : new AttributeValueIterable(attributes))
+    if (attributes != null)
     {
-      results.add(v);
+      for (Attribute a : attributes)
+      {
+        for (ByteString v : a)
+        {
+          results.add(v);
+        }
+      }
     }
     return results;
   }

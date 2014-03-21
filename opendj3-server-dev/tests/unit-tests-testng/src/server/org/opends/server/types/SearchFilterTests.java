@@ -27,26 +27,25 @@
  */
 package org.opends.server.types;
 
-import org.forgerock.opendj.ldap.ByteString;
-import org.opends.server.DirectoryServerTestCase;
-import org.opends.server.TestCaseUtils;
-import org.opends.server.util.StaticUtils;
-import org.opends.server.util.Base64;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.RawFilter;
-import org.opends.server.core.DirectoryServer;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
-import org.testng.annotations.BeforeClass;
-import org.testng.Assert;
-
-import java.util.List;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
-import java.text.ParseException;
+import java.util.List;
 
-import static java.util.Arrays.asList;
+import org.forgerock.opendj.ldap.ByteString;
+import org.opends.server.DirectoryServerTestCase;
+import org.opends.server.TestCaseUtils;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.util.Base64;
+import org.opends.server.util.StaticUtils;
+import org.testng.Assert;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
+
+import static java.util.Arrays.*;
+
 import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
 
@@ -611,7 +610,7 @@ public class SearchFilterTests extends DirectoryServerTestCase {
   private FilterDescription assertionFilterDescription(FilterType filterType,
                                                        String attributeType,
                                                        String attributeValue,
-                                                       List<String> matchedEntries) {
+                                                       String... matchedEntries) {
     FilterDescription description = new FilterDescription();
 
     description.filterType = filterType;
@@ -634,8 +633,8 @@ public class SearchFilterTests extends DirectoryServerTestCase {
       fail(filterType + " is not handled.");
     }
 
-    description.matchedEntriesLdif = matchedEntries;
-    description.unmatchedEntriesLdif = getEntriesExcluding(matchedEntries);
+    description.matchedEntriesLdif = asList(matchedEntries);
+    description.unmatchedEntriesLdif = getEntriesExcluding(description.matchedEntriesLdif);
 
     return description;
   }
@@ -643,28 +642,28 @@ public class SearchFilterTests extends DirectoryServerTestCase {
 
   private FilterDescription equalityFilterDescription(String attributeType,
                                                       String attributeValue,
-                                                      List<String> matchedEntries) {
+                                                      String... matchedEntries) {
     return assertionFilterDescription(FilterType.EQUALITY, attributeType, attributeValue, matchedEntries);
   }
 
 
   private FilterDescription lessEqualFilterDescription(String attributeType,
                                                        String attributeValue,
-                                                       List<String> matchedEntries) {
+                                                       String... matchedEntries) {
     return assertionFilterDescription(FilterType.LESS_OR_EQUAL, attributeType, attributeValue, matchedEntries);
   }
 
 
   private FilterDescription greaterEqualFilterDescription(String attributeType,
                                                           String attributeValue,
-                                                          List<String> matchedEntries) {
+                                                          String... matchedEntries) {
     return assertionFilterDescription(FilterType.GREATER_OR_EQUAL, attributeType, attributeValue, matchedEntries);
   }
 
 
   private FilterDescription approximateFilterDescription(String attributeType,
                                                          String attributeValue,
-                                                         List<String> matchedEntries) {
+                                                         String... matchedEntries) {
     return assertionFilterDescription(FilterType.APPROXIMATE_MATCH, attributeType, attributeValue, matchedEntries);
   }
 
@@ -681,9 +680,12 @@ public class SearchFilterTests extends DirectoryServerTestCase {
 
     description.subInitialElement = ByteString.valueOf(subInitial);
     description.subAnyElements = new ArrayList<ByteString>();
-    for (int i = 0; (subAny != null) && (i < subAny.size()); i++) {
-      String s = subAny.get(i);
-      description.subAnyElements.add(ByteString.valueOf(s));
+    if (subAny != null)
+    {
+      for (String s : subAny)
+      {
+        description.subAnyElements.add(ByteString.valueOf(s));
+      }
     }
     description.subFinalElement = ByteString.valueOf(subFinal);
 
@@ -787,67 +789,38 @@ public class SearchFilterTests extends DirectoryServerTestCase {
 
 
   private List<FilterDescription> getEqualityFilters() throws Exception {
-    List<FilterDescription> descriptions = new ArrayList<FilterDescription>();
-
-    descriptions.add(equalityFilterDescription("sn", "Smith",
-            asList(JANE_SMITH_LDIF, JOE_SMITH_LDIF)));
-
-    descriptions.add(equalityFilterDescription("givenname", "Jane",
-            asList(JANE_SMITH_LDIF, JANE_AUSTIN_LDIF)));
-
-    return descriptions;
+    return asList(
+        equalityFilterDescription("sn", "Smith", JANE_SMITH_LDIF, JOE_SMITH_LDIF),
+        equalityFilterDescription("givenname", "Jane", JANE_SMITH_LDIF, JANE_AUSTIN_LDIF));
   }
 
 
   private List<FilterDescription> getApproximateFilters() throws Exception {
-    List<FilterDescription> descriptions = new ArrayList<FilterDescription>();
-
-    descriptions.add(approximateFilterDescription("sn", "Smythe",
-            asList(JANE_SMITH_LDIF, JOE_SMITH_LDIF)));
-
-    return descriptions;
+    return asList(approximateFilterDescription("sn", "Smythe", JANE_SMITH_LDIF, JOE_SMITH_LDIF));
   }
 
 
   private List<FilterDescription> getSubstringFilters() throws Exception {
-    List<FilterDescription> descriptions = new ArrayList<FilterDescription>();
-
-    descriptions.add(substringFilterDescription(
+    return asList(substringFilterDescription(
             "sn",
             "S", asList("i"), "th", // S*i*th
             asList(JANE_SMITH_LDIF, JOE_SMITH_LDIF)));
-
-    return descriptions;
   }
 
 
   private List<FilterDescription> getInequalityFilters() throws Exception {
-    List<FilterDescription> descriptions = new ArrayList<FilterDescription>();
-
-    descriptions.add(lessEqualFilterDescription("sn", "Aus",
-            new ArrayList<String>()));
-
-    descriptions.add(greaterEqualFilterDescription("sn", "Aus",
-            asList(JANE_AUSTIN_LDIF, JOE_AUSTIN_LDIF,
-                   JANE_SMITH_LDIF, JOE_SMITH_LDIF)));
-
-
-    descriptions.add(lessEqualFilterDescription("sn", "Smi",
-            asList(JANE_AUSTIN_LDIF, JOE_AUSTIN_LDIF)));
-
-    descriptions.add(greaterEqualFilterDescription("sn", "Smi",
-            asList(JANE_SMITH_LDIF, JOE_SMITH_LDIF)));
-
-
-    descriptions.add(lessEqualFilterDescription("sn", "Smith",
-            asList(JANE_AUSTIN_LDIF, JOE_AUSTIN_LDIF,
-                   JANE_SMITH_LDIF, JOE_SMITH_LDIF)));
-
-    descriptions.add(greaterEqualFilterDescription("sn", "Smith",
-            asList(JANE_SMITH_LDIF, JOE_SMITH_LDIF)));
-
-
-    return descriptions;
+    return asList(
+        lessEqualFilterDescription("sn", "Aus"),
+        greaterEqualFilterDescription("sn", "Aus",
+            JANE_AUSTIN_LDIF, JOE_AUSTIN_LDIF, JANE_SMITH_LDIF, JOE_SMITH_LDIF),
+        lessEqualFilterDescription("sn", "Smi",
+            JANE_AUSTIN_LDIF, JOE_AUSTIN_LDIF),
+        greaterEqualFilterDescription("sn", "Smi",
+            JANE_SMITH_LDIF, JOE_SMITH_LDIF),
+        lessEqualFilterDescription("sn", "Smith",
+            JANE_AUSTIN_LDIF, JOE_AUSTIN_LDIF, JANE_SMITH_LDIF, JOE_SMITH_LDIF),
+        greaterEqualFilterDescription("sn", "Smith",
+            JANE_SMITH_LDIF, JOE_SMITH_LDIF));
   }
 
 
@@ -899,8 +872,7 @@ public class SearchFilterTests extends DirectoryServerTestCase {
     // Now convert to [][]
     FilterDescription[][] descriptionArray = new FilterDescription[allDescriptions.size()][];
     for (int i = 0; i < allDescriptions.size(); i++) {
-      FilterDescription description = allDescriptions.get(i);
-      descriptionArray[i] = new FilterDescription[]{description};
+      descriptionArray[i] = new FilterDescription[]{ allDescriptions.get(i) };
     }
 
     return descriptionArray;
@@ -913,16 +885,14 @@ public class SearchFilterTests extends DirectoryServerTestCase {
 
     for (String ldif: description.matchedEntriesLdif) {
       Entry entry = TestCaseUtils.entryFromLdifString(ldif);
-      if (!description.searchFilter.matchesEntry(entry)) {
-        fail("Expected to match entry. " + description + entry);
-      }
+      assertTrue(description.searchFilter.matchesEntry(entry),
+          "Expected to match entry. " + description + " " + entry);
     }
 
     for (String ldif: description.unmatchedEntriesLdif) {
       Entry entry = TestCaseUtils.entryFromLdifString(ldif);
-      if (description.searchFilter.matchesEntry(entry)) {
-        fail("Should not have matched entry. " + description + entry);
-      }
+      assertFalse(description.searchFilter.matchesEntry(entry),
+          "Should not have matched entry. " + description + " " + entry);
     }
   }
 
@@ -1075,7 +1045,7 @@ public class SearchFilterTests extends DirectoryServerTestCase {
   @DataProvider(name = "differentNormalization")
   public Object[][] differentNormalizationData() throws ParseException
   {
-    final String BASE64_CERT_VALUE = 
+    final String BASE64_CERT_VALUE =
       "MIICpTCCAg6gAwIBAgIJALeoA6I3ZC/cMA0GCSqGSIb3DQEBBQUAMFYxCzAJBgNV" +
       "BAYTAlVTMRMwEQYDVQQHEwpDdXBlcnRpb25lMRwwGgYDVQQLExNQcm9kdWN0IERl" +
       "dmVsb3BtZW50MRQwEgYDVQQDEwtCYWJzIEplbnNlbjAeFw0xMjA1MDIxNjM0MzVa" +
@@ -1091,10 +1061,10 @@ public class SearchFilterTests extends DirectoryServerTestCase {
       "6CD0WRmc2pBeYX2z94/PWO5L3Fx+eIZh2wTxScF+FdRWJzLbUaBuClrxuy0Y5ifj" +
       "axuJ8LFNbZtsp1ldW3i84+F5+SYT+xI67ZcoAtwx/VFVI9s5I/Gkmu9f9nxjPpK7" +
       "1AIUXiE3Qcck";
-    final String CERT_EXACT_ASSERTION = 
+    final String CERT_EXACT_ASSERTION =
       "{ serialNumber 13233831500277100508, issuer rdnSequence:\""+
       "CN=Babs Jensen,OU=Product Development,L=Cupertione,C=US\" }";
-    final String CERTIFICATE_LDIF = TestCaseUtils.makeLdif(
+    final String LDIF_ENTRY = TestCaseUtils.makeLdif(
           "dn: cn=John Smith,dc=example,dc=com",
           "objectclass: inetorgperson",
           "cn: John Smith",
@@ -1106,8 +1076,9 @@ public class SearchFilterTests extends DirectoryServerTestCase {
     final String CERTIFICATE_ENCODED = builder.toString();
 
     return new Object[][]{
-            {CERTIFICATE_LDIF, "userCertificate="+CERT_EXACT_ASSERTION, true},
-            {CERTIFICATE_LDIF, "userCertificate="+CERTIFICATE_ENCODED, true}};
+      { LDIF_ENTRY, "userCertificate=" + CERT_EXACT_ASSERTION, true },
+      { LDIF_ENTRY, "userCertificate=" + CERTIFICATE_ENCODED, true },
+    };
   }
 
   @Test(dataProvider = "differentNormalization")

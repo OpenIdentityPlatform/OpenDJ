@@ -125,7 +125,7 @@ public class SortValuesSet
       return true;
     }
     if (vlvIndex.comparator.compare(
-        this, entryIDs.length - 1, entryID, values, types) < 0)
+        this, entryIDs.length - 1, entryID, values) < 0)
     {
       long[] updatedEntryIDs = new long[entryIDs.length + 1];
       System.arraycopy(entryIDs, 0, updatedEntryIDs, 0, entryIDs.length);
@@ -157,7 +157,7 @@ public class SortValuesSet
     }
     else
     {
-      int pos = binarySearch(entryID, values, types);
+      int pos = binarySearch(entryID, values);
       if(pos >= 0)
       {
         if(entryIDs[pos] == entryID)
@@ -220,13 +220,12 @@ public class SortValuesSet
    *
    * @param entryID The entry ID to remove.
    * @param values The values to remove.
-   * @param types The types of the values to remove.
    * @return True if the information was successfully removed or False
    * otherwise.
    * @throws DirectoryException If a Directory Server error occurs.
    * @throws DatabaseException If an error occurs in the JE database.
    */
-  public boolean remove(long entryID, ByteString[] values, AttributeType[] types)
+  public boolean remove(long entryID, ByteString[] values)
       throws DatabaseException, DirectoryException
   {
     if(entryIDs == null || entryIDs.length == 0)
@@ -239,7 +238,7 @@ public class SortValuesSet
       updateValuesBytesOffsets();
     }
 
-    int pos = binarySearch(entryID, values, types);
+    int pos = binarySearch(entryID, values);
     if(pos < 0)
     {
       // Not found.
@@ -413,13 +412,12 @@ public class SortValuesSet
    *
    * @param entryID The entry ID to match or -1 if not matching on entry ID.
    * @param values The values to match.
-   * @param types The types of the values to match.
    * @return Index of the entry matching the values and optionally the entry ID
    * if it is found or a negative index if its not found.
    * @throws DirectoryException If a Directory Server error occurs.
    * @throws DatabaseException If an error occurs in the JE database.
    */
-  int binarySearch(long entryID, ByteString[] values, AttributeType[] types)
+  int binarySearch(long entryID, ByteString... values)
       throws DatabaseException, DirectoryException
   {
     if(entryIDs == null || entryIDs.length == 0)
@@ -431,7 +429,7 @@ public class SortValuesSet
     for(int j = entryIDs.length - 1; i <= j;)
     {
       int k = i + j >> 1;
-      int l = vlvIndex.comparator.compare(this, k, entryID, values, types);
+      int l = vlvIndex.comparator.compare(this, k, entryID, values);
       if (l < 0)
       {
         i = k + 1;

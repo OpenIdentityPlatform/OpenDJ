@@ -58,8 +58,8 @@ public class CollectiveVirtualAttribute extends AbstractAttribute
    * {@inheritDoc}
    */
   @Override
-  public ConditionResult approximatelyEqualTo(ByteString value) {
-    return attribute.approximatelyEqualTo(value);
+  public ConditionResult approximatelyEqualTo(ByteString assertionValue) {
+    return attribute.approximatelyEqualTo(assertionValue);
   }
 
   /**
@@ -68,6 +68,13 @@ public class CollectiveVirtualAttribute extends AbstractAttribute
   @Override
   public boolean contains(ByteString value) {
     return attribute.contains(value);
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public ConditionResult matchesEqualityAssertion(ByteString assertionValue)
+  {
+    return attribute.matchesEqualityAssertion(assertionValue);
   }
 
   /**
@@ -90,8 +97,8 @@ public class CollectiveVirtualAttribute extends AbstractAttribute
    * {@inheritDoc}
    */
   @Override
-  public ConditionResult greaterThanOrEqualTo(ByteString value) {
-    return attribute.greaterThanOrEqualTo(value);
+  public ConditionResult greaterThanOrEqualTo(ByteString assertionValue) {
+    return attribute.greaterThanOrEqualTo(assertionValue);
   }
 
   /**
@@ -114,8 +121,8 @@ public class CollectiveVirtualAttribute extends AbstractAttribute
    * {@inheritDoc}
    */
   @Override
-  public ConditionResult lessThanOrEqualTo(ByteString value) {
-    return attribute.lessThanOrEqualTo(value);
+  public ConditionResult lessThanOrEqualTo(ByteString assertionValue) {
+    return attribute.lessThanOrEqualTo(assertionValue);
   }
 
   /**
