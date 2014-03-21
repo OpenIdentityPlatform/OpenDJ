@@ -56,10 +56,12 @@ import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.util.ControlPanelLog;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.admin.AdministrationConnector;
-import org.opends.server.admin.client.ManagementContext;
 import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
+import org.forgerock.opendj.config.client.ManagementContext;
 import org.forgerock.opendj.config.server.ConfigException;
+
 import com.forgerock.opendj.cli.ClientException;
+
 import org.opends.server.tools.dsconfig.LDAPManagementContextFactory;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
@@ -67,11 +69,13 @@ import org.opends.server.types.NullOutputStream;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.StaticUtils;
+
 import com.forgerock.opendj.cli.ConsoleApplication;
+
 import org.opends.server.util.cli.LDAPConnectionConsoleInteraction;
+
 import com.forgerock.opendj.cli.TableBuilder;
 import com.forgerock.opendj.cli.TextTablePrinter;
-
 import com.forgerock.opendj.cli.ArgumentException;
 
 import static org.opends.messages.AdminToolMessages.*;

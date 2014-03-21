@@ -30,7 +30,7 @@ package org.opends.server.tools.dsconfig;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.opends.server.admin.PropertyDefinition;
+import org.forgerock.opendj.config.PropertyDefinition;
 
 /**
  * This class is a data structure that can be used as an interface between

@@ -69,20 +69,19 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.admin.AttributeTypePropertyDefinition;
-import org.opends.server.admin.ClassLoaderProvider;
-import org.opends.server.admin.ClassPropertyDefinition;
-import org.opends.server.admin.InstantiableRelationDefinition;
-import org.opends.server.admin.RelationDefinition;
-import org.opends.server.admin.SetRelationDefinition;
-import org.opends.server.admin.Tag;
-import org.opends.server.admin.client.ManagedObjectDecodingException;
-import org.opends.server.admin.client.MissingMandatoryPropertiesException;
-import org.opends.server.admin.client.OperationRejectedException;
+import org.forgerock.opendj.config.ConfigurationFramework;
+import org.forgerock.opendj.config.InstantiableRelationDefinition;
+import org.forgerock.opendj.config.RelationDefinition;
+import org.forgerock.opendj.config.SetRelationDefinition;
+import org.forgerock.opendj.config.Tag;
+import org.forgerock.opendj.config.client.ManagedObjectDecodingException;
+import org.forgerock.opendj.config.client.MissingMandatoryPropertiesException;
+import org.forgerock.opendj.config.client.OperationRejectedException;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.JDKLogging;
 import org.opends.server.types.InitializationException;
 import org.opends.server.util.BuildVersion;
-import org.opends.server.util.EmbeddedUtils;
 
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentGroup;
@@ -315,7 +314,7 @@ public final class DSConfig extends ConsoleApplication {
    *          program.
    */
   public static void main(String[] args) {
-    int exitCode = main(args, true, System.out, System.err);
+    int exitCode = main(args, System.out, System.err);
     if (exitCode != 0) {
       System.exit(filterExitCode(exitCode));
     }
@@ -330,10 +329,6 @@ public final class DSConfig extends ConsoleApplication {
    * @param args
    *          The set of command-line arguments provided to this
    *          program.
-   * @param initializeServer
-   *          Indicates whether to perform basic initialization (which
-   *          should not be done if the tool is running in the same
-   *          JVM as the server).
    * @param outStream
    *          The output stream for standard output.
    * @param errStream
@@ -341,19 +336,26 @@ public final class DSConfig extends ConsoleApplication {
    * @return Zero to indicate that the program completed successfully,
    *         or non-zero to indicate that an error occurred.
    */
-  public static int main(String[] args, boolean initializeServer,
-      OutputStream outStream, OutputStream errStream) {
+  public static int main(String[] args, OutputStream outStream,
+      OutputStream errStream)
+  {
     JDKLogging.disableLogging();
-    DSConfig app = new DSConfig(System.in, outStream, errStream,
-        new LDAPManagementContextFactory(alwaysSSL));
+    DSConfig app =
+        new DSConfig(System.in, outStream, errStream,
+            new LDAPManagementContextFactory(alwaysSSL));
     app.sessionStartTime = System.currentTimeMillis();
-    // Only initialize the client environment when run as a standalone
-    // application.
-    if (initializeServer) {
-      try {
-        app.initializeClientEnvironment();
-      } catch (InitializationException e) {
-        // TODO: is this ok as an error message?
+    /*
+     * FIXME: obtain path info from system properties.
+     */
+    if (!ConfigurationFramework.getInstance().isInitialized())
+    {
+      try
+      {
+        ConfigurationFramework.getInstance().initialize(
+            DirectoryServer.getServerRoot(), DirectoryServer.getInstanceRoot());
+      }
+      catch (ConfigException e)
+      {
         app.println(e.getMessageObject());
         return 1;
       }
@@ -365,12 +367,6 @@ public final class DSConfig extends ConsoleApplication {
 
   /** The argument which should be used to request advanced mode. */
   private BooleanArgument advancedModeArgument;
-
-  /**
-   * Flag indicating whether or not the application environment has already been
-   * initialized.
-   */
-  private boolean environmentInitialized = false;
 
   /**
    * The factory which the application should use to retrieve its management
@@ -461,32 +457,6 @@ public final class DSConfig extends ConsoleApplication {
         INFO_CONFIGDS_TOOL_DESCRIPTION.get(), false);
 
     this.factory = factory;
-  }
-
-
-
-  /**
-   * Initializes core APIs for use when dsconfig will be run as a
-   * standalone application.
-   *
-   * @throws InitializationException
-   *           If the core APIs could not be initialized.
-   */
-  private void initializeClientEnvironment() throws InitializationException {
-    if (!environmentInitialized) {
-      EmbeddedUtils.initializeForClientUse();
-
-      // Bootstrap definition classes.
-      ClassLoaderProvider.getInstance().enable();
-
-      // Switch off class name validation in client.
-      ClassPropertyDefinition.setAllowClassValidation(false);
-
-      // Switch off attribute type name validation in client.
-      AttributeTypePropertyDefinition.setCheckSchema(false);
-
-      environmentInitialized = true;
-    }
   }
 
 
@@ -1208,9 +1178,9 @@ public final class DSConfig extends ConsoleApplication {
         allArguments.addAll(initialArgs);
         String[] allArgsArray = allArguments.toArray(new String[]{});
 
-        int exitCode =
-                main(allArgsArray, false, getOutputStream(), getErrorStream());
-        if (exitCode != 0) {
+        int exitCode = main(allArgsArray, getOutputStream(), getErrorStream());
+        if (exitCode != 0)
+        {
           System.exit(filterExitCode(exitCode));
         }
         errPrintln();

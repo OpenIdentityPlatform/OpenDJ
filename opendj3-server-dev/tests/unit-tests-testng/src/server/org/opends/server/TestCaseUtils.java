@@ -1798,7 +1798,7 @@ public final class TestCaseUtils {
 
     System.arraycopy(args, 0, fullArgs, 11, args.length);
 
-    assertEquals(DSConfig.main(fullArgs, false, System.out, System.err), 0);
+    assertEquals(DSConfig.main(fullArgs, System.out, System.err), 0);
   }
 
 

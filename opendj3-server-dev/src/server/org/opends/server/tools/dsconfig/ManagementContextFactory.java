@@ -26,7 +26,7 @@
  */
 package org.opends.server.tools.dsconfig;
 
-import org.opends.server.admin.client.ManagementContext;
+import org.forgerock.opendj.config.client.ManagementContext;
 
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ClientException;

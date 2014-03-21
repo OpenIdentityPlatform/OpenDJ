@@ -106,8 +106,7 @@ public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
       "-X"
     };
 
-    assertFalse(DSConfig.main(args, false, System.out, System.err) 
-        == SUCCESS.get());
+    assertFalse(DSConfig.main(args, System.out, System.err) == SUCCESS.get());
   }
 
   /**
@@ -128,8 +127,7 @@ public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
       "-X"
     };
 
-    assertFalse(DSConfig.main(args, false, System.out, System.err)
-        == SUCCESS.get());
+    assertFalse(DSConfig.main(args, System.out, System.err) == SUCCESS.get());
   }
 
   /**
@@ -150,11 +148,29 @@ public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
       "-X"
     };
 
-    assertFalse(DSConfig.main(args, false, System.out, System.err)
-        == SUCCESS.get());
+    assertFalse(DSConfig.main(args, System.out, System.err) == SUCCESS.get());
   }
 
+  /**
+   * Tests list-connection-handlers with an valid password.
+   */
+  @Test()
+  public void testValidBindPassword()
+  {
+    String[] args =
+    {
+      "-n",
+      "--noPropertiesFile",
+      "-Q",
+      "list-connection-handlers",
+      "-p", String.valueOf(TestCaseUtils.getServerAdminPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-X"
+    };
 
+    assertTrue(DSConfig.main(args, System.out, System.err) == SUCCESS.get());
+  }
 
 
   /**
@@ -178,8 +194,7 @@ public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
       "-X"
     };
 
-    assertEquals(DSConfig.main(args, false, System.out,
-        System.err), SUCCESS.get());
+    assertEquals(DSConfig.main(args, System.out, System.err), SUCCESS.get());
   }
 
   /**
@@ -203,11 +218,9 @@ public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
       "-X"
     };
 
-    assertFalse(DSConfig.main(args, false, System.out, System.err)
-        == SUCCESS.get());
+    assertFalse(DSConfig.main(args, System.out, System.err) == SUCCESS.get());
   }
-
-
+  
   /**
    * Tests list-connection-handlers over SSL using a trust store.
    */
@@ -228,8 +241,7 @@ public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
       "-P", trustStorePath
     };
 
-    assertEquals(DSConfig.main(args, false, System.out,
-        System.err), SUCCESS.get());
+    assertEquals(DSConfig.main(args, System.out, System.err), SUCCESS.get());
   }
 
 
@@ -240,16 +252,13 @@ public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
   public void testHelp()
   {
     String[] args = { "--noPropertiesFile", "--help" };
-    assertEquals(DSConfig.main(args, false, System.out, System.err), 
-        SUCCESS.get());
+    assertEquals(DSConfig.main(args, System.out, System.err), SUCCESS.get());
 
     args = new String[] { "--noPropertiesFile", "-H" };
-    assertEquals(DSConfig.main(args, false, System.out, System.err), 
-        SUCCESS.get());
+    assertEquals(DSConfig.main(args, System.out, System.err), SUCCESS.get());
 
     args = new String[] { "--noPropertiesFile", "-?" };
-    assertEquals(DSConfig.main(args, false, System.out, System.err), 
-        SUCCESS.get());
+    assertEquals(DSConfig.main(args, System.out, System.err), SUCCESS.get());
   }
 }
 

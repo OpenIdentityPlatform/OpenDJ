@@ -31,16 +31,16 @@ package org.opends.server.tools.dsconfig;
 import static org.opends.messages.DSConfigMessages.*;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.admin.AbstractManagedObjectDefinition;
-import org.opends.server.admin.ManagedObjectDefinition;
-import org.opends.server.admin.PropertyDefinition;
-import org.opends.server.admin.PropertyDefinitionUsageBuilder;
-import org.opends.server.admin.PropertyException;
-import org.opends.server.admin.RelationDefinition;
-import org.opends.server.admin.client.IllegalManagedObjectNameException;
-import org.opends.server.admin.client.ManagedObjectDecodingException;
-import org.opends.server.admin.client.MissingMandatoryPropertiesException;
-import org.opends.server.admin.client.OperationRejectedException;
+import org.forgerock.opendj.config.AbstractManagedObjectDefinition;
+import org.forgerock.opendj.config.ManagedObjectDefinition;
+import org.forgerock.opendj.config.PropertyDefinition;
+import org.forgerock.opendj.config.PropertyDefinitionUsageBuilder;
+import org.forgerock.opendj.config.PropertyException;
+import org.forgerock.opendj.config.RelationDefinition;
+import org.forgerock.opendj.config.client.IllegalManagedObjectNameException;
+import org.forgerock.opendj.config.client.ManagedObjectDecodingException;
+import org.forgerock.opendj.config.client.MissingMandatoryPropertiesException;
+import org.forgerock.opendj.config.client.OperationRejectedException;
 
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;

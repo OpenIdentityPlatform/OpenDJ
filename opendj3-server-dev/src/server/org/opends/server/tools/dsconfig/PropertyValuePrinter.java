@@ -32,13 +32,13 @@ import java.text.NumberFormat;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
-import org.opends.server.admin.BooleanPropertyDefinition;
-import org.opends.server.admin.DurationPropertyDefinition;
-import org.opends.server.admin.DurationUnit;
-import org.opends.server.admin.PropertyDefinition;
-import org.opends.server.admin.PropertyValueVisitor;
-import org.opends.server.admin.SizePropertyDefinition;
-import org.opends.server.admin.SizeUnit;
+import org.forgerock.opendj.config.BooleanPropertyDefinition;
+import org.forgerock.opendj.config.DurationPropertyDefinition;
+import org.forgerock.opendj.config.DurationUnit;
+import org.forgerock.opendj.config.PropertyDefinition;
+import org.forgerock.opendj.config.PropertyValueVisitor;
+import org.forgerock.opendj.config.SizePropertyDefinition;
+import org.forgerock.opendj.config.SizeUnit;
 
 
 
