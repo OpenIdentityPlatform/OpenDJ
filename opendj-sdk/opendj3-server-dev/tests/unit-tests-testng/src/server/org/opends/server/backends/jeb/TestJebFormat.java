@@ -26,29 +26,28 @@
  */
 package org.opends.server.backends.jeb;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertTrue;
-
 import java.io.ByteArrayInputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.StaticUtils;
-import static org.opends.server.util.StaticUtils.getBytes;
-
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+
+import static org.opends.server.util.StaticUtils.*;
+import static org.testng.Assert.*;
 
 /**
  * JebFormat Tester.
  */
+@SuppressWarnings("javadoc")
 public class TestJebFormat extends JebTestCase {
   private static final String ldifString =
     "dn: uid=user.1,ou=People,dc=example,dc=com\n"
@@ -134,55 +133,79 @@ public class TestJebFormat extends JebTestCase {
       + "cn;lang-en: Rodney Ogasawara\n"
       + "title;lang-en: Sales, Director\n" + "\n" + "";
 
-  /**
-   * Test entry IDs.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
-   */
-  @Test()
-  public void testEntryIDToAndFromDatabase() throws Exception {
-    long[] vals = { 128, 1234567, 0, 1, -1, 2 ^ 32 - 1, 2 ^ 63 - 1 };
-
-    for (long before : vals) {
-      byte[] bytes = JebFormat.entryIDToDatabase(before);
-      long after = JebFormat.entryIDFromDatabase(bytes);
-
-      assertEquals(before, after);
-    }
+  @DataProvider
+  public Object[][] entryIDToAndFromDatabaseDataProvider()
+  {
+    return new Object[][] {
+      { 128 }, { 1234567 }, { 0 }, { 1 }, { -1 },
+      { 2 ^ 32 - 1 }, { 2 ^ 63 - 1 }, { Long.MIN_VALUE }, { Long.MAX_VALUE },
+    };
   }
 
-  private void entryIDListToAndFromDatabase(long[] before) throws Exception {
-    byte[] bytes = JebFormat.entryIDListToDatabase(before);
-    /*
-     * printError(String.format("encoded count=%d len=%d",
-     * before.length, bytes.length));
-     */
-    long[] after = JebFormat.entryIDListFromDatabase(bytes);
+  /**
+   * Test entry IDs.
+   */
+  @Test(dataProvider = "entryIDToAndFromDatabaseDataProvider")
+  public void testEntryIDToAndFromDatabase(long before) throws Exception
+  {
+    byte[] bytes = JebFormat.entryIDToDatabase(before);
+    long after = JebFormat.entryIDFromDatabase(bytes);
+    assertEquals(after, before);
+  }
 
-    assertTrue(Arrays.equals(before, after));
+  @DataProvider
+  public Object[][] entryIDUndefinedSizeToAndFromDatabaseDataProvider()
+  {
+    return new Object[][] {
+      { 128 }, { 1234567 }, { 0 }, { 1 },
+      { 2 ^ 32 - 1 }, { 2 ^ 63 - 1 }, { Long.MAX_VALUE },
+    };
+  }
+
+  /**
+   * Test entry ID set counts.
+   */
+  @Test(dataProvider = "entryIDUndefinedSizeToAndFromDatabaseDataProvider")
+  public void testEntryIDUndefinedSizeToAndFromDatabase(long before) throws Exception
+  {
+    byte[] bytes = JebFormat.entryIDUndefinedSizeToDatabase(before);
+    assertEquals(bytes[0] & 0x80, 0x80);
+    long after = JebFormat.entryIDUndefinedSizeFromDatabase(bytes);
+    assertEquals(after, before);
+  }
+
+  @Test
+  public void testEntryIDUndefinedSizeFromDatabase() throws Exception
+  {
+    assertEquals(JebFormat.entryIDUndefinedSizeFromDatabase(null), 0);
+    assertEquals(JebFormat.entryIDUndefinedSizeFromDatabase(new byte[0]), Long.MAX_VALUE);
+    assertEquals(JebFormat.entryIDUndefinedSizeFromDatabase(new byte[9]), Long.MAX_VALUE);
   }
 
   /**
    * Test entry ID lists.
-   *
-   * @throws Exception
-   *           If the test failed unexpectedly.
    */
-  @Test()
-  public void testEntryIDListToAndFromDatabase() throws Exception {
-    long[] array;
-    array = new long[] { 1, 2, 3, 4, 5 };
-    entryIDListToAndFromDatabase(array);
-    array = new long[] { 999999 };
-    entryIDListToAndFromDatabase(array);
-    array = new long[] { 1, 128, 1234567 };
-    entryIDListToAndFromDatabase(array);
-    array = new long[100000];
+  @Test(dataProvider = "entryIDListToAndFromDatabaseDataProvider")
+  public void entryIDListToAndFromDatabase(long[] before) throws Exception
+  {
+    byte[] bytes = JebFormat.entryIDListToDatabase(before);
+    long[] after = JebFormat.entryIDListFromDatabase(bytes);
+    assertTrue(Arrays.equals(before, after));
+  }
+
+  @DataProvider
+  public Object[][] entryIDListToAndFromDatabaseDataProvider() throws Exception
+  {
+    long[] array = new long[100000];
     for (int i = 0; i < 100000; i++) {
       array[i] = i * 2 + 1;
     }
-    entryIDListToAndFromDatabase(array);
+    return new Object[][] {
+      { new long[] { 1, 2, 3, 4, 5 } },
+      { new long[] { 999999 } },
+      { new long[] { 1, 128, 1234567 } },
+      { array },
+    };
   }
 
   /**
