@@ -63,6 +63,7 @@ public class JebFormat
    *
    * @param bytes The database value of the entry ID.
    * @return The entry ID value.
+   * @see #entryIDToDatabase(long)
    */
   public static long entryIDFromDatabase(byte[] bytes)
   {
@@ -100,6 +101,8 @@ public class JebFormat
    *
    * @param bytes The database value of the entry ID count.
    * @return The entry ID count.
+   *  Cannot be negative if encoded with #entryIDUndefinedSizeToDatabase(long)
+   * @see #entryIDUndefinedSizeToDatabase(long)
    */
   public static long entryIDUndefinedSizeFromDatabase(byte[] bytes)
   {
@@ -110,7 +113,14 @@ public class JebFormat
 
     if(bytes.length == 8)
     {
-      return entryIDFromDatabase(bytes);
+      long v = 0;
+      v |= (bytes[0] & 0x7F);
+      for (int i = 1; i < 8; i++)
+      {
+        v <<= 8;
+        v |= (bytes[i] & 0xFF);
+      }
+      return v;
     }
     return Long.MAX_VALUE;
   }
@@ -122,8 +132,8 @@ public class JebFormat
    *              hence no entry IDs. Note that this method will throw an
    *              ArrayIndexOutOfBoundsException if the bytes array length is
    *              not a multiple of 8.
-   *
    * @return An array of entry ID values.
+   * @see #entryIDListToDatabase(long[])
    */
   public static long[] entryIDListFromDatabase(byte[] bytes)
   {
@@ -174,8 +184,10 @@ public class JebFormat
 
   /**
    * Encode an entry ID value to its database representation.
+   *
    * @param id The entry ID value to be encoded.
    * @return The encoded database value of the entry ID.
+   * @see #entryIDFromDatabase(byte[])
    */
   public static byte[] entryIDToDatabase(long id)
   {
@@ -191,8 +203,10 @@ public class JebFormat
 
   /**
    * Encode an entry ID set count to its database representation.
+   *
    * @param count The entry ID set count to be encoded.
-   * @return The encoded database value of the entry ID.
+   * @return The encoded database value of the entry ID set count.
+   * @see #entryIDUndefinedSizeFromDatabase(byte[])
    */
   public static byte[] entryIDUndefinedSizeToDatabase(long count)
   {
@@ -211,8 +225,8 @@ public class JebFormat
    * Encode an array of entry ID values to its database representation.
    *
    * @param entryIDArray An array of entry ID values.
-   *
    * @return The encoded database value.
+   * @see #entryIDListFromDatabase(byte[])
    */
   public static byte[] entryIDListToDatabase(long[] entryIDArray)
   {
@@ -248,6 +262,7 @@ public class JebFormat
    * @param prefix The DN to prefix the deocded DN value.
    * @return The decoded DN value.
    * @throws DirectoryException if an error occurs while decoding the DN value.
+   * @see #dnToDNKey(DN, int)
    */
   public static DN dnFromDNKey(byte[] dnKey, int offset, int length, DN prefix)
       throws DirectoryException
@@ -332,6 +347,7 @@ public class JebFormat
    * @param prefixRDNs The number of prefix RDNs to remove from the encoded
    *                   representation.
    * @return A DatabaseEntry containing the key.
+   * @see #dnFromDNKey(byte[], int, int, DN)
    */
   public static byte[] dnToDNKey(DN dn, int prefixRDNs)
   {
