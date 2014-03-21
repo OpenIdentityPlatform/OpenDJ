@@ -66,6 +66,7 @@ import javax.management.MBeanServerFactory;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.schema.AttributeUsage;
 import org.forgerock.opendj.ldap.schema.ObjectClassType;
@@ -134,7 +135,6 @@ import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.api.plugin.PluginType;
 import org.opends.server.backends.RootDSEBackend;
 import org.opends.server.config.ConfigEntry;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.config.JMXMBean;
 import org.opends.server.controls.PasswordPolicyErrorType;
 import org.opends.server.controls.PasswordPolicyResponseControl;
@@ -471,8 +471,7 @@ public final class DirectoryServer
    * mapping between the DN of the associated configuration entry and the
    * validator implementation.
    */
-  private ConcurrentMap<DN,
-               PasswordValidator<? extends PasswordValidatorCfg>>
+  private ConcurrentMap<DN, PasswordValidator<? extends PasswordValidatorCfg>>
                passwordValidators;
 
   /** The set of trust manager providers registered with the server. */
@@ -507,8 +506,7 @@ public final class DirectoryServer
    * The set of monitor providers registered with the Directory Server, as a
    * mapping between the monitor name and the corresponding implementation.
    */
-  private ConcurrentMap<String,
-                            MonitorProvider<? extends MonitorProviderCfg>>
+  private ConcurrentMap<String, MonitorProvider<? extends MonitorProviderCfg>>
                monitorProviders;
 
   /**
@@ -2526,7 +2524,6 @@ public final class DirectoryServer
         }
         catch (DirectoryException e)
         {
-          // TODO Auto-generated catch block
           throw new ConfigException(e.getMessageObject());
         }
       }
@@ -3174,7 +3171,7 @@ public final class DirectoryServer
    */
   public static MatchingRule getOrderingMatchingRule(String lowerName)
   {
-    return (MatchingRule) directoryServer.schema.getMatchingRule(lowerName);
+    return directoryServer.schema.getMatchingRule(lowerName);
   }
 
   /**
@@ -6742,36 +6739,20 @@ public final class DirectoryServer
         case SEARCH:
         case MODIFY:
         case MODIFY_DN:
-          if (directoryServer.lockdownMode)
-          {
-            LocalizableMessage message = NOTE_REJECT_OPERATION_IN_LOCKDOWN_MODE.get();
-            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                         message);
-          }
-          else
-          {
-            LocalizableMessage message = ERR_REJECT_UNAUTHENTICATED_OPERATION.get();
-            throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                         message);
-          }
+          LocalizableMessage message = directoryServer.lockdownMode
+              ? NOTE_REJECT_OPERATION_IN_LOCKDOWN_MODE.get()
+              : ERR_REJECT_UNAUTHENTICATED_OPERATION.get();
+          throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
 
         case EXTENDED:
          ExtendedOperationBasis extOp = (ExtendedOperationBasis) operation;
          String   requestOID = extOp.getRequestOID();
          if (!OID_START_TLS_REQUEST.equals(requestOID))
          {
-           if (directoryServer.lockdownMode)
-           {
-             LocalizableMessage message = NOTE_REJECT_OPERATION_IN_LOCKDOWN_MODE.get();
-             throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                          message);
-           }
-           else
-           {
-             LocalizableMessage message = ERR_REJECT_UNAUTHENTICATED_OPERATION.get();
-             throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
-                                          message);
-           }
+           message = directoryServer.lockdownMode
+               ? NOTE_REJECT_OPERATION_IN_LOCKDOWN_MODE.get()
+               : ERR_REJECT_UNAUTHENTICATED_OPERATION.get();
+           throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
          }
          break;
 

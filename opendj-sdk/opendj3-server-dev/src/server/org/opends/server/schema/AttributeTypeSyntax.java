@@ -35,17 +35,17 @@ import java.util.List;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.ldap.ByteSequence;
-import org.forgerock.opendj.ldap.schema.AttributeUsage;
-import org.opends.server.admin.std.server.*;
-import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.api.MatchingRule;
-import org.opends.server.api.AttributeSyntax;
-import org.opends.server.api.SubstringMatchingRule;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ByteSequence;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.schema.AttributeUsage;
+import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.server.AttributeTypeDescriptionAttributeSyntaxCfg;
+import org.opends.server.api.AttributeSyntax;
+import org.opends.server.api.MatchingRule;
+import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
@@ -66,22 +66,24 @@ public class AttributeTypeSyntax
 
 
 
-  // The reference to the configuration for this attribute type description
-  // syntax.
+  /**
+   * The reference to the configuration for this attribute type description
+   * syntax.
+   */
   private AttributeTypeDescriptionAttributeSyntaxCfg currentConfig;
 
 
 
-  // The default equality matching rule for this syntax.
+  /** The default equality matching rule for this syntax. */
   private MatchingRule defaultEqualityMatchingRule;
 
-  // The default ordering matching rule for this syntax.
+  /** The default ordering matching rule for this syntax. */
   private MatchingRule defaultOrderingMatchingRule;
 
-  // The default substring matching rule for this syntax.
+  /** The default substring matching rule for this syntax. */
   private SubstringMatchingRule defaultSubstringMatchingRule;
 
-  // If true strip the suggested minimum upper bound from the syntax OID.
+  /** If true strip the suggested minimum upper bound from the syntax OID. */
   private static boolean stripMinimumUpperBound=false;
 
 
@@ -98,9 +100,7 @@ public class AttributeTypeSyntax
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void
   initializeSyntax(AttributeTypeDescriptionAttributeSyntaxCfg configuration)
@@ -149,9 +149,7 @@ public class AttributeTypeSyntax
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getName()
   {
@@ -160,9 +158,7 @@ public class AttributeTypeSyntax
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getOID()
   {
@@ -171,9 +167,7 @@ public class AttributeTypeSyntax
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getDescription()
   {
@@ -182,9 +176,7 @@ public class AttributeTypeSyntax
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public MatchingRule getEqualityMatchingRule()
   {
@@ -193,9 +185,7 @@ public class AttributeTypeSyntax
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public MatchingRule getOrderingMatchingRule()
   {
@@ -204,9 +194,7 @@ public class AttributeTypeSyntax
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public SubstringMatchingRule getSubstringMatchingRule()
   {
@@ -215,9 +203,7 @@ public class AttributeTypeSyntax
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public MatchingRule getApproximateMatchingRule()
   {
@@ -227,9 +213,7 @@ public class AttributeTypeSyntax
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean valueIsAcceptable(ByteSequence value,
                                    LocalizableMessageBuilder invalidReason)
@@ -290,7 +274,7 @@ public class AttributeTypeSyntax
     // whitespace.
     int pos    = 0;
     int length = valueStr.length();
-    while ((pos < length) && (valueStr.charAt(pos) == ' '))
+    while (pos < length && (valueStr.charAt(pos) == ' '))
     {
       pos++;
     }
@@ -310,13 +294,13 @@ public class AttributeTypeSyntax
     char c = valueStr.charAt(pos++);
     if (c != '(')
     {
-      LocalizableMessage message = ERR_ATTR_SYNTAX_ATTRTYPE_EXPECTED_OPEN_PARENTHESIS.get(valueStr, (pos-1), c);
+      LocalizableMessage message = ERR_ATTR_SYNTAX_ATTRTYPE_EXPECTED_OPEN_PARENTHESIS.get(valueStr, pos - 1, c);
       throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
     }
 
 
     // Skip over any spaces immediately following the opening parenthesis.
-    while ((pos < length) && ((c = valueStr.charAt(pos)) == ' '))
+    while (pos < length && ((c = valueStr.charAt(pos)) == ' '))
     {
       pos++;
     }
@@ -341,8 +325,9 @@ public class AttributeTypeSyntax
       // This must be a numeric OID.  In that case, we will accept only digits
       // and periods, but not consecutive periods.
       boolean lastWasPeriod = false;
-      while ((pos < length) && ((c = valueStr.charAt(pos)) != ' ')
-              && (c = valueStr.charAt(pos)) != ')')
+      while (pos < length
+              && ((c = valueStr.charAt(pos)) != ' ')
+              && ((c = valueStr.charAt(pos)) != ')'))
       {
         if (c == '.')
         {
@@ -350,7 +335,7 @@ public class AttributeTypeSyntax
           {
             LocalizableMessage message =
               ERR_ATTR_SYNTAX_ATTRTYPE_DOUBLE_PERIOD_IN_NUMERIC_OID.
-                  get(valueStr, (pos-1));
+                  get(valueStr, pos - 1);
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                          message);
           }
@@ -377,11 +362,14 @@ public class AttributeTypeSyntax
     {
       // This must be a "fake" OID.  In this case, we will only accept
       // alphabetic characters, numeric digits, and the hyphen.
-      while ((pos < length) && ((c = valueStr.charAt(pos)) != ' ')
-              && (c=valueStr.charAt(pos))!=')')
+      while (pos < length
+          && ((c = valueStr.charAt(pos)) != ' ')
+          && ((c = valueStr.charAt(pos)) != ')'))
       {
-        if (isAlpha(c) || isDigit(c) || (c == '-') ||
-            ((c == '_') && DirectoryServer.allowAttributeNameExceptions()))
+        if (isAlpha(c)
+            || isDigit(c)
+            || c == '-'
+            || (c == '_' && DirectoryServer.allowAttributeNameExceptions()))
         {
           // This is fine.  It is an acceptable character.
           pos++;
@@ -412,7 +400,7 @@ public class AttributeTypeSyntax
 
 
     // Skip over the space(s) after the OID.
-    while ((pos < length) && ((c = valueStr.charAt(pos)) == ' '))
+    while (pos < length && ((c = valueStr.charAt(pos)) == ' '))
     {
       pos++;
     }
@@ -458,21 +446,21 @@ public class AttributeTypeSyntax
       pos = readTokenName(valueStr, tokenNameBuffer, pos);
       String tokenName = tokenNameBuffer.toString();
       String lowerTokenName = toLowerCase(tokenName);
-      if (tokenName.equals(")"))
+      if (")".equals(tokenName))
       {
         // We must be at the end of the value.  If not, then that's a problem.
         if (pos < length)
         {
           LocalizableMessage message =
             ERR_ATTR_SYNTAX_ATTRTYPE_UNEXPECTED_CLOSE_PARENTHESIS.
-                get(valueStr, (pos-1));
+                get(valueStr, pos - 1);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
                                        message);
         }
 
         break;
       }
-      else if (lowerTokenName.equals("name"))
+      else if ("name".equals(lowerTokenName))
       {
         // This specifies the set of names for the attribute type.  It may be a
         // single name in single quotes, or it may be an open parenthesis
@@ -482,8 +470,7 @@ public class AttributeTypeSyntax
         {
           StringBuilder userBuffer  = new StringBuilder();
           StringBuilder lowerBuffer = new StringBuilder();
-          pos = readQuotedString(valueStr, lowerStr, userBuffer, lowerBuffer,
-                                 (pos-1));
+          pos = readQuotedString(valueStr, lowerStr, userBuffer, lowerBuffer, pos - 1);
           primaryName = userBuffer.toString();
           typeNames.add(primaryName);
         }
@@ -503,28 +490,24 @@ public class AttributeTypeSyntax
             {
               // Skip over any spaces after the parenthesis.
               pos++;
-              while ((pos < length) && ((c = valueStr.charAt(pos)) == ' '))
+              while (pos < length && ((c = valueStr.charAt(pos)) == ' '))
               {
                 pos++;
               }
 
               break;
             }
-            else
-            {
-              userBuffer  = new StringBuilder();
-              lowerBuffer = new StringBuilder();
+            userBuffer  = new StringBuilder();
+            lowerBuffer = new StringBuilder();
 
-              pos = readQuotedString(valueStr, lowerStr, userBuffer,
-                                     lowerBuffer, pos);
-              typeNames.add(userBuffer.toString());
-            }
+            pos = readQuotedString(valueStr, lowerStr, userBuffer, lowerBuffer, pos);
+            typeNames.add(userBuffer.toString());
           }
         }
         else
         {
           // This is an illegal character.
-          LocalizableMessage message = ERR_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR.get(valueStr, c, (pos-1));
+          LocalizableMessage message = ERR_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR.get(valueStr, c, pos - 1);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
         }
         //RFC 2251: A specification may also assign one or more textual names
@@ -591,7 +574,7 @@ public class AttributeTypeSyntax
         }
 
       }
-      else if (lowerTokenName.equals("desc"))
+      else if ("desc".equals(lowerTokenName))
       {
         // This specifies the description for the attribute type.  It is an
         // arbitrary string of characters enclosed in single quotes.
@@ -599,13 +582,13 @@ public class AttributeTypeSyntax
         pos = readQuotedString(valueStr, descriptionBuffer, pos);
         description = descriptionBuffer.toString();
       }
-      else if (lowerTokenName.equals("obsolete"))
+      else if ("obsolete".equals(lowerTokenName))
       {
         // This indicates whether the attribute type should be considered
         // obsolete.  We do not need to do any more parsing for this token.
         isObsolete = true;
       }
-      else if (lowerTokenName.equals("sup"))
+      else if ("sup".equals(lowerTokenName))
       {
         // This specifies the name or OID of the superior attribute type from
         // which this attribute type should inherit its properties.
@@ -648,7 +631,7 @@ public class AttributeTypeSyntax
         isNoUserModification    = superiorType.isNoUserModification();
         attributeUsage          = superiorType.getUsage();
       }
-      else if (lowerTokenName.equals("equality"))
+      else if ("equality".equals(lowerTokenName))
       {
         // This specifies the name or OID of the equality matching rule to use
         // for this attribute type.
@@ -668,14 +651,13 @@ public class AttributeTypeSyntax
           equalityMatchingRule = emr;
         }
       }
-      else if (lowerTokenName.equals("ordering"))
+      else if ("ordering".equals(lowerTokenName))
       {
         // This specifies the name or OID of the ordering matching rule to use
         // for this attribute type.
         StringBuilder woidBuffer = new StringBuilder();
         pos = readWOID(lowerStr, woidBuffer, pos);
-        MatchingRule omr =
-             (MatchingRule) schema.getMatchingRule(woidBuffer.toString());
+        MatchingRule omr = schema.getMatchingRule(woidBuffer.toString());
         if (omr == null)
         {
           // This is bad because we have no idea what the ordering matching
@@ -688,7 +670,7 @@ public class AttributeTypeSyntax
           orderingMatchingRule = omr;
         }
       }
-      else if (lowerTokenName.equals("substr"))
+      else if ("substr".equals(lowerTokenName))
       {
         // This specifies the name or OID of the substring matching rule to use
         // for this attribute type.
@@ -708,7 +690,7 @@ public class AttributeTypeSyntax
           substringMatchingRule = smr;
         }
       }
-      else if (lowerTokenName.equals("syntax"))
+      else if ("syntax".equals(lowerTokenName))
       {
         // This specifies the numeric OID of the syntax for this matching rule.
         // It may optionally be immediately followed by an open curly brace, an
@@ -761,7 +743,7 @@ public class AttributeTypeSyntax
               {
                 LocalizableMessage message =
                     ERR_ATTR_SYNTAX_ATTRTYPE_DOUBLE_PERIOD_IN_NUMERIC_OID.
-                      get(valueStr, (pos-1));
+                      get(valueStr, pos - 1);
                 throw new DirectoryException(
                                ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
               }
@@ -825,27 +807,27 @@ public class AttributeTypeSyntax
           substringMatchingRule = syntax.getSubstringMatchingRule();
         }
       }
-      else if (lowerTokenName.equals("single-value"))
+      else if ("single-value".equals(lowerTokenName))
       {
         // This indicates that attributes of this type are allowed to have at
         // most one value.  We do not need any more parsing for this token.
         isSingleValue = true;
       }
-      else if (lowerTokenName.equals("collective"))
+      else if ("collective".equals(lowerTokenName))
       {
         // This indicates that attributes of this type are collective (i.e.,
         // have their values generated dynamically in some way).  We do not need
         // any more parsing for this token.
         isCollective = true;
       }
-      else if (lowerTokenName.equals("no-user-modification"))
+      else if ("no-user-modification".equals(lowerTokenName))
       {
         // This indicates that the values of attributes of this type are not to
         // be modified by end users.  We do not need any more parsing for this
         // token.
         isNoUserModification = true;
       }
-      else if (lowerTokenName.equals("usage"))
+      else if ("usage".equals(lowerTokenName))
       {
         // This specifies the usage string for this attribute type.  It should
         // be followed by one of the strings "userApplications",
@@ -870,19 +852,19 @@ public class AttributeTypeSyntax
         }
 
         String usageStr = usageBuffer.toString();
-        if (usageStr.equals("userapplications"))
+        if ("userapplications".equals(usageStr))
         {
           attributeUsage = AttributeUsage.USER_APPLICATIONS;
         }
-        else if (usageStr.equals("directoryoperation"))
+        else if ("directoryoperation".equals(usageStr))
         {
           attributeUsage = AttributeUsage.DIRECTORY_OPERATION;
         }
-        else if (usageStr.equals("distributedoperation"))
+        else if ("distributedoperation".equals(usageStr))
         {
           attributeUsage = AttributeUsage.DISTRIBUTED_OPERATION;
         }
-        else if (usageStr.equals("dsaoperation"))
+        else if ("dsaoperation".equals(usageStr))
         {
           attributeUsage = AttributeUsage.DSA_OPERATION;
         }
@@ -908,7 +890,7 @@ public class AttributeTypeSyntax
     }
 
     List<String> approxRules = extraProperties.get(SCHEMA_PROPERTY_APPROX_RULE);
-    if ((approxRules != null) && (! approxRules.isEmpty()))
+    if (approxRules != null && !approxRules.isEmpty())
     {
       String ruleName  = approxRules.get(0);
       String lowerName = toLowerCase(ruleName);
@@ -939,24 +921,19 @@ public class AttributeTypeSyntax
         throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
       }
 
-      if (superiorType.isCollective())
+      if (superiorType.isCollective() && !isCollective)
       {
-        if (!isCollective)
-        {
-          LocalizableMessage message =
-                  WARN_ATTR_SYNTAX_ATTRTYPE_NONCOLLECTIVE_FROM_COLLECTIVE.get(
-                    oid, superiorType.getNameOrOID());
-          throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                  message);
-        }
+        throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+            WARN_ATTR_SYNTAX_ATTRTYPE_NONCOLLECTIVE_FROM_COLLECTIVE
+                .get(oid, superiorType.getNameOrOID()));
       }
     }
 
 
     // If the attribute type is NO-USER-MODIFICATION, then it must not have a
     // usage of userApplications.
-    if (isNoUserModification &&
-        (attributeUsage == AttributeUsage.USER_APPLICATIONS))
+    if (isNoUserModification
+        && attributeUsage == AttributeUsage.USER_APPLICATIONS)
     {
       LocalizableMessage message =
           WARN_ATTR_SYNTAX_ATTRTYPE_NO_USER_MOD_NOT_OPERATIONAL.get(oid);
@@ -998,7 +975,7 @@ public class AttributeTypeSyntax
     // Skip over any spaces at the beginning of the value.
     char c = '\u0000';
     int  length = valueStr.length();
-    while ((startPos < length) && ((c = valueStr.charAt(startPos)) == ' '))
+    while (startPos < length && ((c = valueStr.charAt(startPos)) == ' '))
     {
       startPos++;
     }
@@ -1012,8 +989,9 @@ public class AttributeTypeSyntax
 
 
     // Read until we find the next space.
-    while ((startPos < length) && ((c = valueStr.charAt(startPos)) != ' ')
-            && (c = valueStr.charAt(startPos)) != ')')
+    while (startPos < length
+        && ((c = valueStr.charAt(startPos)) != ' ')
+        && ((c = valueStr.charAt(startPos)) != ')'))
     {
       tokenName.append(c);
       startPos++;
@@ -1028,7 +1006,7 @@ public class AttributeTypeSyntax
     }
 
     // Skip over any trailing spaces after the value.
-    while ((startPos < length) && ((c = valueStr.charAt(startPos)) == ' '))
+    while (startPos < length && ((c = valueStr.charAt(startPos)) == ' '))
     {
       startPos++;
     }
@@ -1065,7 +1043,7 @@ public class AttributeTypeSyntax
     // Skip over any spaces at the beginning of the value.
     char c = '\u0000';
     int  length = valueStr.length();
-    while ((startPos < length) && ((c = valueStr.charAt(startPos)) == ' '))
+    while (startPos < length && ((c = valueStr.charAt(startPos)) == ' '))
     {
       startPos++;
     }
@@ -1088,7 +1066,7 @@ public class AttributeTypeSyntax
 
     // Read until we find the closing quote.
     startPos++;
-    while ((startPos < length) && ((c = valueStr.charAt(startPos)) != '\''))
+    while (startPos < length && ((c = valueStr.charAt(startPos)) != '\''))
     {
       valueBuffer.append(c);
       startPos++;
@@ -1097,7 +1075,7 @@ public class AttributeTypeSyntax
 
     // Skip over any trailing spaces after the value.
     startPos++;
-    while ((startPos < length) && ((c = valueStr.charAt(startPos)) == ' '))
+    while (startPos < length && ((c = valueStr.charAt(startPos)) == ' '))
     {
       startPos++;
     }
@@ -1148,7 +1126,7 @@ public class AttributeTypeSyntax
     // Skip over any spaces at the beginning of the value.
     char c = '\u0000';
     int  length = lowerStr.length();
-    while ((startPos < length) && ((c = lowerStr.charAt(startPos)) == ' '))
+    while (startPos < length && ((c = lowerStr.charAt(startPos)) == ' '))
     {
       startPos++;
     }
@@ -1171,7 +1149,7 @@ public class AttributeTypeSyntax
 
     // Read until we find the closing quote.
     startPos++;
-    while ((startPos < length) && ((c = lowerStr.charAt(startPos)) != '\''))
+    while (startPos < length && ((c = lowerStr.charAt(startPos)) != '\''))
     {
       lowerBuffer.append(c);
       userBuffer.append(valueStr.charAt(startPos));
@@ -1181,7 +1159,7 @@ public class AttributeTypeSyntax
 
     // Skip over any trailing spaces after the value.
     startPos++;
-    while ((startPos < length) && ((c = lowerStr.charAt(startPos)) == ' '))
+    while (startPos < length && ((c = lowerStr.charAt(startPos)) == ' '))
     {
       startPos++;
     }
@@ -1225,7 +1203,7 @@ public class AttributeTypeSyntax
     // Skip over any spaces at the beginning of the value.
     char c = '\u0000';
     int  length = lowerStr.length();
-    while ((startPos < length) && ((c = lowerStr.charAt(startPos)) == ' '))
+    while (startPos < length && ((c = lowerStr.charAt(startPos)) == ' '))
     {
       startPos++;
     }
@@ -1245,17 +1223,15 @@ public class AttributeTypeSyntax
       // This must be a numeric OID.  In that case, we will accept only digits
       // and periods, but not consecutive periods.
       boolean lastWasPeriod = false;
-      while ((startPos < length) && ((c = lowerStr.charAt(startPos++)) != ' '))
+      while (startPos < length && ((c = lowerStr.charAt(startPos++)) != ' '))
       {
         if (c == '.')
         {
           if (lastWasPeriod)
           {
-            LocalizableMessage message =
-              ERR_ATTR_SYNTAX_ATTRTYPE_DOUBLE_PERIOD_IN_NUMERIC_OID.
-                  get(lowerStr, (startPos-1));
             throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX,
-                                         message);
+                ERR_ATTR_SYNTAX_ATTRTYPE_DOUBLE_PERIOD_IN_NUMERIC_OID
+                    .get(lowerStr, startPos - 1));
           }
           else
           {
@@ -1273,7 +1249,7 @@ public class AttributeTypeSyntax
           // additional characters.
           if (c == ')')
           {
-            return (startPos-1);
+            return startPos - 1;
           }
 
           // This must have been an illegal character.
@@ -1292,10 +1268,12 @@ public class AttributeTypeSyntax
     {
       // This must be an attribute description.  In this case, we will only
       // accept alphabetic characters, numeric digits, and the hyphen.
-      while ((startPos < length) && ((c = lowerStr.charAt(startPos++)) != ' '))
+      while (startPos < length && ((c = lowerStr.charAt(startPos++)) != ' '))
       {
-        if (isAlpha(c) || isDigit(c) || (c == '-') ||
-            ((c == '_') && DirectoryServer.allowAttributeNameExceptions()))
+        if (isAlpha(c)
+            || isDigit(c)
+            || c == '-'
+            || (c == '_' && DirectoryServer.allowAttributeNameExceptions()))
         {
           woidBuffer.append(c);
         }
@@ -1309,12 +1287,12 @@ public class AttributeTypeSyntax
           // additional characters.
           if (c == ')')
           {
-            return (startPos-1);
+            return startPos - 1;
           }
 
           // This must have been an illegal character.
           LocalizableMessage message = ERR_ATTR_SYNTAX_ATTRTYPE_ILLEGAL_CHAR_IN_STRING_OID.get(
-              lowerStr, c, (startPos-1));
+              lowerStr, c, startPos - 1);
           throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, message);
         }
       }
@@ -1327,7 +1305,7 @@ public class AttributeTypeSyntax
 
 
     // Skip over any trailing spaces after the value.
-    while ((startPos < length) && ((c = lowerStr.charAt(startPos)) == ' '))
+    while (startPos < length && ((c = lowerStr.charAt(startPos)) == ' '))
     {
       startPos++;
     }
@@ -1371,7 +1349,7 @@ public class AttributeTypeSyntax
     // Skip over any leading spaces.
     int length = valueStr.length();
     char c = '\u0000';
-    while ((startPos < length) && ((c = valueStr.charAt(startPos)) == ' '))
+    while (startPos < length && ((c = valueStr.charAt(startPos)) == ' '))
     {
       startPos++;
     }
@@ -1394,7 +1372,7 @@ public class AttributeTypeSyntax
       // Parse until the closing quote.
       StringBuilder valueBuffer = new StringBuilder();
       startPos++;
-      while ((startPos < length) && ((c = valueStr.charAt(startPos)) != '\''))
+      while (startPos < length && ((c = valueStr.charAt(startPos)) != '\''))
       {
         valueBuffer.append(c);
         startPos++;
@@ -1409,7 +1387,7 @@ public class AttributeTypeSyntax
       while (true)
       {
         // Skip over any leading spaces;
-        while ((startPos < length) && ((c = valueStr.charAt(startPos)) == ' '))
+        while (startPos < length && ((c = valueStr.charAt(startPos)) == ' '))
         {
           startPos++;
         }
@@ -1442,8 +1420,8 @@ public class AttributeTypeSyntax
           // We have a quoted string
           StringBuilder valueBuffer = new StringBuilder();
           startPos++;
-          while ((startPos < length) &&
-              ((c = valueStr.charAt(startPos)) != '\''))
+          while (startPos < length
+              && ((c = valueStr.charAt(startPos)) != '\''))
           {
             valueBuffer.append(c);
             startPos++;
@@ -1456,8 +1434,8 @@ public class AttributeTypeSyntax
         {
           //Consider unquoted string
           StringBuilder valueBuffer = new StringBuilder();
-          while ((startPos < length) &&
-              ((c = valueStr.charAt(startPos)) != ' '))
+          while (startPos < length
+              && ((c = valueStr.charAt(startPos)) != ' '))
           {
             valueBuffer.append(c);
             startPos++;
@@ -1479,7 +1457,7 @@ public class AttributeTypeSyntax
     {
       // Parse until the next space.
       StringBuilder valueBuffer = new StringBuilder();
-      while ((startPos < length) && ((c = valueStr.charAt(startPos)) != ' '))
+      while (startPos < length && ((c = valueStr.charAt(startPos)) != ' '))
       {
         valueBuffer.append(c);
         startPos++;
@@ -1489,7 +1467,7 @@ public class AttributeTypeSyntax
     }
 
     // Skip over any trailing spaces.
-    while ((startPos < length) && (valueStr.charAt(startPos) == ' '))
+    while (startPos < length && (valueStr.charAt(startPos) == ' '))
     {
       startPos++;
     }
@@ -1507,9 +1485,7 @@ public class AttributeTypeSyntax
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
               AttributeTypeDescriptionAttributeSyntaxCfg configuration)
@@ -1522,9 +1498,7 @@ public class AttributeTypeSyntax
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
                       AttributeTypeDescriptionAttributeSyntaxCfg configuration,
@@ -1546,9 +1520,7 @@ public class AttributeTypeSyntax
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isBEREncodingRequired()
   {
@@ -1557,9 +1529,7 @@ public class AttributeTypeSyntax
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isHumanReadable()
   {

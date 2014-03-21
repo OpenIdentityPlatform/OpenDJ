@@ -33,7 +33,6 @@ import java.util.Map;
 
 import org.forgerock.opendj.ldap.schema.AttributeUsage;
 import org.forgerock.util.Utils;
-import org.opends.server.api.MatchingRule;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
