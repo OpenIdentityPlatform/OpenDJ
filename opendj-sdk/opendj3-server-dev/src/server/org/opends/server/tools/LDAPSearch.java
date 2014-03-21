@@ -49,7 +49,6 @@ import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.CommonArguments;
-import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.FileBasedArgument;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.MultiChoiceArgument;
@@ -61,6 +60,7 @@ import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.util.args.LDAPConnectionArgumentParser.*;
 
 /**
  * This class provides a tool that can be used to issue search requests to the
@@ -1199,39 +1199,17 @@ public class LDAPSearch
     String baseDNValue = baseDN.getValue();
     String bindDNValue = bindDN.getValue();
     String fileNameValue = filename.getValue();
-    String bindPasswordValue = bindPassword.getValue();
-    if(bindPasswordValue != null && bindPasswordValue.equals("-")  ||
-      (!bindPasswordFile.isPresent()  &&
-      (bindDNValue != null && bindPasswordValue == null)))
+    String bindPasswordValue;
+    try
     {
-      // read the password from the stdin.
-      try
-      {
-        out.print(INFO_LDAPAUTH_PASSWORD_PROMPT.get(bindDNValue));
-        char[] pwChars = ConsoleApplication.readPassword();
-        bindPasswordValue = new String(pwChars);
-        //As per rfc 4513(section-5.1.2) a client should avoid sending
-        //an empty password to the server.
-        while(pwChars.length ==0)
-        {
-          err.println(wrapText(
-                  INFO_LDAPAUTH_NON_EMPTY_PASSWORD.get(),
-                  MAX_LINE_WIDTH));
-          out.print(INFO_LDAPAUTH_PASSWORD_PROMPT.get(bindDNValue));
-          pwChars = ConsoleApplication.readPassword();
-        }
-        bindPasswordValue = new String(pwChars);
-      } catch(Exception ex)
-      {
-        logger.traceException(ex);
-        err.println(wrapText(ex.getMessage(), MAX_LINE_WIDTH));
-        return CLIENT_SIDE_PARAM_ERROR;
-      }
+      bindPasswordValue = getPasswordValue(
+          bindPassword, bindPasswordFile, bindDNValue, out, err);
     }
-    else if(bindPasswordValue == null)
+    catch (Exception ex)
     {
-      // Read from file if it exists.
-      bindPasswordValue = bindPasswordFile.getValue();
+      logger.traceException(ex);
+      err.println(wrapText(ex.getMessage(), MAX_LINE_WIDTH));
+      return CLIENT_SIDE_PARAM_ERROR;
     }
 
     String keyStorePathValue = keyStorePath.getValue();
@@ -1832,5 +1810,6 @@ public class LDAPSearch
       }
     }
   }
+
 }
 
