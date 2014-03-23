@@ -23,6 +23,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2009 Sun Microsystems, Inc.
+ !      Portions Copyright 2014 ForgeRock AS.
  ! -->
 <stax>
 
@@ -38,12 +39,20 @@
         </function-arg-description>
         <function-arg-property name="type" value="string"/>
       </function-arg-def>
+      <function-arg-def name="label"
+                        type="optional"
+                        default="None">
+        <function-arg-description>
+          Convenience label
+        </function-arg-description>
+        <function-arg-property name="type" value="string"/>
+      </function-arg-def>
     </function-map-args>
     <sequence>
 
       <block name="'fractional-replication-cleanup'">
 
-        <testcase name="getTestCaseName('Fractional Repl Cleanup')">
+        <testcase name="getTestCaseName('Fractional Repl %s Cleanup' % label)">
 
           <try>
           

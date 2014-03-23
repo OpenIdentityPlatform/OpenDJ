@@ -23,7 +23,7 @@
  ! CDDL HEADER END
  !
  !      Copyright 2009 Sun Microsystems, Inc.
- !      Portions Copyright 2012-2013 ForgeRock AS
+ !      Portions Copyright 2012-2014 ForgeRock AS
  ! -->
 <stax>
   <defaultcall function="fractional-replication_config"/>
@@ -46,7 +46,7 @@
             <script>
               if not CurrentTestPath.has_key('group'):
                 CurrentTestPath['group']='fractional-replication'
-              CurrentTestPath['suite']=STAXCurrentBlock
+              CurrentTestPath['suite']='config'
             </script>
 
             <call function="'testSuite_Preamble'"/>
@@ -57,7 +57,9 @@
                 <import machine="STAF_LOCAL_HOSTNAME"
                   file="'%s/testcases/fractional-replication/fractional-replication_setup.xml'
                     % (TESTS_DIR)"/>
-                <call function="'fractional-replication_setup'" />
+                <call function="'fractional-replication_setup'">
+                  { 'label' : "Config" }
+                </call>
 
                 <script>
                   server = _topologyServerList[0]
@@ -129,7 +131,9 @@
                   <import machine="STAF_LOCAL_HOSTNAME"
                     file="'%s/testcases/fractional-replication/fractional-replication_cleanup.xml'
                           % (TESTS_DIR)"/>
-                  <call function="'fractional-replication_cleanup'" />
+                <call function="'fractional-replication_cleanup'">
+                  { 'label' : "Config" }
+                </call>
                 </sequence>
                 <catch exception="'STAFException'">
                   <sequence>
