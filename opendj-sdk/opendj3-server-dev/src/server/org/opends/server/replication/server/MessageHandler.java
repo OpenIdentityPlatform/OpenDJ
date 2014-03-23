@@ -204,9 +204,10 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
   {
     if (replicationServerDomain == null)
     {
-      replicationServerDomain =
-          replicationServer.getReplicationServerDomain(baseDN, true);
-      if (waitConnections) {
+      replicationServerDomain = replicationServer.getReplicationServerDomain(
+          baseDN, true);
+      if (waitConnections)
+      {
         replicationServer.waitConnections();
       }
     }
@@ -616,7 +617,9 @@ public class MessageHandler extends MonitorProvider<MonitorProviderCfg>
     {
       this.baseDN = baseDN;
       if (!baseDN.toNormalizedString().equals("cn=changelog"))
-        this.replicationServerDomain = getDomain(isDataServer);
+      {
+        getDomain(isDataServer);
+      }
     }
   }
 
