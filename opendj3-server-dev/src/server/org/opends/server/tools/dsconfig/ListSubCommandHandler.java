@@ -52,7 +52,6 @@ import org.forgerock.opendj.config.client.ManagedObjectDecodingException;
 import org.forgerock.opendj.config.client.ManagementContext;
 import org.forgerock.opendj.ldap.AuthorizationException;
 import org.forgerock.opendj.ldap.ErrorResultException;
-import org.opends.server.admin.client.CommunicationException;
 
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ClientException;
@@ -258,9 +257,6 @@ final class ListSubCommandHandler extends SubCommandHandler {
       ufn = path.getManagedObjectDefinition().getUserFriendlyName();
       LocalizableMessage msg = ERR_DSCFG_ERROR_GET_PARENT_MODE.get(ufn);
       throw new ClientException(ReturnCode.OTHER, msg, e);
-    } catch (CommunicationException e) {
-      LocalizableMessage msg = ERR_DSCFG_ERROR_LIST_CE.get(ufn, e.getMessage());
-      throw new ClientException(ReturnCode.CLIENT_SIDE_SERVER_DOWN, msg);
     } catch (ConcurrentModificationException e) {
       LocalizableMessage msg = ERR_DSCFG_ERROR_LIST_CME.get(ufn);
       throw new ClientException(ReturnCode.CONSTRAINT_VIOLATION, msg);

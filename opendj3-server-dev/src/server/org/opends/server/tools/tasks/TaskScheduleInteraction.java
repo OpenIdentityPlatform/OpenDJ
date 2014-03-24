@@ -220,7 +220,7 @@ public class TaskScheduleInteraction
     }
     else
     {
-      throw new ClientException(ReturnCode.TODO, LocalizableMessage.EMPTY);
+      throw new ClientException(ReturnCode.ERROR_UNEXPECTED, LocalizableMessage.EMPTY);
     }
 
   }
@@ -445,7 +445,7 @@ public class TaskScheduleInteraction
     }
     else
     {
-      throw new ClientException(ReturnCode.TODO, LocalizableMessage.EMPTY);
+      throw new ClientException(ReturnCode.ERROR_UNEXPECTED, LocalizableMessage.EMPTY);
     }
   }
 

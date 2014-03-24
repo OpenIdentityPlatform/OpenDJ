@@ -59,7 +59,6 @@ import org.forgerock.opendj.config.client.ManagedObject;
 import org.forgerock.opendj.config.client.ManagedObjectDecodingException;
 import org.forgerock.opendj.config.client.ManagementContext;
 import org.forgerock.opendj.ldap.AuthorizationException;
-import org.opends.server.admin.client.CommunicationException;
 
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ReturnCode;
@@ -265,9 +264,6 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
     } catch (ManagedObjectDecodingException e) {
       LocalizableMessage msg = ERR_DSCFG_ERROR_GET_CHILD_MODE.get(ufn);
       throw new ClientException(ReturnCode.OTHER, msg, e);
-    } catch (CommunicationException e) {
-      LocalizableMessage msg = ERR_DSCFG_ERROR_GET_CHILD_CE.get(ufn, e.getMessage());
-      throw new ClientException(ReturnCode.CLIENT_SIDE_SERVER_DOWN, msg);
     } catch (ConcurrentModificationException e) {
       LocalizableMessage msg = ERR_DSCFG_ERROR_GET_CHILD_CME.get(ufn);
       throw new ClientException(ReturnCode.CONSTRAINT_VIOLATION, msg);
