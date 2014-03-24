@@ -26,8 +26,6 @@
  */
 package org.opends.server.tools.dsconfig;
 
-
-
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.CliMessages.*;
 import static com.forgerock.opendj.cli.Utils.SHELL_COMMENT_SEPARATOR;
@@ -37,11 +35,7 @@ import static com.forgerock.opendj.cli.Utils.formatDateTimeStringForEquivalentCo
 import static com.forgerock.opendj.cli.Utils.getCurrentOperationDateMessage;
 import static com.forgerock.opendj.util.StaticUtils.stackTraceToSingleLineString;
 import static org.forgerock.util.Utils.closeSilently;
-import static org.opends.messages.DSConfigMessages.*;
-import static org.opends.messages.ToolMessages.ERR_DSCFG_ERROR_BATCH_FILE_AND_INTERACTIVE_INCOMPATIBLE;
-import static org.opends.messages.ToolMessages.ERR_DSCFG_ERROR_QUIET_AND_INTERACTIVE_INCOMPATIBLE;
-import static org.opends.messages.ToolMessages.INFO_CONFIGDS_TOOL_DESCRIPTION;
-import static org.opends.messages.ToolMessages.INFO_DESCRIPTION_CONFIG_OPTIONS_ARGS;
+import static com.forgerock.opendj.dsconfig.DsconfigMessages.*;
 import static org.opends.server.tools.dsconfig.ArgumentExceptionFactory.displayManagedObjectDecodingException;
 import static org.opends.server.tools.dsconfig.ArgumentExceptionFactory.displayMissingMandatoryPropertyException;
 import static org.opends.server.tools.dsconfig.ArgumentExceptionFactory.displayOperationRejectedException;
@@ -454,7 +448,7 @@ public final class DSConfig extends ConsoleApplication {
     super(new PrintStream(out), new PrintStream(err));
 
     this.parser = new SubCommandArgumentParser(getClass().getName(),
-        INFO_CONFIGDS_TOOL_DESCRIPTION.get(), false);
+        INFO_DSCFG_TOOL_DESCRIPTION.get(), false);
 
     this.factory = factory;
   }
@@ -564,7 +558,7 @@ public final class DSConfig extends ConsoleApplication {
       // Register the global arguments.
 
       ArgumentGroup toolOptionsGroup = new ArgumentGroup(
-          INFO_DESCRIPTION_CONFIG_OPTIONS_ARGS.get(), 2);
+          INFO_DSCFG_DESCRIPTION_OPTIONS_ARGS.get(), 2);
       parser.addGlobalArgument(advancedModeArgument, toolOptionsGroup);
 
       parser.addGlobalArgument(showUsageArgument);
@@ -706,9 +700,9 @@ public final class DSConfig extends ConsoleApplication {
 
     if (batchFileArgument.isPresent() && !noPromptArgument.isPresent()) {
       LocalizableMessage message =
-        ERR_DSCFG_ERROR_BATCH_FILE_AND_INTERACTIVE_INCOMPATIBLE.get(
-            batchFileArgument.getLongIdentifier(), noPromptArgument
-            .getLongIdentifier());
+          ERR_DSCFG_ERROR_QUIET_AND_INTERACTIVE_INCOMPATIBLE.get(
+              batchFileArgument.getLongIdentifier(), noPromptArgument
+                  .getLongIdentifier());
       displayMessageAndUsageReference(message);
       return 1;
     }

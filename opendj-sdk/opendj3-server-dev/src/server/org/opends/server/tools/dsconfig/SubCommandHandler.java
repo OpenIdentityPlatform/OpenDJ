@@ -28,10 +28,8 @@ package org.opends.server.tools.dsconfig;
 
 
 
-import static org.opends.messages.DSConfigMessages.*;
-import static org.opends.messages.ToolMessages.INFO_NAME_PLACEHOLDER;
-import static org.opends.messages.ToolMessages.INFO_PROPERTY_PLACEHOLDER;
-import static org.opends.messages.ToolMessages.INFO_UNIT_PLACEHOLDER;
+import static com.forgerock.opendj.dsconfig.DsconfigMessages.*;
+import static com.forgerock.opendj.cli.CliMessages.*;
 
 import java.io.PrintStream;
 import java.util.ArrayList;

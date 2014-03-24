@@ -26,7 +26,7 @@
  */
 package org.opends.server.tools.dsconfig;
 
-import static org.opends.messages.DSConfigMessages.*;
+import static com.forgerock.opendj.dsconfig.DsconfigMessages.*;
 
 import java.text.NumberFormat;
 
