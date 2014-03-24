@@ -106,10 +106,6 @@ import com.forgerock.opendj.cli.TextTablePrinter;
 import com.forgerock.opendj.cli.MenuResult;
 import com.forgerock.opendj.cli.ValidationCallback;
 
-import static com.forgerock.opendj.cli.CliMessages.ERR_BAD_INTEGER;
-import static com.forgerock.opendj.cli.CliMessages.INFO_ADMINISTRATOR_PWD_PROMPT;
-import static com.forgerock.opendj.cli.CliMessages.INFO_ADMINISTRATOR_UID_PROMPT;
-import static com.forgerock.opendj.cli.CliMessages.INFO_PROMPT_SINGLE_DEFAULT;
 import static com.forgerock.opendj.cli.Utils.CONFIRMATION_MAX_TRIES;
 import static com.forgerock.opendj.cli.Utils.getCurrentOperationDateMessage;
 import static com.forgerock.opendj.cli.Utils.getMessageForException;
@@ -137,14 +133,12 @@ import java.util.*;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import static org.opends.admin.ads.ServerDescriptor.*;
+import static com.forgerock.opendj.cli.CliMessages.*;
 import static org.opends.messages.AdminToolMessages.*;
-import static org.opends.messages.DSConfigMessages.ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT;
-import static org.opends.messages.DSConfigMessages.ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT_NOT_TRUSTED;
-import static org.opends.messages.DSConfigMessages.ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT_WRONG_PORT;
 import static org.opends.messages.QuickSetupMessages.*;
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.messages.UtilityMessages.
-    ERR_CONFIRMATION_TRIES_LIMIT_REACHED;
+import static org.opends.messages.ToolMessages.INFO_TASK_TOOL_TASK_SUCESSFULL;
+import static org.opends.messages.ToolMessages.INFO_TASK_TOOL_TASK_SCHEDULED_FUTURE;
+import static org.opends.messages.ToolMessages.INFO_TASK_TOOL_RECURRING_TASK_SCHEDULED;
 import static org.opends.quicksetup.util.Utils.getFirstValue;
 import static org.opends.quicksetup.util.Utils.getThrowableMsg;
 import static org.opends.server.tools.dsreplication.ReplicationCliReturnCode.*;
@@ -1317,7 +1311,7 @@ public class ReplicationCliMain extends ConsoleApplication
                   || (e.getCause() instanceof SSLHandshakeException))
               {
                 LocalizableMessage message =
-                    ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT_NOT_TRUSTED.get(hostName, portNumber);
+                    ERR_FAILED_TO_CONNECT_NOT_TRUSTED.get(hostName, portNumber);
                 throw new ClientException(
                     ReturnCode.CLIENT_SIDE_CONNECT_ERROR, message);
               }
@@ -1325,7 +1319,7 @@ public class ReplicationCliMain extends ConsoleApplication
             if (e.getCause() instanceof SSLException)
             {
               LocalizableMessage message =
-                  ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT_WRONG_PORT.get(hostName, portNumber);
+                  ERR_FAILED_TO_CONNECT_WRONG_PORT.get(hostName, portNumber);
               throw new ClientException(
                   ReturnCode.CLIENT_SIDE_CONNECT_ERROR, message);
             }
@@ -1384,13 +1378,13 @@ public class ReplicationCliMain extends ConsoleApplication
             else
             {
               LocalizableMessage message =
-                  ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(hostName, portNumber);
+                  ERR_FAILED_TO_CONNECT.get(hostName, portNumber);
               throw new ClientException(
                   ReturnCode.CLIENT_SIDE_CONNECT_ERROR, message);
             }
           }
           LocalizableMessage message =
-              ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(hostName, portNumber);
+              ERR_FAILED_TO_CONNECT.get(hostName, portNumber);
           throw new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR,
               message);
         }
@@ -1412,7 +1406,7 @@ public class ReplicationCliMain extends ConsoleApplication
         catch (NamingException e)
         {
           LocalizableMessage message =
-              ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(hostName, portNumber);
+              ERR_FAILED_TO_CONNECT.get(hostName, portNumber);
           throw new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR,
               message);
         }
@@ -9340,11 +9334,11 @@ public class ReplicationCliMain extends ConsoleApplication
     LocalizableMessage message;
     if (SetupUtils.isPriviledgedPort(port))
     {
-      message = ERR_INSTALLDS_CANNOT_BIND_TO_PRIVILEGED_PORT.get(port);
+      message = ERR_CANNOT_BIND_TO_PRIVILEGED_PORT.get(port);
     }
     else
     {
-      message = ERR_INSTALLDS_CANNOT_BIND_TO_PORT.get(port);
+      message = ERR_CANNOT_BIND_TO_PORT.get(port);
     }
     return message;
   }

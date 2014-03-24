@@ -31,6 +31,7 @@ package org.opends.server.tools.dsconfig;
 import static com.forgerock.opendj.cli.ArgumentConstants.OPTION_LONG_HELP;
 import static com.forgerock.opendj.cli.ArgumentConstants.OPTION_SHORT_HELP;
 import static com.forgerock.opendj.dsconfig.DsconfigMessages.*;
+import static com.forgerock.opendj.cli.CliMessages.*;
 import static org.forgerock.util.Utils.closeSilently;
 
 import java.security.GeneralSecurityException;
@@ -225,7 +226,7 @@ public final class LDAPManagementContextFactory implements
             if (e.getCause() instanceof SSLException)
             {
               LocalizableMessage message =
-                  ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT_NOT_TRUSTED.get(
+                  ERR_FAILED_TO_CONNECT_NOT_TRUSTED.get(
                       hostName, portNumber);
               throw new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR,
                   message);
