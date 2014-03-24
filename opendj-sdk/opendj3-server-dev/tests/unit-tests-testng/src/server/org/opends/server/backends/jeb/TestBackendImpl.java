@@ -38,7 +38,6 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.LocalDBBackendCfgDefn;
 import org.opends.server.admin.std.server.LocalDBBackendCfg;
-import org.opends.server.api.ExtensibleIndexer;
 import org.opends.server.controls.SubtreeDeleteControl;
 import org.opends.server.core.DeleteOperationBasis;
 import org.opends.server.core.DirectoryServer;
@@ -870,15 +869,13 @@ public class TestBackendImpl extends JebTestCase {
   private Indexer newOrderingIndexer(AttributeIndex index)
   {
     AttributeType attrType = index.getAttributeType();
-    ExtensibleIndexer extIndexer = new OrderingIndexer(index.getAttributeType());
-    return new JEExtensibleIndexer(attrType, attrType.getSubstringMatchingRule(), extIndexer);
+    return new JEExtensibleIndexer(attrType, new OrderingIndexer(attrType));
   }
 
   private Indexer newEqualityIndexer(AttributeIndex index)
   {
     AttributeType attrType = index.getAttributeType();
-    ExtensibleIndexer extIndexer = new EqualityIndexer(index.getAttributeType());
-    return new JEExtensibleIndexer(attrType, attrType.getSubstringMatchingRule(), extIndexer);
+    return new JEExtensibleIndexer(attrType, new EqualityIndexer(attrType));
   }
 
   private Indexer newSubstringIndexer(AttributeIndex index)
@@ -887,8 +884,7 @@ public class TestBackendImpl extends JebTestCase {
     when(options.substringKeySize()).thenReturn(
         index.getConfiguration().getSubstringLength());
     AttributeType attrType = index.getAttributeType();
-    ExtensibleIndexer extIndexer = new SubstringIndexer(attrType, options);
-    return new JEExtensibleIndexer(attrType, attrType.getSubstringMatchingRule(), extIndexer);
+    return new JEExtensibleIndexer(attrType, new SubstringIndexer(attrType, options));
   }
 
   private void assertIndexContainsID(Indexer indexer, Entry entry, Index index,

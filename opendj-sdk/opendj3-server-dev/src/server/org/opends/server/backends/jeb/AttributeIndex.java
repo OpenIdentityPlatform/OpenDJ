@@ -42,7 +42,10 @@ import org.forgerock.util.Utils;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn;
 import org.opends.server.admin.std.server.LocalDBIndexCfg;
-import org.opends.server.api.*;
+import org.opends.server.api.ExtensibleIndexer;
+import org.opends.server.api.ExtensibleMatchingRule;
+import org.opends.server.api.MatchingRule;
+import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.monitors.DatabaseEnvironmentMonitor;
 import org.opends.server.types.*;
@@ -148,8 +151,7 @@ public class AttributeIndex
     AttributeType attrType = indexConfig.getAttribute();
     String name =
         entryContainer.getDatabasePrefix() + "_" + attrType.getNameOrOID();
-    int indexEntryLimit = indexConfig.getIndexEntryLimit();
-    JEIndexConfig config = new JEIndexConfig(indexConfig.getSubstringLength());
+    final JEIndexConfig config = new JEIndexConfig(indexConfig.getSubstringLength());
 
     if (indexConfig.getIndexType().contains(
             LocalDBIndexCfgDefn.IndexType.EQUALITY))
@@ -161,15 +163,8 @@ public class AttributeIndex
     if (indexConfig.getIndexType().contains(
             LocalDBIndexCfgDefn.IndexType.PRESENCE))
     {
-      Indexer presenceIndexer = new PresenceIndexer(attrType);
-      this.presenceIndex = new Index(name + ".presence",
-                                     presenceIndexer,
-                                     state,
-                                     indexEntryLimit,
-                                     cursorEntryLimit,
-                                     false,
-                                     env,
-                                     entryContainer);
+      this.presenceIndex = newIndex(name + ".presence",
+          new PresenceIndexer(attrType), indexConfig.getIndexEntryLimit());
     }
 
     if (indexConfig.getIndexType().contains(
@@ -208,45 +203,39 @@ public class AttributeIndex
       for(String ruleName:extensibleRules)
       {
         ExtensibleMatchingRule rule =
-                DirectoryServer.getExtensibleMatchingRule(
-                                                    toLowerCase(ruleName));
+            DirectoryServer.getExtensibleMatchingRule(toLowerCase(ruleName));
         if(rule == null)
         {
           logger.error(ERR_CONFIG_INDEX_TYPE_NEEDS_VALID_MATCHING_RULE, attrType, ruleName);
           continue;
         }
         Map<String,Index> indexMap = new HashMap<String,Index>();
-        for(ExtensibleIndexer indexer : rule.getIndexers(config))
+        for (ExtensibleIndexer indexer : rule.getIndexers())
         {
           String indexID = attrType.getNameOrOID() + "." + indexer.getIndexID();
           if(!extensibleIndexes.isIndexPresent(indexID))
           {
             //There is no index available for this index id. Create a new index.
-            Indexer extensibleIndexer =
-                    new JEExtensibleIndexer(attrType,
-                                               rule,
-                                               indexer);
-            String indexName = entryContainer.getDatabasePrefix() + "_"
-                                                  + indexID;
-            Index extensibleIndex = new Index(indexName,
-                                      extensibleIndexer,
-                                      state,
-                                      indexEntryLimit,
-                                      cursorEntryLimit,
-                                      false,
-                                      env,
-                                      entryContainer);
-              extensibleIndexes.addIndex(extensibleIndex,indexID);
+            String indexName = entryContainer.getDatabasePrefix() + "_" + indexID;
+            Index extIndex = newExtensibleIndex(indexName, attrType, indexer);
+            extensibleIndexes.addIndex(extIndex, indexID);
           }
-        extensibleIndexes.addRule(indexID, rule);
-        indexMap.put(indexer.getExtensibleIndexID(),
-                extensibleIndexes.getIndex(indexID));
-      }
+          extensibleIndexes.addRule(indexID, rule);
+          indexMap.put(indexer.getExtensibleIndexID(),
+              extensibleIndexes.getIndex(indexID));
+        }
         IndexQueryFactory<IndexQuery> factory =
             new IndexQueryFactoryImpl(indexMap, config);
         extensibleIndexes.addQueryFactory(rule, factory);
       }
     }
+  }
+
+  private Index newIndex(String indexName, Indexer indexer,
+      int indexEntryLimit)
+  {
+    return new Index(indexName, indexer, state, indexEntryLimit,
+        cursorEntryLimit, false, env, entryContainer);
   }
 
   private Index buildExtIndex(String name, AttributeType attrType,
@@ -258,15 +247,15 @@ public class AttributeIndex
           attrType, extIndexer.getExtensibleIndexID()));
     }
 
-    Indexer indexer = new JEExtensibleIndexer(attrType, rule, extIndexer);
-    return new Index(name + "." + extIndexer.getExtensibleIndexID(),
-                                   indexer,
-                                   state,
-                                   indexConfig.getIndexEntryLimit(),
-                                   cursorEntryLimit,
-                                   false,
-                                   env,
-                                   entryContainer);
+    final String indexName = name + "." + extIndexer.getExtensibleIndexID();
+    return newExtensibleIndex(indexName, attrType, extIndexer);
+  }
+
+  private Index newExtensibleIndex(String indexName, AttributeType attrType,
+      ExtensibleIndexer extIndexer)
+  {
+    return newIndex(indexName, new JEExtensibleIndexer(attrType, extIndexer),
+        indexConfig.getIndexEntryLimit());
   }
 
   /**
@@ -1536,10 +1525,7 @@ public class AttributeIndex
 
     if(extensibleIndexes!=null)
     {
-      for(Index extensibleIndex:extensibleIndexes.getIndexes())
-      {
-        dbList.add(extensibleIndex);
-      }
+      dbList.addAll(extensibleIndexes.getIndexes());
     }
   }
 
@@ -1625,16 +1611,15 @@ public class AttributeIndex
       AttributeType attrType = cfg.getAttribute();
       String name =
         entryContainer.getDatabasePrefix() + "_" + attrType.getNameOrOID();
-      int indexEntryLimit = cfg.getIndexEntryLimit();
-      JEIndexConfig config = new JEIndexConfig(cfg.getSubstringLength());
+      final int indexEntryLimit = cfg.getIndexEntryLimit();
+      final JEIndexConfig config = new JEIndexConfig(cfg.getSubstringLength());
 
       if (cfg.getIndexType().contains(LocalDBIndexCfgDefn.IndexType.EQUALITY))
       {
         if (equalityIndex == null)
         {
-          EqualityIndexer indexer = new EqualityIndexer(attrType);
-          Indexer extIndexer = new JEExtensibleIndexer(attrType, attrType.getEqualityMatchingRule(), indexer);
-          equalityIndex = openNewIndex(name, extIndexer, indexer, adminActionRequired, messages);
+          equalityIndex = openNewIndex(name, attrType,
+              new EqualityIndexer(attrType), adminActionRequired, messages);
         }
         else
         {
@@ -1642,10 +1627,8 @@ public class AttributeIndex
           if(this.equalityIndex.setIndexEntryLimit(indexEntryLimit))
           {
             adminActionRequired.set(true);
-            LocalizableMessage message =
-                    NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(
-                            equalityIndex.getName());
-            messages.add(message);
+            messages.add(NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD
+                .get(equalityIndex.getName()));
             this.equalityIndex.setIndexEntryLimit(indexEntryLimit);
           }
         }
@@ -1672,22 +1655,8 @@ public class AttributeIndex
         if(presenceIndex == null)
         {
           Indexer presenceIndexer = new PresenceIndexer(attrType);
-          presenceIndex = new Index(name + ".presence",
-                                    presenceIndexer,
-                                    state,
-                                    indexEntryLimit,
-                                    cursorEntryLimit,
-                                    false,
-                                    env,
-                                    entryContainer);
-          presenceIndex.open();
-
-          if(!presenceIndex.isTrusted())
-          {
-            adminActionRequired.set(true);
-            messages.add(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(
-                presenceIndex.getName()));
-          }
+          presenceIndex = newIndex(name + ".presence", presenceIndexer, indexEntryLimit);
+          openIndex(presenceIndex, adminActionRequired, messages);
         }
         else
         {
@@ -1695,10 +1664,8 @@ public class AttributeIndex
           if(this.presenceIndex.setIndexEntryLimit(indexEntryLimit))
           {
             adminActionRequired.set(true);
-            LocalizableMessage message =
-                    NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(
-                            presenceIndex.getName());
-            messages.add(message);
+            messages.add(NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD
+                .get(presenceIndex.getName()));
           }
         }
       }
@@ -1722,10 +1689,12 @@ public class AttributeIndex
       if (cfg.getIndexType().contains(LocalDBIndexCfgDefn.IndexType.SUBSTRING))
       {
         SubstringIndexer indexer = new SubstringIndexer(attrType, config);
-        Indexer extIndexer = new JEExtensibleIndexer(attrType, attrType.getSubstringMatchingRule(), indexer);
+        Indexer extIndexer = new JEExtensibleIndexer(attrType, indexer);
         if(substringIndex == null)
         {
-          substringIndex = openNewIndex(name, extIndexer, indexer, adminActionRequired, messages);
+          Index index = newIndex(name + "." + indexer.getExtensibleIndexID(),
+              extIndexer, indexEntryLimit);
+          substringIndex = openIndex(index, adminActionRequired, messages);
         }
         else
         {
@@ -1733,10 +1702,8 @@ public class AttributeIndex
           if(this.substringIndex.setIndexEntryLimit(indexEntryLimit))
           {
             adminActionRequired.set(true);
-            LocalizableMessage message =
-                    NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(
-                            substringIndex.getName());
-            messages.add(message);
+            messages.add(NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD
+                .get(substringIndex.getName()));
           }
 
           if (indexConfig.getSubstringLength() != cfg.getSubstringLength())
@@ -1766,9 +1733,8 @@ public class AttributeIndex
       {
         if(orderingIndex == null)
         {
-          OrderingIndexer indexer = new OrderingIndexer(attrType);
-          Indexer extIndexer = new JEExtensibleIndexer(attrType, attrType.getOrderingMatchingRule(), indexer);
-          orderingIndex = openNewIndex(name, extIndexer, indexer, adminActionRequired, messages);
+          orderingIndex = openNewIndex(name, attrType,
+              new OrderingIndexer(attrType), adminActionRequired, messages);
         }
         else
         {
@@ -1776,10 +1742,8 @@ public class AttributeIndex
           if(this.orderingIndex.setIndexEntryLimit(indexEntryLimit))
           {
             adminActionRequired.set(true);
-            LocalizableMessage message =
-                    NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(
-                            orderingIndex.getName());
-            messages.add(message);
+            messages.add(NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD
+                .get(orderingIndex.getName()));
           }
         }
       }
@@ -1805,9 +1769,8 @@ public class AttributeIndex
       {
         if(approximateIndex == null)
         {
-          ApproximateIndexer indexer = new ApproximateIndexer(attrType);
-          Indexer extIndexer = new JEExtensibleIndexer(attrType, attrType.getApproximateMatchingRule(), indexer);
-          approximateIndex = openNewIndex(name, extIndexer, indexer, adminActionRequired, messages);
+          approximateIndex = openNewIndex(name, attrType,
+              new ApproximateIndexer(attrType), adminActionRequired, messages);
         }
         else
         {
@@ -1815,10 +1778,8 @@ public class AttributeIndex
           if(this.approximateIndex.setIndexEntryLimit(indexEntryLimit))
           {
             adminActionRequired.set(true);
-            LocalizableMessage message =
-                    NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(
-                            approximateIndex.getName());
-            messages.add(message);
+            messages.add(NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD
+                .get(approximateIndex.getName()));
           }
         }
       }
@@ -1853,8 +1814,7 @@ public class AttributeIndex
         for(String ruleName:extensibleRules)
         {
           ExtensibleMatchingRule rule =
-                  DirectoryServer.getExtensibleMatchingRule(
-                                            toLowerCase(ruleName));
+              DirectoryServer.getExtensibleMatchingRule(toLowerCase(ruleName));
            if(rule == null)
           {
             logger.error(ERR_CONFIG_INDEX_TYPE_NEEDS_VALID_MATCHING_RULE, attrType, ruleName);
@@ -1862,34 +1822,15 @@ public class AttributeIndex
           }
           validRules.add(rule);
           Map<String,Index> indexMap = new HashMap<String,Index>();
-          for(ExtensibleIndexer indexer: rule.getIndexers(config))
+          for (ExtensibleIndexer indexer : rule.getIndexers())
           {
             String indexID = attrType.getNameOrOID() + "." + indexer.getIndexID();
             if(!extensibleIndexes.isIndexPresent(indexID))
             {
-              Indexer extensibleIndexer =
-                      new JEExtensibleIndexer(attrType,
-                                                 rule,
-                                                 indexer);
-              String indexName =  entryContainer.getDatabasePrefix() + "_"
-                      + indexID;
-              Index extensibleIndex = new Index(indexName,
-                                        extensibleIndexer,
-                                        state,
-                                        indexEntryLimit,
-                                        cursorEntryLimit,
-                                        false,
-                                        env,
-                                        entryContainer);
-              extensibleIndexes.addIndex(extensibleIndex,indexID);
-              extensibleIndex.open();
-
-              if(!extensibleIndex.isTrusted())
-              {
-                adminActionRequired.set(true);
-                messages.add(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(
-                    extensibleIndex.getName()));
-              }
+              String indexName =  entryContainer.getDatabasePrefix() + "_" + indexID;
+              Index extIndex = newExtensibleIndex(indexName, attrType, indexer);
+              extensibleIndexes.addIndex(extIndex,indexID);
+              openIndex(extIndex, adminActionRequired, messages);
             }
             else
             {
@@ -1897,38 +1838,26 @@ public class AttributeIndex
               if(extensibleIndex.setIndexEntryLimit(indexEntryLimit))
               {
                 adminActionRequired.set(true);
-                LocalizableMessage message =
-                      NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(
-                              extensibleIndex.getName());
-                messages.add(message);
+                messages.add(NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD
+                    .get(extensibleIndex.getName()));
               }
-              if(indexConfig.getSubstringLength() !=
-              cfg.getSubstringLength())
+              if (indexConfig.getSubstringLength() != cfg.getSubstringLength())
               {
-                Indexer extensibleIndexer =
-                      new JEExtensibleIndexer(attrType,
-                                                  rule,
-                                                 indexer);
-                extensibleIndex.setIndexer(extensibleIndexer);
+                extensibleIndex.setIndexer(
+                    new JEExtensibleIndexer(attrType, indexer));
               }
             }
             extensibleIndexes.addRule(indexID, rule);
             indexMap.put(indexer.getExtensibleIndexID(), extensibleIndexes.getIndex(indexID));
           }
-          IndexQueryFactory<IndexQuery> factory =
+          final IndexQueryFactory<IndexQuery> factory =
               new IndexQueryFactoryImpl(indexMap, config);
           extensibleIndexes.addQueryFactory(rule, factory);
         }
         //Some rules might have been removed from the configuration.
         Set<ExtensibleMatchingRule> deletedRules =
-                new HashSet<ExtensibleMatchingRule>();
-        for(ExtensibleMatchingRule r:extensibleIndexes.getRules())
-        {
-          if(!validRules.contains(r))
-          {
-            deletedRules.add(r);
-          }
-        }
+            new HashSet<ExtensibleMatchingRule>(extensibleIndexes.getRules());
+        deletedRules.removeAll(validRules);
         if(deletedRules.size() > 0)
         {
           entryContainer.exclusiveLock.lock();
@@ -1939,7 +1868,7 @@ public class AttributeIndex
               Set<ExtensibleMatchingRule> rules =
                       new HashSet<ExtensibleMatchingRule>();
               List<String> ids = new ArrayList<String>();
-              for(ExtensibleIndexer indexer: rule.getIndexers(config))
+              for (ExtensibleIndexer indexer : rule.getIndexers())
               {
                 String id = attrType.getNameOrOID()  + "." + indexer.getIndexID();
                 rules.addAll(extensibleIndexes.getRules(id));
@@ -1950,8 +1879,7 @@ public class AttributeIndex
                 //Rule has been already deleted.
                 continue;
               }
-              //If all the rules are part of the deletedRules, delete
-              //this index.
+              //If all the rules are part of the deletedRules, delete this index
               if(deletedRules.containsAll(rules))
               {
                 //it is safe to delete this index as it is not shared.
@@ -1959,7 +1887,6 @@ public class AttributeIndex
                 {
                   Index extensibleIndex = extensibleIndexes.getIndex(indexID);
                   entryContainer.deleteDatabase(extensibleIndex);
-                  extensibleIndex = null;
                   extensibleIndexes.deleteIndex(indexID);
                   extensibleIndexes.deleteRule(indexID);
                 }
@@ -1989,7 +1916,6 @@ public class AttributeIndex
             for(Index extensibleIndex:extensibleIndexes.getIndexes())
             {
               entryContainer.deleteDatabase(extensibleIndex);
-              extensibleIndex =  null;
             }
             extensibleIndexes.deleteAll();
           }
@@ -2013,19 +1939,24 @@ public class AttributeIndex
     }
   }
 
-  private Index openNewIndex(String name, Indexer indexer, ExtensibleIndexer extIndexer,
-      AtomicBoolean adminActionRequired, ArrayList<LocalizableMessage> messages)
+  private Index openNewIndex(String name, AttributeType attrType,
+      ExtensibleIndexer indexer, AtomicBoolean adminActionRequired,
+      ArrayList<LocalizableMessage> messages)
   {
-    Index index = new Index(name + "." + extIndexer.getExtensibleIndexID(), indexer,
-        state, indexConfig.getIndexEntryLimit(), cursorEntryLimit, false, env,
-        entryContainer);
+    String indexName = name + "." + indexer.getExtensibleIndexID();
+    Index index = newExtensibleIndex(indexName, attrType, indexer);
+    return openIndex(index, adminActionRequired, messages);
+  }
+
+  private Index openIndex(Index index, AtomicBoolean adminActionRequired,
+      ArrayList<LocalizableMessage> messages)
+  {
     index.open();
 
     if (!index.isTrusted())
     {
       adminActionRequired.set(true);
-      messages.add(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(index
-          .getName()));
+      messages.add(NOTE_JEB_INDEX_ADD_REQUIRES_REBUILD.get(index.getName()));
     }
     return index;
   }
@@ -2334,9 +2265,7 @@ public class AttributeIndex
       if(debugBuffer != null)
       {
         debugBuffer.append("[INDEX:");
-        JEIndexConfig config =
-                new JEIndexConfig(indexConfig.getSubstringLength());
-        for(ExtensibleIndexer indexer :  rule.getIndexers(config))
+        for (ExtensibleIndexer indexer : rule.getIndexers())
         {
           debugBuffer.append(" ")
                      .append(extensibleFilter.getAttributeType().getNameOrOID())
@@ -2426,18 +2355,14 @@ public class AttributeIndex
      * @return A Set of extensible matching rules corresponding to
      *                 an index ID.
      */
-    private Set<ExtensibleMatchingRule>
-            getRules(String indexID)
+    private Set<ExtensibleMatchingRule> getRules(String indexID)
     {
       Set<ExtensibleMatchingRule> rules = id2RulesMap.get(indexID);
-      if(rules == null)
+      if (rules != null)
       {
-        return Collections.emptySet();
+        return Collections.unmodifiableSet(rules);
       }
-      else
-      {
-        return Collections.unmodifiableSet(id2RulesMap.get(indexID));
-      }
+      return Collections.emptySet();
     }
 
     /**
