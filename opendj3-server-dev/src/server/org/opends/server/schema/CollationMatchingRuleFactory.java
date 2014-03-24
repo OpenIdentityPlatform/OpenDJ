@@ -85,19 +85,15 @@ public final class CollationMatchingRuleFactory extends
   private boolean substringMatchingRuleType;
 
   // Stores the list of available locales on this JVM.
-  private static final Set<Locale> supportedLocales;
+  private static final Set<Locale> supportedLocales = new HashSet<Locale>(
+      Arrays.asList(Locale.getAvailableLocales()));
 
   // Current Configuration.
   private CollationMatchingRuleCfg currentConfig;
 
   // Map of OID and the Matching Rule.
-  private final Map<String, MatchingRule> matchingRules;
-
-  static
-  {
-    supportedLocales = new HashSet<Locale>();
-    supportedLocales.addAll(Arrays.asList(Locale.getAvailableLocales()));
-  }
+  private final Map<String, MatchingRule> matchingRules =
+      new HashMap<String, MatchingRule>();
 
 
 
@@ -106,8 +102,7 @@ public final class CollationMatchingRuleFactory extends
    */
   public CollationMatchingRuleFactory()
   {
-    // Initialize the matchingRules.
-    matchingRules = new HashMap<String, MatchingRule>();
+    super();
   }
 
 
@@ -131,8 +126,7 @@ public final class CollationMatchingRuleFactory extends
    * @param matchingRule
    *          instance of a MatchingRule.
    */
-  private void addMatchingRule(String oid,
-      MatchingRule matchingRule)
+  private void addMatchingRule(String oid, MatchingRule matchingRule)
   {
     matchingRules.put(oid, matchingRule);
   }
@@ -169,8 +163,7 @@ public final class CollationMatchingRuleFactory extends
    * @param ruleTypes
    *          The Set containing allowed matching rule types.
    */
-  private void initializeMatchingRuleTypes(
-      SortedSet<MatchingRuleType> ruleTypes)
+  private void initializeMatchingRuleTypes(SortedSet<MatchingRuleType> ruleTypes)
   {
     for (MatchingRuleType type : ruleTypes)
     {
@@ -223,9 +216,8 @@ public final class CollationMatchingRuleFactory extends
    * {@inheritDoc}
    */
   @Override
-  public void initializeMatchingRule(
-      CollationMatchingRuleCfg configuration) throws ConfigException,
-      InitializationException
+  public void initializeMatchingRule(CollationMatchingRuleCfg configuration)
+      throws ConfigException, InitializationException
   {
     initializeMatchingRuleTypes(configuration.getMatchingRuleType());
     for (String collation : configuration.getCollation())
@@ -298,8 +290,7 @@ public final class CollationMatchingRuleFactory extends
       // 2. There is a change in the enable status
       // i.e. (disable->enable or enable->disable). In this case, the
       // ConfigManager will have already created the new Factory object.
-      return new ConfigChangeResult(resultCode, adminActionRequired,
-          messages);
+      return new ConfigChangeResult(resultCode, adminActionRequired, messages);
     }
 
     // Since we have come here it means that this Factory is enabled and
@@ -317,6 +308,7 @@ public final class CollationMatchingRuleFactory extends
     initializeMatchingRuleTypes(configuration.getMatchingRuleType());
     for (String collation : configuration.getCollation())
     {
+      // validation has already been performed in isConfigurationChangeAcceptable()
       CollationMapper mapper = new CollationMapper(collation);
       String languageTag = mapper.getLanguageTag();
       Locale locale = getLocale(languageTag);
@@ -343,8 +335,7 @@ public final class CollationMatchingRuleFactory extends
       messages.add(message);
     }
     currentConfig = configuration;
-    return new ConfigChangeResult(resultCode, adminActionRequired,
-        messages);
+    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
   }
 
 
@@ -423,8 +414,7 @@ public final class CollationMatchingRuleFactory extends
    * @param locale
    *          Locale value
    */
-  private void createLessThanMatchingRule(CollationMapper mapper,
-      Locale locale)
+  private void createLessThanMatchingRule(CollationMapper mapper, Locale locale)
   {
     if (!lessThanMatchingRuleType) return;
 
@@ -477,8 +467,7 @@ public final class CollationMatchingRuleFactory extends
    * @param locale
    *          Locale value
    */
-  private void createEqualityMatchingRule(CollationMapper mapper,
-      Locale locale)
+  private void createEqualityMatchingRule(CollationMapper mapper, Locale locale)
   {
     if (!equalityMatchingRuleType)
     {
@@ -907,8 +896,7 @@ public final class CollationMatchingRuleFactory extends
      * {@inheritDoc}
      */
     @Override
-    public Collection<ExtensibleIndexer> getIndexers(
-        IndexingOptions indexingOptions)
+    public Collection<ExtensibleIndexer> getIndexers()
     {
       if (indexer == null)
       {
@@ -1293,8 +1281,7 @@ public final class CollationMatchingRuleFactory extends
 
       // Normalize the Values in the following format:
       // initialLength, initial, numberofany, anyLength1, any1,
-      // anyLength2, any2, ..., anyLengthn, anyn, finalLength,
-      // final
+      // anyLength2, any2, ..., anyLengthn, anyn, finalLength, final
       List<Integer> normalizedList = new ArrayList<Integer>();
 
       if (subInitial == null)
@@ -1335,7 +1322,6 @@ public final class CollationMatchingRuleFactory extends
       {
         normalizedBytes[i] = normalizedList.get(i).byteValue();
       }
-
       return ByteString.wrap(normalizedBytes);
     }
 
@@ -1470,28 +1456,13 @@ public final class CollationMatchingRuleFactory extends
      * {@inheritDoc}
      */
     @Override
-    public final Collection<ExtensibleIndexer> getIndexers(
-        IndexingOptions indexingOptions)
+    public final Collection<ExtensibleIndexer> getIndexers()
     {
-      Collection<ExtensibleIndexer> indexers =
-          new ArrayList<ExtensibleIndexer>();
-      int substrLength = 6; // Default substring length;
+      List<ExtensibleIndexer> indexers = new ArrayList<ExtensibleIndexer>();
       if (subIndexer == null)
       {
-        if (indexingOptions != null)
-        {
-          substrLength = indexingOptions.substringKeySize();
-        }
-        subIndexer =
-            new CollationSubstringExtensibleIndexer(this, substrLength);
+        subIndexer = new CollationSubstringExtensibleIndexer(this);
       }
-      else if (indexingOptions != null
-          && indexingOptions.substringKeySize() != subIndexer
-              .getSubstringLength())
-      {
-        subIndexer.setSubstringLength(substrLength);
-      }
-
       if (indexer == null)
       {
         indexer = new CollationSharedExtensibleIndexer(this);
@@ -1578,11 +1549,10 @@ public final class CollationMatchingRuleFactory extends
      *          The length of the substring.
      * @return The candidate entry IDs.
      */
-    private <T> T matchSubstring(String value,
-        IndexQueryFactory<T> factory)
+    private <T> T matchSubstring(String value, IndexQueryFactory<T> factory)
     { // FIXME Code similar to
       // AbstractSubstringMatchingRuleImpl.DefaultSubstringAssertion.substringMatch()
-      int substrLength = subIndexer.getSubstringLength();
+      int substrLength = factory.getIndexingOptions().substringKeySize();
       if (value.length() < substrLength)
       {
         return createRangeMatchQuery(value, factory, subIndexer);
@@ -1629,8 +1599,7 @@ public final class CollationMatchingRuleFactory extends
       if (subInitial != null)
       {
         // Always use the shared indexer for initial match.
-        T query = matchInitialSubstring(subInitial, factory);
-        queries.add(query);
+        queries.add(matchInitialSubstring(subInitial, factory));
       }
 
       if (subAny != null && subAny.size() > 0)
@@ -2030,40 +1999,27 @@ public final class CollationMatchingRuleFactory extends
   private final class CollationSubstringExtensibleIndexer extends
       ExtensibleIndexer
   {
-    // The CollationSubstringMatching Rule.
     private final CollationSubstringMatchingRule matchingRule;
-
-    // The substring length.
-    private int substringLen;
-
-
 
     /**
      * Creates a new instance of CollationSubstringExtensibleIndexer.
      *
      * @param matchingRule
      *          The CollationSubstringMatching Rule.
-     * @param substringLen
-     *          The substring length.
      */
     private CollationSubstringExtensibleIndexer(
-        CollationSubstringMatchingRule matchingRule, int substringLen)
+        CollationSubstringMatchingRule matchingRule)
     {
       this.matchingRule = matchingRule;
-      this.substringLen = substringLen;
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void createKeys(Schema schema, ByteSequence value,
         IndexingOptions options, Collection<ByteString> keys)
     { // TODO merge with AbstractSubstringMatchingRuleImpl.SubstringIndexer.createKeys();
       String normValue = value.toString();
-      int keyLength = substringLen;
+      int keyLength = options.substringKeySize();
       for (int i = 0, remain = normValue.length(); remain > 0; i++, remain--)
       {
         int len = Math.min(keyLength, remain);
@@ -2078,40 +2034,11 @@ public final class CollationMatchingRuleFactory extends
       return matchingRule.getIndexName() + "." + getExtensibleIndexID();
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String getExtensibleIndexID()
     {
       return EXTENSIBLE_INDEXER_ID_SUBSTRING;
-    }
-
-
-
-    /**
-     * Returns the substring length.
-     *
-     * @return The length of the substring.
-     */
-    private int getSubstringLength()
-    {// TODO JNR remove
-      return substringLen;
-    }
-
-
-
-    /**
-     * Sets the substring length.
-     *
-     * @param substringLen
-     *          The substring length.
-     */
-    private void setSubstringLength(int substringLen)
-    {// TODO JNR remove
-      this.substringLen = substringLen;
     }
 
   }

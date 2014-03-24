@@ -35,7 +35,6 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.api.ExtensibleIndexer;
-import org.opends.server.api.MatchingRule;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.Entry;
@@ -69,11 +68,9 @@ public final class JEExtensibleIndexer extends Indexer
    *
    * @param attributeType The attribute type for which an indexer is
    *                                            required.
-   * @param matchingRule  The extensible matching rule to be indexed.
    * @param extensibleIndexer The extensible indexer to be used.
    */
   public JEExtensibleIndexer(AttributeType attributeType,
-          MatchingRule matchingRule,
           ExtensibleIndexer extensibleIndexer)
   {
     this.attributeType = attributeType;

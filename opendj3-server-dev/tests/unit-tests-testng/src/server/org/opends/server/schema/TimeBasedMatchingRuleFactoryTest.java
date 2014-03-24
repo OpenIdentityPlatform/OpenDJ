@@ -31,7 +31,6 @@ import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DecodeException;
-import org.opends.server.admin.std.server.CollationMatchingRuleCfg;
 import org.opends.server.admin.std.server.MatchingRuleCfg;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.util.TimeThread;
@@ -225,7 +224,7 @@ public class TimeBasedMatchingRuleFactoryTest extends SchemaTestCase
   {
     final TimeBasedMatchingRuleFactory factory =
         new TimeBasedMatchingRuleFactory();
-    final MatchingRuleCfg cfg = mock(CollationMatchingRuleCfg.class);
+    final MatchingRuleCfg cfg = mock(MatchingRuleCfg.class);
     factory.initializeMatchingRule(cfg);
     final Collection<MatchingRule> mRules = factory.getMatchingRules();
     verifyNoMoreInteractions(cfg);

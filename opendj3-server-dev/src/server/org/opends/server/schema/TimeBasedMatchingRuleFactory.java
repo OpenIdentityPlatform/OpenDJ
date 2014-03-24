@@ -323,8 +323,7 @@ public final class TimeBasedMatchingRuleFactory
 
     /** {@inheritDoc} */
     @Override
-    public Collection<ExtensibleIndexer> getIndexers(
-        IndexingOptions indexingOptions)
+    public Collection<ExtensibleIndexer> getIndexers()
     {
       if(indexer == null)
       {
@@ -891,8 +890,7 @@ public final class TimeBasedMatchingRuleFactory
 
     /** {@inheritDoc} */
     @Override
-    public Collection<ExtensibleIndexer> getIndexers(
-        IndexingOptions indexingOptions)
+    public Collection<ExtensibleIndexer> getIndexers()
     {
       if(indexer == null)
       {
