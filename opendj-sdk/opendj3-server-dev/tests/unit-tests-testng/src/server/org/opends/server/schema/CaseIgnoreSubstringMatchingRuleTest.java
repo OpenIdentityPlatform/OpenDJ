@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.schema;
 
@@ -34,6 +35,38 @@ import org.testng.annotations.DataProvider;
 public class CaseIgnoreSubstringMatchingRuleTest extends
     SubstringMatchingRuleTest
 {
+
+  /** {@inheritDoc} */
+  @Override
+  @DataProvider(name="substringMatchData")
+  public Object[][] createSubstringMatchData()
+  {
+    return new Object[][] {
+        {"this is a value", "", new String[] {"this"}, "", true },
+        {"this is a value", "", new String[] {"is"}, "", true },
+        {"this is a value", "th", new String[] {"is"}, "", true },
+        {"this is a value", "this", new String[] {"is"}, "", true },
+        {"this is a value", "this", new String[] {"is"}, "value", true },
+        {"this is a value", "this", new String[] {"is"}, "ue", true },
+        {"this is a value", "this", new String[] {"is"}, "e", true },
+        {"this is a value", "this", new String[] {"is"}, "valu", false },
+        {"this is a value", "THIS", new String[] {"is"}, "", true },
+        {"this is a value", "h", new String[] {"is"}, "", false },
+        {"this is a value", "", new String[] {"a"}, "", true },
+        {"this is a value", "", new String[] {"value"}, "", true },
+        {"this is a value", "", new String[] {" "}, "", true },
+        {"this is a value", "", new String[] {"this", "is", "a", "value"}, "", true },
+         // The matching rule requires ordered non overlapping substrings
+         // Issue #730 was not valid.
+        {"this is a value", "", new String[] {"value", "this"}, "", false },
+        {"this is a value", "", new String[] {"this", "this is"}, "", false },
+        {"this is a value", "", new String[] {"his is", "a val",}, "", true },
+        {"this is a value", "", new String[] {"not",}, "", false },
+        {"this is a value", "", new String[] {"THIS",}, "", true },
+        {"this is a value", "", new String[] {"this", "not"}, "", false },
+        {"this is a value", "", new String[] {"    "}, "", true },
+    };
+  }
 
   /**
    * {@inheritDoc}

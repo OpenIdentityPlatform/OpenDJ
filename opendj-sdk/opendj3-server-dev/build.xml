@@ -35,6 +35,7 @@
 
   <!-- Build JVM properties -->
   <property name="MEM" value="512M"/>
+  <property name="PERMSIZE" value="128M"/>
 
   <!-- Build OpenDMK properties -->
   <property file="build.properties"/>
@@ -2403,6 +2404,7 @@ Please:
       <jvmarg value="-Dtest.progress=${test.progress}" />
       <jvmarg value="-Xms${MEM}" />
       <jvmarg value="-Xmx${MEM}" />
+      <jvmarg value="-XX:MaxPermSize=${PERMSIZE}" />
       <jvmarg value="${jvm.debug.arg1}" />
       <jvmarg value="${jvm.debug.arg2}" />
       <jvmarg value="${jvm.debug.arg3}" />

@@ -28,6 +28,7 @@ package org.opends.server.api;
 
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.List;
 
 import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteSequence;
@@ -146,6 +147,27 @@ public interface MatchingRule
    *             if the syntax of the value is not valid.
    */
   public Assertion getLessOrEqualAssertion(final ByteSequence assertionValue) throws DecodeException;
+
+  /**
+   * Returns the normalized form of the provided assertion substring values,
+   * which is best suited for efficiently performing matching operations on
+   * that value.
+   *
+   * @param subInitial
+   *            The normalized substring value fragment that should appear at
+   *            the beginning of the target value.
+   * @param subAnyElements
+   *            The normalized substring value fragments that should appear in
+   *            the middle of the target value.
+   * @param subFinal
+   *            The normalized substring value fragment that should appear at
+   *            the end of the target value.
+   * @return The normalized version of the provided assertion value.
+   * @throws DecodeException
+   *             if the syntax of the value is not valid.
+   */
+  public Assertion getSubstringAssertion(final ByteSequence subInitial,
+      final List<? extends ByteSequence> subAnyElements, final ByteSequence subFinal) throws DecodeException;
 
   /**
    * Indicates whether this matching rule is declared "OBSOLETE". The

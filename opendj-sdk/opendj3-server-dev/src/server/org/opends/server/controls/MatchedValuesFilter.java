@@ -36,7 +36,6 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.io.ASN1Reader;
 import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.Assertion;
-import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.util.Reject;
@@ -117,12 +116,6 @@ public class MatchedValuesFilter
   // The approximate matching rule for this matched values filter.
   private MatchingRule approximateMatchingRule;
 
-  // The normalized subFinal value for this matched values filter.
-  private ByteString normalizedSubFinal;
-
-  // The normalized subInitial value for this matched values filter.
-  private ByteString normalizedSubInitial;
-
   // The raw, unprocessed assertion value for this matched values filter.
   private final ByteString rawAssertionValue;
 
@@ -148,9 +141,6 @@ public class MatchedValuesFilter
   // The equality matching rule for this matched values filter.
   private MatchingRule equalityMatchingRule;
 
-  // The set of normalized subAny values for this matched values filter.
-  private List<ByteString> normalizedSubAny;
-
   // The set of subAny values for this matched values filter.
   private final List<ByteString> subAny;
 
@@ -169,7 +159,11 @@ public class MatchedValuesFilter
   // The substring matching rule for this matched values filter.
   private SubstringMatchingRule substringMatchingRule;
 
-
+  /**
+   * The assertion created from substring matching rule using values of this
+   * filter.
+   */
+  private Assertion substringAssertion;
 
   /**
    * Creates a new matched values filter with the provided information.
@@ -194,18 +188,6 @@ public class MatchedValuesFilter
     this.subAny            = subAny;
     this.subFinal          = subFinal;
     this.matchingRuleID    = matchingRuleID;
-
-    decoded                 = false;
-    attributeType           = null;
-    assertionValue          = null;
-    matchingRule            = null;
-    normalizedSubInitial    = null;
-    normalizedSubAny        = null;
-    normalizedSubFinal      = null;
-    approximateMatchingRule = null;
-    equalityMatchingRule    = null;
-    orderingMatchingRule    = null;
-    substringMatchingRule   = null;
   }
 
 
@@ -972,37 +954,20 @@ public class MatchedValuesFilter
     return subInitial;
   }
 
-
-
-
-
-
-
-  /**
-   * Retrieves the normalized form of the subInitial element.
-   *
-   * @return  The normalized form of the subInitial element, or
-   *          <CODE>null</CODE> if there is none.
-   */
-  public ByteString getNormalizedSubInitialElement()
-  {
-    if (normalizedSubInitial == null)
+  private Assertion getSubstringAssertion() {
+    if (substringAssertion == null)
     {
-      if ((subInitial != null) && (getSubstringMatchingRule() != null))
+      try
       {
-        try
-        {
-          normalizedSubInitial =
-               getSubstringMatchingRule().normalizeSubstring(subInitial);
-        }
-        catch (Exception e)
-        {
-          logger.traceException(e);
-        }
+        substringAssertion =
+            getSubstringMatchingRule().getSubstringAssertion(subInitial, subAny, subFinal);
+      }
+      catch (DecodeException e)
+      {
+        logger.traceException(e);
       }
     }
-
-    return normalizedSubInitial;
+    return substringAssertion;
   }
 
 
@@ -1019,55 +984,6 @@ public class MatchedValuesFilter
     return subAny;
   }
 
-
-
-  /**
-   * Retrieves the set of normalized subAny elements for this matched values
-   * filter.
-   *
-   * @return  The set of subAny elements for this matched values filter.  If
-   *          there are none, then an empty list will be returned.  If a
-   *          problem occurs while attempting to perform the normalization, then
-   *          <CODE>null</CODE> will be returned.
-   */
-  public List<ByteString> getNormalizedSubAnyElements()
-  {
-    if (normalizedSubAny == null)
-    {
-      if ((subAny == null) || (subAny.isEmpty()))
-      {
-        normalizedSubAny = new ArrayList<ByteString>(0);
-      }
-      else
-      {
-        if (getSubstringMatchingRule() == null)
-        {
-          return null;
-        }
-
-        normalizedSubAny = new ArrayList<ByteString>();
-        try
-        {
-          for (ByteString s : subAny)
-          {
-            normalizedSubAny.add(
-                 substringMatchingRule.normalizeSubstring(s));
-          }
-        }
-        catch (Exception e)
-        {
-          logger.traceException(e);
-
-          normalizedSubAny = null;
-        }
-      }
-    }
-
-    return normalizedSubAny;
-  }
-
-
-
   /**
    * Retrieves the subFinal element for this matched values filter.
    *
@@ -1078,37 +994,6 @@ public class MatchedValuesFilter
   {
     return subFinal;
   }
-
-
-
-  /**
-   * Retrieves the normalized form of the subFinal element.
-   *
-   * @return  The normalized form of the subFinal element, or <CODE>null</CODE>
-   *          if there is none.
-   */
-  public ByteString getNormalizedSubFinalElement()
-  {
-    if (normalizedSubFinal == null)
-    {
-      if ((subFinal != null) && (getSubstringMatchingRule() != null))
-      {
-        try
-        {
-          normalizedSubFinal =
-               getSubstringMatchingRule().normalizeSubstring(subFinal);
-        }
-        catch (Exception e)
-        {
-          logger.traceException(e);
-        }
-      }
-    }
-
-    return normalizedSubFinal;
-  }
-
-
 
   /**
    * Retrieves the matching rule ID for this matched values filter.
@@ -1247,9 +1132,7 @@ public class MatchedValuesFilter
     {
       getAttributeType();
       getAssertionValue();
-      getNormalizedSubInitialElement();
-      getNormalizedSubAnyElements();
-      getNormalizedSubFinalElement();
+      getSubstringAssertion();
       getMatchingRule();
       getApproximateMatchingRule();
       getEqualityMatchingRule();
@@ -1303,15 +1186,11 @@ public class MatchedValuesFilter
       case SUBSTRINGS_TYPE:
         if (attributeType != null
             && attributeType.equals(type)
-            && substringMatchingRule != null)
+            && substringAssertion != null)
         {
           try
           {
-            ArrayList<ByteSequence> normalizedSubAnyBS =
-                 new ArrayList<ByteSequence>(normalizedSubAny);
-            return substringMatchingRule.valueMatchesSubstring(
-                 substringMatchingRule.normalizeAttributeValue(value),
-                 normalizedSubInitial, normalizedSubAnyBS, normalizedSubFinal);
+            return substringAssertion.matches(substringMatchingRule.normalizeAttributeValue(value)).toBoolean();
           }
           catch (Exception e)
           {

@@ -26,7 +26,6 @@
  */
 package org.opends.server.api;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -34,9 +33,9 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.Assertion;
-import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.admin.std.server.VirtualAttributeCfg;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.types.Attribute;
@@ -261,96 +260,28 @@ public abstract class VirtualAttributeProvider
                                           List<ByteString> subAny,
                                           ByteString subFinal)
   {
-    SubstringMatchingRule matchingRule =
-         rule.getAttributeType().getSubstringMatchingRule();
+    MatchingRule matchingRule = rule.getAttributeType().getSubstringMatchingRule();
     if (matchingRule == null)
     {
       return ConditionResult.UNDEFINED;
     }
 
-
-    ByteString normalizedSubInitial;
-    if (subInitial == null)
+    Assertion assertion;
+    try
     {
-      normalizedSubInitial = null;
+      assertion = matchingRule.getSubstringAssertion(subInitial, subAny, subFinal);
     }
-    else
-    {
-      try
-      {
-        normalizedSubInitial =
-             matchingRule.normalizeSubstring(subInitial);
-      }
-      catch (Exception e)
-      {
-        logger.traceException(e);
-
-        // The substring couldn't be normalized => return "undefined".
-        return ConditionResult.UNDEFINED;
-      }
+    catch(DecodeException e) {
+      logger.traceException(e);
+      return ConditionResult.UNDEFINED;
     }
-
-
-    ArrayList<ByteSequence> normalizedSubAny;
-    if (subAny == null)
-    {
-      normalizedSubAny = null;
-    }
-    else
-    {
-      normalizedSubAny =
-           new ArrayList<ByteSequence>(subAny.size());
-      for (ByteString subAnyElement : subAny)
-      {
-        try
-        {
-          normalizedSubAny.add(matchingRule.normalizeSubstring(
-                                                 subAnyElement));
-        }
-        catch (Exception e)
-        {
-          logger.traceException(e);
-
-          // The substring couldn't be normalized => return "undefined".
-          return ConditionResult.UNDEFINED;
-        }
-      }
-    }
-
-
-    ByteString normalizedSubFinal;
-    if (subFinal == null)
-    {
-      normalizedSubFinal = null;
-    }
-    else
-    {
-      try
-      {
-        normalizedSubFinal =
-             matchingRule.normalizeSubstring(subFinal);
-      }
-      catch (Exception e)
-      {
-        logger.traceException(e);
-
-        // The substring couldn't be normalized => return "undefined".
-        return ConditionResult.UNDEFINED;
-      }
-    }
-
 
     ConditionResult result = ConditionResult.FALSE;
     for (ByteString value : getValues(entry, rule))
     {
       try
       {
-        ByteString nv = matchingRule.normalizeAttributeValue(value);
-        if (matchingRule.valueMatchesSubstring(
-                              nv,
-                              normalizedSubInitial,
-                              normalizedSubAny,
-                              normalizedSubFinal))
+        if (assertion.matches(matchingRule.normalizeAttributeValue(value)).toBoolean())
         {
           return ConditionResult.TRUE;
         }
