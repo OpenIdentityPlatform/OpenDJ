@@ -683,7 +683,7 @@ class StatusCli extends ConsoleApplication
    * Updates the java version contents displaying with what is specified in the
    * provided ServerDescriptor object. This method must be called from the event
    * thread.
-   * 
+   *
    * @param desc
    *          The ServerDescriptor object.
    * @param maxLabelWidth
