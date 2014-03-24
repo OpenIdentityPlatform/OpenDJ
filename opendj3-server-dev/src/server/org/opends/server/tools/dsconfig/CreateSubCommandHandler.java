@@ -28,12 +28,9 @@ package org.opends.server.tools.dsconfig;
 
 
 
+import static com.forgerock.opendj.cli.CliMessages.*;
 import static com.forgerock.opendj.cli.ArgumentConstants.LIST_TABLE_SEPARATOR;
-import static org.opends.messages.DSConfigMessages.*;
-import static org.opends.messages.ToolMessages.INFO_NAME_PLACEHOLDER;
-import static org.opends.messages.ToolMessages.INFO_PROPERTY_PLACEHOLDER;
-import static org.opends.messages.ToolMessages.INFO_TYPE_PLACEHOLDER;
-import static org.opends.messages.ToolMessages.INFO_VALUE_SET_PLACEHOLDER;
+import static com.forgerock.opendj.dsconfig.DsconfigMessages.*;
 import static org.opends.server.tools.dsconfig.ArgumentExceptionFactory.
 displayMissingMandatoryPropertyException;
 import static org.opends.server.tools.dsconfig.ArgumentExceptionFactory.

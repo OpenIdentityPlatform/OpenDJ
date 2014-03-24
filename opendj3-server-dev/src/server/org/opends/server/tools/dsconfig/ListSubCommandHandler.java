@@ -25,9 +25,7 @@
  */
 package org.opends.server.tools.dsconfig;
 
-
-
-import static org.opends.messages.DSConfigMessages.*;
+import static com.forgerock.opendj.dsconfig.DsconfigMessages.*;
 import static com.forgerock.opendj.cli.ArgumentConstants.LIST_TABLE_SEPARATOR;
 
 import java.io.PrintStream;

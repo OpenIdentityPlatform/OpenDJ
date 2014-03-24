@@ -30,7 +30,7 @@ package org.opends.server.tools.dsconfig;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.OPTION_LONG_HELP;
 import static com.forgerock.opendj.cli.ArgumentConstants.OPTION_SHORT_HELP;
-import static org.opends.messages.DSConfigMessages.*;
+import static com.forgerock.opendj.dsconfig.DsconfigMessages.*;
 import static org.forgerock.util.Utils.closeSilently;
 
 import java.security.GeneralSecurityException;
