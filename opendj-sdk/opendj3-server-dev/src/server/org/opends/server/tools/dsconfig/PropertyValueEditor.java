@@ -474,13 +474,13 @@ final class PropertyValueEditor {
       try {
         values.addAll(Arrays.asList(context.listManagedObjects(path, rd)));
       } catch (AuthorizationException e) {
-        this.e = new ClientException(ReturnCode.TODO, LocalizableMessage.raw(e.getMessage()));
+        this.e = new ClientException(ReturnCode.CLIENT_SIDE_PARAM_ERROR, LocalizableMessage.raw(e.getMessage()));
         return MenuResult.quit();
       } catch (ManagedObjectNotFoundException e) {
-        this.e = new ClientException(ReturnCode.TODO, e.getMessageObject());
+        this.e = new ClientException(ReturnCode.NO_SUCH_OBJECT, e.getMessageObject());
         return MenuResult.cancel();
       } catch (ErrorResultException e) {
-        this.e = new ClientException(ReturnCode.TODO, LocalizableMessage.raw(e.getMessage()));
+        this.e = new ClientException(ReturnCode.APPLICATION_ERROR, LocalizableMessage.raw(e.getMessage()));
         return MenuResult.quit();
       }
 
@@ -735,13 +735,13 @@ final class PropertyValueEditor {
         try {
           values.addAll(Arrays.asList(context.listManagedObjects(path, rd)));
         } catch (AuthorizationException e) {
-          this.e = new ClientException(ReturnCode.TODO, LocalizableMessage.raw(e.getMessage()));
+          this.e = new ClientException(ReturnCode.CLIENT_SIDE_PARAM_ERROR, LocalizableMessage.raw(e.getMessage()));
           return MenuResult.quit();
         } catch (ManagedObjectNotFoundException e) {
-          this.e = new ClientException(ReturnCode.TODO, e.getMessageObject());
+          this.e = new ClientException(ReturnCode.NO_SUCH_OBJECT, e.getMessageObject());
           return MenuResult.cancel();
         } catch (ErrorResultException e) {
-          this.e = new ClientException(ReturnCode.TODO, LocalizableMessage.raw(e.getMessage()));
+          this.e = new ClientException(ReturnCode.APPLICATION_ERROR, LocalizableMessage.raw(e.getMessage()));
           return MenuResult.quit();
         }
 
@@ -1628,13 +1628,13 @@ final class PropertyValueEditor {
       try {
         values.addAll(Arrays.asList(context.listManagedObjects(path, rd)));
       } catch (AuthorizationException e) {
-        this.e = new ClientException(ReturnCode.TODO, LocalizableMessage.raw(e.getMessage()));
+        this.e = new ClientException(ReturnCode.CLIENT_SIDE_PARAM_ERROR, LocalizableMessage.raw(e.getMessage()));
         return MenuResult.quit();
       } catch (ManagedObjectNotFoundException e) {
-        this.e = new ClientException(ReturnCode.TODO, e.getMessageObject());
+        this.e = new ClientException(ReturnCode.NO_SUCH_OBJECT, e.getMessageObject());
         return MenuResult.cancel();
       } catch (ErrorResultException e) {
-        this.e = new ClientException(ReturnCode.TODO, LocalizableMessage.raw(e.getMessage()));
+        this.e = new ClientException(ReturnCode.APPLICATION_ERROR, LocalizableMessage.raw(e.getMessage()));
         return MenuResult.quit();
       }
 

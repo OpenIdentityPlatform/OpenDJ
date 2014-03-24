@@ -67,7 +67,6 @@ import org.forgerock.opendj.config.conditions.Condition;
 import org.forgerock.opendj.config.conditions.ContainsCondition;
 import org.forgerock.opendj.ldap.AuthorizationException;
 import org.forgerock.opendj.ldap.ErrorResultException;
-import org.opends.server.admin.client.CommunicationException;
 
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
@@ -725,9 +724,6 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
       // verbose) and apply the changes to the partial managed object.
       LocalizableMessage msg = ERR_DSCFG_ERROR_GET_CHILD_MODE.get(ufn);
       throw new ClientException(ReturnCode.OTHER, msg, e);
-    } catch (CommunicationException e) {
-      LocalizableMessage msg = ERR_DSCFG_ERROR_MODIFY_CE.get(ufn, e.getMessage());
-      throw new ClientException(ReturnCode.OTHER, msg);
     } catch (ConcurrentModificationException e) {
       LocalizableMessage msg = ERR_DSCFG_ERROR_MODIFY_CME.get(ufn);
       throw new ClientException(ReturnCode.CONSTRAINT_VIOLATION, msg);

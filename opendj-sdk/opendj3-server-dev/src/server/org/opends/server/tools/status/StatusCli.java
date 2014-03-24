@@ -28,13 +28,12 @@
 package org.opends.server.tools.status;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.LIST_TABLE_SEPARATOR;
+import static com.forgerock.opendj.cli.CliMessages.ERR_CANNOT_INITIALIZE_ARGS;
+import static com.forgerock.opendj.cli.CliMessages.ERR_ERROR_PARSING_ARGS;
 import static org.opends.messages.AdminToolMessages.*;
-import static org.opends.messages.ToolMessages.ERR_ERROR_PARSING_ARGS;
-import static com.forgerock.opendj.cli.CliMessages.*;
-import static org.opends.quicksetup.util.Utils.getCommandLineMaxLineWidth;
+import static org.opends.messages.QuickSetupMessages.INFO_ERROR_READING_SERVER_CONFIGURATION;
 import static org.opends.messages.QuickSetupMessages.INFO_NOT_AVAILABLE_LABEL;
-import static org.opends.messages.QuickSetupMessages.
-INFO_ERROR_READING_SERVER_CONFIGURATION;
+import static com.forgerock.opendj.cli.Utils.MAX_LINE_WIDTH;
 
 import java.io.File;
 import java.io.InputStream;
@@ -80,9 +79,9 @@ import org.opends.server.util.cli.LDAPConnectionConsoleInteraction;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ClientException;
 import com.forgerock.opendj.cli.ConsoleApplication;
+import com.forgerock.opendj.cli.ReturnCode;
 import com.forgerock.opendj.cli.TableBuilder;
 import com.forgerock.opendj.cli.TextTablePrinter;
-import com.forgerock.opendj.cli.ReturnCode;
 
 /**
  * The class used to provide some CLI interface to display status.
@@ -1151,11 +1150,11 @@ class StatusCli extends ConsoleApplication
   private LocalizableMessage centerTitle(LocalizableMessage text)
   {
     LocalizableMessage centered;
-    if (text.length() <= getCommandLineMaxLineWidth() - 8)
+    if (text.length() <= MAX_LINE_WIDTH - 8)
     {
       LocalizableMessageBuilder buf = new LocalizableMessageBuilder();
       int extra = Math.min(10,
-          (getCommandLineMaxLineWidth() - 8 - text.length()) / 2);
+          (MAX_LINE_WIDTH - 8 - text.length()) / 2);
       for (int i=0; i<extra; i++)
       {
         buf.append(" ");
@@ -1242,6 +1241,6 @@ class StatusCli extends ConsoleApplication
   private LocalizableMessage wrapText(LocalizableMessage text)
   {
     return LocalizableMessage.raw(
-        StaticUtils.wrapText(text, getCommandLineMaxLineWidth()));
+        StaticUtils.wrapText(text, MAX_LINE_WIDTH));
   }
 }

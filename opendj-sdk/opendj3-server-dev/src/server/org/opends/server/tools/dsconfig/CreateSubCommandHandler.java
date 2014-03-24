@@ -80,7 +80,6 @@ import org.forgerock.opendj.config.conditions.Condition;
 import org.forgerock.opendj.config.conditions.ContainsCondition;
 import org.forgerock.opendj.ldap.AuthorizationException;
 import org.forgerock.opendj.ldap.ErrorResultException;
-import org.opends.server.admin.client.CommunicationException;
 
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
@@ -873,11 +872,11 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
         } catch (ConcurrentModificationException e) {
           LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_CME.get(irelation
               .getUserFriendlyName());
-          throw new ClientException(ReturnCode.TODO, msg);
+          throw new ClientException(ReturnCode.CONSTRAINT_VIOLATION, msg);
         } catch (ErrorResultException e) {
           LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_CE.get(irelation
               .getUserFriendlyName(), e.getMessage());
-          throw new ClientException(ReturnCode.TODO, msg);
+          throw new ClientException(ReturnCode.APPLICATION_ERROR, msg);
         } catch (DefinitionDecodingException e) {
           // Do nothing.
         } catch (ManagedObjectDecodingException e) {
@@ -1177,10 +1176,6 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
       LocalizableMessage pufn = path.getManagedObjectDefinition().getUserFriendlyName();
       LocalizableMessage msg = ERR_DSCFG_ERROR_GET_PARENT_MODE.get(pufn);
       throw new ClientException(ReturnCode.OTHER, msg, e);
-    } catch (CommunicationException e) {
-      LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_CE.get(ufn, e
-          .getMessage());
-      throw new ClientException(ReturnCode.CLIENT_SIDE_SERVER_DOWN, msg);
     } catch (ConcurrentModificationException e) {
       LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_CME.get(ufn);
       throw new ClientException(ReturnCode.CONSTRAINT_VIOLATION, msg);

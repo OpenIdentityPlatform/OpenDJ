@@ -72,7 +72,6 @@ import org.forgerock.opendj.config.client.ManagedObjectDecodingException;
 import org.forgerock.opendj.config.client.ManagementContext;
 import org.forgerock.opendj.ldap.AuthorizationException;
 import org.forgerock.opendj.ldap.ErrorResultException;
-import org.opends.server.admin.client.CommunicationException;
 import org.opends.server.util.ServerConstants;
 
 import com.forgerock.opendj.cli.Argument;
@@ -113,8 +112,6 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
     private List<String> args;
 
     private AuthorizationException authze;
-
-    private CommunicationException ce;
 
     private ErrorResultException ere;
 
@@ -208,9 +205,6 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
           result = MenuResult.quit();
         } catch (ErrorResultException e) {
           ere = e;
-          result = MenuResult.quit();
-        } catch (CommunicationException e) {
-          ce = e;
           result = MenuResult.quit();
         }
       }
@@ -309,7 +303,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
               String typeUsage = getSubTypesUsage(d);
               LocalizableMessage msg = ERR_DSCFG_ERROR_SUB_TYPE_UNRECOGNIZED.get(
                   name, r.getUserFriendlyName(), typeUsage);
-              clie = new ClientException(ReturnCode.TODO, msg);
+              clie = new ClientException(ReturnCode.APPLICATION_ERROR, msg);
               result = MenuResult.quit();
               return;
             } else {
@@ -345,9 +339,6 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
           result = MenuResult.quit();
         } catch (ErrorResultException e) {
           ere = e;
-          result = MenuResult.quit();
-        } catch (CommunicationException e) {
-          ce = e;
           result = MenuResult.quit();
         }
       }
@@ -432,13 +423,10 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
      *           If the server refuses to retrieve the managed object
      *           because the client does not have the correct
      *           privileges.
-     * @throws CommunicationException
-     *           If the client cannot contact the server due to an
-     *           underlying communication problem.
      */
     public MenuResult<ManagedObject<?>> find(ConsoleApplication app,
         ManagementContext context, ManagedObjectPath<?, ?> path,
-        List<String> args) throws ClientException, CommunicationException,
+        List<String> args) throws ClientException,
         AuthorizationException, ConcurrentModificationException,
         DefinitionDecodingException, ManagedObjectDecodingException,
         ManagedObjectNotFoundException {
@@ -450,7 +438,6 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
 
       this.clie = null;
       this.authze = null;
-      this.ce = null;
       this.cme = null;
       this.dde = null;
       this.mode = null;
@@ -464,8 +451,6 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
         throw clie;
       } else if (authze != null) {
         throw authze;
-      } else if (ce != null) {
-        throw ce;
       } else if (cme != null) {
         throw cme;
       } else if (dde != null) {
@@ -964,9 +949,6 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
    *           If the server refuses to retrieve the managed object
    *           because the client does not have the correct
    *           privileges.
-   * @throws CommunicationException
-   *           If the client cannot contact the server due to an
-   *           underlying communication problem.
    * @throws ClientException
    *           If one of the naming arguments referenced a managed
    *           object of the wrong type.
@@ -977,8 +959,8 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
       ConsoleApplication app, ManagementContext context,
       ManagedObjectPath<?, ?> path, List<String> args) throws ClientException,
       AuthorizationException, DefinitionDecodingException,
-      ManagedObjectDecodingException, CommunicationException,
-      ConcurrentModificationException, ManagedObjectNotFoundException
+      ManagedObjectDecodingException, ConcurrentModificationException,
+      ManagedObjectNotFoundException
   {
     ManagedObjectFinder finder = new ManagedObjectFinder();
     return finder.find(app, context, path, args);
@@ -1129,8 +1111,6 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
    *         {@link MenuResult#quit()}, or {@link MenuResult#cancel()},
    *         if the sub-command was run interactive and the user chose
    *         to quit or cancel.
-   * @throws CommunicationException
-   *           If the server cannot be contacted.
    * @throws ConcurrentModificationException
    *           If the parent managed object has been deleted.
    * @throws AuthorizationException
@@ -1146,7 +1126,8 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
       RelationDefinition<C, S> r,
       AbstractManagedObjectDefinition<? extends C, ? extends S> d)
       throws AuthorizationException, ConcurrentModificationException,
-      CommunicationException, ClientException {
+      ClientException
+  {
     if (d == null) {
       d = r.getChildDefinition();
     }
