@@ -22,12 +22,15 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.quicksetup;
 
 import org.opends.quicksetup.event.ProgressNotifier;
 import org.opends.quicksetup.util.ProgressMessageFormatter;
+
+import com.forgerock.opendj.cli.ClientException;
 
 /**
  * Represents a quick setup CLI application.
@@ -37,14 +40,19 @@ public interface CliApplication extends ProgressNotifier, Runnable {
   /**
    * Creates a set of user data from command line arguments and installation
    * status.
-   * @param launcher that launched this application
+   *
+   * @param launcher
+   *          that launched this application
    * @return UserData object populated to reflect the input args and status
-   * @throws UserDataException if something is wrong with the data provided
-   * by the user
-   * @throws ApplicationException if there is an application specific problem
+   * @throws UserDataException
+   *           if something is wrong with the data provided by the user
+   * @throws ApplicationException
+   *           if there is an application specific problem
+   * @throws ClientException
+   *           If an error occurs when creating the data.
    */
   UserData createUserData(Launcher launcher)
-          throws UserDataException, ApplicationException;
+          throws UserDataException, ApplicationException, ClientException;
 
   /**
    * Gets the user data this application will use when running.
