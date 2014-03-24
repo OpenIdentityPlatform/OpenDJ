@@ -27,6 +27,15 @@
 
 package org.opends.server.tools.status;
 
+import static com.forgerock.opendj.cli.ArgumentConstants.LIST_TABLE_SEPARATOR;
+import static org.opends.messages.AdminToolMessages.*;
+import static org.opends.messages.ToolMessages.ERR_ERROR_PARSING_ARGS;
+import static com.forgerock.opendj.cli.CliMessages.*;
+import static org.opends.quicksetup.util.Utils.getCommandLineMaxLineWidth;
+import static org.opends.messages.QuickSetupMessages.INFO_NOT_AVAILABLE_LABEL;
+import static org.opends.messages.QuickSetupMessages.
+INFO_ERROR_READING_SERVER_CONFIGURATION;
+
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -43,6 +52,8 @@ import javax.naming.ldap.InitialLdapContext;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.client.ManagementContext;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
@@ -57,11 +68,6 @@ import org.opends.guitools.controlpanel.util.ControlPanelLog;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.admin.AdministrationConnector;
 import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
-import org.forgerock.opendj.config.client.ManagementContext;
-import org.forgerock.opendj.config.server.ConfigException;
-
-import com.forgerock.opendj.cli.ClientException;
-
 import org.opends.server.tools.dsconfig.LDAPManagementContextFactory;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
@@ -69,20 +75,14 @@ import org.opends.server.types.NullOutputStream;
 import org.opends.server.types.OpenDsException;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.StaticUtils;
-
-import com.forgerock.opendj.cli.ConsoleApplication;
-
 import org.opends.server.util.cli.LDAPConnectionConsoleInteraction;
 
+import com.forgerock.opendj.cli.ArgumentException;
+import com.forgerock.opendj.cli.ClientException;
+import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.TableBuilder;
 import com.forgerock.opendj.cli.TextTablePrinter;
-import com.forgerock.opendj.cli.ArgumentException;
-
-import static org.opends.messages.AdminToolMessages.*;
-import static org.opends.messages.QuickSetupMessages.*;
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.quicksetup.util.Utils.*;
-import static com.forgerock.opendj.cli.ArgumentConstants.LIST_TABLE_SEPARATOR;
+import com.forgerock.opendj.cli.ReturnCode;
 
 /**
  * The class used to provide some CLI interface to display status.
@@ -98,73 +98,19 @@ class StatusCli extends ConsoleApplication
   private boolean displayMustStartLegend;
 
   /** Prefix for log files. */
-  static public final String LOG_FILE_PREFIX = "opendj-status-";
+  public static final String LOG_FILE_PREFIX = "opendj-status-";
 
   /** Suffix for log files. */
-  static public final String LOG_FILE_SUFFIX = ".log";
+  public static final String LOG_FILE_SUFFIX = ".log";
 
   private ApplicationTrustManager interactiveTrustManager;
 
   private boolean useInteractiveTrustManager;
 
-  // This CLI is always using the administration connector with SSL
+  /** This CLI is always using the administration connector with SSL. */
   private final boolean alwaysSSL = true;
 
-  /**
-   * The enumeration containing the different return codes that the command-line
-   * can have.
-   *
-   */
-  enum ErrorReturnCode
-  {
-    /**
-     * Successful display of the status.
-     */
-    SUCCESSFUL(0),
-    /**
-     * We did no have an error but the status was not displayed (displayed
-     * version or usage).
-     */
-    SUCCESSFUL_NOP(0),
-    /**
-     * Unexpected error (potential bug).
-     */
-    ERROR_UNEXPECTED(1),
-    /**
-     * Cannot parse arguments.
-     */
-    ERROR_PARSING_ARGS(2),
-    /**
-     * User cancelled (for instance not accepting the certificate proposed) or
-     * could not use the provided connection parameters in interactive mode.
-     */
-    USER_CANCELLED_OR_DATA_ERROR(3),
-    /**
-     * This occurs for instance when the authentication provided by the user is
-     * not valid.
-     */
-    ERROR_READING_CONFIGURATION_WITH_LDAP(4);
-
-    private int returnCode;
-    private ErrorReturnCode(int returnCode)
-    {
-      this.returnCode = returnCode;
-    }
-
-    /**
-     * Get the corresponding return code value.
-     *
-     * @return The corresponding return code value.
-     */
-    public int getReturnCode()
-    {
-      return returnCode;
-    }
-  }
-
-  /**
-   * The Logger.
-   */
+  /** The Logger. */
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The argument parser. */
@@ -263,9 +209,8 @@ class StatusCli extends ConsoleApplication
     try {
       argParser.initializeGlobalArguments(getOutputStream());
     } catch (ArgumentException ae) {
-      LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
-      println(message);
-      return ErrorReturnCode.ERROR_UNEXPECTED.getReturnCode();
+      println(ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage()));
+      return ReturnCode.CLIENT_SIDE_PARAM_ERROR.get();
     }
 
     try
@@ -281,18 +226,17 @@ class StatusCli extends ConsoleApplication
     try {
       argParser.parseArguments(args);
     } catch (ArgumentException ae) {
-      LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
-      println(message);
+      println(ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
       println();
       println(LocalizableMessage.raw(argParser.getUsage()));
 
-      return ErrorReturnCode.ERROR_PARSING_ARGS.getReturnCode();
+      return ReturnCode.CLIENT_SIDE_PARAM_ERROR.get();
     }
 
     //  If we should just display usage or version information,
     // then print it and exit.
     if (argParser.usageOrVersionDisplayed()) {
-      return ErrorReturnCode.SUCCESSFUL_NOP.getReturnCode();
+      return ReturnCode.SUCCESS.get();
     }
 
     // Checks the version - if upgrade required, the tool is unusable
@@ -307,7 +251,7 @@ class StatusCli extends ConsoleApplication
     }
     int v = argParser.validateGlobalOptions(getErrorStream());
 
-    if (v != ErrorReturnCode.SUCCESSFUL_NOP.getReturnCode()) {
+    if (v != ReturnCode.SUCCESS.get()) {
       println(LocalizableMessage.raw(argParser.getUsage()));
       return v;
     } else {
@@ -366,11 +310,11 @@ class StatusCli extends ConsoleApplication
             useInteractiveTrustManager = true;
           } catch (ArgumentException e) {
             println(e.getMessageObject());
-            return ErrorReturnCode.USER_CANCELLED_OR_DATA_ERROR.getReturnCode();
+            return ReturnCode.CLIENT_SIDE_PARAM_ERROR.get();
           } catch (ClientException e) {
             println(e.getMessageObject());
             writeStatus(controlInfo);
-            return ErrorReturnCode.USER_CANCELLED_OR_DATA_ERROR.getReturnCode();
+            return ReturnCode.ERROR_USER_CANCELLED.get();
           } finally {
             StaticUtils.close(ctx);
           }
@@ -397,23 +341,20 @@ class StatusCli extends ConsoleApplication
             writeStatus(controlInfo);
 
             if (!controlInfo.getServerDescriptor().getExceptions().isEmpty()) {
-              return ErrorReturnCode.ERROR_READING_CONFIGURATION_WITH_LDAP.
-                getReturnCode();
+              return ReturnCode.ERROR_INITIALIZING_SERVER.get();
             }
           } catch (NamingException ne) {
             // This should not happen but this is useful information to
             // diagnose the error.
             println();
             println(INFO_ERROR_READING_SERVER_CONFIGURATION.get(ne));
-            return ErrorReturnCode.ERROR_READING_CONFIGURATION_WITH_LDAP.
-              getReturnCode();
+            return ReturnCode.ERROR_INITIALIZING_SERVER.get();
           } catch (ConfigReadException cre) {
             // This should not happen but this is useful information to
             // diagnose the error.
             println();
             println(cre.getMessageObject());
-            return ErrorReturnCode.ERROR_READING_CONFIGURATION_WITH_LDAP.
-              getReturnCode();
+            return ReturnCode.ERROR_INITIALIZING_SERVER.get();
           } finally {
             StaticUtils.close(ctx);
           }
@@ -427,7 +368,7 @@ class StatusCli extends ConsoleApplication
       }
     }
 
-    return ErrorReturnCode.SUCCESSFUL.getReturnCode();
+    return ReturnCode.SUCCESS.get();
   }
 
   private void writeStatus(ControlPanelInfo controlInfo)
@@ -964,7 +905,7 @@ class StatusCli extends ConsoleApplication
           for (int j=0; j<tableModel.getColumnCount(); j++)
           {
             LocalizableMessageBuilder line = new LocalizableMessageBuilder();
-            line.append(tableModel.getColumnName(j)+": ");
+            line.append(tableModel.getColumnName(j)).append(": ");
             if (j == 0)
             {
               // It is the hostName
@@ -1085,7 +1026,7 @@ class StatusCli extends ConsoleApplication
       LocalizableMessage header = LocalizableMessage.raw(tableModel.getColumnName(i));
       labels[i] = new LocalizableMessageBuilder(header).append(":").toMessage();
       labelWidth = Math.max(labelWidth, labels[i].length());
-      if ((i != 4) && (i != 5))
+      if (i != 4 && i != 5)
       {
         labelWidthWithoutReplicated =
           Math.max(labelWidthWithoutReplicated, labels[i].length());
@@ -1178,7 +1119,7 @@ class StatusCli extends ConsoleApplication
         boolean isReplicated =
           replicatedLabel.toString().equals(
               String.valueOf(tableModel.getValueAt(i, 3)));
-        if ((j == 4) || (j == 5))
+        if (j == 4 || j == 5)
         {
           // If the suffix is not replicated we do not have to display these
           // lines.
@@ -1219,7 +1160,7 @@ class StatusCli extends ConsoleApplication
       {
         buf.append(" ");
       }
-      buf.append("--- "+text+" ---");
+      buf.append("--- ").append(text).append(" ---");
       centered = buf.toMessage();
     }
     else
@@ -1245,9 +1186,7 @@ class StatusCli extends ConsoleApplication
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isAdvancedMode() {
     return false;
@@ -1255,9 +1194,7 @@ class StatusCli extends ConsoleApplication
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isInteractive() {
     return argParser.isInteractive();
@@ -1265,9 +1202,7 @@ class StatusCli extends ConsoleApplication
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isMenuDrivenMode() {
     return true;
@@ -1275,9 +1210,7 @@ class StatusCli extends ConsoleApplication
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isQuiet() {
     return false;
@@ -1285,9 +1218,7 @@ class StatusCli extends ConsoleApplication
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isScriptFriendly() {
     return argParser.isScriptFriendly();
@@ -1295,9 +1226,7 @@ class StatusCli extends ConsoleApplication
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isVerbose() {
     return true;

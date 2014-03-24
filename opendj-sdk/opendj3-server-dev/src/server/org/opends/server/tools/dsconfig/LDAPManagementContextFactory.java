@@ -179,78 +179,17 @@ public final class LDAPManagementContextFactory implements
           try
           {
             final SSLContextBuilder sslBuilder = new SSLContextBuilder();
-            sslBuilder.setTrustManager((trustManager==null?TrustManagers.trustAll():trustManager));
-            sslBuilder.setKeyManager(keyManager);
-            sslBuilder.setProtocol(SSLContextBuilder.PROTOCOL_SSL);
-            options.setUseStartTLS(false);
-            options.setSSLContext(sslBuilder.getSSLContext());
-
-            factory = new LDAPConnectionFactory(hostName, portNumber, options);
-            connection = factory.getConnection();
-            connection.bind(bindDN, bindPassword.toCharArray());
-            break;
-          }
-          catch (ErrorResultException e)
-          {
-            if (app.isInteractive()
-                && ci.isTrustStoreInMemory()
-                && e.getCause() != null
-                && e.getCause() instanceof SSLException
-                && e.getCause().getCause() instanceof CertificateException)
-            {
-              String authType = null;
-              if (trustManager instanceof ApplicationTrustManager)
-              { // FIXME use PromptingTrustManager
-                ApplicationTrustManager appTrustManager =
-                    (ApplicationTrustManager) trustManager;
-                authType = appTrustManager.getLastRefusedAuthType();
-                X509Certificate[] cert = appTrustManager.getLastRefusedChain();
-
-                if (ci.checkServerCertificate(cert, authType, hostName))
-                {
-                  // If the certificate is trusted, update the trust manager.
-                  trustManager = ci.getTrustManager();
-                  // Try to connect again.
-                  continue;
-                }
-              }
-            }
-            if (e.getCause() != null && e.getCause() instanceof SSLException)
-            {
-              LocalizableMessage message =
-                  ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT_NOT_TRUSTED.get(
-                      hostName, portNumber);
-              throw new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR,
-                  message);
-            }
-            LocalizableMessage message =
-                ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT
-                    .get(hostName, portNumber);
-            throw new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR,
-                message);
-          }
-          catch (GeneralSecurityException e)
-          {
-            LocalizableMessage message =
-                ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT
-                    .get(hostName, portNumber);
-            throw new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR,
-                message);
-          }
-        }
-      }
-      else if (ci.useStartTLS())
-      {
-        while (true)
-        {
-          try
-          {
-            final SSLContextBuilder sslBuilder = new SSLContextBuilder();
             sslBuilder.setTrustManager((trustManager == null ? TrustManagers
                 .trustAll() : trustManager));
             sslBuilder.setKeyManager(keyManager);
-            sslBuilder.setProtocol(SSLContextBuilder.PROTOCOL_SSL);
-            options.setUseStartTLS(true);
+            if (ci.useStartTLS())
+            {
+              options.setUseStartTLS(true);
+            }
+            else
+            {
+              options.setUseStartTLS(false);
+            }
             options.setSSLContext(sslBuilder.getSSLContext());
 
             factory = new LDAPConnectionFactory(hostName, portNumber, options);
@@ -283,13 +222,26 @@ public final class LDAPManagementContextFactory implements
                 }
               }
             }
-            if (e.getCause() != null && e.getCause() instanceof SSLException)
+            if (e.getCause() instanceof SSLException)
             {
               LocalizableMessage message =
                   ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT_NOT_TRUSTED.get(
                       hostName, portNumber);
               throw new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR,
                   message);
+            }
+            if (e.getCause() instanceof AuthorizationException)
+            {
+              LocalizableMessage message =
+                  ERR_DSCFG_ERROR_LDAP_SIMPLE_BIND_NOT_SUPPORTED.get();
+              throw new ClientException(ReturnCode.AUTH_METHOD_NOT_SUPPORTED,
+                  message);
+            }
+            else if (e.getCause() instanceof AuthenticationException)
+            {
+              LocalizableMessage message =
+                  ERR_DSCFG_ERROR_LDAP_SIMPLE_BIND_FAILED.get(bindDN);
+              throw new ClientException(ReturnCode.INVALID_CREDENTIALS, message);
             }
             LocalizableMessage message =
                 ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT

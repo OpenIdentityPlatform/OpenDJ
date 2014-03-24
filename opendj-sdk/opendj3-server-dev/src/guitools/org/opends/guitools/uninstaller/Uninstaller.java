@@ -64,6 +64,8 @@ import org.opends.server.tools.ConfigureWindowsService;
 import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.StaticUtils;
 
+import com.forgerock.opendj.cli.ClientException;
+
 import static org.forgerock.util.Utils.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
@@ -600,30 +602,22 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
-  public UserData createUserData(Launcher launcher)
-          throws UserDataException, ApplicationException {
-    parser = (UninstallerArgumentParser)launcher.getArgumentParser();
-    return cliHelper.createUserData(
-        parser,
-        launcher.getArguments());
-
+  public UserData createUserData(Launcher launcher) throws UserDataException,
+      ApplicationException, ClientException
+  {
+    parser = (UninstallerArgumentParser) launcher.getArgumentParser();
+    return cliHelper.createUserData(parser, launcher.getArguments());
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getInstallationPath() {
     return getInstallPathFromClasspath();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getInstancePath() {
     return getInstancePathFromInstallPath(getInstallPathFromClasspath());
@@ -641,9 +635,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     return ue;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ReturnCode getReturnCode() {
     return null;
@@ -1005,9 +997,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ProgressStep getCurrentProgressStep() {
     return status;
@@ -1039,9 +1029,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     return hmSummary.get(step);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isFinished() {
     return getCurrentProgressStep() ==
@@ -1054,25 +1042,19 @@ public class Uninstaller extends GuiApplication implements CliApplication {
             UninstallProgressStep.FINISHED_WITH_ERROR_DELETING;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isCancellable() {
     return false;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void cancel() {
     // do nothing; not cancellable
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void windowClosing(QuickSetupDialog dlg, WindowEvent evt) {
     if ((dlg.getDisplayedStep() == PROGRESS) ||
@@ -1085,17 +1067,13 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ButtonName getInitialFocusButtonName() {
     return ButtonName.FINISH;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Set<? extends WizardStep> getWizardSteps() {
     Set<WizardStep> setSteps = new HashSet<WizardStep>();
@@ -1105,9 +1083,7 @@ public class Uninstaller extends GuiApplication implements CliApplication {
     return Collections.unmodifiableSet(setSteps);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public QuickSetupStepPanel createWizardStepPanel(WizardStep step) {
     QuickSetupStepPanel p = null;
