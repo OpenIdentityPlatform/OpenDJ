@@ -680,11 +680,14 @@ class StatusCli extends ConsoleApplication
   }
 
   /**
-   * Updates the java version contents displaying with what is specified in
-   * the provided ServerDescriptor object.
-   * This method must be called from the event thread.
-   * @param desc the ServerDescriptor object.
-   * @param maxLabelWidth the maximum label width of the left label.
+   * Updates the java version contents displaying with what is specified in the
+   * provided ServerDescriptor object. This method must be called from the event
+   * thread.
+   * 
+   * @param desc
+   *          The ServerDescriptor object.
+   * @param maxLabelWidth
+   *          The maximum label width of the left label.
    */
   private void writeJavaVersionContents(ServerDescriptor desc,
       int maxLabelWidth)
@@ -692,17 +695,13 @@ class StatusCli extends ConsoleApplication
     LocalizableMessage text;
     if (desc.getStatus() == ServerDescriptor.ServerStatus.STARTED)
     {
-      text = LocalizableMessage.raw(desc.getJavaVersion());
-      if (text == null)
+      if (!desc.isAuthenticated() || !desc.getExceptions().isEmpty())
       {
-        if (!desc.isAuthenticated() || !desc.getExceptions().isEmpty())
-        {
-          text = getNotAvailableBecauseAuthenticationIsRequiredText();
-        }
-        else
-        {
-          text = getNotAvailableText();
-        }
+        text = getNotAvailableBecauseAuthenticationIsRequiredText();
+      }
+      else
+      {
+        text = LocalizableMessage.raw(desc.getJavaVersion());
       }
     }
     else
