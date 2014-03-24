@@ -28,6 +28,7 @@ package org.opends.server.api;
 
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.List;
 
 import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteSequence;
@@ -145,6 +146,16 @@ public abstract class AbstractMatchingRule implements MatchingRule
   {
     return UNDEFINED_ASSERTION;
   }
+
+  /** {@inheritDoc} */
+  @Override
+  public Assertion getSubstringAssertion(ByteSequence subInitial,
+      List<? extends ByteSequence> subAnyElements, ByteSequence subFinal) throws DecodeException
+  {
+    return UNDEFINED_ASSERTION;
+  }
+
+
 
   /** {@inheritDoc} */
   @Override

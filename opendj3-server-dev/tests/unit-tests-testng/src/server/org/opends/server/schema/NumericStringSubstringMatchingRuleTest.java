@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.schema;
 
@@ -35,6 +36,30 @@ public class NumericStringSubstringMatchingRuleTest extends
     SubstringMatchingRuleTest
 {
 
+  /** {@inheritDoc} */
+  @Override
+  @DataProvider(name="substringMatchData")
+  public Object[][] createSubstringMatchData()
+  {
+    return new Object[][] {
+      // The matching rule requires ordered non overlapping substrings.
+      // Issue #730 was not valid.
+     {"123456789", "", new String[] {"123", "234", "567", "789"}, "",  false },
+     {"123456789", "", new String[] {"123", "234"}, "",  false },
+     {"123456789", "", new String[] {"567", "234"}, "",  false },
+     {"123456789", "", new String[] {"123", "456"}, "",  true },
+     {"123456789", "", new String[] {"123"}, "",  true },
+     {"123456789", "", new String[] {"456"}, "",  true },
+     {"123456789", "", new String[] {"789"}, "",  true },
+     {"123456789", "", new String[] {"123456789"}, "",  true },
+     {"123456789", "", new String[] {"1234567890"}, "",  false },
+     {"123456789", "", new String[] {"9"}, "",  true },
+     {"123456789", "", new String[] {"1"}, "",  true },
+     {"123456789", "", new String[] {"0"}, "",  false },
+     {"123456789", "", new String[] {"    "}, "",  true },
+     {"123456789", "", new String[] {"0123"}, "",  false },
+    };
+  }
   /**
    * {@inheritDoc}
    */

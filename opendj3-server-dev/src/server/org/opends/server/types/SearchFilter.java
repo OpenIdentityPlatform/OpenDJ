@@ -3593,30 +3593,13 @@ public final class SearchFilter
     {
       case AND:
       case OR:
-        if (filterComponents.size() != f.filterComponents.size())
-        {
-          return false;
-        }
-
-outerComponentLoop:
-        for (SearchFilter outerFilter : filterComponents)
-        {
-          for (SearchFilter innerFilter : f.filterComponents)
-          {
-            if (outerFilter.equals(innerFilter))
-            {
-              continue outerComponentLoop;
-            }
-          }
-          return false;
-        }
-        return true;
+        return andOrEqual(f);
       case NOT:
         return notComponent.equals(f.notComponent);
       case EQUALITY:
         return typeAndOptionsAndAssertionEqual(f);
       case SUBSTRING:
-        return equalsSubstring(f);
+        return substringEqual(f);
       case GREATER_OR_EQUAL:
         return typeAndOptionsAndAssertionEqual(f);
       case LESS_OR_EQUAL:
@@ -3631,6 +3614,28 @@ outerComponentLoop:
       default:
         return false;
     }
+  }
+
+  private boolean andOrEqual(SearchFilter f)
+  {
+    if (filterComponents.size() != f.filterComponents.size())
+    {
+      return false;
+    }
+
+outerComponentLoop:
+    for (SearchFilter outerFilter : filterComponents)
+    {
+      for (SearchFilter innerFilter : f.filterComponents)
+      {
+        if (outerFilter.equals(innerFilter))
+        {
+          continue outerComponentLoop;
+        }
+      }
+      return false;
+    }
+    return true;
   }
 
 
@@ -3650,113 +3655,28 @@ outerComponentLoop:
   }
 
 
-  private boolean equalsSubstring(SearchFilter f)
+  private boolean substringEqual(SearchFilter f)
   {
     if (! attributeType.equals(f.attributeType))
     {
       return false;
     }
 
-    SubstringMatchingRule smr =
-         attributeType.getSubstringMatchingRule();
-    if (smr == null)
+    SubstringMatchingRule rule = attributeType.getSubstringMatchingRule();
+    if (rule == null)
     {
       return false;
     }
-
-    if (! optionsEqual(attributeOptions, f.attributeOptions))
+    try
+    {
+      Assertion thisAssertion = rule.getSubstringAssertion(subInitialElement, subAnyElements, subFinalElement);
+      Assertion thatAssertion = rule.getSubstringAssertion(f.subInitialElement, f.subAnyElements, f.subFinalElement);
+      return thisAssertion.equals(thatAssertion);
+    }
+    catch (DecodeException e)
     {
       return false;
     }
-
-    if (subInitialElement == null)
-    {
-      if (f.subInitialElement != null)
-      {
-        return false;
-      }
-    }
-    else
-    {
-      if (f.subInitialElement == null)
-      {
-        return false;
-      }
-      try
-      {
-        ByteString nSI1 =
-             smr.normalizeSubstring(subInitialElement);
-        ByteString nSI2 =
-             smr.normalizeSubstring(f.subInitialElement);
-
-        if (! nSI1.equals(nSI2))
-        {
-          return false;
-        }
-      }
-      catch (Exception e)
-      {
-        return false;
-      }
-    }
-
-    if (subFinalElement == null)
-    {
-      if (f.subFinalElement != null)
-      {
-        return false;
-      }
-    }
-    else
-    {
-      if (f.subFinalElement == null)
-      {
-        return false;
-      }
-      try
-      {
-        ByteString nSF1 =
-             smr.normalizeSubstring(subFinalElement);
-        ByteString nSF2 =
-             smr.normalizeSubstring(f.subFinalElement);
-
-        if (! nSF1.equals(nSF2))
-        {
-          return false;
-        }
-      }
-      catch (Exception e)
-      {
-        return false;
-      }
-    }
-
-    if (subAnyElements.size() != f.subAnyElements.size())
-    {
-      return false;
-    }
-
-    for (int i = 0; i < subAnyElements.size(); i++)
-    {
-      try
-      {
-        ByteString nSA1 =
-             smr.normalizeSubstring(subAnyElements.get(i));
-        ByteString nSA2 =
-             smr.normalizeSubstring(f.subAnyElements.get(i));
-
-        if (! nSA1.equals(nSA2))
-        {
-          return false;
-        }
-      }
-      catch (Exception e)
-      {
-        return false;
-      }
-    }
-
-    return true;
   }
 
 
@@ -3820,10 +3740,8 @@ outerComponentLoop:
       }
       else
       {
-        MatchingRule mr =
-             DirectoryServer.getMatchingRule(
-                  toLowerCase(matchingRuleID));
-        if (mr == null)
+        MatchingRule mrule = DirectoryServer.getMatchingRule(toLowerCase(matchingRuleID));
+        if (mrule == null)
         {
           return false;
         }
@@ -3831,8 +3749,8 @@ outerComponentLoop:
         {
           try
           {
-            Assertion assertion = mr.getAssertion(f.assertionValue);
-            return assertion.matches(mr.normalizeAttributeValue(assertionValue)).toBoolean();
+            Assertion assertion = mrule.getAssertion(f.assertionValue);
+            return assertion.matches(mrule.normalizeAttributeValue(assertionValue)).toBoolean();
           }
           catch (Exception e)
           {
@@ -3921,24 +3839,7 @@ outerComponentLoop:
       case EQUALITY:
         return typeAndAssertionHashCode();
       case SUBSTRING:
-        hashCode = attributeType.hashCode();
-
-        SubstringMatchingRule smr =
-             attributeType.getSubstringMatchingRule();
-
-        hashCode = hashCode(hashCode, smr, subInitialElement);
-
-        if (subAnyElements != null)
-        {
-          for (ByteString e : subAnyElements)
-          {
-              hashCode = hashCode(hashCode, smr, e);
-          }
-        }
-
-        hashCode = hashCode(hashCode, smr, subFinalElement);
-
-        return hashCode;
+        return substringHashCode();
       case GREATER_OR_EQUAL:
         return typeAndAssertionHashCode();
       case LESS_OR_EQUAL:
@@ -3948,32 +3849,38 @@ outerComponentLoop:
       case APPROXIMATE_MATCH:
         return typeAndAssertionHashCode();
       case EXTENSIBLE_MATCH:
-        hashCode = 0;
-
-        if (attributeType != null)
-        {
-          hashCode += attributeType.hashCode();
-        }
-
-        if (dnAttributes)
-        {
-          hashCode++;
-        }
-
-        if (matchingRuleID != null)
-        {
-          hashCode += matchingRuleID.hashCode();
-        }
-
-        if (assertionValue != null)
-        {
-          hashCode += assertionValue.hashCode();
-        }
-
-        return hashCode;
+        return extensibleHashCode();
       default:
         return 1;
     }
+  }
+
+
+  /** Returns the hash code for extensible filter. */
+  private int extensibleHashCode()
+  {
+    int hashCode = 0;
+
+    if (attributeType != null)
+    {
+      hashCode += attributeType.hashCode();
+    }
+
+    if (dnAttributes)
+    {
+      hashCode++;
+    }
+
+    if (matchingRuleID != null)
+    {
+      hashCode += matchingRuleID.hashCode();
+    }
+
+    if (assertionValue != null)
+    {
+      hashCode += assertionValue.hashCode();
+    }
+    return hashCode;
   }
 
 
@@ -3990,25 +3897,30 @@ outerComponentLoop:
     }
   }
 
-
-  private int hashCode(int hashCode, SubstringMatchingRule smr,
-      ByteString subElem)
+  /** Returns hash code to use for substring filter. */
+  private int substringHashCode()
   {
-    if (subElem != null)
+    int hashCode = attributeType.hashCode();
+    final MatchingRule rule = attributeType.getSubstringMatchingRule();
+    if (rule != null)
     {
-      if (smr == null)
+      try
       {
-        hashCode += subElem.hashCode();
+        return hashCode + rule.getSubstringAssertion(subInitialElement, subAnyElements, subFinalElement).hashCode();
       }
-      else
+      catch (DecodeException e)
       {
-        try
-        {
-          hashCode += smr.normalizeSubstring(subElem).hashCode();
-        }
-        catch (Exception e) {}
+        logger.traceException(e);
       }
     }
+
+    // Fallback to hash code based on elements
+    hashCode += subInitialElement.hashCode();
+    for (ByteString e : subAnyElements)
+    {
+      hashCode += e.hashCode();
+    }
+    hashCode += subFinalElement.hashCode();
     return hashCode;
   }
 

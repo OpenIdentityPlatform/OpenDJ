@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.opends.server.api.SubstringMatchingRule;
+import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.testng.annotations.DataProvider;
@@ -42,8 +43,15 @@ import static org.testng.Assert.*;
  * This class is intended to be extended by one class for each substring
  * matching rules.
  */
+@SuppressWarnings("javadoc")
 public abstract class SubstringMatchingRuleTest extends SchemaTestCase
 {
+  /**
+   * Generate data for the test of the assertion match.
+   */
+  @DataProvider(name="substringMatchData")
+  public abstract Object[][] createSubstringMatchData();
+
   /**
    * Generate data for the test of the middle string match.
    *
@@ -114,8 +122,7 @@ public abstract class SubstringMatchingRuleTest extends SchemaTestCase
    * Test the normalization and the initial substring match.
    */
   @Test(dataProvider= "substringInitialMatchData")
-  public void initialMatchingRules(
-      String value, String initial, Boolean result) throws Exception
+  public void initialMatchingRules(String value, String initial, Boolean result) throws Exception
   {
     SubstringMatchingRule rule = getRule();
 
@@ -140,8 +147,7 @@ public abstract class SubstringMatchingRuleTest extends SchemaTestCase
    * Test the normalization and the final substring match.
    */
   @Test(dataProvider= "substringFinalMatchData")
-  public void finalMatchingRules(
-      String value, String finalValue, Boolean result) throws Exception
+  public void finalMatchingRules(String value, String finalValue, Boolean result) throws Exception
   {
     SubstringMatchingRule rule = getRule();
 
@@ -159,5 +165,26 @@ public abstract class SubstringMatchingRuleTest extends SchemaTestCase
           " does not give expected result (" + result + ") for values : " +
           value + " and " + finalValue);
     }
+  }
+
+  @Test(dataProvider= "substringMatchData")
+  public void testSubstringAssertion(String value, String initialSub, String[] middleSubs, String finalSub,
+      Boolean expectedResult) throws Exception
+  {
+    SubstringMatchingRule rule = getRule();
+    ByteString normalizedValue = rule.normalizeAttributeValue(ByteString.valueOf(value));
+    ArrayList<ByteSequence> anySubs = new ArrayList<ByteSequence>(middleSubs.length);
+    for (String sub : middleSubs)
+    {
+      anySubs.add(ByteString.valueOf(sub));
+    }
+    Assertion assertion = rule.getSubstringAssertion(
+        ByteString.valueOf(initialSub),
+        anySubs,
+        ByteString.valueOf(finalSub));
+
+    Boolean result = assertion.matches(normalizedValue).toBoolean();
+    assertEquals(result,  expectedResult);
+
   }
 }
