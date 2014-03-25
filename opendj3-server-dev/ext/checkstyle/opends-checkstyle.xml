@@ -37,7 +37,7 @@
 
     <!-- Ensure that all Javadoc comments are well-formed -->
     <module name="JavadocStyle">
-      <property name="scope" value="private" />
+      <property name="scope" value="protected" />
       <property name="checkFirstSentence" value="true" />
       <property name="checkEmptyJavadoc" value="true" />
       <property name="checkHtml" value="true" />
