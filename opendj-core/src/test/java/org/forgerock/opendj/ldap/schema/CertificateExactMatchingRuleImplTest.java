@@ -38,6 +38,7 @@ import static org.testng.Assert.*;
 /**
  * This class tests the certificateExactMatch matching rule.
  */
+@SuppressWarnings("javadoc")
 public class CertificateExactMatchingRuleImplTest extends SchemaTestCase {
 
     /**

@@ -39,6 +39,7 @@ import static org.testng.Assert.assertTrue;
 /**
  * Unit tests for the console application class.
  */
+@SuppressWarnings("javadoc")
 public class ConsoleApplicationTestCase extends CliTestCase {
 
     final LocalizableMessage msg = LocalizableMessage.raw("Language is the source of misunderstandings.");

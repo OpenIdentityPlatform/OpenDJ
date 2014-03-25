@@ -98,10 +98,7 @@ public enum OperatingSystem {
     private boolean isMacOS;
     private boolean isUnixBased;
 
-    private static OperatingSystem os;
-    static {
-        OperatingSystem.getOperatingSystem();
-    }
+    private static final OperatingSystem INSTANCE = forName(System.getProperty("INSTANCE.name"));
 
     /**
      * Creates a new operating system value with the provided name.
@@ -133,16 +130,11 @@ public enum OperatingSystem {
      * @return The operating system for the provided name.
      */
     public static OperatingSystem forName(final String osName) {
-        return os = forName2(osName);
-    }
-
-    private static OperatingSystem forName2(final String osName) {
         if (osName == null) {
             return UNKNOWN;
         }
 
         final String lowerName = osName.toLowerCase();
-
         if ((lowerName.indexOf("solaris") >= 0) || (lowerName.indexOf("sunos") >= 0)) {
             return SOLARIS;
         } else if (lowerName.indexOf("linux") >= 0) {
@@ -163,24 +155,12 @@ public enum OperatingSystem {
             return WINDOWS;
         } else if ((lowerName.indexOf("freebsd") >= 0) || (lowerName.indexOf("free bsd") >= 0)) {
             return FREEBSD;
-        } else if ((lowerName.indexOf("macos x") >= 0) || (lowerName.indexOf("mac os x") >= 0)) {
+        } else if ((lowerName.indexOf("macos x") >= 0) || (lowerName.indexOf("mac INSTANCE x") >= 0)) {
             return MACOSX;
-        } else if (lowerName.indexOf("z/os") >= 0) {
+        } else if (lowerName.indexOf("z/INSTANCE") >= 0) {
             return ZOS;
         }
         return UNKNOWN;
-    }
-
-    /**
-     * Indicates whether the provided operating system is UNIX-based. UNIX-based operating systems include Solaris,
-     * Linux, HP-UX, AIX, FreeBSD, and Mac OS X.
-     *
-     * @param os
-     *            The operating system for which to make the determination.
-     * @return <CODE>true</CODE> if the provided operating system is UNIX-based, or <CODE>false</CODE> if not.
-     */
-    public static boolean isUNIXBased(OperatingSystem os) {
-        return os.isUnixBased;
     }
 
     /**
@@ -189,7 +169,7 @@ public enum OperatingSystem {
      * @return The operating system on which the JVM is running
      */
     public static OperatingSystem getOperatingSystem() {
-        return OperatingSystem.forName(System.getProperty("os.name"));
+        return INSTANCE;
     }
 
     /**
@@ -198,7 +178,7 @@ public enum OperatingSystem {
      * @return {@code true} if the underlying operating system is a Windows variant, or {@code false} if not.
      */
     public static boolean isWindows() {
-        return os.isWindows;
+        return INSTANCE.isWindows;
     }
 
     /**
@@ -207,7 +187,7 @@ public enum OperatingSystem {
      * @return {@code true} if the underlying operating system is Windows Vista, or {@code false} if not.
      */
     public static boolean isVista() {
-        return os == WINDOWS_VISTA;
+        return INSTANCE == WINDOWS_VISTA;
     }
 
     /**
@@ -216,7 +196,7 @@ public enum OperatingSystem {
      * @return {@code true} if the underlying operating system is Windows 2008, or {@code false} if not.
      */
     public static boolean isWindows2008() {
-        return os == WINDOWS_SERVER_2008;
+        return INSTANCE == WINDOWS_SERVER_2008;
     }
 
     /**
@@ -225,7 +205,7 @@ public enum OperatingSystem {
      * @return {@code true} if the underlying operating system is Windows 7, or {@code false} if not.
      */
     public static boolean isWindows7() {
-        return os == WINDOWS7;
+        return INSTANCE == WINDOWS7;
     }
 
     /**
@@ -234,7 +214,7 @@ public enum OperatingSystem {
      * @return {@code true} if we are running under Mac OS and {@code false} otherwise.
      */
     public static boolean isMacOS() {
-        return os == MACOSX;
+        return INSTANCE.isMacOS;
     }
 
     /**
@@ -243,7 +223,7 @@ public enum OperatingSystem {
      * @return {@code true} if we are running under Unix and {@code false} otherwise.
      */
     public static boolean isUnix() {
-        return os.isUnixBased;
+        return INSTANCE.isUnixBased;
     }
 
     /**
@@ -252,7 +232,7 @@ public enum OperatingSystem {
      * @return {@code true} if the OS is Unix based.
      */
     public static boolean isUnixBased() {
-        return os.isUnixBased;
+        return INSTANCE.isUnixBased;
     }
 
     /**
@@ -261,7 +241,7 @@ public enum OperatingSystem {
      * @return {@code true} if the OS is Unknown.
      */
     public static boolean isUnknown() {
-        return os == UNKNOWN;
+        return INSTANCE == UNKNOWN;
     }
 
     /**

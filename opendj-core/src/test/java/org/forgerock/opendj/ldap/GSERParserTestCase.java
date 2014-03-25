@@ -27,11 +27,13 @@ package org.forgerock.opendj.ldap;
 
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+
 import static org.testng.Assert.*;
 
 /**
  * This class tests the GSERParser.
  */
+@SuppressWarnings("javadoc")
 public class GSERParserTestCase extends SdkTestCase {
 
     /**
@@ -39,7 +41,7 @@ public class GSERParserTestCase extends SdkTestCase {
      */
     @Test(expectedExceptions = { NullPointerException.class })
     public void testGSERParserInitWithNull() throws Exception {
-        GSERParser parser = new GSERParser(null);
+        new GSERParser(null);
     }
 
     /**

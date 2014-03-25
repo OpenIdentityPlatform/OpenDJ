@@ -42,6 +42,7 @@ import org.testng.annotations.Test;
  * An abstract base class for all ASN1Reader test cases.
  */
 @Test(groups = { "precommit", "asn1", "sdk" })
+@SuppressWarnings("javadoc")
 public abstract class ASN1ReaderTestCase extends ForgeRockTestCase {
 
     /**

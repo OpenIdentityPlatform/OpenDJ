@@ -34,6 +34,7 @@ import org.testng.annotations.Test;
 /**
  * This class tests the model functionality.
  */
+@SuppressWarnings("javadoc")
 public class OperatingSystemTestCase extends UtilTestCase {
 
     // @formatter:off

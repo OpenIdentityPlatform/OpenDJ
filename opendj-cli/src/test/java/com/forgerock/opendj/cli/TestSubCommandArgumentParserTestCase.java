@@ -42,6 +42,7 @@ import static com.forgerock.opendj.cli.CliMessages.*;
 /**
  * Unit tests for the SubCommand class.
  */
+@SuppressWarnings("javadoc")
 public final class TestSubCommandArgumentParserTestCase extends CliTestCase {
 
     private SubCommandArgumentParser parser;
