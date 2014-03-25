@@ -50,12 +50,24 @@ import org.forgerock.opendj.ldap.ByteStringBuilder;
  * When RS2 receives a MonitorRequestMessage from RS1, RS2 responds with a
  * MonitorMsg.
  */
-public class MonitorMsg extends RoutableMsg
+public class MonitorMsg extends ReplicationMsg
 {
   /**
-   * Data structure to manage the state and the approximation
-   * of the data of the first missing change for each LDAP server
-   * connected to a Replication Server.
+   * The destination server or servers of this message.
+   */
+  private final int destination;
+
+  /**
+   * The serverID of the server that sends this message.
+   */
+  private final int senderID;
+
+
+
+  /**
+   * Data structure to manage the state and the approximation of the data of the
+   * first missing change for each LDAP server connected to a Replication
+   * Server.
    */
   static class ServerData
   {
@@ -89,24 +101,7 @@ public class MonitorMsg extends RoutableMsg
    */
   public MonitorMsg(int sender, int destination)
   {
-    super(sender, destination);
-  }
-
-  /**
-   * Sets the sender ID.
-   * @param senderID The sender ID.
-   */
-  public void setSenderID(int senderID)
-  {
-    this.senderID = senderID;
-  }
-
-  /**
-   * Sets the destination.
-   * @param destination The destination.
-   */
-  public void setDestination(int destination)
-  {
+    this.senderID = sender;
     this.destination = destination;
   }
 
@@ -458,6 +453,32 @@ public class MonitorMsg extends RoutableMsg
   {
     return data.rsStates.keySet().iterator();
   }
+
+
+
+  /**
+   * Get the destination.
+   *
+   * @return the destination
+   */
+  public int getDestination()
+  {
+    return destination;
+  }
+
+
+
+  /**
+   * Get the server ID of the server that sent this message.
+   *
+   * @return the server id
+   */
+  public int getSenderID()
+  {
+    return senderID;
+  }
+
+
 
   /**
    * {@inheritDoc}
