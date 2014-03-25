@@ -20,15 +20,15 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2013 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-backup-restore'
  xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ xsi:schemaLocation='http://docbook.org/ns/docbook
+                     http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'>
  <title>Backing Up &amp; Restoring Data</title>
 
  <para>OpenDJ lets you backup and restore your data either in compressed,
@@ -48,7 +48,31 @@
   <para>Archives produced by the <command>backup</command> command contain
   backups only of the directory data. Backups of server configuration are
   found in <filename>config/archived-configs/</filename>.</para>
- 
+
+  <para>
+   This section includes the following procedures:
+  </para>
+
+  <itemizedlist>
+   <listitem>
+    <para>
+     <xref linkend="backup-immediately" />
+    </para>
+   </listitem>
+
+   <listitem>
+    <para>
+     <xref linkend="schedule-backup" />
+    </para>
+   </listitem>
+
+   <listitem>
+    <para>
+     <xref linkend="schedule-incremental-backup" />
+    </para>
+   </listitem>
+  </itemizedlist>
+
   <procedure xml:id="backup-immediately">
    <title>To Back Up Data Immediately</title>
 
@@ -140,6 +164,40 @@ Backup task 20110613143801866 scheduled to start Jun 13, 2011 2:38:01 PM CEST</s
  --errorNotify diradmin@example.com
 Recurring Backup task BackupTask-988d6adf-4d65-44bf-8546-6ea74a2480b0
 scheduled successfully</screen>
+   </step>
+  </procedure>
+
+  <procedure xml:id="schedule-incremental-backup">
+   <title>To Schedule Incremental Data Backup</title>
+
+   <para>
+    You can schedule an incremental backup
+    by using the <option>--incremental</option> option.
+    If you do not set the <option>--incrementalBaseID</option> option,
+    then OpenDJ increments based on the last backup taken.
+   </para>
+
+   <step>
+    <para>
+     Back up <literal>userRoot</literal> backend data incrementally
+     every night at 3 AM,
+     and notify diradmin@example.com when finished, or on error.
+    </para>
+
+    <screen>
+$ backup
+ --port 4444
+ --bindDN "cn=Directory Manager"
+ --bindPassword password
+ --backupDirectory /path/to/opendj/bak
+ --backendID userRoot
+ --incremental
+ --recurringTask "00 03 * * *"
+ --completionNotify diradmin@example.com
+ --errorNotify diradmin@example.com
+Recurring Backup task BackupTask-6988c19d-9afc-4f50-89b7-d3e167255d3e
+scheduled successfully
+    </screen>
    </step>
   </procedure>
  </section>
