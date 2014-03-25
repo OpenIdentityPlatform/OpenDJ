@@ -276,7 +276,7 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends AbstractMan
             } catch (ErrorResultException e) {
                 if (e.getResult().getResultCode() == ResultCode.UNWILLING_TO_PERFORM) {
                     LocalizableMessage m = LocalizableMessage.raw("%s", e.getLocalizedMessage());
-                    throw new OperationRejectedException(OperationType.CREATE, d.getUserFriendlyName(), m);
+                    throw new OperationRejectedException(OperationType.MODIFY, d.getUserFriendlyName(), m);
                 } else {
                     throw e;
                 }
