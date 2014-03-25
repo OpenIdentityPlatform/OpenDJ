@@ -98,7 +98,6 @@ public class MonitoringPublisher extends DirectoryThread
           {
             break;
           }
-          monitorMsg.setDestination(serverHandler.getServerId());
           try
           {
             serverHandler.send(monitorMsg);

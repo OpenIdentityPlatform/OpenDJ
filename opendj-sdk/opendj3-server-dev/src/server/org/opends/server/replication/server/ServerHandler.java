@@ -27,7 +27,9 @@
 package org.opends.server.replication.server;
 
 import java.io.IOException;
+
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.Semaphore;
@@ -45,6 +47,7 @@ import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.protocol.*;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ResultCode;
+
 import static org.opends.messages.ReplicationMessages.*;
 
 /**
@@ -485,7 +488,7 @@ public abstract class ServerHandler extends MessageHandler
    */
   public ReplicationServerDomain getDomain()
   {
-    return this.replicationServerDomain;
+    return replicationServerDomain;
   }
 
   /**
@@ -848,13 +851,37 @@ public abstract class ServerHandler extends MessageHandler
    *
    * @param msg The message to be processed.
    */
-  public void process(RoutableMsg msg)
+  void process(RoutableMsg msg)
   {
     if (logger.isTraceEnabled())
+    {
       logger.trace("In "
           + replicationServerDomain.getLocalRSMonitorInstanceName() + " "
           + this + " processes routable msg received:" + msg);
+    }
     replicationServerDomain.process(msg, this);
+  }
+
+  /**
+   * Responds to a monitor request message.
+   *
+   * @param msg
+   *          The monitor request message.
+   */
+  void processMonitorRequestMsg(MonitorRequestMsg msg)
+  {
+    replicationServerDomain.processMonitorRequestMsg(msg, this);
+  }
+
+  /**
+   * Responds to a monitor message.
+   *
+   * @param msg
+   *          The monitor message.
+   */
+  void processMonitorMsg(MonitorMsg msg)
+  {
+    replicationServerDomain.processMonitorMsg(msg, this);
   }
 
   /**
@@ -862,7 +889,7 @@ public abstract class ServerHandler extends MessageHandler
    *
    * @param msg The message to be processed.
    */
-  public void process(ChangeTimeHeartbeatMsg msg)
+  void process(ChangeTimeHeartbeatMsg msg)
   {
     if (logger.isTraceEnabled())
       logger.trace("In "
@@ -923,15 +950,6 @@ public abstract class ServerHandler extends MessageHandler
   public void setGenerationId(long generationId)
   {
     this.generationId = generationId;
-  }
-
-  /**
-   * Sets the replication server domain associated.
-   * @param rsd The provided replication server domain.
-   */
-  protected void setReplicationServerDomain(ReplicationServerDomain rsd)
-  {
-    this.replicationServerDomain = rsd;
   }
 
   /**
@@ -1180,7 +1198,7 @@ public abstract class ServerHandler extends MessageHandler
    * Process a Ack message received.
    * @param ack the message received.
    */
-  public void processAck(AckMsg ack)
+  void processAck(AckMsg ack)
   {
     if (replicationServerDomain!=null)
       replicationServerDomain.processAck(ack, this);
@@ -1201,7 +1219,7 @@ public abstract class ServerHandler extends MessageHandler
    * Process a ResetGenerationIdMsg message received.
    * @param msg the message received.
    */
-  public void processResetGenId(ResetGenerationIdMsg msg)
+  void processResetGenId(ResetGenerationIdMsg msg)
   {
     if (replicationServerDomain!=null)
       replicationServerDomain.resetGenerationId(this, msg);
