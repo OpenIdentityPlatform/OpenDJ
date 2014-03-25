@@ -578,8 +578,9 @@ public class TextErrorLogPublisher
       sb.append(TimeThread.getLocalTime());
       sb.append("] category=").append(category).
       append(" severity=").append(severity).
-      append(" resource=").append(message.resourceName()).
-      append(" msgID=").append(message.ordinal()).
+      append(" msgID=").append(message.resourceName())
+                       .append('.')
+                       .append(message.ordinal()).
       append(" msg=").append(message);
       if (exception != null)
       {
