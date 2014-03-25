@@ -95,9 +95,9 @@ public class SchemaUtilsTest extends SchemaTestCase {
     public Object[][] nonAsciiStringProvider() throws Exception {
         final String nonAsciiChars = "ëéèêœ";
         final String nonAsciiCharsReplacement = new String(
-                new byte[] { _(0x65), _(0xcc), _(0x88), _(0x65), _(0xcc),
-                    _(0x81), _(0x65), _(0xcc), _(0x80), _(0x65), _(0xcc),
-                    _(0x82), _(0xc5), _(0x93), }, "UTF8");
+                new byte[] { b(0x65), b(0xcc), b(0x88), b(0x65), b(0xcc),
+                    b(0x81), b(0x65), b(0xcc), b(0x80), b(0x65), b(0xcc),
+                    b(0x82), b(0xc5), b(0x93), }, "UTF8");
         return new Object[][] {
             { nonAsciiChars, false, false, nonAsciiCharsReplacement },
             { nonAsciiChars, false, true,  nonAsciiCharsReplacement },
@@ -158,7 +158,7 @@ public class SchemaUtilsTest extends SchemaTestCase {
     }
 
     //@Checkstyle:off
-    private byte _(int i) {
+    private byte b(int i) {
         return (byte) i;
     }
     //@Checkstyle:on
