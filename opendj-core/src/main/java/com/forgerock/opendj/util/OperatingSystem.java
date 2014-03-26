@@ -98,7 +98,7 @@ public enum OperatingSystem {
     private boolean isMacOS;
     private boolean isUnixBased;
 
-    private static final OperatingSystem INSTANCE = forName(System.getProperty("INSTANCE.name"));
+    private static final OperatingSystem INSTANCE = forName(System.getProperty("os.name"));
 
     /**
      * Creates a new operating system value with the provided name.
@@ -155,9 +155,9 @@ public enum OperatingSystem {
             return WINDOWS;
         } else if ((lowerName.indexOf("freebsd") >= 0) || (lowerName.indexOf("free bsd") >= 0)) {
             return FREEBSD;
-        } else if ((lowerName.indexOf("macos x") >= 0) || (lowerName.indexOf("mac INSTANCE x") >= 0)) {
+        } else if ((lowerName.indexOf("macos x") >= 0) || (lowerName.indexOf("mac os x") >= 0)) {
             return MACOSX;
-        } else if (lowerName.indexOf("z/INSTANCE") >= 0) {
+        } else if (lowerName.indexOf("z/os") >= 0) {
             return ZOS;
         }
         return UNKNOWN;
