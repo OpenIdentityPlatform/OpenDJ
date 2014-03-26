@@ -157,11 +157,9 @@ public class SchemaUtilsTest extends SchemaTestCase {
         };
     }
 
-    //@Checkstyle:off
     private byte b(int i) {
         return (byte) i;
     }
-    //@Checkstyle:on
 
     @Test(dataProvider = "stringProvider")
     public void testNormalizeStringProvider(String value, boolean trim, boolean foldCase, String expected)
