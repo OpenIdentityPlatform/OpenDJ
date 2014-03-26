@@ -22,15 +22,15 @@
  ! CDDL HEADER END
  !
  !
- !      Copyright 2013 ForgeRock AS
+ !      Copyright 2013-2014 ForgeRock AS
  ! -->
 <!-- Using entities prevent constantly declaring the same versions -->
 <!DOCTYPE ivy-module [
-    <!ENTITY grizzly.version    "2.3.6">
+    <!ENTITY grizzly.version    "2.3.11">
     <!ENTITY opendj.sdk.version "2.7.0-SNAPSHOT">
     <!ENTITY crest.version      "2.1.0-SNAPSHOT">
-    <!ENTITY jackson.version    "1.9.2">
-    <!ENTITY slf4j.version      "1.7.5">
+    <!ENTITY jackson.version    "1.9.13">
+    <!ENTITY slf4j.version      "1.7.6">
 ]>
 <ivy-module version="2.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -45,7 +45,7 @@
   <dependencies>
 
     <!-- compile + runtime libs -->
-    <dependency org="javax.mail"            name="mail"                     rev="1.4.5" />
+    <dependency org="javax.mail"            name="mail"                     rev="1.4.7" />
     <!-- subsequent versions are not compatible with java 6, so force to use this version only -->
     <dependency org="javax.servlet"         name="javax.servlet-api"        rev="[3.1-b02]" />
     <dependency org="com.sleepycat"         name="je"                       rev="5.0.103" />
@@ -60,7 +60,7 @@
 
     <!-- Test libs -->
     <!--dependency org="org.testng"            name="testng"                   rev="6.8.1" /-->
-    <dependency org="org.assertj"           name="assertj-core"             rev="1.0.0" />
+    <dependency org="org.assertj"           name="assertj-core"             rev="1.6.0" />
     <dependency org="org.mockito"           name="mockito-core"             rev="1.9.5" />
 
     <!-- Force download of the source jars -->
