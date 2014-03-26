@@ -26,8 +26,6 @@
  */
 package org.opends.server.tools.dsconfig;
 
-
-
 import static com.forgerock.opendj.cli.ArgumentConstants.OPTION_LONG_HELP;
 import static com.forgerock.opendj.cli.ArgumentConstants.OPTION_SHORT_HELP;
 import static com.forgerock.opendj.dsconfig.DsconfigMessages.*;
@@ -45,13 +43,12 @@ import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLException;
 import javax.net.ssl.TrustManager;
 
-import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.opendj.config.LDAPProfile;
 import org.forgerock.opendj.config.client.ManagementContext;
+import org.forgerock.opendj.config.client.ldap.LDAPManagementContext;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ErrorResultException;
-import org.forgerock.opendj.config.client.ldap.LDAPManagementContext;
-import org.forgerock.opendj.config.LDAPProfile;
 import org.forgerock.opendj.ldap.AuthorizationException;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
@@ -71,7 +68,6 @@ import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.ReturnCode;
 import com.forgerock.opendj.cli.SubCommandArgumentParser;
 
-
 /**
  * An LDAP management context factory.
  */
@@ -79,10 +75,10 @@ public final class LDAPManagementContextFactory implements
     ManagementContextFactory {
 
   /** The SecureConnectionCliArgsList object. */
-  private SecureConnectionCliArgs secureArgsList = null;
+  private SecureConnectionCliArgs secureArgsList;
 
   /** The management context. */
-  private ManagementContext context = null;
+  private ManagementContext context;
 
   /** The connection parameters command builder. */
   private CommandBuilder contextCommandBuilder;
@@ -91,7 +87,7 @@ public final class LDAPManagementContextFactory implements
   private boolean alwaysSSL = false;
 
   /** Raw arguments. */
-  private String[] rawArgs = null;
+  private String[] rawArgs;
 
   /**
    * Creates a new LDAP management context factory.
@@ -168,10 +164,10 @@ public final class LDAPManagementContextFactory implements
       KeyManager keyManager = ci.getKeyManager();
 
       // Do we have a secure connection ?
-      Connection connection;
       final LDAPOptions options = new LDAPOptions();
       options.setConnectTimeout(ci.getConnectTimeout(), TimeUnit.MILLISECONDS);
       LDAPConnectionFactory factory = null;
+      Connection connection;
       if (ci.useSSL())
       {
         while (true)
@@ -182,14 +178,7 @@ public final class LDAPManagementContextFactory implements
             sslBuilder.setTrustManager((trustManager == null ? TrustManagers
                 .trustAll() : trustManager));
             sslBuilder.setKeyManager(keyManager);
-            if (ci.useStartTLS())
-            {
-              options.setUseStartTLS(true);
-            }
-            else
-            {
-              options.setUseStartTLS(false);
-            }
+            options.setUseStartTLS(ci.useStartTLS());
             options.setSSLContext(sslBuilder.getSSLContext());
 
             factory = new LDAPConnectionFactory(hostName, portNumber, options);
@@ -199,10 +188,12 @@ public final class LDAPManagementContextFactory implements
           }
           catch (ErrorResultException e)
           {
+            final Throwable cause = e.getCause();
             if (app.isInteractive()
                 && ci.isTrustStoreInMemory()
-                && e.getCause() instanceof SSLException
-                && e.getCause().getCause() instanceof CertificateException)
+                && cause != null
+                && cause instanceof SSLException
+                && cause.getCause() instanceof CertificateException)
             {
               String authType = null;
               if (trustManager instanceof ApplicationTrustManager)
@@ -221,40 +212,17 @@ public final class LDAPManagementContextFactory implements
                 }
               }
             }
-            if (e.getCause() instanceof SSLException)
+            if (cause instanceof SSLException)
             {
-              LocalizableMessage message =
-                  ERR_FAILED_TO_CONNECT_NOT_TRUSTED.get(
-                      hostName, portNumber);
               throw new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR,
-                  message);
+                  ERR_FAILED_TO_CONNECT_NOT_TRUSTED.get(hostName, portNumber));
             }
-            if (e.getCause() instanceof AuthorizationException)
-            {
-              LocalizableMessage message =
-                  ERR_DSCFG_ERROR_LDAP_SIMPLE_BIND_NOT_SUPPORTED.get();
-              throw new ClientException(ReturnCode.AUTH_METHOD_NOT_SUPPORTED,
-                  message);
-            }
-            else if (e.getCause() instanceof AuthenticationException)
-            {
-              LocalizableMessage message =
-                  ERR_DSCFG_ERROR_LDAP_SIMPLE_BIND_FAILED.get(bindDN);
-              throw new ClientException(ReturnCode.INVALID_CREDENTIALS, message);
-            }
-            LocalizableMessage message =
-                ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT
-                    .get(hostName, portNumber);
-            throw new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR,
-                message);
+            throw couldNotConnect(cause, hostName, portNumber, bindDN);
           }
           catch (GeneralSecurityException e)
           {
-            LocalizableMessage message =
-                ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT
-                    .get(hostName, portNumber);
             throw new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR,
-                message);
+                ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(hostName, portNumber));
           }
         }
       }
@@ -270,33 +238,37 @@ public final class LDAPManagementContextFactory implements
         }
         catch (ErrorResultException e)
         {
-          if (e.getCause() instanceof AuthorizationException)
-          {
-            LocalizableMessage message =
-                ERR_DSCFG_ERROR_LDAP_SIMPLE_BIND_NOT_SUPPORTED.get();
-            throw new ClientException(ReturnCode.AUTH_METHOD_NOT_SUPPORTED,
-                message);
-          }
-          else if (e.getCause() instanceof AuthenticationException)
-          {
-            LocalizableMessage message =
-                ERR_DSCFG_ERROR_LDAP_SIMPLE_BIND_FAILED.get(bindDN);
-            throw new ClientException(ReturnCode.INVALID_CREDENTIALS, message);
-          }
-          LocalizableMessage message =
-              ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(hostName, portNumber);
-          throw new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR,
-              message);
+          throw couldNotConnect(e.getCause(), hostName, portNumber, bindDN);
         }
         finally
         {
-          factory.close();
+          if (factory != null)
+          {
+            factory.close();
+          }
         }
       }
       context =
           LDAPManagementContext.newManagementContext(connection, LDAPProfile.getInstance());
     }
     return context;
+  }
+
+  private ClientException couldNotConnect(Throwable cause, String hostName,
+      Integer portNumber, String bindDN)
+  {
+    if (cause instanceof AuthorizationException)
+    {
+      return new ClientException(ReturnCode.AUTH_METHOD_NOT_SUPPORTED,
+          ERR_DSCFG_ERROR_LDAP_SIMPLE_BIND_NOT_SUPPORTED.get());
+    }
+    else if (cause instanceof AuthenticationException)
+    {
+      return new ClientException(ReturnCode.INVALID_CREDENTIALS,
+          ERR_DSCFG_ERROR_LDAP_SIMPLE_BIND_FAILED.get(bindDN));
+    }
+    return new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR,
+        ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(hostName, portNumber));
   }
 
   /** {@inheritDoc} */
