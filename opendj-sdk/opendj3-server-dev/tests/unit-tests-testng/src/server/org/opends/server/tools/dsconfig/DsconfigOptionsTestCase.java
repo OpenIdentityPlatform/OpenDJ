@@ -30,7 +30,7 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import static org.opends.server.tools.JavaPropertiesTool.ErrorReturnCode.*;
+import static com.forgerock.opendj.cli.ReturnCode.*;
 import static org.testng.Assert.*;
 
 /**
@@ -72,7 +72,7 @@ public class DsconfigOptionsTestCase extends DirectoryServerTestCase {
       "--handler-name", "HTTP Connection Handler",
       "--set", "authentication-required:false"     
     };
-    assertTrue(dsconfigMain(args) == SUCCESSFUL.getReturnCode());
+    assertTrue(dsconfigMain(args) == SUCCESS.get());
   }
   
   @Test()
@@ -88,7 +88,7 @@ public class DsconfigOptionsTestCase extends DirectoryServerTestCase {
       "--handler-name", "DIGEST-MD5",
       "--set", "server-fqdn:" + "127.0.0.1"
     };
-    assertTrue(dsconfigMain(args) == SUCCESSFUL.getReturnCode());
+    assertTrue(dsconfigMain(args) == SUCCESS.get());
     
     TestCaseUtils.dsconfig(
             "set-sasl-mechanism-handler-prop",
@@ -110,7 +110,7 @@ public class DsconfigOptionsTestCase extends DirectoryServerTestCase {
       "--no-prompt",
       "--set", "max-allowed-client-connections:32768"
     };
-    assertTrue(dsconfigMain(args) == SUCCESSFUL.getReturnCode());
+    assertTrue(dsconfigMain(args) == SUCCESS.get());
   }
   
   @Test()
@@ -126,7 +126,7 @@ public class DsconfigOptionsTestCase extends DirectoryServerTestCase {
       "--no-prompt",
       "--set", "return-bind-error-messages:true"
     };
-    assertTrue(dsconfigMain(args) == SUCCESSFUL.getReturnCode());
+    assertTrue(dsconfigMain(args) == SUCCESS.get());
   }
   
 
@@ -148,7 +148,7 @@ public class DsconfigOptionsTestCase extends DirectoryServerTestCase {
           "--set", "idle-time-limit:10000ms",
           "--set", "idle-time-limit:1000ms"
     };
-    assertTrue(dsconfigMain(args) != SUCCESSFUL.getReturnCode());
+    assertTrue(dsconfigMain(args) != SUCCESS.get());
   }
   
   /**
@@ -170,7 +170,7 @@ public class DsconfigOptionsTestCase extends DirectoryServerTestCase {
           "--set", "denied-client:1.1.1.1",
           "--set", "denied-client:2.2.2.2"
     };
-    assertEquals(dsconfigMain(args), SUCCESSFUL.getReturnCode());
+    assertEquals(dsconfigMain(args), SUCCESS.get());
   }
   
   @Test()
