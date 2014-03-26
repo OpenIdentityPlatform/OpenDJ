@@ -28,8 +28,7 @@
          xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
          xsi:schemaLocation='http://docbook.org/ns/docbook
                              http://docbook.org/xml/5.0/xsd/docbook.xsd'
-         xmlns:xlink='http://www.w3.org/1999/xlink'
-         xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+         xmlns:xlink='http://www.w3.org/1999/xlink'>
  <title>Managing Data Replication</title>
 
  <para>OpenDJ uses advanced data replication with automated conflict
@@ -741,7 +740,7 @@ for a detailed log of this operation.</screen>
 
    <figure xml:id="figure-standalone-repl">
     <title>Deployment For Multiple Data Centers</title>
-    <mediaobject>
+    <mediaobject xml:id="figure-standalone-repl-image">
      <alt>Dedicated servers versus consolidated instances</alt>
      <imageobject>
       <imagedata fileref="images/standalone-repl.png" format="PNG"/>
