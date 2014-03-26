@@ -2825,7 +2825,7 @@ Please:
       <firstmatchmapper>
         <regexpmapper from="(.*/(source|javadoc)/.*)" to="\1"/>
         <!-- Separate test and compile jars ala Maven -->
-        <regexpmapper from="(.*)/(jar)/(.*(?:assertj-core|hamcrest-core|mockito-core|objenesis)\.jar)" to="\1/test/\3"/>
+        <regexpmapper from="(.*)/(jar|bundle)/(.*(?:assertj-core|hamcrest-core|mockito-core|objenesis)\.jar)" to="\1/test/\3"/>
         <regexpmapper from="(.*)/(jar|bundle)/(.*)" to="\1/compile/\3"/>
       </firstmatchmapper>
     </ivy:retrieve>
