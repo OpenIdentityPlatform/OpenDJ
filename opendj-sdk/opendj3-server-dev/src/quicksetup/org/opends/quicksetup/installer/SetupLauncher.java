@@ -29,6 +29,7 @@ package org.opends.quicksetup.installer;
 
 import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.messages.ToolMessages.*;
+import static com.forgerock.opendj.util.OperatingSystem.isWindows;
 
 import java.io.File;
 
@@ -85,7 +86,7 @@ public class SetupLauncher extends Launcher {
   public SetupLauncher(String[] args) {
     super(args);
     String scriptName;
-    if (Utils.isWindows()) {
+    if (isWindows()) {
       scriptName = Installation.WINDOWS_SETUP_FILE_NAME;
     } else {
       scriptName = Installation.UNIX_SETUP_FILE_NAME;

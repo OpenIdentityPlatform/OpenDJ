@@ -27,6 +27,9 @@
 package org.opends.quicksetup;
 
 import static org.opends.messages.QuickSetupMessages.*;
+import static com.forgerock.opendj.util.OperatingSystem.isWindows;
+import static com.forgerock.opendj.util.OperatingSystem.isMacOS;
+
 
 import java.io.*;
 import java.util.*;
@@ -772,7 +775,7 @@ public final class Installation
   public File getBinariesDirectory()
   {
     File binPath;
-    if (Utils.isWindows())
+    if (isWindows())
     {
       binPath = new File(getRootDirectory(), WINDOWS_BINARIES_PATH_RELATIVE);
     }
@@ -954,7 +957,7 @@ public final class Installation
   public File getCommandFile(String command)
   {
     File commandFile;
-    if (Utils.isWindows())
+    if (isWindows())
     {
       commandFile = new File(getBinariesDirectory(), command + ".bat");
     }
@@ -976,7 +979,7 @@ public final class Installation
   public File getServerStartCommandFile()
   {
     File startCommandFile;
-    if (Utils.isWindows())
+    if (isWindows())
     {
       startCommandFile = new File(getBinariesDirectory(),
           WINDOWS_START_FILE_NAME);
@@ -999,7 +1002,7 @@ public final class Installation
   public File getServerStopCommandFile()
   {
     File stopCommandFile;
-    if (Utils.isWindows())
+    if (isWindows())
     {
       stopCommandFile = new File(getBinariesDirectory(),
           WINDOWS_STOP_FILE_NAME);
@@ -1071,12 +1074,12 @@ public final class Installation
   public File getControlPanelCommandFile()
   {
     File controlPanelCommandFile;
-    if (Utils.isWindows())
+    if (isWindows())
     {
       controlPanelCommandFile = new File(getBinariesDirectory(),
           WINDOWS_CONTROLPANEL_FILE_NAME);
     }
-    else if (Utils.isMacOS())
+    else if (isMacOS())
     {
       controlPanelCommandFile = new File(getRootDirectory() + File.separator
           + MAC_APPLICATIONS_PATH_RELATIVE, MAC_CONTROLPANEL_FILE_NAME);

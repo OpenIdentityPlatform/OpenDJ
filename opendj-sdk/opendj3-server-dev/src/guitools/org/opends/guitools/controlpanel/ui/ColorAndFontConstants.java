@@ -22,9 +22,14 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
+
+
+import static com.forgerock.opendj.util.OperatingSystem.isWindows;
+import static com.forgerock.opendj.util.OperatingSystem.isMacOS;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -120,7 +125,7 @@ public class ColorAndFontConstants
    * The grey color background that is used for instance as background for the
    * buttons in the dialogs (in the bottom of the dialogs).
    */
-  public static final Color greyBackground = Utilities.isWindows() ?
+  public static final Color greyBackground = isWindows() ?
   UIManager.getColor("MenuBar.background") :
     UIManager.getColor("Panel.background");
 
@@ -134,7 +139,7 @@ public class ColorAndFontConstants
    * The grid color for the table.
    */
   public static final Color gridColor =
-  Utilities.isMacOS() ? defaultBorderColor :
+  isMacOS() ? defaultBorderColor :
   UIManager.getColor("Table.gridColor");
   /**
    * The color of the text in the table.

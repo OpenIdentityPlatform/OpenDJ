@@ -29,6 +29,8 @@ package org.opends.quicksetup.util;
 import static org.forgerock.util.Utils.*;
 import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.server.util.DynamicConstants.*;
+import static com.forgerock.opendj.util.OperatingSystem.isWindows;
+import static com.forgerock.opendj.util.OperatingSystem.isUnix;
 
 import java.io.*;
 import java.net.InetAddress;
@@ -139,7 +141,7 @@ public class Utils
       String script;
       String libPath = Utils.getPath(installPath,
           Installation.LIBRARIES_PATH_RELATIVE);
-      if (Utils.isWindows())
+      if (isWindows())
       {
         script = Utils.getScriptPath(Utils.getPath(libPath,
             Installation.SCRIPT_UTIL_FILE_WINDOWS));
@@ -158,7 +160,7 @@ public class Utils
       env.remove("OPENDJ_JAVA_BIN");
       // In windows by default the scripts ask the user to click on enter when
       // they fail.  Set this environment variable to avoid it.
-      if (Utils.isWindows())
+      if (isWindows())
       {
         env.put("DO_NOT_PAUSE", "true");
       }
@@ -172,7 +174,7 @@ public class Utils
         logger.info(LocalizableMessage.raw("The output: "+line));
         if (line.contains("ERROR:  The detected Java version"))
         {
-          if (Utils.isWindows())
+          if (isWindows())
           {
             // If we are running windows, the process get blocked waiting for
             // user input.  Just wait for a certain time to print the output
@@ -305,48 +307,6 @@ public class Utils
       }
     }
     return isDescendant;
-  }
-
-  /**
-   * Returns <CODE>true</CODE> if we are running under windows and
-   * <CODE>false</CODE> otherwise.
-   * @return <CODE>true</CODE> if we are running under windows and
-   * <CODE>false</CODE> otherwise.
-   */
-  public static boolean isWindows()
-  {
-    return SetupUtils.isWindows();
-  }
-
-  /**
-   * Returns <CODE>true</CODE> if we are running under Mac OS and
-   * <CODE>false</CODE> otherwise.
-   * @return <CODE>true</CODE> if we are running under Mac OS and
-   * <CODE>false</CODE> otherwise.
-   */
-  public static boolean isMacOS()
-  {
-    return SetupUtils.isMacOS();
-  }
-
-  /**
-   * Returns <CODE>true</CODE> if we are running under Unix and
-   * <CODE>false</CODE> otherwise.
-   * @return <CODE>true</CODE> if we are running under Unix and
-   * <CODE>false</CODE> otherwise.
-   */
-  public static boolean isUnix()
-  {
-    return SetupUtils.isUnix();
-  }
-
-  /**
-   * Returns a String representation of the OS we are running.
-   * @return a String representation of the OS we are running.
-   */
-  public static String getOSString()
-  {
-    return SetupUtils.getOSString();
   }
 
   /**
@@ -1472,7 +1432,7 @@ public class Utils
       catch (Throwable t)
       {
         String setupFile;
-        if (Utils.isWindows())
+        if (isWindows())
         {
           setupFile = Installation.WINDOWS_SETUP_FILE_NAME;
         }
@@ -1853,7 +1813,7 @@ public class Utils
     int initialIndex = 1;
     StringBuilder sbSeparator = new StringBuilder();
     sbSeparator.append(formatter.getSpace());
-    if (!Utils.isWindows())
+    if (!isWindows())
     {
       sbSeparator.append("\\");
       sbSeparator.append(formatter.getLineBreak());
@@ -1896,7 +1856,7 @@ public class Utils
   public static String escapeCommandLineValue(String value)
   {
     StringBuilder b = new StringBuilder();
-    if (Utils.isUnix())
+    if (isUnix())
     {
       for (int i=0 ; i<value.length(); i++)
       {
@@ -1934,7 +1894,7 @@ public class Utils
   {
     ArrayList<String> cmdLine = new ArrayList<String>();
     String setupFile;
-    if (Utils.isWindows())
+    if (isWindows())
     {
       setupFile = Installation.WINDOWS_SETUP_FILE_NAME;
     }
@@ -1996,7 +1956,7 @@ public class Utils
     cmdLine.add("--rootUserPassword");
     cmdLine.add(OBFUSCATED_VALUE);
 
-    if (Utils.isWindows() && userData.getEnableWindowsService())
+    if (isWindows() && userData.getEnableWindowsService())
     {
       cmdLine.add("--enableWindowsService");
     }

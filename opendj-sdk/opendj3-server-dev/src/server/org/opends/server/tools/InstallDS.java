@@ -34,6 +34,7 @@ import static org.opends.messages.UtilityMessages.*;
 import static com.forgerock.opendj.cli.Utils.CONFIRMATION_MAX_TRIES;
 import static com.forgerock.opendj.cli.Utils.canWrite;
 import static org.forgerock.util.Utils.joinAsString;
+import static com.forgerock.opendj.util.OperatingSystem.isWindows;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -575,7 +576,7 @@ public class InstallDS extends ConsoleApplication
     // Use this instead a call to Installation to avoid to launch a new JVM
     // just to retrieve a path.
     String root = Utils.getInstallPathFromClasspath();
-    if (SetupUtils.isWindows())
+    if (isWindows())
     {
       String binDir = Utils.getPath(root,
           Installation.WINDOWS_BINARIES_PATH_RELATIVE);
@@ -1809,7 +1810,7 @@ public class InstallDS extends ConsoleApplication
   {
     boolean enableService = false;
     // If we are in Windows ask if the server must run as a windows service.
-    if (SetupUtils.isWindows())
+    if (isWindows())
     {
       if (argParser.enableWindowsServiceArg.isPresent())
       {
@@ -2481,7 +2482,7 @@ public class InstallDS extends ConsoleApplication
       println(INFO_INSTALLDS_DO_NOT_START_SERVER.get());
     }
 
-    if (Utils.isWindows())
+    if (isWindows())
     {
       if (uData.getEnableWindowsService())
       {

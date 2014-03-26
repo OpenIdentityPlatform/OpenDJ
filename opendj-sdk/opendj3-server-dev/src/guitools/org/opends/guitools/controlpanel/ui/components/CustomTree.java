@@ -22,9 +22,12 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui.components;
+
+import static com.forgerock.opendj.util.OperatingSystem.isMacOS;
 
 import java.awt.Graphics;
 import java.awt.Insets;
@@ -42,7 +45,6 @@ import javax.swing.JTree;
 import javax.swing.tree.TreePath;
 
 import org.opends.guitools.controlpanel.ui.renderer.TreeCellRenderer;
-import org.opends.guitools.controlpanel.util.Utilities;
 
 /**
  * The tree that is used in different places in the Control Panel (schema
@@ -152,7 +154,7 @@ public class CustomTree extends JTree
         }
         MouseEvent newEvent = getTranslatedEvent(ev);
 
-        if (Utilities.isMacOS() && ev.isPopupTrigger() &&
+        if (isMacOS() && ev.isPopupTrigger() &&
             (ev.getButton() != MouseEvent.BUTTON1))
         {
           MouseEvent baseEvent = ev;

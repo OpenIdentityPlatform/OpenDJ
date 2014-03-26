@@ -48,6 +48,7 @@ import org.opends.server.util.SetupUtils;
 
 import static org.opends.quicksetup.util.Utils.*;
 import static org.opends.messages.QuickSetupMessages.*;
+import static com.forgerock.opendj.util.OperatingSystem.isWindows;
 
 /**
  * This class is used to download the files that have been marked as lazy
@@ -249,7 +250,7 @@ public class WebStartDownloader implements DownloadServiceListener {
       logger.error(LocalizableMessage.raw("Could not find service: "+
           Utils.JNLP_SERVICE_NAME, e));
       String setupFile;
-      if (Utils.isWindows())
+      if (isWindows())
       {
         setupFile = Installation.WINDOWS_SETUP_FILE_NAME;
       }

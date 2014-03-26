@@ -43,6 +43,7 @@ import com.forgerock.opendj.cli.ArgumentException;
 
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
+import static com.forgerock.opendj.util.OperatingSystem.isWindows;
 
 /**
  * This class is used to update the scripts that are used to launch the command
@@ -306,7 +307,7 @@ public class JavaPropertiesTool extends ConsoleApplication
     try
     {
       String value;
-      if (Utils.isWindows())
+      if (isWindows())
       {
         value = getWindowsContents(overwriteEnvJavaHome, overwriteEnvJavaArgs,
             defaultJavaHome, defaultJavaArgs, properties);

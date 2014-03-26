@@ -212,7 +212,6 @@ import org.opends.server.types.MatchingRuleUse;
 import org.opends.server.types.Modification;
 import org.opends.server.types.NameForm;
 import org.opends.server.types.ObjectClass;
-import org.opends.server.types.OperatingSystem;
 import org.opends.server.types.Operation;
 import org.opends.server.types.Privilege;
 import org.opends.server.types.RestoreConfig;
@@ -236,6 +235,7 @@ import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.StringArgument;
+import com.forgerock.opendj.util.OperatingSystem;
 
 /**
  * This class defines the core of the Directory Server.  It manages the startup
@@ -9176,7 +9176,7 @@ public final class DirectoryServer
   public static boolean isRunningAsWindowsService()
   {
     boolean isRunningAsWindowsService;
-    if (SetupUtils.isWindows())
+    if (OperatingSystem.isWindows())
     {
       isRunningAsWindowsService = ConfigureWindowsService.serviceState(null,
       null) == ConfigureWindowsService.SERVICE_STATE_ENABLED;

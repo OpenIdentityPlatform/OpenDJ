@@ -28,6 +28,7 @@ package org.opends.server.tools;
 
 import static org.opends.messages.ToolMessages.*;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.util.OperatingSystem.isWindows;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -127,7 +128,7 @@ public class InstallDSArgumentParser extends ArgumentParser
     addArgument(cliArg);
 
     String defaultProgName;
-    if (SetupUtils.isWindows())
+    if (isWindows())
     {
       defaultProgName = Installation.WINDOWS_SETUP_FILE_NAME;
     }
@@ -278,7 +279,7 @@ public class InstallDSArgumentParser extends ArgumentParser
         "enableWindowsService",
         INFO_INSTALLDS_DESCRIPTION_ENABLE_WINDOWS_SERVICE.get());
     enableWindowsServiceArg.setPropertyName("enableWindowsService");
-    if (SetupUtils.isWindows())
+    if (isWindows())
     {
       addArgument(enableWindowsServiceArg);
     }

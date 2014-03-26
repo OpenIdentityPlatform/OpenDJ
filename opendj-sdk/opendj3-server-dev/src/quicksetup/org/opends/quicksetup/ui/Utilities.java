@@ -27,8 +27,7 @@
 
 package org.opends.quicksetup.ui;
 import org.forgerock.i18n.LocalizableMessage;
-
-import org.opends.quicksetup.util.Utils;
+import static com.forgerock.opendj.util.OperatingSystem.isMacOS;
 
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
@@ -87,7 +86,7 @@ public class Utilities {
   static public void setFrameIcon(JFrame frame)
   {
     UIFactory.IconType ic;
-    if (Utils.isMacOS()) {
+    if (isMacOS()) {
       ic = UIFactory.IconType.MINIMIZED_MAC;
     } else {
       ic = UIFactory.IconType.MINIMIZED;

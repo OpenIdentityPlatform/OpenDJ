@@ -30,6 +30,7 @@ package org.opends.quicksetup;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import static org.opends.messages.QuickSetupMessages.*;
+import static com.forgerock.opendj.util.OperatingSystem.isWindows;
 
 import java.io.File;
 import java.io.IOException;
@@ -108,7 +109,7 @@ public class CurrentInstallStatus
             buf.append(Constants.LINE_SEPARATOR);
             buf.append("- ").append(msg);
           }
-          String cmd = Utils.isWindows() ?
+          String cmd = isWindows() ?
               Installation.WINDOWS_SETUP_FILE_NAME :
                 Installation.UNIX_SETUP_FILE_NAME;
           installationMsg = INFO_INSTALLSTATUS_INSTALLED_CLI.get(cmd, buf);

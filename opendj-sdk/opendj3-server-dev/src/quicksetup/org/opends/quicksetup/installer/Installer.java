@@ -61,6 +61,8 @@ import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.SetupUtils;
 import org.opends.server.util.StaticUtils;
 
+import com.forgerock.opendj.util.OperatingSystem;
+
 import static org.forgerock.util.Utils.*;
 import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.quicksetup.Step.*;
@@ -2960,7 +2962,7 @@ public abstract class Installer extends GuiApplication {
     serverProperties.put(ADSContext.ServerProperty.ID, serverID);
 
     serverProperties.put(ADSContext.ServerProperty.HOST_OS,
-        getOSString());
+        OperatingSystem.getOperatingSystem().toString());
     return serverProperties;
   }
 
@@ -3069,7 +3071,7 @@ public abstract class Installer extends GuiApplication {
         long requiredInMb = getRequiredInstallSpace() / (1024 * 1024);
         errorMsgs.add(INFO_NOT_ENOUGH_DISK_SPACE.get(serverLocation, requiredInMb));
         qs.displayFieldInvalid(FieldName.SERVER_LOCATION, true);
-      } else if (isWindows() && (serverLocation.contains("%")))
+      } else if (OperatingSystem.isWindows() && (serverLocation.contains("%")))
       {
         errorMsgs.add(INFO_INVALID_CHAR_IN_PATH.get("%"));
         qs.displayFieldInvalid(FieldName.SERVER_LOCATION, true);

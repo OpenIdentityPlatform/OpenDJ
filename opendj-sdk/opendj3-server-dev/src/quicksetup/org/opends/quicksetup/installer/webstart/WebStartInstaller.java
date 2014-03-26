@@ -53,6 +53,7 @@ import org.opends.quicksetup.util.FileManager;
 import org.opends.server.util.SetupUtils;
 
 import static org.opends.messages.QuickSetupMessages.*;
+import static com.forgerock.opendj.util.OperatingSystem.isWindows;
 
 /**
  * This is an implementation of the Installer class that is used to install
@@ -164,7 +165,7 @@ public class WebStartInstaller extends Installer {
 
       checkAbort();
 
-      if (Utils.isWindows() && getUserData().getEnableWindowsService())
+      if (isWindows() && getUserData().getEnableWindowsService())
       {
         if (isVerbose())
         {
@@ -416,7 +417,7 @@ public class WebStartInstaller extends Installer {
       }
     }
 
-    if (Utils.isWindows() && getUserData().getEnableWindowsService())
+    if (isWindows() && getUserData().getEnableWindowsService())
     {
         totalTime += hmTime.get(InstallProgressStep.ENABLING_WINDOWS_SERVICE);
         steps.add(InstallProgressStep.ENABLING_WINDOWS_SERVICE);

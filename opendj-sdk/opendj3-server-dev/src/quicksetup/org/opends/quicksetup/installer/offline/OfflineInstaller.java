@@ -29,6 +29,7 @@ package org.opends.quicksetup.installer.offline;
 
 import org.forgerock.i18n.LocalizableMessage;
 import static org.opends.messages.QuickSetupMessages.*;
+import static com.forgerock.opendj.util.OperatingSystem.isWindows;
 
 
 import java.io.PrintStream;
@@ -119,7 +120,7 @@ public class OfflineInstaller extends Installer
 
       checkAbort();
 
-      if (Utils.isWindows() && getUserData().getEnableWindowsService())
+      if (isWindows() && getUserData().getEnableWindowsService())
       {
         if (isVerbose())
         {
@@ -492,7 +493,7 @@ public class OfflineInstaller extends Installer
       }
     }
 
-    if (Utils.isWindows() && getUserData().getEnableWindowsService())
+    if (isWindows() && getUserData().getEnableWindowsService())
     {
       totalTime += hmTime.get(InstallProgressStep.ENABLING_WINDOWS_SERVICE);
       steps.add(InstallProgressStep.ENABLING_WINDOWS_SERVICE);

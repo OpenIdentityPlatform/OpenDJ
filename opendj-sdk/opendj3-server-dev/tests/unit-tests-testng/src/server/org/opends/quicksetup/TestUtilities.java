@@ -37,7 +37,7 @@ import org.opends.quicksetup.util.ServerController;
 import org.opends.quicksetup.util.ZipExtractor;
 import org.opends.server.TestCaseUtils;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
-import org.opends.server.types.OperatingSystem;
+import com.forgerock.opendj.util.OperatingSystem;
 
 @SuppressWarnings("javadoc")
 public class TestUtilities {
@@ -81,8 +81,7 @@ public class TestUtilities {
 
     List<String> args = new ArrayList<String>();
     File root = getQuickSetupTestServerRootDir();
-    if (OperatingSystem.isUNIXBased(
-            OperatingSystem.forName(System.getProperty("os.name")))) {
+    if (OperatingSystem.isUnixBased()) {
       args.add(new File(root, "setup").getPath());
     } else {
       args.add(new File(root, "setup.bat").getPath());

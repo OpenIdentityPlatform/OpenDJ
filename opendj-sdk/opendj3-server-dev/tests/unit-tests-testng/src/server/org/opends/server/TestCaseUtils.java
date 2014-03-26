@@ -74,6 +74,7 @@ import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
+import com.forgerock.opendj.util.OperatingSystem;
 
 /**
  * This class defines some utility functions which can be used by test cases.
@@ -407,9 +408,7 @@ public final class TestCaseUtils {
         }
 
         // Make the shell scripts in the bin directory executable, if possible.
-        OperatingSystem os = DirectoryServer.getOperatingSystem();
-        if ((os != null) && OperatingSystem.isUNIXBased(os) &&
-            FilePermission.canSetPermissions())
+        if (OperatingSystem.isUnixBased() && FilePermission.canSetPermissions())
         {
           try
           {

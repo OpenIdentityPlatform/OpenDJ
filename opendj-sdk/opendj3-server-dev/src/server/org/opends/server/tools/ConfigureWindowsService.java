@@ -42,6 +42,7 @@ import com.forgerock.opendj.cli.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+import static com.forgerock.opendj.util.OperatingSystem.hasUAC;
 
 /**
   * This class is used to configure the Windows service for this instance on
@@ -410,7 +411,7 @@ public class ConfigureWindowsService
 
     String[] cmd;
 
-    if (SetupUtils.hasUAC())
+    if (hasUAC())
     {
       cmd = new String[] {
           getLauncherBinaryFullPath(),
@@ -521,7 +522,7 @@ public class ConfigureWindowsService
     LocalizableMessage msg;
     String serverRoot = getServerRoot();
     String[] cmd;
-    if (SetupUtils.hasUAC())
+    if (hasUAC())
     {
       cmd = new String[] {
           getLauncherBinaryFullPath(),
@@ -601,7 +602,7 @@ public class ConfigureWindowsService
     int returnValue;
     LocalizableMessage msg;
     String[] cmd;
-    if (SetupUtils.hasUAC())
+    if (hasUAC())
     {
       cmd = new String[] {
           getLauncherBinaryFullPath(),

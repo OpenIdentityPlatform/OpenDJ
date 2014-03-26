@@ -69,6 +69,7 @@ import org.opends.messages.JebMessages;
 import org.opends.messages.ReplicationMessages;
 
 import static org.opends.messages.QuickSetupMessages.*;
+import static com.forgerock.opendj.util.OperatingSystem.isWindows;
 
 import org.opends.server.tools.ConfigureDS;
 import org.opends.server.tools.ConfigureWindowsService;
@@ -86,7 +87,7 @@ import org.opends.server.util.StaticUtils;
 
 /**
  * This is the only class that uses classes in org.opends.server (excluding the
- * case of DynamicConstants, SetupUtils, OperatingSystem and CertificateManager
+ * case of DynamicConstants, SetupUtils and CertificateManager
  * which are already included in quicksetup.jar).
  *
  * Important note: do not include references to this class until OpenDS.jar has
@@ -126,7 +127,7 @@ public class InstallerHelper {
     File installPath = new File(application.getInstallationPath());
     ArrayList<String> argList = new ArrayList<String>();
     File binPath;
-    if (Utils.isWindows())
+    if (isWindows())
     {
       binPath =
         new File(installPath, Installation.WINDOWS_BINARIES_PATH_RELATIVE);
@@ -136,7 +137,7 @@ public class InstallerHelper {
         new File(installPath, Installation.UNIX_BINARIES_PATH_RELATIVE);
     }
     File importPath;
-    if (Utils.isWindows())
+    if (isWindows())
     {
       importPath = new File(binPath, Installation.WINDOWS_IMPORT_LDIF);
     } else
@@ -1159,7 +1160,7 @@ public class InstallerHelper {
     {
       fLib.mkdir();
     }
-    if (Utils.isWindows())
+    if (isWindows())
     {
       destinationFile = Utils.getPath(libDir,
           Installation.SET_JAVA_PROPERTIES_FILE_WINDOWS);

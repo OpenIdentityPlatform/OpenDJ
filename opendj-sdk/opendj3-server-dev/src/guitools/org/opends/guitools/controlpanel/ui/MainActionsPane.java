@@ -28,6 +28,7 @@
 package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.messages.AdminToolMessages.*;
+import static com.forgerock.opendj.util.OperatingSystem.isWindows;
 
 import java.awt.Component;
 import java.awt.GridBagConstraints;
@@ -190,7 +191,7 @@ public class MainActionsPane extends StatusGenericPanel
   {
     ArrayList<Category> categories = new ArrayList<Category>();
     LocalizableMessage[][] labels;
-    if (Utilities.isWindows())
+    if (isWindows())
     {
       labels = new LocalizableMessage[][] {
           {
@@ -275,7 +276,7 @@ public class MainActionsPane extends StatusGenericPanel
     classes.add(ConnectionHandlerMonitoringPanel.class);
     classes.add(ManageTasksPanel.class);
     classes.add(JavaPropertiesPanel.class);
-    if (Utilities.isWindows())
+    if (isWindows())
     {
       classes.add(WindowsServicePanel.class);
     }

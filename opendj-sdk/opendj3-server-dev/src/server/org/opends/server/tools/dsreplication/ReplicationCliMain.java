@@ -63,6 +63,7 @@ import static org.opends.quicksetup.util.Utils.getMessage;
 import static org.opends.quicksetup.util.Utils.getMessageFromCollection;
 import static org.opends.quicksetup.util.Utils.getServerClock;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.util.OperatingSystem.isWindows;
 
 import org.opends.server.admin.*;
 import org.opends.server.admin.client.ManagementContext;
@@ -11448,7 +11449,7 @@ public class ReplicationCliMain extends ConsoleApplication
   private String getCommandLinePath(String scriptBasicName)
   {
     String cmdLineName;
-    if (Utilities.isWindows())
+    if (isWindows())
     {
       cmdLineName = getBinaryDir()+scriptBasicName+".bat";
     }

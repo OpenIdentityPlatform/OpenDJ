@@ -35,7 +35,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.quicksetup.util.Utils;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.config.ConfigConstants;
@@ -47,6 +46,7 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.Schema;
+import com.forgerock.opendj.util.OperatingSystem;
 
 /**
  * Class used to retrieve the schema from the schema files.
@@ -164,7 +164,7 @@ public class SchemaLoader
             {
               accept = true;
             }
-            else if (Utils.isWindows())
+            else if (OperatingSystem.isWindows())
             {
               accept = f.getName().toLowerCase().endsWith(".ldif");
             }
