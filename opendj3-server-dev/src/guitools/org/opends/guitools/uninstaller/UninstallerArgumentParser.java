@@ -27,6 +27,11 @@
 
 package org.opends.guitools.uninstaller;
 
+import static com.forgerock.opendj.cli.ArgumentConstants.OPTION_LONG_REFERENCED_HOST_NAME;
+import static com.forgerock.opendj.cli.ArgumentConstants.OPTION_SHORT_HOST;
+import static com.forgerock.opendj.cli.Utils.LINE_SEPARATOR;
+import static com.forgerock.opendj.cli.CliMessages.*;
+
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -36,19 +41,13 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.opends.quicksetup.UserData;
 import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
 import org.opends.server.admin.client.cli.SecureConnectionCliParser;
-import org.opends.server.tools.JavaPropertiesTool.ErrorReturnCode;
-
 
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.CommonArguments;
+import com.forgerock.opendj.cli.ReturnCode;
 import com.forgerock.opendj.cli.StringArgument;
-
-import static org.opends.messages.AdminToolMessages.*;
-import static org.opends.messages.ToolMessages.*;
-import static com.forgerock.opendj.cli.ArgumentConstants.*;
-import static com.forgerock.opendj.cli.Utils.LINE_SEPARATOR;
 
 /**
  * Class used to parse and populate the arguments of the Uninstaller.
@@ -70,7 +69,7 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
 
   private StringArgument referencedHostNameArg;
 
-  // This CLI is always using the administration connector with SSL
+  /** This CLI is always using the administration connector with SSL. */
   private final boolean alwaysSSL = true;
 
   /**
@@ -372,12 +371,11 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
   @Override
   public int validateGlobalOptions(LocalizableMessageBuilder buf)
   {
-    int returnValue;
     if (!noPromptArg.isPresent() && forceOnErrorArg.isPresent())
     {
-      LocalizableMessage message = ERR_UNINSTALL_FORCE_REQUIRES_NO_PROMPT.get(
-          "--"+forceOnErrorArg.getLongIdentifier(),
-          "--"+noPromptArg.getLongIdentifier());
+      final LocalizableMessage message =
+          ERR_TOOL_CONFLICTING_ARGS.get(forceOnErrorArg.getLongIdentifier(),
+              noPromptArg.getLongIdentifier());
       if (buf.length() > 0)
       {
         buf.append(LINE_SEPARATOR);
@@ -412,13 +410,9 @@ public class UninstallerArgumentParser extends SecureConnectionCliParser
     super.validateGlobalOptions(buf);
     if (buf.length() > 0)
     {
-      returnValue = ErrorReturnCode.CONFLICTING_ARGS.getReturnCode();
+      return ReturnCode.CONFLICTING_ARGS.get();
     }
-    else
-    {
-      returnValue = ErrorReturnCode.SUCCESSFUL_NOP.getReturnCode();
-    }
-    return returnValue;
+    return ReturnCode.SUCCESS.get();
   }
 
   /**

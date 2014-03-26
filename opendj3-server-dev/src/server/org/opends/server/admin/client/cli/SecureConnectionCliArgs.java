@@ -68,11 +68,10 @@ import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.StringArgument;
 
 /**
- * This is a commodity class that can be used to check the arguments required
- * to establish a secure connection in the command line.  It can be used
- * to generate an ApplicationTrustManager object based on the options provided
- * by the user in the command line.
- *
+ * This is a commodity class that can be used to check the arguments required to
+ * establish a secure connection in the command line. It can be used to generate
+ * an ApplicationTrustManager object based on the options provided by the user
+ * in the command line.
  */
 public final class SecureConnectionCliArgs
 {
@@ -228,10 +227,11 @@ public final class SecureConnectionCliArgs
   }
 
   /**
-   * Tells whether this parser uses the Administrator UID (instead of the
-   * bind DN) or not.
-   * @return <CODE>true</CODE> if this parser uses the Administrator UID and
-   * <CODE>false</CODE> otherwise.
+   * Tells whether this parser uses the Administrator UID (instead of the bind
+   * DN) or not.
+   *
+   * @return {@code true} if this parser uses the Administrator UID and
+   *         {@code false} otherwise.
    */
   public boolean useAdminUID()
   {
@@ -600,30 +600,29 @@ public final class SecureConnectionCliArgs
 
 
   /**
-   * Returns <CODE>true</CODE> if we can read on the provided path and
-   * <CODE>false</CODE> otherwise.
-   * @param path the path.
-   * @return <CODE>true</CODE> if we can read on the provided path and
-   * <CODE>false</CODE> otherwise.
+   * Returns {@code true} if we can read on the provided path and
+   * {@code false} otherwise.
+   *
+   * @param path
+   *          the path.
+   * @return {@code true} if we can read on the provided path and
+   *         {@code false} otherwise.
    */
   private boolean canRead(String path)
   {
     final File file = new File(path);
-    if (file.exists())
-    {
-      return file.canRead();
-    }
-    return false;
+    return file.exists() && file.canRead();
   }
 
   /**
-   *  Returns the absolute path of the trust store file that appears on the
-   *  config.  Returns <CODE>null</CODE> if the trust store is not defined or
-   *  it does not exist.
+   * Returns the absolute path of the trust store file that appears on the
+   * config. Returns {@code null} if the trust store is not defined or it
+   * does not exist.
    *
-   *  @return the absolute path of the trust store file that appears on the
-   *  config.
-   *  @throws ConfigException if there is an error reading the configuration.
+   * @return the absolute path of the trust store file that appears on the
+   *         config.
+   * @throws ConfigException
+   *           if there is an error reading the configuration.
    */
   public String getTruststoreFileFromConfig() throws ConfigException
   {
@@ -681,8 +680,10 @@ public final class SecureConnectionCliArgs
 
   /**
    * Returns the admin port from the configuration.
+   *
    * @return the admin port from the configuration.
-   * @throws ConfigException if an error occurs reading the configuration.
+   * @throws ConfigException
+   *           if an error occurs reading the configuration.
    */
   public int getAdminPortFromConfig() throws ConfigException
   {
@@ -726,10 +727,11 @@ public final class SecureConnectionCliArgs
 
   /**
    * Returns the port to be used according to the configuration and the
-   * arguments provided by the user.
-   * This method should be called after the arguments have been parsed.
+   * arguments provided by the user. This method should be called after the
+   * arguments have been parsed.
+   *
    * @return the port to be used according to the configuration and the
-   * arguments provided by the user.
+   *         arguments provided by the user.
    */
   public int getPortFromConfig()
   {
@@ -742,10 +744,10 @@ public final class SecureConnectionCliArgs
       {
         portNumber = getAdminPortFromConfig();
       } catch (ConfigException ex) {
-        // nothing to do
+        // Nothing to do
       }
     } else {
-      portNumber = 636;
+      portNumber = CliConstants.DEFAULT_SSL_PORT;
     }
     return portNumber;
   }
@@ -753,7 +755,9 @@ public final class SecureConnectionCliArgs
   /**
    * Updates the default values of the port and the trust store with what is
    * read in the configuration.
-   * @throws ConfigException if there is an error reading the configuration.
+   *
+   * @throws ConfigException
+   *           if there is an error reading the configuration.
    */
   public void initArgumentsWithConfiguration() throws ConfigException
   {
