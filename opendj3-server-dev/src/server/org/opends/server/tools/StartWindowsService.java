@@ -33,10 +33,10 @@ import java.io.PrintStream;
 
 import org.opends.server.loggers.JDKLogging;
 import org.opends.server.types.NullOutputStream;
-import org.opends.server.util.SetupUtils;
 
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.StaticUtils.*;
+import static com.forgerock.opendj.util.OperatingSystem.hasUAC;
 
 /**
   * This class is used to start the Windows service associated with this
@@ -99,7 +99,7 @@ public class StartWindowsService
     else
     {
       String[] cmd;
-      if (SetupUtils.hasUAC())
+      if (hasUAC())
       {
         cmd= new String[] {
             ConfigureWindowsService.getLauncherBinaryFullPath(),

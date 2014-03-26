@@ -41,6 +41,7 @@ import static org.opends.quicksetup.util.Utils.*;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.LocalizableMessage;
 import static org.opends.messages.QuickSetupMessages.*;
+import static com.forgerock.opendj.util.OperatingSystem.isMacOS;
 
 import javax.swing.*;
 

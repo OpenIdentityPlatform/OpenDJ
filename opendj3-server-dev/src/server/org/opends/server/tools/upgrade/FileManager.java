@@ -30,6 +30,7 @@ package org.opends.server.tools.upgrade;
 
 
 import static org.opends.messages.ToolMessages.*;
+import static com.forgerock.opendj.util.OperatingSystem.isUnix;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.types.DirectoryException;
@@ -387,7 +388,7 @@ class FileManager
               {
                 // TODO: set the file's permissions. This is made easier in
                 // Java 1.6 but until then use the TestUtilities methods
-                if (UpgradeUtils.isUnix())
+                if (isUnix())
                 {
                   final FilePermission permissions =
                       getFileSystemPermissions(objectFile);

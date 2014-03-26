@@ -29,6 +29,7 @@ package org.opends.quicksetup.util;
 import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.quicksetup.util.Utils.*;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.util.OperatingSystem.isWindows;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
@@ -197,7 +198,7 @@ public class ServerController {
             org.opends.server.protocols.ldap.
             LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR;
           if ((returnValue == clientSideError) || (returnValue == 0)) {
-            if (Utils.isWindows()) {
+            if (isWindows()) {
               /*
                * Sometimes the server keeps some locks on the files.
                * TODO: remove this code once stop-ds returns properly when
@@ -503,7 +504,7 @@ public class ServerController {
           }
           if (!connected)
           {
-            if (Utils.isWindows())
+            if (isWindows())
             {
               throw new ApplicationException(
                   ReturnCode.START_ERROR,

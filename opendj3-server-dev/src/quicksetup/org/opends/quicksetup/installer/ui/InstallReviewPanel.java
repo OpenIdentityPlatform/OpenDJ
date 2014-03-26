@@ -32,6 +32,7 @@ import org.forgerock.i18n.LocalizableMessageBuilder;
 
 import static org.forgerock.util.Utils.*;
 import static org.opends.messages.QuickSetupMessages.*;
+import static com.forgerock.opendj.util.OperatingSystem.isWindows;
 
 import org.opends.admin.ads.ServerDescriptor;
 import org.opends.quicksetup.Constants;
@@ -666,7 +667,7 @@ public class InstallReviewPanel extends ReviewPanel {
       gbc.weightx = 1.0;
       auxPanel.add(Box.createHorizontalGlue(), gbc);
       bottomComponent.add(auxPanel, gbc);
-      if (Utils.isWindows())
+      if (isWindows())
       {
         gbc.insets.top = UIFactory.TOP_INSET_PRIMARY_FIELD;
         bottomComponent.add(getEnableWindowsServiceCheckBox(), gbc);
@@ -722,7 +723,7 @@ public class InstallReviewPanel extends ReviewPanel {
       {
         public void actionPerformed(ActionEvent ev)
         {
-          if (Utils.isWindows())
+          if (isWindows())
           {
             lastUserData.setEnableWindowsService(
                 enableWindowsServiceCheckBox.isSelected());

@@ -27,6 +27,8 @@
 package org.opends.guitools.controlpanel.util;
 
 import static org.opends.messages.AdminToolMessages.*;
+import static com.forgerock.opendj.util.OperatingSystem.isWindows;
+import static com.forgerock.opendj.util.OperatingSystem.isMacOS;
 
 import java.awt.Color;
 import java.awt.Component;
@@ -161,18 +163,6 @@ public class Utilities
     INFO_CTRL_PANEL_NOT_IMPLEMENTED.get();
 
   /**
-   * Returns <CODE>true</CODE> if we are running Mac OS and <CODE>false</CODE>
-   * otherwise.
-   * @return <CODE>true</CODE> if we are running Mac OS and <CODE>false</CODE>
-   * otherwise.
-   */
-  public static boolean isMacOS()
-  {
-    String os = System.getProperty("os.name").toLowerCase();
-    return os.indexOf("mac") != -1;
-  }
-
-  /**
    * Creates a combo box.
    * @return a combo box.
    */
@@ -228,18 +218,6 @@ public class Utilities
       toObfuscate = hasPasswordSyntax(attrName, schema);
     }
     return toObfuscate;
-  }
-
-  /**
-   * Returns <CODE>true</CODE> if we are running Windows and <CODE>false</CODE>
-   * otherwise.
-   * @return <CODE>true</CODE> if we are running Windows and <CODE>false</CODE>
-   * otherwise.
-   */
-  public static boolean isWindows()
-  {
-    String os = System.getProperty("os.name").toLowerCase();
-    return os.indexOf("windows") != -1;
   }
 
   /**
@@ -614,15 +592,14 @@ public class Utilities
     final JTable table = new JTable(tableModel);
     table.setShowGrid(true);
     table.setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
-    boolean isMacOS = Utilities.isMacOS();
     table.setGridColor(ColorAndFontConstants.gridColor);
-    if (isMacOS)
+    if (isMacOS())
     {
       table.getTableHeader().setBorder(
           BorderFactory.createMatteBorder(1, 1, 0, 0,
               ColorAndFontConstants.gridColor));
     }
-    if (Utilities.isWindows())
+    if (isWindows())
     {
       table.getTableHeader().setBorder(
           BorderFactory.createMatteBorder(1, 1, 0, 1,

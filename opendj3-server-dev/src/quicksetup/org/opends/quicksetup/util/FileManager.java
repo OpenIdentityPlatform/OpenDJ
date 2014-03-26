@@ -34,6 +34,7 @@ import org.opends.quicksetup.*;
 import org.opends.server.util.StaticUtils;
 
 import static org.opends.messages.QuickSetupMessages.*;
+import static com.forgerock.opendj.util.OperatingSystem.isUnix;
 
 /**
  * Utility class for use by applications containing methods for managing
@@ -505,7 +506,7 @@ public class FileManager {
               if (destination.exists()) {
                 // TODO:  set the file's permissions.  This is made easier in
                 // Java 1.6 but until then use the TestUtilities methods
-                if (Utils.isUnix()) {
+                if (isUnix()) {
                   String permissions =
                           Utils.getFileSystemPermissions(objectFile);
                   Utils.setPermissionsUnix(

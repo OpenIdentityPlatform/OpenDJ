@@ -28,6 +28,7 @@
 package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.messages.AdminToolMessages.*;
+import static com.forgerock.opendj.util.OperatingSystem.isMacOS;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -67,7 +68,7 @@ public class MainMenuBar extends GenericMenuBar
 
     addMenus();
 
-    if (Utilities.isMacOS())
+    if (isMacOS())
     {
       setMacOSQuitHandler();
     }
@@ -136,7 +137,7 @@ public class MainMenuBar extends GenericMenuBar
     });
     menu.add(menuItem);
 
-    if (!Utilities.isMacOS())
+    if (!isMacOS())
     {
       menuItem = Utilities.createMenuItem(INFO_CTRL_PANEL_EXIT_MENU.get());
       menuItem.addActionListener(new ActionListener()

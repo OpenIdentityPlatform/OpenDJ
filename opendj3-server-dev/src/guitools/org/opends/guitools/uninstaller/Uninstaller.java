@@ -72,6 +72,7 @@ import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.quicksetup.Step.*;
 import static org.opends.quicksetup.util.Utils.*;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.util.OperatingSystem.isWindows;
 
 import java.io.*;
 import java.net.InetAddress;

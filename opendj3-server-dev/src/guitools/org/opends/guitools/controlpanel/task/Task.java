@@ -28,6 +28,7 @@
 package org.opends.guitools.controlpanel.task;
 
 import static org.opends.messages.AdminToolMessages.*;
+import static com.forgerock.opendj.util.OperatingSystem.isWindows;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -721,7 +722,7 @@ public abstract class Task
   protected String getCommandLinePath(String scriptBasicName)
   {
     String cmdLineName;
-    if (Utilities.isWindows())
+    if (isWindows())
     {
       cmdLineName = getBinaryDir()+scriptBasicName+".bat";
     }

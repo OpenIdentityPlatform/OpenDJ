@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.quicksetup.util;
@@ -29,6 +30,7 @@ package org.opends.quicksetup.util;
 import java.io.File;
 
 import javax.swing.filechooser.FileFilter;
+import static com.forgerock.opendj.util.OperatingSystem.isWindows;
 
 /**
  * This is a class used to be able to filter on certain type of files
@@ -63,7 +65,7 @@ public class ExtensionFileFilter extends FileFilter
       if (f.isDirectory())
       {
         accept = true;
-      } else if (Utils.isWindows())
+      } else if (isWindows())
       {
         accept =
             f.getName().toLowerCase().endsWith("." + extension.toLowerCase());

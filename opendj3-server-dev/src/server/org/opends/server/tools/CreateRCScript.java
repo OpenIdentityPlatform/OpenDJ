@@ -38,7 +38,6 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.JDKLogging;
 import org.opends.server.types.FilePermission;
 import org.opends.server.types.NullOutputStream;
-import org.opends.server.types.OperatingSystem;
 import org.opends.server.util.EmbeddedUtils;
 import org.opends.server.util.SetupUtils;
 
@@ -47,6 +46,7 @@ import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.StringArgument;
+import com.forgerock.opendj.util.OperatingSystem;
 
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
@@ -104,8 +104,7 @@ public class CreateRCScript
 
     EmbeddedUtils.initializeForClientUse();
 
-    OperatingSystem operatingSystem = DirectoryServer.getOperatingSystem();
-    if (! OperatingSystem.isUNIXBased(operatingSystem))
+    if (! OperatingSystem.isUnixBased())
     {
       err.println(ERR_CREATERC_ONLY_RUNS_ON_UNIX.get());
       return 1;

@@ -46,7 +46,7 @@ import org.opends.server.types.AttributeType;
 import org.opends.server.types.DN;
 import org.opends.server.types.ObjectClass;
 import org.opends.server.types.OpenDsException;
-import org.opends.server.types.OperatingSystem;
+import com.forgerock.opendj.util.OperatingSystem;
 import org.opends.server.types.Schema;
 
 import static org.opends.server.types.CommonSchemaElements.*;
@@ -230,7 +230,7 @@ public class ServerDescriptor
       {
         sameInstallAndInstance = instance.equals(install);
         if (!sameInstallAndInstance &&
-            (isLocal() || (isWindows() == Utilities.isWindows())))
+            (isLocal() || (OperatingSystem.isWindows())))
         {
           File f1 = new File(instance);
           File f2 = new File(install);
@@ -458,7 +458,7 @@ public class ServerDescriptor
           }
         }
 
-        if (equals && Utilities.isWindows())
+        if (equals && OperatingSystem.isWindows())
         {
           equals =
             desc.isWindowsServiceEnabled() == isWindowsServiceEnabled();
@@ -654,7 +654,7 @@ public class ServerDescriptor
     boolean isWindows;
     if (isLocal())
     {
-      isWindows = Utilities.isWindows();
+      isWindows = OperatingSystem.isWindows();
     }
     else
     {

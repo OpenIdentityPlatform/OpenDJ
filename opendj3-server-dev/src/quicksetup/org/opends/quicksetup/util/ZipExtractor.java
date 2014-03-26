@@ -29,6 +29,7 @@ package org.opends.quicksetup.util;
 
 import org.forgerock.i18n.LocalizableMessage;
 import static org.opends.messages.QuickSetupMessages.*;
+import static com.forgerock.opendj.util.OperatingSystem.isUnix;
 
 import org.opends.quicksetup.ApplicationException;
 import org.opends.quicksetup.Application;
@@ -224,7 +225,7 @@ public class ZipExtractor {
         nEntries++;
       }
 
-      if (Utils.isUnix()) {
+      if (isUnix()) {
         // Change the permissions for UNIX systems
         for (String perm : permissions.keySet()) {
           ArrayList<String> paths = permissions.get(perm);

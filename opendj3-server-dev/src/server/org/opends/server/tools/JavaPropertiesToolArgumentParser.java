@@ -28,6 +28,7 @@ package org.opends.server.tools;
 
 import static org.opends.messages.ToolMessages.*;
 import static com.forgerock.opendj.cli.Utils.canWrite;
+import static com.forgerock.opendj.util.OperatingSystem.isWindows;
 
 import java.io.File;
 import java.util.LinkedHashSet;
@@ -164,7 +165,7 @@ public class JavaPropertiesToolArgumentParser extends ArgumentParser
     if (root != null)
     {
       String libDir = Utils.getPath(root, Installation.LIBRARIES_PATH_RELATIVE);
-      if (Utils.isWindows())
+      if (isWindows())
       {
         value = Utils.getPath(libDir,
             Installation.SET_JAVA_PROPERTIES_FILE_WINDOWS);
@@ -179,7 +180,7 @@ public class JavaPropertiesToolArgumentParser extends ArgumentParser
     {
       // This can happen when we are not launched using the command-line (for
       // instance from the WebInstaller).
-      if (Utils.isWindows())
+      if (isWindows())
       {
         value = Utils.getPath(Installation.LIBRARIES_PATH_RELATIVE,
             Installation.SET_JAVA_PROPERTIES_FILE_WINDOWS);

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.util;
 
@@ -39,7 +39,7 @@ import java.util.LinkedList;
 import java.util.Random;
 import java.util.Set;
 
-import org.opends.server.types.OperatingSystem;
+import com.forgerock.opendj.util.OperatingSystem;
 
 /**
  * This class provides a number of utility methods that may be used during the
@@ -248,117 +248,6 @@ public class SetupUtils
   }
 
   /**
-   * Returns {@code true} if we are running under Mac OS and
-   * {@code false} otherwise.
-   * @return {@code true} if we are running under Mac OS and
-   * {@code false} otherwise.
-   */
-  public static boolean isMacOS()
-  {
-    return OperatingSystem.MACOS == getOperatingSystem();
-  }
-
-  /**
-   * Returns {@code true} if we are running under Unix and
-   * {@code false} otherwise.
-   * @return {@code true} if we are running under Unix and
-   * {@code false} otherwise.
-   */
-  public static boolean isUnix()
-  {
-    return OperatingSystem.isUNIXBased(getOperatingSystem());
-  }
-
-  /**
-   * Indicates whether the underlying operating system is a Windows variant.
-   *
-   * @return  {@code true} if the underlying operating system is a Windows
-   *          variant, or {@code false} if not.
-   */
-  public static boolean isWindows()
-  {
-    return OperatingSystem.WINDOWS == getOperatingSystem();
-  }
-
-  /**
-   * Indicates whether the underlying operating system is Windows Vista.
-   *
-   * @return  {@code true} if the underlying operating system is Windows
-   *          Vista, or {@code false} if not.
-   */
-  public static boolean isVista()
-  {
-    String os = System.getProperty("os.name");
-    if (os != null)
-    {
-      return isWindows() && (os.toLowerCase().indexOf("vista") != -1);
-    }
-    return false;
-  }
-
-  /**
-   * Indicates whether the underlying operating system is Windows 2008.
-   *
-   * @return  {@code true} if the underlying operating system is Windows
-   *          2008, or {@code false} if not.
-   */
-  public static boolean isWindows2008()
-  {
-    String os = System.getProperty("os.name");
-    if (os != null)
-    {
-      return isWindows() && (os.toLowerCase().indexOf("server 2008") != -1);
-    }
-    return false;
-  }
-
-  /**
-   * Indicates whether the underlying operating system is Windows 7.
-   *
-   * @return  {@code true} if the underlying operating system is Windows 7, or
-   * {@code false} if not.
-   */
-  public static boolean isWindows7()
-  {
-    String os = System.getProperty("os.name");
-    if (os != null)
-    {
-      return os.toLowerCase().indexOf("windows 7") != -1;
-    }
-    return false;
-  }
-
-  /**
-   * Indicates whether the underlying operating system has UAC (User Access
-   * Control).
-   *
-   * @return  {@code true} if the underlying operating system has UAC (User
-   * Access Control), or {@code false} if not.
-   */
-  public static boolean hasUAC()
-  {
-    return isVista() || isWindows2008() || isWindows7();
-  }
-
-  /**
-   * Returns a String representation of the OS we are running.
-   * @return a String representation of the OS we are running.
-   */
-  public static String getOSString()
-  {
-    return getOperatingSystem().toString();
-  }
-
-  /**
-   * Commodity method to help identifying the OS we are running on.
-   * @return the OperatingSystem we are running on.
-   */
-  public static OperatingSystem getOperatingSystem()
-  {
-    return OperatingSystem.forName(System.getProperty("os.name"));
-  }
-
-  /**
    * Returns {@code true} if the provided port is free and we can use it,
    * {@code false} otherwise.
    * @param hostname the host name we are analyzing.  Use <CODE>null</CODE>
@@ -383,7 +272,7 @@ public class SetupUtils
         socketAddress = new InetSocketAddress(port);
       }
       serverSocket = new ServerSocket();
-      if (!isWindows())
+      if (!OperatingSystem.isWindows())
       {
         serverSocket.setReuseAddress(true);
       }
@@ -458,7 +347,7 @@ public class SetupUtils
    */
   public static boolean isPriviledgedPort(int port)
   {
-    return (port <= 1024) && !isWindows();
+    return (port <= 1024) && !OperatingSystem.isWindows();
   }
 
   /**
@@ -491,7 +380,7 @@ public class SetupUtils
   public static String getScriptPath(String script)
   {
     String s = script;
-    if (isWindows())
+    if (OperatingSystem.isWindows())
     {
       if (s != null)
       {

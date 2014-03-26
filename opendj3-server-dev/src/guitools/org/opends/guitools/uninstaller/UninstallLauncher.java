@@ -29,6 +29,7 @@ package org.opends.guitools.uninstaller;
 
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.ToolMessages.ERR_ERROR_PARSING_ARGS;
+import static com.forgerock.opendj.util.OperatingSystem.isWindows;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.messages.ToolMessages;
@@ -89,7 +90,7 @@ public class UninstallLauncher extends Launcher {
     super(args);
 
     String scriptName;
-    if (Utils.isWindows()) {
+    if (isWindows()) {
       scriptName = Installation.WINDOWS_UNINSTALL_FILE_NAME;
     } else {
       scriptName = Installation.UNIX_UNINSTALL_FILE_NAME;

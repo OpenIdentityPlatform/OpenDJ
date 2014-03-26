@@ -45,6 +45,7 @@ import org.opends.server.api.SubstringMatchingRule;
 import org.opends.server.config.ConfigEntry;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
+import com.forgerock.opendj.util.OperatingSystem;
 
 /**
  * This interface defines a set of methods that may be used by

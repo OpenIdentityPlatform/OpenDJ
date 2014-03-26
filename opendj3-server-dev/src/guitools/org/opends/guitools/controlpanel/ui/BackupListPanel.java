@@ -30,6 +30,7 @@ package org.opends.guitools.controlpanel.ui;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.ToolMessages.*;
+import static com.forgerock.opendj.util.OperatingSystem.isWindows;
 
 import java.awt.Component;
 import java.awt.Dimension;
@@ -538,7 +539,7 @@ public abstract class BackupListPanel extends StatusGenericPanel
     {
       String path;
 
-      if (desc.isLocal() || (desc.isWindows() == Utilities.isWindows()))
+      if (desc.isLocal() || (desc.isWindows() == isWindows()))
       {
         File f = new File(desc.getInstancePath(),
             org.opends.quicksetup.Installation.BACKUPS_PATH_RELATIVE);

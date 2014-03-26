@@ -48,7 +48,6 @@ import org.forgerock.opendj.ldif.LDIFEntryWriter;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SchemaConfigManager;
 import org.opends.server.util.ChangeOperationType;
-import org.opends.server.util.SetupUtils;
 import org.opends.server.util.StaticUtils;
 
 import static org.opends.messages.ConfigMessages.INFO_CONFIG_FILE_HEADER;
@@ -258,30 +257,6 @@ final class UpgradeUtils
       final String relativePath)
   {
     return getPath(new File(new File(parentPath), relativePath));
-  }
-
-  /**
-   * Returns <CODE>true</CODE> if we are running under windows and
-   * <CODE>false</CODE> otherwise.
-   *
-   * @return <CODE>true</CODE> if we are running under windows and
-   *         <CODE>false</CODE> otherwise.
-   */
-  static boolean isWindows()
-  {
-    return SetupUtils.isWindows();
-  }
-
-  /**
-   * Returns <CODE>true</CODE> if we are running under Unix and
-   * <CODE>false</CODE> otherwise.
-   *
-   * @return <CODE>true</CODE> if we are running under Unix and
-   *         <CODE>false</CODE> otherwise.
-   */
-  static boolean isUnix()
-  {
-    return SetupUtils.isUnix();
   }
 
   /**

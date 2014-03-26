@@ -29,6 +29,7 @@ package org.opends.quicksetup;
 
 import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.server.util.SetupUtils.*;
+import static com.forgerock.opendj.util.OperatingSystem.isWindows;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -81,7 +82,7 @@ public class BuildInformation implements Comparable<BuildInformation> {
       is = process.getInputStream();
       out = process.getOutputStream();
       final OutputStream fOut = out;
-      if (Utils.isWindows())
+      if (isWindows())
       {
         // In windows if there is an error we wait the user to click on
         // return to continue.

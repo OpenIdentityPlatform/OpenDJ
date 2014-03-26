@@ -28,6 +28,7 @@
 package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.messages.AdminToolMessages.*;
+import static com.forgerock.opendj.util.OperatingSystem.isWindows;
 
 import java.awt.Component;
 import java.awt.GridBagConstraints;
@@ -976,7 +977,7 @@ public class JavaPropertiesPanel extends StatusGenericPanel
   private File getJavaFile(File javaHome)
   {
     File javaFile = new File(javaHome, "bin");
-    if (Utilities.isWindows())
+    if (isWindows())
     {
       javaFile = new File(javaFile, "java.exe");
     }

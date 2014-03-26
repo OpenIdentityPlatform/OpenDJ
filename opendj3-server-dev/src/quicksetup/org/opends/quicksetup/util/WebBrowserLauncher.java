@@ -26,6 +26,10 @@
  */
 
 package org.opends.quicksetup.util;
+
+
+import static com.forgerock.opendj.util.OperatingSystem.isWindows;
+import static com.forgerock.opendj.util.OperatingSystem.isMacOS;
 import org.forgerock.i18n.LocalizableMessage;
 
 import java.io.IOException;
@@ -47,14 +51,14 @@ public class WebBrowserLauncher
   {
     try
     {
-      if (Utils.isMacOS())
+      if (isMacOS())
       {
         Class<?> fileMgr = Class.forName("com.apple.eio.FileManager");
         Method openURL = fileMgr.getDeclaredMethod("openURL", new Class[]
           { String.class });
         openURL.invoke(null, url);
 
-      } else if (Utils.isWindows())
+      } else if (isWindows())
       {
         String[] cmd = {"rundll32", "url.dll,FileProtocolHandler", url};
         Runtime.getRuntime().exec(cmd);

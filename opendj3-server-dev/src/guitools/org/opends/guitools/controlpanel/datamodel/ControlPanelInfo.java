@@ -27,6 +27,8 @@
 
 package org.opends.guitools.controlpanel.datamodel;
 
+import static com.forgerock.opendj.util.OperatingSystem.isWindows;
+
 import java.io.File;
 import java.net.InetAddress;
 import java.util.Collection;
@@ -478,7 +480,7 @@ public class ControlPanelInfo
       desc.setInstallPath(installPath);
       desc.setInstancePath(Utils.getInstancePathFromInstallPath(installPath));
       boolean windowsServiceEnabled = false;
-      if (Utilities.isWindows())
+      if (isWindows())
       {
         int result = ConfigureWindowsService.serviceState(null, null);
         windowsServiceEnabled =

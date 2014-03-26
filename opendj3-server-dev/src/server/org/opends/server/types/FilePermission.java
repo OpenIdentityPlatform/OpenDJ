@@ -36,6 +36,8 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.core.DirectoryServer;
 
+import com.forgerock.opendj.util.OperatingSystem;
+
 import static org.opends.messages.UtilityMessages.*;
 
 /**
