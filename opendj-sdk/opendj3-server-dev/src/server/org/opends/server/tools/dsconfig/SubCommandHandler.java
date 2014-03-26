@@ -827,8 +827,6 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
    *           parsed successfully.
    * @throws ClientException
    *           If the management context could not be created.
-   * @throws ClientException
-   *           If a CLI exception occurred.
    */
   public abstract MenuResult<Integer> run(ConsoleApplication app,
       ManagementContextFactory factory) throws ArgumentException,

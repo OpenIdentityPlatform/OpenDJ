@@ -61,7 +61,6 @@ import org.forgerock.opendj.ldap.TrustManagers;
 import org.opends.admin.ads.util.ApplicationTrustManager;
 import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
-import org.opends.server.tools.JavaPropertiesTool.ErrorReturnCode;
 import org.opends.server.util.cli.LDAPConnectionConsoleInteraction;
 
 import com.forgerock.opendj.cli.Argument;
@@ -202,7 +201,6 @@ public final class LDAPManagementContextFactory implements
           {
             if (app.isInteractive()
                 && ci.isTrustStoreInMemory()
-                && e.getCause() != null
                 && e.getCause() instanceof SSLException
                 && e.getCause().getCause() instanceof CertificateException)
             {
@@ -354,7 +352,7 @@ public final class LDAPManagementContextFactory implements
     // arguments.
     LocalizableMessageBuilder buf = new LocalizableMessageBuilder();
     int v = secureArgsList.validateGlobalOptions(buf);
-    if (v != ErrorReturnCode.SUCCESSFUL_NOP.getReturnCode())
+    if (v != ReturnCode.SUCCESS.get())
     {
       throw new ArgumentException(buf.toMessage());
     }
