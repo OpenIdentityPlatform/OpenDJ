@@ -1349,7 +1349,6 @@ public class UninstallCliHelper extends ConsoleApplication {
     boolean returnValue;
     boolean stopProcessing = false;
     boolean reloadTopologyCache = false;
-    boolean interactive = parser.isInteractive();
 
     logger.info(LocalizableMessage.raw("Handle topology cache."));
 
@@ -1390,7 +1389,7 @@ public class UninstallCliHelper extends ConsoleApplication {
         if (e.getCause() != null &&
             Utils.isCertificateException(e.getCause()))
         {
-          if (interactive)
+          if (isInteractive())
           {
             println();
             stopProcessing = true;
@@ -1417,7 +1416,7 @@ public class UninstallCliHelper extends ConsoleApplication {
         exceptionMsgs.add(Utils.getMessage(e));
       }
     }
-    if (interactive)
+    if (isInteractive())
     {
       if (!stopProcessing && exceptionMsgs.size() > 0)
       {
@@ -1490,14 +1489,11 @@ public class UninstallCliHelper extends ConsoleApplication {
   /** {@inheritDoc} */
   @Override
   public boolean isInteractive() {
-    if (!forceNonInteractive)
+    if (forceNonInteractive)
     {
       return false;
     }
-    else
-    {
-      return parser.isInteractive();
-    }
+    return parser.isInteractive();
   }
 
 
