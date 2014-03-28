@@ -73,7 +73,6 @@ import org.opends.quicksetup.util.PlainTextProgressMessageFormatter;
 import org.opends.quicksetup.util.ServerController;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
-import org.opends.server.tools.dsconfig.LDAPManagementContextFactory;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.cli.LDAPConnectionConsoleInteraction;
 
@@ -858,10 +857,9 @@ public class UninstallCliHelper extends ConsoleApplication {
         ci.setDisplayLdapIfSecureParameters(true);
       }
 
-      InitialLdapContext ctx = null;
       try
       {
-        ci.run(true, false);
+        ci.run(alwaysSSL, false);
         userData.setAdminUID(ci.getAdministratorUID());
         userData.setAdminPwd(ci.getBindPassword());
 
@@ -887,9 +885,6 @@ public class UninstallCliHelper extends ConsoleApplication {
         {
           logger.error(LocalizableMessage.raw("Error parsing url: "+adminConnectorUrl));
         }
-        LDAPManagementContextFactory factory =
-          new LDAPManagementContextFactory(alwaysSSL);
-        factory.getManagementContext(this, ci);
         updateTrustManager(userData, ci);
 
         info.setConnectionPolicy(ConnectionProtocolPolicy.USE_ADMIN);
@@ -914,10 +909,6 @@ public class UninstallCliHelper extends ConsoleApplication {
       catch (ClientException e) {
         printErrorMessage(e.getMessageObject());
         println();
-      }
-      finally
-      {
-        StaticUtils.close(ctx);
       }
 
       if (!couldConnect)
