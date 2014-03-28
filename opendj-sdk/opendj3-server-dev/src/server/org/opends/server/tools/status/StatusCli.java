@@ -28,32 +28,51 @@
 package org.opends.server.tools.status;
 
 import static com.forgerock.opendj.cli.ArgumentConstants.LIST_TABLE_SEPARATOR;
-import static com.forgerock.opendj.cli.CliMessages.ERR_CANNOT_INITIALIZE_ARGS;
-import static com.forgerock.opendj.cli.CliMessages.ERR_ERROR_PARSING_ARGS;
+import static com.forgerock.opendj.cli.CliMessages.*;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.INFO_ERROR_READING_SERVER_CONFIGURATION;
 import static org.opends.messages.QuickSetupMessages.INFO_NOT_AVAILABLE_LABEL;
 import static com.forgerock.opendj.cli.Utils.MAX_LINE_WIDTH;
+import static org.forgerock.util.Utils.closeSilently;
 
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.net.URI;
+import java.security.GeneralSecurityException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.TimeUnit;
 
+import javax.naming.AuthenticationException;
 import javax.naming.NamingException;
 import javax.naming.ldap.InitialLdapContext;
+import javax.net.ssl.KeyManager;
+import javax.net.ssl.SSLException;
+import javax.net.ssl.TrustManager;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.LDAPProfile;
 import org.forgerock.opendj.config.client.ManagementContext;
+import org.forgerock.opendj.config.client.ldap.LDAPManagementContext;
 import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.AuthorizationException;
+import org.forgerock.opendj.ldap.Connection;
+import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LDAPConnectionFactory;
+import org.forgerock.opendj.ldap.LDAPOptions;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.SSLContextBuilder;
+import org.forgerock.opendj.ldap.TrustManagers;
 import org.opends.admin.ads.util.ApplicationTrustManager;
+import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.guitools.controlpanel.datamodel.BackendDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
 import org.opends.guitools.controlpanel.datamodel.BaseDNTableModel;
@@ -65,9 +84,7 @@ import org.opends.guitools.controlpanel.datamodel.ControlPanelInfo;
 import org.opends.guitools.controlpanel.datamodel.ServerDescriptor;
 import org.opends.guitools.controlpanel.util.ControlPanelLog;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.server.admin.AdministrationConnector;
 import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
-import org.opends.server.tools.dsconfig.LDAPManagementContextFactory;
 import org.opends.server.types.DN;
 import org.opends.server.types.InitializationException;
 import org.opends.server.types.NullOutputStream;
@@ -77,6 +94,7 @@ import org.opends.server.util.StaticUtils;
 import org.opends.server.util.cli.LDAPConnectionConsoleInteraction;
 
 import com.forgerock.opendj.cli.ArgumentException;
+import com.forgerock.opendj.cli.CliConstants;
 import com.forgerock.opendj.cli.ClientException;
 import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.ReturnCode;
@@ -85,10 +103,8 @@ import com.forgerock.opendj.cli.TextTablePrinter;
 
 /**
  * The class used to provide some CLI interface to display status.
- *
- * This class basically is in charge of parsing the data provided by the user
- * in the command line.
- *
+ * This class basically is in charge of parsing the data provided by the
+ * user in the command line.
  */
 class StatusCli extends ConsoleApplication
 {
@@ -106,9 +122,6 @@ class StatusCli extends ConsoleApplication
 
   private boolean useInteractiveTrustManager;
 
-  /** This CLI is always using the administration connector with SSL. */
-  private final boolean alwaysSSL = true;
-
   /** The Logger. */
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
@@ -116,11 +129,14 @@ class StatusCli extends ConsoleApplication
   private StatusCliArgumentParser argParser;
 
   /**
-   * Constructor for the StatusCli object.
+   * Constructor for the status cli object.
    *
-   * @param out the print stream to use for standard output.
-   * @param err the print stream to use for standard error.
-   * @param in the input stream to use for standard input.
+   * @param out
+   *          The print stream to use for standard output.
+   * @param err
+   *          The print stream to use for standard error.
+   * @param in
+   *          The input stream to use for standard input.
    */
   public StatusCli(PrintStream out, PrintStream err, InputStream in)
   {
@@ -130,7 +146,7 @@ class StatusCli extends ConsoleApplication
   /**
    * The main method for the status CLI tool.
    *
-   * @param args the command-line arguments provided to this program.
+   * @param args The command-line arguments provided to this program.
    */
 
   public static void main(String[] args)
@@ -149,7 +165,7 @@ class StatusCli extends ConsoleApplication
    *
    * @param args the command-line arguments provided to this program.
    *
-   * @return The error code.
+   * @return The return code.
    */
 
   public static int mainCLI(String[] args)
@@ -158,22 +174,23 @@ class StatusCli extends ConsoleApplication
   }
 
   /**
-   * Parses the provided command-line arguments and uses that information to
-   * run the status tool.
+   * Parses the provided command-line arguments and uses that information to run
+   * the status tool.
    *
-   * @param  args              The command-line arguments provided to this
-   *                           program.
-   * @param initializeServer   Indicates whether to initialize the server.
-   * @param  outStream         The output stream to use for standard output, or
-   *                           <CODE>null</CODE> if standard output is not
-   *                           needed.
-   * @param  errStream         The output stream to use for standard error, or
-   *                           <CODE>null</CODE> if standard error is not
-   *                           needed.
-   * @param  inStream          The input stream to use for standard input.
-   * @return The error code.
+   * @param args
+   *          The command-line arguments provided to this program.
+   * @param initializeServer
+   *          Indicates whether to initialize the server.
+   * @param outStream
+   *          The output stream to use for standard output, or {@code null}
+   *          if standard output is not needed.
+   * @param errStream
+   *          The output stream to use for standard error, or {@code null}
+   *          if standard error is not needed.
+   * @param inStream
+   *          The input stream to use for standard input.
+   * @return The return code.
    */
-
   public static int mainCLI(String[] args, boolean initializeServer,
       OutputStream outStream, OutputStream errStream, InputStream inStream)
   {
@@ -189,19 +206,20 @@ class StatusCli extends ConsoleApplication
       t.printStackTrace();
     }
 
-    StatusCli statusCli = new StatusCli(out, err, inStream);
+    final StatusCli statusCli = new StatusCli(out, err, inStream);
 
     return statusCli.execute(args, initializeServer);
   }
 
   /**
-   * Parses the provided command-line arguments and uses that information to
-   * run the status CLI.
+   * Parses the provided command-line arguments and uses that information to run
+   * the status CLI.
    *
-   * @param args the command-line arguments provided to this program.
-   * @param  initializeServer  Indicates whether to initialize the server.
-   *
-   * @return the return code (SUCCESSFUL, USER_DATA_ERROR or BUG.
+   * @param args
+   *          The command-line arguments provided to this program.
+   * @param initializeServer
+   *          Indicates whether to initialize the server.
+   * @return The return code of the process.
    */
   public int execute(String[] args, boolean initializeServer) {
     argParser = new StatusCliArgumentParser(StatusCli.class.getName());
@@ -254,84 +272,83 @@ class StatusCli extends ConsoleApplication
       println(LocalizableMessage.raw(argParser.getUsage()));
       return v;
     } else {
-      ControlPanelInfo controlInfo = ControlPanelInfo.getInstance();
+      final ControlPanelInfo controlInfo = ControlPanelInfo.getInstance();
       controlInfo.setTrustManager(getTrustManager());
       controlInfo.setConnectTimeout(argParser.getConnectTimeout());
       controlInfo.regenerateDescriptor();
-      boolean authProvided = false;
-      if (controlInfo.getServerDescriptor().getStatus() ==
-        ServerDescriptor.ServerStatus.STARTED) {
-        String bindDn;
-        String bindPwd;
-        if (argParser.isInteractive()) {
-          ManagementContext ctx = null;
 
-          // This is done because we do not need to ask the user about these
-          // parameters.  If we force their presence the class
-          // LDAPConnectionConsoleInteraction will not prompt the user for
-          // them.
-          SecureConnectionCliArgs secureArgsList =
+      if (controlInfo.getServerDescriptor().getStatus() == ServerDescriptor.ServerStatus.STARTED)
+      {
+        String bindDn = null;
+        String bindPwd = null;
+
+        ManagementContext mContext = null;
+
+        // This is done because we do not need to ask the user about these
+        // parameters. We force their presence in the
+        // LDAPConnectionConsoleInteraction, this done, it will not prompt
+        // the user for them.
+        final SecureConnectionCliArgs secureArgsList =
             argParser.getSecureArgsList();
-
-          int port =
-            AdministrationConnector.DEFAULT_ADMINISTRATION_CONNECTOR_PORT;
-          controlInfo.setConnectionPolicy(
-            ConnectionProtocolPolicy.USE_ADMIN);
-          String ldapUrl = controlInfo.getURLToConnect();
-          try {
-            URI uri = new URI(ldapUrl);
-            port = uri.getPort();
-          } catch (Throwable t) {
-            logger.error(LocalizableMessage.raw("Error parsing url: " + ldapUrl));
-          }
-          secureArgsList.hostNameArg.setPresent(true);
-          secureArgsList.portArg.setPresent(true);
-          secureArgsList.hostNameArg.addValue(
-            secureArgsList.hostNameArg.getDefaultValue());
-          secureArgsList.portArg.addValue(Integer.toString(port));
+        controlInfo.setConnectionPolicy(ConnectionProtocolPolicy.USE_ADMIN);
+        int port = CliConstants.DEFAULT_ADMINISTRATION_CONNECTOR_PORT;
+        controlInfo.setConnectionPolicy(ConnectionProtocolPolicy.USE_ADMIN);
+        String ldapUrl = controlInfo.getURLToConnect();
+        try
+        {
+          final URI uri = new URI(ldapUrl);
+          port = uri.getPort();
+        }
+        catch (Throwable t)
+        {
+          logger.error(LocalizableMessage
+              .raw("Error parsing url: " + ldapUrl));
+        }
+        secureArgsList.hostNameArg.setPresent(true);
+        secureArgsList.portArg.setPresent(true);
+        secureArgsList.hostNameArg.addValue(secureArgsList.hostNameArg
+            .getDefaultValue());
+        secureArgsList.portArg.addValue(Integer.toString(port));
+        try
+        {
           // We already know if SSL or StartTLS can be used.  If we cannot
           // use them we will not propose them in the connection parameters
           // and if none of them can be used we will just not ask for the
           // protocol to be used.
-          LDAPConnectionConsoleInteraction ci =
-            new LDAPConnectionConsoleInteraction(
-            this, argParser.getSecureArgsList());
-          try {
-            ci.run(true, false);
+          final LDAPConnectionConsoleInteraction ci =
+              new LDAPConnectionConsoleInteraction(this, argParser
+                  .getSecureArgsList());
+
+          ci.run(true, false);
+          if (argParser.isInteractive())
+          {
             bindDn = ci.getBindDN();
             bindPwd = ci.getBindPassword();
-
-            LDAPManagementContextFactory factory =
-              new LDAPManagementContextFactory(alwaysSSL);
-            ctx = factory.getManagementContext(this, ci);
+          }
+          else
+          {
+            bindDn = argParser.getBindDN();
+            bindPwd = argParser.getBindPassword();
+          }
+          if (bindPwd != null && !bindPwd.isEmpty())
+          {
+            mContext = getManagementContextFromConnection(ci);
             interactiveTrustManager = ci.getTrustManager();
             controlInfo.setTrustManager(interactiveTrustManager);
             useInteractiveTrustManager = true;
-          } catch (ArgumentException e) {
-            println(e.getMessageObject());
-            return ReturnCode.CLIENT_SIDE_PARAM_ERROR.get();
-          } catch (ClientException e) {
-            println(e.getMessageObject());
-            writeStatus(controlInfo);
-            return ReturnCode.ERROR_USER_CANCELLED.get();
-          } finally {
-            StaticUtils.close(ctx);
           }
-        } else {
-          bindDn = argParser.getBindDN();
-          bindPwd = argParser.getBindPassword();
+        } catch (ArgumentException e) {
+          println(e.getMessageObject());
+          return ReturnCode.CLIENT_SIDE_PARAM_ERROR.get();
+        } catch (ClientException e) {
+          println(e.getMessageObject());
+          return ReturnCode.CLIENT_SIDE_PARAM_ERROR.get();
+        } finally {
+          closeSilently(mContext);
         }
 
-        authProvided = bindPwd != null;
-
-        if (bindDn == null) {
-          bindDn = "";
-        }
-        if (bindPwd == null) {
-          bindPwd = "";
-        }
-
-        if (authProvided) {
+        if (mContext != null)
+        {
           InitialLdapContext ctx = null;
           try {
             ctx = Utilities.getAdminDirContext(controlInfo, bindDn, bindPwd);
@@ -361,6 +378,7 @@ class StatusCli extends ConsoleApplication
           // The user did not provide authentication: just display the
           // information we can get reading the config file.
           writeStatus(controlInfo);
+          return ReturnCode.ERROR_USER_CANCELLED.get();
         }
       } else {
         writeStatus(controlInfo);
@@ -401,10 +419,10 @@ class StatusCli extends ConsoleApplication
         {
         }
       }
-      getOutputStream().println();
-      getOutputStream().println(
-      "          ---------------------");
-      getOutputStream().println();
+      println();
+      println(LocalizableMessage.raw(
+      "          ---------------------"));
+      println();
       writeStatus(controlInfo.getServerDescriptor());
       first = false;
     }
@@ -431,20 +449,20 @@ class StatusCli extends ConsoleApplication
       {
         labelWidth = Math.max(labelWidth, label.length());
       }
-      getOutputStream().println();
-      getOutputStream().println(centerTitle(title));
+      println();
+      println(centerTitle(title));
     }
     writeStatusContents(desc, labelWidth);
     writeCurrentConnectionContents(desc, labelWidth);
     if (!isScriptFriendly())
     {
-      getOutputStream().println();
+      println();
     }
 
     title = INFO_SERVER_DETAILS_TITLE.get();
     if (!isScriptFriendly())
     {
-      getOutputStream().println(centerTitle(title));
+      println(centerTitle(title));
     }
     writeHostnameContents(desc, labelWidth);
     writeAdministrativeUserContents(desc, labelWidth);
@@ -459,13 +477,13 @@ class StatusCli extends ConsoleApplication
     writeAdminConnectorContents(desc, labelWidth);
     if (!isScriptFriendly())
     {
-      getOutputStream().println();
+      println();
     }
 
     writeListenerContents(desc);
     if (!isScriptFriendly())
     {
-      getOutputStream().println();
+      println();
     }
 
     writeBaseDNContents(desc);
@@ -476,25 +494,24 @@ class StatusCli extends ConsoleApplication
     {
       if (displayMustStartLegend)
       {
-        getOutputStream().println();
-        getOutputStream().println(
-            wrapText(INFO_NOT_AVAILABLE_SERVER_DOWN_CLI_LEGEND.get()));
+        println();
+        println(INFO_NOT_AVAILABLE_SERVER_DOWN_CLI_LEGEND.get());
       }
       else if (displayMustAuthenticateLegend)
       {
-        getOutputStream().println();
-        getOutputStream().println(
-            wrapText(
-                INFO_NOT_AVAILABLE_AUTHENTICATION_REQUIRED_CLI_LEGEND.get()));
+        println();
+        println(INFO_NOT_AVAILABLE_AUTHENTICATION_REQUIRED_CLI_LEGEND.get());
       }
     }
-    getOutputStream().println();
+    println();
   }
 
   /**
    * Writes the status contents displaying with what is specified in the
    * provided ServerDescriptor object.
-   * @param desc the ServerStatusDescriptor object.
+   *
+   * @param desc
+   *          The ServerStatusDescriptor object.
    */
   private void writeStatusContents(ServerDescriptor desc,
       int maxLabelWidth)
@@ -534,9 +551,11 @@ class StatusCli extends ConsoleApplication
   }
 
   /**
-   * Writes the current connection contents displaying with what is specified
-   * in the provided ServerDescriptor object.
-   * @param desc the ServerDescriptor object.
+   * Writes the current connection contents displaying with what is specified in
+   * the provided ServerDescriptor object.
+   *
+   * @param desc
+   *          The ServerDescriptor object.
    */
   private void writeCurrentConnectionContents(ServerDescriptor desc,
       int maxLabelWidth)
@@ -571,21 +590,27 @@ class StatusCli extends ConsoleApplication
 
   /**
    * Writes the host name contents.
-   * @param desc the ServerDescriptor object.
-   * @param maxLabelWidth the maximum label width of the left label.
+   *
+   * @param desc
+   *          The ServerDescriptor object.
+   * @param maxLabelWidth
+   *          The maximum label width of the left label.
    */
   private void writeHostnameContents(ServerDescriptor desc,
       int maxLabelWidth)
   {
-    writeLabelValue(INFO_HOSTNAME_LABEL.get(),
-        LocalizableMessage.raw(desc.getHostname()),
-        maxLabelWidth);
+    writeLabelValue(INFO_HOSTNAME_LABEL.get(), LocalizableMessage.raw(desc
+        .getHostname()), maxLabelWidth);
   }
+
   /**
    * Writes the administrative user contents displaying with what is specified
    * in the provided ServerStatusDescriptor object.
-   * @param desc the ServerStatusDescriptor object.
-   * @param maxLabelWidth the maximum label width of the left label.
+   *
+   * @param desc
+   *          The ServerStatusDescriptor object.
+   * @param maxLabelWidth
+   *          The maximum label width of the left label.
    */
   private void writeAdministrativeUserContents(ServerDescriptor desc,
       int maxLabelWidth)
@@ -639,8 +664,11 @@ class StatusCli extends ConsoleApplication
   /**
    * Writes the install path contents displaying with what is specified in the
    * provided ServerDescriptor object.
-   * @param desc the ServerDescriptor object.
-   * @param maxLabelWidth the maximum label width of the left label.
+   *
+   * @param desc
+   *          The ServerDescriptor object.
+   * @param maxLabelWidth
+   *          The maximum label width of the left label.
    */
   private void writeInstallPathContents(ServerDescriptor desc,
       int maxLabelWidth)
@@ -653,8 +681,11 @@ class StatusCli extends ConsoleApplication
   /**
    * Writes the instance path contents displaying with what is specified in the
    * provided ServerDescriptor object.
-   * @param desc the ServerDescriptor object.
-   * @param maxLabelWidth the maximum label width of the left label.
+   *
+   * @param desc
+   *          The ServerDescriptor object.
+   * @param maxLabelWidth
+   *          The maximum label width of the left label.
    */
   private void writeInstancePathContents(ServerDescriptor desc,
       int maxLabelWidth)
@@ -666,9 +697,11 @@ class StatusCli extends ConsoleApplication
 
   /**
    * Updates the server version contents displaying with what is specified in
-   * the provided ServerDescriptor object.
-   * This method must be called from the event thread.
-   * @param desc the ServerDescriptor object.
+   * the provided ServerDescriptor object. This method must be called from the
+   * event thread.
+   *
+   * @param desc
+   *          The ServerDescriptor object.
    */
   private void writeVersionContents(ServerDescriptor desc,
       int maxLabelWidth)
@@ -713,10 +746,13 @@ class StatusCli extends ConsoleApplication
 
   /**
    * Updates the admin connector contents displaying with what is specified in
-   * the provided ServerDescriptor object.
-   * This method must be called from the event thread.
-   * @param desc the ServerDescriptor object.
-   * @param maxLabelWidth the maximum label width of the left label.
+   * the provided ServerDescriptor object. This method must be called from the
+   * event thread.
+   *
+   * @param desc
+   *          The ServerDescriptor object.
+   * @param maxLabelWidth
+   *          The maximum label width of the left label.
    */
   private void writeAdminConnectorContents(ServerDescriptor desc,
       int maxLabelWidth)
@@ -738,16 +774,18 @@ class StatusCli extends ConsoleApplication
   }
 
   /**
-   * Writes the listeners contents displaying with what is specified in
-   * the provided ServerDescriptor object.
-   * @param desc the ServerDescriptor object.
+   * Writes the listeners contents displaying with what is specified in the
+   * provided ServerDescriptor object.
+   *
+   * @param desc
+   *          The ServerDescriptor object.
    */
   private void writeListenerContents(ServerDescriptor desc)
   {
     if (!isScriptFriendly())
     {
       LocalizableMessage title = INFO_LISTENERS_TITLE.get();
-      getOutputStream().println(centerTitle(title));
+      println(centerTitle(title));
     }
 
     Set<ConnectionHandlerDescriptor> allHandlers = desc.getConnectionHandlers();
@@ -757,18 +795,16 @@ class StatusCli extends ConsoleApplication
       {
         if (!desc.isAuthenticated())
         {
-          getOutputStream().println(
-              wrapText(
-                  INFO_NOT_AVAILABLE_AUTHENTICATION_REQUIRED_CLI_LABEL.get()));
+          println(INFO_NOT_AVAILABLE_AUTHENTICATION_REQUIRED_CLI_LABEL.get());
         }
         else
         {
-          getOutputStream().println(wrapText(INFO_NO_LISTENERS_FOUND.get()));
+          println(INFO_NO_LISTENERS_FOUND.get());
         }
       }
       else
       {
-        getOutputStream().println(wrapText(INFO_NO_LISTENERS_FOUND.get()));
+        println(INFO_NO_LISTENERS_FOUND.get());
       }
     }
     else
@@ -781,16 +817,18 @@ class StatusCli extends ConsoleApplication
   }
 
   /**
-   * Writes the base DN contents displaying with what is specified in
-   * the provided ServerDescriptor object.
-   * @param desc the ServerDescriptor object.
+   * Writes the base DN contents displaying with what is specified in the
+   * provided ServerDescriptor object.
+   *
+   * @param desc
+   *          The ServerDescriptor object.
    */
   private void writeBaseDNContents(ServerDescriptor desc)
   {
     LocalizableMessage title = INFO_DATABASES_TITLE.get();
     if (!isScriptFriendly())
     {
-      getOutputStream().println(centerTitle(title));
+      println(centerTitle(title));
     }
 
     Set<BaseDNDescriptor> replicas = new HashSet<BaseDNDescriptor>();
@@ -808,18 +846,17 @@ class StatusCli extends ConsoleApplication
       {
         if (!desc.isAuthenticated())
         {
-          getOutputStream().println(
-              wrapText(
-                  INFO_NOT_AVAILABLE_AUTHENTICATION_REQUIRED_CLI_LABEL.get()));
+          println(
+          INFO_NOT_AVAILABLE_AUTHENTICATION_REQUIRED_CLI_LABEL.get());
         }
         else
         {
-          getOutputStream().println(wrapText(INFO_NO_DBS_FOUND.get()));
+          println(INFO_NO_DBS_FOUND.get());
         }
       }
       else
       {
-        getOutputStream().println(wrapText(INFO_NO_DBS_FOUND.get()));
+        println(INFO_NO_DBS_FOUND.get());
       }
     }
     else
@@ -833,9 +870,11 @@ class StatusCli extends ConsoleApplication
   }
 
   /**
-   * Writes the error label contents displaying with what is specified in
-   * the provided ServerDescriptor object.
-   * @param desc the ServerDescriptor object.
+   * Writes the error label contents displaying with what is specified in the
+   * provided ServerDescriptor object.
+   *
+   * @param desc
+   *          The ServerDescriptor object.
    */
   private void writeErrorContents(ServerDescriptor desc)
   {
@@ -844,8 +883,8 @@ class StatusCli extends ConsoleApplication
       LocalizableMessage errorMsg = ex.getMessageObject();
       if (errorMsg != null)
       {
-        getOutputStream().println();
-        getOutputStream().println(wrapText(errorMsg));
+        println();
+        println(errorMsg);
       }
     }
   }
@@ -853,6 +892,7 @@ class StatusCli extends ConsoleApplication
   /**
    * Returns the not available text explaining that the data is not available
    * because the server is down.
+   *
    * @return the text.
    */
   private LocalizableMessage getNotAvailableBecauseServerIsDownText()
@@ -864,6 +904,7 @@ class StatusCli extends ConsoleApplication
   /**
    * Returns the not available text explaining that the data is not available
    * because authentication is required.
+   *
    * @return the text.
    */
   private LocalizableMessage getNotAvailableBecauseAuthenticationIsRequiredText()
@@ -874,6 +915,7 @@ class StatusCli extends ConsoleApplication
 
   /**
    * Returns the not available text explaining that the data is not available.
+   *
    * @return the text.
    */
   private LocalizableMessage getNotAvailableText()
@@ -884,8 +926,11 @@ class StatusCli extends ConsoleApplication
   /**
    * Writes the contents of the provided table model simulating a table layout
    * using text.
-   * @param tableModel the connection handler table model.
-   * @param desc the Server Status descriptor.
+   *
+   * @param tableModel
+   *          The connection handler table model.
+   * @param desc
+   *          The Server Status descriptor.
    */
   private void writeConnectionHandlersTableModel(
       ConnectionHandlerTableModel tableModel,
@@ -899,7 +944,7 @@ class StatusCli extends ConsoleApplication
         String[] hostNames = getHostNames(tableModel, i);
         for (String hostName : hostNames)
         {
-          getOutputStream().println("-");
+          println(LocalizableMessage.raw("-"));
           for (int j=0; j<tableModel.getColumnCount(); j++)
           {
             LocalizableMessageBuilder line = new LocalizableMessageBuilder();
@@ -913,7 +958,7 @@ class StatusCli extends ConsoleApplication
             {
               line.append(getCellValue(tableModel.getValueAt(i, j), desc));
             }
-            getOutputStream().println(wrapText(line.toMessage()));
+            println(line.toMessage());
           }
         }
       }
@@ -927,7 +972,7 @@ class StatusCli extends ConsoleApplication
       }
       for (int i=0; i<tableModel.getRowCount(); i++)
       {
-//      Get the host name, it can be multivalued.
+        // Get the host name, it can be multivalued.
         String[] hostNames = getHostNames(tableModel, i);
         for (String hostName : hostNames)
         {
@@ -1005,16 +1050,19 @@ class StatusCli extends ConsoleApplication
   }
 
   /**
-   * Writes the contents of the provided base DN table model.  Every base DN
-   * is written in a block containing pairs of labels and values.
-   * @param tableModel the TableModel.
-   * @param desc the Server Status descriptor.
+   * Writes the contents of the provided base DN table model. Every base DN is
+   * written in a block containing pairs of labels and values.
+   *
+   * @param tableModel
+   *          The TableModel.
+   * @param desc
+   *          The Server Status descriptor.
    */
   private void writeBaseDNTableModel(BaseDNTableModel tableModel,
   ServerDescriptor desc)
   {
     boolean isRunning =
-      desc.getStatus() == ServerDescriptor.ServerStatus.STARTED;
+        desc.getStatus() == ServerDescriptor.ServerStatus.STARTED;
 
     int labelWidth = 0;
     int labelWidthWithoutReplicated = 0;
@@ -1036,11 +1084,11 @@ class StatusCli extends ConsoleApplication
     {
       if (isScriptFriendly())
       {
-        getOutputStream().println("-");
+        println(LocalizableMessage.raw("-"));
       }
       else if (i > 0)
       {
-        getOutputStream().println();
+        println();
       }
       for (int j=0; j<tableModel.getColumnCount(); j++)
       {
@@ -1132,9 +1180,10 @@ class StatusCli extends ConsoleApplication
     }
   }
 
-  private void writeLabelValue(LocalizableMessage label, LocalizableMessage value, int maxLabelWidth)
+  private void writeLabelValue(final LocalizableMessage label,
+      final LocalizableMessage value, final int maxLabelWidth)
   {
-    LocalizableMessageBuilder buf = new LocalizableMessageBuilder();
+    final LocalizableMessageBuilder buf = new LocalizableMessageBuilder();
     buf.append(label);
 
     int extra = maxLabelWidth - label.length();
@@ -1143,15 +1192,14 @@ class StatusCli extends ConsoleApplication
       buf.append(" ");
     }
     buf.append(" ").append(String.valueOf(value));
-    getOutputStream().println(wrapText(buf.toMessage()));
+    println(buf.toMessage());
   }
 
-  private LocalizableMessage centerTitle(LocalizableMessage text)
+  private LocalizableMessage centerTitle(final LocalizableMessage text)
   {
-    LocalizableMessage centered;
     if (text.length() <= MAX_LINE_WIDTH - 8)
     {
-      LocalizableMessageBuilder buf = new LocalizableMessageBuilder();
+      final LocalizableMessageBuilder buf = new LocalizableMessageBuilder();
       int extra = Math.min(10,
           (MAX_LINE_WIDTH - 8 - text.length()) / 2);
       for (int i=0; i<extra; i++)
@@ -1159,17 +1207,14 @@ class StatusCli extends ConsoleApplication
         buf.append(" ");
       }
       buf.append("--- ").append(text).append(" ---");
-      centered = buf.toMessage();
+      return buf.toMessage();
     }
-    else
-    {
-      centered = text;
-    }
-    return centered;
+    return text;
   }
 
   /**
    * Returns the trust manager to be used by this application.
+   *
    * @return the trust manager to be used by this application.
    */
   private ApplicationTrustManager getTrustManager()
@@ -1178,19 +1223,15 @@ class StatusCli extends ConsoleApplication
     {
       return interactiveTrustManager;
     }
-    else
-    {
-      return argParser.getTrustManager();
-    }
+    return argParser.getTrustManager();
   }
 
   /** {@inheritDoc} */
   @Override
-  public boolean isAdvancedMode() {
+  public boolean isAdvancedMode()
+  {
     return false;
   }
-
-
 
   /** {@inheritDoc} */
   @Override
@@ -1230,16 +1271,96 @@ class StatusCli extends ConsoleApplication
     return true;
   }
 
-
-
-  /**
-   * Wraps a message according to client tool console width.
-   * @param text to wrap
-   * @return raw message representing wrapped string
-   */
-  private LocalizableMessage wrapText(LocalizableMessage text)
+  // FIXME Common code with DSConfigand tools*. This method needs to be moved.
+  private ManagementContext getManagementContextFromConnection(
+      final LDAPConnectionConsoleInteraction ci) throws ClientException
   {
-    return LocalizableMessage.raw(
-        StaticUtils.wrapText(text, MAX_LINE_WIDTH));
+    // Interact with the user though the console to get
+    // LDAP connection information
+    final String hostName = ConnectionUtils.getHostNameForLdapUrl(ci.getHostName());
+    final Integer portNumber = ci.getPortNumber();
+    final String bindDN = ci.getBindDN();
+    final String bindPassword = ci.getBindPassword();
+    TrustManager trustManager = ci.getTrustManager();
+    final KeyManager keyManager = ci.getKeyManager();
+
+    // This connection should always be secure. useSSL = true.
+    Connection connection = null;
+    final LDAPOptions options = new LDAPOptions();
+    options.setConnectTimeout(ci.getConnectTimeout(), TimeUnit.MILLISECONDS);
+    LDAPConnectionFactory factory = null;
+    while (true)
+    {
+      try
+      {
+        final SSLContextBuilder sslBuilder = new SSLContextBuilder();
+        sslBuilder.setTrustManager((trustManager == null ? TrustManagers
+            .trustAll() : trustManager));
+        sslBuilder.setKeyManager(keyManager);
+        options.setUseStartTLS(ci.useStartTLS());
+        options.setSSLContext(sslBuilder.getSSLContext());
+
+        factory = new LDAPConnectionFactory(hostName, portNumber, options);
+        connection = factory.getConnection();
+        connection.bind(bindDN, bindPassword.toCharArray());
+        break;
+      }
+      catch (ErrorResultException e)
+      {
+        if (ci.isTrustStoreInMemory() && e.getCause() instanceof SSLException
+            && e.getCause().getCause() instanceof CertificateException)
+        {
+          String authType = null;
+          if (trustManager instanceof ApplicationTrustManager)
+          { // FIXME use PromptingTrustManager
+            ApplicationTrustManager appTrustManager =
+                (ApplicationTrustManager) trustManager;
+            authType = appTrustManager.getLastRefusedAuthType();
+            X509Certificate[] cert = appTrustManager.getLastRefusedChain();
+
+            if (ci.checkServerCertificate(cert, authType, hostName))
+            {
+              // If the certificate is trusted, update the trust manager.
+              trustManager = ci.getTrustManager();
+              // Try to connect again.
+              continue;
+            }
+          }
+        }
+        if (e.getCause() instanceof SSLException)
+        {
+          LocalizableMessage message =
+              ERR_FAILED_TO_CONNECT_NOT_TRUSTED.get(hostName, portNumber);
+          throw new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR,
+              message);
+        }
+        if (e.getCause() instanceof AuthorizationException)
+        {
+          throw new ClientException(ReturnCode.AUTH_METHOD_NOT_SUPPORTED,
+              ERR_SIMPLE_BIND_NOT_SUPPORTED.get());
+        }
+        else if (e.getCause() instanceof AuthenticationException
+            || e.getResult().getResultCode() == ResultCode.INVALID_CREDENTIALS)
+        {
+          // Status Cli must not fail when un-authenticated.
+          return null;
+        }
+        throw new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR,
+            ERR_FAILED_TO_CONNECT.get(hostName, portNumber));
+      }
+      catch (GeneralSecurityException e)
+      {
+        LocalizableMessage message =
+            ERR_FAILED_TO_CONNECT.get(hostName, portNumber);
+        throw new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR, message);
+      }
+      finally
+      {
+        closeSilently(factory, connection);
+      }
+    }
+
+    return LDAPManagementContext.newManagementContext(connection, LDAPProfile
+        .getInstance());
   }
 }
