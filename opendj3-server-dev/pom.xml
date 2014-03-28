@@ -169,7 +169,9 @@
         <inherited>false</inherited>
         <configuration>
          <projectName>OpenDJ</projectName>
+         <projectVersion>${docTargetVersion}</projectVersion>
          <googleAnalyticsId>${gaId}</googleAnalyticsId>
+         <latestJson>http://mcraig.org/fr/latest.php</latestJson><!-- Temporary workaround pending #QOZ-985-23233 -->
          <docbkxSourceDirectory>${basedir}/src/main/docbkx</docbkxSourceDirectory>
         </configuration>
         <executions>
