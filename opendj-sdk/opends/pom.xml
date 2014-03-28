@@ -99,7 +99,7 @@
     <docPreviousVersion>2.6.0</docPreviousVersion>
     <sdkDocTargetVersion>${docTargetVersion}</sdkDocTargetVersion>
 
-    <frDocPluginVersion>2.1.0-SNAPSHOT</frDocPluginVersion>
+    <frDocPluginVersion>2.1.0</frDocPluginVersion>
     <gaId>UA-23412190-8</gaId>
 
     <!--
