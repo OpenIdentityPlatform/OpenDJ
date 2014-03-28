@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.server.changelog.je;
 
@@ -186,10 +186,11 @@ public class ReplicationDB
    *
    * @param changes
    *          The list of changes to add to the underlying db.
+   * @return the total size of all the changes
    * @throws ChangelogException
    *           If a database problem happened
    */
-  public void addEntries(List<UpdateMsg> changes) throws ChangelogException
+  public int addEntries(List<UpdateMsg> changes) throws ChangelogException
   {
     dbCloseLock.readLock().lock();
     try
@@ -197,9 +198,10 @@ public class ReplicationDB
       // If the DB has been closed then return immediately.
       if (isDBClosed())
       {
-        return;
+        return 0;
       }
 
+      int totalSize = 0;
       for (UpdateMsg change : changes)
       {
         final DatabaseEntry key = createReplicationKey(change.getCSN());
@@ -208,7 +210,10 @@ public class ReplicationDB
         insertCounterRecordIfNeeded(change.getCSN());
         db.put(null, key, data);
         counterCurrValue++;
+
+        totalSize += change.size();
       }
+      return totalSize;
     }
     catch (DatabaseException e)
     {

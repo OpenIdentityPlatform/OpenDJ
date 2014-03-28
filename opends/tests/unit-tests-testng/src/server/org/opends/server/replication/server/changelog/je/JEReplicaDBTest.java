@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.server.changelog.je;
 
@@ -86,7 +86,7 @@ public class JEReplicaDBTest extends ReplicationTestCase
     {
       TestCaseUtils.startServer();
       replicationServer = configureReplicationServer(100, 5000);
-      JEReplicaDB replicaDB = newReplicaDB(replicationServer);
+      final JEReplicaDB replicaDB = newReplicaDB(replicationServer);
 
       CSN[] csns = newCSNs(1, 0, 5);
 
@@ -96,20 +96,8 @@ public class JEReplicaDBTest extends ReplicationTestCase
       DeleteMsg update4 = new DeleteMsg(TEST_ROOT_DN, csns[3], "uid");
 
       //--
-      // Iterator tests with memory queue only populated
-
-      // verify that memory queue is populated
-      assertEquals(replicaDB.getQueueSize(), 3);
-
-      assertFoundInOrder(replicaDB, csns[0], csns[1], csns[2]);
-      assertNotFound(replicaDB, csns[4]);
-
-      //--
-      // Iterator tests with db only populated
-      Thread.sleep(1000); // let the time for flush to happen
-
-      // verify that memory queue is empty (all changes flushed in the db)
-      assertEquals(replicaDB.getQueueSize(), 0);
+      // Iterator tests with changes persisted
+      waitChangesArePersisted(replicaDB);
 
       assertFoundInOrder(replicaDB, csns[0], csns[1], csns[2]);
       assertNotFound(replicaDB, csns[4]);
@@ -118,41 +106,51 @@ public class JEReplicaDBTest extends ReplicationTestCase
       assertEquals(replicaDB.getNewestCSN(), csns[2]);
 
       //--
-      // Cursor tests with db and memory queue populated
-      // all changes in the db - add one in the memory queue
+      // Cursor tests with changes persisted
       replicaDB.add(update4);
-
-      // verify memory queue contains this one
-      assertEquals(replicaDB.getQueueSize(), 1);
+      waitChangesArePersisted(replicaDB);
 
       assertFoundInOrder(replicaDB, csns[0], csns[1], csns[2], csns[3]);
-      // Test cursor from existing CSN at the limit between queue and db
+      // Test cursor from existing CSN
       assertFoundInOrder(replicaDB, csns[2], csns[3]);
       assertFoundInOrder(replicaDB, csns[3]);
       assertNotFound(replicaDB, csns[4]);
 
       replicaDB.setPurgeDelay(1);
 
-      boolean purged = false;
-      int count = 300;  // wait at most 60 seconds
-      while (!purged && (count > 0))
+      int count = 0;
+      boolean purgeSucceeded = false;
+      final CSN expectedNewestCSN = csns[3];
+      do
       {
-        CSN oldestCSN = replicaDB.getOldestCSN();
-        CSN newestCSN = replicaDB.getNewestCSN();
-        if (!oldestCSN.equals(csns[3]) || !newestCSN.equals(csns[3]))
-        {
-          TestCaseUtils.sleep(100);
-        } else
-        {
-          purged = true;
-        }
+        Thread.sleep(10);
+
+        final CSN oldestCSN = replicaDB.getOldestCSN();
+        final CSN newestCSN = replicaDB.getNewestCSN();
+        purgeSucceeded =
+            oldestCSN.equals(expectedNewestCSN)
+                && newestCSN.equals(expectedNewestCSN);
+        count++;
       }
-      // FIXME should add an assert here
+      while (!purgeSucceeded && count < 100);
+      assertTrue(purgeSucceeded);
     }
     finally
     {
       remove(replicationServer);
     }
+  }
+
+  private void waitChangesArePersisted(JEReplicaDB replicaDB) throws Exception
+  {
+    final int expected = 0;
+    int count = 0;
+    while (replicaDB.getQueueSize() != expected && count < 100)
+    {
+      Thread.sleep(10);
+      count++;
+    }
+    assertEquals(replicaDB.getQueueSize(), expected);
   }
 
   static CSN[] newCSNs(int serverId, long timestamp, int number)
@@ -175,10 +173,10 @@ public class JEReplicaDBTest extends ReplicationTestCase
     return new ReplicationServer(conf);
   }
 
-  private JEReplicaDB newReplicaDB(ReplicationServer replicationServer) throws Exception
+  private JEReplicaDB newReplicaDB(ReplicationServer rs) throws Exception
   {
-    JEChangelogDB changelogDB = (JEChangelogDB) replicationServer.getChangelogDB();
-    return changelogDB.getOrCreateReplicaDB(TEST_ROOT_DN, 1, replicationServer).getFirst();
+    final JEChangelogDB changelogDB = (JEChangelogDB) rs.getChangelogDB();
+    return changelogDB.getOrCreateReplicaDB(TEST_ROOT_DN, 1, rs).getFirst();
   }
 
   private File createCleanDir() throws IOException
@@ -251,22 +249,19 @@ public class JEReplicaDBTest extends ReplicationTestCase
 
       CSN[] csns = newCSNs(1, 0, 3);
 
-      // Add the changes
+      // Add the changes and check they are here
       replicaDB.add(new DeleteMsg(TEST_ROOT_DN, csns[0], "uid"));
       replicaDB.add(new DeleteMsg(TEST_ROOT_DN, csns[1], "uid"));
       replicaDB.add(new DeleteMsg(TEST_ROOT_DN, csns[2], "uid"));
 
-      // Check they are here
       assertEquals(csns[0], replicaDB.getOldestCSN());
       assertEquals(csns[2], replicaDB.getNewestCSN());
 
-      // Clear ...
+      // Clear DB and check it is cleared.
       replicaDB.clear();
 
-      // Check the db is cleared.
       assertEquals(null, replicaDB.getOldestCSN());
       assertEquals(null, replicaDB.getNewestCSN());
-
     }
     finally
     {
