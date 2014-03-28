@@ -545,14 +545,12 @@ public class JEReplicaDB implements Runnable
    */
   private class DbMonitorProvider extends MonitorProvider<MonitorProviderCfg>
   {
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public List<Attribute> getMonitorData()
     {
       List<Attribute> attributes = new ArrayList<Attribute>();
-      create(attributes, "replicationServer-database", String.valueOf(serverId));
+      create(attributes, "replicationServer-database",String.valueOf(serverId));
       create(attributes, "domain-name", baseDN.toNormalizedString());
       final CSNLimits limits = csnLimits;
       if (limits.oldestCSN != null)
@@ -579,9 +577,7 @@ public class JEReplicaDB implements Runnable
       return csn + " " + new Date(csn.getTime());
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String getMonitorInstanceName()
     {
@@ -591,9 +587,7 @@ public class JEReplicaDB implements Runnable
           + domain.getMonitorInstanceName();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void initializeMonitorProvider(MonitorProviderCfg configuration)
                             throws ConfigException,InitializationException
@@ -602,9 +596,7 @@ public class JEReplicaDB implements Runnable
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String toString()
   {
