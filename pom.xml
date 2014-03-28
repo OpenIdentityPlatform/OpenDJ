@@ -136,7 +136,7 @@
     <docPreviousVersion>2.6.0</docPreviousVersion>
     <sdkDocTargetVersion>${docTargetVersion}</sdkDocTargetVersion>
 
-    <frDocPluginVersion>2.0.0</frDocPluginVersion>
+    <frDocPluginVersion>2.1.0-SNAPSHOT</frDocPluginVersion>
     <gaId>UA-23412190-8</gaId>
 
     <siteDistributionURL>scp://forgerock.org/var/www/vhosts/opendj.forgerock.org/httpdocs</siteDistributionURL>
@@ -168,6 +168,8 @@
         <inherited>false</inherited>
         <configuration>
          <projectName>OpenDJ</projectName>
+         <projectVersion>${docTargetVersion}</projectVersion>
+         <latestJson>http://mcraig.org/fr/latest.php</latestJson><!-- Temporary workaround pending #QOZ-985-23233 -->
          <googleAnalyticsId>${gaId}</googleAnalyticsId>
         </configuration>
         <executions>

@@ -44,28 +44,32 @@
     <a href="./opendj-server/doc/release-notes/index.html">HTML (single page)</a>,
     <a href="./opendj-server/doc/release-notes/index/index.html">HTML (1 page/chapter)</a>,
     <a href="./opendj-server/doc/OpenDJ-Release-Notes.pdf">PDF</a>,
-    <a href="./opendj-server/doc/OpenDJ-Release-Notes.rtf">RTF</a></dd>
+    <a href="./opendj-server/doc/OpenDJ-Release-Notes.rtf">RTF</a>,
+    <a href="./opendj-server/doc/webhelp/release-notes/index.html">Webhelp</a></dd>
 
     <dt>Installation Guide</dt>
     <dd><a href="./opendj-server/doc/OpenDJ-Install-Guide.epub">EPUB</a>,
     <a href="./opendj-server/doc/install-guide/index.html">HTML (single page)</a>,
     <a href="./opendj-server/doc/install-guide/index/index.html">HTML (1 page/chapter)</a>,
     <a href="./opendj-server/doc/OpenDJ-Install-Guide.pdf">PDF</a>,
-    <a href="./opendj-server/doc/OpenDJ-Install-Guide.rtf">RTF</a></dd>
+    <a href="./opendj-server/doc/OpenDJ-Install-Guide.rtf">RTF</a>,
+    <a href="./opendj-server/doc/webhelp/install-guide/index.html">Webhelp</a></dd>
 
     <dt>Administration Guide</dt>
     <dd><a href="./opendj-server/doc/OpenDJ-Admin-Guide.epub">EPUB</a>,
     <a href="./opendj-server/doc/admin-guide/index.html">HTML (single page)</a>,
     <a href="./opendj-server/doc/admin-guide/index/index.html">HTML (1 page/chapter)</a>,
     <a href="./opendj-server/doc/OpenDJ-Admin-Guide.pdf">PDF</a>,
-    <a href="./opendj-server/doc/OpenDJ-Admin-Guide.rtf">RTF</a></dd>
+    <a href="./opendj-server/doc/OpenDJ-Admin-Guide.rtf">RTF</a>,
+    <a href="./opendj-server/doc/webhelp/admin-guide/index.html">Webhelp</a></dd>
 
     <dt>Developer Guide</dt>
     <dd><a href="./doc/OpenDJ-Dev-Guide.epub">EPUB</a>,
     <a href="./doc/dev-guide/index.html">HTML (single page)</a>,
     <a href="./doc/dev-guide/index/index.html">HTML (1 page/chapter)</a>,
     <a href="./doc/OpenDJ-Dev-Guide.pdf">PDF</a>,
-    <a href="./doc/OpenDJ-Dev-Guide.rtf">RTF</a></dd>
+    <a href="./doc/OpenDJ-Dev-Guide.rtf">RTF</a>,
+    <a href="./doc/webhelp/dev-guide/index.html">Webhelp</a></dd>
 
     <dt>Configuration Reference</dt>
     <dd><a href="./opendj-server/configref/index.html">HTML</a></dd>

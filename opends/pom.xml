@@ -99,7 +99,7 @@
     <docPreviousVersion>2.6.0</docPreviousVersion>
     <sdkDocTargetVersion>${docTargetVersion}</sdkDocTargetVersion>
 
-    <frDocPluginVersion>2.0.0</frDocPluginVersion>
+    <frDocPluginVersion>2.1.0-SNAPSHOT</frDocPluginVersion>
     <gaId>UA-23412190-8</gaId>
 
     <!--
@@ -196,6 +196,8 @@
         <inherited>false</inherited>
         <configuration>
          <projectName>OpenDJ</projectName>
+         <projectVersion>${docTargetVersion}</projectVersion>
+         <latestJson>http://mcraig.org/fr/latest.php</latestJson><!-- Temporary workaround pending #QOZ-985-23233 -->
          <googleAnalyticsId>${gaId}</googleAnalyticsId>
          <docbkxSourceDirectory>${basedir}/src/main/docbkx</docbkxSourceDirectory>
         </configuration>
