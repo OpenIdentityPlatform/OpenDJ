@@ -20,17 +20,16 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2013 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !    
 -->
 <refentry xml:id='ldifsearch-1'
  xmlns='http://docbook.org/ns/docbook'
  version='5.0' xml:lang='en'
  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
- <info><copyright><year>2011-2013</year><holder>ForgeRock AS</holder></copyright></info>
+ xsi:schemaLocation='http://docbook.org/ns/docbook
+                     http://docbook.org/xml/5.0/xsd/docbook.xsd'>
+ <info><copyright><year>2011-2014</year><holder>ForgeRock AS</holder></copyright></info>
  <refmeta>
   <refentrytitle>ldifsearch</refentrytitle><manvolnum>1</manvolnum>
   <refmiscinfo class="software">OpenDJ</refmiscinfo>
@@ -176,8 +175,10 @@
  <refsect1>
   <title>Examples</title>
   <para>The following example demonstrates use of the command.</para>
-  <screen>$ ldifsearch -b dc=example,dc=com /path/to/Example.ldif uid=bjensen
-dn: uid=bjensen,ou=People,dc=example,dc=com
+
+  <screen>
+$ <userinput>ldifsearch -b dc=example,dc=com /path/to/Example.ldif uid=bjensen</userinput>
+<computeroutput>dn: uid=bjensen,ou=People,dc=example,dc=com
 objectClass: person
 objectClass: organizationalPerson
 objectClass: inetOrgPerson
@@ -198,8 +199,8 @@ l: Cupertino
 ou: Product Development
 ou: People
 uidNumber: 1076
-gidNumber: 1000
-</screen>
+gidNumber: 1000</computeroutput>
+  </screen>
 
   <para>You can also use <literal>@<replaceable
   >objectclass</replaceable></literal> notation in the attribute list to return
@@ -207,9 +208,10 @@ gidNumber: 1000
   how to return attributes of the <literal>posixAccount</literal> object
   class.</para>
 
-  <screen>$ ldifsearch --ldifFile /path/to/Example.ldif
- --baseDN dc=example,dc=com "(uid=bjensen)" @posixaccount
-dn: uid=bjensen,ou=People,dc=example,dc=com
+  <screen>
+$ <userinput>ldifsearch --ldifFile /path/to/Example.ldif \
+ --baseDN dc=example,dc=com "(uid=bjensen)" @posixaccount</userinput>
+<computeroutput>dn: uid=bjensen,ou=People,dc=example,dc=com
 objectClass: person
 objectClass: organizationalPerson
 objectClass: inetOrgPerson
@@ -221,6 +223,7 @@ cn: Barbara Jensen
 cn: Babs Jensen
 homeDirectory: /home/bjensen
 uidNumber: 1076
-gidNumber: 1000</screen>
+gidNumber: 1000</computeroutput>
+  </screen>
  </refsect1>
 </refentry>

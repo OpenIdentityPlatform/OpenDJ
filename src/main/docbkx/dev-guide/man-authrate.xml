@@ -20,17 +20,16 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2013 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !    
 -->
 <refentry xml:id='authrate-1'
  xmlns='http://docbook.org/ns/docbook'
  version='5.0' xml:lang='en'
  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
- <info><copyright><year>2011-2013</year><holder>ForgeRock AS</holder></copyright></info>
+ xsi:schemaLocation='http://docbook.org/ns/docbook
+                     http://docbook.org/xml/5.0/xsd/docbook.xsd'>
+ <info><copyright><year>2011-2014</year><holder>ForgeRock AS</holder></copyright></info>
  <refmeta>
   <refentrytitle>authrate</refentrytitle><manvolnum>1</manvolnum>
   <refmiscinfo class="software">OpenDJ</refmiscinfo>
@@ -351,9 +350,11 @@
   <title>Examples</title>
   <para>The following example demonstrates measuring simple bind
   performance.</para>
-  <screen>$ authrate -p 1389 -g "rand(names.txt)"
- -D "uid=%s,ou=people,dc=example,dc=com" -w password -c 10 -f
------------------------------------------------------------------
+
+  <screen>
+$ <userinput>authrate -p 1389 -g "rand(names.txt)" \
+ -D "uid=%s,ou=people,dc=example,dc=com" -w password -c 10 -f</userinput>
+<computeroutput>-----------------------------------------------------------------
      Throughput                            Response Time         
    (ops/second)                           (milliseconds)         
 recent  average  recent  average  99.9%  99.99%  99.999%  err/sec
@@ -363,7 +364,9 @@ recent  average  recent  average  99.9%  99.99%  99.999%  err/sec
 14450.0  12835.9   0.692    0.782  8.989  161.835  174.518      0.0
 12934.3  12860.6   0.773    0.779  9.253  161.339  174.426      0.0
 14154.5  13121.0   0.706    0.764  9.025  161.451  177.101      0.0
-^C</screen>
+^C</computeroutput>
+  </screen>
+
   <para>The <filename>names.txt</filename> contains all the user IDs for the
   sample suffix, and all user password values have been set to
   <literal>password</literal> for this example.</para>

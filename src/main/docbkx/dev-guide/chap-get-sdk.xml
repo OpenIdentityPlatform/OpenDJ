@@ -20,15 +20,15 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2013 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-get-sdk'
  xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ xsi:schemaLocation='http://docbook.org/ns/docbook
+                     http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'>
  <title>Getting OpenDJ LDAP SDK</title>
 
  <para>This chapter introduces OpenDJ LDAP SDK, demonstrating how to get the
@@ -151,10 +151,16 @@
    </step>
     <step>
      <para>Add the tools to your PATH.</para>
-     <screen>(UNIX)
-$ export PATH=/path/to/opendj-ldap-toolkit-<?eval ${docTargetVersion}?>/bin:$PATH</screen>
-        <screen>(Windows)
-C:\>set PATH=\\path\to\opendj-ldap-toolkit-<?eval ${docTargetVersion}?>\bat:%PATH%</screen>
+
+     <screen>
+# (UNIX)
+$ <userinput>export PATH=/path/to/opendj-ldap-toolkit-<?eval ${docTargetVersion}?>/bin:$PATH</userinput>
+     </screen>
+
+     <screen>
+# (Windows)
+C:\><userinput>set PATH=\\path\to\opendj-ldap-toolkit-<?eval ${docTargetVersion}?>\bat:%PATH%</userinput>
+     </screen>
     </step>
   </procedure>
 
@@ -171,15 +177,20 @@ C:\>set PATH=\\path\to\opendj-ldap-toolkit-<?eval ${docTargetVersion}?>\bat:%PAT
    </step>
    <step>
     <para>Check out the source code.</para>
-    <screen>$ svn co ${project.scm.url} opendj
-...
-Checked out revision <replaceable>XXXX</replaceable>.</screen>
+
+    <screen>
+$ <userinput>svn co ${project.scm.url} opendj</userinput>
+<computeroutput>...
+Checked out revision <replaceable>XXXX</replaceable>.</computeroutput>
+    </screen>
    </step>
    <step>
     <para>Build the modules and install them in the local repository.</para>
-    <screen>$ cd opendj/
-$ mvn install
-[INFO] Scanning for projects...
+
+    <screen>
+$ <userinput>cd opendj/</userinput>
+$ <userinput>mvn install</userinput>
+<computeroutput>[INFO] Scanning for projects...
 [INFO] ------------------------------------------------------------------------
 [INFO] Reactor Build Order:
 [INFO] 
@@ -195,7 +206,8 @@ $ mvn install
 [INFO] Total time: 2:51.315s
 [INFO] Finished at: Wed Apr 10 14:28:36 CEST 2013
 [INFO] Final Memory: 37M/382M
-[INFO] ------------------------------------------------------------------------</screen>
+[INFO] ------------------------------------------------------------------------</computeroutput>
+    </screen>
    </step>
    <step>
     <para>Unzip the tools and libraries included in the file,
@@ -212,7 +224,8 @@ $ mvn install
   described, if you have a directory server running import sample data,
   and test your configuration with a sample client application.</para>
 
-  <programlisting language="java">import org.forgerock.opendj.ldap.Connection;
+  <programlisting language="java">
+import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
@@ -278,9 +291,10 @@ class Test {
   <para>If all goes well, <filename>Test.java</filename> compiles without
   errors. The test program displays Babs Jensen's entry in LDIF.</para>
 
-  <screen>$ javac Test.java
-$ java Test
-# Search result entry: uid=bjensen,ou=People,dc=example,dc=com
+  <screen>
+$ <userinput>javac Test.java</userinput>
+$ <userinput>java Test</userinput>
+<computeroutput># Search result entry: uid=bjensen,ou=People,dc=example,dc=com
 dn: uid=bjensen,ou=People,dc=example,dc=com
 givenName: Barbara
 objectClass: person
@@ -297,7 +311,8 @@ ou: Product Development
 ou: People
 l: Cupertino
 mail: bjensen@example.com
-facsimileTelephoneNumber: +1 408 555 1992</screen>
+facsimileTelephoneNumber: +1 408 555 1992</computeroutput>
+  </screen>
  </section>
 
  <section xml:id="opendj-ldap-sdk-examples">

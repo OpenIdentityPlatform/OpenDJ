@@ -20,17 +20,17 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2013 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !    
 -->
 <refentry xml:id='ldapmodify-1'
  xmlns='http://docbook.org/ns/docbook'
  version='5.0' xml:lang='en'
  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
- <info><copyright><year>2011-2013</year><holder>ForgeRock AS</holder></copyright></info>
+ xsi:schemaLocation='http://docbook.org/ns/docbook
+                     http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'>
+ <info><copyright><year>2011-2014</year><holder>ForgeRock AS</holder></copyright></info>
  <refmeta>
   <refentrytitle>ldapmodify</refentrytitle><manvolnum>1</manvolnum>
   <refmiscinfo class="software">OpenDJ</refmiscinfo>
@@ -316,7 +316,9 @@
   <para>You can use <filename>~/.opendj/tools.properties</filename> to set
   the defaults for bind DN, host name, and port number as in the following
   example.</para>
-  <programlisting language="ini">hostname=directory.example.com
+
+  <programlisting language="ini">
+hostname=directory.example.com
 port=1389
 bindDN=uid=kvaughan,ou=People,dc=example,dc=com
 
@@ -324,14 +326,17 @@ ldapcompare.port=1389
 ldapdelete.port=1389
 ldapmodify.port=1389
 ldappasswordmodify.port=1389
-ldapsearch.port=1389</programlisting>
+ldapsearch.port=1389
+  </programlisting>
  </refsect1>
  <refsect1>
   <title>Examples</title>
   <para>The following example demonstrates use of the command to add an entry
   to the directory.</para>
-  <screen>$ cat newuser.ldif 
-dn: uid=newuser,ou=People,dc=example,dc=com
+
+  <screen>
+$ <userinput>cat newuser.ldif</userinput>
+<computeroutput>dn: uid=newuser,ou=People,dc=example,dc=com
 uid: newuser
 facsimileTelephoneNumber: +1 408 555 1213
 objectClass: person
@@ -351,47 +356,55 @@ mail: newuser@example.com
 l: South Pole
 ou: Product Development
 ou: People
-gidNumber: 10636
+gidNumber: 10636</computeroutput>
 
-$ ldapmodify -p 1389 -a -f newuser.ldif
- -D uid=kvaughan,ou=people,dc=example,dc=com -w bribery
-Processing ADD request for uid=newuser,ou=People,dc=example,dc=com
-ADD operation successful for DN uid=newuser,ou=People,dc=example,dc=com</screen>
+$ <userinput>ldapmodify -p 1389 -a -f newuser.ldif \
+ -D uid=kvaughan,ou=people,dc=example,dc=com -w bribery</userinput>
+<computeroutput>Processing ADD request for uid=newuser,ou=People,dc=example,dc=com
+ADD operation successful for DN uid=newuser,ou=People,dc=example,dc=com</computeroutput>
+  </screen>
 
  <para>The following example demonstrates adding a Description attribute
  to the new user's entry.</para>
- <screen>$ cat newdesc.ldif 
-dn: uid=newuser,ou=People,dc=example,dc=com
+
+ <screen>$ <userinput>cat newdesc.ldif</userinput>
+<computeroutput>dn: uid=newuser,ou=People,dc=example,dc=com
 changetype: modify
 add: description
-description: A new user's entry
+description: A new user's entry</computeroutput>
 
-$ ldapmodify -p 1389 -f newdesc.ldif
- -D uid=kvaughan,ou=people,dc=example,dc=com -w bribery
-Processing MODIFY request for uid=newuser,ou=People,dc=example,dc=com
-MODIFY operation successful for DN uid=newuser,ou=People,dc=example,dc=com</screen>
+$ <userinput>ldapmodify -p 1389 -f newdesc.ldif \
+ -D uid=kvaughan,ou=people,dc=example,dc=com -w bribery</userinput>
+<computeroutput>Processing MODIFY request for uid=newuser,ou=People,dc=example,dc=com
+MODIFY operation successful for DN uid=newuser,ou=People,dc=example,dc=com</computeroutput>
+ </screen>
  
  <para>The following example demonstrates changing the Description attribute
  for the new user's entry.</para>
- <screen>$ cat moddesc.ldif 
-dn: uid=newuser,ou=People,dc=example,dc=com
+
+ <screen>
+$ <userinput>cat moddesc.ldif</userinput>
+<computeroutput>dn: uid=newuser,ou=People,dc=example,dc=com
 changetype: modify
 replace: description
-description: Another description
+description: Another description</computeroutput>
 
-$ ldapmodify -p 1389 -f moddesc.ldif
- -D uid=kvaughan,ou=people,dc=example,dc=com -w bribery
-Processing MODIFY request for uid=newuser,ou=People,dc=example,dc=com
-MODIFY operation successful for DN uid=newuser,ou=People,dc=example,dc=com</screen>
+$ <userinput>ldapmodify -p 1389 -f moddesc.ldif \
+ -D uid=kvaughan,ou=people,dc=example,dc=com -w bribery</userinput>
+<computeroutput>Processing MODIFY request for uid=newuser,ou=People,dc=example,dc=com
+MODIFY operation successful for DN uid=newuser,ou=People,dc=example,dc=com</computeroutput>
+ </screen>
  
  <para>The following example demonstrates deleting the new user's entry.</para>
- <screen>$ cat deluser.ldif 
-dn: uid=newuser,ou=People,dc=example,dc=com
-changetype: delete
 
-$ ldapmodify -p 1389 -f deluser.ldif
- -D uid=kvaughan,ou=people,dc=example,dc=com -w bribery
-Processing DELETE request for uid=newuser,ou=People,dc=example,dc=com
-DELETE operation successful for DN uid=newuser,ou=People,dc=example,dc=com</screen>
+ <screen>$ <userinput>cat deluser.ldif</userinput>
+<computeroutput>dn: uid=newuser,ou=People,dc=example,dc=com
+changetype: delete</computeroutput>
+
+$ <userinput>ldapmodify -p 1389 -f deluser.ldif \
+ -D uid=kvaughan,ou=people,dc=example,dc=com -w bribery</userinput>
+<computeroutput>Processing DELETE request for uid=newuser,ou=People,dc=example,dc=com
+DELETE operation successful for DN uid=newuser,ou=People,dc=example,dc=com</computeroutput>
+ </screen>
  </refsect1>
 </refentry>

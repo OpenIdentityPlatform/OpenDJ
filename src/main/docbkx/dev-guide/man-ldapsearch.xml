@@ -20,17 +20,17 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2013 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !    
 -->
 <refentry xml:id='ldapsearch-1'
  xmlns='http://docbook.org/ns/docbook'
  version='5.0' xml:lang='en'
  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
- <info><copyright><year>2011-2013</year><holder>ForgeRock AS</holder></copyright></info>
+ xsi:schemaLocation='http://docbook.org/ns/docbook
+                     http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'>
+ <info><copyright><year>2011-2014</year><holder>ForgeRock AS</holder></copyright></info>
  <refmeta>
   <refentrytitle>ldapsearch</refentrytitle><manvolnum>1</manvolnum>
   <refmiscinfo class="software">OpenDJ</refmiscinfo>
@@ -512,7 +512,9 @@
   <para>You can use <filename>~/.opendj/tools.properties</filename> to set
   the defaults for bind DN, host name, and port number as in the following
   example.</para>
-  <programlisting language="ini">hostname=directory.example.com
+
+  <programlisting language="ini">
+hostname=directory.example.com
 port=1389
 bindDN=uid=kvaughan,ou=People,dc=example,dc=com
 
@@ -520,14 +522,17 @@ ldapcompare.port=1389
 ldapdelete.port=1389
 ldapmodify.port=1389
 ldappasswordmodify.port=1389
-ldapsearch.port=1389</programlisting>
+ldapsearch.port=1389
+  </programlisting>
  </refsect1>
  <refsect1>
   <title>Examples</title>
   <para>The following example searches for entries with UID containing
   <literal>jensen</literal>, returning only DNs and uid values.</para>
-  <screen>$ ldapsearch -p 1389 -b dc=example,dc=com "(uid=*jensen*)" uid
-dn: uid=ajensen,ou=People,dc=example,dc=com
+
+  <screen>
+$ <userinput>ldapsearch -p 1389 -b dc=example,dc=com "(uid=*jensen*)" uid</userinput>
+<computeroutput>dn: uid=ajensen,ou=People,dc=example,dc=com
 uid: ajensen
 
 dn: uid=bjensen,ou=People,dc=example,dc=com
@@ -549,7 +554,8 @@ dn: uid=tjensen,ou=People,dc=example,dc=com
 uid: tjensen
 
 
-Result Code:  0 (Success)</screen>
+Result Code:  0 (Success)</computeroutput>
+  </screen>
 
   <para>You can also use <literal>@<replaceable
   >objectclass</replaceable></literal> notation in the attribute list to return
@@ -557,8 +563,9 @@ Result Code:  0 (Success)</screen>
   how to return attributes of the <literal>inetOrgPerson</literal> object
   class.</para>
 
-  <screen>$ ldapsearch -p 1389 -b dc=example,dc=com "(uid=bjensen)" @inetorgperson
-dn: uid=bjensen,ou=People,dc=example,dc=com
+  <screen>
+$ <userinput>ldapsearch -p 1389 -b dc=example,dc=com "(uid=bjensen)" @inetorgperson</userinput>
+<computeroutput>dn: uid=bjensen,ou=People,dc=example,dc=com
 givenName: Barbara
 objectClass: person
 objectClass: organizationalPerson
@@ -575,13 +582,15 @@ mail: bjensen@example.com
 l: Cupertino
 ou: Product Development
 ou: People
-facsimileTelephoneNumber: +1 408 555 1992</screen>
+facsimileTelephoneNumber: +1 408 555 1992</computeroutput>
+  </screen>
 
   <para>You can use <literal>+</literal> in the attribute list to return
   all operational attributes, as in the following example.</para>
 
-  <screen>$ ldapsearch -p 1389 -b dc=example,dc=com "(uid=bjensen)" +
-dn: uid=bjensen,ou=People,dc=example,dc=com
+  <screen>
+$ <userinput>ldapsearch -p 1389 -b dc=example,dc=com "(uid=bjensen)" +</userinput>
+<computeroutput>dn: uid=bjensen,ou=People,dc=example,dc=com
 numSubordinates: 0
 structuralObjectClass: inetOrgPerson
 etag: 0000000073c29972
@@ -589,6 +598,7 @@ pwdPolicySubentry: cn=Default Password Policy,cn=Password Policies,cn=config
 subschemaSubentry: cn=schema
 hasSubordinates: false
 entryDN: uid=bjensen,ou=people,dc=example,dc=com
-entryUUID: fc252fd9-b982-3ed6-b42a-c76d2546312c</screen>
+entryUUID: fc252fd9-b982-3ed6-b42a-c76d2546312c</computeroutput>
+  </screen>
  </refsect1>
 </refentry>
