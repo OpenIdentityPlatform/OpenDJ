@@ -76,7 +76,8 @@
   access to all attributes except passwords, and allow read-write access
   for directory administrators under <literal>dc=example,dc=com</literal>.</para>
   
-  <programlisting language="ldif">dn: dc=example,dc=com
+  <programlisting language="ldif">
+dn: dc=example,dc=com
 objectClass: domain
 objectClass: top
 dc: example
@@ -615,7 +616,9 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
       <para>For example, the ACI required to allow
       <literal>uid=bjensen,ou=People,dc=example,dc=com</literal> to add an entry
       is:</para>
-      <programlisting language="ldif">aci: (version 3.0;acl "Add entry"; allow (add)(userdn =
+
+      <programlisting language="ldif">
+aci: (version 3.0;acl "Add entry"; allow (add)(userdn =
  "ldap:///uid=bjensen,ou=People,dc=example,dc=com");)
       </programlisting>
      </listitem>
@@ -640,7 +643,9 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
       <para>For example, the ACI required to allow
       <literal>uid=bjensen,ou=People,dc=example,dc=com</literal> to compare
       values against the <literal>sn</literal> attribute is:</para>
-      <programlisting language="ldif">aci: (targetattr = "sn")(version 3.0;acl "Compare surname";
+
+      <programlisting language="ldif">
+aci: (targetattr = "sn")(version 3.0;acl "Compare surname";
  allow (compare)(userdn =
  "ldap:///uid=bjensen,ou=People,dc=example,dc=com");)
       </programlisting>
@@ -656,7 +661,9 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
       <para>For example, the ACI required to allow
       <literal>uid=bjensen,ou=People,dc=example,dc=com</literal> to delete an
       entry is:</para>
-      <programlisting language="ldif">aci: (version 3.0;acl "Delete entry"; allow (delete)
+
+      <programlisting language="ldif">
+aci: (version 3.0;acl "Delete entry"; allow (delete)
  (userdn = "ldap:///uid=bjensen,ou=People,dc=example,dc=com");)
       </programlisting>
      </listitem>
@@ -672,7 +679,9 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
       <para>For example, the ACI required to allow
       <literal>uid=bjensen,ou=People,dc=example,dc=com</literal> to modify the 
       <literal>description</literal> attribute in an entry is:</para>
-      <programlisting language="ldif">aci: (targetattr = "description")(version 3.0;
+
+      <programlisting language="ldif">
+aci: (targetattr = "description")(version 3.0;
  acl "Modify description"; allow (write)(userdn =
  "ldap:///uid=bjensen,ou=People,dc=example,dc=com");)
       </programlisting>
@@ -694,7 +703,9 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
       <literal>uid=bjensen,ou=People,dc=example,dc=com</literal> to rename
       entries named with the <literal>uid</literal> attribute to new
       locations:</para>
-      <programlisting language="ldif">aci: (targetattr = "uid")(version 3.0;acl "Rename uid= entries";
+
+      <programlisting language="ldif">
+aci: (targetattr = "uid")(version 3.0;acl "Rename uid= entries";
  allow (write, import, export)(userdn =
  "ldap:///uid=bjensen,ou=People,dc=example,dc=com");)
       </programlisting>
@@ -715,7 +726,9 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
       <literal>uid=bjensen,ou=People,dc=example,dc=com</literal> to search for
       <literal>uid</literal> attributes, and also to read that attribute in
       matching entries is:</para>
-      <programlisting language="ldif">aci: (targetattr = "uid")(version 3.0;acl "Search and read uid";
+
+      <programlisting language="ldif">
+aci: (targetattr = "uid")(version 3.0;acl "Search and read uid";
  allow (search, read)(userdn =
  "ldap:///uid=bjensen,ou=People,dc=example,dc=com");)
       </programlisting>
@@ -901,11 +914,14 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
    
    <step>
     <para>Start <command>dsconfig</command> in interactive mode.</para>
-    <screen>$ dsconfig
- --port 4444
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password</screen>
+
+    <screen>
+$ <userinput>dsconfig \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password</userinput>
+   </screen>
    </step>
    <step>
     <para>Select the Root DN menu.</para>
@@ -930,13 +946,16 @@ aci: (target="ldap:///dc=example,dc=com") (targetattr =
    
    <step>
     <para>Determine the privileges to add.</para>
-    <screen>$ cat privilege.ldif 
-dn: uid=kvaughan,ou=People,dc=example,dc=com
+
+    <screen>
+$ <userinput>cat privilege.ldif</userinput>
+<computeroutput>dn: uid=kvaughan,ou=People,dc=example,dc=com
 changetype: modify
 add: ds-privilege-name
 ds-privilege-name: config-read
-ds-privilege-name: password-reset
-</screen>
+ds-privilege-name: password-reset</computeroutput>
+    </screen>
+
     <para>This example lets the user read the server configuration, and reset
     user passwords. In order for the user to be able to change a user password,
     you must also allow the modification using ACIs. For this example, Kirsten
@@ -945,56 +964,68 @@ ds-privilege-name: password-reset
     <para>Prior to having the privileges, Kirsten gets messages about
     insufficent access when trying to read the server configuration, or
     reset a user password.</para>
-    <screen>$ ldapsearch
- --port 1389
- --bindDN "uid=kvaughan,ou=people,dc=example,dc=com"
- --bindPassword bribery
- --baseDN cn=config
- "(objectclass=*)"
-SEARCH operation failed
+
+    <screen>
+$ <userinput>ldapsearch \
+ --port 1389 \
+ --bindDN "uid=kvaughan,ou=people,dc=example,dc=com" \
+ --bindPassword bribery \
+ --baseDN cn=config \
+ "(objectclass=*)"</userinput>
+<computeroutput>SEARCH operation failed
 Result Code:  50 (Insufficient Access Rights)
 Additional Information:  You do not have sufficient privileges to perform
- search operations in the Directory Server configuration
-$ ldappasswordmodify
- --port 1389
- --bindDN "uid=kvaughan,ou=people,dc=example,dc=com"
- --bindPassword bribery
- --authzID "dn:uid=scarter,ou=People,dc=example,dc=com"
- --newPassword changeit
-The LDAP password modify operation failed with result code 50
+ search operations in the Directory Server configuration</computeroutput>
+
+$ <userinput>ldappasswordmodify \
+ --port 1389 \
+ --bindDN "uid=kvaughan,ou=people,dc=example,dc=com" \
+ --bindPassword bribery \
+ --authzID "dn:uid=scarter,ou=People,dc=example,dc=com" \
+ --newPassword changeit</userinput>
+<computeroutput>The LDAP password modify operation failed with result code 50
 Error Message:  You do not have sufficient privileges to perform password
-reset operations</screen>
+reset operations</computeroutput>
+    </screen>
    </step>
    <step>
     <para>Apply the change as a user with the
     <literal>privilege-change</literal> privilege.</para>
-    <screen>$ ldapmodify
- --port 1389
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --filename privilege.ldif
-Processing MODIFY request for uid=kvaughan,ou=People,dc=example,dc=com
-MODIFY operation successful for DN uid=kvaughan,ou=People,dc=example,dc=com</screen>
+
+    <screen>
+$ <userinput>ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --filename privilege.ldif</userinput>
+<computeroutput>Processing MODIFY request for uid=kvaughan,ou=People,dc=example,dc=com
+MODIFY operation successful for DN uid=kvaughan,ou=People,dc=example,dc=com</computeroutput>
+    </screen>
+
     <para>At this point, Kirsten can perform the operations requiring
     privileges.</para>
-    <screen>$ ldapsearch
+
+    <screen>
+$ <userinput>ldapsearch
  --port 1389
  --bindDN "uid=kvaughan,ou=people,dc=example,dc=com"
  --bindPassword bribery
  --baseDN cn=config
- "(objectclass=*)"
-dn: cn=config
+ "(objectclass=*)"</userinput>
+<computeroutput>dn: cn=config
 ds-cfg-return-bind-error-messages: false
 ds-cfg-default-password-policy: cn=Default Password Policy,cn=Password Policies,
  cn=config
-&#8230;
-$ ldappasswordmodify
- --port 1389
- --bindDN "uid=kvaughan,ou=people,dc=example,dc=com"
- --bindPassword bribery
- --authzID "dn:uid=scarter,ou=People,dc=example,dc=com"
- --newPassword changeit
-The LDAP password modify operation was successful</screen>
+&#8230;</computeroutput>
+
+$ <userinput>ldappasswordmodify \
+ --port 1389 \
+ --bindDN "uid=kvaughan,ou=people,dc=example,dc=com" \
+ --bindPassword bribery \
+ --authzID "dn:uid=scarter,ou=People,dc=example,dc=com" \
+ --newPassword changeit</userinput>
+<computeroutput>The LDAP password modify operation was successful</computeroutput>
+    </screen>
    </step>
   </procedure>
   
@@ -1016,8 +1047,10 @@ The LDAP password modify operation was successful</screen>
    
    <step>
     <para>Create an LDAP subentry that specifies the collective attributes.</para>
-    <screen>$ cat collective.ldif 
-dn: cn=Administrator Privileges,dc=example,dc=com
+
+    <screen>
+$ <userinput>cat collective.ldif</userinput>
+<computeroutput>dn: cn=Administrator Privileges,dc=example,dc=com
 objectClass: collectiveAttributeSubentry
 objectClass: extensibleObject
 objectClass: subentry
@@ -1030,28 +1063,33 @@ ds-privilege-name;collective: modify-acl
 ds-privilege-name;collective: password-reset
 ds-privilege-name;collective: proxied-auth
 subtreeSpecification: {base "ou=people", specificationFilter
-  "(isMemberOf=cn=Directory Administrators,ou=Groups,dc=example,dc=com)" }
+  "(isMemberOf=cn=Directory Administrators,ou=Groups,dc=example,dc=com)" }</computeroutput>
 
-$ ldapmodify
- --port 1389
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --defaultAdd
- --filename collective.ldif
-Processing ADD request for cn=Administrator Privileges,dc=example,dc=com
-ADD operation successful for DN cn=Administrator Privileges,dc=example,dc=com</screen>
+$ <userinput>ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --defaultAdd \
+ --filename collective.ldif</userinput>
+<computeroutput>Processing ADD request for cn=Administrator Privileges,dc=example,dc=com
+ADD operation successful for DN cn=Administrator Privileges,dc=example,dc=com</computeroutput>
+    </screen>
+
     <para>The Directory Administrators group for Example.com includes members
     like Kirsten Vaughan.</para>
    </step>
    <step>
     <para>Observe that the change takes effect immediately.</para>
-    <screen>$ ldappasswordmodify
- --port 1389
- --bindDN "uid=kvaughan,ou=people,dc=example,dc=com"
- --bindPassword bribery
- --authzID "dn:uid=scarter,ou=People,dc=example,dc=com"
- --newPassword changeit
-The LDAP password modify operation was successful</screen>
+
+    <screen>
+$ <userinput>ldappasswordmodify \
+ --port 1389 \
+ --bindDN "uid=kvaughan,ou=people,dc=example,dc=com" \
+ --bindPassword bribery \
+ --authzID "dn:uid=scarter,ou=People,dc=example,dc=com" \
+ --newPassword changeit</userinput>
+<computeroutput>The LDAP password modify operation was successful</computeroutput>
+    </screen>
    </step>
   </procedure>
  </section>
@@ -1125,7 +1163,7 @@ The LDAP password modify operation was successful</screen>
   changes.</para>
 
   <para>For hints on updating directory entries with
-  <command>ldapmodify</command>, see the section on <link
+  <command>ldapmodify</command>, see the section on <link xlink:show="new"
   xlink:role="http://docbook.org/xlink/role/olink"
   xlink:href="admin-guide#modify-ldap"><citetitle>Modifying Entry
   Attributes</citetitle></link>, keeping in mind that the name of the ACI
@@ -1137,7 +1175,9 @@ The LDAP password modify operation was successful</screen>
    
    <para>This works when the only attributes you do not want world-readable
    are password attributes.</para>
-   <programlisting language="ldif">aci: (target ="ldap:///dc=example,dc=com")(targetattr !=
+
+   <programlisting language="ldif">
+aci: (target ="ldap:///dc=example,dc=com")(targetattr !=
  "authPassword || userPassword")(version 3.0;acl "Anonymous read-search access";
  allow (read, search, compare)(userdn = "ldap:///anyone");)
  </programlisting>
@@ -1164,13 +1204,15 @@ The LDAP password modify operation was successful</screen>
    you can read by using the
    <command>dsconfig get-access-control-handler-prop</command> command.</para>
 
-   <screen>$ dsconfig
- get-access-control-handler-prop
- --port 4444
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --property global-aci</screen>
+   <screen>
+$ <userinput>dsconfig \
+ get-access-control-handler-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --property global-aci</userinput>
+   </screen>
 
    <para>
     You can disable anonymous access either
@@ -1199,12 +1241,13 @@ The LDAP password modify operation was successful</screen>
     and also allow anonymous users access to some controls and extended operations.
    </para>
 
-   <screen>$ dsconfig
- --port 4444
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --commandFilePath /tmp/captured-global-aci-edits.sh
+   <screen>
+$ <userinput>dsconfig \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --commandFilePath /tmp/captured-global-aci-edits.sh</userinput>
 
 # The dsconfig command runs interactively.
 
@@ -1214,7 +1257,7 @@ The LDAP password modify operation was successful</screen>
 
 # To make this change, you first remove the existing values,
 # then add the edited values, and finally apply the changes.
-</screen>
+   </screen>
 
    <para>
     Make sure that you also set appropriate ACIs on any data that you import.
@@ -1224,15 +1267,19 @@ The LDAP password modify operation was successful</screen>
     At this point, clients must authenticate to view search results for example.
    </para>
 
-   <screen>$ ldapsearch --port 1389 --baseDN dc=example,dc=com "(uid=bjensen)"
-$ ldapsearch --bindDN uid=bjensen,ou=people,dc=example,dc=com
- --bindPassword hifalutin --port 1389 --baseDN dc=example,dc=com
- "(uid=bjensen)" cn uid
-dn: uid=bjensen,ou=People,dc=example,dc=com
+   <screen>
+$ <userinput>ldapsearch --port 1389 --baseDN dc=example,dc=com "(uid=bjensen)"</userinput>
+$ <userinput>ldapsearch  \
+ --bindDN uid=bjensen,ou=people,dc=example,dc=com \
+ --bindPassword hifalutin  \
+ --port 1389 \
+ --baseDN dc=example,dc=com \
+ "(uid=bjensen)" cn uid</userinput>
+<computeroutput>dn: uid=bjensen,ou=People,dc=example,dc=com
 cn: Barbara Jensen
 cn: Babs Jensen
-uid: bjensen
-</screen>
+uid: bjensen</computeroutput>
+   </screen>
 
    <para>
     You can download an example of the captured command,
@@ -1245,26 +1292,30 @@ uid: bjensen
     set <literal>reject-unauthenticated-requests:true</literal>.
    </para>
 
-   <screen>$ dsconfig
- set-global-configuration-prop
- --port 4444
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --trustAll
- --no-prompt
- --set reject-unauthenticated-requests:true</screen>
+   <screen>
+$ <userinput>dsconfig \
+ set-global-configuration-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --trustAll \
+ --no-prompt \
+ --set reject-unauthenticated-requests:true</userinput>
+   </screen>
 
    <para>
     Once you set the property, anonymous clients trying to search for example
     get an <literal>Unwilling to Perform</literal> response from OpenDJ.
    </para>
 
-   <screen>$ ldapsearch --port 1389 --baseDN dc=example,dc=com "(uid=bjensen)"
-SEARCH operation failed
+   <screen>
+$ <userinput>ldapsearch --port 1389 --baseDN dc=example,dc=com "(uid=bjensen)"</userinput>
+<computeroutput>SEARCH operation failed
 Result Code:  53 (Unwilling to Perform)
 Additional Information:  Rejecting the requested operation
- because the connection has not been authenticated</screen>
+ because the connection has not been authenticated</computeroutput>
+   </screen>
 
    <para>
     In both cases, notice that the changes apply to
@@ -1279,11 +1330,14 @@ Additional Information:  Rejecting the requested operation
    
    <para>Directory Administrators need privileges as well for full access to
    administrative operations.</para>
-   <programlisting language="ldif">aci: (target="ldap:///dc=example,dc=com") (targetattr =
+
+   <programlisting language="ldif">
+aci: (target="ldap:///dc=example,dc=com") (targetattr =
  "* || +")(version 3.0;acl "Admins can run amok"; allow(
  all, proxy, import, export) groupdn =
  "ldap:///cn=Directory Administrators,ou=Groups,dc=example,dc=com";)
  </programlisting>
+
    <para>Notice both <literal>targetattr = "* || +"</literal>, which permits
    access to both all user attributes and all operational attributes, and
    <literal>allow(all, proxy, import, export)</literal>, which permits not
@@ -1295,9 +1349,12 @@ Additional Information:  Rejecting the requested operation
    <title>ACI: Change Own Password</title>
    
    <para>By default this capability is set in a global ACI.</para>
-   <programlisting language="ldif">aci: (target ="ldap:///ou=People,dc=example,dc=com")(targetattr =
+
+   <programlisting language="ldif">
+aci: (target ="ldap:///ou=People,dc=example,dc=com")(targetattr =
  "authPassword || userPassword")(version 3.0;acl "Allow users to change pass
- words"; allow (write)(userdn = "ldap:///self");)</programlisting>
+ words"; allow (write)(userdn = "ldap:///self");)
+   </programlisting>
   </example>
 
   <example xml:id="access-control-selfwrite-group">
@@ -1305,31 +1362,41 @@ Additional Information:  Rejecting the requested operation
    
    <para>For some static groups such as carpoolers and social club members,
    you might choose to let users manage their own memberships.</para>
-   <programlisting language="ldif">aci: (target ="ldap:///ou=Self Service,ou=Groups,dc=example,dc=com")(
+
+   <programlisting language="ldif">
+aci: (target ="ldap:///ou=Self Service,ou=Groups,dc=example,dc=com")(
  targetattr = "member")(version 3.0;acl "Self registration"; allow(selfwrite)(
- userdn = "ldap:///uid=*,ou=People,dc=example,dc=com");)</programlisting>
+ userdn = "ldap:///uid=*,ou=People,dc=example,dc=com");)
+   </programlisting>
   </example>
 
   <example xml:id="access-control-self-service-group">
    <title>ACI: Manage Self Service Groups</title>
    
    <para>Let users create and delete self-managed groups.</para>
-   <programlisting language="ldif">aci: (target ="ldap:///ou=Self Service,ou=Groups,dc=example,dc=com")(
+
+   <programlisting language="ldif">
+aci: (target ="ldap:///ou=Self Service,ou=Groups,dc=example,dc=com")(
  targattrfilters="add=objectClass:(objectClass=groupOfNames)")(version 3.0;
  acl "All can create self service groups"; allow (add)(userdn= "
  ldap:///uid=*,ou=People,dc=example,dc=com");)
 aci: (target ="ldap:///ou=Self Service,ou=Groups,dc=example,dc=com")(version 3
  .0; acl "Owner can delete self service groups"; allow (delete)(userattr= "
- owner#USERDN");)</programlisting>
+ owner#USERDN");)
+   </programlisting>
   </example>
  
   <example xml:id="access-control-loopback-only">
    <title>ACI: Permit Clear Text Access Over Loopback Only</title>
    
    <para>This ACI uses IP address and Security Strength Factor subjects.</para>
-   <programlisting language="ldif">aci: (target = "ldap:///dc=example,dc=com")(targetattr =
+
+   <programlisting language="ldif">
+aci: (target = "ldap:///dc=example,dc=com")(targetattr =
  "*")(version 3.0;acl "Use loopback only for LDAP in the clear"; deny (all)(
- ip != "127.0.0.1" and ssf &lt;= "1");)</programlisting>
+ ip != "127.0.0.1" and ssf &lt;= "1");)
+   </programlisting>
+
    <para>The <literal>ssf</literal> is one for example when using SSL but you
    have not configured a cipher, so the packets are checksummed for integrity
    checking by all content is nevertheless sent in clear text.</para>
@@ -1359,50 +1426,53 @@ aci: (target ="ldap:///ou=Self Service,ou=Groups,dc=example,dc=com")(version 3
   <para>In this example, Babs Jensen is the owner of a small group of people
   who are willing to carpool.</para>
   
-  <screen>$ ldapsearch
- --port 1389
- --bindDN "uid=bjensen,ou=people,dc=example,dc=com"
- --bindPassword hifalutin
- --baseDN "ou=Self Service,ou=Groups,dc=example,dc=com"
- "cn=*" 
-dn: cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com
+  <screen>
+$ <userinput>ldapsearch \
+ --port 1389 \
+ --bindDN "uid=bjensen,ou=people,dc=example,dc=com" \
+ --bindPassword hifalutin \
+ --baseDN "ou=Self Service,ou=Groups,dc=example,dc=com" \
+ "cn=*"</userinput>
+<computeroutput>dn: cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com
 objectClass: groupOfNames
 objectClass: top
 member: uid=bjensen,ou=People,dc=example,dc=com
 description: People who are willing to carpool
 owner: uid=bjensen,ou=People,dc=example,dc=com
-cn: Carpoolers
-</screen>
+cn: Carpoolers</computeroutput>
+  </screen>
 
   <para>Performing the same search with the get effective rights control, and
   asking for the <literal>aclRights</literal> attribute, shows what rights
   Babs has on the entry.</para>
   
-  <screen>$ ldapsearch
- --control effectiverights
- --port 1389
- --bindDN "uid=bjensen,ou=people,dc=example,dc=com"
- --bindPassword hifalutin
- --baseDN "ou=Self Service,ou=Groups,dc=example,dc=com"
- "cn=*"
- aclRights
-dn: cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com
-aclRights;entryLevel: add:0,delete:1,read:1,write:0,proxy:0
-</screen>
+  <screen>
+$ <userinput>ldapsearch \
+ --control effectiverights \
+ --port 1389 \
+ --bindDN "uid=bjensen,ou=people,dc=example,dc=com" \
+ --bindPassword hifalutin \
+ --baseDN "ou=Self Service,ou=Groups,dc=example,dc=com" \
+ "cn=*" \
+ aclRights</userinput>
+<computeroutput>dn: cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com
+aclRights;entryLevel: add:0,delete:1,read:1,write:0,proxy:0</computeroutput>
+  </screen>
 
   <para>Requesting the <literal>aclRightsInfo</literal> attribute results in
   information about the ACIs applied to arrive at the results.</para>
   
-  <screen>$ ldapsearch
- --control effectiverights
- --port 1389
- --bindDN "uid=bjensen,ou=people,dc=example,dc=com"
- --bindPassword hifalutin
- --baseDN "ou=Self Service,ou=Groups,dc=example,dc=com"
- "cn=*"
- aclRights
- aclRightsInfo
-dn: cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com
+  <screen>
+$ <userinput>ldapsearch \
+ --control effectiverights \
+ --port 1389 \
+ --bindDN "uid=bjensen,ou=people,dc=example,dc=com" \
+ --bindPassword hifalutin \
+ --baseDN "ou=Self Service,ou=Groups,dc=example,dc=com" \
+ "cn=*" \
+ aclRights \
+ aclRightsInfo</userinput>
+<computeroutput>dn: cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com
 aclRightsInfo;logs;entryLevel;read: acl_summary(main): access allowed(read) on e
  ntry/attr(cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com, objectClas
  s) to (uid=bjensen,ou=People,dc=example,dc=com) (not proxied) ( reason: evaluat
@@ -1423,8 +1493,8 @@ aclRights;entryLevel: add:0,delete:1,read:1,write:0,proxy:0
 aclRightsInfo;logs;entryLevel;proxy: acl_summary(main): access not allowed(proxy
  ) on entry/attr(cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com, NULL
  ) to (uid=bjensen,ou=People,dc=example,dc=com) (not proxied) ( reason: no acis 
- matched the subject )
-</screen>
+ matched the subject )</computeroutput>
+  </screen>
 
   <para>You can also request the effective rights for another user by using the
   <option>--getEffectiveRightsAuthzid</option> (short form: <option>-g</option>)
@@ -1433,14 +1503,15 @@ aclRightsInfo;logs;entryLevel;proxy: acl_summary(main): access not allowed(proxy
   user rights to the same entry. Notice that the authorization identity for an
   anonymous user is expressed as <literal>"dn:"</literal>.</para>
 
-  <screen>$ ldapsearch
- --getEffectiveRightsAuthzid "dn:"
- --port 1389
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --baseDN "ou=Self Service,ou=groups,dc=example,dc=com"
- "cn=*" aclRightsInfo
-dn: cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com
+  <screen>
+$ <userinput>ldapsearch \
+ --getEffectiveRightsAuthzid "dn:" \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --baseDN "ou=Self Service,ou=groups,dc=example,dc=com" \
+ "cn=*" aclRightsInfo</userinput>
+<computeroutput>dn: cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com
 aclRightsInfo;logs;entryLevel;read: acl_summary(main): access allowed(read) on e
  ntry/attr(cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com, objectClas
  s) to (anonymous) (not proxied) ( reason: evaluated allow , deciding_aci: Anony
@@ -1456,7 +1527,8 @@ aclRightsInfo;logs;entryLevel;delete: acl_summary(main): access not allowed(dele
  LL) to (anonymous) (not proxied) ( reason: no acis matched the subject )
 aclRightsInfo;logs;entryLevel;proxy: acl_summary(main): access not allowed(proxy
  ) on entry/attr(cn=Carpoolers,ou=Self Service,ou=Groups,dc=example,dc=com, NULL
- ) to (anonymous) (not proxied) ( reason: no acis matched the subject )</screen>
+ ) to (anonymous) (not proxied) ( reason: no acis matched the subject )</computeroutput>
+  </screen>
 
   <para>When you need to check access to an attribute that might not yet exist
   on the entry, you can further use the
@@ -1466,23 +1538,25 @@ aclRightsInfo;logs;entryLevel;proxy: acl_summary(main): access not allowed(proxy
   access to the description attribute for the Self Service groups organizational
   unit entry. The description attribute is not present on the entry, yet.</para>
 
-  <screen>$ ldapsearch
- --port 1389
- --baseDN "ou=Self Service,ou=groups,dc=example,dc=com"
- "ou=Self Service" description
-dn: ou=Self Service,ou=Groups,dc=example,dc=com
+  <screen>
+$ <userinput>ldapsearch \
+ --port 1389 \
+ --baseDN "ou=Self Service,ou=groups,dc=example,dc=com" \
+ "ou=Self Service" description</userinput>
+<computeroutput>dn: ou=Self Service,ou=Groups,dc=example,dc=com</computeroutput>
 
-$ ldapsearch
- --getEffectiveRightsAuthzid "dn:"
- --getEffectiveRightsAttribute description
- --port 1389
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --baseDN "ou=Self Service,ou=groups,dc=example,dc=com"
- "ou=Self Service" aclRights
-dn: ou=Self Service,ou=Groups,dc=example,dc=com
+$ <userinput>ldapsearch \
+ --getEffectiveRightsAuthzid "dn:" \
+ --getEffectiveRightsAttribute description \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --baseDN "ou=Self Service,ou=groups,dc=example,dc=com" \
+ "ou=Self Service" aclRights</userinput>
+<computeroutput>dn: ou=Self Service,ou=Groups,dc=example,dc=com
 aclRights;attributeLevel;description: search:1,read:1,compare:1,write:0,selfwrit
  e_add:0,selfwrite_delete:0,proxy:0
-aclRights;entryLevel: add:0,delete:0,read:1,write:0,proxy:0</screen>
+aclRights;entryLevel: add:0,delete:0,read:1,write:0,proxy:0</computeroutput>
+  </screen>
  </section>
 </chapter>

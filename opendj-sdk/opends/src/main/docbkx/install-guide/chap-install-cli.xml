@@ -20,13 +20,14 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2013 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !
 -->
 <chapter xml:id='chap-install-cli'
  xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xsi:schemaLocation='http://docbook.org/ns/docbook
+                     http://docbook.org/xml/5.0/xsd/docbook.xsd'
  xmlns:xlink='http://www.w3.org/1999/xlink'
  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>Installing OpenDJ From the Command Line</title>
@@ -178,8 +179,9 @@
    GUI installer with your local version of software, as does
    Java WebStart with a remote version of the software.</para>
 
-   <screen>$ /path/to/opendj/setup --cli
-READ THIS SOFTWARE LICENSE AGREEMENT CAREFULLY. BY DOWNLOADING OR INSTALLING
+   <screen>
+$ <userinput>/path/to/opendj/setup --cli</userinput>
+<computeroutput>READ THIS SOFTWARE LICENSE AGREEMENT CAREFULLY. BY DOWNLOADING OR INSTALLING
 THE FORGEROCK SOFTWARE, YOU, ON BEHALF OF YOURSELF AND YOUR COMPANY, AGREE TO
 BE BOUND BY THIS SOFTWARE LICENSE AGREEMENT. IF YOU DO NOT AGREE TO THESE
 TERMS, DO NOT DOWNLOAD OR INSTALL THE FORGEROCK SOFTWARE.
@@ -189,9 +191,9 @@ TERMS, DO NOT DOWNLOAD OR INSTALL THE FORGEROCK SOFTWARE.
 Please read the License Agreement above.
 You must accept the terms of the agreement before continuing with the
 installation.
-Accept the license (Yes/No) [No]:Yes
+Accept the license (Yes/No) [No]:</computeroutput><userinput>Yes</userinput>
 
-What would you like to use as the initial root user DN for the Directory
+<computeroutput>What would you like to use as the initial root user DN for the Directory
 Server? [cn=Directory Manager]:
 Please provide the password to use for the initial root user:
 Please re-enter the password for confirmation:
@@ -216,12 +218,12 @@ Options for populating the database:
     3)  Import data from an LDIF file
     4)  Load automatically-generated sample data
 
-Enter choice [1]: 3
+Enter choice [1]:</computeroutput> <userinput>3</userinput>
 
-Please specify the path to the LDIF file containing the data to import: \
-/path/to/Example.ldif
+<computeroutput>Please specify the path to the LDIF file containing the data to import: \</computeroutput>
+<userinput>/path/to/Example.ldif</userinput>
 
-Do you want to enable SSL? (yes / no) [no]:
+<computeroutput>Do you want to enable SSL? (yes / no) [no]:
 
 Do you want to enable Start TLS? (yes / no) [no]:
 
@@ -257,7 +259,8 @@ Importing LDIF file /path/to/Example.ldif ........... Done.
 Starting Directory Server ........... Done.
 
 To see basic server configuration status and configuration you can launch \
-/path/to/opendj/bin/status</screen>
+/path/to/opendj/bin/status</computeroutput>
+   </screen>
 
    <variablelist>
     <para>Some notes on the options follow.</para>
@@ -381,8 +384,9 @@ To see basic server configuration status and configuration you can launch \
    <para>Run the <command>status</command> command to make sure your OpenDJ
    server is working as expected.</para>
 
-   <screen>$ /path/to/opendj/bin/status
-
+   <screen>
+$ <userinput>/path/to/opendj/bin/status</userinput>
+<computeroutput>
 >>>> Specify OpenDJ LDAP connection parameters
 
 Administrator user bind DN [cn=Directory Manager]:
@@ -414,7 +418,8 @@ Address:Port : Protocol : State
 Base DN:     dc=example,dc=com
 Backend ID:  userRoot
 Entries:     160
-Replication: Disabled</screen>
+Replication: Disabled</computeroutput>
+   </screen>
   </step>
  </procedure>
 
@@ -434,14 +439,17 @@ Replication: Disabled</screen>
    <para>Before you install OpenDJ, install a Java runtime environment if none
    is installed yet.</para>
 
-   <screen>$ sudo apt-get install default-jre</screen>
+   <screen>
+$ <userinput>sudo apt-get install default-jre</userinput>
+   </screen>
   </step>
 
   <step>
    <para>Install the OpenDJ directory server package.</para>
 
-   <screen>$ sudo dpkg -i opendj_<?eval ${docTargetVersion}?>-1_all.deb
-Selecting previously unselected package opendj.
+   <screen>
+$ <userinput>sudo dpkg -i opendj_<?eval ${docTargetVersion}?>-1_all.deb</userinput>
+<computeroutput>Selecting previously unselected package opendj.
 (Reading database ... 185569 files and directories currently installed.)
 Unpacking opendj (from opendj_<?eval ${docTargetVersion}?>-1_all.deb) ...
 
@@ -456,8 +464,9 @@ Setting up opendj (<?eval ${docTargetVersion}?>) ...
    /etc/rc5.d/S20opendj -> ../init.d/opendj
 
 Processing triggers for ureadahead ...
-ureadahead will be reprofiled on next reboot
-$</screen>
+ureadahead will be reprofiled on next reboot</computeroutput>
+$
+   </screen>
 
    <para>The .deb installs OpenDJ directory server in the directory
    <filename>/opt/opendj</filename>, generates service management scripts, and
@@ -471,20 +480,23 @@ $</screen>
    <para>Configure OpenDJ directory server by using the command
    <command>sudo /opt/opendj/setup</command>.</para>
 
-   <screen>$ sudo /opt/opendj/setup --cli
-...
+   <screen>
+$ <userinput>sudo /opt/opendj/setup --cli</userinput>
+<computeroutput>...
 To see basic server configuration status and configuration you can launch
- /opt/opendj/bin/status</screen>
+ /opt/opendj/bin/status</computeroutput>
+   </screen>
   </step>
 
   <step performance="optional">
    <para>Check OpenDJ directory server status.</para>
 
-   <screen>$ service opendj status
-$opendj status: > Running.
-$ sudo /opt/opendj/bin/status
+   <screen>
+$ <userinput>service opendj status</userinput>
+<computeroutput>$opendj status: > Running.</computeroutput>
+$ <userinput>sudo /opt/opendj/bin/status</userinput>
 
-
+<computeroutput>
 >>>> Specify OpenDJ LDAP connection parameters
 
 Administrator user bind DN [cn=Directory Manager]:
@@ -517,7 +529,8 @@ Address:Port : Protocol               : State
 Base DN:     dc=example,dc=com
 Backend ID:  userRoot
 Entries:     2002
-Replication: </screen>
+Replication: </computeroutput>
+   </screen>
   </step>
  </procedure>
 
@@ -531,9 +544,11 @@ Replication: </screen>
   <step>
    <para>Log in as superuser to install the software.</para>
 
-   <screen>$ su
-Password:
-# </screen>
+   <screen>
+$ <userinput>su</userinput>
+<computeroutput>Password:</computeroutput>
+#
+   </screen>
   </step>
 
   <step performance="optional">
@@ -544,17 +559,21 @@ Password:
    environment, and then install it using the <command>rpm</command>
    command.</para>
 
-   <screen># rpm -ivh jre-*.rpm</screen>
+   <screen>
+# <userinput>rpm -ivh jre-*.rpm</userinput>
+   </screen>
   </step>
 
   <step>
    <para>Install the OpenDJ directory server package.</para>
 
-   <screen># rpm -i opendj-<?eval ${docTargetVersion}?>-1.noarch.rpm
-Pre Install - initial install
-Post Install - initial install
+   <screen>
+# <userinput>rpm -i opendj-<?eval ${docTargetVersion}?>-1.noarch.rpm</userinput>
+<computeroutput>Pre Install - initial install
+Post Install - initial install</computeroutput>
 
-#</screen>
+#
+   </screen>
 
    <para>The .rpm installs OpenDJ directory server in the directory
    <filename>/opt/opendj</filename>, generates service management scripts, and
@@ -569,20 +588,23 @@ Post Install - initial install
    <para>Configure OpenDJ directory server by using the command
    <command>/opt/opendj/setup</command>.</para>
 
-   <screen># /opt/opendj/setup --cli
-...
+   <screen>
+# <userinput>/opt/opendj/setup --cli</userinput>
+<computeroutput>...
 To see basic server configuration status and configuration you can launch
- /opt/opendj/bin/status</screen>
+ /opt/opendj/bin/status</computeroutput>
+   </screen>
   </step>
 
   <step performance="optional">
    <para>Check OpenDJ directory server status.</para>
 
-   <screen># service opendj status
-opendj status: > Running.
-# /opt/opendj/bin/status
+   <screen>
+# <userinput>service opendj status</userinput>
+<computeroutput>opendj status: > Running.</computeroutput>
+# <userinput>/opt/opendj/bin/status</userinput>
 
-
+<computeroutput>
 >>>> Specify OpenDJ LDAP connection parameters
 
 Administrator user bind DN [cn=Directory Manager]:
@@ -615,13 +637,16 @@ Address:Port : Protocol               : State
 Base DN:     dc=example,dc=com
 Backend ID:  userRoot
 Entries:     2002
-Replication: </screen>
+Replication: </computeroutput>
+   </screen>
 
    <para>By default OpenDJ starts in run levels 2, 3, 4, and 5.</para>
 
-   <screen># chkconfig --list | grep opendj
-...
-opendj         0:off    1:off    2:on    3:on    4:on    5:on    6:off</screen>
+   <screen>
+# <userinput>chkconfig --list | grep opendj</userinput>
+<computeroutput>...
+opendj         0:off    1:off    2:on    3:on    4:on    5:on    6:off</computeroutput>
+   </screen>
   </step>
  </procedure>
 
@@ -651,7 +676,8 @@ opendj         0:off    1:off    2:on    3:on    4:on    5:on    6:off</screen>
 
    <para>This procedure uses the following example properties file.</para>
 
-   <programlisting language="ini">#
+   <programlisting language="ini">
+#
 # Sample properties file to set up OpenDJ directory server
 #
 hostname                        =opendj.example.com
@@ -665,7 +691,8 @@ rootUserDN                      =cn=Directory Manager
 rootUserPassword                =password
 baseDN                          =dc=example,dc=com
 ldifFile                        =/net/install/dj/Example.ldif
-#sampleData                     =2000</programlisting>
+#sampleData                     =2000
+   </programlisting>
 
    <para>If you have multiple servers to install, consider scripting creation
    of the properties files.</para>
@@ -674,19 +701,22 @@ ldifFile                        =/net/install/dj/Example.ldif
   <step>
    <para>Prepare an installation script.</para>
 
-   <screen>$ cat /net/install/dj/1/setup.sh
-#!/bin/sh
+   <screen>
+$ <userinput>cat /net/install/dj/1/setup.sh</userinput>
+<computeroutput>#!/bin/sh
 
 unzip -d /path/to /net/install/dj/OpenDJ-<?eval ${docTargetVersion}?>.zip &amp;&amp; cd /path/to/opendj
 ./setup --cli --propertiesFilePath /net/install/dj/1/setup.props \
-  --acceptLicense --no-prompt</screen>
+  --acceptLicense --no-prompt</computeroutput>
+   </screen>
   </step>
 
   <step>
    <para>Run your installation script.</para>
 
-   <screen>$ /net/install/dj/1/setup.sh
-Archive:  /net/install/dj/OpenDJ-<?eval ${docTargetVersion}?>.zip
+   <screen>
+$ <userinput>/net/install/dj/1/setup.sh</userinput>
+<computeroutput>Archive:  /net/install/dj/OpenDJ-<?eval ${docTargetVersion}?>.zip
    creating: /path/to/opendj
 ...
   inflating: /path/to/opendj/setup
@@ -709,7 +739,8 @@ Importing LDIF file /net/install/dj/Example.ldif ....... Done.
 Starting Directory Server ....... Done.
 
 To see basic server configuration status and configuration you can launch
- /path/to/opendj/bin/status</screen>
+ /path/to/opendj/bin/status</computeroutput>
+   </screen>
 
    <para>At this point you can use OpenDJ directory server, or you can perform
    additional configuration.</para>
@@ -786,10 +817,9 @@ To see basic server configuration status and configuration you can launch
    <para>The following command reads Babs Jensen's entry through the gateway
    to the backend holding data from <filename>Example.ldif</filename>.</para>
 
-   <screen
-   >$ curl http://bjensen:hifalutin@opendj.example.com:8080/rest2ldap/users/bjensen
- ?_prettyPrint=true
-{
+   <screen width="98">
+$ <userinput>curl http://bjensen:hifalutin@opendj.example.com:8080/rest2ldap/users/bjensen?_prettyPrint=true</userinput>
+<computeroutput>{
   "_rev" : "000000002ee3b764",
   "schemas" : [ "urn:scim:schemas:core:1.0" ],
   "contactInformation" : {
@@ -807,7 +837,8 @@ To see basic server configuration status and configuration you can launch
     "_id" : "trigden",
     "displayName" : "Torrey Rigden"
   } ]
-}</screen>
+}</computeroutput>
+   </screen>
 
    <para>If you generated example data, Babs Jensen's entry is not included.
    Try a URL such as

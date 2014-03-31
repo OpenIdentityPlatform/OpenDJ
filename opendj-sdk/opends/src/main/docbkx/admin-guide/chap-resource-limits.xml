@@ -94,26 +94,31 @@
    <title>To Set Search Limits For a User</title>
    <step>
     <para>Change the user entry to set the limits to override.</para>
-    <screen>$ cat limit.ldif
-dn: uid=bjensen,ou=People,dc=example,dc=com
+
+    <screen>
+$ <userinput>cat limit.ldif</userinput>
+<computeroutput>dn: uid=bjensen,ou=People,dc=example,dc=com
 changetype: modify
 add: ds-rlim-size-limit
-ds-rlim-size-limit: 10
+ds-rlim-size-limit: 10</computeroutput>
 
-$ ldapmodify
- --port 1389
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --filename limit.ldif
-Processing MODIFY request for uid=bjensen,ou=People,dc=example,dc=com
-MODIFY operation successful for DN uid=bjensen,ou=People,dc=example,dc=com</screen>
+$ <userinput>ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --filename limit.ldif</userinput>
+<computeroutput>Processing MODIFY request for uid=bjensen,ou=People,dc=example,dc=com
+MODIFY operation successful for DN uid=bjensen,ou=People,dc=example,dc=com</computeroutput>
+    </screen>
 
     <para>Now when Babs Jensen performs a search returning more than 10
     entries, she sees the following message.</para>
     
-    <screen>Result Code:  4 (Size Limit Exceeded)
+    <programlisting language="none">
+Result Code:  4 (Size Limit Exceeded)
 Additional Information:  This search operation has sent the maximum of
- 10 entries to the client</screen>
+ 10 entries to the client
+    </programlisting>
    </step>
   </procedure>
 
@@ -122,8 +127,10 @@ Additional Information:  This search operation has sent the maximum of
    <step>
     <para>Create an LDAP subentry to specify the limits using collective
     attributes.</para>
-    <screen>$ cat grouplim.ldif 
-dn: cn=Remove Administrator Search Limits,dc=example,dc=com
+
+    <screen>
+$ <userinput>cat grouplim.ldif</userinput>
+<computeroutput>dn: cn=Remove Administrator Search Limits,dc=example,dc=com
 objectClass: collectiveAttributeSubentry
 objectClass: extensibleObject
 objectClass: subentry
@@ -133,25 +140,30 @@ ds-rlim-lookthrough-limit;collective: 0
 ds-rlim-size-limit;collective: 0
 ds-rlim-time-limit;collective: 0
 subtreeSpecification: {base "ou=people", specificationFilter "
- (isMemberOf=cn=Directory Administrators,ou=Groups,dc=example,dc=com)" }
+ (isMemberOf=cn=Directory Administrators,ou=Groups,dc=example,dc=com)" }</computeroutput>
 
-$ ldapmodify
- --port 1389
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --defaultAdd
- --filename grouplim.ldif
-Processing ADD request for
+$ <userinput>ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --defaultAdd \
+ --filename grouplim.ldif</userinput>
+<computeroutput>Processing ADD request for
  cn=Remove Administrator Search Limits,dc=example,dc=com
 ADD operation successful for DN
- cn=Remove Administrator Search Limits,dc=example,dc=com</screen>
+ cn=Remove Administrator Search Limits,dc=example,dc=com</computeroutput>
+    </screen>
    </step>
+
    <step>
     <para>Check the results.</para>
-    <screen>$ ldapsearch --port 1389 --baseDN dc=example,dc=com uid=kvaughan +|grep ds-rlim
-ds-rlim-lookthrough-limit: 0
+
+    <screen>
+$ <userinput>ldapsearch --port 1389 --baseDN dc=example,dc=com uid=kvaughan +|grep ds-rlim</userinput>
+<computeroutput>ds-rlim-lookthrough-limit: 0
 ds-rlim-time-limit: 0
-ds-rlim-size-limit: 0</screen>
+ds-rlim-size-limit: 0</computeroutput>
+    </screen>
    </step>
   </procedure>
  </section>
@@ -181,15 +193,17 @@ ds-rlim-size-limit: 0</screen>
    <para>OpenDJ does not enforce idle timeout for persistent searches.</para>
   </note>
 
-  <screen>$ dsconfig
- set-global-configuration-prop
- --port 4444
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --set idle-time-limit:24h
- --trustAll
- --no-prompt</screen>
+  <screen>
+$ <userinput>dsconfig \
+ set-global-configuration-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --set idle-time-limit:24h \
+ --trustAll \
+ --no-prompt</userinput>
+  </screen>
 
   <para>The example shown sets the idle time limit to 24 hours.</para>
  </section>
@@ -204,16 +218,18 @@ ds-rlim-size-limit: 0</screen>
   add groups with large numbers of members, those add requests can go beyond
   the 5 MB limit.</para>
   
-  <screen>$ dsconfig
- set-connection-handler-prop
- --port 4444
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --handler-name "LDAP Connection Handler"
- --set max-request-size:20mb
- --trustAll
- --no-prompt</screen>
+  <screen>
+$ <userinput>dsconfig \
+ set-connection-handler-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --handler-name "LDAP Connection Handler" \
+ --set max-request-size:20mb \
+ --trustAll \
+ --no-prompt</userinput>
+  </screen>
   
   <para>The example shown sets the maximum request size on the LDAP connection
   handler to 20 MB.</para>

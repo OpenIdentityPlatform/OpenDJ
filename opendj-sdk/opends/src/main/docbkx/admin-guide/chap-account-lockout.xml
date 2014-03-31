@@ -20,15 +20,15 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2013 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-account-lockout'
  xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ xsi:schemaLocation='http://docbook.org/ns/docbook
+                     http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'>
  <title>Implementing Account Lockout &amp; Notification</title>
  
  <para>OpenDJ directory server supports automatic account lockout.
@@ -69,68 +69,75 @@
   the server configuration, you must manually apply the changes to each
   replica in a replication topology.</para>
   
-  <screen>$ dsconfig
- set-password-policy-prop
- --port 4444
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --policy-name "Default Password Policy" 
- --set lockout-failure-count:3
- --set lockout-duration:5m 
- --set lockout-failure-expiration-interval:5m
- --trustAll
- --no-prompt</screen>
+  <screen>
+$ <userinput>dsconfig \
+ set-password-policy-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --policy-name "Default Password Policy" \
+ --set lockout-failure-count:3 \
+ --set lockout-duration:5m \
+ --set lockout-failure-expiration-interval:5m \
+ --trustAll \
+ --no-prompt</userinput>
+  </screen>
 
   <para>Users having the default password policy are then locked out after
   three failed attempts in succession.</para>
   
-  <screen>$ ldapsearch
- --port 1389
- --bindDN "uid=bjensen,ou=people,dc=example,dc=com"
- --bindPassword hifalutin
- --baseDN dc=example,dc=com
- uid=bjensen
- mail
-dn: uid=bjensen,ou=People,dc=example,dc=com
-mail: bjensen@example.com
+  <screen>
+$ <userinput>ldapsearch \
+ --port 1389 \
+ --bindDN "uid=bjensen,ou=people,dc=example,dc=com" \
+ --bindPassword hifalutin \
+ --baseDN dc=example,dc=com \
+ uid=bjensen \
+ mail</userinput>
+<computeroutput>dn: uid=bjensen,ou=People,dc=example,dc=com
+mail: bjensen@example.com</computeroutput>
 
-$ ldapsearch
- --port 1389
- --bindDN "uid=bjensen,ou=people,dc=example,dc=com"
- --bindPassword fatfngrs
- --baseDN dc=example,dc=com
- uid=bjensen
- mail
-The simple bind attempt failed
-Result Code:  49 (Invalid Credentials)
-$ ldapsearch
- --port 1389
- --bindDN "uid=bjensen,ou=people,dc=example,dc=com"
- --bindPassword fatfngrs
- --baseDN dc=example,dc=com
- uid=bjensen
- mail
-The simple bind attempt failed
-Result Code:  49 (Invalid Credentials)
-$ ldapsearch
- --port 1389
- --bindDN "uid=bjensen,ou=people,dc=example,dc=com"
- --bindPassword fatfngrs
- --baseDN dc=example,dc=com
- uid=bjensen
- mail
-The simple bind attempt failed
-Result Code:  49 (Invalid Credentials)
-$ ldapsearch
- --port 1389
- --bindDN "uid=bjensen,ou=people,dc=example,dc=com"
- --bindPassword hifalutin
- --baseDN dc=example,dc=com
- uid=bjensen
- mail
-The simple bind attempt failed
-Result Code:  49 (Invalid Credentials)</screen>
+$ <userinput>ldapsearch \
+ --port 1389 \
+ --bindDN "uid=bjensen,ou=people,dc=example,dc=com" \
+ --bindPassword fatfngrs \
+ --baseDN dc=example,dc=com \
+ uid=bjensen \
+ mail</userinput>
+<computeroutput>The simple bind attempt failed
+Result Code:  49 (Invalid Credentials)</computeroutput>
+
+$ <userinput>ldapsearch \
+ --port 1389 \
+ --bindDN "uid=bjensen,ou=people,dc=example,dc=com" \
+ --bindPassword fatfngrs \
+ --baseDN dc=example,dc=com \
+ uid=bjensen \
+ mail</userinput>
+<computeroutput>The simple bind attempt failed
+Result Code:  49 (Invalid Credentials)</computeroutput>
+
+$ <userinput>ldapsearch \
+ --port 1389 \
+ --bindDN "uid=bjensen,ou=people,dc=example,dc=com" \
+ --bindPassword fatfngrs \
+ --baseDN dc=example,dc=com \
+ uid=bjensen \
+ mail</userinput>
+<computeroutput>The simple bind attempt failed
+Result Code:  49 (Invalid Credentials)</computeroutput>
+
+$ <userinput>ldapsearch \
+ --port 1389 \
+ --bindDN "uid=bjensen,ou=people,dc=example,dc=com" \
+ --bindPassword hifalutin \
+ --baseDN dc=example,dc=com \
+ uid=bjensen \
+ mail</userinput>
+<computeroutput>The simple bind attempt failed
+Result Code:  49 (Invalid Credentials)</computeroutput>
+  </screen>
  </section>
  
  <section xml:id="manage-accounts">
@@ -143,44 +150,59 @@ Result Code:  49 (Invalid Credentials)</screen>
   <para>For the following examples, the directory admin user, Kirsten Vaughan,
   has <literal>ds-privilege-name: password-reset</literal>, and the following
   ACI on <literal>ou=People,dc=example,dc=com</literal>.</para>
-  <literallayout class="monospaced">(target="ldap:///ou=People,dc=example,dc=com") (targetattr ="*||+")(
-version 3.0;acl "Admins can run amok"; allow(all) groupdn =
-"ldap:///cn=Directory Administrators,ou=Groups,dc=example,dc=com";)</literallayout>
+
+  <programlisting language="aci">
+(target="ldap:///ou=People,dc=example,dc=com") (targetattr ="*||+")(
+ version 3.0;acl "Admins can run amok"; allow(all) groupdn =
+ "ldap:///cn=Directory Administrators,ou=Groups,dc=example,dc=com";)
+  </programlisting>
   
   <procedure xml:id="disable-account">
    <title>To Disable an Account</title>
-   <indexterm><primary>Accounts</primary><secondary>Disabling</secondary></indexterm>
+   <indexterm>
+    <primary>Accounts</primary>
+    <secondary>Disabling</secondary>
+   </indexterm>
+
    <step>
     <para>Set the account status to disabled with the
     <command>manage-account</command> command.</para>
     
-    <screen>$ manage-account
- set-account-is-disabled
- --port 4444
- --bindDN "uid=kvaughan,ou=people,dc=example,dc=com"
- --bindPassword bribery
- --operationValue true
- --targetDN uid=bjensen,ou=people,dc=example,dc=com
- --trustAll
-Account Is Disabled:  true</screen>
+    <screen>
+$ <userinput>manage-account \
+ set-account-is-disabled \
+ --port 4444 \
+ --bindDN "uid=kvaughan,ou=people,dc=example,dc=com" \
+ --bindPassword bribery \
+ --operationValue true \
+ --targetDN uid=bjensen,ou=people,dc=example,dc=com \
+ --trustAll</userinput>
+<computeroutput>Account Is Disabled:  true</computeroutput>
+    </screen>
    </step>
   </procedure>
   
   <procedure xml:id="reactivate-account">
    <title>To Activate a Disabled Account</title>
-   <indexterm><primary>Accounts</primary><secondary>Activating</secondary></indexterm>
+   <indexterm>
+    <primary>Accounts</primary>
+    <secondary>Activating</secondary>
+   </indexterm>
+
    <step>
     <para>Clear the disabled status using the <command>manage-account</command>
     command.</para>
     
-    <screen>$ manage-account
- clear-account-is-disabled
- --port 4444
- --bindDN "uid=kvaughan,ou=people,dc=example,dc=com"
- --bindPassword bribery
- --targetDN uid=bjensen,ou=people,dc=example,dc=com
- --trustAll
-Account Is Disabled:  false</screen>
+    <screen>
+$ <userinput>manage-account \
+ clear-account-is-disabled \
+ --port 4444 \
+ --bindDN "uid=kvaughan,ou=people,dc=example,dc=com" \
+ --bindPassword bribery \
+ --targetDN uid=bjensen,ou=people,dc=example,dc=com \
+ --trustAll</userinput>
+<computeroutput>Account Is Disabled:  false</computeroutput>
+    </screen>
    </step>
   </procedure>
  </section>
@@ -191,6 +213,7 @@ Account Is Disabled:  false</screen>
    <primary>Accounts</primary>
    <secondary>Status notifications</secondary>
   </indexterm>
+
   <para>OpenDJ can send mail about account status changes. OpenDJ needs an
   SMTP server to send messages, and needs templates for the mail it sends.
   By default, message templates are in English, under
@@ -209,7 +232,7 @@ Account Is Disabled:  false</screen>
   automatically scan entries to send password expiry notifications. OpenDJ does
   implement controls that you can pass in an LDAP search to determine whether a
   user's password is about to expire. See the appendix on
-  <link xlink:href="admin-guide#appendix-controls"
+  <link xlink:href="admin-guide#appendix-controls" xlink:show="new"
   xlink:role="http://docbook.org/xlink/role/olink"><citetitle>LDAP
   Controls</citetitle></link> for a list. You can send notifications then
   based on the results of your search.</para>
@@ -223,30 +246,37 @@ Account Is Disabled:  false</screen>
    
    <step>
     <para>Identify the SMTP server to which OpenDJ sends messages.</para>
-    <screen>$ dsconfig
- set-global-configuration-prop
- --port 4444
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --set smtp-server:smtp.example.com
- --trustAll
- --no-prompt</screen>
+
+    <screen>
+$ <userinput>dsconfig \
+ set-global-configuration-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --set smtp-server:smtp.example.com \
+ --trustAll \
+ --no-prompt</userinput>
+    </screen>
    </step>
    
    <step>
     <para>Set up OpenDJ to be able to mail users about account status.</para>
-    <screen>$ dsconfig
- set-account-status-notification-handler-prop
- --port 4444
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --handler-name "SMTP Handler"
- --set enabled:true
- --set email-address-attribute-type:mail
- --trustAll
- --no-prompt</screen>
+
+    <screen>
+$ <userinput>dsconfig \
+ set-account-status-notification-handler-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --handler-name "SMTP Handler" \
+ --set enabled:true \
+ --set email-address-attribute-type:mail \
+ --trustAll \
+ --no-prompt</userinput>
+    </screen>
+
     <para>Notice that OpenDJ finds the user's mail address on the attribute
     on the user's entry, specified by
     <literal>email-address-attribute-type</literal>.</para>
@@ -261,16 +291,19 @@ Account Is Disabled:  false</screen>
    <step>
     <para>Adjust applicable password policies to use the account status
     notification handler you configured.</para>
-    <screen>$ dsconfig
- set-password-policy-prop
- --port 4444
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --policy-name "Default Password Policy"
- --set account-status-notification-handler:"SMTP Handler"
- --trustAll
- --no-prompt</screen>
+
+    <screen>
+$ <userinput>dsconfig \
+ set-password-policy-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --policy-name "Default Password Policy" \
+ --set account-status-notification-handler:"SMTP Handler" \
+ --trustAll \
+ --no-prompt</userinput>
+    </screen>
    </step>
   </procedure>
   

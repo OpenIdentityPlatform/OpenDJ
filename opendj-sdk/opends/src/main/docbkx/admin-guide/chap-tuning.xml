@@ -242,14 +242,16 @@
   change elapsed processing time resolution from milliseconds (default) to
   nanoseconds.</para>
 
-  <screen>$ dsconfig
- set-global-configuration-prop
- --port 4444
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --set etime-resolution:nanoseconds
- --no-prompt</screen>
+  <screen>
+$ <userinput>dsconfig \
+ set-global-configuration-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --set etime-resolution:nanoseconds \
+ --no-prompt</userinput>
+  </screen>
  </section>
  
  <section xml:id="perf-tweaking">
@@ -355,26 +357,29 @@
    you change the settings. Instead, to force OpenDJ to compress all entries,
    import the data from LDIF.</para></footnote></para>
    
-   <screen>$ dsconfig
- set-backend-prop
- --port 4444
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --backend-name userRoot
- --set entries-compressed:true
- --trustAll
- --no-prompt
-$ import-ldif
- --port 4444
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --ldifFile /path/to/Example.ldif
- --backendID userRoot
- --includeBranch dc=example,dc=com
- --start 0
-Import task 20120917100628767 scheduled to start Sep 17, 2012 10:06:28 AM CEST</screen>
+   <screen>
+$ <userinput>dsconfig \
+ set-backend-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --backend-name userRoot \
+ --set entries-compressed:true \
+ --trustAll \
+ --no-prompt</userinput>
+
+$ <userinput>import-ldif \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --ldifFile /path/to/Example.ldif \
+ --backendID userRoot \
+ --includeBranch dc=example,dc=com \
+ --start 0</userinput>
+<computeroutput>Import task 20120917100628767 scheduled to start Sep 17, 2012 10:06:28 AM CEST</computeroutput>
+   </screen>
   </section>
   
   <section xml:id="perf-import">
@@ -428,16 +433,18 @@ Import task 20120917100628767 scheduled to start Sep 17, 2012 10:06:28 AM CEST</
    JVM. Test database pre-load on startup by setting the
    <literal>preload-time-limit</literal> for the backend.</para>
    
-   <screen>$ dsconfig
- set-backend-prop
- --port 4444
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --backend-name userRoot
- --set preload-time-limit:30m
- --trustAll
- --no-prompt</screen>
+   <screen>
+$ <userinput>dsconfig \
+ set-backend-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --backend-name userRoot \
+ --set preload-time-limit:30m \
+ --trustAll \
+ --no-prompt</userinput>
+   </screen>
    
    <para>Database pre-load is single-threaded, and loads each database one
    at a time.</para>
@@ -458,32 +465,36 @@ Import task 20120917100628767 scheduled to start Sep 17, 2012 10:06:28 AM CEST</
    you have a few large static groups and applications that regularly check
    group membership, you could cache your group entries.</para>
    
-   <screen>$ dsconfig
- create-entry-cache
- --port 4444
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --cache-name "Large Group Entry Cache"
- --type fifo
- --set cache-level:1
- --set include-filter:"(ou=Large Static Groups)"
- --set max-entries:10
- --set enabled:true
- --trustAll
- --no-prompt</screen>
+   <screen>
+$ <userinput>dsconfig \
+ create-entry-cache \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --cache-name "Large Group Entry Cache" \
+ --type fifo \
+ --set cache-level:1 \
+ --set include-filter:"(ou=Large Static Groups)" \
+ --set max-entries:10 \
+ --set enabled:true \
+ --trustAll \
+ --no-prompt</userinput>
+   </screen>
 
    <para>You can use the global setting, <literal>entry-cache-preload</literal>,
    to force OpenDJ to load the entry cache as part of server startup.</para>
 
-  <screen>$ dsconfig
- set-global-configuration-prop
- --port 4444
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --set entry-cache-preload:true
- --no-prompt</screen>
+  <screen>
+$ <userinput>dsconfig \
+ set-global-configuration-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --set entry-cache-preload:true \
+ --no-prompt</userinput>
+  </screen>
 
    <para>By default, OpenDJ does not pre-load the entry cache.</para>
   </section>
@@ -503,16 +514,18 @@ Import task 20120917100628767 scheduled to start Sep 17, 2012 10:06:28 AM CEST</
    performance bottleneck, as each client request results in multiple access log
    messages. Consider disabling the access log in such cases.</para>
    
-   <screen>$ dsconfig
- set-log-publisher-prop
- --port 4444
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --publisher-name "File-Based Access Logger"
- --set enabled:false
- --trustAll
- --no-prompt</screen>
+   <screen>
+$ <userinput>dsconfig \
+ set-log-publisher-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --publisher-name "File-Based Access Logger" \
+ --set enabled:false \
+ --trustAll \
+ --no-prompt</userinput>
+   </screen>
   </section>
  </section>
 </chapter>

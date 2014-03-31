@@ -20,16 +20,16 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2013 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-troubleshooting'
          xmlns='http://docbook.org/ns/docbook'
          version='5.0' xml:lang='en'
          xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-         xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
-         xmlns:xlink='http://www.w3.org/1999/xlink'
-        >
+         xsi:schemaLocation='http://docbook.org/ns/docbook
+                             http://docbook.org/xml/5.0/xsd/docbook.xsd'
+         xmlns:xlink='http://www.w3.org/1999/xlink'>
  <title>Troubleshooting Server Problems</title>
  <indexterm><primary>Troubleshooting</primary></indexterm>
  
@@ -103,14 +103,20 @@
    <step>
     <para>Generate the encoded version of the new password using the OpenDJ
     <command>encode-password</command> command.</para>
-    <screen>$ encode-password --storageScheme SSHA512 --clearPassword password
-Encoded Password:  "{SSHA512}yWqHnYV4a5llPvE7WHLe5jzK27oZQWLIlVcs9gySu4TyZJMg
- NQNRtnR/Xx2xces1wu1dVLI9jVVtl1W4BVsmOKjyjr0rWrHt"</screen>
+
+    <screen>
+$ <userinput>encode-password --storageScheme SSHA512 --clearPassword password</userinput>
+<computeroutput>Encoded Password:  "{SSHA512}yWqHnYV4a5llPvE7WHLe5jzK27oZQWLIlVcs9gySu4TyZJMg
+ NQNRtnR/Xx2xces1wu1dVLI9jVVtl1W4BVsmOKjyjr0rWrHt"</computeroutput>
+    </screen>
    </step>
 
    <step>
     <para>Stop OpenDJ directory server while you edit the configuration.</para>
-    <screen>$ stop-ds</screen>
+
+    <screen>
+$ <userinput>stop-ds</userinput>
+    </screen>
    </step>
 
    <step>
@@ -120,8 +126,9 @@ Encoded Password:  "{SSHA512}yWqHnYV4a5llPvE7WHLe5jzK27oZQWLIlVcs9gySu4TyZJMg
     replace the <literal>userpassword</literal> attribute value with the
     encoded version of the new password, taking care not to leave any
     whitespace at the end of the line.</para>
-    <programlisting language="ldif"
-    >dn: cn=Directory Manager,cn=Root DNs,cn=config
+
+    <programlisting language="ldif">
+dn: cn=Directory Manager,cn=Root DNs,cn=config
 objectClass: person
 objectClass: inetOrgPerson
 objectClass: organizationalPerson
@@ -138,27 +145,34 @@ ds-pwp-password-policy-dn: cn=Root Password Policy,cn=Password Policies
 ds-rlim-time-limit: 0
 ds-rlim-lookthrough-limit: 0
 ds-rlim-idle-time-limit: 0
-ds-rlim-size-limit: 0</programlisting>
+ds-rlim-size-limit: 0
+    </programlisting>
    </step>
 
    <step>
     <para>Start OpenDJ directory server again.</para>
-    <screen>$ start-ds</screen>
+
+    <screen>
+$ <userinput>start-ds</userinput>
+    </screen>
    </step>
 
    <step>
     <para>Verify that you can administer the server as Directory Manager using
     the new password.</para>
-    <screen>$ dsconfig -p 4444 -h opendj.example.com -D "cn=Directory Manager" -w password
 
+    <screen>
+$ <userinput>dsconfig -p 4444 -h opendj.example.com -D "cn=Directory Manager" -w password</userinput>
 
-&gt;&gt;&gt;&gt; OpenDJ configuration console main menu
+<computeroutput>
+>>>> OpenDJ configuration console main menu
 
 What do you want to configure?
 
 ...
 
-Enter choice: q</screen>
+Enter choice:</computeroutput> <userinput>q</userinput>
+    </screen>
    </step>
   </procedure>
 
@@ -179,15 +193,18 @@ Enter choice: q</screen>
    <step>
     <para>Use the <command>ldappasswordmodify</command> command to reset the
     global administrator's password</para>
-    <screen>$ ldappasswordmodify
- --useStartTLS
- --port 1389
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --authzID "cn=admin,cn=Administrators,cn=admin data"
- --newPassword password
-The LDAP password modify operation was successful</screen>
+
+    <screen>
+$ <userinput>ldappasswordmodify \
+ --useStartTLS \
+ --port 1389 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --authzID "cn=admin,cn=Administrators,cn=admin data" \
+ --newPassword password</userinput>
+<computeroutput>The LDAP password modify operation was successful</computeroutput>
+    </screen>
    </step>
 
    <step>
@@ -215,17 +232,19 @@ The LDAP password modify operation was successful</screen>
     <para>Enable the debug log, <filename>opendj/logs/debug</filename>, which
     is not enabled by default.</para>
 
-    <screen>$ dsconfig
- set-log-publisher-prop
- --hostname opendj.example.com
- --port 4444
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --publisher-name "File-Based Debug Logger"
- --set enabled:true
- --set default-debug-level:all
- --no-prompt
- --trustAll</screen>
+    <screen>
+$ <userinput>dsconfig \
+ set-log-publisher-prop \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --publisher-name "File-Based Debug Logger" \
+ --set enabled:true \
+ --set default-debug-level:all \
+ --no-prompt \
+ --trustAll</userinput>
+    </screen>
 
     <para>You can set <literal>default-debug-level</literal> to a less verbose
     level if necessary.</para>
@@ -236,46 +255,52 @@ The LDAP password modify operation was successful</screen>
 
     <para>No debug targets are enabled by default.</para>
 
-    <screen>$ dsconfig
- list-debug-targets
- --hostname opendj.example.com
- --port 4444
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --publisher-name "File-Based Debug Logger"
- --no-prompt
- --trustAll
-
+    <screen>
+$ <userinput>dsconfig \
+ list-debug-targets \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --publisher-name "File-Based Debug Logger" \
+ --no-prompt \
+ --trustAll</userinput>
+<computeroutput>
 Debug Target : debug-level : debug-category
 -------------:-------------:---------------
-
-$ </screen>
+</computeroutput>
+$
+    </screen>
 
     <para>A debug target specifies a fully-qualified OpenDJ Java package,
     class, or method for which to log debug messages at the level you
     specify.</para>
 
-    <screen>$ dsconfig
- create-debug-target
- --hostname opendj.example.com
- --port 4444
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --publisher-name "File-Based Debug Logger"
- --type generic
- --target-name org.opends.server.api
- --set debug-level:all
- --no-prompt
- --trustAll</screen>
+    <screen>
+$ <userinput>dsconfig \
+ create-debug-target \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --publisher-name "File-Based Debug Logger" \
+ --type generic \
+ --target-name org.opends.server.api \
+ --set debug-level:all \
+ --no-prompt \
+ --trustAll</userinput>
+    </screen>
    </step>
 
    <step>
     <para>Restart OpenDJ to see debug messages in the log.</para>
 
-    <screen>$ /path/to/opendj/bin/stop-ds --restart
+    <screen>
+$ <userinput>/path/to/opendj/bin/stop-ds --restart</userinput>
 ...
-$ tail -f /path/to/opendj/logs/debug
-...</screen>
+$ <userinput>tail -f /path/to/opendj/logs/debug</userinput>
+...
+    </screen>
 
     <para>If you have set <literal>debug-level:all</literal>, OpenDJ generates
     a great deal of output in the debug log file. Use debug logging very
@@ -303,21 +328,23 @@ $ tail -f /path/to/opendj/logs/debug
   the modify operation is performed over the loopback address (accessing
   OpenDJ on the local host).</para>
 
-  <screen>$ ldapmodify
- --port 1389
- --bindDN "cn=Directory Manager"
- --bindPassword password
+  <screen>
+$ <userinput>ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
  --defaultAdd
 dn: ds-task-id=Enter Lockdown Mode,cn=Scheduled Tasks,cn=tasks
 objectClass: top
 objectClass: ds-task
 ds-task-id: Enter Lockdown Mode
-ds-task-class-name: org.opends.server.tasks.EnterLockdownModeTask
+ds-task-class-name: org.opends.server.tasks.EnterLockdownModeTask</userinput>
 
-Processing ADD request for
+<computeroutput>Processing ADD request for
  ds-task-id=Enter Lockdown Mode,cn=Scheduled Tasks,cn=tasks
 ADD operation successful for DN
- ds-task-id=Enter Lockdown Mode,cn=Scheduled Tasks,cn=tasks</screen>
+ ds-task-id=Enter Lockdown Mode,cn=Scheduled Tasks,cn=tasks</computeroutput>
+  </screen>
 
   <para>OpenDJ logs a notice message in <filename>logs/errors</filename>
   when lockdown mode takes effect.</para>
@@ -329,30 +356,34 @@ ADD operation successful for DN
   <para>Client applications that request operations get a message concerning
   lockdown mode.</para>
 
-  <screen>$ ldapsearch --port 1389 --baseDN "" --searchScope base "(objectclass=*)" +
-SEARCH operation failed
+  <screen>
+$ <userinput>ldapsearch --port 1389 --baseDN "" --searchScope base "(objectclass=*)" +</userinput>
+<computeroutput>SEARCH operation failed
 Result Code:  53 (Unwilling to Perform)
 Additional Information:  Rejecting the requested operation because the server
  is in lockdown mode and will only accept requests from root users over
- loopback connections</screen>
+ loopback connections</computeroutput>
+  </screen>
 
   <para>You also leave lockdown mode by using a task.</para>
 
-  <screen>$ ldapmodify
- --port 1389
- --bindDN "cn=Directory Manager"
- --bindPassword password
+  <screen>
+$ <userinput>ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
  --defaultAdd
 dn: ds-task-id=Leave Lockdown Mode,cn=Scheduled Tasks,cn=tasks
 objectClass: top
 objectClass: ds-task
 ds-task-id: Leave Lockdown Mode
-ds-task-class-name: org.opends.server.tasks.LeaveLockdownModeTask
+ds-task-class-name: org.opends.server.tasks.LeaveLockdownModeTask</userinput>
 
-Processing ADD request for
+<computeroutput>Processing ADD request for
  ds-task-id=Leave Lockdown Mode,cn=Scheduled Tasks,cn=tasks
 ADD operation successful for DN
- ds-task-id=Leave Lockdown Mode,cn=Scheduled Tasks,cn=tasks</screen>
+ ds-task-id=Leave Lockdown Mode,cn=Scheduled Tasks,cn=tasks</computeroutput>
+  </screen>
 
   <para>OpenDJ also logs a notice message when leaving lockdown.</para>
 
@@ -380,15 +411,17 @@ ADD operation successful for DN
   <literal>single-structural-objectclass-behavior:warn</literal> as
   follows.</para>
   
-  <screen>$ dsconfig
- set-global-configuration-prop
- --port 4444
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --set single-structural-objectclass-behavior:warn
- --trustAll
- --no-prompt</screen>
+  <screen>
+$ <userinput>dsconfig \
+ set-global-configuration-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --set single-structural-objectclass-behavior:warn \
+ --trustAll \
+ --no-prompt</userinput>
+  </screen>
   
   <para>By default, OpenDJ also checks syntax for a number of attribute types.
   You can relax this behavior as well by using the <command>dsconfig
@@ -415,8 +448,9 @@ ADD operation successful for DN
   software. For example, the Java environment is distributed with a key store
   holding many CA certificates.</para>
   
-  <screen>$ keytool -list -keystore $JAVA_HOME/lib/security/cacerts -storepass changeit
- | wc -l
+  <screen>
+$ <userinput>keytool -list -keystore $JAVA_HOME/lib/security/cacerts -storepass changeit \
+ | wc -l</userinput>
      334</screen>
   
   <para>The self-signed server certificates that can be configured during
@@ -431,7 +465,9 @@ ADD operation successful for DN
   debug traces from <literal>javax.net.debug</literal> into the
   <filename>logs/server.out</filename> file.</para>
   
-  <screen>OPENDJ_JAVA_ARGS="-Djavax.net.debug=all" start-ds</screen>
+  <screen>
+$ <userinput>OPENDJ_JAVA_ARGS="-Djavax.net.debug=all" start-ds</userinput>
+  </screen>
   
   <section xml:id="troubleshoot-certificate-authentication">
    <title>Troubleshooting Certificates &amp; SSL Authentication</title>
@@ -441,10 +477,12 @@ ADD operation successful for DN
    to SSL handshake errors. This leads to error log messages such as the
    following.</para>
    
-   <screen>[21/Nov/2011:13:03:20 -0600] category=SYNC severity=NOTICE
+   <programlisting language="none">
+[21/Nov/2011:13:03:20 -0600] category=SYNC severity=NOTICE
  msgID=15138921 msg=SSL connection attempt from myserver (123.456.789.012)
- failed: Remote host closed connection during handshake</screen>
-  
+ failed: Remote host closed connection during handshake
+   </programlisting>
+
   <itemizedlist>
    <para>Notice these problem characteristics in the message above.</para>
    <listitem>
@@ -479,38 +517,47 @@ ADD operation successful for DN
     <para>Make sure each OpenDJ server uses only fully qualified host names in
     the replication configuration. You can obtain a quick summary by running
     the following command against each server's configuration.</para>
-    <screen>$ grep ds-cfg-replication-server: config/config.ldif | sort | uniq</screen>
+
+    <screen>
+$ <userinput>grep ds-cfg-replication-server: config/config.ldif | sort | uniq</userinput>
+    </screen>
+
    </listitem>
    <listitem>
     <para>Make sure that the host names in OpenDJ certificates also contain
     fully qualified host names, and correspond to the host names found in the
     previous step.</para>
-    <screen># Examine the certificates used for the administration connector.
-$ keytool -list -v -keystore config/admin-truststore
- -storepass `cat config/admin-keystore.pin` |grep "^Owner:"
+
+    <screen>
+# Examine the certificates used for the administration connector.
+$ <userinput>keytool -list -v -keystore config/admin-truststore \
+ -storepass `cat config/admin-keystore.pin` |grep "^Owner:"</userinput>
 
 # Examine the certificates used for replication.
-$ keytool -list -v -keystore config/ads-truststore
- -storepass `cat config/ads-truststore.pin`| grep "^Owner:"
+$ <userinput>keytool -list -v -keystore config/ads-truststore \
+ -storepass `cat config/ads-truststore.pin`| grep "^Owner:"</userinput>
     </screen>
    </listitem>
   </orderedlist>
   
   <para>Sample output for a server on host <literal>opendj.example.com</literal>
   follows.</para>
-  <screen>$ grep ds-cfg-replication-server: config/config.ldif |sort | uniq
-ds-cfg-replication-server: opendj.example.com:8989
-ds-cfg-replication-server: opendj.example.com:9989
 
-$ keytool -list -v -keystore config/admin-truststore
--storepass `cat config/admin-keystore.pin` | grep "^Owner:"
-Owner: CN=opendj.example.com, O=Administration Connector Self-Signed Certificate
+  <screen>
+$ <userinput>grep ds-cfg-replication-server: config/config.ldif |sort | uniq</userinput>
+<computeroutput>ds-cfg-replication-server: opendj.example.com:8989
+ds-cfg-replication-server: opendj.example.com:9989</computeroutput>
 
-$ keytool -list -v -keystore config/ads-truststore
- -storepass `cat config/ads-truststore.pin`| grep "^Owner:"
+$ <userinput>keytool -list -v -keystore config/admin-truststore
+-storepass `cat config/admin-keystore.pin` | grep "^Owner:"</userinput>
+<computeroutput>Owner: CN=opendj.example.com, O=Administration Connector Self-Signed Certificate</computeroutput>
+
+$ <userinput>keytool -list -v -keystore config/ads-truststore \
+ -storepass `cat config/ads-truststore.pin`| grep "^Owner:"</userinput>
+<computeroutput>Owner: CN=opendj.example.com, O=OpenDJ Certificate
 Owner: CN=opendj.example.com, O=OpenDJ Certificate
-Owner: CN=opendj.example.com, O=OpenDJ Certificate
-Owner: CN=opendj.example.com, O=OpenDJ Certificate</screen>
+Owner: CN=opendj.example.com, O=OpenDJ Certificate</computeroutput>
+  </screen>
 
    <itemizedlist>
     <para>Unfortunately there is no easy solution to badly configured host
@@ -538,15 +585,18 @@ Owner: CN=opendj.example.com, O=OpenDJ Certificate</screen>
     <para>If you cannot reinstall the server, follow these steps.</para>
     <listitem>
      <para>Disable replication in each replica.</para>
-     <screen>$ dsreplication
- disable
- --disableAll
- --port <replaceable>adminPort</replaceable>
- --hostname <replaceable>hostName</replaceable>
- --bindDN "cn=Directory Manager"
- --adminPassword <replaceable>password</replaceable>
- --trustAll
- --no-prompt</screen>
+
+     <screen>
+$ <userinput>dsreplication \
+ disable \
+ --disableAll \
+ --port <replaceable>adminPort</replaceable> \
+ --hostname <replaceable>hostName</replaceable> \
+ --bindDN "cn=Directory Manager" \
+ --adminPassword <replaceable>password</replaceable> \
+ --trustAll \
+ --no-prompt</userinput>
+     </screen>
     </listitem>
     <listitem>
      <para>Stop and restart each server in order to clear the in-memory ADS
@@ -555,23 +605,26 @@ Owner: CN=opendj.example.com, O=OpenDJ Certificate</screen>
     <listitem>
      <para>Enable replication making certain that fully qualified host names
      are used throughout</para>
-     <screen>$ dsreplication
- enable
- --adminUID admin
- --adminPassword <replaceable>password</replaceable>
- --baseDN dc=example,dc=com
- --host1 <replaceable>hostName1</replaceable>
- --port1 <replaceable>adminPort1</replaceable>
- --bindDN1 "cn=Directory Manager"
- --bindPassword1 <replaceable>password</replaceable>
- --replicationPort1 <replaceable>replPort1</replaceable>
- --host2 <replaceable>hostName2</replaceable>
- --port2 <replaceable>adminPort2</replaceable>
- --bindDN2 "cn=Directory Manager"
- --bindPassword2 <replaceable>password</replaceable>
- --replicationPort2 <replaceable>replPort2</replaceable>
- --trustAll
- --no-prompt</screen>
+
+     <screen>
+$ <userinput>dsreplication \
+ enable \
+ --adminUID admin \
+ --adminPassword <replaceable>password</replaceable> \
+ --baseDN dc=example,dc=com \
+ --host1 <replaceable>hostName1</replaceable> \
+ --port1 <replaceable>adminPort1</replaceable> \
+ --bindDN1 "cn=Directory Manager" \
+ --bindPassword1 <replaceable>password</replaceable> \
+ --replicationPort1 <replaceable>replPort1</replaceable> \
+ --host2 <replaceable>hostName2</replaceable> \
+ --port2 <replaceable>adminPort2</replaceable> \
+ --bindDN2 "cn=Directory Manager" \
+ --bindPassword2 <replaceable>password</replaceable> \
+ --replicationPort2 <replaceable>replPort2</replaceable> \
+ --trustAll \
+ --no-prompt</userinput>
+     </screen>
     </listitem>
     <listitem>
      <para>Repeat the previous step for each remaining replica. In other words,
@@ -580,27 +633,33 @@ Owner: CN=opendj.example.com, O=OpenDJ Certificate</screen>
     </listitem>
     <listitem>
      <para>Initialize all remaining replica with the data from host1.</para>
-     <screen>$ dsreplication
- initialize-all
- --adminUID admin
- --adminPassword password
- --baseDN dc=example,dc=com
- --hostname <replaceable>hostName1</replaceable>
- --port 4444
- --trustAll
- --no-prompt</screen>
+
+     <screen>
+$ <userinput>dsreplication \
+ initialize-all \
+ --adminUID admin \
+ --adminPassword password \
+ --baseDN dc=example,dc=com \
+ --hostname <replaceable>hostName1</replaceable> \
+ --port 4444 \
+ --trustAll \
+ --no-prompt</userinput>
+     </screen>
     </listitem>
     <listitem>
      <para>Check that the host names are correct in the configuration and in
      the key stores by following the steps you used to check for host name
      problems. The only broken host name remaining should be in the key and
      trust stores for the administration connector.</para>
-     <screen>$ keytool -list -v -keystore config/admin-truststore
- -storepass `cat config/admin-keystore.pin` |grep "^Owner:"</screen>
+
+     <screen>
+$ <userinput>keytool -list -v -keystore config/admin-truststore \
+ -storepass `cat config/admin-keystore.pin` |grep "^Owner:"</userinput>
+     </screen>
     </listitem>
     <listitem>
      <para>Stop each server, and then fix the remaining admin connector
-     certificate as described here in the procedure <link
+     certificate as described here in the procedure <link xlink:show="new"
      xlink:href="admin-guide#replace-key-pair"
      xlink:role="http://docbook.org/xlink/role/olink"><citetitle>To Replace a
      Server Key Pair</citetitle></link>.</para>
@@ -665,13 +724,15 @@ Owner: CN=opendj.example.com, O=OpenDJ Certificate</screen>
        <literal>opendj.example.com</literal> with administration port
        <literal>4444</literal>.</para>
 
-       <screen>$ ldapsearch
- --port 1389
- --hostname opendj.example.com
- --baseDN "cn=admin data"
- "(cn=opendj.example.com:4444)" ds-cfg-key-id
-dn: cn=opendj.example.com:4444,cn=Servers,cn=admin data
-ds-cfg-key-id: 4F2F97979A7C05162CF64C9F73AF66ED</screen>
+       <screen>
+$ <userinput>ldapsearch \
+ --port 1389 \
+ --hostname opendj.example.com \
+ --baseDN "cn=admin data" \
+ "(cn=opendj.example.com:4444)" ds-cfg-key-id</userinput>
+<computeroutput>dn: cn=opendj.example.com:4444,cn=Servers,cn=admin data
+ds-cfg-key-id: 4F2F97979A7C05162CF64C9F73AF66ED</computeroutput>
+       </screen>
 
        <para>The key ID, <literal>4F2F97979A7C05162CF64C9F73AF66ED</literal>, is
        the RDN of the key entry.</para>
@@ -686,7 +747,8 @@ ds-cfg-key-id: 4F2F97979A7C05162CF64C9F73AF66ED</screen>
        time. In the following example, the key pair was compromised at 8:34 AM
        UTC on March 21, 2013.</para>
 
-       <screen width="81">$ ldapmodify
+       <screen width="81">
+$ <userinput>ldapmodify
  --port 1389
  --hostname opendj.example.com
  --bindDN "cn=Directory Manager"
@@ -694,12 +756,13 @@ ds-cfg-key-id: 4F2F97979A7C05162CF64C9F73AF66ED</screen>
 dn: ds-cfg-key-id=4F2F97979A7C05162CF64C9F73AF66ED,cn=instance keys,cn=admin data
 changetype: modify
 add: ds-cfg-key-compromised-time
-ds-cfg-key-compromised-time: 201303210834Z
+ds-cfg-key-compromised-time: 201303210834Z</userinput>
 
-Processing MODIFY request for ds-cfg-key-id=4F2F97979A7C05162CF64C9F73AF66ED,
+<computeroutput>Processing MODIFY request for ds-cfg-key-id=4F2F97979A7C05162CF64C9F73AF66ED,
  cn=instance keys,cn=admin data
 MODIFY operation successful for DN ds-cfg-key-id=4F2F97979A7C05162CF64C9F73AF66ED
- ,cn=instance keys,cn=admin data</screen>
+ ,cn=instance keys,cn=admin data</computeroutput>
+       </screen>
       </listitem>
 
       <listitem>
@@ -712,20 +775,22 @@ MODIFY operation successful for DN ds-cfg-key-id=4F2F97979A7C05162CF64C9F73AF66E
        in the administrative data whose <literal>ds-cfg-symmetric-key</literal>
        starts with the key ID of the compromised key.</para>
 
-       <screen>$ ldapsearch
- --port 1389
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --baseDN "cn=secret keys,cn=admin data"
- "(ds-cfg-symmetric-key=4F2F97979A7C05162CF64C9F73AF66ED*)" dn
-dn: ds-cfg-key-id=fba16e59-2ce1-4619-96e7-8caf33f916c8,cn=secret keys,cn=admin d
+       <screen>
+$ <userinput>ldapsearch \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --baseDN "cn=secret keys,cn=admin data" \
+ "(ds-cfg-symmetric-key=4F2F97979A7C05162CF64C9F73AF66ED*)" dn</userinput>
+<computeroutput>dn: ds-cfg-key-id=fba16e59-2ce1-4619-96e7-8caf33f916c8,cn=secret keys,cn=admin d
  ata
 
 dn: ds-cfg-key-id=57bd8b8b-9cc6-4a29-b42f-fb7a9e48d713,cn=secret keys,cn=admin d
  ata
 
 dn: ds-cfg-key-id=f05e2e6a-5c4b-44d0-b2e8-67a36d304f3a,cn=secret keys,cn=admin d
- ata</screen>
+ ata</computeroutput>
+       </screen>
 
        <para>For each such key, mark the entry with
        <literal>ds-cfg-key-compromised-time</literal> as shown above for the
@@ -760,14 +825,16 @@ dn: ds-cfg-key-id=f05e2e6a-5c4b-44d0-b2e8-67a36d304f3a,cn=secret keys,cn=admin d
   <literal>uid=bjensen</literal> as traced in the LDAP access log. In the access
   log itself, each line starts with a time stamp.</para>
   
-  <screen>[27/Jun/2011:17:23:00 +0200] CONNECT conn=19 from=127.0.0.1:56641
+  <programlisting language="none">
+[27/Jun/2011:17:23:00 +0200] CONNECT conn=19 from=127.0.0.1:56641
  to=127.0.0.1:1389 protocol=LDAP
 [27/Jun/2011:17:23:00 +0200] SEARCH REQ conn=19 op=0 msgID=1
  base="dc=example,dc=com" scope=wholeSubtree filter="(uid=bjensen)" attrs="ALL"
 [27/Jun/2011:17:23:00 +0200] SEARCH RES conn=19 op=0 msgID=1
  result=0 nentries=1 etime=3
 [27/Jun/2011:17:23:00 +0200] UNBIND REQ conn=19 op=1 msgID=2
-[27/Jun/2011:17:23:00 +0200] DISCONNECT conn=19 reason="Client Unbind"</screen>
+[27/Jun/2011:17:23:00 +0200] DISCONNECT conn=19 reason="Client Unbind"
+  </programlisting>
   
   <para>As you see, each client connection and set of LDAP operations are
   traced, starting with a time stamp and information about the operation
@@ -788,14 +855,17 @@ dn: ds-cfg-key-id=f05e2e6a-5c4b-44d0-b2e8-67a36d304f3a,cn=secret keys,cn=admin d
   field of the user <literal>newuser</literal>, which is handled by connection 4
   as shown in <filename>logs/http-access</filename>.</para>
 
-  <screen>-  192.168.0.12  bjensen  22/May/2013:16:27:52 +0200
+  <programlisting language="none">
+-  192.168.0.12  bjensen  22/May/2013:16:27:52 +0200
   GET  /users/newuser?_fields=_id  HTTP/1.1  200
-  curl/7.21.4  4  12</screen>
+  curl/7.21.4  4  12
+  </programlisting>
 
   <para>With internal operations logged in <filename>logs/access</filename>,
   log lines for the related operations have <literal>conn=4</literal>.</para>
 
-  <screen>[22/May/2013:16:27:52 +0200] CONNECT conn=4
+  <programlisting language="none">
+[22/May/2013:16:27:52 +0200] CONNECT conn=4
   from=192.168.0.12:63593 to=192.168.0.12:8080 protocol=HTTP/1.1
 [22/May/2013:16:27:52 +0200] SEARCH REQ conn=4
   op=0 msgID=0 base="ou=people,dc=example,dc=com" scope=wholeSubtree
@@ -816,7 +886,8 @@ dn: ds-cfg-key-id=f05e2e6a-5c4b-44d0-b2e8-67a36d304f3a,cn=secret keys,cn=admin d
 [22/May/2013:16:27:52 +0200] UNBIND REQ conn=4
    op=3 msgID=3
 [22/May/2013:16:27:52 +0200] DISCONNECT conn=4
-   reason="Client Unbind"</screen>
+   reason="Client Unbind"
+  </programlisting>
 
   <para>To help diagnose errors due to access permissions, OpenDJ supports the
   get effective rights control. The control OID,
@@ -839,20 +910,21 @@ cannot be used due to insufficient access rights</literallayout>
    control</link> without authenticating. By default, OpenDJ includes a global
    ACI to allow only authenticated users to use the control.</para>
 
-   <screen>$ dsconfig
- --port 4444
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword "password"
- get-access-control-handler-prop
-
+   <screen>
+$ <userinput>dsconfig \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword "password" \
+ get-access-control-handler-prop</userinput>
+<computeroutput>
 Property   : Value(s)
 -----------:-------------------------------------------------------------------
 enabled    : true
 global-aci : (extop="1.3.6.1.4.1.26027.1.6.1 || 1.3.6.1.4.1.26027.1.6.3 ||
 ...
            : (targetcontrol="1.3.6.1.1.12 || 1.3.6.1.1.13.1 || 1.3.6.1.1.13.2
-           : || <emphasis role="strong">1.2.840.113556.1.4.319</emphasis> || 1.2.826.0.1.3344810.2.3 ||
+           : || 1.2.840.113556.1.4.319 || 1.2.826.0.1.3344810.2.3 ||
            : 2.16.840.1.113730.3.4.18 || 2.16.840.1.113730.3.4.9 ||
            : 1.2.840.113556.1.4.473 || 1.3.6.1.4.1.42.2.27.9.5.9") (version
            : 3.0; acl "Authenticated users control access"; allow(read)
@@ -860,30 +932,33 @@ global-aci : (extop="1.3.6.1.4.1.26027.1.6.1 || 1.3.6.1.4.1.26027.1.6.3 ||
            : 2.16.840.1.113730.3.4.17 || 2.16.840.1.113730.3.4.19 ||
            : 1.3.6.1.4.1.4203.1.10.2 || 1.3.6.1.4.1.42.2.27.8.5.1 ||
            : 2.16.840.1.113730.3.4.16") (version 3.0; acl "Anonymous control
-           : access"; allow(read) userdn="ldap:///anyone";)</screen>
+           : access"; allow(read) userdn="ldap:///anyone";)</computeroutput>
+   </screen>
 
    <para>To grant anonymous (unauthenticated) user access to the control,
    add the OID for the simple paged results control to the list of those in
    the <literal>Anonymous control access</literal> global ACI.</para>
 
-   <screen>$ dsconfig
- --port 4444
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword "password"
- set-access-control-handler-prop
- --remove global-aci:"(targetcontrol=\"2.16.840.1.113730.3.4.2 ||
- 2.16.840.1.113730.3.4.17 || 2.16.840.1.113730.3.4.19 ||
- 1.3.6.1.4.1.4203.1.10.2 || 1.3.6.1.4.1.42.2.27.8.5.1 ||
- 2.16.840.1.113730.3.4.16\") (version 3.0; acl \"Anonymous control access\";
- allow(read) userdn=\"ldap:///anyone\";)"
- --add global-aci:"(targetcontrol=\"2.16.840.1.113730.3.4.2 ||
- 2.16.840.1.113730.3.4.17 || 2.16.840.1.113730.3.4.19 ||
- 1.3.6.1.4.1.4203.1.10.2 || 1.3.6.1.4.1.42.2.27.8.5.1 ||
- 2.16.840.1.113730.3.4.16 || <emphasis role="strong">1.2.840.113556.1.4.319</emphasis>\")
- (version 3.0; acl \"Anonymous control access\"; allow(read)
- userdn=\"ldap:///anyone\";)"
- --no-prompt</screen>
+   <screen>
+$ <userinput>dsconfig \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword "password" \
+ set-access-control-handler-prop \
+ --remove global-aci:"(targetcontrol=\"2.16.840.1.113730.3.4.2 || \
+ 2.16.840.1.113730.3.4.17 || 2.16.840.1.113730.3.4.19 || \
+ 1.3.6.1.4.1.4203.1.10.2 || 1.3.6.1.4.1.42.2.27.8.5.1 || \
+ 2.16.840.1.113730.3.4.16\") (version 3.0; acl \"Anonymous control access\"; \
+ allow(read) userdn=\"ldap:///anyone\";)" \
+ --add global-aci:"(targetcontrol=\"2.16.840.1.113730.3.4.2 || \
+ 2.16.840.1.113730.3.4.17 || 2.16.840.1.113730.3.4.19 || \
+ 1.3.6.1.4.1.4203.1.10.2 || 1.3.6.1.4.1.42.2.27.8.5.1 || \
+ 2.16.840.1.113730.3.4.16 || 1.2.840.113556.1.4.319\") \
+ (version 3.0; acl \"Anonymous control access\"; allow(read) \
+ userdn=\"ldap:///anyone\";)" \
+ --no-prompt</userinput>
+   </screen>
 
    <para>Alternatively, stop OpenDJ, edit the corresponding ACI carefully in
    <filename>/path/to/opendj/config/config.ldif</filename>, and restart OpenDJ.
@@ -916,12 +991,14 @@ global-aci : (extop="1.3.6.1.4.1.26027.1.6.1 || 1.3.6.1.4.1.26027.1.6.3 ||
   have <literal>category=SYNC</literal>. The messages have the following form.
   Here the line is folded for readability.</para>
   
-  <screen>[27/Jun/2011:14:37:48 +0200] category=SYNC severity=INFORMATION msgID=14680169
+  <programlisting language="none">
+[27/Jun/2011:14:37:48 +0200] category=SYNC severity=INFORMATION msgID=14680169
  msg=Replication server accepted a connection from 10.10.0.10/10.10.0.10:52859
  to local address 0.0.0.0/0.0.0.0:8989 but the SSL handshake failed. This is
  probably benign, but may indicate a transient network outage or a
  misconfigured client application connecting to this replication server.
- The error was: Remote host closed connection during handshake</screen>
+ The error was: Remote host closed connection during handshake
+  </programlisting>
  
   <para>OpenDJ maintains historical information about changes in order to
   bring replicas up to date, and to resolve replication conflicts. To prevent
@@ -942,9 +1019,11 @@ global-aci : (extop="1.3.6.1.4.1.26027.1.6.1 || 1.3.6.1.4.1.26027.1.6.3 ||
   of OpenDJ you use to reproduce the problem. The version includes both a
   version number and also a build time stamp.</para>
   
-  <screen>$ dsconfig --version
-OpenDJ <?eval ${docTargetVersion}?>
-Build <replaceable>yyyymmddhhmmss</replaceable>Z</screen>
+  <screen>
+$ <userinput>dsconfig --version</userinput>
+<computeroutput>OpenDJ ${docTargetVersion}
+Build <replaceable>yyyymmddhhmmss</replaceable>Z</computeroutput>
+  </screen>
   
   <itemizedlist>
   

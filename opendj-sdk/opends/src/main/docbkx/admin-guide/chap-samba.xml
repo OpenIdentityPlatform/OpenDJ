@@ -20,15 +20,15 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2013 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-samba'
  xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ xsi:schemaLocation='http://docbook.org/ns/docbook
+                     http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'>
  <title>Samba Password Synchronization</title>
  <indexterm><primary>Samba</primary></indexterm>
  
@@ -80,8 +80,10 @@
   
   <step>
    <para>Create or choose an account for the Samba Administrator.</para>
-   <screen>$ cat samba.ldif 
-dn: uid=samba-admin,ou=Special Users,dc=example,dc=com
+
+   <screen>
+$ <userinput>cat samba.ldif</userinput>
+<computeroutput>dn: uid=samba-admin,ou=Special Users,dc=example,dc=com
 cn: Samba Administrator
 givenName: Samba
 mail: samba@example.com
@@ -91,22 +93,26 @@ objectClass: organizationalPerson
 objectClass: top
 sn: Administrator
 uid: samba-admin
-userPassword: password
+userPassword: password</computeroutput>
 
-$ ldapmodify
- --port 1389
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --defaultAdd
- --filename samba.ldif
-Processing ADD request for uid=samba-admin,ou=Special Users,dc=example,dc=com
+$ <userinput>ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --defaultAdd \
+ --filename samba.ldif</userinput>
+<computeroutput>Processing ADD request for uid=samba-admin,ou=Special Users,dc=example,dc=com
 ADD operation successful for DN uid=samba-admin,ou=Special Users,
- dc=example,dc=com</screen>
+ dc=example,dc=com</computeroutput>
+   </screen>
   </step>
+
   <step>
    <para>Ensure the Samba Administrator can reset user passwords.</para>
-   <screen>$ cat samba-rights.ldif
-dn: uid=samba-admin,ou=Special Users,dc=example,dc=com
+
+   <screen>
+$ <userinput>cat samba-rights.ldif</userinput>
+<computeroutput>dn: uid=samba-admin,ou=Special Users,dc=example,dc=com
 changetype: modify
 add: ds-privilege-name
 ds-privilege-name: password-reset
@@ -116,18 +122,19 @@ changetype: modify
 add: aci
 aci: (target="ldap:///dc=example,dc=com") (targetattr ="*")(version 3.0; acl "
  Samba Admin user rights"; allow(all) groupdn ="ldap:///uid=samba-user,ou=
- Special Users,dc=example,dc=com";)
+ Special Users,dc=example,dc=com";)</computeroutput>
 
-$ ldapmodify
- --port 1389
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --filename samba-rights.ldif
-Processing MODIFY request for uid=samba-admin,ou=Special Users,dc=example,dc=com
+$ <userinput>ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --filename samba-rights.ldif</userinput>
+<computeroutput>Processing MODIFY request for uid=samba-admin,ou=Special Users,dc=example,dc=com
 MODIFY operation successful for DN
  uid=samba-admin,ou=Special Users,dc=example,dc=com
 Processing MODIFY request for dc=example,dc=com
-MODIFY operation successful for DN dc=example,dc=com</screen>
+MODIFY operation successful for DN dc=example,dc=com</computeroutput>
+   </screen>
   </step>
  </procedure>
  
@@ -140,48 +147,58 @@ MODIFY operation successful for DN dc=example,dc=com</screen>
    (<literal>sync-nt-password</literal>), based on how you set up Samba
    in your environment.</para>
   </step>
+
   <step>
    <para>Enable the plugin.</para>
-   <screen>$ dsconfig
- create-plugin
- --port 4444
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --plugin-name "Samba Password Synchronisation"
- --type samba-password
- --set enabled:true
- --set pwd-sync-policy:sync-nt-password
- --set
- samba-administrator-dn:"uid=samba-admin,ou=Special Users,dc=example,dc=com"
- --trustAll
- --no-prompt</screen>
+
+   <screen>
+$ <userinput>dsconfig \
+ create-plugin \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --plugin-name "Samba Password Synchronisation" \
+ --type samba-password \
+ --set enabled:true \
+ --set pwd-sync-policy:sync-nt-password \
+ --set \
+ samba-administrator-dn:"uid=samba-admin,ou=Special Users,dc=example,dc=com" \
+ --trustAll \
+ --no-prompt</userinput>
+   </screen>
+
    <para>At this point the Samba Password plugin is active.</para>
   </step>
+
   <step performance="optional">
    <para>When troubleshooting Samba Password plugin issues, you can turn on
    debug logging as follows.</para>
-   <screen>$ dsconfig
- create-debug-target
- --port 4444
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --publisher-name "File-Based Debug Logger"
- --target-name org.opends.server.plugins.SambaPasswordPlugin
- --set debug-level:all
- --trustAll
- --no-prompt
-$ dsconfig
- set-log-publisher-prop
- --port 4444
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --publisher-name "File-Based Debug Logger"
- --set enabled:true
- --trustAll
- --no-prompt</screen>
+
+   <screen>
+$ <userinput>dsconfig \
+ create-debug-target \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --publisher-name "File-Based Debug Logger" \
+ --target-name org.opends.server.plugins.SambaPasswordPlugin \
+ --set debug-level:all \
+ --trustAll \
+ --no-prompt</userinput>
+
+$ <userinput>dsconfig \
+ set-log-publisher-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --publisher-name "File-Based Debug Logger" \
+ --set enabled:true \
+ --trustAll \
+ --no-prompt</userinput>
+   </screen>
   </step>
  </procedure>
 </chapter>

@@ -20,17 +20,16 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !    
 -->
 <refentry xml:id='manage-account-1'
  xmlns='http://docbook.org/ns/docbook'
  version='5.0' xml:lang='en'
  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
- <info><copyright><year>2011-2012</year><holder>ForgeRock AS</holder></copyright></info>
+ xsi:schemaLocation='http://docbook.org/ns/docbook
+                     http://docbook.org/xml/5.0/xsd/docbook.xsd'>
+ <info><copyright><year>2011-2014</year><holder>ForgeRock AS</holder></copyright></info>
  <refmeta>
   <refentrytitle>manage-account</refentrytitle><manvolnum>1</manvolnum>
   <refmiscinfo class="software">OpenDJ</refmiscinfo>
@@ -355,18 +354,29 @@
   <para>For the following examples, the directory admin user, Kirsten Vaughan,
   has <literal>ds-privilege-name: password-reset</literal>, and the following
   ACI on <literal>ou=People,dc=example,dc=com</literal>.</para>
-  <literallayout class="monospaced">(target="ldap:///ou=People,dc=example,dc=com") (targetattr ="*||+")(
+
+  <programlisting language="aci">
+(target="ldap:///ou=People,dc=example,dc=com") (targetattr ="*||+")(
  version 3.0;acl "Admins can run amok"; allow(all) groupdn =
- "ldap:///cn=Directory Administrators,ou=Groups,dc=example,dc=com";)</literallayout>
+ "ldap:///cn=Directory Administrators,ou=Groups,dc=example,dc=com";)
+  </programlisting>
+
   <para>The following command locks a user account.</para>
-  <screen>$ manage-account -p 4444 -D "uid=kvaughan,ou=people,dc=example,dc=com"
- -w bribery set-account-is-disabled -O true
- -b uid=bjensen,ou=people,dc=example,dc=com -X
-Account Is Disabled:  true</screen>
+
+  <screen>
+$ <userinput>manage-account -p 4444 -D "uid=kvaughan,ou=people,dc=example,dc=com" \
+ -w bribery set-account-is-disabled -O true \
+ -b uid=bjensen,ou=people,dc=example,dc=com -X</userinput>
+<computeroutput>Account Is Disabled:  true</computeroutput>
+  </screen>
+
   <para>The following command unlocks a user account.</para>
-  <screen>$ manage-account -p 4444 -D "uid=kvaughan,ou=people,dc=example,dc=com"
- -w bribery clear-account-is-disabled
- -b uid=bjensen,ou=people,dc=example,dc=com -X
-Account Is Disabled:  false</screen>
+
+  <screen>
+$ <userinput>manage-account -p 4444 -D "uid=kvaughan,ou=people,dc=example,dc=com" \
+ -w bribery clear-account-is-disabled \
+ -b uid=bjensen,ou=people,dc=example,dc=com -X</userinput>
+<computeroutput>Account Is Disabled:  false</computeroutput>
+  </screen>
  </refsect1>
 </refentry>

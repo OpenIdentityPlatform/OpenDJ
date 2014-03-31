@@ -20,15 +20,14 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2013 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-uninstall'
  xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ xsi:schemaLocation='http://docbook.org/ns/docbook
+                     http://docbook.org/xml/5.0/xsd/docbook.xsd'>
  <title>Removing OpenDJ Servers</title>
  <indexterm><primary>Uninstalling</primary></indexterm>
  
@@ -88,8 +87,9 @@
    <command>uninstall</command> options to specify choices for the options.
    See <command>uninstall --help</command> for more information.</para>
    
-   <screen>$ /path/to/opendj/uninstall --cli
-Do you want to remove all components of the server or select the components to
+   <screen>
+$ <userinput>/path/to/opendj/uninstall --cli</userinput>
+<computeroutput>Do you want to remove all components of the server or select the components to
 remove?
 
     1)  Remove all components
@@ -110,14 +110,17 @@ The Uninstall Completed Successfully.
 To complete the uninstallation, you must delete manually the following files
 and directories:
 /path/to/opendj/lib
-See /var/....log for a detailed log of this operation.</screen>
+See /var/....log for a detailed log of this operation.</computeroutput>
+   </screen>
   </step>
 
   <step>
    <para>If the command output tells you to delete files manually, then remove
    those remaining files to complete the process.</para>
  
-   <screen>$ rm -rf /path/to/opendj</screen>
+   <screen>
+$ <userinput>rm -rf /path/to/opendj</userinput>
+   </screen>
   </step>
  </procedure>
 
@@ -131,8 +134,9 @@ See /var/....log for a detailed log of this operation.</screen>
   <step>
    <para>Remove the package from your system.</para>
 
-   <screen>$ sudo dpkg -r opendj
-(Reading database ... 185725 files and directories currently installed.)
+   <screen>
+$ <userinput>sudo dpkg -r opendj</userinput>
+<computeroutput>(Reading database ... 185725 files and directories currently installed.)
 Removing opendj ...
 *Stopping OpenDJ server...
 Stopping Server...
@@ -141,7 +145,7 @@ Stopping Server...
 [03/Jun/2013:10:00:49 +0200] category=CORE severity=NOTICE
  msgID=458955 msg=The Directory Server is now stopped
 
-*OpenDJ successfully removed
+*OpenDJ successfully removed</computeroutput>
 
 $ </screen>
 
@@ -161,16 +165,18 @@ $ </screen>
   <step>
    <para>Remove the package from your system.</para>
 
-   <screen># rpm -e opendj
-Pre Uninstall - uninstall
+   <screen>
+# <userinput>rpm -e opendj</userinput>
+<computeroutput>Pre Uninstall - uninstall
 Stopping Server...
 [03/Jun/2013:10:42:46 +0200] category=BACKEND severity=NOTICE
  msgID=9896306 msg=The backend userRoot is now taken offline
 [03/Jun/2013:10:42:46 +0200] category=CORE severity=NOTICE
  msgID=458955 msg=The Directory Server is now stopped
 Post Uninstall - uninstall
-OpenDJ successfully removed.
-# </screen>
+OpenDJ successfully removed.</computeroutput>
+#
+   </screen>
 
    <para>Removing the package does not remove your data or configuration.
    You must remove <filename>/opt/opendj</filename> manually to get rid of

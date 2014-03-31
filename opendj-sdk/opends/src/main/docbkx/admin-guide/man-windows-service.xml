@@ -20,17 +20,16 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2013 ForgeRock AS
+  !      Copyright 2013-2014 ForgeRock AS
   !
 -->
 <refentry xml:id='windows-service'
           xmlns='http://docbook.org/ns/docbook'
           version='5.0' xml:lang='en'
           xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-          xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
-          xmlns:xlink='http://www.w3.org/1999/xlink'
-          xmlns:xinclude='http://www.w3.org/2001/XInclude'>
- <info><copyright><year>2013</year><holder>ForgeRock AS</holder></copyright></info>
+          xsi:schemaLocation='http://docbook.org/ns/docbook
+                              http://docbook.org/xml/5.0/xsd/docbook.xsd'>
+ <info><copyright><year>2013-2014</year><holder>ForgeRock AS</holder></copyright></info>
  <refmeta>
   <refentrytitle>windows-service</refentrytitle><manvolnum>1</manvolnum>
   <refmiscinfo class="software">OpenDJ</refmiscinfo>
@@ -135,9 +134,11 @@
   <para>The following command registers OpenDJ directory server as a Windows
   Service.</para>
 
-  <screen>C:\path\to\opendj\bat&gt; windows-service.bat --enableService</screen>
+  <screen>
+C:\path\to\opendj\bat> <userinput>windows-service.bat --enableService</userinput>
+  </screen>
 
   <para>After running this command, you can manage the service using Windows
-  administration tools</para>
+  administration tools.</para>
  </refsect1>
 </refentry>

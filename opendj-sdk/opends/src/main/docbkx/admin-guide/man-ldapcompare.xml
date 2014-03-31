@@ -20,17 +20,17 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2013 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !    
 -->
 <refentry xml:id='ldapcompare-1'
  xmlns='http://docbook.org/ns/docbook'
  version='5.0' xml:lang='en'
  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
- <info><copyright><year>2011-2013</year><holder>ForgeRock AS</holder></copyright></info>
+ xsi:schemaLocation='http://docbook.org/ns/docbook
+                     http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'>
+ <info><copyright><year>2011-2014</year><holder>ForgeRock AS</holder></copyright></info>
  <refmeta>
   <refentrytitle>ldapcompare</refentrytitle><manvolnum>1</manvolnum>
   <refmiscinfo class="software">OpenDJ</refmiscinfo>
@@ -317,7 +317,9 @@
   <para>You can use <filename>~/.opendj/tools.properties</filename> to set
   the defaults for bind DN, host name, and port number as in the following
   example.</para>
-  <programlisting language="ini">hostname=directory.example.com
+
+  <programlisting language="ini">
+hostname=directory.example.com
 port=1389
 bindDN=uid=kvaughan,ou=People,dc=example,dc=com
 
@@ -325,22 +327,30 @@ ldapcompare.port=1389
 ldapdelete.port=1389
 ldapmodify.port=1389
 ldappasswordmodify.port=1389
-ldapsearch.port=1389</programlisting>
+ldapsearch.port=1389
+  </programlisting>
  </refsect1>
  <refsect1>
   <title>Examples</title>
   <para>The following examples demonstrate comparing Babs Jensen's UID.</para>
   <para>The following example uses a matching UID value.</para>
-  <screen>$ ldapcompare -p 1389 uid:bjensen uid=bjensen,ou=people,dc=example,dc=com
-Comparing type uid with value bjensen in entry
+
+  <screen>
+$ <userinput>ldapcompare -p 1389 uid:bjensen uid=bjensen,ou=people,dc=example,dc=com</userinput>
+<computeroutput>Comparing type uid with value bjensen in entry
 uid=bjensen,ou=people,dc=example,dc=com
 Compare operation returned true for entry
-uid=bjensen,ou=people,dc=example,dc=com</screen>
+uid=bjensen,ou=people,dc=example,dc=com</computeroutput>
+  </screen>
+
   <para>The following example uses a UID value that does not match.</para>
-  <screen>$ ldapcompare -p 1389 uid:beavis uid=bjensen,ou=people,dc=example,dc=com
-Comparing type uid with value beavis in entry
+
+  <screen>
+$ <userinput>ldapcompare -p 1389 uid:beavis uid=bjensen,ou=people,dc=example,dc=com</userinput>
+<computeroutput>Comparing type uid with value beavis in entry
 uid=bjensen,ou=people,dc=example,dc=com
 Compare operation returned false for entry
-uid=bjensen,ou=people,dc=example,dc=com</screen>
+uid=bjensen,ou=people,dc=example,dc=com</computeroutput>
+  </screen>
  </refsect1>
 </refentry>
