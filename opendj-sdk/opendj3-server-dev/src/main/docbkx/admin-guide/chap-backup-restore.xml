@@ -95,22 +95,27 @@
       <para>The following example requests an online backup task that
       starts immediately, backing up only the <literal>userRoot</literal>
       backend.</para>
-      <screen>$ backup
- --port 4444
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --backendID userRoot
- --backupDirectory /path/to/opendj/bak
- --start 0
-Backup task 20110613143715983 scheduled to start Jun 13, 2011 2:37:15 PM CEST</screen>
+
+      <screen>
+$ <userinput>backup \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --backendID userRoot \
+ --backupDirectory /path/to/opendj/bak \
+ --start 0</userinput>
+<computeroutput>Backup task 20110613143715983 scheduled to start Jun 13, 2011 2:37:15 PM CEST</computeroutput>
+      </screen>
      </step>
      <step>
       <para>Stop the server to back up Example.com data offline.</para>
 
       <para>The following example stops OpenDJ, runs offline backup, and
       starts the server after backup has completed.</para>
-      <screen>$ stop-ds 
-Stopping Server...
+
+      <screen>
+$ <userinput>stop-ds</userinput>
+<computeroutput>Stopping Server...
 
 [13/Jun/2011:14:31:00 +0200] category=BACKEND severity=NOTICE msgID=9896306
  msg=The backend userRoot is now taken offline
@@ -122,23 +127,27 @@ $ backup --backendID userRoot -d /path/to/opendj/bak
 [13/Jun/2011:14:33:48 +0200] category=JEB severity=NOTICE msgID=8847446
  msg=Archived: 00000000.jdb
 [13/Jun/2011:14:33:48 +0200] category=TOOLS severity=NOTICE msgID=10944795
- msg=The backup process completed successfully
-$ start-ds
-... The Directory Server has started successfully</screen>
+ msg=The backup process completed successfully</computeroutput>
+$ <userinput>start-ds</userinput>
+<computeroutput>... The Directory Server has started successfully</computeroutput>
+      </screen>
      </step>
      <step>
       <para>Back up all user data on the server.</para>
 
       <para>The following example requests an online backup task that
       starts immediately, backing up all backends.</para>
-      <screen>$ backup
- --port 4444
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --backUpAll
- --backupDirectory /path/to/opendj/bak
- --start 0
-Backup task 20110613143801866 scheduled to start Jun 13, 2011 2:38:01 PM CEST</screen>
+
+      <screen>
+$ <userinput>backup \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --backUpAll \
+ --backupDirectory /path/to/opendj/bak \
+ --start 0</userinput>
+<computeroutput>Backup task 20110613143801866 scheduled to start Jun 13, 2011 2:38:01 PM CEST</computeroutput>
+      </screen>
      </step>
     </stepalternatives>
    </step>
@@ -153,17 +162,20 @@ Backup task 20110613143801866 scheduled to start Jun 13, 2011 2:38:01 PM CEST</s
    <step>
     <para>Back up all user data every night at 2 AM, and notify
     diradmin@example.com when finished, or on error.</para>
-    <screen>$ backup
- --port 4444
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --backUpAll
- --backupDirectory /path/to/opendj/bak
- --recurringTask "00 02 * * *"
- --completionNotify diradmin@example.com
- --errorNotify diradmin@example.com
-Recurring Backup task BackupTask-988d6adf-4d65-44bf-8546-6ea74a2480b0
-scheduled successfully</screen>
+
+    <screen>
+$ <userinput>backup \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --backUpAll \
+ --backupDirectory /path/to/opendj/bak \
+ --recurringTask "00 02 * * *" \
+ --completionNotify diradmin@example.com \
+ --errorNotify diradmin@example.com</userinput>
+<computeroutput>Recurring Backup task BackupTask-988d6adf-4d65-44bf-8546-6ea74a2480b0
+scheduled successfully</computeroutput>
+    </screen>
    </step>
   </procedure>
 
@@ -185,18 +197,18 @@ scheduled successfully</screen>
     </para>
 
     <screen>
-$ backup
- --port 4444
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --backupDirectory /path/to/opendj/bak
- --backendID userRoot
- --incremental
- --recurringTask "00 03 * * *"
- --completionNotify diradmin@example.com
- --errorNotify diradmin@example.com
-Recurring Backup task BackupTask-6988c19d-9afc-4f50-89b7-d3e167255d3e
-scheduled successfully
+$ <userinput>backup \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --backupDirectory /path/to/opendj/bak \
+ --backendID userRoot \
+ --incremental \
+ --recurringTask "00 03 * * *" \
+ --completionNotify diradmin@example.com \
+ --errorNotify diradmin@example.com</userinput>
+<computeroutput>Recurring Backup task BackupTask-6988c19d-9afc-4f50-89b7-d3e167255d3e
+scheduled successfully</computeroutput>
     </screen>
    </step>
   </procedure>
@@ -233,41 +245,47 @@ scheduled successfully
       <para>The following example stops OpenDJ, restores data offline from
       one of the available backups, and then starts the server after the
       restore is complete.</para>
-      <screen>$ stop-ds
-Stopping Server...
+
+      <screen>
+$ <userinput>stop-ds</userinput>
+<computeroutput>Stopping Server...
 
 [13/Jun/2011:15:44:06 +0200] category=BACKEND severity=NOTICE msgID=9896306
  msg=The backend userRoot is now taken offline
 [13/Jun/2011:15:44:06 +0200] category=CORE severity=NOTICE msgID=458955
- msg=The Directory Server is now stopped
-$ restore --backupDirectory /path/to/opendj/bak --listBackups
-Backup ID:          20110613080032
+ msg=The Directory Server is now stopped</computeroutput>
+$ <userinput>restore --backupDirectory /path/to/opendj/bak --listBackups</userinput>
+<computeroutput>Backup ID:          20110613080032
 Backup Date:        13/Jun/2011:08:00:45 +0200
 Is Incremental:     false
 Is Compressed:      false
 Is Encrypted:       false
 Has Unsigned Hash:  false
 Has Signed Hash:    false
-Dependent Upon:     none
-$ restore --backupDirectory /path/to/opendj/bak --backupID 20110613080032
-[13/Jun/2011:15:47:41 +0200] category=JEB severity=NOTICE msgID=8847445
- msg=Restored: 00000000.jdb (size 341835)
-$ start-ds
-... The Directory Server has started successfully</screen>
+Dependent Upon:     none</computeroutput>
+$ <userinput>restore --backupDirectory /path/to/opendj/bak --backupID 20110613080032</userinput>
+<computeroutput>[13/Jun/2011:15:47:41 +0200] category=JEB severity=NOTICE msgID=8847445
+ msg=Restored: 00000000.jdb (size 341835)</computeroutput>
+$ <userinput>start-ds</userinput>
+<computeroutput>... The Directory Server has started successfully</computeroutput>
+      </screen>
      </step>
      <step>
       <para>Schedule the restore as a task to begin immediately.</para>
 
       <para>The following example requests an online restore task, scheduled
       to start immediately.</para>
-      <screen>$ restore
- --port 4444
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --backupDirectory /path/to/opendj/bak
- --backupID 20110613080032
- --start 0
-Restore task 20110613155052932 scheduled to start Jun 13, 2011 3:50:52 PM CEST</screen>
+
+      <screen>
+$ <userinput>restore \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --backupDirectory /path/to/opendj/bak \
+ --backupID 20110613080032 \
+ --start 0</userinput>
+<computeroutput>Restore task 20110613155052932 scheduled to start Jun 13, 2011 3:50:52 PM CEST</computeroutput>
+      </screen>
      </step>
     </stepalternatives>
    </step>
@@ -299,35 +317,39 @@ Restore task 20110613155052932 scheduled to start Jun 13, 2011 3:50:52 PM CEST</
    the backup you use is newer than the last purge of the replication change
    log (default: 3 days). If all your backups are older than the replication
    purge delay, do not restore from a backup, but instead initialize a new
-   replica as described in <link xlink:href="admin-guide#init-repl"
-   xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Initializing
+   replica as described in <link
+    xlink:show="new"
+    xlink:href="admin-guide#init-repl"
+    xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Initializing
    Replicas</citetitle></link>.</para>
 
    <step>
     <para>Restore the server database from the backup archive that you are
     sure is newer than the last purge of the replication change log.</para>
 
-    <screen>$ stop-ds
-Stopping Server...
+    <screen>
+$ <userinput>stop-ds</userinput>
+<computeroutput>Stopping Server...
 
 [13/Jun/2011:15:44:06 +0200] category=BACKEND severity=NOTICE msgID=9896306
  msg=The backend userRoot is now taken offline
 [13/Jun/2011:15:44:06 +0200] category=CORE severity=NOTICE msgID=458955
- msg=The Directory Server is now stopped
-$ restore --backupDirectory /path/to/opendj/bak --listBackups
-Backup ID:          20110613080032
+ msg=The Directory Server is now stopped</computeroutput>
+$ <userinput>restore --backupDirectory /path/to/opendj/bak --listBackups</userinput>
+<computeroutput>Backup ID:          20110613080032
 Backup Date:        13/Jun/2011:08:00:45 +0200
 Is Incremental:     false
 Is Compressed:      false
 Is Encrypted:       false
 Has Unsigned Hash:  false
 Has Signed Hash:    false
-Dependent Upon:     none
-$ restore --backupDirectory /path/to/opendj/bak --backupID 20110613080032
-[13/Jun/2011:15:47:41 +0200] category=JEB severity=NOTICE msgID=8847445
- msg=Restored: 00000000.jdb (size 341835)
-$ start-ds
-... The Directory Server has started successfully</screen>
+Dependent Upon:     none</computeroutput>
+$ <userinput>restore --backupDirectory /path/to/opendj/bak --backupID 20110613080032</userinput>
+<computeroutput>[13/Jun/2011:15:47:41 +0200] category=JEB severity=NOTICE msgID=8847445
+ msg=Restored: 00000000.jdb (size 341835)</computeroutput>
+$ <userinput>start-ds</userinput>
+<computeroutput>... The Directory Server has started successfully</computeroutput>
+    </screen>
    </step>
 
   </procedure>

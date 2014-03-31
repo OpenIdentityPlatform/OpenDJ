@@ -20,17 +20,16 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !    
 -->
 <refentry xml:id='export-ldif-1'
  xmlns='http://docbook.org/ns/docbook'
  version='5.0' xml:lang='en'
  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
- <info><copyright><year>2011-2012</year><holder>ForgeRock AS</holder></copyright></info>
+ xsi:schemaLocation='http://docbook.org/ns/docbook
+                     http://docbook.org/xml/5.0/xsd/docbook.xsd'>
+ <info><copyright><year>2011-2014</year><holder>ForgeRock AS</holder></copyright></info>
  <refmeta>
   <refentrytitle>export-ldif</refentrytitle><manvolnum>1</manvolnum>
   <refmiscinfo class="software">OpenDJ</refmiscinfo>
@@ -343,8 +342,11 @@
   <title>Examples</title>
   <para>The following example exports data to a file,
   <filename>Example.ldif</filename>, with the server offline.</para>
-  <screen>$ export-ldif -b dc=example,dc=com -n userRoot -l ../ldif/Example.ldif
-[21/Jun/2011:13:40:49 +0200] category=BACKEND severity=INFORMATION ...
-...Exported 160 entries and skipped 0 in 0 seconds (average rate 1428.6/sec)</screen>
+
+  <screen>
+$ <userinput>export-ldif -b dc=example,dc=com -n userRoot -l ../ldif/Example.ldif</userinput>
+<computeroutput>[21/Jun/2011:13:40:49 +0200] category=BACKEND severity=INFORMATION ...
+...Exported 160 entries and skipped 0 in 0 seconds (average rate 1428.6/sec)</computeroutput>
+  </screen>
  </refsect1>
 </refentry>

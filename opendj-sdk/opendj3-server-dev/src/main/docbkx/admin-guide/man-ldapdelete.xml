@@ -20,17 +20,17 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !    
 -->
 <refentry xml:id='ldapdelete-1'
  xmlns='http://docbook.org/ns/docbook'
  version='5.0' xml:lang='en'
  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
- <info><copyright><year>2011-2012</year><holder>ForgeRock AS</holder></copyright></info>
+ xsi:schemaLocation='http://docbook.org/ns/docbook
+                     http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'>
+ <info><copyright><year>2011-2014</year><holder>ForgeRock AS</holder></copyright></info>
  <refmeta>
   <refentrytitle>ldapdelete</refentrytitle><manvolnum>1</manvolnum>
   <refmiscinfo class="software">OpenDJ</refmiscinfo>
@@ -303,7 +303,8 @@
   <para>You can use <filename>~/.opendj/tools.properties</filename> to set
   the defaults for bind DN, host name, and port number as in the following
   example.</para>
-  <programlisting language="ini">hostname=directory.example.com
+  <programlisting language="ini">
+hostname=directory.example.com
 port=1389
 bindDN=uid=kvaughan,ou=People,dc=example,dc=com
 
@@ -316,15 +317,22 @@ ldapsearch.port=1389</programlisting>
  <refsect1>
   <title>Examples</title>
   <para>The following command deletes a user entry from the directory.</para>
-  <screen>$ ldapdelete -p 1389 -D "cn=Directory Manager" -w password
- uid=bjensen,ou=people,dc=example,dc=com
-Processing DELETE request for uid=bjensen,ou=people,dc=example,dc=com
-DELETE operation successful for DN uid=bjensen,ou=people,dc=example,dc=com</screen>
+
+  <screen>
+$ <userinput>ldapdelete -p 1389 -D "cn=Directory Manager" -w password \
+ uid=bjensen,ou=people,dc=example,dc=com</userinput>
+<computeroutput>Processing DELETE request for uid=bjensen,ou=people,dc=example,dc=com
+DELETE operation successful for DN uid=bjensen,ou=people,dc=example,dc=com</computeroutput>
+  </screen>
+
   <para>The following command deletes the ou=Groups entry and all entries
   underneath ou=Groups.</para>
-  <screen>$ ldapdelete -p 1389 -D "cn=Directory Manager" -w password -x
- ou=groups,dc=example,dc=com
-Processing DELETE request for ou=groups,dc=example,dc=com
-DELETE operation successful for DN ou=groups,dc=example,dc=com</screen>
+
+  <screen>
+$ <userinput>ldapdelete -p 1389 -D "cn=Directory Manager" -w password -x \
+ ou=groups,dc=example,dc=com</userinput>
+<computeroutput>Processing DELETE request for ou=groups,dc=example,dc=com
+DELETE operation successful for DN ou=groups,dc=example,dc=com</computeroutput>
+  </screen>
  </refsect1>
 </refentry>

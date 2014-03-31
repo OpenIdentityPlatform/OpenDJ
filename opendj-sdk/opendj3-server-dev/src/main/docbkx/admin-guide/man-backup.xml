@@ -20,17 +20,16 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2013 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !    
 -->
 <refentry xml:id='backup-1'
  xmlns='http://docbook.org/ns/docbook'
  version='5.0' xml:lang='en'
  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
- <info><copyright><year>2011-2013</year><holder>ForgeRock AS</holder></copyright></info>
+ xsi:schemaLocation='http://docbook.org/ns/docbook
+                     http://docbook.org/xml/5.0/xsd/docbook.xsd'>
+ <info><copyright><year>2011-2014</year><holder>ForgeRock AS</holder></copyright></info>
  <refmeta>
   <refentrytitle>backup</refentrytitle><manvolnum>1</manvolnum>
   <refmiscinfo class="software">OpenDJ</refmiscinfo>
@@ -330,29 +329,39 @@
   <title>Examples</title>
   <para>The following example backs up all user data while the server is
   online.</para>
-  <screen>$ backup -p 4444 -D "cn=Directory Manager" -w password
- -a -d /path/to/opendj/bak -t 0
-Backup task 20110613143801866 scheduled to start Jun 13, 2011 2:38:01 PM CEST</screen>
+
+  <screen>
+$ <userinput>backup -p 4444 -D "cn=Directory Manager" -w password \
+ -a -d /path/to/opendj/bak -t 0</userinput>
+<computeroutput>Backup task 20110613143801866 scheduled to start Jun 13, 2011 2:38:01 PM CEST</computeroutput>
+  </screen>
 
   <para>The following example schedules back up of all user data every night at
   2 AM when the server is online, and notifies diradmin@example.com when
   finished, or on error.</para>
-  <screen>$ backup -p 4444 -D "cn=Directory Manager" -w password -a
- -d /path/to/opendj/bak --recurringTask "00 02 * * *"
- --completionNotify diradmin@example.com --errorNotify diradmin@example.com
-Recurring Backup task BackupTask-988d6adf-4d65-44bf-8546-6ea74a2480b0
-scheduled successfully</screen>
+
+  <screen>
+$ <userinput>backup -p 4444 -D "cn=Directory Manager" -w password -a \
+ -d /path/to/opendj/bak --recurringTask "00 02 * * *" \
+ --completionNotify diradmin@example.com --errorNotify diradmin@example.com</userinput>
+<computeroutput>Recurring Backup task BackupTask-988d6adf-4d65-44bf-8546-6ea74a2480b0
+scheduled successfully</computeroutput>
+  </screen>
 
   <para>The following example backs up all user data while the server is
   offline.</para>
-  <screen>$ stop-ds
-Stopping Server...
-...
-$ backup --backupAll --backupDirectory /path/to/opendj/bak
-...
-[28/Sep/2012:12:14:22 +0200] ... msg=The backup process completed successfully
-$ start-ds
-[28/Sep/2012:12:15:48 +0200] ... The Directory Server has started successfully
-</screen>
+
+  <screen>
+$ <userinput>stop-ds</userinput>
+<computeroutput>Stopping Server...
+...</computeroutput>
+
+$ <userinput>backup --backupAll --backupDirectory /path/to/opendj/bak</userinput>
+<computeroutput>...
+[28/Sep/2012:12:14:22 +0200] ... msg=The backup process completed successfully</computeroutput>
+
+$ <userinput>start-ds</userinput>
+<computeroutput>[28/Sep/2012:12:15:48 +0200] ... The Directory Server has started successfully</computeroutput>
+  </screen>
  </refsect1>
 </refentry>

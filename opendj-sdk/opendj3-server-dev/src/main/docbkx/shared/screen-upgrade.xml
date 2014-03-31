@@ -18,25 +18,24 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2013 ForgeRock AS
+  !      Copyright 2013-2014 ForgeRock AS
   !
 -->
  <screen xml:id="upgrade-earliest-supported"
           xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
           xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-          xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
-          xmlns:xlink='http://www.w3.org/1999/xlink'
-          xmlns:xinclude='http://www.w3.org/2001/XInclude'
->$ /path/to/OpenDJ-2.4.5/bin/stop-ds --quiet
+          xsi:schemaLocation='http://docbook.org/ns/docbook
+                              http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ >$ <userinput>/path/to/OpenDJ-2.4.5/bin/stop-ds --quiet</userinput>
 ... msg=The backend userRoot is now taken offline
 ... msg=The Directory Server is now stopped
-$ cd /path/to
-$ zip -rq OpenDJ-backup.zip OpenDJ-2.4.5
-$ unzip -q ~/Downloads/OpenDJ-2.6.0.zip
-$ cp -r opendj/* OpenDJ-2.4.5/
-$ rm -rf opendj
-$ mv OpenDJ-2.4.5 opendj
-$ /path/to/opendj/upgrade --no-prompt --acceptLicense
+$ <userinput>cd /path/to</userinput>
+$ <userinput>zip -rq OpenDJ-backup.zip OpenDJ-2.4.5</userinput>
+$ <userinput>unzip -q ~/Downloads/OpenDJ-2.6.0.zip</userinput>
+$ <userinput>cp -r opendj/* OpenDJ-2.4.5/</userinput>
+$ <userinput>rm -rf opendj</userinput>
+$ <userinput>mv OpenDJ-2.4.5 opendj</userinput>
+$ <userinput>/path/to/opendj/upgrade --no-prompt --acceptLicense</userinput>
 
 >>>> OpenDJ Upgrade Utility
 
@@ -93,5 +92,5 @@ Do you accept the License Agreement? yes
 >>>> OpenDJ was successfully upgraded from version 2.4.5.7743 to 2.6.0.9086
 
  * See '/path/to/opendj/upgrade.log' for a detailed log of this operation
-$ /path/to/opendj/bin/start-ds --quiet
+$ <userinput>/path/to/opendj/bin/start-ds --quiet</userinput>
 $ </screen>

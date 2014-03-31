@@ -20,15 +20,14 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2013 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-pta'
  xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ xsi:schemaLocation='http://docbook.org/ns/docbook
+                     http://docbook.org/xml/5.0/xsd/docbook.xsd'>
  <title>Configuring Pass Through Authentication</title>
  <indexterm><primary>Pass through authentication</primary></indexterm>
  
@@ -101,50 +100,36 @@
     <para>Export the server certificate from the authentication server.</para>
     <para>How you perform this step depends on the authentication directory
     server. With OpenDJ, you can export the certificate as shown here.</para>
-    <screen>$ cd /path/to/PTA-Server/config
-$ keytool
- -exportcert
- -rfc
- -alias server-cert
- -keystore keystore
- -storepass `cat keystore.pin`
- &gt; /tmp/pta-srv-cert.pem</screen>
+
+    <screen>
+$ <userinput>cd /path/to/PTA-Server/config</userinput>
+$ <userinput>keytool \
+ -exportcert \
+ -rfc \
+ -alias server-cert \
+ -keystore keystore \
+ -storepass `cat keystore.pin` \
+ > /tmp/pta-srv-cert.pem</userinput>
+    </screen>
    </step>
+
    <step>
     <para>Make note of the host name used in the certificate.</para>
     <para>You use the host name when configuring the SSL connection. With
     OpenDJ, you can view the certificate details as shown here.</para>
-    <screen>$ keytool
- -list
- -v
- -alias server-cert
- -keystore keystore
- -storepass `cat keystore.pin`
-Alias name: server-cert
+
+    <screen>
+$ <userinput>keytool \
+ -list \
+ -v \
+ -alias server-cert \
+ -keystore keystore \
+ -storepass `cat keystore.pin`</userinput>
+<computeroutput>Alias name: server-cert
 Creation date: Sep 12, 2011
 Entry type: PrivateKeyEntry
 Certificate chain length: 1
 Certificate[1]:
-Owner: CN=<emphasis role="strong">pta-server.example.com</emphasis>, O=OpenDJ Self-Signed Certificate
-Issuer: CN=<emphasis role="strong">pta-server.example.com</emphasis>, O=OpenDJ Self-Signed Certificate
-Serial number: 4e6dc429
-Valid from: Mon Sep 12 10:34:49 CEST 2011 until: Wed Sep 11 10:34:49 CEST 2013
-Certificate fingerprints:
-  MD5:  B6:EE:1C:A0:71:12:EF:6F:21:24:B9:50:EF:8B:4E:6A
-  SHA1: 7E:A1:C9:07:D2:86:56:31:24:14:F7:07:A8:6B:3E:A1:39:63:F4:0E
-  Signature algorithm name: SHA1withRSA
-  Version: 3</screen>
-   </step>
-   <step>
-    <para>Import the authentication server certificate into OpenDJ's
-    key store.</para>
-    <screen>$ cd /path/to/opendj/config
-$ keytool
- -importcert
- -alias pta-cert
- -keystore truststore
- -storepass `cat keystore.pin`
- -file /tmp/pta-srv-cert.pem
 Owner: CN=pta-server.example.com, O=OpenDJ Self-Signed Certificate
 Issuer: CN=pta-server.example.com, O=OpenDJ Self-Signed Certificate
 Serial number: 4e6dc429
@@ -153,9 +138,34 @@ Certificate fingerprints:
   MD5:  B6:EE:1C:A0:71:12:EF:6F:21:24:B9:50:EF:8B:4E:6A
   SHA1: 7E:A1:C9:07:D2:86:56:31:24:14:F7:07:A8:6B:3E:A1:39:63:F4:0E
   Signature algorithm name: SHA1withRSA
+  Version: 3</computeroutput>
+    </screen>
+   </step>
+
+   <step>
+    <para>Import the authentication server certificate into OpenDJ's
+    key store.</para>
+
+    <screen>
+$ <userinput>cd /path/to/opendj/config</userinput>
+$ <userinput>keytool \
+ -importcert \
+ -alias pta-cert \
+ -keystore truststore \
+ -storepass `cat keystore.pin` \
+ -file /tmp/pta-srv-cert.pem</userinput>
+<computeroutput>Owner: CN=pta-server.example.com, O=OpenDJ Self-Signed Certificate
+Issuer: CN=pta-server.example.com, O=OpenDJ Self-Signed Certificate
+Serial number: 4e6dc429
+Valid from: Mon Sep 12 10:34:49 CEST 2011 until: Wed Sep 11 10:34:49 CEST 2013
+Certificate fingerprints:
+  MD5:  B6:EE:1C:A0:71:12:EF:6F:21:24:B9:50:EF:8B:4E:6A
+  SHA1: 7E:A1:C9:07:D2:86:56:31:24:14:F7:07:A8:6B:3E:A1:39:63:F4:0E
+  Signature algorithm name: SHA1withRSA
   Version: 3
-Trust this certificate? [no]:  yes
-Certificate was added to keystore</screen>
+Trust this certificate? [no]:</computeroutput>  <userinput>yes</userinput>
+<computeroutput>Certificate was added to keystore</computeroutput>
+    </screen>
    </step>
   </procedure>
   
@@ -169,22 +179,26 @@ Certificate was added to keystore</screen>
    <step>
     <para>Set up an authentication policy for pass through
     authentication to the authentication server.</para>
-    <screen>$ dsconfig
- create-password-policy
- --port 4444
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --type ldap-pass-through
- --policy-name "PTA Policy"
- --set primary-remote-ldap-server:pta-server.example.com:636
- --set mapped-attribute:uid
- --set mapped-search-base-dn:"dc=PTA Server,dc=com"
- --set mapping-policy:mapped-search
- --set use-ssl:true
- --set trust-manager-provider:JKS
- --trustAll
- --no-prompt</screen>
+
+    <screen>
+$ <userinput>dsconfig \
+ create-password-policy \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --type ldap-pass-through \
+ --policy-name "PTA Policy" \
+ --set primary-remote-ldap-server:pta-server.example.com:636 \
+ --set mapped-attribute:uid \
+ --set mapped-search-base-dn:"dc=PTA Server,dc=com" \
+ --set mapping-policy:mapped-search \
+ --set use-ssl:true \
+ --set trust-manager-provider:JKS \
+ --trustAll \
+ --no-prompt</userinput>
+    </screen>
+
     <para>The policy shown here maps identities having this password policy
     to identities under <literal>dc=PTA Server,dc=com</literal>. Users must
     have the same <literal>uid</literal> values on both servers. The policy
@@ -192,19 +206,22 @@ Certificate was added to keystore</screen>
    </step>
    <step>
     <para>Check that your policy has been added to the list.</para>
-    <screen>$ dsconfig
- list-password-policies
- --port 4444
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --property use-ssl
 
+    <screen>
+$ <userinput>dsconfig \
+ list-password-policies \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --property use-ssl</userinput>
+<computeroutput>
 Password Policy         : Type              : use-ssl
 ------------------------:-------------------:--------
 Default Password Policy : password-policy   : -
 PTA Policy              : ldap-pass-through : true
-Root Password Policy    : password-policy   : -</screen>
+Root Password Policy    : password-policy   : -</computeroutput>
+    </screen>
    </step>
   </procedure>
   
@@ -233,23 +250,25 @@ Root Password Policy    : password-policy   : -</screen>
    enable the user with <literal>cn=LDAP PTA User</literal> on OpenDJ
    authenticate through to Active Directory.</para>
    
-   <screen>$ ldapsearch
- --hostname opendj.example.com
- --baseDN dc=example,dc=com
- uid=ldapptauser
- cn
-dn: uid=ldapptauser,ou=People,dc=example,dc=com
-cn: LDAP PTA User
+   <screen>
+$ <userinput>ldapsearch \
+ --hostname opendj.example.com \
+ --baseDN dc=example,dc=com \
+ uid=ldapptauser \
+ cn</userinput>
+<computeroutput>dn: uid=ldapptauser,ou=People,dc=example,dc=com
+cn: LDAP PTA User</computeroutput>
 
-$ ldapsearch
- --hostname ad.example.com
- --baseDN "CN=Users,DC=internal,DC=forgerock,DC=com"
- --bindDN "cn=administrator,cn=Users,DC=internal,DC=forgerock,DC=com"
- --bindPassword password
- "(cn=LDAP PTA User)"
- cn
-dn: CN=LDAP PTA User,CN=Users,DC=internal,DC=forgerock,DC=com
-cn: LDAP PTA User</screen>
+$ <userinput>ldapsearch \
+ --hostname ad.example.com \
+ --baseDN "CN=Users,DC=internal,DC=forgerock,DC=com" \
+ --bindDN "cn=administrator,cn=Users,DC=internal,DC=forgerock,DC=com" \
+ --bindPassword password \
+ "(cn=LDAP PTA User)" \
+ cn</userinput>
+<computeroutput>dn: CN=LDAP PTA User,CN=Users,DC=internal,DC=forgerock,DC=com
+cn: LDAP PTA User</computeroutput>
+   </screen>
    
    <para>OpenDJ must map its
    <literal>uid=ldapptauser,ou=People,dc=example,dc=com</literal> entry to the
@@ -292,14 +311,16 @@ cn: LDAP PTA User</screen>
    </step>
    <step>
     <para>Import the server certificate into OpenDJ's key store.</para>
-    <screen>$ cd /path/to/opendj/config
-$ keytool
- -importcert
- -alias ad-cert
- -keystore truststore
- -storepass `cat keystore.pin`
- -file ~/Downloads/windows.cer 
-Owner: CN=internal-ACTIVEDIRECTORY-CA, DC=internal, DC=forgerock, DC=com
+
+    <screen>
+$ <userinput>cd /path/to/opendj/config</userinput>
+$ <userinput>keytool \
+ -importcert \
+ -alias ad-cert \
+ -keystore truststore \
+ -storepass `cat keystore.pin` \
+ -file ~/Downloads/windows.cer</userinput>
+<computeroutput>Owner: CN=internal-ACTIVEDIRECTORY-CA, DC=internal, DC=forgerock, DC=com
 Issuer: CN=internal-ACTIVEDIRECTORY-CA, DC=internal, DC=forgerock, DC=com
 Serial number: 587465257200a7b14a6976cb47916b32
 Valid from: Tue Sep 20 11:14:24 CEST 2011 until: Tue Sep 20 11:24:23 CEST 2016
@@ -327,66 +348,79 @@ KeyUsage [
 #3: ObjectId: 2.5.29.14 Criticality=false
 SubjectKeyIdentifier [
 KeyIdentifier [
-0000: A3 3E C0 E3 B2 76 15 DC   97 D0 B3 C0 2E 77 8A 11  .&gt;...v.......w..
+0000: A3 3E C0 E3 B2 76 15 DC   97 D0 B3 C0 2E 77 8A 11  .>...v.......w..
 0010: 24 62 70 0A                                        $bp.
 ]
 ]
 
 #4: ObjectId: 1.3.6.1.4.1.311.21.1 Criticality=false
 
-Trust this certificate? [no]:  yes
-Certificate was added to keystore</screen>
+Trust this certificate? [no]:</computeroutput>  <userinput>yes</userinput>
+<computeroutput>Certificate was added to keystore</computeroutput>
+    </screen>
+
     <para>At this point OpenDJ can connect to Active Directory over SSL.</para>
    </step>
    <step>
     <para>Set up an authentication policy for OpenDJ users to authenticate
     to Active Directory.</para>
-    <screen>$ dsconfig
- create-password-policy
- --port 4444
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --type ldap-pass-through
- --policy-name "AD PTA Policy"
- --set primary-remote-ldap-server:ad.example.com:636
- --set mapped-attribute:cn
- --set mapped-search-base-dn:"CN=Users,DC=internal,DC=forgerock,DC=com"
- --set mapped-search-bind-dn:"cn=administrator,cn=Users,DC=internal,DC=forgerock
- ,DC=com"
- --set mapped-search-bind-password:password
- --set mapping-policy:mapped-search
- --set trust-manager-provider:JKS
- --set use-ssl:true
- --trustAll --no-prompt</screen>
+
+    <screen>
+$ <userinput>dsconfig \
+ create-password-policy \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --type ldap-pass-through \
+ --policy-name "AD PTA Policy" \
+ --set primary-remote-ldap-server:ad.example.com:636 \
+ --set mapped-attribute:cn \
+ --set mapped-search-base-dn:"CN=Users,DC=internal,DC=forgerock,DC=com" \
+ --set mapped-search-bind-dn:"cn=administrator,cn=Users,DC=internal, \
+  DC=forgerock,DC=com" \
+ --set mapped-search-bind-password:password \
+ --set mapping-policy:mapped-search \
+ --set trust-manager-provider:JKS \
+ --set use-ssl:true \
+ --trustAll \
+ --no-prompt</userinput>
+    </screen>
    </step>
    <step>
     <para>Assign the authentication policy to a test user.</para>
-    <screen>$ ldapmodify
- --port 1389
- --bindDN "cn=Directory Manager"
+
+    <screen>
+$ <userinput>ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
  --bindPassword password
 dn: uid=ldapptauser,ou=People,dc=example,dc=com
 changetype: modify
 add: ds-pwp-password-policy-dn
-ds-pwp-password-policy-dn: cn=AD PTA Policy,cn=Password Policies,cn=config
+ds-pwp-password-policy-dn: cn=AD PTA Policy,cn=Password Policies,cn=config</userinput>
 
-Processing MODIFY request for uid=ldapptauser,ou=People,dc=example,dc=com
-MODIFY operation successful for DN uid=ldapptauser,ou=People,dc=example,dc=com</screen>
+<computeroutput>Processing MODIFY request for uid=ldapptauser,ou=People,dc=example,dc=com
+MODIFY operation successful for DN uid=ldapptauser,ou=People,dc=example,dc=com</computeroutput>
+    </screen>
    </step>
    <step>
     <para>Check that the user can bind using pass through authentication to
     Active Directory.</para>
-    <screen>$ ldapsearch
- --hostname opendj.example.com
- --port 1389
- --baseDN dc=example,dc=com
- --bindDN uid=ldapptauser,ou=People,dc=example,dc=com
- --bindPassword password
- "(cn=LDAP PTA User)"
- userpassword cn
-dn: uid=ldapptauser,ou=People,dc=example,dc=com
-cn: LDAP PTA User</screen>
+
+    <screen>
+$ <userinput>ldapsearch \
+ --hostname opendj.example.com \
+ --port 1389 \
+ --baseDN dc=example,dc=com \
+ --bindDN uid=ldapptauser,ou=People,dc=example,dc=com \
+ --bindPassword password \
+ "(cn=LDAP PTA User)" \
+ userpassword cn</userinput>
+<computeroutput>dn: uid=ldapptauser,ou=People,dc=example,dc=com
+cn: LDAP PTA User</computeroutput>
+    </screen>
+
     <para>Notice that to complete the search, the user authenticated with a
     password to Active Directory, though no <literal>userpassword</literal>
     value is present on the entry on the OpenDJ side.</para>
@@ -407,12 +441,14 @@ cn: LDAP PTA User</screen>
    not in fact a password policy. Therefore, the user with a pass through
    authentication policy does not have a value for the operational attribute
    <literal>pwdPolicySubentry</literal>.</para>
-   <screen>$ ldapsearch
- --port 1389
- --baseDN dc=example,dc=com
- uid=user.0
- pwdPolicySubentry
-dn: uid=user.0,ou=People,dc=example,dc=com
+
+   <screen>
+$ <userinput>ldapsearch \
+ --port 1389 \
+ --baseDN dc=example,dc=com \
+ uid=user.0 \
+ pwdPolicySubentry</userinput>
+<computeroutput>dn: uid=user.0,ou=People,dc=example,dc=com</computeroutput>
 </screen>
   </note>
   
@@ -427,7 +463,8 @@ dn: uid=user.0,ou=People,dc=example,dc=com
    user's password on the authentication server is
    <literal>password</literal>.</para>
    
-   <programlisting language="ldif">dn: uid=user.0,ou=People,dc=example,dc=com
+   <programlisting language="ldif">
+dn: uid=user.0,ou=People,dc=example,dc=com
 cn: Aaccf Amar
 description: This is the description for Aaccf Amar.
 employeeNumber: 0
@@ -458,51 +495,59 @@ uid: user.0
    
    <step>
     <para>Prevent users from changing their own password policies.</para>
-    <screen>$ cat protect-pta.ldif 
-dn: ou=People,dc=example,dc=com
+
+    <screen>
+$ <userinput>cat protect-pta.ldif</userinput>
+<computeroutput>dn: ou=People,dc=example,dc=com
 changetype: modify
 add: aci
 aci: (target ="ldap:///uid=*,ou=People,dc=example,dc=com")(targetattr =
  "ds-pwp-password-policy-dn")(version 3.0;acl "Cannot choose own pass
- word policy";deny (write)(userdn = "ldap:///self");)
+ word policy";deny (write)(userdn = "ldap:///self");)</computeroutput>
 
-$ ldapmodify
- --port 1389
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --filename protect-pta.ldif
-Processing MODIFY request for ou=People,dc=example,dc=com
-MODIFY operation successful for DN ou=People,dc=example,dc=com</screen>
+$ <userinput>ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --filename protect-pta.ldif</userinput>
+<computeroutput>Processing MODIFY request for ou=People,dc=example,dc=com
+MODIFY operation successful for DN ou=People,dc=example,dc=com</computeroutput>
+    </screen>
    </step>
    <step>
     <para>Update the user's <literal>ds-pwp-password-policy-dn</literal>
     attribute.</para>
-    <screen>$ ldapmodify
- --port 1389
- --bindDN "cn=Directory Manager"
+
+    <screen>
+$ <userinput>ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
  --bindPassword password
 dn: uid=user.0,ou=People,dc=example,dc=com
 changetype: modify 
 add: ds-pwp-password-policy-dn
-ds-pwp-password-policy-dn: cn=PTA Policy,cn=Password Policies,cn=config
+ds-pwp-password-policy-dn: cn=PTA Policy,cn=Password Policies,cn=config</userinput>
 
-Processing MODIFY request for uid=user.0,ou=People,dc=example,dc=com
-MODIFY operation successful for DN uid=user.0,ou=People,dc=example,dc=com</screen>
+<computeroutput>Processing MODIFY request for uid=user.0,ou=People,dc=example,dc=com
+MODIFY operation successful for DN uid=user.0,ou=People,dc=example,dc=com</computeroutput>
+    </screen>
    </step>
    <step>
     <para>Check that the user can authenticate through to the authentication
     server.</para>
-    <screen>$ ldapsearch
- --port 1389
- --baseDN dc=example,dc=com
- --bindDN uid=user.0,ou=People,dc=example,dc=com
- --bindPassword password
- uid=user.0
- cn sn
-dn: uid=user.0,ou=People,dc=example,dc=com
+
+    <screen>
+$ <userinput>ldapsearch \
+ --port 1389 \
+ --baseDN dc=example,dc=com \
+ --bindDN uid=user.0,ou=People,dc=example,dc=com \
+ --bindPassword password \
+ uid=user.0 \
+ cn sn</userinput>
+<computeroutput>dn: uid=user.0,ou=People,dc=example,dc=com
 cn: Aaccf Amar
-sn: Amar
-</screen>
+sn: Amar</computeroutput>
+    </screen>
    </step>
   </procedure>
   
@@ -519,8 +564,9 @@ sn: Amar
     <literal>ds-pwp-password-policy-dn</literal> attribute for group
     members' entries.</para>
     
-    <screen>$ cat pta-coll.ldif 
-dn: cn=PTA Policy for Dir Admins,dc=example,dc=com
+    <screen>
+$ <userinput>cat pta-coll.ldif</userinput>
+<computeroutput>dn: cn=PTA Policy for Dir Admins,dc=example,dc=com
 objectClass: collectiveAttributeSubentry
 objectClass: extensibleObject
 objectClass: subentry
@@ -529,16 +575,17 @@ cn: PTA Policy for Dir Admins
 ds-pwp-password-policy-dn;collective: cn=PTA Policy,cn=Password Policies,
  cn=config
 subtreeSpecification: { base "ou=People", specificationFilter "(isMemberOf=
- cn=Directory Administrators,ou=Groups,dc=example,dc=com)"}
+ cn=Directory Administrators,ou=Groups,dc=example,dc=com)"}</computeroutput>
 
-$ ldapmodify
- --port 1389
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --defaultAdd
- --filename pta-coll.ldif
-Processing ADD request for cn=PTA Policy for Dir Admins,dc=example,dc=com
-ADD operation successful for DN cn=PTA Policy for Dir Admins,dc=example,dc=com</screen>
+$ <userinput>ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --defaultAdd \
+ --filename pta-coll.ldif</userinput>
+<computeroutput>Processing ADD request for cn=PTA Policy for Dir Admins,dc=example,dc=com
+ADD operation successful for DN cn=PTA Policy for Dir Admins,dc=example,dc=com</computeroutput>
+    </screen>
    </step>
    <step>
     <para>Check that OpenDJ has applied the policy.</para>
@@ -546,13 +593,15 @@ ADD operation successful for DN cn=PTA Policy for Dir Admins,dc=example,dc=com</
      <step>
       <para>Make sure you can bind as the user on the authentication
       server.</para>
-      <screen>$ ldapsearch
- --port 2389
- --bindDN "uid=kvaughan,ou=People,dc=PTA Server,dc=com"
- --bindPassword password
- --baseDN "dc=PTA Server,dc=com"
- uid=kvaughan
-dn: uid=kvaughan,ou=People,dc=PTA Server,dc=com
+
+      <screen>
+$ <userinput>ldapsearch \
+ --port 2389 \
+ --bindDN "uid=kvaughan,ou=People,dc=PTA Server,dc=com" \
+ --bindPassword password \
+ --baseDN "dc=PTA Server,dc=com" \
+ uid=kvaughan</userinput>
+<computeroutput>dn: uid=kvaughan,ou=People,dc=PTA Server,dc=com
 objectClass: person
 objectClass: organizationalPerson
 objectClass: inetOrgPerson
@@ -563,22 +612,25 @@ cn: Kirsten Vaughan
 sn: Vaughan
 userPassword: {SSHA}x1BdtrJyRTw63kBSJFDvgvd4guzk66CV8L+t8w==
 ou: People
-mail: jvaughan@example.com
-</screen>
+mail: jvaughan@example.com</computeroutput>
+      </screen>
      </step>
      <step>
       <para>Check that the user can authenticate through to the authentication
       server from OpenDJ.</para>
-      <screen>$ ldapsearch
- --port 1389
- --bindDN "uid=kvaughan,ou=people,dc=example,dc=com"
- --bindPassword password
- --baseDN dc=example,dc=com
- uid=kvaughan
- cn sn
-dn: uid=kvaughan,ou=People,dc=example,dc=com
+
+      <screen>
+$ <userinput>ldapsearch \
+ --port 1389 \
+ --bindDN "uid=kvaughan,ou=people,dc=example,dc=com" \
+ --bindPassword password \
+ --baseDN dc=example,dc=com \
+ uid=kvaughan \
+ cn sn</userinput>
+<computeroutput>dn: uid=kvaughan,ou=People,dc=example,dc=com
 cn: Kirsten Vaughan
-sn: Vaughan</screen>
+sn: Vaughan</computeroutput>
+      </screen>
      </step>
     </substeps>
    </step>

@@ -38,11 +38,19 @@
  This chapter demonstrates basic RESTful client operations using the
  default configuration and sample directory data imported into OpenDJ from
  <link xlink:show="new" xlink:href="http://opendj.forgerock.org/Example.ldif"
- >Example.ldif</link>. Before trying the examples, enable HTTP access to
- OpenDJ directory server as described in procedure, <link xlink:show="new"
- xlink:href="admin-guide#setup-rest2ldap-connection-handler"
- xlink:role="http://docbook.org/xlink/role/olink"><citetitle>To Set Up REST
- Access to OpenDJ Directory Server</citetitle></link>.</para>
+ >Example.ldif</link>.</para>
+
+ <para>
+  Before trying the examples, enable HTTP access to
+  OpenDJ directory server as described in procedure,
+  <link
+   xlink:show="new"
+   xlink:href="admin-guide#setup-rest2ldap-connection-handler"
+   xlink:role="http://docbook.org/xlink/role/olink"
+  ><citetitle>To Set Up REST Access to OpenDJ Directory Server</citetitle></link>.
+  The examples in this chapter use HTTP,
+  but the procedure also shows how to set up HTTPS access to the server.
+ </para>
 
  <para>Interface stability: <link xlink:href="admin-guide#interface-stability"
  xlink:show="new" xlink:role="http://docbook.org/xlink/role/olink"
@@ -136,28 +144,32 @@
   entry with an anonymous search, you might be surprised that you must
   authenticate.</para>
 
-  <screen>$ curl http://opendj.example.com:8080/users/bjensen?_prettyPrint=true
-{
+  <screen>
+$ <userinput>curl http://opendj.example.com:8080/users/bjensen?_prettyPrint=true</userinput>
+<computeroutput>{
   "code" : 401,
   "reason" : "Unauthorized",
   "message" : "Unauthorized"
-}</screen>
+}</computeroutput>
+  </screen>
 
   <para>HTTP status code 401 tells your HTTP client that the request requires
   user authentication. You can change this behavior by setting the HTTP
   connection handler property, <literal>authentication-required</literal>,
   to <literal>false</literal>.</para>
 
-  <screen>$ dsconfig
- set-connection-handler-prop
- --hostname opendj.example.com
- --port 4444
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --handler-name "HTTP Connection Handler"
- --set authentication-required:false
- --no-prompt
- --trustAll</screen>
+  <screen>
+$ <userinput>dsconfig \
+ set-connection-handler-prop \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --handler-name "HTTP Connection Handler" \
+ --set authentication-required:false \
+ --no-prompt \
+ --trustAll</userinput>
+  </screen>
 
   <para>Out of the box both the HTTP Connection Handler and also the REST LDAP
   gateway are configured to allow HTTP Basic authentication and HTTP header
@@ -172,8 +184,10 @@
   attribute. For example, the DN and user ID for Babs Jensen are as
   follows.</para>
 
-  <programlisting language="ldif">dn: uid=bjensen,ou=People,dc=example,dc=com
-uid: bjensen</programlisting>
+  <programlisting language="ldif">
+dn: uid=bjensen,ou=People,dc=example,dc=com
+uid: bjensen
+  </programlisting>
 
   <para>Given this pattern in the user entries, the default REST to LDAP
   configuration assumes that the user name on the HTTP side is the value of
@@ -185,35 +199,41 @@ uid: bjensen</programlisting>
 
   <para>With HTTP Basic authentication, it looks like this.</para>
 
-  <screen>$ curl
- --user bjensen:hifalutin
- http://opendj.example.com:8080/users/bjensen?_prettyPrint=true
-{
+  <screen>
+$ <userinput>curl \
+ --user bjensen:hifalutin \
+ http://opendj.example.com:8080/users/bjensen?_prettyPrint=true</userinput>
+<computeroutput>{
   "_rev" : "0000000016cbb68c",
   ...
-}</screen>
+}</computeroutput>
+  </screen>
 
   <para>Or, using the HTTP Basic
   <replaceable>username</replaceable>:<replaceable>password</replaceable>@ form
   in the URL, it looks like this.</para>
 
-  <screen>$ curl
-http://bjensen:hifalutin@opendj.example.com:8080/users/bjensen?_prettyPrint=true
-{
+  <screen width="81">
+$ <userinput>curl \
+ http://bjensen:hifalutin@opendj.example.com:8080/users/bjensen?_prettyPrint=true</userinput>
+<computeroutput>{
   "_rev" : "0000000016cbb68c",
   ...
-}</screen>
+}</computeroutput>
+  </screen>
 
   <para>With HTTP header based authentication, it looks like this.</para>
 
-  <screen>$ curl
- --header "X-OpenIDM-Username: bjensen"
- --header "X-OpenIDM-Password: hifalutin"
- http://opendj.example.com:8080/users/bjensen?_prettyPrint=true
-{
+  <screen>
+$ <userinput>curl \
+ --header "X-OpenIDM-Username: bjensen" \
+ --header "X-OpenIDM-Password: hifalutin" \
+ http://opendj.example.com:8080/users/bjensen?_prettyPrint=true</userinput>
+<computeroutput>{
   "_rev" : "0000000016cbb68c",
   ...
-}</screen>
+}</computeroutput>
+  </screen>
 
   <para>If your directory data are laid out differently, or if your user names
   are email addresses rather than user IDs for example, then you must update
@@ -244,31 +264,32 @@ http://bjensen:hifalutin@opendj.example.com:8080/users/bjensen?_prettyPrint=true
     <para>The following example creates a new user entry with ID
     <literal>newuser</literal>.</para>
 
-    <screen>$ curl
- --request PUT
- --user kvaughan:bribery
- --header "Content-Type: application/json"
- --header "If-None-Match: *"
- --data '{
-  "_id": "newuser",
-  "contactInformation": {
-    "telephoneNumber": "+1 408 555 1212",
-    "emailAddress": "newuser@example.com"
-  },
-  "name": {
-    "familyName": "New",
-    "givenName": "User"
-  },
-  "displayName": "New User",
-  "manager": [
-    {
-      "_id": "kvaughan",
-      "displayName": "Kirsten Vaughan"
-    }
-  ]
- }'
- http://opendj.example.com:8080/users/newuser?_prettyPrint=true
-{
+    <screen>
+$ <userinput>curl \
+ --request PUT \
+ --user kvaughan:bribery \
+ --header "Content-Type: application/json" \
+ --header "If-None-Match: *" \
+ --data '{ \
+  "_id": "newuser", \
+  "contactInformation": { \
+    "telephoneNumber": "+1 408 555 1212", \
+    "emailAddress": "newuser@example.com" \
+  }, \
+  "name": { \
+    "familyName": "New", \
+    "givenName": "User" \
+  }, \
+  "displayName": "New User", \
+  "manager": [ \
+    { \
+      "_id": "kvaughan", \
+      "displayName": "Kirsten Vaughan" \
+    } \
+  ] \
+ }' \
+ http://opendj.example.com:8080/users/newuser?_prettyPrint=true</userinput>
+<computeroutput>{
   "_rev" : "000000005b337348",
   "schemas" : [ "urn:scim:schemas:core:1.0" ],
   "contactInformation" : {
@@ -289,7 +310,8 @@ http://bjensen:hifalutin@opendj.example.com:8080/users/bjensen?_prettyPrint=true
     "_id" : "kvaughan",
     "displayName" : "Kirsten Vaughan"
   } ]
-}</screen>
+}</computeroutput>
+    </screen>
    </listitem>
 
    <listitem>
@@ -305,11 +327,12 @@ http://bjensen:hifalutin@opendj.example.com:8080/users/bjensen?_prettyPrint=true
 
   <para>To read a resource, perform an HTTP GET.</para>
 
-  <screen>$ curl
- --request GET
- --user kvaughan:bribery
- http://opendj.example.com:8080/users/newuser?_prettyPrint=true
-{
+  <screen>
+$ <userinput>curl \
+ --request GET \
+ --user kvaughan:bribery \
+ http://opendj.example.com:8080/users/newuser?_prettyPrint=true</userinput>
+<computeroutput>{
   "_rev" : "000000005b337348",
   "schemas" : [ "urn:scim:schemas:core:1.0" ],
   "contactInformation" : {
@@ -330,7 +353,8 @@ http://bjensen:hifalutin@opendj.example.com:8080/users/bjensen?_prettyPrint=true
     "_id" : "kvaughan",
     "displayName" : "Kirsten Vaughan"
   } ]
-}</screen>
+}</computeroutput>
+  </screen>
  </section>
 
  <section xml:id="update-rest">
@@ -342,35 +366,36 @@ http://bjensen:hifalutin@opendj.example.com:8080/users/bjensen?_prettyPrint=true
 
   <para>The following example adds a manager for Sam Carter.</para>
 
-  <screen>$ curl
- --request PUT
- --user kvaughan:bribery
- --header "Content-Type: application/json"
- --data '{
-   "contactInformation": {
-     "telephoneNumber": "+1 408 555 4798",
-     "emailAddress": "scarter@example.com"
-   },
-   "name": {
-     "familyName": "Carter",
-     "givenName": "Sam"
-   },
-   "userName": "scarter@example.com",
-   "displayName": "Sam Carter",
-   "groups": [
-     {
-       "_id": "Accounting Managers"
-     }
-   ],
-   "manager": [
-     {
-       "_id": "trigden",
-       "displayName": "Torrey Rigden"
-     }
-   ]
- }'
- http://opendj.example.com:8080/users/scarter?_prettyPrint=true
-{
+  <screen>
+$ <userinput>curl \
+ --request PUT \
+ --user kvaughan:bribery \
+ --header "Content-Type: application/json" \
+ --data '{ \
+   "contactInformation": { \
+     "telephoneNumber": "+1 408 555 4798", \
+     "emailAddress": "scarter@example.com" \
+   }, \
+   "name": { \
+     "familyName": "Carter", \
+     "givenName": "Sam" \
+   }, \
+   "userName": "scarter@example.com", \
+   "displayName": "Sam Carter", \
+   "groups": [ \
+     { \
+       "_id": "Accounting Managers" \
+     } \
+   ], \
+   "manager": [ \
+     { \
+       "_id": "trigden", \
+       "displayName": "Torrey Rigden" \
+     } \
+   ] \
+ }' \
+ http://opendj.example.com:8080/users/scarter?_prettyPrint=true</userinput>
+<computeroutput>{
   "_rev" : "00000000a1923db2",
   "schemas" : [ "urn:scim:schemas:core:1.0" ],
   "contactInformation" : {
@@ -394,46 +419,49 @@ http://bjensen:hifalutin@opendj.example.com:8080/users/bjensen?_prettyPrint=true
   "groups" : [ {
     "_id" : "Accounting Managers"
   } ]
-}</screen>
+}</computeroutput>
+  </screen>
 
   <para>To update a resource only if the resource matches a particular version,
   use an <literal>If-Match: <replaceable>revision</replaceable></literal>
   header.</para>
 
-  <screen> $ curl
- --user kvaughan:bribery
- http://opendj.example.com:8080/users/scarter?_fields=_rev
-<emphasis>{"_rev":"00000000b017c5b8"}</emphasis>
-$ curl
- --request PUT
- --user kvaughan:bribery
- <emphasis>--header "If-Match: 00000000b017c5b8"</emphasis>
- --header "Content-Type: application/json"
- --data '{
-   "contactInformation": {
-     "telephoneNumber": "+1 408 555 1212",
-     "emailAddress": "scarter@example.com"
-   },
-   "name": {
-     "familyName": "Carter",
-     "givenName": "Sam"
-   },
-   "userName": "scarter@example.com",
-   "displayName": "Sam Carter",
-   "groups": [
-     {
-       "_id": "Accounting Managers"
-     }
-   ],
-   "manager": [
-     {
-       "_id": "trigden",
-       "displayName": "Torrey Rigden"
-     }
-   ]
- }'
- http://opendj.example.com:8080/users/scarter?_prettyPrint=true
-{
+  <screen>
+$ <userinput>curl \
+ --user kvaughan:bribery \
+ http://opendj.example.com:8080/users/scarter?_fields=_rev</userinput>
+<computeroutput>{"_rev":"00000000b017c5b8"}</computeroutput>
+
+$ <userinput>curl \
+ --request PUT \
+ --user kvaughan:bribery \
+--header "If-Match: 00000000b017c5b8" \
+ --header "Content-Type: application/json" \
+ --data '{ \
+   "contactInformation": { \
+     "telephoneNumber": "+1 408 555 1212", \
+     "emailAddress": "scarter@example.com" \
+   }, \
+   "name": { \
+     "familyName": "Carter", \
+     "givenName": "Sam" \
+   }, \
+   "userName": "scarter@example.com", \
+   "displayName": "Sam Carter", \
+   "groups": [ \
+     { \
+       "_id": "Accounting Managers" \
+     } \
+   ], \
+   "manager": [ \
+     { \
+       "_id": "trigden", \
+       "displayName": "Torrey Rigden" \
+     } \
+   ] \
+ }' \
+ http://opendj.example.com:8080/users/scarter?_prettyPrint=true</userinput>
+<computeroutput>{
   "_rev" : "00000000a1ee3da3",
   "schemas" : [ "urn:scim:schemas:core:1.0" ],
   "contactInformation" : {
@@ -457,7 +485,8 @@ $ curl
     "_id" : "trigden",
     "displayName" : "Torrey Rigden"
   } ]
-}</screen>
+}</computeroutput>
+  </screen>
  </section>
 
  <section xml:id="delete-rest">
@@ -466,11 +495,12 @@ $ curl
   <para>To delete a resource, perform an HTTP DELETE on the resource URL.
   On success, the operation returns the resource you deleted.</para>
 
-  <screen>$ curl
- --request DELETE
- --user kvaughan:bribery
- http://opendj.example.com:8080/users/newuser?_prettyPrint=true
-{
+  <screen>
+$ <userinput>curl \
+ --request DELETE \
+ --user kvaughan:bribery \
+ http://opendj.example.com:8080/users/newuser?_prettyPrint=true</userinput>
+<computeroutput>{
   "_rev" : "000000003a5f3cb2",
   "schemas" : [ "urn:scim:schemas:core:1.0" ],
   "contactInformation" : {
@@ -491,22 +521,24 @@ $ curl
     "_id" : "kvaughan",
     "displayName" : "Kirsten Vaughan"
   } ]
-}</screen>
+}</computeroutput>
+  </screen>
 
   <para>To delete a resource only if the resource matches a particular version,
   use an <literal>If-Match: <replaceable>revision</replaceable></literal>
   header.</para>
 
-  <screen>$ curl
+  <screen>$ <userinput>curl
  --user kvaughan:bribery
- http://opendj.example.com:8080/users/newuser?_fields=_rev
-{"_rev":"000000006d8d7358"}
-$ curl
- --request DELETE
- --user kvaughan:bribery
- --header "If-Match: 000000006d8d7358"
- http://opendj.example.com:8080/users/newuser?_prettyPrint=true
-{
+ http://opendj.example.com:8080/users/newuser?_fields=_rev</userinput>
+<computeroutput>{"_rev":"000000006d8d7358"}</computeroutput>
+
+$ <userinput>curl \
+ --request DELETE \
+ --user kvaughan:bribery \
+ --header "If-Match: 000000006d8d7358" \
+ http://opendj.example.com:8080/users/newuser?_prettyPrint=true</userinput>
+<computeroutput>{
   "_rev" : "00000000383f3cae",
   "schemas" : [ "urn:scim:schemas:core:1.0" ],
   "contactInformation" : {
@@ -527,7 +559,8 @@ $ curl
     "_id" : "kvaughan",
     "displayName" : "Kirsten Vaughan"
   } ]
-}</screen>
+}</computeroutput>
+  </screen>
 
   <orderedlist>
    <para>To delete a resource and all its children, you must change the
@@ -539,12 +572,14 @@ $ curl
    <para>In this case the LDAP view of the user to delete shows two child
    entries.</para>
 
-   <screen>$ ldapsearch --port 1389 --baseDN uid=nbohr,ou=people,dc=example,dc=com "(&amp;)" dn
-dn: uid=nbohr,ou=People,dc=example,dc=com
+   <screen>
+$ <userinput>ldapsearch --port 1389 --baseDN uid=nbohr,ou=people,dc=example,dc=com "(&amp;)" dn</userinput>
+<computeroutput>dn: uid=nbohr,ou=People,dc=example,dc=com
 
 dn: cn=quantum dot,uid=nbohr,ou=People,dc=example,dc=com
 
-dn: cn=qubit generator,uid=nbohr,ou=People,dc=example,dc=com</screen>
+dn: cn=qubit generator,uid=nbohr,ou=People,dc=example,dc=com</computeroutput>
+   </screen>
 
    <listitem>
     <para>In the configuration file for the HTTP Connection Handler, by default
@@ -560,35 +595,39 @@ dn: cn=qubit generator,uid=nbohr,ou=People,dc=example,dc=com</screen>
    <listitem>
     <para>Force the HTTP Connection Handler to reread its configuration.</para>
 
-    <screen>$ dsconfig
- set-connection-handler-prop
- --hostname opendj.example.com
- --port 4444
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --handler-name "HTTP Connection Handler"
- <emphasis>--set enabled:false</emphasis>
- --no-prompt
-$ dsconfig
- set-connection-handler-prop
- --hostname opendj.example.com
- --port 4444
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --handler-name "HTTP Connection Handler"
- <emphasis>--set enabled:true</emphasis>
- --no-prompt</screen>
+    <screen>
+$ <userinput>dsconfig \
+ set-connection-handler-prop \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --handler-name "HTTP Connection Handler" \
+ --set enabled:false \
+ --no-prompt</userinput>
+
+$ <userinput>dsconfig \
+ set-connection-handler-prop \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --handler-name "HTTP Connection Handler" \
+ --set enabled:true \
+ --no-prompt</userinput>
+    </screen>
    </listitem>
 
    <listitem>
     <para>Delete as a user who has rights to perform a subtree delete on
     the resource.</para>
 
-    <screen>$ curl
- --request DELETE
- --user kvaughan:bribery
- http://opendj.example.com:8080/users/nbohr?_prettyPrint=true
-{
+    <screen>
+$ <userinput>curl \
+ --request DELETE \
+ --user kvaughan:bribery \
+ http://opendj.example.com:8080/users/nbohr?_prettyPrint=true</userinput>
+<computeroutput>{
   "_rev" : "000000003d912113",
   "schemas" : [ "urn:scim:schemas:core:1.0" ],
   "contactInformation" : {
@@ -602,7 +641,8 @@ $ dsconfig
   },
   "userName" : "nbohr@example.com",
   "displayName" : "Niels Bohr"
-}</screen>
+}</computeroutput>
+    </screen>
    </listitem>
   </orderedlist>
  </section>
@@ -623,19 +663,20 @@ $ dsconfig
   itself an array, since you could patch more than one part of the resource by
   using a set of patch operations in the same request.</para>
 
-  <screen>$ curl
- --user kvaughan:bribery
- --request PATCH
- --header "Content-Type: application/json"
- --data '[
-  {
-    "operation": "replace",
-    "field": "/contactInformation/emailAddress",
-    "value": "babs@example.com"
-  }
- ]'
- http://opendj.example.com:8080/users/bjensen?_prettyPrint=true
-{
+  <screen>
+$ <userinput>curl \
+ --user kvaughan:bribery \
+ --request PATCH \
+ --header "Content-Type: application/json" \
+ --data '[ \
+  { \
+    "operation": "replace", \
+    "field": "/contactInformation/emailAddress", \
+    "value": "babs@example.com" \
+  } \
+ ]' \
+ http://opendj.example.com:8080/users/bjensen?_prettyPrint=true</userinput>
+<computeroutput>{
   "_rev" : "00000000f3fdd370",
   "schemas" : [ "urn:scim:schemas:core:1.0" ],
   "contactInformation" : {
@@ -656,7 +697,8 @@ $ dsconfig
     "_id" : "trigden",
     "displayName" : "Torrey Rigden"
   } ]
-}</screen>
+}</computeroutput>
+  </screen>
 
   <variablelist>
    <para>OpenDJ supports four types of patch operation.</para>
@@ -736,24 +778,24 @@ $ dsconfig
   example, you can include Barbara Jensen in a group by adding her to the set
   of members.</para>
 
-  <screen>$ curl
- --user kvaughan:bribery
- --request PATCH
- --header "Content-Type: application/json"
- --data '[
-  {
-    "operation": "add",
-    "field": "/members",
-    "value": [
-      {
-        "_id": "bjensen"
-      }
-    ]
-  }
- ]'
- http://opendj.example.com:8080/groups/Directory%20Administrators
- ?_prettyPrint=true
-{
+  <screen width="83">
+$ <userinput>curl \
+ --user kvaughan:bribery \
+ --request PATCH \
+ --header "Content-Type: application/json" \
+ --data '[ \
+  { \
+    "operation": "add", \
+    "field": "/members", \
+    "value": [ \
+      { \
+        "_id": "bjensen" \
+      } \
+    ] \
+  } \
+ ]' \
+ http://opendj.example.com:8080/groups/Directory%20Administrators?_prettyPrint=true</userinput>
+<computeroutput>{
   "_rev" : "00000000b70c881a",
   "schemas" : [ "urn:scim:schemas:core:1.0" ],
   "_id" : "Directory Administrators",
@@ -774,28 +816,29 @@ $ dsconfig
     "_id" : "hmiller",
     "displayName" : "Harry Miller"
   } ]
-}</screen>
+}</computeroutput>
+  </screen>
 
   <para>Removing her from the group is similar.</para>
 
-  <screen>$ curl
- --user kvaughan:bribery
- --request PATCH
- --header "Content-Type: application/json"
- --data '[
-  {
-    "operation": "remove",
-    "field": "/members",
-    "value": [
-      {
-        "_id": "bjensen"
-      }
-    ]
-  }
- ]'
- http://opendj.example.com:8080/groups/Directory%20Administrators
- ?_prettyPrint=true
-{
+  <screen width="83">
+$ <userinput>curl \
+ --user kvaughan:bribery \
+ --request PATCH \
+ --header "Content-Type: application/json" \
+ --data '[ \
+  { \
+    "operation": "remove", \
+    "field": "/members", \
+    "value": [ \
+      { \
+        "_id": "bjensen" \
+      } \
+    ] \
+  } \
+ ]' \
+ http://opendj.example.com:8080/groups/Directory%20Administrators?_prettyPrint=true</userinput>
+<computeroutput>{
   "_rev" : "00000000e241797e",
   "schemas" : [ "urn:scim:schemas:core:1.0" ],
   "_id" : "Directory Administrators",
@@ -813,32 +856,35 @@ $ dsconfig
     "_id" : "hmiller",
     "displayName" : "Harry Miller"
   } ]
-}</screen>
+}</computeroutput>
+  </screen>
 
   <para>You can use resource revision numbers in <literal>If-Match:
   <replaceable>revision</replaceable></literal> headers to patch the resource
   only if the resource matches a particular version.</para>
 
-  <screen>$ curl
- --user kvaughan:bribery
- "http://opendj.example.com:8080/users/bjensen?_prettyPrint=true&amp;_fields=_rev"
-{
+  <screen>
+$ <userinput>curl \
+ --user kvaughan:bribery \
+ "http://opendj.example.com:8080/users/bjensen?_prettyPrint=true&amp;_fields=_rev"</userinput>
+<computeroutput>{
   "_rev" : "00000000c1b6d4c7"
-}
-$ curl
- --user kvaughan:bribery
- --request PATCH
- --header "If-Match: 00000000c1b6d4c7"
- --header "Content-Type: application/json"
- --data '[
-  {
-    "operation": "add",
-    "field": "/contactInformation/emailAddress",
-    "value": "babs@example.com"
-  }
- ]'
- http://opendj.example.com:8080/users/bjensen?_prettyPrint=true
-{
+}</computeroutput>
+
+$ <userinput>curl \
+ --user kvaughan:bribery \
+ --request PATCH \
+ --header "If-Match: 00000000c1b6d4c7" \
+ --header "Content-Type: application/json" \
+ --data '[ \
+  { \
+    "operation": "add", \
+    "field": "/contactInformation/emailAddress", \
+    "value": "babs@example.com" \
+  } \
+ ]' \
+ http://opendj.example.com:8080/users/bjensen?_prettyPrint=true</userinput>
+<computeroutput>{
   "_rev" : "00000000f946d377",
   "schemas" : [ "urn:scim:schemas:core:1.0" ],
   "contactInformation" : {
@@ -859,7 +905,8 @@ $ curl
     "_id" : "trigden",
     "displayName" : "Torrey Rigden"
   } ]
-}</screen>
+}</computeroutput>
+  </screen>
 
   <para>The resource revision changes after you successfully perform the patch
   operation.</para>
@@ -876,30 +923,31 @@ $ curl
 
   <para>The following example creates a new user entry.</para>
 
-  <screen width="82">$ curl
- --request POST
- --user kvaughan:bribery
- --header "Content-Type: application/json"
- --data '{
-  "_id": "newuser",
-  "contactInformation": {
-    "telephoneNumber": "+1 408 555 1212",
-    "emailAddress": "newuser@example.com"
-  },
-  "name": {
-    "familyName": "New",
-    "givenName": "User"
-  },
-  "displayName": "New User",
-  "manager": [
-    {
-      "_id": "kvaughan",
-      "displayName": "Kirsten Vaughan"
-    }
-  ]
- }'
- "http://opendj.example.com:8080/users?_action=create&amp;_prettyPrint=true"
-{
+  <screen width="82">
+$ <userinput>curl \
+ --request POST \
+ --user kvaughan:bribery \
+ --header "Content-Type: application/json" \
+ --data '{ \
+  "_id": "newuser", \
+  "contactInformation": { \
+    "telephoneNumber": "+1 408 555 1212", \
+    "emailAddress": "newuser@example.com" \
+  }, \
+  "name": { \
+    "familyName": "New", \
+    "givenName": "User" \
+  }, \
+  "displayName": "New User", \
+  "manager": [ \
+    { \
+      "_id": "kvaughan", \
+      "displayName": "Kirsten Vaughan" \
+    } \
+  ] \
+ }' \
+ "http://opendj.example.com:8080/users?_action=create&amp;_prettyPrint=true"</userinput>
+<computeroutput>{
   "_rev" : "0000000034a23ca7",
   "schemas" : [ "urn:scim:schemas:core:1.0" ],
   "contactInformation" : {
@@ -920,7 +968,8 @@ $ curl
     "_id" : "kvaughan",
     "displayName" : "Kirsten Vaughan"
   } ]
-}</screen>
+}</computeroutput>
+  </screen>
  </section>
 
  <section xml:id="query-rest">
@@ -956,9 +1005,11 @@ $ curl
         <para>Matches when the pointer equals the value, as in the following
         example.</para>
 
-        <screen>$ curl --user kvaughan:bribery 'http://opendj.example.com:8080
- /users?_queryFilter=userName+eq+"bjensen@example.com"&amp;_prettyPrint=true'
-{
+        <screen width="87"><!-- Dropped _prettyPrint=true param for spacing. -->
+$ <userinput>curl \
+ --user kvaughan:bribery \
+ 'http://opendj.example.com:8080/users?_queryFilter=userName+eq+"bjensen@example.com"'</userinput>
+<computeroutput>{
   "result" : [ {
     "_rev" : "00000000315fb731",
     "schemas" : [ "urn:scim:schemas:core:1.0" ],
@@ -981,7 +1032,8 @@ $ curl
   "resultCount" : 1,
   "pagedResultsCookie" : null,
   "remainingPagedResults" : -1
-}</screen>
+}</computeroutput>
+        </screen>
        </listitem>
       </varlistentry>
 
@@ -991,9 +1043,11 @@ $ curl
         <para>Matches when the pointer contains the value, as in the following
         example.</para>
 
-        <screen>$ curl --user kvaughan:bribery 'http://opendj.example.com:8080
- /users?_queryFilter=userName+co+"jensen"&amp;_fields=userName&amp;_prettyPrint=true'
-{
+        <screen width="91"><!-- Dropped _prettyPrint=true param for spacing. -->
+$ <userinput>curl \
+ --user kvaughan:bribery \
+ 'http://opendj.example.com:8080/users?_queryFilter=userName+co+"jensen"&amp;_fields=userName'</userinput>
+<computeroutput>{
   "result" : [ {
     "userName" : "ajensen@example.com"
   }, {
@@ -1012,7 +1066,8 @@ $ curl
   "resultCount" : 7,
   "pagedResultsCookie" : null,
   "remainingPagedResults" : -1
-}</screen>
+}</computeroutput>
+        </screen>
        </listitem>
       </varlistentry>
 
@@ -1022,9 +1077,11 @@ $ curl
         <para>Matches when the pointer starts with the value, as in the
         following example.</para>
 
-        <screen>$ curl --user kvaughan:bribery 'http://opendj.example.com:8080
- /users?_queryFilter=userName+sw+"ab"&amp;_fields=userName&amp;_prettyPrint=true'
-{
+        <screen width="87"><!-- Dropped _prettyPrint=true param for spacing. -->
+$ <userinput>curl \
+ --user kvaughan:bribery \
+ 'http://opendj.example.com:8080/users?_queryFilter=userName+sw+"ab"&amp;_fields=userName'</userinput>
+<computeroutput>{
   "result" : [ {
     "userName" : "abarnes@example.com"
   }, {
@@ -1033,7 +1090,8 @@ $ curl
   "resultCount" : 2,
   "pagedResultsCookie" : null,
   "remainingPagedResults" : -1
-}</screen>
+}</computeroutput>
+        </screen>
        </listitem>
       </varlistentry>
 
@@ -1043,9 +1101,11 @@ $ curl
         <para>Matches when the pointer is less than the value, as in the
         following example.</para>
 
-        <screen>$ curl --user kvaughan:bribery 'http://opendj.example.com:8080
- /users?_queryFilter=userName+lt+"ac"&amp;_fields=userName&amp;_prettyPrint=true'
-{
+        <screen width="87"><!-- Dropped _prettyPrint=true param for spacing. -->
+$ <userinput>curl \
+ --user kvaughan:bribery \
+ 'http://opendj.example.com:8080/users?_queryFilter=userName+lt+"ac"&amp;_fields=userName'</userinput>
+<computeroutput>{
   "result" : [ {
     "userName" : "abarnes@example.com"
   }, {
@@ -1054,7 +1114,8 @@ $ curl
   "resultCount" : 2,
   "pagedResultsCookie" : null,
   "remainingPagedResults" : -1
-}</screen>
+}</computeroutput>
+        </screen>
        </listitem>
       </varlistentry>
 
@@ -1064,9 +1125,11 @@ $ curl
         <para>Matches when the pointer is less than or equal to the value, as
         in the following example.</para>
 
-        <screen>$ curl --user kvaughan:bribery 'http://opendj.example.com:8080
- /users?_queryFilter=userName+le+"ad"&amp;_fields=userName&amp;_prettyPrint=true'
-{
+        <screen width="87"><!-- Dropped _prettyPrint=true param for spacing. -->
+$ <userinput>curl \
+ --user kvaughan:bribery \
+ 'http://opendj.example.com:8080/users?_queryFilter=userName+le+"ad"&amp;_fields=userName'</userinput>
+<computeroutput>{
   "result" : [ {
     "userName" : "abarnes@example.com"
   }, {
@@ -1077,7 +1140,8 @@ $ curl
   "resultCount" : 3,
   "pagedResultsCookie" : null,
   "remainingPagedResults" : -1
-}</screen>
+}</computeroutput>
+        </screen>
        </listitem>
       </varlistentry>
 
@@ -1087,9 +1151,11 @@ $ curl
         <para>Matches when the pointer is greater than the value, as in the
         following example.</para>
 
-        <screen>$ curl --user kvaughan:bribery 'http://opendj.example.com:8080
- /users?_queryFilter=userName+gt+"tt"&amp;_fields=userName&amp;_prettyPrint=true'
-{
+        <screen width="87"><!-- Dropped _prettyPrint=true param for spacing. -->
+$ <userinput>curl \
+ --user kvaughan:bribery \
+ 'http://opendj.example.com:8080/users?_queryFilter=userName+gt+"tt"&amp;_fields=userName'</userinput>
+<computeroutput>{
   "result" : [ {
     "userName" : "ttully@example.com"
   }, {
@@ -1100,7 +1166,8 @@ $ curl
   "resultCount" : 3,
   "pagedResultsCookie" : null,
   "remainingPagedResults" : -1
-}</screen>
+}</computeroutput>
+        </screen>
        </listitem>
       </varlistentry>
 
@@ -1110,9 +1177,11 @@ $ curl
         <para>Matches when the pointer is greater than or equal to the value,
         as in the following example.</para>
 
-        <screen>$ curl --user kvaughan:bribery 'http://opendj.example.com:8080
- /users?_queryFilter=userName+ge+"tw"&amp;_fields=userName&amp;_prettyPrint=true'
-{
+        <screen width="87"><!-- Dropped _prettyPrint=true param for spacing. -->
+$ <userinput>curl \
+ --user kvaughan:bribery \
+ 'http://opendj.example.com:8080/users?_queryFilter=userName+ge+"tw"&amp;_fields=userName'</userinput>
+<computeroutput>{
   "result" : [ {
     "userName" : "tward@example.com"
   }, {
@@ -1121,7 +1190,8 @@ $ curl
   "resultCount" : 2,
   "pagedResultsCookie" : null,
   "remainingPagedResults" : -1
-}</screen>
+}</computeroutput>
+        </screen>
        </listitem>
       </varlistentry>
      </variablelist>
@@ -1135,9 +1205,11 @@ $ curl
      any resource on which the <replaceable>json-pointer</replaceable> is
      present, as in the following example.</para>
 
-     <screen>$ curl --user kvaughan:bribery 'http://opendj.example.com:8080
- /users?_queryFilter=userName%20pr&amp;_prettyPrint=true'
-{
+     <screen><!-- Dropped _prettyPrint=true param for spacing. -->
+$ <userinput>curl \
+ --user kvaughan:bribery \
+ 'http://opendj.example.com:8080/users?_queryFilter=userName%20pr'</userinput>
+<computeroutput>{
   "result" : [ {
     "_rev" : "000000002210a544",
     "schemas" : [ "urn:scim:schemas:core:1.0" ],
@@ -1171,7 +1243,8 @@ $ curl
   "resultCount" : 152,
   "pagedResultsCookie" : null,
   "remainingPagedResults" : -1
-}</screen>
+}</computeroutput>
+     </screen>
     </listitem>
    </varlistentry>
 
@@ -1184,9 +1257,11 @@ $ curl
      <para>In other words you can list all resources in a collection as in the
      following example.</para>
 
-     <screen>$ curl --user kvaughan:bribery 'http://opendj.example.com:8080
- /groups?_queryFilter=true&amp;_fields=displayName&amp;_prettyPrint=true'
-{
+     <screen><!-- Dropped _prettyPrint=true param for spacing. -->
+$ <userinput>curl \
+ --user kvaughan:bribery \
+ 'http://opendj.example.com:8080/groups?_queryFilter=true&amp;_fields=displayName'</userinput>
+<computeroutput>{
   "result" : [ {
     "displayName" : "Accounting Managers"
   }, {
@@ -1201,7 +1276,8 @@ $ curl
   "resultCount" : 5,
   "pagedResultsCookie" : null,
   "remainingPagedResults" : -1
-}</screen>
+}</computeroutput>
+     </screen>
     </listitem>
    </varlistentry>
 
@@ -1219,10 +1295,12 @@ $ curl
      nested inside the <literal>name</literal> and <literal>manager</literal>
      objects.</para>
 
-     <screen>$ curl --user kvaughan:bribery 'http://opendj.example.com:8080
- /users?_queryFilter=(userName+co+"jensen"+and+manager/displayName+sw+"Sam")
- &amp;_fields=displayName&amp;_prettyPrint=true'
-{
+     <screen><!-- Dropped _prettyPrint=true param for spacing. -->
+$ <userinput>curl \
+ --user kvaughan:bribery \
+ 'http://opendj.example.com:8080/users?_queryFilter=\
+(userName+co+"jensen"+and+manager/displayName+sw+"Sam")&amp;_fields=displayName'</userinput>
+<computeroutput>{
   "result" : [ {
     "displayName" : "Jody Jensen"
   }, {
@@ -1231,7 +1309,8 @@ $ curl
   "resultCount" : 2,
   "pagedResultsCookie" : null,
   "remainingPagedResults" : -1
-}</screen>
+}</computeroutput>
+     </screen>
     </listitem>
    </varlistentry>
   </variablelist>
@@ -1341,9 +1420,11 @@ $ curl
       after the last page of results specified by the cookie.
      </para>
 
-     <screen>$ curl "http://bjensen:hifalutin@opendj.example.com:8080/users
- ?_queryFilter=true&amp;_fields=userName&amp;_prettyPrint=true&amp;_pageSize=5"
-{
+     <screen width="87"><!-- Dropped _prettyPrint=true param for spacing. -->
+$ <userinput>curl \
+ --user bjensen:hifalutin \
+ "http://opendj.example.com:8080/users?_queryFilter=true&amp;_fields=userName&amp;_pageSize=5"</userinput>
+<computeroutput>{
   "result" : [ {
     "userName" : "abarnes@example.com"
   }, {
@@ -1358,12 +1439,13 @@ $ curl
   "resultCount" : 5,
   "pagedResultsCookie" : "AAAAAAAAAA8=",
   "remainingPagedResults" : -1
-}
+}</computeroutput>
 
-$ curl "http://bjensen:hifalutin@opendj.example.com:8080/users
- ?_queryFilter=true&amp;_fields=userName&amp;_prettyPrint=true&amp;_pageSize=5
- &amp;_pagedResultsCookie=AAAAAAAAAA8="
-{
+$ <userinput>curl \
+ --user bjensen:hifalutin \
+ "http://opendj.example.com:8080/users?_queryFilter=true&amp;_fields=userName&amp;_pageSize=5\
+&amp;_pagedResultsCookie=AAAAAAAAAA8="</userinput>
+<computeroutput>{
   "result" : [ {
     "userName" : "ahunter@example.com"
   }, {
@@ -1378,12 +1460,13 @@ $ curl "http://bjensen:hifalutin@opendj.example.com:8080/users
   "resultCount" : 5,
   "pagedResultsCookie" : "AAAAAAAAABQ=",
   "remainingPagedResults" : -1
-}
+}</computeroutput>
 
-$ curl "http://bjensen:hifalutin@opendj.example.com:8080/users
- ?_queryFilter=true&amp;_fields=userName&amp;_prettyPrint=true&amp;_pageSize=5
- &amp;_pagedResultsCookie=AAAAAAAAAA8=&amp;_pagedResultsOffset=10"
-{
+$ <userinput>curl \
+ --user bjensen:hifalutin \
+ "http://opendj.example.com:8080/users?_queryFilter=true&amp;_fields=userName&amp;_pageSize=5\
+&amp;_pagedResultsCookie=AAAAAAAAAA8=&amp;_pagedResultsOffset=10"</userinput>
+<computeroutput>{
   "result" : [ {
     "userName" : "gtriplet@example.com"
   }, {
@@ -1398,7 +1481,8 @@ $ curl "http://bjensen:hifalutin@opendj.example.com:8080/users
   "resultCount" : 5,
   "pagedResultsCookie" : "AAAAAAAAAEY=",
   "remainingPagedResults" : -1
-}</screen>
+}</computeroutput>
+     </screen>
 
      <para>
       Notice that <literal>"remainingPagedResults" : -1</literal> in each case
