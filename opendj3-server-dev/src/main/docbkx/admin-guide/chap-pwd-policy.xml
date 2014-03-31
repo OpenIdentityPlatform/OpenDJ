@@ -67,15 +67,16 @@
    policy settings using the <command>dsconfig</command> command as
    follows.</para>
    
-   <screen>$ dsconfig
- get-password-policy-prop
- --port 4444
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --policy-name "Default Password Policy"
- --advanced
-Property                                  : Value(s)
+   <screen>
+$ <userinput>dsconfig \
+ get-password-policy-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --policy-name "Default Password Policy" \
+ --advanced</userinput>
+<computeroutput>Property                                  : Value(s)
 ------------------------------------------:--------------------------
 account-status-notification-handler       : -
 allow-expired-password-changes            : false
@@ -109,7 +110,8 @@ require-change-by-time                    : -
 require-secure-authentication             : false
 require-secure-password-changes           : false
 skip-validation-for-administrators        : false
-state-update-failure-policy               : reactive</screen>
+state-update-failure-policy               : reactive</computeroutput>
+   </screen>
 
    <para>See the <citetitle>OpenDJ Configuration Reference</citetitle> page
    on <link xlink:show="new"
@@ -131,15 +133,17 @@ state-update-failure-policy               : reactive</screen>
    value. Even the directory manager cannot see the plain text value of a user's
    password.</para>
    
-   <screen>$ ldapsearch
- --port 1389
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --baseDN dc=example,dc=com
- uid=bjensen
- userpassword
-dn: uid=bjensen,ou=People,dc=example,dc=com
-userpassword: {SSHA}QWAtw8ch/9850HNFRRqLNMIQc1YhxCnOoGmk1g==</screen>
+   <screen>
+$ <userinput>ldapsearch \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --baseDN dc=example,dc=com \
+ uid=bjensen \
+ userpassword</userinput>
+<computeroutput>dn: uid=bjensen,ou=People,dc=example,dc=com
+userpassword: {SSHA}QWAtw8ch/9850HNFRRqLNMIQc1YhxCnOoGmk1g==</computeroutput>
+   </screen>
    
    <para>In addition, users can change their passwords provided you have
    granted them access to do so. OpenDJ uses the <literal>userPassword</literal>
@@ -282,8 +286,8 @@ userpassword: {SSHA}QWAtw8ch/9850HNFRRqLNMIQc1YhxCnOoGmk1g==</screen>
     Both are enabled in the default OpenDJ directory server configuration.
    </para>
 
-   <programlisting language="ldif"
-   >dn: cn=Subentry Password Policy with Validators,dc=example,dc=com
+   <programlisting language="ldif">
+dn: cn=Subentry Password Policy with Validators,dc=example,dc=com
 objectClass: top
 objectClass: subentry
 objectClass: pwdPolicy
@@ -302,7 +306,7 @@ ds-cfg-password-validator: cn=Length-Based Password Validator,
 subtreeSpecification: {base "ou=people", specificationFilter
   "(isMemberOf=cn=Directory Administrators,ou=Groups,dc=example,dc=com)" }
 
-</programlisting>
+   </programlisting>
 
    <para>
     If a referenced password validator cannot be found,
@@ -325,9 +329,11 @@ subtreeSpecification: {base "ou=people", specificationFilter
    <para>The password policy that applies to a user is identified by the
    operational attribute, <literal>pwdPolicySubentry</literal>.</para>
    
-   <screen>$ ldapsearch --port 1389 --baseDN dc=example,dc=com uid=bjensen pwdPolicySubentry
-dn: uid=bjensen,ou=People,dc=example,dc=com
-pwdPolicySubentry: cn=Default Password Policy,cn=Password Policies,cn=config</screen>
+   <screen width="81">
+$ <userinput>ldapsearch --port 1389 --baseDN dc=example,dc=com uid=bjensen pwdPolicySubentry</userinput>
+<computeroutput>dn: uid=bjensen,ou=People,dc=example,dc=com
+pwdPolicySubentry: cn=Default Password Policy,cn=Password Policies,cn=config</computeroutput>
+   </screen>
   </section>
  </section>
 
@@ -355,45 +361,52 @@ pwdPolicySubentry: cn=Default Password Policy,cn=Password Policies,cn=config</sc
    password policy.</para>
    <step>
     <para>Enable the appropriate password validator.</para>
-    <screen>$ dsconfig
- set-password-validator-prop
- --port 4444
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --validator-name Dictionary
- --set enabled:true
- --set check-substrings:true
- --set min-substring-length:4
- --trustAll
- --no-prompt</screen>
+
+    <screen>
+$ <userinput>dsconfig \
+ set-password-validator-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --validator-name Dictionary \
+ --set enabled:true \
+ --set check-substrings:true \
+ --set min-substring-length:4 \
+ --trustAll \
+ --no-prompt</userinput>
+    </screen>
    </step>
    <step>
     <para>Apply the changes to the default password policy.</para>
-    <screen>$ dsconfig
- set-password-policy-prop
- --port 4444
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --policy-name "Default Password Policy"
- --set max-password-age:90d
- --set min-password-age:4w
- --set password-history-count:7
- --set password-validator:Dictionary
- --trustAll
- --no-prompt</screen>
+
+    <screen>
+$ <userinput>dsconfig \
+ set-password-policy-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --policy-name "Default Password Policy" \
+ --set max-password-age:90d \
+ --set min-password-age:4w \
+ --set password-history-count:7 \
+ --set password-validator:Dictionary \
+ --trustAll \
+ --no-prompt</userinput></screen>
    </step>
    <step>
     <para>Check your work.</para>
-    <screen>$ dsconfig
- get-password-policy-prop
- --port 4444
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --policy-name "Default Password Policy"
-Property                                  : Value(s)
+
+    <screen>
+$ <userinput>dsconfig \
+ get-password-policy-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --policy-name "Default Password Policy"</userinput>
+<computeroutput>Property                                  : Value(s)
 ------------------------------------------:--------------------------
 account-status-notification-handler       : -
 allow-expired-password-changes            : false
@@ -423,7 +436,8 @@ password-validator                        : Dictionary
 previous-last-login-time-format           : -
 require-change-by-time                    : -
 require-secure-authentication             : false
-require-secure-password-changes           : false</screen>
+require-secure-password-changes           : false</computeroutput>
+    </screen>
    </step>
   </procedure>
 
@@ -434,30 +448,35 @@ require-secure-password-changes           : false</screen>
    yet used their credentials to bind.</para>
    <step>
     <para>Create the new password policy.</para>
-    <screen>$ dsconfig
- create-password-policy
- --port 4444
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --policy-name "New Account Password Policy"
- --set default-password-storage-scheme:"Salted SHA-1"
- --set force-change-on-add:true
- --set password-attribute:userPassword
- --type password-policy
- --trustAll
- --no-prompt</screen>
+
+    <screen>
+$ <userinput>dsconfig \
+ create-password-policy \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --policy-name "New Account Password Policy" \
+ --set default-password-storage-scheme:"Salted SHA-1" \
+ --set force-change-on-add:true \
+ --set password-attribute:userPassword \
+ --type password-policy \
+ --trustAll \
+ --no-prompt</userinput>
+    </screen>
    </step>
    <step>
     <para>Check your work.</para>
-    <screen>$ dsconfig
- get-password-policy-prop
- --port 4444
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --policy-name "New Account Password Policy"
-Property                                  : Value(s)
+
+    <screen>
+$ <userinput>dsconfig \
+ get-password-policy-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --policy-name "New Account Password Policy"</userinput>
+<computeroutput>Property                                  : Value(s)
 ------------------------------------------:-------------
 account-status-notification-handler       : -
 allow-expired-password-changes            : false
@@ -487,7 +506,8 @@ password-validator                        : -
 previous-last-login-time-format           : -
 require-change-by-time                    : -
 require-secure-authentication             : false
-require-secure-password-changes           : false</screen>
+require-secure-password-changes           : false</computeroutput>
+    </screen>
 
     <para>If you use a password policy like this, you might want to change the
     user's policy again when the new user successfully updates the
@@ -502,8 +522,10 @@ require-secure-password-changes           : false</screen>
    
    <step>
     <para>Create the entry that specifies the password policy.</para>
-    <screen>$ cat /path/to/subentry-pwp.ldif 
-dn: cn=Subentry Password Policy,dc=example,dc=com
+
+    <screen>
+$ <userinput>cat /path/to/subentry-pwp.ldif</userinput>
+<computeroutput>dn: cn=Subentry Password Policy,dc=example,dc=com
 objectClass: top
 objectClass: subentry
 objectClass: pwdPolicy
@@ -516,18 +538,22 @@ pwdLockoutDuration: 300
 pwdAllowUserChange: TRUE
 pwdSafeModify: TRUE
 subtreeSpecification: {base "ou=people", specificationFilter
-  "(isMemberOf=cn=Directory Administrators,ou=Groups,dc=example,dc=com)" }</screen>
+  "(isMemberOf=cn=Directory Administrators,ou=Groups,dc=example,dc=com)" }</computeroutput>
+    </screen>
    </step>
    <step>
     <para>Add the policy to the directory.</para>
-    <screen>$ ldapmodify
- --port 1389
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --defaultAdd
- --filename /path/to/subentry-pwp.ldif 
-Processing ADD request for cn=Subentry Password Policy,dc=example,dc=com
-ADD operation successful for DN cn=Subentry Password Policy,dc=example,dc=com</screen>
+
+    <screen>
+$ <userinput>ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --defaultAdd \
+ --filename /path/to/subentry-pwp.ldif</userinput>
+<computeroutput>Processing ADD request for cn=Subentry Password Policy,dc=example,dc=com
+ADD operation successful for DN cn=Subentry Password Policy,dc=example,dc=com</computeroutput>
+    </screen>
    </step>
    <step>
     <para>Check that the policy applies as specified.</para>
@@ -535,21 +561,24 @@ ADD operation successful for DN cn=Subentry Password Policy,dc=example,dc=com</s
     while a normal user has the default password policy. Here, Kirsten Vaughan
     is a member of the Directory Administrators group, and Babs Jensen is not
     a member.</para>
-    <screen>$ ldapsearch
- --port 1389
- --baseDN dc=example,dc=com
- uid=kvaughan
- pwdPolicySubentry
-dn: uid=kvaughan,ou=People,dc=example,dc=com
-pwdPolicySubentry: cn=Subentry Password Policy,dc=example,dc=com
 
-$ ldapsearch
- --port 1389
- --baseDN dc=example,dc=com
- uid=bjensen
- pwdPolicySubentry
-dn: uid=bjensen,ou=People,dc=example,dc=com
-pwdPolicySubentry: cn=Default Password Policy,cn=Password Policies,cn=config</screen>
+    <screen>
+$ <userinput>ldapsearch \
+ --port 1389 \
+ --baseDN dc=example,dc=com \
+ uid=kvaughan \
+ pwdPolicySubentry</userinput>
+<computeroutput>dn: uid=kvaughan,ou=People,dc=example,dc=com
+pwdPolicySubentry: cn=Subentry Password Policy,dc=example,dc=com</computeroutput>
+
+$ <userinput>ldapsearch \
+ --port 1389 \
+ --baseDN dc=example,dc=com \
+ uid=bjensen \
+ pwdPolicySubentry</userinput>
+<computeroutput>dn: uid=bjensen,ou=People,dc=example,dc=com
+pwdPolicySubentry: cn=Default Password Policy,cn=Password Policies,cn=config</computeroutput>
+    </screen>
    </step>
   </procedure>
  </section>
@@ -575,28 +604,31 @@ pwdPolicySubentry: cn=Default Password Policy,cn=Password Policies,cn=config</sc
    <step>
     <para>Prevent users from selecting their own password policy.</para>
     
-    <screen>$ cat protectpwp.ldif 
-dn: ou=People,dc=example,dc=com
+    <screen>
+$ <userinput>cat protectpwp.ldif</userinput>
+<computeroutput>dn: ou=People,dc=example,dc=com
 changetype: modify
 add: aci
 aci: (target ="ldap:///uid=*,ou=People,dc=example,dc=com")(targetattr =
  "ds-pwp-password-policy-dn")(version 3.0;acl "Cannot choose own pass
- word policy";deny (write)(userdn = "ldap:///self");)
+ word policy";deny (write)(userdn = "ldap:///self");)</computeroutput>
 
-$ ldapmodify
- --port 1389
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --filename protectpwp.ldif
-Processing MODIFY request for ou=People,dc=example,dc=com
-MODIFY operation successful for DN ou=People,dc=example,dc=com</screen>
+$ <userinput>ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --filename protectpwp.ldif</userinput>
+<computeroutput>Processing MODIFY request for ou=People,dc=example,dc=com
+MODIFY operation successful for DN ou=People,dc=example,dc=com</computeroutput>
+    </screen>
    </step>
    <step>
     <para>Update the user's <literal>ds-pwp-password-policy-dn</literal>
     attribute.</para>
     
-    <screen>$ cat newuser.ldif 
-dn: uid=newuser,ou=People,dc=example,dc=com
+    <screen>
+$ <userinput>cat newuser.ldif</userinput>
+<computeroutput>dn: uid=newuser,ou=People,dc=example,dc=com
 uid: newuser
 objectClass: person
 objectClass: organizationalPerson
@@ -608,28 +640,32 @@ ou: People
 mail: newuser@example.com
 userPassword: changeme
 ds-pwp-password-policy-dn: cn=New Account Password Policy,cn=Password Policies,
- cn=config
+ cn=config</computeroutput>
 
-$ ldapmodify
- --port 1389
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --defaultAdd
- --filename newuser.ldif
-Processing ADD request for uid=newuser,ou=People,dc=example,dc=com
-ADD operation successful for DN uid=newuser,ou=People,dc=example,dc=com</screen>
+$ <userinput>ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --defaultAdd \
+ --filename newuser.ldif</userinput>
+<computeroutput>Processing ADD request for uid=newuser,ou=People,dc=example,dc=com
+ADD operation successful for DN uid=newuser,ou=People,dc=example,dc=com</computeroutput>
+    </screen>
    </step>
    <step>
     <para>Check your work.</para>
-    <screen>$ ldapsearch
- --port 1389
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --baseDN dc=example,dc=com
- uid=newuser
- pwdPolicySubentry
-dn: uid=newuser,ou=People,dc=example,dc=com
-pwdPolicySubentry: cn=New Account Password Policy,cn=Password Policies,cn=config</screen>
+
+    <screen>
+$ <userinput>ldapsearch \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --baseDN dc=example,dc=com \
+ uid=newuser \
+ pwdPolicySubentry</userinput>
+<computeroutput>dn: uid=newuser,ou=People,dc=example,dc=com
+pwdPolicySubentry: cn=New Account Password Policy,cn=Password Policies,cn=config</computeroutput>
+    </screen>
    </step>
   </procedure>
 
@@ -641,8 +677,9 @@ pwdPolicySubentry: cn=New Account Password Policy,cn=Password Policies,cn=config
     <literal>ds-pwp-password-policy-dn</literal> attribute for group
     members' entries.</para>
     
-    <screen>$ cat pwp-coll.ldif
-dn: cn=Password Policy for Dir Admins,dc=example,dc=com
+    <screen>
+$ <userinput>cat pwp-coll.ldif</userinput>
+<computeroutput>dn: cn=Password Policy for Dir Admins,dc=example,dc=com
 objectClass: collectiveAttributeSubentry
 objectClass: extensibleObject
 objectClass: subentry
@@ -651,28 +688,30 @@ cn: Password Policy for Dir Admins
 ds-pwp-password-policy-dn;collective: cn=Root Password Policy,cn=Pass
  word Policies,cn=config
 subtreeSpecification: { base "ou=People", specificationFilter "(isMemberOf=
- cn=Directory Administrators,ou=Groups,dc=example,dc=com)"}
+ cn=Directory Administrators,ou=Groups,dc=example,dc=com)"}</computeroutput>
 
-$ ldapmodify
- --port 1389
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --defaultAdd
- --filename pwp-coll.ldif
-Processing ADD request for cn=Password Policy for Dir Admins,dc=example,dc=com
+$ <userinput>ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --defaultAdd \
+ --filename pwp-coll.ldif</userinput>
+<computeroutput>Processing ADD request for cn=Password Policy for Dir Admins,dc=example,dc=com
 ADD operation successful for DN cn=Password Policy for Dir
- Admins,dc=example,dc=com</screen>
+ Admins,dc=example,dc=com</computeroutput></screen>
    </step>
    <step>
     <para>Check your work.</para>
     
-    <screen>$ ldapsearch
- --port 1389
- --baseDN dc=example,dc=com
- uid=kvaughan
- pwdPolicySubentry
-dn: uid=kvaughan,ou=People,dc=example,dc=com
-pwdPolicySubentry: cn=Root Password Policy,cn=Password Policies,cn=config</screen>
+    <screen>
+$ <userinput>ldapsearch \
+ --port 1389 \
+ --baseDN dc=example,dc=com \
+ uid=kvaughan \
+ pwdPolicySubentry</userinput>
+<computeroutput>dn: uid=kvaughan,ou=People,dc=example,dc=com
+pwdPolicySubentry: cn=Root Password Policy,cn=Password Policies,cn=config</computeroutput>
+    </screen>
    </step>
   </procedure>
 
@@ -696,8 +735,9 @@ pwdPolicySubentry: cn=Root Password Policy,cn=Password Policies,cn=config</scree
      under <literal>ou=People,dc=example,dc=com</literal>.
     </para>
 
-    <screen>$ cat collective-pwp.ldif
-dn: cn=People Password Policy,dc=example,dc=com
+    <screen>
+$ <userinput>cat collective-pwp.ldif</userinput>
+<computeroutput>dn: cn=People Password Policy,dc=example,dc=com
 objectClass: top
 objectClass: subentry
 objectClass: pwdPolicy
@@ -719,19 +759,20 @@ objectClass: collectiveAttributeSubentry
 cn: Assign People Password Policy
 ds-pwp-password-policy-dn;collective: cn=People Password Policy,dc=example,dc=com
 subtreeSpecification: { base "ou=people" }
+</computeroutput>
 
-
-$ ldapmodify
- --port 1389
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --defaultAdd
- --filename collective-pwp.ldif
-Processing ADD request for cn=People Password Policy,dc=example,dc=com
+$ <userinput>ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --defaultAdd \
+ --filename collective-pwp.ldif</userinput>
+<computeroutput>Processing ADD request for cn=People Password Policy,dc=example,dc=com
 ADD operation successful for DN cn=People Password Policy,dc=example,dc=com
 Processing ADD request for cn=Assign People Password Policy,dc=example,dc=com
 ADD operation successful for DN
- cn=Assign People Password Policy,dc=example,dc=com</screen>
+ cn=Assign People Password Policy,dc=example,dc=com</computeroutput>
+    </screen>
 
     <para>
      Notice the subtree specification used to assign the policy,
@@ -752,13 +793,15 @@ ADD operation successful for DN
      Check your work.
     </para>
 
-    <screen>$ ldapsearch
- --port 1389
- --baseDN dc=example,dc=com
- "(uid=alutz)"
- pwdPolicySubentry
-dn: uid=alutz,ou=People,dc=example,dc=com
-pwdPolicySubentry: cn=People Password Policy,dc=example,dc=com</screen>
+    <screen>
+$ <userinput>ldapsearch \
+ --port 1389 \
+ --baseDN dc=example,dc=com \
+ "(uid=alutz)" \
+ pwdPolicySubentry</userinput>
+<computeroutput>dn: uid=alutz,ou=People,dc=example,dc=com
+pwdPolicySubentry: cn=People Password Policy,dc=example,dc=com</computeroutput>
+    </screen>
 
     <para>
      If everything is correctly configured,
@@ -781,26 +824,29 @@ pwdPolicySubentry: cn=People Password Policy,dc=example,dc=com</screen>
   a directory administrator resetting a user's password can have OpenDJ
   directory server generate the new password.</para>
 
-  <screen>$ ldappasswordmodify
- --port 1389
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --authzID "u:bjensen"
-The LDAP password modify operation was successful
-Generated Password:  eak77qdi</screen>
+  <screen>
+$ <userinput>ldappasswordmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --authzID "u:bjensen"</userinput>
+<computeroutput>The LDAP password modify operation was successful
+Generated Password:  eak77qdi</computeroutput>
+  </screen>
 
   <para>The default password policy shown in <xref linkend="default-pwp" /> uses
   the Random Password Generator.</para>
 
-  <screen>$ dsconfig
- get-password-policy-prop
- --hostname opendj.example.com
- --port 4444
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --policy-name "Default Password Policy"
- --property password-generator
-Property           : Value(s)
+  <screen>
+$ <userinput>dsconfig \
+ get-password-policy-prop \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --policy-name "Default Password Policy" \
+ --property password-generator</userinput>
+<computeroutput>Property           : Value(s)
 -------------------:--------------------------
 password-generator : Random Password Generator
 $ dsconfig
@@ -815,7 +861,8 @@ $ dsconfig
 -----------------------:-----------------------------------------------------
 enabled                : true
 password-character-set : alpha:abcdefghijklmnopqrstuvwxyz, numeric:0123456789
-password-format        : "alpha:3,numeric:2,alpha:3"</screen>
+password-format        : "alpha:3,numeric:2,alpha:3"</computeroutput>
+  </screen>
 
   <para>Notice that the default configuration for the Random Password Generator
   defines two <literal>password-character-set</literal> values, and then uses
@@ -833,27 +880,30 @@ password-format        : "alpha:3,numeric:2,alpha:3"</screen>
   changes the Random Password Generator configuration, and then demonstrates a
   password being generated upon reset.</para>
 
-  <screen>$ dsconfig
- set-password-generator-prop
- --hostname opendj.example.com
- --port 4444
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --generator-name "Random Password Generator"
- --remove password-character-set:alpha:abcdefghijklmnopqrstuvwxyz
- --add
-  password-character-set:alpha:ABCDEFGHIJKLMNOPQRSTUVWabcdefghijklmnopqrstuvwxyz
- --add password-character-set:punct:,./\`!@#\$%^&amp;*:\;[]\"\'\(\)+=-_~\\
- --set
-  password-format:alpha:3,punct:1,numeric:2,punct:2,numeric:3,alpha:3,punct:2
- --no-prompt
-$ ldappasswordmodify
- --port 1389
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --authzID "u:bjensen"
-The LDAP password modify operation was successful
-Generated Password:  pld^06:)529HTq$'</screen>
+  <screen width="81">
+$ <userinput>dsconfig \
+ set-password-generator-prop \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --generator-name "Random Password Generator" \
+ --remove password-character-set:alpha:abcdefghijklmnopqrstuvwxyz \
+ --add \
+  password-character-set:alpha:ABCDEFGHIJKLMNOPQRSTUVWabcdefghijklmnopqrstuvwxyz \
+ --add password-character-set:punct:,./\`!@#\$%^&amp;*:\;[]\"\'\(\)+=-_~\\ \
+ --set \
+  password-format:alpha:3,punct:1,numeric:2,punct:2,numeric:3,alpha:3,punct:2 \
+ --no-prompt</userinput>
+
+$ <userinput>ldappasswordmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --authzID "u:bjensen"</userinput>
+<computeroutput>The LDAP password modify operation was successful
+Generated Password:  pld^06:)529HTq$'</computeroutput>
+  </screen>
 
   <para>If you also set up a password validator in the password policy as
   shown in <xref linkend="default-pwp" /> and further described in
@@ -878,13 +928,14 @@ Generated Password:  pld^06:)529HTq$'</screen>
   schemes. Some schemes make it easy to recover the clear-text password,
   whereas others aim to make it computationally hard to do so.</para>
 
-  <screen>$ dsconfig
- list-password-storage-schemes
- --hostname opendj.example.com
- --port 4444
- --bindDN "cn=Directory Manager"
- --bindPassword password
-
+  <screen>
+$ <userinput>dsconfig \
+ list-password-storage-schemes \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password</userinput>
+<computeroutput>
 Password Storage Scheme : Type          : enabled
 ------------------------:---------------:--------
 3DES                    : triple-des    : true
@@ -901,7 +952,8 @@ Salted SHA-1            : salted-sha1   : true
 Salted SHA-256          : salted-sha256 : true
 Salted SHA-384          : salted-sha384 : true
 Salted SHA-512          : salted-sha512 : true
-SHA-1                   : sha1          : true</screen>
+SHA-1                   : sha1          : true</computeroutput>
+  </screen>
 
   <para>As shown in <xref linkend="default-pwp" />, the default password storage
   scheme for users in Salted SHA-1. When you add users or import user entries
@@ -914,15 +966,17 @@ SHA-1                   : sha1          : true</screen>
   changing the applicable password policy, as shown in the following
   example.</para>
 
-  <screen>$ dsconfig
- set-password-policy-prop
- --hostname opendj.example.com
- --port 4444
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --policy-name "Default Password Policy"
- --set default-password-storage-scheme:pbkdf2
- --no-prompt</screen>
+  <screen>
+$ <userinput>dsconfig \
+ set-password-policy-prop \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --policy-name "Default Password Policy" \
+ --set default-password-storage-scheme:pbkdf2 \
+ --no-prompt</userinput>
+  </screen>
 
    <para>Notice that the change in default password storage scheme does not
    cause OpenDJ to update any stored password values. By default, OpenDJ only
@@ -934,33 +988,38 @@ SHA-1                   : sha1          : true</screen>
    After the default password storage scheme is changed to PBKDF2, old user
    passwords remain encoded with Salted SHA-1.</para>
 
-   <screen>$ ldapsearch
- --port 1389
- --bindDN uid=bjensen,ou=people,dc=example,dc=com
- --bindPassword hifalutin
- --baseDN dc=example,dc=com
- "(uid=bjensen)" userPassword
-dn: uid=bjensen,ou=People,dc=example,dc=com
-userPassword: {SSHA}Rc3tkAj1qP5zGiRkwDIWDFxrxpGgO8Fwh3aibg==</screen>
+   <screen>
+$ <userinput>ldapsearch \
+ --port 1389 \
+ --bindDN uid=bjensen,ou=people,dc=example,dc=com \
+ --bindPassword hifalutin \
+ --baseDN dc=example,dc=com \
+ "(uid=bjensen)" userPassword</userinput>
+<computeroutput>dn: uid=bjensen,ou=People,dc=example,dc=com
+userPassword: {SSHA}Rc3tkAj1qP5zGiRkwDIWDFxrxpGgO8Fwh3aibg==</computeroutput>
+   </screen>
 
    <para>When the password is changed, the new default password storage scheme
    takes effect, as shown in the following example.</para>
 
-   <screen>$ ldappasswordmodify
- --port 1389
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --authzID "u:bjensen"
- --newPassword changeit
-The LDAP password modify operation was successful
-$ ldapsearch
- --port 1389
- --bindDN uid=bjensen,ou=people,dc=example,dc=com
- --bindPassword changeit
- --baseDN dc=example,dc=com
- "(uid=bjensen)" userPassword
-dn: uid=bjensen,ou=People,dc=example,dc=com
-userPassword: {PBKDF2}10000:O3V6G7y7n7AefOkRGNKQ5ukrMuO5uf+iEQ9ZLg==</screen>
+   <screen>
+$ <userinput>ldappasswordmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --authzID "u:bjensen" \
+ --newPassword changeit</userinput>
+<computeroutput>The LDAP password modify operation was successful</computeroutput>
+
+$ <userinput>ldapsearch \
+ --port 1389 \
+ --bindDN uid=bjensen,ou=people,dc=example,dc=com \
+ --bindPassword changeit \
+ --baseDN dc=example,dc=com \
+ "(uid=bjensen)" userPassword</userinput>
+<computeroutput>dn: uid=bjensen,ou=People,dc=example,dc=com
+userPassword: {PBKDF2}10000:O3V6G7y7n7AefOkRGNKQ5ukrMuO5uf+iEQ9ZLg==</computeroutput>
+   </screen>
 
    <para>When you change the password storage scheme for users, realize that
    the user passwords must change in order for OpenDJ to encode them with
@@ -975,32 +1034,35 @@ userPassword: {PBKDF2}10000:O3V6G7y7n7AefOkRGNKQ5ukrMuO5uf+iEQ9ZLg==</screen>
    migration for active users without forcing users to change their
    passwords.</para>
 
-   <screen>$ ldapsearch
- --port 1389
- --bindDN uid=kvaughan,ou=people,dc=example,dc=com
- --bindPassword bribery
- --baseDN dc=example,dc=com
- "(uid=kvaughan)" userPassword
-dn: uid=kvaughan,ou=People,dc=example,dc=com
-userPassword: {SSHA}hDgK44F2GhIIZj913b+29Ak7phb9oU3Lz4ogkg==
+   <screen>
+$ <userinput>ldapsearch \
+ --port 1389 \
+ --bindDN uid=kvaughan,ou=people,dc=example,dc=com \
+ --bindPassword bribery \
+ --baseDN dc=example,dc=com \
+ "(uid=kvaughan)" userPassword</userinput>
+<computeroutput>dn: uid=kvaughan,ou=People,dc=example,dc=com
+userPassword: {SSHA}hDgK44F2GhIIZj913b+29Ak7phb9oU3Lz4ogkg==</computeroutput>
 
-$ dsconfig
- set-password-policy-prop
- --hostname opendj.example.com
- --port 4444
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --policy-name "Default Password Policy"
- --set deprecated-password-storage-scheme:"Salted SHA-1"
- --no-prompt
-$ ldapsearch
- --port 1389
- --bindDN uid=kvaughan,ou=people,dc=example,dc=com
- --bindPassword bribery
- --baseDN dc=example,dc=com
- "(uid=kvaughan)" userPassword
-dn: uid=kvaughan,ou=People,dc=example,dc=com
-userPassword: {PBKDF2}10000:L4dCYqSsNnf47YZ3a6aC8K2E3DChhHHhpcoUzg==</screen>
+$ <userinput>dsconfig \
+ set-password-policy-prop \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --policy-name "Default Password Policy" \
+ --set deprecated-password-storage-scheme:"Salted SHA-1" \
+ --no-prompt</userinput>
+
+$ <userinput>ldapsearch \
+ --port 1389 \
+ --bindDN uid=kvaughan,ou=people,dc=example,dc=com \
+ --bindPassword bribery \
+ --baseDN dc=example,dc=com \
+ "(uid=kvaughan)" userPassword</userinput>
+<computeroutput>dn: uid=kvaughan,ou=People,dc=example,dc=com
+userPassword: {PBKDF2}10000:L4dCYqSsNnf47YZ3a6aC8K2E3DChhHHhpcoUzg==</computeroutput>
+   </screen>
 
    <para>Notice that with <literal>deprecated-password-storage-scheme</literal>
    set appropriately, Kirsten Vaughan's password was hashed again after she
@@ -1020,14 +1082,15 @@ userPassword: {PBKDF2}10000:L4dCYqSsNnf47YZ3a6aC8K2E3DChhHHhpcoUzg==</screen>
   characters, or that it is not in the history. OpenDJ directory server
   provides a variety of password validators.</para>
 
-  <screen>$ dsconfig
- list-password-validators
- --hostname opendj.example.com
- --port 4444
- --bindDN "cn=Directory Manager"
- --bindPassword password
+  <screen>
+$ <userinput>dsconfig \
+ list-password-validators \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password</userinput>
 
-
+<computeroutput>
 Password Validator                  : Type                : enabled
 ------------------------------------:---------------------:--------
 Attribute Value                     : attribute-value     : true
@@ -1036,7 +1099,8 @@ Dictionary                          : dictionary          : false
 Length-Based Password Validator     : length-based        : true
 Repeated Characters                 : repeated-characters : true
 Similarity-Based Password Validator : similarity-based    : true
-Unique Characters                   : unique-characters   : true</screen>
+Unique Characters                   : unique-characters   : true</computeroutput>
+  </screen>
 
   <para>The password policy for a user specifies the set of password validators
   that should be used whenever that user provides a new password. By default
@@ -1071,39 +1135,41 @@ Unique Characters                   : unique-characters   : true</screen>
   The initial <literal>0:</literal> means the set is optional, whereas
   <literal>1:</literal> would mean the set is required.</para>
 
-  <screen>$ dsconfig
- create-password-validator
- --hostname opendj.example.com
- --port 4444
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --validator-name "Custom Character Set Password Validator"
- --set allow-unclassified-characters:true
- --set enabled:true
- --set character-set:0:abcdefghijklmnopqrstuvwxyz
- --set character-set:0:ABCDEFGHIJKLMNOPQRSTUVWXYZ
- --set character-set:0:0123456789
- --set character-set:0:!\"#\$%&amp;\'\(\)*+,-./:\;\\&lt;=\&gt;?@[\\]^_\`{\|}~
- --set min-character-sets:3
- --type character-set
- --no-prompt
+  <screen>
+$ <userinput>dsconfig \
+ create-password-validator \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --validator-name "Custom Character Set Password Validator" \
+ --set allow-unclassified-characters:true \
+ --set enabled:true \
+ --set character-set:0:abcdefghijklmnopqrstuvwxyz \
+ --set character-set:0:ABCDEFGHIJKLMNOPQRSTUVWXYZ \
+ --set character-set:0:0123456789 \
+ --set character-set:0:!\"#\$%&amp;\'\(\)*+,-./:\;\\&lt;=\&gt;?@[\\]^_\`{\|}~ \
+ --set min-character-sets:3 \
+ --type character-set \
+ --no-prompt</userinput>
 
-$ dsconfig
- set-password-policy-prop
- --hostname opendj.example.com
- --port 4444
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --policy-name "Default Password Policy"
- --set password-validator:"Custom Character Set Password Validator"
- --no-prompt
+$ <userinput>dsconfig \
+ set-password-policy-prop \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --policy-name "Default Password Policy" \
+ --set password-validator:"Custom Character Set Password Validator" \
+ --no-prompt</userinput>
 
-$ ldappasswordmodify
- --port 1389
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --authzID "u:bjensen"
- --newPassword '!ABcd$%^'</screen>
+$ <userinput>ldappasswordmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --authzID "u:bjensen" \
+ --newPassword '!ABcd$%^'</userinput>
+  </screen>
 
   <para>In the preceding example, the character set of ASCII punctuation,
   <literal>!\"#\$%&amp;\'\(\)*+,-./:\;\\&lt;=\&gt;?@[\\]^_\`{\|}~</literal>,
@@ -1116,17 +1182,19 @@ $ ldappasswordmodify
   <para>An attempt to set an invalid password fails as shown in the following
   example.</para>
 
-  <screen>$ ldappasswordmodify
- --port 1389
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --authzID "u:bjensen"
- --newPassword hifalutin
- The LDAP password modify operation failed with result code 19
+  <screen>
+$ <userinput>ldappasswordmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --authzID "u:bjensen" \
+ --newPassword hifalutin</userinput>
+<computeroutput>The LDAP password modify operation failed with result code 19
 Error Message:  The provided new password failed the validation checks defined
 in the server:  The provided password did not contain characters from at least
 3 of the following character sets or ranges: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
-'!"#$%&amp;'()*+,-./:;&lt;=\&gt;?@[\]^_`{|}~', '0123456789', 'abcdefghijklmnopqrstuvwxyz'</screen>
+'!"#$%&amp;'()*+,-./:;&lt;=\&gt;?@[\]^_`{|}~', '0123456789', 'abcdefghijklmnopqrstuvwxyz'</computeroutput>
+  </screen>
 
   <para>Validation does not affect existing passwords, but only takes effect
   when the password is updated.</para>
@@ -1200,20 +1268,23 @@ in the server:  The provided password did not contain characters from at least
     on consecutive changes.
    </para>
 
-   <screen>$ dsconfig create-password-policy
- --port 4444
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --policy-name "Enforce Regular Password Changes"
- --type password-policy
- --set default-password-storage-scheme:"Salted SHA-1"
- --set password-attribute:userPassword
- --set max-password-age:13w
- --set min-password-age:4w
- --set password-history-count:7
- --trustAll
- --no-prompt</screen>
+   <screen>
+$ <userinput>dsconfig  \
+ create-password-policy \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --policy-name "Enforce Regular Password Changes" \
+ --type password-policy \
+ --set default-password-storage-scheme:"Salted SHA-1" \
+ --set password-attribute:userPassword \
+ --set max-password-age:13w \
+ --set min-password-age:4w \
+ --set password-history-count:7 \
+ --trustAll \
+ --no-prompt</userinput>
+   </screen>
 
    <para>
     See also <xref linkend="assign-pwp" /> for instructions on using the policy.
@@ -1238,10 +1309,11 @@ in the server:  The provided password did not contain characters from at least
     ><citetitle>Search: List Active Accounts</citetitle></link>.
    </para>
 
-   <screen>$ ldapmodify
- --port 1389
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
+   <screen>
+$ <userinput>ldapmodify \
+ --port 1389 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
  --bindPassword password
 dn: cn=schema
 changetype: modify
@@ -1255,29 +1327,33 @@ attributeTypes: ( lastLoginTime-oid
   SINGLE-VALUE
   NO-USER-MODIFICATION
   USAGE directoryOperation
-  X-ORIGIN 'OpenDJ example documentation' )
+  X-ORIGIN 'OpenDJ example documentation' )</userinput>
 
-Processing MODIFY request for cn=schema
-MODIFY operation successful for DN cn=schema</screen>
+<computeroutput>Processing MODIFY request for cn=schema
+MODIFY operation successful for DN cn=schema</computeroutput>
+   </screen>
 
    <para>
     Next, create the password policy that causes OpenDJ directory server
     to write the timestamp to the attribute on successful login.
    </para>
 
-   <screen>$ dsconfig create-password-policy
- --port 4444
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --policy-name "Track Last Login Time"
- --type password-policy
- --set default-password-storage-scheme:"Salted SHA-1"
- --set password-attribute:userPassword
- --set last-login-time-attribute:lastLoginTime
- --set last-login-time-format:"yyyyMMddHH'Z'"
- --trustAll
- --no-prompt</screen>
+   <screen>
+$ <userinput>dsconfig \
+ create-password-policy \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --policy-name "Track Last Login Time" \
+ --type password-policy \
+ --set default-password-storage-scheme:"Salted SHA-1" \
+ --set password-attribute:userPassword \
+ --set last-login-time-attribute:lastLoginTime \
+ --set last-login-time-format:"yyyyMMddHH'Z'" \
+ --trustAll \
+ --no-prompt</userinput>
+   </screen>
 
    <para>
     See also <xref linkend="assign-pwp" /> for instructions on using the policy.
@@ -1297,21 +1373,24 @@ MODIFY operation successful for DN cn=schema</screen>
     to hash or to encrypt passwords when a password changes.
    </para>
 
-   <screen>$ dsconfig create-password-policy
- --port 4444
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --policy-name "Deprecate a Password Storage Scheme"
- --type password-policy
- --set deprecated-password-storage-scheme:Crypt
- --set default-password-storage-scheme:"Salted SHA-1"
- --set password-attribute:userPassword
- --set max-password-age:13w
- --set min-password-age:4w
- --set password-history-count:7
- --trustAll
- --no-prompt</screen>
+   <screen>
+$ <userinput>dsconfig \
+ create-password-policy \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --policy-name "Deprecate a Password Storage Scheme" \
+ --type password-policy \
+ --set deprecated-password-storage-scheme:Crypt \
+ --set default-password-storage-scheme:"Salted SHA-1" \
+ --set password-attribute:userPassword \
+ --set max-password-age:13w \
+ --set min-password-age:4w \
+ --set password-history-count:7 \
+ --trustAll \
+ --no-prompt</userinput>
+   </screen>
 
    <para>
     See also <xref linkend="assign-pwp" /> for instructions on using the policy.
@@ -1333,20 +1412,23 @@ MODIFY operation successful for DN cn=schema</screen>
     in order for OpenDJ directory server to accept this new password policy.
    </para>
 
-   <screen>$ dsconfig create-password-policy
- --port 4444
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --policy-name "Lock Idle Accounts"
- --type password-policy
- --set default-password-storage-scheme:"Salted SHA-1"
- --set password-attribute:userPassword
- --set last-login-time-attribute:lastLoginTime
- --set last-login-time-format:"yyyyMMddHH'Z'"
- --set idle-lockout-interval:13w
- --trustAll
- --no-prompt</screen>
+   <screen>
+$ <userinput>dsconfig \
+ create-password-policy \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --policy-name "Lock Idle Accounts" \
+ --type password-policy \
+ --set default-password-storage-scheme:"Salted SHA-1" \
+ --set password-attribute:userPassword \
+ --set last-login-time-attribute:lastLoginTime \
+ --set last-login-time-format:"yyyyMMddHH'Z'" \
+ --set idle-lockout-interval:13w \
+ --trustAll \
+ --no-prompt</userinput>
+   </screen>
 
    <para>
     See also <xref linkend="assign-pwp" />,
@@ -1366,18 +1448,21 @@ MODIFY operation successful for DN cn=schema</screen>
     in order to choose a new password.
    </para>
 
-   <screen>$ dsconfig create-password-policy
- --port 4444
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --policy-name "Allow Grace Login"
- --type password-policy
- --set default-password-storage-scheme:"Salted SHA-1"
- --set password-attribute:userPassword
- --set grace-login-count:2
- --trustAll
- --no-prompt</screen>
+   <screen>
+$ <userinput>dsconfig \
+ create-password-policy \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --policy-name "Allow Grace Login" \
+ --type password-policy \
+ --set default-password-storage-scheme:"Salted SHA-1" \
+ --set password-attribute:userPassword \
+ --set grace-login-count:2 \
+ --trustAll \
+ --no-prompt</userinput>
+   </screen>
 
    <para>
     See also <xref linkend="assign-pwp" /> for instructions on using the policy.
@@ -1396,19 +1481,22 @@ MODIFY operation successful for DN cn=schema</screen>
     after their password is reset.
    </para>
 
-   <screen>$ dsconfig create-password-policy
- --port 4444
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --policy-name "Require Password Change on Add or Reset"
- --type password-policy
- --set default-password-storage-scheme:"Salted SHA-1"
- --set password-attribute:userPassword
- --set force-change-on-add:true
- --set force-change-on-reset:true
- --trustAll
- --no-prompt</screen>
+   <screen>
+$ <userinput>dsconfig \
+ create-password-policy \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --policy-name "Require Password Change on Add or Reset" \
+ --type password-policy \
+ --set default-password-storage-scheme:"Salted SHA-1" \
+ --set password-attribute:userPassword \
+ --set force-change-on-add:true \
+ --set force-change-on-reset:true \
+ --trustAll \
+ --no-prompt</userinput>
+   </screen>
 
    <para>
     See also <xref linkend="assign-pwp" /> for instructions on using the policy.

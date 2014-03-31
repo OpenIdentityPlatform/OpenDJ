@@ -20,17 +20,17 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2013 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !    
 -->
 <refentry xml:id='dsconfig-1'
  xmlns='http://docbook.org/ns/docbook'
  version='5.0' xml:lang='en'
  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
- <info><copyright><year>2011-2013</year><holder>ForgeRock AS</holder></copyright></info>
+ xsi:schemaLocation='http://docbook.org/ns/docbook
+                     http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'>
+ <info><copyright><year>2011-2014</year><holder>ForgeRock AS</holder></copyright></info>
  <refmeta>
   <refentrytitle>dsconfig</refentrytitle><manvolnum>1</manvolnum>
   <refmiscinfo class="software">OpenDJ</refmiscinfo>
@@ -400,14 +400,15 @@
   log publisher, which you can find by using the
   <command>list-log-publishers</command> subcommand.</para>
 
-  <screen>$ dsconfig
- list-log-publishers
- --hostname opendj.example.com
- --port 4444
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --trustAll
-
+  <screen>
+$ <userinput>dsconfig \
+ list-log-publishers \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --trustAll</userinput>
+<computeroutput>
 Log Publisher                 : Type                   : enabled
 ------------------------------:------------------------:--------
 File-Based Access Logger      : file-based-access      : true
@@ -415,21 +416,22 @@ File-Based Audit Logger       : file-based-audit       : false
 File-Based Debug Logger       : file-based-debug       : false
 File-Based Error Logger       : file-based-error       : true
 File-Based HTTP Access Logger : file-based-http-access : false
-Replication Repair Logger     : file-based-error       : true
+Replication Repair Logger     : file-based-error       : true</computeroutput>
 
-$ dsconfig
- get-log-publisher-prop
- --publisher-name "File-Based Access Logger"
- --property rotation-policy
- --hostname opendj.example.com
- --port 4444
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --trustAll
-Property        : Value(s)
+$ <userinput>dsconfig \
+ get-log-publisher-prop \
+ --publisher-name "File-Based Access Logger" \
+ --property rotation-policy \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --trustAll</userinput>
+<computeroutput>Property        : Value(s)
 ----------------:--------------------------------------------------------------
 rotation-policy : 24 Hours Time Limit Rotation Policy, Size Limit Rotation
-                : Policy</screen>
+                : Policy</computeroutput>
+  </screen>
 
   <para>To find documentation for specific component properties, also see the
   <link xlink:show="new" xlink:href="${configRefBase}"><citetitle>OpenDJ
@@ -5519,9 +5521,11 @@ rotation-policy : 24 Hours Time Limit Rotation Policy, Size Limit Rotation
 
   <para>The following example starts <command>dsconfig</command> in interactive,
   menu-driven mode on the default port of the current host.</para>
-  <screen>$ dsconfig -h opendj.example.com -p 4444 -D "cn=Directory Manager" -w password
 
-&gt;&gt;&gt;&gt; OpenDJ configuration console main menu
+  <screen>
+$ <userinput>dsconfig -h opendj.example.com -p 4444 -D "cn=Directory Manager" -w password</userinput>
+<computeroutput>
+>>>> OpenDJ configuration console main menu
 
 What do you want to configure?
 
@@ -5548,20 +5552,23 @@ What do you want to configure?
 
     q)   quit
 
-Enter choice: </screen>
+Enter choice:</computeroutput>
+  </screen>
 
   <para>The following examples demonstrates generating a batch file that
   corresponds to an interactive session enabling the debug log. The example
   then demonstrates using a modified batch file to disable the debug log.</para>
-  <screen>$ dsconfig
- --hostname opendj.example.com
- --port 4444
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --commandFilePath ~/enable-debug-log.batch
+
+  <screen>
+$ <userinput>dsconfig \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --commandFilePath ~/enable-debug-log.batch</userinput>
  ...
-$ cat ~/enable-debug-log.batch
-# dsconfig session start date: 19/Oct/2011:08:52:22 +0000
+$ <userinput>cat ~/enable-debug-log.batch</userinput>
+<computeroutput># dsconfig session start date: 19/Oct/2011:08:52:22 +0000
 
 # Session operation number: 1
 # Operation date: 19/Oct/2011:08:55:06 +0000
@@ -5573,12 +5580,12 @@ dsconfig set-log-publisher-prop \
           --trustStorePath /path/to/opendj/config/admin-truststore \
           --bindDN cn=Directory\ Manager \
           --bindPassword ****** \
-          --no-prompt
+          --no-prompt</computeroutput>
 
-$ cp ~/enable-debug-log.batch ~/disable-debug-log.batch
-$ vi ~/disable-debug-log.batch
-$ cat ~/disable-debug-log.batch
-set-log-publisher-prop \
+$ <userinput>cp ~/enable-debug-log.batch ~/disable-debug-log.batch</userinput>
+$ <userinput>vi ~/disable-debug-log.batch</userinput>
+$ <userinput>cat ~/disable-debug-log.batch</userinput>
+<computeroutput>set-log-publisher-prop \
           --publisher-name File-Based\ Debug\ Logger \
           --set enabled:false \
           --hostname opendj.example.com \
@@ -5586,10 +5593,10 @@ set-log-publisher-prop \
           --trustStorePath /path/to/opendj/config/admin-truststore \
           --bindDN cn=Directory\ Manager \
           --bindPassword password \
-          --no-prompt
+          --no-prompt</computeroutput>
 
-$ dsconfig --batchFilePath ~/disable-debug-log.batch --no-prompt
-set-log-publisher-prop
+$ <userinput>dsconfig --batchFilePath ~/disable-debug-log.batch --no-prompt</userinput>
+<computeroutput>set-log-publisher-prop
 --publisher-name
 File-Based Debug Logger
 --set
@@ -5604,9 +5611,11 @@ opendj.example.com
 cn=Directory Manager
 --bindPassword
 password
---no-prompt
+--no-prompt</computeroutput>
 
-$</screen>
+$
+  </screen>
+
   <para>Notice that the original command file looks like a shell script with
   the bind password value replaced by asterisks. To pass the content as a batch
   file to <command>dsconfig</command>, strip <literal>dsconfig</literal>

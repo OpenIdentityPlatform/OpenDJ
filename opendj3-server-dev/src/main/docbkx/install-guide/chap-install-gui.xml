@@ -20,14 +20,14 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2013 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !
 -->
 <chapter xml:id='chap-install-gui'
          xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
          xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-         xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
-         xmlns:xlink='http://www.w3.org/1999/xlink'
+         xsi:schemaLocation='http://docbook.org/ns/docbook
+                             http://docbook.org/xml/5.0/xsd/docbook.xsd'
          xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>Installing OpenDJ With the QuickSetup Wizard</title>
  <indexterm><primary>Downloading OpenDJ</primary></indexterm>
@@ -66,8 +66,10 @@
  <command>javaws</command> command in a terminal window to start the
  installer.</para>
 
- <screen>$ export PATH=/path/to/java/bin:$PATH
-$ javaws <replaceable>URL-to-QuickSetup-Installer</replaceable></screen>
+ <screen>
+$ <userinput>export PATH=/path/to/java/bin:$PATH</userinput>
+$ <userinput>javaws <replaceable>URL-to-QuickSetup-Installer</replaceable></userinput>
+ </screen>
 
  <para>The WebStart installer corresponds to what you start if you download
  OpenDJ-<?eval ${docTargetVersion}?>.zip, unzip the file, and then run

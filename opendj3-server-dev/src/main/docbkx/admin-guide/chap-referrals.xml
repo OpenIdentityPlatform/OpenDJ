@@ -20,15 +20,15 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-referrals'
  xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ xsi:schemaLocation='http://docbook.org/ns/docbook
+                     http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'>
  <title>Working With Referrals</title>
  <indexterm><primary>Referrals</primary></indexterm>
  
@@ -80,79 +80,87 @@
   <literal>ref</literal> attribute with an LDAP URL to an existing entry.
   This section demonstrates use of the latter approach.</para>
   
-  <screen>$ cat referral.ldif 
-dn: ou=People,dc=example,dc=com
+  <screen>
+$ <userinput>cat referral.ldif</userinput>
+<computeroutput>dn: ou=People,dc=example,dc=com
 changetype: modify
 add: objectClass
 objectClass: extensibleObject
 -
 add: ref
-ref: ldap://opendj.example.com:2389/ou=People,dc=example,dc=com
+ref: ldap://opendj.example.com:2389/ou=People,dc=example,dc=com</computeroutput>
 
-$ ldapmodify
- --port 1389
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --filename referral.ldif
-Processing MODIFY request for ou=People,dc=example,dc=com
-MODIFY operation successful for DN ou=People,dc=example,dc=com</screen>
+$ <userinput>ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --filename referral.ldif</userinput>
+<computeroutput>Processing MODIFY request for ou=People,dc=example,dc=com
+MODIFY operation successful for DN ou=People,dc=example,dc=com</computeroutput>
+  </screen>
 
   <para>The example above adds a referral to
   <literal>ou=People,dc=example,dc=com</literal>. OpenDJ can now return
   a referral for operations under the People organizational unit.</para>
   
-  <screen>$ ldapsearch --port 1389 --baseDN dc=example,dc=com uid=bjensen description
-
+  <screen>
+$ <userinput>ldapsearch --port 1389 --baseDN dc=example,dc=com uid=bjensen description</userinput>
+<computeroutput>
 SearchReference(referralURLs=
  {ldap://opendj.example.com:2389/ou=People,dc=example,dc=com??sub?})
-
-$ ldapsearch --port 1389 --baseDN dc=example,dc=com ou=people
-
+</computeroutput>
+$ <userinput>ldapsearch --port 1389 --baseDN dc=example,dc=com ou=people</userinput>
+<computeroutput>
 SearchReference(referralURLs=
- {ldap://opendj.example.com:2389/ou=People,dc=example,dc=com??sub?})</screen>
+ {ldap://opendj.example.com:2389/ou=People,dc=example,dc=com??sub?})</computeroutput>
+  </screen>
  
   <para>To access the entry instead of the referral, use the Manage DSAIT
   control.</para>
   
-  <screen>$ ldapsearch
- --port 1389
- --baseDN dc=example,dc=com
- --control ManageDSAIT:true
- ou=people
- ref
-dn: ou=People,dc=example,dc=com
-ref: ldap://opendj.example.com:2389/ou=People,dc=example,dc=com
+  <screen>
+$ <userinput>ldapsearch \
+ --port 1389 \
+ --baseDN dc=example,dc=com \
+ --control ManageDSAIT:true \
+ ou=people \
+ ref</userinput>
+<computeroutput>dn: ou=People,dc=example,dc=com
+ref: ldap://opendj.example.com:2389/ou=People,dc=example,dc=com</computeroutput>
 
-$ cat people.ldif 
-dn: ou=People,dc=example,dc=com
+$ <userinput>cat people.ldif</userinput>
+<computeroutput>dn: ou=People,dc=example,dc=com
 changetype: modify
 delete: ref
-ref: ldap://opendj.example.com:2389/ou=People,dc=example,dc=com
+ref: ldap://opendj.example.com:2389/ou=People,dc=example,dc=com</computeroutput>
 
-$ ldapmodify
- --port 1389
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --filename people.ldif 
-Processing MODIFY request for ou=People,dc=example,dc=com
+$ <userinput>ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --filename people.ldif</userinput>
+<computeroutput>Processing MODIFY request for ou=People,dc=example,dc=com
 MODIFY operation successful for DN ou=People,dc=example,dc=com
 A referral entry ou=People,dc=example,dc=com indicates that the operation must
  be processed at a different server
-[ldap://opendj.example.com:2389/ou=People,dc=example,dc=com]
-$ ldapmodify
- --port 1389
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --control ManageDSAIT
- --filename people.ldif
-Processing MODIFY request for ou=People,dc=example,dc=com
-MODIFY operation successful for DN ou=People,dc=example,dc=com
-$ ldapsearch --port 1389 --baseDN dc=example,dc=com ou=people
-dn: ou=People,dc=example,dc=com
+[ldap://opendj.example.com:2389/ou=People,dc=example,dc=com]</computeroutput>
+
+$ <userinput>ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --control ManageDSAIT \
+ --filename people.ldif</userinput>
+<computeroutput>Processing MODIFY request for ou=People,dc=example,dc=com
+MODIFY operation successful for DN ou=People,dc=example,dc=com</computeroutput>
+
+$ <userinput>ldapsearch --port 1389 --baseDN dc=example,dc=com ou=people</userinput>
+<computeroutput>dn: ou=People,dc=example,dc=com
 ou: People
 objectClass: organizationalunit
 objectClass: extensibleObject
-objectClass: top</screen>
+objectClass: top</computeroutput>
+  </screen>
 
   <para>The example above shows how to remove the referral using the Manage
   DSAIT control with the <command>ldapmodify</command> command.</para>

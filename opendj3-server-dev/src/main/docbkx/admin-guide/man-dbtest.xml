@@ -248,9 +248,11 @@
   <title>Examples</title>
   <para>The following example displays debugging information about the
   equality index for <literal>sudoUser</literal>.</para>
-  <screen>$ dbtest dump-database-container -n userRoot -b dc=example,dc=com
- -d sudoUser.equality
-Indexed Value (6 bytes): %admin
+
+  <screen>
+$ <userinput>dbtest dump-database-container -n userRoot -b dc=example,dc=com \
+ -d sudoUser.equality</userinput>
+<computeroutput>Indexed Value (6 bytes): %admin
 Entry ID List (8 bytes): 165 
 
 Indexed Value (5 bytes): %sudo
@@ -262,6 +264,7 @@ Entry ID List (8 bytes): 163
 
 Total Records: 3
 Total / Average Key Size: 13 bytes / 4 bytes
-Total / Average Data Size: 24 bytes / 8 bytes</screen>
+Total / Average Data Size: 24 bytes / 8 bytes</computeroutput>
+  </screen>
  </refsect1>
 </refentry>

@@ -20,17 +20,16 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2013 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !    
 -->
 <refentry xml:id='dsjavaproperties-1'
  xmlns='http://docbook.org/ns/docbook'
  version='5.0' xml:lang='en'
  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
- <info><copyright><year>2011-2013</year><holder>ForgeRock AS</holder></copyright></info>
+ xsi:schemaLocation='http://docbook.org/ns/docbook
+                     http://docbook.org/xml/5.0/xsd/docbook.xsd'>
+ <info><copyright><year>2011-2014</year><holder>ForgeRock AS</holder></copyright></info>
  <refmeta>
   <refentrytitle>dsjavaproperties</refentrytitle><manvolnum>1</manvolnum>
   <refmiscinfo class="software">OpenDJ</refmiscinfo>
@@ -106,9 +105,12 @@
  </refsect1>
  <refsect1>
   <title>Examples</title>
-  <screen>$ dsjavaproperties 
-The operation was successful.  The server commands will use the java arguments
+
+  <screen>
+$ <userinput>dsjavaproperties</userinput>
+<computeroutput>The operation was successful.  The server commands will use the java arguments
  and java home specified in the properties file located in
- /path/to/opendj/config/java.properties</screen>
+ /path/to/opendj/config/java.properties</computeroutput>
+  </screen>
  </refsect1>
 </refentry>

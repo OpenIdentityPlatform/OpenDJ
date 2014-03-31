@@ -20,17 +20,16 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !    
 -->
 <refentry xml:id='verify-index-1'
  xmlns='http://docbook.org/ns/docbook'
  version='5.0' xml:lang='en'
  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
- <info><copyright><year>2011-2012</year><holder>ForgeRock AS</holder></copyright></info>
+ xsi:schemaLocation='http://docbook.org/ns/docbook
+                     http://docbook.org/xml/5.0/xsd/docbook.xsd'>
+ <info><copyright><year>2011-2014</year><holder>ForgeRock AS</holder></copyright></info>
  <refmeta>
   <refentrytitle>verify-index</refentrytitle><manvolnum>1</manvolnum>
   <refmiscinfo class="software">OpenDJ</refmiscinfo>
@@ -137,8 +136,9 @@
   <para>The following example verifies the <literal>cn</literal> (common
    name) index for completeness and for errors.</para>
 
-   <screen>$ verify-index -b dc=example,dc=com -i cn --clean --countErrors
-[07/Jun/2011:16:06:50 +0200] category=BACKEND severity=INFORMATION
+   <screen>
+$ <userinput>verify-index -b dc=example,dc=com -i cn --clean --countErrors</userinput>
+<computeroutput>[07/Jun/2011:16:06:50 +0200] category=BACKEND severity=INFORMATION
  msgID=9437595 msg=Local DB backend userRoot does not specify the number of
  lock tables: defaulting to 97
 [07/Jun/2011:16:06:50 +0200] category=BACKEND severity=INFORMATION
@@ -155,6 +155,7 @@
  msgID=8388712 msg=Average number of entries referenced is 1.58/record
 [07/Jun/2011:16:06:51 +0200] category=JEB severity=INFORMATION
  msgID=8388713 msg=Maximum number of entries referenced by any
- record is 32</screen>
+ record is 32</computeroutput>
+   </screen>
  </refsect1>
 </refentry>

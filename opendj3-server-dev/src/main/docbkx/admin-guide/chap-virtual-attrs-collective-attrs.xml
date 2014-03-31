@@ -20,15 +20,15 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-virtual-attrs-collective-attrs'
  xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ xsi:schemaLocation='http://docbook.org/ns/docbook
+                     http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'>
  <title>Working With Virtual and Collective Attributes</title>
 
  <para>OpenDJ supports virtual attributes with dynamically generated values.
@@ -134,16 +134,18 @@
   <para>These virtual attributes are typically operational, so you get them
   back from a search only when you request them.</para>
   
-  <screen>$ ldapsearch --port 1389 --baseDN dc=example,dc=com dc=example
-dn: dc=example,dc=com
+  <screen>
+$ <userinput>ldapsearch --port 1389 --baseDN dc=example,dc=com dc=example</userinput>
+<computeroutput>dn: dc=example,dc=com
 dc: example
 objectClass: domain
-objectClass: top
+objectClass: top</computeroutput>
 
-$ ldapsearch --port 1389 --baseDN dc=example,dc=com dc=example numSubordinates
-dn: dc=example,dc=com
-numSubordinates: 4
-</screen>
+$ <userinput>ldapsearch --port 1389 --baseDN dc=example,dc=com dc=example numSubordinates</userinput>
+<computeroutput>dn: dc=example,dc=com
+numSubordinates: 4</computeroutput>
+   </screen>
+
   <indexterm>
    <primary>Replication</primary>
    <secondary>Not for virtual attributes</secondary>
@@ -155,24 +157,26 @@ numSubordinates: 4
   attribute is defined by the server configuration, which is not
   replicated.</para>
   
-  <screen>$ dsconfig
- create-virtual-attribute
- --hostname opendj.example.com
- --port 4444
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --name "Served By Description"
- --type user-defined
- --set enabled:true
- --set attribute-type:description
- --set base-dn:dc=example,dc=com
- --set value:"Served by OpenDJ.Example.com"
- --trustAll
- --no-prompt
-$ ldapsearch --port 1389 --baseDN dc=example,dc=com uid=bjensen description
-dn: uid=bjensen,ou=People,dc=example,dc=com
-description: Served by OpenDJ.Example.com
-</screen>
+  <screen>
+$ <userinput>dsconfig \
+ create-virtual-attribute \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --name "Served By Description" \
+ --type user-defined \
+ --set enabled:true \
+ --set attribute-type:description \
+ --set base-dn:dc=example,dc=com \
+ --set value:"Served by OpenDJ.Example.com" \
+ --trustAll \
+ --no-prompt</userinput>
+
+$ <userinput>ldapsearch --port 1389 --baseDN dc=example,dc=com uid=bjensen description</userinput>
+<computeroutput>dn: uid=bjensen,ou=People,dc=example,dc=com
+description: Served by OpenDJ.Example.com</computeroutput>
+  </screen>
   
   <para>Collective attributes cover many use cases better than virtual
   attributes.</para>
@@ -258,8 +262,9 @@ description: Served by OpenDJ.Example.com
     and adjust the definition of the <literal>cos</literal> object class to
     allow the two quota attributes.</para>
 
-    <screen>$ cat quotas.ldif 
-dn: cn=schema
+    <screen>
+$ <userinput>cat quotas.ldif</userinput>
+<computeroutput>dn: cn=schema
 changetype: modify
 add: attributeTypes
 attributeTypes: ( example-class-of-service-attribute-type NAME 'classOfService
@@ -282,20 +287,22 @@ attributeTypes: ( example-class-of-service-mail-quota NAME 'mailQuota
 add: objectClasses
 objectClasses: ( example-class-of-service-object-class NAME 'cos' SUP top AUX
  ILIARY MAY ( classOfService $ diskQuota $ mailQuota ) X-ORIGIN 'OpenDJ Doc
- umentation Examples' )
+ umentation Examples' )</computeroutput>
 
-$ ldapmodify
- --port 1389
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --filename quotas.ldif
-Processing MODIFY request for cn=schema
-MODIFY operation successful for DN cn=schema</screen>
+$ <userinput>ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --filename quotas.ldif</userinput>
+<computeroutput>Processing MODIFY request for cn=schema
+MODIFY operation successful for DN cn=schema</computeroutput>
+    </screen>
 
     <para>Use the following collective attribute definitions to set the quotas
     depending on class of service.</para>
 
-    <programlisting language="ldif"># cos.ldif: quotas by class of service
+    <programlisting language="ldif">
+# cos.ldif: quotas by class of service
 dn: cn=Bronze Class of Service,dc=example,dc=com
 objectClass: collectiveAttributeSubentry
 objectClass: extensibleObject
@@ -328,56 +335,60 @@ diskQuota;collective: 100 GB
 mailQuota;collective: 10 GB
 subtreeSpecification: { base "ou=People", specificationFilter "(classOfService=
  gold)" }
-</programlisting>
+    </programlisting>
 
     <para>You can add the collective attribute subentries by using the
     <command>ldapmodify</command> command.</para>
 
-    <screen>$ ldapmodify
- --port 1389
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --defaultAdd
- --filename cos.ldif
-Processing ADD request for cn=Bronze Class of Service,dc=example,dc=com
+    <screen>
+$ <userinput>ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --defaultAdd \
+ --filename cos.ldif</userinput>
+<computeroutput>Processing ADD request for cn=Bronze Class of Service,dc=example,dc=com
 ADD operation successful for DN cn=Bronze Class of Service,dc=example,dc=com
 Processing ADD request for cn=Silver Class of Service,dc=example,dc=com
 ADD operation successful for DN cn=Silver Class of Service,dc=example,dc=com
 Processing ADD request for cn=Gold Class of Service,dc=example,dc=com
-ADD operation successful for DN cn=Gold Class of Service,dc=example,dc=com</screen>
+ADD operation successful for DN cn=Gold Class of Service,dc=example,dc=com</computeroutput>
+    </screen>
 
     <para>With the collective attributes defined, you can see the results on
     user entries.</para>
 
-    <screen>$ ldapsearch
- --port 1389
- --baseDN dc=example,dc=com
- uid=bjensen
- classOfService mailQuota diskQuota
-dn: uid=bjensen,ou=People,dc=example,dc=com
+    <screen>
+$ <userinput>ldapsearch \
+ --port 1389 \
+ --baseDN dc=example,dc=com \
+ uid=bjensen \
+ classOfService mailQuota diskQuota</userinput>
+<computeroutput>dn: uid=bjensen,ou=People,dc=example,dc=com
 mailQuota: 1 GB
 classOfService: bronze
-diskQuota: 10 GB
+diskQuota: 10 GB</computeroutput>
 
-$ ldapsearch
- --port 1389
- --baseDN dc=example,dc=com
- uid=kvaughan
- classOfService mailQuota diskQuota
-dn: uid=kvaughan,ou=People,dc=example,dc=com
+$ <userinput>ldapsearch \
+ --port 1389 \
+ --baseDN dc=example,dc=com \
+ uid=kvaughan \
+ classOfService mailQuota diskQuota</userinput>
+<computeroutput>dn: uid=kvaughan,ou=People,dc=example,dc=com
 mailQuota: 5 GB
 classOfService: silver
-diskQuota: 50 GB
+diskQuota: 50 GB</computeroutput>
 
-$ ldapsearch
- --port 1389
- --baseDN dc=example,dc=com
- uid=scarter
- classOfService mailQuota diskQuota
-dn: uid=scarter,ou=People,dc=example,dc=com
+$ <userinput>ldapsearch \
+ --port 1389 \
+ --baseDN dc=example,dc=com \
+ uid=scarter \
+ classOfService mailQuota diskQuota</userinput>
+<computeroutput>dn: uid=scarter,ou=People,dc=example,dc=com
 mailQuota: 10 GB
 classOfService: gold
-diskQuota: 100 GB</screen>
+diskQuota: 100 GB</computeroutput>
+    </screen>
   </example>
 
   <example xml:id="example-dept-from-manager"><?dbfo keep-together="auto"?>
@@ -398,8 +409,8 @@ diskQuota: 100 GB</screen>
    <para>The collective attribute subentry that specifies the relationship
    looks like this:</para>
 
-   <programlisting language="ldif"
-   >dn: cn=Inherit Department Number From Manager,dc=example,dc=com
+   <programlisting language="ldif">
+dn: cn=Inherit Department Number From Manager,dc=example,dc=com
 objectClass: top
 objectClass: subentry
 objectClass: inheritedCollectiveAttributeSubentry
@@ -409,7 +420,7 @@ subtreeSpecification: { base "ou=People" }
 inheritFromDNAttribute: manager
 inheritAttribute: departmentNumber
 
-</programlisting>
+   </programlisting>
 
    <para>This entry specifies that users inherit department number from their
    manager.</para>
@@ -417,20 +428,25 @@ inheritAttribute: departmentNumber
    <para>As seen in <filename>Example.ldif</filename>, Babs Jensen's manager
    is Torrey Rigden.</para>
 
-   <programlisting language="ldif">dn: uid=bjensen,ou=People,dc=example,dc=com
-manager: uid=trigden, ou=People, dc=example,dc=com</programlisting>
+   <programlisting language="ldif">
+dn: uid=bjensen,ou=People,dc=example,dc=com
+manager: uid=trigden, ou=People, dc=example,dc=com
+   </programlisting>
 
    <para>Torrey's department number is 3001.</para>
 
-   <programlisting language="ldif">dn: uid=trigden,ou=People,dc=example,dc=com
-departmentNumber: 3001</programlisting>
+   <programlisting language="ldif">
+dn: uid=trigden,ou=People,dc=example,dc=com
+departmentNumber: 3001
+   </programlisting>
 
    <para>Babs inherits her department number from Torrey.</para>
 
-   <screen>$ ldapsearch --port 1389 --baseDN dc=example,dc=com uid=bjensen
- departmentNumber
-dn: uid=bjensen,ou=People,dc=example,dc=com
-departmentNumber: 3001</screen>
+   <screen>
+$ <userinput>ldapsearch --port 1389 --baseDN dc=example,dc=com uid=bjensen departmentNumber</userinput>
+<computeroutput>dn: uid=bjensen,ou=People,dc=example,dc=com
+departmentNumber: 3001</computeroutput>
+   </screen>
   </example>
 
   <example xml:id="example-inherit-from-locality"><?dbfo keep-together="auto"?>
@@ -446,8 +462,8 @@ departmentNumber: 3001</screen>
    The collective attribute subentry specifies how to construct the RDN of the
    object holding the attribute values to inherit.</para>
 
-   <programlisting language="ldif"
-   >dn: cn=Inherit From Locality,dc=example,dc=com
+   <programlisting language="ldif">
+dn: cn=Inherit From Locality,dc=example,dc=com
 objectClass: top
 objectClass: subentry
 objectClass: inheritedCollectiveAttributeSubentry
@@ -461,7 +477,7 @@ inheritAttribute: preferredLanguage
 inheritAttribute: street
 collectiveConflictBehavior: real-overrides-virtual
 
-</programlisting>
+   </programlisting>
 
    <para>This specifies that the RDN of the entry from which to inherit
    attributes is like <literal>l=<replaceable
@@ -474,7 +490,8 @@ collectiveConflictBehavior: real-overrides-virtual
    <literal>l=Bristol,ou=Locations</literal>. The actual entry looks like
    this:</para>
 
-   <programlisting language="ldif">dn: l=Bristol,ou=Locations,dc=example,dc=com
+   <programlisting language="ldif">
+dn: l=Bristol,ou=Locations,dc=example,dc=com
 objectClass: top
 objectClass: locality
 objectClass: extensibleObject
@@ -482,7 +499,7 @@ l: Bristol
 street: 60 Queen Square
 preferredLanguage: en-gb
 
-</programlisting>
+   </programlisting>
 
    <para>The subentry also specifies two attributes to inherit for preferred
    language and street address.</para>
@@ -514,33 +531,41 @@ preferredLanguage: en-gb
    <para>Sam Carter is located in Bristol. Sam has specified no preferred
    languages.</para>
 
-   <programlisting language="ldif">dn: uid=scarter,ou=People,dc=example,dc=com
-l: Bristol</programlisting>
+   <programlisting language="ldif">
+dn: uid=scarter,ou=People,dc=example,dc=com
+l: Bristol
+   </programlisting>
 
    <para>Sam inherits both the street address and also preferred language from
    the Bristol locality.</para>
 
-   <screen>$ ldapsearch --port 1389 --baseDN dc=example,dc=com uid=scarter
- preferredLanguage street
-dn: uid=scarter,ou=People,dc=example,dc=com
+   <screen>
+$ <userinput>ldapsearch --port 1389 --baseDN dc=example,dc=com uid=scarter \
+ preferredLanguage street</userinput>
+<computeroutput>dn: uid=scarter,ou=People,dc=example,dc=com
 preferredLanguage: en-gb
-street: 60 Queen Square</screen>
+street: 60 Queen Square</computeroutput>
+   </screen>
 
    <para>Babs's locality is San Francisco. Babs prefers English, but also knows
    Korean.</para>
 
-   <programlisting language="ldif">dn: uid=bjensen,ou=People,dc=example,dc=com
+   <programlisting language="ldif">
+dn: uid=bjensen,ou=People,dc=example,dc=com
 preferredLanguage: en, ko;q=0.8
-l: San Francisco</programlisting>
+l: San Francisco
+   </programlisting>
 
    <para>Babs inherits the street address from the San Francisco locality, but
    keeps her language preferences.</para>
 
-   <screen>$ ldapsearch --port 1389 --baseDN dc=example,dc=com uid=bjensen
- preferredLanguage street
-dn: uid=bjensen,ou=People,dc=example,dc=com
+   <screen>
+$ <userinput>ldapsearch --port 1389 --baseDN dc=example,dc=com uid=bjensen \
+ preferredLanguage street</userinput>
+<computeroutput>dn: uid=bjensen,ou=People,dc=example,dc=com
 preferredLanguage: en, ko;q=0.8
-street: 500 3rd Street</screen>
+street: 500 3rd Street</computeroutput>
+   </screen>
   </example>
  </section>
 </chapter>

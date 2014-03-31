@@ -20,17 +20,16 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !    
 -->
 <refentry xml:id='import-ldif-1'
  xmlns='http://docbook.org/ns/docbook'
  version='5.0' xml:lang='en'
  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
- <info><copyright><year>2011-2012</year><holder>ForgeRock AS</holder></copyright></info>
+ xsi:schemaLocation='http://docbook.org/ns/docbook
+                     http://docbook.org/xml/5.0/xsd/docbook.xsd'>
+ <info><copyright><year>2011-2014</year><holder>ForgeRock AS</holder></copyright></info>
  <refmeta>
   <refentrytitle>import-ldif</refentrytitle><manvolnum>1</manvolnum>
   <refmiscinfo class="software">OpenDJ</refmiscinfo>
@@ -411,9 +410,11 @@
   <title>Examples</title>
   <para>The following example imports the content of the LDIF file,
   <filename>Example.ldif</filename>, with the server offline.</para>
+
   <screen>
-  $ import-ldif -b dc=example,dc=com -n userRoot -l /path/to/Example.ldif
-  [21/Jun/2011:13:38:03 +0200] category=RUNTIME_INFORMATION severity=NOTICE...
-  ... msg=Import LDIF environment close took 0 seconds</screen>
+$ <userinput>import-ldif -b dc=example,dc=com -n userRoot -l /path/to/Example.ldif</userinput>
+<computeroutput>[21/Jun/2011:13:38:03 +0200] category=RUNTIME_INFORMATION severity=NOTICE...
+... msg=Import LDIF environment close took 0 seconds</computeroutput>
+  </screen>
  </refsect1>
 </refentry>

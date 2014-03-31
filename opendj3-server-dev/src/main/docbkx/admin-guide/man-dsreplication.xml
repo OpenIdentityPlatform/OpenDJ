@@ -1015,13 +1015,14 @@
   for a new replica on <literal>opendj2.example.com</literal> from an existing
   replica on <literal>opendj.example.com</literal>.</para>
   
-  <screen>$ dsreplication enable -I admin -w password -X -n -b dc=example,dc=com
- --host1 opendj.example.com --port1 4444 --bindDN1 "cn=Directory Manager"
- --bindPassword1 password --replicationPort1 8989
- --host2 opendj2.example.com --port2 4444 --bindDN2 "cn=Directory Manager"
- --bindPassword2 password --replicationPort2 8989
+  <screen>
+$ <userinput>dsreplication enable -I admin -w password -X -n -b dc=example,dc=com \
+ --host1 opendj.example.com --port1 4444 --bindDN1 "cn=Directory Manager" \
+ --bindPassword1 password --replicationPort1 8989 \
+ --host2 opendj2.example.com --port2 4444 --bindDN2 "cn=Directory Manager" \
+ --bindPassword2 password --replicationPort2 8989</userinput>
 
-Establishing connections ..... Done.
+<computeroutput>Establishing connections ..... Done.
 Checking registration information ..... Done.
 Updating remote references on server opendj.example.com:4444 ..... Done.
 Configuring Replication port on server opendj2.example.com:4444 ..... Done.
@@ -1048,16 +1049,18 @@ Replication has been successfully enabled.  Note that for replication to
 
 See
 /var/.../opends-replication-7958637258600693490.log
-for a detailed log of this operation.
-$ dsreplication initialize-all -I admin -w password -X -n -b dc=example,dc=com
- -h opendj.example.com -p 4444
+for a detailed log of this operation.</computeroutput>
 
-Initializing base DN dc=example,dc=com with the contents from
+$ <userinput>dsreplication initialize-all -I admin -w password -X -n -b dc=example,dc=com \
+ -h opendj.example.com -p 4444</userinput>
+
+<computeroutput>Initializing base DN dc=example,dc=com with the contents from
  opendj.example.com:4444: 160 entries processed (100 % complete).
 Base DN initialized successfully.
 
 See
 /var/.../opends-replication-5020375834904394170.log
-for a detailed log of this operation.</screen>
+for a detailed log of this operation.</computeroutput>
+  </screen>
  </refsect1>
 </refentry>
