@@ -20,15 +20,15 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2013 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-mv-servers'
  xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ xsi:schemaLocation='http://docbook.org/ns/docbook
+                     http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'>
  <title>Moving Servers</title>
  <indexterm><primary>Moving servers</primary></indexterm>
  
@@ -100,28 +100,33 @@
    <step>
     <para>Prevent the server from accepting updates from client
     applications.</para>
-    <screen>$ dsconfig
- set-global-configuration-prop
- --port 4444
- --hostname opendj2.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --set writability-mode:internal-only
- --trustAll
- --no-prompt</screen>
+
+    <screen>
+$ <userinput>dsconfig \
+ set-global-configuration-prop \
+ --port 4444 \
+ --hostname opendj2.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --set writability-mode:internal-only \
+ --trustAll \
+ --no-prompt</userinput>
+    </screen>
    </step>
    <step>
     <para>Disable replication for the server.</para>
-    <screen>$ dsreplication
- disable
- --disableAll
- --port 4444
- --hostname opendj2.example.com
- --adminUID admin
- --adminPassword password
- --trustAll
- --no-prompt
-Establishing connections ..... Done.
+
+    <screen>
+$ <userinput>dsreplication \
+ disable \
+ --disableAll \
+ --port 4444 \
+ --hostname opendj2.example.com \
+ --adminUID admin \
+ --adminPassword password \
+ --trustAll \
+ --no-prompt</userinput>
+<computeroutput>Establishing connections ..... Done.
 Disabling replication on base DN dc=example,dc=com of server
  opendj2.example.com:4444 ..... Done.
 Disabling replication on base DN cn=admin data of server
@@ -134,16 +139,20 @@ Removing truststore information ..... Done.
 
 See
 /var/.../opends-replication-3173475478874782719.log
-for a detailed log of this operation.</screen>
+for a detailed log of this operation.</computeroutput>
+    </screen>
    </step>
    <step>
     <para>With the server no longer receiving traffic or accepting updates
     from clients, and no longer replicating to other servers, you can shut it
     down in preparation for the move.</para>
-    <screen>$ stop-ds
-Stopping Server...
 
-... msg=The Directory Server is now stopped</screen>
+    <screen>
+$ <userinput>stop-ds</userinput>
+<computeroutput>Stopping Server...
+
+... msg=The Directory Server is now stopped</computeroutput>
+    </screen>
    </step>
    <step performance="optional">
     <para>You might also choose to remove extra log files from the server
@@ -179,29 +188,35 @@ Stopping Server...
    </step>
    <step>
     <para>Start the server.</para>
-    <screen>$ start-ds
-... The Directory Server has started successfully</screen>
+
+    <screen>
+$ <userinput>start-ds</userinput>
+<computeroutput>... The Directory Server has started successfully</computeroutput>
+    </screen>
+
    </step>
    <step>
     <para>Enable and initialize replication.</para>
-    <screen>$ dsreplication
- enable
- --adminUID admin
- --bindPassword password
- --baseDN dc=example,dc=com
- --host1 opendj.example.com
- --port1 4444
- --bindDN1 "cn=Directory Manager"
- --bindPassword1 password
- --replicationPort1 8989
- --host2 opendj2.example.com
- --port2 4444
- --bindDN2 "cn=Directory Manager"
- --bindPassword2 password
- --replicationPort2 8989
- --trustAll
- --no-prompt
 
+    <screen>
+$ <userinput>dsreplication \
+ enable \
+ --adminUID admin \
+ --bindPassword password \
+ --baseDN dc=example,dc=com \
+ --host1 opendj.example.com \
+ --port1 4444 \
+ --bindDN1 "cn=Directory Manager" \
+ --bindPassword1 password \
+ --replicationPort1 8989 \
+ --host2 opendj2.example.com \
+ --port2 4444 \
+ --bindDN2 "cn=Directory Manager" \
+ --bindPassword2 password \
+ --replicationPort2 8989 \
+ --trustAll \
+ --no-prompt</userinput>
+<computeroutput>
 Establishing connections ..... Done.
 Checking registration information ..... Done.
 Configuring Replication port on server opendj.example.com:4444 ..... Done.
@@ -228,17 +243,17 @@ Replication has been successfully enabled.  Note that for replication to work
  (use dsreplication initialize to do so).
 
 See /tmp/opends-replication-1476402020764482023.log for a detailed log of this
-operation.
+operation.</computeroutput>
 
-$ dsreplication
- pre-external-initialization
- --adminUID admin
- --bindPassword password
- --port 4444
- --baseDN dc=example,dc=com
- --trustAll
- --no-prompt
-
+$ <userinput>dsreplication \
+ pre-external-initialization \
+ --adminUID admin \
+ --bindPassword password \
+ --port 4444 \
+ --baseDN dc=example,dc=com \
+ --trustAll \
+ --no-prompt</userinput>
+<computeroutput>
 Preparing base DN dc=example,dc=com to be initialized externally ..... Done.
 
 Now you can proceed to the initialization of the contents of the base DN's on
@@ -247,31 +262,36 @@ Now you can proceed to the initialization of the contents of the base DN's on
 
 When the initialization is completed you must use the subcommand
  'post-external-initialization' for replication to work with the new base DN's
- contents.
-$ dsreplication
- post-external-initialization
- --adminUID admin
- --bindPassword password
- --port 4444
- --baseDN dc=example,dc=com
- --trustAll
- --no-prompt
+ contents.</computeroutput>
 
+$ <userinput>dsreplication \
+ post-external-initialization \
+ --adminUID admin \
+ --bindPassword password \
+ --port 4444 \
+ --baseDN dc=example,dc=com \
+ --trustAll \
+ --no-prompt</userinput>
+<computeroutput>
 Updating replication information on base DN dc=example,dc=com ..... Done.
 
-Post initialization procedure completed successfully.</screen>
+Post initialization procedure completed successfully.</computeroutput>
+    </screen>
    </step>
    <step>
     <para>Accept updates from client applications.</para>
-    <screen>$ dsconfig
- set-global-configuration-prop
- --port 4444
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --set writability-mode:enabled
- --trustAll
- --no-prompt</screen>
+
+    <screen>
+$ <userinput>dsconfig \
+ set-global-configuration-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --set writability-mode:enabled \
+ --trustAll \
+ --no-prompt</userinput>
+    </screen>
    </step>
    <step>
     <para>Direct client applications to the server.</para>

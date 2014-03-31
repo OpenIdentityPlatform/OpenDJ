@@ -20,15 +20,15 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2013 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-schema'
  xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ xsi:schemaLocation='http://docbook.org/ns/docbook
+                     http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'>
  <title>Managing Schema</title>
  <indexterm><primary>Schema</primary></indexterm>
  
@@ -64,10 +64,14 @@
     of directory entries, such as <literal>givenName</literal> or
     <literal>mail</literal>.</para>
     <para>Here is an example of an attribute type definition.</para>
-    <programlisting language="ldif"># Attribute type definition
+
+    <programlisting language="ldif">
+# Attribute type definition
 attributeTypes: ( 0.9.2342.19200300.100.1.3 NAME ( 'mail' 'rfc822Mailbox' )
   EQUALITY caseIgnoreIA5Match SUBSTR caseIgnoreIA5SubstringsMatch
-  SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{256} X-ORIGIN 'RFC 4524' )</programlisting>
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.26{256} X-ORIGIN 'RFC 4524' )
+    </programlisting>
+
     <para>Attribute type definitions start with an object identifier (OID),
     and generally a short name or names that are easier to remember than the
     OID. The attribute type definition can specify how attribute values
@@ -83,10 +87,14 @@ attributeTypes: ( 0.9.2342.19200300.100.1.3 NAME ( 'mail' 'rfc822Mailbox' )
     object classes include <literal>person</literal> and
     <literal>organizationalUnit</literal>.</para>
     <para>Here is an example of an object class definition.</para>
-    <programlisting language="ldif"># Object class definition
+
+    <programlisting language="ldif">
+# Object class definition
 objectClasses: ( 2.5.6.6 NAME 'person' SUP top STRUCTURAL MUST ( sn $ cn )
   MAY ( userPassword $ telephoneNumber $ seeAlso $ description )
-  X-ORIGIN 'RFC 4519' )</programlisting>
+  X-ORIGIN 'RFC 4519' )
+    </programlisting>
+
     <para>Entries all have an attribute identifying their object classes,
     called <literal>objectClass</literal>.</para>
     <para>Object class definitions start with an object identifier (OID), and
@@ -155,10 +163,11 @@ objectClasses: ( 2.5.6.6 NAME 'person' SUP top STRUCTURAL MUST ( sn $ cn )
     <para>OpenDJ has the following schema definition for the user ID
     attribute.</para>
 
-    <programlisting language="ldif"
-    >attributeTypes: ( 0.9.2342.19200300.100.1.1 NAME ( 'uid' 'userid' )
+    <programlisting language="ldif">
+attributeTypes: ( 0.9.2342.19200300.100.1.1 NAME ( 'uid' 'userid' )
  EQUALITY caseIgnoreMatch SUBSTR caseIgnoreSubstringsMatch
- SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{256} X-ORIGIN 'RFC 4519' )</programlisting>
+ SYNTAX 1.3.6.1.4.1.1466.115.121.1.15{256} X-ORIGIN 'RFC 4519' )
+    </programlisting>
 
     <para>When finding an equality match for your search, OpenDJ uses the
     <literal>caseIgnoreMatch</literal> matching rule to check for user ID
@@ -171,7 +180,7 @@ objectClasses: ( 2.5.6.6 NAME 'person' SUP top STRUCTURAL MUST ( sn $ cn )
     in languages other than English. You can also list matching rules by
     using the <command>dsconfig</command> command.</para>
 
-    <para>As you can read in examples like, <link
+    <para>As you can read in examples like, <link xlink:show="new"
     xlink:href="admin-guide#extensible-match-search"
     xlink:role="http://docbook.org/xlink/role/olink"><citetitle>Search: List
     Active Accounts</citetitle></link>, OpenDJ matching rules enable
@@ -254,8 +263,9 @@ objectClasses: ( 2.5.6.6 NAME 'person' SUP top STRUCTURAL MUST ( sn $ cn )
   apply the definitions in production by adapting the content for use with the
   <command>ldapmodify</command> command, for example.</para>
   
-  <screen>$ cat config/schema/99-user.ldif 
-dn: cn=schema
+  <screen>
+$ <userinput>cat config/schema/99-user.ldif</userinput>
+<computeroutput>dn: cn=schema
 objectClass: top
 objectClass: ldapSubentry
 objectClass: subschema
@@ -266,36 +276,38 @@ attributeTypes: ( temporary-fake-attr-id NAME 'myCustomAttribute' EQUALITY case
 objectClasses: ( temporary-fake-oc-id NAME 'myCustomObjClass
  ' SUP top AUXILIARY MAY myCustomAttribute )
 modifiersName: cn=Directory Manager,cn=Root DNs,cn=config
-modifyTimestamp: 20110620095948Z
+modifyTimestamp: 20110620095948Z</computeroutput>
 </screen>
 
   <para>To test your schema definition, add the object class and attribute
   to an entry.</para>
   
-  <screen>$ cat custom-attr.ldif 
-dn: uid=bjensen,ou=People,dc=example,dc=com
+  <screen>
+$ <userinput>cat custom-attr.ldif</userinput>
+<computeroutput>dn: uid=bjensen,ou=People,dc=example,dc=com
 changetype: modify
 add: objectClass
 objectClass: myCustomObjClass
 -
 add: myCustomAttribute
-myCustomAttribute: Testing 1, 2, 3...
+myCustomAttribute: Testing 1, 2, 3...</computeroutput>
 
-$ ldapmodify
- --port 1389
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --filename custom-attr.ldif
-Processing MODIFY request for uid=bjensen,ou=People,dc=example,dc=com
-MODIFY operation successful for DN uid=bjensen,ou=People,dc=example,dc=com
-$ ldapsearch
- --port 1389
- --baseDN dc=example,dc=com
- uid=bjensen
- myCustomAttribute
-dn: uid=bjensen,ou=People,dc=example,dc=com
-myCustomAttribute: Testing 1, 2, 3...
-</screen>
+$ <userinput>ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --filename custom-attr.ldif</userinput>
+<computeroutput>Processing MODIFY request for uid=bjensen,ou=People,dc=example,dc=com
+MODIFY operation successful for DN uid=bjensen,ou=People,dc=example,dc=com</computeroutput>
+
+$ <userinput>ldapsearch \
+ --port 1389 \
+ --baseDN dc=example,dc=com \
+ uid=bjensen \
+ myCustomAttribute</userinput>
+<computeroutput>dn: uid=bjensen,ou=People,dc=example,dc=com
+myCustomAttribute: Testing 1, 2, 3...</computeroutput>
+  </screen>
 
   <para>In addition to supporting the standard schema definitions that are
   described in <link xlink:href="http://tools.ietf.org/html/rfc4512#section-4.1"
@@ -345,9 +357,11 @@ myCustomAttribute: Testing 1, 2, 3...
      <para>Used to define a syntax that is an enumeration of values. The
      following attribute syntax description defines a syntax allowing four
      possible attribute values for example.</para>
-     <programlisting language="ldif"
-     >ldapSyntaxes: ( security-label-syntax-oid DESC 'Security Label'
- X-ENUM ( 'top-secret' 'secret' 'confidential' 'unclassified' ) )</programlisting>
+
+     <programlisting language="ldif">
+ldapSyntaxes: ( security-label-syntax-oid DESC 'Security Label'
+ X-ENUM ( 'top-secret' 'secret' 'confidential' 'unclassified' ) )
+     </programlisting>
     </listitem>
    </varlistentry>
 
@@ -360,9 +374,11 @@ myCustomAttribute: Testing 1, 2, 3...
      ><literal>java.util.regex.Pattern</literal></link>. The following attribute
      syntax description defines a simple, lenient SIP phone URI syntax
      check.</para>
-     <programlisting language="ldif"
-     >ldapSyntaxes: ( simple-sip-uri-syntax-oid DESC 'Lenient SIP URI Syntax'
- X-PATTERN '^sip:[a-zA-Z0-9.]+@[a-zA-Z0-9.]+(:[0-9]+)?$' )</programlisting>
+
+     <programlisting language="ldif">
+ldapSyntaxes: ( simple-sip-uri-syntax-oid DESC 'Lenient SIP URI Syntax'
+ X-PATTERN '^sip:[a-zA-Z0-9.]+@[a-zA-Z0-9.]+(:[0-9]+)?$' )
+     </programlisting>
     </listitem>
    </varlistentry>
 
@@ -373,9 +389,11 @@ myCustomAttribute: Testing 1, 2, 3...
      OpenDJ does not implement. The following example substitutes Directory
      String syntax, which has OID 1.3.6.1.4.1.1466.115.121.1.15, for a syntax
      that OpenDJ does not implement.</para>
-     <programlisting language="ldif"
-     >ldapSyntaxes: ( non-implemented-syntax-oid DESC 'Not Implemented in OpenDJ'
- X-SUBST '1.3.6.1.4.1.1466.115.121.1.15' )</programlisting>
+
+     <programlisting language="ldif">
+ldapSyntaxes: ( non-implemented-syntax-oid DESC 'Not Implemented in OpenDJ'
+ X-SUBST '1.3.6.1.4.1.1466.115.121.1.15' )
+     </programlisting>
     </listitem>
    </varlistentry>
   </variablelist>
@@ -417,28 +435,32 @@ myCustomAttribute: Testing 1, 2, 3...
   classes defined per entry, you can relax schema checking to warn rather
   than reject entries having this issue.</para>
   
-  <screen>$ dsconfig
- set-global-configuration-prop
- --hostname opendj.example.com
- --port 4444
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --set single-structural-objectclass-behavior:warn
- --trustAll
- --no-prompt</screen>
+  <screen>
+$ <userinput>dsconfig \
+ set-global-configuration-prop \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --set single-structural-objectclass-behavior:warn \
+ --trustAll \
+ --no-prompt</userinput>
+  </screen>
 
   <para>You can allow attribute values that do not respect the defined syntax
   with the <command>dsconfig</command> command as well.</para>
   
-  <screen>$ dsconfig
- set-global-configuration-prop
- --hostname opendj.example.com
- --port 4444
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --set invalid-attribute-syntax-behavior:warn
- --trustAll
- --no-prompt</screen>
+  <screen>
+$ <userinput>dsconfig \
+ set-global-configuration-prop \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --set invalid-attribute-syntax-behavior:warn \
+ --trustAll \
+ --no-prompt</userinput>
+  </screen>
 
   <para>You can even turn off schema checking altogether, although turning
   off schema checking only really makes sense when you are absolutely sure
@@ -446,15 +468,17 @@ myCustomAttribute: Testing 1, 2, 3...
   you simply want to turn off schema checking temporarily to speed up import
   processing.</para>
   
-  <screen>$ dsconfig
- set-global-configuration-prop
- --hostname opendj.example.com
- --port 4444
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --set check-schema:false
- --trustAll
- --no-prompt</screen>
+  <screen>
+$ <userinput>dsconfig \
+ set-global-configuration-prop \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --set check-schema:false \
+ --trustAll \
+ --no-prompt</userinput>
+  </screen>
  </section>
 
  <section xml:id="standard-schema">

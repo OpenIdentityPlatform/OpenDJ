@@ -342,25 +342,25 @@
    <para>You can start the replication process by using the
    <command>dsreplication enable</command> command.</para>
    
-   <screen>$ dsreplication
- enable
- --adminUID admin
- --adminPassword password
- --baseDN dc=example,dc=com
- --host1 opendj.example.com
- --port1 4444
- --bindDN1 "cn=Directory Manager"
- --bindPassword1 password
- --replicationPort1 8989
- --host2 opendj2.example.com
- --port2 4444
- --bindDN2 "cn=Directory Manager"
- --bindPassword2 password
- --replicationPort2 8989
- --trustAll
- --no-prompt
+   <screen>$ <userinput>dsreplication \
+ enable \
+ --adminUID admin \
+ --adminPassword password \
+ --baseDN dc=example,dc=com \
+ --host1 opendj.example.com \
+ --port1 4444 \
+ --bindDN1 "cn=Directory Manager" \
+ --bindPassword1 password \
+ --replicationPort1 8989 \
+ --host2 opendj2.example.com \
+ --port2 4444 \
+ --bindDN2 "cn=Directory Manager" \
+ --bindPassword2 password \
+ --replicationPort2 8989 \
+ --trustAll \
+ --no-prompt</userinput>
 
-Establishing connections ..... Done.
+<computeroutput>Establishing connections ..... Done.
 Checking registration information ..... Done.
 Updating remote references on server opendj.example.com:4444 ..... Done.
 Configuring Replication port on server opendj2.example.com:4444 ..... Done.
@@ -387,7 +387,8 @@ Replication has been successfully enabled.  Note that for replication to
 
 See
 /var/.../opends-replication-7958637258600693490.log
-for a detailed log of this operation.</screen>
+for a detailed log of this operation.</computeroutput>
+   </screen>
    
    <para>To enable secure connections for replication use the
    <option>--secureReplication1</option> and
@@ -450,23 +451,25 @@ for a detailed log of this operation.</screen>
      <para>Start replication with the <command>dsreplication
      initialize-all</command> command.</para>
      
-     <screen>$ dsreplication
- initialize-all
- --adminUID admin
- --adminPassword password
- --baseDN dc=example,dc=com
- --hostname opendj.example.com
- --port 4444
- --trustAll
- --no-prompt
+     <screen>
+$ <userinput>dsreplication \
+ initialize-all \
+ --adminUID admin \
+ --adminPassword password \
+ --baseDN dc=example,dc=com \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --trustAll \
+ --no-prompt</userinput>
 
-Initializing base DN dc=example,dc=com with the contents from
+<computeroutput>Initializing base DN dc=example,dc=com with the contents from
  opendj.example.com:4444: 160 entries processed (100 % complete).
 Base DN initialized successfully.
 
 See
 /var/.../opends-replication-5020375834904394170.log
-for a detailed log of this operation.</screen>
+for a detailed log of this operation.</computeroutput>
+     </screen>
     </step>
    </procedure>
 
@@ -523,25 +526,26 @@ for a detailed log of this operation.</screen>
     <step>
      <para>Enable replication on the new replica.</para>
 
-     <screen>$ dsreplication
- enable
- --adminUID admin
- --adminPassword password
- --baseDN dc=example,dc=com
- --host1 opendj.example.com
- --port1 4444
- --bindDN1 "cn=Directory Manager"
- --bindPassword1 password
- --replicationPort1 8989
- --host2 opendj3.example.com
- --port2 4444
- --bindDN2 "cn=Directory Manager"
- --bindPassword2 password
- --replicationPort2 8989
- --trustAll
- --no-prompt
+     <screen>
+$ <userinput>dsreplication \
+ enable \
+ --adminUID admin \
+ --adminPassword password \
+ --baseDN dc=example,dc=com \
+ --host1 opendj.example.com \
+ --port1 4444 \
+ --bindDN1 "cn=Directory Manager" \
+ --bindPassword1 password \
+ --replicationPort1 8989 \
+ --host2 opendj3.example.com \
+ --port2 4444 \
+ --bindDN2 "cn=Directory Manager" \
+ --bindPassword2 password \
+ --replicationPort2 8989 \
+ --trustAll \
+ --no-prompt</userinput>
 
-Establishing connections ..... Done.
+<computeroutput>Establishing connections ..... Done.
 Checking registration information ..... Done.
 Updating remote references on server opendj.example.com:4444 ..... Done.
 Configuring Replication port on server opendj3.example.com:4444 ..... Done.
@@ -573,7 +577,8 @@ Replication has been successfully enabled.  Note that for replication to
 
 See
 /var/.../opends-replication-1672058070147419978.log
-for a detailed log of this operation.</screen>
+for a detailed log of this operation.</computeroutput>
+     </screen>
 
      <para>Contrary to the message from the command, you do not need to use
      the <command>dsreplication initialize</command> command at this
@@ -619,30 +624,37 @@ for a detailed log of this operation.</screen>
 
     <step>
      <para>Disable the multimaster synchronization provider.</para>
-     <screen>$ dsconfig
- set-synchronization-provider-prop
- --port 4444
- --hostname opendj2.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --provider-name "Multimaster Synchronization"
- --set enabled:false
- --trustAll
- --no-prompt</screen>
+
+     <screen>
+$ <userinput>dsconfig \
+ set-synchronization-provider-prop \
+ --port 4444 \
+ --hostname opendj2.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --provider-name "Multimaster Synchronization" \
+ --set enabled:false \
+ --trustAll \
+ --no-prompt</userinput>
+     </screen>
     </step>
+
     <step performance="optional">
      <para>When you are ready to resume replication, enable the multimaster
      synchronization provider.</para>
-     <screen>$ dsconfig
- set-synchronization-provider-prop
- --port 4444
- --hostname opendj2.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --provider-name "Multimaster Synchronization"
- --set enabled:true
- --trustAll
- --no-prompt</screen>
+
+     <screen>
+$ <userinput>dsconfig \
+ set-synchronization-provider-prop \
+ --port 4444 \
+ --hostname opendj2.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --provider-name "Multimaster Synchronization" \
+ --set enabled:true \
+ --trustAll \
+ --no-prompt</userinput>
+     </screen>
     </step>
    </procedure>
    
@@ -656,16 +668,18 @@ for a detailed log of this operation.</screen>
     <step>
      <para>Stop replication using the <command>dsreplication disable</command>
      command.</para>
-     <screen>$ dsreplication
- disable
- --disableAll
- --port 4444
- --hostname opendj2.example.com
- --bindDN "cn=Directory Manager"
- --adminPassword password
- --trustAll
- --no-prompt
-Establishing connections ..... Done.
+
+     <screen>
+$ <userinput>dsreplication \
+ disable \
+ --disableAll \
+ --port 4444 \
+ --hostname opendj2.example.com \
+ --bindDN "cn=Directory Manager" \
+ --adminPassword password \
+ --trustAll \
+ --no-prompt</userinput>
+<computeroutput>Establishing connections ..... Done.
 Disabling replication on base DN cn=admin data of server
  opendj2.example.com:4444 ..... Done.
 Disabling replication on base DN dc=example,dc=com of server
@@ -679,10 +693,13 @@ Removing truststore information ..... Done.
 
 See
 /var/.../opends-replication-125248191132797765.log
-for a detailed log of this operation.</screen>
+for a detailed log of this operation.</computeroutput>
+     </screen>
+
      <para>The <command>dsreplication disable</command> as shown completely
      removes the replication configuration information from the server.</para>
     </step>
+
     <step performance="optional">
      <para>If you want to restart replication for the server, you need to run
      the <command>dsreplication enable</command> and <command>dsreplication
@@ -787,25 +804,27 @@ for a detailed log of this operation.</screen>
      <para>Enable replication with the appropriate
      <option>--noReplicationServer</option> and
      <option>--onlyReplicationServer</option> options.</para>
-     <screen>$ dsreplication
- enable
- --adminUID admin
- --adminPassword password
- --baseDN dc=example,dc=com
- --host1 opendj.example.com
- --port1 4444
- --bindDN1 "cn=Directory Manager"
- --bindPassword1 password
- --noReplicationServer1
- --host2 rs.example.com
- --port2 4444
- --bindDN2 "cn=Directory Manager"
- --bindPassword2 password
- --replicationPort2 8989
- --onlyReplicationServer2
- --trustAll
- --no-prompt
-Establishing connections ..... Done.
+
+     <screen>
+$ <userinput>dsreplication \
+ enable \
+ --adminUID admin \
+ --adminPassword password \
+ --baseDN dc=example,dc=com \
+ --host1 opendj.example.com \
+ --port1 4444 \
+ --bindDN1 "cn=Directory Manager" \
+ --bindPassword1 password \
+ --noReplicationServer1 \
+ --host2 rs.example.com \
+ --port2 4444 \
+ --bindDN2 "cn=Directory Manager" \
+ --bindPassword2 password \
+ --replicationPort2 8989 \
+ --onlyReplicationServer2 \
+ --trustAll \
+ --no-prompt</userinput>
+<computeroutput>Establishing connections ..... Done.
 Only one replication server will be defined for the following base DN's:
 dc=example,dc=com
 It is recommended to have at least two replication servers (two changelogs) to
@@ -830,28 +849,28 @@ Replication has been successfully enabled.  Note that for replication to work
 
 See
 /var/.../opends-replication-1720959352638609971.log
-for a detailed log of this operation.
+for a detailed log of this operation.</computeroutput>
 
-$ dsreplication
- enable
- --adminUID admin
- --adminPassword password
- --baseDN dc=example,dc=com
- --host1 opendj2.example.com
- --port1 4444
- --bindDN1 "cn=Directory Manager"
- --bindPassword1 password
- --noReplicationServer1
- --host2 rs.example.com
- --port2 4444
- --bindDN2 "cn=Directory Manager"
- --bindPassword2 password
- --replicationPort2 8989
- --onlyReplicationServer2
- --trustAll
- --no-prompt
+$ <userinput>dsreplication \
+ enable \
+ --adminUID admin \
+ --adminPassword password \
+ --baseDN dc=example,dc=com \
+ --host1 opendj2.example.com \
+ --port1 4444 \
+ --bindDN1 "cn=Directory Manager" \
+ --bindPassword1 password \
+ --noReplicationServer1 \
+ --host2 rs.example.com \
+ --port2 4444 \
+ --bindDN2 "cn=Directory Manager" \
+ --bindPassword2 password \
+ --replicationPort2 8989 \
+ --onlyReplicationServer2 \
+ --trustAll \
+ --no-prompt</userinput>
 
-Establishing connections ..... Done.
+<computeroutput>Establishing connections ..... Done.
 Only one replication server will be defined for the following base DN's:
 dc=example,dc=com
 It is recommended to have at least two replication servers (two changelogs) to
@@ -882,27 +901,32 @@ Replication has been successfully enabled.  Note that for replication to work
 
 See
 /var/folders/.../opends-replication-5893037538856033562.log
-for a detailed log of this operation.</screen>
+for a detailed log of this operation.</computeroutput>
+     </screen>
     </step>
+
     <step>
      <para>Initialize replication from one of the directory servers.</para>
-     <screen>$ dsreplication
- initialize-all
- --adminUID admin
- --adminPassword password
- --baseDN dc=example,dc=com
- --hostname opendj.example.com
- --port 4444
- --trustAll
- --no-prompt
 
-Initializing base DN dc=example,dc=com with the contents from
+     <screen>
+$ <userinput>dsreplication \
+ initialize-all \
+ --adminUID admin \
+ --adminPassword password \
+ --baseDN dc=example,dc=com \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --trustAll \
+ --no-prompt</userinput>
+
+<computeroutput>Initializing base DN dc=example,dc=com with the contents from
  opendj.example.com:4444: 160 entries processed (100 % complete).
 Base DN initialized successfully.
 
 See
 /var/.../opends-replication-7677303986403997574.log
-for a detailed log of this operation.</screen>
+for a detailed log of this operation.</computeroutput>
+     </screen>
     </step>
    </procedure>
   </section>
@@ -963,23 +987,24 @@ for a detailed log of this operation.</screen>
       <option>--noReplicationServer</option> option.
      </para>
 
-     <screen>$ dsreplication
- enable
- --adminUID admin
- --adminPassword password
- --baseDN dc=example,dc=com
- --host1 master.example.com
- --port1 4444 --bindDN1 "cn=Directory Manager"
- --bindPassword1 password
- --host2 ds-only.example.com
- --port2 4444
- --bindDN2 "cn=Directory Manager"
- --bindPassword2 password
- --noReplicationServer2
- --trustAll
- --no-prompt
+     <screen>
+$ <userinput>dsreplication \
+ enable \
+ --adminUID admin \
+ --adminPassword password \
+ --baseDN dc=example,dc=com \
+ --host1 master.example.com \
+ --port1 4444 --bindDN1 "cn=Directory Manager" \
+ --bindPassword1 password \
+ --host2 ds-only.example.com \
+ --port2 4444 \
+ --bindDN2 "cn=Directory Manager" \
+ --bindPassword2 password \
+ --noReplicationServer2 \
+ --trustAll \
+ --no-prompt</userinput>
 
-Establishing connections ..... Done.
+<computeroutput>Establishing connections ..... Done.
 Checking registration information ..... Done.
 Updating remote references on server master.example.com:4444 ..... Done.
 Updating replication configuration for baseDN dc=example,dc=com
@@ -1012,7 +1037,8 @@ Replication has been successfully enabled.  Note that for replication to work
 
 See
 /var/.../opendj-replication-859181866587327450.log
-for a detailed log of this operation.</screen>
+for a detailed log of this operation.</computeroutput>
+     </screen>
 
      <para>
       Here the existing server is both directory server and replication server.
@@ -1027,19 +1053,20 @@ for a detailed log of this operation.</screen>
       Initialize data on the new directory server replica.
      </para>
 
-     <screen>$ dsreplication
- initialize
- --adminUID admin
- --adminPassword password
- --baseDN dc=example,dc=com
- --hostSource master.example.com
- --portSource 4444
- --hostDestination ds-only.example.com
- --portDestination 4444
- --trustAll
- --no-prompt
+     <screen>
+$ <userinput>dsreplication \
+ initialize \
+ --adminUID admin \
+ --adminPassword password \
+ --baseDN dc=example,dc=com \
+ --hostSource master.example.com \
+ --portSource 4444 \
+ --hostDestination ds-only.example.com \
+ --portDestination 4444 \
+ --trustAll \
+ --no-prompt</userinput>
 
-Initializing base DN dc=example,dc=com with the contents
+<computeroutput>Initializing base DN dc=example,dc=com with the contents
  from master.example.com:4444:
 0 entries processed (0 % complete).
 176 entries processed (100 % complete).
@@ -1047,7 +1074,8 @@ Base DN initialized successfully.
 
 See
 /var/.../opendj-replication-4326340645155418876.log
-for a detailed log of this operation.</screen>
+for a detailed log of this operation.</computeroutput>
+     </screen>
     </step>
 
     <step>
@@ -1099,52 +1127,60 @@ for a detailed log of this operation.</screen>
     <step>
      <para>Set the group ID for each group by replication domain on the
      directory servers.</para>
-     <screen>$ dsconfig
- set-replication-domain-prop
- --port 4444
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --provider-name "Multimaster Synchronization"
- --domain-name "dc=example,dc=com"
- --set group-id:1
- --trustAll
- --no-prompt
 
-$ dsconfig
- set-replication-domain-prop
- --port 4444
- --hostname opendj2.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --provider-name "Multimaster Synchronization"
- --domain-name "dc=example,dc=com"
- --set group-id:2
- --trustAll
- --no-prompt</screen>
+     <screen>
+$ <userinput>dsconfig \
+ set-replication-domain-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --provider-name "Multimaster Synchronization" \
+ --domain-name "dc=example,dc=com" \
+ --set group-id:1 \
+ --trustAll \
+ --no-prompt</userinput>
+
+$ <userinput>dsconfig \
+ set-replication-domain-prop \
+ --port 4444 \
+ --hostname opendj2.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --provider-name "Multimaster Synchronization" \
+ --domain-name "dc=example,dc=com" \
+ --set group-id:2 \
+ --trustAll \
+ --no-prompt</userinput>
+     </screen>
     </step>
+
     <step>
      <para>Set the group ID for each group on the replication servers.</para>
-     <screen>$ dsconfig
- set-replication-server-prop
- --port 4444
- --hostname rs.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --provider-name "Multimaster Synchronization"
- --set group-id:1
- --trustAll
- --no-prompt
-$ dsconfig
- set-replication-server-prop
- --port 4444
- --hostname rs2.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --provider-name "Multimaster Synchronization"
- --set group-id:2
- --trustAll
- --no-prompt</screen>
+
+     <screen>
+$ <userinput>dsconfig \
+ set-replication-server-prop \
+ --port 4444 \
+ --hostname rs.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --provider-name "Multimaster Synchronization" \
+ --set group-id:1 \
+ --trustAll \
+ --no-prompt</userinput>
+
+$ <userinput>dsconfig \
+ set-replication-server-prop \
+ --port 4444 \
+ --hostname rs2.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --provider-name "Multimaster Synchronization" \
+ --set group-id:2 \
+ --trustAll \
+ --no-prompt</userinput>
+     </screen>
     </step>
    </procedure>
   </section>
@@ -1161,15 +1197,17 @@ $ dsconfig
    from the replication protocol, and refuse updates from client
    applications.</para>
 
-   <screen>$ dsconfig
- set-global-configuration-prop
- --port 4444
- --hostname opendj2.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --set writability-mode:internal-only
- --trustAll
- --no-prompt</screen>
+   <screen>
+$ <userinput>dsconfig \
+ set-global-configuration-prop \
+ --port 4444 \
+ --hostname opendj2.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --set writability-mode:internal-only \
+ --trustAll \
+ --no-prompt</userinput>
+   </screen>
   </section>
 
   <section xml:id="repl-assured">
@@ -1208,31 +1246,33 @@ $ dsconfig
      <para>For each directory server, set safe data mode for the replication
      domain, and also set the safe data level.</para>
      
-     <screen>$ dsconfig
- set-replication-domain-prop
- --port 4444
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --provider-name "Multimaster Synchronization"
- --domain-name "dc=example,dc=com"
- --set assured-type:safe-data
- --set assured-sd-level:1
- --trustAll
- --no-prompt
+     <screen>
+$ <userinput>dsconfig \
+ set-replication-domain-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --provider-name "Multimaster Synchronization" \
+ --domain-name "dc=example,dc=com" \
+ --set assured-type:safe-data \
+ --set assured-sd-level:1 \
+ --trustAll \
+ --no-prompt</userinput>
 
-$ dsconfig
- set-replication-domain-prop
- --port 4444
- --hostname opendj2.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --provider-name "Multimaster Synchronization"
- --domain-name "dc=example,dc=com"
- --set assured-type:safe-data
- --set assured-sd-level:1
- --trustAll
- --no-prompt</screen>
+$ <userinput>dsconfig \
+ set-replication-domain-prop \
+ --port 4444 \
+ --hostname opendj2.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --provider-name "Multimaster Synchronization" \
+ --domain-name "dc=example,dc=com" \
+ --set assured-type:safe-data \
+ --set assured-sd-level:1 \
+ --trustAll \
+ --no-prompt</userinput>
+     </screen>
     </step>
    </procedure>
    
@@ -1246,29 +1286,31 @@ $ dsconfig
      <para>For each directory server, set safe read mode for the replication
      domain.</para>
      
-     <screen>$ dsconfig
- set-replication-domain-prop
- --port 4444
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --provider-name "Multimaster Synchronization"
- --domain-name "dc=example,dc=com"
- --set assured-type:safe-read
- --trustAll
- --no-prompt
+     <screen>
+$ <userinput>dsconfig \
+ set-replication-domain-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --provider-name "Multimaster Synchronization" \
+ --domain-name "dc=example,dc=com" \
+ --set assured-type:safe-read \
+ --trustAll \
+ --no-prompt</userinput>
 
-$ dsconfig
- set-replication-domain-prop
- --port 4444
- --hostname opendj2.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --provider-name "Multimaster Synchronization"
- --domain-name "dc=example,dc=com"
- --set assured-type:safe-read
- --trustAll
- --no-prompt</screen>
+$ <userinput>dsconfig \
+ set-replication-domain-prop \
+ --port 4444 \
+ --hostname opendj2.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --provider-name "Multimaster Synchronization" \
+ --domain-name "dc=example,dc=com" \
+ --set assured-type:safe-read \
+ --trustAll \
+ --no-prompt</userinput>
+     </screen>
     </step>
    </procedure>
    
@@ -1331,33 +1373,37 @@ $ dsconfig
    fractional replica to include only some <literal>inetOrgPerson</literal>
    attributes.</para>
    
-   <screen>$ dsconfig
- set-replication-domain-prop
- --port 4444
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --provider-name "Multimaster Synchronization"
- --domain-name "dc=example,dc=com"
- --trustAll
- --no-prompt
- --set
- fractional-include:inetorgperson:cn,givenname,mail,mobile,sn,telephonenumber</screen>
+   <screen>
+$ <userinput>dsconfig \
+ set-replication-domain-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --provider-name "Multimaster Synchronization" \
+ --domain-name "dc=example,dc=com" \
+ --trustAll \
+ --no-prompt \
+ --set \
+ fractional-include:inetorgperson:cn,givenname,mail,mobile,sn,telephonenumber</userinput>
+   </screen>
    
    <para>As another example, you might exclude a custom attribute called
    <literal>sessionToken</literal> from being replicated.</para>
    
-   <screen>$ dsconfig
- set-replication-domain-prop
- --port 4444
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --provider-name "Multimaster Synchronization"
- --domain-name "dc=example,dc=com"
- --set fractional-exclude:*:sessionToken
- --trustAll
- --no-prompt</screen>
+   <screen>
+$ <userinput>dsconfig \
+ set-replication-domain-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --provider-name "Multimaster Synchronization" \
+ --domain-name "dc=example,dc=com" \
+ --set fractional-exclude:*:sessionToken \
+ --trustAll \
+ --no-prompt</userinput>
+   </screen>
 
    <para>This last example only works if you first define a
    <literal>sessionToken</literal> attribute in the directory server
@@ -1402,15 +1448,16 @@ $ dsconfig
     the publicly visible data available before any changes have been
     made.</para>
     
-    <screen>$ ldapsearch --baseDN cn=changelog --port 1389 "(objectclass=*)" \* +
-dn: cn=changelog
+    <screen>
+$ <userinput>ldapsearch --baseDN cn=changelog --port 1389 "(objectclass=*)" \* +</userinput>
+<computeroutput>dn: cn=changelog
 cn: changelog
 objectClass: top
 objectClass: container
 subschemaSubentry: cn=schema
 hasSubordinates: false
-entryDN: cn=changelog
-</screen>
+entryDN: cn=changelog</computeroutput>
+    </screen>
    </step>
   </procedure>
   
@@ -1439,15 +1486,16 @@ entryDN: cn=changelog
     <para>Notice the value of the <literal>changeLogCookie</literal> attribute
     for the last of the two changes.</para>
     
-    <screen>$ ldapsearch
- --baseDN cn=changelog
- --port 1389
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --control "1.3.6.1.4.1.26027.1.5.4:false"
- "(objectclass=*)"
- \* +
-dn: cn=changelog
+    <screen>
+$ <userinput>ldapsearch \
+ --baseDN cn=changelog \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --control "1.3.6.1.4.1.26027.1.5.4:false" \
+ "(objectclass=*)" \
+ \* +</userinput>
+<computeroutput>dn: cn=changelog
 cn: changelog
 objectClass: top
 objectClass: container
@@ -1498,13 +1546,13 @@ targetEntryUUID: 6b22440a-76d0-4031-94b7-35b1d86f067e
 replicationCSN: 0000013087cbc34a12d100000002
 numSubordinates: 0
 replicaIdentifier: 4817
-<emphasis>changeLogCookie: dc=example,dc=com:0000013087cbc34a12d100000002;</emphasis>
+changeLogCookie: dc=example,dc=com:0000013087cbc34a12d100000002;
 changeInitiatorsName: cn=Directory Manager,cn=Root DNs,cn=config
 subschemaSubentry: cn=schema
 hasSubordinates: false
 entryDN: replicationCSN=0000013087cbc34a12d100000002,dc=example,dc=com,cn=change
- log
-</screen>
+ log</computeroutput>
+    </screen>
     
     <para>In this example, two new users were added to another replica
     before the change log request was made.</para>
@@ -1512,15 +1560,16 @@ entryDN: replicationCSN=0000013087cbc34a12d100000002,dc=example,dc=com,cn=change
     <para>Here the changes are base64 encoded, so you can decode them using
     the <command>base64</command> command.</para>
     
-    <screen>$ base64 decode --encodedData b2JqZW...ZmlnCg==
-objectClass: person
+    <screen>
+$ <userinput>base64 decode --encodedData b2JqZW...ZmlnCg==</userinput>
+<computeroutput>objectClass: person
 objectClass: top
 cn: Horace Velmont
 telephoneNumber: +33 1 12 23 34 45
 sn: Velmont
 entryUUID: 6b22440a-76d0-4031-94b7-35b1d86f067e
 createTimestamp: 20110613065855Z
-creatorsName: cn=Directory Manager,cn=Root DNs,cn=config
+creatorsName: cn=Directory Manager,cn=Root DNs,cn=config</computeroutput>
     </screen>
    </step>
    
@@ -1530,16 +1579,17 @@ creatorsName: cn=Directory Manager,cn=Root DNs,cn=config
    
     <para>In this example, a description was added to Babs Jensen's entry.</para>
    
-    <screen>$ ldapsearch
- --baseDN cn=changelog
- --port 1389
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --control "1.3.6.1.4.1.26027.1.5.4:false:
- dc=example,dc=com:0000013087cbc34a12d100000002;"
- "(objectclass=*)"
- \* +
-dn: cn=changelog
+    <screen>
+$ <userinput>ldapsearch \
+ --baseDN cn=changelog \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --control "1.3.6.1.4.1.26027.1.5.4:false:dc=example, \
+  dc=com:0000013087cbc34a12d100000002;" \
+ "(objectclass=*)" \
+ \* +</userinput>
+<computeroutput>dn: cn=changelog
 cn: changelog
 objectClass: top
 objectClass: container
@@ -1569,13 +1619,14 @@ changeInitiatorsName: cn=Directory Manager,cn=Root DNs,cn=config
 subschemaSubentry: cn=schema
 hasSubordinates: false
 entryDN: replicationCSN=0000013087d7e27f12d100000003,dc=example,dc=com,cn=change
- log
+ log</computeroutput>
     </screen>
     
     <para>If we base64-decode the changes, we see the following.</para>
     
-    <screen>$ base64 decode --encodedData YWRkO...gotCg==
-add: description
+    <screen>
+$ <userinput>base64 decode --encodedData YWRkO...gotCg==</userinput>
+<computeroutput>add: description
 description: A third change
 -
 replace: modifiersName
@@ -1583,9 +1634,10 @@ modifiersName: cn=Directory Manager,cn=Root DNs,cn=config
 -
 replace: modifyTimestamp
 modifyTimestamp: 20110613071210Z
--
-</screen>
+-</computeroutput>
+    </screen>
    </step>
+
    <step>
     <para>If for some reason you lose the cookie, you can start over from
     the earliest available change by sending a search request with no
@@ -1606,33 +1658,40 @@ modifyTimestamp: 20110613071210Z
    <step>
     <para>Set the attributes to include for all update operations with
     <literal>ecl-include</literal>.</para>
-    <screen>$ dsconfig
- set-external-changelog-domain-prop
- --port 4444
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --provider-name "Multimaster Synchronization"
- --domain-name dc=example,dc=com
- --set ecl-include:"@person"
- --trustAll
- --no-prompt</screen>
+
+    <screen>
+$ <userinput>dsconfig \
+ set-external-changelog-domain-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --provider-name "Multimaster Synchronization" \
+ --domain-name dc=example,dc=com \
+ --set ecl-include:"@person" \
+ --trustAll \
+ --no-prompt</userinput>
+    </screen>
    </step>
+
    <step>
     <para>Set the attributes to include for deletes with
     <literal>ecl-include-for-deletes</literal>.</para>
-    <screen>$ dsconfig
- set-external-changelog-domain-prop
- --port 4444
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --provider-name "Multimaster Synchronization"
- --domain-name dc=example,dc=com
- --add ecl-include-for-deletes:"*"
- --add ecl-include-for-deletes:"+"
- --trustAll
- --no-prompt</screen>
+
+    <screen>
+$ <userinput>dsconfig \
+ set-external-changelog-domain-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --provider-name "Multimaster Synchronization" \
+ --domain-name dc=example,dc=com \
+ --add ecl-include-for-deletes:"*" \
+ --add ecl-include-for-deletes:"+" \
+ --trustAll \
+ --no-prompt</userinput>
+    </screen>
    </step>
   </procedure>
   
@@ -1645,17 +1704,20 @@ modifyTimestamp: 20110613071210Z
    
    <step>
     <para>Prevent OpenDJ from logging changes by disabling the domain.</para>
-    <screen>$ dsconfig
- set-external-changelog-domain-prop
- --port 4444
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --provider-name "Multimaster Synchronization"
- --domain-name dc=example,dc=com
- --set enabled:false
- --trustAll
- --no-prompt</screen>
+
+    <screen>
+$ <userinput>dsconfig \
+ set-external-changelog-domain-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --provider-name "Multimaster Synchronization" \
+ --domain-name dc=example,dc=com \
+ --set enabled:false \
+ --trustAll \
+ --no-prompt</userinput>
+    </screen>
    </step>
   </procedure>
   

@@ -20,17 +20,17 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !    
 -->
 <refentry xml:id='make-ldif-1'
  xmlns='http://docbook.org/ns/docbook'
  version='5.0' xml:lang='en'
  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
- <info><copyright><year>2011-2012</year><holder>ForgeRock AS</holder></copyright></info>
+ xsi:schemaLocation='http://docbook.org/ns/docbook
+                     http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'>
+ <info><copyright><year>2011-2014</year><holder>ForgeRock AS</holder></copyright></info>
  <refmeta>
   <refentrytitle>make-ldif</refentrytitle><manvolnum>1</manvolnum>
   <refmiscinfo class="software">OpenDJ</refmiscinfo>
@@ -109,12 +109,15 @@
  <refsect1>
   <title>Examples</title>
   <para>The following example uses the default template to generate LDIF.</para>
-  <screen>$ make-ldif -t ../config/MakeLDIF/example.template -o ../ldif/generated.ldif
-Processed 1000 entries
+
+  <screen>
+$ <userinput>make-ldif -t ../config/MakeLDIF/example.template -o ../ldif/generated.ldif</userinput>
+<computeroutput>Processed 1000 entries
 Processed 2000 entries
 ...
 Processed 10000 entries
-LDIF processing complete.  10003 entries written</screen>
+LDIF processing complete.  10003 entries written</computeroutput>
+  </screen>
  </refsect1>
  <refsect1>
   <title>See Also</title>

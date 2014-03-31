@@ -20,15 +20,15 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2013 ForgeRock AS
+  !      Copyright 2013-2014 ForgeRock AS
   !
 -->
 <chapter xml:id='chap-change-certs'
          xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
          xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-         xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
-         xmlns:xlink='http://www.w3.org/1999/xlink'
-         xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+         xsi:schemaLocation='http://docbook.org/ns/docbook
+                             http://docbook.org/xml/5.0/xsd/docbook.xsd'
+         xmlns:xlink='http://www.w3.org/1999/xlink'>
  <title>Changing Server Certificates</title>
  <indexterm><primary>Certificates</primary></indexterm>
 
@@ -154,25 +154,27 @@
   <step>
    <para>Check the alias of the key pair and certificate copy to replace.</para>
 
-   <screen>$ cd /path/to/opendj/config
-$ keytool -list -keystore admin-keystore -storepass `cat admin-keystore.pin`
+   <screen>
+$ <userinput>cd /path/to/opendj/config</userinput>
+$ <userinput>keytool -list -keystore admin-keystore -storepass `cat admin-keystore.pin`</userinput>
 
-Keystore type: JKS
+<computeroutput>Keystore type: JKS
 Keystore provider: SUN
 
 Your keystore contains 1 entry
 
 admin-cert, Mar 15, 2013, PrivateKeyEntry,
-Certificate fingerprint (SHA1): 54:9F:C3:F8:7B:B6:...:0A:98:D0:17:8E
-$ keytool -list -keystore admin-truststore -storepass `cat admin-keystore.pin`
+Certificate fingerprint (SHA1): 54:9F:C3:F8:7B:B6:...:0A:98:D0:17:8E</computeroutput>
+$ <userinput>keytool -list -keystore admin-truststore -storepass `cat admin-keystore.pin`</userinput>
 
-Keystore type: JKS
+<computeroutput>Keystore type: JKS
 Keystore provider: SUN
 
 Your keystore contains 1 entry
 
 admin-cert, Mar 15, 2013, trustedCertEntry,
-Certificate fingerprint (SHA1): 54:9F:C3:F8:7B:B6:...:0A:98:D0:17:8E</screen>
+Certificate fingerprint (SHA1): 54:9F:C3:F8:7B:B6:...:0A:98:D0:17:8E</computeroutput>
+   </screen>
 
    <para>This alias is also stored in the server configuration.</para>
   </step>
@@ -180,31 +182,36 @@ Certificate fingerprint (SHA1): 54:9F:C3:F8:7B:B6:...:0A:98:D0:17:8E</screen>
   <step>
    <para>Remove the key pair and certificate copy to replace.</para>
 
-   <screen>$ keytool
- -delete
- -alias admin-cert
- -keystore admin-keystore
- -storepass `cat admin-keystore.pin`
-$ keytool
- -delete
- -alias admin-cert
- -keystore admin-truststore
- -storepass `cat admin-keystore.pin`</screen>
+   <screen>
+$ <userinput>keytool \
+ -delete \
+ -alias admin-cert \
+ -keystore admin-keystore \
+ -storepass `cat admin-keystore.pin`</userinput>
+
+$ <userinput>keytool \
+ -delete \
+ -alias admin-cert \
+ -keystore admin-truststore \
+ -storepass `cat admin-keystore.pin`</userinput>
+   </screen>
   </step>
 
   <step>
    <para>Generate a new key pair in the key store.</para>
 
-   <screen width="83">$ keytool
- -genkey
- -alias admin-cert
- -keyalg RSA
- -validity 7300
- -keysize 2048
- -dname "CN=opendj.example.com, O=Administration Connector Self-Signed Certificate"
- -keystore admin-keystore
- -storepass `cat admin-keystore.pin`
- -keypass `cat admin-keystore.pin`</screen>
+   <screen width="85">
+$ <userinput>keytool \
+ -genkey \
+ -alias admin-cert \
+ -keyalg RSA \
+ -validity 7300 \
+ -keysize 2048 \
+ -dname "CN=opendj.example.com, O=Administration Connector Self-Signed Certificate" \
+ -keystore admin-keystore \
+ -storepass `cat admin-keystore.pin` \
+ -keypass `cat admin-keystore.pin`</userinput>
+   </screen>
 
    <para>Notice that the <option>-alias</option> option takes the same alias
    as before. This is because the <literal>ssl-cert-nickname</literal> for
@@ -222,11 +229,13 @@ $ keytool
     <step>
      <para>Self-sign the certificate.</para>
 
-     <screen>$ keytool
- -selfcert
- -alias admin-cert
- -keystore admin-keystore
- -storepass `cat admin-keystore.pin`</screen>
+     <screen>
+$ <userinput>keytool \
+ -selfcert \
+ -alias admin-cert \
+ -keystore admin-keystore \
+ -storepass `cat admin-keystore.pin`</userinput>
+     </screen>
     </step>
 
     <step>
@@ -245,34 +254,37 @@ $ keytool
   <step>
    <para>Export a copy of the certificate from the key store.</para>
 
-   <screen>$ keytool
- -export
- -alias admin-cert
- -keystore admin-keystore
- -storepass `cat admin-keystore.pin`
- -file admin-cert.crt
-Certificate stored in file &lt;admin-cert.crt&gt;</screen>
+   <screen>
+$ <userinput>keytool \
+ -export \
+ -alias admin-cert \
+ -keystore admin-keystore \
+ -storepass `cat admin-keystore.pin` \
+ -file admin-cert.crt</userinput>
+<computeroutput>Certificate stored in file &lt;admin-cert.crt&gt;</computeroutput>
+   </screen>
   </step>
 
   <step>
    <para>Import the copy of the certificate into the trust store.</para>
 
-   <screen width="81">$ keytool
- -import
- -alias admin-cert
- -keystore admin-truststore
- -storepass `cat admin-keystore.pin`
- -file admin-cert.crt
-Owner: CN=opendj.example.com, O=Administration Connector Self-Signed Certificate
+   <screen width="81">
+$ <userinput>keytool \
+ -import \
+ -alias admin-cert \
+ -keystore admin-truststore \
+ -storepass `cat admin-keystore.pin` \
+ -file admin-cert.crt</userinput>
+<computeroutput>Owner: CN=opendj.example.com, O=Administration Connector Self-Signed Certificate
 Issuer: CN=opendj.example.com, O=Administration Connector Self-Signed Certificate
 Serial number: 904fc2b
 Valid from: Fri Mar 15 15:15:20 CET 2013 until: Thu Jun 13 16:15:20 CEST 2013
 Certificate fingerprints:
-	 MD5:  DD:2A:A1:3A:39:87:DF:02:15:A4:8A:9D:77:89:F1:E4
-	 SHA1: E1:99:82:92:D7:9B:28:B7:93:D2:B5:5B:C9:DA:4E:D2:62:C2:E7:B0
-	 SHA256: C5:34:9C:04:E2:87:A9:B1:72:B5:...:99:86:3A:02:28:D0:AB:02:5F:F4:BE
-	 Signature algorithm name: SHA256withRSA
-	 Version: 3
+  MD5:  DD:2A:A1:3A:39:87:DF:02:15:A4:8A:9D:77:89:F1:E4
+  SHA1: E1:99:82:92:D7:9B:28:B7:93:D2:B5:5B:C9:DA:4E:D2:62:C2:E7:B0
+  SHA256: C5:34:9C:04:E2:87:A9:B1:72:B5:...:99:86:3A:02:28:D0:AB:02:5F:F4:BE
+  Signature algorithm name: SHA256withRSA
+  Version: 3
 
 Extensions:
 
@@ -284,15 +296,18 @@ KeyIdentifier [
 ]
 ]
 
-Trust this certificate? [no]:  yes
-Certificate was added to keystore</screen>
+Trust this certificate? [no]:</computeroutput>  <userinput>yes</userinput>
+<computeroutput>Certificate was added to keystore</computeroutput>
+   </screen>
   </step>
 
   <step>
    <para>Restart OpenDJ to make sure it reloads the key stores.</para>
 
-   <screen>$ cd /path/to/opendj/bin
-$ stop-ds --restart</screen>
+   <screen>
+$ <userinput>cd /path/to/opendj/bin</userinput>
+$ <userinput>stop-ds --restart</userinput>
+   </screen>
   </step>
 
   <step>
@@ -327,17 +342,19 @@ $ stop-ds --restart</screen>
     <step>
      <para>Delete the <literal>ads-certificate</literal> entry.</para>
 
-     <screen>$ ldapmodify
- --port 1389
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
-dn: ds-cfg-key-id=ads-certificate,cn=ads-truststore
+     <screen>
+$ <userinput>ldapmodify \
+ --port 1389 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password</userinput>
+<computeroutput>dn: ds-cfg-key-id=ads-certificate,cn=ads-truststore
 changetype: delete
 
 Processing DELETE request for ds-cfg-key-id=ads-certificate,cn=ads-truststore
 DELETE operation successful for DN ds-cfg-key-id=ads-certificate,
- cn=ads-truststore</screen>
+ cn=ads-truststore</computeroutput>
+     </screen>
    </step>
 
    <step>
@@ -347,28 +364,31 @@ DELETE operation successful for DN ds-cfg-key-id=ads-certificate,
     <para>You do this by adding an <literal>ads-certificate</literal> entry
     with object class <literal>ds-cfg-self-signed-cert-request</literal>.</para>
 
-    <screen>$ ldapmodify
- --port 1389
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
-dn: ds-cfg-key-id=ads-certificate,cn=ads-truststore
+    <screen>
+$ <userinput>ldapmodify \
+ --port 1389 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password</userinput>
+<computeroutput>dn: ds-cfg-key-id=ads-certificate,cn=ads-truststore
 changetype: add
 objectclass: ds-cfg-self-signed-cert-request
 
 Processing ADD request for ds-cfg-key-id=ads-certificate,cn=ads-truststore
-ADD operation successful for DN ds-cfg-key-id=ads-certificate,cn=ads-truststore</screen>
+ADD operation successful for DN ds-cfg-key-id=ads-certificate,cn=ads-truststore</computeroutput>
+    </screen>
    </step>
 
    <step>
     <para>Retrieve the <literal>ads-certificate</literal> entry.</para>
 
-    <screen>$ ldapsearch
- --port 1389
- --hostname opendj.example.com
- --baseDN cn=ads-truststore
- "(ds-cfg-key-id=ads-certificate)"
-dn: ds-cfg-key-id=ads-certificate,cn=ads-truststore
+    <screen>
+$ <userinput>ldapsearch \
+ --port 1389 \
+ --hostname opendj.example.com \
+ --baseDN cn=ads-truststore \
+ "(ds-cfg-key-id=ads-certificate)"</userinput>
+<computeroutput>dn: ds-cfg-key-id=ads-certificate,cn=ads-truststore
 ds-cfg-key-id: ads-certificate
 ds-cfg-public-key-certificate;binary:: MIIB6zCCAVSgAwIBAgIEDKSUFjANBgkqhkiG9w0BA
  QUFADA6MRswGQYDVQQKExJPcGVuREogQ2VydGlmaWNhdGUxGzAZBgNVBAMTEm9wZW5hbS5leGFtcGxl
@@ -380,7 +400,8 @@ ds-cfg-public-key-certificate;binary:: MIIB6zCCAVSgAwIBAgIEDKSUFjANBgkqhkiG9w0BA
  7IvpE7jGVZh6KvM0m5sBNX3wPbTVJQNij3TDm8nx6yhi6DUkpiAZfz/OBL5k+WSw80TjpIZ2+klhP1s
  srsST4Um4fHzDZXOXHR6NM83XxZBsR6MazYecL8CiGwnYW2AeBapzbAnGn1J831q1q
 objectClass: top
-objectClass: ds-cfg-instance-key</screen>
+objectClass: ds-cfg-instance-key</computeroutput>
+    </screen>
    </step>
 
    <step>
@@ -390,13 +411,14 @@ objectClass: ds-cfg-instance-key</screen>
     <para>In this example, the MD5 fingerprint is
     <literal>07:35:80:D8:F3:CE:E1:39:9C:D0:73:DB:6C:FA:CC:1C</literal>.</para>
 
-    <screen>$ keytool
- -list
- -v
- -alias ads-certificate
- -keystore /path/to/opendj/config/ads-truststore
- -storepass `cat /path/to/opendj/config/ads-truststore.pin`
-Alias name: ads-certificate
+    <screen>
+$ <userinput>keytool \
+ -list \
+ -v \
+ -alias ads-certificate \
+ -keystore /path/to/opendj/config/ads-truststore \
+ -storepass `cat /path/to/opendj/config/ads-truststore.pin`</userinput>
+<computeroutput>Alias name: ads-certificate
 Creation date: Feb 7, 2013
 Entry type: PrivateKeyEntry
 Certificate chain length: 1
@@ -406,11 +428,12 @@ Issuer: CN=opendj.example.com, O=OpenDJ Certificate
 Serial number: ca49416
 Valid from: Thu Feb 07 11:30:33 CET 2013 until: Wed Feb 02 11:30:33 CET 2033
 Certificate fingerprints:
-	 MD5:  07:35:80:D8:F3:CE:E1:39:9C:D0:73:DB:6C:FA:CC:1C
-	 SHA1: 56:30:F6:79:AA:C0:BD:61:88:3E:FB:38:38:9D:84:70:0B:E4:43:57
-	 SHA256: A8:4B:81:EE:30:2A:0C:09:2E:...:C1:41:F5:AB:19:C6:EE:AB:50:64
-	 Signature algorithm name: SHA1withRSA
-	 Version: 3</screen>
+  MD5:  07:35:80:D8:F3:CE:E1:39:9C:D0:73:DB:6C:FA:CC:1C
+  SHA1: 56:30:F6:79:AA:C0:BD:61:88:3E:FB:38:38:9D:84:70:0B:E4:43:57
+  SHA256: A8:4B:81:EE:30:2A:0C:09:2E:...:C1:41:F5:AB:19:C6:EE:AB:50:64
+  Signature algorithm name: SHA1withRSA
+  Version: 3</computeroutput>
+    </screen>
    </step>
 
    <step>
@@ -418,8 +441,9 @@ Certificate fingerprints:
     to update <literal>cn=admin data</literal> with the new server
     certificate.</para>
 
-    <screen>$ cat /path/to/update-server-cert.ldif
-dn: ds-cfg-key-id=073580D8F3CEE1399CD073DB6CFACC1C,cn=instance keys,
+    <screen>
+$ <userinput>cat /path/to/update-server-cert.ldif</userinput>
+<computeroutput>dn: ds-cfg-key-id=073580D8F3CEE1399CD073DB6CFACC1C,cn=instance keys,
  cn=admin data
 changetype: add
 ds-cfg-key-id: 073580D8F3CEE1399CD073DB6CFACC1C
@@ -439,8 +463,8 @@ dn: cn=opendj.example.com:4444,cn=Servers,cn=admin data
 changetype: modify
 replace: ds-cfg-key-id
 ds-cfg-key-id: 073580D8F3CEE1399CD073DB6CFACC1C
-
-</screen>
+</computeroutput>
+     </screen>
     </step>
 
     <step>
@@ -448,20 +472,22 @@ ds-cfg-key-id: 073580D8F3CEE1399CD073DB6CFACC1C
      copy of the new <literal>ads-certificate</literal> with its MD5 signature
      as the alias in the <filename>ads-truststore</filename>.</para>
 
-     <screen>$ ldapmodify
- --port 1389
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --filename /path/to/update-server-cert.ldif
-Processing ADD request for ds-cfg-key-id=073580D8F3CEE1399CD073DB6CFACC1C,
+     <screen>
+$ <userinput>ldapmodify \
+ --port 1389 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --filename /path/to/update-server-cert.ldif</userinput>
+<computeroutput>Processing ADD request for ds-cfg-key-id=073580D8F3CEE1399CD073DB6CFACC1C,
  cn=instance keys,cn=admin data
 ADD operation successful for DN ds-cfg-key-id=073580D8F3CEE1399CD073DB6CFACC1C,
  cn=instance keys,cn=admin data
 Processing MODIFY request for cn=opendj.example.com:4444,cn=Servers,
  cn=admin data
 MODIFY operation successful for DN cn=opendj.example.com:4444,cn=Servers,
- cn=admin data</screen>
+ cn=admin data</computeroutput>
+     </screen>
     </step>
    </substeps>
   </step>
@@ -472,28 +498,32 @@ MODIFY operation successful for DN cn=opendj.example.com:4444,cn=Servers,
 
    <para>Stop replication temporarily and then start it again as described
    in the <citetitle>Administration Guide</citetitle> section on <link
-   xlink:href="admin-guide#configure-repl"
-   xlink:role="http://docbook.org/xlink/role/olink"
+    xlink:show="new"
+    xlink:href="admin-guide#configure-repl"
+    xlink:role="http://docbook.org/xlink/role/olink"
    ><citetitle>Configuring Replication</citetitle></link>.</para>
 
-   <screen>$ dsconfig
- set-synchronization-provider-prop
- --port 4444
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --provider-name "Multimaster Synchronization"
- --set enabled:false
- --no-prompt
-$ dsconfig
- set-synchronization-provider-prop
- --port 4444
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --provider-name "Multimaster Synchronization"
- --set enabled:true
- --no-prompt</screen>
+   <screen>
+$ <userinput>dsconfig \
+ set-synchronization-provider-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --provider-name "Multimaster Synchronization" \
+ --set enabled:false \
+ --no-prompt</userinput>
+
+$ <userinput>dsconfig \
+ set-synchronization-provider-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --provider-name "Multimaster Synchronization" \
+ --set enabled:true \
+ --no-prompt</userinput>
+   </screen>
   </step>
  </procedure>
 </chapter>

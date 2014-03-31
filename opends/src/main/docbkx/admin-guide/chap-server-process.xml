@@ -20,15 +20,15 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2013 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-server-process'
  xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ xsi:schemaLocation='http://docbook.org/ns/docbook
+                     http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'>
  <title>Managing Server Processes</title>
  <para>Using the OpenDJ Control Panel, you can start and stop local servers.
  You can also start and stop OpenDJ using command-line tools, and use the
@@ -49,9 +49,15 @@
    <para>Use one of the following techniques.</para>
    <listitem>
     <para>Use the <command>start-ds</command> command.</para>
-    <screen>$ start-ds</screen>
-    <para>Alternatively, you can specify the --no-detach option to start
-    the server in the foreground.</para>
+
+    <screen>
+$ <userinput>start-ds</userinput>
+    </screen>
+
+    <para>
+     Alternatively, you can specify the <option>--no-detach</option>
+     option to start the server in the foreground.
+    </para>
    </listitem>
 
    <listitem>
@@ -60,11 +66,15 @@
 
     <para>Use the <command>service opendj start</command> command.</para>
 
-    <screen>centos# service opendj start
-Starting opendj (via systemctl):                           [  OK  ]</screen>
+    <screen>
+centos# <userinput>service opendj start</userinput>
+<computeroutput>Starting opendj (via systemctl):                           [  OK  ]</computeroutput>
+    </screen>
 
-    <screen>ubuntu$ sudo service opendj start
-$Starting opendj: > SUCCESS.</screen>
+    <screen>
+ubuntu$ <userinput>sudo service opendj start</userinput>
+<computeroutput>$Starting opendj: > SUCCESS.</computeroutput>
+    </screen>
    </listitem>
 
    <listitem>
@@ -73,15 +83,22 @@ $Starting opendj: > SUCCESS.</screen>
     <para>Unless you run OpenDJ as root, use the --userName
     <replaceable>userName</replaceable> option to specify the user
     who installed OpenDJ.</para>
-    <screen>$ sudo create-rc-script
- --outputFile /etc/init.d/opendj
- --userName mark
-$ sudo /etc/init.d/opendj start</screen>
+
+    <screen>
+$ <userinput>sudo create-rc-script \
+ --outputFile /etc/init.d/opendj \
+ --userName mark</userinput>
+
+$ <userinput>sudo /etc/init.d/opendj start</userinput>
+    </screen>
+
     <para>For example, on Linux if you run OpenDJ as root, you can use the
     RC script to start the server at system boot, and stop the server at
     system shutdown.</para>
-    <screen>$ sudo update-rc.d opendj defaults
-update-rc.d: warning: /etc/init.d/opendj missing LSB information
+
+    <screen>
+$ <userinput>sudo update-rc.d opendj defaults</userinput>
+<computeroutput>update-rc.d: warning: /etc/init.d/opendj missing LSB information
 update-rc.d: see &lt;http://wiki.debian.org/LSBInitScripts&gt;
  Adding system startup for /etc/init.d/opendj ...
    /etc/rc0.d/K20opendj -> ../init.d/opendj
@@ -90,12 +107,16 @@ update-rc.d: see &lt;http://wiki.debian.org/LSBInitScripts&gt;
    /etc/rc2.d/S20opendj -> ../init.d/opendj
    /etc/rc3.d/S20opendj -> ../init.d/opendj
    /etc/rc4.d/S20opendj -> ../init.d/opendj
-   /etc/rc5.d/S20opendj -> ../init.d/opendj</screen>
+   /etc/rc5.d/S20opendj -> ../init.d/opendj</computeroutput>
+    </screen>
    </listitem>
    <listitem>
     <para>(Windows) Register OpenDJ as a Windows Service, and then manage
     the service through Windows administration tools.</para>
-    <screen>C:\path\to\opendj\bat&gt; windows-service.bat --enableService</screen>
+
+    <screen>
+C:\path\to\opendj\bat> <userinput>windows-service.bat --enableService</userinput>
+    </screen>
    </listitem>
   </itemizedlist>
 
@@ -126,25 +147,36 @@ update-rc.d: see &lt;http://wiki.debian.org/LSBInitScripts&gt;
 
     <para>Use the <command>service opendj stop</command> command.</para>
 
-    <screen>centos# service opendj stop
-Stopping opendj (via systemctl):                           [  OK  ]</screen>
+    <screen>
+centos# <userinput>service opendj stop</userinput>
+<computeroutput>Stopping opendj (via systemctl):                           [  OK  ]</computeroutput>
+    </screen>
 
-    <screen>ubuntu$ sudo service opendj stop
-$Stopping opendj: ... > SUCCESS.</screen>
+    <screen>
+ubuntu$ <userinput>sudo service opendj stop</userinput>
+<computeroutput>$Stopping opendj: ... > SUCCESS.</computeroutput>
+    </screen>
    </listitem>
 
    <listitem>
     <para>(UNIX) Create an RC script, and then use the script to stop
     the server.</para>
-    <screen>$ sudo create-rc-script
- --outputFile /etc/init.d/opendj
- --userName mark
-$ sudo /etc/init.d/opendj stop</screen>
+
+    <screen>
+$ <userinput>sudo create-rc-script \
+ --outputFile /etc/init.d/opendj \
+ --userName mark</userinput>
+
+$ <userinput>sudo /etc/init.d/opendj stop</userinput>
+    </screen>
    </listitem>
    <listitem>
     <para>(Windows) Register OpenDJ as a Windows Service, and then manage
     the service through Windows administration tools.</para>
-    <screen>C:\path\to\opendj\bat&gt; windows-service.bat --enableService</screen>
+
+    <screen>
+C:\path\to\opendj\bat> <userinput>windows-service.bat --enableService</userinput>
+    </screen>
    </listitem>
   </itemizedlist>
  </section>
@@ -157,7 +189,10 @@ $ sudo /etc/init.d/opendj stop</screen>
    <para>Use one of the following techniques.</para>
    <listitem>
     <para>Use the <command>stop-ds</command> command.</para>
-    <screen>$ stop-ds --restart</screen>
+
+    <screen>
+$ <userinput>stop-ds --restart</userinput>
+    </screen>
    </listitem>
 
    <listitem>
@@ -166,27 +201,38 @@ $ sudo /etc/init.d/opendj stop</screen>
 
     <para>Use the <command>service opendj restart</command> command.</para>
 
-    <screen>centos# service opendj restart
-Restarting opendj (via systemctl):                         [  OK  ]</screen>
+    <screen>
+centos# <userinput>service opendj restart</userinput>
+<computeroutput>Restarting opendj (via systemctl):                         [  OK  ]</computeroutput>
+    </screen>
 
-    <screen>ubuntu$ sudo service opendj restart
-$Stopping opendj: ... > SUCCESS.
+    <screen>
+ubuntu$ <userinput>sudo service opendj restart</userinput>
+<computeroutput>$Stopping opendj: ... > SUCCESS.
 
-$Starting opendj: > SUCCESS.</screen>
+$Starting opendj: > SUCCESS.</computeroutput>
+    </screen>
    </listitem>
 
    <listitem>
     <para>(UNIX) Create an RC script, and then use the script to stop
     the server.</para>
-    <screen>$ sudo create-rc-script
- --outputFile /etc/init.d/opendj
- --userName mark
-$ /etc/init.d/opendj restart</screen>
+
+    <screen>
+$ <userinput>sudo create-rc-script \
+ --outputFile /etc/init.d/opendj \
+ --userName mark</userinput>
+
+$ <userinput>/etc/init.d/opendj restart</userinput>
+    </screen>
    </listitem>
    <listitem>
     <para>(Windows) Register OpenDJ as a Windows Service, and then manage
     the service through Windows administration tools.</para>
-    <screen>C:\path\to\opendj\bat&gt; windows-service.bat --enableService</screen>
+
+    <screen>
+C:\path\to\opendj\bat> <userinput>windows-service.bat --enableService</userinput>
+    </screen>
    </listitem>
   </itemizedlist>
  </section>
@@ -208,11 +254,13 @@ $ /etc/init.d/opendj restart</screen>
   shows two example messages from that log, the first written at the beginning
   of the recovery process, the second written at the end of the process.</para>
   
-  <screen>111104 10:23:48:967 CONFIG [/path/to/opendj/db/userRoot]Recovery
+  <programlisting language="none">
+111104 10:23:48:967 CONFIG [/path/to/opendj/db/userRoot]Recovery
  underway, found end of log
 ...
 111104 10:23:49:015 CONFIG [/path/to/opendj/db/userRoot]Recovery finished:
- Recovery Info ...</screen>
+ Recovery Info ...
+  </programlisting>
   
   <para>What can take some time during server startup is preloading database
   content into memory when the server starts. Objects cached in memory do not

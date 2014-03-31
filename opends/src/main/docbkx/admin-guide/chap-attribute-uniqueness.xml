@@ -20,15 +20,15 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2013 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-attribute-uniqueness'
  xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ xsi:schemaLocation='http://docbook.org/ns/docbook
+                     http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'>
  <title>Implementing Attribute Value Uniqueness</title>
  
  <para>Some attribute values ought to remain unique. If you are using
@@ -79,78 +79,91 @@
   <step>
    <para>Set the base DN where <literal>uid</literal> should have unique
    values, and enable the plugin.</para>
-   <screen>$ dsconfig
- set-plugin-prop
- --port 4444
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --plugin-name "UID Unique Attribute"
- --set base-dn:ou=people,dc=example,dc=com
- --set enabled:true
- --trustAll
- --no-prompt</screen>
+
+   <screen>
+$ <userinput>dsconfig \
+ set-plugin-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --plugin-name "UID Unique Attribute" \
+ --set base-dn:ou=people,dc=example,dc=com \
+ --set enabled:true \
+ --trustAll \
+ --no-prompt</userinput>
+   </screen>
 
    <para>Alternatively, you can specify multiple base DNs for unique values
    across multiple suffixes.</para>
-   <screen>$ dsconfig
- set-plugin-prop
- --port 4444
- --hostname opendj.example.com
- --bindDn "cn=Directory Manager"
- --bindPassword password
- --plugin-name "UID Unique Attribute"
- --set enabled:true
- --add base-dn:ou=people,dc=example,dc=com
- --add base-dn:ou=people,dc=example,dc=org
- --trustAll
- --no-prompt</screen>
+
+   <screen>
+$ <userinput>dsconfig \
+ set-plugin-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDn "cn=Directory Manager" \
+ --bindPassword password \
+ --plugin-name "UID Unique Attribute" \
+ --set enabled:true \
+ --add base-dn:ou=people,dc=example,dc=com \
+ --add base-dn:ou=people,dc=example,dc=org \
+ --trustAll \
+ --no-prompt</userinput>
+   </screen>
   </step>
+
   <step>
    <para>Check that the plugin is working correctly.</para>
-   <screen>$ cat bjensen.ldif 
-dn: uid=ajensen,ou=People,dc=example,dc=com
+
+   <screen>
+$ <userinput>cat bjensen.ldif</userinput>
+<computeroutput>dn: uid=ajensen,ou=People,dc=example,dc=com
 changetype: modify
 add: uid
-uid: bjensen
+uid: bjensen</computeroutput>
 
-$ ldapmodify
- --defaultAdd
- --port 1389
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --filename bjensen.ldif
-Processing MODIFY request for uid=ajensen,ou=People,dc=example,dc=com
+$ <userinput>ldapmodify \
+ --defaultAdd \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --filename bjensen.ldif</userinput>
+<computeroutput>Processing MODIFY request for uid=ajensen,ou=People,dc=example,dc=com
 MODIFY operation failed
 Result Code:  19 (Constraint Violation)
-Additional Information:  A unique attribute conflict was detected for \
+Additional Information:  A unique attribute conflict was detected for
  attribute uid:  value bjensen already exists in entry
- uid=bjensen,ou=People,dc=example,dc=com</screen>
+ uid=bjensen,ou=People,dc=example,dc=com</computeroutput>
+   </screen>
 
    <para>If you have set up multiple suffixes, you might try something like
    this.</para>
-   <screen>$ cat bjensen.ldif 
-dn: uid=bjensen,ou=People,dc=example,dc=org
+
+   <screen>
+$ <userinput>cat bjensen.ldif</userinput>
+<computeroutput>dn: uid=bjensen,ou=People,dc=example,dc=org
 objectClass: top
 objectClass: person
 objectClass: organizationalPerson
 objectClass: inetOrgPerson
 cn: Babs
 sn: Jensen
-uid: bjensen
+uid: bjensen</computeroutput>
 
-$ ldapmodify
- --port 1389
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --defaultAdd
- --filename bjensen.ldif
-Processing ADD request for uid=bjensen,ou=People,dc=example,dc=org
+$ <userinput>ldapmodify \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --defaultAdd \
+ --filename bjensen.ldif</userinput>
+<computeroutput>Processing ADD request for uid=bjensen,ou=People,dc=example,dc=org
 ADD operation failed
 Result Code:  19 (Constraint Violation)
 Additional Information:  A unique attribute conflict was detected for attribute
  uid:  value bjensen already exists in entry
- uid=bjensen,ou=People,dc=example,dc=com</screen>
+ uid=bjensen,ou=People,dc=example,dc=com</computeroutput>
+   </screen>
   </step>
  </procedure>
  
@@ -192,42 +205,48 @@ Additional Information:  A unique attribute conflict was detected for attribute
      configuration, do so as shown in the following example which uses the
      plugin configuration from <xref linkend="enable-unique-uids" />.</para>
 
-     <screen>$ dsconfig
- set-plugin-prop
- --port 4444
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --plugin-name "UID Unique Attribute"
- --add type:mobile
- --trustAll
- --no-prompt</screen>
+     <screen>
+$ <userinput>dsconfig \
+ set-plugin-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --plugin-name "UID Unique Attribute" \
+ --add type:mobile \
+ --trustAll \
+ --no-prompt</userinput>
+     </screen>
     </step>
 
     <step>
      <para>If you want to create a new plugin configuration, do so as shown in
      the following example.</para>
 
-     <screen>$ dsconfig
- create-plugin
- --port 4444
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --plugin-name "Unique mobile numbers"
- --type unique-attribute
- --set enabled:true
- --set base-dn:ou=people,dc=example,dc=com
- --set type:mobile
- --trustAll
- --no-prompt</screen>
+     <screen>
+ $ <userinput>dsconfig \
+ create-plugin \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --plugin-name "Unique mobile numbers" \
+ --type unique-attribute \
+ --set enabled:true \
+ --set base-dn:ou=people,dc=example,dc=com \
+ --set type:mobile \
+ --trustAll \
+ --no-prompt</userinput>
+     </screen>
     </step>
    </stepalternatives>
   </step>
   <step>
    <para>Check that the plugin is working correctly.</para>
-   <screen>$ cat mobile.ldif
-dn: uid=ajensen,ou=People,dc=example,dc=com
+
+   <screen>
+$ <userinput>cat mobile.ldif</userinput>
+<computeroutput>dn: uid=ajensen,ou=People,dc=example,dc=com
 changetype: modify
 add: mobile
 mobile: +1 828 555 1212
@@ -235,22 +254,23 @@ mobile: +1 828 555 1212
 dn: uid=bjensen,ou=People,dc=example,dc=com
 changetype: modify
 add: mobile
-mobile: +1 828 555 1212
+mobile: +1 828 555 1212</computeroutput>
 
-$ ldapmodify
- --defaultAdd
- --port 1389
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --filename mobile.ldif 
-Processing MODIFY request for uid=ajensen,ou=People,dc=example,dc=com
+$ <userinput>ldapmodify \
+ --defaultAdd \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --filename mobile.ldif</userinput>
+<computeroutput>Processing MODIFY request for uid=ajensen,ou=People,dc=example,dc=com
 MODIFY operation successful for DN uid=ajensen,ou=People,dc=example,dc=com
 Processing MODIFY request for uid=bjensen,ou=People,dc=example,dc=com
 MODIFY operation failed
 Result Code:  19 (Constraint Violation)
 Additional Information:  A unique attribute conflict was detected for
  attribute mobile:  value +1 828 555 1212 already exists in entry
- uid=ajensen,ou=People,dc=example,dc=com</screen>
+ uid=ajensen,ou=People,dc=example,dc=com</computeroutput>
+   </screen>
   </step>
  </procedure>
 
@@ -282,39 +302,43 @@ Additional Information:  A unique attribute conflict was detected for
    <para>For each base DN, set up a configuration entry that ensures the
    target attribute values are unique.</para>
 
-   <screen>$ dsconfig
- create-plugin
- --port 4444
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --plugin-name "Unique Example.com UIDs"
- --type unique-attribute
- --set enabled:true
- --set base-dn:dc=example,dc=com
- --set type:uid
- --trustAll
- --no-prompt
-$ dsconfig
- create-plugin
- --port 4444
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --plugin-name "Unique Example.org UIDs"
- --type unique-attribute
- --set enabled:true
- --set base-dn:dc=example,dc=org
- --set type:uid
- --trustAll
- --no-prompt</screen>
+   <screen>
+$ <userinput>dsconfig \
+ create-plugin \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --plugin-name "Unique Example.com UIDs" \
+ --type unique-attribute \
+ --set enabled:true \
+ --set base-dn:dc=example,dc=com \
+ --set type:uid \
+ --trustAll \
+ --no-prompt</userinput>
+
+$ <userinput>dsconfig \
+ create-plugin \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --plugin-name "Unique Example.org UIDs" \
+ --type unique-attribute \
+ --set enabled:true \
+ --set base-dn:dc=example,dc=org \
+ --set type:uid \
+ --trustAll \
+ --no-prompt</userinput>
+   </screen>
   </step>
 
   <step>
    <para>Check that the plugin is working correctly.</para>
 
-   <screen>$ cat uniq-ids.ldif
-dn: uid=unique,ou=People,dc=example,dc=com
+   <screen>
+$ <userinput>cat uniq-ids.ldif</userinput>
+<computeroutput>dn: uid=unique,ou=People,dc=example,dc=com
 uid: unique
 givenName: Unique
 objectClass: person
@@ -346,15 +370,15 @@ objectClass: inetOrgPerson
 objectClass: top
 cn: Copycat Person
 sn: Person
-userPassword: copycopy
+userPassword: copycopy</computeroutput>
 
-$ ldapmodify
- --defaultAdd
- --port 1389
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --filename uniq-ids.ldif
-Processing ADD request for uid=unique,ou=People,dc=example,dc=com
+$ <userinput>ldapmodify \
+ --defaultAdd \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --filename uniq-ids.ldif</userinput>
+<computeroutput>Processing ADD request for uid=unique,ou=People,dc=example,dc=com
 ADD operation successful for DN uid=unique,ou=People,dc=example,dc=com
 Processing ADD request for uid=unique,ou=People,dc=example,dc=org
 ADD operation successful for DN uid=unique,ou=People,dc=example,dc=org
@@ -363,7 +387,8 @@ ADD operation failed
 Result Code:  19 (Constraint Violation)
 Additional Information:  A unique attribute conflict was detected for
  attribute uid:  value unique already exists in entry
- uid=unique,ou=People,dc=example,dc=com</screen>
+ uid=unique,ou=People,dc=example,dc=com</computeroutput>
+   </screen>
   </step>
  </procedure>
 

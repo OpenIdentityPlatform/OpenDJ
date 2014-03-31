@@ -20,17 +20,16 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !    
 -->
 <refentry xml:id='manage-tasks-1'
  xmlns='http://docbook.org/ns/docbook'
  version='5.0' xml:lang='en'
  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
- <info><copyright><year>2011-2012</year><holder>ForgeRock AS</holder></copyright></info>
+ xsi:schemaLocation='http://docbook.org/ns/docbook
+                     http://docbook.org/xml/5.0/xsd/docbook.xsd'>
+ <info><copyright><year>2011-2014</year><holder>ForgeRock AS</holder></copyright></info>
  <refmeta>
   <refentrytitle>manage-tasks</refentrytitle><manvolnum>1</manvolnum>
   <refmiscinfo class="software">OpenDJ</refmiscinfo>
@@ -241,13 +240,15 @@
   <title>Examples</title>
   <para>The following example demonstrates use of the command with a server
   that does daily backups at 2:00 AM.</para>
-  <screen>$ manage-tasks -p 4444 -h opendj.example.com -D "cn=Directory Manager"
- -w password -s
 
+  <screen>
+$ <userinput>manage-tasks -p 4444 -h opendj.example.com -D "cn=Directory Manager" \
+ -w password -s</userinput>
+<computeroutput>
   ID                                Type    Status
   ---------------------------------------------------------------
   example-backup                    Backup  Recurring
-  example-backup-20110622020000000  Backup  Waiting on start time
-</screen>
+  example-backup-20110622020000000  Backup  Waiting on start time</computeroutput>
+  </screen>
  </refsect1>
 </refentry>

@@ -20,17 +20,16 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2012 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !    
 -->
 <refentry xml:id='create-rc-script-1'
  xmlns='http://docbook.org/ns/docbook'
  version='5.0' xml:lang='en'
  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
- <info><copyright><year>2011-2012</year><holder>ForgeRock AS</holder></copyright></info>
+ xsi:schemaLocation='http://docbook.org/ns/docbook
+                     http://docbook.org/xml/5.0/xsd/docbook.xsd'>
+ <info><copyright><year>2011-2014</year><holder>ForgeRock AS</holder></copyright></info>
  <refmeta>
   <refentrytitle>create-rc-script</refentrytitle><manvolnum>1</manvolnum>
   <refmiscinfo class="software">OpenDJ</refmiscinfo>
@@ -123,7 +122,11 @@
   <para>The following example adds a script to start OpenDJ at boot time
   on a Debian-based system, and then updates the runlevel system to use the
   script.</para>
-  <screen>$ sudo create-rc-script -f /etc/init.d/opendj -u mark
-$ sudo update-rc.d opendj</screen>
+
+  <screen>
+$ <userinput>sudo create-rc-script -f /etc/init.d/opendj -u mark</userinput>
+$ <userinput>sudo update-rc.d opendj</userinput>
+  </screen>
+
  </refsect1>
 </refentry>

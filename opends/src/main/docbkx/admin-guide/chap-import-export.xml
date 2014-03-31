@@ -20,15 +20,15 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2013 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-import-export'
  xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ xsi:schemaLocation='http://docbook.org/ns/docbook
+                     http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'>
  <title>Importing &amp; Exporting LDIF Data</title>
  <indexterm><primary>Provisioning</primary></indexterm>
  <indexterm><primary>Importing data</primary></indexterm>
@@ -110,15 +110,18 @@
    <step>
     <para>Run the <command>make-ldif</command> command to generate your
     LDIF file.</para>
-    <screen>$ make-ldif
- --randomSeed 0
- --templateFile /path/to/my.template
- --ldifFile /path/to/generated.ldif
-Processed 1000 entries
+
+    <screen>
+$ <userinput>make-ldif \
+ --randomSeed 0 \
+ --templateFile /path/to/my.template \
+ --ldifFile /path/to/generated.ldif</userinput>
+<computeroutput>Processed 1000 entries
 Processed 2000 entries
 ...
 Processed 10000 entries
-LDIF processing complete.  10003 entries written</screen>
+LDIF processing complete.  10003 entries written</computeroutput>
+    </screen>
    </step>
   </procedure>
  </section>
@@ -153,23 +156,31 @@ LDIF processing complete.  10003 entries written</screen>
       <para>If you want to speed up the process&#8212;for example because you
       have millions of directory entries to import&#8212;first shut down the
       server, and then run the <command>import-ldif</command> command.</para>
-      <screen>$ stop-ds
-$ import-ldif
- --includeBranch dc=example,dc=org
- --backendID userRoot
- --ldifFile /path/to/generated.ldif</screen>
+
+      <screen>
+$ <userinput>stop-ds</userinput>
+$ <userinput>import-ldif \
+ --includeBranch dc=example,dc=org \
+ --backendID userRoot \
+ --ldifFile /path/to/generated.ldif</userinput>
+      </screen>
      </step>
+
      <step>
       <para>If not, schedule a task to import the data while online.</para>
-      <screen>$ import-ldif
- --port 4444
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --includeBranch dc=example,dc=org
- --backendID userRoot
- --ldifFile /path/to/generated.ldif
- --trustAll</screen>
+
+      <screen>
+$ <userinput>import-ldif \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --includeBranch dc=example,dc=org \
+ --backendID userRoot \
+ --ldifFile /path/to/generated.ldif \
+ --trustAll</userinput>
+      </screen>
+
      <para>Notice that the task is scheduled through communication over SSL on
      the administration port, by default <literal>4444</literal>. You can
      schedule the import task to start at a particular time using the
@@ -191,24 +202,32 @@ $ import-ldif
     <step>
      <para>If you want to speed up export, first shut down the server, and then
      export data using the <command>export-ldif</command> command.</para>
-     <screen>$ stop-ds
-$ export-ldif
- --includeBranch dc=example,dc=org
- --backendID userRoot
- --ldifFile /path/to/backup.ldif</screen>
+
+     <screen>
+$ <userinput>stop-ds</userinput>
+$ <userinput>export-ldif \
+ --includeBranch dc=example,dc=org \
+ --backendID userRoot \
+ --ldifFile /path/to/backup.ldif</userinput>
+     </screen>
      </step>
+
      <step>
       <para>If not, schedule a task to export the data while online.</para>
-     <screen>$ export-ldif
- --port 4444
- --hostname opendj.example.com
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --includeBranch dc=example,dc=org
- --backendID userRoot
- --ldifFile /path/to/backup.ldif
- --start 20111221230000
- --trustAll</screen>
+
+     <screen>
+$ <userinput>export-ldif \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --includeBranch dc=example,dc=org \
+ --backendID userRoot \
+ --ldifFile /path/to/backup.ldif \
+ --start 20111221230000 \
+ --trustAll</userinput>
+     </screen>
+
       <para>The <option>--start 20111221230000</option> option tells OpenDJ to
       start the export at 11 PM on December 21, 2012.</para>
       <para>If OpenDJ is stopped at this time, then when you start OpenDJ again,
@@ -236,13 +255,15 @@ $ export-ldif
    in a similar way to how you search LDAP directories with the
    <command>ldapsearch</command> command.</para>
    
-   <screen>$ ldifsearch
- --baseDN dc=example,dc=org
- --ldifFile generated.ldif
- "(sn=Grenier)"
- mobile
-dn: uid=user.4630,ou=People,dc=example,dc=org
-mobile: +1 728 983 6669</screen>
+   <screen>
+$ <userinput>ldifsearch \
+ --baseDN dc=example,dc=org \
+ --ldifFile generated.ldif \
+ "(sn=Grenier)" \
+ mobile</userinput>
+<computeroutput>dn: uid=user.4630,ou=People,dc=example,dc=org
+mobile: +1 728 983 6669</computeroutput>
+   </screen>
 
    <para>The <option>--ldifFile <replaceable>ldif-file</replaceable></option>
    option replaces the <option>--hostname</option> and <option>--port</option>
@@ -256,19 +277,21 @@ mobile: +1 728 983 6669</screen>
    <para>The <command>ldifmodify</command> command lets you apply changes to
    LDIF files, generating a new, changed version of the original file.</para>
    
-   <screen>$ cat changes.ldif 
-dn: uid=user.0,ou=People,dc=example,dc=org
+   <screen>
+$ <userinput>cat changes.ldif</userinput>
+<computeroutput>dn: uid=user.0,ou=People,dc=example,dc=org
 changetype: modify
 replace: description
 description: This is the new description for Aaccf Amar.
 -
 replace: initials
 initials: AAA
-
-$ ldifmodify
- --sourceLDIF generated.ldif
- --changesLDIF changes.ldif
- --targetLDIF new.ldif</screen>
+</computeroutput>
+$ <userinput>ldifmodify \
+ --sourceLDIF generated.ldif \
+ --changesLDIF changes.ldif \
+ --targetLDIF new.ldif</userinput>
+   </screen>
 
    <para>Notice that the resulting new LDIF file is likely to be about the
    same size as the source LDIF file.</para>
@@ -280,8 +303,9 @@ $ ldifmodify
    <para>The <command>ldif-diff</command> command reports differences between
    two LDIF files in LDIF format.</para>
    
-   <screen>$ ldif-diff --sourceLDIF old.ldif --targetLDIF new.ldif
-dn: uid=user.0,ou=People,dc=example,dc=org
+   <screen>
+$ <userinput>ldif-diff --sourceLDIF old.ldif --targetLDIF new.ldif</userinput>
+<computeroutput>dn: uid=user.0,ou=People,dc=example,dc=org
 changetype: modify
 add: initials
 initials: AAA
@@ -294,8 +318,8 @@ description: This is the new description for Aaccf Amar.
 -
 delete: description
 description: This is the description for Aaccf Amar.
-
-</screen>
+</computeroutput>
+   </screen>
 
    <para>As the <command>ldif-diff</command> command reads both files into
    memory, constructing tree maps to perform the comparison, the command
@@ -317,10 +341,11 @@ description: This is the description for Aaccf Amar.
   <literal>userRoot</literal>. You can create new backends using the
   <command>dsconfig</command> command. The following example creates a
   local backend named <literal>testData</literal>.</para>
-  <screen>$ dsconfig create-backend --backend-name testData --type local-db
+  <screen>
+$ <userinput>dsconfig create-backend --backend-name testData --type local-db</userinput>
 
-
-&gt;&gt;&gt;&gt; Configuring the "base-dn" property
+<computeroutput>
+>>>> Configuring the "base-dn" property
 
     Specifies the base DN(s) for the data that the backend handles.
 
@@ -333,12 +358,12 @@ description: This is the description for Aaccf Amar.
 
     Syntax:  DN
 
-Enter a value for the "base-dn" property: dc=example,dc=org
-
+Enter a value for the "base-dn" property:</computeroutput> <userinput>dc=example,dc=org</userinput>
+<computeroutput>
 Enter another value for the "base-dn" property [continue]: 
 
 
-&gt;&gt;&gt;&gt; Configuring the "enabled" property
+>>>> Configuring the "enabled" property
 
     Indicates whether the backend is enabled in the server.
 
@@ -353,10 +378,10 @@ Select a value for the "enabled" property:
     ?)  help
     q)  quit
 
-Enter choice: 1
+Enter choice:</computeroutput> <userinput>1</userinput>
+<computeroutput>
 
-
-&gt;&gt;&gt;&gt; Configure the properties of the Local DB Backend
+>>>> Configure the properties of the Local DB Backend
 
         Property           Value(s)
         --------------------------------------
@@ -376,9 +401,11 @@ Enter choice: 1
 
 Enter choice [f]: 
 
-The Local DB Backend was created successfully</screen>
+The Local DB Backend was created successfully</computeroutput>
+  </screen>
+
   <para>Alternatively, you can create a new backend in OpenDJ Control Panel
-  (Directory Data &gt; New Base DN... &gt; Backend &gt; New Backend:
+  (Directory Data > New Base DN > Backend > New Backend:
   <replaceable>backend-name</replaceable>).</para>
  </section>
 
