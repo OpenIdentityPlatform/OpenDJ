@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2013 ForgeRock AS
+  !      Copyright 2013-2014 ForgeRock AS
   !
 -->
 <refentry xml:id='makeldif-1'
@@ -32,7 +32,7 @@
           xmlns:xlink='http://www.w3.org/1999/xlink'>
  <info>
   <copyright>
-   <year>2013</year>
+   <year>2013-2014</year>
    <holder>ForgeRock AS</holder>
   </copyright>
  </info>
@@ -291,10 +291,12 @@
    which is 10000.
   </para>
 
-  <screen>$ makeldif --outputLDIF test.ldif --constant numusers=2000 example.template
-Processed 1000 entries
+  <screen>
+$ <userinput>makeldif --outputLDIF test.ldif --constant numusers=2000 example.template</userinput>
+<computeroutput>Processed 1000 entries
 Processed 2000 entries
-LDIF processing complete. 2002 entries written</screen>
+LDIF processing complete. 2002 entries written</computeroutput>
+  </screen>
  </refsect1>
 
  <refsect1>

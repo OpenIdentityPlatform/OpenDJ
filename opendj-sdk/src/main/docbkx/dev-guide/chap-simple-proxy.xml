@@ -20,15 +20,15 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2013 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-simple-proxy'
  xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ xsi:schemaLocation='http://docbook.org/ns/docbook
+                     http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'>
  <title>Writing a Simple LDAP Proxy</title>
  <indexterm>
   <primary>LDAP</primary>
@@ -192,18 +192,19 @@ final ConnectionFactory factory = Connections.newLoadBalancer(algorithm);</progr
   OpenDJ directory server, can do attribute rewriting without a proxy layer.
   See your directory server's documentation for details.</para></footnote></para>
 
-  <screen># A search accessing the directory server
-$ ldapsearch -b dc=example,dc=com -p 1389 "(cn=Babs Jensen)" cn
-dn: uid=bjensen,ou=People,dc=example,dc=com
+  <screen>
+# A search accessing the directory server
+$ <userinput>ldapsearch -b dc=example,dc=com -p 1389 "(cn=Babs Jensen)" cn</userinput>
+<computeroutput>dn: uid=bjensen,ou=People,dc=example,dc=com
 cn: Barbara Jensen
-cn: Babs Jensen
+cn: Babs Jensen</computeroutput>
 
 # The same search search accessing a proxy that rewrites requests and responses
-$ ldapsearch -b o=example -p 8389 "(fullname=Babs Jensen)" fullname
-dn: uid=bjensen,ou=People,o=example
+$ <userinput>ldapsearch -b o=example -p 8389 "(fullname=Babs Jensen)" fullname</userinput>
+<computeroutput>dn: uid=bjensen,ou=People,o=example
 fullname: Barbara Jensen
-fullname: Babs Jensen
-</screen>
+fullname: Babs Jensen</computeroutput>
+  </screen>
 
   <para>The OpenDJ LDAP SDK <link xlink:show="new"
   xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/xref/org/forgerock/opendj/examples/RewriterProxy.html"
