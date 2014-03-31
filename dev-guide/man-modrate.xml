@@ -20,17 +20,16 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2013 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !    
 -->
 <refentry xml:id='modrate-1'
  xmlns='http://docbook.org/ns/docbook'
  version='5.0' xml:lang='en'
  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
- <info><copyright><year>2011-2013</year><holder>ForgeRock AS</holder></copyright></info>
+ xsi:schemaLocation='http://docbook.org/ns/docbook
+                     http://docbook.org/xml/5.0/xsd/docbook.xsd'>
+ <info><copyright><year>2011-2014</year><holder>ForgeRock AS</holder></copyright></info>
  <refmeta>
   <refentrytitle>modrate</refentrytitle><manvolnum>1</manvolnum>
   <refmiscinfo class="software">OpenDJ</refmiscinfo>
@@ -348,11 +347,13 @@
   <para>The following example demonstrates testing directory performance by
   using the modrate command to write random 16-character description values
   to all entries in a sample file.</para>
-  <screen>$ grep ^uid: /path/to/Example.ldif | sed -e "s/uid: //" &gt; names.txt
-$ modrate -p 1389 -D "cn=Directory Manager" -w password  -A -F -c 4 -t 4
- -b "uid=%s,ou=people,dc=example,dc=com" -g "rand(names.txt)"
- -g "randstr(16)" 'description:%2$s'
---------------------------------------------------------------------------
+
+  <screen>
+$ <userinput>grep ^uid: /path/to/Example.ldif | sed -e "s/uid: //" > names.txt</userinput>
+$ <userinput>modrate -p 1389 -D "cn=Directory Manager" -w password  -A -F -c 4 -t 4 \
+ -b "uid=%s,ou=people,dc=example,dc=com" -g "rand(names.txt)" \
+ -g "randstr(16)" 'description:%2$s'</userinput>
+<computeroutput>--------------------------------------------------------------------------
      Throughput                            Response Time                  
    (ops/second)                           (milliseconds)                  
 recent  average  recent  average  99.9%  99.99%  99.999%  err/sec  req/res
@@ -363,6 +364,7 @@ recent  average  recent  average  99.9%  99.99%  99.999%  err/sec  req/res
 3848.3   2501.4  1045.000  1352.583  2902.235  3015.863  3215.050  0.0  1.0
 3641.2   2717.4  1106.157  1290.003  2901.379  3015.597  3215.050  0.0  1.0
 3759.4   2883.0  1065.732  1243.534  2900.400  3015.501  3215.050  0.0  1.0
-^C</screen>
+^C</computeroutput>
+  </screen>
  </refsect1>
 </refentry>

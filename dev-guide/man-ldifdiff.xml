@@ -20,17 +20,16 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2013 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !    
 -->
 <refentry xml:id='ldifdiff-1'
  xmlns='http://docbook.org/ns/docbook'
  version='5.0' xml:lang='en'
  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
- <info><copyright><year>2011-2013</year><holder>ForgeRock AS</holder></copyright></info>
+ xsi:schemaLocation='http://docbook.org/ns/docbook
+                     http://docbook.org/xml/5.0/xsd/docbook.xsd'>
+ <info><copyright><year>2011-2014</year><holder>ForgeRock AS</holder></copyright></info>
  <refmeta>
   <refentrytitle>ldifdiff</refentrytitle><manvolnum>1</manvolnum>
   <refmiscinfo class="software">OpenDJ</refmiscinfo>
@@ -122,8 +121,10 @@
   <title>Examples</title>
   <para>The following example demonstrates use of the command with two
   small LDIF files.</para>
-  <screen>$ cat /path/to/newuser.ldif
-dn: uid=newuser,ou=People,dc=example,dc=com
+
+  <screen>
+$ <userinput>cat /path/to/newuser.ldif</userinput>
+<computeroutput>dn: uid=newuser,ou=People,dc=example,dc=com
 uid: newuser
 objectClass: person
 objectClass: organizationalPerson
@@ -133,10 +134,10 @@ cn: New User
 sn: User
 ou: People
 mail: newuser@example.com
-userPassword: changeme
+userPassword: changeme</computeroutput>
 
-$ cat /path/to/neweruser.ldif
-dn: uid=newuser,ou=People,dc=example,dc=com
+$ <userinput>cat /path/to/neweruser.ldif</userinput>
+<computeroutput>dn: uid=newuser,ou=People,dc=example,dc=com
 uid: newuser
 objectClass: person
 objectClass: organizationalPerson
@@ -147,10 +148,10 @@ sn: User
 ou: People
 mail: newuser@example.com
 userPassword: secret12
-description: A new description.
+description: A new description.</computeroutput>
 
-$ ldifdiff /path/to/newuser.ldif /path/to/neweruser.ldif
-dn: uid=newuser,ou=People,dc=example,dc=com
+$ <userinput>ldifdiff /path/to/newuser.ldif /path/to/neweruser.ldif</userinput>
+<computeroutput>dn: uid=newuser,ou=People,dc=example,dc=com
 changetype: modify
 add: userPassword
 userPassword: secret12
@@ -159,7 +160,7 @@ delete: userPassword
 userPassword: changeme
 -
 add: description
-description: A new description.
-</screen>
+description: A new description.</computeroutput>
+  </screen>
  </refsect1>
 </refentry>

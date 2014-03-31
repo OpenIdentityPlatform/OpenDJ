@@ -20,15 +20,15 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2013 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-authenticating'
  xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ xsi:schemaLocation='http://docbook.org/ns/docbook
+                     http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xlink='http://www.w3.org/1999/xlink'>
  <title>Authenticating To the Directory</title>
 
  <para>When your client application connects to the directory, the first
@@ -148,18 +148,20 @@
   DSE. The follow example shows how to search OpenDJ for supported SASL
   mechanisms.</para>
   
-  <screen>$ ldapsearch
- --port 1389
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --baseDN ""
- --searchScope base
- "(objectclass=*)" supportedSASLMechanisms
-dn: 
+  <screen>
+$ <userinput>ldapsearch \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --baseDN "" \
+ --searchScope base \
+ "(objectclass=*)" supportedSASLMechanisms</userinput>
+<computeroutput>dn:
 supportedSASLMechanisms: PLAIN
 supportedSASLMechanisms: EXTERNAL
 supportedSASLMechanisms: DIGEST-MD5
-supportedSASLMechanisms: CRAM-MD5</screen>
+supportedSASLMechanisms: CRAM-MD5</computeroutput>
+  </screen>
 
   <para>Notice that neither the Kerberos (GSSAPI SASL) nor the Anonymous
   mechanism is enabled by default, though OpenDJ implements both.</para>
@@ -186,7 +188,7 @@ supportedSASLMechanisms: CRAM-MD5</screen>
   password <literal>hifalutin</literal>, the bind is successful, and the
   program reaches the final line of the <literal>try</literal> block.</para>
   
-  <screen>Authenticated as u:bjensen.</screen>
+  <literallayout class="monospaced">Authenticated as u:bjensen.</literallayout>
   
   <para>Behind the scenes, OpenDJ has the SASL PLAIN mechanism configured by
   default to use the Exact Match Identity Mapper to look up user IDs as

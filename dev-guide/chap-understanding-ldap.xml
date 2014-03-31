@@ -20,15 +20,14 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2013 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-understanding-ldap'
  xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+ xsi:schemaLocation='http://docbook.org/ns/docbook
+                     http://docbook.org/xml/5.0/xsd/docbook.xsd'>
  <title>Understanding LDAP</title>
  <indexterm>
   <primary>LDAP</primary>
@@ -109,7 +108,8 @@
   for words in the dictionary, or for subscriber names in the phone book.
   A sample entry follows.</para>
 
-  <programlisting language="LDIF">dn: uid=bjensen,ou=People,dc=example,dc=com
+  <programlisting language="LDIF">
+dn: uid=bjensen,ou=People,dc=example,dc=com
 uid: bjensen
 cn: Babs Jensen
 cn: Barbara Jensen
@@ -130,7 +130,7 @@ roomNumber: 0209
 sn: Jensen
 telephoneNumber: +1 408 555 1862
 uidNumber: 1076
-</programlisting>
+  </programlisting>
 
   <para>Barbara Jensen's entry has a number of attributes, such as
   <literal>uid: bjensen</literal>,
@@ -157,8 +157,10 @@ uidNumber: 1076
   attributes.<footnote><para>Sometimes your distinguished names include
   characters that you must escape. The following example shows an entry that
   includes escaped characters in the DN.</para>
-  <screen>$ ldapsearch --port 1389 --baseDN dc=example,dc=com "(uid=escape)"
-dn: cn=\" # \+ \, \; \&lt; = \&gt; \\ DN Escape Characters,dc=example,dc=com
+
+  <screen>
+$ <userinput>ldapsearch --port 1389 --baseDN dc=example,dc=com "(uid=escape)"</userinput>
+<computeroutput>dn: cn=\" # \+ \, \; \&lt; = \&gt; \\ DN Escape Characters,dc=example,dc=com
 objectClass: person
 objectClass: inetOrgPerson
 objectClass: organizationalPerson
@@ -167,7 +169,8 @@ givenName: " # + , ; &lt; = &gt; \
 uid: escape
 cn: " # + , ; &lt; = &gt; \ DN Escape Characters
 sn: DN Escape Characters
-mail: escape@example.com</screen></footnote></para>
+mail: escape@example.com</computeroutput>
+  </screen></footnote></para>
   
   <para>LDAP entries are arranged hierarchically in the directory. The
   hierarchical organization resembles a file system on a PC or a web server,

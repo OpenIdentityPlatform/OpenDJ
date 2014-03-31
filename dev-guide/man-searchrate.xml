@@ -20,17 +20,16 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2013 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !    
 -->
 <refentry xml:id='searchrate-1'
  xmlns='http://docbook.org/ns/docbook'
  version='5.0' xml:lang='en'
  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
- <info><copyright><year>2011-2013</year><holder>ForgeRock AS</holder></copyright></info>
+ xsi:schemaLocation='http://docbook.org/ns/docbook
+                     http://docbook.org/xml/5.0/xsd/docbook.xsd'>
+ <info><copyright><year>2011-2014</year><holder>ForgeRock AS</holder></copyright></info>
  <refmeta>
   <refentrytitle>searchrate</refentrytitle><manvolnum>1</manvolnum>
   <refmiscinfo class="software">OpenDJ</refmiscinfo>
@@ -357,10 +356,12 @@
  <refsect1>
   <title>Examples</title>
   <para>The following example demonstrates measuring search performance.</para>
-  <screen>$ grep ^uid: /path/to/Example.ldif | sed -e "s/uid: //" &gt; names.txt
-$ searchrate -p 1389 -b dc=example,dc=com -A -F -c 4 -t 4
- -g "rand(names.txt)" "(uid=%s)"
--------------------------------------------------------------------------------
+
+  <screen>
+$ <userinput>grep ^uid: /path/to/Example.ldif | sed -e "s/uid: //" > names.txt</userinput>
+$ <userinput>searchrate -p 1389 -b dc=example,dc=com -A -F -c 4 -t 4 \
+ -g "rand(names.txt)" "(uid=%s)"</userinput>
+<computeroutput>-------------------------------------------------------------------------------
      Throughput                            Response Time                       
    (ops/second)                           (milliseconds)                       
 recent  average  recent  average  99.9%  99.99%  99.999%  err/sec  Entries/Srch
@@ -372,6 +373,7 @@ recent  average  recent  average  99.9%  99.99%  99.999%  err/sec  Entries/Srch
 3236.9   2720.1   0.203    0.240  5.258  10.514  126.236      0.0           1.0
 3181.1   2796.8   0.207    0.234  5.258  10.384  126.236      0.0           1.0
 3202.5   2854.8   0.206    0.229  4.825  10.384  126.236      0.0           1.0
-^C</screen>
+^C</computeroutput>
+  </screen>
  </refsect1>
 </refentry>

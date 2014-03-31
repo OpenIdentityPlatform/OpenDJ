@@ -75,12 +75,13 @@
   supported LDAP controls by reading the <literal>supportedControl</literal>
   attribute of the root DSE.</para>
 
-  <screen>$ ldapsearch
- --baseDN ""
- --searchScope base
- --port 1389
- "(objectclass=*)" supportedControl
-dn: 
+  <screen>
+$ <userinput>ldapsearch \
+ --baseDN "" \
+ --searchScope base \
+ --port 1389 \
+ "(objectclass=*)" supportedControl</userinput>
+<computeroutput>dn:
 supportedControl: 1.2.826.0.1.3344810.2.3
 supportedControl: 1.2.840.113556.1.4.1413
 supportedControl: 1.2.840.113556.1.4.319
@@ -105,7 +106,8 @@ supportedControl: 2.16.840.1.113730.3.4.2
 supportedControl: 2.16.840.1.113730.3.4.3
 supportedControl: 2.16.840.1.113730.3.4.4
 supportedControl: 2.16.840.1.113730.3.4.5
-supportedControl: 2.16.840.1.113730.3.4.9</screen>
+supportedControl: 2.16.840.1.113730.3.4.9</computeroutput>
+  </screen>
 
   <para>The following excerpt shows couple of methods to check whether the
   directory server supports a control.</para>
