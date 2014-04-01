@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.opends.server.tools.status;
@@ -313,81 +313,90 @@ class StatusCli extends ConsoleApplication
       controlInfo.setConnectTimeout(argParser.getConnectTimeout());
       controlInfo.regenerateDescriptor();
       boolean authProvided = false;
-      if (controlInfo.getServerDescriptor().getStatus() ==
-        ServerDescriptor.ServerStatus.STARTED) {
-        String bindDn;
-        String bindPwd;
-        if (argParser.isInteractive()) {
-          ManagementContext ctx = null;
+      if (controlInfo.getServerDescriptor().getStatus()
+          == ServerDescriptor.ServerStatus.STARTED)
+      {
+        String bindDn = null;
+        String bindPwd = null;
+        ManagementContext mContext = null;
 
-          // This is done because we do not need to ask the user about these
-          // parameters.  If we force their presence the class
-          // LDAPConnectionConsoleInteraction will not prompt the user for
-          // them.
-          SecureConnectionCliArgs secureArgsList =
-            argParser.getSecureArgsList();
+        // This is done because we do not need to ask the user about these
+        // parameters.  If we force their presence the class
+        // LDAPConnectionConsoleInteraction will not prompt the user for
+        // them.
+        SecureConnectionCliArgs secureArgsList =
+          argParser.getSecureArgsList();
 
-          int port =
-            AdministrationConnector.DEFAULT_ADMINISTRATION_CONNECTOR_PORT;
-          controlInfo.setConnectionPolicy(
-            ConnectionProtocolPolicy.USE_ADMIN);
-          String ldapUrl = controlInfo.getURLToConnect();
-          try {
-            URI uri = new URI(ldapUrl);
-            port = uri.getPort();
-          } catch (Throwable t) {
-            LOG.log(Level.SEVERE, "Error parsing url: " + ldapUrl);
-          }
-          secureArgsList.hostNameArg.setPresent(true);
-          secureArgsList.portArg.setPresent(true);
-          secureArgsList.hostNameArg.addValue(
-            secureArgsList.hostNameArg.getDefaultValue());
-          secureArgsList.portArg.addValue(Integer.toString(port));
-          // We already know if SSL or StartTLS can be used.  If we cannot
-          // use them we will not propose them in the connection parameters
-          // and if none of them can be used we will just not ask for the
-          // protocol to be used.
-          LDAPConnectionConsoleInteraction ci =
-            new LDAPConnectionConsoleInteraction(
-            this, argParser.getSecureArgsList());
-          try {
-            ci.run(true, false);
+        int port =
+          AdministrationConnector.DEFAULT_ADMINISTRATION_CONNECTOR_PORT;
+        controlInfo.setConnectionPolicy(
+          ConnectionProtocolPolicy.USE_ADMIN);
+        String ldapUrl = controlInfo.getURLToConnect();
+        try {
+          URI uri = new URI(ldapUrl);
+          port = uri.getPort();
+        } catch (Throwable t) {
+          LOG.log(Level.SEVERE, "Error parsing url: " + ldapUrl);
+        }
+        secureArgsList.hostNameArg.setPresent(true);
+        secureArgsList.portArg.setPresent(true);
+        secureArgsList.hostNameArg.addValue(
+          secureArgsList.hostNameArg.getDefaultValue());
+        secureArgsList.portArg.addValue(Integer.toString(port));
+        // We already know if SSL or StartTLS can be used.  If we cannot
+        // use them we will not propose them in the connection parameters
+        // and if none of them can be used we will just not ask for the
+        // protocol to be used.
+        LDAPConnectionConsoleInteraction ci =
+          new LDAPConnectionConsoleInteraction(
+          this, argParser.getSecureArgsList());
+        try
+        {
+          ci.run(true, false);
+
+          if (argParser.isInteractive())
+          {
             bindDn = ci.getBindDN();
             bindPwd = ci.getBindPassword();
+          }
+          else
+          {
+            bindDn = argParser.getBindDN();
+            bindPwd = argParser.getBindPassword();
+          }
 
-            LDAPManagementContextFactory factory =
+          LDAPManagementContextFactory factory =
               new LDAPManagementContextFactory(alwaysSSL);
-            ctx = factory.getManagementContext(this, ci);
-            interactiveTrustManager = ci.getTrustManager();
-            controlInfo.setTrustManager(interactiveTrustManager);
-            useInteractiveTrustManager = true;
-          } catch (ArgumentException e) {
-            println(e.getMessageObject());
-            return ErrorReturnCode.USER_CANCELLED_OR_DATA_ERROR.getReturnCode();
-          } catch (ClientException e) {
-            println(e.getMessageObject());
-            writeStatus(controlInfo);
-            return ErrorReturnCode.USER_CANCELLED_OR_DATA_ERROR.getReturnCode();
-          } finally {
-            if (ctx != null) {
-              try {
-                ctx.close();
-              } catch (Throwable t) {
-              }
+          mContext = factory.getManagementContext(this, ci);
+          interactiveTrustManager = ci.getTrustManager();
+          controlInfo.setTrustManager(interactiveTrustManager);
+          useInteractiveTrustManager = true;
+          authProvided = true;
+        }
+        catch (ArgumentException e)
+        {
+          println(e.getMessageObject());
+          return ErrorReturnCode.USER_CANCELLED_OR_DATA_ERROR.getReturnCode();
+        }
+        catch (ClientException e)
+        {
+          println(e.getMessageObject());
+          writeStatus(controlInfo);
+          return ErrorReturnCode.USER_CANCELLED_OR_DATA_ERROR.getReturnCode();
+        }
+        finally
+        {
+          if (mContext != null)
+          {
+            try
+            {
+              mContext.close();
+            }
+            catch (Throwable t)
+            {
+              // Nothing to do.
             }
           }
-        } else {
-          bindDn = argParser.getBindDN();
-          bindPwd = argParser.getBindPassword();
-        }
-
-        authProvided = bindPwd != null;
-
-        if (bindDn == null) {
-          bindDn = "";
-        }
-        if (bindPwd == null) {
-          bindPwd = "";
         }
 
         if (authProvided) {
