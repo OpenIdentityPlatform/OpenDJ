@@ -27,6 +27,7 @@ package com.forgerock.opendj.cli;
 
 import static com.forgerock.opendj.cli.CliMessages.*;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.CliConstants.DEFAULT_LDAP_CONNECT_TIMEOUT;
 
 import org.forgerock.i18n.LocalizableMessage;
 
@@ -400,16 +401,15 @@ public final class CommonArguments {
     /**
      * Returns the "connectTimeout" integer argument.
      *
-     * @param defaultTimeout
-     *            The default timeout.
      * @return The "connectTimeout" argument.
      * @throws ArgumentException
      *             If there is a problem with any of the parameters used to create this argument.
      */
-    public static IntegerArgument getConnectTimeOut(final int defaultTimeout) throws ArgumentException {
+    public static IntegerArgument getConnectTimeOut() throws ArgumentException {
         final IntegerArgument connectTimeout = new IntegerArgument(OPTION_LONG_CONNECT_TIMEOUT, null,
-                OPTION_LONG_CONNECT_TIMEOUT, false, false, true, INFO_TIMEOUT_PLACEHOLDER.get(), defaultTimeout, null,
-                true, 0, false, Integer.MAX_VALUE, INFO_DESCRIPTION_CONNECTION_TIMEOUT.get());
+                OPTION_LONG_CONNECT_TIMEOUT, false, false, true, INFO_TIMEOUT_PLACEHOLDER.get(),
+                DEFAULT_LDAP_CONNECT_TIMEOUT, null, true, 0, false, Integer.MAX_VALUE,
+                INFO_DESCRIPTION_CONNECTION_TIMEOUT.get());
         connectTimeout.setPropertyName(OPTION_LONG_CONNECT_TIMEOUT);
         connectTimeout.setHidden(true);
         return connectTimeout;

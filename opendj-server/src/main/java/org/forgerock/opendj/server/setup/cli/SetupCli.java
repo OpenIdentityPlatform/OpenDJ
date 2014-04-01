@@ -249,7 +249,7 @@ public final class SetupCli extends ConsoleApplication {
         keyStorePassword = addGlobal(CommonArguments.getKeyStorePassword());
         keyStorePasswordFile = addGlobal(CommonArguments.getKeyStorePasswordFile());
         certNickname = addGlobal(CommonArguments.getCertNickName());
-        connectTimeout = CommonArguments.getConnectTimeOut(DEFAULT_LDAP_CONNECT_TIMEOUT);
+        connectTimeout = CommonArguments.getConnectTimeOut();
 
         // Utility Input Output Options.
         noPrompt = addGlobal(CommonArguments.getNoPrompt());

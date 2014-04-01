@@ -330,8 +330,9 @@ public class ConnectionFactoryProvider extends AbstractAuthenticatedConnectionFa
                 throw new ArgumentException(message);
             }
 
-            /* Couldn't have at the same time trustAll and
-             trustStore related arg*/
+            /*
+             * Couldn't have at the same time trustAll and trustStore related arg
+             */
             if (trustAllArg.isPresent() && trustStorePathArg.isPresent()) {
                 final LocalizableMessage message =
                         ERR_TOOL_CONFLICTING_ARGS.get(trustAllArg.getLongIdentifier(),
@@ -351,8 +352,9 @@ public class ConnectionFactoryProvider extends AbstractAuthenticatedConnectionFa
                 throw new ArgumentException(message);
             }
 
-            /* Couldn't have at the same time trustStorePasswordArg and
-             trustStorePasswordFileArg*/
+            /*
+             * Couldn't have at the same time trustStorePasswordArg and trustStorePasswordFileArg
+             */
             if (trustStorePasswordArg.isPresent() && trustStorePasswordFileArg.isPresent()) {
                 final LocalizableMessage message =
                         ERR_TOOL_CONFLICTING_ARGS.get(trustStorePasswordArg.getLongIdentifier(),
@@ -451,10 +453,8 @@ public class ConnectionFactoryProvider extends AbstractAuthenticatedConnectionFa
      *         <CODE>false</CODE> otherwise.
      */
     private boolean canReadPath(final String path) {
-        boolean canRead;
         final File file = new File(path);
-        canRead = file.exists() && file.canRead();
-        return canRead;
+        return file.exists() && file.canRead();
     }
 
     private String getAuthID(final String mech) throws ArgumentException {
@@ -536,24 +536,24 @@ public class ConnectionFactoryProvider extends AbstractAuthenticatedConnectionFa
                         || bindPasswordArg.isPresent()) {
                     bindRequest = Requests.newSimpleBindRequest(getBindName(), getPassword());
                 }
-            } else if (mech.equals(DigestMD5SASLBindRequest.SASL_MECHANISM_NAME)) {
+            } else if (DigestMD5SASLBindRequest.SASL_MECHANISM_NAME.equals(mech)) {
                 bindRequest =
                         Requests.newDigestMD5SASLBindRequest(
                                 getAuthID(DigestMD5SASLBindRequest.SASL_MECHANISM_NAME),
                                 getPassword()).setAuthorizationID(getAuthzID())
                                 .setRealm(getRealm());
-            } else if (mech.equals(CRAMMD5SASLBindRequest.SASL_MECHANISM_NAME)) {
+            } else if (CRAMMD5SASLBindRequest.SASL_MECHANISM_NAME.equals(mech)) {
                 bindRequest =
                         Requests.newCRAMMD5SASLBindRequest(
                                 getAuthID(CRAMMD5SASLBindRequest.SASL_MECHANISM_NAME),
                                 getPassword());
-            } else if (mech.equals(GSSAPISASLBindRequest.SASL_MECHANISM_NAME)) {
+            } else if (GSSAPISASLBindRequest.SASL_MECHANISM_NAME.equals(mech)) {
                 bindRequest =
                         Requests.newGSSAPISASLBindRequest(
                                 getAuthID(GSSAPISASLBindRequest.SASL_MECHANISM_NAME), getPassword())
                                 .setKDCAddress(getKDC()).setRealm(getRealm()).setAuthorizationID(
                                         getAuthzID());
-            } else if (mech.equals(ExternalSASLBindRequest.SASL_MECHANISM_NAME)) {
+            } else if (ExternalSASLBindRequest.SASL_MECHANISM_NAME.equals(mech)) {
                 if (sslContext == null) {
                     final LocalizableMessage message = ERR_TOOL_SASLEXTERNAL_NEEDS_SSL_OR_TLS.get();
                     throw new ArgumentException(message);
@@ -564,7 +564,7 @@ public class ConnectionFactoryProvider extends AbstractAuthenticatedConnectionFa
                 }
                 bindRequest =
                         Requests.newExternalSASLBindRequest().setAuthorizationID(getAuthzID());
-            } else if (mech.equals(PlainSASLBindRequest.SASL_MECHANISM_NAME)) {
+            } else if (PlainSASLBindRequest.SASL_MECHANISM_NAME.equals(mech)) {
                 bindRequest =
                         Requests.newPlainSASLBindRequest(
                                 getAuthID(PlainSASLBindRequest.SASL_MECHANISM_NAME), getPassword())
@@ -584,9 +584,7 @@ public class ConnectionFactoryProvider extends AbstractAuthenticatedConnectionFa
         return bindRequest;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String toString() {
         return connFactory.toString();
