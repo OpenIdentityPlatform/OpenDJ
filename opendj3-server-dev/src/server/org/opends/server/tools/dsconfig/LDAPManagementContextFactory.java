@@ -156,100 +156,75 @@ public final class LDAPManagementContextFactory implements
     {
       // Interact with the user though the console to get
       // LDAP connection information
-      String hostName = ConnectionUtils.getHostNameForLdapUrl(ci.getHostName());
-      Integer portNumber = ci.getPortNumber();
-      String bindDN = ci.getBindDN();
-      String bindPassword = ci.getBindPassword();
+      final String hostName = ConnectionUtils.getHostNameForLdapUrl(ci.getHostName());
+      final Integer portNumber = ci.getPortNumber();
+      final String bindDN = ci.getBindDN();
+      final String bindPassword = ci.getBindPassword();
       TrustManager trustManager = ci.getTrustManager();
-      KeyManager keyManager = ci.getKeyManager();
+      final KeyManager keyManager = ci.getKeyManager();
 
-      // Do we have a secure connection ?
       final LDAPOptions options = new LDAPOptions();
       options.setConnectTimeout(ci.getConnectTimeout(), TimeUnit.MILLISECONDS);
       LDAPConnectionFactory factory = null;
-      Connection connection;
-      if (ci.useSSL())
+      Connection connection = null;
+      while (true)
       {
-        while (true)
-        {
-          try
-          {
-            final SSLContextBuilder sslBuilder = new SSLContextBuilder();
-            sslBuilder.setTrustManager((trustManager == null ? TrustManagers
-                .trustAll() : trustManager));
-            sslBuilder.setKeyManager(keyManager);
-            options.setUseStartTLS(ci.useStartTLS());
-            options.setSSLContext(sslBuilder.getSSLContext());
-
-            factory = new LDAPConnectionFactory(hostName, portNumber, options);
-            connection = factory.getConnection();
-            connection.bind(bindDN, bindPassword.toCharArray());
-            break;
-          }
-          catch (ErrorResultException e)
-          {
-            final Throwable cause = e.getCause();
-            if (app.isInteractive()
-                && ci.isTrustStoreInMemory()
-                && cause != null
-                && cause instanceof SSLException
-                && cause.getCause() instanceof CertificateException)
-            {
-              String authType = null;
-              if (trustManager instanceof ApplicationTrustManager)
-              { // FIXME use PromptingTrustManager
-                ApplicationTrustManager appTrustManager =
-                    (ApplicationTrustManager) trustManager;
-                authType = appTrustManager.getLastRefusedAuthType();
-                X509Certificate[] cert = appTrustManager.getLastRefusedChain();
-
-                if (ci.checkServerCertificate(cert, authType, hostName))
-                {
-                  // If the certificate is trusted, update the trust manager.
-                  trustManager = ci.getTrustManager();
-                  // Try to connect again.
-                  continue;
-                }
-              }
-            }
-            if (cause instanceof SSLException)
-            {
-              throw new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR,
-                  ERR_FAILED_TO_CONNECT_NOT_TRUSTED.get(hostName, portNumber));
-            }
-            throw couldNotConnect(cause, hostName, portNumber, bindDN);
-          }
-          catch (GeneralSecurityException e)
-          {
-            throw new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR,
-                ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(hostName, portNumber));
-          }
-        }
-      }
-      else
-      { // FIXME The dsconfig is always using secure connection. This code can be
-        // removed in this case but statusCli and uninstall are also using it. Cleanup needed.
-        // Create the management context.
         try
         {
+          final SSLContextBuilder sslBuilder = new SSLContextBuilder();
+          sslBuilder.setTrustManager((trustManager == null ? TrustManagers
+              .trustAll() : trustManager));
+          sslBuilder.setKeyManager(keyManager);
+          options.setUseStartTLS(ci.useStartTLS());
+          options.setSSLContext(sslBuilder.getSSLContext());
+
           factory = new LDAPConnectionFactory(hostName, portNumber, options);
           connection = factory.getConnection();
           connection.bind(bindDN, bindPassword.toCharArray());
+          break;
         }
         catch (ErrorResultException e)
         {
-          throw couldNotConnect(e.getCause(), hostName, portNumber, bindDN);
-        }
-        finally
-        {
-          if (factory != null)
+          final Throwable cause = e.getCause();
+          if (app.isInteractive() && ci.isTrustStoreInMemory() && cause != null
+              && cause instanceof SSLException
+              && cause.getCause() instanceof CertificateException)
           {
-            factory.close();
+            String authType = null;
+            if (trustManager instanceof ApplicationTrustManager)
+            { // FIXME use PromptingTrustManager
+              ApplicationTrustManager appTrustManager =
+                  (ApplicationTrustManager) trustManager;
+              authType = appTrustManager.getLastRefusedAuthType();
+              X509Certificate[] cert = appTrustManager.getLastRefusedChain();
+
+              if (ci.checkServerCertificate(cert, authType, hostName))
+              {
+                // If the certificate is trusted, update the trust manager.
+                trustManager = ci.getTrustManager();
+                // Try to connect again.
+                continue;
+              }
+            }
           }
+          if (cause instanceof SSLException)
+          {
+            throw new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR,
+                ERR_FAILED_TO_CONNECT_NOT_TRUSTED.get(hostName, portNumber));
+          }
+          throw couldNotConnect(cause, hostName, portNumber, bindDN);
+        }
+        catch (GeneralSecurityException e)
+        {
+          throw new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR,
+              ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(hostName, portNumber));
+        } finally {
+          closeSilently(factory);
         }
       }
       context =
-          LDAPManagementContext.newManagementContext(connection, LDAPProfile.getInstance());
+          LDAPManagementContext.newManagementContext(connection, LDAPProfile
+              .getInstance());
     }
     return context;
   }

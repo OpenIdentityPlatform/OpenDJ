@@ -33,12 +33,13 @@ import java.util.concurrent.TimeUnit;
 
 import org.opends.admin.ads.ServerDescriptor;
 import org.opends.admin.ads.SuffixDescriptor;
-import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.quicksetup.installer.AuthenticationData;
 import org.opends.quicksetup.installer.DataReplicationOptions;
 import org.opends.quicksetup.installer.NewSuffixOptions;
 import org.opends.quicksetup.installer.SuffixesToReplicateOptions;
 import org.opends.quicksetup.util.Utils;
+
+import com.forgerock.opendj.cli.CliConstants;
 
 /**
  * This class is used to provide a data model for the different parameters
@@ -95,7 +96,7 @@ public class UserData
 
   private static String defaultHostName;
 
-  private int connectTimeout = ConnectionUtils.getDefaultLDAPTimeout();
+  private int connectTimeout = CliConstants.DEFAULT_LDAP_CONNECT_TIMEOUT;
 
   /**
    * The script name to be used to get and set the java arguments for the

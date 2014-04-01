@@ -42,6 +42,8 @@ import org.opends.server.types.DN;
 import org.opends.server.types.LDAPURL;
 import org.forgerock.opendj.ldap.SearchScope;
 
+import com.forgerock.opendj.cli.CliConstants;
+
 /**
  * An LDAPConnectionPool is a pool of LDAPConnection.
  * <BR><BR>
@@ -79,7 +81,7 @@ public class LDAPConnectionPool {
 
   private Control[] requestControls = new Control[] {};
   private ApplicationTrustManager trustManager;
-  private int connectTimeout = ConnectionUtils.getDefaultLDAPTimeout();
+  private int connectTimeout = CliConstants.DEFAULT_LDAP_CONNECT_TIMEOUT;
 
   /**
    * Returns <CODE>true</CODE> if the connection passed is registered in the

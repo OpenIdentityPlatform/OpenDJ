@@ -31,7 +31,6 @@ import static org.opends.messages.ToolMessages.*;
 
 import java.util.LinkedHashSet;
 
-import org.opends.admin.ads.util.ConnectionUtils;
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.UserData;
@@ -153,9 +152,7 @@ public class ControlPanelArgumentParser extends ArgumentParser
     remoteArg = CommonArguments.getRemote();
     addArgument(remoteArg);
 
-    connectTimeoutArg =
-        CommonArguments.getConnectTimeOut(ConnectionUtils
-            .getDefaultLDAPTimeout());
+    connectTimeoutArg = CommonArguments.getConnectTimeOut();
     connectTimeoutArg.setHidden(false);
     addArgument(connectTimeoutArg);
 

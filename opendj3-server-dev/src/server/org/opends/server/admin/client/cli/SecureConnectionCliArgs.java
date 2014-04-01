@@ -48,7 +48,6 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.admin.ads.util.ApplicationTrustManager;
-import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.server.admin.AdministrationConnector;
 import org.opends.server.admin.server.ServerManagementContext;
 import org.opends.server.admin.std.server.AdministrationConnectorCfg;
@@ -341,9 +340,7 @@ public final class SecureConnectionCliArgs
     certNicknameArg = CommonArguments.getCertNickName();
     argList.add(certNicknameArg);
 
-    connectTimeoutArg =
-        CommonArguments.getConnectTimeOut(ConnectionUtils
-            .getDefaultLDAPTimeout());
+    connectTimeoutArg = CommonArguments.getConnectTimeOut();
     connectTimeoutArg.setHidden(false);
     argList.add(connectTimeoutArg);
 
