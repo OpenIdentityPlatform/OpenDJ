@@ -33,6 +33,7 @@ import java.util.*;
 import org.assertj.core.api.Assertions;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.MemoryBackend;
@@ -50,7 +51,6 @@ import org.opends.server.replication.server.ReplicationServerDomain;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.tasks.LdifFileWriter;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -555,20 +555,20 @@ public class GenerationIdTest extends ReplicationTestCase
    * Check that the expected number of changes are in the replication server
    * database.
    */
-  private void checkChangelogSize(int expectedCount, int timeout) throws Exception
+  private void checkChangelogSize(int expectedCount) throws Exception
   {
-    long start = System.currentTimeMillis();
-    InternalSearchOperation searchOperation;
+    int count = 0;
+    InternalSearchOperation op;
     do
     {
       Thread.sleep(10);
-      searchOperation = connection.processSearch(
+      op = connection.processSearch(
           "dc=replicationchanges", SearchScope.SUBORDINATES, "(objectclass=*)");
     }
-    while (System.currentTimeMillis() - start <= timeout
-        && searchOperation.getResultCode() != ResultCode.SUCCESS
-        && searchOperation.getSearchEntries().size() != expectedCount);
-    Assertions.assertThat(searchOperation.getSearchEntries()).hasSize(expectedCount);
+    while (count < 300 // wait 3s maximum
+        && op.getResultCode() != ResultCode.SUCCESS
+        && op.getSearchEntries().size() != expectedCount);
+    Assertions.assertThat(op.getSearchEntries()).hasSize(expectedCount);
   }
 
   /**
@@ -660,7 +660,7 @@ public class GenerationIdTest extends ReplicationTestCase
       addTestEntriesToDB(createEntry(UUID.randomUUID()));
 
       // Verify that RS1 does contain the change related to this ADD.
-      checkChangelogSize(1, 500);
+      checkChangelogSize(1);
 
       // Verify that DS3 receives this change
       ReplicationMsg msg = broker3.receive();
@@ -698,7 +698,7 @@ public class GenerationIdTest extends ReplicationTestCase
 
       // By the way also verify that no change occurred on the replication server db
       // and still contain the ADD submitted initially.
-      checkChangelogSize(1, 500);
+      checkChangelogSize(1);
 
       //===============================================================
       debugInfo(testCase + " ** TEST ** Import with new data set + reset will"+
@@ -747,7 +747,7 @@ public class GenerationIdTest extends ReplicationTestCase
       assertEquals(dsGenId, rsGenId, "DS and replServer are expected to have same genId.");
 
       debugInfo("RS1 must have been cleared since it has not the proper generation ID");
-      checkChangelogSize(0, 0);
+      checkChangelogSize(0);
 
       assertFalse(isDegradedDueToGenerationId(replServer1, server1ID),
           "Expecting that DS1 status in RS1 is : not in bad gen id.");
@@ -766,7 +766,7 @@ public class GenerationIdTest extends ReplicationTestCase
       addTestEntriesToDB(createEntry(UUID.randomUUID()));
 
       debugInfo("RS1 must have stored that update.");
-      checkChangelogSize(1, 500);
+      checkChangelogSize(1);
 
       assertNoMessageReceived(broker2, "broker2", "bad gen id");
       assertNoMessageReceived(broker3, "broker3", "bad gen id");
@@ -776,7 +776,7 @@ public class GenerationIdTest extends ReplicationTestCase
       broker2.publish(emsg);
 
       // Updates count in RS1 must stay unchanged = to 1
-      checkChangelogSize(1, 500);
+      checkChangelogSize(1);
 
       assertNoMessageReceived(broker3, "broker3", "bad gen id");
 
@@ -814,7 +814,7 @@ public class GenerationIdTest extends ReplicationTestCase
       assertEquals(replServer1.getGenerationId(baseDN), rsGenId);
 
       // Updates count in RS1 must stay unchanged = to 1
-      checkChangelogSize(1, 500);
+      checkChangelogSize(1);
 
       debugInfo("Verifying that DS2 is not in bad gen id any more");
       assertFalse(isDegradedDueToGenerationId(replServer1, server2ID),
@@ -836,7 +836,7 @@ public class GenerationIdTest extends ReplicationTestCase
       final AddMsg emsg2 = createAddMsg();
       broker2.publish(emsg2);
 
-      checkChangelogSize(2, 500);
+      checkChangelogSize(2);
 
       /* expected */
       msg = broker3.receive();
@@ -913,7 +913,7 @@ public class GenerationIdTest extends ReplicationTestCase
    * - genId reset propagation from one RS to the others
    */
   @Test(enabled=false)
-  public void testMultiRS(int i) throws Exception
+  public void testMultiRS() throws Exception
   {
     String testCase = "testMultiRS";
     long genId;
@@ -1138,7 +1138,7 @@ public class GenerationIdTest extends ReplicationTestCase
   public void generationIdTest() throws Exception
   {
     testSingleRS();
-    testMultiRS(0);
+    testMultiRS();
     testServerStop();
     testLoop();
   }
