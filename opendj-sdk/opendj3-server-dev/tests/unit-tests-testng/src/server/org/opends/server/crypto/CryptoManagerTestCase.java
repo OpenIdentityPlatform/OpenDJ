@@ -62,6 +62,8 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import com.forgerock.opendj.cli.CliConstants;
+
 import static org.testng.Assert.*;
 
 /**
@@ -96,7 +98,7 @@ public class CryptoManagerTestCase extends CryptoTestCase {
             "ldaps://" + "127.0.0.1" + ":"
                     + String.valueOf(TestCaseUtils.getServerAdminPort()),
             "cn=Directory Manager", "password",
-          ConnectionUtils.getDefaultLDAPTimeout(), null, null, null);
+            CliConstants.DEFAULT_LDAP_CONNECT_TIMEOUT, null, null, null);
     // TODO: should the below dn be in ConfigConstants?
     final String dnStr = "ds-cfg-key-id=ads-certificate,cn=ads-truststore";
     final LdapName dn = new LdapName(dnStr);

@@ -64,8 +64,6 @@ import org.opends.server.schema.SchemaConstants;
  */
 public class ConnectionUtils
 {
-  private static final int DEFAULT_LDAP_CONNECT_TIMEOUT = 30000;
-
   private static final String STARTTLS_PROPERTY =
     "org.opends.connectionutils.isstarttls";
 
@@ -742,24 +740,14 @@ public class ConnectionUtils
   }
 
   /**
-   * Returns the default LDAP timeout in milliseconds when we try to connect to
-   * a server.
-   * @return the default LDAP timeout in milliseconds when we try to connect to
-   * a server.
-   */
-  public static int getDefaultLDAPTimeout()
-  {
-    return DEFAULT_LDAP_CONNECT_TIMEOUT;
-  }
-
-  /**
    * Returns the String that can be used to represent a given host name in a
-   * LDAP URL.
-   * This method must be used when we have IPv6 addresses (the address in the
-   * LDAP URL must be enclosed with brackets).
-   * @param host the host name.
-   * @return the String that can be used to represent a given host name in a
-   * LDAP URL.
+   * LDAP URL. This method must be used when we have IPv6 addresses (the address
+   * in the LDAP URL must be enclosed with brackets).
+   *
+   * @param host
+   *          The host name.
+   * @return The String that can be used to represent a given host name in a
+   *         LDAP URL.
    */
   public static String getHostNameForLdapUrl(String host)
   {
@@ -770,7 +758,7 @@ public class ConnectionUtils
       host = host.trim();
       if (!host.startsWith("["))
       {
-        host = "["+host;
+        host = "[" + host;
       }
       if (!host.endsWith("]"))
       {

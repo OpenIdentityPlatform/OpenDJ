@@ -37,7 +37,6 @@ import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.UserData;
@@ -374,9 +373,7 @@ public class InstallDSArgumentParser extends ArgumentParser
         INFO_INSTALLDS_DESCRIPTION_CERT_NICKNAME.get());
     addDefaultArgument(certNicknameArg);
 
-    connectTimeoutArg =
-        CommonArguments.getConnectTimeOut(ConnectionUtils
-            .getDefaultLDAPTimeout());
+    connectTimeoutArg = CommonArguments.getConnectTimeOut();
     addArgument(connectTimeoutArg);
 
     acceptLicense = CommonArguments.getAcceptLicense();

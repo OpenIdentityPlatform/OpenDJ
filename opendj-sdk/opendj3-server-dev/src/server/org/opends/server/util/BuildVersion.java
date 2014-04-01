@@ -30,6 +30,7 @@ import static org.opends.messages.ToolMessages.ERR_BUILDVERSION_NOT_FOUND;
 import static org.opends.messages.ToolMessages.ERR_BUILDVERSION_MALFORMED;
 import static org.opends.messages.ToolMessages.ERR_BUILDVERSION_MISMATCH;
 import static org.opends.server.config.ConfigConstants.CONFIG_DIR_NAME;
+import static org.forgerock.util.Utils.closeSilently;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -107,17 +108,7 @@ public final class BuildVersion implements Comparable<BuildVersion>
     }
     finally
     {
-      if (reader != null)
-      {
-        try
-        {
-          reader.close();
-        }
-        catch (final Exception e)
-        {
-          // Ignore.
-        }
-      }
+      closeSilently(reader);
     }
   }
 
@@ -187,9 +178,7 @@ public final class BuildVersion implements Comparable<BuildVersion>
     this.rev = rev;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public int compareTo(final BuildVersion version)
   {
     if (major == version.major)
@@ -224,9 +213,7 @@ public final class BuildVersion implements Comparable<BuildVersion>
     return 1;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public boolean equals(final Object obj)
   {
     if (this == obj)
@@ -236,8 +223,8 @@ public final class BuildVersion implements Comparable<BuildVersion>
     else if (obj instanceof BuildVersion)
     {
       final BuildVersion other = (BuildVersion) obj;
-      return (major == other.major) && (minor == other.minor)
-          && (point == other.point) && (rev == other.rev);
+      return major == other.major && minor == other.minor
+          && point == other.point && rev == other.rev;
     }
     else
     {
@@ -285,18 +272,14 @@ public final class BuildVersion implements Comparable<BuildVersion>
     return rev;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public int hashCode()
   {
     return Arrays.hashCode(new int[] { major, minor, point, (int) (rev >>> 32),
       (int) (rev & 0xFFFFL) });
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public String toString()
   {
     final StringBuilder builder = new StringBuilder();

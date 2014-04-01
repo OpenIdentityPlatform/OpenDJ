@@ -32,7 +32,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.opends.admin.ads.util.ConnectionUtils;
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.controls.PasswordPolicyErrorType;
 import org.opends.server.controls.PasswordPolicyResponseControl;
@@ -52,6 +51,7 @@ import org.opends.server.util.EmbeddedUtils;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.CliConstants;
 import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.FileBasedArgument;
@@ -388,7 +388,7 @@ public class LDAPPasswordModify
       controlStr.setPropertyName("control");
       argParser.addArgument(controlStr);
 
-      int defaultTimeout = ConnectionUtils.getDefaultLDAPTimeout();
+      int defaultTimeout = CliConstants.DEFAULT_LDAP_CONNECT_TIMEOUT;
       connectTimeout = new IntegerArgument(OPTION_LONG_CONNECT_TIMEOUT,
           null, OPTION_LONG_CONNECT_TIMEOUT,
           false, false, true, INFO_TIMEOUT_PLACEHOLDER.get(),

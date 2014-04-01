@@ -40,8 +40,11 @@ import org.opends.quicksetup.installer.InstallerHelper;
 import org.opends.server.util.SetupUtils;
 import org.opends.server.util.StaticUtils;
 
+import com.forgerock.opendj.cli.CliConstants;
+
 import javax.naming.NamingException;
 import javax.naming.ldap.InitialLdapContext;
+
 import java.util.ArrayList;
 import java.util.Map;
 import java.io.BufferedReader;
@@ -468,7 +471,7 @@ public class ServerController {
             String ldapUrl = "ldaps://"+hostName+":" + port;
             try
             {
-              int timeout = ConnectionUtils.getDefaultLDAPTimeout();
+              int timeout = CliConstants.DEFAULT_LDAP_CONNECT_TIMEOUT;
               if (application != null)
               {
                 if (application.getUserData() != null)

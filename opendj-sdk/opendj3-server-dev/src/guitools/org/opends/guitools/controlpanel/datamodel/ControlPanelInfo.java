@@ -65,6 +65,8 @@ import org.opends.quicksetup.util.Utils;
 import org.opends.server.tools.ConfigureWindowsService;
 import org.opends.server.util.StaticUtils;
 
+import com.forgerock.opendj.cli.CliConstants;
+
 /**
  * This is the classes that is shared among all the different places in the
  * Control Panel.  It contains information about the server status and
@@ -86,7 +88,7 @@ public class ControlPanelInfo
   private boolean stopPooling;
   private boolean pooling;
   private ApplicationTrustManager trustManager;
-  private int connectTimeout = ConnectionUtils.getDefaultLDAPTimeout();
+  private int connectTimeout = CliConstants.DEFAULT_LDAP_CONNECT_TIMEOUT;
   private ConnectionProtocolPolicy connectionPolicy =
     ConnectionProtocolPolicy.USE_MOST_SECURE_AVAILABLE;
   private String ldapURL;

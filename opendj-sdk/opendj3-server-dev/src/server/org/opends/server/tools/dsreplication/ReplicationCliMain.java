@@ -91,6 +91,7 @@ import org.opends.server.util.StaticUtils;
 
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.CliConstants;
 import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ClientException;
@@ -1342,7 +1343,7 @@ public class ReplicationCliMain extends ConsoleApplication
         {
           ctx =
               ConnectionUtils.createStartTLSContext(ldapUrl, bindDN,
-                  bindPassword, ConnectionUtils.getDefaultLDAPTimeout(), null,
+                  bindPassword, CliConstants.DEFAULT_LDAP_CONNECT_TIMEOUT, null,
                   trustManager, keyManager, null);
           ctx.reconnect(null);
           break;
@@ -1400,7 +1401,7 @@ public class ReplicationCliMain extends ConsoleApplication
         {
           ctx =
               ConnectionUtils.createLdapContext(ldapUrl, bindDN, bindPassword,
-                  ConnectionUtils.getDefaultLDAPTimeout(), null);
+                  CliConstants.DEFAULT_LDAP_CONNECT_TIMEOUT, null);
           ctx.reconnect(null);
           break;
         }

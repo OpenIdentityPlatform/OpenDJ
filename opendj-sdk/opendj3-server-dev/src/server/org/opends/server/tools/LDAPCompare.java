@@ -41,7 +41,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
-import org.opends.admin.ads.util.ConnectionUtils;
 import org.opends.server.controls.LDAPAssertionRequestControl;
 import org.opends.server.protocols.ldap.CompareRequestProtocolOp;
 import org.opends.server.protocols.ldap.CompareResponseProtocolOp;
@@ -57,6 +56,7 @@ import org.opends.server.util.EmbeddedUtils;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.CliConstants;
 import com.forgerock.opendj.cli.ClientException;
 import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.FileBasedArgument;
@@ -608,7 +608,7 @@ public class LDAPCompare
       version.setPropertyName(OPTION_LONG_PROTOCOL_VERSION);
       argParser.addArgument(version);
 
-      int defaultTimeout = ConnectionUtils.getDefaultLDAPTimeout();
+      int defaultTimeout = CliConstants.DEFAULT_LDAP_CONNECT_TIMEOUT;
       connectTimeout = new IntegerArgument(OPTION_LONG_CONNECT_TIMEOUT,
           null, OPTION_LONG_CONNECT_TIMEOUT,
           false, false, true, INFO_TIMEOUT_PLACEHOLDER.get(),
