@@ -67,7 +67,10 @@ import org.opends.server.util.TimeThread;
 import org.opends.server.workflowelement.externalchangelog.ECLSearchOperation;
 import org.opends.server.workflowelement.externalchangelog.ECLWorkflowElement;
 import org.opends.server.workflowelement.localbackend.LocalBackendModifyDNOperation;
-import org.testng.annotations.*;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.opends.messages.ReplicationMessages.*;
@@ -168,7 +171,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   @Test(enabled=true, dependsOnMethods = { "ECLReplicationServerPreTest"})
   public void ECLReplicationServerTest() throws Exception
   {
-    getCNIndexDB().setPurgeDelay(0);
+    replicationServer.getChangelogDB().setPurgeDelay(0);
     // let's enable ECl manually now that we tested that ECl is not available
     ECLWorkflowElement wfe =
         (ECLWorkflowElement) DirectoryServer
@@ -189,7 +192,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   @Test(enabled=false, dependsOnMethods = { "ECLReplicationServerTest"})
   public void ECLReplicationServerTest1() throws Exception
   {
-    getCNIndexDB().setPurgeDelay(0);
+    replicationServer.getChangelogDB().setPurgeDelay(0);
     // Test with a mix of domains, a mix of DSes
     ECLTwoDomains();
   }
@@ -204,7 +207,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   @Test(enabled=true, dependsOnMethods = { "ECLReplicationServerTest"})
   public void ECLReplicationServerTest3() throws Exception
   {
-    getCNIndexDB().setPurgeDelay(0);
+    replicationServer.getChangelogDB().setPurgeDelay(0);
     // Write changes and read ECL from start
     ECLCompatWriteReadAllOps(1);
 
@@ -263,7 +266,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   @Test(enabled=false, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
   public void ECLReplicationServerFullTest3() throws Exception
   {
-    getCNIndexDB().setPurgeDelay(0);
+    replicationServer.getChangelogDB().setPurgeDelay(0);
     // Test all types of ops.
     ECLAllOps(); // Do not clean the db for the next test
 
@@ -347,8 +350,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   @Test(enabled=false, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
   public void ECLReplicationServerFullTest15() throws Exception
   {
-    final JEChangeNumberIndexDB cnIndexDB = getCNIndexDB();
-    cnIndexDB.setPurgeDelay(0);
+    replicationServer.getChangelogDB().setPurgeDelay(0);
     // Write 4 changes and read ECL from start
     ECLCompatWriteReadAllOps(1);
 
@@ -369,8 +371,9 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     ECLCompatTestLimitsAndAdd(1, 8, 4);
 
     // Test CNIndexDB is purged when replication change log is purged
-    cnIndexDB.setPurgeDelay(1);
-    cnIndexDB.trim(null);
+    final JEChangeNumberIndexDB cnIndexDB = getCNIndexDB();
+    cnIndexDB.purgeUpTo(Long.MAX_VALUE);
+    assertTrue(cnIndexDB.isEmpty());
     ECLPurgeCNIndexDBAfterChangelogClear();
 
     // Test first and last are updated
@@ -896,7 +899,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           null);
       cnt++;
     }
-    while (cnt < 100 // wait at most 1s
+    while (cnt < 300 // wait at most 3s
         && op.getSearchEntries().size() != expectedNbEntries);
     final List<SearchResultEntry> entries = op.getSearchEntries();
     assertThat(entries).hasSize(expectedNbEntries);
@@ -1951,16 +1954,6 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     clearChangelogDB(replicationServer);
   }
 
-  @AfterTest
-  public void setPurgeDelayToInitialValue() throws Exception
-  {
-    JEChangeNumberIndexDB cnIndexDB = getCNIndexDB();
-    if (cnIndexDB != null)
-    {
-      cnIndexDB.setPurgeDelay(1);
-    }
-  }
-
   /**
    * After the tests stop the replicationServer.
    */
@@ -2461,10 +2454,9 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     String tn = "ECLPurgeCNIndexDBAfterChangelogClear";
     debugInfo(tn, "Starting test\n\n");
 
-    JEChangeNumberIndexDB cnIndexDB =
-        (JEChangeNumberIndexDB) replicationServer.getChangeNumberIndexDB();
+    final JEChangeNumberIndexDB cnIndexDB = getCNIndexDB();
     assertEquals(cnIndexDB.count(), 8);
-    cnIndexDB.setPurgeDelay(1000);
+    replicationServer.getChangelogDB().setPurgeDelay(1000);
 
     clearChangelogDB(replicationServer);
 
@@ -2620,11 +2612,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
   private JEChangeNumberIndexDB getCNIndexDB()
   {
-    if (replicationServer != null)
-    {
-      return (JEChangeNumberIndexDB) replicationServer.getChangeNumberIndexDB();
-    }
-    return null;
+    return (JEChangeNumberIndexDB) replicationServer.getChangeNumberIndexDB();
   }
 
   /**

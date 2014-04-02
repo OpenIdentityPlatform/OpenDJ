@@ -97,7 +97,7 @@ public class JEReplicaDBTest extends ReplicationTestCase
 
       //--
       // Iterator tests with changes persisted
-      waitChangesArePersisted(replicaDB);
+      waitChangesArePersisted(replicaDB, 3);
 
       assertFoundInOrder(replicaDB, csns[0], csns[1], csns[2]);
       assertNotFound(replicaDB, csns[4]);
@@ -108,7 +108,7 @@ public class JEReplicaDBTest extends ReplicationTestCase
       //--
       // Cursor tests with changes persisted
       replicaDB.add(update4);
-      waitChangesArePersisted(replicaDB);
+      waitChangesArePersisted(replicaDB, 4);
 
       assertFoundInOrder(replicaDB, csns[0], csns[1], csns[2], csns[3]);
       // Test cursor from existing CSN
@@ -116,7 +116,7 @@ public class JEReplicaDBTest extends ReplicationTestCase
       assertFoundInOrder(replicaDB, csns[3]);
       assertNotFound(replicaDB, csns[4]);
 
-      replicaDB.setPurgeDelay(1);
+      replicaDB.purgeUpTo(new CSN(Long.MAX_VALUE, 0, 0));
 
       int count = 0;
       boolean purgeSucceeded = false;
@@ -141,16 +141,27 @@ public class JEReplicaDBTest extends ReplicationTestCase
     }
   }
 
-  private void waitChangesArePersisted(JEReplicaDB replicaDB) throws Exception
+  private void waitChangesArePersisted(JEReplicaDB replicaDB,
+      int nbRecordsInserted) throws Exception
   {
-    final int expected = 0;
+    waitChangesArePersisted(replicaDB, nbRecordsInserted, 1000);
+  }
+
+  private void waitChangesArePersisted(JEReplicaDB replicaDB,
+      int nbRecordsInserted, int counterWindow) throws Exception
+  {
+    // one counter record is inserted every time "counterWindow"
+    // records have been inserted
+    int expectedNbRecords =
+        nbRecordsInserted + (nbRecordsInserted - 1) / counterWindow;
+
     int count = 0;
-    while (replicaDB.getQueueSize() != expected && count < 100)
+    while (replicaDB.getNumberRecords() != expectedNbRecords && count < 100)
     {
       Thread.sleep(10);
       count++;
     }
-    assertEquals(replicaDB.getQueueSize(), expected);
+    assertEquals(replicaDB.getNumberRecords(), expectedNbRecords);
   }
 
   static CSN[] newCSNs(int serverId, long timestamp, int number)
@@ -204,8 +215,9 @@ public class JEReplicaDBTest extends ReplicationTestCase
       assertNull(cursor.getRecord());
       for (int i = 1; i < csns.length; i++)
       {
-        assertTrue(cursor.next());
-        assertEquals(cursor.getRecord().getCSN(), csns[i]);
+        final String msg = "i=" + i + ", csns[i]=" + csns[i].toStringUI();
+        assertTrue(cursor.next(), msg);
+        assertEquals(cursor.getRecord().getCSN(), csns[i], msg);
       }
       assertFalse(cursor.next());
       assertNull(cursor.getRecord(), "Actual change=" + cursor.getRecord()
@@ -274,11 +286,12 @@ public class JEReplicaDBTest extends ReplicationTestCase
   {
     ReplicationServer replicationServer = null;
     DBCursor<UpdateMsg> cursor = null;
+    JEReplicaDB replicaDB = null;
     try
     {
       TestCaseUtils.startServer();
       replicationServer = configureReplicationServer(100000, 10);
-      JEReplicaDB replicaDB = newReplicaDB(replicationServer);
+      replicaDB = newReplicaDB(replicationServer);
 
       CSN[] csns = newCSNs(1, System.currentTimeMillis(), 6);
       for (int i = 0; i < 5; i++)
@@ -288,7 +301,7 @@ public class JEReplicaDBTest extends ReplicationTestCase
           replicaDB.add(new DeleteMsg(TEST_ROOT_DN, csns[i], "uid"));
         }
       }
-      replicaDB.flush();
+      waitChangesArePersisted(replicaDB, 4);
 
       cursor = replicaDB.generateCursorFrom(csns[0]);
       assertTrue(cursor.next());
@@ -307,6 +320,8 @@ public class JEReplicaDBTest extends ReplicationTestCase
     finally
     {
       StaticUtils.close(cursor);
+      if (replicaDB != null)
+        replicaDB.shutdown();
       remove(replicationServer);
     }
   }
@@ -334,7 +349,7 @@ public class JEReplicaDBTest extends ReplicationTestCase
     testGetOldestNewestCSNs(4000, 1000);
   }
 
-  private void testGetOldestNewestCSNs(int max, int counterWindow) throws Exception
+  private void testGetOldestNewestCSNs(final int max, final int counterWindow) throws Exception
   {
     String tn = "testDBCount("+max+","+counterWindow+")";
     debugInfo(tn, "Starting test");
@@ -363,7 +378,7 @@ public class JEReplicaDBTest extends ReplicationTestCase
         replicaDB.add(new DeleteMsg(TEST_ROOT_DN, csns[i], "uid"));
         mySeqnum+=2;
       }
-      replicaDB.flush();
+      waitChangesArePersisted(replicaDB, max, counterWindow);
 
       assertEquals(replicaDB.getOldestCSN(), csns[1], "Wrong oldest CSN");
       assertEquals(replicaDB.getNewestCSN(), csns[max], "Wrong newest CSN");
@@ -387,15 +402,13 @@ public class JEReplicaDBTest extends ReplicationTestCase
         replicaDB.add(new DeleteMsg(TEST_ROOT_DN, csns[i], "uid"));
         mySeqnum+=2;
       }
-      replicaDB.flush();
+      waitChangesArePersisted(replicaDB, 2 * max, counterWindow);
 
       assertEquals(replicaDB.getOldestCSN(), csns[1], "Wrong oldest CSN");
       assertEquals(replicaDB.getNewestCSN(), csns[2 * max], "Wrong newest CSN");
 
       //
-
-      replicaDB.setPurgeDelay(100);
-      sleep(1000);
+      replicaDB.purgeUpTo(new CSN(Long.MAX_VALUE, 0, 0));
 
       String testcase = "AFTER PURGE (oldest, newest)=";
       debugInfo(tn, testcase + replicaDB.getOldestCSN() + replicaDB.getNewestCSN());
