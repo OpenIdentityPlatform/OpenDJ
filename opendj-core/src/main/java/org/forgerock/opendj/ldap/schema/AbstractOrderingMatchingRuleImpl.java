@@ -40,6 +40,10 @@ import org.forgerock.opendj.ldap.spi.Indexer;
 /**
  * This class implements a default ordering matching rule that matches
  * normalized values in byte order.
+ * <p>
+ * The getXXXAssertion() methods are default implementations which assume that
+ * the assertion syntax is the same as the attribute syntax. Override them if
+ * this assumption does not hold true.
  */
 abstract class AbstractOrderingMatchingRuleImpl extends AbstractMatchingRuleImpl {
 
@@ -50,10 +54,13 @@ abstract class AbstractOrderingMatchingRuleImpl extends AbstractMatchingRuleImpl
         // Nothing to do.
     }
 
+    /** {@inheritDoc} */
+    @Override
     public Assertion getAssertion(final Schema schema, final ByteSequence value)
             throws DecodeException {
         final ByteString normAssertion = normalizeAttributeValue(schema, value);
         return new Assertion() {
+            @Override
             public ConditionResult matches(final ByteSequence attributeValue) {
                 return ConditionResult.valueOf(attributeValue.compareTo(normAssertion) < 0);
             }
@@ -65,11 +72,13 @@ abstract class AbstractOrderingMatchingRuleImpl extends AbstractMatchingRuleImpl
         };
     }
 
+    /** {@inheritDoc} */
     @Override
     public Assertion getGreaterOrEqualAssertion(final Schema schema, final ByteSequence value)
             throws DecodeException {
         final ByteString normAssertion = normalizeAttributeValue(schema, value);
         return new Assertion() {
+            @Override
             public ConditionResult matches(final ByteSequence normalizedAttributeValue) {
                 return ConditionResult.valueOf(normalizedAttributeValue.compareTo(normAssertion) >= 0);
             }
@@ -81,11 +90,13 @@ abstract class AbstractOrderingMatchingRuleImpl extends AbstractMatchingRuleImpl
         };
     }
 
+    /** {@inheritDoc} */
     @Override
     public Assertion getLessOrEqualAssertion(final Schema schema, final ByteSequence value)
             throws DecodeException {
         final ByteString normAssertion = normalizeAttributeValue(schema, value);
         return new Assertion() {
+            @Override
             public ConditionResult matches(final ByteSequence normalizedAttributeValue) {
                 return ConditionResult.valueOf(normalizedAttributeValue.compareTo(normAssertion) <= 0);
             }
