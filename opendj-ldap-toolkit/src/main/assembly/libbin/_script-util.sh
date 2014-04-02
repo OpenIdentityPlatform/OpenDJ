@@ -84,13 +84,13 @@ set_environment_vars() {
 # Configure the appropriate CLASSPATH.
 set_classpath() {
   CLASSPATH=${INSTANCE_ROOT}/classes
-  for JAR in ${INSTALL_ROOT}/lib/*.jar
+  for JAR in "${INSTALL_ROOT}/lib/"*.jar
   do
     CLASSPATH=${CLASSPATH}:${JAR}
   done
   if [ "${INSTALL_ROOT}" != "${INSTANCE_ROOT}" ]
   then
-    for JAR in ${INSTANCE_ROOT}/lib/*.jar
+    for JAR in "${INSTANCE_ROOT}/lib/"*.jar
     do
       CLASSPATH=${CLASSPATH}:${JAR}
     done
