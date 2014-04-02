@@ -26,16 +26,22 @@
  */
 package org.opends.server.replication.server.changelog.je;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.opends.server.TestCaseUtils;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.CSN;
+import org.opends.server.replication.common.MultiDomainServerState;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.changelog.api.ChangeNumberIndexRecord;
+import org.opends.server.replication.server.changelog.api.ChangelogDB;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
 import org.opends.server.types.DN;
 import org.opends.server.util.StaticUtils;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import static org.opends.server.replication.server.changelog.je.JEReplicaDBTest.*;
@@ -48,9 +54,16 @@ import static org.testng.Assert.*;
 @SuppressWarnings("javadoc")
 public class JEChangeNumberIndexDBTest extends ReplicationTestCase
 {
-  private static final String value1 = "value1";
-  private static final String value2 = "value2";
-  private static final String value3 = "value3";
+  private final MultiDomainServerState previousCookie =
+      new MultiDomainServerState();
+  private final List<String> cookies = new ArrayList<String>();
+
+  @BeforeMethod
+  public void clearCookie()
+  {
+    previousCookie.clear();
+    cookies.clear();
+  }
 
   /**
    * This test makes basic operations of a JEChangeNumberIndexDB:
@@ -67,12 +80,11 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
   void testTrim() throws Exception
   {
     ReplicationServer replicationServer = null;
-    JEChangeNumberIndexDB cnIndexDB = null;
     try
     {
       replicationServer = newReplicationServer();
-      cnIndexDB = getCNIndexDBNoTrimming(replicationServer);
-      cnIndexDB.setPurgeDelay(0);
+      final ChangelogDB changelogDB = replicationServer.getChangelogDB();
+      changelogDB.setPurgeDelay(0); // disable purging
 
       // Prepare data to be stored in the db
       DN baseDN1 = DN.decode("o=baseDN1");
@@ -82,9 +94,10 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
       CSN[] csns = newCSNs(1, 0, 3);
 
       // Add records
-      long cn1 = addRecord(cnIndexDB, value1, baseDN1, csns[0]);
-                 addRecord(cnIndexDB, value2, baseDN2, csns[1]);
-      long cn3 = addRecord(cnIndexDB, value3, baseDN3, csns[2]);
+      final JEChangeNumberIndexDB cnIndexDB = getCNIndexDB(replicationServer);
+      long cn1 = addRecord(cnIndexDB, baseDN1, csns[0]);
+                 addRecord(cnIndexDB, baseDN2, csns[1]);
+      long cn3 = addRecord(cnIndexDB, baseDN3, csns[2]);
 
       // The ChangeNumber should not get purged
       final long oldestCN = cnIndexDB.getOldestRecord().getChangeNumber();
@@ -94,11 +107,11 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
       DBCursor<ChangeNumberIndexRecord> cursor = cnIndexDB.getCursorFrom(oldestCN);
       try
       {
-        assertEqualTo(cursor.getRecord(), csns[0], baseDN1, value1);
+        assertEqualTo(cursor.getRecord(), csns[0], baseDN1, cookies.get(0));
         assertTrue(cursor.next());
-        assertEqualTo(cursor.getRecord(), csns[1], baseDN2, value2);
+        assertEqualTo(cursor.getRecord(), csns[1], baseDN2, cookies.get(1));
         assertTrue(cursor.next());
-        assertEqualTo(cursor.getRecord(), csns[2], baseDN3, value3);
+        assertEqualTo(cursor.getRecord(), csns[2], baseDN3, cookies.get(2));
         assertFalse(cursor.next());
       }
       finally
@@ -106,14 +119,13 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
         StaticUtils.close(cursor);
       }
 
-      // Now test that the trimming thread does its job => start it
-      cnIndexDB.setPurgeDelay(100);
-      cnIndexDB.startTrimmingThread();
-
-      // Check the db is cleared.
-      while (cnIndexDB.count() > 1)
+      // Now test that purging removes all changes bar the last one
+      changelogDB.setPurgeDelay(1);
+      int count = 0;
+      while (cnIndexDB.count() > 1 && count < 100)
       {
-        Thread.yield();
+        Thread.sleep(10);
+        count++;
       }
       assertOnlyNewestRecordIsLeft(cnIndexDB, 3);
     }
@@ -123,10 +135,14 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
     }
   }
 
-  private long addRecord(JEChangeNumberIndexDB cnIndexDB, String cookie, DN baseDN, CSN csn)
-      throws ChangelogException
+  private long addRecord(JEChangeNumberIndexDB cnIndexDB, DN baseDN, CSN csn) throws ChangelogException
   {
-    return cnIndexDB.addRecord(new ChangeNumberIndexRecord(cookie, baseDN, csn));
+    final String cookie = previousCookie.toString();
+    cookies.add(cookie);
+    final long changeNumber = cnIndexDB.addRecord(
+        new ChangeNumberIndexRecord(cookie, baseDN, csn));
+    previousCookie.update(baseDN, csn);
+    return changeNumber;
   }
 
   private void assertEqualTo(ChangeNumberIndexRecord record, CSN csn, DN baseDN, String cookie)
@@ -136,11 +152,11 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
     assertEquals(record.getPreviousCookie(), cookie);
   }
 
-  private JEChangeNumberIndexDB getCNIndexDBNoTrimming(ReplicationServer rs) throws ChangelogException
+  private JEChangeNumberIndexDB getCNIndexDB(ReplicationServer rs) throws ChangelogException
   {
     final JEChangelogDB changelogDB = (JEChangelogDB) rs.getChangelogDB();
     final JEChangeNumberIndexDB cnIndexDB =
-        (JEChangeNumberIndexDB) changelogDB.getChangeNumberIndexDB(false);
+        (JEChangeNumberIndexDB) changelogDB.getChangeNumberIndexDB();
     assertTrue(cnIndexDB.isEmpty());
     return cnIndexDB;
   }
@@ -160,12 +176,11 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
   void testClear() throws Exception
   {
     ReplicationServer replicationServer = null;
-    JEChangeNumberIndexDB cnIndexDB = null;
     try
     {
       replicationServer = newReplicationServer();
-      cnIndexDB = getCNIndexDBNoTrimming(replicationServer);
-      cnIndexDB.setPurgeDelay(0);
+      final ChangelogDB changelogDB = replicationServer.getChangelogDB();
+      changelogDB.setPurgeDelay(0);
 
       // Prepare data to be stored in the db
 
@@ -176,9 +191,10 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
       CSN[] csns = newCSNs(1, 0, 3);
 
       // Add records
-      long cn1 = addRecord(cnIndexDB, value1, baseDN1, csns[0]);
-      long cn2 = addRecord(cnIndexDB, value2, baseDN2, csns[1]);
-      long cn3 = addRecord(cnIndexDB, value3, baseDN3, csns[2]);
+      final JEChangeNumberIndexDB cnIndexDB = getCNIndexDB(replicationServer);
+      long cn1 = addRecord(cnIndexDB, baseDN1, csns[0]);
+      long cn2 = addRecord(cnIndexDB, baseDN2, csns[1]);
+      long cn3 = addRecord(cnIndexDB, baseDN3, csns[2]);
 
       // Checks
       assertEquals(cnIndexDB.getOldestRecord().getChangeNumber(), cn1);
@@ -187,9 +203,9 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
       assertEquals(cnIndexDB.count(), 3, "Db count");
       assertFalse(cnIndexDB.isEmpty());
 
-      assertEquals(getPreviousCookie(cnIndexDB, cn1), value1);
-      assertEquals(getPreviousCookie(cnIndexDB, cn2), value2);
-      assertEquals(getPreviousCookie(cnIndexDB, cn3), value3);
+      assertEquals(getPreviousCookie(cnIndexDB, cn1), cookies.get(0));
+      assertEquals(getPreviousCookie(cnIndexDB, cn2), cookies.get(1));
+      assertEquals(getPreviousCookie(cnIndexDB, cn3), cookies.get(2));
 
       DBCursor<ChangeNumberIndexRecord> cursor = cnIndexDB.getCursorFrom(cn1);
       assertCursorReadsInOrder(cursor, cn1, cn2, cn3);
@@ -200,7 +216,7 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
       cursor = cnIndexDB.getCursorFrom(cn3);
       assertCursorReadsInOrder(cursor, cn3);
 
-      cnIndexDB.clear(null);
+      cnIndexDB.removeDomain(null);
       assertOnlyNewestRecordIsLeft(cnIndexDB, 3);
 
       // Check the db is cleared.

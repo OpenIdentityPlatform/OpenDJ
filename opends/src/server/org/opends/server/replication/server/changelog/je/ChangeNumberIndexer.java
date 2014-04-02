@@ -487,13 +487,6 @@ public class ChangeNumberIndexer extends DirectoryThread
 
           // OK, the oldest change is older than the medium consistency point
           // let's publish it to the CNIndexDB.
-
-          // Next if statement is ugly but ensures the first change will not be
-          // immediately trimmed from the CNIndexDB. Yuck!
-          if (mediumConsistencyRUV.isEmpty())
-          {
-            mediumConsistencyRUV.replace(baseDN, new ServerState());
-          }
           final String previousCookie = mediumConsistencyRUV.toString();
           final ChangeNumberIndexRecord record =
               new ChangeNumberIndexRecord(previousCookie, baseDN, csn);
@@ -620,20 +613,21 @@ public class ChangeNumberIndexer extends DirectoryThread
   }
 
   /**
-   * Asks the current thread to clear its state.
+   * Asks the current thread to clear its state and blocks until state is
+   * cleared.
    * <p>
    * This method is only useful for unit tests.
    */
   public void clear()
   {
     doClear.set(true);
-    synchronized (this)
+    while (doClear.get() && !State.TERMINATED.equals(getState()))
     {
-      notify();
-    }
-    while (doClear.get())
-    {
-      // wait until clear() has been done by thread
+      // wait until clear() has been done by thread, always waking it up
+      synchronized (this)
+      {
+        notify();
+      }
       // ensures unit tests wait that this thread's state is cleaned up
       Thread.yield();
     }
