@@ -63,10 +63,11 @@ import static org.opends.messages.ToolMessages.*;
 import static org.opends.messages.UtilityMessages.*;
 
 /**
- * Supports interacting with a user through the command line to
- * prompt for information necessary to create an LDAP connection.
+ * Supports interacting with a user through the command line to prompt for
+ * information necessary to create an LDAP connection.
  */
-public class LDAPConnectionConsoleInteraction {
+public class LDAPConnectionConsoleInteraction
+{
 
   private boolean useSSL;
   private boolean useStartTLS;
@@ -123,7 +124,8 @@ public class LDAPConnectionConsoleInteraction {
   /** The timeout to be used to connect. */
   private int connectTimeout;
 
-  private LocalizableMessage heading = INFO_LDAP_CONN_HEADING_CONNECTION_PARAMETERS.get();
+  private LocalizableMessage heading =
+      INFO_LDAP_CONN_HEADING_CONNECTION_PARAMETERS.get();
 
   /** A copy of the secureArgList for convenience. */
   private SecureConnectionCliArgs copySecureArgsList;
@@ -131,15 +133,14 @@ public class LDAPConnectionConsoleInteraction {
   /** The command builder that we can return with the connection information. */
   private CommandBuilder commandBuilder;
 
-
   /**
    * Enumeration description protocols for interactive CLI choices.
    */
   private enum Protocols
   {
-    LDAP(1, INFO_LDAP_CONN_PROMPT_SECURITY_LDAP.get()), SSL(2,
-        INFO_LDAP_CONN_PROMPT_SECURITY_USE_SSL.get()), START_TLS(3,
-        INFO_LDAP_CONN_PROMPT_SECURITY_USE_START_TLS.get());
+    LDAP(1, INFO_LDAP_CONN_PROMPT_SECURITY_LDAP.get()),
+    SSL(2,  INFO_LDAP_CONN_PROMPT_SECURITY_USE_SSL.get()),
+    START_TLS(3, INFO_LDAP_CONN_PROMPT_SECURITY_USE_START_TLS.get());
 
     private Integer choice;
 
@@ -187,9 +188,9 @@ public class LDAPConnectionConsoleInteraction {
   {
     TRUSTALL(1, INFO_LDAP_CONN_PROMPT_SECURITY_USE_TRUST_ALL.get()),
 
-    TRUSTSTORE(2,INFO_LDAP_CONN_PROMPT_SECURITY_TRUSTSTORE.get()),
+    TRUSTSTORE(2, INFO_LDAP_CONN_PROMPT_SECURITY_TRUSTSTORE.get()),
 
-    DISPLAY_CERTIFICATE(3,INFO_LDAP_CONN_PROMPT_SECURITY_MANUAL_CHECK.get());
+    DISPLAY_CERTIFICATE(3, INFO_LDAP_CONN_PROMPT_SECURITY_MANUAL_CHECK.get());
 
     private Integer choice;
 
@@ -236,10 +237,10 @@ public class LDAPConnectionConsoleInteraction {
   private enum TrustOption
   {
     UNTRUSTED(1, INFO_LDAP_CONN_PROMPT_SECURITY_TRUST_OPTION_NO.get()),
-    SESSION(2,INFO_LDAP_CONN_PROMPT_SECURITY_TRUST_OPTION_SESSION.get()),
-    PERMAMENT(3,INFO_LDAP_CONN_PROMPT_SECURITY_TRUST_OPTION_ALWAYS.get()),
-    CERTIFICATE_DETAILS(4,
-        INFO_LDAP_CONN_PROMPT_SECURITY_CERTIFICATE_DETAILS.get());
+    SESSION(2, INFO_LDAP_CONN_PROMPT_SECURITY_TRUST_OPTION_SESSION.get()),
+    PERMAMENT(3, INFO_LDAP_CONN_PROMPT_SECURITY_TRUST_OPTION_ALWAYS.get()),
+    CERTIFICATE_DETAILS(4, INFO_LDAP_CONN_PROMPT_SECURITY_CERTIFICATE_DETAILS
+        .get());
 
     private Integer choice;
 
@@ -279,16 +280,19 @@ public class LDAPConnectionConsoleInteraction {
       return msg;
     }
   }
+
   /**
    * Constructs a parameterized instance.
    *
-   * @param app console application
-   * @param secureArgs existing set of arguments that have already
-   *        been parsed and contain some potential command line specified
-   *        LDAP arguments
+   * @param app
+   *          console application
+   * @param secureArgs
+   *          existing set of arguments that have already been parsed and
+   *          contain some potential command line specified LDAP arguments
    */
   public LDAPConnectionConsoleInteraction(ConsoleApplication app,
-                                          SecureConnectionCliArgs secureArgs) {
+      SecureConnectionCliArgs secureArgs)
+  {
     this.app = app;
     this.secureArgsList = secureArgs;
     this.commandBuilder = new CommandBuilder(null, null);
@@ -304,58 +308,50 @@ public class LDAPConnectionConsoleInteraction {
     {
       // This is  a bug: we should always be able to create the global arguments
       // no need to localize this one.
-      throw new RuntimeException("Unexpected error: "+t, t);
+      throw new RuntimeException("Unexpected error: " + t, t);
     }
   }
 
   /**
-   * Interact with the user though the console to get information
-   * necessary to establish an LDAP connection.
+   * Interact with the user though the console to get information necessary to
+   * establish an LDAP connection.
    *
-   * @throws ArgumentException if there is a problem with the arguments
+   * @throws ArgumentException
+   *           if there is a problem with the arguments
    */
-  public void run()
-          throws ArgumentException
+  public void run() throws ArgumentException
   {
     run(true, true);
   }
 
-
   /**
-   * Interact with the user though the console to get information
-   * necessary to establish an LDAP connection.
-   * @param canUseSSL whether we can propose to connect using SSL or not.
-   * @param canUseStartTLS whether we can propose to connect using Start TLS or
-   * not.
+   * Interact with the user though the console to get information necessary to
+   * establish an LDAP connection.
    *
-   * @throws ArgumentException if there is a problem with the arguments
+   * @param canUseSSL
+   *          whether we can propose to connect using SSL or not.
+   * @param canUseStartTLS
+   *          whether we can propose to connect using Start TLS or not.
+   * @throws ArgumentException
+   *           if there is a problem with the arguments
    */
   public void run(boolean canUseSSL, boolean canUseStartTLS)
-          throws ArgumentException
+      throws ArgumentException
   {
     // Reset everything
     commandBuilder.clearArguments();
     copySecureArgsList.createGlobalArguments();
-    boolean secureConnection = (canUseSSL || canUseStartTLS) &&
-      (
-          secureArgsList.useSSLArg.isPresent()
-          ||
-          secureArgsList.useStartTLSArg.isPresent()
-          ||
-          secureArgsList.trustAllArg.isPresent()
-          ||
-          secureArgsList.trustStorePathArg.isPresent()
-          ||
-          secureArgsList.trustStorePasswordArg.isPresent()
-          ||
-          secureArgsList.trustStorePasswordFileArg.isPresent()
-          ||
-          secureArgsList.keyStorePathArg.isPresent()
-          ||
-          secureArgsList.keyStorePasswordArg.isPresent()
-          ||
-          secureArgsList.keyStorePasswordFileArg.isPresent()
-      );
+    boolean secureConnection =
+        (canUseSSL || canUseStartTLS)
+            && (secureArgsList.useSSLArg.isPresent()
+                || secureArgsList.useStartTLSArg.isPresent()
+                || secureArgsList.trustAllArg.isPresent()
+                || secureArgsList.trustStorePathArg.isPresent()
+                || secureArgsList.trustStorePasswordArg.isPresent()
+                || secureArgsList.trustStorePasswordFileArg.isPresent()
+                || secureArgsList.keyStorePathArg.isPresent()
+                || secureArgsList.keyStorePasswordArg.isPresent() || secureArgsList.keyStorePasswordFileArg
+                  .isPresent());
     // Get the LDAP host.
     hostName = secureArgsList.hostNameArg.getValue();
     final String tmpHostName = hostName;
@@ -398,8 +394,9 @@ public class LDAPConnectionConsoleInteraction {
       try
       {
         app.println();
-        hostName = app.readValidatedInput(INFO_LDAP_CONN_PROMPT_HOST_NAME
-            .get(hostName), callback);
+        hostName =
+            app.readValidatedInput(INFO_LDAP_CONN_PROMPT_HOST_NAME
+                .get(hostName), callback);
       }
       catch (ClientException e)
       {
@@ -415,11 +412,11 @@ public class LDAPConnectionConsoleInteraction {
     useSSL = secureArgsList.useSSL();
     useStartTLS = secureArgsList.useStartTLS();
     boolean connectionTypeIsSet =
-      secureArgsList.alwaysSSL()
-        || secureArgsList.useSSLArg.isPresent()
-        || secureArgsList.useStartTLSArg.isPresent()
-        || (secureArgsList.useSSLArg.isValueSetByProperty()
-            && secureArgsList.useStartTLSArg.isValueSetByProperty());
+        secureArgsList.alwaysSSL()
+            || secureArgsList.useSSLArg.isPresent()
+            || secureArgsList.useStartTLSArg.isPresent()
+            || (secureArgsList.useSSLArg.isValueSetByProperty() && secureArgsList.useStartTLSArg
+                .isValueSetByProperty());
     if (app.isInteractive() && !connectionTypeIsSet)
     {
       checkHeadingDisplayed();
@@ -427,7 +424,7 @@ public class LDAPConnectionConsoleInteraction {
       MenuBuilder<Integer> builder = new MenuBuilder<Integer>(app);
       builder.setPrompt(INFO_LDAP_CONN_PROMPT_SECURITY_USE_SECURE_CTX.get());
 
-      Protocols defaultProtocol ;
+      Protocols defaultProtocol;
       if (secureConnection)
       {
         defaultProtocol = Protocols.SSL;
@@ -438,10 +435,10 @@ public class LDAPConnectionConsoleInteraction {
       }
       for (Protocols p : Protocols.values())
       {
-        if (secureConnection && p.equals(Protocols.LDAP) &&
-            !displayLdapIfSecureParameters)
+        if (secureConnection && p.equals(Protocols.LDAP)
+            && !displayLdapIfSecureParameters)
         {
-          continue ;
+          continue;
         }
         if (!canUseSSL && p.equals(Protocols.SSL))
         {
@@ -451,13 +448,14 @@ public class LDAPConnectionConsoleInteraction {
         {
           continue;
         }
-        int i = builder.addNumberedOption(p.getMenuMessage(), MenuResult
-            .success(p.getChoice()));
+        int i =
+            builder.addNumberedOption(p.getMenuMessage(), MenuResult.success(p
+                .getChoice()));
         if (p.equals(defaultProtocol))
         {
           builder.setDefault(
-              INFO_LDAP_CONN_PROMPT_SECURITY_PROTOCOL_DEFAULT_CHOICE
-                  .get(i), MenuResult.success(p.getChoice()));
+              INFO_LDAP_CONN_PROMPT_SECURITY_PROTOCOL_DEFAULT_CHOICE.get(i),
+              MenuResult.success(p.getChoice()));
         }
       }
 
@@ -558,9 +556,12 @@ public class LDAPConnectionConsoleInteraction {
       {
         app.println();
         LocalizableMessage askPortNumber = null;
-        if (secureArgsList.alwaysSSL()) {
+        if (secureArgsList.alwaysSSL())
+        {
           askPortNumber = INFO_ADMIN_CONN_PROMPT_PORT_NUMBER.get(portNumber);
-        } else {
+        }
+        else
+        {
           askPortNumber = INFO_LDAP_CONN_PROMPT_PORT_NUMBER.get(portNumber);
         }
         portNumber = app.readValidatedInput(askPortNumber, callback);
@@ -593,8 +594,7 @@ public class LDAPConnectionConsoleInteraction {
     {
       providedAdminUID = null;
     }
-    if ((!useAdmin || useAdminOrBindDn) &&
-        secureArgsList.bindDnArg.isPresent())
+    if ((!useAdmin || useAdminOrBindDn) && secureArgsList.bindDnArg.isPresent())
     {
       providedBindDN = bindDN;
     }
@@ -644,9 +644,10 @@ public class LDAPConnectionConsoleInteraction {
           if (useAdminOrBindDn)
           {
             String def = (adminUID != null ? adminUID : bindDN);
-            String v = app.readValidatedInput(
-                INFO_LDAP_CONN_GLOBAL_ADMINISTRATOR_OR_BINDDN_PROMPT.get(def),
-                callback);
+            String v =
+                app.readValidatedInput(
+                    INFO_LDAP_CONN_GLOBAL_ADMINISTRATOR_OR_BINDDN_PROMPT
+                        .get(def), callback);
             if (Utils.isDn(v))
             {
               bindDN = v;
@@ -664,22 +665,22 @@ public class LDAPConnectionConsoleInteraction {
           }
           else if (useAdmin)
           {
-            adminUID = app.readValidatedInput(
-                INFO_LDAP_CONN_PROMPT_ADMINISTRATOR_UID.get(adminUID),
-                callback);
+            adminUID =
+                app.readValidatedInput(INFO_LDAP_CONN_PROMPT_ADMINISTRATOR_UID
+                    .get(adminUID), callback);
             providedAdminUID = adminUID;
           }
           else
           {
-            bindDN = app.readValidatedInput(INFO_LDAP_CONN_PROMPT_BIND_DN
-              .get(bindDN), callback);
+            bindDN =
+                app.readValidatedInput(INFO_LDAP_CONN_PROMPT_BIND_DN
+                    .get(bindDN), callback);
             providedBindDN = bindDN;
           }
         }
         catch (ClientException e)
         {
-          throw ArgumentExceptionFactory
-              .unableToReadConnectionParameters(e);
+          throw ArgumentExceptionFactory.unableToReadConnectionParameters(e);
         }
       }
       if (useAdminOrBindDn)
@@ -787,16 +788,15 @@ public class LDAPConnectionConsoleInteraction {
         }
         catch (Exception e)
         {
-          throw ArgumentExceptionFactory
-              .unableToReadConnectionParameters(e);
+          throw ArgumentExceptionFactory.unableToReadConnectionParameters(e);
         }
       }
       copySecureArgsList.bindPasswordArg.clearValues();
       copySecureArgsList.bindPasswordArg.addValue(bindPassword);
       if (!addedPasswordFileArgument)
       {
-        commandBuilder.addObfuscatedArgument(
-          copySecureArgsList.bindPasswordArg);
+        commandBuilder
+            .addObfuscatedArgument(copySecureArgsList.bindPasswordArg);
       }
     }
     connectTimeout = secureArgsList.connectTimeoutArg.getIntValue();
@@ -816,10 +816,11 @@ public class LDAPConnectionConsoleInteraction {
    * Get the trust manager.
    *
    * @return The trust manager based on CLI args on interactive prompt.
-   * @throws ArgumentException If an error occurs when getting args values.
+   * @throws ArgumentException
+   *           If an error occurs when getting args values.
    */
   private ApplicationTrustManager getTrustManagerInternal()
-  throws ArgumentException
+      throws ArgumentException
   {
     // Remove these arguments since this method might be called several times.
     commandBuilder.removeArgument(copySecureArgsList.trustAllArg);
@@ -835,16 +836,12 @@ public class LDAPConnectionConsoleInteraction {
       return null;
     }
 
-      // Check if some trust manager info are set
+    // Check if some trust manager info are set
     boolean weDontKnowTheTrustMethod =
-      !(  secureArgsList.trustAllArg.isPresent()
-          ||
-          secureArgsList.trustStorePathArg.isPresent()
-          ||
-          secureArgsList.trustStorePasswordArg.isPresent()
-          ||
-          secureArgsList.trustStorePasswordFileArg.isPresent()
-        );
+        !(secureArgsList.trustAllArg.isPresent()
+            || secureArgsList.trustStorePathArg.isPresent()
+            || secureArgsList.trustStorePasswordArg.isPresent() || secureArgsList.trustStorePasswordFileArg
+            .isPresent());
     boolean askForTrustStore = false;
 
     trustAll = secureArgsList.trustAllArg.isPresent();
@@ -867,8 +864,9 @@ public class LDAPConnectionConsoleInteraction {
       TrustMethod defaultTrustMethod = TrustMethod.DISPLAY_CERTIFICATE;
       for (TrustMethod t : TrustMethod.values())
       {
-        int i = builder.addNumberedOption(t.getMenuMessage(), MenuResult
-            .success(t.getChoice()));
+        int i =
+            builder.addNumberedOption(t.getMenuMessage(), MenuResult.success(t
+                .getChoice()));
         if (t.equals(defaultTrustMethod))
         {
           builder.setDefault(
@@ -946,8 +944,7 @@ public class LDAPConnectionConsoleInteraction {
           if (ninput.length() == 0)
           {
             app.println();
-            app.println(ERR_LDAP_CONN_PROMPT_SECURITY_INVALID_FILE_PATH
-                .get());
+            app.println(ERR_LDAP_CONN_PROMPT_SECURITY_INVALID_FILE_PATH.get());
             app.println();
             return null;
           }
@@ -959,8 +956,7 @@ public class LDAPConnectionConsoleInteraction {
           else
           {
             app.println();
-            app.println(ERR_LDAP_CONN_PROMPT_SECURITY_INVALID_FILE_PATH
-                .get());
+            app.println(ERR_LDAP_CONN_PROMPT_SECURITY_INVALID_FILE_PATH.get());
             app.println();
             return null;
           }
@@ -970,8 +966,9 @@ public class LDAPConnectionConsoleInteraction {
       try
       {
         app.println();
-        truststorePath = app.readValidatedInput(
-            INFO_LDAP_CONN_PROMPT_SECURITY_TRUSTSTORE_PATH.get(), callback);
+        truststorePath =
+            app.readValidatedInput(
+                INFO_LDAP_CONN_PROMPT_SECURITY_TRUSTSTORE_PATH.get(), callback);
       }
       catch (ClientException e)
       {
@@ -1012,8 +1009,9 @@ public class LDAPConnectionConsoleInteraction {
         try
         {
           app.println();
-          LocalizableMessage prompt = INFO_LDAP_CONN_PROMPT_SECURITY_TRUSTSTORE_PASSWORD
-              .get(truststorePath);
+          LocalizableMessage prompt =
+              INFO_LDAP_CONN_PROMPT_SECURITY_TRUSTSTORE_PASSWORD
+                  .get(truststorePath);
           truststorePassword = readPassword(prompt);
         }
         catch (Exception e)
@@ -1049,10 +1047,11 @@ public class LDAPConnectionConsoleInteraction {
           && truststorePath != null)
       {
         copySecureArgsList.trustStorePasswordFileArg.clearValues();
-        copySecureArgsList.trustStorePasswordFileArg.getNameToValueMap().putAll(
-            secureArgsList.trustStorePasswordFileArg.getNameToValueMap());
-        commandBuilder.addArgument(
-            copySecureArgsList.trustStorePasswordFileArg);
+        copySecureArgsList.trustStorePasswordFileArg.getNameToValueMap()
+            .putAll(
+                secureArgsList.trustStorePasswordFileArg.getNameToValueMap());
+        commandBuilder
+            .addArgument(copySecureArgsList.trustStorePasswordFileArg);
       }
       else if (truststorePassword != null && truststorePath != null)
       {
@@ -1060,8 +1059,8 @@ public class LDAPConnectionConsoleInteraction {
         // specified a trust store path.
         copySecureArgsList.trustStorePasswordArg.clearValues();
         copySecureArgsList.trustStorePasswordArg.addValue(truststorePassword);
-        commandBuilder.addObfuscatedArgument(
-            copySecureArgsList.trustStorePasswordArg);
+        commandBuilder
+            .addObfuscatedArgument(copySecureArgsList.trustStorePasswordArg);
       }
 
       return new ApplicationTrustManager(truststore);
@@ -1076,12 +1075,12 @@ public class LDAPConnectionConsoleInteraction {
    * Get the key manager.
    *
    * @return The key manager based on CLI args on interactive prompt.
-   * @throws ArgumentException If an error occurs when getting args values.
+   * @throws ArgumentException
+   *           If an error occurs when getting args values.
    */
-  private KeyManager getKeyManagerInternal()
-  throws ArgumentException
+  private KeyManager getKeyManagerInternal() throws ArgumentException
   {
-//  Remove these arguments since this method might be called several times.
+    //  Remove these arguments since this method might be called several times.
     commandBuilder.removeArgument(copySecureArgsList.certNicknameArg);
     commandBuilder.removeArgument(copySecureArgsList.keyStorePathArg);
     commandBuilder.removeArgument(copySecureArgsList.keyStorePasswordArg);
@@ -1091,12 +1090,11 @@ public class LDAPConnectionConsoleInteraction {
     // If one of the client side authentication args is set, we assume
     // that we
     // need client side authentication.
-    boolean weDontKnowIfWeNeedKeystore = !(secureArgsList.keyStorePathArg
-        .isPresent()
-        || secureArgsList.keyStorePasswordArg.isPresent()
-        || secureArgsList.keyStorePasswordFileArg.isPresent()
-        || secureArgsList.certNicknameArg
-        .isPresent());
+    boolean weDontKnowIfWeNeedKeystore =
+        !(secureArgsList.keyStorePathArg.isPresent()
+            || secureArgsList.keyStorePasswordArg.isPresent()
+            || secureArgsList.keyStorePasswordFileArg.isPresent() || secureArgsList.certNicknameArg
+            .isPresent());
 
     // We don't have specific key manager parameter.
     // We assume that no client side authentication is required
@@ -1133,8 +1131,7 @@ public class LDAPConnectionConsoleInteraction {
           else
           {
             app.println();
-            app.println(ERR_LDAP_CONN_PROMPT_SECURITY_INVALID_FILE_PATH
-                .get());
+            app.println(ERR_LDAP_CONN_PROMPT_SECURITY_INVALID_FILE_PATH.get());
             app.println();
             return null;
           }
@@ -1144,8 +1141,9 @@ public class LDAPConnectionConsoleInteraction {
       try
       {
         app.println();
-        keystorePath = app.readValidatedInput(
-            INFO_LDAP_CONN_PROMPT_SECURITY_KEYSTORE_PATH.get(), callback);
+        keystorePath =
+            app.readValidatedInput(INFO_LDAP_CONN_PROMPT_SECURITY_KEYSTORE_PATH
+                .get(), callback);
       }
       catch (ClientException e)
       {
@@ -1186,8 +1184,7 @@ public class LDAPConnectionConsoleInteraction {
       // Read the password from the stdin.
       if (!app.isInteractive())
       {
-        throw ArgumentExceptionFactory
-            .unableToReadBindPasswordInteractively();
+        throw ArgumentExceptionFactory.unableToReadBindPasswordInteractively();
       }
 
       checkHeadingDisplayed();
@@ -1195,8 +1192,8 @@ public class LDAPConnectionConsoleInteraction {
       try
       {
         app.println();
-        LocalizableMessage prompt = INFO_LDAP_CONN_PROMPT_SECURITY_KEYSTORE_PASSWORD
-            .get(keystorePath);
+        LocalizableMessage prompt =
+            INFO_LDAP_CONN_PROMPT_SECURITY_KEYSTORE_PASSWORD.get(keystorePath);
         keystorePassword = readPassword(prompt);
       }
       catch (Exception e)
@@ -1238,13 +1235,14 @@ public class LDAPConnectionConsoleInteraction {
           String alias = aliasesEnum.nextElement();
           if (keystore.isKeyEntry(alias))
           {
-            X509Certificate certif = (X509Certificate) keystore
-                .getCertificate(alias);
+            X509Certificate certif =
+                (X509Certificate) keystore.getCertificate(alias);
             certificateNumber++;
-            builder.addNumberedOption(
-                INFO_LDAP_CONN_PROMPT_SECURITY_CERTIFICATE_ALIAS.get(alias,
-                    certif.getSubjectDN().getName()), MenuResult
-                    .success(alias));
+            builder
+                .addNumberedOption(
+                    INFO_LDAP_CONN_PROMPT_SECURITY_CERTIFICATE_ALIAS.get(alias,
+                        certif.getSubjectDN().getName()), MenuResult
+                        .success(alias));
           }
         }
 
@@ -1279,24 +1277,22 @@ public class LDAPConnectionConsoleInteraction {
     }
 
     // We'we got all the information to get the keys manager
-    ApplicationKeyManager akm = new ApplicationKeyManager(keystore,
-        keystorePassword.toCharArray());
-
+    ApplicationKeyManager akm =
+        new ApplicationKeyManager(keystore, keystorePassword.toCharArray());
 
     if (secureArgsList.keyStorePasswordFileArg.isPresent())
     {
       copySecureArgsList.keyStorePasswordFileArg.clearValues();
       copySecureArgsList.keyStorePasswordFileArg.getNameToValueMap().putAll(
           secureArgsList.keyStorePasswordFileArg.getNameToValueMap());
-      commandBuilder.addArgument(
-          copySecureArgsList.keyStorePasswordFileArg);
+      commandBuilder.addArgument(copySecureArgsList.keyStorePasswordFileArg);
     }
     else if (keystorePassword != null)
     {
       copySecureArgsList.keyStorePasswordArg.clearValues();
       copySecureArgsList.keyStorePasswordArg.addValue(keystorePassword);
-      commandBuilder.addObfuscatedArgument(
-          copySecureArgsList.keyStorePasswordArg);
+      commandBuilder
+          .addObfuscatedArgument(copySecureArgsList.keyStorePasswordArg);
     }
 
     if (certifNickname != null)
@@ -1313,62 +1309,69 @@ public class LDAPConnectionConsoleInteraction {
   }
 
   /**
-   * Indicates whether or not a connection should use SSL based on
-   * this interaction.
+   * Indicates whether or not a connection should use SSL based on this
+   * interaction.
    *
    * @return boolean where true means use SSL
    */
-  public boolean useSSL() {
+  public boolean useSSL()
+  {
     return useSSL;
   }
 
   /**
-   * Indicates whether or not a connection should use StartTLS based on
-   * this interaction.
+   * Indicates whether or not a connection should use StartTLS based on this
+   * interaction.
    *
    * @return boolean where true means use StartTLS
    */
-  public boolean useStartTLS() {
+  public boolean useStartTLS()
+  {
     return useStartTLS;
   }
 
   /**
-   * Gets the host name that should be used for connections based on
-   * this interaction.
+   * Gets the host name that should be used for connections based on this
+   * interaction.
    *
    * @return host name for connections
    */
-  public String getHostName() {
+  public String getHostName()
+  {
     return hostName;
   }
 
   /**
-   * Gets the port number name that should be used for connections based on
-   * this interaction.
+   * Gets the port number name that should be used for connections based on this
+   * interaction.
    *
    * @return port number for connections
    */
-  public int getPortNumber() {
+  public int getPortNumber()
+  {
     return portNumber;
   }
 
   /**
-   * Sets the port number name that should be used for connections based on
-   * this interaction.
+   * Sets the port number name that should be used for connections based on this
+   * interaction.
    *
-   * @param portNumber port number for connections
+   * @param portNumber
+   *          port number for connections
    */
-  public void setPortNumber(int portNumber) {
+  public void setPortNumber(int portNumber)
+  {
     this.portNumber = portNumber;
   }
 
   /**
-   * Gets the bind DN name that should be used for connections based on
-   * this interaction.
+   * Gets the bind DN name that should be used for connections based on this
+   * interaction.
    *
    * @return bind DN for connections
    */
-  public String getBindDN() {
+  public String getBindDN()
+  {
     String dn;
     if (useAdminOrBindDn)
     {
@@ -1410,47 +1413,52 @@ public class LDAPConnectionConsoleInteraction {
    *
    * @return administrator UID for connections
    */
-  public String getAdministratorUID() {
+  public String getAdministratorUID()
+  {
     return this.adminUID;
   }
 
   /**
-   * Gets the bind password that should be used for connections based on
-   * this interaction.
+   * Gets the bind password that should be used for connections based on this
+   * interaction.
    *
    * @return bind password for connections
    */
-  public String getBindPassword() {
+  public String getBindPassword()
+  {
     return this.bindPassword;
   }
 
   /**
-   * Gets the trust manager that should be used for connections based on
-   * this interaction.
+   * Gets the trust manager that should be used for connections based on this
+   * interaction.
    *
    * @return trust manager for connections
    */
-  public ApplicationTrustManager getTrustManager() {
+  public ApplicationTrustManager getTrustManager()
+  {
     return this.trustManager;
   }
 
   /**
-   * Gets the key store that should be used for connections based on
-   * this interaction.
+   * Gets the key store that should be used for connections based on this
+   * interaction.
    *
    * @return key store for connections
    */
-  public KeyStore getKeyStore() {
+  public KeyStore getKeyStore()
+  {
     return this.truststore;
   }
 
   /**
-   * Gets the key manager that should be used for connections based on
-   * this interaction.
+   * Gets the key manager that should be used for connections based on this
+   * interaction.
    *
    * @return key manager for connections
    */
-  public KeyManager getKeyManager() {
+  public KeyManager getKeyManager()
+  {
     return this.keyManager;
   }
 
@@ -1459,7 +1467,8 @@ public class LDAPConnectionConsoleInteraction {
    *
    * @return true if the trust store is in memory.
    */
-  public boolean isTrustStoreInMemory() {
+  public boolean isTrustStoreInMemory()
+  {
     return this.trustStoreInMemory;
   }
 
@@ -1468,12 +1477,14 @@ public class LDAPConnectionConsoleInteraction {
    *
    * @return true all certificates must be accepted.
    */
-  public boolean isTrustAll() {
+  public boolean isTrustAll()
+  {
     return this.trustAll;
   }
 
   /**
    * Returns the timeout to be used to connect with the server.
+   *
    * @return the timeout to be used to connect with the server.
    */
   public int getConnectTimeout()
@@ -1484,7 +1495,8 @@ public class LDAPConnectionConsoleInteraction {
   /**
    * Indicate if the certificate chain can be trusted.
    *
-   * @param chain The certificate chain to validate
+   * @param chain
+   *          The certificate chain to validate
    * @return true if the server certificate is trusted.
    */
   public boolean checkServerCertificate(X509Certificate[] chain)
@@ -1495,15 +1507,17 @@ public class LDAPConnectionConsoleInteraction {
   /**
    * Indicate if the certificate chain can be trusted.
    *
-   * @param chain The certificate chain to validate
-   * @param authType the authentication type.
-   * @param host the host we tried to connect and that presented the
-   * certificate.
+   * @param chain
+   *          The certificate chain to validate
+   * @param authType
+   *          the authentication type.
+   * @param host
+   *          the host we tried to connect and that presented the certificate.
    * @return true if the server certificate is trusted.
    */
   public boolean checkServerCertificate(X509Certificate[] chain,
       String authType, String host)
-    {
+  {
     if (trustManager == null)
     {
       try
@@ -1522,19 +1536,18 @@ public class LDAPConnectionConsoleInteraction {
     for (int i = 0; i < chain.length; i++)
     {
       // Certificate DN
-      app.println(INFO_LDAP_CONN_SECURITY_SERVER_CERTIFICATE_USER_DN.get(
-          chain[i].getSubjectDN()));
+      app.println(INFO_LDAP_CONN_SECURITY_SERVER_CERTIFICATE_USER_DN
+          .get(chain[i].getSubjectDN()));
 
       // certificate validity
       app.println(INFO_LDAP_CONN_SECURITY_SERVER_CERTIFICATE_VALIDITY.get(
-          chain[i].getNotBefore(),
-          chain[i].getNotAfter()));
+          chain[i].getNotBefore(), chain[i].getNotAfter()));
 
       // certificate Issuer
-      app.println(INFO_LDAP_CONN_SECURITY_SERVER_CERTIFICATE_ISSUER.get(
-          chain[i].getIssuerDN()));
+      app.println(INFO_LDAP_CONN_SECURITY_SERVER_CERTIFICATE_ISSUER
+          .get(chain[i].getIssuerDN()));
 
-      if (i+1 <chain.length)
+      if (i + 1 < chain.length)
       {
         app.println();
         app.println();
@@ -1543,16 +1556,17 @@ public class LDAPConnectionConsoleInteraction {
     MenuBuilder<Integer> builder = new MenuBuilder<Integer>(app);
     builder.setPrompt(INFO_LDAP_CONN_PROMPT_SECURITY_TRUST_OPTION.get());
 
-    TrustOption defaultTrustMethod = TrustOption.SESSION ;
+    TrustOption defaultTrustMethod = TrustOption.SESSION;
     for (TrustOption t : TrustOption.values())
     {
-      int i = builder.addNumberedOption(t.getMenuMessage(), MenuResult
-          .success(t.getChoice()));
+      int i =
+          builder.addNumberedOption(t.getMenuMessage(), MenuResult.success(t
+              .getChoice()));
       if (t.equals(defaultTrustMethod))
       {
         builder.setDefault(
-            INFO_LDAP_CONN_PROMPT_SECURITY_PROTOCOL_DEFAULT_CHOICE
-                .get(Integer.valueOf(i)), MenuResult.success(t.getChoice()));
+            INFO_LDAP_CONN_PROMPT_SECURITY_PROTOCOL_DEFAULT_CHOICE.get(Integer
+                .valueOf(i)), MenuResult.success(t.getChoice()));
       }
     }
 
@@ -1572,7 +1586,8 @@ public class LDAPConnectionConsoleInteraction {
             return false;
           }
 
-          if (result.getValue().equals(TrustOption.CERTIFICATE_DETAILS.getChoice()))
+          if (result.getValue().equals(
+              TrustOption.CERTIFICATE_DETAILS.getChoice()))
           {
             for (X509Certificate cert : chain)
             {
@@ -1615,44 +1630,45 @@ public class LDAPConnectionConsoleInteraction {
           if (result.getValue().equals(TrustOption.PERMAMENT.getChoice()))
           {
             ValidationCallback<String> callback =
-              new ValidationCallback<String>()
-            {
-              @Override
-              public String validate(ConsoleApplication app, String input)
-                  throws ClientException
-              {
-                String ninput = input.trim();
-                if (ninput.length() == 0)
+                new ValidationCallback<String>()
                 {
-                  app.println();
-                  app.println(ERR_LDAP_CONN_PROMPT_SECURITY_INVALID_FILE_PATH
-                      .get());
-                  app.println();
-                  return null;
-                }
-                File f = new File(ninput);
-                if (!f.isDirectory())
-                {
-                  return ninput;
-                }
-                else
-                {
-                  app.println();
-                  app.println(ERR_LDAP_CONN_PROMPT_SECURITY_INVALID_FILE_PATH
-                      .get());
-                  app.println();
-                  return null;
-                }
-              }
-            };
+                  @Override
+                  public String validate(ConsoleApplication app, String input)
+                      throws ClientException
+                  {
+                    String ninput = input.trim();
+                    if (ninput.length() == 0)
+                    {
+                      app.println();
+                      app.println(ERR_LDAP_CONN_PROMPT_SECURITY_INVALID_FILE_PATH
+                          .get());
+                      app.println();
+                      return null;
+                    }
+                    File f = new File(ninput);
+                    if (!f.isDirectory())
+                    {
+                      return ninput;
+                    }
+                    else
+                    {
+                      app.println();
+                      app.println(ERR_LDAP_CONN_PROMPT_SECURITY_INVALID_FILE_PATH
+                          .get());
+                      app.println();
+                      return null;
+                    }
+                  }
+                };
 
             String truststorePath;
             try
             {
               app.println();
-              truststorePath = app.readValidatedInput(
-                  INFO_LDAP_CONN_PROMPT_SECURITY_TRUSTSTORE_PATH.get(),
-                  callback);
+              truststorePath =
+                  app.readValidatedInput(
+                      INFO_LDAP_CONN_PROMPT_SECURITY_TRUSTSTORE_PATH.get(),
+                      callback);
             }
             catch (ClientException e)
             {
@@ -1664,8 +1680,9 @@ public class LDAPConnectionConsoleInteraction {
             try
             {
               app.println();
-              LocalizableMessage prompt = INFO_LDAP_CONN_PROMPT_SECURITY_KEYSTORE_PASSWORD
-                  .get(truststorePath);
+              LocalizableMessage prompt =
+                  INFO_LDAP_CONN_PROMPT_SECURITY_KEYSTORE_PASSWORD
+                      .get(truststorePath);
               truststorePassword = readPassword(prompt);
             }
             catch (Exception e)
@@ -1724,397 +1741,427 @@ public class LDAPConnectionConsoleInteraction {
     }
   }
 
- /**
-  * Populates a set of LDAP options with state from this interaction.
-  *
-  * @param  options existing set of options; may be null in which case this
-  *         method will create a new set of <code>LDAPConnectionOptions</code>
-  *         to be returned
-  * @return used during this interaction
-  * @throws SSLConnectionException if this interaction has specified the use
-  *         of SSL and there is a problem initializing the SSL connection
-  *         factory
-  */
- public LDAPConnectionOptions populateLDAPOptions(
-         LDAPConnectionOptions options)
-         throws SSLConnectionException
- {
-   if (options == null) {
-     options = new LDAPConnectionOptions();
-   }
-   if (this.useSSL) {
-     options.setUseSSL(true);
-     SSLConnectionFactory sslConnectionFactory = new SSLConnectionFactory();
-     sslConnectionFactory.init(getTrustManager() == null, keystorePath,
-                               keystorePassword, certifNickname,
-                               truststorePath, truststorePassword);
-     options.setSSLConnectionFactory(sslConnectionFactory);
-   } else {
-     options.setUseSSL(false);
-   }
-   options.setStartTLS(this.useStartTLS);
-   return options;
- }
+  /**
+   * Populates a set of LDAP options with state from this interaction.
+   *
+   * @param options
+   *          existing set of options; may be null in which case this method
+   *          will create a new set of <code>LDAPConnectionOptions</code> to be
+   *          returned
+   * @return used during this interaction
+   * @throws SSLConnectionException
+   *           if this interaction has specified the use of SSL and there is a
+   *           problem initializing the SSL connection factory
+   */
+  public LDAPConnectionOptions populateLDAPOptions(LDAPConnectionOptions options)
+      throws SSLConnectionException
+  {
+    if (options == null)
+    {
+      options = new LDAPConnectionOptions();
+    }
+    if (this.useSSL)
+    {
+      options.setUseSSL(true);
+      SSLConnectionFactory sslConnectionFactory = new SSLConnectionFactory();
+      sslConnectionFactory.init(getTrustManager() == null, keystorePath,
+          keystorePassword, certifNickname, truststorePath, truststorePassword);
+      options.setSSLConnectionFactory(sslConnectionFactory);
+    }
+    else
+    {
+      options.setUseSSL(false);
+    }
+    options.setStartTLS(this.useStartTLS);
+    return options;
+  }
 
- /**
-  * Prompts the user to accept the certificate.
-  * @param t the throwable that was generated because the certificate was
-  * not trusted.
-  * @param usedTrustManager the trustManager used when trying to establish the
-  * connection.
-  * @param usedUrl the LDAP URL used to connect to the server.
-  * @param displayErrorMessage whether to display an error message before
-  * asking to accept the certificate or not.
-  * @param logger the Logger used to log messages.
-  * @return <CODE>true</CODE> if the user accepted the certificate and
-  * <CODE>false</CODE> otherwise.
-  */
- public boolean promptForCertificateConfirmation(Throwable t,
-     ApplicationTrustManager usedTrustManager, String usedUrl,
-     boolean displayErrorMessage, LocalizedLogger logger)
- {
-   ApplicationTrustManager.Cause cause;
-   if (usedTrustManager != null)
-   {
-     cause = usedTrustManager.getLastRefusedCause();
-   }
-   else
-   {
-     cause = null;
-   }
-   if (logger != null)
-   {
-     logger.debug(LocalizableMessage.raw("Certificate exception cause: "+cause));
-   }
-   UserDataCertificateException.Type excType = null;
-   if (cause == ApplicationTrustManager.Cause.NOT_TRUSTED)
-   {
-     excType = UserDataCertificateException.Type.NOT_TRUSTED;
-   }
-   else if (cause ==
-     ApplicationTrustManager.Cause.HOST_NAME_MISMATCH)
-   {
-     excType = UserDataCertificateException.Type.HOST_NAME_MISMATCH;
-   }
-   else
-   {
-     app.println(Utils.getThrowableMsg(INFO_ERROR_CONNECTING_TO_LOCAL.get(), t));
-   }
+  /**
+   * Prompts the user to accept the certificate.
+   *
+   * @param t
+   *          the throwable that was generated because the certificate was not
+   *          trusted.
+   * @param usedTrustManager
+   *          the trustManager used when trying to establish the connection.
+   * @param usedUrl
+   *          the LDAP URL used to connect to the server.
+   * @param displayErrorMessage
+   *          whether to display an error message before asking to accept the
+   *          certificate or not.
+   * @param logger
+   *          the Logger used to log messages.
+   * @return <CODE>true</CODE> if the user accepted the certificate and
+   *         <CODE>false</CODE> otherwise.
+   */
+  public boolean promptForCertificateConfirmation(Throwable t,
+      ApplicationTrustManager usedTrustManager, String usedUrl,
+      boolean displayErrorMessage, LocalizedLogger logger)
+  {
+    ApplicationTrustManager.Cause cause;
+    if (usedTrustManager != null)
+    {
+      cause = usedTrustManager.getLastRefusedCause();
+    }
+    else
+    {
+      cause = null;
+    }
+    if (logger != null)
+    {
+      logger.debug(LocalizableMessage.raw("Certificate exception cause: "
+          + cause));
+    }
+    UserDataCertificateException.Type excType = null;
+    if (cause == ApplicationTrustManager.Cause.NOT_TRUSTED)
+    {
+      excType = UserDataCertificateException.Type.NOT_TRUSTED;
+    }
+    else if (cause == ApplicationTrustManager.Cause.HOST_NAME_MISMATCH)
+    {
+      excType = UserDataCertificateException.Type.HOST_NAME_MISMATCH;
+    }
+    else
+    {
+      app.println(Utils
+          .getThrowableMsg(INFO_ERROR_CONNECTING_TO_LOCAL.get(), t));
+    }
 
-   if (excType != null)
-   {
-     String h;
-     int p;
-     try
-     {
-       URI uri = new URI(usedUrl);
-       h = uri.getHost();
-       p = uri.getPort();
-     }
-     catch (Throwable t1)
-     {
-       if (logger != null)
-       {
-         logger.warn(LocalizableMessage.raw("Error parsing ldap url of ldap url.", t1));
-       }
-       h = INFO_NOT_AVAILABLE_LABEL.get().toString();
-       p = -1;
-     }
+    if (excType != null)
+    {
+      String h;
+      int p;
+      try
+      {
+        URI uri = new URI(usedUrl);
+        h = uri.getHost();
+        p = uri.getPort();
+      }
+      catch (Throwable t1)
+      {
+        if (logger != null)
+        {
+          logger.warn(LocalizableMessage.raw(
+              "Error parsing ldap url of ldap url.", t1));
+        }
+        h = INFO_NOT_AVAILABLE_LABEL.get().toString();
+        p = -1;
+      }
 
+      UserDataCertificateException udce =
+          new UserDataCertificateException(Step.REPLICATION_OPTIONS,
+              INFO_CERTIFICATE_EXCEPTION.get(h, p), t, h, p, usedTrustManager
+                  .getLastRefusedChain(), usedTrustManager
+                  .getLastRefusedAuthType(), excType);
 
+      LocalizableMessage msg;
+      if (udce.getType() == UserDataCertificateException.Type.NOT_TRUSTED)
+      {
+        msg =
+            INFO_CERTIFICATE_NOT_TRUSTED_TEXT_CLI.get(udce.getHost(), udce
+                .getPort());
+      }
+      else
+      {
+        msg =
+            INFO_CERTIFICATE_NAME_MISMATCH_TEXT_CLI.get(udce.getHost(), udce
+                .getPort(), udce.getHost(), udce.getHost(), udce.getPort());
+      }
+      if (displayErrorMessage)
+      {
+        app.println(msg);
+      }
+      X509Certificate[] chain = udce.getChain();
+      String authType = udce.getAuthType();
+      String host = udce.getHost();
+      if (logger != null)
+      {
+        if (chain == null)
+        {
+          logger.warn(LocalizableMessage
+              .raw("The chain is null for the UserDataCertificateException"));
+        }
+        if (authType == null)
+        {
+          logger
+              .warn(LocalizableMessage
+                  .raw("The auth type is null for the UserDataCertificateException"));
+        }
+        if (host == null)
+        {
+          logger.warn(LocalizableMessage
+              .raw("The host is null for the UserDataCertificateException"));
+        }
+      }
+      if (chain != null)
+      {
+        return checkServerCertificate(chain, authType, host);
+      }
+    }
+    return false;
+  }
 
-     UserDataCertificateException udce =
-       new UserDataCertificateException(Step.REPLICATION_OPTIONS,
-           INFO_CERTIFICATE_EXCEPTION.get(h, p), t, h, p,
-               usedTrustManager.getLastRefusedChain(),
-               usedTrustManager.getLastRefusedAuthType(), excType);
+  /**
+   * Sets the heading that is displayed in interactive mode.
+   *
+   * @param heading
+   *          the heading that is displayed in interactive mode.
+   */
+  public void setHeadingMessage(LocalizableMessage heading)
+  {
+    this.heading = heading;
+  }
 
-     LocalizableMessage msg;
-     if (udce.getType() == UserDataCertificateException.Type.NOT_TRUSTED)
-     {
-       msg = INFO_CERTIFICATE_NOT_TRUSTED_TEXT_CLI.get(udce.getHost(), udce.getPort());
-     }
-     else
-     {
-       msg = INFO_CERTIFICATE_NAME_MISMATCH_TEXT_CLI.get(
-           udce.getHost(), udce.getPort(),
-           udce.getHost(),
-           udce.getHost(), udce.getPort());
-     }
-     if (displayErrorMessage)
-     {
-       app.println(msg);
-     }
-     X509Certificate[] chain = udce.getChain();
-     String authType = udce.getAuthType();
-     String host = udce.getHost();
-     if (logger != null)
-     {
-       if (chain == null)
-       {
-         logger.warn(LocalizableMessage.raw(
-         "The chain is null for the UserDataCertificateException"));
-       }
-       if (authType == null)
-       {
-         logger.warn(LocalizableMessage.raw(
-         "The auth type is null for the UserDataCertificateException"));
-       }
-       if (host == null)
-       {
-         logger.warn(LocalizableMessage.raw(
-         "The host is null for the UserDataCertificateException"));
-       }
-     }
-     if (chain != null)
-     {
-       return checkServerCertificate(chain, authType, host);
-     }
-   }
-   return false;
- }
+  /**
+   * Returns the command builder with the equivalent arguments on the
+   * non-interactive mode.
+   *
+   * @return the command builder with the equivalent arguments on the
+   *         non-interactive mode.
+   */
+  public CommandBuilder getCommandBuilder()
+  {
+    return commandBuilder;
+  }
 
- /**
-  * Sets the heading that is displayed in interactive mode.
-  * @param heading the heading that is displayed in interactive mode.
-  */
- public void setHeadingMessage(LocalizableMessage heading)
- {
-   this.heading = heading;
- }
+  /**
+   * Displays the heading if it was not displayed before.
+   */
+  private void checkHeadingDisplayed()
+  {
+    if (!isHeadingDisplayed)
+    {
+      app.println();
+      app.println();
+      app.println(heading);
+      isHeadingDisplayed = true;
+    }
+  }
 
- /**
-  * Returns the command builder with the equivalent arguments on the
-  * non-interactive mode.
-  * @return the command builder with the equivalent arguments on the
-  * non-interactive mode.
-  */
- public CommandBuilder getCommandBuilder()
- {
-   return commandBuilder;
- }
+  /**
+   * Tells whether during interaction we can ask for both the DN or the admin
+   * UID.
+   *
+   * @return <CODE>true</CODE> if during interaction we can ask for both the DN
+   *         and the admin UID and <CODE>false</CODE> otherwise.
+   */
+  public boolean isUseAdminOrBindDn()
+  {
+    return useAdminOrBindDn;
+  }
 
- /**
-  * Displays the heading if it was not displayed before.
-  *
-  */
- private void checkHeadingDisplayed()
- {
-   if (!isHeadingDisplayed)
-   {
-     app.println();
-     app.println();
-     app.println(heading);
-     isHeadingDisplayed = true;
-   }
- }
+  /**
+   * Tells whether we can ask during interaction for both the DN and the admin
+   * UID or not.
+   *
+   * @param useAdminOrBindDn
+   *          whether we can ask for both the DN and the admin UID during
+   *          interaction or not.
+   */
+  public void setUseAdminOrBindDn(boolean useAdminOrBindDn)
+  {
+    this.useAdminOrBindDn = useAdminOrBindDn;
+  }
 
- /**
-  * Tells whether during interaction we can ask for both the DN or the admin
-  * UID.
-  * @return <CODE>true</CODE> if during interaction we can ask for both the DN
-  * and the admin UID and <CODE>false</CODE> otherwise.
-  */
- public boolean isUseAdminOrBindDn()
- {
-   return useAdminOrBindDn;
- }
+  /**
+   * Tells whether we propose LDAP as protocol even if the user provided
+   * security parameters. This is required in command-lines that access multiple
+   * servers (like dsreplication).
+   *
+   * @param displayLdapIfSecureParameters
+   *          whether propose LDAP as protocol even if the user provided
+   *          security parameters or not.
+   */
+  public void setDisplayLdapIfSecureParameters(
+      boolean displayLdapIfSecureParameters)
+  {
+    this.displayLdapIfSecureParameters = displayLdapIfSecureParameters;
+  }
 
- /**
-  * Tells whether we can ask during interaction for both the DN and the admin
-  * UID or not.
-  * @param useAdminOrBindDn whether we can ask for both the DN and the admin UID
-  * during interaction or not.
-  */
- public void setUseAdminOrBindDn(boolean useAdminOrBindDn)
- {
-   this.useAdminOrBindDn = useAdminOrBindDn;
- }
+  /**
+   * Resets the heading displayed flag, so that next time we call run the
+   * heading is displayed.
+   */
+  public void resetHeadingDisplayed()
+  {
+    isHeadingDisplayed = false;
+  }
 
- /**
-  * Tells whether we propose LDAP as protocol even if the user provided security
-  * parameters.  This is required in command-lines that access multiple servers
-  * (like dsreplication).
-  * @param displayLdapIfSecureParameters whether propose LDAP as protocol even
-  * if the user provided security parameters or not.
-  */
- public void setDisplayLdapIfSecureParameters(
-     boolean displayLdapIfSecureParameters)
- {
-   this.displayLdapIfSecureParameters = displayLdapIfSecureParameters;
- }
+  /**
+   * Resets the trust manager, so that next time we call the run() method the
+   * trust manager takes into account the local trust store.
+   */
+  public void resetTrustManager()
+  {
+    trustManager = null;
+  }
 
- /**
-  * Resets the heading displayed flag, so that next time we call run the heading
-  * is displayed.
-  */
- public void resetHeadingDisplayed()
- {
-   isHeadingDisplayed = false;
- }
+  /**
+   * Forces the initialization of the trust manager with the arguments provided
+   * by the user.
+   *
+   * @throws ArgumentException
+   *           if there is an error with the arguments provided by the user.
+   */
+  public void initializeTrustManagerIfRequired() throws ArgumentException
+  {
+    if (!trustManagerInitialized)
+    {
+      initializeTrustManager();
+    }
+  }
 
- /**
-  * Resets the trust manager, so that next time we call the run() method
-  * the trust manager takes into account the local trust store.
-  */
- public void resetTrustManager()
- {
-   trustManager = null;
- }
+  /**
+   * Initializes the global arguments in the parser with the provided values.
+   * This is useful when we want to call LDAPConnectionConsoleInteraction.run()
+   * with some default values.
+   *
+   * @param hostName
+   *          the host name.
+   * @param port
+   *          the port to connect to the server.
+   * @param adminUid
+   *          the administrator UID.
+   * @param bindDn
+   *          the bind DN to bind to the server.
+   * @param bindPwd
+   *          the password to bind.
+   * @param pwdFile
+   *          the Map containing the file and the password to bind.
+   */
+  public void initializeGlobalArguments(String hostName, int port,
+      String adminUid, String bindDn, String bindPwd,
+      LinkedHashMap<String, String> pwdFile)
+  {
+    resetConnectionArguments();
+    if (hostName != null)
+    {
+      secureArgsList.hostNameArg.addValue(hostName);
+      secureArgsList.hostNameArg.setPresent(true);
+    }
+    // resetConnectionArguments does not clear the values for the port
+    secureArgsList.portArg.clearValues();
+    if (port != -1)
+    {
+      secureArgsList.portArg.addValue(String.valueOf(port));
+      secureArgsList.portArg.setPresent(true);
+    }
+    else
+    {
+      // This is done to be able to call IntegerArgument.getIntValue()
+      secureArgsList.portArg.addValue(secureArgsList.portArg.getDefaultValue());
+    }
+    secureArgsList.useSSLArg.setPresent(useSSL);
+    secureArgsList.useStartTLSArg.setPresent(useStartTLS);
+    if (adminUid != null)
+    {
+      secureArgsList.adminUidArg.addValue(adminUid);
+      secureArgsList.adminUidArg.setPresent(true);
+    }
+    if (bindDn != null)
+    {
+      secureArgsList.bindDnArg.addValue(bindDn);
+      secureArgsList.bindDnArg.setPresent(true);
+    }
+    if (pwdFile != null)
+    {
+      secureArgsList.bindPasswordFileArg.getNameToValueMap().putAll(pwdFile);
+      for (String value : pwdFile.keySet())
+      {
+        secureArgsList.bindPasswordFileArg.addValue(value);
+      }
+      secureArgsList.bindPasswordFileArg.setPresent(true);
+    }
+    else if (bindPwd != null)
+    {
+      secureArgsList.bindPasswordArg.addValue(bindPwd);
+      secureArgsList.bindPasswordArg.setPresent(true);
+    }
+  }
 
- /**
-  * Forces the initialization of the trust manager with the arguments provided
-  * by the user.
-  * @throws ArgumentException if there is an error with the arguments provided
-  * by the user.
-  */
- public void initializeTrustManagerIfRequired() throws ArgumentException
- {
-   if (!trustManagerInitialized)
-   {
-     initializeTrustManager();
-   }
- }
+  /**
+   * Resets the connection parameters for the LDAPConsoleInteraction object. The
+   * reset does not apply to the certificate parameters. This is called in order
+   * the LDAPConnectionConsoleInteraction object to ask for all this connection
+   * parameters next time we call LDAPConnectionConsoleInteraction.run().
+   */
+  public void resetConnectionArguments()
+  {
+    secureArgsList.hostNameArg.clearValues();
+    secureArgsList.hostNameArg.setPresent(false);
+    secureArgsList.portArg.clearValues();
+    secureArgsList.portArg.setPresent(false);
+    //  This is done to be able to call IntegerArgument.getIntValue()
+    secureArgsList.portArg.addValue(secureArgsList.portArg.getDefaultValue());
+    secureArgsList.bindDnArg.clearValues();
+    secureArgsList.bindDnArg.setPresent(false);
+    secureArgsList.bindPasswordArg.clearValues();
+    secureArgsList.bindPasswordArg.setPresent(false);
+    secureArgsList.bindPasswordFileArg.clearValues();
+    secureArgsList.bindPasswordFileArg.getNameToValueMap().clear();
+    secureArgsList.bindPasswordFileArg.setPresent(false);
+    secureArgsList.adminUidArg.clearValues();
+    secureArgsList.adminUidArg.setPresent(false);
+  }
 
- /**
-  * Initializes the global arguments in the parser with the provided values.
-  * This is useful when we want to call LDAPConnectionConsoleInteraction.run()
-  * with some default values.
-  * @param hostName the host name.
-  * @param port the port to connect to the server.
-  * @param adminUid the administrator UID.
-  * @param bindDn the bind DN to bind to the server.
-  * @param bindPwd the password to bind.
-  * @param pwdFile the Map containing the file and the password to bind.
-  */
- public void initializeGlobalArguments(String hostName, int port,
-     String adminUid, String bindDn,
-     String bindPwd, LinkedHashMap<String, String> pwdFile)
- {
-   resetConnectionArguments();
-   if (hostName != null)
-   {
-     secureArgsList.hostNameArg.addValue(hostName);
-     secureArgsList.hostNameArg.setPresent(true);
-   }
-   // resetConnectionArguments does not clear the values for the port
-   secureArgsList.portArg.clearValues();
-   if (port != -1)
-   {
-     secureArgsList.portArg.addValue(String.valueOf(port));
-     secureArgsList.portArg.setPresent(true);
-   }
-   else
-   {
-     // This is done to be able to call IntegerArgument.getIntValue()
-     secureArgsList.portArg.addValue(secureArgsList.portArg.getDefaultValue());
-   }
-   secureArgsList.useSSLArg.setPresent(useSSL);
-   secureArgsList.useStartTLSArg.setPresent(useStartTLS);
-   if (adminUid != null)
-   {
-     secureArgsList.adminUidArg.addValue(adminUid);
-     secureArgsList.adminUidArg.setPresent(true);
-   }
-   if (bindDn != null)
-   {
-     secureArgsList.bindDnArg.addValue(bindDn);
-     secureArgsList.bindDnArg.setPresent(true);
-   }
-   if (pwdFile != null)
-   {
-     secureArgsList.bindPasswordFileArg.getNameToValueMap().putAll(pwdFile);
-     for (String value : pwdFile.keySet())
-     {
-       secureArgsList.bindPasswordFileArg.addValue(value);
-     }
-     secureArgsList.bindPasswordFileArg.setPresent(true);
-   }
-   else if (bindPwd != null)
-   {
-     secureArgsList.bindPasswordArg.addValue(bindPwd);
-     secureArgsList.bindPasswordArg.setPresent(true);
-   }
- }
+  private void initializeTrustManager() throws ArgumentException
+  {
+    // Get trust store info
+    trustManager = getTrustManagerInternal();
 
- /**
-  * Resets the connection parameters for the LDAPConsoleInteraction  object.
-  * The reset does not apply to the certificate parameters.  This is called
-  * in order the LDAPConnectionConsoleInteraction object to ask for all this
-  * connection parameters next time we call
-  * LDAPConnectionConsoleInteraction.run().
-  */
- public void resetConnectionArguments()
- {
-   secureArgsList.hostNameArg.clearValues();
-   secureArgsList.hostNameArg.setPresent(false);
-   secureArgsList.portArg.clearValues();
-   secureArgsList.portArg.setPresent(false);
-   //  This is done to be able to call IntegerArgument.getIntValue()
-   secureArgsList.portArg.addValue(secureArgsList.portArg.getDefaultValue());
-   secureArgsList.bindDnArg.clearValues();
-   secureArgsList.bindDnArg.setPresent(false);
-   secureArgsList.bindPasswordArg.clearValues();
-   secureArgsList.bindPasswordArg.setPresent(false);
-   secureArgsList.bindPasswordFileArg.clearValues();
-   secureArgsList.bindPasswordFileArg.getNameToValueMap().clear();
-   secureArgsList.bindPasswordFileArg.setPresent(false);
-   secureArgsList.adminUidArg.clearValues();
-   secureArgsList.adminUidArg.setPresent(false);
- }
+    // Check if we need client side authentication
+    keyManager = getKeyManagerInternal();
 
- private void initializeTrustManager() throws ArgumentException
- {
-   // Get trust store info
-   trustManager = getTrustManagerInternal();
+    trustManagerInitialized = true;
+  }
 
-   // Check if we need client side authentication
-   keyManager = getKeyManagerInternal();
+  /**
+   * Returns the explicitly provided Admin UID from the user (interactively or
+   * through the argument).
+   *
+   * @return the explicitly provided Admin UID from the user (interactively or
+   *         through the argument).
+   */
+  public String getProvidedAdminUID()
+  {
+    return providedAdminUID;
+  }
 
-   trustManagerInitialized = true;
- }
- /**
-  * Returns the explicitly provided Admin UID from the user (interactively
-  * or through the argument).
-  * @return the explicitly provided Admin UID from the user (interactively
-  * or through the argument).
-  */
- public String getProvidedAdminUID()
- {
-   return providedAdminUID;
- }
+  /**
+   * Returns the explicitly provided bind DN from the user (interactively or
+   * through the argument).
+   *
+   * @return the explicitly provided bind DN from the user (interactively or
+   *         through the argument).
+   */
+  public String getProvidedBindDN()
+  {
+    return providedBindDN;
+  }
 
- /**
-  * Returns the explicitly provided bind DN from the user (interactively
-  * or through the argument).
-  * @return the explicitly provided bind DN from the user (interactively
-  * or through the argument).
-  */
- public String getProvidedBindDN()
- {
-   return providedBindDN;
- }
-
- /**
-  * Add the TrustStore of the administration connector of the local instance.
-  *
-  *  @return true if the local trust store has been added.
-  */
+  /**
+   * Add the TrustStore of the administration connector of the local instance.
+   *
+   * @return true if the local trust store has been added.
+   */
   private boolean addLocalTrustStore()
   {
-    try {
+    try
+    {
       // If remote host, return
-      if (!InetAddress.getLocalHost().getHostName().equals(hostName)) {
+      if (!InetAddress.getLocalHost().getHostName().equals(hostName))
+      {
         return false;
       }
       // check if we are in a local instance. Already checked the host,
       // now check the port
-      if (secureArgsList.getAdminPortFromConfig() != portNumber) {
+      if (secureArgsList.getAdminPortFromConfig() != portNumber)
+      {
         return false;
       }
 
       String truststoreFileAbsolute =
-        secureArgsList.getTruststoreFileFromConfig();
+          secureArgsList.getTruststoreFileFromConfig();
       if (truststoreFileAbsolute != null)
       {
         secureArgsList.trustStorePathArg.addValue(truststoreFileAbsolute);
@@ -2124,7 +2171,9 @@ public class LDAPConnectionConsoleInteraction {
       {
         return false;
       }
-    } catch (Exception ex) {
+    }
+    catch (Exception ex)
+    {
       // do nothing
       return false;
     }
