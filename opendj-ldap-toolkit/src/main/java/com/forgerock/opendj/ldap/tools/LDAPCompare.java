@@ -50,7 +50,6 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.controls.AssertionRequestControl;
 import org.forgerock.opendj.ldap.controls.Control;
 import org.forgerock.opendj.ldap.controls.ProxiedAuthV2RequestControl;
-import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.opendj.ldap.requests.CompareRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.responses.Result;
@@ -147,14 +146,7 @@ public final class LDAPCompare extends ConsoleApplication {
         BooleanArgument noPropertiesFileArgument;
 
         try {
-            connectionFactoryProvider = new ConnectionFactoryProvider(argParser, this) {
-                @Override
-                public ConnectionFactory newAuthenticatedConnectionFactory(final ConnectionFactory connection,
-                        final BindRequest request) throws ArgumentException {
-                    return new AuthenticatedConnectionFactory(connection, request);
-
-                }
-            };
+            connectionFactoryProvider = new ConnectionFactoryProvider(argParser, this);
 
             propertiesFileArgument = CommonArguments.getPropertiesFile();
             argParser.addArgument(propertiesFileArgument);

@@ -64,9 +64,7 @@ public final class BooleanArgument extends Argument {
                 .valueOf(false), null, description);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     final public void addValue(final String valueString) {
         if (valueString != null) {
@@ -76,9 +74,7 @@ public final class BooleanArgument extends Argument {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     final public void setPresent(final boolean isPresent) {
         addValue(String.valueOf(isPresent));

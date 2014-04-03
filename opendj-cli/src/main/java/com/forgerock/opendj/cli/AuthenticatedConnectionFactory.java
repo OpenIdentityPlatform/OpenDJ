@@ -24,8 +24,7 @@
  *      Copyright 2009-2010 Sun Microsystems, Inc.
  *      Portions copyright 2011-2014 ForgeRock AS.
  */
-
-package com.forgerock.opendj.ldap.tools;
+package com.forgerock.opendj.cli;
 
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.AbstractConnectionWrapper;
@@ -61,13 +60,13 @@ import com.forgerock.opendj.util.RecursiveFutureResult;
  * the connection attempt will fail and an {@code ErrorResultException} will be
  * thrown.
  */
-final class AuthenticatedConnectionFactory implements ConnectionFactory {
+public final class AuthenticatedConnectionFactory implements ConnectionFactory {
 
     /**
      * An authenticated connection supports all operations except Bind
      * operations.
      */
-    static final class AuthenticatedConnection extends AbstractConnectionWrapper<Connection> {
+    public static final class AuthenticatedConnection extends AbstractConnectionWrapper<Connection> {
 
         private final BindRequest request;
         private volatile BindResult result;
@@ -83,15 +82,17 @@ final class AuthenticatedConnectionFactory implements ConnectionFactory {
          * Bind operations are not supported by pre-authenticated connections.
          * These methods will always throw {@code UnsupportedOperationException}.
          */
-
+        /** {@inheritDoc} */
         public BindResult bind(BindRequest request) throws ErrorResultException {
             throw new UnsupportedOperationException();
         }
 
+        /** {@inheritDoc} */
         public BindResult bind(String name, char[] password) throws ErrorResultException {
             throw new UnsupportedOperationException();
         }
 
+        /** {@inheritDoc} */
         public FutureResult<BindResult> bindAsync(BindRequest request,
                 IntermediateResponseHandler intermediateResponseHandler,
                 ResultHandler<? super BindResult> resultHandler) {
@@ -105,7 +106,7 @@ final class AuthenticatedConnectionFactory implements ConnectionFactory {
          * @return The Bind result which was returned from the server after
          *         authentication.
          */
-        BindResult getAuthenticatedBindResult() {
+        public BindResult getAuthenticatedBindResult() {
             return result;
         }
 
@@ -125,7 +126,7 @@ final class AuthenticatedConnectionFactory implements ConnectionFactory {
          *             If this connection has already been closed, i.e. if
          *             {@code isClosed() == true}.
          */
-        FutureResult<BindResult> rebindAsync(final ResultHandler<? super BindResult> handler) {
+        public FutureResult<BindResult> rebindAsync(final ResultHandler<? super BindResult> handler) {
             if (request == null) {
                 throw new UnsupportedOperationException();
             }
@@ -138,6 +139,7 @@ final class AuthenticatedConnectionFactory implements ConnectionFactory {
 
             final ResultHandler<BindResult> handlerWrapper = new ResultHandler<BindResult>() {
 
+                /** {@inheritDoc} */
                 public void handleErrorResult(final ErrorResultException error) {
                     /*
                      * This connection is now unauthenticated so prevent further
@@ -150,6 +152,7 @@ final class AuthenticatedConnectionFactory implements ConnectionFactory {
                     }
                 }
 
+                /** {@inheritDoc} */
                 public void handleResult(final BindResult result) {
                     // Save the result.
                     AuthenticatedConnection.this.result = result;
@@ -164,6 +167,11 @@ final class AuthenticatedConnectionFactory implements ConnectionFactory {
             return connection.bindAsync(request, null, handlerWrapper);
         }
 
+        /**
+         * Returns the string representation of this authenticated connection.
+         *
+         * @return The string representation of this authenticated connection factory.
+         */
         public String toString() {
             StringBuilder builder = new StringBuilder();
             builder.append("AuthenticatedConnection(");
@@ -238,7 +246,7 @@ final class AuthenticatedConnectionFactory implements ConnectionFactory {
      * @throws NullPointerException
      *             If {@code factory} or {@code request} was {@code null}.
      */
-    AuthenticatedConnectionFactory(final ConnectionFactory factory, final BindRequest request) {
+    public AuthenticatedConnectionFactory(final ConnectionFactory factory, final BindRequest request) {
         Reject.ifNull(factory, request);
         this.parentFactory = factory;
 
@@ -251,6 +259,7 @@ final class AuthenticatedConnectionFactory implements ConnectionFactory {
         parentFactory.close();
     }
 
+    /** {@inheritDoc} */
     public Connection getConnection() throws ErrorResultException {
         final Connection connection = parentFactory.getConnection();
         BindResult bindResult = null;
@@ -269,6 +278,7 @@ final class AuthenticatedConnectionFactory implements ConnectionFactory {
         return new AuthenticatedConnection(connection, request, bindResult);
     }
 
+    /** {@inheritDoc} */
     public FutureResult<Connection> getConnectionAsync(
             final ResultHandler<? super Connection> handler) {
         final FutureResultImpl future = new FutureResultImpl(request, handler);
@@ -310,6 +320,11 @@ final class AuthenticatedConnectionFactory implements ConnectionFactory {
         return this;
     }
 
+    /**
+     * Returns the string representation of this authenticated connection factory.
+     *
+     * @return The string representation of this authenticated connection factory.
+     */
     public String toString() {
         final StringBuilder builder = new StringBuilder();
         builder.append("AuthenticatedConnectionFactory(");

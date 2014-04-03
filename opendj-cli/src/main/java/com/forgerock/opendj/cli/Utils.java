@@ -51,6 +51,8 @@ import javax.naming.NoPermissionException;
 import javax.net.ssl.SSLHandshakeException;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.RDN;
 
 /**
  * This class provides utility functions for all the client side tools.
@@ -509,5 +511,32 @@ final public class Utils {
     // Prevent instantiation.
     private Utils() {
         // Do nothing.
+    }
+
+    /**
+     * Returns {@code true} if the the provided string is a DN and {@code false} otherwise.
+     *
+     * @param dn
+     *            the String we are analyzing.
+     * @return {@code true} if the the provided string is a DN and {@code false} otherwise.
+     */
+    public static boolean isDN(String dn) {
+        try {
+            DN.valueOf(dn);
+        } catch (Exception ex) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Returns the DN of the global administrator for a given UID.
+     *
+     * @param uid
+     *            The UID to be used to generate the DN.
+     * @return The DN of the administrator for the given UID.
+     */
+    private static String getAdministratorDN(String uid) {
+        return "cn=" + RDN.valueOf(uid) + ",cn=Administrators, cn=admin data";
     }
 }

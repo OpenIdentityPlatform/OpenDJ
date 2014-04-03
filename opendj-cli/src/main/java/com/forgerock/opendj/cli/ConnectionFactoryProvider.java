@@ -47,7 +47,6 @@ import javax.net.ssl.X509KeyManager;
 import javax.net.ssl.X509TrustManager;
 
 import org.forgerock.i18n.LocalizableMessage;
-
 import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.KeyManagers;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
@@ -67,7 +66,7 @@ import org.forgerock.opendj.ldap.requests.Requests;
 /**
  * A connection factory designed for use with command line tools.
  */
-public class ConnectionFactoryProvider extends AbstractAuthenticatedConnectionFactory {
+public class ConnectionFactoryProvider {
     /**
      * The Logger.
      */
@@ -312,11 +311,41 @@ public class ConnectionFactoryProvider extends AbstractAuthenticatedConnectionFa
     }
 
     /**
-     * Returns the connection factory.
+     * Returns the host name.
+     *
+     * @return The host name value.
+     */
+    public String getHostname() {
+        if (hostNameArg.isPresent()) {
+            return hostNameArg.getValue();
+        }
+        return hostNameArg.getDefaultValue();
+    }
+
+    /**
+     * Get the port which has to be used for the command.
+     *
+     * @return The port specified by the command line argument, or the default value, if not specified.
+     */
+    public int getPort() {
+        if (portArg.isPresent()) {
+            try {
+                return portArg.getIntValue();
+            } catch (ArgumentException e) {
+                return Integer.valueOf(portArg.getDefaultValue());
+            }
+        }
+        return Integer.valueOf(portArg.getDefaultValue());
+    }
+
+    /**
+     * Checks if any conflicting arguments are present, build the connection with
+     * selected arguments and returns the connection factory.
      *
      * @return The connection factory.
      * @throws ArgumentException
-     *             If an error occurs during the parsing of the arguments.
+     *             If an error occurs during the parsing of the arguments. (conflicting
+     *             arguments or if an error occurs during building SSL context).
      */
     public ConnectionFactory getConnectionFactory() throws ArgumentException {
         if (connFactory == null) {
@@ -437,7 +466,7 @@ public class ConnectionFactoryProvider extends AbstractAuthenticatedConnectionFa
             authenticatedConnFactory = getConnectionFactory();
             final BindRequest bindRequest = getBindRequest();
             if (bindRequest != null) {
-                authenticatedConnFactory = newAuthenticatedConnectionFactory(authenticatedConnFactory, bindRequest);
+                authenticatedConnFactory = new AuthenticatedConnectionFactory(authenticatedConnFactory, bindRequest);
             }
         }
         return authenticatedConnFactory;
@@ -770,12 +799,5 @@ public class ConnectionFactoryProvider extends AbstractAuthenticatedConnectionFa
         }
 
         return option.substring(equalPos + 1, option.length());
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public ConnectionFactory newAuthenticatedConnectionFactory(final ConnectionFactory connection,
-            final BindRequest request) throws ArgumentException {
-        return null;
     }
 }

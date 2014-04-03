@@ -394,14 +394,7 @@ public final class AuthRate extends ConsoleApplication {
         try {
             setDefaultPerfToolProperties();
 
-            connectionFactoryProvider = new ConnectionFactoryProvider(argParser, this) {
-                @Override
-                public ConnectionFactory newAuthenticatedConnectionFactory(final ConnectionFactory connection,
-                        final BindRequest request) throws ArgumentException {
-                    return new AuthenticatedConnectionFactory(connection, request);
-
-                }
-            };
+            connectionFactoryProvider = new ConnectionFactoryProvider(argParser, this);
             runner = new BindPerformanceRunner(argParser, this);
 
             propertiesFileArgument = CommonArguments.getPropertiesFile();

@@ -68,9 +68,7 @@ public final class MenuBuilder<T> {
             this.callbacks = callbacks;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public MenuResult<T> invoke(ConsoleApplication app) throws ClientException {
             List<T> values = new ArrayList<T>();
             for (MenuCallback<T> callback : callbacks) {
@@ -149,9 +147,7 @@ public final class MenuBuilder<T> {
             this.nMaxTries = nMaxTries;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public MenuResult<T> run() throws ClientException {
             // The validation call-back which will be used to determine the
             // action call-back.
@@ -296,9 +292,7 @@ public final class MenuBuilder<T> {
             this.result = result;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public MenuResult<T> invoke(ConsoleApplication app) throws ClientException {
             return result;
         }

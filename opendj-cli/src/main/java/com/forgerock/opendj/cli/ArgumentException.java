@@ -63,9 +63,7 @@ public final class ArgumentException extends Exception implements LocalizableExc
         this.message = message;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public LocalizableMessage getMessageObject() {
         return this.message;
     }
