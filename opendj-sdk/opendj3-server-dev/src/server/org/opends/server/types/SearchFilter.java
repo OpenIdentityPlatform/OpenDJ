@@ -42,7 +42,6 @@ import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.forgerock.opendj.ldap.ConditionResult;
-import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.api.SubstringMatchingRule;
@@ -2146,42 +2145,6 @@ public final class SearchFilter
     return assertionValue;
   }
 
-  private ByteString getNormalizedAssertionValue() throws DecodeException
-  {
-    if (normalizedAssertionValue == null)
-    {
-      return normalizedAssertionValue = normalizeAssertionValue();
-    }
-    return normalizedAssertionValue;
-  }
-
-  private ByteString normalizeAssertionValue() throws DecodeException
-  {
-    switch (filterType)
-    {
-    case EQUALITY:
-      return attributeType.getEqualityMatchingRule()
-          .normalizeAssertionValue(assertionValue);
-    case GREATER_OR_EQUAL:
-    case LESS_OR_EQUAL:
-      return attributeType.getOrderingMatchingRule()
-          .normalizeAssertionValue(assertionValue);
-    case APPROXIMATE_MATCH:
-      return attributeType.getApproximateMatchingRule()
-          .normalizeAssertionValue(assertionValue);
-    case AND:
-    case OR:
-    case NOT:
-    case PRESENT:
-    case SUBSTRING:
-    case EXTENSIBLE_MATCH:
-    default:
-      return null;
-    }
-  }
-
-
-
   /**
    * Retrieves the subInitial element for this substring filter.
    *
@@ -3610,7 +3573,7 @@ public final class SearchFilter
       case APPROXIMATE_MATCH:
         return typeAndOptionsAndAssertionEqual(f);
       case EXTENSIBLE_MATCH:
-        return equalsExtensible(f);
+        return extensibleEqual(f);
       default:
         return false;
     }
@@ -3641,23 +3604,15 @@ outerComponentLoop:
 
   private boolean typeAndOptionsAndAssertionEqual(SearchFilter f)
   {
-    final boolean tmp =
-        attributeType.equals(f.attributeType)
-            && optionsEqual(attributeOptions, f.attributeOptions);
-    try
-    {
-      return tmp && getNormalizedAssertionValue().equals(f.getNormalizedAssertionValue());
-    }
-    catch (DecodeException e)
-    {
-      return tmp && assertionValue.equals(f.assertionValue);
-    }
+    return attributeType.equals(f.attributeType)
+        && optionsEqual(attributeOptions, f.attributeOptions)
+        && assertionValue.equals(f.assertionValue);
   }
 
 
-  private boolean substringEqual(SearchFilter f)
+  private boolean substringEqual(SearchFilter other)
   {
-    if (! attributeType.equals(f.attributeType))
+    if (! attributeType.equals(other.attributeType))
     {
       return false;
     }
@@ -3667,20 +3622,43 @@ outerComponentLoop:
     {
       return false;
     }
-    try
-    {
-      Assertion thisAssertion = rule.getSubstringAssertion(subInitialElement, subAnyElements, subFinalElement);
-      Assertion thatAssertion = rule.getSubstringAssertion(f.subInitialElement, f.subAnyElements, f.subFinalElement);
-      return thisAssertion.equals(thatAssertion);
-    }
-    catch (DecodeException e)
+    if (! optionsEqual(attributeOptions, other.attributeOptions))
     {
       return false;
     }
+
+    boolean initialCheck = subInitialElement == null ?
+        other.subInitialElement == null : subInitialElement.equals(other.subInitialElement);
+    if (!initialCheck)
+    {
+      return false;
+    }
+    boolean finalCheck = subFinalElement == null ?
+        other.subFinalElement == null : subFinalElement.equals(other.subFinalElement);
+    if (!finalCheck)
+    {
+      return false;
+    }
+    boolean anyCheck = subAnyElements == null ?
+        other.subAnyElements == null : subAnyElements.size() == other.subAnyElements.size();
+    if (!anyCheck)
+    {
+      return false;
+    }
+    if (subAnyElements != null)
+    {
+      for (int i = 0; i < subAnyElements.size(); i++)
+      {
+        if (! subAnyElements.get(i).equals(other.subAnyElements.get(i)))
+        {
+          return false;
+        }
+      }
+    }
+    return true;
   }
 
-
-  private boolean equalsExtensible(SearchFilter f)
+  private boolean extensibleEqual(SearchFilter f)
   {
     if (attributeType == null)
     {
@@ -3886,41 +3864,28 @@ outerComponentLoop:
 
   private int typeAndAssertionHashCode()
   {
-    final int hashCode = attributeType.hashCode();
-    try
-    {
-      return hashCode + getNormalizedAssertionValue().hashCode();
-    }
-    catch (DecodeException e)
-    {
-      return hashCode + assertionValue.hashCode();
-    }
+    return attributeType.hashCode() + assertionValue.hashCode();
   }
 
   /** Returns hash code to use for substring filter. */
   private int substringHashCode()
   {
     int hashCode = attributeType.hashCode();
-    final MatchingRule rule = attributeType.getSubstringMatchingRule();
-    if (rule != null)
+    if (subInitialElement != null)
     {
-      try
+      hashCode += subInitialElement.hashCode();
+    }
+    if (subAnyElements != null)
+    {
+      for (ByteString e : subAnyElements)
       {
-        return hashCode + rule.getSubstringAssertion(subInitialElement, subAnyElements, subFinalElement).hashCode();
-      }
-      catch (DecodeException e)
-      {
-        logger.traceException(e);
+        hashCode += e.hashCode();
       }
     }
-
-    // Fallback to hash code based on elements
-    hashCode += subInitialElement.hashCode();
-    for (ByteString e : subAnyElements)
+    if (subFinalElement != null)
     {
-      hashCode += e.hashCode();
+      hashCode += subFinalElement.hashCode();
     }
-    hashCode += subFinalElement.hashCode();
     return hashCode;
   }
 

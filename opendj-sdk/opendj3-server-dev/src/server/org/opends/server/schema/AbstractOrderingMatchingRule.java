@@ -28,8 +28,8 @@ package org.opends.server.schema;
 import java.util.Comparator;
 
 import org.forgerock.opendj.ldap.*;
+import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
 import org.opends.server.api.AbstractMatchingRule;
-import org.opends.server.api.NotImplementedAssertion;
 import org.opends.server.api.OrderingMatchingRule;
 
 /**
@@ -57,46 +57,61 @@ public abstract class AbstractOrderingMatchingRule
 
   /** {@inheritDoc} */
   @Override
-  public Assertion getAssertion(final ByteSequence value)
-      throws DecodeException
+  public Assertion getAssertion(final ByteSequence assertionValue) throws DecodeException
   {
-    final ByteString assertionValue = normalizeAssertionValue(value);
-    return new NotImplementedAssertion()
+    final ByteString normAssertionValue = normalizeAttributeValue(assertionValue);
+    return new Assertion()
     {
       @Override
-      public ConditionResult matches(ByteSequence attributeValue)
+      public ConditionResult matches(final ByteSequence attributeValue)
       {
-        return ConditionResult.valueOf(compareValues(attributeValue, assertionValue) < 0);
+        return ConditionResult.valueOf(compareValues(attributeValue, normAssertionValue) < 0);
+      }
+
+      @Override
+      public <T> T createIndexQuery(IndexQueryFactory<T> factory) throws DecodeException
+      {
+        return factory.createRangeMatchQuery("ordering", ByteString.empty(), normAssertionValue, false, false);
       }
     };
   }
 
   /** {@inheritDoc} */
   @Override
-  public Assertion getGreaterOrEqualAssertion(ByteSequence value) throws DecodeException
+  public Assertion getGreaterOrEqualAssertion(final ByteSequence assertionValue) throws DecodeException
   {
-    final ByteString normAssertion = normalizeAssertionValue(value);
-    return new NotImplementedAssertion()
+    final ByteString normAssertionValue = normalizeAttributeValue(assertionValue);
+    return new Assertion()
     {
-      @Override
-      public ConditionResult matches(final ByteSequence normalizedAttributeValue)
-      {
-        return ConditionResult.valueOf(compareValues(normalizedAttributeValue, normAssertion) >= 0);
-      }
+        @Override
+        public ConditionResult matches(final ByteSequence normalizedAttributeValue) {
+          return ConditionResult.valueOf(compareValues(normalizedAttributeValue, normAssertionValue) >= 0);
+        }
+
+        @Override
+        public <T> T createIndexQuery(IndexQueryFactory<T> factory) throws DecodeException {
+            return factory.createRangeMatchQuery("ordering", normAssertionValue, ByteString.empty(), true, false);
+        }
     };
   }
 
   /** {@inheritDoc} */
   @Override
-  public Assertion getLessOrEqualAssertion(ByteSequence value) throws DecodeException
+  public Assertion getLessOrEqualAssertion(final ByteSequence assertionValue) throws DecodeException
   {
-    final ByteString normAssertion = normalizeAssertionValue(value);
-    return new NotImplementedAssertion()
+    final ByteString normAssertionValue = normalizeAttributeValue(assertionValue);
+    return new Assertion()
     {
       @Override
       public ConditionResult matches(final ByteSequence normalizedAttributeValue)
       {
-        return ConditionResult.valueOf(compareValues(normalizedAttributeValue, normAssertion) <= 0);
+        return ConditionResult.valueOf(compareValues(normalizedAttributeValue, normAssertionValue) <= 0);
+      }
+
+      @Override
+      public <T> T createIndexQuery(IndexQueryFactory<T> factory) throws DecodeException
+      {
+        return factory.createRangeMatchQuery("ordering", ByteString.empty(), normAssertionValue, false, true);
       }
     };
   }

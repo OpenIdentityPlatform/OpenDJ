@@ -918,8 +918,11 @@ public class SearchFilterTests extends DirectoryServerTestCase {
 
           // These should be case insensitive
           {"(SN=Smith)", "(sn=Smith)", true, true},
-          {"(sn=smith)", "(sn=Smith)", true, false},
           {"(SN=S*th)", "(sn=S*th)", true, true},
+
+          // We no longer normalize assertion values,
+          // so these filters are not equal
+          {"(sn=smith)", "(sn=Smith)", false, false},
 
           {"(sn:caseExactMatch:=Smith)", "(sn:caseExactMatch:=Smith)", true, true},
 
@@ -939,8 +942,10 @@ public class SearchFilterTests extends DirectoryServerTestCase {
           {"(sn;lang-en=Smith)", "(sn=Smith)", false, false},
 
 
-          // This demonstrates bug 705.
-          {"(sn=s*t*h)", "(sn=S*T*H)", true, false},
+          // This was initially to demonstrates bug 705.
+          // But we reverted back to old behavior,
+          // because we no longer normalize assertion values.
+          {"(sn=s*t*h)", "(sn=S*T*H)", false, false},
 
           // These should be case sensitive
           {"(labeledURI=http://opends.org)", "(labeledURI=http://OpenDS.org)", false, false},

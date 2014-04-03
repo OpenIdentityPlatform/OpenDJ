@@ -47,12 +47,6 @@ import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.types.*;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.Attributes;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.Modification;
-import org.opends.server.types.RDN;
 import org.opends.server.util.Base64;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -647,15 +641,75 @@ public class TestBackendImpl extends JebTestCase {
 
   @Test(dependsOnMethods = "testAdd")
   public void testSearchIndex() throws Exception {
-    InternalClientConnection conn =
-        InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = InternalClientConnection.getRootConnection();
     Set<String> attribs = new LinkedHashSet<String>();
-
     String debugString;
-    int finalStartPos;
-    int finalEndPos;
-    int finalCount;
+    List<SearchResultEntry> result;
 
+    // search 1
+    result = doSubtreeSearch(conn, "(&(cn=Aaccf Amar)(cn=Ardyth Bainton))", attribs);
+    assertEquals(result.size(), 0);
+
+    // Adding a debug search attribute for next searches
+    attribs.add(ATTR_DEBUG_SEARCH_INDEX);
+
+    // search 2
+    result = doSubtreeSearch(conn, "(&(cn=Aaccf Amar)(employeeNumber=222))", attribs);
+
+    // Only one index should be used because it is below the FILTER_CANDIDATE
+    debugString = getDebugString(result);
+    assertTrue(debugString.split("cn").length <= 3);
+    assertResultsCountIs(1, debugString);
+
+    // search 3
+    result = doSubtreeSearch(conn, "(|(cn=Aaccf Amar)(cn=Ardyth Bainton))", attribs);
+
+    debugString = getDebugString(result);
+    assertFalse(debugString.contains("NOT-INDEXED"));
+    assertResultsCountIs(2, debugString);
+
+    // search 4
+    result = doSubtreeSearch(conn, "(&(employeeNumber=*)(cn=A*)(employeeNumber>=0)(employeeNumber<=z))", attribs);
+
+    debugString = getDebugString(result);
+    assertFalse(debugString.contains("NOT-INDEXED"));
+    assertResultsCountIs(12, debugString);
+
+    // search 5
+    result = doSubtreeSearch(conn,
+        "(&(employeeNumber<=z)(cn<=Abbey Abbie)(cn>=0)(|(cn>=Abahri Abazari)(employeeNumber<=9)))", attribs);
+
+
+    debugString = getDebugString(result);
+    assertFalse(debugString.contains("NOT-INDEXED"));
+    assertResultsCountIs(11, debugString);
+
+    // search 6
+    result = doSubtreeSearch(conn, "(cn~=Aartjan)", attribs);
+
+    debugString = getDebugString(result);
+    assertFalse(debugString.contains("NOT-INDEXED"));
+    assertResultsCountIs(1, debugString);
+  }
+
+  private void assertResultsCountIs(int expectedCount, String debugString)
+  {
+    int finalStartPos = debugString.indexOf("final=") + 13;
+    int finalEndPos = debugString.indexOf("]", finalStartPos);
+    int finalCount = Integer.valueOf(debugString.substring(finalStartPos, finalEndPos));
+    assertEquals(finalCount, expectedCount);
+  }
+
+  /** Returns the debug string from a search result. */
+  private String getDebugString(List<SearchResultEntry> result)
+  {
+    return result.get(0).getAttribute("debugsearchindex").get(0).toString();
+  }
+
+  /** Returns the results of subtree search on provided connection with provided filter. */
+  private List<SearchResultEntry> doSubtreeSearch(InternalClientConnection conn, String filter,
+      Set<String> attribs) throws Exception
+  {
     InternalSearchOperation search =
         conn.processSearch(DN.valueOf("dc=test,dc=com"),
             SearchScope.WHOLE_SUBTREE,
@@ -663,111 +717,9 @@ public class TestBackendImpl extends JebTestCase {
             0,
             0,
             false,
-            LDAPFilter.decode("(&(cn=Aaccf Amar)(cn=Ardyth Bainton))").toSearchFilter(),
+            LDAPFilter.decode(filter).toSearchFilter(),
             attribs);
-
-    List<SearchResultEntry> result = search.getSearchEntries();
-    assertEquals(result.size(), 0);
-
-    attribs.add(ATTR_DEBUG_SEARCH_INDEX);
-
-    search = conn.processSearch(DN.valueOf("dc=test,dc=com"),
-        SearchScope.WHOLE_SUBTREE,
-        DereferenceAliasesPolicy.NEVER,
-        0,
-        0,
-        false,
-        LDAPFilter.decode("(&(cn=Aaccf Amar)(employeeNumber=222))").toSearchFilter(),
-        attribs);
-
-    result = search.getSearchEntries();
-
-    //Only one index should be used because it is below the FILTER_CANDIDATEassertEquals(ec.getDN2URI().)_THRESHOLD.
-    debugString =
-        result.get(0).getAttribute("debugsearchindex").get(0).toString();
-    assertTrue(debugString.split("cn").length <= 3);
-    finalStartPos = debugString.indexOf("final=") + 13;
-    finalEndPos = debugString.indexOf("]", finalStartPos);
-    finalCount = Integer.valueOf(debugString.substring(finalStartPos,
-        finalEndPos));
-    assertEquals(finalCount, 1);
-
-    search = conn.processSearch(DN.valueOf("dc=test,dc=com"),
-        SearchScope.WHOLE_SUBTREE,
-        DereferenceAliasesPolicy.NEVER,
-        0,
-        0,
-        false,
-        LDAPFilter.decode("(|(cn=Aaccf Amar)(cn=Ardyth Bainton))").toSearchFilter(),
-        attribs);
-
-    result = search.getSearchEntries();
-
-    debugString =
-        result.get(0).getAttribute("debugsearchindex").get(0).toString();
-    assertTrue(!debugString.contains("NOT-INDEXED"));
-    finalStartPos = debugString.indexOf("final=") + 13;
-    finalEndPos = debugString.indexOf("]", finalStartPos);
-    finalCount = Integer.valueOf(debugString.substring(finalStartPos,
-        finalEndPos));
-    assertEquals(finalCount, 2);
-
-    search = conn.processSearch(DN.valueOf("dc=test,dc=com"),
-        SearchScope.WHOLE_SUBTREE,
-        DereferenceAliasesPolicy.NEVER,
-        0,
-        0,
-        false,
-        LDAPFilter.decode("(&(employeeNumber=*)(cn=A*)(employeeNumber>=0)(employeeNumber<=z))").toSearchFilter(),
-        attribs);
-    result = search.getSearchEntries();
-
-    debugString =
-        result.get(0).getAttribute("debugsearchindex").get(0).toString();
-    assertTrue(!debugString.contains("NOT-INDEXED"));
-    finalStartPos = debugString.indexOf("final=") + 13;
-    finalEndPos = debugString.indexOf("]", finalStartPos);
-    finalCount = Integer.valueOf(debugString.substring(finalStartPos,
-        finalEndPos));
-    assertEquals(finalCount, 12);
-
-    search = conn.processSearch(DN.valueOf("dc=test,dc=com"),
-        SearchScope.WHOLE_SUBTREE,
-        DereferenceAliasesPolicy.NEVER,
-        0,
-        0,
-        false,
-        LDAPFilter.decode("(&(employeeNumber<=z)(cn<=Abbey Abbie)(cn>=0)(|(cn>=Abahri Abazari)(employeeNumber<=9)))").toSearchFilter(),
-        attribs);
-    result = search.getSearchEntries();
-
-    debugString =
-        result.get(0).getAttribute("debugsearchindex").get(0).toString();
-    assertTrue(!debugString.contains("NOT-INDEXED"));
-    finalStartPos = debugString.indexOf("final=") + 13;
-    finalEndPos = debugString.indexOf("]", finalStartPos);
-    finalCount = Integer.valueOf(debugString.substring(finalStartPos,
-        finalEndPos));
-    assertEquals(finalCount, 11);
-
-    search = conn.processSearch(DN.valueOf("dc=test,dc=com"),
-        SearchScope.WHOLE_SUBTREE,
-        DereferenceAliasesPolicy.NEVER,
-        0,
-        0,
-        false,
-        LDAPFilter.decode("(cn~=Aartjan)").toSearchFilter(),
-        attribs);
-    result = search.getSearchEntries();
-
-    debugString =
-        result.get(0).getAttribute("debugsearchindex").get(0).toString();
-    assertTrue(!debugString.contains("NOT-INDEXED"));
-    finalStartPos = debugString.indexOf("final=") + 13;
-    finalEndPos = debugString.indexOf("]", finalStartPos);
-    finalCount = Integer.valueOf(debugString.substring(finalStartPos,
-        finalEndPos));
-    assertEquals(finalCount, 1);
+    return search.getSearchEntries();
   }
 
   @Test(dependsOnMethods = {"testAdd", "testSearchIndex",

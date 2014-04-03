@@ -26,8 +26,12 @@
  */
 package org.opends.server.api;
 
+import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteSequence;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
 
 /**
  * This class defines the set of methods and structures that must be
@@ -86,5 +90,29 @@ public abstract class ApproximateMatchingRule
     return ConditionResult.valueOf(
         approximatelyMatch(attributeValue, assertionValue));
   }
+
+  /** {@inheritDoc} */
+  @Override
+  public Assertion getAssertion(ByteSequence assertionValue) throws DecodeException
+  {
+    final ByteString normAssertionValue = normalizeAttributeValue(assertionValue);
+    final DefaultAssertion approxAssertion = DefaultAssertion.approximate(normAssertionValue);
+    return new Assertion()
+    {
+      @Override
+      public ConditionResult matches(ByteSequence normalizedAttributeValue)
+      {
+        return valuesMatch(normalizedAttributeValue, normAssertionValue);
+      }
+
+      @Override
+      public <T> T createIndexQuery(IndexQueryFactory<T> factory)
+          throws DecodeException
+      {
+       return approxAssertion.createIndexQuery(factory);
+      }
+    };
+  }
+
 }
 

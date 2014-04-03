@@ -32,12 +32,10 @@ import java.util.*;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.api.ClientConnection;
-import org.opends.server.api.MatchingRule;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.controls.*;
@@ -1247,17 +1245,7 @@ public class ECLSearchOperation
   private static int extractChangeNumber(SearchFilter sf)
       throws DirectoryException
   {
-    try
-    {
-      MatchingRule rule = sf.getAttributeType().getEqualityMatchingRule();
-      ByteString normValue = rule.normalizeAssertionValue(sf.getAssertionValue());
-      return Integer.decode(normValue.toString());
-    }
-    catch (DecodeException e)
-    {
-      throw new DirectoryException(ResultCode.INVALID_ATTRIBUTE_SYNTAX, e
-          .getMessageObject(), e);
-    }
+    return Integer.decode(sf.getAssertionValue().toString());
   }
 
   private static boolean matches(SearchFilter sf, FilterType filterType,

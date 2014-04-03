@@ -29,10 +29,9 @@ package org.opends.server.backends.jeb;
 
 
 
-import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 
 import java.util.Collection;
-import java.util.List;
 
 import static org.opends.server.backends.jeb.IndexFilter.*;
 
@@ -51,12 +50,12 @@ public abstract class IndexQuery
   /**
    * Evaluates the index query and returns the EntryIDSet.
    *
-   * @param debugMessages If not null, diagnostic messages will be written
+   * @param debugMessage If not null, diagnostic message will be written
    *                      which will help to determine why the returned
    *                      EntryIDSet is not defined.
-   * @return The EntryIDSet as a result of evaulation of this query.
+   * @return The EntryIDSet as a result of evaluation of this query.
    */
-  public abstract EntryIDSet evaluate(List<LocalizableMessage> debugMessages);
+  public abstract EntryIDSet evaluate(LocalizableMessageBuilder debugMessage);
 
 
 
@@ -117,7 +116,7 @@ public abstract class IndexQuery
      * @param debugMessages
      */
     @Override
-    public EntryIDSet evaluate(List<LocalizableMessage> debugMessages)
+    public EntryIDSet evaluate(LocalizableMessageBuilder debugMessage)
     {
       return new EntryIDSet();
     }
@@ -154,18 +153,18 @@ public abstract class IndexQuery
      * @param debugMessages
      */
     @Override
-    public EntryIDSet evaluate(List<LocalizableMessage> debugMessages)
+    public EntryIDSet evaluate(LocalizableMessageBuilder debugMessage)
     {
       EntryIDSet entryIDs = null;
       for (IndexQuery query : subIndexQueries)
       {
         if (entryIDs == null)
         {
-          entryIDs = query.evaluate(debugMessages);
+          entryIDs = query.evaluate(debugMessage);
         }
         else
         {
-          entryIDs.retainAll(query.evaluate(debugMessages));
+          entryIDs.retainAll(query.evaluate(debugMessage));
         }
         if (entryIDs.isDefined()
             && entryIDs.size() <= FILTER_CANDIDATE_THRESHOLD)
@@ -207,18 +206,18 @@ public abstract class IndexQuery
      * @param debugMessages
      */
     @Override
-    public EntryIDSet evaluate(List<LocalizableMessage> debugMessages)
+    public EntryIDSet evaluate(LocalizableMessageBuilder debugMessage)
     {
       EntryIDSet entryIDs = null;
       for (IndexQuery query : subIndexQueries)
       {
         if (entryIDs == null)
         {
-          entryIDs = query.evaluate(debugMessages);
+          entryIDs = query.evaluate(debugMessage);
         }
         else
         {
-          entryIDs.addAll(query.evaluate(debugMessages));
+          entryIDs.addAll(query.evaluate(debugMessage));
         }
         if (entryIDs.isDefined()
             && entryIDs.size() <= FILTER_CANDIDATE_THRESHOLD)
