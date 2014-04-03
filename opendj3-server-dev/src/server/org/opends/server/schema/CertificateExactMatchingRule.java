@@ -42,6 +42,7 @@ import javax.security.auth.x500.X500Principal;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
@@ -367,6 +368,14 @@ class CertificateExactMatchingRule
     builder.append((byte) 0); // Separator
     builder.append(serial.toByteArray());
     return builder.toByteString();
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public Assertion getAssertion(ByteSequence assertionValue) throws DecodeException
+  {
+    final ByteString normAssertionValue = normalizeAssertionValue(assertionValue);
+    return getEqualityAssertion(normAssertionValue);
   }
 
 }

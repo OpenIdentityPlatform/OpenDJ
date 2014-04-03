@@ -26,8 +26,13 @@
  */
 package org.opends.server.api;
 
+import org.forgerock.opendj.ldap.Assertion;
 import org.forgerock.opendj.ldap.ByteSequence;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
+import org.opends.server.api.AbstractMatchingRule.DefaultAssertion;
 
 /**
  * This class defines the set of methods and structures that must be
@@ -108,5 +113,41 @@ public abstract class EqualityMatchingRule
   {
     return attributeValue.hashCode();
   }
+
+  /** {@inheritDoc} */
+  @Override
+  public Assertion getAssertion(ByteSequence assertionValue) throws DecodeException
+  {
+    final ByteString normAssertionValue = normalizeAttributeValue(assertionValue);
+    return getEqualityAssertion(normAssertionValue);
+  }
+
+  /**
+   * Return the equality assertion for the matching rule.
+   *
+   * @param normAssertionValue
+   *            The normalized assertion value.
+   * @return the assertion
+   */
+  protected Assertion getEqualityAssertion(final ByteString normAssertionValue)
+  {
+    final DefaultAssertion eqAssertion = DefaultAssertion.equality(normAssertionValue);
+    return new Assertion()
+    {
+      @Override
+      public ConditionResult matches(ByteSequence normalizedAttributeValue)
+      {
+        return valuesMatch(normalizedAttributeValue, normAssertionValue);
+      }
+
+      @Override
+      public <T> T createIndexQuery(IndexQueryFactory<T> factory)
+          throws DecodeException
+      {
+       return eqAssertion.createIndexQuery(factory);
+      }
+    };
+  }
+
 }
 

@@ -27,10 +27,9 @@
 package org.opends.server.backends.jeb;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
-import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.ldap.ByteSequence;
 import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
 import org.forgerock.opendj.ldap.spi.IndexingOptions;
@@ -47,6 +46,8 @@ import static org.opends.messages.JebMessages.*;
 public final class IndexQueryFactoryImpl implements
     IndexQueryFactory<IndexQuery>
 {
+
+  private static final String PRESENCE_INDEX_KEY = "presence";
 
   /**
    * The Map containing the string type identifier and the corresponding index.
@@ -79,34 +80,35 @@ public final class IndexQueryFactoryImpl implements
       {
 
         @Override
-        public EntryIDSet evaluate(List<LocalizableMessage> debugMessages)
+        public EntryIDSet evaluate(LocalizableMessageBuilder debugMessage)
         {
           // Read the database and get Record for the key.
           DatabaseEntry key = new DatabaseEntry(value.toByteArray());
 
           // Select the right index to be used.
           Index index = indexMap.get(indexID);
-          EntryIDSet entrySet =
-              index.readKey(key, null, LockMode.DEFAULT);
-          if(debugMessages != null && !entrySet.isDefined())
+          if (index == null)
+          {
+            if(debugMessage != null)
+            {
+              debugMessage.append(INFO_JEB_INDEX_FILTER_INDEX_TYPE_DISABLED.get(indexID, ""));
+            }
+            return createMatchAllQuery().evaluate(debugMessage);
+          }
+          EntryIDSet entrySet = index.readKey(key, null, LockMode.DEFAULT);
+          if(debugMessage != null && !entrySet.isDefined())
           {
             if(!index.isTrusted())
             {
-              debugMessages.add(
-                  INFO_JEB_INDEX_FILTER_INDEX_NOT_TRUSTED.get(
-                      index.getName()));
+              debugMessage.append(INFO_JEB_INDEX_FILTER_INDEX_NOT_TRUSTED.get(index.getName()));
             }
             else if(index.isRebuildRunning())
             {
-              debugMessages.add(
-                  INFO_JEB_INDEX_FILTER_INDEX_REBUILD_IN_PROGRESS.get(
-                      index.getName()));
+              debugMessage.append(INFO_JEB_INDEX_FILTER_INDEX_REBUILD_IN_PROGRESS.get(index.getName()));
             }
             else
             {
-              debugMessages.add(
-                  INFO_JEB_INDEX_FILTER_INDEX_LIMIT_EXCEEDED.get(
-                      index.getName()));
+              debugMessage.append(INFO_JEB_INDEX_FILTER_INDEX_LIMIT_EXCEEDED.get(index.getName()));
             }
           }
           return entrySet;
@@ -126,32 +128,33 @@ public final class IndexQueryFactoryImpl implements
       {
 
         @Override
-        public EntryIDSet evaluate(List<LocalizableMessage> debugMessages)
+        public EntryIDSet evaluate(LocalizableMessageBuilder debugMessage)
         {
           // Find the right index.
           Index index = indexMap.get(indexID);
-          EntryIDSet entrySet =
-              index.readRange(lowerBound.toByteArray(), upperBound
-                  .toByteArray(), includeLowerBound, includeUpperBound);
-          if(debugMessages != null && !entrySet.isDefined())
+          if (index == null)
+          {
+            if(debugMessage != null)
+            {
+              debugMessage.append(INFO_JEB_INDEX_FILTER_INDEX_TYPE_DISABLED.get(indexID, ""));
+            }
+            return createMatchAllQuery().evaluate(debugMessage);
+          }
+          EntryIDSet entrySet = index.readRange(lowerBound.toByteArray(), upperBound.toByteArray(),
+              includeLowerBound, includeUpperBound);
+          if(debugMessage != null && !entrySet.isDefined())
           {
             if(!index.isTrusted())
             {
-              debugMessages.add(
-                  INFO_JEB_INDEX_FILTER_INDEX_NOT_TRUSTED.get(
-                      index.getName()));
+              debugMessage.append(INFO_JEB_INDEX_FILTER_INDEX_NOT_TRUSTED.get(index.getName()));
             }
             else if(index.isRebuildRunning())
             {
-              debugMessages.add(
-                  INFO_JEB_INDEX_FILTER_INDEX_REBUILD_IN_PROGRESS.get(
-                      index.getName()));
+              debugMessage.append(INFO_JEB_INDEX_FILTER_INDEX_REBUILD_IN_PROGRESS.get(index.getName()));
             }
             else
             {
-              debugMessages.add(
-                  INFO_JEB_INDEX_FILTER_INDEX_LIMIT_EXCEEDED.get(
-                      index.getName()));
+              debugMessage.append(INFO_JEB_INDEX_FILTER_INDEX_LIMIT_EXCEEDED.get(index.getName()));
             }
           }
           return entrySet;
@@ -191,11 +194,38 @@ public final class IndexQueryFactoryImpl implements
   {
     return new IndexQuery()
       {
-
         @Override
-        public EntryIDSet evaluate(List<LocalizableMessage> debugMessages)
+        public EntryIDSet evaluate(LocalizableMessageBuilder debugMessage)
         {
-          return new EntryIDSet();
+          Index index = indexMap.get(PRESENCE_INDEX_KEY);
+          if (index == null)
+          {
+            if(debugMessage != null)
+            {
+              debugMessage.append(INFO_JEB_INDEX_FILTER_INDEX_TYPE_DISABLED.get(index.getName(), ""));
+            }
+            return new EntryIDSet();
+          }
+
+          EntryIDSet entrySet = index.readKey(AttributeIndex.presenceKey, null, LockMode.DEFAULT);
+
+          if (debugMessage != null && !entrySet.isDefined())
+          {
+            if (!index.isTrusted())
+            {
+              debugMessage.append(INFO_JEB_INDEX_FILTER_INDEX_NOT_TRUSTED.get(index.getName()));
+            }
+            else if (index.isRebuildRunning())
+            {
+              debugMessage.append(INFO_JEB_INDEX_FILTER_INDEX_REBUILD_IN_PROGRESS.get(index.getName()));
+            }
+            else
+            {
+              debugMessage.append(INFO_JEB_INDEX_FILTER_INDEX_LIMIT_EXCEEDED.get(index.getName()));
+            }
+          }
+
+          return entrySet;
         }
       };
   }

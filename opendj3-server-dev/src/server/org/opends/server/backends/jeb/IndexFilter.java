@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2014 ForgeRock AS
  *
  */
 package org.opends.server.backends.jeb;
@@ -298,11 +298,10 @@ public class IndexFilter
       ArrayList<SearchFilter> rangeList = rangeEntry.getValue();
       if (rangeList.size() == 2)
       {
-        SearchFilter a = rangeList.get(0);
-        SearchFilter b = rangeList.get(1);
+        SearchFilter filter1 = rangeList.get(0);
+        SearchFilter filter2 = rangeList.get(1);
 
-        AttributeIndex attributeIndex =
-             entryContainer.getAttributeIndex(rangeEntry.getKey());
+        AttributeIndex attributeIndex = entryContainer.getAttributeIndex(rangeEntry.getKey());
         if (attributeIndex == null)
         {
           if(monitor.isFilterUseEnabled())
@@ -313,104 +312,18 @@ public class IndexFilter
           }
           continue;
         }
+        EntryIDSet set = attributeIndex.evaluateBoundedRange(filter1, filter2, buffer, monitor);
 
-        if (a.getFilterType() == FilterType.GREATER_OR_EQUAL &&
-             b.getFilterType() == FilterType.LESS_OR_EQUAL)
+        if(monitor.isFilterUseEnabled() && set.isDefined())
         {
-          // Like (cn>=A)(cn<=B).
-          EntryIDSet set;
-          set = attributeIndex.evaluateBoundedRange(a.getAssertionValue(),
-                                                     b.getAssertionValue());
-
-          if (buffer != null)
-          {
-            a.toString(buffer);
-            b.toString(buffer);
-            set.toString(buffer);
-          }
-
-          if(monitor.isFilterUseEnabled())
-          {
-            if(set.isDefined())
-            {
-              monitor.updateStats(SearchFilter.createANDFilter(rangeList),
-                  set.size());
-            }
-            else if(!attributeIndex.orderingIndex.isTrusted())
-            {
-              monitor.updateStats(SearchFilter.createANDFilter(rangeList),
-                  INFO_JEB_INDEX_FILTER_INDEX_NOT_TRUSTED.get(
-                      attributeIndex.orderingIndex.getName()));
-            }
-            else if(attributeIndex.orderingIndex.isRebuildRunning())
-            {
-              monitor.updateStats(SearchFilter.createANDFilter(rangeList),
-                  INFO_JEB_INDEX_FILTER_INDEX_REBUILD_IN_PROGRESS.get(
-                      attributeIndex.orderingIndex.getName()));
-            }
-            else
-            {
-              monitor.updateStats(SearchFilter.createANDFilter(rangeList),
-                  INFO_JEB_INDEX_FILTER_INDEX_LIMIT_EXCEEDED.get(
-                      attributeIndex.orderingIndex.getName()));
-            }
-          }
-
-          if (retainAll(results, set))
-          {
-            return results;
-          }
-          continue;
+          monitor.updateStats(SearchFilter.createANDFilter(rangeList), set.size());
         }
-        else if (a.getFilterType() == FilterType.LESS_OR_EQUAL &&
-             b.getFilterType() == FilterType.GREATER_OR_EQUAL)
+
+        if (retainAll(results, set))
         {
-          // Like (cn<=A)(cn>=B).
-          EntryIDSet set;
-          set = attributeIndex.evaluateBoundedRange(b.getAssertionValue(),
-                                                     a.getAssertionValue());
-
-          if (buffer != null)
-          {
-            a.toString(buffer);
-            b.toString(buffer);
-            set.toString(buffer);
-          }
-
-          if(monitor.isFilterUseEnabled())
-          {
-            if(set.isDefined())
-            {
-              monitor.updateStats(SearchFilter.createANDFilter(rangeList),
-                  set.size());
-            }
-            else if(!attributeIndex.orderingIndex.isTrusted())
-            {
-              monitor.updateStats(SearchFilter.createANDFilter(rangeList),
-                  INFO_JEB_INDEX_FILTER_INDEX_NOT_TRUSTED.get(
-                      attributeIndex.orderingIndex.getName()));
-            }
-            else if(attributeIndex.orderingIndex.isRebuildRunning())
-            {
-              monitor.updateStats(SearchFilter.createANDFilter(rangeList),
-                  INFO_JEB_INDEX_FILTER_INDEX_REBUILD_IN_PROGRESS.get(
-                      attributeIndex.orderingIndex.getName()));
-            }
-            else
-            {
-              monitor.updateStats(SearchFilter.createANDFilter(rangeList),
-                  INFO_JEB_INDEX_FILTER_INDEX_LIMIT_EXCEEDED.get(
-                      attributeIndex.orderingIndex.getName()));
-            }
-          }
-
-
-          if (retainAll(results, set))
-          {
-            return results;
-          }
-          continue;
+          return results;
         }
+        continue;
       }
 
       // Add to the remaining range components to be processed.

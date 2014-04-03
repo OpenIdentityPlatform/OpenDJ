@@ -52,6 +52,65 @@ import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
 public abstract class AbstractMatchingRule implements MatchingRule
 {
 
+  /**
+   * Default implementation of assertion.
+   */
+  public static final class DefaultAssertion implements Assertion
+  {
+    /** The ID of the DB index to use with this assertion. */
+    private final String indexID;
+    private final ByteSequence normalizedAssertionValue;
+
+    /**
+     * Returns the equality assertion.
+     *
+     * @param normalizedAssertionValue
+     *          The value on which the assertion is built.
+     * @return the equality assertion
+     */
+    public static DefaultAssertion equality(final ByteSequence normalizedAssertionValue)
+    {
+      return new DefaultAssertion("equality", normalizedAssertionValue);
+    }
+
+    /**
+     * Returns the approximate assertion.
+     *
+     * @param normalizedAssertionValue
+     *          The value on which the assertion is built.
+     * @return the approximate assertion
+     */
+    static DefaultAssertion approximate(final ByteSequence normalizedAssertionValue)
+    {
+      return new DefaultAssertion("approximate", normalizedAssertionValue);
+    }
+
+    private DefaultAssertion(final String indexID, final ByteSequence normalizedAssertionValue)
+    {
+      this.indexID = indexID;
+      this.normalizedAssertionValue = normalizedAssertionValue;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public ConditionResult matches(final ByteSequence normalizedAttributeValue)
+    {
+      return ConditionResult.valueOf(normalizedAssertionValue.equals(normalizedAttributeValue));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public <T> T createIndexQuery(IndexQueryFactory<T> factory)
+        throws DecodeException
+    {
+      return factory.createExactMatchQuery(indexID, normalizedAssertionValue);
+    }
+  }
+
   private static final Assertion UNDEFINED_ASSERTION = new Assertion()
   {
     @Override
@@ -71,9 +130,14 @@ public abstract class AbstractMatchingRule implements MatchingRule
   };
 
   /**
-   * {@inheritDoc}
+   * Returns the normalized form of the assertion value.
+   *
+   * @param value
+   *            The assertion value to normalize.
+   * @return the normalized value
+   * @throws DecodeException
+   *            If a problem occurs.
    */
-  @Override
   public ByteString normalizeAssertionValue(ByteSequence value)
       throws DecodeException
   {

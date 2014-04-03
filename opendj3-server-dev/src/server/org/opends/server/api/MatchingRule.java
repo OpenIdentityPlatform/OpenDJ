@@ -64,25 +64,6 @@ public interface MatchingRule
    */
   String getOID();
 
-
-
-  /**
-   * Retrieves the normalized form of the provided assertion value,
-   * which is best suite for efficiently performing matching
-   * operations on that value.
-   *
-   * @param value
-   *          The assertion value to be normalized.
-   * @return The normalized version of the provided value.
-   * @throws DecodeException
-   *           If the provided value is invalid according to the
-   *           associated attribute syntax.
-   */
-  ByteString normalizeAssertionValue(ByteSequence value)
-      throws DecodeException;
-
-
-
   /**
    * Retrieves the name or OID for this matching rule. If it has a
    * name, then it will be returned. Otherwise, the OID will be
@@ -118,7 +99,7 @@ public interface MatchingRule
    * @throws DecodeException
    *           if problem
    */
-  Assertion getAssertion(final ByteSequence assertionValue) throws DecodeException;
+  Assertion getAssertion(ByteSequence assertionValue) throws DecodeException;
 
   /**
    * Returns the normalized form of the provided assertion value, which is
@@ -132,7 +113,7 @@ public interface MatchingRule
    * @throws DecodeException
    *             if the syntax of the value is not valid.
    */
-  public Assertion getGreaterOrEqualAssertion(final ByteSequence assertionValue) throws DecodeException;
+  Assertion getGreaterOrEqualAssertion(ByteSequence assertionValue) throws DecodeException;
 
   /**
    * Returns the normalized form of the provided assertion value, which is
@@ -146,7 +127,7 @@ public interface MatchingRule
    * @throws DecodeException
    *             if the syntax of the value is not valid.
    */
-  public Assertion getLessOrEqualAssertion(final ByteSequence assertionValue) throws DecodeException;
+  Assertion getLessOrEqualAssertion(ByteSequence assertionValue) throws DecodeException;
 
   /**
    * Returns the normalized form of the provided assertion substring values,
@@ -166,8 +147,8 @@ public interface MatchingRule
    * @throws DecodeException
    *             if the syntax of the value is not valid.
    */
-  public Assertion getSubstringAssertion(final ByteSequence subInitial,
-      final List<? extends ByteSequence> subAnyElements, final ByteSequence subFinal) throws DecodeException;
+  Assertion getSubstringAssertion(ByteSequence subInitial, List<? extends ByteSequence> subAnyElements,
+      ByteSequence subFinal) throws DecodeException;
 
   /**
    * Indicates whether this matching rule is declared "OBSOLETE". The
