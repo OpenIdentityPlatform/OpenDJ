@@ -68,7 +68,6 @@ import org.forgerock.opendj.ldap.controls.ServerSideSortResponseControl;
 import org.forgerock.opendj.ldap.controls.SimplePagedResultsControl;
 import org.forgerock.opendj.ldap.controls.VirtualListViewRequestControl;
 import org.forgerock.opendj.ldap.controls.VirtualListViewResponseControl;
-import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.Result;
@@ -263,14 +262,7 @@ public final class LDAPSearch extends ConsoleApplication {
         StringArgument assertionFilter;
         IntegerArgument sizeLimit;
         try {
-            connectionFactoryProvider = new ConnectionFactoryProvider(argParser, this) {
-                @Override
-                public ConnectionFactory newAuthenticatedConnectionFactory(final ConnectionFactory connection,
-                        final BindRequest request) throws ArgumentException {
-                    return new AuthenticatedConnectionFactory(connection, request);
-
-                }
-            };
+            connectionFactoryProvider = new ConnectionFactoryProvider(argParser, this);
             final StringArgument propertiesFileArgument =
                 CommonArguments.getPropertiesFile();
             argParser.addArgument(propertiesFileArgument);

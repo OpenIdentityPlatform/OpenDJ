@@ -51,7 +51,7 @@ import org.forgerock.opendj.ldap.responses.BindResult;
 
 import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.ldap.controls.AccountUsabilityRequestControl;
-import com.forgerock.opendj.ldap.tools.AuthenticatedConnectionFactory.AuthenticatedConnection;
+import com.forgerock.opendj.cli.AuthenticatedConnectionFactory.AuthenticatedConnection;
 import com.forgerock.opendj.util.StaticUtils;
 
 /**

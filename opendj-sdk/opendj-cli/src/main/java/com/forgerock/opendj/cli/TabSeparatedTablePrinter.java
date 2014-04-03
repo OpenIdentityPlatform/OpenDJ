@@ -59,9 +59,7 @@ public final class TabSeparatedTablePrinter extends TablePrinter {
             // No implementation required.
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public void addCell(String s) {
             // Avoid printing tab separators for trailing empty cells.
@@ -79,9 +77,7 @@ public final class TabSeparatedTablePrinter extends TablePrinter {
             column++;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public void addHeading(String s) {
             if (displayHeadings) {
@@ -89,9 +85,7 @@ public final class TabSeparatedTablePrinter extends TablePrinter {
             }
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public void endHeader() {
             if (displayHeadings) {
@@ -99,34 +93,26 @@ public final class TabSeparatedTablePrinter extends TablePrinter {
             }
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public void endRow() {
             writer.println();
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public void endTable() {
             writer.flush();
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public void startHeader() {
             column = 0;
             requiredSeparators = 0;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public void startRow() {
             column = 0;
@@ -171,9 +157,7 @@ public final class TabSeparatedTablePrinter extends TablePrinter {
         this.displayHeadings = displayHeadings;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected TableSerializer getSerializer() {
         return new Serializer();

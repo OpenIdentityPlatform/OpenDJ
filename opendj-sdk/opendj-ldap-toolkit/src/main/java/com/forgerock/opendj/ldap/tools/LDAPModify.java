@@ -56,7 +56,6 @@ import org.forgerock.opendj.ldap.controls.PreReadRequestControl;
 import org.forgerock.opendj.ldap.controls.PreReadResponseControl;
 import org.forgerock.opendj.ldap.controls.ProxiedAuthV2RequestControl;
 import org.forgerock.opendj.ldap.requests.AddRequest;
-import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.opendj.ldap.requests.DeleteRequest;
 import org.forgerock.opendj.ldap.requests.ModifyDNRequest;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
@@ -267,14 +266,7 @@ public final class LDAPModify extends ConsoleApplication {
         BooleanArgument noPropertiesFileArgument;
 
         try {
-            connectionFactoryProvider = new ConnectionFactoryProvider(argParser, this) {
-                @Override
-                public ConnectionFactory newAuthenticatedConnectionFactory(final ConnectionFactory connection,
-                        final BindRequest request) throws ArgumentException {
-                    return new AuthenticatedConnectionFactory(connection, request);
-
-                }
-            };
+            connectionFactoryProvider = new ConnectionFactoryProvider(argParser, this);
 
             propertiesFileArgument = CommonArguments.getPropertiesFile();
             argParser.addArgument(propertiesFileArgument);

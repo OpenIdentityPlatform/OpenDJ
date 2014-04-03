@@ -54,7 +54,7 @@ import org.forgerock.util.Reject;
  * A trust manager which prompts the user for the length of time that they would
  * like to trust a server certificate.
  */
-final class PromptingTrustManager implements X509TrustManager {
+public final class PromptingTrustManager implements X509TrustManager {
     /**
      * Enumeration description server certificate trust option.
      */
@@ -119,7 +119,27 @@ final class PromptingTrustManager implements X509TrustManager {
 
     private final ConsoleApplication app;
 
-    PromptingTrustManager(final ConsoleApplication app, final String acceptedStorePath,
+    /**
+     * Creates a prompting trust manager based on these arguments.
+     *
+     * @param app
+     *            The linked console application.
+     * @param acceptedStorePath
+     *            The store path.
+     * @param sourceTrustManager
+     *            The source of the trust manager.
+     * @throws KeyStoreException
+     *             If no Provider supports a KeyStoreSpi implementation for the specified type.
+     * @throws IOException
+     *             If there is an I/O or format problem with the keystore data, if a password is required but not given,
+     *             or if the given password was incorrect. If the error is due to a wrong password, the cause of the
+     *             IOException should be an UnrecoverableKeyException.
+     * @throws NoSuchAlgorithmException
+     *             If no provider supports a trust manager factory spi implementation for the specified algorithm.
+     * @throws CertificateException
+     *             If any of the certificates in the key store could not be loaded
+     */
+    public PromptingTrustManager(final ConsoleApplication app, final String acceptedStorePath,
             final X509TrustManager sourceTrustManager) throws KeyStoreException, IOException,
             NoSuchAlgorithmException, CertificateException {
         Reject.ifNull(app, acceptedStorePath);
@@ -170,11 +190,30 @@ final class PromptingTrustManager implements X509TrustManager {
         this.onDiskTrustManager = x509tm;
     }
 
-    PromptingTrustManager(final ConsoleApplication app, final X509TrustManager sourceTrustManager)
+    /**
+     * Creates a prompting trust manager based on these arguments.
+     *
+     * @param app
+     *            The linked console application.
+     * @param sourceTrustManager
+     *            The source of the trust manager.
+     * @throws KeyStoreException
+     *             If no Provider supports a KeyStoreSpi implementation for the specified type.
+     * @throws IOException
+     *             If there is an I/O or format problem with the keystore data, if a password is required but not given,
+     *             or if the given password was incorrect. If the error is due to a wrong password, the cause of the
+     *             IOException should be an UnrecoverableKeyException.
+     * @throws NoSuchAlgorithmException
+     *             If no provider supports a trust manager factory spi implementation for the specified algorithm.
+     * @throws CertificateException
+     *             If any of the certificates in the key store could not be loaded
+     */
+    public PromptingTrustManager(final ConsoleApplication app, final X509TrustManager sourceTrustManager)
             throws KeyStoreException, IOException, NoSuchAlgorithmException, CertificateException {
         this(app, DEFAULT_PATH, sourceTrustManager);
     }
 
+    /** {@inheritDoc} */
     public void checkClientTrusted(final X509Certificate[] x509Certificates, final String s)
             throws CertificateException {
         try {
@@ -196,6 +235,7 @@ final class PromptingTrustManager implements X509TrustManager {
         }
     }
 
+    /** {@inheritDoc} */
     public void checkServerTrusted(final X509Certificate[] x509Certificates, final String s)
             throws CertificateException {
         try {
@@ -217,6 +257,7 @@ final class PromptingTrustManager implements X509TrustManager {
         }
     }
 
+    /** {@inheritDoc} */
     public X509Certificate[] getAcceptedIssuers() {
         if (nestedTrustManager != null) {
             return nestedTrustManager.getAcceptedIssuers();

@@ -63,9 +63,7 @@ public final class ArgumentGroup implements Comparable<ArgumentGroup> {
         this.args = new LinkedList<Argument>();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     public int compareTo(final ArgumentGroup o) {
         // Groups with higher priority numbers appear before
         // those with lower priority in the usage output

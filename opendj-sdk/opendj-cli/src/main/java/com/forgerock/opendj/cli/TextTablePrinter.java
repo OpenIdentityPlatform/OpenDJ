@@ -74,27 +74,21 @@ public final class TextTablePrinter extends TablePrinter {
             this.indentPadding = builder.toString();
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public void addCell(String s) {
             currentRow.add(s);
             column++;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public void addColumn(int width) {
             columnWidths.add(width);
             totalColumns++;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public void addHeading(String s) {
             if (displayHeadings) {
@@ -102,9 +96,7 @@ public final class TextTablePrinter extends TablePrinter {
             }
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public void endHeader() {
             if (displayHeadings) {
@@ -145,9 +137,7 @@ public final class TextTablePrinter extends TablePrinter {
             }
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public void endRow() {
             boolean isRemainingText;
@@ -222,17 +212,13 @@ public final class TextTablePrinter extends TablePrinter {
             } while (isRemainingText);
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public void endTable() {
             writer.flush();
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public void startHeader() {
             determineColumnWidths();
@@ -241,9 +227,7 @@ public final class TextTablePrinter extends TablePrinter {
             currentRow.clear();
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public void startRow() {
             column = 0;
@@ -487,9 +471,7 @@ public final class TextTablePrinter extends TablePrinter {
         this.totalWidth = totalWidth;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected TableSerializer getSerializer() {
         return new Serializer();

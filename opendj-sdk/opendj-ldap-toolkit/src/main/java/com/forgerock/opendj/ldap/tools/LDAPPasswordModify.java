@@ -37,7 +37,6 @@ import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.controls.Control;
-import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.opendj.ldap.requests.PasswordModifyExtendedRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.responses.PasswordModifyExtendedResult;
@@ -113,14 +112,7 @@ public final class LDAPPasswordModify extends ConsoleApplication {
         BooleanArgument noPropertiesFileArgument;
 
         try {
-            connectionFactoryProvider = new ConnectionFactoryProvider(argParser, this) {
-                @Override
-                public ConnectionFactory newAuthenticatedConnectionFactory(final ConnectionFactory connection,
-                        final BindRequest request) throws ArgumentException {
-                    return new AuthenticatedConnectionFactory(connection, request);
-
-                }
-            };
+            connectionFactoryProvider = new ConnectionFactoryProvider(argParser, this);
 
             propertiesFileArgument = CommonArguments.getPropertiesFile();
             argParser.addArgument(propertiesFileArgument);

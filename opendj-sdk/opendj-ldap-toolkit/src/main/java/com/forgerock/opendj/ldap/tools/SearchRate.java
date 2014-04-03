@@ -43,7 +43,6 @@ import org.forgerock.opendj.ldap.FutureResult;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchResultHandler;
 import org.forgerock.opendj.ldap.SearchScope;
-import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.Result;
@@ -217,14 +216,7 @@ public final class SearchRate extends ConsoleApplication {
         try {
             Utils.setDefaultPerfToolProperties();
 
-            connectionFactoryProvider = new ConnectionFactoryProvider(argParser, this) {
-                @Override
-                public ConnectionFactory newAuthenticatedConnectionFactory(final ConnectionFactory connection,
-                        final BindRequest request) throws ArgumentException {
-                    return new AuthenticatedConnectionFactory(connection, request);
-
-                }
-            };
+            connectionFactoryProvider = new ConnectionFactoryProvider(argParser, this);
             runner = new SearchPerformanceRunner(argParser, this);
 
             propertiesFileArgument = CommonArguments.getPropertiesFile();

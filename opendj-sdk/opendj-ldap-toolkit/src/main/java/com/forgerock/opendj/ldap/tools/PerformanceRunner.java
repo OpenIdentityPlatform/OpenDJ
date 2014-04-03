@@ -58,7 +58,7 @@ import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.MultiColumnPrinter;
 import com.forgerock.opendj.cli.StringArgument;
-import com.forgerock.opendj.ldap.tools.AuthenticatedConnectionFactory.AuthenticatedConnection;
+import com.forgerock.opendj.cli.AuthenticatedConnectionFactory.AuthenticatedConnection;
 import com.forgerock.opendj.util.StaticUtils;
 
 /**
