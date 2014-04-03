@@ -37,7 +37,6 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.CSN;
-import org.opends.server.replication.common.MultiDomainServerState;
 import org.opends.server.replication.server.changelog.api.*;
 import org.opends.server.replication.server.changelog.je.DraftCNDB.*;
 import org.opends.server.types.*;
@@ -218,22 +217,18 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB
    * Synchronously purges the change number index DB up to and excluding the
    * provided timestamp.
    *
-   * @param purgeTimestamp
+   * @param purgeCSN
    *          the timestamp up to which purging must happen
-   * @return the {@link MultiDomainServerState} object that drives purging the
-   *         replicaDBs.
+   * @return the oldest non purged CSN.
    * @throws ChangelogException
    *           if a database problem occurs.
    */
-  public MultiDomainServerState purgeUpTo(long purgeTimestamp)
-      throws ChangelogException
+  public CSN purgeUpTo(CSN purgeCSN) throws ChangelogException
   {
-    if (isEmpty())
+    if (isEmpty() || purgeCSN == null)
     {
       return null;
     }
-
-    final CSN purgeCSN = new CSN(purgeTimestamp, 0, 0);
 
     final DraftCNDBCursor cursor = db.openDeleteCursor();
     try
@@ -245,21 +240,18 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB
         {
           oldestChangeNumber = record.getChangeNumber();
         }
-        if (record.getChangeNumber() == newestChangeNumber)
-        {
-          // do not purge the newest record to avoid having the last generated
-          // changenumber dropping back to 0 if the server restarts
-          return getPurgeCookie(record);
-        }
 
-        if (record.getCSN().isOlderThan(purgeCSN))
+        if (record.getChangeNumber() != newestChangeNumber
+            && record.getCSN().isOlderThan(purgeCSN))
         {
           cursor.delete();
         }
         else
         {
-          // Current record is not old enough to purge.
-          return getPurgeCookie(record);
+          // 1- Current record is not old enough to purge.
+          // 2- Do not purge the newest record to avoid having the last
+          // generated changenumber dropping back to 0 when the server restarts
+          return record.getCSN();
         }
       }
 
@@ -279,13 +271,6 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB
     {
       cursor.close();
     }
-  }
-
-  private MultiDomainServerState getPurgeCookie(
-      final ChangeNumberIndexRecord record) throws DirectoryException
-  {
-    // Do not include the record's CSN to avoid having it purged
-    return new MultiDomainServerState(record.getPreviousCookie());
   }
 
   /**

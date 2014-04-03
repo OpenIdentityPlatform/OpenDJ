@@ -372,7 +372,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
     // Test CNIndexDB is purged when replication change log is purged
     final JEChangeNumberIndexDB cnIndexDB = getCNIndexDB();
-    cnIndexDB.purgeUpTo(Long.MAX_VALUE);
+    cnIndexDB.purgeUpTo(new CSN(Long.MAX_VALUE, 0, 0));
     assertTrue(cnIndexDB.isEmpty());
     ECLPurgeCNIndexDBAfterChangelogClear();
 
@@ -2514,42 +2514,67 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   {
     String tn = "ECLCompatTestLimits";
     debugInfo(tn, "Starting test\n\n");
-
-    LDIFWriter ldifWriter = getLDIFWriter();
-
-    // search on 'cn=changelog'
-    Set<String> attributes = new LinkedHashSet<String>();
-    if (expectedFirst > 0)
-      attributes.add("firstchangenumber");
-    attributes.add("lastchangenumber");
-    attributes.add("changelog");
-    attributes.add("lastExternalChangelogCookie");
-
     debugInfo(tn, " Search: rootDSE");
-    final InternalSearchOperation searchOp = searchOnRootDSE(attributes);
-    final List<SearchResultEntry> entries = searchOp.getSearchEntries();
-    assertThat(entries).hasSize(1);
-    debugAndWriteEntries(ldifWriter, entries, tn);
 
-    final SearchResultEntry resultEntry = entries.get(0);
-    if (eclEnabled)
-    {
-      if (expectedFirst > 0)
-        checkValue(resultEntry, "firstchangenumber", String.valueOf(expectedFirst));
-      checkValue(resultEntry, "lastchangenumber", String.valueOf(expectedLast));
-      checkValue(resultEntry, "changelog", String.valueOf("cn=changelog"));
-      assertNotNull(getAttributeValue(resultEntry, "lastExternalChangelogCookie"));
-    }
-    else
-    {
-      if (expectedFirst > 0)
-        assertNull(getAttributeValue(resultEntry, "firstchangenumber"));
-      assertNull(getAttributeValue(resultEntry, "lastchangenumber"));
-      assertNull(getAttributeValue(resultEntry, "changelog"));
-      assertNull(getAttributeValue(resultEntry, "lastExternalChangelogCookie"));
-    }
+    final List<SearchResultEntry> entries =
+        assertECLLimits(eclEnabled, expectedFirst, expectedLast);
 
+    debugAndWriteEntries(getLDIFWriter(), entries, tn);
     debugInfo(tn, "Ending test with success");
+  }
+
+  private List<SearchResultEntry> assertECLLimits(
+      boolean eclEnabled, int expectedFirst, int expectedLast) throws Exception
+  {
+    AssertionError e = null;
+
+    int count = 0;
+    while (count < 30)
+    {
+      count++;
+
+      try
+      {
+        final Set<String> attributes = new LinkedHashSet<String>();
+        if (expectedFirst > 0)
+          attributes.add("firstchangenumber");
+        attributes.add("lastchangenumber");
+        attributes.add("changelog");
+        attributes.add("lastExternalChangelogCookie");
+
+        final InternalSearchOperation searchOp = searchOnRootDSE(attributes);
+        final List<SearchResultEntry> entries = searchOp.getSearchEntries();
+        assertThat(entries).hasSize(1);
+
+        final SearchResultEntry resultEntry = entries.get(0);
+        if (eclEnabled)
+        {
+          if (expectedFirst > 0)
+            checkValue(resultEntry, "firstchangenumber", String.valueOf(expectedFirst));
+          checkValue(resultEntry, "lastchangenumber", String.valueOf(expectedLast));
+          checkValue(resultEntry, "changelog", String.valueOf("cn=changelog"));
+          assertNotNull(getAttributeValue(resultEntry, "lastExternalChangelogCookie"));
+        }
+        else
+        {
+          if (expectedFirst > 0)
+            assertNull(getAttributeValue(resultEntry, "firstchangenumber"));
+          assertNull(getAttributeValue(resultEntry, "lastchangenumber"));
+          assertNull(getAttributeValue(resultEntry, "changelog"));
+          assertNull(getAttributeValue(resultEntry, "lastExternalChangelogCookie"));
+        }
+        return entries;
+      }
+      catch (AssertionError ae)
+      {
+        // try again to see if changes have been persisted
+        e = ae;
+      }
+
+      Thread.sleep(100);
+    }
+    assertNotNull(e);
+    throw e;
   }
 
   private InternalSearchOperation searchOnRootDSE(Set<String> attributes)
