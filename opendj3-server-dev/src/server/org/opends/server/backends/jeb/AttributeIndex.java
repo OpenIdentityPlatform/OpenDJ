@@ -178,7 +178,7 @@ public class AttributeIndex
     {
       this.substringIndex = buildExtIndex(
           name, attrType, attrType.getSubstringMatchingRule(), new SubstringIndexer(attrType, config));
-      //nameToIndexes.put(IndexType.SUBSTRING.toString(), substringIndex);
+      nameToIndexes.put(IndexType.SUBSTRING.toString(), substringIndex);
     }
 
     if (indexConfig.getIndexType().contains(IndexType.ORDERING))
