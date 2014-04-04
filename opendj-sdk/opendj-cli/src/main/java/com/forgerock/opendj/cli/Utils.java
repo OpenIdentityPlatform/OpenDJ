@@ -588,4 +588,31 @@ final public class Utils {
         }
         return isOutOfMemory;
     }
+
+    /**
+     * Returns the string that can be used to represent a given host name in a LDAP URL.
+     * This method must be used when we have IPv6 addresses (the address in the LDAP URL
+     *  must be enclosed with brackets).
+     *  E.g:<pre>
+     *  -h "[2a01:e35:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx]"
+     *  </pre>
+     *
+     * @param host
+     *            The host name.
+     * @return The String that can be used to represent a given host name in a LDAP URL.
+     */
+    public static String getHostNameForLdapUrl(String host) {
+        if (host != null && host.indexOf(":") != -1) {
+            // Assume an IPv6 address has been specified and adds the brackets
+            // for the URL.
+            host = host.trim();
+            if (!host.startsWith("[")) {
+                host = "[" + host;
+            }
+            if (!host.endsWith("]")) {
+                host = host + "]";
+            }
+        }
+        return host;
+    }
 }
