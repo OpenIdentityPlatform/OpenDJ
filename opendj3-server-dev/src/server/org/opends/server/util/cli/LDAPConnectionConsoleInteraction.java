@@ -26,6 +26,11 @@
  */
 package org.opends.server.util.cli;
 
+import static com.forgerock.opendj.cli.Utils.isDN;
+import static com.forgerock.opendj.cli.Utils.getAdministratorDN;
+import static com.forgerock.opendj.cli.Utils.getThrowableMsg;
+import static com.forgerock.opendj.cli.CliMessages.*;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -43,24 +48,22 @@ import javax.net.ssl.KeyManager;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.admin.ads.ADSContext;
 import org.opends.admin.ads.util.ApplicationKeyManager;
 import org.opends.admin.ads.util.ApplicationTrustManager;
-import org.opends.quicksetup.Step;
-import org.opends.quicksetup.UserDataCertificateException;
-import org.opends.quicksetup.util.Utils;
 import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
 import org.opends.server.tools.LDAPConnectionOptions;
 import org.opends.server.tools.SSLConnectionException;
 import org.opends.server.tools.SSLConnectionFactory;
-import org.opends.server.tools.dsconfig.ArgumentExceptionFactory;
 import org.opends.server.util.SelectableCertificateKeyManager;
 
-import com.forgerock.opendj.cli.*;
-
-import static org.opends.messages.QuickSetupMessages.*;
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.messages.UtilityMessages.*;
+import com.forgerock.opendj.cli.ArgumentException;
+import com.forgerock.opendj.cli.ClientException;
+import com.forgerock.opendj.cli.CommandBuilder;
+import com.forgerock.opendj.cli.ConsoleApplication;
+import com.forgerock.opendj.cli.Menu;
+import com.forgerock.opendj.cli.MenuBuilder;
+import com.forgerock.opendj.cli.MenuResult;
+import com.forgerock.opendj.cli.ValidationCallback;
 
 /**
  * Supports interacting with a user through the command line to prompt for
@@ -400,7 +403,7 @@ public class LDAPConnectionConsoleInteraction
       }
       catch (ClientException e)
       {
-        throw ArgumentExceptionFactory.unableToReadConnectionParameters(e);
+        cannotReadConnectionParameters(e);
       }
     }
 
@@ -568,7 +571,7 @@ public class LDAPConnectionConsoleInteraction
       }
       catch (ClientException e)
       {
-        throw ArgumentExceptionFactory.unableToReadConnectionParameters(e);
+        cannotReadConnectionParameters(e);
       }
     }
 
@@ -643,12 +646,12 @@ public class LDAPConnectionConsoleInteraction
           app.println();
           if (useAdminOrBindDn)
           {
-            String def = (adminUID != null ? adminUID : bindDN);
+            String def = adminUID != null ? adminUID : bindDN;
             String v =
                 app.readValidatedInput(
                     INFO_LDAP_CONN_GLOBAL_ADMINISTRATOR_OR_BINDDN_PROMPT
                         .get(def), callback);
-            if (Utils.isDn(v))
+            if (isDN(v))
             {
               bindDN = v;
               providedBindDN = v;
@@ -680,7 +683,7 @@ public class LDAPConnectionConsoleInteraction
         }
         catch (ClientException e)
         {
-          throw ArgumentExceptionFactory.unableToReadConnectionParameters(e);
+          cannotReadConnectionParameters(e);
         }
       }
       if (useAdminOrBindDn)
@@ -740,11 +743,11 @@ public class LDAPConnectionConsoleInteraction
         {
           if (useAdmin)
           {
-            throw ArgumentExceptionFactory.missingBindPassword(adminUID);
+            throw new ArgumentException(ERR_ERROR_NO_ADMIN_PASSWORD.get(adminUID));
           }
           else
           {
-            throw ArgumentExceptionFactory.missingBindPassword(bindDN);
+            throw new ArgumentException(ERR_ERROR_NO_ADMIN_PASSWORD.get(bindDN));
           }
         }
         copySecureArgsList.bindPasswordFileArg.clearValues();
@@ -758,8 +761,7 @@ public class LDAPConnectionConsoleInteraction
         // Read the password from the stdin.
         if (!app.isInteractive())
         {
-          throw ArgumentExceptionFactory
-              .unableToReadBindPasswordInteractively();
+          throw new ArgumentException(ERR_ERROR_BIND_PASSWORD_NONINTERACTIVE.get());
         }
 
         checkHeadingDisplayed();
@@ -788,7 +790,8 @@ public class LDAPConnectionConsoleInteraction
         }
         catch (Exception e)
         {
-          throw ArgumentExceptionFactory.unableToReadConnectionParameters(e);
+          throw new ArgumentException(ERR_ERROR_CANNOT_READ_CONNECTION_PARAMETERS
+              .get(e.getMessage()), e.getCause());
         }
       }
       copySecureArgsList.bindPasswordArg.clearValues();
@@ -800,6 +803,13 @@ public class LDAPConnectionConsoleInteraction
       }
     }
     connectTimeout = secureArgsList.connectTimeoutArg.getIntValue();
+  }
+
+  private void cannotReadConnectionParameters(ClientException e)
+      throws ArgumentException
+  {
+    throw new ArgumentException(ERR_ERROR_CANNOT_READ_CONNECTION_PARAMETERS
+        .get(e.getMessage()), e.getCause());
   }
 
   private String readPassword(LocalizableMessage prompt) throws ClientException
@@ -972,7 +982,7 @@ public class LDAPConnectionConsoleInteraction
       }
       catch (ClientException e)
       {
-        throw ArgumentExceptionFactory.unableToReadConnectionParameters(e);
+        cannotReadConnectionParameters(e);
       }
     }
 
@@ -1016,7 +1026,8 @@ public class LDAPConnectionConsoleInteraction
         }
         catch (Exception e)
         {
-          throw ArgumentExceptionFactory.unableToReadConnectionParameters(e);
+          throw new ArgumentException(ERR_ERROR_CANNOT_READ_CONNECTION_PARAMETERS
+              .get(e.getMessage()), e.getCause());
         }
       }
     }
@@ -1067,7 +1078,8 @@ public class LDAPConnectionConsoleInteraction
     }
     catch (Exception e)
     {
-      throw ArgumentExceptionFactory.unableToReadConnectionParameters(e);
+      throw new ArgumentException(ERR_ERROR_CANNOT_READ_CONNECTION_PARAMETERS
+          .get(e.getMessage()), e.getCause());
     }
   }
 
@@ -1147,7 +1159,7 @@ public class LDAPConnectionConsoleInteraction
       }
       catch (ClientException e)
       {
-        throw ArgumentExceptionFactory.unableToReadConnectionParameters(e);
+        cannotReadConnectionParameters(e);
       }
     }
 
@@ -1162,8 +1174,8 @@ public class LDAPConnectionConsoleInteraction
       // KeystorePath is null. Either it's unspecified or there's a pb
       // We should throw an exception here, anyway since code below will
       // anyway
-      throw ArgumentExceptionFactory
-          .incompatiblePropertyModification("null keystorePath");
+      throw new ArgumentException(ERR_ERROR_INCOMPATIBLE_PROPERTY_MOD
+          .get("null keystorePath"));
     }
 
     // Then the keystore password.
@@ -1176,7 +1188,7 @@ public class LDAPConnectionConsoleInteraction
 
       if (keystorePassword == null)
       {
-        throw ArgumentExceptionFactory.missingBindPassword(keystorePassword);
+        throw new ArgumentException(ERR_ERROR_NO_ADMIN_PASSWORD.get(keystorePassword));
       }
     }
     else if (keystorePassword == null || "-".equals(keystorePassword))
@@ -1184,7 +1196,7 @@ public class LDAPConnectionConsoleInteraction
       // Read the password from the stdin.
       if (!app.isInteractive())
       {
-        throw ArgumentExceptionFactory.unableToReadBindPasswordInteractively();
+        throw new ArgumentException(ERR_ERROR_BIND_PASSWORD_NONINTERACTIVE.get());
       }
 
       checkHeadingDisplayed();
@@ -1198,7 +1210,8 @@ public class LDAPConnectionConsoleInteraction
       }
       catch (Exception e)
       {
-        throw ArgumentExceptionFactory.unableToReadConnectionParameters(e);
+        throw new ArgumentException(ERR_ERROR_CANNOT_READ_CONNECTION_PARAMETERS
+            .get(e.getMessage()), e.getCause());
       }
     }
 
@@ -1215,7 +1228,8 @@ public class LDAPConnectionConsoleInteraction
     }
     catch (Exception e)
     {
-      throw ArgumentExceptionFactory.unableToReadConnectionParameters(e);
+      throw new ArgumentException(ERR_ERROR_CANNOT_READ_CONNECTION_PARAMETERS
+          .get(e.getMessage()), e.getCause());
     }
 
     certifNickname = secureArgsList.certNicknameArg.getValue();
@@ -1268,11 +1282,12 @@ public class LDAPConnectionConsoleInteraction
       }
       catch (KeyStoreException e)
       {
-        throw ArgumentExceptionFactory.unableToReadConnectionParameters(e);
+        throw new ArgumentException(ERR_ERROR_CANNOT_READ_CONNECTION_PARAMETERS
+            .get(e.getMessage()), e.getCause());
       }
       catch (ClientException e)
       {
-        throw ArgumentExceptionFactory.unableToReadConnectionParameters(e);
+        cannotReadConnectionParameters(e);
       }
     }
 
@@ -1381,15 +1396,15 @@ public class LDAPConnectionConsoleInteraction
       }
       else if (providedAdminUID != null)
       {
-        dn = ADSContext.getAdministratorDN(providedAdminUID);
+        dn = getAdministratorDN(providedAdminUID);
       }
-      else if (this.bindDN != null)
+      else if (bindDN != null)
       {
-        dn = this.bindDN;
+        dn = bindDN;
       }
-      else if (this.adminUID != null)
+      else if (adminUID != null)
       {
-        dn = ADSContext.getAdministratorDN(this.adminUID);
+        dn = getAdministratorDN(adminUID);
       }
       else
       {
@@ -1398,11 +1413,11 @@ public class LDAPConnectionConsoleInteraction
     }
     else if (secureArgsList.useAdminUID())
     {
-      dn = ADSContext.getAdministratorDN(this.adminUID);
+      dn = getAdministratorDN(adminUID);
     }
     else
     {
-      dn = this.bindDN;
+      dn = bindDN;
     }
     return dn;
   }
@@ -1415,7 +1430,7 @@ public class LDAPConnectionConsoleInteraction
    */
   public String getAdministratorUID()
   {
-    return this.adminUID;
+    return adminUID;
   }
 
   /**
@@ -1426,7 +1441,7 @@ public class LDAPConnectionConsoleInteraction
    */
   public String getBindPassword()
   {
-    return this.bindPassword;
+    return bindPassword;
   }
 
   /**
@@ -1437,7 +1452,7 @@ public class LDAPConnectionConsoleInteraction
    */
   public ApplicationTrustManager getTrustManager()
   {
-    return this.trustManager;
+    return trustManager;
   }
 
   /**
@@ -1448,7 +1463,7 @@ public class LDAPConnectionConsoleInteraction
    */
   public KeyStore getKeyStore()
   {
-    return this.truststore;
+    return truststore;
   }
 
   /**
@@ -1459,7 +1474,7 @@ public class LDAPConnectionConsoleInteraction
    */
   public KeyManager getKeyManager()
   {
-    return this.keyManager;
+    return keyManager;
   }
 
   /**
@@ -1469,7 +1484,7 @@ public class LDAPConnectionConsoleInteraction
    */
   public boolean isTrustStoreInMemory()
   {
-    return this.trustStoreInMemory;
+    return trustStoreInMemory;
   }
 
   /**
@@ -1479,7 +1494,7 @@ public class LDAPConnectionConsoleInteraction
    */
   public boolean isTrustAll()
   {
-    return this.trustAll;
+    return trustAll;
   }
 
   /**
@@ -1786,17 +1801,14 @@ public class LDAPConnectionConsoleInteraction
    *          the trustManager used when trying to establish the connection.
    * @param usedUrl
    *          the LDAP URL used to connect to the server.
-   * @param displayErrorMessage
-   *          whether to display an error message before asking to accept the
-   *          certificate or not.
    * @param logger
    *          the Logger used to log messages.
-   * @return <CODE>true</CODE> if the user accepted the certificate and
-   *         <CODE>false</CODE> otherwise.
+   * @return {@code true} if the user accepted the certificate and
+   *         {@code false} otherwise.
    */
   public boolean promptForCertificateConfirmation(Throwable t,
       ApplicationTrustManager usedTrustManager, String usedUrl,
-      boolean displayErrorMessage, LocalizedLogger logger)
+      LocalizedLogger logger)
   {
     ApplicationTrustManager.Cause cause;
     if (usedTrustManager != null)
@@ -1812,22 +1824,8 @@ public class LDAPConnectionConsoleInteraction
       logger.debug(LocalizableMessage.raw("Certificate exception cause: "
           + cause));
     }
-    UserDataCertificateException.Type excType = null;
-    if (cause == ApplicationTrustManager.Cause.NOT_TRUSTED)
-    {
-      excType = UserDataCertificateException.Type.NOT_TRUSTED;
-    }
-    else if (cause == ApplicationTrustManager.Cause.HOST_NAME_MISMATCH)
-    {
-      excType = UserDataCertificateException.Type.HOST_NAME_MISMATCH;
-    }
-    else
-    {
-      app.println(Utils
-          .getThrowableMsg(INFO_ERROR_CONNECTING_TO_LOCAL.get(), t));
-    }
 
-    if (excType != null)
+    if (cause != null)
     {
       String h;
       int p;
@@ -1839,66 +1837,53 @@ public class LDAPConnectionConsoleInteraction
       }
       catch (Throwable t1)
       {
-        if (logger != null)
-        {
-          logger.warn(LocalizableMessage.raw(
-              "Error parsing ldap url of ldap url.", t1));
-        }
+        printLogger(logger, "Error parsing ldap url of ldap url. " + t1);
         h = INFO_NOT_AVAILABLE_LABEL.get().toString();
         p = -1;
       }
 
-      UserDataCertificateException udce =
-          new UserDataCertificateException(Step.REPLICATION_OPTIONS,
-              INFO_CERTIFICATE_EXCEPTION.get(h, p), t, h, p, usedTrustManager
-                  .getLastRefusedChain(), usedTrustManager
-                  .getLastRefusedAuthType(), excType);
-
+      String authType = usedTrustManager.getLastRefusedAuthType();
       LocalizableMessage msg;
-      if (udce.getType() == UserDataCertificateException.Type.NOT_TRUSTED)
+      if (authType.equals(ApplicationTrustManager.Cause.NOT_TRUSTED))
       {
-        msg =
-            INFO_CERTIFICATE_NOT_TRUSTED_TEXT_CLI.get(udce.getHost(), udce
-                .getPort());
+        msg = INFO_CERTIFICATE_NOT_TRUSTED_TEXT_CLI.get(h, p);
       }
       else
       {
-        msg =
-            INFO_CERTIFICATE_NAME_MISMATCH_TEXT_CLI.get(udce.getHost(), udce
-                .getPort(), udce.getHost(), udce.getHost(), udce.getPort());
+        msg = INFO_CERTIFICATE_NAME_MISMATCH_TEXT_CLI.get(h, p, h, h, p);
       }
-      if (displayErrorMessage)
+      app.println(msg);
+
+      X509Certificate[] chain = usedTrustManager.getLastRefusedChain();
+      if (chain == null)
       {
-        app.println(msg);
+        printLogger(logger, "Null chain for this certificate exception.");
+        return false;
       }
-      X509Certificate[] chain = udce.getChain();
-      String authType = udce.getAuthType();
-      String host = udce.getHost();
-      if (logger != null)
+      if (authType == null)
       {
-        if (chain == null)
-        {
-          logger.warn(LocalizableMessage
-              .raw("The chain is null for the UserDataCertificateException"));
-        }
-        if (authType == null)
-        {
-          logger
-              .warn(LocalizableMessage
-                  .raw("The auth type is null for the UserDataCertificateException"));
-        }
-        if (host == null)
-        {
-          logger.warn(LocalizableMessage
-              .raw("The host is null for the UserDataCertificateException"));
-        }
+        printLogger(logger, "Null auth type for this certificate exception.");
       }
-      if (chain != null)
+      if (h == null)
       {
-        return checkServerCertificate(chain, authType, host);
+        printLogger(logger, "Null host name for this certificate exception.");
       }
+      return checkServerCertificate(chain, authType, h);
+    }
+    else
+    {
+      app.println(getThrowableMsg(INFO_ERROR_CONNECTING_TO_LOCAL.get(), t));
     }
     return false;
+  }
+
+  private void printLogger(final LocalizedLogger logger,
+      final String msg)
+  {
+    if (logger != null)
+    {
+      logger.warn(LocalizableMessage.raw(msg));
+    }
   }
 
   /**
@@ -1942,8 +1927,8 @@ public class LDAPConnectionConsoleInteraction
    * Tells whether during interaction we can ask for both the DN or the admin
    * UID.
    *
-   * @return <CODE>true</CODE> if during interaction we can ask for both the DN
-   *         and the admin UID and <CODE>false</CODE> otherwise.
+   * @return {@code true} if during interaction we can ask for both the DN
+   *         and the admin UID and {@code false} otherwise.
    */
   public boolean isUseAdminOrBindDn()
   {
@@ -2149,7 +2134,8 @@ public class LDAPConnectionConsoleInteraction
     try
     {
       // If remote host, return
-      if (!InetAddress.getLocalHost().getHostName().equals(hostName))
+      if (!InetAddress.getLocalHost().getHostName().equals(hostName)
+          || secureArgsList.getAdminPortFromConfig() != portNumber)
       {
         return false;
       }
@@ -2167,10 +2153,7 @@ public class LDAPConnectionConsoleInteraction
         secureArgsList.trustStorePathArg.addValue(truststoreFileAbsolute);
         return true;
       }
-      else
-      {
-        return false;
-      }
+      return false;
     }
     catch (Exception ex)
     {

@@ -4127,7 +4127,7 @@ public class ReplicationCliMain extends ConsoleApplication
               {
                 reloadTopology = true;
                 cancelled = !ci.promptForCertificateConfirmation(e.getCause(),
-                    e.getTrustManager(), e.getLdapUrl(), true, logger);
+                    e.getTrustManager(), e.getLdapUrl(), logger);
               }
               else
               {

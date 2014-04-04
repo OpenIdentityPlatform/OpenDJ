@@ -364,26 +364,6 @@ public class Utils
   }
 
   /**
-   * Returns <CODE>true</CODE> if the the provided string is a DN and
-   * <CODE>false</CODE> otherwise.
-   * @param dn the String we are analyzing.
-   * @return <CODE>true</CODE> if the the provided string is a DN and
-   * <CODE>false</CODE> otherwise.
-   */
-  public static boolean isDn(String dn)
-  {
-    boolean isDn = true;
-    try
-    {
-      new LdapName(dn);
-    } catch (Exception ex)
-    {
-      isDn = false;
-    }
-    return isDn;
-  }
-
-  /**
    * Returns <CODE>true</CODE> if the the provided string is a configuration DN
    * and <CODE>false</CODE> otherwise.
    * @param dn the String we are analyzing.
@@ -731,20 +711,6 @@ public class Utils
     args[2] = path;
     Process p = Runtime.getRuntime().exec(args);
     return p.waitFor();
-  }
-
-  /**
-   * Returns the String that can be used to represent a given host name in a
-   * LDAP URL.
-   * This method must be used when we have IPv6 addresses (the address in the
-   * LDAP URL must be enclosed with brackets).
-   * @param host the host name.
-   * @return the String that can be used to represent a given host name in a
-   * LDAP URL.
-   */
-  public static String getHostNameForLdapUrl(String host)
-  {
-    return ConnectionUtils.getHostNameForLdapUrl(host);
   }
 
   /**
