@@ -200,6 +200,7 @@
          <latestJson>http://mcraig.org/fr/latest.php</latestJson><!-- Temporary workaround pending #QOZ-985-23233 -->
          <googleAnalyticsId>${gaId}</googleAnalyticsId>
          <docbkxSourceDirectory>${basedir}/src/main/docbkx</docbkxSourceDirectory>
+         <brandingVersion>2.1.1</brandingVersion><!-- Workaround for OPENDJ-1395 -->
         </configuration>
         <executions>
           <execution>
