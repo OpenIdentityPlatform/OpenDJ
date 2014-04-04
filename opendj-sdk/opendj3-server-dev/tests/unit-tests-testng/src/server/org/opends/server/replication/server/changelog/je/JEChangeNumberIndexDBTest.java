@@ -76,8 +76,8 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
    * in the replication changelog, the ChangeNumberIndexDB will be cleared.</li>
    * </ol>
    */
-  @Test()
-  void testTrim() throws Exception
+  @Test
+  void testPurge() throws Exception
   {
     ReplicationServer replicationServer = null;
     try
@@ -254,8 +254,10 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
   {
     TestCaseUtils.startServer();
     final int port = TestCaseUtils.findFreePort();
-    return new ReplicationServer(
-        new ReplServerFakeConfiguration(port, null, 0, 2, 0, 100, null));
+    final ReplServerFakeConfiguration cfg =
+        new ReplServerFakeConfiguration(port, null, 0, 2, 0, 100, null);
+    cfg.setComputeChangeNumber(true);
+    return new ReplicationServer(cfg);
   }
 
   private String getPreviousCookie(JEChangeNumberIndexDB cnIndexDB,
