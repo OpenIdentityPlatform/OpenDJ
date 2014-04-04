@@ -696,7 +696,7 @@ public final class ReplicationServer
    * @return  The time after which changes must be deleted from the
    *          persistent storage (in milliseconds).
    */
-  public long getTrimAge()
+  public long getPurgeDelay()
   {
     return this.config.getReplicationPurgeDelay() * 1000;
   }
@@ -754,7 +754,7 @@ public final class ReplicationServer
     final long newPurgeDelay = config.getReplicationPurgeDelay();
     if (newPurgeDelay != oldConfig.getReplicationPurgeDelay())
     {
-      this.changelogDB.setPurgeDelay(getTrimAge());
+      this.changelogDB.setPurgeDelay(getPurgeDelay());
     }
     final boolean computeCN = config.isComputeChangeNumber();
     if (computeCN != oldConfig.isComputeChangeNumber())
