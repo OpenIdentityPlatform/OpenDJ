@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.server.changelog.je;
 
@@ -73,15 +73,6 @@ public class JEReplicaDBCursor implements DBCursor<UpdateMsg>
       // we didn't find it in the db
       cursor = null;
     }
-
-    if (cursor == null)
-    {
-      // flush the queue into the db
-      replicaDB.flush();
-
-      // look again in the db
-      cursor = db.openReadCursor(startAfterCSN);
-    }
   }
 
   /** {@inheritDoc} */
@@ -96,15 +87,7 @@ public class JEReplicaDBCursor implements DBCursor<UpdateMsg>
   public boolean next() throws ChangelogException
   {
     final ReplServerDBCursor localCursor = cursor;
-    if (localCursor != null)
-    {
-      currentChange = localCursor.next();
-    }
-    else
-    {
-      currentChange = null;
-    }
-
+    currentChange = localCursor != null ? localCursor.next() : null;
 
     if (currentChange != null)
     {
@@ -114,12 +97,8 @@ public class JEReplicaDBCursor implements DBCursor<UpdateMsg>
     {
       synchronized (this)
       {
-        if (cursor != null)
-        {
-          cursor.close();
-          cursor = null;
-        }
-        replicaDB.flush();
+        closeCursor();
+        // previously exhausted cursor must be able to reinitialize themselves
         cursor = db.openReadCursor(lastNonNullCurrentCSN);
         currentChange = cursor.next();
         if (currentChange != null)
@@ -137,13 +116,17 @@ public class JEReplicaDBCursor implements DBCursor<UpdateMsg>
   {
     synchronized (this)
     {
-      if (cursor != null)
-      {
-        cursor.close();
-        cursor = null;
-      }
+      closeCursor();
       this.replicaDB = null;
-      this.db = null;
+    }
+  }
+
+  private void closeCursor()
+  {
+    if (cursor != null)
+    {
+      cursor.close();
+      cursor = null;
     }
   }
 

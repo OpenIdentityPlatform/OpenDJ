@@ -937,4 +937,13 @@ public class ReplicationDB
     return db == null || !db.getEnvironment().isValid();
   }
 
+  /**
+   * Returns the number of records in this DB.
+   *
+   * @return the number of records in this DB.
+   */
+  long getNumberRecords()
+  {
+    return db.count();
+  }
 }
