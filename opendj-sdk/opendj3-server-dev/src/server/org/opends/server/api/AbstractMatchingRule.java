@@ -183,12 +183,21 @@ public abstract class AbstractMatchingRule implements MatchingRule
       throws DecodeException
   {
     final ByteString assertionValue = normalizeAssertionValue(value);
-    return new NotImplementedAssertion()
+    return new Assertion()
     {
+      /** {@inheritDoc} */
       @Override
       public ConditionResult matches(ByteSequence attributeValue)
       {
         return valuesMatch(attributeValue, assertionValue);
+      }
+
+      /** {@inheritDoc} */
+      @Override
+      public <T> T createIndexQuery(IndexQueryFactory<T> factory)
+          throws DecodeException
+      {
+        throw new RuntimeException("Not implemented");
       }
     };
   }

@@ -73,8 +73,7 @@ public final class IndexQueryFactoryImpl implements
 
   /** {@inheritDoc} */
   @Override
-  public IndexQuery createExactMatchQuery(final String indexID,
-      final ByteSequence value)
+  public IndexQuery createExactMatchQuery(final String indexID, final ByteSequence value)
   {
     return new IndexQuery()
       {
@@ -98,18 +97,7 @@ public final class IndexQueryFactoryImpl implements
           EntryIDSet entrySet = index.readKey(key, null, LockMode.DEFAULT);
           if(debugMessage != null && !entrySet.isDefined())
           {
-            if(!index.isTrusted())
-            {
-              debugMessage.append(INFO_JEB_INDEX_FILTER_INDEX_NOT_TRUSTED.get(index.getName()));
-            }
-            else if(index.isRebuildRunning())
-            {
-              debugMessage.append(INFO_JEB_INDEX_FILTER_INDEX_REBUILD_IN_PROGRESS.get(index.getName()));
-            }
-            else
-            {
-              debugMessage.append(INFO_JEB_INDEX_FILTER_INDEX_LIMIT_EXCEEDED.get(index.getName()));
-            }
+            updateStatsUndefinedResults(debugMessage, index);
           }
           return entrySet;
         }
@@ -144,18 +132,7 @@ public final class IndexQueryFactoryImpl implements
               includeLowerBound, includeUpperBound);
           if(debugMessage != null && !entrySet.isDefined())
           {
-            if(!index.isTrusted())
-            {
-              debugMessage.append(INFO_JEB_INDEX_FILTER_INDEX_NOT_TRUSTED.get(index.getName()));
-            }
-            else if(index.isRebuildRunning())
-            {
-              debugMessage.append(INFO_JEB_INDEX_FILTER_INDEX_REBUILD_IN_PROGRESS.get(index.getName()));
-            }
-            else
-            {
-              debugMessage.append(INFO_JEB_INDEX_FILTER_INDEX_LIMIT_EXCEEDED.get(index.getName()));
-            }
+            updateStatsUndefinedResults(debugMessage, index);
           }
           return entrySet;
         }
@@ -166,8 +143,7 @@ public final class IndexQueryFactoryImpl implements
 
   /** {@inheritDoc} */
   @Override
-  public IndexQuery createIntersectionQuery(
-      Collection<IndexQuery> subqueries)
+  public IndexQuery createIntersectionQuery(Collection<IndexQuery> subqueries)
   {
     return IndexQuery.createIntersectionIndexQuery(subqueries);
   }
@@ -197,37 +173,41 @@ public final class IndexQueryFactoryImpl implements
         @Override
         public EntryIDSet evaluate(LocalizableMessageBuilder debugMessage)
         {
-          Index index = indexMap.get(PRESENCE_INDEX_KEY);
+        final String indexID = PRESENCE_INDEX_KEY;
+        final Index index = indexMap.get(indexID);
           if (index == null)
           {
             if(debugMessage != null)
             {
-              debugMessage.append(INFO_JEB_INDEX_FILTER_INDEX_TYPE_DISABLED.get(index.getName(), ""));
+              debugMessage.append(INFO_JEB_INDEX_FILTER_INDEX_TYPE_DISABLED.get(indexID, ""));
             }
             return new EntryIDSet();
           }
 
           EntryIDSet entrySet = index.readKey(AttributeIndex.presenceKey, null, LockMode.DEFAULT);
-
           if (debugMessage != null && !entrySet.isDefined())
           {
-            if (!index.isTrusted())
-            {
-              debugMessage.append(INFO_JEB_INDEX_FILTER_INDEX_NOT_TRUSTED.get(index.getName()));
-            }
-            else if (index.isRebuildRunning())
-            {
-              debugMessage.append(INFO_JEB_INDEX_FILTER_INDEX_REBUILD_IN_PROGRESS.get(index.getName()));
-            }
-            else
-            {
-              debugMessage.append(INFO_JEB_INDEX_FILTER_INDEX_LIMIT_EXCEEDED.get(index.getName()));
-            }
+            updateStatsUndefinedResults(debugMessage, index);
           }
-
           return entrySet;
         }
       };
+  }
+
+  private static void updateStatsUndefinedResults(LocalizableMessageBuilder debugMessage, Index index)
+  {
+    if (!index.isTrusted())
+    {
+      debugMessage.append(INFO_JEB_INDEX_FILTER_INDEX_NOT_TRUSTED.get(index.getName()));
+    }
+    else if (index.isRebuildRunning())
+    {
+      debugMessage.append(INFO_JEB_INDEX_FILTER_INDEX_REBUILD_IN_PROGRESS.get(index.getName()));
+    }
+    else
+    {
+      debugMessage.append(INFO_JEB_INDEX_FILTER_INDEX_LIMIT_EXCEEDED.get(index.getName()));
+    }
   }
 
   /** {@inheritDoc} */

@@ -3271,52 +3271,22 @@ implements ConfigurationChangeListener<LocalDBBackendCfg>
   /**
    * Removes a attribute index from disk.
    *
-   * @param index The attribute index to remove.
+   * @param attributeIndex The attribute index to remove.
    * @throws DatabaseException If an JE database error occurs while attempting
    * to delete the index.
    */
-  public void deleteAttributeIndex(AttributeIndex index)
+  public void deleteAttributeIndex(AttributeIndex attributeIndex)
   throws DatabaseException
   {
-    index.close();
+    attributeIndex.close();
     Transaction txn = env.getConfig().getTransactional()
       ? beginTransaction() : null;
     try
     {
-      if(index.equalityIndex != null)
+      for (Index index : attributeIndex.getAllIndexes())
       {
-        env.removeDatabase(txn, index.equalityIndex.getName());
-        state.removeIndexTrustState(txn, index.equalityIndex);
-      }
-      if(index.presenceIndex != null)
-      {
-        env.removeDatabase(txn, index.presenceIndex.getName());
-        state.removeIndexTrustState(txn, index.presenceIndex);
-      }
-      if(index.substringIndex != null)
-      {
-        env.removeDatabase(txn, index.substringIndex.getName());
-        state.removeIndexTrustState(txn, index.substringIndex);
-      }
-      if(index.orderingIndex != null)
-      {
-        env.removeDatabase(txn, index.orderingIndex.getName());
-        state.removeIndexTrustState(txn, index.orderingIndex);
-      }
-      if(index.approximateIndex != null)
-      {
-        env.removeDatabase(txn, index.approximateIndex.getName());
-        state.removeIndexTrustState(txn, index.approximateIndex);
-      }
-      Map <String,Collection<Index>> extensibleIndexes =
-        index.getExtensibleIndexes();
-      for (String name : extensibleIndexes.keySet())
-      {
-        for (Index extensibleIndex : extensibleIndexes.get(name))
-        {
-          env.removeDatabase(txn, extensibleIndex.getName());
-          state.removeIndexTrustState(txn, extensibleIndex);
-        }
+        env.removeDatabase(txn, index.getName());
+        state.removeIndexTrustState(txn, index);
       }
       if (txn != null)
       {
