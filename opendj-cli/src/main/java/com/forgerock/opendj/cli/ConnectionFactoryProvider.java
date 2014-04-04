@@ -339,6 +339,24 @@ public class ConnectionFactoryProvider {
     }
 
     /**
+     * Indicate if the SSL mode is required.
+     *
+     * @return True if SSL mode is required
+     */
+    public boolean useSSL() {
+        return useSSLArg.isPresent();
+    }
+
+    /**
+     * Indicate if the startTLS mode is required.
+     *
+     * @return True if startTLS mode is required
+     */
+    public boolean useStartTLS() {
+        return useStartTLSArg.isPresent();
+    }
+
+    /**
      * Checks if any conflicting arguments are present, build the connection with
      * selected arguments and returns the connection factory.
      *
@@ -351,71 +369,7 @@ public class ConnectionFactoryProvider {
         if (connFactory == null) {
             port = portArg.getIntValue();
 
-            // Couldn't have at the same time bindPassword and bindPasswordFile
-            if (bindPasswordArg.isPresent() && bindPasswordFileArg.isPresent()) {
-                final LocalizableMessage message =
-                        ERR_TOOL_CONFLICTING_ARGS.get(bindPasswordArg.getLongIdentifier(),
-                                bindPasswordFileArg.getLongIdentifier());
-                throw new ArgumentException(message);
-            }
-
-            /*
-             * Couldn't have at the same time trustAll and trustStore related arg
-             */
-            if (trustAllArg.isPresent() && trustStorePathArg.isPresent()) {
-                final LocalizableMessage message =
-                        ERR_TOOL_CONFLICTING_ARGS.get(trustAllArg.getLongIdentifier(),
-                                trustStorePathArg.getLongIdentifier());
-                throw new ArgumentException(message);
-            }
-            if (trustAllArg.isPresent() && trustStorePasswordArg.isPresent()) {
-                final LocalizableMessage message =
-                        ERR_TOOL_CONFLICTING_ARGS.get(trustAllArg.getLongIdentifier(),
-                                trustStorePasswordArg.getLongIdentifier());
-                throw new ArgumentException(message);
-            }
-            if (trustAllArg.isPresent() && trustStorePasswordFileArg.isPresent()) {
-                final LocalizableMessage message =
-                        ERR_TOOL_CONFLICTING_ARGS.get(trustAllArg.getLongIdentifier(),
-                                trustStorePasswordFileArg.getLongIdentifier());
-                throw new ArgumentException(message);
-            }
-
-            /*
-             * Couldn't have at the same time trustStorePasswordArg and trustStorePasswordFileArg
-             */
-            if (trustStorePasswordArg.isPresent() && trustStorePasswordFileArg.isPresent()) {
-                final LocalizableMessage message =
-                        ERR_TOOL_CONFLICTING_ARGS.get(trustStorePasswordArg.getLongIdentifier(),
-                                trustStorePasswordFileArg.getLongIdentifier());
-                throw new ArgumentException(message);
-            }
-
-            if (trustStorePathArg.isPresent()) {
-                // Check that the path exists and is readable
-                final String value = trustStorePathArg.getValue();
-                if (!canReadPath(value)) {
-                    final LocalizableMessage message = ERR_CANNOT_READ_TRUSTSTORE.get(value);
-                    throw new ArgumentException(message);
-                }
-            }
-
-            if (keyStorePathArg.isPresent()) {
-                // Check that the path exists and is readable
-                final String value = keyStorePathArg.getValue();
-                if (!canReadPath(value)) {
-                    final LocalizableMessage message = ERR_CANNOT_READ_KEYSTORE.get(value);
-                    throw new ArgumentException(message);
-                }
-            }
-
-            // Couldn't have at the same time startTLSArg and useSSLArg
-            if (useStartTLSArg.isPresent() && useSSLArg.isPresent()) {
-                final LocalizableMessage message =
-                        ERR_TOOL_CONFLICTING_ARGS.get(useStartTLSArg.getLongIdentifier(), useSSLArg
-                                .getLongIdentifier());
-                throw new ArgumentException(message);
-            }
+            checkForConflictingArguments();
 
             try {
                 if (useSSLArg.isPresent() || useStartTLSArg.isPresent()) {
@@ -452,6 +406,81 @@ public class ConnectionFactoryProvider {
             connFactory = new LDAPConnectionFactory(hostNameArg.getValue(), port, options);
         }
         return connFactory;
+    }
+
+    /**
+     * Verifies if the arguments are not conflicting together or if they are readable.
+     *
+     * @throws ArgumentException
+     *             If arguments are conflicting or if the files cannot be read,
+     *             an argument exception is thrown.
+     */
+    private void checkForConflictingArguments() throws ArgumentException {
+        // Couldn't have at the same time bindPassword and bindPasswordFile
+        if (bindPasswordArg.isPresent() && bindPasswordFileArg.isPresent()) {
+            final LocalizableMessage message =
+                    ERR_TOOL_CONFLICTING_ARGS.get(bindPasswordArg.getLongIdentifier(),
+                            bindPasswordFileArg.getLongIdentifier());
+            throw new ArgumentException(message);
+        }
+
+        /*
+         * Couldn't have at the same time trustAll and trustStore related arg
+         */
+        if (trustAllArg.isPresent() && trustStorePathArg.isPresent()) {
+            final LocalizableMessage message =
+                    ERR_TOOL_CONFLICTING_ARGS.get(trustAllArg.getLongIdentifier(),
+                            trustStorePathArg.getLongIdentifier());
+            throw new ArgumentException(message);
+        }
+        if (trustAllArg.isPresent() && trustStorePasswordArg.isPresent()) {
+            final LocalizableMessage message =
+                    ERR_TOOL_CONFLICTING_ARGS.get(trustAllArg.getLongIdentifier(),
+                            trustStorePasswordArg.getLongIdentifier());
+            throw new ArgumentException(message);
+        }
+        if (trustAllArg.isPresent() && trustStorePasswordFileArg.isPresent()) {
+            final LocalizableMessage message =
+                    ERR_TOOL_CONFLICTING_ARGS.get(trustAllArg.getLongIdentifier(),
+                            trustStorePasswordFileArg.getLongIdentifier());
+            throw new ArgumentException(message);
+        }
+
+        /*
+         * Couldn't have at the same time trustStorePasswordArg and trustStorePasswordFileArg
+         */
+        if (trustStorePasswordArg.isPresent() && trustStorePasswordFileArg.isPresent()) {
+            final LocalizableMessage message =
+                    ERR_TOOL_CONFLICTING_ARGS.get(trustStorePasswordArg.getLongIdentifier(),
+                            trustStorePasswordFileArg.getLongIdentifier());
+            throw new ArgumentException(message);
+        }
+
+        if (trustStorePathArg.isPresent()) {
+            // Check that the path exists and is readable
+            final String value = trustStorePathArg.getValue();
+            if (!canReadPath(value)) {
+                final LocalizableMessage message = ERR_CANNOT_READ_TRUSTSTORE.get(value);
+                throw new ArgumentException(message);
+            }
+        }
+
+        if (keyStorePathArg.isPresent()) {
+            // Check that the path exists and is readable
+            final String value = keyStorePathArg.getValue();
+            if (!canReadPath(value)) {
+                final LocalizableMessage message = ERR_CANNOT_READ_KEYSTORE.get(value);
+                throw new ArgumentException(message);
+            }
+        }
+
+        // Couldn't have at the same time startTLSArg and useSSLArg
+        if (useStartTLSArg.isPresent() && useSSLArg.isPresent()) {
+            final LocalizableMessage message =
+                    ERR_TOOL_CONFLICTING_ARGS.get(useStartTLSArg.getLongIdentifier(), useSSLArg
+                            .getLongIdentifier());
+            throw new ArgumentException(message);
+        }
     }
 
     /**
@@ -739,10 +768,12 @@ public class ConnectionFactoryProvider {
      *
      * @return A set of <CODE>TrustManager</CODE> objects that may be used for
      *         interactions requiring access to a trust manager.
+     * @throws IOException
+     *             If the trust store file could not be found or could not be read.
      * @throws GeneralSecurityException
      *             If a problem occurs while interacting with the trust store.
      */
-    private TrustManager getTrustManager() throws IOException, GeneralSecurityException {
+    public TrustManager getTrustManager() throws IOException, GeneralSecurityException {
         if (trustAllArg.isPresent()) {
             return TrustManagers.trustAll();
         }
