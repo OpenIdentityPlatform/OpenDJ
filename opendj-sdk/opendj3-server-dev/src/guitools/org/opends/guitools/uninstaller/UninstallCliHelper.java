@@ -1385,7 +1385,7 @@ public class UninstallCliHelper extends ConsoleApplication {
             println();
             stopProcessing = true;
             if (ci.promptForCertificateConfirmation(e.getCause(),
-                e.getTrustManager(), e.getLdapUrl(), true, logger))
+                e.getTrustManager(), e.getLdapUrl(), logger))
             {
               reloadTopologyCache = true;
               updateTrustManager(userData, ci);

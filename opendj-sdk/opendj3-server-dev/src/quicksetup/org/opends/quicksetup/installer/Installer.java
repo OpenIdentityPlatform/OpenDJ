@@ -68,6 +68,8 @@ import static org.opends.messages.QuickSetupMessages.*;
 import static org.opends.quicksetup.Step.*;
 import static org.opends.quicksetup.util.Utils.*;
 import static com.forgerock.opendj.cli.Utils.canWrite;
+import static com.forgerock.opendj.cli.Utils.isDN;
+import static com.forgerock.opendj.cli.Utils.getHostNameForLdapUrl;
 
 /**
  * This is an abstract class that is in charge of actually performing the
@@ -3201,7 +3203,7 @@ public abstract class Installer extends GuiApplication {
     {
       errorMsgs.add(INFO_EMPTY_DIRECTORY_MANAGER_DN.get());
       qs.displayFieldInvalid(FieldName.DIRECTORY_MANAGER_DN, true);
-    } else if (!isDn(dmDn))
+    } else if (!isDN(dmDn))
     {
       errorMsgs.add(INFO_NOT_A_DIRECTORY_MANAGER_DN.get());
       qs.displayFieldInvalid(FieldName.DIRECTORY_MANAGER_DN, true);
@@ -3921,7 +3923,7 @@ public abstract class Installer extends GuiApplication {
     {
       // Do nothing, the user does not want to provide a base DN.
       baseDn = "";
-    } else if (!isDn(baseDn))
+    } else if (!isDN(baseDn))
     {
       errorMsgs.add(INFO_NOT_A_BASE_DN.get());
       qs.displayFieldInvalid(FieldName.DIRECTORY_BASE_DN, true);

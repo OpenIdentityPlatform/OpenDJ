@@ -28,6 +28,7 @@
 package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.messages.AdminToolMessages.*;
+import static com.forgerock.opendj.cli.Utils.isDN;
 
 import java.awt.Component;
 import java.awt.GridBagConstraints;
@@ -52,7 +53,6 @@ import org.opends.guitools.controlpanel.util.BackgroundTask;
 import org.opends.guitools.controlpanel.util.LDAPEntryReader;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.quicksetup.util.Utils;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.util.Base64;
@@ -345,7 +345,7 @@ public class DuplicateEntryPanel extends AbstractNewEntryPanel
       setPrimaryInvalid(lName);
     }
     String parentDN = this.parentDN.getText().trim();
-    if (!Utils.isDn(parentDN))
+    if (!isDN(parentDN))
     {
       errors.add(ERR_CTRL_PANEL_DUPLICATE_ENTRY_PARENT_DN_NOT_VALID.get());
       setPrimaryInvalid(lParentDN);

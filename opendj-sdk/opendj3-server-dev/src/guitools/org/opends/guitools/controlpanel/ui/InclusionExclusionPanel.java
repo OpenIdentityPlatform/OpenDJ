@@ -28,6 +28,7 @@
 package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.messages.AdminToolMessages.*;
+import static com.forgerock.opendj.cli.Utils.isDN;
 
 import java.awt.Component;
 import java.awt.GridBagConstraints;
@@ -52,7 +53,6 @@ import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.ui.components.BasicExpander;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.quicksetup.util.Utils;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.types.DN;
 import org.opends.server.types.LDAPException;
@@ -458,7 +458,7 @@ public abstract class InclusionExclusionPanel extends StatusGenericPanel
       String[] dnArray = s.split("\n");
       for (int i=0; i<dnArray.length; i++)
       {
-        if (!Utils.isDn(dnArray[i]))
+        if (!isDN(dnArray[i]))
         {
           errors.add(ERR_CTRL_PANEL_DN_NOT_VALID_WITH_VALUE.get(dnArray[i]));
           validDn = false;

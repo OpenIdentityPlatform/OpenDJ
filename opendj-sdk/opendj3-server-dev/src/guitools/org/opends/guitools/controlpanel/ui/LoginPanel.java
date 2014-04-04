@@ -29,6 +29,7 @@ package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
+import static com.forgerock.opendj.cli.Utils.isDN;
 
 import java.awt.Component;
 import java.awt.GridBagConstraints;
@@ -182,7 +183,7 @@ public class LoginPanel extends StatusGenericPanel
       dnInvalid = true;
       errors.add(INFO_EMPTY_DIRECTORY_MANAGER_DN.get());
     }
-    else if (!Utils.isDn(dn.getText()))
+    else if (!isDN(dn.getText()))
     {
       dnInvalid = true;
       errors.add(INFO_NOT_A_DIRECTORY_MANAGER_DN.get());

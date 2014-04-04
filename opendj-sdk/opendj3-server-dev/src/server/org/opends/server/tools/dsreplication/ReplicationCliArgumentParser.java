@@ -31,8 +31,8 @@ import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.Utils.canWrite;
-import static org.opends.quicksetup.util.Utils.isDn;
 import static com.forgerock.opendj.cli.Utils.LINE_SEPARATOR;
+import static com.forgerock.opendj.cli.Utils.isDN;
 
 import java.io.File;
 import java.io.OutputStream;
@@ -465,7 +465,7 @@ public class ReplicationCliArgumentParser extends SecureConnectionCliParser
       LinkedList<String> baseDNs = baseDNsArg.getValues();
       for (String dn : baseDNs)
       {
-        if (!isDn(dn))
+        if (!isDN(dn))
         {
           errors.add(ERR_REPLICATION_NOT_A_VALID_BASEDN.get(dn));
         }
