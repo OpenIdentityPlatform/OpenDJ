@@ -345,10 +345,8 @@ public class TestVerifyJob extends JebTestCase
     eContainer.sharedLock.lock();
     try
     {
-      AttributeType attributeType =
-          DirectoryServer.getAttributeType(phoneType);
-      Index index =
-           eContainer.getAttributeIndex(attributeType).equalityIndex;
+      AttributeType attributeType = DirectoryServer.getAttributeType(phoneType);
+      Index index = eContainer.getAttributeIndex(attributeType).getEqualityIndex();
       //Add entry with bad JEB format Version
       addID2EntryReturnKey(junkDN, 4, true);
       //Add phone number with various bad id list entryIDs
@@ -634,14 +632,11 @@ public class TestVerifyJob extends JebTestCase
       AttributeType attributeType =
           DirectoryServer.getAttributeType(mailType);
       //Get db handles to each index.
-      Index eqIndex =
-          eContainer.getAttributeIndex(attributeType).equalityIndex;
-      Index presIndex =
-          eContainer.getAttributeIndex(attributeType).presenceIndex;
-      Index subIndex =
-          eContainer.getAttributeIndex(attributeType).substringIndex;
-      Index ordIndex =
-          eContainer.getAttributeIndex(attributeType).orderingIndex;
+      AttributeIndex attributeIndex = eContainer.getAttributeIndex(attributeType);
+      Index eqIndex = attributeIndex.getEqualityIndex();
+      Index presIndex = attributeIndex.getPresenceIndex();
+      Index subIndex = attributeIndex.getSubstringIndex();
+      Index ordIndex = attributeIndex.getOrderingIndex();
       //Add invalid idlist ids to both equality and ordering indexes.
       DatabaseEntry key=
            new DatabaseEntry(StaticUtils.getBytes("user.0@example.com"));

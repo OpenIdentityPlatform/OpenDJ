@@ -32,7 +32,6 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.spi.IndexQueryFactory;
-import org.opends.server.api.AbstractMatchingRule.DefaultAssertion;
 
 /**
  * This class defines the set of methods and structures that must be

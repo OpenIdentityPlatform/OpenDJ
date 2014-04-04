@@ -24,18 +24,13 @@
  *      Copyright 2009-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2014 ForgeRock AS
  */
-
 package org.opends.server.backends.jeb;
-
-
-
-import org.forgerock.i18n.LocalizableMessageBuilder;
 
 import java.util.Collection;
 
+import org.forgerock.i18n.LocalizableMessageBuilder;
+
 import static org.opends.server.backends.jeb.IndexFilter.*;
-
-
 
 /**
  * This class represents a JE Backend Query.
@@ -111,10 +106,7 @@ public abstract class IndexQuery
    */
   private static final class NullIndexQuery extends IndexQuery
   {
-    /**
-     * {@inheritDoc}
-     * @param debugMessages
-     */
+    /** {@inheritDoc} */
     @Override
     public EntryIDSet evaluate(LocalizableMessageBuilder debugMessage)
     {
@@ -146,12 +138,7 @@ public abstract class IndexQuery
       this.subIndexQueries = subIndexQueries;
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     * @param debugMessages
-     */
+    /** {@inheritDoc} */
     @Override
     public EntryIDSet evaluate(LocalizableMessageBuilder debugMessage)
     {
@@ -199,12 +186,7 @@ public abstract class IndexQuery
       this.subIndexQueries = subIndexQueries;
     }
 
-
-
-    /**
-     * {@inheritDoc}
-     * @param debugMessages
-     */
+    /** {@inheritDoc} */
     @Override
     public EntryIDSet evaluate(LocalizableMessageBuilder debugMessage)
     {
