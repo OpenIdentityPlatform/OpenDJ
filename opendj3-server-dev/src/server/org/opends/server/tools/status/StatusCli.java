@@ -319,7 +319,7 @@ class StatusCli extends ConsoleApplication
               new LDAPConnectionConsoleInteraction(this, argParser
                   .getSecureArgsList());
 
-          ci.run(true, false);
+          ci.run(false);
           if (argParser.isInteractive())
           {
             bindDn = ci.getBindDN();

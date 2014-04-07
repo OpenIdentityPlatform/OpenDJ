@@ -292,9 +292,6 @@ public final class DSConfig extends ConsoleApplication {
    */
   public static final String GENERIC_TYPE = "generic";
 
-  /** This CLI is always using the administration connector with SSL. */
-  private static final boolean alwaysSSL = true;
-
   private long sessionStartTime;
   private boolean sessionStartTimePrinted = false;
   private int sessionEquivalentOperationNumber = 0;
@@ -336,7 +333,7 @@ public final class DSConfig extends ConsoleApplication {
     JDKLogging.disableLogging();
     DSConfig app =
         new DSConfig(System.in, outStream, errStream,
-            new LDAPManagementContextFactory(alwaysSSL));
+            new LDAPManagementContextFactory());
     app.sessionStartTime = System.currentTimeMillis();
     /*
      * FIXME: obtain path info from system properties.
