@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions copyright 2011-2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -284,7 +284,8 @@ public final class Connections {
      */
     public static ConnectionFactory newHeartBeatConnectionFactory(final ConnectionFactory factory,
             final long interval, final TimeUnit unit) {
-        return new HeartBeatConnectionFactory(factory, interval, DEFAULT_TIMEOUT_IN_SECONDS, unit, null, null);
+        long timeout = unit.convert(DEFAULT_TIMEOUT_IN_SECONDS, TimeUnit.SECONDS);
+        return new HeartBeatConnectionFactory(factory, interval, timeout, unit, null, null);
     }
 
     /**
