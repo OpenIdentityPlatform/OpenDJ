@@ -106,8 +106,6 @@ public class UninstallCliHelper extends ConsoleApplication {
 
   private ControlPanelInfo info;
 
-  /** This CLI is always using the administration connector with SSL. */
-  private final boolean alwaysSSL = true;
   private boolean useSSL = true;
   private boolean useStartTLS = false;
 
@@ -859,7 +857,7 @@ public class UninstallCliHelper extends ConsoleApplication {
 
       try
       {
-        ci.run(alwaysSSL, false);
+        ci.run(false);
         userData.setAdminUID(ci.getAdministratorUID());
         userData.setAdminPwd(ci.getBindPassword());
 

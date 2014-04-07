@@ -563,7 +563,7 @@ final public class Utils {
      * @return The DN of the administrator for the given UID.
      */
     public static String getAdministratorDN(String uid) {
-        return "cn=" + RDN.valueOf(uid) + ",cn=Administrators, cn=admin data";
+        return RDN.valueOf("cn=" + uid) + ",cn=Administrators, cn=admin data";
     }
 
     /**

@@ -83,20 +83,14 @@ public final class LDAPManagementContextFactory implements
   /** The connection parameters command builder. */
   private CommandBuilder contextCommandBuilder;
 
-  /** This CLI is always using the administration connector with SSL. */
-  private boolean alwaysSSL = false;
-
   /** Raw arguments. */
   private String[] rawArgs;
 
   /**
    * Creates a new LDAP management context factory.
-   *
-   * @param alwaysSSL If true, always use the SSL connection type. In this case,
-   * the arguments useSSL and startTLS are not present.
    */
-  public LDAPManagementContextFactory(boolean alwaysSSL) {
-    this.alwaysSSL = alwaysSSL;
+  public LDAPManagementContextFactory() {
+    // Nothing to do.
   }
 
   /** {@inheritDoc} */
@@ -258,7 +252,7 @@ public final class LDAPManagementContextFactory implements
   public void registerGlobalArguments(SubCommandArgumentParser parser)
       throws ArgumentException {
     // Create the global arguments.
-    secureArgsList = new SecureConnectionCliArgs(alwaysSSL);
+    secureArgsList = new SecureConnectionCliArgs(true);
     LinkedHashSet<Argument> args = secureArgsList.createGlobalArguments();
 
 

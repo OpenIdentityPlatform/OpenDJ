@@ -68,6 +68,9 @@ import com.forgerock.opendj.cli.ValidationCallback;
 /**
  * Supports interacting with a user through the command line to prompt for
  * information necessary to create an LDAP connection.
+ *
+ * Actually the LDAPConnectionConsoleInteraction is used by UninstallCliHelper, StatusCli,
+ * LDAPManagementContextFactory and ReplicationCliMain.
  */
 public class LDAPConnectionConsoleInteraction
 {
@@ -324,37 +327,27 @@ public class LDAPConnectionConsoleInteraction
    */
   public void run() throws ArgumentException
   {
-    run(true, true);
+    run(true);
   }
 
   /**
    * Interact with the user though the console to get information necessary to
    * establish an LDAP connection.
    *
-   * @param canUseSSL
-   *          whether we can propose to connect using SSL or not.
    * @param canUseStartTLS
    *          whether we can propose to connect using Start TLS or not.
    * @throws ArgumentException
    *           if there is a problem with the arguments
    */
-  public void run(boolean canUseSSL, boolean canUseStartTLS)
+  public void run(boolean canUseStartTLS)
       throws ArgumentException
   {
     // Reset everything
     commandBuilder.clearArguments();
     copySecureArgsList.createGlobalArguments();
-    boolean secureConnection =
-        (canUseSSL || canUseStartTLS)
-            && (secureArgsList.useSSLArg.isPresent()
-                || secureArgsList.useStartTLSArg.isPresent()
-                || secureArgsList.trustAllArg.isPresent()
-                || secureArgsList.trustStorePathArg.isPresent()
-                || secureArgsList.trustStorePasswordArg.isPresent()
-                || secureArgsList.trustStorePasswordFileArg.isPresent()
-                || secureArgsList.keyStorePathArg.isPresent()
-                || secureArgsList.keyStorePasswordArg.isPresent() || secureArgsList.keyStorePasswordFileArg
-                  .isPresent());
+
+    boolean secureConnection = true;
+
     // Get the LDAP host.
     hostName = secureArgsList.hostNameArg.getValue();
     final String tmpHostName = hostName;
@@ -403,7 +396,7 @@ public class LDAPConnectionConsoleInteraction
       }
       catch (ClientException e)
       {
-        cannotReadConnectionParameters(e);
+        throw cannotReadConnectionParameters(e);
       }
     }
 
@@ -440,10 +433,6 @@ public class LDAPConnectionConsoleInteraction
       {
         if (secureConnection && p.equals(Protocols.LDAP)
             && !displayLdapIfSecureParameters)
-        {
-          continue;
-        }
-        if (!canUseSSL && p.equals(Protocols.SSL))
         {
           continue;
         }
@@ -514,6 +503,7 @@ public class LDAPConnectionConsoleInteraction
         portNumber = secureArgsList.getPortFromConfig();
       }
     }
+
     final int tmpPortNumber = portNumber;
     if (app.isInteractive() && !secureArgsList.portArg.isPresent())
     {
@@ -571,7 +561,7 @@ public class LDAPConnectionConsoleInteraction
       }
       catch (ClientException e)
       {
-        cannotReadConnectionParameters(e);
+        throw cannotReadConnectionParameters(e);
       }
     }
 
@@ -683,7 +673,7 @@ public class LDAPConnectionConsoleInteraction
         }
         catch (ClientException e)
         {
-          cannotReadConnectionParameters(e);
+          throw cannotReadConnectionParameters(e);
         }
       }
       if (useAdminOrBindDn)
@@ -805,10 +795,9 @@ public class LDAPConnectionConsoleInteraction
     connectTimeout = secureArgsList.connectTimeoutArg.getIntValue();
   }
 
-  private void cannotReadConnectionParameters(ClientException e)
-      throws ArgumentException
+  private ArgumentException cannotReadConnectionParameters(ClientException e)
   {
-    throw new ArgumentException(ERR_ERROR_CANNOT_READ_CONNECTION_PARAMETERS
+    return new ArgumentException(ERR_ERROR_CANNOT_READ_CONNECTION_PARAMETERS
         .get(e.getMessage()), e.getCause());
   }
 
@@ -982,7 +971,7 @@ public class LDAPConnectionConsoleInteraction
       }
       catch (ClientException e)
       {
-        cannotReadConnectionParameters(e);
+        throw cannotReadConnectionParameters(e);
       }
     }
 
@@ -1159,7 +1148,7 @@ public class LDAPConnectionConsoleInteraction
       }
       catch (ClientException e)
       {
-        cannotReadConnectionParameters(e);
+        throw cannotReadConnectionParameters(e);
       }
     }
 
@@ -1287,7 +1276,7 @@ public class LDAPConnectionConsoleInteraction
       }
       catch (ClientException e)
       {
-        cannotReadConnectionParameters(e);
+        throw cannotReadConnectionParameters(e);
       }
     }
 
