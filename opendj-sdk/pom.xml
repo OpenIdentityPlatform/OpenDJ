@@ -169,7 +169,7 @@
         <configuration>
          <projectName>OpenDJ</projectName>
          <projectVersion>${docTargetVersion}</projectVersion>
-         <latestJson>http://docs.forgerock.org/latest.json</latestJson>
+         <latestJson>http://mcraig.org/fr/latest.php</latestJson><!-- Temporary workaround pending #QOZ-985-23233 -->
          <googleAnalyticsId>${gaId}</googleAnalyticsId>
          <brandingVersion>2.1.1</brandingVersion><!-- Workaround for OPENDJ-1395 -->
         </configuration>
