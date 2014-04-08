@@ -180,8 +180,23 @@ public class ServerReader extends DirectoryThread
           } else if (msg instanceof WindowMsg)
           {
             handler.updateWindow((WindowMsg) msg);
-          } else if (msg instanceof RoutableMsg)
+          }
+          else if (msg instanceof MonitorRequestMsg)
           {
+            handler.processMonitorRequestMsg((MonitorRequestMsg) msg);
+          }
+          else if (msg instanceof MonitorMsg)
+          {
+            handler.processMonitorMsg((MonitorMsg) msg);
+          }
+          else if (msg instanceof RoutableMsg)
+          {
+            /*
+             * Note that we handle monitor messages separately since they in
+             * fact never need "routing" and are instead sent directly between
+             * connected peers. Doing so allows us to more clearly decouple
+             * write IO from the reader thread (see OPENDJ-1354).
+             */
             handler.process((RoutableMsg) msg);
           } else if (msg instanceof ResetGenerationIdMsg)
           {

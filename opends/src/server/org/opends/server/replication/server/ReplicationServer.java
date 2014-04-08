@@ -829,16 +829,6 @@ public final class ReplicationServer
       }
     }
 
-    // Update threshold value for status analyzers
-    final int newThreshold = config.getDegradedStatusThreshold();
-    if (oldConfig.getDegradedStatusThreshold() != newThreshold)
-    {
-      for (ReplicationServerDomain domain : getReplicationServerDomains())
-      {
-        domain.updateDegradedStatusThreshold(newThreshold);
-      }
-    }
-
     // Update period value for monitoring publishers
     if (oldConfig.getMonitoringPeriod() != config.getMonitoringPeriod())
     {
@@ -970,7 +960,6 @@ public final class ReplicationServer
 
   /**
    * Creates the backend associated to this replication server.
-   * @throws ConfigException
    */
   private void createBackend() throws ConfigException
   {

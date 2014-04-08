@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS.
+ *      Portions copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
 
@@ -30,55 +30,70 @@ import java.io.UnsupportedEncodingException;
 import java.util.zip.DataFormatException;
 
 /**
- * This message is part of the replication protocol.
- * RS1 sends a MonitorRequestMsg to RS2 to request its monitoring
- * informations.
- * When RS2 receives a MonitorRequestMsg from RS1, RS2 responds with a
- * MonitorMessage.
+ * This message is part of the replication protocol. RS1 sends a
+ * MonitorRequestMsg to RS2 to request its monitoring information. When RS2
+ * receives a MonitorRequestMsg from RS1, RS2 responds with a MonitorMessage.
  */
-public class MonitorRequestMsg extends RoutableMsg
+public class MonitorRequestMsg extends ReplicationMsg
 {
+  /**
+   * The destination server or servers of this message.
+   */
+  private final int destination;
+
+  /**
+   * The serverID of the server that sends this message.
+   */
+  private final int senderID;
+
+
+
   /**
    * Creates a message.
    *
-   * @param serverID The sender server of this message.
-   * @param destination The server or servers targeted by this message.
+   * @param serverID
+   *          The sender server of this message.
+   * @param destination
+   *          The server or servers targeted by this message.
    */
   public MonitorRequestMsg(int serverID, int destination)
   {
-    super(serverID, destination);
+    this.senderID = serverID;
+    this.destination = destination;
   }
 
   /**
    * Creates a new message by decoding the provided byte array.
-   * @param in A byte array containing the encoded information for the message,
-   * @throws DataFormatException If the in does not contain a properly,
-   *                             encoded message.
+   *
+   * @param in
+   *          A byte array containing the encoded information for the message,
+   * @throws DataFormatException
+   *           If the in does not contain a properly, encoded message.
    */
   public MonitorRequestMsg(byte[] in) throws DataFormatException
   {
-    super();
     try
     {
       // First byte is the type
       if (in[0] != MSG_TYPE_REPL_SERVER_MONITOR_REQUEST)
-        throw new DataFormatException("input is not a valid " +
-            this.getClass().getCanonicalName());
+        throw new DataFormatException("input is not a valid "
+            + this.getClass().getCanonicalName());
       int pos = 1;
 
       // sender
       int length = getNextLength(in, pos);
       String senderString = new String(in, pos, length, "UTF-8");
       this.senderID = Integer.valueOf(senderString);
-      pos += length +1;
+      pos += length + 1;
 
       // destination
       length = getNextLength(in, pos);
       String destinationString = new String(in, pos, length, "UTF-8");
       this.destination = Integer.valueOf(destinationString);
-      pos += length +1;
+      pos += length + 1;
 
-    } catch (UnsupportedEncodingException e)
+    }
+    catch (UnsupportedEncodingException e)
     {
       throw new DataFormatException("UTF-8 is not supported by this jvm.");
     }
@@ -95,8 +110,7 @@ public class MonitorRequestMsg extends RoutableMsg
       byte[] senderBytes = String.valueOf(senderID).getBytes("UTF-8");
       byte[] destinationBytes = String.valueOf(destination).getBytes("UTF-8");
 
-      int length = 1 + senderBytes.length + 1
-                     + destinationBytes.length + 1;
+      int length = 1 + senderBytes.length + 1 + destinationBytes.length + 1;
 
       byte[] resultByteArray = new byte[length];
 
@@ -116,5 +130,42 @@ public class MonitorRequestMsg extends RoutableMsg
     {
       return null;
     }
+  }
+
+
+
+  /**
+   * Get the destination.
+   *
+   * @return the destination
+   */
+  public int getDestination()
+  {
+    return destination;
+  }
+
+
+
+  /**
+   * Get the server ID of the server that sent this message.
+   *
+   * @return the server id
+   */
+  public int getSenderID()
+  {
+    return senderID;
+  }
+
+
+
+  /**
+   * Returns a string representation of the message.
+   *
+   * @return the string representation of this message.
+   */
+  public String toString()
+  {
+    return "[" + getClass().getCanonicalName() + " sender=" + senderID
+        + " destination=" + destination + "]";
   }
 }
