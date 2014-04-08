@@ -22,13 +22,19 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2014 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
 
 /**
- * This is an abstract class of messages of the replication protocol
- * for message that needs to contain information about the server that
- * send them and the destination servers to which they should be sent.
+ * This is an abstract class of messages of the replication protocol for message
+ * that needs to contain information about the server that send them and the
+ * destination servers to which they should be sent.
+ * <p>
+ * Routable messages are used when initializing a new replica from an existing
+ * replica: the total update messages are sent across the topology from the
+ * source replica to the target replica, possibly traversing one or two
+ * replication servers in the process (e.g. DS1 -&gt; RS1 -&gt; RS2 -&gt; DS2).
  */
 public abstract class RoutableMsg extends ReplicationMsg
 {

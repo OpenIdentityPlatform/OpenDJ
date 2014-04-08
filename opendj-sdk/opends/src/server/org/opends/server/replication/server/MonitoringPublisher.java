@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -104,7 +104,6 @@ public class MonitoringPublisher extends DirectoryThread
           {
             break;
           }
-          monitorMsg.setDestination(serverHandler.getServerId());
           try
           {
             serverHandler.send(monitorMsg);
