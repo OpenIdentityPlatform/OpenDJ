@@ -356,17 +356,18 @@ public final class AuthRate extends ConsoleApplication {
         // Nothing to do.
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    public boolean isInteractive() {
+        return false;
+    }
+    
+    /** {@inheritDoc} */
     @Override
     public boolean isScriptFriendly() {
         return scriptFriendly.isPresent();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isVerbose() {
         return verbose.isPresent();

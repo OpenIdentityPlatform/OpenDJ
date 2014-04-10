@@ -95,9 +95,7 @@ public final class LDAPSearch extends ConsoleApplication {
     private class LDAPSearchResultHandler implements SearchResultHandler {
         private int entryCount = 0;
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public boolean handleEntry(final SearchResultEntry entry) {
             entryCount++;
 
@@ -179,24 +177,18 @@ public final class LDAPSearch extends ConsoleApplication {
             return true;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public boolean handleReference(final SearchResultReference reference) {
             println(LocalizableMessage.raw(reference.toString()));
             return true;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void handleErrorResult(ErrorResultException error) {
             // Ignore.
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         public void handleResult(Result result) {
             // Ignore.
         }
@@ -222,9 +214,12 @@ public final class LDAPSearch extends ConsoleApplication {
         // Nothing to do.
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    public boolean isInteractive() {
+        return false;
+    }
+
+    /** {@inheritDoc} */
     @Override
     public boolean isVerbose() {
         return verbose.isPresent();

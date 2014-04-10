@@ -819,4 +819,17 @@ public abstract class ConsoleApplication {
         }
         return port;
     }
+
+    /**
+     * Prints a header in the console application.
+     *
+     * @param header
+     *            The message to display as a header.
+     */
+    void printHeader(final LocalizableMessage header) {
+        println();
+        println();
+        println(header);
+        println();
+    }
 }

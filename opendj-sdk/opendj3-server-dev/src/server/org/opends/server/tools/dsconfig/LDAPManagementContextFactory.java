@@ -26,56 +26,30 @@
  */
 package org.opends.server.tools.dsconfig;
 
-import static com.forgerock.opendj.cli.ArgumentConstants.OPTION_LONG_HELP;
-import static com.forgerock.opendj.cli.ArgumentConstants.OPTION_SHORT_HELP;
 import static com.forgerock.opendj.dsconfig.DsconfigMessages.*;
 import static com.forgerock.opendj.cli.CliMessages.*;
 import static org.forgerock.util.Utils.closeSilently;
 
-import java.security.GeneralSecurityException;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-import java.util.LinkedHashSet;
-import java.util.concurrent.TimeUnit;
-
-import javax.naming.AuthenticationException;
-import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLException;
-import javax.net.ssl.TrustManager;
-
-import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.opendj.config.LDAPProfile;
 import org.forgerock.opendj.config.client.ManagementContext;
 import org.forgerock.opendj.config.client.ldap.LDAPManagementContext;
-import org.forgerock.opendj.config.server.ConfigException;
-import org.forgerock.opendj.ldap.ErrorResultException;
-import org.forgerock.opendj.ldap.AuthorizationException;
 import org.forgerock.opendj.ldap.Connection;
-import org.forgerock.opendj.ldap.LDAPConnectionFactory;
-import org.forgerock.opendj.ldap.LDAPOptions;
-import org.forgerock.opendj.ldap.SSLContextBuilder;
-import org.forgerock.opendj.ldap.TrustManagers;
-import org.opends.admin.ads.util.ApplicationTrustManager;
-import org.opends.admin.ads.util.ConnectionUtils;
-import org.opends.server.admin.client.cli.SecureConnectionCliArgs;
-import org.opends.server.util.cli.LDAPConnectionConsoleInteraction;
+import org.forgerock.opendj.ldap.ConnectionFactory;
+import org.forgerock.opendj.ldap.ErrorResultException;
 
-import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ClientException;
 import com.forgerock.opendj.cli.CommandBuilder;
+import com.forgerock.opendj.cli.ConnectionFactoryProvider;
 import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.ReturnCode;
-import com.forgerock.opendj.cli.SubCommandArgumentParser;
 
 /**
  * An LDAP management context factory.
  */
-public final class LDAPManagementContextFactory implements
-    ManagementContextFactory {
-
-  /** The SecureConnectionCliArgsList object. */
-  private SecureConnectionCliArgs secureArgsList;
+public final class LDAPManagementContextFactory implements ManagementContextFactory
+{
 
   /** The management context. */
   private ManagementContext context;
@@ -83,31 +57,26 @@ public final class LDAPManagementContextFactory implements
   /** The connection parameters command builder. */
   private CommandBuilder contextCommandBuilder;
 
-  /** Raw arguments. */
-  private String[] rawArgs;
+  /** The connection factory provider. */
+  private final ConnectionFactoryProvider provider;
+
+  /** The connection factory. */
+  private final ConnectionFactory factory;
 
   /**
-   * Creates a new LDAP management context factory.
+   * Creates a new LDAP management context factory based on an authenticated
+   * connection factory.
+   *
+   * @param cfp
+   *          The connection factory provider which should be used in this
+   *          context.
+   * @throws ArgumentException
+   *           If an exception occurs when creating the authenticated connection
+   *           factory linked to this context.
    */
-  public LDAPManagementContextFactory() {
-    // Nothing to do.
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public ManagementContext getManagementContext(ConsoleApplication app)
-      throws ArgumentException, ClientException
-  {
-    // Lazily create the LDAP management context.
-    if (context == null)
-    {
-      LDAPConnectionConsoleInteraction ci =
-        new LDAPConnectionConsoleInteraction(app, secureArgsList);
-      ci.run();
-      context = getManagementContext(app, ci);
-      contextCommandBuilder = ci.getCommandBuilder();
-    }
-    return context;
+  public LDAPManagementContextFactory(ConnectionFactoryProvider cfp) throws ArgumentException {
+    this.provider = cfp;
+    factory = cfp.getAuthenticatedConnectionFactory();
   }
 
   /** {@inheritDoc} */
@@ -126,13 +95,10 @@ public final class LDAPManagementContextFactory implements
 
   /**
    * Gets the management context which sub-commands should use in
-   * order to manage the directory server. Implementations can use the
-   * application instance for retrieving passwords interactively.
+   * order to manage the directory server.
    *
    * @param app
-   *          The application instance.
-   * @param ci the LDAPConsoleInteraction object to be used.  The code assumes
-   *        that the LDAPConsoleInteraction has already been run.
+   *          The console application instance.
    * @return Returns the management context which sub-commands should
    *         use in order to manage the directory server.
    * @throws ArgumentException
@@ -141,162 +107,48 @@ public final class LDAPManagementContextFactory implements
    * @throws ClientException
    *           If the management context could not be created.
    */
-  public ManagementContext getManagementContext(ConsoleApplication app,
-      LDAPConnectionConsoleInteraction ci)
+  public ManagementContext getManagementContext(ConsoleApplication app)
       throws ArgumentException, ClientException
   {
     // Lazily create the LDAP management context.
     if (context == null)
     {
-      // Interact with the user though the console to get
-      // LDAP connection information
-      final String hostName = ConnectionUtils.getHostNameForLdapUrl(ci.getHostName());
-      final Integer portNumber = ci.getPortNumber();
-      final String bindDN = ci.getBindDN();
-      final String bindPassword = ci.getBindPassword();
-      TrustManager trustManager = ci.getTrustManager();
-      final KeyManager keyManager = ci.getKeyManager();
-
-      final LDAPOptions options = new LDAPOptions();
-      options.setConnectTimeout(ci.getConnectTimeout(), TimeUnit.MILLISECONDS);
-      LDAPConnectionFactory factory = null;
-      Connection connection = null;
-      while (true)
+      Connection connection;
+      final String hostName = provider.getHostname();
+      final int port = provider.getPort();
+      try
       {
-        try
-        {
-          final SSLContextBuilder sslBuilder = new SSLContextBuilder();
-          sslBuilder.setTrustManager((trustManager == null ? TrustManagers
-              .trustAll() : trustManager));
-          sslBuilder.setKeyManager(keyManager);
-          options.setUseStartTLS(ci.useStartTLS());
-          options.setSSLContext(sslBuilder.getSSLContext());
-
-          factory = new LDAPConnectionFactory(hostName, portNumber, options);
-          connection = factory.getConnection();
-          connection.bind(bindDN, bindPassword.toCharArray());
-          break;
-        }
-        catch (ErrorResultException e)
-        {
-          final Throwable cause = e.getCause();
-          if (app.isInteractive() && ci.isTrustStoreInMemory() && cause != null
-              && cause instanceof SSLException
-              && cause.getCause() instanceof CertificateException)
-          {
-            String authType = null;
-            if (trustManager instanceof ApplicationTrustManager)
-            { // FIXME use PromptingTrustManager
-              ApplicationTrustManager appTrustManager =
-                  (ApplicationTrustManager) trustManager;
-              authType = appTrustManager.getLastRefusedAuthType();
-              X509Certificate[] cert = appTrustManager.getLastRefusedChain();
-
-              if (ci.checkServerCertificate(cert, authType, hostName))
-              {
-                // If the certificate is trusted, update the trust manager.
-                trustManager = ci.getTrustManager();
-                // Try to connect again.
-                continue;
-              }
-            }
-          }
-          if (cause instanceof SSLException)
-          {
-            throw new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR,
-                ERR_FAILED_TO_CONNECT_NOT_TRUSTED.get(hostName, portNumber));
-          }
-          throw couldNotConnect(cause, hostName, portNumber, bindDN);
-        }
-        catch (GeneralSecurityException e)
+        connection = factory.getConnection();
+      }
+      catch (ErrorResultException e)
+      {
+        if (e.getCause() instanceof SSLException)
         {
           throw new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR,
-              ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(hostName, portNumber));
-        } finally {
-          closeSilently(factory);
+              ERR_FAILED_TO_CONNECT_NOT_TRUSTED.get(hostName, String
+                  .valueOf(port)));
+        }
+        else
+        {
+          throw new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR,
+              ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(hostName, String
+                  .valueOf(port)));
         }
       }
+      catch (Exception ex)
+      {
+        throw new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR,
+            ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(hostName, port));
+      }
+      finally
+      {
+        closeSilently(factory);
+      }
+
       context =
           LDAPManagementContext.newManagementContext(connection, LDAPProfile
               .getInstance());
     }
     return context;
   }
-
-  private ClientException couldNotConnect(Throwable cause, String hostName,
-      Integer portNumber, String bindDN)
-  {
-    if (cause instanceof AuthorizationException)
-    {
-      return new ClientException(ReturnCode.AUTH_METHOD_NOT_SUPPORTED,
-          ERR_DSCFG_ERROR_LDAP_SIMPLE_BIND_NOT_SUPPORTED.get());
-    }
-    else if (cause instanceof AuthenticationException)
-    {
-      return new ClientException(ReturnCode.INVALID_CREDENTIALS,
-          ERR_DSCFG_ERROR_LDAP_SIMPLE_BIND_FAILED.get(bindDN));
-    }
-    return new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR,
-        ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(hostName, portNumber));
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public void setRawArguments(String[] args) {
-    this.rawArgs = args;
-
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public void registerGlobalArguments(SubCommandArgumentParser parser)
-      throws ArgumentException {
-    // Create the global arguments.
-    secureArgsList = new SecureConnectionCliArgs(true);
-    LinkedHashSet<Argument> args = secureArgsList.createGlobalArguments();
-
-
-    // Register the global arguments.
-    for (Argument arg : args)
-    {
-      parser.addGlobalArgument(arg);
-    }
-
-    try
-    {
-      if (rawArgs != null) {
-        for (String rawArg : rawArgs) {
-          if (rawArg.length() < 2) {
-            // This is not a help command
-            continue;
-          }
-          if (rawArg.contains(OPTION_LONG_HELP) ||
-            rawArg.charAt(1) == OPTION_SHORT_HELP || rawArg.charAt(1) == '?') {
-            // used for usage help default values only
-            secureArgsList.initArgumentsWithConfiguration();
-          }
-        }
-      }
-    }
-    catch (ConfigException ce)
-    {
-      // Ignore.
-    }
-  }
-
-
-
-  /** {@inheritDoc} */
-  @Override
-  public void validateGlobalArguments() throws ArgumentException {
-    // Make sure that the user didn't specify any conflicting
-    // arguments.
-    LocalizableMessageBuilder buf = new LocalizableMessageBuilder();
-    int v = secureArgsList.validateGlobalOptions(buf);
-    if (v != ReturnCode.SUCCESS.get())
-    {
-      throw new ArgumentException(buf.toMessage());
-    }
-  }
-
 }

@@ -80,14 +80,17 @@ import org.opends.server.util.BuildVersion;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentGroup;
 import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.CliConstants;
 import com.forgerock.opendj.cli.ClientException;
 import com.forgerock.opendj.cli.CommandBuilder;
 import com.forgerock.opendj.cli.CommonArguments;
+import com.forgerock.opendj.cli.ConnectionFactoryProvider;
 import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.Menu;
 import com.forgerock.opendj.cli.MenuBuilder;
 import com.forgerock.opendj.cli.MenuCallback;
 import com.forgerock.opendj.cli.MenuResult;
+import com.forgerock.opendj.cli.ReturnCode;
 import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.cli.SubCommand;
 import com.forgerock.opendj.cli.SubCommandArgumentParser;
@@ -332,8 +335,7 @@ public final class DSConfig extends ConsoleApplication {
   {
     JDKLogging.disableLogging();
     DSConfig app =
-        new DSConfig(System.in, outStream, errStream,
-            new LDAPManagementContextFactory());
+        new DSConfig(System.in, outStream, errStream);
     app.sessionStartTime = System.currentTimeMillis();
     /*
      * FIXME: obtain path info from system properties.
@@ -363,7 +365,7 @@ public final class DSConfig extends ConsoleApplication {
    * The factory which the application should use to retrieve its management
    * context.
    */
-  private final ManagementContextFactory factory;
+  private ManagementContextFactory factory = null;
 
   /**
    * Flag indicating whether or not the global arguments have already been
@@ -407,9 +409,7 @@ public final class DSConfig extends ConsoleApplication {
   /** The argument which should be used to request quiet output. */
   private BooleanArgument quietArgument;
 
-  /**
-   * The argument which should be used to request script-friendly output.
-   */
+  /** The argument which should be used to request script-friendly output. */
   private BooleanArgument scriptFriendlyArgument;
 
   /** The argument which should be used to request usage information. */
@@ -428,7 +428,7 @@ public final class DSConfig extends ConsoleApplication {
   private BooleanArgument noPropertiesFileArgument;
 
   /**
-   * Creates a new dsconfig application instance.
+   * Creates a new DSConfig application instance.
    *
    * @param in
    *          The application input stream.
@@ -440,14 +440,11 @@ public final class DSConfig extends ConsoleApplication {
    *          The factory which this application instance should use
    *          for obtaining management contexts.
    */
-  private DSConfig(InputStream in, OutputStream out, OutputStream err,
-      ManagementContextFactory factory) {
+  private DSConfig(InputStream in, OutputStream out, OutputStream err) {
     super(new PrintStream(out), new PrintStream(err));
 
     this.parser = new SubCommandArgumentParser(getClass().getName(),
         INFO_DSCFG_TOOL_DESCRIPTION.get(), false);
-
-    this.factory = factory;
   }
 
 
@@ -572,11 +569,6 @@ public final class DSConfig extends ConsoleApplication {
       parser.addGlobalArgument(noPropertiesFileArgument);
       parser.setNoPropertiesFileArgument(noPropertiesFileArgument);
 
-      // Register any global arguments required by the management
-      // context factory.
-      factory.setRawArguments(args);
-      factory.registerGlobalArguments(parser);
-
       globalArgumentsInitialized = true;
     }
   }
@@ -672,63 +664,31 @@ public final class DSConfig extends ConsoleApplication {
       return 1;
     }
 
-    // Parse the command-line arguments provided to this program.
-    try {
+    ConnectionFactoryProvider cfp = null;
+    try
+    {
+      cfp =
+          new ConnectionFactoryProvider(parser, this,
+              CliConstants.DEFAULT_ROOT_USER_DN,
+              CliConstants.DEFAULT_ADMINISTRATION_CONNECTOR_PORT, true, null);
+      cfp.setIsAnAdminConnection();
+
+      // Parse the command-line arguments provided to this program.
       parser.parseArguments(args);
-    } catch (ArgumentException ae) {
+      checkForConflictingArguments();
+    }
+    catch (ArgumentException ae)
+    {
       LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
       displayMessageAndUsageReference(message);
-      return 1;
+      return ReturnCode.CONFLICTING_ARGS.get();
     }
 
     // If the usage/version argument was provided, then we don't need
     // to do anything else.
     if (parser.usageOrVersionDisplayed()) {
-      return 0;
+      return ReturnCode.SUCCESS.get();
     }
-
-    // Check for conflicting arguments.
-    if (quietArgument.isPresent() && verboseArgument.isPresent()) {
-      LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(quietArgument
-          .getLongIdentifier(), verboseArgument.getLongIdentifier());
-      displayMessageAndUsageReference(message);
-      return 1;
-    }
-
-    if (batchFileArgument.isPresent() && !noPromptArgument.isPresent()) {
-      LocalizableMessage message =
-          ERR_DSCFG_ERROR_QUIET_AND_INTERACTIVE_INCOMPATIBLE.get(
-              batchFileArgument.getLongIdentifier(), noPromptArgument
-                  .getLongIdentifier());
-      displayMessageAndUsageReference(message);
-      return 1;
-    }
-
-    if (quietArgument.isPresent() && !noPromptArgument.isPresent()) {
-      LocalizableMessage message = ERR_DSCFG_ERROR_QUIET_AND_INTERACTIVE_INCOMPATIBLE.get(
-          quietArgument.getLongIdentifier(), noPromptArgument
-          .getLongIdentifier());
-      displayMessageAndUsageReference(message);
-      return 1;
-    }
-
-    if (scriptFriendlyArgument.isPresent() && verboseArgument.isPresent()) {
-      LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(scriptFriendlyArgument
-          .getLongIdentifier(), verboseArgument.getLongIdentifier());
-      displayMessageAndUsageReference(message);
-      return 1;
-    }
-
-    if (noPropertiesFileArgument.isPresent()
-        && propertiesFileArgument.isPresent())
-    {
-      LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
-          noPropertiesFileArgument.getLongIdentifier(),
-          propertiesFileArgument.getLongIdentifier());
-      displayMessageAndUsageReference(message);
-      return 1;
-    }
-
 
     // Checks the version - if upgrade required, the tool is unusable
     try
@@ -749,31 +709,36 @@ public final class DSConfig extends ConsoleApplication {
       if (!canWrite(file))
       {
         println(ERR_DSCFG_CANNOT_WRITE_EQUIVALENT_COMMAND_LINE_FILE.get(file));
-        return 1;
+        return ReturnCode.ERROR_UNEXPECTED.get();
       }
       else
       {
         if (new File(file).isDirectory())
         {
           println(ERR_DSCFG_EQUIVALENT_COMMAND_LINE_FILE_DIRECTORY.get(file));
-          return 1;
+          return ReturnCode.ERROR_UNEXPECTED.get();
         }
       }
     }
-
-    // Make sure that management context's arguments are valid.
-    try {
-      factory.validateGlobalArguments();
-    } catch (ArgumentException e) {
-      println(e.getMessageObject());
-      return 1;
+    // Creates the management context factory which is based on the connection
+    // provider factory and an authenticated connection factory.
+    try
+    {
+      factory = new LDAPManagementContextFactory(cfp);
     }
+    catch (ArgumentException e)
+    {
+      LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(e.getMessage());
+      displayMessageAndUsageReference(message);
+      return ReturnCode.CONFLICTING_ARGS.get();
+    }
+
 
     // Handle batch file if any
     if (batchFileArgument.isPresent()) {
       handleBatchFile(args);
       // don't need to do anything else
-      return 0;
+      return ReturnCode.SUCCESS.get();
     }
 
     int retCode = 0;
@@ -805,6 +770,45 @@ public final class DSConfig extends ConsoleApplication {
     }
 
     return retCode;
+  }
+
+  private void checkForConflictingArguments() throws ArgumentException
+  {
+    if (quietArgument.isPresent() && verboseArgument.isPresent()) {
+      final LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(quietArgument
+          .getLongIdentifier(), verboseArgument.getLongIdentifier());
+      throw new ArgumentException(message);
+    }
+
+    if (batchFileArgument.isPresent() && !noPromptArgument.isPresent()) {
+      final LocalizableMessage message =
+          ERR_DSCFG_ERROR_QUIET_AND_INTERACTIVE_INCOMPATIBLE.get(
+              batchFileArgument.getLongIdentifier(), noPromptArgument
+                  .getLongIdentifier());
+      throw new ArgumentException(message);
+    }
+
+    if (quietArgument.isPresent() && !noPromptArgument.isPresent()) {
+      final LocalizableMessage message = ERR_DSCFG_ERROR_QUIET_AND_INTERACTIVE_INCOMPATIBLE.get(
+          quietArgument.getLongIdentifier(), noPromptArgument
+          .getLongIdentifier());
+      throw new ArgumentException(message);
+    }
+
+    if (scriptFriendlyArgument.isPresent() && verboseArgument.isPresent()) {
+      final LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(scriptFriendlyArgument
+          .getLongIdentifier(), verboseArgument.getLongIdentifier());
+      throw new ArgumentException(message);
+    }
+
+    if (noPropertiesFileArgument.isPresent()
+        && propertiesFileArgument.isPresent())
+    {
+      final LocalizableMessage message = ERR_TOOL_CONFLICTING_ARGS.get(
+          noPropertiesFileArgument.getLongIdentifier(),
+          propertiesFileArgument.getLongIdentifier());
+      throw new ArgumentException(message);
+    }
   }
 
 
@@ -893,6 +897,8 @@ public final class DSConfig extends ConsoleApplication {
     try {
       // Force retrieval of management context.
       factory.getManagementContext(app);
+
+
     } catch (ArgumentException e) {
       app.println(e.getMessageObject());
       return 1;
@@ -908,7 +914,7 @@ public final class DSConfig extends ConsoleApplication {
       MenuResult<Integer> result = menu.run();
 
       if (result.isQuit()) {
-        return 0;
+        return ReturnCode.SUCCESS.get();
       } else {
         return result.getValue();
       }
