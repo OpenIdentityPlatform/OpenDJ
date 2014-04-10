@@ -1451,6 +1451,36 @@ MODIFY operation successful for DN uid=bjensen,ou=People,dc=example,dc=com</comp
   client certificate must be stored on the client entry in the directory, and
   OpenDJ must be configured to map the certificate to the client entry.</para>
 
+  <itemizedlist>
+   <para>
+    This section includes the following procedures and examples.
+   </para>
+
+   <listitem>
+    <para>
+     <xref linkend="add-client-cert" />
+    </para>
+   </listitem>
+
+   <listitem>
+    <para>
+     <xref linkend="use-pkcs12-trust-store" />
+    </para>
+   </listitem>
+
+   <listitem>
+    <para>
+     <xref linkend="config-cert-mappers" />
+    </para>
+   </listitem>
+
+   <listitem>
+    <para>
+     <xref linkend="auth-with-client-cert" />
+    </para>
+   </listitem>
+  </itemizedlist>
+
   <procedure xml:id="add-client-cert">
    <title>To Add Certificate Information to an Entry</title>
 
@@ -1750,6 +1780,382 @@ $ <userinput>stop-ds --restart</userinput>
 <computeroutput>Stopping Server...
 ...
 ... The Directory Server has started successfully</computeroutput>
+    </screen>
+   </step>
+  </procedure>
+
+  <procedure xml:id="use-pkcs12-trust-store">
+   <title>To Use a PKCS #12 Trust Store</title>
+
+  <para>
+   The Java <command>keytool</command> command does not support
+   importing trusted certificates into a PKCS #12 format store.
+   Yet, Java does support
+   creating a PKCS #12 format key store,
+   and using an existing PKCS #12 format store as a trust store.
+   You can use a PKCS #12 store as an OpenDJ trust store.
+  </para>
+
+   <!--
+
+   The following example shows how to try the full procedure
+   by using the keytool command with OpenDJ server and commands.
+
+   Create key pair:
+
+$ cd /path/to
+$ keytool \
+ -genkey \
+ -alias myapp-cert \
+ -keyalg rsa \
+ -dname "cn=My App,ou=Apps,dc=example,dc=com" \
+ -keystore truststore.p12 \
+ -storepass changeit \
+ -keypass changeit \
+ -storetype pkcs12
+
+   Sign certificate:
+
+$ keytool \
+ -selfcert \
+ -alias myapp-cert \
+ -validity 7300 \
+ -keystore truststore.p12 \
+ -storepass changeit \
+ -keypass changeit \
+ -storetype pkcs12
+
+   Note certificate fingerprints:
+
+$ keytool \
+ -list \
+ -v \
+ -alias myapp-cert \
+ -keystore truststore.p12 \
+ -storepass changeit \
+ -storetype pkcs12
+Alias name: myapp-cert
+Creation date: Apr 10, 2014
+Entry type: PrivateKeyEntry
+Certificate chain length: 1
+Certificate[1]:
+Owner: CN=My App, OU=Apps, DC=example, DC=com
+Issuer: CN=My App, OU=Apps, DC=example, DC=com
+Serial number: 1b93b494
+Valid from: Thu Apr 10 08:25:01 CEST 2014 until: Wed Apr 05 08:25:01 CEST 2034
+Certificate fingerprints:
+  MD5:  2B:8D:27:D6:1D:D1:A5:5F:14:E7:A8:C1:96:F9:C1:9F
+  SHA1: 1D:A2:BF:A6:29:8C:13:81:A4:E5:77:9E:D5:67:CD:C8:E6:AD:6E:A3
+  SHA256: 80:47:B8:5C:E7:22:BB:4E:5E:48:8B:84:38:9F:E8:2C:7C:87:6E:9C:20:A2:E2:5F:A7:7A:10:0E:C8:AE:60:85
+  Signature algorithm name: SHA256withRSA
+  Version: 3
+
+Extensions:
+
+#1: ObjectId: 2.5.29.14 Criticality=false
+SubjectKeyIdentifier [
+KeyIdentifier [
+0000: 93 C5 DE 6A 5D D4 84 99   38 A8 6D 9D BF B9 FF 5E  ...j]...8.m....^
+0010: B5 05 F1 87                                        ....
+]
+]
+
+   Export certificate:
+
+$ keytool \
+ -export \
+ -alias myapp-cert \
+ -keystore truststore.p12 \
+ -storepass changeit \
+ -keypass changeit \
+ -file myapp-cert.crt \
+ -storetype pkcs12
+Certificate stored in file <myapp-cert.crt>
+
+   Update My App entry with certificate:
+
+$ cat addcert.ldif
+dn: cn=My App,ou=Apps,dc=example,dc=com
+changetype: modify
+add: objectclass
+objectclass: ds-certificate-user
+-
+add: ds-certificate-fingerprint
+ds-certificate-fingerprint: 2B:8D:27:D6:1D:D1:A5:5F:14:E7:A8:C1:96:F9:C1:9F
+-
+add: ds-certificate-subject-dn
+ds-certificate-subject-dn: CN=My App, OU=Apps, DC=example, DC=com
+-
+add: userCertificate;binary
+userCertificate;binary:<file:///path/to/myapp-cert.crt
+
+   XML comments cannot include two dashes in a row,
+   so change - - in the following examples before trying these.
+
+$ cd opendj/bin
+$ ldapmodify \
+ - -port 1389 \
+ - -hostname opendj.example.com \
+ - -bindDN "cn=Directory Manager" \
+ - -bindPassword password \
+ - -filename /path/to/addcert.ldif
+Processing MODIFY request for cn=My App,ou=Apps,dc=example,dc=com
+MODIFY operation successful for DN cn=My App,ou=Apps,dc=example,dc=com
+
+$ ldapsearch \
+  - -port 1389 \
+  - -hostname opendj.example.com \
+  - -baseDN dc=example,dc=com \
+  "(cn=My App)"
+dn: cn=My App,ou=Apps,dc=example,dc=com
+objectClass: person
+objectClass: inetOrgPerson
+objectClass: organizationalPerson
+objectClass: ds-certificate-user
+objectClass: top
+userCertificate;binary:: MIIDOzCCAiOgAwIBAgIEG5O0lDANBgkqhkiG9w0BAQsFADBOMRMwEQY
+ KCZImiZPyLGQBGRYDY29tMRcwFQYKCZImiZPyLGQBGRYHZXhhbXBsZTENMAsGA1UECxMEQXBwczEPMA
+ 0GA1UEAxMGTXkgQXBwMB4XDTE0MDQxMDA2MjUwMVoXDTM0MDQwNTA2MjUwMVowTjETMBEGCgmSJomT8
+ ixkARkWA2NvbTEXMBUGCgmSJomT8ixkARkWB2V4YW1wbGUxDTALBgNVBAsTBEFwcHMxDzANBgNVBAMT
+ Bk15IEFwcDCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAJFg2rAIy3EyJWXWnBgqGTP9bSe
+ AeykCC1lOF+AKDkybAn4igB6JDB+0V1n80G28TZrswnCxQj5G7KJg47OjvRG8ZKuMq96++sd9uKeIVU
+ a+Ekl9lXzGmMXopVYOFyAWeciKQMGnMdNcaKXReoKU5QlR+nUeIYZKNCDMqwjVL7E3UibDQKfvyZ9B+
+ O5CVfWWceVIw1A8xThtARipPppA0h3gopo760llhj/7urHmj84HkLWJqqOHEdujfO61q8tu0Hpld928
+ BjkF/BcnzANkqrbnoc/v3ggsIVyIOoe+NqYkpoGz7phEBcap+/5EuR6tudlsXjaNyNmH4Ge8ictdlWU
+ CAwEAAaMhMB8wHQYDVR0OBBYEFJPF3mpd1ISZOKhtnb+5/161BfGHMA0GCSqGSIb3DQEBCwUAA4IBAQ
+ A3KEYJaEXXf5nzOfJXEX02tV+Fi9Chc7Cor37ldRYBQjjIqBr0Gsk9NbHwWPQE1mQ24aHcS2wqgQ+rT
+ KxLWOC6WPrjwaL7Wx5jojqEc6utg7zqomvtDzxwqirdgnh5Fm+2QtRy3muC6WmjjsK6CMh5FrH/O9b9
+ C9tqGMy4ukUVHpEIZ/sUiS8LvxsYUO+UPuV2A7OcWG3yOZD/lBoGm+o3Oh7NXM1vXXoZzU8PAP/HCF3
+ DrLICKWO/imI8kvOTyrdjf2FSoEEXa4OXiXeh/ZXa/zWRSuYB1WJ/cg/aYRjCy1CJIDtpP9eRp3cJVE
+ V41BUm1xdD26Boei/rlWsJdTPy
+ds-certificate-fingerprint: 2B:8D:27:D6:1D:D1:A5:5F:14:E7:A8:C1:96:F9:C1:9F
+ds-certificate-subject-dn: CN=My App, OU=Apps, DC=example, DC=com
+cn: My App
+sn: App
+
+   Configure PKCS #12 trust store.
+
+$ mv /path/to/truststore.p12 /path/to/opendj/config/
+$ dsconfig \
+ set-trust-manager-provider-prop \
+ - -port 4444 \
+ - -hostname opendj.example.com \
+ - -bindDN "cn=Directory Manager" \
+ - -bindPassword password \
+ - -provider-name PKCS12 \
+ - -set enabled:true \
+ - -set trust-store-pin:changeit \
+ - -no-prompt \
+ - -trustAll
+$ dsconfig \
+ get-trust-manager-provider-prop \
+ - -port 4444 \
+ - -hostname opendj.example.com \
+ - -bindDN "cn=Directory Manager" \
+ - -bindPassword password \
+ - -provider-name PKCS12 \
+ - -no-prompt \
+ - -trustAll
+$ stop-ds - -restart
+
+   Configure LDAPS connection handler to use PKCS #12 trust store.
+
+$ dsconfig \
+ set-connection-handler-prop \
+ - -port 4444 \
+ - -hostname opendj.example.com \
+ - -bindDN "cn=Directory Manager" \
+ - -bindPassword password \
+ - -handler-name "LDAPS Connection Handler" \
+ - -set trust-manager-provider:PKCS12 \
+ - -no-prompt \
+ - -trustAll
+
+   Create JKS key store from PKCS #12 key store.
+
+$ keytool \
+ -importkeystore \
+ -srckeystore /path/to/opendj/config/truststore.p12 \
+ -srcstoretype pkcs12 \
+ -srcstorepass changeit \
+ -srckeypass changeit \
+ -srcalias myapp-cert \
+ -destkeystore keystore \
+ -deststoretype jks \
+ -deststorepass changeit \
+ -destkeypass changeit \
+ -v
+[Storing keystore]
+
+$ keytool \
+ -list \
+ -keystore keystore \
+ -storepass changeit \
+ -keypass changeit
+
+Keystore type: JKS
+Keystore provider: SUN
+
+Your keystore contains 1 entry
+
+myapp-cert, Apr 10, 2014, PrivateKeyEntry,
+Certificate fingerprint (SHA1): 1D:A2:BF:A6:29:8C:13:81:A4:E5:77:9E:D5:67:CD:C8:E6:AD:6E:A3
+mark@Mark-Craigs-MacBook-Pro bin$ keytool -list -keystore keystore -storepass changeit -keypass changeit -v
+
+Keystore type: JKS
+Keystore provider: SUN
+
+Your keystore contains 1 entry
+
+Alias name: myapp-cert
+Creation date: Apr 10, 2014
+Entry type: PrivateKeyEntry
+Certificate chain length: 1
+Certificate[1]:
+Owner: CN=My App, OU=Apps, DC=example, DC=com
+Issuer: CN=My App, OU=Apps, DC=example, DC=com
+Serial number: 1b93b494
+Valid from: Thu Apr 10 08:25:01 CEST 2014 until: Wed Apr 05 08:25:01 CEST 2034
+Certificate fingerprints:
+  MD5:  2B:8D:27:D6:1D:D1:A5:5F:14:E7:A8:C1:96:F9:C1:9F
+  SHA1: 1D:A2:BF:A6:29:8C:13:81:A4:E5:77:9E:D5:67:CD:C8:E6:AD:6E:A3
+  SHA256: 80:47:B8:5C:E7:22:BB:4E:5E:48:8B:84:38:9F:E8:2C:7C:87:6E:9C:20:A2:E2:5F:A7:7A:10:0E:C8:AE:60:85
+  Signature algorithm name: SHA256withRSA
+  Version: 3
+
+Extensions:
+
+#1: ObjectId: 2.5.29.14 Criticality=false
+SubjectKeyIdentifier [
+KeyIdentifier [
+0000: 93 C5 DE 6A 5D D4 84 99   38 A8 6D 9D BF B9 FF 5E  ...j]...8.m....^
+0010: B5 05 F1 87                                        ....
+]
+]
+
+
+
+*******************************************
+*******************************************
+
+
+   Verify SSL mutual auth.
+
+$ ldapsearch \
+ - -port 1636 \
+ - -hostname opendj.example.com \
+ - -baseDN dc=example,dc=com \
+ - -useSSL \
+ - -useSASLExternal \
+ - -certNickName myapp-cert \
+ - -keyStorePath keystore \
+ - -keyStorePassword changeit \
+ - -trustStorePath /path/to/opendj/config/keystore \
+ - -trustStorePasswordFile /path/to/opendj/config/keystore.pin \
+ "(cn=My App)" userPassword
+dn: cn=My App,ou=Apps,dc=example,dc=com
+userPassword: {SSHA}9jjvsv9wlTW7Ikflzc2/wMNBjAN6G4CbbTKYIw==
+
+   -->
+
+   <step>
+    <para>
+     Add the PKCS #12 format store to OpenDJ's configuration.
+    </para>
+
+    <para>
+     By default, OpenDJ expects the store
+     to be <filename>/path/to/opendj/config/truststore.p12</filename>.
+     The following example uses that default.
+    </para>
+
+    <screen>
+$ <userinput>cp /path/to/<replaceable>pkcs12-store</replaceable> /path/to/opendj/config/truststore.p12</userinput>
+    </screen>
+
+    <para>
+     Here, <replaceable>pkcs12-store</replaceable> is the file name
+     of the PKCS #12 format store.
+    </para>
+   </step>
+
+   <step>
+    <para>
+     Configure the OpenDJ PKCS12 trust manager provider
+     to use the PKCS #12 store,
+     and restart OpenDJ server to force it to read the store.
+    </para>
+
+    <para>
+     In the following example the store password is <literal>changeit</literal>.
+    </para>
+
+    <screen>
+$ <userinput>dsconfig \
+ set-trust-manager-provider-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --provider-name PKCS12 \
+ --set enabled:true \
+ --set trust-store-pin:changeit \
+ --no-prompt \
+ --trustAll</userinput>
+$ <userinput>stop-ds --restart</userinput>
+    </screen>
+   </step>
+
+   <step>
+    <para>
+     Configure a connection handler to use the PKCS12 trust manager provider.
+    </para>
+
+    <para>
+     The following example configures the LDAPS connection handler.
+    </para>
+
+    <screen>
+$ <userinput>dsconfig \
+ set-connection-handler-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --handler-name "LDAPS Connection Handler" \
+ --set trust-manager-provider:PKCS12 \
+ --no-prompt \
+ --trustAll</userinput>
+    </screen>
+   </step>
+
+   <step>
+    <para>
+     Verify SSL mutual authentication to check your work.
+    </para>
+
+    <para>
+     The following example assumes the client certificate for My App
+     is present in the PKCS #12 store,
+     and that the certificate has been added to the entry for My App
+     as in <xref linkend="add-client-cert" />.
+    </para>
+
+    <screen>
+$ <userinput>ldapsearch \
+ --port 1636 \
+ --hostname opendj.example.com \
+ --baseDN dc=example,dc=com \
+ --useSSL \
+ --useSASLExternal \
+ --certNickName myapp-cert \
+ --keyStorePath keystore \
+ --keyStorePassword changeit \
+ --trustStorePath /path/to/opendj/config/keystore \
+ --trustStorePasswordFile /path/to/opendj/config/keystore.pin \
+ "(cn=My App)" userPassword</userinput>
+<computeroutput>dn: cn=My App,ou=Apps,dc=example,dc=com
+userPassword: {SSHA}9jjvsv9wlTW7Ikflzc2/wMNBjAN6G4CbbTKYIw==</computeroutput>
     </screen>
    </step>
   </procedure>
