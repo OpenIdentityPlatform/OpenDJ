@@ -1599,10 +1599,10 @@ MODIFY operation successful for DN cn=My App,ou=Apps,dc=example,dc=com</computer
     <para>Check your work.</para>
 
     <screen>
-$ <userinput>ldapsearch
- --port 1389
- --hostname opendj.example.com
- --baseDN dc=example,dc=com
+$ <userinput>ldapsearch \
+ --port 1389 \
+ --hostname opendj.example.com \
+ --baseDN dc=example,dc=com \
  "(cn=My App)"</userinput>
 <computeroutput>dn: cn=My App,ou=Apps,dc=example,dc=com
 ds-certificate-fingerprint: 4B:F5:CF:2C:2D:B3:86:14:FF:43:A8:37:17:DD:E7:55
