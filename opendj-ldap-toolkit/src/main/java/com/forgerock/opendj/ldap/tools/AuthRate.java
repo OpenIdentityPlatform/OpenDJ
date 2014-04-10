@@ -360,7 +360,7 @@ public final class AuthRate extends ConsoleApplication {
     public boolean isInteractive() {
         return false;
     }
-    
+
     /** {@inheritDoc} */
     @Override
     public boolean isScriptFriendly() {
