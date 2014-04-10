@@ -32,23 +32,21 @@ import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ClientException;
 import com.forgerock.opendj.cli.CommandBuilder;
 import com.forgerock.opendj.cli.ConsoleApplication;
-import com.forgerock.opendj.cli.SubCommandArgumentParser;
 
 
 
 /**
- * A factory for retrieving the management context which should be
- * used by the dsconfig application.
+ * A factory for retrieving the management context which should be used by the
+ * DSConfig application.
  * <p>
- * Factory implementations are responsible for registering their
- * required global options during initialization.
+ * Factory implementations are responsible for registering their required global
+ * options during initialization.
  */
 public interface ManagementContextFactory {
 
   /**
    * Gets the management context which sub-commands should use in
-   * order to manage the directory server. Implementations can use the
-   * application instance for retrieving passwords interactively.
+   * order to manage the directory server.
    *
    * @param app
    *          The application instance.
@@ -63,53 +61,17 @@ public interface ManagementContextFactory {
   ManagementContext getManagementContext(ConsoleApplication app)
       throws ArgumentException, ClientException;
 
-
   /**
    * Closes this management context.
    */
   void close();
 
-
-  /**
-   * Initializes this management context factory using the provided
-   * parser. The management context factory can register global
-   * options with the parser if required.
-   *
-   * @param parser
-   *          The application sub-command argument parser.
-   * @throws ArgumentException
-   *           If the factory failed to register its required global
-   *           options.
-   */
-  void registerGlobalArguments(SubCommandArgumentParser parser)
-      throws ArgumentException;
-
-
-
-  /**
-   * Set the raw arguments (used for default value setting).
-   *
-   * @param args raw arguments.
-   */
-  void setRawArguments(String[] args);
-
-
-  /**
-   * Validates any global arguments passed to the application.
-   * Implementations of this method should check that the values
-   * passed to their global arguments are valid and are not
-   * incompatible with each other.
-   *
-   * @throws ArgumentException
-   *           If the global arguments are invalid for some reason.
-   */
-  void validateGlobalArguments() throws ArgumentException;
-
   /**
    * Returns the command builder that provides the equivalent arguments in
    * interactive mode to get the management context.
+   *
    * @return the command builder that provides the equivalent arguments in
-   * interactive mode to get the management context.
+   *         interactive mode to get the management context.
    */
   CommandBuilder getContextCommandBuilder();
 }

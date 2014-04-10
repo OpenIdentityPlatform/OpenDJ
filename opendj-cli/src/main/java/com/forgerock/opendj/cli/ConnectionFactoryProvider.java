@@ -29,6 +29,7 @@ package com.forgerock.opendj.cli;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.CliMessages.*;
 import static com.forgerock.opendj.cli.CliConstants.DEFAULT_LDAP_PORT;
+import static com.forgerock.opendj.cli.Utils.getHostNameForLdapUrl;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -39,7 +40,7 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
-import java.util.logging.Logger;
+import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
@@ -47,6 +48,7 @@ import javax.net.ssl.X509KeyManager;
 import javax.net.ssl.X509TrustManager;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.KeyManagers;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
@@ -66,90 +68,62 @@ import org.forgerock.opendj.ldap.requests.Requests;
 /**
  * A connection factory designed for use with command line tools.
  */
-public class ConnectionFactoryProvider {
-    /**
-     * The Logger.
-     */
-    static final Logger LOG = Logger.getLogger(ConnectionFactoryProvider.class.getName());
+public final class ConnectionFactoryProvider {
+    /** The Logger. */
+    static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
-    /**
-     * The 'hostName' global argument.
-     */
+    /** The 'hostName' global argument. */
     private StringArgument hostNameArg = null;
 
-    /**
-     * The 'port' global argument.
-     */
+    /** The 'port' global argument. */
     private IntegerArgument portArg = null;
 
-    /**
-     * The 'bindDN' global argument.
-     */
+    /** The 'bindDN' global argument. */
     private StringArgument bindNameArg = null;
 
-    /**
-     * The 'bindPasswordFile' global argument.
-     */
+    /** The 'bindPasswordFile' global argument. */
     private FileBasedArgument bindPasswordFileArg = null;
 
-    /**
-     * The 'bindPassword' global argument.
-     */
+    /** The 'password' value. */
+    private char[] password = null;
+
+    /** The 'bindPassword' global argument. */
     private StringArgument bindPasswordArg = null;
 
-    /**
-     * The 'trustAllArg' global argument.
-     */
+    /** The 'connectTimeOut' global argument. */
+    private IntegerArgument connectTimeOut = null;
+
+    /** The 'trustAllArg' global argument. */
     private BooleanArgument trustAllArg = null;
 
-    /**
-     * The 'trustStore' global argument.
-     */
+    /** The 'trustStore' global argument. */
     private StringArgument trustStorePathArg = null;
 
-    /**
-     * The 'trustStorePassword' global argument.
-     */
+    /** The 'trustStorePassword' global argument. */
     private StringArgument trustStorePasswordArg = null;
 
-    /**
-     * The 'trustStorePasswordFile' global argument.
-     */
+    /** The 'trustStorePasswordFile' global argument. */
     private FileBasedArgument trustStorePasswordFileArg = null;
 
-    /**
-     * The 'keyStore' global argument.
-     */
+    /** The 'keyStore' global argument. */
     private StringArgument keyStorePathArg = null;
 
-    /**
-     * The 'keyStorePassword' global argument.
-     */
+    /** The 'keyStorePassword' global argument. */
     private StringArgument keyStorePasswordArg = null;
 
-    /**
-     * The 'keyStorePasswordFile' global argument.
-     */
+    /** The 'keyStorePasswordFile' global argument. */
     private FileBasedArgument keyStorePasswordFileArg = null;
 
-    /**
-     * The 'certNicknameArg' global argument.
-     */
+    /** The 'certNicknameArg' global argument. */
     private StringArgument certNicknameArg = null;
 
-    /**
-     * The 'useSSLArg' global argument.
-     */
+    /** The 'useSSLArg' global argument. */
     private BooleanArgument useSSLArg = null;
 
-    /**
-     * The 'useStartTLSArg' global argument.
-     */
+    /** The 'useStartTLSArg' global argument. */
     private BooleanArgument useStartTLSArg = null;
 
-    /**
-     * Argument indicating a SASL option.
-     */
+    /** Argument indicating a SASL option. */
     private StringArgument saslOptionArg = null;
 
     /**
@@ -163,23 +137,33 @@ public class ConnectionFactoryProvider {
      */
     private final BooleanArgument usePasswordPolicyControlArg;
 
+    /** The port number to used to connect. */
     private int port = DEFAULT_LDAP_PORT;
 
+    /** The SSL context linked to this connection. */
     private SSLContext sslContext;
 
+    /**  The basic connection factory. */
     private ConnectionFactory connFactory;
 
     /** The authenticated connection factory. */
     protected ConnectionFactory authenticatedConnFactory;
 
+    /** The bind request to connect with. */
     private BindRequest bindRequest = null;
 
+    /** The console application linked to this connection in interactive mode. */
     private final ConsoleApplication app;
 
+    /** The LDAP options for this connection. */
     private LDAPOptions options;
 
+    /** If this connection should be an admin connection. */
+    private boolean isAdminConnection = false;
+
     /**
-     * Default constructor to create a connection factory designed for use with command line tools.
+     * Default constructor to create a connection factory designed for use with command line tools,
+     * adding basic LDAP connection arguments to the specified parser (e.g: hostname, bindname...etc).
      *
      * @param argumentParser
      *            The argument parser.
@@ -190,11 +174,12 @@ public class ConnectionFactoryProvider {
      */
     public ConnectionFactoryProvider(final ArgumentParser argumentParser,
             final ConsoleApplication app) throws ArgumentException {
-        this(argumentParser, app, "cn=Directory Manager", DEFAULT_LDAP_PORT, false, null);
+        this(argumentParser, app, CliConstants.DEFAULT_ROOT_USER_DN, DEFAULT_LDAP_PORT, false, null);
     }
 
     /**
-     * Default constructor to create a connection factory designed for use with command line tools.
+     * Default constructor to create a connection factory designed for use with command line tools,
+     * adding basic LDAP connection arguments to the specified parser (e.g: hostname, bindname...etc).
      *
      * @param argumentParser
      *            The argument parser.
@@ -205,13 +190,14 @@ public class ConnectionFactoryProvider {
      * @throws ArgumentException
      *             If an error occurs during parsing the arguments.
      */
-    public ConnectionFactoryProvider(final ArgumentParser argumentParser,
-            final ConsoleApplication app, final LDAPOptions options) throws ArgumentException {
-        this(argumentParser, app, "cn=Directory Manager", DEFAULT_LDAP_PORT, false, options);
+    public ConnectionFactoryProvider(final ArgumentParser argumentParser, final ConsoleApplication app,
+            final LDAPOptions options) throws ArgumentException {
+        this(argumentParser, app, CliConstants.DEFAULT_ROOT_USER_DN, DEFAULT_LDAP_PORT, false, options);
     }
 
     /**
-     * Constructor to create a connection factory designed for use with command line tools.
+     * Constructor to create a connection factory designed for use with command line tools,
+     * adding basic LDAP connection arguments to the specified parser (e.g: hostname, bindname...etc).
      *
      * @param argumentParser
      *            The argument parser.
@@ -303,6 +289,9 @@ public class ConnectionFactoryProvider {
         reportAuthzIDArg = CommonArguments.getReportAuthzId();
         argumentParser.addArgument(reportAuthzIDArg);
 
+        connectTimeOut = CommonArguments.getConnectTimeOut();
+        argumentParser.addArgument(connectTimeOut);
+
         usePasswordPolicyControlArg =
                 new BooleanArgument("usepwpolicycontrol", null, OPTION_LONG_USE_PW_POLICY_CTL,
                         INFO_DESCRIPTION_USE_PWP_CONTROL.get());
@@ -311,15 +300,50 @@ public class ConnectionFactoryProvider {
     }
 
     /**
-     * Returns the host name.
+     * Returns the connect time out.
+     *
+     * @return The connect time out value.
+     */
+    public int getConnectTimeout() {
+        if (connectTimeOut.isPresent()) {
+            try {
+                return connectTimeOut.getIntValue();
+            } catch (ArgumentException e) {
+                return Integer.valueOf(connectTimeOut.getDefaultValue());
+            }
+        }
+        return Integer.valueOf(connectTimeOut.getDefaultValue());
+    }
+
+
+    /**
+     * Returns the host name if the argument is present otherwise, if the application
+     * is interactive, prompt the user for it.
      *
      * @return The host name value.
+     * @throws ArgumentException
+     *             If the host name cannot be retrieved.
      */
-    public String getHostname() {
+    public String getHostname() throws ArgumentException {
+        String value = "";
+
         if (hostNameArg.isPresent()) {
-            return hostNameArg.getValue();
+            value = hostNameArg.getValue();
+        } else if (app.isInteractive()) {
+            try {
+                value = app.readInput(INFO_DESCRIPTION_HOST.get(),
+                        hostNameArg.getDefaultValue() == null ? value : hostNameArg.getDefaultValue());
+                app.println();
+                hostNameArg.addValue(value);
+                hostNameArg.setPresent(true);
+            } catch (ClientException e) {
+                throw new ArgumentException(ERR_ERROR_CANNOT_READ_HOST_NAME.get(), e);
+            }
+        } else {
+            return hostNameArg.getDefaultValue() == null ? value : hostNameArg.getDefaultValue();
         }
-        return hostNameArg.getDefaultValue();
+
+        return getHostNameForLdapUrl(value);
     }
 
     /**
@@ -357,19 +381,45 @@ public class ConnectionFactoryProvider {
     }
 
     /**
-     * Checks if any conflicting arguments are present, build the connection with
-     * selected arguments and returns the connection factory.
+     * Checks if any conflicting arguments are present, build the connection with selected arguments and returns the
+     * connection factory. If the application is interactive, it will prompt the user for missing parameters.
      *
      * @return The connection factory.
      * @throws ArgumentException
-     *             If an error occurs during the parsing of the arguments. (conflicting
-     *             arguments or if an error occurs during building SSL context).
+     *             If an error occurs during the parsing of the arguments.
+     *             (conflicting arguments or if an error occurs during building SSL context).
      */
     public ConnectionFactory getConnectionFactory() throws ArgumentException {
         if (connFactory == null) {
-            port = portArg.getIntValue();
+            port = portArg.isPresent() ? portArg.getIntValue() : 0;
 
             checkForConflictingArguments();
+
+            if (app.isInteractive()) {
+                if (!hostNameArg.isPresent() || port == 0 || !bindNameArg.isPresent()
+                        || (!bindPasswordArg.isPresent() && !bindPasswordFileArg.isPresent())) {
+                    app.printHeader(INFO_LDAP_CONN_HEADING_CONNECTION_PARAMETERS.get());
+                }
+                if (!hostNameArg.isPresent()) {
+                    getHostname();
+                }
+                if (port == 0) {
+                    LocalizableMessage portMsg;
+                    if (isAdminConnection) {
+                        portMsg = INFO_DESCRIPTION_ADMIN_PORT.get();
+                    } else {
+                        portMsg = INFO_DESCRIPTION_PORT.get();
+                    }
+                    port = app.askPort(portMsg, Integer.valueOf(portArg.getDefaultValue()), logger);
+                    app.println();
+                }
+                if (!bindNameArg.isPresent()) {
+                    getBindName();
+                }
+                if (!bindPasswordArg.isPresent() && !bindPasswordFileArg.isPresent()) {
+                    getPassword();
+                }
+            }
 
             try {
                 if (useSSLArg.isPresent() || useStartTLSArg.isPresent()) {
@@ -403,13 +453,14 @@ public class ConnectionFactoryProvider {
             if (sslContext != null) {
                 options.setSSLContext(sslContext).setUseStartTLS(useStartTLSArg.isPresent());
             }
+            options.setConnectTimeout(getConnectTimeout(), TimeUnit.MILLISECONDS);
             connFactory = new LDAPConnectionFactory(hostNameArg.getValue(), port, options);
         }
         return connFactory;
     }
 
     /**
-     * Verifies if the arguments are not conflicting together or if they are readable.
+     * Verifies if the connection arguments are not conflicting together or if they are readable.
      *
      * @throws ArgumentException
      *             If arguments are conflicting or if the files cannot be read,
@@ -502,13 +553,13 @@ public class ConnectionFactoryProvider {
     }
 
     /**
-     * Returns <CODE>true</CODE> if we can read on the provided path and
-     * <CODE>false</CODE> otherwise.
+     * Returns {@code true} if we can read on the provided path and
+     * {@code false} otherwise.
      *
      * @param path
      *            the path.
-     * @return <CODE>true</CODE> if we can read on the provided path and
-     *         <CODE>false</CODE> otherwise.
+     * @return {@code true} if we can read on the provided path and
+     *         {@code false} otherwise.
      */
     private boolean canReadPath(final String path) {
         final File file = new File(path);
@@ -555,17 +606,34 @@ public class ConnectionFactoryProvider {
         return value;
     }
 
-    private String getBindName() throws ArgumentException {
+    /**
+     * Returns the bind name if the argument is present otherwise, in interactive mode, it
+     * will prompt the user.
+     *
+     * @return The bind name used for this connection.
+     * @throws ArgumentException
+     *             If the bind name cannot be retrieved.
+     */
+    public String getBindName() throws ArgumentException {
         String value = "";
         if (bindNameArg.isPresent()) {
             value = bindNameArg.getValue();
         } else if (app.isInteractive()) {
+            LocalizableMessage bindMsg;
+            if (isAdminConnection) {
+                bindMsg = INFO_DESCRIPTION_ADMIN_BINDDN.get();
+            } else {
+                bindMsg = INFO_DESCRIPTION_BINDDN.get();
+            }
             try {
-                value =
-                        app.readInput(LocalizableMessage.raw("Bind name:"), bindNameArg
-                                .getDefaultValue() == null ? value : bindNameArg.getDefaultValue());
+                value = app.readInput(bindMsg,
+                        bindNameArg.getDefaultValue() == null ? value : bindNameArg.getDefaultValue());
+                app.println();
+                bindNameArg.clearValues();
+                bindNameArg.addValue(value);
+                bindNameArg.setPresent(true);
             } catch (ClientException e) {
-                throw new ArgumentException(LocalizableMessage.raw("Unable to read bind name"), e);
+                throw new ArgumentException(ERR_ERROR_CANNOT_READ_BIND_NAME.get(), e);
             }
         }
 
@@ -669,9 +737,14 @@ public class ConnectionFactoryProvider {
      *         interactions requiring access to a key manager.
      * @throws java.security.KeyStoreException
      *             If a problem occurs while interacting with the key store.
+     * @throws IOException
+     *             If there is an I/O or format problem with the keystore data.
+     * @throws NoSuchAlgorithmException
+     *             If a problem occurs while loading with the key store.
+     * @throws CertificateException
+     *             If a problem occurs while loading with the key store.
      */
-
-    private X509KeyManager getKeyManager(String keyStoreFile) throws KeyStoreException,
+    public X509KeyManager getKeyManager(String keyStoreFile) throws KeyStoreException,
             IOException, NoSuchAlgorithmException, CertificateException {
         if (keyStoreFile == null) {
             // Lookup the file name through the JDK property.
@@ -725,29 +798,40 @@ public class ConnectionFactoryProvider {
     }
 
     /**
-     * Get the password which has to be used for the command. If no password was
-     * specified, return null.
+     * Get the password which has to be used for the command. In interactive mode, if
+     * the password arguments are missing, the user will be prompted.
      *
      * @return The password stored into the specified file on by the command
-     *         line argument, or null it if not specified.
+     *         line argument, or empty it if not specified.
+     * @throws ArgumentException
+     *             If a problem occurs while interacting with the password.
      */
-    private char[] getPassword() throws ArgumentException {
+    public char[] getPassword() throws ArgumentException {
         char[] value = "".toCharArray();
 
         if (bindPasswordArg.isPresent()) {
             value = bindPasswordArg.getValue().toCharArray();
         } else if (bindPasswordFileArg.isPresent()) {
             value = bindPasswordFileArg.getValue().toCharArray();
+        } else if (password != null) {
+            return password;
         }
 
         if (value.length == 0 && app.isInteractive()) {
-            try {
-                value = app.readPassword(LocalizableMessage.raw("Bind Password:"));
-            } catch (ClientException e) {
-                throw new ArgumentException(LocalizableMessage.raw("Unable to read password"), e);
+            LocalizableMessage msg;
+            if (isAdminConnection) {
+                msg = INFO_LDAPAUTH_PASSWORD_PROMPT.get(getBindName());
+            } else {
+                msg = INFO_DESCRIPTION_BINDPASSWORD.get();
             }
+            try {
+                value = app.readPassword(msg);
+                app.println();
+            } catch (ClientException e) {
+                throw new ArgumentException(ERR_ERROR_CANNOT_READ_PASSWORD.get(), e);
+            }
+            password = value;
         }
-
         return value;
     }
 
@@ -791,7 +875,7 @@ public class ConnectionFactoryProvider {
             return new PromptingTrustManager(app, tm);
         }
 
-        return null;
+        return tm;
     }
 
     /**
@@ -830,5 +914,27 @@ public class ConnectionFactoryProvider {
         }
 
         return option.substring(equalPos + 1, option.length());
+    }
+
+    /**
+     * Specifies if this connection should be an administrator connection. If sets as one, the messages prompted to the
+     * user will be different as a normal connection. E.g if set :
+     *
+     * <pre>
+     * >>>> Specify OpenDJ LDAP connection parameters
+     *
+     * Directory server administration port number [4444]:
+     * </pre>
+     *
+     * vs normal mode
+     *
+     * <pre>
+     * >>>> Specify OpenDJ LDAP connection parameters
+     *
+     * Directory server port number [1389]:
+     * </pre>
+     */
+    public void setIsAnAdminConnection() {
+        isAdminConnection = true;
     }
 }

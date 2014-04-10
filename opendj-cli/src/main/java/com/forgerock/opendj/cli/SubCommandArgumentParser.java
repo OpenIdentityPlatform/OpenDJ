@@ -363,6 +363,22 @@ public class SubCommandArgumentParser extends ArgumentParser {
         addGlobalArgument(argument, null);
     }
 
+
+    /**
+     * Adds the provided argument to the set of arguments handled by this parser and puts the argument in the LDAP
+     * connection group.
+     *
+     * @param argument
+     *            The argument to add to this sub command.
+     * @throws ArgumentException
+     *             If the provided argument conflicts with another global or subcommand argument that has already been
+     *             defined.
+     */
+    @Override
+    public void addLdapConnectionArgument(final Argument argument) throws ArgumentException {
+        addGlobalArgument(argument, null);
+    }
+
     /**
      * Adds the provided argument to the set of global arguments handled by this parser.
      *

@@ -129,7 +129,53 @@ public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
 
     assertFalse(DSConfig.main(args, System.out, System.err) == SUCCESS.get());
   }
+  
+  /**
+   *  --bindPassword and the --bindPasswordFile arguments can not be provided 
+   *  together.
+   */
+  @Test()
+  public void testConflictualArgumentsPasswordAndFilePassword()
+  {
+    String[] args =
+    {
+      "-n",
+      "--noPropertiesFile",
+      "-Q",
+      "list-connection-handlers",
+      "-p", String.valueOf(TestCaseUtils.getServerAdminPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-j", validPasswordFile,
+      "-X"
+    };
 
+    assertTrue(DSConfig.main(args, System.out, System.err) == CONFLICTING_ARGS.get());
+  }
+
+  /**
+   *  Quiet mode and verbose arguments can not be provided 
+   *  together.
+   */
+  @Test()
+  public void testConflictualArgumentsQuietAndVerbose()
+  {
+    String[] args =
+    {
+      "-n",
+      "--noPropertiesFile",
+      "-Q",
+      "list-connection-handlers",
+      "-p", String.valueOf(TestCaseUtils.getServerAdminPort()),
+      "-D", "cn=Directory Manager",
+      "-w", "password",
+      "-v",
+      "-X"
+    };
+
+    assertTrue(DSConfig.main(args, System.out, System.err) == CONFLICTING_ARGS.get());
+  }
+  
   /**
    * Tests list-connection-handlers with an invalid password.
    */
@@ -229,7 +275,7 @@ public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
   {
     String trustStorePath = DirectoryServer.getInstanceRoot() + File.separator +
                             "config" + File.separator + "admin-truststore";
-
+    
     String[] args =
     {
       "-n",
@@ -237,6 +283,7 @@ public class DsconfigLdapConnectionTestCase extends DirectoryServerTestCase {
       "-Q",
       "list-connection-handlers",
       "-p", String.valueOf(TestCaseUtils.getServerAdminPort()),
+      "-D", "cn=Directory Manager",
       "-w", "password",
       "-P", trustStorePath
     };
