@@ -1654,6 +1654,7 @@ Please:
         <include name="slf4j-api.jar" />
         <include name="opendj-cli.jar" />
         <include name="opendj-core.jar" />
+        <include name="opendj-config.jar" />
       </lib>
     </war>
 
