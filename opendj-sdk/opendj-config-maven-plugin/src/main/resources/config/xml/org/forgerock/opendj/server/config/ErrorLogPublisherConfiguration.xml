@@ -23,7 +23,7 @@
   !
   !
   !      Copyright 2007-2008 Sun Microsystems, Inc.
-  !      Portions copyright 2013 ForgeRock AS
+  !      Portions copyright 2013-2014 ForgeRock AS
   ! -->
 <adm:managed-object name="error-log-publisher"
   plural-name="error-log-publishers"
@@ -52,7 +52,7 @@
   <adm:property-override name="java-class">
     <adm:default-behavior>
       <adm:defined>
-        <adm:value>org.opends.server.api.ErrorLogPublisher</adm:value>
+        <adm:value>org.opends.server.loggers.ErrorLogPublisher</adm:value>
       </adm:defined>
     </adm:default-behavior>
   </adm:property-override>
@@ -62,9 +62,8 @@
     </adm:synopsis>
     <adm:default-behavior>
       <adm:defined>
-        <adm:value>fatal-error</adm:value>
-        <adm:value>severe-warning</adm:value>
-        <adm:value>severe-error</adm:value>
+        <adm:value>error</adm:value>
+        <adm:value>warning</adm:value>
       </adm:defined>
     </adm:default-behavior>
     <adm:syntax>
@@ -83,10 +82,10 @@
             category.
           </adm:synopsis>
         </adm:value>
-        <adm:value name="fatal-error">
+                <adm:value name="error">
           <adm:synopsis>
             The error log severity that is used for messages that
-            provide information about fatal errors which may force the
+            provide information about errors which may force the
             server to shut down or operate in a significantly degraded
             state.
           </adm:synopsis>
@@ -98,17 +97,10 @@
             server that are not warnings or errors.
           </adm:synopsis>
         </adm:value>
-        <adm:value name="mild-error">
+        <adm:value name="warning">
           <adm:synopsis>
             The error log severity that is used for messages that
-            provide information about mild (recoverable) errors
-            encountered during processing.
-          </adm:synopsis>
-        </adm:value>
-        <adm:value name="mild-warning">
-          <adm:synopsis>
-            The error log severity that is used for messages that
-            provide information about mild warnings triggered during
+            provide information about warnings triggered during
             processing.
           </adm:synopsis>
         </adm:value>
@@ -118,20 +110,6 @@
             important informational messages (i.e., information that
             should almost always be logged but is not associated with a
             warning or error condition).
-          </adm:synopsis>
-        </adm:value>
-        <adm:value name="severe-error">
-          <adm:synopsis>
-            The error log severity that is used for messages that
-            provide information about severe errors encountered during
-            processing.
-          </adm:synopsis>
-        </adm:value>
-        <adm:value name="severe-warning">
-          <adm:synopsis>
-            The error log severity that is used for messages that
-            provide information about severe warnings triggered during
-            processing.
           </adm:synopsis>
         </adm:value>
         <adm:value name="debug">
@@ -164,8 +142,7 @@
       extensions, protocol, config, log, util, schema, plugin, jeb,
       backend, tools, task, access-control, admin, sync, version,
       quicksetup, admin-tool, dsconfig, user-defined. Valid severities
-      are: all, fatal-error, info, mild-error, mild-warning, notice,
-      severe-error, severe-warning, debug.
+      are: all, error, info, warning, notice, debug.
     </adm:description>
     <adm:default-behavior>
       <adm:alias>
