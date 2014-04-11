@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.spi.IndexingOptions;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.Entry;
@@ -58,24 +59,16 @@ public class PresenceIndexer extends Indexer
     this.attributeType = attributeType;
   }
 
-  /**
-   * Get a string representation of this object.
-   * @return A string representation of this object.
-   */
+  /** {@inheritDoc} */
   @Override
   public String toString()
   {
     return attributeType.getNameOrOID() + ".presence";
   }
 
-  /**
-   * Generate the set of index keys for an entry.
-   *
-   * @param entry The entry.
-   * @param keys The set into which the generated keys will be inserted.
-   */
+  /** {@inheritDoc} */
   @Override
-  public void indexEntry(Entry entry, Set<ByteString> keys)
+  public void indexEntry(Entry entry, Set<ByteString> keys, IndexingOptions options)
   {
     List<Attribute> attrList =
          entry.getAttribute(attributeType);
@@ -88,19 +81,10 @@ public class PresenceIndexer extends Indexer
     }
   }
 
-
-
-  /**
-   * Generate the set of index keys to be added and the set of index keys
-   * to be deleted for an entry that has been replaced.
-   *
-   * @param oldEntry The original entry contents.
-   * @param newEntry The new entry contents.
-   * @param modifiedKeys The map into which the modified keys will be inserted.
-   */
+  /** {@inheritDoc} */
   @Override
   public void replaceEntry(Entry oldEntry, Entry newEntry,
-                           Map<ByteString, Boolean> modifiedKeys)
+                           Map<ByteString, Boolean> modifiedKeys, IndexingOptions options)
   {
     List<Attribute> newAttributes = newEntry.getAttribute(attributeType, true);
     List<Attribute> oldAttributes = oldEntry.getAttribute(attributeType, true);
@@ -120,21 +104,11 @@ public class PresenceIndexer extends Indexer
     }
   }
 
-
-
-  /**
-   * Generate the set of index keys to be added and the set of index keys
-   * to be deleted for an entry that was modified.
-   *
-   * @param oldEntry The original entry contents.
-   * @param newEntry The new entry contents.
-   * @param mods The set of modifications that were applied to the entry.
-   * @param modifiedKeys The map into which the modified keys will be inserted.
-   */
+  /** {@inheritDoc} */
   @Override
   public void modifyEntry(Entry oldEntry, Entry newEntry,
                           List<Modification> mods,
-                          Map<ByteString, Boolean> modifiedKeys)
+                          Map<ByteString, Boolean> modifiedKeys, IndexingOptions options)
   {
     List<Attribute> newAttributes = newEntry.getAttribute(attributeType, true);
     List<Attribute> oldAttributes = oldEntry.getAttribute(attributeType, true);

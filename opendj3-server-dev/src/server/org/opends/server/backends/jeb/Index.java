@@ -31,6 +31,7 @@ import java.util.*;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.spi.IndexingOptions;
 import org.opends.server.backends.jeb.importLDIF.ImportIDSet;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -1177,16 +1178,17 @@ public class Index extends DatabaseContainer
    * @param buffer The index buffer to use to store the deleted keys
    * @param entryID     The entry ID.
    * @param entry       The entry to be indexed.
+   * @param options     The indexing options to use
    * @return True if all the indexType keys for the entry are added. False if
    *         the entry ID already exists for some keys.
    * @throws DatabaseException If an error occurs in the JE database.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  public boolean addEntry(IndexBuffer buffer, EntryID entryID, Entry entry)
-       throws DatabaseException, DirectoryException
+  public boolean addEntry(IndexBuffer buffer, EntryID entryID, Entry entry,
+      IndexingOptions options) throws DatabaseException, DirectoryException
   {
     HashSet<ByteString> addKeys = new HashSet<ByteString>();
-    indexer.indexEntry(entry, addKeys);
+    indexer.indexEntry(entry, addKeys, options);
 
     boolean success = true;
     for (ByteString keyBytes : addKeys)
@@ -1205,17 +1207,18 @@ public class Index extends DatabaseContainer
    * @param txn A database transaction, or null if none is required.
    * @param entryID     The entry ID.
    * @param entry       The entry to be indexed.
+   * @param options     The indexing options to use
    * @return True if all the indexType keys for the entry are added. False if
    *         the entry ID already exists for some keys.
    * @throws DatabaseException If an error occurs in the JE database.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  public boolean addEntry(Transaction txn, EntryID entryID, Entry entry)
-       throws DatabaseException, DirectoryException
+  public boolean addEntry(Transaction txn, EntryID entryID, Entry entry,
+      IndexingOptions options) throws DatabaseException, DirectoryException
   {
     TreeSet<ByteString> addKeys =
         new TreeSet<ByteString>(indexer.getBSComparator());
-    indexer.indexEntry(entry, addKeys);
+    indexer.indexEntry(entry, addKeys, options);
 
     DatabaseEntry key = new DatabaseEntry();
     boolean success = true;
@@ -1236,14 +1239,15 @@ public class Index extends DatabaseContainer
    * @param buffer The index buffer to use to store the deleted keys
    * @param entryID     The entry ID
    * @param entry       The contents of the deleted entry.
+   * @param options     The indexing options to use
    * @throws DatabaseException If an error occurs in the JE database.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  public void removeEntry(IndexBuffer buffer, EntryID entryID, Entry entry)
-       throws DatabaseException, DirectoryException
+  public void removeEntry(IndexBuffer buffer, EntryID entryID, Entry entry,
+      IndexingOptions options) throws DatabaseException, DirectoryException
   {
     HashSet<ByteString> delKeys = new HashSet<ByteString>();
-    indexer.indexEntry(entry, delKeys);
+    indexer.indexEntry(entry, delKeys, options);
 
     for (ByteString keyBytes : delKeys)
     {
@@ -1257,15 +1261,16 @@ public class Index extends DatabaseContainer
    * @param txn A database transaction, or null if none is required.
    * @param entryID     The entry ID
    * @param entry       The contents of the deleted entry.
+   * @param options     The indexing options to use
    * @throws DatabaseException If an error occurs in the JE database.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  public void removeEntry(Transaction txn, EntryID entryID, Entry entry)
-       throws DatabaseException, DirectoryException
+  public void removeEntry(Transaction txn, EntryID entryID, Entry entry,
+      IndexingOptions options) throws DatabaseException, DirectoryException
   {
     TreeSet<ByteString> delKeys =
         new TreeSet<ByteString>(indexer.getBSComparator());
-    indexer.indexEntry(entry, delKeys);
+    indexer.indexEntry(entry, delKeys, options);
 
     DatabaseEntry key = new DatabaseEntry();
     for (ByteString keyBytes : delKeys)
@@ -1285,18 +1290,19 @@ public class Index extends DatabaseContainer
    * @param oldEntry The entry before the modifications were applied.
    * @param newEntry The entry after the modifications were applied.
    * @param mods The sequence of modifications in the Modify operation.
+   * @param options The indexing options to use
    * @throws DatabaseException If an error occurs in the JE database.
    */
   public void modifyEntry(Transaction txn,
                           EntryID entryID,
                           Entry oldEntry,
                           Entry newEntry,
-                          List<Modification> mods)
+                          List<Modification> mods, IndexingOptions options)
        throws DatabaseException
   {
     TreeMap<ByteString, Boolean> modifiedKeys =
         new TreeMap<ByteString, Boolean>(indexer.getBSComparator());
-    indexer.modifyEntry(oldEntry, newEntry, mods, modifiedKeys);
+    indexer.modifyEntry(oldEntry, newEntry, mods, modifiedKeys, options);
 
     DatabaseEntry key = new DatabaseEntry();
     for (Map.Entry<ByteString, Boolean> modifiedKey : modifiedKeys.entrySet())
@@ -1322,18 +1328,19 @@ public class Index extends DatabaseContainer
    * @param oldEntry The entry before the modifications were applied.
    * @param newEntry The entry after the modifications were applied.
    * @param mods The sequence of modifications in the Modify operation.
+   * @param options The indexing options to use
    * @throws DatabaseException If an error occurs in the JE database.
    */
   public void modifyEntry(IndexBuffer buffer,
                           EntryID entryID,
                           Entry oldEntry,
                           Entry newEntry,
-                          List<Modification> mods)
+                          List<Modification> mods, IndexingOptions options)
       throws DatabaseException
   {
     TreeMap<ByteString, Boolean> modifiedKeys =
         new TreeMap<ByteString, Boolean>(indexer.getBSComparator());
-    indexer.modifyEntry(oldEntry, newEntry, mods, modifiedKeys);
+    indexer.modifyEntry(oldEntry, newEntry, mods, modifiedKeys, options);
 
     for (Map.Entry<ByteString, Boolean> modifiedKey : modifiedKeys.entrySet())
     {

@@ -44,21 +44,16 @@ public class SubstringIndexer extends ExtensibleIndexer
 {
 
   private SubstringMatchingRule substringRule;
-  private IndexingOptions indexingOptions;
 
   /**
    * Create a new attribute substring indexer for the given index configuration.
    *
    * @param attributeType
    *          The attribute type for which an indexer is required.
-   * @param indexingOptions
-   *          The decomposed substring length.
    */
-  public SubstringIndexer(AttributeType attributeType,
-      IndexingOptions indexingOptions)
+  public SubstringIndexer(AttributeType attributeType)
   {
     this.substringRule = attributeType.getSubstringMatchingRule();
-    this.indexingOptions = indexingOptions;
   }
 
   /** {@inheritDoc} */
@@ -84,7 +79,7 @@ public class SubstringIndexer extends ExtensibleIndexer
   { // FIXME Code similar to
     // AbstractSubstringMatchingRuleImpl.SubstringIndexer.createKeys()
     ByteString normValue = substringRule.normalizeAttributeValue(value);
-    final int substringKeySize = indexingOptions.substringKeySize();
+    final int substringKeySize = options.substringKeySize();
 
     // Example: The value is ABCDE and the substring length is 3.
     // We produce the keys ABC BCD CDE DE E

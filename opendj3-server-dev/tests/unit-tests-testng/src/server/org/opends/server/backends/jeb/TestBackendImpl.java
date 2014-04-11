@@ -28,11 +28,7 @@ package org.opends.server.backends.jeb;
 
 import java.util.*;
 
-import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ConditionResult;
-import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
-import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.SearchScope;
+import org.forgerock.opendj.ldap.*;
 import org.forgerock.opendj.ldap.spi.IndexingOptions;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
@@ -833,18 +829,30 @@ public class TestBackendImpl extends JebTestCase {
 
   private Indexer newSubstringIndexer(AttributeIndex index)
   {
+    AttributeType attrType = index.getAttributeType();
+    return new JEExtensibleIndexer(attrType, new SubstringIndexer(attrType));
+  }
+
+  private IndexingOptions getOptions(AttributeIndex index)
+  {
     final IndexingOptions options = mock(IndexingOptions.class);
     when(options.substringKeySize()).thenReturn(
         index.getConfiguration().getSubstringLength());
-    AttributeType attrType = index.getAttributeType();
-    return new JEExtensibleIndexer(attrType, new SubstringIndexer(attrType, options));
+    return options;
+  }
+
+  private IndexingOptions getOptions()
+  {
+    final IndexingOptions options = mock(IndexingOptions.class);
+    when(options.substringKeySize()).thenReturn(6);
+    return options;
   }
 
   private void assertIndexContainsID(Indexer indexer, Entry entry, Index index,
       EntryID entryID)
   {
     Set<ByteString> addKeys = new HashSet<ByteString>();
-    indexer.indexEntry(entry, addKeys);
+    indexer.indexEntry(entry, addKeys, getOptions());
 
     DatabaseEntry key = new DatabaseEntry();
     for (ByteString keyBytes : addKeys)
@@ -858,7 +866,7 @@ public class TestBackendImpl extends JebTestCase {
       Index index, EntryID entryID, ConditionResult expected)
   {
     Set<ByteString> addKeys = new HashSet<ByteString>();
-    indexer.indexEntry(entry, addKeys);
+    indexer.indexEntry(entry, addKeys, getOptions());
 
     assertIndexContainsID(addKeys, index, entryID, expected);
   }
