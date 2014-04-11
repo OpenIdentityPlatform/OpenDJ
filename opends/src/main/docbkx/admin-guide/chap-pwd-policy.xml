@@ -848,16 +848,17 @@ $ <userinput>dsconfig \
  --property password-generator</userinput>
 <computeroutput>Property           : Value(s)
 -------------------:--------------------------
-password-generator : Random Password Generator
-$ dsconfig
- get-password-generator-prop
- --hostname opendj.example.com
- --port 4444
- --bindDN "cn=Directory Manager"
- --bindPassword password
- --generator-name "Random Password Generator"
- --property password-generator
- Property               : Value(s)
+password-generator : Random Password Generator</computeroutput>
+
+$ <userinput>dsconfig \
+ get-password-generator-prop \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --generator-name "Random Password Generator" \
+ --property password-generator</userinput>
+<computeroutput> Property               : Value(s)
 -----------------------:-----------------------------------------------------
 enabled                : true
 password-character-set : alpha:abcdefghijklmnopqrstuvwxyz, numeric:0123456789
