@@ -82,7 +82,7 @@
             category.
           </adm:synopsis>
         </adm:value>
-                <adm:value name="error">
+        <adm:value name="error">
           <adm:synopsis>
             The error log severity that is used for messages that
             provide information about errors which may force the
