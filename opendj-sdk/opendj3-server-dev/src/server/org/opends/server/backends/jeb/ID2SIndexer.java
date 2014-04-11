@@ -29,6 +29,7 @@ package org.opends.server.backends.jeb;
 import java.util.*;
 
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.spi.IndexingOptions;
 import org.opends.server.types.Entry;
 import org.opends.server.types.Modification;
 
@@ -46,25 +47,16 @@ public class ID2SIndexer extends Indexer
   {
   }
 
-  /**
-   * Get a string representation of this object.  The returned value is
-   * used to name an index created using this object.
-   * @return A string representation of this object.
-   */
+  /** {@inheritDoc} */
   @Override
   public String toString()
   {
     return "id2subtree";
   }
 
-  /**
-   * Generate the set of index keys for an entry.
-   *
-   * @param entry The entry.
-   * @param addKeys The set into which the generated keys will be inserted.
-   */
+  /** {@inheritDoc} */
   @Override
-  public void indexEntry(Entry entry, Set<ByteString> addKeys)
+  public void indexEntry(Entry entry, Set<ByteString> addKeys, IndexingOptions options)
   {
     // The superior entry IDs are in the entry attachment.
     ArrayList<EntryID> ids = (ArrayList<EntryID>) entry.getAttachment();
@@ -81,36 +73,19 @@ public class ID2SIndexer extends Indexer
     }
   }
 
-  /**
-   * Generate the set of index keys to be added and the set of index keys
-   * to be deleted for an entry that has been replaced.
-   *
-   * @param oldEntry The original entry contents.
-   * @param newEntry The new entry contents.
-   * @param modifiedKeys The map into which the modified keys will be inserted.
-   */
+  /** {@inheritDoc} */
   @Override
   public void replaceEntry(Entry oldEntry, Entry newEntry,
-                           Map<ByteString, Boolean> modifiedKeys)
+                           Map<ByteString, Boolean> modifiedKeys, IndexingOptions options)
   {
     // Nothing to do.
   }
 
-
-
-  /**
-   * Generate the set of index keys to be added and the set of index keys
-   * to be deleted for an entry that was modified.
-   *
-   * @param oldEntry The original entry contents.
-   * @param newEntry The new entry contents.
-   * @param mods The set of modifications that were applied to the entry.
-   * @param modifiedKeys The map into which the modified keys will be inserted.
-   */
+  /** {@inheritDoc} */
   @Override
   public void modifyEntry(Entry oldEntry, Entry newEntry,
                           List<Modification> mods,
-                          Map<ByteString, Boolean> modifiedKeys)
+                          Map<ByteString, Boolean> modifiedKeys, IndexingOptions options)
   {
     // Nothing to do.
   }

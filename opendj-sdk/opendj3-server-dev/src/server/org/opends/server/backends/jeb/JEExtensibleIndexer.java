@@ -34,6 +34,7 @@ import java.util.Set;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DecodeException;
+import org.forgerock.opendj.ldap.spi.IndexingOptions;
 import org.opends.server.api.ExtensibleIndexer;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.AttributeType;
@@ -77,11 +78,7 @@ public final class JEExtensibleIndexer extends Indexer
     this.extensibleIndexer = extensibleIndexer;
   }
 
-   /**
-   * Gets a string representation of this object.  The returned value is
-   * used to name an index created using this object.
-   * @return A string representation of this object.
-   */
+  /** {@inheritDoc} */
   @Override
   public String toString()
   {
@@ -89,53 +86,40 @@ public final class JEExtensibleIndexer extends Indexer
             + extensibleIndexer.getExtensibleIndexID();
   }
 
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
-  public void indexEntry(Entry entry, Set<ByteString> keys)
+  public void indexEntry(Entry entry, Set<ByteString> keys, IndexingOptions options)
   {
-    List<Attribute> attrList =
-         entry.getAttribute(attributeType);
+    List<Attribute> attrList = entry.getAttribute(attributeType);
     if (attrList != null)
     {
-      indexAttribute(attrList, keys);
+      indexAttribute(attrList, keys, options);
     }
   }
 
-
-
- /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void replaceEntry(Entry oldEntry, Entry newEntry,
-                           Map<ByteString, Boolean> modifiedKeys)
+      Map<ByteString, Boolean> modifiedKeys, IndexingOptions options)
   {
     List<Attribute> newAttributes = newEntry.getAttribute(attributeType, true);
     List<Attribute> oldAttributes = oldEntry.getAttribute(attributeType, true);
 
-    indexAttribute(oldAttributes, modifiedKeys, false);
-    indexAttribute(newAttributes, modifiedKeys, true);
+    indexAttribute(oldAttributes, modifiedKeys, false, options);
+    indexAttribute(newAttributes, modifiedKeys, true, options);
   }
 
-
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void modifyEntry(Entry oldEntry, Entry newEntry,
-                          List<Modification> mods,
-                          Map<ByteString, Boolean> modifiedKeys)
+      List<Modification> mods, Map<ByteString, Boolean> modifiedKeys,
+      IndexingOptions options)
   {
     List<Attribute> newAttributes = newEntry.getAttribute(attributeType, true);
     List<Attribute> oldAttributes = oldEntry.getAttribute(attributeType, true);
 
-    indexAttribute(oldAttributes, modifiedKeys, false);
-    indexAttribute(newAttributes, modifiedKeys, true);
+    indexAttribute(oldAttributes, modifiedKeys, false, options);
+    indexAttribute(newAttributes, modifiedKeys, true, options);
   }
 
 
@@ -145,8 +129,8 @@ public final class JEExtensibleIndexer extends Indexer
    * @param attrList The attribute for which substring keys are required.
    * @param keys The set into which the generated keys will be inserted.
    */
-  private void indexAttribute(List<Attribute> attrList,
-                              Set<ByteString> keys)
+  private void indexAttribute(List<Attribute> attrList, Set<ByteString> keys,
+      IndexingOptions options)
   {
     if (attrList == null) return;
 
@@ -158,7 +142,7 @@ public final class JEExtensibleIndexer extends Indexer
         {
           try
           {
-            extensibleIndexer.createKeys(null, value, null, keys);
+            extensibleIndexer.createKeys(null, value, options, keys);
           }
           catch (DecodeException e)
           {
@@ -180,13 +164,13 @@ public final class JEExtensibleIndexer extends Indexer
    * be inserted or <code>false</code> otherwise.
    */
   private void indexAttribute(List<Attribute> attrList,
-                              Map<ByteString, Boolean> modifiedKeys,
-                              Boolean insert)
+      Map<ByteString, Boolean> modifiedKeys, Boolean insert,
+      IndexingOptions options)
   {
     if (attrList == null) return;
 
     final Set<ByteString> keys = new HashSet<ByteString>();
-    indexAttribute(attrList, keys);
+    indexAttribute(attrList, keys, options);
     computeModifiedKeys(modifiedKeys, insert, keys);
   }
 

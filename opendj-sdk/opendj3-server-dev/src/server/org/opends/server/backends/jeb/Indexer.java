@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.spi.IndexingOptions;
 import org.opends.server.backends.jeb.AttributeIndex.BSKeyComparator;
 import org.opends.server.backends.jeb.AttributeIndex.KeyComparator;
 import org.opends.server.types.Entry;
@@ -76,8 +77,9 @@ public abstract class Indexer
    *
    * @param entry The entry.
    * @param keys The set into which the generated keys will be inserted.
+   * @param options The indexing options to use
    */
-  public abstract void indexEntry(Entry entry, Set<ByteString> keys);
+  public abstract void indexEntry(Entry entry, Set<ByteString> keys, IndexingOptions options);
 
   /**
    * Generate the set of index keys to be added and the set of index keys
@@ -86,9 +88,10 @@ public abstract class Indexer
    * @param oldEntry The original entry contents.
    * @param newEntry The new entry contents.
    * @param modifiedKeys The map into which the modified keys will be inserted.
+   * @param options The indexing options to use
    */
   public abstract void replaceEntry(Entry oldEntry, Entry newEntry,
-                                    Map<ByteString, Boolean> modifiedKeys);
+      Map<ByteString, Boolean> modifiedKeys, IndexingOptions options);
 
   /**
    * Generate the set of index keys to be added and the set of index keys
@@ -98,9 +101,16 @@ public abstract class Indexer
    * @param newEntry The new entry contents.
    * @param mods The set of modifications that were applied to the entry.
    * @param modifiedKeys The map into which the modified keys will be inserted.
+   * @param options The indexing options to use
    */
   public abstract void modifyEntry(Entry oldEntry, Entry newEntry,
-                                   List<Modification> mods,
-                                   Map<ByteString, Boolean> modifiedKeys);
+      List<Modification> mods, Map<ByteString, Boolean> modifiedKeys,
+      IndexingOptions options);
 
+  /**
+   * Get a string representation of this object.  The returned value is
+   * used to name an index created using this object.
+   * @return A string representation of this object.
+   */
+  public abstract String toString();
 }

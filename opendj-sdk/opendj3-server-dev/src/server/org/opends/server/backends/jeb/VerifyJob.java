@@ -34,6 +34,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.spi.IndexingOptions;
 import org.opends.server.api.MatchingRule;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
@@ -149,14 +150,6 @@ public class VerifyJob
    * A list of the VLV indexes to be verified.
    */
   private ArrayList<VLVIndex> vlvIndexList = new ArrayList<VLVIndex>();
-
-  /**
-   * The types of indexes that are verifiable.
-   */
-  private enum IndexType
-  {
-      PRES, EQ, SUBSTRING, ORDERING, APPROXIMATE
-  }
 
   /**
    * Construct a VerifyJob.
@@ -346,10 +339,8 @@ public class VerifyJob
         rate = 1000f*keyCount / totalTime;
       }
 
-      addStatEntry(statEntry, "verify-error-count",
-                   String.valueOf(errorCount));
-      addStatEntry(statEntry, "verify-key-count",
-                   String.valueOf(keyCount));
+      addStatEntry(statEntry, "verify-error-count", String.valueOf(errorCount));
+      addStatEntry(statEntry, "verify-key-count", String.valueOf(keyCount));
       if (cleanMode)
       {
         logger.info(NOTE_JEB_VERIFY_CLEAN_FINAL_STATUS, keyCount, errorCount, totalTime/1000, rate);
@@ -437,8 +428,7 @@ public class VerifyJob
 
       Long storedEntryCount = id2entry.getRecordCount();
 
-      while (cursor.getNext(key, data, null) ==
-                OperationStatus.SUCCESS)
+      while (cursor.getNext(key, data, null) == OperationStatus.SUCCESS)
       {
         EntryID entryID;
         try
@@ -529,17 +519,12 @@ public class VerifyJob
       if(attrIndexList.size() > 0)
       {
         AttributeIndex attrIndex = attrIndexList.get(0);
-        iterateAttrIndex(attrIndex.getAttributeType(),
-                         attrIndex.getEqualityIndex(), IndexType.EQ );
-        iterateAttrIndex(attrIndex.getAttributeType(),
-                         attrIndex.getPresenceIndex(), IndexType.PRES);
-        iterateAttrIndex(attrIndex.getAttributeType(),
-                         attrIndex.getSubstringIndex(), IndexType.SUBSTRING);
-        iterateAttrIndex(attrIndex.getAttributeType(),
-                         attrIndex.getOrderingIndex(), IndexType.ORDERING);
-        iterateAttrIndex(attrIndex.getAttributeType(),
-                         attrIndex.getApproximateIndex(),
-                         IndexType.APPROXIMATE);
+        final IndexingOptions options = attrIndex.getIndexingOptions();
+        iterateAttrIndex(attrIndex.getEqualityIndex(), options);
+        iterateAttrIndex(attrIndex.getPresenceIndex(), options);
+        iterateAttrIndex(attrIndex.getSubstringIndex(), options);
+        iterateAttrIndex(attrIndex.getOrderingIndex(), options);
+        iterateAttrIndex(attrIndex.getApproximateIndex(), options);
        // TODO: Need to iterate through ExtendedMatchingRules indexes.
       } else if(vlvIndexList.size() > 0)
       {
@@ -562,8 +547,7 @@ public class VerifyJob
       DatabaseEntry key = new DatabaseEntry();
       DatabaseEntry data = new DatabaseEntry();
 
-      while (cursor.getNext(key, data, null) ==
-                OperationStatus.SUCCESS)
+      while (cursor.getNext(key, data, null) == OperationStatus.SUCCESS)
       {
         keyCount++;
 
@@ -610,8 +594,7 @@ public class VerifyJob
         else
         {
           if (!Arrays.equals(JebFormat.dnToDNKey(
-              entry.getName(), verifyConfig.getBaseDN().size()),
-                             key.getData()))
+              entry.getName(), verifyConfig.getBaseDN().size()), key.getData()))
           {
             errorCount++;
             if (logger.isTraceEnabled())
@@ -645,8 +628,7 @@ public class VerifyJob
       DatabaseEntry key = new DatabaseEntry();
       DatabaseEntry data = new DatabaseEntry();
 
-      while (cursor.getNext(key, data, null) ==
-                OperationStatus.SUCCESS)
+      while (cursor.getNext(key, data, null) == OperationStatus.SUCCESS)
       {
         keyCount++;
 
@@ -778,8 +760,7 @@ public class VerifyJob
       DatabaseEntry key = new DatabaseEntry();
       DatabaseEntry data = new DatabaseEntry();
 
-      while (cursor.getNext(key, data, null) ==
-                OperationStatus.SUCCESS)
+      while (cursor.getNext(key, data, null) == OperationStatus.SUCCESS)
       {
         keyCount++;
 
@@ -1065,15 +1046,12 @@ public class VerifyJob
   /**
    * Iterate through the entries in an attribute index to perform a check for
    * index cleanliness.
-   * @param attrType The attribute type of the index to be checked.
    * @param index The index database to be checked.
-   * @param indexType Type of the index (ie, SUBSTRING, ORDERING)
    * @throws JebException If an error occurs in the JE backend.
    * @throws DatabaseException If an error occurs in the JE database.
    */
-  private void iterateAttrIndex(AttributeType attrType,
-          Index index, IndexType indexType)
-       throws JebException, DatabaseException
+  private void iterateAttrIndex(Index index, IndexingOptions options)
+      throws JebException, DatabaseException
   {
     if (index == null)
     {
@@ -1086,8 +1064,7 @@ public class VerifyJob
       DatabaseEntry key = new DatabaseEntry();
       DatabaseEntry data = new DatabaseEntry();
 
-      while (cursor.getNext(key, data, null) ==
-                OperationStatus.SUCCESS)
+      while (cursor.getNext(key, data, null) == OperationStatus.SUCCESS)
       {
         keyCount++;
 
@@ -1193,7 +1170,7 @@ public class VerifyJob
 
             };
 
-            index.indexer.indexEntry(entry, dummySet);
+            index.indexer.indexEntry(entry, dummySet, options);
 
             if (!foundMatchingKey.get())
             {
@@ -1499,13 +1476,13 @@ public class VerifyJob
     buffer.append(vlvIndex);
     buffer.append(ServerConstants.EOL);
     buffer.append("Key (last sort values):");
-    if(keySortValues == null)
+    if(keySortValues != null)
     {
-      buffer.append("UNBOUNDED (0x00)");
+      buffer.append(keySortValues);
     }
     else
     {
-      buffer.append(keySortValues);
+      buffer.append("UNBOUNDED (0x00)");
     }
     return buffer.toString();
   }
@@ -1619,7 +1596,6 @@ public class VerifyJob
     Index approximateIndex = attrIndex.getApproximateIndex();
     // TODO: Add support for Extended Matching Rules indexes.
 
-    // Presence index.
     if (presenceIndex != null)
     {
       DatabaseEntry presenceKey = AttributeIndex.presenceKey;

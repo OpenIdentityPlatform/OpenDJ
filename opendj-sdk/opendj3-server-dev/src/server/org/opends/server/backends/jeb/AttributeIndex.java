@@ -161,7 +161,7 @@ public class AttributeIndex
     if (indexConfig.getIndexType().contains(IndexType.SUBSTRING))
     {
       Index substringIndex = buildExtIndex(name, attrType, indexEntryLimit,
-          attrType.getSubstringMatchingRule(), new SubstringIndexer(attrType, config));
+          attrType.getSubstringMatchingRule(), new SubstringIndexer(attrType));
       nameToIndexes.put(IndexType.SUBSTRING.toString(), substringIndex);
     }
 
@@ -300,6 +300,16 @@ public class AttributeIndex
   }
 
   /**
+   * Return the indexing options of this AttributeIndex.
+   *
+   * @return the indexing options of this AttributeIndex.
+   */
+  public IndexingOptions getIndexingOptions()
+  {
+    return indexQueryFactory.getIndexingOptions();
+  }
+
+  /**
    * Get the JE index configuration used by this index.
    * @return The configuration in effect.
    */
@@ -319,25 +329,25 @@ public class AttributeIndex
    * @throws DatabaseException If an error occurs in the JE database.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  public boolean addEntry(IndexBuffer buffer, EntryID entryID,
-                          Entry entry)
+  public boolean addEntry(IndexBuffer buffer, EntryID entryID, Entry entry)
        throws DatabaseException, DirectoryException
   {
     boolean success = true;
 
+    final IndexingOptions options = indexQueryFactory.getIndexingOptions();
     for (Index index : nameToIndexes.values())
     {
-      if (!index.addEntry(buffer, entryID, entry))
+      if (!index.addEntry(buffer, entryID, entry, options))
       {
         success = false;
       }
     }
 
-    if(extensibleIndexes!=null)
+    if (extensibleIndexes != null)
     {
-      for(Index extensibleIndex:extensibleIndexes.getIndexes())
+      for (Index index : extensibleIndexes.getIndexes())
       {
-        if(!extensibleIndex.addEntry(buffer, entryID,entry))
+        if (!index.addEntry(buffer, entryID, entry, options))
         {
           success = false;
         }
@@ -363,19 +373,20 @@ public class AttributeIndex
   {
     boolean success = true;
 
+    final IndexingOptions options = indexQueryFactory.getIndexingOptions();
     for (Index index : nameToIndexes.values())
     {
-      if (!index.addEntry(txn, entryID, entry))
+      if (!index.addEntry(txn, entryID, entry, options))
       {
         success = false;
       }
     }
 
-    if(extensibleIndexes!=null)
+    if (extensibleIndexes != null)
     {
-      for(Index extensibleIndex:extensibleIndexes.getIndexes())
+      for (Index index : extensibleIndexes.getIndexes())
       {
-        if(!extensibleIndex.addEntry(txn, entryID,entry))
+        if (!index.addEntry(txn, entryID, entry, options))
         {
           success = false;
         }
@@ -394,20 +405,20 @@ public class AttributeIndex
    * @throws DatabaseException If an error occurs in the JE database.
    * @throws DirectoryException If a Directory Server error occurs.
    */
-  public void removeEntry(IndexBuffer buffer, EntryID entryID,
-                          Entry entry)
+  public void removeEntry(IndexBuffer buffer, EntryID entryID, Entry entry)
        throws DatabaseException, DirectoryException
   {
+    final IndexingOptions options = indexQueryFactory.getIndexingOptions();
     for (Index index : nameToIndexes.values())
     {
-      index.removeEntry(buffer, entryID, entry);
+      index.removeEntry(buffer, entryID, entry, options);
     }
 
-    if(extensibleIndexes!=null)
+    if (extensibleIndexes != null)
     {
-      for(Index extensibleIndex:extensibleIndexes.getIndexes())
+      for (Index index : extensibleIndexes.getIndexes())
       {
-        extensibleIndex.removeEntry(buffer, entryID, entry);
+        index.removeEntry(buffer, entryID, entry, options);
       }
     }
   }
@@ -424,16 +435,17 @@ public class AttributeIndex
   public void removeEntry(Transaction txn, EntryID entryID, Entry entry)
        throws DatabaseException, DirectoryException
   {
+    final IndexingOptions options = indexQueryFactory.getIndexingOptions();
     for (Index index : nameToIndexes.values())
     {
-      index.removeEntry(txn, entryID, entry);
+      index.removeEntry(txn, entryID, entry, options);
     }
 
-    if(extensibleIndexes!=null)
+    if (extensibleIndexes != null)
     {
-      for(Index extensibleIndex:extensibleIndexes.getIndexes())
+      for (Index index : extensibleIndexes.getIndexes())
       {
-        extensibleIndex.removeEntry(txn, entryID, entry);
+        index.removeEntry(txn, entryID, entry, options);
       }
     }
   }
@@ -457,16 +469,17 @@ public class AttributeIndex
                           List<Modification> mods)
        throws DatabaseException
   {
+    final IndexingOptions options = indexQueryFactory.getIndexingOptions();
     for (Index index : nameToIndexes.values())
     {
-      index.modifyEntry(txn, entryID, oldEntry, newEntry, mods);
+      index.modifyEntry(txn, entryID, oldEntry, newEntry, mods, options);
     }
 
-    if(extensibleIndexes!=null)
+    if (extensibleIndexes != null)
     {
-      for(Index extensibleIndex:extensibleIndexes.getIndexes())
+      for (Index index : extensibleIndexes.getIndexes())
       {
-        extensibleIndex.modifyEntry(txn, entryID, oldEntry, newEntry, mods);
+        index.modifyEntry(txn, entryID, oldEntry, newEntry, mods, options);
       }
     }
   }
@@ -490,16 +503,17 @@ public class AttributeIndex
                           List<Modification> mods)
        throws DatabaseException
   {
+    final IndexingOptions options = indexQueryFactory.getIndexingOptions();
     for (Index index : nameToIndexes.values())
     {
-      index.modifyEntry(buffer, entryID, oldEntry, newEntry, mods);
+      index.modifyEntry(buffer, entryID, oldEntry, newEntry, mods, options);
     }
 
     if(extensibleIndexes!=null)
     {
-      for(Index extensibleIndex:extensibleIndexes.getIndexes())
+      for (Index index : extensibleIndexes.getIndexes())
       {
-        extensibleIndex.modifyEntry(buffer, entryID, oldEntry, newEntry, mods);
+        index.modifyEntry(buffer, entryID, oldEntry, newEntry, mods, options);
       }
     }
   }
@@ -1024,9 +1038,6 @@ public class AttributeIndex
       final int indexEntryLimit = cfg.getIndexEntryLimit();
       final JEIndexConfig config = new JEIndexConfig(cfg.getSubstringLength());
 
-      applyChangeToIndex(cfg, attrType, name, IndexType.EQUALITY,
-          new EqualityIndexer(attrType), adminActionRequired, messages);
-
       Index presenceIndex = nameToIndexes.get(IndexType.PRESENCE.toString());
       if (cfg.getIndexType().contains(IndexType.PRESENCE))
       {
@@ -1052,38 +1063,10 @@ public class AttributeIndex
         removeIndex(presenceIndex, IndexType.PRESENCE);
       }
 
-      Index substringIndex = nameToIndexes.get(IndexType.SUBSTRING.toString());
-      if (cfg.getIndexType().contains(IndexType.SUBSTRING))
-      {
-        SubstringIndexer indexer = new SubstringIndexer(attrType, config);
-        Indexer extIndexer = new JEExtensibleIndexer(attrType, indexer);
-        if(substringIndex == null)
-        {
-          Index index = newIndex(name + "." + indexer.getExtensibleIndexID(),
-              indexEntryLimit, extIndexer);
-          substringIndex = openIndex(index, adminActionRequired, messages);
-          nameToIndexes.put(IndexType.SUBSTRING.toString(), substringIndex);
-        }
-        else
-        {
-          // already exists. Just update index entry limit.
-          if(substringIndex.setIndexEntryLimit(indexEntryLimit))
-          {
-            adminActionRequired.set(true);
-            messages.add(NOTE_JEB_CONFIG_INDEX_ENTRY_LIMIT_REQUIRES_REBUILD.get(substringIndex.getName()));
-          }
-
-          if (indexConfig.getSubstringLength() != cfg.getSubstringLength())
-          {
-            substringIndex.setIndexer(extIndexer);
-          }
-        }
-      }
-      else
-      {
-        removeIndex(substringIndex, IndexType.SUBSTRING);
-      }
-
+      applyChangeToIndex(cfg, attrType, name, IndexType.EQUALITY,
+          new EqualityIndexer(attrType), adminActionRequired, messages);
+      applyChangeToIndex(cfg, attrType, name, IndexType.SUBSTRING,
+          new SubstringIndexer(attrType), adminActionRequired, messages);
       applyChangeToIndex(cfg, attrType, name, IndexType.ORDERING,
           new OrderingIndexer(attrType), adminActionRequired, messages);
       applyChangeToIndex(cfg, attrType, name, IndexType.APPROXIMATE,

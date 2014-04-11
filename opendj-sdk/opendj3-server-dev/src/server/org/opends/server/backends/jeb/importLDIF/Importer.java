@@ -35,8 +35,10 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.spi.IndexingOptions;
 import org.forgerock.util.Utils;
 import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn;
 import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn.IndexType;
@@ -45,7 +47,6 @@ import org.opends.server.admin.std.server.LocalDBIndexCfg;
 import org.opends.server.api.DiskSpaceMonitorHandler;
 import org.opends.server.backends.jeb.*;
 import org.opends.server.backends.jeb.RebuildConfig.RebuildMode;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.extensions.DiskSpaceMonitor;
 import org.opends.server.types.*;
@@ -1529,20 +1530,20 @@ public final class Importer implements DiskSpaceMonitorHandler
     }
 
     @Override
-    void processAttribute(Index index, Entry entry, EntryID entryID,
+    void processAttribute(Index index, Entry entry, EntryID entryID, IndexingOptions options,
         IndexKey indexKey) throws DatabaseException, InterruptedException
     {
       if (oldEntry != null)
       {
         deleteKeySet.clear();
-        index.indexer.indexEntry(oldEntry, deleteKeySet);
+        index.indexer.indexEntry(oldEntry, deleteKeySet, options);
         for (ByteString delKey : deleteKeySet)
         {
           processKey(index, delKey.toByteArray(), entryID, indexComparator, indexKey, false);
         }
       }
       insertKeySet.clear();
-      index.indexer.indexEntry(entry, insertKeySet);
+      index.indexer.indexEntry(entry, insertKeySet, options);
       for (ByteString key : insertKeySet)
       {
         processKey(index, key.toByteArray(), entryID, indexComparator, indexKey, true);
@@ -1678,30 +1679,31 @@ public final class Importer implements DiskSpaceMonitorHandler
         InterruptedException, DirectoryException, JebException
     {
       AttributeIndex attributeIndex = mapEntry.getValue();
+      IndexingOptions options = attributeIndex.getIndexingOptions();
       Index index;
       if ((index = attributeIndex.getEqualityIndex()) != null)
       {
-        processAttribute(index, entry, entryID, new IndexKey(attributeType,
+        processAttribute(index, entry, entryID, options, new IndexKey(attributeType,
             ImportIndexType.EQUALITY, index.getIndexEntryLimit()));
       }
       if ((index = attributeIndex.getPresenceIndex()) != null)
       {
-        processAttribute(index, entry, entryID, new IndexKey(attributeType,
+        processAttribute(index, entry, entryID, options, new IndexKey(attributeType,
             ImportIndexType.PRESENCE, index.getIndexEntryLimit()));
       }
       if ((index = attributeIndex.getSubstringIndex()) != null)
       {
-        processAttribute(index, entry, entryID, new IndexKey(attributeType,
+        processAttribute(index, entry, entryID, options, new IndexKey(attributeType,
             ImportIndexType.SUBSTRING, index.getIndexEntryLimit()));
       }
       if ((index = attributeIndex.getOrderingIndex()) != null)
       {
-        processAttribute(index, entry, entryID, new IndexKey(attributeType,
+        processAttribute(index, entry, entryID, options, new IndexKey(attributeType,
             ImportIndexType.ORDERING, index.getIndexEntryLimit()));
       }
       if ((index = attributeIndex.getApproximateIndex()) != null)
       {
-        processAttribute(index, entry, entryID, new IndexKey(attributeType,
+        processAttribute(index, entry, entryID, options, new IndexKey(attributeType,
             ImportIndexType.APPROXIMATE, index.getIndexEntryLimit()));
       }
       for (VLVIndex vlvIdx : suffix.getEntryContainer().getVLVIndexes())
@@ -1720,7 +1722,7 @@ public final class Importer implements DiskSpaceMonitorHandler
         {
           for (Index subIndex : subIndexes)
           {
-            processAttribute(subIndex, entry, entryID, new IndexKey(
+            processAttribute(subIndex, entry, entryID, options, new IndexKey(
                 attributeType, ImportIndexType.EX_SUBSTRING, subIndex
                     .getIndexEntryLimit()));
           }
@@ -1732,7 +1734,7 @@ public final class Importer implements DiskSpaceMonitorHandler
         {
           for (Index sharedIndex : sharedIndexes)
           {
-            processAttribute(sharedIndex, entry, entryID, new IndexKey(
+            processAttribute(sharedIndex, entry, entryID, options, new IndexKey(
                 attributeType, ImportIndexType.EX_SHARED, sharedIndex
                     .getIndexEntryLimit()));
           }
@@ -1740,11 +1742,11 @@ public final class Importer implements DiskSpaceMonitorHandler
       }
     }
 
-    void processAttribute(Index index, Entry entry, EntryID entryID,
+    void processAttribute(Index index, Entry entry, EntryID entryID, IndexingOptions options,
         IndexKey indexKey) throws DatabaseException, InterruptedException
     {
       insertKeySet.clear();
-      index.indexer.indexEntry(entry, insertKeySet);
+      index.indexer.indexEntry(entry, insertKeySet, options);
       for (ByteString key : insertKeySet)
       {
         processKey(index, key.toByteArray(), entryID, indexComparator, indexKey, true);
@@ -3886,10 +3888,11 @@ public final class Importer implements DiskSpaceMonitorHandler
         AttributeType attrType = key.getAttributeType();
         if (entry.hasAttribute(attrType))
         {
-          Collection<Index> indexes = mapEntry.getValue();
-          for (Index index : indexes)
+          AttributeIndex attributeIndex = entryContainer.getAttributeIndex(attrType);
+          IndexingOptions options = attributeIndex.getIndexingOptions();
+          for (Index index : mapEntry.getValue())
           {
-            processAttribute(index, entry, entryID, key);
+            processAttribute(index, entry, entryID, options, key);
           }
         }
       }
@@ -3904,17 +3907,19 @@ public final class Importer implements DiskSpaceMonitorHandler
         AttributeType attrType = key.getAttributeType();
         if (entry.hasAttribute(attrType))
         {
+          AttributeIndex attributeIndex = entryContainer.getAttributeIndex(attrType);
+          IndexingOptions options = attributeIndex.getIndexingOptions();
           ImportIndexType indexType = key.getIndexType();
           Index index = mapEntry.getValue();
           if (indexType == ImportIndexType.SUBSTRING)
           {
-            processAttribute(index, entry, entryID, new IndexKey(attrType,
-                ImportIndexType.SUBSTRING, index.getIndexEntryLimit()));
+            processAttribute(index, entry, entryID, options,
+                new IndexKey(attrType, ImportIndexType.SUBSTRING, index.getIndexEntryLimit()));
           }
           else
           {
-            processAttribute(index, entry, entryID, new IndexKey(attrType,
-                indexType, index.getIndexEntryLimit()));
+            processAttribute(index, entry, entryID, options,
+                new IndexKey(attrType, indexType, index.getIndexEntryLimit()));
           }
         }
       }

@@ -29,6 +29,7 @@ import java.util.Set;
 
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.spi.IndexingOptions;
 import org.opends.server.backends.jeb.importLDIF.ImportIDSet;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -228,7 +229,7 @@ final class NullIndex extends Index
 
   /** {@inheritDoc} */
   @Override
-  public boolean addEntry(IndexBuffer buffer, EntryID entryID, Entry entry)
+  public boolean addEntry(IndexBuffer buffer, EntryID entryID, Entry entry, IndexingOptions options)
       throws DatabaseException, DirectoryException
   {
     return true;
@@ -238,7 +239,7 @@ final class NullIndex extends Index
 
   /** {@inheritDoc} */
   @Override
-  public boolean addEntry(Transaction txn, EntryID entryID, Entry entry)
+  public boolean addEntry(Transaction txn, EntryID entryID, Entry entry, IndexingOptions options)
       throws DatabaseException, DirectoryException
   {
     return true;
@@ -248,7 +249,7 @@ final class NullIndex extends Index
 
   /** {@inheritDoc} */
   @Override
-  public void removeEntry(IndexBuffer buffer, EntryID entryID, Entry entry)
+  public void removeEntry(IndexBuffer buffer, EntryID entryID, Entry entry, IndexingOptions options)
       throws DatabaseException, DirectoryException
   {
     // Do nothing.
@@ -258,7 +259,7 @@ final class NullIndex extends Index
 
   /** {@inheritDoc} */
   @Override
-  public void removeEntry(Transaction txn, EntryID entryID, Entry entry)
+  public void removeEntry(Transaction txn, EntryID entryID, Entry entry, IndexingOptions options)
       throws DatabaseException, DirectoryException
   {
     // Do nothing.
@@ -269,7 +270,7 @@ final class NullIndex extends Index
   /** {@inheritDoc} */
   @Override
   public void modifyEntry(Transaction txn, EntryID entryID, Entry oldEntry,
-      Entry newEntry, List<Modification> mods) throws DatabaseException
+      Entry newEntry, List<Modification> mods, IndexingOptions options) throws DatabaseException
   {
     // Do nothing.
   }
@@ -279,7 +280,7 @@ final class NullIndex extends Index
   /** {@inheritDoc} */
   @Override
   public void modifyEntry(IndexBuffer buffer, EntryID entryID, Entry oldEntry,
-      Entry newEntry, List<Modification> mods) throws DatabaseException
+      Entry newEntry, List<Modification> mods, IndexingOptions options) throws DatabaseException
   {
     // Do nothing.
   }
