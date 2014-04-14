@@ -46,6 +46,7 @@ import org.forgerock.opendj.ldap.LinkedAttribute;
 import org.forgerock.opendj.ldap.LinkedHashMapEntry;
 import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.controls.Control;
 import org.forgerock.opendj.ldap.controls.GenericControl;
 import org.forgerock.opendj.ldap.responses.Responses;
@@ -577,6 +578,33 @@ public final class Converters {
         }
         return entry;
     }
+
+    /**
+     * Converts from OpenDJ server
+     * {@link org.opends.server.admin.std.meta.VirtualAttributeCfgDefn.Scope} to OpenDJ LDAP SDK
+     * {@link org.forgerock.opendj.ldap.SearchScope}.
+     *
+     * @param srvScope
+     *          The server scope value.
+     * @return The SDK scope value.
+     */
+    public static SearchScope from(
+            org.opends.server.admin.std.meta.VirtualAttributeCfgDefn.Scope srvScope) {
+        if (srvScope != null && srvScope.name() != null) {
+            final String srvScopeName = srvScope.name().toLowerCase();
+            if ("base_object".equals(srvScopeName)) {
+                return SearchScope.BASE_OBJECT;
+            } else if ("single_level".equals(srvScopeName)) {
+                return SearchScope.SINGLE_LEVEL;
+            } else if ("subordinate_subtree".equals(srvScopeName)) {
+                return SearchScope.SUBORDINATES;
+            } else if ("whole_subtree".equals(srvScopeName)) {
+                return SearchScope.WHOLE_SUBTREE;
+            }
+        }
+        return null;
+    }
+
 
     /**
      * Converts from OpenDJ server {@link org.opends.server.types.DN} to OpenDJ
