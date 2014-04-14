@@ -33,7 +33,6 @@ import java.util.concurrent.ConcurrentMap;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.util.Utils;
 import org.opends.server.admin.ClassPropertyDefinition;
 import org.opends.server.admin.server.ConfigurationAddListener;
@@ -50,6 +49,7 @@ import org.forgerock.opendj.ldap.ResultCode;
 
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.util.StaticUtils.*;
+import static org.forgerock.opendj.adapter.server3x.Converters.from;
 
 /**
  * This class defines a utility that will be used to manage the set of
@@ -174,7 +174,7 @@ public class VirtualAttributeConfigManager
   {
     return new VirtualAttributeRule(cfg.getAttributeType(), provider,
            cfg.getBaseDN(),
-           SearchScope.valueOf(cfg.getScope().name()),
+           from(cfg.getScope()),
            cfg.getGroupDN(),
            filters,
            cfg.getConflictBehavior());
