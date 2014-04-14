@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS
+ *      Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.replication.server.changelog.api;
 
@@ -69,16 +69,6 @@ public interface ReplicationDomainDB
    *         that replica. The caller owns the generated ServerState.
    */
   ServerState getDomainNewestCSNs(DN baseDN);
-
-  /**
-   * Returns the last time each serverId was seen alive for the specified
-   * replication domain.
-   *
-   * @param baseDN
-   *          the replication domain baseDN
-   * @return a non null new ServerState object holding the {serverId => CSN} Map
-   */
-  ServerState getDomainLastAliveCSNs(DN baseDN);
 
   /**
    * Retrieves the latest trim date for the specified replication domain.

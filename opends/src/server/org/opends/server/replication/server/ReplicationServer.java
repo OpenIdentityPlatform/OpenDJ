@@ -55,7 +55,6 @@ import org.opends.server.replication.server.changelog.je.JEChangelogDB;
 import org.opends.server.types.*;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.ServerConstants;
-import org.opends.server.util.TimeThread;
 import org.opends.server.workflowelement.externalchangelog.ECLWorkflowElement;
 
 import static org.opends.messages.ReplicationMessages.*;
@@ -1290,62 +1289,6 @@ public final class ReplicationServer
   }
 
   /**
-   * Returns the eligible CSN cross domains - relies on the eligible CSN from
-   * each domain.
-   *
-   * @param excludedBaseDNs
-   *          the list of baseDNs excluded from the computation of eligibleCSN
-   * @return the cross domain eligible CSN.
-   */
-  public CSN getEligibleCSN(Set<String> excludedBaseDNs)
-  {
-    String debugLog = "";
-
-    // traverse the domains and get the eligible CSN from each domain
-    // store the oldest one as the cross domain eligible CSN
-    CSN eligibleCSN = null;
-    for (ReplicationServerDomain domain : getReplicationServerDomains())
-    {
-      if (contains(excludedBaseDNs, domain.getBaseDN().toNormalizedString()))
-        continue;
-
-      final CSN domainEligibleCSN = domain.getEligibleCSN();
-      if (eligibleCSN == null ||
-          (domainEligibleCSN != null
-           && domainEligibleCSN.isOlderThan(eligibleCSN)))
-      {
-        eligibleCSN = domainEligibleCSN;
-      }
-
-      if (debugEnabled())
-      {
-        final String dates = domainEligibleCSN == null ?
-            "" : new Date(domainEligibleCSN.getTime()).toString();
-        debugLog += "[baseDN=" + domain.getBaseDN()
-            + "] [eligibleCSN=" + domainEligibleCSN + ", " + dates + "]";
-      }
-    }
-
-    if (eligibleCSN==null )
-    {
-      eligibleCSN = new CSN(TimeThread.getTime(), 0, 0);
-    }
-
-    if (debugEnabled()) {
-      TRACER.debugInfo("In " + this + " getEligibleCSN() ends with " +
-        " the following domainEligibleCSN for each domain :" + debugLog +
-        " thus CrossDomainEligibleCSN=" + eligibleCSN +
-        "  ts=" + new Date(eligibleCSN.getTime()));
-    }
-    return eligibleCSN;
-  }
-
-  private boolean contains(Set<String> col, String elem)
-  {
-    return col != null && col.contains(elem);
-  }
-
-  /**
    * Get (or create) a handler on the {@link ChangeNumberIndexDB} for external
    * changelog.
    *
@@ -1409,14 +1352,21 @@ public final class ReplicationServer
     final MultiDomainServerState result = new MultiDomainServerState();
     for (ReplicationServerDomain rsDomain : getReplicationServerDomains())
     {
-      if (contains(excludedBaseDNs, rsDomain.getBaseDN().toNormalizedString()))
-        continue;
-      final ServerState latestDBServerState = rsDomain.getLatestServerState();
-      if (latestDBServerState.isEmpty())
-        continue;
-      result.replace(rsDomain.getBaseDN(), latestDBServerState);
+      if (!contains(excludedBaseDNs, rsDomain.getBaseDN().toNormalizedString()))
+      {
+        final ServerState latestDBServerState = rsDomain.getLatestServerState();
+        if (!latestDBServerState.isEmpty())
+        {
+          result.replace(rsDomain.getBaseDN(), latestDBServerState);
+        }
+      }
     }
     return result;
+  }
+
+  private boolean contains(Set<String> col, String elem)
+  {
+    return col != null && col.contains(elem);
   }
 
   /**

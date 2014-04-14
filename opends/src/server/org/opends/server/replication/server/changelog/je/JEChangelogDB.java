@@ -540,23 +540,6 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
 
   /** {@inheritDoc} */
   @Override
-  public ServerState getDomainLastAliveCSNs(DN baseDN)
-  {
-    final ChangeNumberIndexer indexer = this.cnIndexer.get();
-    if (indexer != null)
-    {
-      final ServerState results = indexer.getDomainLastAliveCSNs(baseDN);
-      if (results != null)
-      {
-        // return a copy to protect against concurrent modifications
-        return results.duplicate();
-      }
-    }
-    return new ServerState();
-  }
-
-  /** {@inheritDoc} */
-  @Override
   public void removeDomain(DN baseDN) throws ChangelogException
   {
     // Remember the first exception because :
