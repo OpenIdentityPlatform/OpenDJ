@@ -58,6 +58,7 @@ import org.forgerock.opendj.ldap.responses.GenericExtendedResult;
 import org.forgerock.opendj.ldap.responses.Responses;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.testng.ForgeRockTestCase;
+import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn.Scope;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.CompareOperation;
 import org.opends.server.core.DirectoryServer;
@@ -466,6 +467,21 @@ public class ConvertersTestCase extends ForgeRockTestCase {
         assertThat(sdkControl.getOID()).isEqualTo(expectedSdkControl.getOID());
         assertThat(sdkControl.isCritical()).isEqualTo(expectedSdkControl.isCritical());
         assertThat(sdkControl.getValue()).isEqualTo(expectedSdkControl.getValue());
+    }
+
+    /**
+     * Converts an Scope to an SDK Scope.
+     */
+    @Test()
+    public static void testFromScope() {
+        // WHOLE SUBTREE
+        assertThat(org.forgerock.opendj.ldap.SearchScope.WHOLE_SUBTREE).isEqualTo(from(Scope.WHOLE_SUBTREE));
+        // BASE OBJECT
+        assertThat(org.forgerock.opendj.ldap.SearchScope.BASE_OBJECT).isEqualTo(from(Scope.BASE_OBJECT));
+        // SINGLE LEVEL
+        assertThat(org.forgerock.opendj.ldap.SearchScope.SINGLE_LEVEL).isEqualTo(from(Scope.SINGLE_LEVEL));
+        // SUBORDINATE
+        assertThat(org.forgerock.opendj.ldap.SearchScope.SUBORDINATES).isEqualTo(from(Scope.SUBORDINATE_SUBTREE));
     }
 
     /**
