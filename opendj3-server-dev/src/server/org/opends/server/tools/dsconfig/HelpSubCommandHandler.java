@@ -800,8 +800,9 @@ final class HelpSubCommandHandler extends SubCommandHandler {
   /** {@inheritDoc} */
   @Override
   public MenuResult<Integer> run(ConsoleApplication app,
-      ManagementContextFactory factory) throws ArgumentException,
-      ClientException {
+      LDAPManagementContextFactory factory) throws ArgumentException,
+      ClientException
+  {
 
     String categoryName = categoryArgument.getValue();
     String typeName = typeArgument.getValue();

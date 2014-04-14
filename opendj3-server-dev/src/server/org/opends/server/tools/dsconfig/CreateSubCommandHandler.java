@@ -1146,7 +1146,7 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
   /** {@inheritDoc} */
   @Override
   public MenuResult<Integer> run(ConsoleApplication app,
-      ManagementContextFactory factory) throws ArgumentException,
+      LDAPManagementContextFactory factory) throws ArgumentException,
       ClientException {
     LocalizableMessage ufn = relation.getUserFriendlyName();
 

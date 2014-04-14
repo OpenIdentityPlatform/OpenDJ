@@ -84,9 +84,9 @@ final class SubCommandHandlerFactory {
 
 
     /** {@inheritDoc} */
-    public <C extends ConfigurationClient, S extends Configuration>
-        Void visitOptional(
-        OptionalRelationDefinition<C, S> rd, ManagedObjectPath<?, ?> p) {
+    public <C extends ConfigurationClient, S extends Configuration> Void visitOptional(
+        OptionalRelationDefinition<C, S> rd, ManagedObjectPath<?, ?> p)
+    {
       try {
         // Create the sub-commands.
         createHandlers.add(CreateSubCommandHandler.create(parser, p, rd));
@@ -108,9 +108,9 @@ final class SubCommandHandlerFactory {
 
 
     /** {@inheritDoc} */
-    public <C extends ConfigurationClient, S extends Configuration>
-        Void visitSet(
-        SetRelationDefinition<C, S> rd, ManagedObjectPath<?, ?> p) {
+    public <C extends ConfigurationClient, S extends Configuration> Void visitSet(
+        SetRelationDefinition<C, S> rd, ManagedObjectPath<?, ?> p)
+    {
       try {
         // Create the sub-commands.
         createHandlers.add(CreateSubCommandHandler.create(parser, p, rd));
