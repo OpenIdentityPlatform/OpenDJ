@@ -694,8 +694,9 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
   @SuppressWarnings("unchecked")
   @Override
   public MenuResult<Integer> run(ConsoleApplication app,
-      ManagementContextFactory factory) throws ArgumentException,
-      ClientException {
+      LDAPManagementContextFactory factory) throws ArgumentException,
+      ClientException
+  {
     // Get the naming argument values.
     List<String> names = getNamingArgValues(app, namingArgs);
 

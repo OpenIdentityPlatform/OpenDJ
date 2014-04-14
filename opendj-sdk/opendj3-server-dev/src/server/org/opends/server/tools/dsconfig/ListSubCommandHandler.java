@@ -158,21 +158,21 @@ final class ListSubCommandHandler extends SubCommandHandler {
       SubCommandArgumentParser parser, ManagedObjectPath<?, ?> p,
       RelationDefinition<?, ?> r, String rname, LocalizableMessage rufn)
       throws ArgumentException {
-    this.path = p;
-    this.relation = r;
+    path = p;
+    relation = r;
 
     // Create the sub-command.
-    String name = "list-" + rname;
-    LocalizableMessage desc = INFO_DSCFG_DESCRIPTION_SUBCMD_LIST.get(rufn);
-    this.subCommand = new SubCommand(parser, name, false, 0, 0, null, desc);
+    subCommand =
+        new SubCommand(parser, "list-" + rname, false, 0, 0, null,
+            INFO_DSCFG_DESCRIPTION_SUBCMD_LIST.get(rufn));
 
     // Create the naming arguments.
-    this.namingArgs = createNamingArgs(subCommand, path, false);
+    namingArgs = createNamingArgs(subCommand, path, false);
 
     // Register arguments.
-    registerPropertyNameArgument(this.subCommand);
-    registerUnitSizeArgument(this.subCommand);
-    registerUnitTimeArgument(this.subCommand);
+    registerPropertyNameArgument(subCommand);
+    registerUnitSizeArgument(subCommand);
+    registerUnitTimeArgument(subCommand);
 
     // Register the tags associated with the child managed objects.
     addTags(relation.getChildDefinition().getAllTags());
@@ -204,7 +204,7 @@ final class ListSubCommandHandler extends SubCommandHandler {
   /** {@inheritDoc} */
   @Override
   public MenuResult<Integer> run(ConsoleApplication app,
-      ManagementContextFactory factory) throws ArgumentException,
+      LDAPManagementContextFactory factory) throws ArgumentException,
       ClientException {
     // Get the property names.
     Set<String> propertyNames = getPropertyNames();

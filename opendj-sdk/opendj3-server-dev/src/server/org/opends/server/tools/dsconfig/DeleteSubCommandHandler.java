@@ -219,7 +219,7 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
   /** {@inheritDoc} */
   @Override
   public MenuResult<Integer> run(ConsoleApplication app,
-      ManagementContextFactory factory) throws ArgumentException,
+      LDAPManagementContextFactory factory) throws ArgumentException,
       ClientException {
     // Get the naming argument values.
     List<String> names = getNamingArgValues(app, namingArgs);

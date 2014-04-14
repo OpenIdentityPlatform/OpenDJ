@@ -116,8 +116,6 @@ public final class DSConfig extends ConsoleApplication {
     /** The sub-command handler. */
     private final SubCommandHandler handler;
 
-
-
     /**
      * Creates a new sub-command handler call-back.
      *
@@ -127,8 +125,6 @@ public final class DSConfig extends ConsoleApplication {
     public SubCommandHandlerMenuCallback(SubCommandHandler handler) {
       this.handler = handler;
     }
-
-
 
     /** {@inheritDoc} */
     @Override
@@ -160,8 +156,6 @@ public final class DSConfig extends ConsoleApplication {
     }
   }
 
-
-
   /**
    * The interactive mode sub-menu implementation.
    */
@@ -169,8 +163,6 @@ public final class DSConfig extends ConsoleApplication {
 
     /** The menu. */
     private final Menu<Integer> menu;
-
-
 
     /**
      * Creates a new sub-menu implementation.
@@ -256,8 +248,6 @@ public final class DSConfig extends ConsoleApplication {
       this.menu = builder.toMenu();
     }
 
-
-
     /** {@inheritDoc} */
     @Override
     public final MenuResult<Integer> invoke(ConsoleApplication app)
@@ -314,8 +304,6 @@ public final class DSConfig extends ConsoleApplication {
     }
   }
 
-
-
   /**
    * Provides the command-line arguments to the main application for
    * processing and returns the exit code as an integer.
@@ -334,8 +322,7 @@ public final class DSConfig extends ConsoleApplication {
       OutputStream errStream)
   {
     JDKLogging.disableLogging();
-    DSConfig app =
-        new DSConfig(System.in, outStream, errStream);
+    final DSConfig app = new DSConfig(System.in, outStream, errStream);
     app.sessionStartTime = System.currentTimeMillis();
     /*
      * FIXME: obtain path info from system properties.
@@ -365,7 +352,7 @@ public final class DSConfig extends ConsoleApplication {
    * The factory which the application should use to retrieve its management
    * context.
    */
-  private ManagementContextFactory factory = null;
+  private LDAPManagementContextFactory factory = null;
 
   /**
    * Flag indicating whether or not the global arguments have already been
@@ -762,12 +749,7 @@ public final class DSConfig extends ConsoleApplication {
       retCode = runSubCommand(handler);
     }
 
-    try {
-      // Close the Management context ==> an LDAP UNBIND is sent
-      factory.close();
-    } catch (Exception e) {
-      // Nothing to report in this case
-    }
+    factory.close();
 
     return retCode;
   }
@@ -1176,7 +1158,7 @@ public final class DSConfig extends ConsoleApplication {
         String[] allArgsArray = allArguments.toArray(new String[]{});
 
         int exitCode = main(allArgsArray, getOutputStream(), getErrorStream());
-        if (exitCode != 0)
+        if (exitCode != ReturnCode.SUCCESS.get())
         {
           System.exit(filterExitCode(exitCode));
         }

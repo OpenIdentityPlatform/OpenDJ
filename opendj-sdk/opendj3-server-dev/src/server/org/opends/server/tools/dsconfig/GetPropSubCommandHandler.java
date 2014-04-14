@@ -231,7 +231,7 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
    */
   @Override
   public MenuResult<Integer> run(ConsoleApplication app,
-      ManagementContextFactory factory) throws ArgumentException,
+      LDAPManagementContextFactory factory) throws ArgumentException,
       ClientException {
     // Get the property names.
     Set<String> propertyNames = getPropertyNames();

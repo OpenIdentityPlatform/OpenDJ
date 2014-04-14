@@ -816,7 +816,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
    * @param app
    *          The console application.
    * @param factory
-   *          The management context factory.
+   *          The LDAP management context factory context factory.
    * @return Returns a {@link MenuResult#success()} containing zero if
    *         the sub-command completed successfully or non-zero if it
    *         did not, or {@link MenuResult#quit()}, or
@@ -829,7 +829,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
    *           If the management context could not be created.
    */
   public abstract MenuResult<Integer> run(ConsoleApplication app,
-      ManagementContextFactory factory) throws ArgumentException,
+      LDAPManagementContextFactory factory) throws ArgumentException,
       ClientException;
 
 
