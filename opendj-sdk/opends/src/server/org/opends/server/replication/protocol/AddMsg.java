@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
@@ -166,9 +166,7 @@ public class AddMsg extends LDAPUpdateMsg
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public AddOperation createOperation(
       InternalClientConnection connection, DN newDN)
@@ -189,9 +187,7 @@ public class AddMsg extends LDAPUpdateMsg
   // Msg encoding
   // ============
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public byte[] getBytes_V1() throws UnsupportedEncodingException
   {
@@ -225,9 +221,7 @@ public class AddMsg extends LDAPUpdateMsg
     return resultByteArray;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public byte[] getBytes_V23() throws UnsupportedEncodingException
   {
@@ -266,9 +260,7 @@ public class AddMsg extends LDAPUpdateMsg
     return resultByteArray;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public byte[] getBytes_V45(short reqProtocolVersion)
       throws UnsupportedEncodingException
@@ -334,31 +326,11 @@ public class AddMsg extends LDAPUpdateMsg
         builder.add(AttributeValues.create(ByteString.valueOf(s),
             ByteString.valueOf(toLowerCase(s))));
       }
-      Attribute attr = builder.toAttribute();
+      new LDAPAttribute(builder.toAttribute()).write(writer);
 
-      new LDAPAttribute(attr).write(writer);
-
-      // Encode the user attributes (AttributeList).
-      for (List<Attribute> list : userAttributes.values())
-      {
-        for (Attribute a : list)
-        {
-          if (!EntryHistorical.isHistoricalAttribute(a))
-            if (!a.isVirtual())
-              new LDAPAttribute(a).write(writer);
-        }
-      }
-
-      // Encode the operational attributes (AttributeList).
-      for (List<Attribute> list : operationalAttributes.values())
-      {
-        for (Attribute a : list)
-        {
-          if (!EntryHistorical.isHistoricalAttribute(a))
-            if (!a.isVirtual())
-              new LDAPAttribute(a).write(writer);
-        }
-      }
+      // Encode the user and operational attributes (AttributeList).
+      encodeAttributes(userAttributes, writer);
+      encodeAttributes(operationalAttributes, writer);
     }
     catch(Exception e)
     {
@@ -367,6 +339,21 @@ public class AddMsg extends LDAPUpdateMsg
 
     // Encode the sequence.
     return byteBuilder.toByteArray();
+  }
+
+  private void encodeAttributes(Map<AttributeType, List<Attribute>> attributes,
+      ASN1Writer writer) throws Exception
+  {
+    for (List<Attribute> list : attributes.values())
+    {
+      for (Attribute a : list)
+      {
+        if (!a.isVirtual() && !EntryHistorical.isHistoricalAttribute(a))
+        {
+          new LDAPAttribute(a).write(writer);
+        }
+      }
+    }
   }
 
   private byte[] encodeAttributes(
@@ -483,31 +470,22 @@ public class AddMsg extends LDAPUpdateMsg
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String toString()
   {
-    if (protocolVersion == ProtocolVersion.REPLICATION_PROTOCOL_V1)
+    if (protocolVersion >= ProtocolVersion.REPLICATION_PROTOCOL_V1)
     {
       return "AddMsg content: " +
         " protocolVersion: " + protocolVersion +
         " dn: " + dn +
-        " changeNumber: " + csn +
-        " uniqueId: " + entryUUID +
-        " assuredFlag: " + assuredFlag;
-    }
-    if (protocolVersion >= ProtocolVersion.REPLICATION_PROTOCOL_V2)
-    {
-      return "AddMsg content: " +
-        " protocolVersion: " + protocolVersion +
-        " dn: " + dn +
-        " changeNumber: " + csn +
+        " csn: " + csn +
         " uniqueId: " + entryUUID +
         " assuredFlag: " + assuredFlag +
-        " assuredMode: " + assuredMode +
-        " safeDataLevel: " + safeDataLevel;
+        (protocolVersion >= ProtocolVersion.REPLICATION_PROTOCOL_V2 ?
+          " assuredMode: " + assuredMode +
+          " safeDataLevel: " + safeDataLevel
+          : "");
     }
     return "!!! Unknown version: " + protocolVersion + "!!!";
   }
@@ -570,9 +548,7 @@ public class AddMsg extends LDAPUpdateMsg
     return parentEntryUUID;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public int size()
   {

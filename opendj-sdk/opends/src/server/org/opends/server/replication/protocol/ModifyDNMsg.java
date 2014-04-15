@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
@@ -154,9 +154,7 @@ public class ModifyDNMsg extends ModifyCommonMsg
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ModifyDNOperation createOperation(InternalClientConnection connection,
       DN newDN) throws LDAPException, ASN1Exception
@@ -184,9 +182,7 @@ public class ModifyDNMsg extends ModifyCommonMsg
   // Msg Encoding
   // ============
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public byte[] getBytes_V1() throws UnsupportedEncodingException
   {
@@ -243,10 +239,7 @@ public class ModifyDNMsg extends ModifyCommonMsg
     return encodedMsg;
   }
 
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public byte[] getBytes_V23() throws UnsupportedEncodingException
   {
@@ -318,9 +311,7 @@ public class ModifyDNMsg extends ModifyCommonMsg
     return encodedMsg;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public byte[] getBytes_V45(short reqProtocolVersion)
       throws UnsupportedEncodingException
@@ -538,37 +529,25 @@ public class ModifyDNMsg extends ModifyCommonMsg
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String toString()
   {
-     if (protocolVersion == ProtocolVersion.REPLICATION_PROTOCOL_V1)
+    if (protocolVersion >= ProtocolVersion.REPLICATION_PROTOCOL_V1)
     {
       return "ModifyDNMsg content: " +
         " protocolVersion: " + protocolVersion +
         " dn: " + dn +
-        " changeNumber: " + csn +
-        " uniqueId: " + entryUUID +
-        " assuredFlag: " + assuredFlag +
-        " newRDN: " + newRDN +
-        " newSuperior: " + newSuperior +
-        " deleteOldRdn: " + deleteOldRdn;
-    }
-    if (protocolVersion >= ProtocolVersion.REPLICATION_PROTOCOL_V2)
-    {
-      return "ModifyDNMsg content: " +
-        " protocolVersion: " + protocolVersion +
-        " dn: " + dn +
-        " changeNumber: " + csn +
+        " csn: " + csn +
         " uniqueId: " + entryUUID +
         " newRDN: " + newRDN +
         " newSuperior: " + newSuperior +
         " deleteOldRdn: " + deleteOldRdn +
         " assuredFlag: " + assuredFlag +
-        " assuredMode: " + assuredMode +
-        " safeDataLevel: " + safeDataLevel;
+        (protocolVersion >= ProtocolVersion.REPLICATION_PROTOCOL_V2 ?
+          " assuredMode: " + assuredMode +
+          " safeDataLevel: " + safeDataLevel
+          : "");
     }
     return "!!! Unknown version: " + protocolVersion + "!!!";
   }
@@ -669,16 +648,12 @@ public class ModifyDNMsg extends ModifyCommonMsg
    */
   private DN computeNewDN() throws DirectoryException
   {
-    if (newSuperior == null)
+    if (newSuperior != null)
     {
-      DN parentDn = getDN().getParent();
-      return parentDn.concat(RDN.decode(newRDN));
+      return DN.decode(newRDN + "," + newSuperior);
     }
-    else
-    {
-      String newStringDN = newRDN + "," + newSuperior;
-      return DN.decode(newStringDN);
-    }
+    final DN parentDN = getDN().getParent();
+    return parentDN.concat(RDN.decode(newRDN));
   }
 
   /**
@@ -749,9 +724,7 @@ public class ModifyDNMsg extends ModifyCommonMsg
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public int size()
   {
