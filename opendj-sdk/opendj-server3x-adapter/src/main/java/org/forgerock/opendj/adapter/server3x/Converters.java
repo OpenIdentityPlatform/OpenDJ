@@ -588,18 +588,19 @@ public final class Converters {
      *          The server scope value.
      * @return The SDK scope value.
      */
-    public static SearchScope from(
-            org.opends.server.admin.std.meta.VirtualAttributeCfgDefn.Scope srvScope) {
-        if (srvScope != null && srvScope.name() != null) {
-            final String srvScopeName = srvScope.name().toLowerCase();
-            if ("base_object".equals(srvScopeName)) {
+    public static SearchScope from(org.opends.server.admin.std.meta.VirtualAttributeCfgDefn.Scope srvScope) {
+        if (srvScope != null) {
+            switch (srvScope) {
+            case BASE_OBJECT:
                 return SearchScope.BASE_OBJECT;
-            } else if ("single_level".equals(srvScopeName)) {
+            case SINGLE_LEVEL:
                 return SearchScope.SINGLE_LEVEL;
-            } else if ("subordinate_subtree".equals(srvScopeName)) {
+            case SUBORDINATE_SUBTREE:
                 return SearchScope.SUBORDINATES;
-            } else if ("whole_subtree".equals(srvScopeName)) {
+            case WHOLE_SUBTREE:
                 return SearchScope.WHOLE_SUBTREE;
+            default:
+                return null;
             }
         }
         return null;
