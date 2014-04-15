@@ -61,6 +61,8 @@ import org.forgerock.opendj.config.RelativeInheritedDefaultBehaviorProvider;
 import org.forgerock.opendj.config.StringPropertyDefinition;
 import org.forgerock.opendj.config.Tag;
 import org.forgerock.opendj.config.UndefinedDefaultBehaviorProvider;
+import org.forgerock.opendj.config.client.ManagedObject;
+
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.StringArgument;
@@ -409,16 +411,23 @@ final class HelpSubCommandHandler extends SubCommandHandler {
    *
    * @param app
    *          The application console.
-   * @param d
-   *          The managed object definition.
+   * @param mo
+   *          The managed object.
    * @param c
    *          The collection of properties to be displayed.
    */
   public static void displaySingleComponent(ConsoleApplication app,
-      AbstractManagedObjectDefinition<?, ?> d,
+      ManagedObject<?> mo,
       Collection<PropertyDefinition<?>> c) {
+    String ufn = mo.getManagedObjectPath().getName();
+    if (ufn == null)
+    {
+      ufn = mo.getManagedObjectDefinition().getUserFriendlyName().toString();
+    }
     // Display the title.
-    app.println(INFO_DSCFG_HELP_HEADING_COMPONENT.get(d.getUserFriendlyName()));
+    app.println(INFO_DSCFG_HELP_HEADING_COMPONENT.get(ufn));
+
+    final AbstractManagedObjectDefinition<?, ?> d = mo.getManagedObjectDefinition();
 
     app.println();
     app.println(d.getSynopsis());
@@ -435,7 +444,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
     app.println();
 
     // Headings.
-    TableBuilder builder = new TableBuilder();
+    final TableBuilder builder = new TableBuilder();
 
     builder.appendHeading(INFO_DSCFG_HEADING_PROPERTY_NAME.get());
     builder.appendHeading(INFO_DSCFG_HEADING_PROPERTY_OPTIONS.get());
@@ -445,7 +454,7 @@ final class HelpSubCommandHandler extends SubCommandHandler {
     builder.addSortKey(0);
 
     // Output summary of each property.
-    for (PropertyDefinition<?> pd : c) {
+    for (final PropertyDefinition<?> pd : c) {
       // Display the property.
       builder.startRow();
 
@@ -456,13 +465,12 @@ final class HelpSubCommandHandler extends SubCommandHandler {
       builder.appendCell(getPropertyOptionSummary(pd));
 
       // Display the syntax.
-      PropertyDefinitionUsageBuilder v = new PropertyDefinitionUsageBuilder(
+      final PropertyDefinitionUsageBuilder v = new PropertyDefinitionUsageBuilder(
           false);
       builder.appendCell(v.getUsage(pd));
     }
 
-    TablePrinter printer = new TextTablePrinter(app.getErrorStream());
-    builder.print(printer);
+    builder.print(new TextTablePrinter(app.getErrorStream()));
   }
 
 
