@@ -30,6 +30,7 @@ package org.opends.server.tools.dsconfig;
 
 import static com.forgerock.opendj.dsconfig.DsconfigMessages.*;
 import static com.forgerock.opendj.cli.CliMessages.*;
+import static org.opends.server.tools.dsconfig.DSConfig.PROPERTY_SCRIPT_NAME;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -72,7 +73,6 @@ import org.forgerock.opendj.config.client.ManagedObjectDecodingException;
 import org.forgerock.opendj.config.client.ManagementContext;
 import org.forgerock.opendj.ldap.AuthorizationException;
 import org.forgerock.opendj.ldap.ErrorResultException;
-import org.opends.server.util.ServerConstants;
 
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
@@ -762,7 +762,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
     if (commandBuilder == null)
     {
       commandBuilder = new CommandBuilder(
-            System.getProperty(ServerConstants.PROPERTY_SCRIPT_NAME),
+            System.getProperty(PROPERTY_SCRIPT_NAME),
             getSubCommand().getName());
     }
     return commandBuilder;
