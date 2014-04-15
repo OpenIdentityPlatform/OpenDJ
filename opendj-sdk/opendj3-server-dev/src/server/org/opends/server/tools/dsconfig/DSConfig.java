@@ -39,7 +39,6 @@ import static com.forgerock.opendj.dsconfig.DsconfigMessages.*;
 import static org.opends.server.tools.dsconfig.ArgumentExceptionFactory.displayManagedObjectDecodingException;
 import static org.opends.server.tools.dsconfig.ArgumentExceptionFactory.displayMissingMandatoryPropertyException;
 import static org.opends.server.tools.dsconfig.ArgumentExceptionFactory.displayOperationRejectedException;
-import static org.opends.server.util.ServerConstants.PROPERTY_SCRIPT_NAME;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -103,10 +102,13 @@ import com.forgerock.opendj.cli.SubCommandArgumentParser;
  */
 public final class DSConfig extends ConsoleApplication {
 
-  /**
-   * The name of this tool.
-   */
+  /** The name of this tool. */
   final static String DSCONFIGTOOLNAME = "dsconfig";
+
+  /**
+   * The name of a command-line script used to launch an administrative tool.
+   */
+  final static String PROPERTY_SCRIPT_NAME = "org.opends.server.scriptName";
 
   /**
    * A menu call-back which runs a sub-command interactively.
@@ -156,9 +158,7 @@ public final class DSConfig extends ConsoleApplication {
     }
   }
 
-  /**
-   * The interactive mode sub-menu implementation.
-   */
+  /** The interactive mode sub-menu implementation. */
   private class SubMenuCallback implements MenuCallback<Integer> {
 
     /** The menu. */
@@ -183,63 +183,65 @@ public final class DSConfig extends ConsoleApplication {
     public SubMenuCallback(ConsoleApplication app, RelationDefinition<?, ?> rd,
         CreateSubCommandHandler<?, ?> ch, DeleteSubCommandHandler dh,
         ListSubCommandHandler lh, SetPropSubCommandHandler sh) {
-      LocalizableMessage ufn = rd.getUserFriendlyName();
+      LocalizableMessage userFriendlyName = rd.getUserFriendlyName();
 
-      LocalizableMessage ufpn = null;
+      LocalizableMessage userFriendlyPluralName = null;
       if (rd instanceof InstantiableRelationDefinition<?,?>) {
         InstantiableRelationDefinition<?, ?> ir =
           (InstantiableRelationDefinition<?, ?>) rd;
-        ufpn = ir.getUserFriendlyPluralName();
+        userFriendlyPluralName = ir.getUserFriendlyPluralName();
       } else if (rd instanceof SetRelationDefinition<?,?>) {
         SetRelationDefinition<?, ?> sr =
           (SetRelationDefinition<?, ?>) rd;
-        ufpn = sr.getUserFriendlyPluralName();
+        userFriendlyPluralName = sr.getUserFriendlyPluralName();
       }
 
-      MenuBuilder<Integer> builder = new MenuBuilder<Integer>(app);
+      final MenuBuilder<Integer> builder = new MenuBuilder<Integer>(app);
 
-      builder.setTitle(INFO_DSCFG_HEADING_COMPONENT_MENU_TITLE.get(ufn));
+      builder.setTitle(INFO_DSCFG_HEADING_COMPONENT_MENU_TITLE
+          .get(userFriendlyName));
       builder.setPrompt(INFO_DSCFG_HEADING_COMPONENT_MENU_PROMPT.get());
 
       if (lh != null) {
-        SubCommandHandlerMenuCallback callback =
+        final SubCommandHandlerMenuCallback callback =
           new SubCommandHandlerMenuCallback(lh);
-        if (ufpn != null) {
+        if (userFriendlyPluralName != null) {
           builder.addNumberedOption(
-              INFO_DSCFG_OPTION_COMPONENT_MENU_LIST_PLURAL.get(ufpn), callback);
+              INFO_DSCFG_OPTION_COMPONENT_MENU_LIST_PLURAL
+                  .get(userFriendlyPluralName), callback);
         } else {
           builder
           .addNumberedOption(INFO_DSCFG_OPTION_COMPONENT_MENU_LIST_SINGULAR
-              .get(ufn), callback);
+              .get(userFriendlyName), callback);
         }
       }
 
       if (ch != null) {
-        SubCommandHandlerMenuCallback callback =
-          new SubCommandHandlerMenuCallback(ch);
+        final SubCommandHandlerMenuCallback callback =
+            new SubCommandHandlerMenuCallback(ch);
         builder.addNumberedOption(INFO_DSCFG_OPTION_COMPONENT_MENU_CREATE
-            .get(ufn), callback);
+            .get(userFriendlyName), callback);
       }
 
       if (sh != null) {
-        SubCommandHandlerMenuCallback callback =
-          new SubCommandHandlerMenuCallback(sh);
-        if (ufpn != null) {
-          builder
-          .addNumberedOption(INFO_DSCFG_OPTION_COMPONENT_MENU_MODIFY_PLURAL
-              .get(ufn), callback);
+        final SubCommandHandlerMenuCallback callback =
+            new SubCommandHandlerMenuCallback(sh);
+        if (userFriendlyPluralName != null) {
+          builder.addNumberedOption(
+              INFO_DSCFG_OPTION_COMPONENT_MENU_MODIFY_PLURAL
+                  .get(userFriendlyName), callback);
         } else {
           builder.addNumberedOption(
-              INFO_DSCFG_OPTION_COMPONENT_MENU_MODIFY_SINGULAR.get(ufn),
-              callback);
+              INFO_DSCFG_OPTION_COMPONENT_MENU_MODIFY_SINGULAR
+                  .get(userFriendlyName), callback);
         }
       }
 
       if (dh != null) {
-        SubCommandHandlerMenuCallback callback =
-          new SubCommandHandlerMenuCallback(dh);
+        final SubCommandHandlerMenuCallback callback =
+            new SubCommandHandlerMenuCallback(dh);
         builder.addNumberedOption(INFO_DSCFG_OPTION_COMPONENT_MENU_DELETE
-            .get(ufn), callback);
+            .get(userFriendlyName), callback);
       }
 
       builder.addBackOption(true);
@@ -261,14 +263,12 @@ public final class DSConfig extends ConsoleApplication {
         if (result.isCancel()) {
           return MenuResult.again();
         }
-
         return result;
       } catch (ClientException e) {
         app.println(e.getMessageObject());
         return MenuResult.success(1);
       }
     }
-
   }
 
   /**
@@ -299,7 +299,7 @@ public final class DSConfig extends ConsoleApplication {
    */
   public static void main(String[] args) {
     int exitCode = main(args, System.out, System.err);
-    if (exitCode != 0) {
+    if (exitCode != ReturnCode.SUCCESS.get()) {
       System.exit(filterExitCode(exitCode));
     }
   }
@@ -337,7 +337,7 @@ public final class DSConfig extends ConsoleApplication {
       catch (ConfigException e)
       {
         app.println(e.getMessageObject());
-        return 1;
+        return ReturnCode.ERROR_INITIALIZING_SERVER.get();
       }
     }
 
@@ -646,9 +646,8 @@ public final class DSConfig extends ConsoleApplication {
       initializeGlobalArguments(args);
       initializeSubCommands();
     } catch (ArgumentException e) {
-      LocalizableMessage message = ERR_CANNOT_INITIALIZE_ARGS.get(e.getMessage());
-      println(message);
-      return 1;
+      println(ERR_CANNOT_INITIALIZE_ARGS.get(e.getMessage()));
+      return ReturnCode.ERROR_USER_DATA.get();
     }
 
     ConnectionFactoryProvider cfp = null;
@@ -666,8 +665,8 @@ public final class DSConfig extends ConsoleApplication {
     }
     catch (ArgumentException ae)
     {
-      LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(ae.getMessage());
-      displayMessageAndUsageReference(message);
+      displayMessageAndUsageReference(ERR_ERROR_PARSING_ARGS.get(ae
+          .getMessage()));
       return ReturnCode.CONFLICTING_ARGS.get();
     }
 
@@ -685,7 +684,7 @@ public final class DSConfig extends ConsoleApplication {
     catch (InitializationException e)
     {
       println(e.getMessageObject());
-      return 1;
+      return ReturnCode.ERROR_USER_DATA.get();
     }
 
     // Check that we can write on the provided path where we write the
@@ -715,8 +714,8 @@ public final class DSConfig extends ConsoleApplication {
     }
     catch (ArgumentException e)
     {
-      LocalizableMessage message = ERR_ERROR_PARSING_ARGS.get(e.getMessage());
-      displayMessageAndUsageReference(message);
+      displayMessageAndUsageReference(ERR_ERROR_PARSING_ARGS
+          .get(e.getMessage()));
       return ReturnCode.CONFLICTING_ARGS.get();
     }
 
@@ -739,7 +738,7 @@ public final class DSConfig extends ConsoleApplication {
         LocalizableMessage message = ERR_ERROR_PARSING_ARGS
         .get(ERR_DSCFG_ERROR_MISSING_SUBCOMMAND.get());
         displayMessageAndUsageReference(message);
-        retCode = 1;
+        retCode = ReturnCode.ERROR_USER_DATA.get();
       }
     } else {
       hasSubCommand = true;
@@ -801,14 +800,14 @@ public final class DSConfig extends ConsoleApplication {
     ConsoleApplication app = this;
 
     // Build menu structure.
-    Comparator<RelationDefinition<?, ?>> c =
+    final Comparator<RelationDefinition<?, ?>> c =
       new Comparator<RelationDefinition<?, ?>>() {
 
       @Override
       public int compare(RelationDefinition<?, ?> rd1,
           RelationDefinition<?, ?> rd2) {
-        String s1 = rd1.getUserFriendlyName().toString();
-        String s2 = rd2.getUserFriendlyName().toString();
+        final String s1 = rd1.getUserFriendlyName().toString();
+        final String s2 = rd2.getUserFriendlyName().toString();
 
         return s1.compareToIgnoreCase(s2);
       }
@@ -828,45 +827,45 @@ public final class DSConfig extends ConsoleApplication {
         new HashMap<RelationDefinition<?, ?>, SetPropSubCommandHandler>();
 
 
-    for (CreateSubCommandHandler<?, ?> ch : handlerFactory
+    for (final CreateSubCommandHandler<?, ?> ch : handlerFactory
         .getCreateSubCommandHandlers()) {
       relations.add(ch.getRelationDefinition());
       createHandlers.put(ch.getRelationDefinition(), ch);
     }
 
-    for (DeleteSubCommandHandler dh : handlerFactory
+    for (final DeleteSubCommandHandler dh : handlerFactory
         .getDeleteSubCommandHandlers()) {
       relations.add(dh.getRelationDefinition());
       deleteHandlers.put(dh.getRelationDefinition(), dh);
     }
 
-    for (ListSubCommandHandler lh :
+    for (final ListSubCommandHandler lh :
       handlerFactory.getListSubCommandHandlers()) {
       relations.add(lh.getRelationDefinition());
       listHandlers.put(lh.getRelationDefinition(), lh);
     }
 
-    for (GetPropSubCommandHandler gh : handlerFactory
+    for (final GetPropSubCommandHandler gh : handlerFactory
         .getGetPropSubCommandHandlers()) {
       relations.add(gh.getRelationDefinition());
       getPropHandlers.put(gh.getRelationDefinition(), gh);
     }
 
-    for (SetPropSubCommandHandler sh : handlerFactory
+    for (final SetPropSubCommandHandler sh : handlerFactory
         .getSetPropSubCommandHandlers()) {
       relations.add(sh.getRelationDefinition());
       setPropHandlers.put(sh.getRelationDefinition(), sh);
     }
 
     // Main menu.
-    MenuBuilder<Integer> builder = new MenuBuilder<Integer>(app);
+    final MenuBuilder<Integer> builder = new MenuBuilder<Integer>(app);
 
     builder.setTitle(INFO_DSCFG_HEADING_MAIN_MENU_TITLE.get());
     builder.setPrompt(INFO_DSCFG_HEADING_MAIN_MENU_PROMPT.get());
     builder.setMultipleColumnThreshold(0);
 
-    for (RelationDefinition<?, ?> rd : relations) {
-      MenuCallback<Integer> callback = new SubMenuCallback(app, rd,
+    for (final RelationDefinition<?, ?> rd : relations) {
+      final MenuCallback<Integer> callback = new SubMenuCallback(app, rd,
           createHandlers.get(rd), deleteHandlers.get(rd), listHandlers.get(rd),
           setPropHandlers.get(rd));
       builder.addNumberedOption(rd.getUserFriendlyName(), callback);
@@ -874,26 +873,24 @@ public final class DSConfig extends ConsoleApplication {
 
     builder.addQuitOption();
 
-    Menu<Integer> menu = builder.toMenu();
+    final Menu<Integer> menu = builder.toMenu();
 
     try {
       // Force retrieval of management context.
       factory.getManagementContext(app);
-
-
     } catch (ArgumentException e) {
       app.println(e.getMessageObject());
-      return 1;
+      return ReturnCode.ERROR_UNEXPECTED.get();
     } catch (ClientException e) {
       app.println(e.getMessageObject());
-      return 1;
+      return ReturnCode.ERROR_UNEXPECTED.get();
     }
 
     try {
       app.println();
       app.println();
 
-      MenuResult<Integer> result = menu.run();
+      final MenuResult<Integer> result = menu.run();
 
       if (result.isQuit()) {
         return ReturnCode.SUCCESS.get();
@@ -902,7 +899,7 @@ public final class DSConfig extends ConsoleApplication {
       }
     } catch (ClientException e) {
       app.println(e.getMessageObject());
-      return 1;
+      return ReturnCode.ERROR_UNEXPECTED.get();
     }
   }
 
@@ -911,7 +908,7 @@ public final class DSConfig extends ConsoleApplication {
   /** Run the provided sub-command handler. */
   private int runSubCommand(SubCommandHandler handler) {
     try {
-      MenuResult<Integer> result = handler.run(this, factory);
+      final MenuResult<Integer> result = handler.run(this, factory);
 
       if (result.isSuccess()) {
         if (isInteractive() &&
@@ -922,39 +919,40 @@ public final class DSConfig extends ConsoleApplication {
         return result.getValue();
       } else {
         // User must have quit.
-        return 1;
+        return ReturnCode.ERROR_UNEXPECTED.get();
       }
     } catch (ArgumentException e) {
       println(e.getMessageObject());
-      return 1;
+      return ReturnCode.ERROR_UNEXPECTED.get();
     } catch (ClientException e) {
       Throwable cause = e.getCause();
-      if (cause instanceof ManagedObjectDecodingException) {
-        ManagedObjectDecodingException de =
-          (ManagedObjectDecodingException) cause;
-        println();
-        displayManagedObjectDecodingException(this, de);
-        println();
-      } else if (cause instanceof MissingMandatoryPropertiesException) {
-        MissingMandatoryPropertiesException mmpe =
-          (MissingMandatoryPropertiesException) cause;
-        println();
-        displayMissingMandatoryPropertyException(this, mmpe);
-        println();
-      } else if (cause instanceof OperationRejectedException) {
-        OperationRejectedException ore = (OperationRejectedException) cause;
-        println();
-        displayOperationRejectedException(this, ore);
-        println();
-      } else {
+      println();
+      if (cause instanceof ManagedObjectDecodingException)
+      {
+        displayManagedObjectDecodingException(this,
+            (ManagedObjectDecodingException) cause);
+      }
+      else if (cause instanceof MissingMandatoryPropertiesException)
+      {
+        displayMissingMandatoryPropertyException(this,
+            (MissingMandatoryPropertiesException) cause);
+      }
+      else if (cause instanceof OperationRejectedException)
+      {
+        displayOperationRejectedException(this,
+            (OperationRejectedException) cause);
+      }
+      else
+      {
         // Just display the default message.
         println(e.getMessageObject());
       }
+      println();
 
-      return 1;
+      return ReturnCode.ERROR_UNEXPECTED.get();
     } catch (Exception e) {
       println(LocalizableMessage.raw(stackTraceToSingleLineString(e, true)));
-      return 1;
+      return ReturnCode.ERROR_UNEXPECTED.get();
     }
   }
 
@@ -1099,10 +1097,10 @@ public final class DSConfig extends ConsoleApplication {
     try {
       // Build a list of initial arguments,
       // removing the batch file option + its value
-      List<String> initialArgs = new ArrayList<String>();
+      final List<String> initialArgs = new ArrayList<String>();
       Collections.addAll(initialArgs, args);
       int batchFileArgIndex = -1;
-      for (String elem : initialArgs) {
+      for (final String elem : initialArgs) {
         if (elem.startsWith("-" + OPTION_SHORT_BATCH_FILE_PATH)
                 || elem.contains(OPTION_LONG_BATCH_FILE_PATH)) {
           batchFileArgIndex = initialArgs.indexOf(elem);
@@ -1114,7 +1112,7 @@ public final class DSConfig extends ConsoleApplication {
         initialArgs.remove(batchFileArgIndex);
         initialArgs.remove(batchFileArgIndex);
       }
-      String batchFilePath = batchFileArgument.getValue().trim();
+      final String batchFilePath = batchFileArgument.getValue().trim();
       bReader =
               new BufferedReader(new FileReader(batchFilePath));
       String line;
@@ -1152,10 +1150,10 @@ public final class DSConfig extends ConsoleApplication {
         errPrintln(LocalizableMessage.raw(displayCommand));
 
         // Append initial arguments to the file line
-        List<String> allArguments = new ArrayList<String>();
+        final List<String> allArguments = new ArrayList<String>();
         Collections.addAll(allArguments, fileArguments);
         allArguments.addAll(initialArgs);
-        String[] allArgsArray = allArguments.toArray(new String[]{});
+        final String[] allArgsArray = allArguments.toArray(new String[]{});
 
         int exitCode = main(allArgsArray, getOutputStream(), getErrorStream());
         if (exitCode != ReturnCode.SUCCESS.get())
@@ -1172,7 +1170,7 @@ public final class DSConfig extends ConsoleApplication {
   }
 
   /** Replace spaces in quotes by "\ ". */
-  private String replaceSpacesInQuotes(String line) {
+  private String replaceSpacesInQuotes(final String line) {
     String newLine = "";
     boolean inQuotes = false;
     for (int ii = 0; ii < line.length(); ii++) {

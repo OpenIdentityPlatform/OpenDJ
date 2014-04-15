@@ -183,7 +183,7 @@ public class DsconfigOptionsTestCase extends DirectoryServerTestCase {
     };
     try
     {
-      assertEquals(dsconfigMain(args), 1);
+      assertTrue(dsconfigMain(args) != SUCCESS.get());
     }
     finally
     {
