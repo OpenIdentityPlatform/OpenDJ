@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
@@ -121,9 +121,7 @@ public class ModifyMsg extends ModifyCommonMsg
     return msg;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ModifyOperation createOperation(InternalClientConnection connection,
       DN newDN) throws LDAPException, ASN1Exception, DataFormatException
@@ -142,43 +140,29 @@ public class ModifyMsg extends ModifyCommonMsg
     return mod;
   }
 
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String toString()
   {
-    if (protocolVersion == ProtocolVersion.REPLICATION_PROTOCOL_V1)
+    if (protocolVersion >= ProtocolVersion.REPLICATION_PROTOCOL_V1)
     {
       return "ModifyMsg content: " +
         " protocolVersion: " + protocolVersion +
         " dn: " + dn +
-        " changeNumber: " + csn +
-        " uniqueId: " + entryUUID +
-        " assuredFlag: " + assuredFlag;
-    }
-    if (protocolVersion >= ProtocolVersion.REPLICATION_PROTOCOL_V2)
-    {
-      return "ModifyMsg content: " +
-        " protocolVersion: " + protocolVersion +
-        " dn: " + dn +
-        " changeNumber: " + csn +
+        " csn: " + csn +
         " uniqueId: " + entryUUID +
         " assuredFlag: " + assuredFlag +
-        " assuredMode: " + assuredMode +
-        " safeDataLevel: " + safeDataLevel +
-        " size: " + encodedMods.length;
+        (protocolVersion >= ProtocolVersion.REPLICATION_PROTOCOL_V2 ?
+          " assuredMode: " + assuredMode +
+          " safeDataLevel: " + safeDataLevel +
+          " size: " + encodedMods.length
+          : "");
       /* Do not append mods, they can be too long */
-
-
     }
     return "!!! Unknown version: " + protocolVersion + "!!!";
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public int size()
   {
@@ -192,9 +176,7 @@ public class ModifyMsg extends ModifyCommonMsg
   // Msg Encoding
   // ============
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public byte[] getBytes_V1() throws UnsupportedEncodingException
   {
@@ -209,9 +191,7 @@ public class ModifyMsg extends ModifyCommonMsg
     return encodedMsg;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public byte[] getBytes_V23() throws UnsupportedEncodingException
   {
@@ -228,9 +208,7 @@ public class ModifyMsg extends ModifyCommonMsg
     return encodedMsg;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public byte[] getBytes_V45(short reqProtocolVersion)
       throws UnsupportedEncodingException
