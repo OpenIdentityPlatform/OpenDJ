@@ -28,7 +28,6 @@ package org.opends.server.replication.server.changelog.je;
 
 import java.io.Closeable;
 import java.io.UnsupportedEncodingException;
-import java.util.List;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -182,15 +181,14 @@ public class ReplicationDB
   }
 
   /**
-   * add a list of changes to the underlying db.
+   * add one change to the underlying db.
    *
-   * @param changes
-   *          The list of changes to add to the underlying db.
-   * @return the total size of all the changes
+   * @param change
+   *          The change to add to the underlying db.
    * @throws ChangelogException
    *           If a database problem happened
    */
-  public int addEntries(List<UpdateMsg> changes) throws ChangelogException
+  public void addEntry(UpdateMsg change) throws ChangelogException
   {
     dbCloseLock.readLock().lock();
     try
@@ -198,26 +196,22 @@ public class ReplicationDB
       // If the DB has been closed then return immediately.
       if (isDBClosed())
       {
-        return 0;
+        return;
       }
 
-      int totalSize = 0;
-      for (UpdateMsg change : changes)
-      {
-        final DatabaseEntry key = createReplicationKey(change.getCSN());
-        final DatabaseEntry data = new ReplicationData(change);
+      final DatabaseEntry key = createReplicationKey(change.getCSN());
+      final DatabaseEntry data = new ReplicationData(change);
 
-        insertCounterRecordIfNeeded(change.getCSN());
-        db.put(null, key, data);
-        counterCurrValue++;
-
-        totalSize += change.size();
-      }
-      return totalSize;
+      insertCounterRecordIfNeeded(change.getCSN());
+      db.put(null, key, data);
+      counterCurrValue++;
     }
     catch (DatabaseException e)
     {
-      throw new ChangelogException(e);
+      throw new ChangelogException(
+          ERR_EXCEPTION_COULD_NOT_ADD_CHANGE_TO_REPLICA_DB.get(
+              change.toString(), String.valueOf(baseDN),
+              String.valueOf(serverId), stackTraceToSingleLineString(e)));
     }
     finally
     {

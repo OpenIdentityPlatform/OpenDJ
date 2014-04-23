@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS.
+ *      Portions copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
 
@@ -65,8 +65,6 @@ public class ChangeTimeHeartbeatMsg extends ReplicationMsg
   {
     return csn;
   }
-
-
 
   /**
    * Creates a message from a provided byte array.
@@ -113,11 +111,7 @@ public class ChangeTimeHeartbeatMsg extends ReplicationMsg
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public byte[] getBytes(short protocolVersion)
   {
@@ -141,4 +135,10 @@ public class ChangeTimeHeartbeatMsg extends ReplicationMsg
     }
   }
 
+  /** {@inheritDoc} */
+  @Override
+  public String toString()
+  {
+    return getClass().getSimpleName() + ", csn=" + csn.toStringUI();
+  }
 }
