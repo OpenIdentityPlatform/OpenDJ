@@ -22,10 +22,9 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2014 ForgeRock AS
  */
 package org.opends.server.types;
-
-
 
 /**
  * An interface for iteratively reading date from a
@@ -36,10 +35,10 @@ package org.opends.server.types;
 public final class ByteSequenceReader
 {
 
-  // The current position in the byte sequence.
+  /** The current position in the byte sequence. */
   private int pos = 0;
 
-  // The underlying byte sequence.
+  /** The underlying byte sequence. */
   private final ByteSequence sequence;
 
 
@@ -400,7 +399,35 @@ public final class ByteSequenceReader
     return str;
   }
 
+  /**
+   * Returns the byte situated at the current position. The byte is not
+   * consumed.
+   *
+   * @return the byte situated at the current position
+   * @throws IndexOutOfBoundsException
+   *           If the position is negative or larger than the length of the
+   *           underlying byte sequence.
+   */
+  public byte peek() throws IndexOutOfBoundsException
+  {
+    return sequence.byteAt(pos);
+  }
 
+  /**
+   * Returns the byte situated at the given offset from current position. The
+   * byte is not consumed.
+   *
+   * @param offset
+   *          The offset where to look at from current position.
+   * @return the byte situated at the given offset from current position
+   * @throws IndexOutOfBoundsException
+   *           If the position is negative or larger than the length of the
+   *           underlying byte sequence.
+   */
+  public byte peek(int offset) throws IndexOutOfBoundsException
+  {
+    return sequence.byteAt(pos + offset);
+  }
 
   /**
    * Returns this reader's position.
@@ -498,9 +525,7 @@ public final class ByteSequenceReader
     position(pos + length);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String toString() {
     return sequence.toString();

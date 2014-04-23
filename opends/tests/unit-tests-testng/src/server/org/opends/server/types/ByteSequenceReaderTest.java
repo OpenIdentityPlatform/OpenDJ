@@ -22,24 +22,30 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
-
 package org.opends.server.types;
 
-import org.testng.annotations.Test;
-import org.testng.annotations.DataProvider;
-import org.testng.Assert;
-
 import java.util.Arrays;
+
+import org.testng.Assert;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 /**
  * Test class for ByteSequenceReader
  */
+@SuppressWarnings("javadoc")
 public class ByteSequenceReaderTest extends TypesTestCase
 {
     private static final byte[] eightBytes =
-      new byte[]{ (byte) 0x01, (byte) 0x02, (byte) 0x03, (byte) 0x04,
-          (byte) 0x05, (byte) 0x06, (byte) 0x07, (byte) 0x08 };
+      new byte[]{ b(0x01), b(0x02), b(0x03), b(0x04),
+          b(0x05), b(0x06), b(0x07), b(0x08) };
+
+    private static byte b(int i)
+    {
+      return (byte) i;
+    }
 
   @DataProvider(name = "readerProvider")
   public Object[][] byteSequenceReaderProvider()
@@ -57,9 +63,9 @@ public class ByteSequenceReaderTest extends TypesTestCase
   public void testGet(ByteSequenceReader reader, byte[] ba)
   {
     reader.rewind();
-    for(int i = 0; i < ba.length; i++)
+    for (byte b : ba)
     {
-      Assert.assertEquals(reader.get(), ba[i]);
+      Assert.assertEquals(reader.get(), b);
     }
 
     // The next get should result in IOB exception.
@@ -148,26 +154,26 @@ public class ByteSequenceReaderTest extends TypesTestCase
   public void testGetBERLength()
   {
     ByteSequenceReader reader = ByteString.wrap(new byte[]{
-        (byte) 0x00, (byte) 0x01, (byte) 0x0F, (byte) 0x10,
-        (byte) 0x7F,
+        b(0x00), b(0x01), b(0x0F), b(0x10),
+        b(0x7F),
 
-        (byte) 0x81, (byte) 0xFF,
+        b(0x81), b(0xFF),
 
-        (byte) 0x82, (byte) 0x01, (byte) 0x00,
-        (byte) 0x82, (byte) 0x0F, (byte) 0xFF, (byte) 0x82, (byte) 0x10,
-        (byte) 0x00, (byte) 0x82, (byte) 0xFF, (byte) 0xFF,
+        b(0x82), b(0x01), b(0x00),
+        b(0x82), b(0x0F), b(0xFF), b(0x82), b(0x10),
+        b(0x00), b(0x82), b(0xFF), b(0xFF),
 
-        (byte) 0x83, (byte) 0x01, (byte) 0x00, (byte) 0x00,
-        (byte) 0x83, (byte) 0x0F, (byte) 0xFF, (byte) 0xFF,
-        (byte) 0x83, (byte) 0x10, (byte) 0x00, (byte) 0x00,
-        (byte) 0x83, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF,
+        b(0x83), b(0x01), b(0x00), b(0x00),
+        b(0x83), b(0x0F), b(0xFF), b(0xFF),
+        b(0x83), b(0x10), b(0x00), b(0x00),
+        b(0x83), b(0xFF), b(0xFF), b(0xFF),
 
-        (byte) 0x84, (byte) 0x01, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-        (byte) 0x84, (byte) 0x0F, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF,
-        (byte) 0x84, (byte) 0x10, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-        (byte) 0x84, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF,
+        b(0x84), b(0x01), b(0x00), b(0x00), b(0x00),
+        b(0x84), b(0x0F), b(0xFF), b(0xFF), b(0xFF),
+        b(0x84), b(0x10), b(0x00), b(0x00), b(0x00),
+        b(0x84), b(0xFF), b(0xFF), b(0xFF), b(0xFF),
 
-        (byte) 0x84, (byte) 0x10, (byte) 0x00
+        b(0x84), b(0x10), b(0x00)
     }).asReader();
 
     int[] expectedLength = new int[]{
@@ -183,9 +189,9 @@ public class ByteSequenceReaderTest extends TypesTestCase
         0x01000000, 0x0FFFFFFF, 0x10000000, 0xFFFFFFFF
     };
 
-    for(int i = 0; i < expectedLength.length; i++)
+    for (int length : expectedLength)
     {
-      Assert.assertEquals(reader.getBERLength(), expectedLength[i]);
+      Assert.assertEquals(reader.getBERLength(), length);
     }
 
     // Last one is incomplete and should throw error
@@ -196,8 +202,8 @@ public class ByteSequenceReaderTest extends TypesTestCase
   public void testOversizedGetBERLength()
   {
     ByteSequenceReader reader = ByteString.wrap(new byte[]{
-        (byte) 0x85, (byte) 0x10, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-        (byte) 0x00 }).asReader();
+        b(0x85), b(0x10), b(0x00), b(0x00), b(0x00), b(0x00)
+    }).asReader();
 
     // Shouldn't be able to reader over a 4 byte length.
     reader.getBERLength();
@@ -270,7 +276,7 @@ public class ByteSequenceReaderTest extends TypesTestCase
   public void testGetShort()
   {
     ByteSequenceReader reader = ByteString.wrap(new byte[]{
-        (byte) 0x80, (byte) 0x00, (byte) 0x7F, (byte) 0xFF, (byte) 0xFF
+        b(0x80), b(0x00), b(0x7F), b(0xFF), b(0xFF)
     }).asReader();
 
     Assert.assertEquals(reader.getShort(), Short.MIN_VALUE);
@@ -284,8 +290,8 @@ public class ByteSequenceReaderTest extends TypesTestCase
   public void testGetInt()
   {
     ByteSequenceReader reader = ByteString.wrap(new byte[]{
-        (byte) 0x80, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x7F,
-        (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF }).asReader();
+        b(0x80), b(0x00), b(0x00), b(0x00), b(0x7F),
+        b(0xFF), b(0xFF), b(0xFF), b(0xFF) }).asReader();
 
     Assert.assertEquals(reader.getInt(), Integer.MIN_VALUE);
     Assert.assertEquals(reader.getInt(), Integer.MAX_VALUE);
@@ -298,10 +304,10 @@ public class ByteSequenceReaderTest extends TypesTestCase
   public void testGetLong()
   {
     ByteSequenceReader reader = ByteString.wrap(new byte[]{
-        (byte) 0x80, (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x00,
-        (byte) 0x00, (byte) 0x00, (byte) 0x00, (byte) 0x7F, (byte) 0xFF,
-        (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF,
-        (byte) 0xFF, (byte) 0xFF }).asReader();
+        b(0x80), b(0x00), b(0x00), b(0x00), b(0x00),
+        b(0x00), b(0x00), b(0x00), b(0x7F), b(0xFF),
+        b(0xFF), b(0xFF), b(0xFF), b(0xFF), b(0xFF),
+        b(0xFF), b(0xFF) }).asReader();
 
     Assert.assertEquals(reader.getLong(), Long.MIN_VALUE);
     Assert.assertEquals(reader.getLong(), Long.MAX_VALUE);
@@ -398,4 +404,30 @@ public class ByteSequenceReaderTest extends TypesTestCase
     // Any more skips should result in IOB exception.
     reader.skip(1);
   }
+
+  @Test(dataProvider = "readerProvider")
+  public void testPeek(ByteSequenceReader reader, byte[] ba)
+  {
+    reader.rewind();
+
+    int length = ba.length;
+    int pos = 0;
+    for (int i = 0; i < length; i++)
+    {
+      for (int j = 0; j < length - i; j++)
+      {
+        if (j == 0)
+        {
+          Assert.assertEquals(reader.peek(), ba[pos]);
+        }
+        Assert.assertEquals(reader.peek(j), ba[pos + j]);
+      }
+      pos++;
+      if (pos < length)
+      {
+        reader.skip(1);
+      }
+    }
+  }
+
 }
