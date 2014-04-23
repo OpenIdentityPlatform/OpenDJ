@@ -97,8 +97,6 @@ public class JEReplicaDBTest extends ReplicationTestCase
 
       //--
       // Iterator tests with changes persisted
-      waitChangesArePersisted(replicaDB, 3);
-
       assertFoundInOrder(replicaDB, csns[0], csns[1], csns[2]);
       assertNotFound(replicaDB, csns[4]);
 
@@ -108,7 +106,6 @@ public class JEReplicaDBTest extends ReplicationTestCase
       //--
       // Cursor tests with changes persisted
       replicaDB.add(update4);
-      waitChangesArePersisted(replicaDB, 4);
 
       assertFoundInOrder(replicaDB, csns[0], csns[1], csns[2], csns[3]);
       // Test cursor from existing CSN
@@ -139,29 +136,6 @@ public class JEReplicaDBTest extends ReplicationTestCase
     {
       remove(replicationServer);
     }
-  }
-
-  private void waitChangesArePersisted(JEReplicaDB replicaDB,
-      int nbRecordsInserted) throws Exception
-  {
-    waitChangesArePersisted(replicaDB, nbRecordsInserted, 1000);
-  }
-
-  private void waitChangesArePersisted(JEReplicaDB replicaDB,
-      int nbRecordsInserted, int counterWindow) throws Exception
-  {
-    // one counter record is inserted every time "counterWindow"
-    // records have been inserted
-    int expectedNbRecords =
-        nbRecordsInserted + (nbRecordsInserted - 1) / counterWindow;
-
-    int count = 0;
-    while (replicaDB.getNumberRecords() != expectedNbRecords && count < 100)
-    {
-      Thread.sleep(10);
-      count++;
-    }
-    assertEquals(replicaDB.getNumberRecords(), expectedNbRecords);
   }
 
   static CSN[] newCSNs(int serverId, long timestamp, int number)
@@ -301,7 +275,6 @@ public class JEReplicaDBTest extends ReplicationTestCase
           replicaDB.add(new DeleteMsg(TEST_ROOT_DN, csns[i], "uid"));
         }
       }
-      waitChangesArePersisted(replicaDB, 4);
 
       cursor = replicaDB.generateCursorFrom(csns[0]);
       assertTrue(cursor.next());
@@ -378,7 +351,6 @@ public class JEReplicaDBTest extends ReplicationTestCase
         replicaDB.add(new DeleteMsg(TEST_ROOT_DN, csns[i], "uid"));
         mySeqnum+=2;
       }
-      waitChangesArePersisted(replicaDB, max, counterWindow);
 
       assertEquals(replicaDB.getOldestCSN(), csns[1], "Wrong oldest CSN");
       assertEquals(replicaDB.getNewestCSN(), csns[max], "Wrong newest CSN");
@@ -402,7 +374,6 @@ public class JEReplicaDBTest extends ReplicationTestCase
         replicaDB.add(new DeleteMsg(TEST_ROOT_DN, csns[i], "uid"));
         mySeqnum+=2;
       }
-      waitChangesArePersisted(replicaDB, 2 * max, counterWindow);
 
       assertEquals(replicaDB.getOldestCSN(), csns[1], "Wrong oldest CSN");
       assertEquals(replicaDB.getNewestCSN(), csns[2 * max], "Wrong newest CSN");

@@ -48,8 +48,7 @@ import static org.opends.server.replication.server.changelog.je.JEReplicaDBTest.
 import static org.testng.Assert.*;
 
 /**
- * Test the JEChangeNumberIndexDB class with 2 kinds of cleaning of the db : -
- * periodic trim - call to clear method()
+ * Test the JEChangeNumberIndexDB class.
  */
 @SuppressWarnings("javadoc")
 public class JEChangeNumberIndexDBTest extends ReplicationTestCase
@@ -71,13 +70,13 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
    * <li>create the db</li>
    * <li>add records</li>
    * <li>read them with a cursor</li>
-   * <li>set a very short trim period</li>
-   * <li>wait for the db to be trimmed / here since the changes are not stored
+   * <li>set a very short purge period</li>
+   * <li>wait for the db to be purged / here since the changes are not stored
    * in the replication changelog, the ChangeNumberIndexDB will be cleared.</li>
    * </ol>
    */
   @Test
-  void testPurge() throws Exception
+  public void testPurge() throws Exception
   {
     ReplicationServer replicationServer = null;
     try
@@ -172,8 +171,8 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
    * <li>clear the db</li>
    * </ol>
    */
-  @Test()
-  void testClear() throws Exception
+  @Test
+  public void testClear() throws Exception
   {
     ReplicationServer replicationServer = null;
     try
