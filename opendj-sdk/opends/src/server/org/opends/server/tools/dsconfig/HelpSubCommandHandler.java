@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.tools.dsconfig;
 
@@ -64,6 +64,7 @@ import org.opends.server.admin.StringPropertyDefinition;
 import org.opends.server.admin.Tag;
 import org.opends.server.admin.UndefinedDefaultBehaviorProvider;
 import org.opends.server.admin.UnknownPropertyDefinitionException;
+import org.opends.server.admin.client.ManagedObject;
 import org.opends.server.tools.ClientException;
 import org.opends.server.util.args.ArgumentException;
 import org.opends.server.util.args.BooleanArgument;
@@ -430,16 +431,23 @@ final class HelpSubCommandHandler extends SubCommandHandler {
    *
    * @param app
    *          The application console.
-   * @param d
-   *          The managed object definition.
+   * @param mo
+   *          The managed object.
    * @param c
    *          The collection of properties to be displayed.
    */
   public static void displaySingleComponent(ConsoleApplication app,
-      AbstractManagedObjectDefinition<?, ?> d,
-      Collection<PropertyDefinition<?>> c) {
+      ManagedObject<?> mo, Collection<PropertyDefinition<?>> c)
+  {
+    String ufn = mo.getManagedObjectPath().getName();
+    if (ufn == null)
+    {
+      ufn = mo.getManagedObjectDefinition().getUserFriendlyName().toString();
+    }
     // Display the title.
-    app.println(INFO_DSCFG_HELP_HEADING_COMPONENT.get(d.getUserFriendlyName()));
+    app.println(INFO_DSCFG_HELP_HEADING_COMPONENT.get(ufn));
+
+    final AbstractManagedObjectDefinition<?, ?> d = mo.getManagedObjectDefinition();
 
     app.println();
     app.println(d.getSynopsis());
