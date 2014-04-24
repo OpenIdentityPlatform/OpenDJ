@@ -268,8 +268,8 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
     if (result.isQuit()) {
       if (!app.isMenuDrivenMode()) {
         // User chose to cancel deletion.
-        LocalizableMessage msg = INFO_DSCFG_CONFIRM_DELETE_FAIL.get(ufn);
-        app.printVerboseMessage(msg);
+        app.println();
+        app.println(INFO_DSCFG_CONFIRM_DELETE_FAIL.get(ufn));
       }
       return MenuResult.quit();
     } else if (result.isCancel()) {
@@ -290,8 +290,8 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
           if (sresult.isQuit()) {
             if (!app.isMenuDrivenMode()) {
               // User chose to cancel deletion.
-              LocalizableMessage msg = INFO_DSCFG_CONFIRM_DELETE_FAIL.get(ufn);
-              app.printVerboseMessage(msg);
+              app.println();
+              app.println(INFO_DSCFG_CONFIRM_DELETE_FAIL.get(ufn));
             }
             return MenuResult.quit();
           } else if (sresult.isCancel()) {
@@ -397,8 +397,8 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
     }
 
     // Output success message.
-    LocalizableMessage msg = INFO_DSCFG_CONFIRM_DELETE_SUCCESS.get(ufn);
-    app.printVerboseMessage(msg);
+    app.println();
+    app.println(INFO_DSCFG_CONFIRM_DELETE_SUCCESS.get(ufn));
 
     return MenuResult.success(0);
   }
@@ -415,7 +415,7 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
         // Output failure message.
         LocalizableMessage msg = INFO_DSCFG_CONFIRM_DELETE_FAIL.get(relation
             .getUserFriendlyName());
-        app.printVerboseMessage(msg);
+        app.println(msg);
         return false;
       }
     }
