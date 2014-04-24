@@ -179,12 +179,6 @@ public enum ReturnCode {
      */
     CLIENT_SIDE_AUTH_UNKNOWN(86),
     /**
-     * The client-side result code that indicates that the client was not able to
-     * establish a connection to the server.  This is for client-side use only and
-     * should never be transferred over protocol.
-     */
-    CLIENT_SIDE_CONNECT_ERROR(91),
-    /**
      * The client-side result code that indicates that there was a problem with one or more of the parameters provided
      * by the user.
      * <PRE>
@@ -192,11 +186,12 @@ public enum ReturnCode {
      * </PRE>
      */
     CLIENT_SIDE_PARAM_ERROR(89),
-
     /**
-     * TODO to review.
+     * The client-side result code that indicates that the client was not able to
+     * establish a connection to the server.  This is for client-side use only and
+     * should never be transferred over protocol.
      */
-    TODO(99);
+    CLIENT_SIDE_CONNECT_ERROR(91);
 
     private int returnCode;
     private static final Map<Integer, String> RETURNCODE = new HashMap<Integer, String>();
