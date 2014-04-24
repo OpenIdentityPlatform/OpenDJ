@@ -293,8 +293,8 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
         if (result.isQuit()) {
           if (!app.isMenuDrivenMode()) {
             // User chose to cancel any changes.
-            LocalizableMessage msg = INFO_DSCFG_CONFIRM_MODIFY_FAIL.get(ufn);
-            app.printVerboseMessage(msg);
+            app.println();
+            app.println(INFO_DSCFG_CONFIRM_MODIFY_FAIL.get(ufn));
           }
           return MenuResult.quit();
         } else if (result.isCancel()) {
@@ -311,8 +311,7 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
           if (app.isVerbose() || app.isInteractive())
           {
             app.println();
-            LocalizableMessage msg = INFO_DSCFG_CONFIRM_MODIFY_SUCCESS.get(ufn);
-            app.printVerboseMessage(msg);
+            app.println(INFO_DSCFG_CONFIRM_MODIFY_SUCCESS.get(ufn));
           }
 
           for (PropertyEditorModification<?> mod : editor.getModifications())
@@ -325,7 +324,7 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
             {
               // This is a bug
               throw new RuntimeException(
-                  "Unexpected error generating the command builder: "+ae, ae);
+                  "Unexpected error generating the command builder: " + ae, ae);
             }
           }
 
@@ -752,8 +751,8 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
     if (result.isQuit()) {
       if (!app.isMenuDrivenMode()) {
         // User chose to quit.
-        LocalizableMessage msg = INFO_DSCFG_CONFIRM_MODIFY_FAIL.get(ufn);
-        app.printVerboseMessage(msg);
+        app.println();
+        app.println(INFO_DSCFG_CONFIRM_MODIFY_FAIL.get(ufn));
       }
       return MenuResult.quit();
     } else if (result.isCancel()) {

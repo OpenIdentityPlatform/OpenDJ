@@ -739,8 +739,8 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
         if (result.isQuit()) {
           if (!app.isMenuDrivenMode()) {
             // User chose to cancel any changes.
-            LocalizableMessage msg = INFO_DSCFG_CONFIRM_CREATE_FAIL.get(ufn);
-            app.printVerboseMessage(msg);
+            app.println();
+            app.println(INFO_DSCFG_CONFIRM_CREATE_FAIL.get(ufn));
           }
           return MenuResult.quit();
         } else if (result.isCancel()) {
@@ -756,9 +756,8 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
         if (app.isInteractive() || app.isVerbose())
         {
           app.println();
+          app.println(INFO_DSCFG_CONFIRM_CREATE_SUCCESS.get(ufn));
         }
-        LocalizableMessage msg = INFO_DSCFG_CONFIRM_CREATE_SUCCESS.get(ufn);
-        app.printVerboseMessage(msg);
 
         if (handler != null) {
           for (PropertyEditorModification<?> mod : editor.getModifications()) {
@@ -810,16 +809,16 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
               .getMessageObject(), e);
         }
       } catch (ErrorResultException e) {
-        LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_CE.get(ufn, e.getMessage());
+        final LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_CE.get(ufn, e.getMessage());
         if (app.isInteractive()) {
           app.println();
           app.printVerboseMessage(msg);
           return MenuResult.cancel();
         } else {
-          throw new ClientException(ReturnCode.OTHER, msg);
+          throw new ClientException(ReturnCode.CLIENT_SIDE_SERVER_DOWN, msg);
         }
       } catch (ManagedObjectAlreadyExistsException e) {
-        LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_MOAEE.get(ufn);
+        final LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_MOAEE.get(ufn);
         if (app.isInteractive()) {
           app.println();
           app.printVerboseMessage(msg);
@@ -1194,8 +1193,8 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
     if (result.isQuit()) {
       if (!app.isMenuDrivenMode()) {
         // User chose to cancel creation.
-        LocalizableMessage msg = INFO_DSCFG_CONFIRM_CREATE_FAIL.get(ufn);
-        app.printVerboseMessage(msg);
+        app.println();
+        app.println(INFO_DSCFG_CONFIRM_CREATE_FAIL.get(ufn));
       }
       return MenuResult.quit();
     } else if (result.isCancel()) {
@@ -1257,7 +1256,8 @@ final class CreateSubCommandHandler<C extends ConfigurationClient,
         } else {
           // Must be quit.
           if (!app.isMenuDrivenMode()) {
-            app.printVerboseMessage(INFO_DSCFG_CONFIRM_CREATE_FAIL.get(ufn));
+            app.println();
+            app.println(INFO_DSCFG_CONFIRM_CREATE_FAIL.get(ufn));
           }
           return MenuResult.quit();
         }
