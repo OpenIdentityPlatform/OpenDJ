@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.tools.dsconfig;
 
@@ -208,8 +208,7 @@ final class PropertyValueEditor {
      */
     public void display(ConsoleApplication app) {
       app.println();
-      HelpSubCommandHandler.displaySingleComponent(app, mo
-          .getManagedObjectDefinition(), properties);
+      HelpSubCommandHandler.displaySingleComponent(app, mo, properties);
       app.println();
       app.pressReturnToContinue();
     }
@@ -2291,7 +2290,11 @@ final class PropertyValueEditor {
       // Construct the main menu.
       MenuBuilder<Boolean> builder = new MenuBuilder<Boolean>(app);
 
-      Message ufn = mo.getManagedObjectDefinition().getUserFriendlyName();
+      String ufn = mo.getManagedObjectPath().getName();
+      if (ufn == null)
+      {
+        ufn = mo.getManagedObjectDefinition().getUserFriendlyName().toString();
+      }
       builder.setPrompt(INFO_EDITOR_HEADING_CONFIGURE_COMPONENT.get(ufn));
 
       Message heading1 = INFO_DSCFG_HEADING_PROPERTY_NAME.get();
