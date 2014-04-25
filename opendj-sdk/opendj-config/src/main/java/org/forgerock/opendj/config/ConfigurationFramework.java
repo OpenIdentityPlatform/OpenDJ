@@ -321,7 +321,7 @@ public final class ConfigurationFramework {
             throw new IllegalStateException("configuration framework already initialized.");
         }
         this.installPath = installPath == null ? System.getProperty("user.dir") : installPath;
-        this.instancePath = instancePath == null ? installPath : instancePath;
+        this.instancePath = instancePath == null ? this.installPath : instancePath;
         this.parent = parent;
         initialize0();
         return this;
@@ -799,6 +799,24 @@ public final class ConfigurationFramework {
                             stackTraceToSingleLineString(e, true));
             throw new ConfigException(message);
         }
+    }
+
+    /**
+     * Returns the installation path.
+     *
+     * @return The installation path of this instance.
+     */
+    public String getInstallPath() {
+        return installPath;
+    }
+
+    /**
+     * Returns the instance path.
+     *
+     * @return The instance path.
+     */
+    public String getInstancePath() {
+        return instancePath;
     }
 
 }

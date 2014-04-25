@@ -58,6 +58,11 @@
       <artifactId>opendj-core</artifactId>
       <version>${project.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.forgerock.opendj</groupId>
+      <artifactId>opendj-cli</artifactId>
+      <version>${project.version}</version>
+    </dependency>
   </dependencies>
   <properties>
     <opendj.osgi.import>
