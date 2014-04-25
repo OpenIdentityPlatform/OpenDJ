@@ -50,118 +50,90 @@ import com.forgerock.opendj.cli.ReturnCode;
 /**
  * An LDAP management context factory for the DSConfig tool.
  */
-public final class LDAPManagementContextFactory
-{
+public final class LDAPManagementContextFactory {
 
-  /** The management context. */
-  private ManagementContext context;
+    /** The management context. */
+    private ManagementContext context;
 
-  /** The connection parameters command builder. */
-  private CommandBuilder contextCommandBuilder;
+    /** The connection parameters command builder. */
+    private CommandBuilder contextCommandBuilder;
 
-  /** The connection factory provider. */
-  private final ConnectionFactoryProvider provider;
+    /** The connection factory provider. */
+    private final ConnectionFactoryProvider provider;
 
-  /** The connection factory. */
-  private final ConnectionFactory factory;
+    /** The connection factory. */
+    private final ConnectionFactory factory;
 
-  /**
-   * Creates a new LDAP management context factory based on an authenticated
-   * connection factory.
-   *
-   * @param cfp
-   *          The connection factory provider which should be used in this
-   *          context.
-   * @throws ArgumentException
-   *           If an exception occurs when creating the authenticated connection
-   *           factory linked to this context.
-   */
-  public LDAPManagementContextFactory(ConnectionFactoryProvider cfp) throws ArgumentException {
-    this.provider = cfp;
-    factory = cfp.getAuthenticatedConnectionFactory();
-  }
-
-  /**
-   * Closes this management context.
-   */
-  public void close()
-  {
-    closeSilently(context);
-  }
-
-  /**
-   * Returns the command builder that provides the equivalent arguments in
-   * interactive mode to get the management context.
-   *
-   * @return the command builder that provides the equivalent arguments in
-   *         interactive mode to get the management context.
-   */
-  public CommandBuilder getContextCommandBuilder()
-  {
-    return contextCommandBuilder;
-  }
-
-  /**
-   * Gets the management context which sub-commands should use in
-   * order to manage the directory server.
-   *
-   * @param app
-   *          The console application instance.
-   * @return Returns the management context which sub-commands should
-   *         use in order to manage the directory server.
-   * @throws ArgumentException
-   *           If a management context related argument could not be
-   *           parsed successfully.
-   * @throws ClientException
-   *           If the management context could not be created.
-   */
-  public ManagementContext getManagementContext(ConsoleApplication app)
-      throws ArgumentException, ClientException
-  {
-    // Lazily create the LDAP management context.
-    if (context == null)
-    {
-      Connection connection;
-      final String hostName = provider.getHostname();
-      final int port = provider.getPort();
-      try
-      {
-        connection = factory.getConnection();
-        BuildVersion.checkVersionMismatch(connection);
-      }
-      catch (ErrorResultException e)
-      {
-        if (e.getCause() instanceof SSLException)
-        {
-          throw new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR,
-              ERR_FAILED_TO_CONNECT_NOT_TRUSTED.get(hostName, String
-                  .valueOf(port)));
-        }
-        else
-        {
-          throw new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR,
-              ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(hostName, String
-                  .valueOf(port)));
-        }
-      }
-      catch (ConfigException e)
-      {
-        throw new ClientException(ReturnCode.ERROR_USER_DATA,e.getMessageObject());
-      }
-      catch (Exception ex)
-      {
-        throw new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR,
-            ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(hostName, port));
-      }
-      finally
-      {
-        closeSilently(factory);
-      }
-
-      context =
-          LDAPManagementContext.newManagementContext(connection, LDAPProfile
-              .getInstance());
+    /**
+     * Creates a new LDAP management context factory based on an authenticated connection factory.
+     *
+     * @param cfp
+     *            The connection factory provider which should be used in this context.
+     * @throws ArgumentException
+     *             If an exception occurs when creating the authenticated connection factory linked to this context.
+     */
+    public LDAPManagementContextFactory(ConnectionFactoryProvider cfp) throws ArgumentException {
+        this.provider = cfp;
+        factory = cfp.getAuthenticatedConnectionFactory();
     }
-    return context;
-  }
+
+    /**
+     * Closes this management context.
+     */
+    public void close() {
+        closeSilently(context);
+    }
+
+    /**
+     * Returns the command builder that provides the equivalent arguments in interactive mode to get the management
+     * context.
+     *
+     * @return the command builder that provides the equivalent arguments in interactive mode to get the management
+     *         context.
+     */
+    public CommandBuilder getContextCommandBuilder() {
+        return contextCommandBuilder;
+    }
+
+    /**
+     * Gets the management context which sub-commands should use in order to manage the directory server.
+     *
+     * @param app
+     *            The console application instance.
+     * @return Returns the management context which sub-commands should use in order to manage the directory server.
+     * @throws ArgumentException
+     *             If a management context related argument could not be parsed successfully.
+     * @throws ClientException
+     *             If the management context could not be created.
+     */
+    public ManagementContext getManagementContext(ConsoleApplication app) throws ArgumentException, ClientException {
+        // Lazily create the LDAP management context.
+        if (context == null) {
+            Connection connection;
+            final String hostName = provider.getHostname();
+            final int port = provider.getPort();
+            try {
+                connection = factory.getConnection();
+                BuildVersion.checkVersionMismatch(connection);
+            } catch (ErrorResultException e) {
+                if (e.getCause() instanceof SSLException) {
+                    throw new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR,
+                            ERR_FAILED_TO_CONNECT_NOT_TRUSTED.get(hostName, String.valueOf(port)));
+                } else {
+                    throw new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR,
+                            ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(hostName, String.valueOf(port)));
+                }
+            } catch (ConfigException e) {
+                throw new ClientException(ReturnCode.ERROR_USER_DATA, e.getMessageObject());
+            } catch (Exception ex) {
+                throw new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR,
+                        ERR_DSCFG_ERROR_LDAP_FAILED_TO_CONNECT.get(hostName, port));
+            } finally {
+                closeSilently(factory);
+            }
+
+            context = LDAPManagementContext.newManagementContext(connection, LDAPProfile.getInstance());
+        }
+        return context;
+    }
 }
