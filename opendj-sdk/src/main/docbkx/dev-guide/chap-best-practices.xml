@@ -20,7 +20,7 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2011-2013 ForgeRock AS
+  !      Copyright 2011-2014 ForgeRock AS
   !    
 -->
 <chapter xml:id='chap-best-practices'
@@ -350,7 +350,7 @@
    When you start your application, read directory server schemas
    as a one-off initialization step, using a method such as
    <literal>Schema.readSchema()</literal>. For sample code see the section,
-   <link xlink:href="get-schema-information" xlink:show="new"
+   <link xlink:href="dev-guide#get-schema-information" xlink:show="new"
    xlink:role="http://docbook.org/xlink/role/olink"><citetitle
    >Getting Schema Information</citetitle></link>.
   </para>
