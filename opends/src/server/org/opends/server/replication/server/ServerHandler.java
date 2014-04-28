@@ -27,7 +27,6 @@
 package org.opends.server.replication.server;
 
 import java.io.IOException;
-
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.Semaphore;
@@ -61,35 +60,6 @@ public abstract class ServerHandler extends MessageHandler
    * during the shutdownWriter.
    */
   private static final int SHUTDOWN_JOIN_TIMEOUT = 30000;
-
-  /**
-   * Close the session and log the provided error message
-   * Log nothing if message is null.
-   * @param providedSession The provided closing session.
-   * @param providedMsg     The provided error message.
-   * @param handler         The handler that manages that session.
-   */
-  static protected void closeSession(Session providedSession,
-      Message providedMsg, ServerHandler handler)
-  {
-    if (providedMsg != null)
-    {
-      if (debugEnabled())
-        TRACER.debugInfo("In " +
-          ((handler != null) ? handler.toString() : "Replication Server") +
-          " closing session with err=" + providedMsg);
-      logError(providedMsg);
-    }
-
-    if (providedSession != null)
-    {
-      // This method is only called when aborting a failing handshake and
-      // not StopMsg should be sent in such situation. StopMsg are only
-      // expected when full handshake has been performed, or at end of
-      // handshake phase 1, when DS was just gathering available RS info
-      providedSession.close();
-    }
-  }
 
   /**
    * The serverId of the remote server.
@@ -243,7 +213,20 @@ public abstract class ServerHandler extends MessageHandler
     Session localSession = session;
     if (localSession != null)
     {
-      closeSession(localSession, reason, this);
+      if (reason != null)
+      {
+        if (debugEnabled())
+        {
+         TRACER.debugInfo("In " + this + " closing session with err=" + reason);
+        }
+        logError(reason);
+      }
+
+      // This method is only called when aborting a failing handshake and
+      // not StopMsg should be sent in such situation. StopMsg are only
+      // expected when full handshake has been performed, or at end of
+      // handshake phase 1, when DS was just gathering available RS info
+      localSession.close();
     }
 
     releaseDomainLock();
@@ -252,7 +235,7 @@ public abstract class ServerHandler extends MessageHandler
     // We may have changed it as it was -1 and we received a value >0 from peer
     // server and the last topo message sent may have failed being sent: in that
     // case retrieve old value of generation id for replication server domain
-    if (oldGenerationId != -100 && replicationServerDomain != null)
+    if (oldGenerationId != -100)
     {
       replicationServerDomain.changeGenerationId(oldGenerationId);
     }
@@ -263,7 +246,7 @@ public abstract class ServerHandler extends MessageHandler
    */
   protected void releaseDomainLock()
   {
-    if (replicationServerDomain != null && replicationServerDomain.hasLock())
+    if (replicationServerDomain.hasLock())
     {
       replicationServerDomain.release();
     }
@@ -333,8 +316,7 @@ public abstract class ServerHandler extends MessageHandler
       {
         final Message message =
             ERR_SESSION_STARTUP_INTERRUPTED.get(session.getName());
-        throw new DirectoryException(ResultCode.OTHER,
-            message, e);
+        throw new DirectoryException(ResultCode.OTHER, message, e);
       }
       reader.start();
       writer.start();
@@ -366,7 +348,7 @@ public abstract class ServerHandler extends MessageHandler
   public void send(ReplicationMsg msg) throws IOException
   {
     // avoid logging anything for unit tests that include a null domain.
-    if (debugEnabled() && replicationServerDomain != null)
+    if (debugEnabled())
     {
       TRACER.debugInfo("In "
           + replicationServerDomain.getLocalRSMonitorInstanceName() + " "
@@ -515,16 +497,6 @@ public abstract class ServerHandler extends MessageHandler
     return heartbeatInterval;
   }
 
-  /**
-   * Get the count of updates received from the server.
-   * @return the count of update received from the server.
-   */
-  @Override
-  public int getInCount()
-  {
-    return inCount;
-  }
-
   /** {@inheritDoc} */
   @Override
   public List<Attribute> getMonitorData()
@@ -595,16 +567,6 @@ public abstract class ServerHandler extends MessageHandler
    */
   @Override
   public abstract String getMonitorInstanceName();
-
-  /**
-   * Get the count of updates sent to this server.
-   * @return  The count of update sent to this server.
-   */
-  @Override
-  public int getOutCount()
-  {
-    return outCount;
-  }
 
   /**
    * Gets the protocol version used with this remote server.
@@ -714,9 +676,7 @@ public abstract class ServerHandler extends MessageHandler
     assuredSrSentUpdatesTimeout.incrementAndGet();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeMonitorProvider(MonitorProviderCfg configuration)
   throws ConfigException, InitializationException
@@ -822,16 +782,11 @@ public abstract class ServerHandler extends MessageHandler
   public void lockDomainWithTimeout() throws DirectoryException,
       InterruptedException
   {
-    if (replicationServerDomain == null)
-    {
-      return;
-    }
-
-    Random random = new Random();
-    int randomTime = random.nextInt(6); // Random from 0 to 5
+    final Random random = new Random();
+    final int randomTime = random.nextInt(6); // Random from 0 to 5
     // Wait at least 3 seconds + (0 to 5 seconds)
-    long timeout = 3000 + (randomTime * 1000);
-    boolean lockAcquired = replicationServerDomain.tryLock(timeout);
+    final long timeout = 3000 + (randomTime * 1000);
+    final boolean lockAcquired = replicationServerDomain.tryLock(timeout);
     if (!lockAcquired)
     {
       Message message = WARN_TIMEOUT_WHEN_CROSS_CONNECTION.get(
@@ -1197,8 +1152,7 @@ public abstract class ServerHandler extends MessageHandler
    */
   void processAck(AckMsg ack)
   {
-    if (replicationServerDomain!=null)
-      replicationServerDomain.processAck(ack, this);
+    replicationServerDomain.processAck(ack, this);
   }
 
   /**
@@ -1207,9 +1161,7 @@ public abstract class ServerHandler extends MessageHandler
    */
   public long getReferenceGenId()
   {
-    if (replicationServerDomain != null)
-      return replicationServerDomain.getGenerationId();
-    return -1;
+    return replicationServerDomain.getGenerationId();
   }
 
   /**
@@ -1218,8 +1170,7 @@ public abstract class ServerHandler extends MessageHandler
    */
   void processResetGenId(ResetGenerationIdMsg msg)
   {
-    if (replicationServerDomain!=null)
-      replicationServerDomain.resetGenerationId(this, msg);
+    replicationServerDomain.resetGenerationId(this, msg);
   }
 
   /**
@@ -1230,8 +1181,7 @@ public abstract class ServerHandler extends MessageHandler
   public void put(UpdateMsg update) throws IOException
   {
     decAndCheckWindow();
-    if (replicationServerDomain!=null)
-      replicationServerDomain.put(update, this);
+    replicationServerDomain.put(update, this);
   }
 
   /**
@@ -1239,8 +1189,7 @@ public abstract class ServerHandler extends MessageHandler
    */
   public void doStop()
   {
-    if (replicationServerDomain!=null)
-      replicationServerDomain.stopServer(this, false);
+    replicationServerDomain.stopServer(this, false);
   }
 
   /**
