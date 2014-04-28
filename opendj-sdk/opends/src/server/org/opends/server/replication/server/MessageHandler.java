@@ -622,7 +622,7 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
     {
       this.baseDN = baseDN;
       setDomain(!"cn=changelog".equals(baseDN.toNormalizedString())
-      		&& isDataServer);
+          && isDataServer);
     }
   }
 
