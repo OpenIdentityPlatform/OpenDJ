@@ -838,8 +838,7 @@ public final class ECLServerHandler extends ServerHandler
    */
   private void registerIntoDomain()
   {
-    if (replicationServerDomain != null)
-      replicationServerDomain.registerHandler(this);
+    replicationServerDomain.registerHandler(this);
   }
 
   /**

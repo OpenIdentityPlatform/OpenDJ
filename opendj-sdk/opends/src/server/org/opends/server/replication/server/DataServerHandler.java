@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -654,7 +654,6 @@ public class DataServerHandler extends ServerHandler
    */
   public void receiveNewStatus(ChangeStatusMsg csMsg)
   {
-    if (replicationServerDomain!=null)
-      replicationServerDomain.processNewStatus(this, csMsg);
+    replicationServerDomain.processNewStatus(this, csMsg);
   }
 }
