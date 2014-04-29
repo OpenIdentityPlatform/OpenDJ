@@ -113,11 +113,15 @@ public final class RootDSE {
     private static final AttributeDescription ATTR_VENDOR_VERSION = AttributeDescription
             .create(CoreSchema.getVendorNameAttributeType());
 
+    private static final AttributeDescription ATTR_FULL_VENDOR_VERSION = AttributeDescription
+            .create(CoreSchema.getFullVendorVersionAttributeType());
+
     private static final SearchRequest SEARCH_REQUEST = Requests.newSearchRequest(DN.rootDN(),
             SearchScope.BASE_OBJECT, Filter.objectClassPresent(), ATTR_ALT_SERVER.toString(),
             ATTR_NAMING_CONTEXTS.toString(), ATTR_SUPPORTED_CONTROL.toString(),
             ATTR_SUPPORTED_EXTENSION.toString(), ATTR_SUPPORTED_FEATURE.toString(),
             ATTR_SUPPORTED_LDAP_VERSION.toString(), ATTR_SUPPORTED_SASL_MECHANISMS.toString(),
+            ATTR_FULL_VENDOR_VERSION.toString(),
             ATTR_VENDOR_NAME.toString(), ATTR_VENDOR_VERSION.toString(),
             ATTR_SUPPORTED_AUTH_PASSWORD_SCHEMES.toString(), ATTR_SUBSCHEMA_SUBENTRY.toString(),
             "*");
@@ -403,6 +407,17 @@ public final class RootDSE {
      */
     public String getVendorVersion() {
         return getSingleValuedAttribute(ATTR_VENDOR_VERSION, Functions.byteStringToString());
+    }
+
+    /**
+     * Returns a string which represents the full version of the Directory Server
+     * implementation.
+     *
+     * @return The full version of the Directory Server implementation, or
+     *         {@code null} if the vendor version is not provided.
+     */
+    public String getFullVendorVersion() {
+        return getSingleValuedAttribute(ATTR_FULL_VENDOR_VERSION, Functions.byteStringToString());
     }
 
     private <N> Collection<N> getMultiValuedAttribute(

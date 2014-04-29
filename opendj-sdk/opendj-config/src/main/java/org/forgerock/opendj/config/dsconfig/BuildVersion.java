@@ -85,13 +85,8 @@ public class BuildVersion implements Comparable<BuildVersion> {
      */
     public static BuildVersion binaryVersion(final Connection connection) throws ConfigException {
         try {
-            final SearchResultEntry entry = connection.readEntry("cn=Version,cn=monitor", "majorVersion",
-                    "minorVersion", "pointVersion", "revisionNumber");
-            final int eMajor = Integer.valueOf(entry.getAttribute("majorVersion").firstValueAsString());
-            final int eMinor = Integer.valueOf(entry.getAttribute("minorVersion").firstValueAsString());
-            final int ePoint = Integer.valueOf(entry.getAttribute("pointVersion").firstValueAsString());
-            final long eRev = Long.valueOf(entry.getAttribute("revisionNumber").firstValueAsString());
-            return new BuildVersion(eMajor, eMinor, ePoint, eRev);
+            final SearchResultEntry entry = connection.readEntry("", "fullVendorVersion");
+            return valueOf(entry.getAttribute("fullVendorVersion").firstValueAsString());
         } catch (ErrorResultException e) {
             throw new ConfigException(ERR_CONFIGVERSION_NOT_FOUND.get());
         }

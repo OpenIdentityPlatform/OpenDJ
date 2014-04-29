@@ -293,9 +293,7 @@ public final class DSConfig extends ConsoleApplication {
     public static int main(String[] args, OutputStream outStream, OutputStream errStream) {
         final DSConfig app = new DSConfig(System.in, outStream, errStream);
         app.sessionStartTime = System.currentTimeMillis();
-        /*
-         * FIXME: obtain path info from system properties.
-         */
+
         if (!ConfigurationFramework.getInstance().isInitialized()) {
             try {
                 ConfigurationFramework.getInstance().initialize();
@@ -612,12 +610,6 @@ public final class DSConfig extends ConsoleApplication {
             displayMessageAndUsageReference(ERR_ERROR_PARSING_ARGS.get(e.getMessage()));
             return ReturnCode.CONFLICTING_ARGS.get();
         }
-
-        // Checks the version - if upgrade required, the tool is unusable
-        /*
-         * try { BuildVersion.checkVersionMismatch(); } catch (ConfigException e) { println(e.getMessageObject());
-         * return ReturnCode.ERROR_USER_DATA.get(); }
-         */
 
         // Handle batch file if any
         if (batchFileArgument.isPresent()) {
