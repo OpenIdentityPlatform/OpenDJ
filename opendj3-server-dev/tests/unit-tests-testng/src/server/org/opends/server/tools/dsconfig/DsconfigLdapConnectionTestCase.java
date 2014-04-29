@@ -29,6 +29,7 @@ package org.opends.server.tools.dsconfig;
 import java.io.File;
 import java.io.FileWriter;
 
+import org.forgerock.opendj.config.dsconfig.DSConfig;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;

@@ -23,11 +23,11 @@ rem CDDL HEADER END
 rem
 rem
 rem      Copyright 2006-2008 Sun Microsystems, Inc.
-rem      Portions Copyright 2011 ForgeRock AS
+rem      Portions Copyright 2011-2014 ForgeRock AS
 
 setlocal
 
-set OPENDJ_INVOKE_CLASS="org.opends.server.tools.dsconfig.DSConfig"
+set OPENDJ_INVOKE_CLASS="org.forgerock.opendj.config.dsconfig.DSConfig"
 set SCRIPT_NAME=dsconfig
 for %%i in (%~sf0) do call "%%~dPsi\..\lib\_client-script.bat" %*
 

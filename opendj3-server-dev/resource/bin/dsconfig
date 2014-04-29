@@ -23,11 +23,11 @@
 #
 #
 #      Copyright 2006-2008 Sun Microsystems, Inc.
-#      Portions Copyright 2011 ForgeRock AS
+#      Portions Copyright 2011-2014 ForgeRock AS
 
 
 # This script may be used to perform configuration operations on the server.
-OPENDJ_INVOKE_CLASS="org.opends.server.tools.dsconfig.DSConfig"
+OPENDJ_INVOKE_CLASS="org.forgerock.opendj.config.dsconfig.DSConfig"
 export OPENDJ_INVOKE_CLASS
 
 SCRIPT_NAME="dsconfig"
