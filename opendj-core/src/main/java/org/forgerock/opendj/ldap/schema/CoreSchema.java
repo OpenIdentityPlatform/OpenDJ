@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2014 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -267,7 +268,7 @@ public final class CoreSchema {
     private static final AttributeType FACSIMILE_TELEPHONE_NUMBER_ATTRIBUTE_TYPE
         = CoreSchemaImpl.getInstance().getAttributeType("2.5.4.23");
     private static final AttributeType FULL_VENDOR_VERSION_ATTRIBUTE_TYPE
-        = CoreSchemaImpl.getInstance().getAttributeType("1.3.6.1.4.1.36733.2.1.1.136");
+        = CoreSchemaImpl.getInstance().getAttributeType("1.3.6.1.4.1.36733.2.1.1.141");
     private static final AttributeType GENERATION_QUALIFIER_ATTRIBUTE_TYPE
         = CoreSchemaImpl.getInstance().getAttributeType("2.5.4.44");
     private static final AttributeType GIVEN_NAME_ATTRIBUTE_TYPE
@@ -612,7 +613,7 @@ public final class CoreSchema {
     }
 
     /**
-     * Returns a reference to the {@code Full Vendor Version} which has the OID {@code 1.3.6.1.4.1.36733.2.1.1.136}.
+     * Returns a reference to the {@code Full Vendor Version} which has the OID {@code 1.3.6.1.4.1.36733.2.1.1.141}.
      *
      * @return A reference to the {@code Full Vendor Version}.
      */
