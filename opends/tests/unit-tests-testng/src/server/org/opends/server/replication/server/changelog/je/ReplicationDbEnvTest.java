@@ -52,7 +52,7 @@ public class ReplicationDbEnvTest extends DirectoryServerTestCase
 {
 
 	/**
-	 * Bypass heavyweight setup. 
+	 * Bypass heavyweight setup.
 	 */
 	private final class TestableReplicationDbEnv extends ReplicationDbEnv
 	{
@@ -93,8 +93,7 @@ public class ReplicationDbEnvTest extends DirectoryServerTestCase
 		return new Object[][] {
 			{ DN.decode("dc=example,dc=com"), 524157415, asList(42, 346) },
 			// test with a space in the baseDN (space is the field separator in the DB)
-			// FIXME does not work yet (gosh!!)
-			// { DN.decode("cn=admin data"), 524157415, asList(42, 346) },
+			{ DN.decode("cn=admin data"), 524157415, asList(42, 346) },
 	  };
 	}
 
