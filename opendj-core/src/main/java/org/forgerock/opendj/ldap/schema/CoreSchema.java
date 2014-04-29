@@ -266,6 +266,8 @@ public final class CoreSchema {
         = CoreSchemaImpl.getInstance().getAttributeType("1.3.6.1.1.16.4");
     private static final AttributeType FACSIMILE_TELEPHONE_NUMBER_ATTRIBUTE_TYPE
         = CoreSchemaImpl.getInstance().getAttributeType("2.5.4.23");
+    private static final AttributeType FULL_VENDOR_VERSION_ATTRIBUTE_TYPE
+        = CoreSchemaImpl.getInstance().getAttributeType("1.3.6.1.4.1.36733.2.1.1.136");
     private static final AttributeType GENERATION_QUALIFIER_ATTRIBUTE_TYPE
         = CoreSchemaImpl.getInstance().getAttributeType("2.5.4.44");
     private static final AttributeType GIVEN_NAME_ATTRIBUTE_TYPE
@@ -607,6 +609,15 @@ public final class CoreSchema {
      */
     public static Syntax getFaxSyntax() {
         return FAX_SYNTAX;
+    }
+
+    /**
+     * Returns a reference to the {@code Full Vendor Version} which has the OID {@code 1.3.6.1.4.1.36733.2.1.1.136}.
+     *
+     * @return A reference to the {@code Full Vendor Version}.
+     */
+    public static AttributeType getFullVendorVersionAttributeType() {
+        return FULL_VENDOR_VERSION_ATTRIBUTE_TYPE;
     }
 
     /**
