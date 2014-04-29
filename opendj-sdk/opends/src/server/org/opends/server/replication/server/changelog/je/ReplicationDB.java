@@ -60,7 +60,7 @@ public class ReplicationDB
 {
 
   private Database db;
-  private ReplicationDbEnv dbenv;
+  private ReplicationDbEnv dbEnv;
   private ReplicationServer replicationServer;
   private int serverId;
   private DN baseDN;
@@ -117,22 +117,22 @@ public class ReplicationDB
    * @param serverId The identifier of the LDAP server.
    * @param baseDN The baseDN of the replication domain.
    * @param replicationServer The ReplicationServer that needs to be shutdown.
-   * @param dbenv The Db environment to use to create the db.
+   * @param dbEnv The Db environment to use to create the db.
    * @throws ChangelogException If a database problem happened
    */
   public ReplicationDB(int serverId, DN baseDN,
-      ReplicationServer replicationServer, ReplicationDbEnv dbenv)
+      ReplicationServer replicationServer, ReplicationDbEnv dbEnv)
       throws ChangelogException
   {
     this.serverId = serverId;
     this.baseDN = baseDN;
-    this.dbenv = dbenv;
+    this.dbEnv = dbEnv;
     this.replicationServer = replicationServer;
 
     // Get or create the associated ReplicationServerDomain and Db.
     final ReplicationServerDomain domain =
         replicationServer.getReplicationServerDomain(baseDN, true);
-    db = dbenv.getOrAddDb(serverId, baseDN, domain.getGenerationId());
+    db = dbEnv.getOrAddReplicationDB(serverId, baseDN, domain.getGenerationId());
 
     intializeCounters();
   }
@@ -649,7 +649,7 @@ public class ReplicationDB
 
         // Create the transaction that will protect whatever done with this
         // write cursor.
-        localTxn = dbenv.beginTransaction();
+        localTxn = dbEnv.beginTransaction();
         localCursor = db.openCursor(localTxn, null);
 
         txn = localTxn;
@@ -701,7 +701,7 @@ public class ReplicationDB
         }
         catch (DatabaseException e)
         {
-          dbenv.shutdownOnException(e);
+          dbEnv.shutdownOnException(e);
         }
       }
     }
@@ -855,14 +855,14 @@ public class ReplicationDB
       }
 
       // Clears the reference to this serverID
-      dbenv.clearServerId(baseDN, serverId);
+      dbEnv.clearServerId(baseDN, serverId);
 
       final Database oldDb = db;
       db = null; // In case there's a failure between here and recreation.
-      dbenv.clearDb(oldDb);
+      dbEnv.clearDb(oldDb);
 
       // RE-create the db
-      db = dbenv.getOrAddDb(serverId, baseDN, -1);
+      db = dbEnv.getOrAddReplicationDB(serverId, baseDN, -1);
     }
     catch (Exception e)
     {
