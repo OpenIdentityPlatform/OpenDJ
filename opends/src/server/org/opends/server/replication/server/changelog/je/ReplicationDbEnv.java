@@ -233,8 +233,8 @@ public class ReplicationDbEnv
    * Decode the whole changelog state DB.
    *
    * @param wholeState
-   *          the whole changelog state DB as a Map.
-   *          The Map is only used as a convenient collection of key => data objects 
+   *          the whole changelog state DB as a Map. The Map is only used as a
+   *          convenient collection of key => data objects
    * @return the decoded changelog state
    * @throws ChangelogException
    *           if a problem occurred while decoding
