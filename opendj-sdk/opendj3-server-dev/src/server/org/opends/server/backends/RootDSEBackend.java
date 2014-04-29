@@ -62,6 +62,7 @@ import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.core.WorkflowTopologyNode;
 import org.opends.server.types.*;
+import org.opends.server.util.BuildVersion;
 import org.opends.server.util.LDIFWriter;
 
 import static org.opends.messages.BackendMessages.*;
@@ -265,7 +266,9 @@ public class RootDSEBackend
                                  ATTR_VENDOR_VERSION_LC,
                                  DirectoryServer.getVersionString()));
 
-
+    staticDSEAttributes.add(createAttribute("fullVendorVersion",
+                                 "fullvendorversion",
+                                 BuildVersion.binaryVersion().toString()));
 
     // Construct the set of objectclasses to include in the root DSE entry.
     dseObjectClasses = new HashMap<ObjectClass,String>(2);

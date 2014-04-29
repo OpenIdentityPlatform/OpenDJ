@@ -24,6 +24,7 @@
  */
 package org.opends.server.tools.dsconfig;
 
+import org.forgerock.opendj.config.dsconfig.DSConfig;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.testng.annotations.AfterClass;

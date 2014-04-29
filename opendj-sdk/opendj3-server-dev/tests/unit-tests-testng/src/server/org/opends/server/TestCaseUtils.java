@@ -36,6 +36,8 @@ import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.ConfigurationFramework;
+import org.forgerock.opendj.config.dsconfig.DSConfig;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.io.ASN1;
 import org.forgerock.opendj.io.ASN1Reader;
@@ -63,7 +65,6 @@ import org.opends.server.protocols.ldap.BindResponseProtocolOp;
 import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.LDAPReader;
 import org.opends.server.tools.LDAPModify;
-import org.opends.server.tools.dsconfig.DSConfig;
 import org.opends.server.types.*;
 import org.opends.server.types.FilePermission;
 import org.opends.server.util.BuildVersion;
@@ -464,6 +465,11 @@ public final class TestCaseUtils {
       config.setConfigClass(ConfigFileHandler.class);
       config.setConfigFile(new File(testConfigDir, "config.ldif"));
 
+      /** Initialize the configuration framework for DSConfig. */
+      ConfigurationFramework.getInstance()
+          .initialize(testInstallRoot.getAbsolutePath(),
+              testInstanceRoot.getAbsolutePath());
+      
       AccessLogger.getInstance().addLogPublisher(
           (AccessLogPublisher) TextAccessLogPublisher
               .getStartupTextAccessPublisher(ACCESS_TEXT_WRITER, false));
