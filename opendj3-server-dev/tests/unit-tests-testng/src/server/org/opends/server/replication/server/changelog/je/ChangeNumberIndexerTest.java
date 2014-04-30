@@ -151,7 +151,7 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
   @Test
   public void emptyDBNoDS() throws Exception
   {
-    startCNIndexer();
+    startCNIndexer(BASE_DN1);
     assertExternalChangelogContent();
   }
 
@@ -159,7 +159,7 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
   public void emptyDBOneInitialDS() throws Exception
   {
     addReplica(BASE_DN1, serverId1);
-    startCNIndexer();
+    startCNIndexer(BASE_DN1);
 
     final ReplicatedUpdateMsg msg1 = msg(BASE_DN1, serverId1, 1);
     publishUpdateMsg(msg1);
@@ -172,7 +172,7 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
     final ReplicatedUpdateMsg msg1 = msg(BASE_DN1, serverId1, 1);
     addReplica(BASE_DN1, serverId1);
     setDBInitialRecords(msg1);
-    startCNIndexer();
+    startCNIndexer(BASE_DN1);
 
     final ReplicatedUpdateMsg msg2 = msg(BASE_DN1, serverId1, 2);
     publishUpdateMsg(msg2);
@@ -184,11 +184,15 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
   {
     addReplica(BASE_DN1, serverId1);
     addReplica(BASE_DN1, serverId2);
-    startCNIndexer();
+    startCNIndexer(BASE_DN1);
 
+    // simulate messages received out of order
     final ReplicatedUpdateMsg msg1 = msg(BASE_DN1, serverId1, 1);
     final ReplicatedUpdateMsg msg2 = msg(BASE_DN1, serverId2, 2);
-    publishUpdateMsg(msg2, msg1);
+    publishUpdateMsg(msg2);
+    // do not start publishing to the changelog until we hear from serverId1
+    assertExternalChangelogContent();
+    publishUpdateMsg(msg1);
     assertExternalChangelogContent(msg1);
   }
 
@@ -197,7 +201,7 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
   {
     addReplica(BASE_DN1, serverId1);
     addReplica(BASE_DN2, serverId2);
-    startCNIndexer();
+    startCNIndexer(BASE_DN1, BASE_DN2);
 
     final ReplicatedUpdateMsg msg1 = msg(BASE_DN1, serverId1, 1);
     final ReplicatedUpdateMsg msg2 = msg(BASE_DN2, serverId2, 2);
@@ -216,7 +220,7 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
     addReplica(BASE_DN1, serverId1);
     addReplica(BASE_DN1, serverId2);
     setDBInitialRecords(msg1, msg2);
-    startCNIndexer();
+    startCNIndexer(BASE_DN1);
 
     final ReplicatedUpdateMsg msg3 = msg(BASE_DN1, serverId2, 3);
     final ReplicatedUpdateMsg msg4 = msg(BASE_DN1, serverId1, 4);
@@ -237,7 +241,7 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
   {
     addReplica(BASE_DN1, serverId1);
     addReplica(BASE_DN1, serverId2);
-    startCNIndexer();
+    startCNIndexer(BASE_DN1);
 
     final ReplicatedUpdateMsg msg1Sid2 = msg(BASE_DN1, serverId2, 1);
     final ReplicatedUpdateMsg emptySid2 = emptyCursor(BASE_DN1, serverId2);
@@ -254,7 +258,7 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
     addReplica(ADMIN_DATA_DN, serverId1);
     addReplica(BASE_DN1, serverId2);
     addReplica(BASE_DN1, serverId3);
-    startCNIndexer();
+    startCNIndexer(BASE_DN1);
 
     // cn=admin data will does not participate in the external changelog
     // so it cannot add to it
@@ -272,7 +276,7 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
   public void emptyDBOneInitialDSAnotherDSJoining() throws Exception
   {
     addReplica(BASE_DN1, serverId1);
-    startCNIndexer();
+    startCNIndexer(BASE_DN1);
 
     final ReplicatedUpdateMsg msg1 = msg(BASE_DN1, serverId1, 1);
     publishUpdateMsg(msg1);
@@ -292,7 +296,7 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
   {
     addReplica(BASE_DN1, serverId1);
     addReplica(BASE_DN1, serverId2);
-    startCNIndexer();
+    startCNIndexer(BASE_DN1);
 
     final ReplicatedUpdateMsg msg1 = msg(BASE_DN1, serverId1, 1);
     final ReplicatedUpdateMsg msg2 = msg(BASE_DN1, serverId2, 2);
@@ -308,7 +312,7 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
   {
     addReplica(BASE_DN1, serverId1);
     addReplica(BASE_DN1, serverId2);
-    startCNIndexer();
+    startCNIndexer(BASE_DN1);
 
     final ReplicatedUpdateMsg msg1 = msg(BASE_DN1, serverId1, 1);
     final ReplicatedUpdateMsg msg2 = msg(BASE_DN1, serverId2, 2);
@@ -336,14 +340,15 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
     initialState.addServerIdToDomain(serverId, baseDN);
   }
 
-  private void startCNIndexer()
+  private void startCNIndexer(DN... eclEnabledDomains)
   {
+    final List<DN> eclEnabledDomainList = Arrays.asList(eclEnabledDomains);
     cnIndexer = new ChangeNumberIndexer(changelogDB, initialState)
     {
       @Override
       protected boolean isECLEnabledDomain(DN baseDN)
       {
-        return BASE_DN1.equals(baseDN) || BASE_DN2.equals(baseDN);
+        return eclEnabledDomainList.contains(baseDN);
       }
     };
     cnIndexer.start();
@@ -448,12 +453,6 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
   private void assertExternalChangelogContent(ReplicatedUpdateMsg... expectedMsgs)
       throws Exception
   {
-    if (expectedMsgs.length == 0)
-    {
-      verify(cnIndexDB, never()).addRecord(any(ChangeNumberIndexRecord.class));
-      return;
-    }
-
     final ArgumentCaptor<ChangeNumberIndexRecord> arg =
         ArgumentCaptor.forClass(ChangeNumberIndexRecord.class);
     verify(cnIndexDB, atLeast(0)).addRecord(arg.capture());
