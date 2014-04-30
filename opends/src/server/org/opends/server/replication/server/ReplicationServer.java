@@ -27,7 +27,6 @@
 package org.opends.server.replication.server;
 
 import java.io.IOException;
-import java.io.StringReader;
 import java.net.*;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -35,13 +34,12 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.opends.messages.Category;
 import org.opends.messages.Message;
-import org.opends.messages.MessageBuilder;
 import org.opends.messages.Severity;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn.*;
 import org.opends.server.admin.std.server.ReplicationServerCfg;
 import org.opends.server.admin.std.server.UserDefinedVirtualAttributeCfg;
-import org.opends.server.api.*;
+import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.WorkflowImpl;
@@ -53,14 +51,12 @@ import org.opends.server.replication.protocol.*;
 import org.opends.server.replication.server.changelog.api.*;
 import org.opends.server.replication.server.changelog.je.JEChangelogDB;
 import org.opends.server.types.*;
-import org.opends.server.util.LDIFReader;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.workflowelement.externalchangelog.ECLWorkflowElement;
 
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -71,9 +67,7 @@ import static org.opends.server.util.StaticUtils.*;
  * replicationServerDomain and managing it
  */
 public final class ReplicationServer
-  implements ConfigurationChangeListener<ReplicationServerCfg>,
-             BackupTaskListener, RestoreTaskListener, ImportTaskListener,
-             ExportTaskListener
+  implements ConfigurationChangeListener<ReplicationServerCfg>
 {
   private String serverURL;
 
@@ -96,17 +90,7 @@ public final class ReplicationServer
   private boolean stopListen = false;
   private ReplSessionSecurity replSessionSecurity;
 
-  /**
-   * For the backend associated to this replication server, DN of the config
-   * entry of the backend.
-   */
-  private DN backendConfigEntryDN;
-  /** ID of the backend. */
-  private static final String backendId = "replicationChanges";
-
-  /**
-   * The tracer object for the debug logger.
-   */
+  /** The tracer object for the debug logger. */
   private static final DebugTracer TRACER = getTracer();
 
   private static String eclWorkflowID =
@@ -148,20 +132,6 @@ public final class ReplicationServer
     replSessionSecurity = new ReplSessionSecurity();
     initialize();
     configuration.addChangeListener(this);
-    try
-    {
-      backendConfigEntryDN =
-         DN.decode("ds-cfg-backend-id=" + backendId + ",cn=Backends,cn=config");
-    } catch (DirectoryException e) { /* do nothing */ }
-
-    // Creates the backend associated to this ReplicationServer
-    // if it does not exist.
-    createBackend();
-
-    DirectoryServer.registerBackupTaskListener(this);
-    DirectoryServer.registerRestoreTaskListener(this);
-    DirectoryServer.registerExportTaskListener(this);
-    DirectoryServer.registerImportTaskListener(this);
 
     localPorts.add(getReplicationPort());
 
@@ -946,55 +916,6 @@ public final class ReplicationServer
   }
 
   /**
-   * Creates the backend associated to this replication server.
-   */
-  private void createBackend() throws ConfigException
-  {
-    try
-    {
-      String ldif = makeLdif(
-          "dn: ds-cfg-backend-id="+backendId+",cn=Backends,cn=config",
-          "objectClass: top",
-          "objectClass: ds-cfg-backend",
-          "ds-cfg-base-dn: dc="+backendId,
-          "ds-cfg-enabled: true",
-          "ds-cfg-writability-mode: enabled",
-          "ds-cfg-java-class: " +
-            "org.opends.server.replication.server.ReplicationBackend",
-          "ds-cfg-backend-id: " + backendId);
-
-      LDIFImportConfig ldifImportConfig = new LDIFImportConfig(
-          new StringReader(ldif));
-      LDIFReader reader = new LDIFReader(ldifImportConfig);
-      Entry backendConfigEntry = reader.readEntry();
-      if (!DirectoryServer.getConfigHandler().entryExists(backendConfigEntryDN))
-      {
-        // Add the replication backend
-        DirectoryServer.getConfigHandler().addEntry(backendConfigEntry, null);
-      }
-      ldifImportConfig.close();
-    }
-    catch(Exception e)
-    {
-      MessageBuilder mb = new MessageBuilder();
-      mb.append(e.getLocalizedMessage());
-      Message msg = ERR_CHECK_CREATE_REPL_BACKEND_FAILED.get(mb.toString());
-      throw new ConfigException(msg, e);
-    }
-  }
-
-  private static String makeLdif(String... lines)
-  {
-    StringBuilder buffer = new StringBuilder();
-    for (String line : lines) {
-      buffer.append(line).append(EOL);
-    }
-    // Append an extra line so we can append LDIF Strings.
-    buffer.append(EOL);
-    return buffer.toString();
-  }
-
-  /**
    * Do what needed when the config object related to this replication server
    * is deleted from the server configuration.
    */
@@ -1004,122 +925,6 @@ public final class ReplicationServer
       TRACER.debugInfo("RS " + getMonitorInstanceName() + " starts removing");
 
     shutdown();
-    removeBackend();
-
-    DirectoryServer.deregisterBackupTaskListener(this);
-    DirectoryServer.deregisterRestoreTaskListener(this);
-    DirectoryServer.deregisterExportTaskListener(this);
-    DirectoryServer.deregisterImportTaskListener(this);
-  }
-
-  /**
-   * Removes the backend associated to this Replication Server that has been
-   * created when this replication server was created.
-   */
-  protected void removeBackend()
-  {
-    try
-    {
-      if (DirectoryServer.getConfigHandler().entryExists(backendConfigEntryDN))
-      {
-        // Delete the replication backend
-        DirectoryServer.getConfigHandler().deleteEntry(backendConfigEntryDN,
-            null);
-      }
-    }
-    catch(Exception e)
-    {
-      MessageBuilder mb = new MessageBuilder();
-      mb.append(e.getLocalizedMessage());
-      Message msg = ERR_DELETE_REPL_BACKEND_FAILED.get(mb.toString());
-      logError(msg);
-    }
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void processBackupBegin(Backend backend, BackupConfig config)
-  {
-    // Nothing is needed at the moment
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void processBackupEnd(Backend backend, BackupConfig config,
-                               boolean successful)
-  {
-    // Nothing is needed at the moment
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void processRestoreBegin(Backend backend, RestoreConfig config)
-  {
-    if (backend.getBackendID().equals(backendId))
-      shutdown();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void processRestoreEnd(Backend backend, RestoreConfig config,
-                                boolean successful)
-  {
-    if (backend.getBackendID().equals(backendId))
-      initialize();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void processImportBegin(Backend backend, LDIFImportConfig config)
-  {
-    // Nothing is needed at the moment
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void processImportEnd(Backend backend, LDIFImportConfig config,
-                               boolean successful)
-  {
-    // Nothing is needed at the moment
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void processExportBegin(Backend backend, LDIFExportConfig config)
-  {
-    if (debugEnabled())
-      TRACER.debugInfo("RS " + getMonitorInstanceName() + " Export starts");
-    if (backend.getBackendID().equals(backendId))
-    {
-      // Retrieves the backend related to this replicationServerDomain
-      ReplicationBackend b =
-      (ReplicationBackend)DirectoryServer.getBackend(backendId);
-      b.setServer(this);
-    }
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void processExportEnd(Backend backend, LDIFExportConfig config,
-                               boolean successful)
-  {
-    // Nothing is needed at the moment
   }
 
   /**

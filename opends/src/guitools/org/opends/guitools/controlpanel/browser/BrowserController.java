@@ -22,8 +22,8 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
-
 package org.opends.guitools.controlpanel.browser;
 
 import java.awt.Font;
@@ -71,7 +71,6 @@ import org.opends.guitools.controlpanel.ui.nodes.SuffixNode;
 import org.opends.guitools.controlpanel.ui.renderer.BrowserCellRenderer;
 import org.opends.guitools.controlpanel.util.NumSubordinateHacker;
 import org.opends.guitools.controlpanel.util.Utilities;
-import org.opends.quicksetup.Constants;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.types.LDAPURL;
 import org.opends.server.util.ServerConstants;
@@ -119,9 +118,9 @@ implements TreeExpansionListener, ReferralAuthenticationListener
   private boolean showAttributeName;
   private InitialLdapContext ctxConfiguration;
   private InitialLdapContext ctxUserData;
-  boolean followReferrals;
-  boolean sorted;
-  boolean showContainerOnly;
+  private boolean followReferrals;
+  private boolean sorted;
+  private boolean showContainerOnly;
   private boolean automaticExpand;
   private boolean automaticallyExpandedNode;
   private String[] containerClasses;
@@ -301,9 +300,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     if (index >= 0) { // A node has alreay this dn -> bug
       throw new IllegalArgumentException("Duplicate suffix dn " + suffixDn);
     }
-    else {
-      index = - (index + 1);
-    }
+    index = -(index + 1);
     SuffixNode newNode = new SuffixNode(suffixDn);
     treeModel.insertNodeInto(newNode, parentNode, index);
     startRefreshNode(newNode, null, true);
@@ -323,9 +320,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     if (index >= 0) { // A node has alreay this dn -> bug
       throw new IllegalArgumentException("Duplicate node dn " + nodeDn);
     }
-    else {
-      index = - (index + 1);
-    }
+    index = -(index + 1);
     BasicNode newNode = new BasicNode(nodeDn);
     treeModel.insertNodeInto(newNode, parentNode, index);
     startRefreshNode(newNode, null, true);
@@ -620,9 +615,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
       if (childIndex >= 0) {
         throw new IllegalArgumentException("Duplicate DN " + newEntryDn);
       }
-      else {
-        childIndex = - (childIndex + 1);
-      }
+      childIndex = -(childIndex + 1);
     }
     else {
       childIndex = parentNode.getChildCount();
@@ -1027,8 +1020,9 @@ implements TreeExpansionListener, ReferralAuthenticationListener
       } else {
         result = "(|(&(hasSubordinates=true)"+filter+")";
       }
-      for (int i = 0; i < containerClasses.length; i++) {
-        result += "(objectClass=" + containerClasses[i] + ")";
+      for (String containerClass : containerClasses)
+      {
+        result += "(objectClass=" + containerClass + ")";
       }
       result += ")";
     }
@@ -1107,7 +1101,6 @@ implements TreeExpansionListener, ReferralAuthenticationListener
           Utilities.areDnsEqual(dn, ConfigConstants.DN_MONITOR_ROOT) ||
           Utilities.areDnsEqual(dn, ConfigConstants.DN_TRUST_STORE_ROOT) ||
           Utilities.areDnsEqual(dn, ConfigConstants.DN_BACKUP_ROOT) ||
-          Utilities.areDnsEqual(dn, Constants.REPLICATION_CHANGES_DN) ||
           Utilities.areDnsEqual(dn, ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT))
       {
         isConfigurationNode = true;

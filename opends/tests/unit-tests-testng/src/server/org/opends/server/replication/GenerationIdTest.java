@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication;
 
@@ -38,14 +38,12 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.MemoryBackend;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.replication.common.CSNGenerator;
 import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.plugin.LDAPReplicationDomain;
 import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.protocol.*;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
-import org.opends.server.replication.server.ReplicationBackend;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.ReplicationServerDomain;
 import org.opends.server.replication.service.ReplicationBroker;
@@ -559,18 +557,7 @@ public class GenerationIdTest extends ReplicationTestCase
    */
   private void checkChangelogSize(int expectedCount, int timeout) throws Exception
   {
-    long start = System.currentTimeMillis();
-    InternalSearchOperation searchOperation;
-    do
-    {
-      Thread.sleep(10);
-      searchOperation = connection.processSearch(
-          "dc=replicationchanges", SearchScope.SUBORDINATE_SUBTREE, "(objectclass=*)");
-    }
-    while (System.currentTimeMillis() - start <= timeout
-        && searchOperation.getResultCode() != ResultCode.SUCCESS
-        && searchOperation.getSearchEntries().size() != expectedCount);
-    Assertions.assertThat(searchOperation.getSearchEntries()).hasSize(expectedCount);
+    throw new RuntimeException("Dead code. Should we remove this method and the test calling it?");
   }
 
   /**
@@ -581,7 +568,7 @@ public class GenerationIdTest extends ReplicationTestCase
   public void testSingleRS() throws Exception
   {
     String testCase = "testSingleRS";
-    debugInfo("Starting "+ testCase + " debugEnabled:" + debugEnabled());
+    debugInfo("Starting " + testCase + " debugEnabled:" + debugEnabled());
 
     debugInfo(testCase + " Clearing DS1 backend");
     // Special test were we want to test with an empty backend. So free it
@@ -597,21 +584,20 @@ public class GenerationIdTest extends ReplicationTestCase
 
       // To search the replication server db later in these tests, we need
       // to attach the search backend to the replication server just created.
-      ReplicationBackend b =
-        (ReplicationBackend)DirectoryServer.getBackend("replicationChanges");
-      b.setServer(replServer1);
 
       //===========================================================
       debugInfo(testCase + " ** TEST ** Empty backend");
 
       connectServer1ToReplServer(replServer1);
 
-      debugInfo(testCase + " Expect genId to be not retrievable from suffix root entry");
+      debugInfo(testCase
+          + " Expect genId to be not retrievable from suffix root entry");
       dsGenId = readGenIdFromSuffixRootEntry();
       assertEquals(dsGenId,-1);
 
-      debugInfo(testCase + " Expect genId to be set in memory on the replication " +
-      " server side (not wrote on disk/db since no change occurred).");
+      debugInfo(testCase
+          + " Expect genId to be set in memory on the replication "
+          + " server side (not wrote on disk/db since no change occurred).");
       rsGenId = replServer1.getGenerationId(baseDN);
       assertEquals(rsGenId, EMPTY_DN_GENID);
 
@@ -619,7 +605,7 @@ public class GenerationIdTest extends ReplicationTestCase
       disconnectFromReplServer(replServer1);
 
 
-      //===========================================================
+      // ===========================================================
       debugInfo(testCase + " ** TEST ** Non empty backend");
 
       debugInfo(testCase + " Adding test entries to DS");
@@ -627,7 +613,8 @@ public class GenerationIdTest extends ReplicationTestCase
 
       connectServer1ToReplServer(replServer1);
 
-      debugInfo(testCase + " Test that the generationId is written in the DB in the root entry on DS1");
+      debugInfo(testCase
+          + " Test that the generationId is written in the DB in the root entry on DS1");
       dsGenId = readGenIdFromSuffixRootEntry();
       assertTrue(dsGenId != -1);
       assertTrue(dsGenId != EMPTY_DN_GENID);
@@ -639,23 +626,29 @@ public class GenerationIdTest extends ReplicationTestCase
       //===========================================================
       debugInfo(testCase + " ** TEST ** DS2 connection to RS1 with bad genID");
 
-      broker2 = openReplicationSession(baseDN, server2ID, 100,
-          replServer1.getReplicationPort(), 1000, dsGenId+1);
+      broker2 =
+          openReplicationSession(baseDN, server2ID, 100, replServer1
+              .getReplicationPort(), 1000, dsGenId + 1);
 
-      //===========================================================
+      // ===========================================================
       debugInfo(testCase + " ** TEST ** DS3 connection to RS1 with good genID");
-      broker3 = openReplicationSession(baseDN, server3ID, 100,
-          replServer1.getReplicationPort(), 1000, dsGenId);
+      broker3 =
+          openReplicationSession(baseDN, server3ID, 100, replServer1
+              .getReplicationPort(), 1000, dsGenId);
 
-      //===========================================================
-      debugInfo(testCase + " ** TEST ** DS2 (bad genID) changes must be ignored.");
+      // ===========================================================
+      debugInfo(testCase
+          + " ** TEST ** DS2 (bad genID) changes must be ignored.");
 
       broker2.publish(createAddMsg());
-      assertNoMessageReceived(broker3, "broker3",
+      assertNoMessageReceived(
+          broker3,
+          "broker3",
           "Note that timeout should be lower than RS monitoring publisher period so that timeout occurs");
 
-      //===========================================================
-      debugInfo(testCase + " ** TEST ** The part of the topology with the right gen ID should work well");
+      // ===========================================================
+      debugInfo(testCase
+          + " ** TEST ** The part of the topology with the right gen ID should work well");
 
       // Now create a change that must be replicated
       waitConnectionToReplicationDomain(baseDN, 1000);
@@ -685,9 +678,6 @@ public class GenerationIdTest extends ReplicationTestCase
 
       // To search the replication server db later in these tests, we need
       // to attach the search backend to the replication server just created.
-      b = (ReplicationBackend)DirectoryServer.getBackend("replicationChanges");
-      b.setServer(replServer1);
-
       debugInfo("Delay to allow DS to reconnect to replServer1");
 
       final long genIdAfterRestart = replServer1.getGenerationId(baseDN);
