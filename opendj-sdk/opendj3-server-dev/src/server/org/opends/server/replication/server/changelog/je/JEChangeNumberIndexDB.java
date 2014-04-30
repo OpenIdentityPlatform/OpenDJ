@@ -57,8 +57,6 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB
   private static int NO_KEY = 0;
 
   private DraftCNDB db;
-  /** FIXME What is this field used for? */
-  private volatile long oldestChangeNumber = NO_KEY;
   /**
    * The newest changenumber stored in the DB. It is used to avoid purging the
    * record with the newest changenumber. The newest record in the changenumber
@@ -91,14 +89,11 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB
   public JEChangeNumberIndexDB(ReplicationDbEnv dbEnv) throws ChangelogException
   {
     db = new DraftCNDB(dbEnv);
-    final ChangeNumberIndexRecord oldestRecord = db.readFirstRecord();
     final ChangeNumberIndexRecord newestRecord = db.readLastRecord();
-    oldestChangeNumber = getChangeNumber(oldestRecord);
-    final long newestCN = getChangeNumber(newestRecord);
-    newestChangeNumber = newestCN;
+    newestChangeNumber = getChangeNumber(newestRecord);
     // initialization of the lastGeneratedChangeNumber from the DB content
     // if DB is empty => last record does not exist => default to 0
-    lastGeneratedChangeNumber = new AtomicLong(newestCN);
+    lastGeneratedChangeNumber = new AtomicLong(newestChangeNumber);
 
     // Monitoring registration
     DirectoryServer.deregisterMonitorProvider(dbMonitor);
@@ -112,7 +107,7 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB
     {
       return record.getChangeNumber();
     }
-    return 0;
+    return NO_KEY;
   }
 
   /** {@inheritDoc} */
@@ -192,19 +187,11 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB
    */
   public void shutdown()
   {
-    if (shutdown.get())
+    if (shutdown.compareAndSet(false, true))
     {
-      return;
+      db.shutdown();
+      DirectoryServer.deregisterMonitorProvider(dbMonitor);
     }
-
-    shutdown.set(true);
-    synchronized (this)
-    {
-      notifyAll();
-    }
-
-    db.shutdown();
-    DirectoryServer.deregisterMonitorProvider(dbMonitor);
   }
 
   /**
@@ -230,11 +217,6 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB
       while (!mustShutdown(shutdown) && cursor.next())
       {
         final ChangeNumberIndexRecord record = cursor.currentRecord();
-        if (record.getChangeNumber() != oldestChangeNumber)
-        {
-          oldestChangeNumber = record.getChangeNumber();
-        }
-
         if (record.getChangeNumber() != newestChangeNumber
             && record.getCSN().isOlderThan(purgeCSN))
         {
@@ -287,14 +269,9 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB
     final DraftCNDBCursor cursor = db.openDeleteCursor();
     try
     {
-      boolean isOldestRecord = true;
       while (!mustShutdown(shutdown) && cursor.next())
       {
         final ChangeNumberIndexRecord record = cursor.currentRecord();
-        if (isOldestRecord && record.getChangeNumber() != oldestChangeNumber)
-        {
-          oldestChangeNumber = record.getChangeNumber();
-        }
         if (record.getChangeNumber() == newestChangeNumber)
         {
           // do not purge the newest record to avoid having the last generated
@@ -305,10 +282,6 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB
         if (baseDNToClear == null || record.getBaseDN().equals(baseDNToClear))
         {
           cursor.delete();
-        }
-        else
-        {
-          isOldestRecord = false;
         }
       }
     }
@@ -391,7 +364,7 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB
   @Override
   public String toString()
   {
-    return getClass().getSimpleName() + ": " + oldestChangeNumber + " "
+    return getClass().getSimpleName() + ", newestChangeNumber="
         + newestChangeNumber;
   }
 
@@ -404,8 +377,7 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB
   public void clear() throws ChangelogException
   {
     db.clear();
-    oldestChangeNumber = getChangeNumber(db.readFirstRecord());
-    newestChangeNumber = getChangeNumber(db.readLastRecord());
+    newestChangeNumber = NO_KEY;
   }
 
 }

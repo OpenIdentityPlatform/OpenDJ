@@ -377,11 +377,13 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
     if (indexer != null)
     {
       indexer.initiateShutdown();
+      indexer.interrupt();
     }
     final ChangelogDBPurger purger = cnPurger.getAndSet(null);
     if (purger != null)
     {
       purger.initiateShutdown();
+      purger.interrupt();
     }
 
     try
@@ -409,6 +411,23 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
 
     if (dbEnv != null)
     {
+      // wait for shutdown of the threads holding cursors
+      try
+      {
+        if (indexer != null)
+        {
+          indexer.join();
+        }
+        if (purger != null)
+        {
+          purger.join();
+        }
+      }
+      catch (InterruptedException e)
+      {
+        // do nothing: we are already shutting down
+      }
+
       dbEnv.shutdown();
     }
 
