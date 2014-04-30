@@ -175,21 +175,6 @@ public class JEReplicaDB
   }
 
   /**
-   * Get the number of changes.
-   *
-   * @return Returns the number of changes.
-   */
-  public long getChangesCount()
-  {
-    final CSNLimits limits = csnLimits;
-    if (limits.newestCSN != null && limits.oldestCSN != null)
-    {
-      return limits.newestCSN.getSeqnum() - limits.oldestCSN.getSeqnum() + 1;
-    }
-    return 0;
-  }
-
-  /**
    * Generate a new {@link DBCursor} that allows to browse the db managed by
    * this ReplicaDB and starting at the position defined by a given CSN.
    *

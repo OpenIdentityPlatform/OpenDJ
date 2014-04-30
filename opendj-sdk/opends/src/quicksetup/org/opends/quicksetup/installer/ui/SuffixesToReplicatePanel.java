@@ -22,9 +22,8 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
-
 package org.opends.quicksetup.installer.ui;
 
 import java.awt.Component;
@@ -237,9 +236,7 @@ implements Comparator<SuffixDescriptor>
       {
         if (!Utils.areDnsEqual(suffix.getDN(),
             ADSContext.getAdministrationSuffixDN()) &&
-            !Utils.areDnsEqual(suffix.getDN(), Constants.SCHEMA_DN) &&
-            !Utils.areDnsEqual(suffix.getDN(),
-                Constants.REPLICATION_CHANGES_DN))
+            !Utils.areDnsEqual(suffix.getDN(), Constants.SCHEMA_DN))
         {
           orderedSuffixes.add(suffix);
         }

@@ -520,19 +520,6 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
     StaticUtils.recursiveDelete(dbDirectory);
   }
 
-
-  /** {@inheritDoc} */
-  @Override
-  public long getDomainChangesCount(DN baseDN)
-  {
-    long entryCount = 0;
-    for (JEReplicaDB replicaDB : getDomainMap(baseDN).values())
-    {
-      entryCount += replicaDB.getChangesCount();
-    }
-    return entryCount;
-  }
-
   /** {@inheritDoc} */
   @Override
   public ServerState getDomainOldestCSNs(DN baseDN)
@@ -724,16 +711,6 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
 
   /** {@inheritDoc} */
   @Override
-  public DBCursor<UpdateMsg> getCursorFrom(DN baseDN, CSN startAfterCSN)
-      throws ChangelogException
-  {
-    // Builds a new serverState for all the serverIds in the replication domain
-    // to ensure we get cursors starting after the provided CSN.
-    return getCursorFrom(baseDN, buildServerState(baseDN, startAfterCSN));
-  }
-
-  /** {@inheritDoc} */
-  @Override
   public DBCursor<UpdateMsg> getCursorFrom(DN baseDN,
       ServerState startAfterServerState) throws ChangelogException
   {
@@ -765,32 +742,6 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
       return cursor;
     }
     return EMPTY_CURSOR;
-  }
-
-  private ServerState buildServerState(DN baseDN, CSN startAfterCSN)
-  {
-    final ServerState result = new ServerState();
-    if (startAfterCSN == null)
-    {
-      return result;
-    }
-
-    for (int serverId : getDomainMap(baseDN).keySet())
-    {
-      if (serverId == startAfterCSN.getServerId())
-      {
-        // reuse the provided CSN one as it is the most accurate
-        result.update(startAfterCSN);
-      }
-      else
-      {
-        // build a new CSN, ignoring the seqNum since it is irrelevant for
-        // a different serverId
-        final CSN csn = startAfterCSN; // only used for increased readability
-        result.update(new CSN(csn.getTime(), 0, serverId));
-      }
-    }
-    return result;
   }
 
   /** {@inheritDoc} */

@@ -22,8 +22,8 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
-
 package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.messages.AdminToolMessages.*;
@@ -59,7 +59,6 @@ import org.opends.guitools.controlpanel.task.ModifyEntryTask;
 import org.opends.guitools.controlpanel.task.Task;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.messages.Message;
-import org.opends.quicksetup.Constants;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.types.DN;
 import org.opends.server.types.Entry;
@@ -119,7 +118,7 @@ implements EntryReadListener
      * LDIF view (text based).
      */
     LDIF_VIEW
-  };
+  }
 
   /**
    * Default constructor.
@@ -472,7 +471,6 @@ implements EntryReadListener
         DN.decode(ConfigConstants.DN_TASK_ROOT),
         DN.decode(ConfigConstants.DN_MONITOR_ROOT),
         DN.decode(ConfigConstants.DN_BACKUP_ROOT),
-        DN.decode(Constants.REPLICATION_CHANGES_DN),
         DN.decode(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT)
       };
       nonDeletable = new DN[] {

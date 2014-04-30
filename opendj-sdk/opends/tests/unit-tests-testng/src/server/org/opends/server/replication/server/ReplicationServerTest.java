@@ -26,8 +26,6 @@
  */
 package org.opends.server.replication.server;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
@@ -39,8 +37,6 @@ import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperationBasis;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.CSNGenerator;
@@ -51,24 +47,16 @@ import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.plugin.ReplicationServerListener;
 import org.opends.server.replication.protocol.*;
 import org.opends.server.replication.service.ReplicationBroker;
-import org.opends.server.tools.LDAPModify;
-import org.opends.server.tools.LDAPSearch;
 import org.opends.server.types.*;
-import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.TimeThread;
 import org.opends.server.workflowelement.localbackend.LocalBackendModifyDNOperation;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import static java.util.Collections.*;
-
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.replication.protocol.OperationContext.*;
-import static org.opends.server.types.ResultCode.*;
-import static org.opends.server.types.SearchScope.*;
-import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
 
@@ -96,9 +84,6 @@ public class ReplicationServerTest extends ReplicationTestCase
   private CSN secondCSNServer2;
 
   private CSN unknownCSNServer1;
-
-  private static final String exportLDIFAllFile = "exportLDIF.ldif";
-  private String exportLDIFDomainFile;
 
   /**
    * Set up the environment for performing the tests in this Class.
@@ -162,7 +147,7 @@ public class ReplicationServerTest extends ReplicationTestCase
    * This method is used to make sure that this order is always respected.
    * (Using testng dependency does not work)
    */
-  @Test(enabled=true, dependsOnMethods = { "searchBackend"})
+  @Test(enabled = true)
   public void replicationServerTest() throws Exception
   {
     changelogBasic();
@@ -173,8 +158,6 @@ public class ReplicationServerTest extends ReplicationTestCase
     newClientWithChangefromServer2();
     newClientWithUnknownChanges();
     stopChangelog();
-    exportBackend();
-    backupRestore();
   }
 
   /**
@@ -185,7 +168,7 @@ public class ReplicationServerTest extends ReplicationTestCase
    * test is disabled and should only be enabled in workspaces but never
    * committed in the repository.
    */
-  @Test(enabled=false, dependsOnMethods = { "searchBackend"})
+  @Test(enabled=false)
   public void replicationServerTestLoop() throws Exception
   {
     changelogBasic();
@@ -471,7 +454,7 @@ public class ReplicationServerTest extends ReplicationTestCase
    * This test is configured by a relatively low stress
    * but can be changed using TOTAL_MSG and CLIENT_THREADS consts.
    */
-  @Test(enabled=true, dependsOnMethods = { "searchBackend"})
+  @Test(enabled = true)
   public void oneWriterMultipleReader() throws Exception
   {
     debugInfo("Starting oneWriterMultipleReader");
@@ -551,7 +534,7 @@ public class ReplicationServerTest extends ReplicationTestCase
    * This test is configured for a relatively low stress
    * but can be changed using TOTAL_MSG and THREADS consts.
    */
-  @Test(enabled=true, dependsOnMethods = { "searchBackend"}, groups = "opendj-256")
+  @Test(enabled = true, groups = "opendj-256")
   public void multipleWriterMultipleReader() throws Exception
   {
     debugInfo("Starting multipleWriterMultipleReader");
@@ -635,7 +618,7 @@ public class ReplicationServerTest extends ReplicationTestCase
    * <li>Check that client 2 receives the changes published by client 1</li>
    * </ol>
    */
-  @Test(enabled=true, dependsOnMethods = { "searchBackend"})
+  @Test(enabled = true)
   public void changelogChaining0() throws Exception
   {
     final String tn = "changelogChaining0";
@@ -733,7 +716,7 @@ public class ReplicationServerTest extends ReplicationTestCase
    * <li>Check that client 2 receives the changes published by client 1</li>
    * <ol>
    */
-  @Test(enabled=true, dependsOnMethods = { "searchBackend"})
+  @Test(enabled = true)
   public void changelogChaining1() throws Exception
   {
     final String tn = "changelogChaining1";
@@ -855,7 +838,7 @@ public class ReplicationServerTest extends ReplicationTestCase
    * Test that the Replication sends back correctly WindowsUpdate
    * when we send a WindowProbeMsg.
    */
-  @Test(enabled=true, dependsOnMethods = { "searchBackend"})
+  @Test(enabled = true)
   public void windowProbeTest() throws Exception
   {
     debugInfo("Starting windowProbeTest");
@@ -1082,415 +1065,6 @@ public class ReplicationServerTest extends ReplicationTestCase
     }
   }
 
-  /**
-   * Test backup and restore of the Replication server backend.
-   */
-  private void backupRestore() throws Exception
-  {
-    debugInfo("Starting backupRestore");
-
-    executeTask(createBackupTask(), 20000);
-    executeTask(createRestoreTask(), 20000);
-
-    debugInfo("Ending backupRestore");
-  }
-
-   /**
-    * Test export of the Replication server backend
-    * - Creates 2 brokers connecting to the replication for 2 different baseDN
-    * - Make these brokers publish changes to the replication server
-    * - Launch a full export
-    * - Launch a partial export on one of the 2 domains
-    */
-  private void exportBackend() throws Exception
-  {
-      debugInfo("Starting exportBackend");
-
-      ReplicationBroker server1 = null;
-      ReplicationBroker server2 = null;
-
-    try
-    {
-      final DN baseDN2 = DN.decode("dc=domain2,dc=com");
-      server1 = openReplicationSession(TEST_ROOT_DN, 1, 100, replicationServerPort, 1000);
-      server2 = openReplicationSession(baseDN2, 2, 100, replicationServerPort, 1000);
-
-        debugInfo("Publish changes");
-        publishAll(server1, createChanges(TEST_ROOT_DN_STRING,  1));
-        publishAll(server2, createChanges("dc=domain2,dc=com",  2));
-
-      debugInfo("Export all");
-      executeTask(createExportAllTask(), 20000);
-      // Not doing anything with the export file, let's delete it
-      new File(DirectoryServer.getInstanceRoot(), exportLDIFAllFile).delete();
-
-      debugInfo("Export domain");
-      executeTask(createExportDomainTask("dc=domain2,dc=com"), 20000);
-      if (exportLDIFDomainFile != null)
-      {
-        // Not doing anything with the export file, let's delete it
-        new File(DirectoryServer.getInstanceRoot(), exportLDIFDomainFile).delete();
-      }
-    }
-    finally
-    {
-      stop(server1, server2);
-    }
-
-    debugInfo("Ending export");
-  }
-
-  private Entry createBackupTask() throws Exception
-  {
-     return TestCaseUtils.makeEntry(
-     "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
-     "objectclass: top",
-     "objectclass: ds-task",
-     "objectclass: ds-task-backup",
-     "ds-task-class-name: org.opends.server.tasks.BackupTask",
-     "ds-backup-directory-path: bak" + File.separator +
-                        "replicationChanges",
-     "ds-task-backup-backend-id: replicationChanges");
-  }
-
-  private Entry createRestoreTask() throws Exception
-  {
-     return TestCaseUtils.makeEntry(
-     "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
-     "objectclass: top",
-     "objectclass: ds-task",
-     "objectclass: ds-task-restore",
-     "ds-task-class-name: org.opends.server.tasks.RestoreTask",
-     "ds-backup-directory-path: bak" + File.separator +
-                        "replicationChanges");
-  }
-
-  private Entry createExportAllTask() throws Exception
-  {
-     return TestCaseUtils.makeEntry(
-     "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
-     "objectclass: top",
-     "objectclass: ds-task",
-     "objectclass: ds-task-export",
-     "ds-task-class-name: org.opends.server.tasks.ExportTask",
-     "ds-task-export-ldif-file: " + exportLDIFAllFile,
-     "ds-task-export-backend-id: replicationChanges",
-     "ds-task-export-include-branch: dc=replicationChanges");
-  }
-
-  private Entry createExportDomainTask(String suffix) throws Exception
-  {
-     String root = suffix.substring(suffix.indexOf('=')+1, suffix.indexOf(','));
-     exportLDIFDomainFile = "exportLDIF" + root +".ldif";
-     return TestCaseUtils.makeEntry(
-     "dn: ds-task-id=" + UUID.randomUUID() + ",cn=Scheduled Tasks,cn=Tasks",
-     "objectclass: top",
-     "objectclass: ds-task",
-     "objectclass: ds-task-export",
-     "ds-task-class-name: org.opends.server.tasks.ExportTask",
-     "ds-task-export-ldif-file: " + exportLDIFDomainFile,
-     "ds-task-export-backend-id: replicationChanges",
-     "ds-task-export-include-branch: "+suffix+",dc=replicationChanges");
-  }
-
-   private List<UpdateMsg> createChanges(String suffix, int serverId) throws Exception
-   {
-     List<UpdateMsg> l = new ArrayList<UpdateMsg>();
-
-     {
-       String user1entryUUID = "33333333-3333-3333-3333-333333333333";
-       String baseUUID       = "22222222-2222-2222-2222-222222222222";
-
-       // - Add
-       Entry entry = TestCaseUtils.entryFromLdifString(
-       "dn: "+suffix+"\n"
-           + "objectClass: top\n"
-           + "objectClass: domain\n"
-           + "entryUUID: 11111111-1111-1111-1111-111111111111\n");
-       CSNGenerator csnGen = new CSNGenerator(serverId, TimeThread.getTime());
-       DN exampleSuffixDN = DN.decode("o=example," + suffix);
-       AddMsg addMsg = new AddMsg(csnGen.newCSN(), exampleSuffixDN,
-           user1entryUUID, baseUUID, entry.getObjectClassAttribute(),
-           entry.getAttributes(), new ArrayList<Attribute>());
-       l.add(addMsg);
-
-       // - Add
-       Entry uentry = TestCaseUtils.entryFromLdifString(
-             "dn: cn=Fiona Jensen,ou=People,"+suffix+"\n"
-           + "objectClass: top\n"
-           + "objectclass: person\n"
-           + "objectclass: organizationalPerson\n"
-           + "objectclass: inetOrgPerson\n"
-           + "cn: Fiona Jensen\n"
-           + "sn: Jensen\n"
-           + "givenName: fjensen\n"
-           + "telephonenumber: +1 408 555 1212\n"
-           + "entryUUID: " + user1entryUUID +"\n"
-           + "userpassword: fjen$$en" + "\n");
-       DN newPersonDN = DN.decode("uid=new person,ou=People,"+suffix);
-       AddMsg addMsg2 = new AddMsg(
-           csnGen.newCSN(),
-           newPersonDN,
-           user1entryUUID,
-           baseUUID,
-           uentry.getObjectClassAttribute(),
-           uentry.getAttributes(),
-           new ArrayList<Attribute>());
-       l.add(addMsg2);
-
-       // - Modify
-       Attribute attr1 = Attributes.create("description", "new value");
-       Attribute attr2 = Attributes.create("modifiersName", "cn=Directory Manager,cn=Root DNs,cn=config");
-       Attribute attr3 = Attributes.create("modifyTimestamp", "20070917172420Z");
-
-       List<Modification> mods = Arrays.asList(
-           new Modification(ModificationType.REPLACE, attr1),
-           new Modification(ModificationType.REPLACE, attr2),
-           new Modification(ModificationType.REPLACE, attr3));
-
-       DN dn = exampleSuffixDN;
-       ModifyMsg modMsg = new ModifyMsg(csnGen.newCSN(), dn, mods, "fakeuniqueid");
-       l.add(modMsg);
-
-       // Modify DN
-       ModifyDNMsg  modDnMsg = new ModifyDNMsg(newPersonDN, csnGen.newCSN(),
-           user1entryUUID, baseUUID, false,
-           "uid=wrong, ou=people,"+suffix, "uid=newrdn");
-       l.add(modDnMsg);
-
-       // Del
-       DeleteMsg delMsg = new DeleteMsg(exampleSuffixDN, csnGen.newCSN(), "uid");
-       l.add(delMsg);
-     }
-     return l;
-   }
-
-
-   /**
-    * Testing searches on the backend of the replication server.
-    * @throws Exception
-    */
-   @Test(enabled=true)
-   public void searchBackend() throws Exception
-   {
-     debugInfo("Starting searchBackend");
-
-     ReplicationBroker server1 = null;
-    try
-    {
-      InternalSearchOperation op =
-          connection.processSearch("cn=monitor", WHOLE_SUBTREE, "(objectclass=*)");
-      assertEquals(op.getResultCode(), SUCCESS, op.getErrorMessage().toString());
-
-      clearChangelogDB(replicationServer);
-
-       ByteArrayOutputStream stream = new ByteArrayOutputStream();
-       LDIFExportConfig exportConfig = new LDIFExportConfig(stream);
-       LDIFWriter ldifWriter = new LDIFWriter(exportConfig);
-
-       debugInfo("Create broker");
-       server1 = openReplicationSession(TEST_ROOT_DN, 1, 100, replicationServerPort, 1000);
-
-       debugInfo("Publish changes");
-       List<UpdateMsg> msgs = createChanges(TEST_ROOT_DN_STRING, 1);
-       publishAll(server1, msgs);
-       Thread.sleep(500);
-
-       // Sets manually the association backend-replication server since
-       // no config object exist for our replication server.
-       ReplicationBackend b =
-         (ReplicationBackend)DirectoryServer.getBackend("replicationChanges");
-       b.setServer(replicationServer);
-       assertEquals(b.getEntryCount(), msgs.size());
-       assertTrue(b.entryExists(DN.decode("dc=replicationChanges")));
-       SearchFilter filter=SearchFilter.createFilterFromString("(objectclass=*)");
-       assertTrue(b.isIndexed(filter));
-
-       List<Control> requestControls = new LinkedList<Control>();
-       requestControls.add(new LDAPControl(OID_INTERNAL_GROUP_MEMBERSHIP_UPDATE, false));
-       DN baseDN=DN.decode("dc=replicationChanges");
-       //Test the group membership control causes search to be skipped.
-       InternalSearchOperation internalSearch =
-          connection.processSearch(baseDN, WHOLE_SUBTREE,
-              DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false, filter, null,
-              requestControls, null);
-       assertEquals(internalSearch.getResultCode(), ResultCode.SUCCESS);
-       assertTrue(internalSearch.getSearchEntries().isEmpty());
-
-      assertSearchResult("dc=oops", "(changetype=*)", NO_SUCH_OBJECT, 0);
-
-       // TODO:  testReplicationBackendACIs() is disabled because it
-       // is currently failing when run in the nightly target.
-       // anonymous search returns entries from replication backend whereas it
-       // should not. Probably a previous test in the nightlytests suite is
-       // removing/modifying some ACIs...When problem found, we have to re-enable
-       // this test.
-       // testReplicationBackendACIs();
-
-      op = assertSearchResult("dc=replicationChanges", "(changetype=*)", SUCCESS, 5);
-
-       debugInfo("Search result");
-       List<SearchResultEntry> entries = op.getSearchEntries();
-       if (entries != null)
-       {
-         for (SearchResultEntry entry : entries)
-         {
-           debugInfo(entry.toLDIFString());
-           ldifWriter.writeEntry(entry);
-         }
-       }
-       debugInfo("\n" + stream.toString());
-
-
-       debugInfo("Query / filter based on changetype");
-
-      assertSearchResult("dc=replicationChanges", "(changetype=add)", SUCCESS, 2);
-      assertSearchResult("dc=replicationChanges", "(changetype=modify)", SUCCESS, 1);
-      assertSearchResult("dc=replicationChanges", "(changetype=moddn)", SUCCESS, 1);
-      assertSearchResult("dc=replicationChanges", "(changetype=delete)", SUCCESS, 1);
-
-       debugInfo("Query / filter based on objectclass");
-
-      assertSearchResult("dc=replicationChanges", "(objectclass=person)", SUCCESS, 1);
-
-       /*
-        * It would be nice to be have the abilities to search for
-        * entries in the replication backend using the DN on which the
-        * operation was done as the search criteria.
-        * This is not possible yet, this part of the test is therefore
-        * disabled.
-        *
-        * debugInfo("Query / searchBase");
-        * op = connection.processSearch(
-        *    ByteString.valueOf("uid=new person,ou=People,dc=example,dc=com,dc=replicationChanges"),
-        *    SearchScope.WHOLE_SUBTREE,
-        *    LDAPFilter.decode("(changetype=*)"));
-        * assertEquals(op.getResultCode(), ResultCode.SUCCESS);
-        * assertEquals(op.getSearchEntries().size(), 2);
-        */
-
-       debugInfo("Query / 1 attrib");
-
-      op = connection.processSearch("dc=replicationChanges",
-             WHOLE_SUBTREE, DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
-              "(changetype=moddn)", singleton("newrdn"));
-       assertEquals(op.getResultCode(), ResultCode.SUCCESS);
-       assertEquals(op.getSearchEntries().size(), 1);
-       entries = op.getSearchEntries();
-       if (entries != null)
-       {
-         for (SearchResultEntry entry : entries)
-         {
-           debugInfo(entry.toLDIFString());
-           ldifWriter.writeEntry(entry);
-         }
-       }
-
-       debugInfo("Query / All attribs");
-
-      op = connection.processSearch("dc=replicationChanges",
-             WHOLE_SUBTREE, DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
-              "(changetype=*)", singleton("*"));
-       assertEquals(op.getResultCode(), ResultCode.SUCCESS);
-       assertEquals(op.getSearchEntries().size(), 5);
-
-       debugInfo("Successfully ending searchBackend");
-     } finally {
-      stop(server1);
-     }
-   }
-
-  private void publishAll(ReplicationBroker broker, List<UpdateMsg> msgs)
-  {
-    for (UpdateMsg msg : msgs)
-    {
-      broker.publish(msg);
-    }
-  }
-
-  private InternalSearchOperation assertSearchResult(String baseDN,
-      String filterString, ResultCode rc, int nbEntriesReturned)
-      throws Exception
-  {
-    InternalSearchOperation op =
-        connection.processSearch(baseDN, WHOLE_SUBTREE, filterString);
-    assertEquals(op.getResultCode(), rc, op.getErrorMessage().toString());
-    if (SUCCESS.equals(rc))
-    {
-      assertEquals(op.getSearchEntries().size(), nbEntriesReturned);
-    }
-    return op;
-  }
-
-  private void testReplicationBackendACIs() throws Exception
-  {
-     ByteArrayOutputStream oStream = new ByteArrayOutputStream();
-     ByteArrayOutputStream eStream = new ByteArrayOutputStream();
-
-     // test search as anonymous
-     String[] args =
-     {
-       "-h", "127.0.0.1",
-       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-       "-b", "dc=replicationChanges",
-       "-s", "sub",
-      "--noPropertiesFile",
-       "(objectClass=*)"
-     };
-
-     oStream.reset();
-     eStream.reset();
-    int retVal = LDAPSearch.mainSearch(args, false, oStream, eStream);
-     String entries = oStream.toString();
-
-     debugInfo("Entries:" + entries);
-     assertEquals(0, retVal,  "Returned error: " + eStream);
-     assertEquals(entries, "",  "Returned entries: " + entries);
-
-     // test search as directory manager returns content
-     String[] args3 =
-     {
-       "-h", "127.0.0.1",
-       "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-       "-D", "cn=Directory Manager",
-       "-w", "password",
-       "-b", "dc=replicationChanges",
-       "-s", "sub",
-       "--noPropertiesFile",
-       "(objectClass=*)"
-     };
-
-     oStream.reset();
-     eStream.reset();
-    retVal = LDAPSearch.mainSearch(args3, false, oStream, eStream);
-     entries = oStream.toString();
-
-     debugInfo("Entries:" + entries);
-     assertEquals(0, retVal,  "Returned error: " + eStream);
-     assertTrue(!entries.equalsIgnoreCase(""), "Returned entries: " + entries);
-
-    // test write fails : unwilling to perform
-    String ldif =
-        "dn: dc=foo, dc=replicationchanges\n"
-        + "objectclass: top\n"
-        + "objectClass: domain\n"
-        + "dc:foo\n";
-    String path = TestCaseUtils.createTempFile(ldif);
-    String[] args4 =
-    {
-        "-h", "127.0.0.1",
-        "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
-        "-D", "cn=Directory Manager",
-        "-w", "password",
-        "--noPropertiesFile",
-        "-a",
-        "-f", path
-    };
-
-    retVal = LDAPModify.mainModify(args4, false, oStream, eStream);
-    assertEquals(retVal, 53, "Returned error: " + eStream);
-  }
-
    /**
     * Replication Server configuration test of the replication Server code with
     * 2 replication servers involved
@@ -1509,7 +1083,7 @@ public class ReplicationServerTest extends ReplicationTestCase
     * - Make client 1 publish a change
     * - Check that client 2 does not receive the change
     */
-  @Test(enabled=true, dependsOnMethods = { "searchBackend"}, groups = "opendj-256")
+  @Test(enabled = true, groups = "opendj-256")
   public void replicationServerConnected() throws Exception
   {
      clearChangelogDB(replicationServer);
