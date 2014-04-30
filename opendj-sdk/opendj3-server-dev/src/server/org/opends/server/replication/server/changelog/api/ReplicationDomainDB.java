@@ -38,15 +38,6 @@ public interface ReplicationDomainDB
 {
 
   /**
-   * Get the number of changes for the specified replication domain.
-   *
-   * @param baseDN
-   *          the replication domain baseDN
-   * @return the number of changes.
-   */
-  long getDomainChangesCount(DN baseDN);
-
-  /**
    * Returns the oldest {@link CSN}s from the replicaDBs for each serverId in
    * the specified replication domain.
    *
@@ -102,29 +93,6 @@ public interface ReplicationDomainDB
 
   /**
    * Generates a {@link DBCursor} across all the replicaDBs for the specified
-   * replication domain, with all cursors starting after the provided CSN.
-   * <p>
-   * The cursor is already advanced to the record after startAfterCSN.
-   * <p>
-   * When the cursor is not used anymore, client code MUST call the
-   * {@link DBCursor#close()} method to free the resources and locks used by the
-   * cursor.
-   *
-   * @param baseDN
-   *          the replication domain baseDN
-   * @param startAfterCSN
-   *          Starting point for each ReplicaDB cursor. If null, start from the
-   *          oldest CSN for each ReplicaDB cursor.
-   * @return a non null {@link DBCursor}
-   * @throws ChangelogException
-   *           If a database problem happened
-   * @see #getCursorFrom(DN, ServerState)
-   */
-  DBCursor<UpdateMsg> getCursorFrom(DN baseDN, CSN startAfterCSN)
-      throws ChangelogException;
-
-  /**
-   * Generates a {@link DBCursor} across all the replicaDBs for the specified
    * replication domain starting after the provided {@link ServerState} for each
    * replicaDBs.
    * <p>
@@ -143,7 +111,6 @@ public interface ReplicationDomainDB
    * @return a non null {@link DBCursor}
    * @throws ChangelogException
    *           If a database problem happened
-   * @see #getCursorFrom(DN, CSN)
    */
   DBCursor<UpdateMsg> getCursorFrom(DN baseDN,
       ServerState startAfterServerState) throws ChangelogException;
@@ -168,7 +135,6 @@ public interface ReplicationDomainDB
    * @return a non null {@link DBCursor}
    * @throws ChangelogException
    *           If a database problem happened
-   * @see #getCursorFrom(DN, CSN)
    */
   DBCursor<UpdateMsg> getCursorFrom(DN baseDN, int serverId, CSN startAfterCSN)
       throws ChangelogException;

@@ -22,8 +22,8 @@
  *
  *
  *      Copyright 2008-2011 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
-
 package org.opends.guitools.controlpanel.datamodel;
 
 import java.util.Set;
@@ -294,8 +294,7 @@ public class BackendDescriptor
     "monitor".equalsIgnoreCase(id) ||
     "backup".equalsIgnoreCase(id) ||
     ADSContext.getDefaultBackendName().equalsIgnoreCase(id) ||
-    "ads-truststore".equalsIgnoreCase(id) ||
-    "replicationchanges".equalsIgnoreCase(id);
+    "ads-truststore".equalsIgnoreCase(id);
   }
 
   /**
