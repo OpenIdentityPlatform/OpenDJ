@@ -918,17 +918,6 @@ public final class ReplicationServer
   }
 
   /**
-   * Get the queueSize for this replication server.
-   *
-   * @return The maximum size of the queues for this Replication Server
-   *
-   */
-  public int getQueueSize()
-  {
-    return this.config.getQueueSize();
-  }
-
-  /**
    * Creates the backend associated to this replication server.
    */
   private void createBackend() throws ConfigException
