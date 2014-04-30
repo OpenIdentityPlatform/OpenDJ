@@ -826,13 +826,14 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
   /** {@inheritDoc} */
   @Override
   public void replicaOffline(DN baseDN, CSN offlineCSN)
+      throws ChangelogException
   {
+    dbEnv.addOfflineReplica(baseDN, offlineCSN);
     final ChangeNumberIndexer indexer = cnIndexer.get();
     if (indexer != null)
     {
       indexer.replicaOffline(baseDN, offlineCSN);
     }
-    // TODO save this state in the changelogStateDB?
   }
 
   /**
@@ -941,6 +942,14 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
       }
       // wait a bit before purging more
       return DEFAULT_SLEEP;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public void initiateShutdown()
+    {
+      super.initiateShutdown();
+      this.interrupt(); // wake up the purger thread for faster shutdown
     }
   }
 }

@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS
+ *      Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -30,6 +30,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.opends.server.replication.common.CSN;
 import org.opends.server.types.DN;
 
 /**
@@ -49,6 +50,8 @@ public class ChangelogState
   private final Map<DN, Long> domainToGenerationId = new HashMap<DN, Long>();
   private final Map<DN, List<Integer>> domainToServerIds =
       new HashMap<DN, List<Integer>>();
+  private final Map<DN, List<CSN>> offlineReplicas =
+      new HashMap<DN, List<CSN>>();
 
   /**
    * Sets the generationId for the supplied replication domain.
@@ -83,6 +86,25 @@ public class ChangelogState
   }
 
   /**
+   * Adds the following replica information to the offline list.
+   *
+   * @param baseDN
+   *          the baseDN of the offline replica
+   * @param offlineCSN
+   *          the CSN (serverId + timestamp) of the offline replica
+   */
+  public void addOfflineReplica(DN baseDN, CSN offlineCSN)
+  {
+    List<CSN> offlineCSNs = offlineReplicas.get(baseDN);
+    if (offlineCSNs == null)
+    {
+      offlineCSNs = new LinkedList<CSN>();
+      offlineReplicas.put(baseDN, offlineCSNs);
+    }
+    offlineCSNs.add(offlineCSN);
+  }
+
+  /**
    * Returns the Map of domainBaseDN => generationId.
    *
    * @return a Map of domainBaseDN => generationId
@@ -102,11 +124,22 @@ public class ChangelogState
     return domainToServerIds;
   }
 
+  /**
+   * Returns the Map of domainBaseDN => List&lt;offlineCSN&gt;.
+   *
+   * @return a Map of domainBaseDN => List&lt;offlineCSN&gt;.
+   */
+  public Map<DN, List<CSN>> getOfflineReplicas()
+  {
+    return offlineReplicas;
+  }
+
   /** {@inheritDoc} */
   @Override
   public String toString()
   {
     return "domainToGenerationId=" + domainToGenerationId
-        + ", domainToServerIds=" + domainToServerIds;
+        + ", domainToServerIds=" + domainToServerIds
+        + ", offlineReplicas=" + offlineReplicas;
   }
 }
