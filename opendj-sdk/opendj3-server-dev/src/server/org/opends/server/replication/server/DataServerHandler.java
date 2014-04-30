@@ -634,7 +634,6 @@ public class DataServerHandler extends ServerHandler
    */
   public void receiveNewStatus(ChangeStatusMsg csMsg)
   {
-    if (replicationServerDomain!=null)
-      replicationServerDomain.processNewStatus(this, csMsg);
+    replicationServerDomain.processNewStatus(this, csMsg);
   }
 }
