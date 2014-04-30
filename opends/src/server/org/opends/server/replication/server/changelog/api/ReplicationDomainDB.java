@@ -217,6 +217,8 @@ public interface ReplicationDomainDB
    *          the replication domain baseDN
    * @param offlineCSN
    *          The CSN (serverId and timestamp) for the replica's going offline
+   * @throws ChangelogException
+   *           If a database problem happened
    */
-  void replicaOffline(DN baseDN, CSN offlineCSN);
+  void replicaOffline(DN baseDN, CSN offlineCSN) throws ChangelogException;
 }

@@ -839,14 +839,19 @@ public abstract class ServerHandler extends MessageHandler
   /**
    * Processes a change time heartbeat msg.
    *
-   * @param msg The message to be processed.
+   * @param msg
+   *          The message to be processed.
+   * @throws DirectoryException
+   *           When an exception is raised.
    */
-  void process(ChangeTimeHeartbeatMsg msg)
+  void process(ChangeTimeHeartbeatMsg msg) throws DirectoryException
   {
     if (debugEnabled())
+    {
       TRACER.debugInfo("In "
           + replicationServerDomain.getLocalRSMonitorInstanceName() + " "
           + this + " processes received msg:\n" + msg);
+    }
     replicationServerDomain.processChangeTimeHeartbeatMsg(this, msg);
   }
 
@@ -865,9 +870,9 @@ public abstract class ServerHandler extends MessageHandler
       // lets update the LDAP server with out current window size and hope
       // that everything will work better in the future.
       // TODO also log an error message.
-      WindowMsg msg = new WindowMsg(rcvWindow);
-      session.publish(msg);
-    } else
+      session.publish(new WindowMsg(rcvWindow));
+    }
+    else
     {
       // Both the LDAP server and the replication server believes that the
       // window is closed. Lets check the flowcontrol in case we
