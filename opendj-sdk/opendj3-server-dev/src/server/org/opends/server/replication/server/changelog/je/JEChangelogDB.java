@@ -717,7 +717,9 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
           startAfterServerState.getCSN(serverId) : null;
       cursors.put(getCursorFrom(baseDN, serverId, lastCSN), null);
     }
-    return new CompositeDBCursor<Void>(cursors);
+    // recycle exhausted cursors,
+    // because client code will not manage the cursors itself
+    return new CompositeDBCursor<Void>(cursors, true);
   }
 
   /** {@inheritDoc} */

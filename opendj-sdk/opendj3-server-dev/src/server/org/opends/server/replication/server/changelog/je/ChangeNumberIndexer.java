@@ -371,7 +371,10 @@ public class ChangeNumberIndexer extends DirectoryThread
         cursors.put(entry2.getValue(), entry.getKey());
       }
     }
-    final CompositeDBCursor<DN> result = new CompositeDBCursor<DN>(cursors);
+
+    // CNIndexer manages the cursor itself,
+    // so do not try to recycle exhausted cursors
+    CompositeDBCursor<DN> result = new CompositeDBCursor<DN>(cursors, false);
     result.next();
     nextChangeForInsertDBCursor = result;
   }
@@ -454,7 +457,12 @@ public class ChangeNumberIndexer extends DirectoryThread
           }
           else
           {
-            createNewCursors();
+            final boolean createdCursors = createNewCursors();
+            final boolean recycledCursors = recycleExhaustedCursors();
+            if (createdCursors || recycledCursors)
+            {
+              resetNextChangeForInsertDBCursor();
+            }
           }
 
           final UpdateMsg msg = nextChangeForInsertDBCursor.getRecord();
@@ -468,9 +476,6 @@ public class ChangeNumberIndexer extends DirectoryThread
               }
               wait();
             }
-            // try to recycle the exhausted cursors,
-            // success/failure will be checked later
-            nextChangeForInsertDBCursor.next();
             // loop to check whether new changes have been added to the
             // ReplicaDBs
             continue;
@@ -599,7 +604,24 @@ public class ChangeNumberIndexer extends DirectoryThread
     }
   }
 
-  private void createNewCursors() throws ChangelogException
+  private boolean recycleExhaustedCursors() throws ChangelogException
+  {
+    boolean succesfullyRecycled = false;
+    for (Map<Integer, DBCursor<UpdateMsg>> map : allCursors.values())
+    {
+      for (DBCursor<UpdateMsg> cursor : map.values())
+      {
+        // try to recycle it by calling next()
+        if (cursor.getRecord() == null && cursor.next())
+        {
+          succesfullyRecycled = true;
+        }
+      }
+    }
+    return succesfullyRecycled;
+  }
+
+  private boolean createNewCursors() throws ChangelogException
   {
     if (!newCursors.isEmpty())
     {
@@ -619,11 +641,9 @@ public class ChangeNumberIndexer extends DirectoryThread
         }
         iter.remove();
       }
-      if (newCursorAdded)
-      {
-        resetNextChangeForInsertDBCursor();
-      }
+      return newCursorAdded;
     }
+    return false;
   }
 
   /**
