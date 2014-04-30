@@ -320,8 +320,13 @@ public final class ConfigurationFramework {
         if (loader != null) {
             throw new IllegalStateException("configuration framework already initialized.");
         }
-        this.installPath = installPath == null ? System.getProperty("user.dir") : installPath;
-        this.instancePath = instancePath == null ? this.installPath : instancePath;
+        this.installPath = installPath == null ? System.getenv("INSTALL_ROOT") : installPath;
+        if (instancePath != null) {
+            this.instancePath = instancePath;
+        } else {
+            this.instancePath = System.getenv("INSTANCE_ROOT") != null ? System.getenv("INSTANCE_ROOT")
+                    : this.installPath;
+        }
         this.parent = parent;
         initialize0();
         return this;
