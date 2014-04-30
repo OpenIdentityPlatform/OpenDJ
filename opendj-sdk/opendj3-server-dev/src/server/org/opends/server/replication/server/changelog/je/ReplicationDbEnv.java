@@ -249,12 +249,13 @@ public class ReplicationDbEnv
 
         if (logger.isTraceEnabled())
         {
-          debug("read (key, value)=(" + stringKey + ", " + stringData + ")");
+          debug("read (key, data)=(" + stringKey + ", " + stringData + ")");
         }
 
-        final String[] str = stringData.split(FIELD_SEPARATOR, 3);
-        if (str[0].equals(GENERATION_ID_TAG))
+        final String prefix = stringKey.split(FIELD_SEPARATOR)[0];
+        if (prefix.equals(GENERATION_ID_TAG))
         {
+          final String[] str = stringData.split(FIELD_SEPARATOR, 3);
           final long generationId = toLong(str[1]);
           final DN baseDN = DN.valueOf(str[2]);
 
@@ -267,6 +268,7 @@ public class ReplicationDbEnv
         }
         else
         {
+          final String[] str = stringData.split(FIELD_SEPARATOR, 2);
           final int serverId = toInt(str[0]);
           final DN baseDN = DN.valueOf(str[1]);
 
