@@ -22,10 +22,9 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
-
 
 /**
  * The version utility class for the replication protocol.
@@ -43,52 +42,72 @@ public class ProtocolVersion
   public static final short REPLICATION_PROTOCOL_V1_REAL = 49;
   /**
    * The constant for the second version of the replication protocol.
-   * Add fields in the header for assured replication.
+   * <ul>
+   * <li>Add fields in the header for assured replication.</li>
+   * </ul>
    */
   public static final short REPLICATION_PROTOCOL_V2 = 2;
 
   /**
    * The constant for the 3rd version of the replication protocol.
-   * Add messages for remote ECL : not used as of today.
+   * <ul>
+   * <li>Add messages for remote ECL : not used as of today.</li>
+   * </ul>
    */
   public static final short REPLICATION_PROTOCOL_V3 = 3;
 
   /**
    * The constant for the 4th version of the replication protocol.
-   * - Add to the body of the ADD/MOD/MODDN/DEL msgs, a list of attribute for
-   *   ECL entry attributes.
-   * - Modified algorithm for choosing a RS to connect to: introduction of a
-   *   ReplicationServerDSMsg message.
-   *   -> also added of the server URL in RSInfo of TopologyMsg
-   * - Introduction of a StopMsg for proper connections ending.
-   * - Initialization failover/flow control
+   * <ul>
+   * <li>Add to the body of the ADD/MOD/MODDN/DEL msgs, a list of attribute for
+   * ECL entry attributes.</li>
+   * <li>Modified algorithm for choosing a RS to connect to: introduction of a
+   * ReplicationServerDSMsg message.</li>
+   * <li>also added of the server URL in RSInfo of TopologyMsg</li>
+   * <li>Introduction of a StopMsg for proper connections ending.</li>
+   * <li>Initialization failover/flow control</li>
+   * </ul>
    */
   public static final short REPLICATION_PROTOCOL_V4 = 4;
 
   /**
    * The constant for the 5th version of the replication protocol.
-   * - Add support for wild-cards in change log included attributes
-   * - Add support for specifying additional included attributes for deletes
-   * - See OPENDJ-194.
+   * <ul>
+   * <li>Add support for wild-cards in change log included attributes</li>
+   * <li>Add support for specifying additional included attributes for deletes</li>
+   * <li>See OPENDJ-194.</li>
+   * </ul>
    */
   public static final short REPLICATION_PROTOCOL_V5 = 5;
 
   /**
    * The constant for the 6th version of the replication protocol.
-   * - include DS local URL in the DSInfo of TopologyMsg.
+   * <ul>
+   * <li>include DS local URL in the DSInfo of TopologyMsg.</li>
+   * </ul>
    */
   public static final short REPLICATION_PROTOCOL_V6 = 6;
 
   /**
    * The constant for the 7th version of the replication protocol.
-   * - compact encoding for length, CSNs, and server IDs.
+   * <ul>
+   * <li>compact encoding for length, CSNs, and server IDs.</li>
+   * </ul>
    */
   public static final short REPLICATION_PROTOCOL_V7 = 7;
 
   /**
+   * The constant for the 8th version of the replication protocol.
+   * <ul>
+   * <li>StopMsg now has a timestamp to communicate the replica stop time.</li>
+   * </ul>
+   */
+  public static final short REPLICATION_PROTOCOL_V8 = 8;
+
+  /**
    * The replication protocol version used by the instance of RS/DS in this VM.
    */
-  private static final short CURRENT_VERSION = REPLICATION_PROTOCOL_V7;
+  private static final short CURRENT_VERSION = REPLICATION_PROTOCOL_V8;
 
   /**
    * Gets the current version of the replication protocol.

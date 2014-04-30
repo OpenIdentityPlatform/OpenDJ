@@ -52,6 +52,7 @@ import org.testng.annotations.Test;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.replication.protocol.OperationContext.*;
 import static org.opends.server.replication.protocol.ProtocolVersion.*;
+import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
 
 /**
@@ -108,10 +109,8 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     List<Modification> mods4 = new ArrayList<Modification>();
     for (int i = 0; i < 10; i++)
     {
-      Attribute attr = Attributes.create("description", "string"
-          + String.valueOf(i));
-      Modification mod = new Modification(ModificationType.ADD, attr);
-      mods4.add(mod);
+      Attribute attr = Attributes.create("description", "string" + i);
+      mods4.add(new Modification(ModificationType.ADD, attr));
     }
 
     Attribute attr5 = Attributes.create("namingcontexts", TEST_ROOT_DN_STRING);
@@ -157,14 +156,14 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     msg.setAssuredMode(assuredMode);
     msg.setSafeDataLevel(safeDataLevel);
 
-    // Set ECL entry inlcuded attributes
+    // Set ECL entry included attributes
     if (entryAttrList != null)
     {
       msg.setEclIncludes(entryAttrList);
     }
 
     ModifyMsg generatedMsg = (ModifyMsg) ReplicationMsg.generateMsg(
-        msg.getBytes(), ProtocolVersion.getCurrentVersion());
+        msg.getBytes(), getCurrentVersion());
 
     // Test that generated attributes match original attributes.
     assertEquals(generatedMsg.isAssured(), isAssured);
@@ -219,7 +218,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
 
     // Check equals
     ModifyMsg generatedMsg = (ModifyMsg) ReplicationMsg.generateMsg(
-        msg.getBytes(), ProtocolVersion.REPLICATION_PROTOCOL_V1);
+        msg.getBytes(), REPLICATION_PROTOCOL_V1);
     assertFalse(msg.equals(null));
     assertFalse(msg.equals(new Object()));
 
@@ -303,7 +302,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     }
     msg.setInitiatorsName("johnny h");
     DeleteMsg generatedMsg = (DeleteMsg) ReplicationMsg.generateMsg(
-        msg.getBytes(), ProtocolVersion.getCurrentVersion());
+        msg.getBytes(), getCurrentVersion());
 
     assertEquals(msg.toString(), generatedMsg.toString());
     assertEquals(msg.getInitiatorsName(), generatedMsg.getInitiatorsName());
@@ -398,8 +397,8 @@ public class SynchronizationMsgTest extends ReplicationTestCase
       msg.setEclIncludes(entryAttrList);
     }
 
-    ModifyDNMsg generatedMsg = (ModifyDNMsg) ReplicationMsg
-        .generateMsg(msg.getBytes(), ProtocolVersion.getCurrentVersion());
+    ModifyDNMsg generatedMsg = (ModifyDNMsg) ReplicationMsg.generateMsg(
+        msg.getBytes(), getCurrentVersion());
 
     // Test that generated attributes match original attributes.
     assertEquals(generatedMsg.isAssured(), isAssured);
@@ -477,8 +476,8 @@ public class SynchronizationMsgTest extends ReplicationTestCase
       msg.setEclIncludes(entryAttrList);
     }
 
-    AddMsg generatedMsg = (AddMsg) ReplicationMsg.generateMsg(msg
-        .getBytes(), ProtocolVersion.getCurrentVersion());
+    AddMsg generatedMsg = (AddMsg) ReplicationMsg.generateMsg(
+        msg.getBytes(), getCurrentVersion());
     assertEquals(generatedMsg.getBytes(), msg.getBytes());
     assertEquals(generatedMsg.toString(), msg.toString());
 
@@ -829,6 +828,33 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     new StopMsg(msg.getBytes(getCurrentVersion()));
   }
 
+  @Test
+  public void changeTimeHeartbeatMsgTest() throws Exception
+  {
+    final short v1 = REPLICATION_PROTOCOL_V1;
+    final short v7 = REPLICATION_PROTOCOL_V7;
+    final short v8 = REPLICATION_PROTOCOL_V8;
+
+    final CSN csn = new CSN(System.currentTimeMillis(), 0, 42);
+    final ChangeTimeHeartbeatMsg heartbeatMsg = ChangeTimeHeartbeatMsg.heartbeatMsg(csn);
+    assertCTHearbeatMsg(heartbeatMsg, v1, false);
+    assertCTHearbeatMsg(heartbeatMsg, v7, false);
+    assertCTHearbeatMsg(heartbeatMsg, v8, false);
+
+    final ChangeTimeHeartbeatMsg offlineMsg = ChangeTimeHeartbeatMsg.replicaOfflineMsg(csn);
+    assertCTHearbeatMsg(offlineMsg, v1, false);
+    assertCTHearbeatMsg(offlineMsg, v7, false);
+    assertCTHearbeatMsg(offlineMsg, v8, true);
+  }
+
+  private void assertCTHearbeatMsg(ChangeTimeHeartbeatMsg heartbeatMsg,
+      short version, boolean expected) throws DataFormatException
+  {
+    final byte[] bytes = heartbeatMsg.getBytes(version);
+    ChangeTimeHeartbeatMsg decodedMsg = new ChangeTimeHeartbeatMsg(bytes, version);
+    assertEquals(decodedMsg.isReplicaOfflineMsg(), expected);
+  }
+
   /**
    * Test that WindowMsg encoding and decoding works
    * by checking that : msg == new WindowMsg(msg.getBytes()).
@@ -914,8 +940,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
       throws Exception
   {
     TopologyMsg msg = new TopologyMsg(dsList, rsList);
-    TopologyMsg newMsg = new TopologyMsg(msg.getBytes(getCurrentVersion()),
-        ProtocolVersion.getCurrentVersion());
+    TopologyMsg newMsg = new TopologyMsg(msg.getBytes(getCurrentVersion()), getCurrentVersion());
     assertEquals(msg.getReplicaInfos(), newMsg.getReplicaInfos());
     assertEquals(msg.getRsInfos(), newMsg.getRsInfos());
   }
@@ -1092,16 +1117,14 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     msg.setServerState(sid3, s3, now+3, false);
 
     byte[] b = msg.getBytes(getCurrentVersion());
-    MonitorMsg newMsg = new MonitorMsg(b, ProtocolVersion.getCurrentVersion());
+    MonitorMsg newMsg = new MonitorMsg(b, getCurrentVersion());
 
     assertEquals(rsState, msg.getReplServerDbState());
     assertEquals(newMsg.getReplServerDbState().toString(),
         msg.getReplServerDbState().toString());
 
-    Iterator<Integer> it = newMsg.ldapIterator();
-    while (it.hasNext())
+    for (int sid : toIterable(newMsg.ldapIterator()))
     {
-      int sid = it.next();
       ServerState s = newMsg.getLDAPServerState(sid);
       if (sid == sid1)
       {
@@ -1119,10 +1142,8 @@ public class SynchronizationMsgTest extends ReplicationTestCase
       }
     }
 
-    Iterator<Integer> it2 = newMsg.rsIterator();
-    while (it2.hasNext())
+    for (int sid : toIterable(newMsg.rsIterator()))
     {
-      int sid = it2.next();
       ServerState s = newMsg.getRSServerState(sid);
       if (sid == sid3)
       {
@@ -1381,7 +1402,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
       encodemsg += (t4 - t31);
 
       // getBytes
-      byte[] bytes = generatedMsg.getBytes(ProtocolVersion.getCurrentVersion());
+      byte[] bytes = generatedMsg.getBytes(getCurrentVersion());
       t5 = System.nanoTime();
       getbytes += (t5 - t4);
 
@@ -1456,7 +1477,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
       encodemsg += (t4 - t31);
 
       // getBytes
-      byte[] bytes = generatedMsg.getBytes(ProtocolVersion.getCurrentVersion());
+      byte[] bytes = generatedMsg.getBytes(getCurrentVersion());
       t5 = System.nanoTime();
       getbytes += (t5 - t4);
 
@@ -1530,7 +1551,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
       encodemsg += (t4 - t31);
 
       // getBytes
-      byte[] bytes = generatedMsg.getBytes(ProtocolVersion.getCurrentVersion());
+      byte[] bytes = generatedMsg.getBytes(getCurrentVersion());
       t5 = System.nanoTime();
       getbytes += (t5 - t4);
 
