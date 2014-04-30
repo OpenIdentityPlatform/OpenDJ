@@ -202,9 +202,9 @@ public class ChangeNumberIndexer extends DirectoryThread
     }
 
     final CSN csn = updateMsg.getCSN();
-    lastAliveCSNs.update(baseDN, csn);
     // only keep the oldest CSN that will be the new cursor's starting point
     newCursors.putIfAbsent(Pair.of(baseDN, csn.getServerId()), csn);
+    lastAliveCSNs.update(baseDN, csn);
     tryNotify(baseDN);
   }
 
@@ -235,8 +235,8 @@ public class ChangeNumberIndexer extends DirectoryThread
    */
   public void replicaOffline(DN baseDN, CSN offlineCSN)
   {
-    lastAliveCSNs.update(baseDN, offlineCSN);
     replicasOffline.update(baseDN, offlineCSN);
+    lastAliveCSNs.update(baseDN, offlineCSN);
     tryNotify(baseDN);
   }
 
