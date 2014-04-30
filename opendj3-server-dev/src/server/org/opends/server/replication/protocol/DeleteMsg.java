@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.protocol;
 
@@ -105,10 +105,7 @@ public class DeleteMsg extends LDAPUpdateMsg
     }
   }
 
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public DeleteOperation createOperation(InternalClientConnection connection,
       DN newDN)
@@ -129,18 +126,14 @@ public class DeleteMsg extends LDAPUpdateMsg
   // Msg encoding
   // ============
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public byte[] getBytes_V1() throws UnsupportedEncodingException
   {
     return encodeHeader_V1(MSG_TYPE_DELETE_V1, 0);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public byte[] getBytes_V23() throws UnsupportedEncodingException
   {
@@ -148,9 +141,7 @@ public class DeleteMsg extends LDAPUpdateMsg
         ProtocolVersion.REPLICATION_PROTOCOL_V3);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public byte[] getBytes_V45(short reqProtocolVersion)
       throws UnsupportedEncodingException
@@ -187,7 +178,7 @@ public class DeleteMsg extends LDAPUpdateMsg
     pos = addByteArray(byteEntryAttrLen, encodedMsg, pos);
     pos = addByteArray(encodedEclIncludes, encodedMsg, pos);
 
-    encodedMsg[pos++] = (isSubtreeDelete ? (byte) 1 : (byte) 0);
+    encodedMsg[pos++] = (byte) (isSubtreeDelete ? 1 : 0);
 
     return encodedMsg;
   }
@@ -241,38 +232,27 @@ public class DeleteMsg extends LDAPUpdateMsg
 
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String toString()
   {
-    if (protocolVersion == ProtocolVersion.REPLICATION_PROTOCOL_V1)
+    if (protocolVersion >= ProtocolVersion.REPLICATION_PROTOCOL_V1)
     {
       return "DeleteMsg content: " +
         " protocolVersion: " + protocolVersion +
         " dn: " + dn +
-        " changeNumber: " + csn +
-        " uniqueId: " + entryUUID +
-        " assuredFlag: " + assuredFlag;
-    }
-    if (protocolVersion >= ProtocolVersion.REPLICATION_PROTOCOL_V2)
-    {
-      return "DeleteMsg content: " +
-        " protocolVersion: " + protocolVersion +
-        " dn: " + dn +
-        " changeNumber: " + csn +
+        " csn: " + csn +
         " uniqueId: " + entryUUID +
         " assuredFlag: " + assuredFlag +
-        " assuredMode: " + assuredMode +
-        " safeDataLevel: " + safeDataLevel;
+        (protocolVersion >= ProtocolVersion.REPLICATION_PROTOCOL_V2 ?
+          " assuredMode: " + assuredMode +
+          " safeDataLevel: " + safeDataLevel
+          : "");
     }
     return "!!! Unknown version: " + protocolVersion + "!!!";
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public int size()
   {
