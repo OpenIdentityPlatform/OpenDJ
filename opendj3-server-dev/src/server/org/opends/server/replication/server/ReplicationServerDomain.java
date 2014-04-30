@@ -1344,29 +1344,6 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    * {@link DBCursor#close()} method to free the resources and locks used by the
    * cursor.
    *
-   * @param startAfterCSN
-   *          Starting point for the cursor. If null, start from the oldest CSN
-   * @return a non null {@link DBCursor}
-   * @throws ChangelogException
-   *           If a database problem happened
-   * @see ReplicationDomainDB#getCursorFrom(DN, CSN)
-   */
-  public DBCursor<UpdateMsg> getCursorFrom(CSN startAfterCSN)
-      throws ChangelogException
-  {
-    return domainDB.getCursorFrom(baseDN, startAfterCSN);
-  }
-
-  /**
-   * Creates and returns a cursor across this replication domain.
-   * <p>
-   * Client code must call {@link DBCursor#next()} to advance the cursor to the
-   * next available record.
-   * <p>
-   * When the cursor is not used anymore, client code MUST call the
-   * {@link DBCursor#close()} method to free the resources and locks used by the
-   * cursor.
-   *
    * @param startAfterServerState
    *          Starting point for the replicaDB cursors. If null, start from the
    *          oldest CSN
@@ -1379,16 +1356,6 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       throws ChangelogException
   {
     return domainDB.getCursorFrom(baseDN, startAfterServerState);
-  }
-
-  /**
-   * Returns the change count for that ReplicationServerDomain.
-   *
-   * @return the change count.
-   */
-  public long getChangesCount()
-  {
-    return domainDB.getDomainChangesCount(baseDN);
   }
 
   /**

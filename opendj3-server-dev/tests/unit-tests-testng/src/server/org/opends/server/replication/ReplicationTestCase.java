@@ -355,16 +355,8 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     assertNoConfigEntriesWithFilter("(objectclass=ds-cfg-replication-domain)",
       "Found unexpected replication domain config left");
 
-    // Check for config entries for replication changes backend
-    assertNoConfigEntriesWithFilter(
-      "(ds-cfg-java-class=org.opends.server.replication.server.ReplicationBackend)",
-      "Found unexpected replication changes backend config left");
-
     // Check for left domain object
     assertEquals(MultimasterReplication.getNumberOfDomains(), 0, "Some replication domain objects left");
-
-    // Check for left replication changes backend object
-    assertEquals(DirectoryServer.getBackend("replicationChanges"), null, "Replication changes backend object has been left");
   }
 
   protected void clearChangelogDB(ReplicationServer rs) throws Exception

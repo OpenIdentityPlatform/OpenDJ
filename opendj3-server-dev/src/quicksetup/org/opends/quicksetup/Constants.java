@@ -22,9 +22,8 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
-
 package org.opends.quicksetup;
 
 import org.opends.admin.ads.ADSContext;
@@ -66,9 +65,6 @@ public class Constants {
 
   /** DN of the schema object. */
   public static final String SCHEMA_DN = "cn=schema";
-
-  /** DN of the replication changes base DN. */
-  public static final String REPLICATION_CHANGES_DN = "dc=replicationChanges";
 
   /** The cli java system property. */
   public static final String CLI_JAVA_PROPERTY = "org.opends.quicksetup.cli";

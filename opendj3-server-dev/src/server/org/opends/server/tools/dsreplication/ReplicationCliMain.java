@@ -25,9 +25,7 @@
  *      Portions Copyright 2011-2014 ForgeRock AS
  *      Portions Copyright 2012 profiq s.r.o.
  */
-
 package org.opends.server.tools.dsreplication;
-
 
 import org.opends.admin.ads.*;
 import org.opends.admin.ads.ADSContext.ADSPropertySyntax;
@@ -43,6 +41,8 @@ import org.opends.guitools.controlpanel.datamodel.BaseDNDescriptor;
 import org.opends.guitools.controlpanel.util.*;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.LocalizableMessageDescriptor.Arg0;
+import org.forgerock.i18n.LocalizableMessageDescriptor.Arg1;
 import org.opends.quicksetup.ApplicationException;
 import org.opends.quicksetup.Constants;
 import org.opends.quicksetup.Installation;
@@ -144,7 +144,7 @@ import static org.opends.messages.ToolMessages.INFO_TASK_TOOL_RECURRING_TASK_SCH
 import static org.opends.quicksetup.util.Utils.getFirstValue;
 import static org.opends.quicksetup.util.Utils.getThrowableMsg;
 import static org.opends.server.tools.dsreplication.ReplicationCliReturnCode.*;
-import static org.opends.server.util.StaticUtils.close;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class provides a tool that can be used to enable and disable replication
@@ -1813,64 +1813,59 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       if (interactive)
       {
-        boolean confirmationLimitReached = false;
-        while (suffixes.isEmpty())
-        {
-          boolean noSchemaOrAds = false;
-          for (String s: availableSuffixes)
-          {
-            if (!areDnsEqual(s, ADSContext.getAdministrationSuffixDN()) &&
-                !areDnsEqual(s, Constants.SCHEMA_DN) &&
-                !areDnsEqual(s, Constants.REPLICATION_CHANGES_DN))
-            {
-              noSchemaOrAds = true;
-            }
-          }
-          if (!noSchemaOrAds)
-          {
-            // In interactive mode we do not propose to manage the
-            // administration suffix.
-            println();
-            println(ERR_NO_SUFFIXES_AVAILABLE_TO_PURGE_HISTORICAL.get());
-            break;
-          }
-          else
-          {
-            println();
-            println(ERR_NO_SUFFIXES_SELECTED_TO_PURGE_HISTORICAL.get());
-            for (String dn : availableSuffixes)
-            {
-              if (!areDnsEqual(dn,
-                  ADSContext.getAdministrationSuffixDN()) &&
-                  !areDnsEqual(dn, Constants.SCHEMA_DN) &&
-                  !areDnsEqual(dn, Constants.REPLICATION_CHANGES_DN))
-              {
-                try
-                {
-                  if (askConfirmation(
-                      INFO_REPLICATION_PURGE_HISTORICAL_PROMPT.get(dn), true,
-                      logger))
-                  {
-                    suffixes.add(dn);
-                  }
-                }
-                catch (ClientException ce)
-                {
-                  println(ce.getMessageObject());
-                  confirmationLimitReached = true;
-                  break;
-                }
-              }
-            }
-          }
-          if (confirmationLimitReached)
-          {
-            suffixes.clear();
-            break;
-          }
-        }
+        askConfirmations(suffixes, availableSuffixes,
+            ERR_NO_SUFFIXES_AVAILABLE_TO_PURGE_HISTORICAL,
+            ERR_NO_SUFFIXES_SELECTED_TO_PURGE_HISTORICAL,
+            INFO_REPLICATION_PURGE_HISTORICAL_PROMPT);
       }
     }
+  }
+
+  private void askConfirmations(Collection<String> suffixes,
+      Collection<String> availableSuffixes, Arg0 noSuffixAvailableMsg,
+      Arg0 noSuffixSelectedMsg, Arg1<Object> confirmationMsgPromt)
+  {
+    boolean confirmationLimitReached = false;
+    while (suffixes.isEmpty())
+    {
+      if (!noSchemaOrAds(availableSuffixes))
+      {
+        // In interactive mode we do not propose to manage the
+        // administration suffix.
+        println();
+        println(noSuffixAvailableMsg.get());
+        break;
+      }
+
+      println();
+      println(noSuffixSelectedMsg.get());
+      confirmationLimitReached =
+          askConfirmations(confirmationMsgPromt, availableSuffixes, suffixes,
+              confirmationLimitReached);
+      if (confirmationLimitReached)
+      {
+        suffixes.clear();
+        break;
+      }
+    }
+  }
+
+  private boolean noSchemaOrAds(Collection<String> suffixes)
+  {
+    for (String suffix : suffixes)
+    {
+      if (isNotSchemaOrAds(suffix))
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private boolean isNotSchemaOrAds(String suffix)
+  {
+    return !areDnsEqual(suffix, ADSContext.getAdministrationSuffixDN())
+        && !areDnsEqual(suffix, Constants.SCHEMA_DN);
   }
 
   /**
@@ -1901,7 +1896,6 @@ public class ReplicationCliMain extends ConsoleApplication
     }
     return returnValue;
   }
-
 
   /**
    * Updates the contents of the provided PurgeHistoricalUserData
@@ -5346,62 +5340,10 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       if (interactive)
       {
-        boolean confirmationLimitReached = false;
-        while (suffixes.isEmpty())
-        {
-          boolean noSchemaOrAds = false;
-          for (String s: availableSuffixes)
-          {
-            if (!areDnsEqual(s, ADSContext.getAdministrationSuffixDN()) &&
-                !areDnsEqual(s, Constants.SCHEMA_DN) &&
-                !areDnsEqual(s, Constants.REPLICATION_CHANGES_DN))
-            {
-              noSchemaOrAds = true;
-            }
-          }
-          if (!noSchemaOrAds)
-          {
-            // In interactive mode we do not propose to manage the
-            // administration suffix.
-            println();
-            println(
-                ERR_NO_SUFFIXES_AVAILABLE_TO_ENABLE_REPLICATION.get());
-            break;
-          }
-          else
-          {
-            println();
-            println(ERR_NO_SUFFIXES_SELECTED_TO_REPLICATE.get());
-            for (String dn : availableSuffixes)
-            {
-              if (!areDnsEqual(dn,
-                  ADSContext.getAdministrationSuffixDN()) &&
-                  !areDnsEqual(dn, Constants.SCHEMA_DN) &&
-                  !areDnsEqual(dn, Constants.REPLICATION_CHANGES_DN))
-              {
-                try
-                {
-                  if (askConfirmation(
-                    INFO_REPLICATION_ENABLE_SUFFIX_PROMPT.get(dn), true, logger))
-                  {
-                    suffixes.add(dn);
-                  }
-                }
-                catch (ClientException ce)
-                {
-                  println(ce.getMessageObject());
-                  confirmationLimitReached = true;
-                  break;
-                }
-              }
-            }
-          }
-          if (confirmationLimitReached)
-          {
-            suffixes.clear();
-            break;
-          }
-        }
+        askConfirmations(suffixes, availableSuffixes,
+            ERR_NO_SUFFIXES_AVAILABLE_TO_ENABLE_REPLICATION,
+            ERR_NO_SUFFIXES_SELECTED_TO_REPLICATE,
+            INFO_REPLICATION_ENABLE_SUFFIX_PROMPT);
       }
     }
   }
@@ -5524,17 +5466,7 @@ public class ReplicationCliMain extends ConsoleApplication
         boolean confirmationLimitReached = false;
         while (suffixes.isEmpty())
         {
-          boolean noSchemaOrAds = false;
-          for (String s: availableSuffixes)
-          {
-            if (!areDnsEqual(s, ADSContext.getAdministrationSuffixDN()) &&
-                !areDnsEqual(s, Constants.SCHEMA_DN) &&
-                !areDnsEqual(s, Constants.REPLICATION_CHANGES_DN))
-            {
-              noSchemaOrAds = true;
-            }
-          }
-          if (!noSchemaOrAds)
+          if (!noSchemaOrAds(availableSuffixes))
           {
             // In interactive mode we do not propose to manage the
             // administration suffix.
@@ -5552,30 +5484,9 @@ public class ReplicationCliMain extends ConsoleApplication
               println();
               println(ERR_NO_SUFFIXES_SELECTED_TO_DISABLE.get());
             }
-            for (String dn : availableSuffixes)
-            {
-              if (!areDnsEqual(dn,
-                  ADSContext.getAdministrationSuffixDN()) &&
-                  !areDnsEqual(dn, Constants.SCHEMA_DN) &&
-                  !areDnsEqual(dn, Constants.REPLICATION_CHANGES_DN))
-              {
-                try
-                {
-                  if (askConfirmation(
-                      INFO_REPLICATION_DISABLE_SUFFIX_PROMPT.get(dn), true,
-                      logger))
-                  {
-                    suffixes.add(dn);
-                  }
-                }
-                catch (ClientException ce)
-                {
-                  println(ce.getMessageObject());
-                  confirmationLimitReached = true;
-                  break;
-                }
-              }
-            }
+            confirmationLimitReached =
+                askConfirmations(INFO_REPLICATION_DISABLE_SUFFIX_PROMPT,
+                    availableSuffixes, suffixes, confirmationLimitReached);
           }
           if (confirmationLimitReached)
           {
@@ -5589,6 +5500,32 @@ public class ReplicationCliMain extends ConsoleApplication
         }
       }
     }
+  }
+
+  private boolean askConfirmations(Arg1<Object> confirmationMsg,
+      Collection<String> availableSuffixes, Collection<String> suffixes,
+      boolean confirmationLimitReached)
+  {
+    for (String dn : availableSuffixes)
+    {
+      if (isNotSchemaOrAds(dn))
+      {
+        try
+        {
+          if (askConfirmation(confirmationMsg.get(dn), true, logger))
+          {
+            suffixes.add(dn);
+          }
+        }
+        catch (ClientException ce)
+        {
+          println(ce.getMessageObject());
+          confirmationLimitReached = true;
+          break;
+        }
+      }
+    }
+    return confirmationLimitReached;
   }
 
   /**
@@ -5709,17 +5646,7 @@ public class ReplicationCliMain extends ConsoleApplication
         boolean confirmationLimitReached = false;
         while (suffixes.isEmpty())
         {
-          boolean noSchemaOrAds = false;
-          for (String s: availableSuffixes)
-          {
-            if (!areDnsEqual(s, ADSContext.getAdministrationSuffixDN()) &&
-                !areDnsEqual(s, Constants.SCHEMA_DN) &&
-                !areDnsEqual(s, Constants.REPLICATION_CHANGES_DN))
-            {
-              noSchemaOrAds = true;
-            }
-          }
-          if (!noSchemaOrAds)
+          if (!noSchemaOrAds(availableSuffixes))
           {
             // In interactive mode we do not propose to manage the
             // administration suffix.
@@ -5755,10 +5682,7 @@ public class ReplicationCliMain extends ConsoleApplication
             }
             for (String dn : availableSuffixes)
             {
-              if (!areDnsEqual(dn,
-                  ADSContext.getAdministrationSuffixDN()) &&
-                  !areDnsEqual(dn, Constants.SCHEMA_DN) &&
-                  !areDnsEqual(dn, Constants.REPLICATION_CHANGES_DN))
+              if (isNotSchemaOrAds(dn))
               {
                 boolean addSuffix;
                 try
@@ -5858,63 +5782,10 @@ public class ReplicationCliMain extends ConsoleApplication
       }
       if (interactive)
       {
-        boolean confirmationLimitReached = false;
-        while (suffixes.isEmpty())
-        {
-          boolean noSchemaOrAds = false;
-          for (String s: availableSuffixes)
-          {
-            if (!areDnsEqual(s, ADSContext.getAdministrationSuffixDN()) &&
-                !areDnsEqual(s, Constants.SCHEMA_DN) &&
-                !areDnsEqual(s, Constants.REPLICATION_CHANGES_DN))
-            {
-              noSchemaOrAds = true;
-            }
-          }
-          if (!noSchemaOrAds)
-          {
-            // In interactive mode we do not propose to manage the
-            // administration suffix.
-            println();
-            println(ERR_NO_SUFFIXES_AVAILABLE_TO_INITIALIZE_REPLICATION.get());
-            break;
-          }
-          else
-          {
-            println();
-            println(ERR_NO_SUFFIXES_SELECTED_TO_INITIALIZE.get());
-
-            for (String dn : availableSuffixes)
-            {
-              if (!areDnsEqual(dn,
-                  ADSContext.getAdministrationSuffixDN()) &&
-                  !areDnsEqual(dn, Constants.SCHEMA_DN) &&
-                  !areDnsEqual(dn, Constants.REPLICATION_CHANGES_DN))
-              {
-                try
-                {
-                  if (askConfirmation(
-                      INFO_REPLICATION_INITIALIZE_SUFFIX_PROMPT.get(dn), true,
-                      logger))
-                  {
-                    suffixes.add(dn);
-                  }
-                }
-                catch (ClientException ce)
-                {
-                  println(ce.getMessageObject());
-                  confirmationLimitReached = true;
-                  break;
-                }
-              }
-            }
-          }
-          if (confirmationLimitReached)
-          {
-            suffixes.clear();
-            break;
-          }
-        }
+        askConfirmations(suffixes, availableSuffixes,
+            ERR_NO_SUFFIXES_AVAILABLE_TO_INITIALIZE_REPLICATION,
+            ERR_NO_SUFFIXES_SELECTED_TO_INITIALIZE,
+            INFO_REPLICATION_INITIALIZE_SUFFIX_PROMPT);
       }
     }
   }
@@ -7277,8 +7148,7 @@ public class ReplicationCliMain extends ConsoleApplication
       // and cn=admin data.
       boolean found = displayAll &&
       !areDnsEqual(dn, ADSContext.getAdministrationSuffixDN()) &&
-      !areDnsEqual(dn, Constants.SCHEMA_DN) &&
-      !areDnsEqual(dn, Constants.REPLICATION_CHANGES_DN);
+      !areDnsEqual(dn, Constants.SCHEMA_DN);
       for (String baseDN : userBaseDNs)
       {
         found = areDnsEqual(baseDN, dn);
