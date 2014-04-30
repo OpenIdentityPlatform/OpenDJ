@@ -388,9 +388,18 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
 
     final ReplicatedUpdateMsg msg4 = msg(BASE_DN1, serverId1, 4);
     publishUpdateMsg(msg4);
-    // MCP moved forward after receiving update from serverId1
+    // MCP moves forward after receiving update from serverId1
     // (last replica in the domain)
     assertExternalChangelogContent(msg1, msg2, msg4);
+
+    // serverId2 comes online again
+    final ReplicatedUpdateMsg msg5 = msg(BASE_DN1, serverId2, 5);
+    publishUpdateMsg(msg5);
+    // MCP does not move until it knows what happens to serverId1
+    assertExternalChangelogContent(msg1, msg2, msg4);
+    sendHeartbeat(BASE_DN1, serverId1, 6);
+    // MCP moves forward
+    assertExternalChangelogContent(msg1, msg2, msg4, msg5);
   }
 
   private void addReplica(DN baseDN, int serverId) throws Exception
@@ -418,11 +427,13 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
     waitForWaitingState(cnIndexer);
   }
 
-  private void stopCNIndexer()
+  private void stopCNIndexer() throws Exception
   {
     if (cnIndexer != null)
     {
       cnIndexer.initiateShutdown();
+      cnIndexer.interrupt();
+      cnIndexer.join();
     }
   }
 

@@ -2495,11 +2495,29 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    * value received, and forwarding the message to the other RSes.
    * @param senderHandler The handler for the server that sent the heartbeat.
    * @param msg The message to process.
+   * @throws DirectoryException
+   *           if a problem occurs
    */
   void processChangeTimeHeartbeatMsg(ServerHandler senderHandler,
-      ChangeTimeHeartbeatMsg msg)
+      ChangeTimeHeartbeatMsg msg) throws DirectoryException
   {
-    domainDB.replicaHeartbeat(baseDN, msg.getCSN());
+    try
+    {
+      if (msg.isReplicaOfflineMsg())
+      {
+        domainDB.replicaOffline(baseDN, msg.getCSN());
+      }
+      else
+      {
+        domainDB.replicaHeartbeat(baseDN, msg.getCSN());
+      }
+    }
+    catch (ChangelogException e)
+    {
+      throw new DirectoryException(ResultCode.OPERATIONS_ERROR, e
+          .getMessageObject(), e);
+    }
+
     if (senderHandler.isDataServer())
     {
       /*

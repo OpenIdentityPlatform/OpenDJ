@@ -98,7 +98,11 @@ public class JEReplicaDBCursor implements DBCursor<UpdateMsg>
       synchronized (this)
       {
         closeCursor();
-        // previously exhausted cursor must be able to reinitialize themselves
+        // Previously exhausted cursor must be able to reinitialize themselves.
+        // There is a risk of readLock never being unlocked
+        // if following code is called while the cursor is closed.
+        // It is better to let the deadlock happen to help quickly identifying
+        // and fixing such issue with unit tests.
         cursor = db.openReadCursor(lastNonNullCurrentCSN);
         currentChange = cursor.next();
         if (currentChange != null)
@@ -131,7 +135,7 @@ public class JEReplicaDBCursor implements DBCursor<UpdateMsg>
   }
 
   /**
-   * Called by the Gc when the object is garbage collected Release the internal
+   * Called by the Gc when the object is garbage collected. Release the internal
    * cursor in case the cursor was badly used and {@link #close()} was never
    * called.
    */

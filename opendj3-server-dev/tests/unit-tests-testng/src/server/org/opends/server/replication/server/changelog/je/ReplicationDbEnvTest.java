@@ -31,6 +31,7 @@ import java.util.Map.Entry;
 
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.server.ChangelogState;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.types.DN;
@@ -43,6 +44,7 @@ import com.sleepycat.je.Database;
 import com.sleepycat.je.Environment;
 
 import static java.util.Arrays.*;
+import static java.util.Collections.*;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.opends.server.replication.server.changelog.je.ReplicationDbEnv.*;
@@ -51,78 +53,103 @@ import static org.opends.server.replication.server.changelog.je.ReplicationDbEnv
 public class ReplicationDbEnvTest extends DirectoryServerTestCase
 {
 
-	/**
-	 * Bypass heavyweight setup.
-	 */
-	private final class TestableReplicationDbEnv extends ReplicationDbEnv
-	{
-		private TestableReplicationDbEnv() throws ChangelogException
-		{
-			super(null, null);
-		}
+  /**
+   * Bypass heavyweight setup.
+   */
+  private final class TestableReplicationDbEnv extends ReplicationDbEnv
+  {
+    private TestableReplicationDbEnv() throws ChangelogException
+    {
+      super(null, null);
+    }
 
-		@Override
-		protected Environment openJEEnvironment(String path)
-		{
-			return null;
-		}
+    @Override
+    protected Environment openJEEnvironment(String path)
+    {
+      return null;
+    }
 
-		@Override
-		protected Database openDatabase(String databaseName)
-				throws ChangelogException, RuntimeException
-		{
-			return null;
-		}
-	}
+    @Override
+    protected Database openDatabase(String databaseName)
+        throws ChangelogException, RuntimeException
+    {
+      return null;
+    }
+  }
 
-	@BeforeClass
-	public void setup() throws Exception
-	{
-		TestCaseUtils.startFakeServer();
-	}
+  @BeforeClass
+  public void setup() throws Exception
+  {
+    TestCaseUtils.startFakeServer();
+  }
 
-	@AfterClass
-	public void teardown()
-	{
-		TestCaseUtils.shutdownFakeServer();
-	}
+  @AfterClass
+  public void teardown()
+  {
+    TestCaseUtils.shutdownFakeServer();
+  }
 
-	@DataProvider
-	public Object[][] changelogStateDataProvider() throws Exception
-	{
-		return new Object[][] {
-			{ DN.valueOf("dc=example,dc=com"), 524157415, asList(42, 346) },
-			// test with a space in the baseDN (space is the field separator in the DB)
-			{ DN.valueOf("cn=admin data"), 524157415, asList(42, 346) },
-	  };
-	}
+  @DataProvider
+  public Object[][] changelogStateDataProvider() throws Exception
+  {
+    final int genId = 524157415;
+    final int id1 = 42;
+    final int id2 = 346;
+    final int t1 = 1956245524;
+    return new Object[][] {
+      { DN.valueOf("dc=example,dc=com"), genId, EMPTY_LIST, EMPTY_LIST },
+      { DN.valueOf("dc=example,dc=com"), genId, asList(id1, id2),
+        asList(new CSN(id2, 0, t1)) },
+      // test with a space in the baseDN (space is the field separator in the DB)
+      { DN.valueOf("cn=admin data"), genId, asList(id1, id2), EMPTY_LIST }, };
+  }
 
-	@Test(dataProvider = "changelogStateDataProvider")
-	public void encodeDecodeChangelogState(DN baseDN, long generationId,
-			List<Integer> serverIds) throws Exception
-	{
-		final ReplicationDbEnv changelogStateDB = new TestableReplicationDbEnv();
+  @Test(dataProvider = "changelogStateDataProvider")
+  public void encodeDecodeChangelogState(DN baseDN, long generationId,
+      List<Integer> replicas, List<CSN> offlineReplicas) throws Exception
+  {
+    final ReplicationDbEnv changelogStateDB = new TestableReplicationDbEnv();
 
-		// encode data
-		final Map<byte[], byte[]> wholeState = new LinkedHashMap<byte[], byte[]>();
-		put(wholeState, changelogStateDB.toGenIdEntry(baseDN, generationId));
-		for (Integer serverId : serverIds)
-		{
-			put(wholeState, changelogStateDB.toReplicaEntry(baseDN, serverId));
-		}
+    // encode data
+    final Map<byte[], byte[]> wholeState = new LinkedHashMap<byte[], byte[]>();
+    put(wholeState, toGenIdEntry(baseDN, generationId));
+    for (Integer serverId : replicas)
+    {
+      put(wholeState, toByteArray(toReplicaEntry(baseDN, serverId)));
+    }
+    for (CSN offlineCSN : offlineReplicas)
+    {
+      put(wholeState, toReplicaOfflineEntry(baseDN, offlineCSN));
+    }
 
-		// decode data
-		final ChangelogState state =
-				changelogStateDB.decodeChangelogState(wholeState);
-		assertThat(state.getDomainToGenerationId()).containsExactly(
-				entry(baseDN, generationId));
-		assertThat(state.getDomainToServerIds()).containsExactly(
-				entry(baseDN, serverIds));
-	}
+    // decode data
+    final ChangelogState state =
+        changelogStateDB.decodeChangelogState(wholeState);
+    assertThat(state.getDomainToGenerationId()).containsExactly(
+        entry(baseDN, generationId));
+    if (!replicas.isEmpty())
+    {
+      assertThat(state.getDomainToServerIds()).containsExactly(
+          entry(baseDN, replicas));
+    }
+    else
+    {
+      assertThat(state.getDomainToServerIds()).isEmpty();
+    }
+    if (!offlineReplicas.isEmpty())
+    {
+      assertThat(state.getOfflineReplicas()).containsExactly(
+          entry(baseDN, offlineReplicas));
+    }
+    else
+    {
+      assertThat(state.getOfflineReplicas()).isEmpty();
+    }
+  }
 
-	private void put(Map<byte[], byte[]> map, Entry<String, String> entry)
-	{
-		map.put(toBytes(entry.getKey()), toBytes(entry.getValue()));
-	}
+  private void put(Map<byte[], byte[]> map, Entry<byte[], byte[]> entry)
+  {
+    map.put(entry.getKey(), entry.getValue());
+  }
 
 }
