@@ -265,6 +265,23 @@ public class ChangeNumberIndexer extends DirectoryThread
           lastAliveCSNs.getCSN(mc.getFirst(), mcCSN.getServerId());
       return mcCSN.isOlderThan(lastTimeSameReplicaSeenAlive);
     }
+    // ensure that all initial replicas alive information have been updated
+    // with CSNs that are acceptable for moving the medium consistency forward
+    return allInitialReplicasArePastOldestPossibleCSN();
+  }
+
+  private boolean allInitialReplicasArePastOldestPossibleCSN()
+  {
+    for (DN baseDN : lastAliveCSNs)
+    {
+      for (CSN csn : lastAliveCSNs.getServerState(baseDN))
+      {
+        if (csn.getTime() == 0)
+        {
+          return false;
+        }
+      }
+    }
     return true;
   }
 
@@ -299,8 +316,14 @@ public class ChangeNumberIndexer extends DirectoryThread
 
       for (Integer serverId : entry.getValue())
       {
-        final CSN csn = mediumConsistencyRUV.getCSN(baseDN, serverId);
+        /*
+         * initialize with the oldest possible CSN in order for medium
+         * consistency to wait for all replicas to be alive before moving
+         * forward
+         */
+        lastAliveCSNs.update(baseDN, oldestPossibleCSN(serverId));
         // start after the actual CSN when initializing from the previous cookie
+        final CSN csn = mediumConsistencyRUV.getCSN(baseDN, serverId);
         ensureCursorExists(baseDN, serverId, csn);
       }
 
@@ -328,6 +351,11 @@ public class ChangeNumberIndexer extends DirectoryThread
 
     // this will not be used any more. Discard for garbage collection.
     this.changelogState = null;
+  }
+
+  private CSN oldestPossibleCSN(int serverId)
+  {
+    return new CSN(0, 0, serverId);
   }
 
   private void resetNextChangeForInsertDBCursor() throws ChangelogException
