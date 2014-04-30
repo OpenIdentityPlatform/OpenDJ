@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS
+ *      Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.replication.server.changelog.je;
 
@@ -125,34 +125,26 @@ public class CompositeDBCursorTest extends DirectoryServerTestCase
   public void recycleTwoElementCursors() throws Exception
   {
     final CompositeDBCursor<String> compCursor = newCompositeDBCursor(
-        of(new SequentialDBCursor(msg2, null, msg3), baseDN1),
-        of(new SequentialDBCursor(null, msg1, msg4), baseDN2));
+        of(new SequentialDBCursor(msg2, null, msg4), baseDN1),
+        of(new SequentialDBCursor(null, msg1, msg3), baseDN2));
     assertInOrder(compCursor,
         of(msg1, baseDN2),
         of(msg2, baseDN1),
-        of(msg3, baseDN1),
-        of(msg4, baseDN2));
+        of(msg3, baseDN2),
+        of(msg4, baseDN1));
   }
 
-  @Test
-  public void recycleTwoElementCursorsTODOJNR() throws Exception
+  private UpdateMsg newUpdateMsg(final int t)
   {
-    SequentialDBCursor cursor1 = new SequentialDBCursor(msg2, null, msg3);
-    SequentialDBCursor cursor2 = new SequentialDBCursor(null, msg1, msg4);
-    cursor1.next();
-    cursor2.next();
-    final CompositeDBCursor<String> compCursor = newCompositeDBCursor(
-        of(cursor1, baseDN1),
-        of(cursor2, baseDN2));
-    assertInOrder(compCursor,
-        of(msg1, baseDN2),
-        of(msg3, baseDN1),
-        of(msg4, baseDN2));
-  }
-
-  private UpdateMsg newUpdateMsg(int t)
-  {
-    return new UpdateMsg(new CSN(t, t, t), new byte[t]);
+    return new UpdateMsg(new CSN(t, t, t), new byte[t])
+    {
+      /** {@inheritDoc} */
+      @Override
+      public String toString()
+      {
+        return "UpdateMsg(" + t + ")";
+      }
+    };
   }
 
   private CompositeDBCursor<String> newCompositeDBCursor(
@@ -164,7 +156,7 @@ public class CompositeDBCursorTest extends DirectoryServerTestCase
     {
       cursorsMap.put(pair.getFirst(), pair.getSecond());
     }
-    return new CompositeDBCursor<String>(cursorsMap);
+    return new CompositeDBCursor<String>(cursorsMap, true);
   }
 
   private void assertInOrder(final CompositeDBCursor<String> compCursor,

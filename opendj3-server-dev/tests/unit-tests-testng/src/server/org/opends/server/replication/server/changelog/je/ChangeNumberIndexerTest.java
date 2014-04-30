@@ -156,7 +156,7 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
   }
 
   @Test(dependsOnMethods = { EMPTY_DB_NO_DS })
-  public void emptyDBOneInitialDS() throws Exception
+  public void emptyDBOneDS() throws Exception
   {
     addReplica(BASE_DN1, serverId1);
     startCNIndexer(BASE_DN1);
@@ -167,7 +167,7 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
   }
 
   @Test(dependsOnMethods = { EMPTY_DB_NO_DS })
-  public void nonEmptyDBOneInitialDS() throws Exception
+  public void nonEmptyDBOneDS() throws Exception
   {
     final ReplicatedUpdateMsg msg1 = msg(BASE_DN1, serverId1, 1);
     addReplica(BASE_DN1, serverId1);
@@ -180,7 +180,7 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
   }
 
   @Test(dependsOnMethods = { EMPTY_DB_NO_DS })
-  public void emptyDBTwoInitialDSs() throws Exception
+  public void emptyDBTwoDSs() throws Exception
   {
     addReplica(BASE_DN1, serverId1);
     addReplica(BASE_DN1, serverId2);
@@ -197,7 +197,7 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
   }
 
   @Test(dependsOnMethods = { EMPTY_DB_NO_DS })
-  public void emptyDBTwoInitialDSsDifferentDomains() throws Exception
+  public void emptyDBTwoDSsDifferentDomains() throws Exception
   {
     addReplica(BASE_DN1, serverId1);
     addReplica(BASE_DN2, serverId2);
@@ -212,8 +212,53 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
     assertExternalChangelogContent(msg1, msg2);
   }
 
+  /**
+   * This test tries to reproduce a very subtle implementation bug where:
+   * <ol>
+   * <li>the change number indexer has no more records to proceed, because all
+   * cursors are exhausted, so it calls wait()<li>
+   * <li>a new change Upd1 comes in for an exhausted cursor,
+   * medium consistency cannot move<li>
+   * <li>a new change Upd2 comes in for a cursor that is not already opened,
+   * medium consistency can move, so wake up the change number indexer<li>
+   * <li>on wake up, the change number indexer calls next(),
+   * advancing the CompositeDBCursor, which recycles the exhausted cursor,
+   * then calls next() on it, making it lose its change.
+   * CompositeDBCursor currentRecord == Upd1.<li>
+   * <li>on the next iteration of the loop in run(), a new cursor is created,
+   * triggering the creation of a new CompositeDBCursor => Upd1 is lost.
+   * CompositeDBCursor currentRecord == Upd2.<li>
+   * </ol>
+   */
   @Test(dependsOnMethods = { EMPTY_DB_NO_DS })
-  public void nonEmptyDBTwoInitialDSs() throws Exception
+  public void emptyDBTwoDSsDoesNotLoseChanges() throws Exception
+  {
+    addReplica(BASE_DN1, serverId1);
+    startCNIndexer(BASE_DN1);
+
+    final ReplicatedUpdateMsg msg1 = msg(BASE_DN1, serverId1, 1);
+    publishUpdateMsg(msg1);
+    assertExternalChangelogContent(msg1);
+
+    addReplica(BASE_DN1, serverId2);
+    sendHeartbeat(BASE_DN1, serverId2, 2);
+    assertExternalChangelogContent(msg1);
+    // publish change that will not trigger a wake up of change number indexer,
+    // but will make it open a cursor on next wake up
+    final ReplicatedUpdateMsg msg2 = msg(BASE_DN1, serverId2, 2);
+    publishUpdateMsg(msg2);
+    assertExternalChangelogContent(msg1);
+    // wake up change number indexer
+    final ReplicatedUpdateMsg msg3 = msg(BASE_DN1, serverId1, 3);
+    publishUpdateMsg(msg3);
+    assertExternalChangelogContent(msg1, msg2);
+    sendHeartbeat(BASE_DN1, serverId2, 4);
+    // assert no changes have been lost
+    assertExternalChangelogContent(msg1, msg2, msg3);
+  }
+
+  @Test(dependsOnMethods = { EMPTY_DB_NO_DS })
+  public void nonEmptyDBTwoDSs() throws Exception
   {
     final ReplicatedUpdateMsg msg1 = msg(BASE_DN1, serverId1, 1);
     final ReplicatedUpdateMsg msg2 = msg(BASE_DN1, serverId2, 2);
@@ -253,7 +298,7 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
   }
 
   @Test(dependsOnMethods = { EMPTY_DB_NO_DS })
-  public void emptyDBThreeInitialDSsOneIsNotECLEnabledDomain() throws Exception
+  public void emptyDBThreeDSsOneIsNotECLEnabledDomain() throws Exception
   {
     addReplica(ADMIN_DATA_DN, serverId1);
     addReplica(BASE_DN1, serverId2);
@@ -292,7 +337,25 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
   }
 
   @Test(dependsOnMethods = { EMPTY_DB_NO_DS })
-  public void emptyDBTwoInitialDSsOneSendingHeartbeats() throws Exception
+  public void emptyDBOneInitialDSAnotherDSJoining2() throws Exception
+  {
+    addReplica(BASE_DN1, serverId1);
+    startCNIndexer(BASE_DN1);
+
+    final ReplicatedUpdateMsg msg1 = msg(BASE_DN1, serverId1, 1);
+    publishUpdateMsg(msg1);
+
+    addReplica(BASE_DN1, serverId2);
+    final ReplicatedUpdateMsg msg2 = msg(BASE_DN1, serverId2, 2);
+    publishUpdateMsg(msg2);
+    assertExternalChangelogContent(msg1);
+
+    sendHeartbeat(BASE_DN1, serverId1, 3);
+    assertExternalChangelogContent(msg1, msg2);
+  }
+
+  @Test(dependsOnMethods = { EMPTY_DB_NO_DS })
+  public void emptyDBTwoDSsOneSendingHeartbeats() throws Exception
   {
     addReplica(BASE_DN1, serverId1);
     addReplica(BASE_DN1, serverId2);
@@ -308,7 +371,7 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
   }
 
   @Test(dependsOnMethods = { EMPTY_DB_NO_DS })
-  public void emptyDBTwoInitialDSsOneGoingOffline() throws Exception
+  public void emptyDBTwoDSsOneGoingOffline() throws Exception
   {
     addReplica(BASE_DN1, serverId1);
     addReplica(BASE_DN1, serverId2);
@@ -478,7 +541,7 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
   }
 
   @DataProvider
-  public Object[][] precedingCSNData()
+  public Object[][] precedingCSNDataProvider()
   {
     final int serverId = 42;
     final int t = 1000;
@@ -491,7 +554,7 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
     };
   }
 
-  @Test(dataProvider = "precedingCSNData")
+  @Test(dataProvider = "precedingCSNDataProvider")
   public void getPrecedingCSN(CSN start, CSN expected)
   {
     CSN precedingCSN = this.cnIndexer.getPrecedingCSN(start);
