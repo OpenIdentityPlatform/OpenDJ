@@ -732,8 +732,7 @@ public class ReplicationServerHandler extends ServerHandler
   public void receiveTopoInfoFromRS(TopologyMsg topoMsg)
   throws DirectoryException, IOException
   {
-    if (replicationServerDomain != null)
-      replicationServerDomain.receiveTopoInfoFromRS(topoMsg, this, true);
+    replicationServerDomain.receiveTopoInfoFromRS(topoMsg, this, true);
   }
 
 }

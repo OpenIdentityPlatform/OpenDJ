@@ -256,7 +256,7 @@ public final class ReplicationServer
           // We did not recognize the message, close session as what
           // can happen after is undetermined and we do not want the server to
           // be disturbed
-          ServerHandler.closeSession(session, null, null);
+          session.close();
           return;
         }
       }
@@ -267,7 +267,8 @@ public final class ReplicationServer
         // Just log debug information and loop.
         // Do not log the message during shutdown.
         logger.traceException(e);
-        if (!shutdown) {
+        if (!shutdown)
+        {
           logger.error(ERR_EXCEPTION_LISTENING, e.getLocalizedMessage());
         }
       }
