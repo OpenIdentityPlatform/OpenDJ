@@ -342,6 +342,15 @@ public class AssuredReplicationServerTest
     throw new RuntimeException("Not implemented for " + assuredMode);
   }
 
+  private FakeReplicationServer createFakeReplicationServer(int serverId,
+      int groupId, long generationId, boolean assured,
+      AssuredMode assuredMode, int safeDataLevel, int scenario)
+      throws Exception
+  {
+    return createFakeReplicationServer(serverId, groupId, RS1_ID, generationId,
+        assured, assuredMode, safeDataLevel, new ServerState(), scenario);
+  }
+
   /**
    * Creates and connects a new fake replication server, using the passed scenario.
    */
@@ -354,7 +363,7 @@ public class AssuredReplicationServerTest
       int rsPort = getRsPort(rsId);
 
       FakeReplicationServer fakeReplicationServer = new FakeReplicationServer(
-        rsPort, serverId, assured, assuredMode, (byte)safeDataLevel, (byte)groupId,
+        rsPort, serverId, assured, assuredMode, safeDataLevel, groupId,
         DN.valueOf(TEST_ROOT_DN_STRING), generationId);
 
       // Connect fake RS to the real RS
@@ -513,6 +522,9 @@ public class AssuredReplicationServerTest
       // Now execute the requested scenario
       switch (scenario)
       {
+        case TIMEOUT_DS_SCENARIO:
+          // Let timeout occur
+          break;
         case REPLY_OK_DS_SCENARIO:
           // Send the ack without errors
           // Call processUpdateDone and update the server state is what needs to
@@ -520,9 +532,6 @@ public class AssuredReplicationServerTest
           // (see processUpdate javadoc)
           processUpdateDone(updateMsg, null);
           getServerState().update(updateMsg.getCSN());
-          break;
-        case TIMEOUT_DS_SCENARIO:
-          // Let timeout occur
           break;
         case REPLAY_ERROR_DS_SCENARIO:
           // Send the ack with replay error
@@ -564,7 +573,9 @@ public class AssuredReplicationServerTest
       }
 
       if (ok)
+      {
         debugInfo("Fake DS " + getServerId() + " received update assured parameters are ok: " + updateMsg);
+      }
       else
       {
         everyUpdatesAreOk = false;
@@ -578,24 +589,13 @@ public class AssuredReplicationServerTest
      */
     public void sendNewFakeUpdate() throws TimeoutException
     {
-      sendNewFakeUpdate(true);
-    }
-
-    /**
-     * Sends a new update from this DS using configured assured parameters or not
-     * @throws TimeoutException If timeout waiting for an assured ack
-     */
-    public void sendNewFakeUpdate(boolean useAssured) throws TimeoutException
-    {
       // Create a new delete update message (the simplest to create)
       DeleteMsg delMsg = new DeleteMsg(getBaseDN(), gen.newCSN(), UUID.randomUUID().toString());
 
       // Send it (this uses the defined assured conf at constructor time)
-      if (useAssured)
-        prepareWaitForAckIfAssuredEnabled(delMsg);
+      prepareWaitForAckIfAssuredEnabled(delMsg);
       publish(delMsg);
-      if (useAssured)
-        waitForAckIfAssuredEnabled(delMsg);
+      waitForAckIfAssuredEnabled(delMsg);
     }
   }
 
@@ -653,13 +653,13 @@ public class AssuredReplicationServerTest
      */
     public FakeReplicationServer(int port, int serverId, boolean assured,
       AssuredMode assuredMode, int safeDataLevel,
-      byte groupId, DN baseDN, long generationId)
+      int groupId, DN baseDN, long generationId)
     {
       this.port = port;
       this.serverId = serverId;
       this.baseDN = baseDN;
       this.generationId = generationId;
-      this.groupId = groupId;
+      this.groupId = (byte) groupId;
       this.isAssured = assured;
       this.assuredMode = assuredMode;
       this.safeDataLevel = (byte) safeDataLevel;
@@ -731,10 +731,7 @@ public class AssuredReplicationServerTest
 
         // Send our topo mesg
         RSInfo rsInfo = new RSInfo(serverId, fakeUrl, generationId, groupId, 1);
-        List<RSInfo> rsInfos = new ArrayList<RSInfo>();
-        rsInfos.add(rsInfo);
-        TopologyMsg topoMsg = new TopologyMsg(null, rsInfos);
-        session.publish(topoMsg);
+        session.publish(new TopologyMsg(null, newList(rsInfo)));
 
         // Read topo msg
         TopologyMsg inTopoMsg = (TopologyMsg) session.receive();
@@ -809,9 +806,7 @@ public class AssuredReplicationServerTest
                   // Send the ack with timeout error from a virtual DS with id (ours + 10)
                   AckMsg ackMsg = new AckMsg(updateMsg.getCSN());
                   ackMsg.setHasTimeout(true);
-                  List<Integer> failedServers = new ArrayList<Integer>();
-                  failedServers.add(serverId + 10);
-                  ackMsg.setFailedServers(failedServers);
+                  ackMsg.setFailedServers(newList(serverId + 10));
                   session.publish(ackMsg);
                   ackReplied = true;
                 }
@@ -822,9 +817,7 @@ public class AssuredReplicationServerTest
                   // Send the ack with wrong status error from a virtual DS with id (ours + 10)
                   AckMsg ackMsg = new AckMsg(updateMsg.getCSN());
                   ackMsg.setHasWrongStatus(true);
-                  List<Integer> failedServers = new ArrayList<Integer>();
-                  failedServers.add(serverId + 10);
-                  ackMsg.setFailedServers(failedServers);
+                  ackMsg.setFailedServers(newList(serverId + 10));
                   session.publish(ackMsg);
                   ackReplied = true;
                 }
@@ -835,9 +828,7 @@ public class AssuredReplicationServerTest
                   // Send the ack with replay error from a virtual DS with id (ours + 10)
                   AckMsg ackMsg = new AckMsg(updateMsg.getCSN());
                   ackMsg.setHasReplayError(true);
-                  List<Integer> failedServers = new ArrayList<Integer>();
-                  failedServers.add(serverId + 10);
-                  ackMsg.setFailedServers(failedServers);
+                  ackMsg.setFailedServers(newList(serverId + 10));
                   session.publish(ackMsg);
                   ackReplied = true;
                 }
@@ -909,9 +900,13 @@ public class AssuredReplicationServerTest
       }
 
       if (ok)
+      {
         debugInfo("Fake RS " + serverId + " received update assured parameters are ok: " + updateMsg);
+      }
       else
+      {
         everyUpdatesAreOk = false;
+      }
     }
 
     public boolean receivedUpdatesOk()
@@ -1064,8 +1059,8 @@ public class AssuredReplicationServerTest
         // by mistake sends an assured error and expects an ack from this fake RS:
         // this would timeout. If main DS group id is not the same as the real RS one,
         // the update will even not come to real RS as assured
-        fakeRs1 = createFakeReplicationServer(FRS1_ID, fakeRsGid, RS1_ID,
-          DEFAULT_GENID, false, AssuredMode.SAFE_DATA_MODE, 1, new ServerState(), TIMEOUT_RS_SCENARIO);
+        fakeRs1 = createFakeReplicationServer(FRS1_ID, fakeRsGid, DEFAULT_GENID,
+          false, AssuredMode.SAFE_DATA_MODE, 1, TIMEOUT_RS_SCENARIO);
       }
 
       // Send update from DS 1
@@ -1085,17 +1080,16 @@ public class AssuredReplicationServerTest
         // Check monitoring values (check that ack has been correctly received)
         assertEquals(fakeRd1.getAssuredSdSentUpdates(), 1);
         assertEquals(fakeRd1.getAssuredSdAcknowledgedUpdates(), 1);
-        assertEquals(fakeRd1.getAssuredSdTimeoutUpdates(), 0);
-        assertEquals(fakeRd1.getAssuredSdServerTimeoutUpdates().size(), 0);
-      } else
+      }
+      else
       {
         // Check monitoring values (DS group id (OTHER_GID) is not the same as RS one
         // (DEFAULT_GID) so update should have been sent in normal mode
         assertEquals(fakeRd1.getAssuredSdSentUpdates(), 0);
         assertEquals(fakeRd1.getAssuredSdAcknowledgedUpdates(), 0);
-        assertEquals(fakeRd1.getAssuredSdTimeoutUpdates(), 0);
-        assertEquals(fakeRd1.getAssuredSdServerTimeoutUpdates().size(), 0);
       }
+      assertEquals(fakeRd1.getAssuredSdTimeoutUpdates(), 0);
+      assertEquals(fakeRd1.getAssuredSdServerTimeoutUpdates().size(), 0);
 
       // Sanity check
       Thread.sleep(500);           // Let time to update to reach other servers
@@ -1294,12 +1288,7 @@ public class AssuredReplicationServerTest
       // Add each possible parameter as initial parameter lists
       for (Object possibleParameter : possibleParameters)
       {
-        // Create new empty list
-        List<Object> newObjectArray = new ArrayList<Object>();
-        // Add the new possible parameter
-        newObjectArray.add(possibleParameter);
-        // Store the new object array in the result list
-        newObjectArrayList.add(newObjectArray);
+        newObjectArrayList.add(newList(possibleParameter));
       }
       return newObjectArrayList;
     }
@@ -1309,15 +1298,8 @@ public class AssuredReplicationServerTest
       // Add each possible parameter to the already existing list
       for (Object possibleParameter : possibleParameters)
       {
-        // Clone the existing object array
-        List<Object> newObjectArray = new ArrayList<Object>();
-        for (Object object : objectArray)
-        {
-          newObjectArray.add(object);
-        }
-        // Add the new possible parameter
+        final List<Object> newObjectArray = new ArrayList<Object>(objectArray);
         newObjectArray.add(possibleParameter);
-        // Store the new object array in the result list
         newObjectArrayList.add(newObjectArray);
       }
     }
@@ -1388,19 +1370,16 @@ public class AssuredReplicationServerTest
        */
 
       // Put a fake RS 1 connected to real RS
-      fakeRs1 = createFakeReplicationServer(FRS1_ID, fakeRs1Gid, RS1_ID,
-        fakeRs1GenId, fakeRs1Gid == DEFAULT_GID, AssuredMode.SAFE_DATA_MODE, sdLevel,
-        new ServerState(), fakeRs1Scen);
+      fakeRs1 = createFakeReplicationServer(FRS1_ID, fakeRs1Gid, fakeRs1GenId,
+        fakeRs1Gid == DEFAULT_GID, AssuredMode.SAFE_DATA_MODE, sdLevel, fakeRs1Scen);
 
       // Put a fake RS 2 connected to real RS
-      fakeRs2 = createFakeReplicationServer(FRS2_ID, fakeRs2Gid, RS1_ID,
-        fakeRs2GenId, fakeRs2Gid == DEFAULT_GID, AssuredMode.SAFE_DATA_MODE, sdLevel,
-        new ServerState(), fakeRs2Scen);
+      fakeRs2 = createFakeReplicationServer(FRS2_ID, fakeRs2Gid, fakeRs2GenId,
+        fakeRs2Gid == DEFAULT_GID, AssuredMode.SAFE_DATA_MODE, sdLevel, fakeRs2Scen);
 
       // Put a fake RS 3 connected to real RS
-      fakeRs3 = createFakeReplicationServer(FRS3_ID, fakeRs3Gid, RS1_ID,
-        fakeRs3GenId, fakeRs3Gid == DEFAULT_GID, AssuredMode.SAFE_DATA_MODE, sdLevel,
-        new ServerState(), fakeRs3Scen);
+      fakeRs3 = createFakeReplicationServer(FRS3_ID, fakeRs3Gid, fakeRs3GenId,
+        fakeRs3Gid == DEFAULT_GID, AssuredMode.SAFE_DATA_MODE, sdLevel, fakeRs3Scen);
 
       // Wait for connections to be finished
       // DS must see expected numbers of fake DSs and RSs
@@ -1667,7 +1646,9 @@ public class AssuredReplicationServerTest
     for (Integer serverId : eligibleServers)
     {
       if (!expectedServers.contains(serverId))
+      {
         expectedServersInError.add(serverId);
+      }
     }
     return expectedServersInError;
   }
@@ -1875,18 +1856,16 @@ public class AssuredReplicationServerTest
        */
 
       // Put a fake RS 2 connected to real RS
-      fakeRs2 = createFakeReplicationServer(FRS2_ID, DEFAULT_GID, RS1_ID,
-        DEFAULT_GENID, false, AssuredMode.SAFE_DATA_MODE, 10,
-        new ServerState(), TIMEOUT_RS_SCENARIO);
+      fakeRs2 = createFakeReplicationServer(FRS2_ID, DEFAULT_GID, DEFAULT_GENID,
+        false, AssuredMode.SAFE_DATA_MODE, 10, TIMEOUT_RS_SCENARIO);
 
       /*
        * Start fake RS to send updates
        */
 
       // Put a fake RS 1 connected to real RS
-      fakeRs1 = createFakeReplicationServer(FRS1_ID, fakeRsGid, RS1_ID,
-        fakeRsGenId, sendInAssured, AssuredMode.SAFE_DATA_MODE, sdLevel,
-        new ServerState(), SENDER_RS_SCENARIO);
+      fakeRs1 = createFakeReplicationServer(FRS1_ID, fakeRsGid, fakeRsGenId,
+        sendInAssured, AssuredMode.SAFE_DATA_MODE, sdLevel, SENDER_RS_SCENARIO);
 
       /*
        * Send an assured update using configured assured parameters
@@ -1941,10 +1920,7 @@ public class AssuredReplicationServerTest
   {
     return new Object[][]
     {
-      {1},
-      {2},
-      {3},
-      {4}
+      {1}, {2}, {3}, {4}
     };
   }
 
@@ -2311,16 +2287,14 @@ public class AssuredReplicationServerTest
       /*
        * Start fake RS (RS 1) connected to RS
        */
-      fakeRs1 = createFakeReplicationServer(FRS1_ID, DEFAULT_GID, RS1_ID,
-        DEFAULT_GENID, true, AssuredMode.SAFE_READ_MODE, 1,
-        new ServerState(), REPLY_OK_RS_SCENARIO);
+      fakeRs1 = createFakeReplicationServer(FRS1_ID, DEFAULT_GID, DEFAULT_GENID,
+        true, AssuredMode.SAFE_READ_MODE, 1, REPLY_OK_RS_SCENARIO);
 
       /*
        * Start another fake RS (RS 2) connected to RS
        */
-      fakeRs2 = createFakeReplicationServer(FRS2_ID, otherFakeRsGid, RS1_ID,
-        otherFakeRsGenId, (otherFakeRsGid == DEFAULT_GID),
-        AssuredMode.SAFE_READ_MODE, 1, new ServerState(), otherFakeRsScen);
+      fakeRs2 = createFakeReplicationServer(FRS2_ID, otherFakeRsGid, otherFakeRsGenId,
+        otherFakeRsGid == DEFAULT_GID, AssuredMode.SAFE_READ_MODE, 1, otherFakeRsScen);
 
       // Wait for connections to be established
       final FakeReplicationDomain fakeRd1 = fakeRDs[1];
@@ -2626,14 +2600,12 @@ public class AssuredReplicationServerTest
        */
 
       // Put a fake RS 1 connected to real RS 2 (different GENID)
-      fakeRs1 = createFakeReplicationServer(FRS1_ID, DEFAULT_GID, RS1_ID,
-        OTHER_GENID, false, AssuredMode.SAFE_READ_MODE, 1, new ServerState(),
-        TIMEOUT_RS_SCENARIO);
+      fakeRs1 = createFakeReplicationServer(FRS1_ID, DEFAULT_GID, OTHER_GENID,
+        false, AssuredMode.SAFE_READ_MODE, 1, TIMEOUT_RS_SCENARIO);
 
       // Put a fake RS 2 connected to real RS 3 (different GID 2)
-      fakeRs2 = createFakeReplicationServer(FRS2_ID, OTHER_GID_BIS, RS1_ID,
-        DEFAULT_GENID, false, AssuredMode.SAFE_READ_MODE, 1, new ServerState(),
-        TIMEOUT_RS_SCENARIO);
+      fakeRs2 = createFakeReplicationServer(FRS2_ID, OTHER_GID_BIS, DEFAULT_GENID,
+        false, AssuredMode.SAFE_READ_MODE, 1, TIMEOUT_RS_SCENARIO);
 
       /*
        * Start DSs that will receive and ack the updates from DS 1
