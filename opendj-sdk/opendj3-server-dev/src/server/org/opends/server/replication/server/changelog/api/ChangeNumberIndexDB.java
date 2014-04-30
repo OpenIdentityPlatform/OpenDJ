@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS
+ *      Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.replication.server.changelog.api;
 
@@ -74,9 +74,6 @@ public interface ChangeNumberIndexDB
    * by this DB and return the changeNumber associated to this record.
    * <p>
    * Note: this method disregards the changeNumber in the provided record.
-   * <p>
-   * FIXME will be removed when ECLServerHandler will not be responsible anymore
-   * for lazily building the ChangeNumberIndexDB.
    *
    * @param record
    *          The {@link ChangeNumberIndexRecord} to add to this DB.

@@ -89,11 +89,15 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
     @Override
     public String toString()
     {
-      return "csn=" + getCSN() + ", baseDN=" + baseDN;
+      return "UpdateMsg("
+          + "\"" + baseDN + " " + getCSN().getServerId() + "\""
+          + ", csn=" + getCSN().toStringUI()
+          + ")";
     }
   }
 
-  private static DN BASE_DN;
+  private static DN BASE_DN1;
+  private static DN BASE_DN2;
   private static DN ADMIN_DATA_DN;
   private static final int serverId1 = 101;
   private static final int serverId2 = 102;
@@ -112,7 +116,8 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
   public static void classSetup() throws Exception
   {
     TestCaseUtils.startFakeServer();
-    BASE_DN = DN.valueOf("dc=example,dc=com");
+    BASE_DN1 = DN.valueOf("dc=example,dc=com");
+    BASE_DN2 = DN.valueOf("dc=world,dc=company");
     ADMIN_DATA_DN = DN.valueOf("cn=admin data");
   }
 
@@ -153,10 +158,10 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
   @Test(dependsOnMethods = { EMPTY_DB_NO_DS })
   public void emptyDBOneInitialDS() throws Exception
   {
-    addReplica(BASE_DN, serverId1);
+    addReplica(BASE_DN1, serverId1);
     startCNIndexer();
 
-    final ReplicatedUpdateMsg msg1 = msg(BASE_DN, serverId1, 1);
+    final ReplicatedUpdateMsg msg1 = msg(BASE_DN1, serverId1, 1);
     publishUpdateMsg(msg1);
     assertExternalChangelogContent(msg1);
   }
@@ -164,12 +169,12 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
   @Test(dependsOnMethods = { EMPTY_DB_NO_DS })
   public void nonEmptyDBOneInitialDS() throws Exception
   {
-    final ReplicatedUpdateMsg msg1 = msg(BASE_DN, serverId1, 1);
-    addReplica(BASE_DN, serverId1);
+    final ReplicatedUpdateMsg msg1 = msg(BASE_DN1, serverId1, 1);
+    addReplica(BASE_DN1, serverId1);
     setDBInitialRecords(msg1);
     startCNIndexer();
 
-    final ReplicatedUpdateMsg msg2 = msg(BASE_DN, serverId1, 2);
+    final ReplicatedUpdateMsg msg2 = msg(BASE_DN1, serverId1, 2);
     publishUpdateMsg(msg2);
     assertExternalChangelogContent(msg2);
   }
@@ -177,36 +182,52 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
   @Test(dependsOnMethods = { EMPTY_DB_NO_DS })
   public void emptyDBTwoInitialDSs() throws Exception
   {
-    addReplica(BASE_DN, serverId1);
-    addReplica(BASE_DN, serverId2);
+    addReplica(BASE_DN1, serverId1);
+    addReplica(BASE_DN1, serverId2);
     startCNIndexer();
 
-    final ReplicatedUpdateMsg msg1 = msg(BASE_DN, serverId1, 1);
-    final ReplicatedUpdateMsg msg2 = msg(BASE_DN, serverId2, 2);
+    final ReplicatedUpdateMsg msg1 = msg(BASE_DN1, serverId1, 1);
+    final ReplicatedUpdateMsg msg2 = msg(BASE_DN1, serverId2, 2);
     publishUpdateMsg(msg2, msg1);
     assertExternalChangelogContent(msg1);
   }
 
   @Test(dependsOnMethods = { EMPTY_DB_NO_DS })
+  public void emptyDBTwoInitialDSsDifferentDomains() throws Exception
+  {
+    addReplica(BASE_DN1, serverId1);
+    addReplica(BASE_DN2, serverId2);
+    startCNIndexer();
+
+    final ReplicatedUpdateMsg msg1 = msg(BASE_DN1, serverId1, 1);
+    final ReplicatedUpdateMsg msg2 = msg(BASE_DN2, serverId2, 2);
+    publishUpdateMsg(msg1, msg2);
+    assertExternalChangelogContent(msg1);
+    final ReplicatedUpdateMsg msg3 = msg(BASE_DN1, serverId1, 3);
+    publishUpdateMsg(msg3);
+    assertExternalChangelogContent(msg1, msg2);
+  }
+
+  @Test(dependsOnMethods = { EMPTY_DB_NO_DS })
   public void nonEmptyDBTwoInitialDSs() throws Exception
   {
-    final ReplicatedUpdateMsg msg1 = msg(BASE_DN, serverId1, 1);
-    final ReplicatedUpdateMsg msg2 = msg(BASE_DN, serverId2, 2);
-    addReplica(BASE_DN, serverId1);
-    addReplica(BASE_DN, serverId2);
+    final ReplicatedUpdateMsg msg1 = msg(BASE_DN1, serverId1, 1);
+    final ReplicatedUpdateMsg msg2 = msg(BASE_DN1, serverId2, 2);
+    addReplica(BASE_DN1, serverId1);
+    addReplica(BASE_DN1, serverId2);
     setDBInitialRecords(msg1, msg2);
     startCNIndexer();
 
-    final ReplicatedUpdateMsg msg3 = msg(BASE_DN, serverId2, 3);
-    final ReplicatedUpdateMsg msg4 = msg(BASE_DN, serverId1, 4);
+    final ReplicatedUpdateMsg msg3 = msg(BASE_DN1, serverId2, 3);
+    final ReplicatedUpdateMsg msg4 = msg(BASE_DN1, serverId1, 4);
     publishUpdateMsg(msg3, msg4);
     assertExternalChangelogContent(msg3);
 
-    final ReplicatedUpdateMsg msg5 = msg(BASE_DN, serverId1, 5);
+    final ReplicatedUpdateMsg msg5 = msg(BASE_DN1, serverId1, 5);
     publishUpdateMsg(msg5);
     assertExternalChangelogContent(msg3);
 
-    final ReplicatedUpdateMsg msg6 = msg(BASE_DN, serverId2, 6);
+    final ReplicatedUpdateMsg msg6 = msg(BASE_DN1, serverId2, 6);
     publishUpdateMsg(msg6);
     assertExternalChangelogContent(msg3, msg4, msg5);
   }
@@ -214,14 +235,14 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
   @Test(dependsOnMethods = { EMPTY_DB_NO_DS })
   public void emptyDBTwoDSsOneSendsNoUpdatesForSomeTime() throws Exception
   {
-    addReplica(BASE_DN, serverId1);
-    addReplica(BASE_DN, serverId2);
+    addReplica(BASE_DN1, serverId1);
+    addReplica(BASE_DN1, serverId2);
     startCNIndexer();
 
-    final ReplicatedUpdateMsg msg1Sid2 = msg(BASE_DN, serverId2, 1);
-    final ReplicatedUpdateMsg emptySid2 = emptyCursor(BASE_DN, serverId2);
-    final ReplicatedUpdateMsg msg2Sid1 = msg(BASE_DN, serverId1, 2);
-    final ReplicatedUpdateMsg msg3Sid2 = msg(BASE_DN, serverId2, 3);
+    final ReplicatedUpdateMsg msg1Sid2 = msg(BASE_DN1, serverId2, 1);
+    final ReplicatedUpdateMsg emptySid2 = emptyCursor(BASE_DN1, serverId2);
+    final ReplicatedUpdateMsg msg2Sid1 = msg(BASE_DN1, serverId1, 2);
+    final ReplicatedUpdateMsg msg3Sid2 = msg(BASE_DN1, serverId2, 3);
     // simulate no messages received during some time for replica 2
     publishUpdateMsg(msg1Sid2, emptySid2, emptySid2, emptySid2, msg3Sid2, msg2Sid1);
     assertExternalChangelogContent(msg1Sid2, msg2Sid1);
@@ -231,8 +252,8 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
   public void emptyDBThreeInitialDSsOneIsNotECLEnabledDomain() throws Exception
   {
     addReplica(ADMIN_DATA_DN, serverId1);
-    addReplica(BASE_DN, serverId2);
-    addReplica(BASE_DN, serverId3);
+    addReplica(BASE_DN1, serverId2);
+    addReplica(BASE_DN1, serverId3);
     startCNIndexer();
 
     // cn=admin data will does not participate in the external changelog
@@ -241,8 +262,8 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
     publishUpdateMsg(msg1);
     assertExternalChangelogContent();
 
-    final ReplicatedUpdateMsg msg2 = msg(BASE_DN, serverId2, 2);
-    final ReplicatedUpdateMsg msg3 = msg(BASE_DN, serverId3, 3);
+    final ReplicatedUpdateMsg msg2 = msg(BASE_DN1, serverId2, 2);
+    final ReplicatedUpdateMsg msg3 = msg(BASE_DN1, serverId3, 3);
     publishUpdateMsg(msg2, msg3);
     assertExternalChangelogContent(msg2);
   }
@@ -250,18 +271,18 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
   @Test(dependsOnMethods = { EMPTY_DB_NO_DS })
   public void emptyDBOneInitialDSAnotherDSJoining() throws Exception
   {
-    addReplica(BASE_DN, serverId1);
+    addReplica(BASE_DN1, serverId1);
     startCNIndexer();
 
-    final ReplicatedUpdateMsg msg1 = msg(BASE_DN, serverId1, 1);
+    final ReplicatedUpdateMsg msg1 = msg(BASE_DN1, serverId1, 1);
     publishUpdateMsg(msg1);
 
-    addReplica(BASE_DN, serverId2);
-    final ReplicatedUpdateMsg msg2 = msg(BASE_DN, serverId2, 2);
+    addReplica(BASE_DN1, serverId2);
+    final ReplicatedUpdateMsg msg2 = msg(BASE_DN1, serverId2, 2);
     publishUpdateMsg(msg2);
     assertExternalChangelogContent(msg1);
 
-    final ReplicatedUpdateMsg msg3 = msg(BASE_DN, serverId1, 3);
+    final ReplicatedUpdateMsg msg3 = msg(BASE_DN1, serverId1, 3);
     publishUpdateMsg(msg3);
     assertExternalChangelogContent(msg1, msg2);
   }
@@ -269,36 +290,36 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
   @Test(dependsOnMethods = { EMPTY_DB_NO_DS })
   public void emptyDBTwoInitialDSsOneSendingHeartbeats() throws Exception
   {
-    addReplica(BASE_DN, serverId1);
-    addReplica(BASE_DN, serverId2);
+    addReplica(BASE_DN1, serverId1);
+    addReplica(BASE_DN1, serverId2);
     startCNIndexer();
 
-    final ReplicatedUpdateMsg msg1 = msg(BASE_DN, serverId1, 1);
-    final ReplicatedUpdateMsg msg2 = msg(BASE_DN, serverId2, 2);
+    final ReplicatedUpdateMsg msg1 = msg(BASE_DN1, serverId1, 1);
+    final ReplicatedUpdateMsg msg2 = msg(BASE_DN1, serverId2, 2);
     publishUpdateMsg(msg1, msg2);
     assertExternalChangelogContent(msg1);
 
-    sendHeartbeat(BASE_DN, serverId1, 3);
+    sendHeartbeat(BASE_DN1, serverId1, 3);
     assertExternalChangelogContent(msg1, msg2);
   }
 
   @Test(dependsOnMethods = { EMPTY_DB_NO_DS })
   public void emptyDBTwoInitialDSsOneGoingOffline() throws Exception
   {
-    addReplica(BASE_DN, serverId1);
-    addReplica(BASE_DN, serverId2);
+    addReplica(BASE_DN1, serverId1);
+    addReplica(BASE_DN1, serverId2);
     startCNIndexer();
 
-    final ReplicatedUpdateMsg msg1 = msg(BASE_DN, serverId1, 1);
-    final ReplicatedUpdateMsg msg2 = msg(BASE_DN, serverId2, 2);
+    final ReplicatedUpdateMsg msg1 = msg(BASE_DN1, serverId1, 1);
+    final ReplicatedUpdateMsg msg2 = msg(BASE_DN1, serverId2, 2);
     publishUpdateMsg(msg1, msg2);
     assertExternalChangelogContent(msg1);
 
-    replicaOffline(BASE_DN, serverId2, 3);
+    replicaOffline(BASE_DN1, serverId2, 3);
     // MCP cannot move forward since no new updates from serverId1
     assertExternalChangelogContent(msg1);
 
-    final ReplicatedUpdateMsg msg4 = msg(BASE_DN, serverId1, 4);
+    final ReplicatedUpdateMsg msg4 = msg(BASE_DN1, serverId1, 4);
     publishUpdateMsg(msg4);
     // MCP moved forward after receiving update from serverId1
     // (last replica in the domain)
@@ -322,7 +343,7 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
       @Override
       protected boolean isECLEnabledDomain(DN baseDN)
       {
-        return BASE_DN.equals(baseDN);
+        return BASE_DN1.equals(baseDN) || BASE_DN2.equals(baseDN);
       }
     };
     cnIndexer.start();
@@ -424,10 +445,10 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
    * Asserts which records have been added to the CNIndexDB since starting the
    * {@link ChangeNumberIndexer} thread.
    */
-  private void assertExternalChangelogContent(ReplicatedUpdateMsg... msgs)
+  private void assertExternalChangelogContent(ReplicatedUpdateMsg... expectedMsgs)
       throws Exception
   {
-    if (msgs.length == 0)
+    if (expectedMsgs.length == 0)
     {
       verify(cnIndexDB, never()).addRecord(any(ChangeNumberIndexRecord.class));
       return;
@@ -442,18 +463,18 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
     final MultiDomainServerState previousCookie =
         new MultiDomainServerState(initialCookie.toString());
     // check it was not called more than expected
-    String desc1 = "actual was:<" + allValues + ">, but expected was:<" + Arrays.toString(msgs) + ">";
-    assertThat(allValues.size()).as(desc1).isEqualTo(msgs.length);
-    for (int i = 0; i < msgs.length; i++)
+    String desc1 = "actual was:<" + allValues + ">, but expected was:<" + Arrays.toString(expectedMsgs) + ">";
+    assertThat(allValues).as(desc1).hasSize(expectedMsgs.length);
+    for (int i = 0; i < expectedMsgs.length; i++)
     {
-      final ReplicatedUpdateMsg msg = msgs[i];
+      final ReplicatedUpdateMsg expectedMsg = expectedMsgs[i];
       final ChangeNumberIndexRecord record = allValues.get(i);
       // check content in order
-      String desc2 = "actual was:<" + record + ">, but expected was:<" + msg + ">";
-      assertThat(record.getBaseDN()).as(desc2).isEqualTo(msg.getBaseDN());
-      assertThat(record.getCSN()).as(desc2).isEqualTo(msg.getCSN());
+      String desc2 = "actual was:<" + record + ">, but expected was:<" + expectedMsg + ">";
+      assertThat(record.getBaseDN()).as(desc2).isEqualTo(expectedMsg.getBaseDN());
+      assertThat(record.getCSN()).as(desc2).isEqualTo(expectedMsg.getCSN());
       assertThat(record.getPreviousCookie()).as(desc2).isEqualTo(previousCookie.toString());
-      previousCookie.update(msg.getBaseDN(), msg.getCSN());
+      previousCookie.update(expectedMsg.getBaseDN(), expectedMsg.getCSN());
     }
   }
 
