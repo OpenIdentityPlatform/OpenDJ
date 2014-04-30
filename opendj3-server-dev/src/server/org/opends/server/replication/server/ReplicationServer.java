@@ -35,13 +35,14 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn.ConflictBehavior;
 import org.opends.server.admin.std.server.ReplicationServerCfg;
 import org.opends.server.admin.std.server.UserDefinedVirtualAttributeCfg;
 import org.opends.server.api.*;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.WorkflowImpl;
 import org.opends.server.core.networkgroups.NetworkGroup;
@@ -54,10 +55,8 @@ import org.opends.server.replication.server.changelog.api.ChangelogDB;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.je.JEChangelogDB;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.ServerConstants;
-import org.opends.server.util.TimeThread;
 import org.opends.server.workflowelement.externalchangelog.ECLWorkflowElement;
 
 import static org.opends.messages.ReplicationMessages.*;
@@ -1255,62 +1254,6 @@ public final class ReplicationServer
   }
 
   /**
-   * Returns the eligible CSN cross domains - relies on the eligible CSN from
-   * each domain.
-   *
-   * @param excludedBaseDNs
-   *          the list of baseDNs excluded from the computation of eligibleCSN
-   * @return the cross domain eligible CSN.
-   */
-  public CSN getEligibleCSN(Set<String> excludedBaseDNs)
-  {
-    String debugLog = "";
-
-    // traverse the domains and get the eligible CSN from each domain
-    // store the oldest one as the cross domain eligible CSN
-    CSN eligibleCSN = null;
-    for (ReplicationServerDomain domain : getReplicationServerDomains())
-    {
-      if (contains(excludedBaseDNs, domain.getBaseDN().toNormalizedString()))
-        continue;
-
-      final CSN domainEligibleCSN = domain.getEligibleCSN();
-      if (eligibleCSN == null ||
-          (domainEligibleCSN != null
-           && domainEligibleCSN.isOlderThan(eligibleCSN)))
-      {
-        eligibleCSN = domainEligibleCSN;
-      }
-
-      if (logger.isTraceEnabled())
-      {
-        final String dates = domainEligibleCSN == null ?
-            "" : new Date(domainEligibleCSN.getTime()).toString();
-        debugLog += "[baseDN=" + domain.getBaseDN()
-            + "] [eligibleCSN=" + domainEligibleCSN + ", " + dates + "]";
-      }
-    }
-
-    if (eligibleCSN==null )
-    {
-      eligibleCSN = new CSN(TimeThread.getTime(), 0, 0);
-    }
-
-    if (logger.isTraceEnabled()) {
-      logger.trace("In " + this + " getEligibleCSN() ends with " +
-        " the following domainEligibleCSN for each domain :" + debugLog +
-        " thus CrossDomainEligibleCSN=" + eligibleCSN +
-        "  ts=" + new Date(eligibleCSN.getTime()));
-    }
-    return eligibleCSN;
-  }
-
-  private boolean contains(Set<String> col, String elem)
-  {
-    return col != null && col.contains(elem);
-  }
-
-  /**
    * Get (or create) a handler on the {@link ChangeNumberIndexDB} for external
    * changelog.
    *
@@ -1374,14 +1317,21 @@ public final class ReplicationServer
     final MultiDomainServerState result = new MultiDomainServerState();
     for (ReplicationServerDomain rsDomain : getReplicationServerDomains())
     {
-      if (contains(excludedBaseDNs, rsDomain.getBaseDN().toNormalizedString()))
-        continue;
-      final ServerState latestDBServerState = rsDomain.getLatestServerState();
-      if (latestDBServerState.isEmpty())
-        continue;
-      result.replace(rsDomain.getBaseDN(), latestDBServerState);
+      if (!contains(excludedBaseDNs, rsDomain.getBaseDN().toNormalizedString()))
+      {
+        final ServerState latestDBServerState = rsDomain.getLatestServerState();
+        if (!latestDBServerState.isEmpty())
+        {
+          result.replace(rsDomain.getBaseDN(), latestDBServerState);
+        }
+      }
     }
     return result;
+  }
+
+  private boolean contains(Set<String> col, String elem)
+  {
+    return col != null && col.contains(elem);
   }
 
   /**

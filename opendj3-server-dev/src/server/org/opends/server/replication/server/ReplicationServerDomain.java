@@ -2461,65 +2461,6 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     return domainDB.getDomainOldestCSNs(baseDN);
   }
 
-  /**
-   * Returns the eligible CSN for that domain - relies on the
-   * ChangeTimeHeartbeat state.
-   * <p>
-   * For each DS, take the oldest CSN from the changetime heartbeat state and
-   * from the changelog db last CSN. Can be null.
-   *
-   * @return the eligible CSN.
-   */
-  CSN getEligibleCSN()
-  {
-    CSN eligibleCSN = null;
-    for (final CSN lastAliveCSN : domainDB.getDomainLastAliveCSNs(baseDN))
-    {
-      // Should it be considered for eligibility ?
-      final int serverId = lastAliveCSN.getServerId();
-      if (!isServerConnected(serverId))
-      {
-        if (logger.isTraceEnabled())
-        {
-          debug("serverId=" + serverId
-              + " is not considered for eligibility ... potentially down");
-        }
-        continue;
-      }
-
-      if (eligibleCSN == null || lastAliveCSN.isNewerThan(eligibleCSN))
-      {
-        eligibleCSN = lastAliveCSN;
-      }
-    }
-
-    if (logger.isTraceEnabled())
-    {
-      debug("getEligibleCSN() returns result =" + eligibleCSN);
-    }
-    return eligibleCSN;
-  }
-
-  private boolean isServerConnected(int serverId)
-  {
-    if (connectedDSs.containsKey(serverId))
-    {
-      return true;
-    }
-
-    // not directly connected
-    for (ReplicationServerHandler rsHandler : connectedRSs.values())
-    {
-      if (rsHandler.isRemoteLDAPServer(serverId))
-      {
-        return true;
-      }
-    }
-    return false;
-  }
-
-
-
   private void sendTopologyMsg(String type, ServerHandler handler,
       TopologyMsg msg)
   {

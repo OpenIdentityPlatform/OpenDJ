@@ -226,20 +226,6 @@ public class ChangeNumberIndexer extends DirectoryThread
   }
 
   /**
-   * Returns the last time each serverId was seen alive for the specified
-   * replication domain.
-   *
-   * @param baseDN
-   *          the replication domain baseDN
-   * @return a new ServerState object holding the {serverId => CSN} Map. Can be
-   *         null if domain is not replicated.
-   */
-  public ServerState getDomainLastAliveCSNs(DN baseDN)
-  {
-    return lastAliveCSNs.getServerState(baseDN);
-  }
-
-  /**
    * Signals a replica went offline.
    *
    * @param baseDN

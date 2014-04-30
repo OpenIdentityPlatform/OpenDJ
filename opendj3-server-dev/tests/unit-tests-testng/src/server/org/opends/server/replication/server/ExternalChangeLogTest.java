@@ -2090,17 +2090,11 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       Thread.sleep(500);
 
       ReplicationServerDomain rsd1 = replicationServer.getReplicationServerDomain(TEST_ROOT_DN);
-      debugInfo(tn, rsd1.getBaseDN()
-          + " LatestServerState=" + rsd1.getLatestServerState()
-          + " eligibleCSN=" + rsd1.getEligibleCSN()
-          + " rs eligibleCSN=" + replicationServer.getEligibleCSN(null));
+			debugInfo(tn, rsd1.getBaseDN() + " LatestServerState=" + rsd1.getLatestServerState());
       // FIXME:ECL Enable this test by adding an assert on the right value
 
       ReplicationServerDomain rsd2 = replicationServer.getReplicationServerDomain(TEST_ROOT_DN2);
-      debugInfo(tn, rsd2.getBaseDN()
-          + " LatestServerState=" + rsd2.getLatestServerState()
-          + " eligibleCSN=" + rsd2.getEligibleCSN()
-          + " rs eligibleCSN=" + replicationServer.getEligibleCSN(null));
+			debugInfo(tn, rsd2.getBaseDN() + " LatestServerState=" + rsd2.getLatestServerState());
       // FIXME:ECL Enable this test by adding an assert on the right value
     }
     finally
