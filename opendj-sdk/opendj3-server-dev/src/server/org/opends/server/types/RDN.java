@@ -1186,19 +1186,21 @@ public final class RDN
     final MatchingRule orderingRule = type.getOrderingMatchingRule();
     final MatchingRule rule = orderingRule != null ? orderingRule : type.getEqualityMatchingRule();
 
-    ByteString val1;
-    ByteString val2;
-    try
+    ByteString val1 = value1;
+    ByteString val2 = value2;
+    if (rule != null)
     {
-      val1 = rule.normalizeAttributeValue(value1);
-      val2 = rule.normalizeAttributeValue(value2);
+      try
+      {
+        val1 = rule.normalizeAttributeValue(val1);
+        val2 = rule.normalizeAttributeValue(val2);
+        return rule.comparator().compare(val1, val2);
+      }
+      catch (DecodeException e)
+      {
+        logger.traceException(e);
+      }
     }
-    catch (DecodeException e)
-    {
-      logger.traceException(e);
-      val1 = value1;
-      val2 = value2;
-    }
-    return rule.comparator().compare(val1, val2);
+    return val1.toString().compareTo(val2.toString());
   }
 }
