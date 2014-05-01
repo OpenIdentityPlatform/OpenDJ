@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2011-2013 ForgeRock AS
+ *      Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.loggers;
 
@@ -473,24 +473,30 @@ public abstract class AbstractTextAccessLogPublisher
     private boolean filterDN(final DN dn, PatternDN[] notEqualTo,
         PatternDN[] equalTo)
     {
-      for (final PatternDN pattern : notEqualTo)
+      if (notEqualTo.length > 0)
       {
-        if (pattern.matchesDN(dn))
+        for (final PatternDN pattern : notEqualTo)
         {
-          return false;
+          if (pattern.matchesDN(dn))
+          {
+            return false;
+          }
         }
       }
 
-      for (final PatternDN pattern : equalTo)
+      if (equalTo.length > 0)
       {
-        if (pattern.matchesDN(dn))
+        for (final PatternDN pattern : equalTo)
         {
-          return true;
+          if (pattern.matchesDN(dn))
+          {
+            return true;
+          }
         }
+        return false;
       }
 
-      // The DN did not match.
-      return false;
+      return true;
     }
 
 
@@ -500,26 +506,22 @@ public abstract class AbstractTextAccessLogPublisher
       // Check response code.
       final Integer resultCode = operation.getResultCode().getIntValue();
 
-      if (!cfg.getResponseResultCodeNotEqualTo().isEmpty())
+      if (!cfg.getResponseResultCodeNotEqualTo().isEmpty()
+          && cfg.getResponseResultCodeNotEqualTo().contains(resultCode))
       {
-        if (cfg.getResponseResultCodeNotEqualTo().contains(resultCode))
-        {
-          return false;
-        }
+        return false;
       }
 
-      if (!cfg.getResponseResultCodeEqualTo().isEmpty())
+      if (!cfg.getResponseResultCodeEqualTo().isEmpty()
+          && !cfg.getResponseResultCodeEqualTo().contains(resultCode))
       {
-        if (!cfg.getResponseResultCodeNotEqualTo().contains(resultCode))
-        {
-          return false;
-        }
+        return false;
       }
 
       // Check etime.
       final long etime = operation.getProcessingTime();
 
-      final Integer etimeGT = cfg.getResponseEtimeLessThan();
+      final Integer etimeGT = cfg.getResponseEtimeGreaterThan();
       if (etimeGT != null)
       {
         if (etime <= ((long) etimeGT))
@@ -691,10 +693,10 @@ public abstract class AbstractTextAccessLogPublisher
             }
           }
         }
+        return false;
       }
 
-      // The user entry did not match.
-      return false;
+      return true;
     }
 
   }
