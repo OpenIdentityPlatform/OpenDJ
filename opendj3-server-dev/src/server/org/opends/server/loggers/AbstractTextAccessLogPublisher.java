@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2011-2014 ForgeRock AS
+ *      Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.loggers;
 
@@ -68,7 +68,7 @@ abstract class AbstractTextAccessLogPublisher
   /**
    * Criteria based filter.
    */
-  private static final class CriteriaFilter implements Filter
+  static final class CriteriaFilter implements Filter
   {
     private final AccessLogFilteringCriteriaCfg cfg;
     private final boolean logConnectRecords;
@@ -96,7 +96,7 @@ abstract class AbstractTextAccessLogPublisher
      * @throws ConfigException
      *           If the configuration cannot be parsed.
      */
-    private CriteriaFilter(final AccessLogFilteringCriteriaCfg cfg)
+    CriteriaFilter(final AccessLogFilteringCriteriaCfg cfg)
         throws ConfigException
     {
       this.cfg = cfg;
@@ -470,24 +470,30 @@ abstract class AbstractTextAccessLogPublisher
     private boolean filterDN(final DN dn, PatternDN[] notEqualTo,
         PatternDN[] equalTo)
     {
-      for (final PatternDN pattern : notEqualTo)
+      if (notEqualTo.length > 0)
       {
-        if (pattern.matchesDN(dn))
+        for (final PatternDN pattern : notEqualTo)
         {
-          return false;
+          if (pattern.matchesDN(dn))
+          {
+            return false;
+          }
         }
       }
 
-      for (final PatternDN pattern : equalTo)
+      if (equalTo.length > 0)
       {
-        if (pattern.matchesDN(dn))
+        for (final PatternDN pattern : equalTo)
         {
-          return true;
+          if (pattern.matchesDN(dn))
+          {
+            return true;
+          }
         }
+        return false;
       }
 
-      // The DN did not match.
-      return false;
+      return true;
     }
 
 
@@ -497,26 +503,22 @@ abstract class AbstractTextAccessLogPublisher
       // Check response code.
       final int resultCode = operation.getResultCode().intValue();
 
-      if (!cfg.getResponseResultCodeNotEqualTo().isEmpty())
+      if (!cfg.getResponseResultCodeNotEqualTo().isEmpty()
+          && cfg.getResponseResultCodeNotEqualTo().contains(resultCode))
       {
-        if (cfg.getResponseResultCodeNotEqualTo().contains(resultCode))
-        {
-          return false;
-        }
+        return false;
       }
 
-      if (!cfg.getResponseResultCodeEqualTo().isEmpty())
+      if (!cfg.getResponseResultCodeEqualTo().isEmpty()
+          && !cfg.getResponseResultCodeEqualTo().contains(resultCode))
       {
-        if (!cfg.getResponseResultCodeNotEqualTo().contains(resultCode))
-        {
-          return false;
-        }
+        return false;
       }
 
       // Check etime.
       final long etime = operation.getProcessingTime();
 
-      final Integer etimeGT = cfg.getResponseEtimeLessThan();
+      final Integer etimeGT = cfg.getResponseEtimeGreaterThan();
       if (etimeGT != null)
       {
         if (etime <= ((long) etimeGT))
@@ -682,10 +684,10 @@ abstract class AbstractTextAccessLogPublisher
             logger.traceException(e);
           }
         }
+        return false;
       }
 
-      // The user entry did not match.
-      return false;
+      return true;
     }
 
   }
