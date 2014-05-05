@@ -62,7 +62,6 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 
 import org.forgerock.i18n.LocalizableMessage;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.ConfigurationFramework;
 import org.forgerock.opendj.config.InstantiableRelationDefinition;
 import org.forgerock.opendj.config.RelationDefinition;
@@ -94,9 +93,6 @@ import com.forgerock.opendj.cli.SubCommandArgumentParser;
  * This class provides a command-line tool which enables administrators to configure the Directory Server.
  */
 public final class DSConfig extends ConsoleApplication {
-
-    /** The logger. */
-    private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
     /** The name of this tool. */
     final static String DSCONFIGTOOLNAME = "dsconfig";

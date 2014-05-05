@@ -59,6 +59,7 @@ import org.forgerock.opendj.config.client.ManagedObject;
 import org.forgerock.opendj.config.client.ManagedObjectDecodingException;
 import org.forgerock.opendj.config.client.ManagementContext;
 import org.forgerock.opendj.ldap.AuthorizationException;
+import org.forgerock.opendj.ldap.ErrorResultException;
 
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ReturnCode;
@@ -244,6 +245,8 @@ final class GetPropSubCommandHandler extends SubCommandHandler {
         } catch (ManagedObjectNotFoundException e) {
             LocalizableMessage msg = ERR_DSCFG_ERROR_GET_CHILD_MONFE.get(ufn);
             throw new ClientException(ReturnCode.NO_SUCH_OBJECT, msg);
+        } catch (ErrorResultException e) {
+            throw new ClientException(ReturnCode.OTHER, LocalizableMessage.raw(e.getLocalizedMessage()));
         }
 
         if (result.isQuit()) {
