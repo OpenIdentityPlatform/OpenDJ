@@ -53,6 +53,7 @@ import static org.opends.messages.ToolMessages.*;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+import static com.forgerock.opendj.cli.Utils.wrapText;
 
 /**
  * This class provides a program that may be used to search LDIF files.  It is

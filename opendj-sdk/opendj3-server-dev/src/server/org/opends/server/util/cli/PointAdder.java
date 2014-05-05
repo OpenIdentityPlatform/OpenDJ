@@ -34,7 +34,6 @@ import com.forgerock.opendj.cli.ConsoleApplication;
 
 /**
  * Class used to add points periodically to the end of the output.
- *
  */
 public class PointAdder implements Runnable
 {
@@ -54,9 +53,10 @@ public class PointAdder implements Runnable
 
   /**
    * Default constructor.
-   * @param app the console application to be used.
-   * Creates a PointAdder that writes to the standard output with the default
-   * period time.
+   *
+   * @param app
+   *          The console application to be used. Creates a PointAdder that
+   *          writes to the standard output with the default period time.
    */
   public PointAdder(ConsoleApplication app)
   {
@@ -66,11 +66,16 @@ public class PointAdder implements Runnable
 
   /**
    * Default constructor.
-   * @param app the console application to be used.
-   * @param periodTime the time between printing two points.
-   * @param isError whether the points must be printed in error stream
-   * or output stream.
-   * @param formatter the text formatter.
+   *
+   * @param app
+   *          The console application to be used.
+   * @param periodTime
+   *          The time between printing two points.
+   * @param isError
+   *          Whether the points must be printed in error stream or output
+   *          stream.
+   * @param formatter
+   *          The text formatter.
    */
   public PointAdder(ConsoleApplication app,
       long periodTime, boolean isError,
@@ -94,14 +99,7 @@ public class PointAdder implements Runnable
     {
       mb.append(formatter.getFormattedPoint());
     }
-    if (isError)
-    {
-      app.print(mb.toMessage());
-    }
-    else
-    {
-      app.print(mb.toMessage());
-    }
+    app.print(mb.toMessage());
     t = new Thread(this);
     t.start();
   }
@@ -127,9 +125,7 @@ public class PointAdder implements Runnable
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   public void run()
   {
     while (!stopPointAdder)
@@ -137,14 +133,7 @@ public class PointAdder implements Runnable
       try
       {
         Thread.sleep(periodTime);
-        if (isError)
-        {
-          app.print(formatter.getFormattedPoint());
-        }
-        else
-        {
-          app.print(formatter.getFormattedPoint());
-        }
+        app.print(formatter.getFormattedPoint());
       }
       catch (Throwable t)
       {

@@ -82,6 +82,7 @@ import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.Utils.wrapText;
 
 /**
  * This class provides a very basic tool that can be used to configure some of

@@ -61,6 +61,7 @@ import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.opends.server.util.args.LDAPConnectionArgumentParser.*;
+import static com.forgerock.opendj.cli.Utils.wrapText;
 
 /**
  * This class provides a tool that can be used to issue search requests to the

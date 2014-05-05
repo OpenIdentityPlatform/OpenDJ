@@ -72,6 +72,7 @@ import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+import static com.forgerock.opendj.cli.Utils.wrapText;
 
 /**
  * This program provides a utility that may be used to interact with the

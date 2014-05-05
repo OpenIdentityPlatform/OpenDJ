@@ -30,7 +30,7 @@ package org.opends.server.admin.client.cli;
 import static com.forgerock.opendj.cli.CliMessages.*;
 import static com.forgerock.opendj.cli.Utils.LINE_SEPARATOR;
 import static com.forgerock.opendj.cli.Utils.MAX_LINE_WIDTH;
-import static org.opends.server.util.StaticUtils.wrapText;
+import static com.forgerock.opendj.cli.Utils.wrapText;
 import static com.forgerock.opendj.cli.ReturnCode.CONFLICTING_ARGS;
 
 import java.io.IOException;

@@ -27,6 +27,7 @@
 
 package org.opends.quicksetup;
 
+import static com.forgerock.opendj.cli.Utils.wrapText;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -36,7 +37,6 @@ import org.opends.quicksetup.util.PlainTextProgressMessageFormatter;
 import org.opends.quicksetup.util.Utils;
 import org.opends.quicksetup.event.ProgressUpdateListener;
 import org.opends.quicksetup.event.ProgressUpdateEvent;
-import org.opends.server.util.StaticUtils;
 import com.forgerock.opendj.cli.ClientException;
 
 /**
@@ -99,9 +99,7 @@ public class QuickSetupCli {
                       LocalizableMessage newLogs = ev.getNewLogs();
                       if (newLogs != null) {
                         System.out.print(
-                                StaticUtils.wrapText(
-                                        newLogs,
-                                        Utils.getCommandLineMaxLineWidth()));
+                                wrapText(newLogs, Utils.getCommandLineMaxLineWidth()));
                       }
                     }
                   });
@@ -141,7 +139,7 @@ public class QuickSetupCli {
     {
       logger.error(LocalizableMessage.raw("UserDataException: "+uude, uude));
       System.err.println();
-      System.err.println(StaticUtils.wrapText(uude.getLocalizedMessage(),
+      System.err.println(wrapText(uude.getLocalizedMessage(),
               Utils.getCommandLineMaxLineWidth()));
       System.err.println();
       if (uude.getCause() instanceof ClientException)

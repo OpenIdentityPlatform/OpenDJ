@@ -30,7 +30,7 @@ package org.opends.guitools.controlpanel;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.MAX_LINE_WIDTH;
-import static org.opends.server.util.StaticUtils.wrapText;
+import static com.forgerock.opendj.cli.Utils.wrapText;
 
 import java.io.File;
 import java.io.PrintStream;
@@ -47,7 +47,6 @@ import org.opends.quicksetup.util.Utils;
 import org.opends.server.types.InitializationException;
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.DynamicConstants;
-import org.opends.server.util.StaticUtils;
 import com.forgerock.opendj.cli.ArgumentException;
 
 /**
@@ -134,14 +133,14 @@ public class ControlPanelLauncher
         }
         if (logFileName != null)
         {
-          System.err.println(StaticUtils.wrapText(
+          System.err.println(wrapText(
               ERR_CONTROL_PANEL_LAUNCHER_GUI_LAUNCH_FAILED_DETAILS.get(
                   logFileName),
                   Utils.getCommandLineMaxLineWidth()));
         }
         else
         {
-          System.err.println(StaticUtils.wrapText(
+          System.err.println(wrapText(
               ERR_CONTROL_PANEL_LAUNCHER_GUI_LAUNCH_FAILED.get(),
               Utils.getCommandLineMaxLineWidth()));
         }

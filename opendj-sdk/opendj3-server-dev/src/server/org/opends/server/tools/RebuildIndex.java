@@ -33,6 +33,7 @@ import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+import static com.forgerock.opendj.cli.Utils.wrapText;
 
 import org.opends.server.util.BuildVersion;
 import org.opends.server.util.StaticUtils;

@@ -41,8 +41,6 @@ import java.util.List;
 import org.opends.server.api.Backend;
 import org.forgerock.opendj.config.server.ConfigException;
 
-import static org.opends.server.config.ConfigConstants.*;
-
 import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.LockFileManager;
@@ -69,6 +67,8 @@ import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static com.forgerock.opendj.cli.Utils.wrapText;
 
 import org.opends.server.tools.tasks.TaskTool;
 import org.opends.server.admin.std.server.BackendCfg;

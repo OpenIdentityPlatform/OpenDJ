@@ -70,6 +70,7 @@ import org.opends.server.util.EmbeddedUtils;
 
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+import static com.forgerock.opendj.cli.Utils.wrapText;
 
 
 

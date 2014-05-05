@@ -134,6 +134,7 @@ import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
 
 import static org.opends.server.types.CommonSchemaElements.*;
+import static com.forgerock.opendj.cli.Utils.wrapText;
 
 /**
  * A static class that provides miscellaneous functions.
@@ -268,7 +269,7 @@ public class Utilities
     }
     String msg = getStringFromCollection(stringErrors, "<br>");
     String plainText = msg.replaceAll("<br>", ServerConstants.EOL);
-    String wrappedText = StaticUtils.wrapText(plainText, 70);
+    String wrappedText = wrapText(plainText, 70);
     wrappedText = wrappedText.replaceAll(ServerConstants.EOL, "<br>");
     JOptionPane.showMessageDialog(
         parentComponent, "<html>"+wrappedText,
@@ -291,7 +292,7 @@ public class Utilities
       LocalizableMessage title, LocalizableMessage msg)
   {
     String plainText = msg.toString().replaceAll("<br>", ServerConstants.EOL);
-    String wrappedText = StaticUtils.wrapText(plainText, 70);
+    String wrappedText = wrapText(plainText, 70);
     wrappedText = wrappedText.replaceAll(ServerConstants.EOL, "<br>");
     return JOptionPane.YES_OPTION == JOptionPane.showOptionDialog(
         parentComponent, "<html>"+wrappedText,
@@ -314,7 +315,7 @@ public class Utilities
       LocalizableMessage title, LocalizableMessage msg)
   {
     String plainText = msg.toString().replaceAll("<br>", ServerConstants.EOL);
-    String wrappedText = StaticUtils.wrapText(plainText, 70);
+    String wrappedText = wrapText(plainText, 70);
     wrappedText = wrappedText.replaceAll(ServerConstants.EOL, "<br>");
     JOptionPane.showMessageDialog(
         parentComponent, "<html>"+wrappedText,
@@ -1025,7 +1026,7 @@ public class Utilities
   public static void updatePreferredSize(JEditorPane pane, int nCols,
       String plainText, Font font, boolean applyBackground)
   {
-    String wrappedText = StaticUtils.wrapText(plainText, nCols);
+    String wrappedText = wrapText(plainText, nCols);
     wrappedText = wrappedText.replaceAll(ServerConstants.EOL, "<br>");
     if (applyBackground)
     {

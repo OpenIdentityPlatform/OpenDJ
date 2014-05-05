@@ -79,6 +79,7 @@ import static org.opends.server.config.ConfigConstants.*;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+import static com.forgerock.opendj.cli.Utils.wrapText;
 
 /**
  * This program provides a utility that may be used to back up a Directory

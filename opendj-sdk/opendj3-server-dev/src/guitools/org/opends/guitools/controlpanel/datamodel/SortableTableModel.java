@@ -27,13 +27,15 @@
 
 package org.opends.guitools.controlpanel.datamodel;
 
+
+import static com.forgerock.opendj.cli.Utils.wrapText;
+
 import javax.swing.table.AbstractTableModel;
 
 import org.opends.guitools.controlpanel.ui.ColorAndFontConstants;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.util.ServerConstants;
-import org.opends.server.util.StaticUtils;
 
 /**
  * A generic interface that must implement table models that are sortable.
@@ -93,7 +95,7 @@ public abstract class SortableTableModel extends AbstractTableModel
   protected String getHeader(LocalizableMessage msg, int wrap)
   {
     String text = msg.toString();
-    String wrappedText = StaticUtils.wrapText(text, wrap);
+    String wrappedText = wrapText(text, wrap);
     wrappedText = wrappedText.replaceAll(ServerConstants.EOL, "<br>");
     return "<html>"+Utilities.applyFont(wrappedText,
         ColorAndFontConstants.headerFont);
