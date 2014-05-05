@@ -110,16 +110,12 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
 
         private ErrorResultException ere;
 
-        /**
-         * Any CLI exception that was caught when attempting to find the managed object.
-         */
+        /** Any CLI exception that was caught when attempting to find the managed object. */
         private ClientException clie;
 
         private ConcurrentModificationException cme;
 
-        /**
-         * Any operation exception that was caught when attempting to find the managed object.
-         */
+        /** Any operation exception that was caught when attempting to find the managed object. */
         private DefinitionDecodingException dde;
 
         private ManagedObjectDecodingException mode;
@@ -386,11 +382,13 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
          * @throws AuthorizationException
          *             If the server refuses to retrieve the managed object because the client does not have the correct
          *             privileges.
+         * @throws ErrorResultException
+         *             If any other error occurs.
          */
         public MenuResult<ManagedObject<?>> find(ConsoleApplication app, ManagementContext context,
                 ManagedObjectPath<?, ?> path, List<String> args) throws ClientException, AuthorizationException,
                 ConcurrentModificationException, DefinitionDecodingException, ManagedObjectDecodingException,
-                ManagedObjectNotFoundException {
+                ManagedObjectNotFoundException, ErrorResultException {
             this.result = MenuResult.<ManagedObject<?>> success(context.getRootConfigurationManagedObject());
             this.app = app;
             this.args = args;
@@ -419,6 +417,8 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
                 throw mode;
             } else if (monfe != null) {
                 throw monfe;
+            } else if (ere != null) {
+                throw ere;
             } else {
                 // User requested termination interactively.
                 return result;
@@ -826,13 +826,13 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
      *             privileges.
      * @throws ClientException
      *             If one of the naming arguments referenced a managed object of the wrong type.
-     * @throws ClientException
-     *             If the management context could not be created.
+     * @throws ErrorResultException
+     *             If any other error occurs.
      */
     protected final MenuResult<ManagedObject<?>> getManagedObject(ConsoleApplication app, ManagementContext context,
             ManagedObjectPath<?, ?> path, List<String> args) throws ClientException, AuthorizationException,
             DefinitionDecodingException, ManagedObjectDecodingException, ConcurrentModificationException,
-            ManagedObjectNotFoundException {
+            ManagedObjectNotFoundException, ErrorResultException {
         ManagedObjectFinder finder = new ManagedObjectFinder();
         return finder.find(app, context, path, args);
     }
@@ -851,9 +851,8 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
     protected final List<String> getNamingArgValues(ConsoleApplication app, List<StringArgument> namingArgs)
             throws ArgumentException {
         ArrayList<String> values = new ArrayList<String>(namingArgs.size());
-        for (StringArgument arg : namingArgs) {
-            String value = arg.getValue();
-
+        for (final StringArgument arg : namingArgs) {
+            final String value = arg.getValue();
             if (value == null && !app.isInteractive()) {
                 throw ArgumentExceptionFactory.missingMandatoryNonInteractiveArgument(arg);
             } else {
@@ -871,9 +870,8 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
     protected final Set<String> getPropertyNames() {
         if (propertyArgument != null) {
             return new LinkedHashSet<String>(propertyArgument.getValues());
-        } else {
-            return Collections.emptySet();
         }
+        return Collections.emptySet();
     }
 
     /**
@@ -885,7 +883,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
      */
     protected final SizeUnit getSizeUnit() throws ArgumentException {
         if (unitSizeArgument != null) {
-            String value = unitSizeArgument.getValue();
+            final String value = unitSizeArgument.getValue();
 
             if (value != null) {
                 try {
@@ -909,7 +907,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
      */
     protected final DurationUnit getTimeUnit() throws ArgumentException {
         if (unitTimeArgument != null) {
-            String value = unitTimeArgument.getValue();
+            final String value = unitTimeArgument.getValue();
 
             if (value != null) {
                 try {
@@ -932,9 +930,8 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
     protected final boolean isRecordMode() {
         if (recordModeArgument != null) {
             return recordModeArgument.isPresent();
-        } else {
-            return false;
         }
+        return false;
     }
 
     /**
@@ -1264,7 +1261,6 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
             }
 
             if (c instanceof ManagedObjectDefinition) {
-                @SuppressWarnings("unchecked")
                 ManagedObjectDefinition<? extends C, ? extends S> mod
                     = (ManagedObjectDefinition<? extends C, ? extends S>) c;
                 map.put(getShortTypeName(d, mod), mod);

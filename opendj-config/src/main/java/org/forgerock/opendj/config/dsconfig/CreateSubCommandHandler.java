@@ -1057,6 +1057,8 @@ final class CreateSubCommandHandler<C extends ConfigurationClient, S extends Con
             } else {
                 throw new ClientException(ReturnCode.NO_SUCH_OBJECT, msg);
             }
+        } catch (ErrorResultException e) {
+            throw new ClientException(ReturnCode.OTHER, LocalizableMessage.raw(e.getLocalizedMessage()));
         }
 
         if (result.isQuit()) {

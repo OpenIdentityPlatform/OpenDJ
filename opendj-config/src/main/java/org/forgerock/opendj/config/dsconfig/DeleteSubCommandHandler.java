@@ -233,6 +233,8 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
             } else {
                 return MenuResult.success(0);
             }
+        } catch (ErrorResultException e) {
+            throw new ClientException(ReturnCode.OTHER, LocalizableMessage.raw(e.getLocalizedMessage()));
         }
 
         if (result.isQuit()) {

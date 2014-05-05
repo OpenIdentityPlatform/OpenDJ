@@ -661,6 +661,8 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
             } else {
                 throw except;
             }
+        } catch (ErrorResultException e) {
+            throw new ClientException(ReturnCode.OTHER, LocalizableMessage.raw(e.getLocalizedMessage()));
         }
 
         if (result.isQuit()) {
