@@ -44,10 +44,6 @@ public final class TabSeparatedTablePrinter extends TablePrinter {
      * Table serializer implementation.
      */
     private final class Serializer extends TableSerializer {
-
-        /** The current column being output. */
-        private int column = 0;
-
         /**
          * Counts the number of separators that should be output the next time a non-empty cell is displayed. The tab
          * separators are not displayed immediately so that we can avoid displaying unnecessary trailing separators.
@@ -74,7 +70,6 @@ public final class TabSeparatedTablePrinter extends TablePrinter {
 
             // Replace all new-lines and tabs with a single space.
             writer.print(s.replaceAll("[\\t\\n\\r]", " "));
-            column++;
         }
 
         /** {@inheritDoc} */
@@ -108,14 +103,12 @@ public final class TabSeparatedTablePrinter extends TablePrinter {
         /** {@inheritDoc} */
         @Override
         public void startHeader() {
-            column = 0;
             requiredSeparators = 0;
         }
 
         /** {@inheritDoc} */
         @Override
         public void startRow() {
-            column = 0;
             requiredSeparators = 0;
         }
     }

@@ -31,6 +31,7 @@ import java.io.IOException;
 import org.testng.annotations.Test;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.assertEquals;
 
 @SuppressWarnings("javadoc")
 public class UtilsTestCase extends CliTestCase {
@@ -67,4 +68,27 @@ public class UtilsTestCase extends CliTestCase {
         assertTrue(f.exists());
         assertFalse(Utils.canWrite(f.getPath()));
     }
+
+    @Test()
+    public void testGetHostNameForLdapUrl() {
+        assertEquals(Utils.getHostNameForLdapUrl("2a01:e35:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx"),
+                "[2a01:e35:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx]");
+        assertEquals(Utils.getHostNameForLdapUrl("basicUrl"), "basicUrl");
+        assertEquals(Utils.getHostNameForLdapUrl(null), null);
+        // Left/right brackets.
+        assertEquals(Utils.getHostNameForLdapUrl("[2a01:e35:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx"),
+                "[2a01:e35:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx]");
+        assertEquals(Utils.getHostNameForLdapUrl("2a01:e35:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx]"),
+                "[2a01:e35:xxxx:xxxx:xxxx:xxxx:xxxx:xxxx]");
+    }
+
+    @Test()
+    public void isDN() {
+        assertTrue(Utils.isDN("cn=Jensen,ou=people,dc=example,dc=com"));
+        assertTrue(Utils.isDN("cn=John Doe,dc=example,dc=org"));
+        assertFalse(Utils.isDN(null));
+        assertFalse(Utils.isDN("babs@example.com"));
+    }
+
+
 }

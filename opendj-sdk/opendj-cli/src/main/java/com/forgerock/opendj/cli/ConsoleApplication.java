@@ -206,9 +206,8 @@ public abstract class ConsoleApplication {
      * documentation to be scrolled out of view).
      */
     public final void pressReturnToContinue() {
-        final LocalizableMessage msg = INFO_MENU_PROMPT_RETURN_TO_CONTINUE.get();
         try {
-            readLineOfInput(msg);
+            readLineOfInput(INFO_MENU_PROMPT_RETURN_TO_CONTINUE.get());
         } catch (final ClientException e) {
             // Ignore the exception - applications don't care.
         }
@@ -787,9 +786,8 @@ public abstract class ConsoleApplication {
                     app.println();
                     app.println(errMsg);
                     app.println();
+                    return null;
                 }
-
-                return null;
             }
         };
 

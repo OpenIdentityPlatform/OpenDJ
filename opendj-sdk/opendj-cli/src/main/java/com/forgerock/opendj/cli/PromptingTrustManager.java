@@ -39,8 +39,6 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
@@ -48,6 +46,7 @@ import javax.net.ssl.X509TrustManager;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.util.Reject;
 
 /**
@@ -100,7 +99,7 @@ public final class PromptingTrustManager implements X509TrustManager {
         }
     }
 
-    private static final Logger LOG = Logger.getLogger(PromptingTrustManager.class.getName());
+    private static final LocalizedLogger LOG = LocalizedLogger.getLoggerForThisClass();
 
     private static final String DEFAULT_PATH = System.getProperty("user.home") + File.separator
             + ".opendj" + File.separator + "keystore";
@@ -273,9 +272,9 @@ public final class PromptingTrustManager implements X509TrustManager {
      */
     private void acceptCertificate(final X509Certificate[] chain, final boolean permanent) {
         if (permanent) {
-            LOG.log(Level.INFO, "Permanently accepting certificate chain to " + "truststore");
+            LOG.debug(LocalizableMessage.raw("Permanently accepting certificate chain to " + "truststore"));
         } else {
-            LOG.log(Level.INFO, "Accepting certificate chain for this session");
+            LOG.debug(LocalizableMessage.raw("Accepting certificate chain for this session"));
         }
 
         for (final X509Certificate aChain : chain) {
@@ -286,8 +285,8 @@ public final class PromptingTrustManager implements X509TrustManager {
                     onDiskTrustStore.setCertificateEntry(alias, aChain);
                 }
             } catch (final Exception e) {
-                LOG.log(Level.WARNING, "Error setting certificate to store: " + e + "\nCert: "
-                        + aChain.toString());
+                LOG.warn(LocalizableMessage.raw("Error setting certificate to store: " + e + "\nCert: "
+                        + aChain.toString()));
             }
         }
 
@@ -301,7 +300,7 @@ public final class PromptingTrustManager implements X509TrustManager {
                 onDiskTrustStore.store(fos, DEFAULT_PASSWORD);
                 fos.close();
             } catch (final Exception e) {
-                LOG.log(Level.WARNING, "Error saving store to disk: " + e);
+                LOG.warn(LocalizableMessage.raw("Error saving store to disk: " + e));
             }
         }
     }

@@ -48,9 +48,6 @@ public final class TextTablePrinter extends TablePrinter {
      */
     private final class Serializer extends TableSerializer {
 
-        // The current column being output.
-        private int column = 0;
-
         /*The real column widths taking into account size constraints but
          not including padding or separators.*/
         private final List<Integer> columnWidths = new ArrayList<Integer>();
@@ -78,7 +75,6 @@ public final class TextTablePrinter extends TablePrinter {
         @Override
         public void addCell(String s) {
             currentRow.add(s);
-            column++;
         }
 
         /** {@inheritDoc} */
@@ -222,15 +218,12 @@ public final class TextTablePrinter extends TablePrinter {
         @Override
         public void startHeader() {
             determineColumnWidths();
-
-            column = 0;
             currentRow.clear();
         }
 
         /** {@inheritDoc} */
         @Override
         public void startRow() {
-            column = 0;
             currentRow.clear();
         }
 
