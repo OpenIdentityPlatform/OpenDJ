@@ -36,13 +36,13 @@ import java.security.Principal;
 import java.security.PrivateKey;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.X509Certificate;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509KeyManager;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 /**
  * This class is in charge of checking whether the certificates that are
@@ -58,7 +58,7 @@ import javax.net.ssl.X509KeyManager;
  * parallel.
  */
 final class ApplicationKeyManager implements X509KeyManager {
-    private static final Logger LOG = Logger.getLogger(ApplicationKeyManager.class.getName());
+    private static final LocalizedLogger LOG = LocalizedLogger.getLoggerForThisClass();
 
     /**
      * The default keyManager.
@@ -125,19 +125,19 @@ final class ApplicationKeyManager implements X509KeyManager {
             } catch (final NoSuchAlgorithmException e) {
                 // Nothing to do. Maybe we should avoid this and be strict, but
                 // we are in a best effort mode.
-                LOG.log(Level.WARNING, "Error with the algorithm", e);
+                LOG.warn(LocalizableMessage.raw("Error with the algorithm", e));
             } catch (final KeyStoreException e) {
                 // Nothing to do. Maybe we should avoid this and be strict, but
                 // we are in a best effort mode..
-                LOG.log(Level.WARNING, "Error with the keystore", e);
+                LOG.warn(LocalizableMessage.raw("Error with the keystore", e));
             } catch (final UnrecoverableKeyException e) {
                 // Nothing to do. Maybe we should avoid this and be strict, but
                 // we are in a best effort mode.
-                LOG.log(Level.WARNING, "Error with the key", e);
+                LOG.warn(LocalizableMessage.raw("Error with the key", e));
             } catch (final NoSuchProviderException e) {
                 // Nothing to do. Maybe we should avoid this and be strict, but
                 // we are in a best effort mode.
-                LOG.log(Level.WARNING, "Error with the provider", e);
+                LOG.warn(LocalizableMessage.raw("Error with the provider", e));
             }
         }
     }
