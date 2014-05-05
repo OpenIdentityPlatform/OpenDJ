@@ -56,7 +56,7 @@ import com.forgerock.opendj.cli.StringArgument;
 
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
+import static com.forgerock.opendj.cli.Utils.wrapText;
 
 /**
  * Creates an argument parser pre-populated with arguments for specifying

@@ -54,6 +54,7 @@ import static org.opends.messages.ToolMessages.*;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
+import static com.forgerock.opendj.cli.Utils.wrapText;
 
 /**
  * This class defines a program that can be used to generate LDIF content based

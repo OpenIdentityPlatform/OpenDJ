@@ -31,9 +31,9 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 
 import static org.opends.messages.AdminToolMessages.*;
+import static com.forgerock.opendj.cli.Utils.wrapText;
 
 import org.opends.quicksetup.util.Utils;
-import org.opends.server.util.StaticUtils;
 import com.forgerock.opendj.cli.ClientException;
 import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.Menu;
@@ -170,7 +170,7 @@ public class CliUserInteraction extends ConsoleApplication
   private void println(String text) {
     text = Utils.convertHtmlBreakToLineSeparator(text);
     text = Utils.stripHtml(text);
-    text = StaticUtils.wrapText(text, Utils.getCommandLineMaxLineWidth());
+    text = wrapText(text, Utils.getCommandLineMaxLineWidth());
     getErrorStream().println(text);
   }
 

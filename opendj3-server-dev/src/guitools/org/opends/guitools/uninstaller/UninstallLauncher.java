@@ -30,6 +30,7 @@ package org.opends.guitools.uninstaller;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.ToolMessages.ERR_ERROR_PARSING_ARGS;
 import static com.forgerock.opendj.util.OperatingSystem.isWindows;
+import static com.forgerock.opendj.cli.Utils.wrapText;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.messages.ToolMessages;
@@ -152,7 +153,7 @@ public class UninstallLauncher extends Launcher {
     {
       LocalizableMessage message =
         ToolMessages.ERR_CANNOT_INITIALIZE_ARGS.get(ae.getMessage());
-      System.err.println(org.opends.server.util.StaticUtils.wrapText(message,
+      System.err.println(wrapText(message,
           Utils.getCommandLineMaxLineWidth()));
     }
   }

@@ -25,29 +25,27 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.extensions;
-import org.forgerock.i18n.LocalizableMessage;
 
-
+import static org.opends.messages.ExtensionMessages.ERR_SMTPALERTHANDLER_NO_SMTP_SERVERS;
+import static org.opends.messages.ExtensionMessages.WARN_SMTPALERTHANDLER_ERROR_SENDING_MESSAGE;
+import static com.forgerock.opendj.cli.Utils.wrapText;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.AlertHandlerCfg;
 import org.opends.server.admin.std.server.SMTPAlertHandlerCfg;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.AlertHandler;
 import org.opends.server.core.DirectoryServer;
-import org.forgerock.opendj.config.server.ConfigException;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.types.ConfigChangeResult;
 import org.opends.server.types.InitializationException;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.EMailMessage;
-
-import static org.opends.messages.ExtensionMessages.*;
-
-import static org.opends.server.util.StaticUtils.*;
 
 
 

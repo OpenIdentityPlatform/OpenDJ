@@ -31,6 +31,7 @@ import static org.opends.server.tools.upgrade.FormattedNotificationCallback.*;
 import static org.opends.server.tools.upgrade.Upgrade.EXIT_CODE_ERROR;
 import static org.opends.server.tools.upgrade.Upgrade.EXIT_CODE_SUCCESS;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.Utils.wrapText;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -427,7 +428,7 @@ public final class UpgradeCli extends ConsoleApplication implements
 
         final String defaultOption = getDefaultOption(cc.getDefaultOption());
         StringBuilder prompt =
-            new StringBuilder(StaticUtils.wrapText(cc.getPrompt(),
+            new StringBuilder(wrapText(cc.getPrompt(),
                 ServerConstants.MAX_LINE_WIDTH, 2));
 
         // Default answers.

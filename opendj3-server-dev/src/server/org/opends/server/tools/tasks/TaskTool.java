@@ -34,9 +34,9 @@ import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.cli.ClientException;
 
-import static org.opends.server.util.StaticUtils.wrapText;
 import static org.opends.server.util.StaticUtils.getExceptionMessage;
 import static org.opends.server.util.ServerConstants.MAX_LINE_WIDTH;
+import static com.forgerock.opendj.cli.Utils.wrapText;
 
 import org.forgerock.opendj.ldap.DecodeException;
 import org.opends.server.tools.LDAPConnection;
