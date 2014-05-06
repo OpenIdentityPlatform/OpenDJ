@@ -69,8 +69,8 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.util.StaticUtils.filterExitCode;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.Utils.filterExitCode;
 
 /**
  * Tool for getting information and managing tasks in the Directory Server.

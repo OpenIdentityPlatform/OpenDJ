@@ -22,11 +22,13 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui.renderer;
 
 import static org.opends.messages.AdminToolMessages.*;
+import static com.forgerock.opendj.cli.Utils.OBFUSCATED_VALUE;
 
 import java.awt.Component;
 import java.awt.GridBagConstraints;
@@ -91,7 +93,7 @@ public class LDAPEntryTableCellRenderer extends SelectableTableCellRenderer
     }
     if (isPassword(table, row, column))
     {
-      return getStringValue(table, Utilities.OBFUSCATED_VALUE, isSelected,
+      return getStringValue(table, OBFUSCATED_VALUE, isSelected,
           hasFocus, row, column);
     }
     else if (value instanceof ObjectClassValue)

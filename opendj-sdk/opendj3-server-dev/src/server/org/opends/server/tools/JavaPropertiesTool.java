@@ -27,23 +27,33 @@
 
 package org.opends.server.tools;
 
-import java.io.*;
+import static com.forgerock.opendj.cli.Utils.getThrowableMsg;
+import static com.forgerock.opendj.util.OperatingSystem.isWindows;
+import static org.opends.server.util.ServerConstants.EOL;
+import static org.opends.messages.ToolMessages.*;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.util.Enumeration;
 import java.util.Properties;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.messages.ToolMessages;
 import org.opends.quicksetup.Constants;
-import org.opends.quicksetup.util.Utils;
 import org.opends.server.loggers.JDKLogging;
 import org.opends.server.types.NullOutputStream;
 import com.forgerock.opendj.cli.ConsoleApplication;
 
 import com.forgerock.opendj.cli.ArgumentException;
 
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.util.ServerConstants.*;
-import static com.forgerock.opendj.util.OperatingSystem.isWindows;
 
 /**
  * This class is used to update the scripts that are used to launch the command
@@ -324,7 +334,7 @@ public class JavaPropertiesTool extends ConsoleApplication
     }
     catch (IOException ioe)
     {
-      println(Utils.getThrowableMsg(
+      println(getThrowableMsg(
           ERR_JAVAPROPERTIES_WRITING_DESTINATION_FILE.get(destinationFile),
           ioe));
       return ErrorReturnCode.ERROR_WRITING_FILE.getReturnCode();

@@ -42,12 +42,12 @@ import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.UserData;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.admin.AdministrationConnector;
-import org.opends.server.util.SetupUtils;
 
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.CliConstants;
 import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.FileBasedArgument;
 import com.forgerock.opendj.cli.IntegerArgument;
@@ -236,7 +236,7 @@ public class InstallDSArgumentParser extends ArgumentParser
     jmxPortArg = new IntegerArgument(
         "jmxPort".toLowerCase(), 'x', "jmxPort", false, false,
         true, INFO_JMXPORT_PLACEHOLDER.get(),
-        SetupUtils.getDefaultJMXPort(), "jmxPort", true,
+        CliConstants.DEFAULT_JMX_PORT, "jmxPort", true,
         1, true, 65535,
         INFO_INSTALLDS_DESCRIPTION_JMXPORT.get());
     addArgument(jmxPortArg);

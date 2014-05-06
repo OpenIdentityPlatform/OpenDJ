@@ -73,6 +73,7 @@ import org.opends.quicksetup.util.Utils;
 
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
+import static com.forgerock.opendj.cli.Utils.getThrowableMsg;
 
 /**
  * This class is a dialog that appears when the user must provide authentication
@@ -455,7 +456,7 @@ public class LoginDialog extends JDialog
             }
             else
             {
-              LocalizableMessage msg = Utils.getThrowableMsg(
+              LocalizableMessage msg = getThrowableMsg(
                   INFO_ERROR_CONNECTING_TO_LOCAL.get(), throwable);
               displayError(msg, INFO_ERROR_TITLE.get());
             }
@@ -553,7 +554,7 @@ public class LoginDialog extends JDialog
             logger.error(LocalizableMessage.raw("Unexpected throwable: "+throwable,
                 throwable));
             displayError(
-                Utils.getThrowableMsg(INFO_BUG_MSG.get(), throwable),
+                getThrowableMsg(INFO_BUG_MSG.get(), throwable),
                 INFO_ERROR_TITLE.get());
           }
           cancelButton.setEnabled(true);

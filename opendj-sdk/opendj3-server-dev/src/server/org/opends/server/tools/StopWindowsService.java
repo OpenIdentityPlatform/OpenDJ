@@ -35,8 +35,8 @@ import org.opends.server.loggers.JDKLogging;
 import org.opends.server.types.NullOutputStream;
 
 import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.util.StaticUtils.*;
 import static com.forgerock.opendj.util.OperatingSystem.hasUAC;
+import static com.forgerock.opendj.cli.Utils.filterExitCode;
 
 
 /**

@@ -38,6 +38,7 @@ import com.forgerock.opendj.cli.*;
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.StaticUtils.*;
+import static com.forgerock.opendj.cli.Utils.filterExitCode;
 
 /**
  * This program provides a simple tool that will wait for a specified file to be

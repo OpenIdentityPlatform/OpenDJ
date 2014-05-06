@@ -70,6 +70,7 @@ import org.opends.messages.ReplicationMessages;
 
 import static org.opends.messages.QuickSetupMessages.*;
 import static com.forgerock.opendj.util.OperatingSystem.isWindows;
+import static com.forgerock.opendj.cli.Utils.getThrowableMsg;
 
 import org.opends.server.tools.ConfigureDS;
 import org.opends.server.tools.ConfigureWindowsService;

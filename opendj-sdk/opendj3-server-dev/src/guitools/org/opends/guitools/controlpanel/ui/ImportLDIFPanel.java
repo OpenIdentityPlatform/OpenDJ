@@ -29,6 +29,7 @@ package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
+import static com.forgerock.opendj.cli.Utils.OBFUSCATED_VALUE;
 
 import java.awt.Component;
 import java.awt.GridBagConstraints;
@@ -1048,7 +1049,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
       args.add("--adminUID");
       args.add("admin");
       args.add("--adminPassword");
-      args.add(Utilities.OBFUSCATED_VALUE);
+      args.add(OBFUSCATED_VALUE);
       args.add("--trustAll");
       args.add("--no-prompt");
 

@@ -29,6 +29,7 @@ package org.opends.guitools.uninstaller;
 import static com.forgerock.opendj.cli.ArgumentConstants.OPTION_LONG_BINDPWD;
 import static com.forgerock.opendj.cli.ArgumentConstants.OPTION_LONG_BINDPWD_FILE;
 import static com.forgerock.opendj.cli.Utils.CONFIRMATION_MAX_TRIES;
+import static com.forgerock.opendj.cli.Utils.getThrowableMsg;
 import static org.forgerock.util.Utils.joinAsString;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
@@ -543,7 +544,7 @@ public class UninstallCliHelper extends ConsoleApplication {
     {
       logger.warn(LocalizableMessage.raw("Error processing task: "+t, t));
       throw new UserDataException(Step.CONFIRM_UNINSTALL,
-          Utils.getThrowableMsg(INFO_BUG_MSG.get(), t));
+          getThrowableMsg(INFO_BUG_MSG.get(), t));
     }
     logger.info(LocalizableMessage.raw("interactive: "+interactive));
     logger.info(LocalizableMessage.raw("forceOnError: "+forceOnError));
@@ -1253,7 +1254,7 @@ public class UninstallCliHelper extends ConsoleApplication {
       }
       else
       {
-        exceptionMsg = Utils.getThrowableMsg(
+        exceptionMsg = getThrowableMsg(
             INFO_ERROR_CONNECTING_TO_LOCAL.get(), ne);
       }
     } catch (TopologyCacheException te)
@@ -1268,7 +1269,7 @@ public class UninstallCliHelper extends ConsoleApplication {
     } catch (Throwable t)
     {
       logger.warn(LocalizableMessage.raw("Error connecting to server: "+t, t));
-      exceptionMsg = Utils.getThrowableMsg(INFO_BUG_MSG.get(), t);
+      exceptionMsg = getThrowableMsg(INFO_BUG_MSG.get(), t);
     }
     finally
     {

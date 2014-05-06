@@ -142,7 +142,7 @@ import static org.opends.messages.ToolMessages.INFO_TASK_TOOL_TASK_SUCESSFULL;
 import static org.opends.messages.ToolMessages.INFO_TASK_TOOL_TASK_SCHEDULED_FUTURE;
 import static org.opends.messages.ToolMessages.INFO_TASK_TOOL_RECURRING_TASK_SCHEDULED;
 import static org.opends.quicksetup.util.Utils.getFirstValue;
-import static org.opends.quicksetup.util.Utils.getThrowableMsg;
+import static com.forgerock.opendj.cli.Utils.getThrowableMsg;
 import static org.opends.server.tools.dsreplication.ReplicationCliReturnCode.*;
 import static org.opends.server.util.StaticUtils.*;
 

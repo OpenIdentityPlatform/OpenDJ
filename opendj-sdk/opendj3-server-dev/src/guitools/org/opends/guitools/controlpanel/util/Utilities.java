@@ -144,12 +144,6 @@ public class Utilities
   private static File rootDirectory;
   private static File instanceRootDirectory;
 
-  /**
-   * The string to be used to display an obfuscated value (for instance password
-   * value).
-   */
-  public final static String OBFUSCATED_VALUE = "********";
-
   private static String[] attrsToObfuscate =
   {ServerConstants.ATTR_USER_PASSWORD};
 

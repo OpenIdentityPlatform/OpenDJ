@@ -65,6 +65,7 @@ import static org.opends.server.util.StaticUtils.*;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static com.forgerock.opendj.cli.Utils.wrapText;
+import static com.forgerock.opendj.cli.Utils.filterExitCode;
 
 /**
  * This program provides a utility that uses the LDAP password modify extended

@@ -49,6 +49,7 @@ import org.opends.server.util.SetupUtils;
 import static org.opends.quicksetup.util.Utils.*;
 import static org.opends.messages.QuickSetupMessages.*;
 import static com.forgerock.opendj.util.OperatingSystem.isWindows;
+import static com.forgerock.opendj.cli.Utils.getThrowableMsg;
 
 /**
  * This class is used to download the files that have been marked as lazy
