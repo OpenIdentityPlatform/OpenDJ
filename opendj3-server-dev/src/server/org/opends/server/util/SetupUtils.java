@@ -26,6 +26,8 @@
  */
 package org.opends.server.util;
 
+import static org.forgerock.util.Utils.closeSilently;
+
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -351,15 +353,6 @@ public class SetupUtils
   }
 
   /**
-   * Returns the default value for the JMX Port.
-   * @return the default value for the JMX Port.
-   */
-  public static int getDefaultJMXPort()
-  {
-    return 1689;
-  }
-
-  /**
    * Indicates whether we are in a web start installation or not.
    *
    * @return <CODE>true</CODE> if we are in a web start installation and
@@ -442,7 +435,7 @@ public class SetupUtils
     }
     finally
     {
-      close(outputStream);
+      closeSilently(outputStream);
     }
   }
 
@@ -475,7 +468,7 @@ public class SetupUtils
     }
     finally
     {
-      close(outputStream);
+      closeSilently(outputStream);
     }
   }
 
@@ -559,7 +552,7 @@ public class SetupUtils
     }
     finally
     {
-      close(br);
+      closeSilently(br);
     }
     if (hostName == null)
     {
@@ -570,20 +563,5 @@ public class SetupUtils
       hostName = java.net.InetAddress.getLocalHost().getHostName();
     }
     return hostName;
-  }
-
-  private static void close(Closeable toClose)
-  {
-    if (toClose != null)
-    {
-      try
-      {
-        toClose.close();
-      }
-      catch (Exception e)
-      {
-        // ignore
-      }
-    }
   }
 }

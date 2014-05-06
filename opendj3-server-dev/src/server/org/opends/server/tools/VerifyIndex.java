@@ -33,6 +33,7 @@ import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import static com.forgerock.opendj.cli.Utils.wrapText;
+import static com.forgerock.opendj.cli.Utils.filterExitCode;
 
 import java.io.OutputStream;
 import java.io.PrintStream;

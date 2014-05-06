@@ -29,6 +29,7 @@ package org.opends.guitools.controlpanel.task;
 
 import static org.opends.messages.AdminToolMessages.*;
 import static com.forgerock.opendj.util.OperatingSystem.isWindows;
+import static com.forgerock.opendj.cli.Utils.OBFUSCATED_VALUE;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -475,7 +476,7 @@ public abstract class Task
     if (Utilities.mustObfuscate(attrName,
         getInfo().getServerDescriptor().getSchema()))
     {
-      return Utilities.OBFUSCATED_VALUE;
+      return OBFUSCATED_VALUE;
     }
     else
     {
@@ -530,7 +531,7 @@ public abstract class Task
       if (Utilities.mustObfuscate(attrName,
           getInfo().getServerDescriptor().getSchema()))
       {
-        returnValue = attrName + ": " +Utilities.OBFUSCATED_VALUE;
+        returnValue = attrName + ": " + OBFUSCATED_VALUE;
       }
       else
       {
@@ -759,7 +760,7 @@ public abstract class Task
       {
         if (args.get(i-1).equalsIgnoreCase(argName))
         {
-          args.set(i, Utilities.OBFUSCATED_VALUE);
+          args.set(i, OBFUSCATED_VALUE);
           break;
         }
       }

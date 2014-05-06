@@ -30,6 +30,7 @@ package org.opends.guitools.controlpanel.ui;
 import static org.opends.messages.AdminToolMessages.*;
 import static org.opends.messages.QuickSetupMessages.*;
 import static com.forgerock.opendj.cli.Utils.isDN;
+import static com.forgerock.opendj.cli.Utils.getThrowableMsg;
 
 import java.awt.Component;
 import java.awt.GridBagConstraints;
@@ -675,7 +676,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
               }
               else
               {
-                LocalizableMessage msg = Utils.getThrowableMsg(
+                LocalizableMessage msg = getThrowableMsg(
                     INFO_ERROR_CONNECTING_TO_LOCAL.get(), throwable);
                 errors.add(msg);
               }
@@ -755,7 +756,7 @@ public class LocalOrRemotePanel extends StatusGenericPanel
               // This is a bug
               logger.error(LocalizableMessage.raw(
                   "Unexpected error: "+throwable, throwable));
-              errors.add(Utils.getThrowableMsg(INFO_BUG_MSG.get(), throwable));
+              errors.add(getThrowableMsg(INFO_BUG_MSG.get(), throwable));
             }
           }
           displayMainPanel();

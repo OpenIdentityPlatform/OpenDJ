@@ -64,11 +64,11 @@ import org.opends.server.types.InitializationException;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.NullOutputStream;
 import org.opends.server.util.LDIFReader;
-import org.opends.server.util.SetupUtils;
 
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
 import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.CliConstants;
 import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.FileBasedArgument;
 import com.forgerock.opendj.cli.IntegerArgument;
@@ -83,6 +83,7 @@ import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.Utils.wrapText;
+import static com.forgerock.opendj.cli.Utils.filterExitCode;
 
 /**
  * This class provides a very basic tool that can be used to configure some of
@@ -281,7 +282,7 @@ public class ConfigureDS
       argParser.addArgument(enableStartTLS);
 
       jmxPort = new IntegerArgument("jmxport", 'x', "jmxPort", false, false,
-          true, INFO_JMXPORT_PLACEHOLDER.get(), SetupUtils.getDefaultJMXPort(),
+          true, INFO_JMXPORT_PLACEHOLDER.get(), CliConstants.DEFAULT_JMX_PORT,
           null, true, 1,
           true, 65535,
           INFO_CONFIGDS_DESCRIPTION_JMX_PORT.get());

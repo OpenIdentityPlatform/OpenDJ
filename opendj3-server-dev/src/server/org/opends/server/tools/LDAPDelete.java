@@ -63,10 +63,10 @@ import com.forgerock.opendj.cli.StringArgument;
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.protocols.ldap.LDAPResultCode.*;
 import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static org.opends.server.util.args.LDAPConnectionArgumentParser.*;
 import static com.forgerock.opendj.cli.Utils.wrapText;
+import static com.forgerock.opendj.cli.Utils.filterExitCode;
 
 /**
  * This class provides a tool that can be used to issue delete requests to the

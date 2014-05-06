@@ -68,6 +68,7 @@ import org.opends.server.util.StaticUtils;
 import org.forgerock.i18n.LocalizableMessage;
 
 import static org.opends.messages.QuickSetupMessages.*;
+import static com.forgerock.opendj.cli.Utils.getThrowableMsg;
 
 /**
  * This class is a dialog that appears when the user wants to configure
@@ -690,7 +691,7 @@ public class SecurityOptionsDialog extends JDialog
           // Bug
           throwable.printStackTrace();
           displayError(
-              Utils.getThrowableMsg(INFO_BUG_MSG.get(), throwable),
+              getThrowableMsg(INFO_BUG_MSG.get(), throwable),
               INFO_ERROR_TITLE.get());
           cancelButton.setEnabled(true);
           okButton.setEnabled(true);

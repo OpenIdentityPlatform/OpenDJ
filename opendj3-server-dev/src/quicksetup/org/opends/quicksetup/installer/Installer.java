@@ -70,6 +70,7 @@ import static org.opends.quicksetup.util.Utils.*;
 import static com.forgerock.opendj.cli.Utils.canWrite;
 import static com.forgerock.opendj.cli.Utils.isDN;
 import static com.forgerock.opendj.cli.Utils.getHostNameForLdapUrl;
+import static com.forgerock.opendj.cli.Utils.getThrowableMsg;
 
 /**
  * This is an abstract class that is in charge of actually performing the
@@ -4863,7 +4864,7 @@ public abstract class Installer extends GuiApplication {
     {
       logger.error(LocalizableMessage.raw("Error: "+t, t));
       throw new ApplicationException(ReturnCode.BUG,
-          Utils.getThrowableMsg(INFO_BUG_MSG.get(), t), t);
+          getThrowableMsg(INFO_BUG_MSG.get(), t), t);
     }
   }
 

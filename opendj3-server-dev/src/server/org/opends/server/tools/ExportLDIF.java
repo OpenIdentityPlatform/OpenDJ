@@ -40,6 +40,7 @@ import org.opends.server.api.plugin.PluginType;
 import org.forgerock.opendj.config.server.ConfigException;
 
 import static org.opends.server.config.ConfigConstants.*;
+import static com.forgerock.opendj.cli.Utils.filterExitCode;
 
 import org.opends.server.core.CoreConfigManager;
 import org.opends.server.core.DirectoryServer;

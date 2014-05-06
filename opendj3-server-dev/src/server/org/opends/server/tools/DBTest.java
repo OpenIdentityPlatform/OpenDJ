@@ -31,6 +31,7 @@ import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 import static com.forgerock.opendj.cli.Utils.wrapText;
+import static com.forgerock.opendj.cli.Utils.filterExitCode;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.admin.std.server.BackendCfg;

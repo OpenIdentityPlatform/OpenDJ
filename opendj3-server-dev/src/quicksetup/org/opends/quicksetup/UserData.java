@@ -640,7 +640,7 @@ public class UserData
 
     for (int i=0;i<65000 && (defaultJMXPort == -1);i+=1000)
     {
-      int port = i + org.opends.server.util.SetupUtils.getDefaultJMXPort();
+      int port = i + CliConstants.DEFAULT_JMX_PORT;
       boolean isForbidden = false;
       if (forbiddenPorts != null)
       {

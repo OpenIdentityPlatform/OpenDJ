@@ -41,9 +41,9 @@ import com.forgerock.opendj.cli.*;
 
 import static org.opends.messages.ToolMessages.*;
 import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 import static com.forgerock.opendj.util.OperatingSystem.hasUAC;
 import static com.forgerock.opendj.cli.Utils.wrapText;
+import static com.forgerock.opendj.cli.Utils.filterExitCode;
 
 /**
   * This class is used to configure the Windows service for this instance on

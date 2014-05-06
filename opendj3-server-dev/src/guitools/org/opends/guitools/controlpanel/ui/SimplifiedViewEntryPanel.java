@@ -27,6 +27,7 @@
 package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.messages.AdminToolMessages.*;
+import static com.forgerock.opendj.cli.Utils.OBFUSCATED_VALUE;
 
 import java.awt.Component;
 import java.awt.GridBagConstraints;
@@ -934,7 +935,7 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
       {
         panel.add(
             Utilities.createDefaultLabel(
-                LocalizableMessage.raw(Utilities.OBFUSCATED_VALUE)), gbc);
+                LocalizableMessage.raw(OBFUSCATED_VALUE)), gbc);
       }
       else if (!isBinary)
       {

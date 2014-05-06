@@ -30,6 +30,7 @@ package org.opends.quicksetup.installer.offline;
 import org.forgerock.i18n.LocalizableMessage;
 import static org.opends.messages.QuickSetupMessages.*;
 import static com.forgerock.opendj.util.OperatingSystem.isWindows;
+import static com.forgerock.opendj.cli.Utils.getThrowableMsg;
 
 
 import java.io.PrintStream;
@@ -288,7 +289,7 @@ public class OfflineInstaller extends Installer
       setCurrentProgressStep(InstallProgressStep.FINISHED_WITH_ERROR);
       ApplicationException ex = new ApplicationException(
           ReturnCode.BUG,
-          Utils.getThrowableMsg(INFO_BUG_MSG.get(), t), t);
+          getThrowableMsg(INFO_BUG_MSG.get(), t), t);
       LocalizableMessage msg = getFormattedError(ex, true);
       notifyListeners(msg);
       logger.error(LocalizableMessage.raw("Error installing.", t));

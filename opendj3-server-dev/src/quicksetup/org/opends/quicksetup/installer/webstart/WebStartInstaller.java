@@ -54,6 +54,7 @@ import org.opends.server.util.SetupUtils;
 
 import static org.opends.messages.QuickSetupMessages.*;
 import static com.forgerock.opendj.util.OperatingSystem.isWindows;
+import static com.forgerock.opendj.cli.Utils.getThrowableMsg;
 
 /**
  * This is an implementation of the Installer class that is used to install
@@ -323,7 +324,7 @@ public class WebStartInstaller extends Installer {
       setCurrentProgressStep(InstallProgressStep.FINISHED_WITH_ERROR);
       ApplicationException ex = new ApplicationException(
           ReturnCode.BUG,
-          Utils.getThrowableMsg(INFO_BUG_MSG.get(), t), t);
+          getThrowableMsg(INFO_BUG_MSG.get(), t), t);
       LocalizableMessage msg = getFormattedError(ex, true);
       notifyListeners(msg);
       logger.error(LocalizableMessage.raw("Error installing.", t));
