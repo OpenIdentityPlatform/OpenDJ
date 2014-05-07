@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -159,8 +159,8 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
 
     String dir = "replicationServerLoadBalancingTest" + rsIndex + testCase + "Db";
     ReplServerFakeConfiguration conf =
-      new ReplServerFakeConfiguration(rsPort[rsIndex], dir, 0, rsIndex+501, 0, 100,
-      replServers, 1, 1000, 5000, weight);
+      new ReplServerFakeConfiguration(rsPort[rsIndex], dir, replicationDbImplementation, 0, rsIndex+501, 0,
+      100, replServers, 1, 1000, 5000, weight);
     return new ReplicationServer(conf);
   }
 
@@ -190,8 +190,8 @@ public class ReplicationServerLoadBalancingTest extends ReplicationTestCase
     }
 
     String dir = "replicationServerLoadBalancingTest" + rsIndex + testCase + "Db";
-    return new ReplServerFakeConfiguration(rsPort[rsIndex], dir, 0,
-        rsIndex + 501, 0, 100, replServers, 1, 1000, 5000, weight);
+    return new ReplServerFakeConfiguration(rsPort[rsIndex], dir, replicationDbImplementation,
+        0, rsIndex + 501, 0, 100, replServers, 1, 1000, 5000, weight);
   }
 
   /**

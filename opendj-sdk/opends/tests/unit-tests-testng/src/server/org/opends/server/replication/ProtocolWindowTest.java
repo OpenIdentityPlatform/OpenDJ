@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.replication;
 
@@ -256,8 +256,8 @@ public class ProtocolWindowTest extends ReplicationTestCase
 
     // configure the replication Server.
     replicationServer = new ReplicationServer(new ReplServerFakeConfiguration(
-        replServerPort, "protocolWindowTestDb", 0,
-        1, REPLICATION_QUEUE_SIZE, WINDOW_SIZE, null));
+        replServerPort, "protocolWindowTestDb", replicationDbImplementation,
+        0, 1, REPLICATION_QUEUE_SIZE, WINDOW_SIZE, null));
 
     String personLdif = "dn: uid=user.windowTest," + TEST_ROOT_DN_STRING + "\n"
         + "objectClass: top\n" + "objectClass: person\n"

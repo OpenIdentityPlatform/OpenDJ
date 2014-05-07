@@ -22,9 +22,12 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication;
+
+import static org.opends.server.TestCaseUtils.*;
+import static org.testng.Assert.*;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -46,12 +49,13 @@ import org.opends.server.replication.protocol.ModifyMsg;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.service.ReplicationBroker;
-import org.opends.server.types.*;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.AttributeValue;
+import org.opends.server.types.Attributes;
+import org.opends.server.types.DN;
+import org.opends.server.types.Entry;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-
-import static org.opends.server.TestCaseUtils.*;
-import static org.testng.Assert.*;
 
 /**
  * Test that the dependencies are computed correctly when replaying
@@ -71,7 +75,7 @@ public class DependencyTest extends ReplicationTestCase
   {
      TEST_ROOT_DN = DN.decode(TEST_ROOT_DN_STRING);
   }
-  
+
   /**
    * Check that a sequence of dependents adds and mods is correctly ordered:
    * Using a deep dit :
@@ -131,8 +135,8 @@ public class DependencyTest extends ReplicationTestCase
 
       ReplServerFakeConfiguration conf =
         new ReplServerFakeConfiguration(replServerPort, "dependencyTestAddModDelDependencyTestDb",
-                                        0, replServerId, 0,
-                                        AddSequenceLength*5+100, null);
+                                        replicationDbImplementation, 0, replServerId,
+                                        0, AddSequenceLength*5+100, null);
       replServer = new ReplicationServer(conf);
 
       ReplicationBroker broker = openReplicationSession(
@@ -267,8 +271,8 @@ public class DependencyTest extends ReplicationTestCase
 
       ReplServerFakeConfiguration conf =
         new ReplServerFakeConfiguration(replServerPort, "dependencyTestModdnDelDependencyTestDb",
-                                        0, replServerId, 0,
-                                        200, null);
+                                        replicationDbImplementation, 0, replServerId,
+                                        0, 200, null);
       replServer = new ReplicationServer(conf);
 
       // configure and start replication of TEST_ROOT_DN_STRING on the server
@@ -398,9 +402,8 @@ public class DependencyTest extends ReplicationTestCase
       int replServerPort = TestCaseUtils.findFreePort();
 
       ReplServerFakeConfiguration conf =
-        new ReplServerFakeConfiguration(replServerPort, "dependencyTestAddDelAddDependencyTestDb", 0,
-                                        replServerId,
-                                        0, 5*AddSequenceLength+100, null);
+        new ReplServerFakeConfiguration(replServerPort, "dependencyTestAddDelAddDependencyTestDb", replicationDbImplementation,
+                                        0, replServerId, 0, 5*AddSequenceLength+100, null);
       replServer = new ReplicationServer(conf);
 
       ReplicationBroker broker = openReplicationSession(
@@ -517,9 +520,8 @@ public class DependencyTest extends ReplicationTestCase
       int replServerPort = TestCaseUtils.findFreePort();
 
       ReplServerFakeConfiguration conf =
-        new ReplServerFakeConfiguration(replServerPort, "dependencyTestAddModdnDependencyTestDb", 0,
-                                        replServerId,
-                                        0, 5*AddSequenceLength+100, null);
+        new ReplServerFakeConfiguration(replServerPort, "dependencyTestAddModdnDependencyTestDb", replicationDbImplementation,
+                                        0, replServerId, 0, 5*AddSequenceLength+100, null);
       replServer = new ReplicationServer(conf);
 
       ReplicationBroker broker = openReplicationSession(

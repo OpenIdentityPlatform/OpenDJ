@@ -22,7 +22,7 @@
  !
  !
  !      Copyright 2006-2010 Sun Microsystems, Inc.
- !      Portions Copyright 2011-2013 ForgeRock AS
+ !      Portions Copyright 2011-2014 ForgeRock AS
  !      Portions Copyright 2012 Delta Victor Consultants
  ! -->
 
@@ -2158,6 +2158,13 @@ Please:
     <echo message="      Default debug target:"/>
     <echo message="      org.opends.server:level=warning,category=caught|data|database-access|message|protocol,stack,cause" />
     <echo message=""/>
+    <echo message="  -Dorg.opends.test.replicationDbImpl=LOG"/>
+    <echo message="      indicates which implementation to use for replication DB."/>
+    <echo message="      Value must be one of: JE, LOG." />
+    <echo message="      JE: use berkeley DB JE as implementation." />
+    <echo message="      LOG: use log file as implementation." />
+    <echo message="      Default value is LOG." />
+    <echo message=""/>
     <echo message="  -Dtest.diff.srcpath=src/server/org/opends/server/core"/>
     <echo message="      for example includes only the classes in"/>
     <echo message="      src/server/org/opends/server/core in the coveragediff report."/>
@@ -2235,7 +2242,15 @@ Please:
       </not>
     </condition>
 
-    <!-- This sets org.opends.test.suppressOutput if and only if it's not
+    <!-- This sets org.opends.test.replicationDbImpl if and only if it's not
+         already set. -->
+    <condition property="org.opends.test.replicationDbImpl" value="LOG">
+      <not>
+        <isset property="org.opends.test.replicationDbImpl" />
+      </not>
+    </condition>
+
+     <!-- This sets org.opends.test.suppressOutput if and only if it's not
          already set. -->
     <condition property="org.opends.test.suppressOutput" value="true">
       <not>
@@ -2243,7 +2258,7 @@ Please:
       </not>
     </condition>
 
-    <!-- This sets org.opends.test.pauseOnFailure if and only if it's not
+  	<!-- This sets org.opends.test.pauseOnFailure if and only if it's not
          already set. -->
     <condition property="org.opends.test.pauseOnFailure" value="false">
       <not>
@@ -2352,6 +2367,7 @@ Please:
       <jvmarg value="-Dorg.opends.server.BuildDir=${build.dir}" />
       <jvmarg value="-Dorg.opends.server.RunningUnitTests=true" />
       <jvmarg value="-Dorg.opends.server.snmp.opendmk=${opendmk.lib.dir}"/>
+      <jvmarg value="-Dorg.opends.test.replicationDbImpl=${org.opends.test.replicationDbImpl}" />
       <jvmarg value="-Dorg.opends.test.suppressOutput=${org.opends.test.suppressOutput}" />
       <jvmarg value="-Dorg.opends.test.pauseOnFailure=${org.opends.test.pauseOnFailure}" />
       <jvmarg value="-Dorg.opends.server.debug.target=${org.opends.server.debug.target}" />

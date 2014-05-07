@@ -22,14 +22,14 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.backends.jeb;
 import org.opends.messages.Message;
-
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.util.DynamicConstants;
+import org.opends.server.util.StaticUtils;
 import org.opends.server.types.CryptoManagerException;
 
 import javax.crypto.Mac;
@@ -53,9 +53,12 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 import org.opends.server.types.*;
+
 import static org.opends.server.loggers.ErrorLogger.logError;
 import static org.opends.server.loggers.debug.DebugLogger.*;
+
 import org.opends.server.loggers.debug.DebugTracer;
+
 import static org.opends.messages.JebMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -716,8 +719,7 @@ public class BackupManager
     // Delete the current backend directory and rename the restore directory.
     if (!verifyOnly)
     {
-      cleanup(backendDir);
-      backendDir.delete();
+      StaticUtils.recursiveDelete(backendDir);
       if (!restoreDir.renameTo(backendDir))
       {
         Message msg = ERR_JEB_CANNOT_RENAME_RESTORE_DIRECTORY.get(

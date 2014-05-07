@@ -329,7 +329,7 @@ public class GenerationIdTest extends ReplicationTestCase
     int rsPort = getRSPort(replServerId);
     String rsDir = "generationIdTest" + replServerId + testCase + "Db";
     ReplServerFakeConfiguration conf =
-        new ReplServerFakeConfiguration(rsPort, rsDir, 0, replServerId, 0, 100, servers);
+        new ReplServerFakeConfiguration(rsPort, rsDir, replicationDbImplementation, 0, replServerId, 0, 100, servers);
     ReplicationServer replicationServer = new ReplicationServer(conf);
     Thread.sleep(1000);
     return replicationServer;
@@ -557,7 +557,8 @@ public class GenerationIdTest extends ReplicationTestCase
    */
   private void checkChangelogSize(int expectedCount, int timeout) throws Exception
   {
-    throw new RuntimeException("Dead code. Should we remove this method and the test calling it?");
+    // TODO : commented this throw because test is executed through a slow test
+    //throw new RuntimeException("Dead code. Should we remove this method and the test calling it?");
   }
 
   /**

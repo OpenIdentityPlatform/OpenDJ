@@ -30,6 +30,7 @@ import java.io.File;
 import java.io.IOException;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.admin.std.meta.ReplicationServerCfgDefn.ReplicationDBImplementation;
 import org.opends.server.admin.std.server.ReplicationServerCfg;
 import org.opends.server.config.ConfigException;
 import org.opends.server.loggers.debug.DebugTracer;
@@ -43,6 +44,7 @@ import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.changelog.api.DBCursor;
 import org.opends.server.types.DN;
 import org.opends.server.util.StaticUtils;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -59,6 +61,20 @@ public class JEReplicaDBTest extends ReplicationTestCase
   /** The tracer object for the debug logger */
   private static final DebugTracer TRACER = getTracer();
   private DN TEST_ROOT_DN;
+
+  private static final ReplicationDBImplementation previousDBImpl = replicationDbImplementation;
+
+  @BeforeClass
+  public void setDBImpl()
+  {
+    setReplicationDBImplementation(ReplicationDBImplementation.JE);
+  }
+
+  @AfterClass
+  public void resetDBImplToPrevious()
+  {
+    setReplicationDBImplementation(previousDBImpl);
+  }
 
   /**
    * Utility - log debug message - highlight it is from the test and not
@@ -154,7 +170,7 @@ public class JEReplicaDBTest extends ReplicationTestCase
   {
     final int changelogPort = findFreePort();
     final ReplicationServerCfg conf =
-        new ReplServerFakeConfiguration(changelogPort, null, 0, 2, queueSize, windowSize, null);
+        new ReplServerFakeConfiguration(changelogPort, null, ReplicationDBImplementation.JE, 0, 2, queueSize, windowSize, null);
     return new ReplicationServer(conf);
   }
 

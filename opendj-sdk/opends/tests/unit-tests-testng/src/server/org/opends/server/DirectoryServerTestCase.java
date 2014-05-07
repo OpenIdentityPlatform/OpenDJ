@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS.
+ *      Portions copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server;
 
@@ -32,6 +32,7 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.testng.annotations.AfterClass;
 import org.opends.messages.Message;
+import org.opends.server.replication.ReplicationTestCase;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -54,6 +55,10 @@ public abstract class DirectoryServerTestCase {
 
   @BeforeSuite
   public final void suppressOutput() {
+    System.out.println("Replication DB implementation used in tests: '" +
+        ReplicationTestCase.replicationDbImplementation + "'.");
+    System.out.flush();
+
     TestCaseUtils.suppressOutput();
   }
 

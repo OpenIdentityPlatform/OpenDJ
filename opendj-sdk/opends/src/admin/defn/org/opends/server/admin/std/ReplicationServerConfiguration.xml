@@ -23,7 +23,7 @@
   !
   !
   !      Copyright 2007-2010 Sun Microsystems, Inc.
-  !      Portions copyright 2011-2013 ForgeRock AS
+  !      Portions copyright 2011-2014 ForgeRock AS
   ! -->
 <adm:managed-object name="replication-server"
   plural-name="replication-servers"
@@ -156,6 +156,32 @@
     <adm:profile name="ldap">
       <ldap:attribute>
         <ldap:name>ds-cfg-replication-db-directory</ldap:name>
+      </ldap:attribute>
+    </adm:profile>
+  </adm:property>
+  <adm:property name="replication-db-implementation" mandatory="true" read-only="true">
+    <adm:synopsis>
+       The <adm:user-friendly-name /> database implementation
+      that stores all persistent information.
+    </adm:synopsis>
+    <adm:default-behavior>
+      <adm:defined>
+        <adm:value>je</adm:value>
+      </adm:defined>
+    </adm:default-behavior>
+    <adm:syntax>
+      <adm:enumeration>
+        <adm:value name="je">
+          <adm:synopsis>Implementation based on Berkeley DB JE database.</adm:synopsis>
+        </adm:value>
+        <adm:value name="log">
+          <adm:synopsis>Implementation based on log file.</adm:synopsis>
+        </adm:value>
+      </adm:enumeration>
+    </adm:syntax>
+    <adm:profile name="ldap">
+      <ldap:attribute>
+        <ldap:name>ds-cfg-replication-db-implementation</ldap:name>
       </ldap:attribute>
     </adm:profile>
   </adm:property>
@@ -311,7 +337,7 @@
       and directory servers). Larger values increase the length of time it
       takes for a directory server to detect and switch to a more suitable
       replication server, whereas smaller values increase the amount of
-      background network traffic.  
+      background network traffic.
     </adm:description>
     <adm:default-behavior>
       <adm:defined>
@@ -334,7 +360,7 @@
     <adm:description>
       This boolean tells the replication server to compute change numbers for
       each replicated change by maintaining a change number index database.
-      Changenumbers are computed according to 
+      Changenumbers are computed according to
       http://tools.ietf.org/html/draft-good-ldap-changelog-04.
       Note this functionality has an impact on CPU, disk accesses and storage.
       If changenumbers are not required, it is advisable to set this value to

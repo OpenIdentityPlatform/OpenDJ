@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -369,8 +369,8 @@ public class TopologyViewTest extends ReplicationTestCase
 
     String dir = "topologyViewTest" + rsId + testCase + "Db";
     ReplServerFakeConfiguration conf =
-        new ReplServerFakeConfiguration(rsPort, dir, 0, rsId, 0, 100,
-            replServers, groupId, 1000, 5000);
+        new ReplServerFakeConfiguration(rsPort, dir, replicationDbImplementation, 0, rsId, 0,
+            100, replServers, groupId, 1000, 5000);
     return new ReplicationServer(conf);
   }
 

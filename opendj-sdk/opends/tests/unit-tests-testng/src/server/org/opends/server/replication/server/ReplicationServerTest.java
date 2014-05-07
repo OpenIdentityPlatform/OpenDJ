@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -116,6 +116,7 @@ public class ReplicationServerTest extends ReplicationTestCase
         "--provider-name", "Multimaster Synchronization",
         "--set", "replication-db-directory:" + "replicationServerTestConfigureDb",
         "--set", "replication-port:" + replicationServerPort,
+        "--set", "replication-db-implementation:" + replicationDbImplementation,
         "--set", "replication-server-id:71");
 
     for (SynchronizationProvider<?> provider : DirectoryServer
@@ -644,8 +645,8 @@ public class ReplicationServerTest extends ReplicationTestCase
         servers.add(
           "localhost:" + ((i == 0) ? changelogPorts[1] : changelogPorts[0]));
         ReplServerFakeConfiguration conf =
-          new ReplServerFakeConfiguration(changelogPorts[i], "replicationServerTestChangelogChainingDb"+i, 0,
-                                         changelogIds[i], 0, 100, servers);
+          new ReplServerFakeConfiguration(changelogPorts[i], "replicationServerTestChangelogChainingDb"+i,
+              replicationDbImplementation, 0, changelogIds[i], 0, 100, servers);
         changelogs[i] = new ReplicationServer(conf);
       }
 
@@ -738,8 +739,8 @@ public class ReplicationServerTest extends ReplicationTestCase
         SortedSet<String> servers = new TreeSet<String>();
         servers.add("localhost:" + changelogPorts[1]);
         ReplServerFakeConfiguration conf =
-          new ReplServerFakeConfiguration(changelogPorts[0], "replicationServerTestChangelogChainingDb"+0, 0,
-                                         changelogIds[0], 0, 100, servers);
+          new ReplServerFakeConfiguration(changelogPorts[0], "replicationServerTestChangelogChainingDb"+0, replicationDbImplementation,
+                                         0, changelogIds[0], 0, 100, servers);
         changelogs[0] = new ReplicationServer(conf);
       }
 
@@ -790,7 +791,7 @@ public class ReplicationServerTest extends ReplicationTestCase
         SortedSet<String> servers = new TreeSet<String>();
         servers.add("localhost:"+changelogPorts[0]);
         ReplServerFakeConfiguration conf = new ReplServerFakeConfiguration(
-            changelogPorts[1], null, 0, changelogIds[1], 0, 100, null);
+            changelogPorts[1], null, replicationDbImplementation, 0, changelogIds[1], 0, 100, null);
         changelogs[1] = new ReplicationServer(conf);
 
         // Connect broker 2 to changelog2
@@ -1111,8 +1112,8 @@ public class ReplicationServerTest extends ReplicationTestCase
          if (i==0)
            servers.add("localhost:" + changelogPorts[1]);
          ReplServerFakeConfiguration conf =
-           new ReplServerFakeConfiguration(changelogPorts[i], "replicationServerTestReplicationServerConnectedDb"+i, 0,
-                                          changelogIds[i], 0, 100, servers);
+           new ReplServerFakeConfiguration(changelogPorts[i], "replicationServerTestReplicationServerConnectedDb"+i, replicationDbImplementation,
+                                          0, changelogIds[i], 0, 100, servers);
          changelogs[i] = new ReplicationServer(conf);
        }
 
@@ -1155,8 +1156,8 @@ public class ReplicationServerTest extends ReplicationTestCase
          SortedSet<String> servers = new TreeSet<String>();
          // Configure replicationServer[0] to be disconnected from ReplicationServer[1]
          ReplServerFakeConfiguration conf =
-           new ReplServerFakeConfiguration(changelogPorts[0], "changelogDb0", 0,
-                                          changelogIds[0], 0, 100, servers);
+           new ReplServerFakeConfiguration(changelogPorts[0], "changelogDb0", replicationDbImplementation,
+                                          0, changelogIds[0], 0, 100, servers);
          changelogs[0].applyConfigurationChange(conf) ;
 
          // The link between RS[0] & RS[1] should be destroyed by the new configuration.
