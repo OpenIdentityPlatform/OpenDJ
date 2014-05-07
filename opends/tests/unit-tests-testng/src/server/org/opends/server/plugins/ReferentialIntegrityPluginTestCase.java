@@ -23,6 +23,7 @@
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
  *      Portions copyright 2011 profiq s.r.o.
+ *      Portions copyright 2014 ForgeRock AS
  */
 
 package org.opends.server.plugins;
@@ -850,6 +851,8 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
   @AfterClass
   public void tearDown() throws Exception {
      deleteAttrsEntry(configDN, dsConfigBaseDN);
+     deleteAttrsEntry(configDN, dsConfigEnforceIntegrity);
+     deleteAttrsEntry(configDN, dsConfigAttrFiltMapping);
     //Hopefully put an attribute type there that won't impact the rest of the
     //unit tests.
     replaceAttrEntry(configDN, dsConfigAttrType,"seeAlso");
@@ -1398,7 +1401,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
 
     Entry entry = null;
     AddOperation addOperation = null;
-    
+
     InternalClientConnection conn =
       InternalClientConnection.getRootConnection();
 
@@ -1452,7 +1455,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
 
     Entry entry = null;
     AddOperation addOperation = null;
-    
+
     InternalClientConnection conn =
       InternalClientConnection.getRootConnection();
 
@@ -1615,7 +1618,6 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
                            "member:(objectclass=person)");
     replaceAttrEntry(configDN, "ds-cfg-enabled", "true");
 
-    
     InternalClientConnection conn =
       InternalClientConnection.getRootConnection();
 
@@ -1632,8 +1634,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
       );
 
     AddOperation addOperation = conn.processAdd(entry);
-    assertEquals(addOperation.getResultCode(), 
-                 ResultCode.CONSTRAINT_VIOLATION);
+    assertEquals(addOperation.getResultCode(), ResultCode.CONSTRAINT_VIOLATION);
   }
 
   /**
@@ -2028,7 +2029,7 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
                                "subordinatedelete",
                                "preoperationadd",
                                "preoperationmodify");
-    addAttrEntry(configDN, dsConfigBaseDN, 
+    addAttrEntry(configDN, dsConfigBaseDN,
                            "dc=example,dc=com",
                            "o=test");
     replaceAttrEntry(configDN, dsConfigEnforceIntegrity, "true");

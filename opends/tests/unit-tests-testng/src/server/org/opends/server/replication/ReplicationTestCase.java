@@ -35,6 +35,7 @@ import org.opends.messages.Message;
 import org.opends.messages.Severity;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.admin.std.meta.ReplicationServerCfgDefn.ReplicationDBImplementation;
 import org.opends.server.admin.std.server.ReplicationDomainCfg;
 import org.opends.server.backends.task.TaskState;
 import org.opends.server.config.ConfigException;
@@ -50,6 +51,7 @@ import org.opends.server.replication.protocol.ReplSessionSecurity;
 import org.opends.server.replication.protocol.ReplicationMsg;
 import org.opends.server.replication.protocol.Session;
 import org.opends.server.replication.server.ReplicationServer;
+import org.opends.server.replication.server.changelog.file.FileChangelogDB;
 import org.opends.server.replication.server.changelog.je.JEChangelogDB;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.schema.IntegerSyntax;
@@ -104,6 +106,11 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   /** Replicated suffix (replication domain). */
   protected Entry synchroServerEntry;
   protected Entry replServerEntry;
+
+  private static final String REPLICATION_DB_IMPL_PROPERTY = "org.opends.test.replicationDbImpl";
+
+  public static ReplicationDBImplementation replicationDbImplementation = ReplicationDBImplementation.valueOf(
+      System.getProperty(REPLICATION_DB_IMPL_PROPERTY, ReplicationDBImplementation.LOG.name()));
 
   /**
    * Replication monitor stats
@@ -181,7 +188,9 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
       LDAPReplicationDomain replDomain = LDAPReplicationDomain.retrievesReplicationDomain(baseDN);
       genId = replDomain.getGenerationID();
     }
-    catch(Exception e) {}
+    catch(Exception e) {
+      TRACER.debugCaught(DebugLogLevel.ERROR, e);
+    }
     return genId;
   }
 
@@ -317,8 +326,7 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
   @AfterClass
   public void classCleanUp() throws Exception
   {
-    logError(Message.raw(Category.SYNC, Severity.NOTICE,
-      " ##### Calling ReplicationTestCase.classCleanUp ##### "));
+    logError(Message.raw(Category.SYNC, Severity.NOTICE, " ##### Calling ReplicationTestCase.classCleanUp ##### "));
 
     removeReplicationServerDB();
 
@@ -365,7 +373,14 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
 
   protected void clearChangelogDB(ReplicationServer rs) throws Exception
   {
-    ((JEChangelogDB) rs.getChangelogDB()).clearDB();
+    if (replicationDbImplementation == ReplicationDBImplementation.JE)
+    {
+      ((JEChangelogDB) rs.getChangelogDB()).clearDB();
+    }
+    else
+    {
+      ((FileChangelogDB) rs.getChangelogDB()).clearDB();
+    }
   }
 
   /**
@@ -925,5 +940,10 @@ public abstract class ReplicationTestCase extends DirectoryServerTestCase
     fail("Failed to receive an expected " + msgType + " message after 5 seconds."
         + " Also received the following messages during wait time: " + msgs);
     return null;
+  }
+
+  protected static void setReplicationDBImplementation(ReplicationDBImplementation impl)
+  {
+    replicationDbImplementation = impl;
   }
 }

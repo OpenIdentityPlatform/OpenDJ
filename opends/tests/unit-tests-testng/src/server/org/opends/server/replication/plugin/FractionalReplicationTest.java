@@ -534,8 +534,8 @@ public class FractionalReplicationTest extends ReplicationTestCase {
 
     String dir = testName + RS_ID + testCase + "Db";
     ReplServerFakeConfiguration conf =
-        new ReplServerFakeConfiguration(replServerPort, dir, 0, RS_ID, 0, 100,
-            replServers);
+        new ReplServerFakeConfiguration(replServerPort, dir, replicationDbImplementation, 0, RS_ID, 0,
+            100, replServers);
     replicationServer = new ReplicationServer(conf);
   }
 

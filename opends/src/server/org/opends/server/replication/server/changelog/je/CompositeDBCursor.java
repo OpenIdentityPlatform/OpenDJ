@@ -42,7 +42,7 @@ import org.opends.server.util.StaticUtils;
  * @param <Data>
  *          The type of data associated with each cursor
  */
-final class CompositeDBCursor<Data> implements DBCursor<UpdateMsg>
+public final class CompositeDBCursor<Data> implements DBCursor<UpdateMsg>
 {
 
   private static final byte UNINITIALIZED = 0;

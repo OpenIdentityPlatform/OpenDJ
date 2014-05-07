@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication;
 
@@ -505,11 +505,8 @@ public class InitOnLineTest extends ReplicationTestCase
         new ReplServerFakeConfiguration(
             port,
             "initOnlineTest" + port + testCase + "Db",
-            0,
-            replServerId,
-            0,
-            100,
-            servers);
+            replicationDbImplementation,
+            0, replServerId, 0, 100, servers);
     ReplicationServer replicationServer = new ReplicationServer(conf);
     Thread.sleep(1000);
     return replicationServer;

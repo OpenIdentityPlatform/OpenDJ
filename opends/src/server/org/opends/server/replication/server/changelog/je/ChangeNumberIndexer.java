@@ -160,7 +160,7 @@ public class ChangeNumberIndexer extends DirectoryThread
    * @param changelogState
    *          the changelog state used for initialization
    */
-  ChangeNumberIndexer(ChangelogDB changelogDB, ChangelogState changelogState)
+  public ChangeNumberIndexer(ChangelogDB changelogDB, ChangelogState changelogState)
   {
     super("Change number indexer");
     this.changelogDB = changelogDB;
@@ -520,7 +520,6 @@ public class ChangeNumberIndexer extends DirectoryThread
               }
             }
           }
-
 
           // OK, the oldest change is older than the medium consistency point
           // let's publish it to the CNIndexDB.

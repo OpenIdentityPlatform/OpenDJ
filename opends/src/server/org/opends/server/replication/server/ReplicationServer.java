@@ -36,6 +36,7 @@ import org.opends.messages.Category;
 import org.opends.messages.Message;
 import org.opends.messages.Severity;
 import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.meta.ReplicationServerCfgDefn.ReplicationDBImplementation;
 import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn.*;
 import org.opends.server.admin.std.server.ReplicationServerCfg;
 import org.opends.server.admin.std.server.UserDefinedVirtualAttributeCfg;
@@ -44,11 +45,13 @@ import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.WorkflowImpl;
 import org.opends.server.core.networkgroups.NetworkGroup;
+import org.opends.server.loggers.debug.DebugLogger;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.*;
 import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.protocol.*;
 import org.opends.server.replication.server.changelog.api.*;
+import org.opends.server.replication.server.changelog.file.FileChangelogDB;
 import org.opends.server.replication.server.changelog.je.JEChangelogDB;
 import org.opends.server.types.*;
 import org.opends.server.util.ServerConstants;
@@ -127,7 +130,23 @@ public final class ReplicationServer
     throws ConfigException
   {
     this.config = configuration;
-    this.changelogDB = new JEChangelogDB(this, configuration);
+    ReplicationDBImplementation dbImpl = configuration.getReplicationDBImplementation();
+    if (dbImpl == ReplicationDBImplementation.JE)
+    {
+      if (DebugLogger.debugEnabled())
+      {
+        TRACER.debugMessage(DebugLogLevel.INFO, "Using JE as DB implementation for changelog DB");
+      }
+      this.changelogDB = new JEChangelogDB(this, configuration);
+    }
+    else
+    {
+      if (DebugLogger.debugEnabled())
+      {
+        TRACER.debugMessage(DebugLogLevel.INFO, "Using LOG FILE as DB implementation for changelog DB");
+      }
+      this.changelogDB = new FileChangelogDB(this, configuration);
+    }
 
     replSessionSecurity = new ReplSessionSecurity();
     initialize();

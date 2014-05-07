@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -34,6 +34,7 @@ import org.opends.messages.Category;
 import org.opends.messages.Message;
 import org.opends.messages.Severity;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.admin.std.meta.ReplicationServerCfgDefn.ReplicationDBImplementation;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
@@ -288,8 +289,8 @@ public class GroupIdHandshakeTest extends ReplicationTestCase
 
     String dir = "groupIdHandshakeTest" + serverId + testCase + "Db";
     ReplServerFakeConfiguration conf =
-        new ReplServerFakeConfiguration(port, dir, 0, serverId, 0, 100,
-            replServers, groupId, 1000, 5000);
+        new ReplServerFakeConfiguration(port, dir, replicationDbImplementation, 0, serverId, 0,
+            100, replServers, groupId, 1000, 5000);
     return new ReplicationServer(conf);
   }
 
@@ -497,8 +498,8 @@ public class GroupIdHandshakeTest extends ReplicationTestCase
       otherReplServers.add("localhost:" + rs2Port);
       String dir = "groupIdHandshakeTest" + RS3_ID + testCase + "Db";
       ReplServerFakeConfiguration rsConfWithNewGid =
-        new ReplServerFakeConfiguration(rs3Port, dir, 0, RS3_ID, 0, 100,
-        otherReplServers, 1, 1000, 5000);
+        new ReplServerFakeConfiguration(rs3Port, dir, replicationDbImplementation, 0, RS3_ID, 0,
+        100, otherReplServers, 1, 1000, 5000);
       rs3.applyConfigurationChange(rsConfWithNewGid);
 
       /**
@@ -508,8 +509,8 @@ public class GroupIdHandshakeTest extends ReplicationTestCase
       otherReplServers.add("localhost:" + rs2Port);
       otherReplServers.add("localhost:" + rs3Port);
       dir = "groupIdHandshakeTest" + RS1_ID + testCase + "Db";
-      rsConfWithNewGid = new ReplServerFakeConfiguration(rs1Port, dir, 0, RS1_ID,
-        0, 100, otherReplServers, 3, 1000, 5000);
+      rsConfWithNewGid = new ReplServerFakeConfiguration(rs1Port, dir, ReplicationDBImplementation.JE, 0,
+        RS1_ID, 0, 100, otherReplServers, 3, 1000, 5000);
       rs1.applyConfigurationChange(rsConfWithNewGid);
       checkConnection(30, DS1_ID, RS3_ID,
         "Change GID of RS3 to 1 and RS1 to 3, DS1 should reconnect to RS3 with GID=1");

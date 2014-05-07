@@ -21,7 +21,7 @@
 #
 #
 #      Copyright 2006-2010 Sun Microsystems, Inc.
-#      Portions Copyright 2010-2013 ForgeRock AS.
+#      Portions Copyright 2010-2014 ForgeRock AS.
 #      Portions Copyright 2011 profiq, s.r.o.
 #      Portions Copyright 2012 Manuel Gaupp
 #
@@ -3759,6 +3759,12 @@ attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.132
   SYNTAX 1.3.6.1.4.1.1466.115.121.1.27
   SINGLE-VALUE
   X-ORIGIN 'OpenDJ Directory Server' )
+attributeTypes: ( 1.3.6.1.4.1.36733.2.1.1.142
+  NAME 'ds-cfg-replication-db-implementation'
+  EQUALITY caseExactMatch
+  SYNTAX 1.3.6.1.4.1.1466.115.121.1.15
+  SINGLE-VALUE
+  X-ORIGIN 'OpenDJ Directory Server' )
 objectClasses: ( 1.3.6.1.4.1.26027.1.2.1
   NAME 'ds-cfg-access-control-handler'
   SUP top
@@ -4507,6 +4513,7 @@ objectClasses: ( 1.3.6.1.4.1.26027.1.2.64
         ds-cfg-window-size $
         ds-cfg-queue-size $
         ds-cfg-replication-db-directory $
+        ds-cfg-replication-db-implementation $
         ds-cfg-replication-purge-delay $
         ds-cfg-group-id $
         ds-cfg-assured-timeout $

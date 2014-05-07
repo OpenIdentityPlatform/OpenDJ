@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2009 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -32,6 +32,7 @@ import java.util.TreeSet;
 import org.opends.server.admin.Configuration;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.server.ServerManagedObject;
+import org.opends.server.admin.std.meta.ReplicationServerCfgDefn.ReplicationDBImplementation;
 import org.opends.server.admin.std.server.ReplicationServerCfg;
 import org.opends.server.types.DN;
 
@@ -68,15 +69,19 @@ public class ReplServerFakeConfiguration implements ReplicationServerCfg
   /** The monitoring publisher period. */
   private long monitoringPeriod = 3000;
   private boolean computeChangenumber;
+  
+  /** The DB implementation to use for replication changelog. */
+  private final ReplicationDBImplementation dbImpl;
 
   /**
    * Constructor without group id, assured info and weight
    */
   public ReplServerFakeConfiguration(
-      int port, String dirName, int purgeDelay, int serverId,
-      int queueSize, int windowSize, SortedSet<String> servers)
+      int port, String dirName, ReplicationDBImplementation dbImpl, int purgeDelay,
+      int serverId, int queueSize, int windowSize, SortedSet<String> servers)
   {
     this.port    = port;
+    this.dbImpl = dbImpl;
     this.dirName = dirName != null ? dirName : "changelogDb";
 
     if (purgeDelay == 0)
@@ -115,11 +120,11 @@ public class ReplServerFakeConfiguration implements ReplicationServerCfg
    * Constructor with group id and assured info
    */
   public ReplServerFakeConfiguration(
-      int port, String dirName, int purgeDelay, int serverId,
-      int queueSize, int windowSize, SortedSet<String> servers,
-      int groupId, long assuredTimeout, int degradedStatusThreshold)
+      int port, String dirName, ReplicationDBImplementation dbImpl, int purgeDelay,
+      int serverId, int queueSize, int windowSize,
+      SortedSet<String> servers, int groupId, long assuredTimeout, int degradedStatusThreshold)
   {
-    this(port, dirName, purgeDelay, serverId, queueSize, windowSize, servers);
+    this(port, dirName, dbImpl, purgeDelay, serverId, queueSize, windowSize, servers);
     this.groupId = groupId;
     this.assuredTimeout = assuredTimeout;
     this.degradedStatusThreshold = degradedStatusThreshold;
@@ -129,12 +134,12 @@ public class ReplServerFakeConfiguration implements ReplicationServerCfg
    * Constructor with group id, assured info and weight
    */
   public ReplServerFakeConfiguration(
-      int port, String dirName, int purgeDelay, int serverId,
-      int queueSize, int windowSize, SortedSet<String> servers,
-      int groupId, long assuredTimeout, int degradedStatusThreshold, int weight)
+      int port, String dirName, ReplicationDBImplementation dbImpl, int purgeDelay,
+      int serverId, int queueSize, int windowSize,
+      SortedSet<String> servers, int groupId, long assuredTimeout, int degradedStatusThreshold, int weight)
   {
-    this(port, dirName, purgeDelay, serverId, queueSize, windowSize, servers,
-      groupId, assuredTimeout, degradedStatusThreshold);
+    this(port, dirName, dbImpl, purgeDelay, serverId, queueSize, windowSize,
+      servers, groupId, assuredTimeout, degradedStatusThreshold);
     this.weight = weight;
   }
 
@@ -295,5 +300,11 @@ public class ReplServerFakeConfiguration implements ReplicationServerCfg
   public void setComputeChangeNumber(boolean computeChangenumber)
   {
     this.computeChangenumber = computeChangenumber;
+  }
+
+  @Override
+  public ReplicationDBImplementation getReplicationDBImplementation()
+  {
+    return dbImpl;
   }
 }

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -172,8 +172,8 @@ public class MonitorTest extends ReplicationTestCase
     int chPort = getChangelogPort(changelogId);
     String chDir = "monitorTest" + changelogId + suffix + "Db";
     ReplServerFakeConfiguration conf =
-        new ReplServerFakeConfiguration(chPort, chDir, 0, changelogId, 0, 100,
-            servers);
+        new ReplServerFakeConfiguration(chPort, chDir, replicationDbImplementation, 0, changelogId, 0,
+            100, servers);
     ReplicationServer replicationServer = new ReplicationServer(conf);
     Thread.sleep(1000);
 

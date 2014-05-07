@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -57,7 +57,7 @@ public class ReplicationServerDynamicConfTest extends ReplicationTestCase
       // instantiate a Replication server using the first port number.
       ReplServerFakeConfiguration conf =
         new ReplServerFakeConfiguration(
-            ports[0], null, 0, 1, 0, 0, null);
+            ports[0], null, replicationDbImplementation, 0, 1, 0, 0, null);
       replicationServer = new ReplicationServer(conf);
 
       // Most of the configuration change are trivial to apply.
@@ -67,7 +67,7 @@ public class ReplicationServerDynamicConfTest extends ReplicationTestCase
       // connect to this new portnumber.
       ReplServerFakeConfiguration newconf =
         new ReplServerFakeConfiguration(
-            ports[1], null, 0, 1, 0, 0, null);
+            ports[1], null, replicationDbImplementation, 0, 1, 0, 0, null);
 
       replicationServer.applyConfigurationChange(newconf);
 

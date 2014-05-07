@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions Copyright 2012-2014 ForgeRock AS.
  */
 package org.opends.server.replication;
 
@@ -87,6 +87,7 @@ public class SchemaReplicationTest extends ReplicationTestCase
         + "cn: Replication Server\n"
         + "ds-cfg-replication-port: " + replServerPort + "\n"
         + "ds-cfg-replication-db-directory: SchemaReplicationTest\n"
+        + "ds-cfg-replication-db-implementation: " + replicationDbImplementation + "\n"
         + "ds-cfg-replication-server-id: 105\n";
 
     // suffix synchronized

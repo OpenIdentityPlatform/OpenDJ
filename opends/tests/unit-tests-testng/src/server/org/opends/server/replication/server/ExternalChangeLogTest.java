@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -151,7 +151,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     ReplServerFakeConfiguration conf1 =
       new ReplServerFakeConfiguration(
           replicationServerPort, "ExternalChangeLogTestDb",
-          0, 71, 0, maxWindow, null);
+          replicationDbImplementation, 0, 71, 0, maxWindow, null);
     conf1.setComputeChangeNumber(true);
 
     replicationServer = new ReplicationServer(conf1);
