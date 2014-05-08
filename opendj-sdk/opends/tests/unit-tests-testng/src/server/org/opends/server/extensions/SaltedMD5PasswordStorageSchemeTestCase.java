@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock, AS
  */
 package org.opends.server.extensions;
 
@@ -31,7 +32,11 @@ import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.SaltedMD5PasswordStorageSchemeCfgDefn;
 import org.opends.server.admin.std.server.SaltedMD5PasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
+import org.opends.server.schema.UserPasswordSyntax;
+import org.opends.server.types.ByteString;
+import org.testng.annotations.Test;
 
+import static org.testng.Assert.assertTrue;
 
 
 /**
@@ -71,6 +76,31 @@ public class SaltedMD5PasswordStorageSchemeTestCase
 
     scheme.initializePasswordStorageScheme(configuration);
     return scheme;
+  }
+
+
+
+  /**
+   * Tests matching with a different salt size.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test
+  public void testDifferentSaltSize()
+    throws Exception {
+    SaltedMD5PasswordStorageScheme scheme =
+      new SaltedMD5PasswordStorageScheme();
+
+    SaltedMD5PasswordStorageSchemeCfg configuration =
+      AdminTestCaseUtils.getConfiguration(
+        SaltedMD5PasswordStorageSchemeCfgDefn.getInstance(),
+        configEntry.getEntry()
+      );
+
+    scheme.initializePasswordStorageScheme(configuration);
+    // The stored value has a 12 byte salt instead of the default 8
+    assertTrue(scheme.passwordMatches(ByteString.valueOf("password"),
+      ByteString.valueOf("so5s1vK3oEi4uL/oVY3bqs5LRlKjgMN+u4A4bw==")));
   }
 }
 
