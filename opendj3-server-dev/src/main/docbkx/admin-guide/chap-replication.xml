@@ -1735,4 +1735,173 @@ $ <userinput>dsconfig \
     <secondary>Legacy format</secondary>
    </indexterm>
  </section>
+
+ <section xml:id="recover-from-user-error">
+  <title>Recovering from User Error</title>
+
+  <para>
+   Changes to a replicated OpenDJ directory service
+   are similar to those made with the Unix <command>rm</command> command,
+   but with a twist.
+   With the <command>rm</command> command,
+   if you make a mistake you can restore your files from backup,
+   and lose only the work done since the last backup.
+   If you make a mistake with a update to the directory service however,
+   then after you restore a server from backup,
+   replication efficiently replays your mistake to the server you restored.
+  </para>
+
+  <indexterm>
+   <primary>Backup</primary>
+   <secondary>Recovery from user error</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Replication</primary>
+   <secondary>Recovery from user error</secondary>
+  </indexterm>
+  <indexterm>
+   <primary>Troubleshooting</primary>
+   <secondary>Recovery from user error</secondary>
+  </indexterm>
+
+  <para>
+   There is more than one way to recover from user error.
+   None of the ways involve simply changing OpenDJ settings.
+   All of the ways instead involve manually fixing mistakes.
+  </para>
+
+  <itemizedlist>
+   <para>
+    Consider these alternatives.
+   </para>
+
+   <listitem>
+    <para>
+     Encourage client applications to provide end users
+     with "undo" capability if necessary.
+     In this case, client applications take responsibility for
+     keeping an "undo" history.
+    </para>
+   </listitem>
+
+   <listitem>
+    <para>
+     Maintain a record of each update to the service,
+     so that you can manually "undo" mistakes.
+    </para>
+
+    <para>
+     You can use the external change log.
+     A primary advantage to the external change log is
+     that the change log is enabled with replication,
+     and so it does not use additional space.
+    </para>
+
+    <para>
+     See <xref linkend="repl-change-notification" /> for instructions
+     on enabling, using, and configuring the external change log.
+     In particular, see <xref linkend="ecl-add-attributes" />
+     for instructions on saving not only what is changed,
+     but also all attributes when an entry is deleted.
+    </para>
+
+    <para>
+     OpenDJ also provides a file-based audit log,
+     but the audit log does not help with a general solution in this case.
+     The OpenDJ audit log records changes to the data.
+     When you delete an entry however,
+     the audit log does not record the entry before deletion.
+     The following example shows the audit log records of some changes
+     made to Barbara Jensen's entry.
+    </para>
+
+    <programlisting language="ldif">
+# 30/Apr/2014:16:23:29 +0200; conn=7; op=10
+dn: uid=bjensen,ou=People,dc=example,dc=com
+changetype: modify
+replace: description
+description: This is the description I want.
+-
+replace: modifiersName
+modifiersName: cn=Directory Manager,cn=Root DNs,cn=config
+-
+replace: modifyTimestamp
+modifyTimestamp: 20140430142329Z
+
+# 30/Apr/2014:16:23:46 +0200; conn=7; op=14
+dn: uid=bjensen,ou=People,dc=example,dc=com
+changetype: modify
+replace: description
+description: I never should have changed this!
+-
+replace: modifiersName
+modifiersName: cn=Directory Manager,cn=Root DNs,cn=config
+-
+replace: modifyTimestamp
+modifyTimestamp: 20140430142346Z
+
+# 30/Apr/2014:16:24:53 +0200; conn=7; op=27
+dn: uid=bjensen,ou=People,dc=example,dc=com
+changetype: delete
+
+    </programlisting>
+
+    <para>
+     You can use these records to fix the mistaken update to the description,
+     but the audit log lacks the information needed to restore
+     Barbara Jensen's deleted entry.
+    </para>
+   </listitem>
+
+   <listitem>
+    <para>
+     For administrative errors that involve directory data,
+     if you have properly configured the external change log, then use it.
+    </para>
+
+    <para>
+     If not, an alternative technique consists of restoring backup
+     to a separate server not connected to the replication topology.
+     (Do not connect the server to the topology
+     as replication replays mistakes, too.)
+     Compare data on the separate restored server
+     to the live servers in the topology,
+     and then fix the mistakes manually.
+    </para>
+
+    <para>
+     An more drastic alternative consists of
+     rebuilding the entire service from backup,
+     by disabling replication and restoring all servers from backup
+     (or restoring one server and initializing all servers from that one).
+     This alternative is only recommended in the case of a major error
+     where you have a very fresh backup (taken immediately before the error),
+     and no client applications are affected.
+    </para>
+   </listitem>
+
+   <listitem>
+    <para>
+     For administrative configuration errors that prevent servers from starting,
+     know that OpenDJ keeps a copy of the last configuration
+     that OpenDJ could use to start the server in the file
+     <filename>/path/to/opendj/config/config.ldif.startok</filename>.
+    </para>
+
+    <para>
+     OpenDJ also backs up earlier versions of the configuration under
+     <filename>/path/to/opendj/config/archived-configs/</filename>.
+    </para>
+
+    <para>
+     You can therefore compare the current configuration
+     with the earlier configurations,
+     and repair mistakes manually
+     (avoiding trailing white space at the end of LDIF lines)
+     while the server is down.
+    </para>
+   </listitem>
+  </itemizedlist>
+
+ </section>
 </chapter>
