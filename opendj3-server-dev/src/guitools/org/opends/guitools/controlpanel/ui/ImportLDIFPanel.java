@@ -24,7 +24,6 @@
  *      Copyright 2008-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2014 ForgeRock AS
  */
-
 package org.opends.guitools.controlpanel.ui;
 
 import static org.opends.messages.AdminToolMessages.*;
@@ -76,7 +75,6 @@ import org.opends.server.types.DN;
 /**
  * The panel where the user can import the contents of an LDIF file to the
  * server.
- *
  */
 public class ImportLDIFPanel extends InclusionExclusionPanel
 {
@@ -125,25 +123,22 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     createLayout();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public LocalizableMessage getTitle()
   {
     return INFO_CTRL_PANEL_IMPORT_LDIF_TITLE.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public Component getPreferredFocusComponent()
   {
     return file;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public void toBeDisplayed(boolean visible)
   {
     if (visible)
@@ -199,25 +194,22 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     lFile.setLabelFor(file);
     documentListener = new DocumentListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public void changedUpdate(DocumentEvent ev)
       {
         String text = file.getText().trim();
         setEnabledOK((text != null) && (text.length() > 0) &&
             !errorPane.isVisible());
       }
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public void removeUpdate(DocumentEvent ev)
       {
         changedUpdate(ev);
       }
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public void insertUpdate(DocumentEvent ev)
       {
         changedUpdate(ev);
@@ -288,9 +280,8 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     add(append, gbc);
     append.addChangeListener(new ChangeListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public void stateChanged(ChangeEvent ev)
       {
         replaceEntries.setEnabled(append.isSelected());
@@ -417,9 +408,8 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
 
     ChangeListener changeListener = new ChangeListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public void stateChanged(ChangeEvent ev)
       {
         rejectsFile.setEnabled(writeRejects.isSelected());
@@ -489,9 +479,8 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
 
     changeListener = new ChangeListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public void stateChanged(ChangeEvent ev)
       {
         skipsFile.setEnabled(writeSkips.isSelected());
@@ -505,9 +494,8 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
 
     changeListener = new ChangeListener()
     {
-      /**
-       * {@inheritDoc}
-       */
+      /** {@inheritDoc} */
+      @Override
       public void stateChanged(ChangeEvent ev)
       {
         if (ev.getSource() == overwriteSkipsFile)
@@ -537,9 +525,8 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     addBottomGlue(gbc);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public void configurationChanged(ConfigurationChangeEvent ev)
   {
     ServerDescriptor desc = ev.getNewDescriptor();
@@ -549,6 +536,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
       INFO_CTRL_PANEL_CANNOT_CONNECT_TO_REMOTE_DETAILS.get(desc.getHostname()));
     SwingUtilities.invokeLater(new Runnable()
     {
+      @Override
       public void run()
       {
         lRemoteFileHelp.setVisible(!isLocal());
@@ -561,17 +549,15 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     });
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   protected void checkOKButtonEnable()
   {
     documentListener.changedUpdate(null);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public void okClicked()
   {
     setPrimaryValid(lBackend);
@@ -589,7 +575,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     }
 
     String ldifPath = file.getText();
-    if ((ldifPath == null) || (ldifPath.trim().equals("")))
+    if (ldifPath == null || "".equals(ldifPath.trim()))
     {
       errors.add(INFO_NO_LDIF_PATH.get());
       setPrimaryInvalid(lFile);
@@ -621,7 +607,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     if (writeRejects.isSelected())
     {
       String rejectPath = rejectsFile.getText();
-      if ((rejectPath == null) || (rejectPath.trim().equals("")))
+      if (rejectPath == null || "".equals(rejectPath.trim()))
       {
         errors.add(ERR_CTRL_PANEL_REJECTS_FILE_REQUIRED.get());
         setPrimaryInvalid(lRejectsFile);
@@ -640,7 +626,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     if (writeSkips.isSelected())
     {
       String skipPath = skipsFile.getText();
-      if ((skipPath == null) || (skipPath.trim().equals("")))
+      if (skipPath == null || "".equals(skipPath.trim()))
       {
         errors.add(ERR_CTRL_PANEL_SKIPS_FILE_REQUIRED.get());
         setPrimaryInvalid(lSkipsFile);
@@ -720,7 +706,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
           }
         }
       }
-      if ((errors.isEmpty()) && confirmed)
+      if (errors.isEmpty() && confirmed)
       {
         newTask.setInitializeAll(initializeAll);
         launchOperation(newTask,
@@ -741,9 +727,8 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public void cancelClicked()
   {
     setPrimaryValid(lBackend);
@@ -811,27 +796,24 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
       this.initializeAll = initializeAll;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public Type getType()
     {
       return Type.IMPORT_LDIF;
     }
 
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public LocalizableMessage getTaskDescription()
     {
       return INFO_CTRL_PANEL_IMPORT_TASK_DESCRIPTION.get(fileName,
           backendSet.iterator().next());
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public boolean canLaunch(Task taskToBeLaunched,
         Collection<LocalizableMessage> incompatibilityReasons)
     {
@@ -853,9 +835,8 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
       return canLaunch;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     protected ArrayList<String> getCommandLineArguments()
     {
       ArrayList<String> args = new ArrayList<String>();
@@ -925,17 +906,15 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
       return args;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     protected String getCommandLinePath()
     {
       return getCommandLinePath("import-ldif");
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public void runTask()
     {
       state = State.RUNNING;
@@ -997,9 +976,8 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
       }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
+    @Override
     public Set<String> getBackends()
     {
       return backendSet;
@@ -1007,8 +985,7 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
 
     private void initializeAll() throws ReplicationCliException
     {
-      ReplicationCliMain repl = new ReplicationCliMain(outPrintStream,
-          errorPrintStream, System.in);
+      ReplicationCliMain repl = new ReplicationCliMain(outPrintStream, errorPrintStream);
       getProgressDialog().appendProgressHtml(
           UIFactory.HTML_SEPARATOR+"<br><br>");
 
@@ -1024,9 +1001,8 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
         LocalizableMessage msg = INFO_PROGRESS_INITIALIZING_SUFFIX.get(baseDN,
             ConnectionUtils.getHostPort(getInfo().getDirContext()));
         getProgressDialog().appendProgressHtml(Utilities.applyFont(
-            msg.toString()+"<br>", ColorAndFontConstants.progressFont));
-        repl.initializeAllSuffix(baseDN.toString(), getInfo().getDirContext(),
-            true);
+            msg + "<br>", ColorAndFontConstants.progressFont));
+        repl.initializeAllSuffix(baseDN.toString(), getInfo().getDirContext(), true);
       }
     }
 
@@ -1055,5 +1031,5 @@ public class ImportLDIFPanel extends InclusionExclusionPanel
 
       return Task.getEquivalentCommandLine(cmdLineName, args);
     }
-  };
+  }
 }
