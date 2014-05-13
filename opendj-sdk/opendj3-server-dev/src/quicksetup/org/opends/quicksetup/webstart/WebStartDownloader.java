@@ -24,14 +24,13 @@
  *      Copyright 2006-2009 Sun Microsystems, Inc.
  *      Portions Copyright 2013-2014 ForgeRock AS.
  */
-
 package org.opends.quicksetup.webstart;
-import org.forgerock.i18n.LocalizableMessage;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 
+import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 
 import javax.jnlp.DownloadService;
@@ -39,14 +38,12 @@ import javax.jnlp.DownloadServiceListener;
 import javax.jnlp.ServiceManager;
 import javax.jnlp.UnavailableServiceException;
 
-
 import org.opends.quicksetup.ApplicationException;
 import org.opends.quicksetup.Installation;
 import org.opends.quicksetup.ReturnCode;
 import org.opends.quicksetup.util.Utils;
 import org.opends.server.util.SetupUtils;
 
-import static org.opends.quicksetup.util.Utils.*;
 import static org.opends.messages.QuickSetupMessages.*;
 import static com.forgerock.opendj.util.OperatingSystem.isWindows;
 import static com.forgerock.opendj.cli.Utils.getThrowableMsg;
@@ -124,6 +121,7 @@ public class WebStartDownloader implements DownloadServiceListener {
     isFinished = false;
     Thread t = new Thread(new Runnable()
     {
+      @Override
       public void run()
       {
         try
@@ -299,7 +297,7 @@ public class WebStartDownloader implements DownloadServiceListener {
       }
       else
       {
-        ratio = (100 / urls.length);
+        ratio = 100 / urls.length;
       }
       ratios[i] = ratio;
       totalRatios += ratio;
@@ -316,7 +314,7 @@ public class WebStartDownloader implements DownloadServiceListener {
     }
 
 
-    for (int i = 0; i < urls.length && (getException() == null); i++)
+    for (int i = 0; i < urls.length && getException() == null; i++)
     {
       if (i == 0)
       {
@@ -366,9 +364,8 @@ public class WebStartDownloader implements DownloadServiceListener {
     return ex;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public void downloadFailed(URL url, String version)
   {
     ex =
@@ -377,9 +374,8 @@ public class WebStartDownloader implements DownloadServiceListener {
                 INFO_DOWNLOADING_ERROR.get(url), null);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public void progress(URL url, String version, long readSoFar, long total,
       int overallPercent)
   {
@@ -390,9 +386,8 @@ public class WebStartDownloader implements DownloadServiceListener {
     status = Status.DOWNLOADING;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public void upgradingArchive(URL url, String version, int patchPercent,
       int overallPercent)
   {
@@ -400,9 +395,8 @@ public class WebStartDownloader implements DownloadServiceListener {
     status = Status.UPGRADING;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public void validating(URL url, String version, long entry, long total,
       int overallPercent)
   {

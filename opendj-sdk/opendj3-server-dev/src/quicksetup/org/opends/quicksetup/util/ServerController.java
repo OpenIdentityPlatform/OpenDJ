@@ -27,7 +27,6 @@
 package org.opends.quicksetup.util;
 
 import static org.opends.messages.QuickSetupMessages.*;
-import static org.opends.quicksetup.util.Utils.*;
 import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.util.OperatingSystem.isWindows;
 import static com.forgerock.opendj.cli.Utils.getThrowableMsg;
@@ -133,7 +132,7 @@ public class ServerController {
       StandardOutputSuppressor.suppress();
     }
 
-    if (suppressOutput && (application != null))
+    if (suppressOutput && application != null)
     {
       application.setNotifyListeners(false);
     }
@@ -201,44 +200,40 @@ public class ServerController {
           int clientSideError =
             org.opends.server.protocols.ldap.
             LDAPResultCode.CLIENT_SIDE_CONNECT_ERROR;
-          if ((returnValue == clientSideError) || (returnValue == 0)) {
-            if (isWindows()) {
-              /*
-               * Sometimes the server keeps some locks on the files.
-               * TODO: remove this code once stop-ds returns properly when
-               * server is stopped.
-               */
-              int nTries = 10;
-              boolean stopped = false;
-
-              for (int i = 0; i < nTries && !stopped; i++) {
-                logger.trace("waiting for server to stop");
-                try {
-                  Thread.sleep(5000);
-                }
-                catch (Exception ex)
-                {
-                  // do nothing
-                }
-                stopped = !installation.getStatus().isServerRunning();
-                logger.info(LocalizableMessage.raw(
-                    "After calling stop-ds.  Is server running? "+!stopped));
-
-                if (!stopped) {
-                  if (application != null) {
-                    LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
-                    mb.append(application.getFormattedLog(
-                        INFO_PROGRESS_SERVER_WAITING_TO_STOP.get()));
-                    mb.append(application.getLineBreak());
-                    application.notifyListeners(mb.toMessage());
-                  }
-                } else {
-                  break;
-                }
+          if (isWindows()
+              && (returnValue == clientSideError || returnValue == 0)) {
+            /*
+             * Sometimes the server keeps some locks on the files.
+             * TODO: remove this code once stop-ds returns properly when
+             * server is stopped.
+             */
+            int nTries = 10;
+            boolean stopped = false;
+            for (int i = 0; i < nTries && !stopped; i++) {
+              logger.trace("waiting for server to stop");
+              try {
+                Thread.sleep(5000);
               }
-              if (!stopped) {
-                returnValue = -1;
+              catch (Exception ex)
+              {
+                // do nothing
               }
+              stopped = !installation.getStatus().isServerRunning();
+              logger.info(LocalizableMessage.raw(
+                  "After calling stop-ds.  Is server running? " + !stopped));
+              if (stopped) {
+                break;
+              }
+              if (application != null) {
+                LocalizableMessageBuilder mb = new LocalizableMessageBuilder();
+                mb.append(application.getFormattedLog(
+                    INFO_PROGRESS_SERVER_WAITING_TO_STOP.get()));
+                mb.append(application.getLineBreak());
+                application.notifyListeners(mb.toMessage());
+              }
+            }
+            if (!stopped) {
+              returnValue = -1;
             }
           }
 
@@ -282,12 +277,16 @@ public class ServerController {
       }
     }
     finally {
-      if (suppressOutput && StandardOutputSuppressor.isSuppressed()) {
-        StandardOutputSuppressor.unsuppress();
-      }
-      if (suppressOutput && (application != null))
+      if (suppressOutput)
       {
-        application.setNotifyListeners(true);
+        if (StandardOutputSuppressor.isSuppressed())
+        {
+          StandardOutputSuppressor.unsuppress();
+        }
+        if (application != null)
+        {
+          application.setNotifyListeners(true);
+        }
       }
     }
   }
@@ -328,7 +327,7 @@ public class ServerController {
       StandardOutputSuppressor.suppress();
     }
 
-    if (suppressOutput && (application != null))
+    if (suppressOutput && application != null)
     {
       application.setNotifyListeners(false);
     }
@@ -454,14 +453,14 @@ public class ServerController {
 
             int dig = i % 10;
 
-            if (((dig == 3) || (dig == 4)) && !"localhost".equals(hostName))
+            if ((dig == 3 || dig == 4) && !"localhost".equals(hostName))
             {
               // Try with local host. This might be necessary in certain
               // network configurations.
               hostName = "localhost";
             }
 
-            if (((dig == 5) || (dig == 6)))
+            if (dig == 5 || dig == 6)
             {
               // Try with 0.0.0.0. This might be necessary in certain
               // network configurations.
@@ -473,12 +472,9 @@ public class ServerController {
             try
             {
               int timeout = CliConstants.DEFAULT_LDAP_CONNECT_TIMEOUT;
-              if (application != null)
+              if (application != null && application.getUserData() != null)
               {
-                if (application.getUserData() != null)
-                {
-                  timeout = application.getUserData().getConnectTimeout();
-                }
+                timeout = application.getUserData().getConnectTimeout();
               }
               ctx = Utils.createLdapsContext(
                   ldapUrl,
@@ -508,20 +504,10 @@ public class ServerController {
           }
           if (!connected)
           {
-            if (isWindows())
-            {
-              throw new ApplicationException(
-                  ReturnCode.START_ERROR,
-                  INFO_ERROR_STARTING_SERVER_IN_WINDOWS.get(port),
-                  null);
-            }
-            else
-            {
-              throw new ApplicationException(
-                  ReturnCode.START_ERROR,
-                  INFO_ERROR_STARTING_SERVER_IN_UNIX.get(port),
-                  null);
-            }
+            final LocalizableMessage msg = isWindows()
+                ? INFO_ERROR_STARTING_SERVER_IN_WINDOWS.get(port)
+                : INFO_ERROR_STARTING_SERVER_IN_UNIX.get(port);
+            throw new ApplicationException(ReturnCode.START_ERROR, msg, null);
           }
         }
       } catch (IOException ioe)
@@ -536,12 +522,16 @@ public class ServerController {
             getThrowableMsg(INFO_ERROR_STARTING_SERVER.get(), ie), ie);
       }
     } finally {
-      if (suppressOutput && StandardOutputSuppressor.isSuppressed()) {
-        StandardOutputSuppressor.unsuppress();
-      }
-      if (suppressOutput && (application != null))
+      if (suppressOutput)
       {
-        application.setNotifyListeners(true);
+        if (StandardOutputSuppressor.isSuppressed())
+        {
+          StandardOutputSuppressor.unsuppress();
+        }
+        if (application != null)
+        {
+          application.setNotifyListeners(true);
+        }
       }
     }
   }
