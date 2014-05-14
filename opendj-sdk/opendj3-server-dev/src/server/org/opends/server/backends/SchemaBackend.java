@@ -4508,8 +4508,8 @@ public class SchemaBackend
     BackupInfo backupInfo = backupDirectory.getBackupInfo(backupID);
     if (backupInfo == null)
     {
-      LocalizableMessage message = ERR_BACKUP_MISSING_BACKUPID.get(
-        backupDirectory.getPath(), backupID);
+      LocalizableMessage message = ERR_BACKUP_MISSING_BACKUPID.get(backupID,
+        backupDirectory.getPath());
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message);
     }
