@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions copyright 2012-2014 ForgeRock AS.
  */
 package org.opends.server.replication.plugin;
 
@@ -31,10 +31,8 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.opends.messages.Message;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperationBasis;
-import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPModification;
@@ -44,38 +42,23 @@ import org.opends.server.types.*;
 
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 
 /**
  * This class implements a ServerState that is stored in the backend
  * used to store the synchronized data and that is therefore persistent
  * across server reboot.
  */
-public class PersistentServerState
+class PersistentServerState
 {
    private final DN baseDn;
-   private final InternalClientConnection conn =
-       InternalClientConnection.getRootConnection();
    private final int serverId;
-
    private final ServerState state;
 
    /**
     * The attribute name used to store the state in the backend.
     */
-   protected static final String REPLICATION_STATE = "ds-sync-state";
-
-  /**
-   * create a new ServerState.
-   * @param baseDn The baseDN for which the ServerState is created
-   * @param serverId The serverId
-   */
-  public PersistentServerState(DN baseDn, int serverId)
-  {
-    this.baseDn = baseDn;
-    this.serverId = serverId;
-    this.state = new ServerState();
-    loadState();
-  }
+   private static final String REPLICATION_STATE = "ds-sync-state";
 
   /**
    * Create a new PersistentServerState based on an already existing
@@ -85,7 +68,7 @@ public class PersistentServerState
    * @param serverId  The serverId.
    * @param state     The serverState.
    */
-  public PersistentServerState(DN baseDn, int serverId, ServerState state)
+  PersistentServerState(DN baseDn, int serverId, ServerState state)
   {
     this.baseDn = baseDn;
     this.serverId = serverId;
@@ -100,7 +83,7 @@ public class PersistentServerState
    * @return  A boolean indicating if this ServerState contains the CSN
    *          given in parameter.
    */
-  public boolean cover(CSN covered)
+  boolean cover(CSN covered)
   {
     return state.cover(covered);
   }
@@ -113,7 +96,7 @@ public class PersistentServerState
    *          The committed CSN.
    * @return a boolean indicating if the update was meaningful.
    */
-  public boolean update(CSN csn)
+  boolean update(CSN csn)
   {
     return state.update(csn);
   }
@@ -123,14 +106,9 @@ public class PersistentServerState
    */
   public void save()
   {
-    if (state.isSaved())
-      return;
-
-    state.setSaved(true);
-    ResultCode resultCode = updateStateEntry();
-    if (resultCode != ResultCode.SUCCESS)
+    if (!state.isSaved())
     {
-      state.setSaved(false);
+      state.setSaved(updateStateEntry() == ResultCode.SUCCESS);
     }
   }
 
@@ -182,31 +160,19 @@ public class PersistentServerState
        */
       LinkedHashSet<String> attributes = new LinkedHashSet<String>(1);
       attributes.add(REPLICATION_STATE);
-      InternalSearchOperation search = conn.processSearch(baseDn,
-          SearchScope.BASE_OBJECT,
-          DereferencePolicy.NEVER_DEREF_ALIASES,
+      final InternalSearchOperation search = getRootConnection().processSearch(
+          baseDn,
+          SearchScope.BASE_OBJECT, DereferencePolicy.NEVER_DEREF_ALIASES,
           0, 0, false, filter, attributes);
       if (((search.getResultCode() != ResultCode.SUCCESS)) &&
           ((search.getResultCode() != ResultCode.NO_SUCH_OBJECT)))
       {
-        Message message = ERR_ERROR_SEARCHING_RUV.
-            get(search.getResultCode().getResultCodeName(), search.toString(),
-                search.getErrorMessage(), baseDn.toString());
-        logError(message);
+        logError(ERR_ERROR_SEARCHING_RUV.get(
+            search.getResultCode().getResultCodeName(), search.toString(),
+            search.getErrorMessage(), baseDn.toString()));
         return null;
       }
-
-      SearchResultEntry stateEntry = null;
-      if (search.getResultCode() == ResultCode.SUCCESS)
-      {
-        // Read the serverState from the REPLICATION_STATE attribute
-        LinkedList<SearchResultEntry> result = search.getSearchEntries();
-        if (!result.isEmpty())
-        {
-          stateEntry = result.getFirst();
-        }
-      }
-      return stateEntry;
+      return getFirstResult(search);
     }
     catch (DirectoryException e)
     {
@@ -225,35 +191,37 @@ public class PersistentServerState
   {
     try
     {
-      SearchFilter filter =
-        SearchFilter.createFilterFromString(
-            "(&(objectclass=ds-cfg-replication-domain)"
-            +"(ds-cfg-base-dn="+baseDn+"))");
+      SearchFilter filter = SearchFilter.createFilterFromString(
+          "(&(objectclass=ds-cfg-replication-domain)"
+          + "(ds-cfg-base-dn=" + baseDn + "))");
 
       LinkedHashSet<String> attributes = new LinkedHashSet<String>(1);
       attributes.add(REPLICATION_STATE);
-      InternalSearchOperation op =
-          conn.processSearch(DN.decode("cn=config"),
+      final InternalSearchOperation op = getRootConnection().processSearch(
+          DN.decode("cn=config"),
           SearchScope.SUBORDINATE_SUBTREE,
           DereferencePolicy.NEVER_DEREF_ALIASES,
           1, 0, false, filter, attributes);
-
-      if (op.getResultCode() == ResultCode.SUCCESS)
-      {
-        // Read the serverState from the REPLICATION_STATE attribute
-        LinkedList<SearchResultEntry> resultEntries =
-          op.getSearchEntries();
-        if (!resultEntries.isEmpty())
-        {
-          return resultEntries.getFirst();
-        }
-      }
-      return null;
-    } catch (DirectoryException e)
+      return getFirstResult(op);
+    }
+    catch (DirectoryException e)
     {
       // can not happen
       return null;
     }
+  }
+
+  private SearchResultEntry getFirstResult(InternalSearchOperation search)
+  {
+    if (search.getResultCode() == ResultCode.SUCCESS)
+    {
+      final LinkedList<SearchResultEntry> results = search.getSearchEntries();
+      if (!results.isEmpty())
+      {
+        return results.getFirst();
+      }
+    }
+    return null;
   }
 
   /**
@@ -286,15 +254,12 @@ public class PersistentServerState
    */
   private ResultCode updateStateEntry()
   {
-    /*
-     * Generate a modify operation on the Server State baseD Entry.
-     */
+    // Generate a modify operation on the Server State baseDN Entry.
     ResultCode result = runUpdateStateEntry(baseDn);
-
     if (result == ResultCode.NO_SUCH_OBJECT)
     {
-      // The base entry does not exist yet in the database or
-      // has been deleted, save the state to the config entry instead.
+      // The base entry does not exist yet in the database or has been deleted,
+      // save the state to the config entry instead.
       SearchResultEntry configEntry = searchConfigEntry();
       if (configEntry != null)
       {
@@ -317,16 +282,13 @@ public class PersistentServerState
   {
     ArrayList<ByteString> values = state.toASN1ArrayList();
 
-    LDAPAttribute attr =
-      new LDAPAttribute(REPLICATION_STATE, values);
+    LDAPAttribute attr = new LDAPAttribute(REPLICATION_STATE, values);
     LDAPModification mod = new LDAPModification(ModificationType.REPLACE, attr);
     ArrayList<RawModification> mods = new ArrayList<RawModification>(1);
     mods.add(mod);
 
-    ModifyOperationBasis op =
-      new ModifyOperationBasis(conn, InternalClientConnection.nextOperationID(),
-          InternalClientConnection.nextMessageID(),
-          new ArrayList<Control>(0),
+    ModifyOperationBasis op = new ModifyOperationBasis(getRootConnection(),
+          nextOperationID(), nextMessageID(), null,
           ByteString.valueOf(serverStateEntryDN.toString()),
           mods);
     op.setInternalOperation(true);
@@ -335,12 +297,11 @@ public class PersistentServerState
     op.run();
     if (op.getResultCode() != ResultCode.SUCCESS)
     {
-      Message message = DEBUG_ERROR_UPDATING_RUV.get(
+      logError(DEBUG_ERROR_UPDATING_RUV.get(
               op.getResultCode().getResultCodeName().toString(),
               op.toString(),
               op.getErrorMessage().toString(),
-              baseDn.toString());
-      logError(message);
+              baseDn.toString()));
     }
     return op.getResultCode();
   }
@@ -361,7 +322,7 @@ public class PersistentServerState
    * After this call the Server State will be in the same state
    * as if it was just created.
    */
-  public void clear()
+  void clear()
   {
     clearInMemory();
     save();
@@ -377,71 +338,64 @@ public class PersistentServerState
    * This is done by using the HistoricalCsnOrderingMatchingRule
    * and an ordering index for historical attribute
    */
-  public final void checkAndUpdateServerState() {
-    Message message;
-    InternalSearchOperation op;
-    CSN serverStateMaxCsn;
-    CSN dbMaxCsn;
+  private final void checkAndUpdateServerState()
+  {
     final AttributeType histType = DirectoryServer.getAttributeType(
-          EntryHistorical.HISTORICAL_ATTRIBUTE_NAME);
+        EntryHistorical.HISTORICAL_ATTRIBUTE_NAME);
 
     // Retrieves the entries that have changed since the
     // maxCsn stored in the serverState
     synchronized (this)
     {
-      serverStateMaxCsn = state.getCSN(serverId);
-
-      if (serverStateMaxCsn == null)
+      CSN serverStateMaxCSN = state.getCSN(serverId);
+      if (serverStateMaxCSN == null)
+      {
         return;
+      }
 
-      try {
+      InternalSearchOperation op;
+      try
+      {
         op = LDAPReplicationDomain.searchForChangedEntries(baseDn,
-            serverStateMaxCsn, null);
+                serverStateMaxCSN, null);
       }
       catch (Exception  e)
       {
         return;
       }
+
       if (op.getResultCode() != ResultCode.SUCCESS)
       {
         // An error happened trying to search for the updates
         // Log an error
-        message = ERR_CANNOT_RECOVER_CHANGES.get(
-            baseDn.toNormalizedString());
-        logError(message);
+        logError(ERR_CANNOT_RECOVER_CHANGES.get(baseDn.toNormalizedString()));
+        return;
       }
-      else
+
+      CSN dbMaxCSN = serverStateMaxCSN;
+      for (SearchResultEntry resEntry : op.getSearchEntries())
       {
-        dbMaxCsn = serverStateMaxCsn;
-        for (SearchResultEntry resEntry : op.getSearchEntries())
+        final Attribute historyAttr = resEntry.getAttribute(histType).get(0);
+        for (AttributeValue attrValue : historyAttr)
         {
-          for (AttributeValue attrValue :
-                    resEntry.getAttribute(histType).get(0))
+          HistoricalAttributeValue histVal =
+              new HistoricalAttributeValue(attrValue.toString());
+          CSN csn = histVal.getCSN();
+          if (csn != null
+              && csn.getServerId() == serverId
+              && dbMaxCSN.isOlderThan(csn))
           {
-            HistoricalAttributeValue histVal =
-                new HistoricalAttributeValue(attrValue.toString());
-            CSN csn = histVal.getCSN();
-            if (csn != null && csn.getServerId() == serverId)
-            {
-              // compare the csn regarding the maxCsn we know and
-              // store the biggest
-              if (CSN.compare(dbMaxCsn, csn) < 0)
-              {
-                dbMaxCsn = csn;
-              }
-            }
+            dbMaxCSN = csn;
           }
         }
+      }
 
-        if (CSN.compare(dbMaxCsn, serverStateMaxCsn) > 0)
-        {
-          // Update the serverState with the new maxCsn
-          // present in the database
-          this.update(dbMaxCsn);
-          message = NOTE_SERVER_STATE_RECOVERY.get(
-              baseDn.toNormalizedString(), dbMaxCsn.toString());
-          logError(message);
-        }
+      if (dbMaxCSN.isNewerThan(serverStateMaxCSN))
+      {
+        // Update the serverState with the new maxCSN present in the database
+        update(dbMaxCSN);
+        logError(NOTE_SERVER_STATE_RECOVERY.get(baseDn.toNormalizedString(),
+            dbMaxCSN.toString()));
       }
     }
   }
