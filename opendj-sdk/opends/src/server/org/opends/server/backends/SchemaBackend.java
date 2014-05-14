@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.backends;
 
@@ -5158,8 +5158,8 @@ public class SchemaBackend
     BackupInfo backupInfo = backupDirectory.getBackupInfo(backupID);
     if (backupInfo == null)
     {
-      Message message = ERR_BACKUP_MISSING_BACKUPID.get(
-        backupDirectory.getPath(), backupID);
+      Message message = ERR_BACKUP_MISSING_BACKUPID.get(backupID,
+        backupDirectory.getPath());
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
                                    message);
     }
