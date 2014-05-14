@@ -185,13 +185,11 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   /** The number of unresolved naming conflicts. */
   private final AtomicInteger numUnresolvedNamingConflicts =
       new AtomicInteger();
-  private final PersistentServerState state;
   /** The number of updates replayed successfully by the replication. */
   private final AtomicInteger numReplayedPostOpCalled = new AtomicInteger();
 
+  private final PersistentServerState state;
   private volatile boolean generationIdSavedStatus = false;
-
-  private final CSNGenerator generator;
 
   /**
    * This object is used to store the list of update currently being
@@ -205,11 +203,12 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       new AtomicReference<RSUpdater>(null);
 
   /**
-   * It contain the updates that were done on other servers, transmitted
-   * by the replication server and that are currently replayed.
-   * It is useful to make sure that dependencies between operations
-   * are correctly fulfilled and to to make sure that the ServerState is
-   * not updated too early.
+   * It contain the updates that were done on other servers, transmitted by the
+   * replication server and that are currently replayed.
+   * <p>
+   * It is useful to make sure that dependencies between operations are
+   * correctly fulfilled and to make sure that the ServerState is not updated
+   * too early.
    */
   private final RemotePendingChanges remotePendingChanges;
   private boolean solveConflictFlag = true;
@@ -507,9 +506,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
      * The generator time is adjusted to the time of the last CSN received from
      * remote other servers.
      */
-    generator = getGenerator();
-
-    pendingChanges = new PendingChanges(generator, this);
+    pendingChanges = new PendingChanges(getGenerator(), this);
     remotePendingChanges = new RemotePendingChanges(getServerState());
 
     // listen for changes on the configuration
@@ -704,13 +701,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   private SearchResultEntry findReplicationSearchResultEntry(
       InternalSearchOperation searchOperation)
   {
-    if (searchOperation.getResultCode() != ResultCode.SUCCESS)
-    {
-      return null;
-    }
-
-    List<SearchResultEntry> result = searchOperation.getSearchEntries();
-    SearchResultEntry resultEntry = result.get(0);
+    final SearchResultEntry resultEntry = getFirstResult(searchOperation);
     if (resultEntry != null)
     {
       AttributeType synchronizationGenIDType =
@@ -1612,9 +1603,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
          * another entry.
          * We must not let the change proceed, return a negative
          * result and set the result code to NO_SUCH_OBJECT.
-         * When the operation will return, the thread that started the
-         * operation will try to find the correct entry and restart a new
-         * operation.
+         * When the operation will return, the thread that started the operation
+         * will try to find the correct entry and restart a new operation.
          */
         return new SynchronizationProviderResult.StopProcessing(
             ResultCode.NO_SUCH_OBJECT, null);
@@ -2576,22 +2566,28 @@ public final class LDAPReplicationDomain extends ReplicationDomain
           0, 0, false,
           SearchFilter.createFilterFromString("(objectclass=*)"),
           attrs);
-
-      if (search.getResultCode() == ResultCode.SUCCESS)
+      final SearchResultEntry resultEntry = getFirstResult(search);
+      if (resultEntry != null)
       {
-        final List<SearchResultEntry> result = search.getSearchEntries();
-        if (!result.isEmpty())
-        {
-          final SearchResultEntry resultEntry = result.get(0);
-          if (resultEntry != null)
-          {
-            return getEntryUUID(resultEntry);
-          }
-        }
+        return getEntryUUID(resultEntry);
       }
-    } catch (DirectoryException e)
+    }
+    catch (DirectoryException e)
     {
       // never happens because the filter is always valid.
+    }
+    return null;
+  }
+
+  private static SearchResultEntry getFirstResult(InternalSearchOperation search)
+  {
+    if (search.getResultCode() == ResultCode.SUCCESS)
+    {
+      final LinkedList<SearchResultEntry> results = search.getSearchEntries();
+      if (!results.isEmpty())
+      {
+        return results.getFirst();
+      }
     }
     return null;
   }
@@ -2610,19 +2606,13 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       InternalSearchOperation search = conn.processSearch(getBaseDN(),
             SearchScope.WHOLE_SUBTREE,
             SearchFilter.createFilterFromString("entryuuid="+uuid));
-      if (search.getResultCode() == ResultCode.SUCCESS)
+      final SearchResultEntry resultEntry = getFirstResult(search);
+      if (resultEntry != null)
       {
-        final List<SearchResultEntry> results = search.getSearchEntries();
-        if (!results.isEmpty())
-        {
-          final SearchResultEntry resultEntry = results.get(0);
-          if (resultEntry != null)
-          {
-            return resultEntry.getDN();
-          }
-        }
+        return resultEntry.getDN();
       }
-    } catch (DirectoryException e)
+    }
+    catch (DirectoryException e)
     {
       // never happens because the filter is always valid.
     }
@@ -3035,19 +3025,15 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
 
       if (op.getResultCode() == ResultCode.SUCCESS)
       {
-        List<SearchResultEntry> entries = op.getSearchEntries();
-        if (entries != null)
+        for (SearchResultEntry entry : op.getSearchEntries())
         {
-          for (SearchResultEntry entry : entries)
-          {
-            /*
-             * Check the ADD and ModRDN date of the child entry (All of them,
-             * not only the one that are newer than the DEL op)
-             * and keep the entry as a conflicting entry,
-             */
-            conflict = true;
-            renameConflictEntry(conflictOp, entry.getDN(), getEntryUUID(entry));
-          }
+          /*
+           * Check the ADD and ModRDN date of the child entry
+           * (All of them, not only the one that are newer than the DEL op)
+           * and keep the entry as a conflicting entry.
+           */
+          conflict = true;
+          renameConflictEntry(conflictOp, entry.getDN(), getEntryUUID(entry));
         }
       }
       else
@@ -3231,10 +3217,9 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
   {
     state.clearInMemory();
     state.loadState();
+    getGenerator().adjust(state.getMaxCSN(getServerId()));
 
-    generator.adjust(state.getMaxCSN(getServerId()));
     // Retrieves the generation ID associated with the data imported
-
     generationId = loadGenerationId();
   }
 
@@ -4572,9 +4557,8 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
     {
       // Expand @objectclass references in attribute list if needed.
       // We do this now in order to take into account dynamic schema changes.
-      Set<String> expandedNames = getExpandedNames(names);
-
-      Entry filteredEntry =
+      final Set<String> expandedNames = getExpandedNames(names);
+      final Entry filteredEntry =
           entry.filterEntry(expandedNames, false, false, false);
       return filteredEntry.getAttributes();
     }
