@@ -504,8 +504,9 @@ public class LocalBackendBindOperation
               ERR_BIND_OPERATION_NO_PASSWORD.get());
         }
 
-        // Perform a number of password policy state checks for the user.
-        checkPasswordPolicyState(userEntry, null);
+        // Perform a number of password policy state checks for the
+        // non-authenticated user.
+        checkUnverifiedPasswordPolicyState(userEntry, null);
 
         // Invoke pre-operation plugins.
         if (!invokePreOpPlugins())
@@ -518,6 +519,8 @@ public class LocalBackendBindOperation
         if (pwPolicyState.passwordMatches(simplePassword))
         {
           setResultCode(ResultCode.SUCCESS);
+
+          checkVerifiedPasswordPolicyState(userEntry, null);
 
           if (DirectoryServer.lockdownMode()
               && (!ClientConnection.hasPrivilege(userEntry,
@@ -729,7 +732,7 @@ public class LocalBackendBindOperation
         // Account is managed locally: perform password policy checks that will
         // need to be completed regardless of whether the authentication was
         // successful.
-        checkPasswordPolicyState(saslAuthUserEntry, saslHandler);
+        checkUnverifiedPasswordPolicyState(saslAuthUserEntry, saslHandler);
       }
     }
 
@@ -741,6 +744,8 @@ public class LocalBackendBindOperation
     {
       if (authPolicyState != null && authPolicyState.isPasswordPolicy())
       {
+        checkVerifiedPasswordPolicyState(saslAuthUserEntry, saslHandler);
+
         PasswordPolicyState pwPolicyState =
           (PasswordPolicyState) authPolicyState;
 
@@ -866,7 +871,8 @@ public class LocalBackendBindOperation
 
 
   /**
-   * Validates a number of password policy state constraints for the user.
+   * Validates a number of password policy state constraints for the user. This
+   * will be called before the offered credentials are checked.
    *
    * @param userEntry
    *          The entry for the user that is authenticating.
@@ -876,7 +882,7 @@ public class LocalBackendBindOperation
    * @throws DirectoryException
    *           If a problem occurs that should cause the bind to fail.
    */
-  protected void checkPasswordPolicyState(
+  protected void checkUnverifiedPasswordPolicyState(
       Entry userEntry, SASLMechanismHandler<?> saslHandler)
       throws DirectoryException
   {
@@ -925,7 +931,27 @@ public class LocalBackendBindOperation
                        ERR_BIND_OPERATION_INSECURE_SIMPLE_BIND.get());
       }
     }
+  }
 
+  /**
+   * Perform policy checks for accounts when the credentials are correct.
+   *
+   * @param userEntry
+   *          The entry for the user that is authenticating.
+   * @param saslHandler
+   *          The SASL mechanism handler if this is a SASL bind, or {@code null}
+   *          for a simple bind.
+   * @throws DirectoryException
+   *           If a problem occurs that should cause the bind to fail.
+   */
+  protected void checkVerifiedPasswordPolicyState(
+      Entry userEntry, SASLMechanismHandler<?> saslHandler)
+      throws DirectoryException
+  {
+    PasswordPolicyState pwPolicyState = (PasswordPolicyState) authPolicyState;
+    PasswordPolicy policy = pwPolicyState.getAuthenticationPolicy();
+
+    boolean isSASLBind = (saslHandler != null);
 
     // Check to see if the user is administratively disabled or locked.
     if (pwPolicyState.isDisabled())
