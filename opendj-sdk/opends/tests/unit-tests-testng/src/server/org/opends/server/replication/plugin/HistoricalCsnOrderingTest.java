@@ -30,7 +30,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.assertj.core.api.Assertions;
 import org.opends.messages.Category;
@@ -62,13 +61,13 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
 {
 
   private final int serverId = 123;
-  private SortedSet<String> replServers = new TreeSet<String>();
+  private final SortedSet<String> replServers = new TreeSet<String>();
 
-  public static class TestBroker extends ReplicationBroker
+  private static class TestBroker extends ReplicationBroker
   {
-    private List<ReplicationMsg> list;
+    private final List<ReplicationMsg> list;
 
-    public TestBroker(List<ReplicationMsg> list)
+    private TestBroker(List<ReplicationMsg> list)
     {
       super(new DummyReplicationDomain(0), null,
           new DomainFakeCfg(null, 0, TestCaseUtils.<String> newSortedSet()), null);
@@ -182,7 +181,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
     TestBroker session = new TestBroker(opList);
 
       CSN csn = new CSN(startTime, 0, serverId);
-      boolean result = rd1.buildAndPublishMissingChanges(csn, session, new AtomicBoolean());
+      boolean result = rd1.buildAndPublishMissingChanges(csn, session);
     assertTrue(result, "buildAndPublishMissingChanges has failed");
     assertEquals(opList.size(), 3, "buildAndPublishMissingChanges should return 3 operations");
     assertTrue(opList.getFirst().getClass().equals(AddMsg.class));
@@ -196,7 +195,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
     opList = new LinkedList<ReplicationMsg>();
     session = new TestBroker(opList);
 
-      result = rd1.buildAndPublishMissingChanges(fromCSN, session, new AtomicBoolean());
+      result = rd1.buildAndPublishMissingChanges(fromCSN, session);
     assertTrue(result, "buildAndPublishMissingChanges has failed");
     assertEquals(opList.size(), 1, "buildAndPublishMissingChanges should return 1 operation");
     assertTrue(opList.getFirst().getClass().equals(ModifyMsg.class));
@@ -283,7 +282,7 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
       // Call the buildAndPublishMissingChanges and check that this method
       // correctly generates the 4 operations in the correct order.
       CSN csn = new CSN(startTime, 0, serverId);
-      boolean result = rd1.buildAndPublishMissingChanges(csn, session, new AtomicBoolean());
+      boolean result = rd1.buildAndPublishMissingChanges(csn, session);
     assertTrue(result, "buildAndPublishMissingChanges has failed");
     assertEquals(opList.size(), 5, "buildAndPublishMissingChanges should return 5 operations");
     ReplicationMsg msg = opList.removeFirst();

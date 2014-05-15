@@ -214,7 +214,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   private boolean solveConflictFlag = true;
 
   private final InternalClientConnection conn = getRootConnection();
-  private volatile boolean shutdown = false;
+  private final AtomicBoolean shutdown = new AtomicBoolean();
   private volatile boolean disabled = false;
   private volatile boolean stateSavingDisabled = false;
 
@@ -258,7 +258,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    */
 
   /** Holds the fractional configuration for this domain, if any. */
-  private FractionalConfig fractionalConfig;
+  private final FractionalConfig fractionalConfig;
 
   /**
    * The list of attributes that cannot be used in fractional replication
@@ -374,11 +374,6 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   private class RSUpdater extends DirectoryThread
   {
     private final CSN startCSN;
-    /**
-     * Used to communicate that the current thread computation needs to
-     * shutdown.
-     */
-    private AtomicBoolean shutdown = new AtomicBoolean(false);
 
     protected RSUpdater(CSN replServerMaxCSN)
     {
@@ -392,8 +387,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     @Override
     public void run()
     {
-      // Replication server is missing some of our changes: let's
-      // send them to him.
+      // Replication server is missing some of our changes:
+      // let's send them to him.
       logError(DEBUG_GOING_TO_SEARCH_FOR_CHANGES.get());
 
       /*
@@ -402,7 +397,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
        */
       try
       {
-        if (buildAndPublishMissingChanges(startCSN, broker, shutdown))
+        if (buildAndPublishMissingChanges(startCSN, broker))
         {
           logError(DEBUG_CHANGES_SENT.get());
           synchronized(replayOperations)
@@ -421,7 +416,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
            */
           logError(ERR_CANNOT_RECOVER_CHANGES.get(getBaseDNString()));
         }
-      } catch (Exception e)
+      }
+      catch (Exception e)
       {
         /*
          * An error happened trying to search for the updates
@@ -440,16 +436,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         rsUpdater.compareAndSet(this, null);
       }
     }
-
-    /** {@inheritDoc} */
-    @Override
-    public void initiateShutdown()
-    {
-      this.shutdown.set(true);
-      super.initiateShutdown();
-    }
   }
-
 
   /**
    * Creates a new ReplicationDomain using configuration from configEntry.
@@ -825,7 +812,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    */
   static class AttributeValueStringIterator implements Iterator<String>
   {
-    private Iterator<AttributeValue> attrValIt;
+    private final Iterator<AttributeValue> attrValIt;
 
     /**
      * Creates a new AttributeValueStringIterator object.
@@ -2268,9 +2255,8 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    */
   public void shutdown()
   {
-    if (!shutdown)
+    if (shutdown.compareAndSet(false, true))
     {
-      shutdown = true;
       final RSUpdater rsUpdater = this.rsUpdater.get();
       if (rsUpdater != null)
       {
@@ -2293,7 +2279,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
       disableService();
     }
 
-    // wait for completion of the persistentServerState thread.
+    // wait for completion of the ServerStateFlush thread.
     try
     {
       while (!done)
@@ -4160,14 +4146,12 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
    *          The CSN where we need to start the search
    * @param session
    *          The session to use to publish the changes
-   * @param shutdown
-   *          whether the current run must be stopped
    * @return A boolean indicating he success of the operation.
    * @throws Exception
    *           if an Exception happens during the search.
    */
-  boolean buildAndPublishMissingChanges(CSN startCSN,
-      ReplicationBroker session, AtomicBoolean shutdown) throws Exception
+  boolean buildAndPublishMissingChanges(CSN startCSN, ReplicationBroker session)
+      throws Exception
   {
     // Trim the changes in replayOperations that are older than the startCSN.
     synchronized (replayOperations)
@@ -4681,7 +4665,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
     /**
      * Base DN the fractional configuration is for.
      */
-    private DN baseDN;
+    private final DN baseDN;
 
     /**
      * Constructs a new fractional configuration object.
