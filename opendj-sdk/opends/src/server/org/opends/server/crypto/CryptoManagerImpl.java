@@ -77,6 +77,7 @@ import org.opends.server.tools.LDAPConnectionOptions;
 import org.opends.server.tools.LDAPReader;
 import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.*;
+import org.opends.server.util.Base64;
 import org.opends.server.util.*;
 
 import static org.opends.messages.CoreMessages.*;
