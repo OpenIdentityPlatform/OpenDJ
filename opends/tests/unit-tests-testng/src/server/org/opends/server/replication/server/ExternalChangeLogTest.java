@@ -112,8 +112,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   /** The LDAPStatistics object associated with the LDAP connection handler. */
   private LDAPStatistics ldapStatistics;
 
-  private int brokerSessionTimeout = 5000;
-  private int maxWindow = 100;
+  private final int brokerSessionTimeout = 5000;
+  private final int maxWindow = 100;
 
   /**
    * When used in a search operation, it includes all attributes (user and
@@ -1109,17 +1109,19 @@ public class ExternalChangeLogTest extends ReplicationTestCase
         } else if (i==2)
         {
           checkValue(resultEntry, "changetype", "add");
-          String expectedValue1 = "objectClass: domain\nobjectClass: top\n"
-              + "entryUUID: 11111111-1111-1111-1111-111111111111\n";
-          checkValue(resultEntry, "changes", expectedValue1);
+          checkLDIF(resultEntry, "changes",
+              "objectClass: domain",
+              "objectClass: top",
+              "entryUUID: 11111111-1111-1111-1111-111111111111");
           checkValue(resultEntry,"targetentryuuid",user1entryUUID);
         } else if (i==3)
         {
           // check the MOD entry has the right content
           checkValue(resultEntry, "changetype", "modify");
-          String expectedValue =
-              "replace: description\n" + "description: new value\n-\n";
-          checkValue(resultEntry,"changes",expectedValue);
+          checkLDIF(resultEntry, "changes",
+              "replace: description",
+              "description: new value",
+              "-");
           checkValue(resultEntry,"targetentryuuid",tn+"uuid3");
         } else if (i==4)
         {
@@ -1225,9 +1227,62 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
   private static void checkValue(Entry entry, String attrName, String expectedValue)
   {
-    assertThat(getAttributeValue(entry, attrName))
+    assertFalse(expectedValue.contains("\n"),
+        "Use checkLDIF() method for asserting on value: \"" + expectedValue + "\"");
+    final String actualValue = getAttributeValue(entry, attrName);
+    assertThat(actualValue)
         .as("In entry " + entry + " incorrect value for attr '" + attrName + "'")
         .isEqualToIgnoringCase(expectedValue);
+  }
+
+  /**
+   * Asserts the attribute value as LDIF to ignore lines ordering.
+   */
+  private static void checkLDIF(Entry entry, String attrName, String... expectedLDIFLines)
+  {
+    final String actualVal = getAttributeValue(entry, attrName);
+    final Set<Set<String>> actual = toLDIFEntries(actualVal.split("\n"));
+    final Set<Set<String>> expected = toLDIFEntries(expectedLDIFLines);
+    assertThat(actual)
+        .as("In entry " + entry + " incorrect value for attr '" + attrName + "'")
+        .isEqualTo(expected);
+  }
+
+  /**
+   * Returns a data structure allowing to compare arbitrary LDIF lines. The
+   * algorithm splits LDIF entries on lines containing only a dash ("-"). It
+   * then returns LDIF entries and lines in an LDIF entry in ordering
+   * insensitive data structures.
+   * <p>
+   * Note: a last line with only a dash ("-") is significant. i.e.:
+   *
+   * <pre>
+   * <code>
+   * boolean b = toLDIFEntries("-").equals(toLDIFEntries()));
+   * System.out.println(b); // prints "false"
+   * </code>
+   * </pre>
+   */
+  private static Set<Set<String>> toLDIFEntries(String... ldifLines)
+  {
+    final Set<Set<String>> results = new HashSet<Set<String>>();
+    Set<String> ldifEntryLines = new HashSet<String>();
+    for (String ldifLine : ldifLines)
+    {
+      if (!"-".equals(ldifLine))
+      {
+        // same entry keep adding
+        ldifEntryLines.add(ldifLine);
+      }
+      else
+      {
+        // this is a new entry
+        results.add(ldifEntryLines);
+        ldifEntryLines = new HashSet<String>();
+      }
+    }
+    results.add(ldifEntryLines);
+    return results;
   }
 
   private static String getAttributeValue(Entry entry, String attrName)
@@ -1245,15 +1300,17 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   private static void checkValues(Entry entry, String attrName,
       Set<String> expectedValues)
   {
+    final Set<String> values = new HashSet<String>();
     for (Attribute a : entry.getAttribute(attrName))
     {
       for (AttributeValue av : a)
       {
-        assertThat(expectedValues)
-            .as("In entry " + entry + " incorrect value for attr '" + attrName + "'")
-            .contains(av.toString());
+        values.add(av.toString());
       }
     }
+    assertThat(values)
+      .as("In entry " + entry + " incorrect values for attr '" + attrName + "'")
+      .isEqualTo(expectedValues);
   }
 
   /**
@@ -2226,16 +2283,19 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     final SearchResultEntry addEntry = entries.get(++i);
     checkValue(addEntry, "changetype", "add");
     commonAssert(addEntry, user1entryUUID, firstChangeNumber, i, tn, csns[i]);
-    String expectedValue1 = "objectClass: domain\nobjectClass: top\n" + "entryUUID: "
-        + user1entryUUID + "\n";
-    checkValue(addEntry, "changes", expectedValue1);
+    checkLDIF(addEntry, "changes",
+        "objectClass: domain",
+        "objectClass: top",
+        "entryUUID: " + user1entryUUID);
 
     // check the MOD entry has the right content
     final SearchResultEntry modEntry = entries.get(++i);
     checkValue(modEntry, "changetype", "modify");
     commonAssert(modEntry, user1entryUUID, firstChangeNumber, i, tn, csns[i]);
-    final String expectedValue = "replace: description\n" + "description: new value\n-\n";
-    checkValue(modEntry, "changes", expectedValue);
+    checkLDIF(modEntry, "changes",
+        "replace: description",
+        "description: new value",
+        "-");
 
     // check the MODDN entry has the right content
     final SearchResultEntry moddnEntry = entries.get(++i);

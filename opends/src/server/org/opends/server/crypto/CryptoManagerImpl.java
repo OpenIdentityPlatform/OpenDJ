@@ -23,12 +23,9 @@
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
  *      Portions Copyright 2009 Parametric Technology Corporation (PTC)
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.crypto;
-
-import org.opends.messages.Message;
-import static org.opends.messages.CoreMessages.*;
 
 import java.io.InputStream;
 import java.io.IOException;
@@ -38,54 +35,54 @@ import java.io.PrintStream;
 import java.security.*;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
+import java.text.ParseException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.DataFormatException;
 import java.util.zip.Deflater;
 import java.util.zip.Inflater;
-import java.text.ParseException;
+
 import javax.crypto.*;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import javax.net.ssl.KeyManager;
-import javax.net.ssl.TrustManager;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509ExtendedKeyManager;
 
 import org.opends.admin.ads.ADSContext;
-import org.opends.server.admin.std.server.CryptoManagerCfg;
+import org.opends.messages.Message;
 import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.server.CryptoManagerCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.backends.TrustStoreBackend;
-import org.opends.server.config.ConfigException;
 import org.opends.server.config.ConfigConstants;
-import org.opends.server.core.DirectoryServer;
+import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyOperation;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.util.StaticUtils.*;
-import org.opends.server.util.Validator;
-import org.opends.server.util.SelectableCertificateKeyManager;
-import org.opends.server.util.StaticUtils;
-import org.opends.server.util.Base64;
-import org.opends.server.util.ServerConstants;
-import static org.opends.server.util.ServerConstants.OC_TOP;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.ExtendedRequestProtocolOp;
-import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.ExtendedResponseProtocolOp;
+import org.opends.server.protocols.ldap.LDAPMessage;
 import org.opends.server.protocols.ldap.LDAPResultCode;
+import org.opends.server.schema.BinarySyntax;
 import org.opends.server.schema.DirectoryStringSyntax;
 import org.opends.server.schema.IntegerSyntax;
-import org.opends.server.schema.BinarySyntax;
 import org.opends.server.tools.LDAPConnection;
 import org.opends.server.tools.LDAPConnectionOptions;
 import org.opends.server.tools.LDAPReader;
 import org.opends.server.tools.LDAPWriter;
 import org.opends.server.types.*;
+import org.opends.server.util.*;
+
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  This class implements the Directory Server cryptographic framework,
@@ -129,87 +126,93 @@ public class CryptoManagerImpl
   private static ObjectClass   ocCipherKey;
   private static ObjectClass   ocMacKey;
 
-  // The DN of the local truststore backend.
+  /** The DN of the local truststore backend. */
   private static DN localTruststoreDN;
 
-  // The DN of the ADS instance keys container.
+  /** The DN of the ADS instance keys container. */
   private static DN instanceKeysDN;
 
-  // The DN of the ADS secret keys container.
+  /** The DN of the ADS secret keys container. */
   private static DN secretKeysDN;
 
-  // The DN of the ADS servers container.
+  /** The DN of the ADS servers container. */
   private static DN serversDN;
 
-  // Indicates whether the schema references have been initialized.
+  /** Indicates whether the schema references have been initialized. */
   private static boolean schemaInitDone = false;
 
-  // The secure random number generator used for key generation,
-  // initialization vector PRNG seed...
+  /**
+   * The secure random number generator used for key generation, initialization
+   * vector PRNG seed...
+   */
   private static final SecureRandom secureRandom = new SecureRandom();
 
-  // The random number generator used for initialization vector
-  // production.
+  /** The random number generator used for initialization vector production. */
   private static final Random pseudoRandom
           = new Random(secureRandom.nextLong());
 
-  // The first byte in any ciphertext produced by CryptoManager is the
-  // prologue version. At present, this constant is both the version written
-  // and the expected version. If a new version is introduced (e.g., to allow
-  // embedding the HMAC key identifier and signature in a signed backup) the
-  // prologue version will likely need to be configurable at the granularity
-  // of the CryptoManager client (e.g., password encryption might use version 1,
-  // while signed backups might use version 2.
+  /**
+   * The first byte in any ciphertext produced by CryptoManager is the prologue
+   * version. At present, this constant is both the version written and the
+   * expected version. If a new version is introduced (e.g., to allow embedding
+   * the HMAC key identifier and signature in a signed backup) the prologue
+   * version will likely need to be configurable at the granularity of the
+   * CryptoManager client (e.g., password encryption might use version 1, while
+   * signed backups might use version 2.
+   */
   private static final int CIPHERTEXT_PROLOGUE_VERSION = 1 ;
 
-  // The map from encryption key ID to CipherKeyEntry (cache). The
-  // cache is accessed by methods that request, publish, and import
-  // keys.
+  /**
+   * The map from encryption key ID to CipherKeyEntry (cache). The cache is
+   * accessed by methods that request, publish, and import keys.
+   */
   private final Map<KeyEntryID, CipherKeyEntry> cipherKeyEntryCache
           = new ConcurrentHashMap<KeyEntryID, CipherKeyEntry>();
 
-  // The map from encryption key ID to MacKeyEntry (cache). The cache
-  // is accessed by methods that request, publish, and import keys.
+  /**
+   * The map from encryption key ID to MacKeyEntry (cache). The cache is
+   * accessed by methods that request, publish, and import keys.
+   */
   private final Map<KeyEntryID, MacKeyEntry> macKeyEntryCache
           = new ConcurrentHashMap<KeyEntryID, MacKeyEntry>();
 
 
-  // The preferred key wrapping transformation
+  /** The preferred key wrapping transformation. */
   private String preferredKeyWrappingTransformation;
 
 
   // TODO: Move the following configuration to backup or backend configuration.
   // TODO: https://opends.dev.java.net/issues/show_bug.cgi?id=2472
 
-  // The preferred message digest algorithm for the Directory Server.
+  /** The preferred message digest algorithm for the Directory Server. */
   private String preferredDigestAlgorithm;
 
-  // The preferred cipher for the Directory Server.
+  /** The preferred cipher for the Directory Server. */
   private String preferredCipherTransformation;
 
-  // The preferred key length for the preferred cipher.
+  /** The preferred key length for the preferred cipher. */
   private int preferredCipherTransformationKeyLengthBits;
 
-  // The preferred MAC algorithm for the Directory Server.
+  /** The preferred MAC algorithm for the Directory Server. */
   private String preferredMACAlgorithm;
 
-  // The preferred key length for the preferred MAC algorithm.
+  /** The preferred key length for the preferred MAC algorithm. */
   private int preferredMACAlgorithmKeyLengthBits;
 
 
   // TODO: Move the following configuration to replication configuration.
   // TODO: https://opends.dev.java.net/issues/show_bug.cgi?id=2473
 
-  // The name of the local certificate to use for SSL.
+  /** The name of the local certificate to use for SSL. */
   private final String sslCertNickname;
 
-  // Whether replication sessions use SSL encryption.
+  /** Whether replication sessions use SSL encryption. */
   private final boolean sslEncryption;
 
-  // The set of SSL protocols enabled or null for the default set.
+  /** The set of SSL protocols enabled or null for the default set. */
   private final SortedSet<String> sslProtocols;
 
-  // The set of SSL cipher suites enabled or null for the default set.
+  /** The set of SSL cipher suites enabled or null for the default set. */
   private final SortedSet<String> sslCipherSuites;
 
 
@@ -295,9 +298,8 @@ public class CryptoManagerImpl
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public boolean isConfigurationChangeAcceptable(
        CryptoManagerCfg cfg,
        List<Message> unacceptableReasons)
@@ -434,23 +436,18 @@ public class CryptoManagerImpl
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
-  public ConfigChangeResult applyConfigurationChange(
-       CryptoManagerCfg cfg)
+  /** {@inheritDoc} */
+  @Override
+  public ConfigChangeResult applyConfigurationChange(CryptoManagerCfg cfg)
   {
-    ResultCode resultCode = ResultCode.SUCCESS;
-    boolean adminActionRequired = false;
-    List<Message> messages = new ArrayList<Message>();
-
     preferredDigestAlgorithm = cfg.getDigestAlgorithm();
     preferredMACAlgorithm = cfg.getMacAlgorithm();
     preferredMACAlgorithmKeyLengthBits = cfg.getMacKeyLength();
     preferredCipherTransformation = cfg.getCipherTransformation();
     preferredCipherTransformationKeyLengthBits = cfg.getCipherKeyLength();
     preferredKeyWrappingTransformation = cfg.getKeyWrappingTransformation();
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return new ConfigChangeResult(ResultCode.SUCCESS, false,
+        new ArrayList<Message>());
   }
 
 
@@ -506,9 +503,7 @@ public class CryptoManagerImpl
             RDN.create(attrKeyID, distinguishedValue));
     // Construct the search filter.
     final String FILTER_OC_INSTANCE_KEY =
-            new StringBuilder("(objectclass=")
-                    .append(ocInstanceKey.getNameOrOID())
-                    .append(")").toString();
+        "(objectclass=" + ocInstanceKey.getNameOrOID() + ")";
     // Construct the attribute list.
     final LinkedHashSet<String> requestedAttributes
             = new LinkedHashSet<String>();
@@ -581,7 +576,7 @@ public class CryptoManagerImpl
         ERR_CRYPTOMGR_FAILED_INSTANCE_CERTIFICATE_NULL.get(entryDN.toString());
         throw new CryptoManagerException(msg);
     }
-    return(certificate);
+    return certificate;
   }
 
 
@@ -656,9 +651,7 @@ public class CryptoManagerImpl
          RDN.create(attrKeyID, distinguishedValue));
     // Construct the search filter.
     final String FILTER_OC_INSTANCE_KEY =
-            new StringBuilder("(objectclass=")
-                    .append(ocInstanceKey.getNameOrOID())
-                    .append(")").toString();
+        "(objectclass=" + ocInstanceKey.getNameOrOID() + ")";
     // Construct the attribute list.
     final LinkedHashSet<String> requestedAttributes
             = new LinkedHashSet<String>();
@@ -736,17 +729,12 @@ public class CryptoManagerImpl
             = new HashMap<String, byte[]>();
     try {
       // Construct the search filter.
-      final String FILTER_OC_INSTANCE_KEY
-              = new StringBuilder("(objectclass=")
-              .append(ocInstanceKey.getNameOrOID())
-              .append(")").toString();
-      final String FILTER_NOT_COMPROMISED = new StringBuilder("(!(")
-              .append(attrCompromisedTime.getNameOrOID())
-              .append("=*))").toString();
-      final String searchFilter = new StringBuilder("(&")
-              .append(FILTER_OC_INSTANCE_KEY)
-              .append(FILTER_NOT_COMPROMISED)
-              .append(")").toString();
+      final String FILTER_OC_INSTANCE_KEY =
+          "(objectclass=" + ocInstanceKey.getNameOrOID() + ")";
+      final String FILTER_NOT_COMPROMISED =
+          "(!(" + attrCompromisedTime.getNameOrOID() + "=*))";
+      final String searchFilter =
+          "(&" + FILTER_OC_INSTANCE_KEY + FILTER_NOT_COMPROMISED + ")";
       // Construct the attribute list.
       final LinkedHashSet<String> requestedAttributes
               = new LinkedHashSet<String>();
@@ -784,7 +772,7 @@ public class CryptoManagerImpl
                     instanceKeysDN.toString(),
                     getExceptionMessage(ex)), ex);
     }
-    return(certificateMap);
+    return certificateMap;
   }
 
 
@@ -1061,7 +1049,9 @@ public class CryptoManagerImpl
                   serversDN, SearchScope.SUBORDINATE_SUBTREE,
                   SearchFilter.createFilterFromString(filter));
         if (internalSearch.getResultCode() != ResultCode.SUCCESS)
+        {
           continue;
+        }
 
         LinkedList<SearchResultEntry> resultEntries =
              internalSearch.getSearchEntries();
@@ -1080,10 +1070,10 @@ public class CryptoManagerImpl
           AtomicInteger nextMessageID = new AtomicInteger(1);
           LDAPConnectionOptions connectionOptions =
                new LDAPConnectionOptions();
-          PrintStream nullPrintStream =
-               new PrintStream(new OutputStream() {
-                 public void write ( int b ) { }
-               });
+          PrintStream nullPrintStream = new PrintStream(new OutputStream() {
+            @Override
+            public void write(int b) {}
+          });
           LDAPConnection connection =
                new LDAPConnection(hostname, ldapPort,
                                   connectionOptions,
@@ -1159,9 +1149,11 @@ public class CryptoManagerImpl
   void importCipherKeyEntry(Entry entry)
        throws CryptoManagerException
   {
-    // Ignore the entry if it does not have the appropriate
-    // objectclass.
-    if (!entry.hasObjectClass(ocCipherKey)) return;
+    // Ignore the entry if it does not have the appropriate objectclass.
+    if (!entry.hasObjectClass(ocCipherKey))
+    {
+      return;
+    }
 
     try
     {
@@ -1194,7 +1186,10 @@ public class CryptoManagerImpl
       for (String symmetricKey : symmetricKeys)
       {
         secretKey = decodeSymmetricKeyAttribute(symmetricKey);
-        if (secretKey != null) break;
+        if (secretKey != null)
+        {
+          break;
+        }
       }
 
       if (null != secretKey) {
@@ -1263,9 +1258,11 @@ public class CryptoManagerImpl
   void importMacKeyEntry(Entry entry)
        throws CryptoManagerException
   {
-    // Ignore the entry if it does not have the appropriate
-    // objectclass.
-    if (!entry.hasObjectClass(ocMacKey)) return;
+    // Ignore the entry if it does not have the appropriate objectclass.
+    if (!entry.hasObjectClass(ocMacKey))
+    {
+      return;
+    }
 
     try
     {
@@ -1295,7 +1292,10 @@ public class CryptoManagerImpl
       for (String symmetricKey : symmetricKeys)
       {
         secretKey = decodeSymmetricKeyAttribute(symmetricKey);
-        if (secretKey != null) break;
+        if (secretKey != null)
+        {
+          break;
+        }
       }
 
       if (secretKey == null)
@@ -1475,6 +1475,7 @@ public class CryptoManagerImpl
      * @return {@code true} if the objects are the same, {@code false}
      * otherwise.
      */
+    @Override
     public boolean equals(final Object obj){
       return obj instanceof KeyEntryID
               && fValue.equals(((KeyEntryID) obj).fValue);
@@ -1485,6 +1486,7 @@ public class CryptoManagerImpl
      *
      * @return a hash code value for this {@code KeyEntryID}.
      */
+    @Override
     public int hashCode() {
       return fValue.hashCode();
     }
@@ -1684,20 +1686,17 @@ public class CryptoManagerImpl
             final String transformation,
             final int keyLengthBits)
     throws CryptoManagerException {
-
-      final Map<KeyEntryID, CipherKeyEntry> cache
-              = (null == cryptoManager)
-              ? null : cryptoManager.cipherKeyEntryCache;
+      final Map<KeyEntryID, CipherKeyEntry> cache =
+          cryptoManager != null ? cryptoManager.cipherKeyEntryCache : null;
 
       CipherKeyEntry keyEntry = new CipherKeyEntry(transformation,
               keyLengthBits);
 
-      // Validate the key entry. Record the initialization vector length, if
-      // any.
+      // Validate the key entry. Record the initialization vector length, if any
       final Cipher cipher = getCipher(keyEntry, Cipher.ENCRYPT_MODE, null);
       // TODO: https://opends.dev.java.net/issues/show_bug.cgi?id=2471
       final byte[] iv = cipher.getIV();
-      keyEntry.setIVLengthBits((null == iv) ? 0 : iv.length * Byte.SIZE);
+      keyEntry.setIVLengthBits(null == iv ? 0 : iv.length * Byte.SIZE);
 
       if (null != cache) {
         /* The key is published to ADS before making it available in the local
@@ -1986,8 +1985,8 @@ public class CryptoManagerImpl
      */
     private static String keyAlgorithmFromTransformation(
             String transformation){
-    final int separatorIndex = transformation.indexOf('/');
-      return (0 < separatorIndex)
+      final int separatorIndex = transformation.indexOf('/');
+      return 0 < separatorIndex
               ? transformation.substring(0, separatorIndex)
               : transformation;
     }
@@ -2239,8 +2238,8 @@ public class CryptoManagerImpl
     throws CryptoManagerException {
       Validator.ensureNotNull(algorithm);
 
-      final Map<KeyEntryID, MacKeyEntry> cache = (null == cryptoManager)
-              ? null : cryptoManager.macKeyEntryCache;
+      final Map<KeyEntryID, MacKeyEntry> cache =
+          cryptoManager != null ? cryptoManager.macKeyEntryCache : null;
 
       final MacKeyEntry keyEntry = new MacKeyEntry(algorithm, keyLengthBits);
 
@@ -2619,6 +2618,7 @@ public class CryptoManagerImpl
 
 
   /** {@inheritDoc} */
+  @Override
   public String getPreferredMessageDigestAlgorithm()
   {
     return preferredDigestAlgorithm;
@@ -2626,6 +2626,7 @@ public class CryptoManagerImpl
 
 
   /** {@inheritDoc} */
+  @Override
   public MessageDigest getPreferredMessageDigest()
          throws NoSuchAlgorithmException
   {
@@ -2634,6 +2635,7 @@ public class CryptoManagerImpl
 
 
   /** {@inheritDoc} */
+  @Override
   public MessageDigest getMessageDigest(String digestAlgorithm)
          throws NoSuchAlgorithmException
   {
@@ -2642,6 +2644,7 @@ public class CryptoManagerImpl
 
 
   /** {@inheritDoc} */
+  @Override
   public byte[] digest(byte[] data)
          throws NoSuchAlgorithmException
   {
@@ -2651,6 +2654,7 @@ public class CryptoManagerImpl
 
 
   /** {@inheritDoc} */
+  @Override
   public byte[] digest(String digestAlgorithm, byte[] data)
          throws NoSuchAlgorithmException
   {
@@ -2659,6 +2663,7 @@ public class CryptoManagerImpl
 
 
   /** {@inheritDoc} */
+  @Override
   public byte[] digest(InputStream inputStream)
          throws IOException, NoSuchAlgorithmException
   {
@@ -2682,6 +2687,7 @@ public class CryptoManagerImpl
 
 
   /** {@inheritDoc} */
+  @Override
   public byte[] digest(String digestAlgorithm,
                        InputStream inputStream)
          throws IOException, NoSuchAlgorithmException
@@ -2705,6 +2711,7 @@ public class CryptoManagerImpl
 
 
   /** {@inheritDoc} */
+  @Override
   public String getMacEngineKeyEntryID()
           throws CryptoManagerException
   {
@@ -2714,6 +2721,7 @@ public class CryptoManagerImpl
 
 
   /** {@inheritDoc} */
+  @Override
   public String getMacEngineKeyEntryID(final String macAlgorithm,
                                        final int keyLengthBits)
          throws CryptoManagerException {
@@ -2731,16 +2739,18 @@ public class CryptoManagerImpl
 
 
   /** {@inheritDoc} */
+  @Override
   public Mac getMacEngine(String keyEntryID)
           throws CryptoManagerException
   {
     final MacKeyEntry keyEntry = MacKeyEntry.getKeyEntry(this,
             new KeyEntryID(keyEntryID));
-    return (null == keyEntry) ? null : getMacEngine(keyEntry);
+    return keyEntry != null ? getMacEngine(keyEntry) : null;
   }
 
 
   /** {@inheritDoc} */
+  @Override
   public byte[] encrypt(byte[] data)
          throws GeneralSecurityException, CryptoManagerException
   {
@@ -2750,6 +2760,7 @@ public class CryptoManagerImpl
 
 
   /** {@inheritDoc} */
+  @Override
   public byte[] encrypt(String cipherTransformation,
                         int keyLengthBits,
                         byte[] data)
@@ -2769,7 +2780,7 @@ public class CryptoManagerImpl
     final byte[] keyID = keyEntry.getKeyID().getByteValue();
     final byte[] iv = cipher.getIV();
     final int prologueLength
-            = /* version */ 1 + keyID.length + ((null == iv) ? 0 : iv.length);
+            = /* version */ 1 + keyID.length + (iv != null ? iv.length : 0);
     final int dataLength = cipher.getOutputSize(data.length);
     final byte[] cipherText = new byte[prologueLength + dataLength];
     int writeIndex = 0;
@@ -2787,6 +2798,7 @@ public class CryptoManagerImpl
 
 
   /** {@inheritDoc} */
+  @Override
   public CipherOutputStream getCipherOutputStream(
           OutputStream outputStream) throws CryptoManagerException
   {
@@ -2796,6 +2808,7 @@ public class CryptoManagerImpl
 
 
   /** {@inheritDoc} */
+  @Override
   public CipherOutputStream getCipherOutputStream(
           String cipherTransformation, int keyLengthBits,
           OutputStream outputStream)
@@ -2833,6 +2846,7 @@ public class CryptoManagerImpl
 
 
   /** {@inheritDoc} */
+  @Override
   public byte[] decrypt(byte[] data)
          throws GeneralSecurityException,
                 CryptoManagerException
@@ -2905,9 +2919,12 @@ public class CryptoManagerImpl
 
     final Cipher cipher = getCipher(keyEntry, Cipher.DECRYPT_MODE, iv);
     if(data.length - readIndex > 0)
-          return cipher.doFinal(data, readIndex, data.length - readIndex);
-    else {
-      //IBM Java 6 throws an IllegalArgumentException when there's n
+    {
+      return cipher.doFinal(data, readIndex, data.length - readIndex);
+    }
+    else
+    {
+      // IBM Java 6 throws an IllegalArgumentException when there's no
       // data to process.
       return cipher.doFinal();
     }
@@ -2915,6 +2932,7 @@ public class CryptoManagerImpl
 
 
  /** {@inheritDoc} */
+  @Override
   public CipherInputStream getCipherInputStream(
           InputStream inputStream) throws CryptoManagerException
   {
@@ -2972,6 +2990,7 @@ public class CryptoManagerImpl
 
 
   /** {@inheritDoc} */
+  @Override
   public int compress(byte[] src, int srcOff, int srcLen,
                       byte[] dst, int dstOff, int dstLen)
   {
@@ -2999,6 +3018,7 @@ public class CryptoManagerImpl
 
 
   /** {@inheritDoc} */
+  @Override
   public int uncompress(byte[] src, int srcOff, int srcLen,
                         byte[] dst, int dstOff, int dstLen)
          throws DataFormatException
@@ -3033,6 +3053,7 @@ public class CryptoManagerImpl
 
 
   /** {@inheritDoc} */
+  @Override
   public SSLContext getSslContext(String sslCertNickname)
        throws ConfigException
   {
@@ -3077,24 +3098,28 @@ public class CryptoManagerImpl
 
 
   /** {@inheritDoc} */
+  @Override
   public String getSslCertNickname()
   {
     return sslCertNickname;
   }
 
   /** {@inheritDoc} */
+  @Override
   public boolean isSslEncryption()
   {
     return sslEncryption;
   }
 
   /** {@inheritDoc} */
+  @Override
   public SortedSet<String> getSslProtocols()
   {
     return sslProtocols;
   }
 
   /** {@inheritDoc} */
+  @Override
   public SortedSet<String> getSslCipherSuites()
   {
     return sslCipherSuites;
