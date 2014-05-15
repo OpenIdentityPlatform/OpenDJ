@@ -729,9 +729,8 @@ public class LocalBackendBindOperation
           saslAuthUserEntry, false);
       if (authPolicyState.isPasswordPolicy())
       {
-        // Account is managed locally: perform password policy checks that will
-        // need to be completed regardless of whether the authentication was
-        // successful.
+        // Account is managed locally: perform password policy checks that can
+        // be completed before we have checked authentication was successful.
         checkUnverifiedPasswordPolicyState(saslAuthUserEntry, saslHandler);
       }
     }
