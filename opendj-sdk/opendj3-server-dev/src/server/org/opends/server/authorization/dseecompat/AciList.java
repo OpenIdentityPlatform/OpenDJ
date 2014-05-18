@@ -362,11 +362,7 @@ public class AciList {
       {
         return false;
       }
-      if (hasAci && aciList.remove(entryDN) == null)
-      {
-        return false;
-      }
-      if (!hasGlobalAci && !hasAci)
+      if (hasAci || !hasGlobalAci)
       {
         return aciList.removeSubtree(entryDN, null);
       }
