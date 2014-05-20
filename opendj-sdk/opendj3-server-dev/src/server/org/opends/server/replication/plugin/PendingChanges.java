@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -46,7 +46,7 @@ import org.opends.server.types.operation.PluginOperation;
  *
  * On object of this class is instantiated for each ReplicationDomain.
  */
-public class PendingChanges
+class PendingChanges
 {
   /**
    * A map used to store the pending changes.
@@ -73,8 +73,7 @@ public class PendingChanges
    * @param csnGenerator The CSNGenerator to use to create new unique CSNs.
    * @param domain  The ReplicationDomain that will be used to send UpdateMsg.
    */
-  public PendingChanges(
-      CSNGenerator csnGenerator, ReplicationDomain domain)
+  PendingChanges(CSNGenerator csnGenerator, ReplicationDomain domain)
   {
     this.csnGenerator = csnGenerator;
     this.domain = domain;
@@ -85,11 +84,10 @@ public class PendingChanges
    *
    * @param csn
    *          The CSN of the update to remove.
-   * @return The UpdateMsg that was just removed.
    */
-  public synchronized LDAPUpdateMsg remove(CSN csn)
+  synchronized void remove(CSN csn)
   {
-    return pendingChanges.remove(csn).getMsg();
+    pendingChanges.remove(csn);
   }
 
   /**
@@ -97,7 +95,7 @@ public class PendingChanges
    *
    * @return The number of update currently in the list.
    */
-  public int size()
+  int size()
   {
     return pendingChanges.size();
   }
@@ -108,30 +106,15 @@ public class PendingChanges
    * @param csn The CSN of the update message that must be set as committed.
    * @param msg          The message associated to the update.
    */
-  public synchronized void commit(CSN csn,      LDAPUpdateMsg msg)
+  private synchronized void commit(CSN csn, LDAPUpdateMsg msg)
   {
-    PendingChange curChange = pendingChanges.get(csn);
+    final PendingChange curChange = pendingChanges.get(csn);
     if (curChange == null)
     {
       throw new NoSuchElementException();
     }
     curChange.setCommitted(true);
     curChange.setMsg(msg);
-  }
-
-  /**
-   * Mark an update message as committed.
-   *
-   * @param csn The CSN of the update message that must be set as committed.
-   */
-  public synchronized void commit(CSN csn)
-  {
-    PendingChange curChange = pendingChanges.get(csn);
-    if (curChange == null)
-    {
-      throw new NoSuchElementException();
-    }
-    curChange.setCommitted(true);
   }
 
   /**
@@ -142,10 +125,10 @@ public class PendingChanges
    *                  be added in the pending list.
    * @return The CSN now associated to the operation.
    */
-  public synchronized CSN putLocalOperation(PluginOperation operation)
+  synchronized CSN putLocalOperation(PluginOperation operation)
   {
-    CSN csn = csnGenerator.newCSN();
-    PendingChange change = new PendingChange(csn, operation, null);
+    final CSN csn = csnGenerator.newCSN();
+    final PendingChange change = new PendingChange(csn, operation, null);
     pendingChanges.put(csn, change);
     return csn;
   }
@@ -155,7 +138,7 @@ public class PendingChanges
    *
    * @return The number of pushed updates.
    */
-  public synchronized int pushCommittedChanges()
+  synchronized int pushCommittedChanges()
   {
     int numSentUpdates = 0;
     if (pendingChanges.isEmpty())
@@ -169,11 +152,11 @@ public class PendingChanges
 
     while (firstChange != null && firstChange.isCommitted())
     {
-      if (firstChange.getOp() != null
-          && !firstChange.getOp().isSynchronizationOperation())
+      final PluginOperation op = firstChange.getOp();
+      if (op != null && !op.isSynchronizationOperation())
       {
         numSentUpdates++;
-        LDAPUpdateMsg updateMsg = firstChange.getMsg();
+        final LDAPUpdateMsg updateMsg = firstChange.getMsg();
         if (!recoveringOldChanges)
         {
           domain.publish(updateMsg);
@@ -212,8 +195,7 @@ public class PendingChanges
    *
    * @return The number of pushed updates.
    */
-  public synchronized int commitAndPushCommittedChanges(CSN csn,
-      LDAPUpdateMsg msg)
+  synchronized int commitAndPushCommittedChanges(CSN csn, LDAPUpdateMsg msg)
   {
     commit(csn, msg);
     return pushCommittedChanges();
@@ -248,9 +230,9 @@ public class PendingChanges
    * @return A boolean indicating if the recovery is completed (false) or must
    *         continue (true).
    */
-  public synchronized boolean recoveryUntil(CSN recovered)
+  synchronized boolean recoveryUntil(CSN recovered)
   {
-    CSN lastLocalChange = domain.getLastLocalChange();
+    final CSN lastLocalChange = domain.getLastLocalChange();
     if (recovered != null && recovered.isNewerThanOrEqualTo(lastLocalChange))
     {
       recoveringOldChanges = false;
