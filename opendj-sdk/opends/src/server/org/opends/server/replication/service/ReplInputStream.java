@@ -22,31 +22,26 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.replication.service;
 
-
-
 import java.io.IOException;
 import java.io.InputStream;
-
 
 /**
  * This class creates an input stream that can be used to read entries generated
  * by SynchroLDIF as if they were being read from another source like a file.
  */
-public class ReplInputStream
-extends InputStream
+class ReplInputStream extends InputStream
 {
-  // Indicates whether this input stream has been closed.
+  /** Indicates whether this input stream has been closed. */
   private boolean closed;
 
-  // The domain associated to this import.
-  ReplicationDomain domain;
+  /** The domain associated to this import. */
+  private final ReplicationDomain domain;
 
   private byte[] bytes;
-
   private int index;
 
   /**
@@ -55,7 +50,7 @@ extends InputStream
    *
    * @param domain The replication domain
    */
-  public ReplInputStream(ReplicationDomain domain)
+  ReplInputStream(ReplicationDomain domain)
   {
     this.domain = domain;
     closed      = false;
@@ -64,6 +59,7 @@ extends InputStream
   /**
    * Closes this input stream so that no more data may be read from it.
    */
+  @Override
   public void close()
   {
     closed      = true;
@@ -84,11 +80,13 @@ extends InputStream
    * @throws  IOException  If a problem has occurred while generating data for
    *                       use by this input stream.
    */
-  public int read(byte[] b, int off, int len)
-  throws IOException
+  @Override
+  public int read(byte[] b, int off, int len) throws IOException
   {
     if (closed)
+    {
       return -1;
+    }
 
     int receivedLength;
     int copiedLength;
@@ -128,7 +126,9 @@ extends InputStream
     index += copiedLength;
 
     if (index == bytes.length)
+    {
       bytes = null;
+    }
 
     return copiedLength;
   }
@@ -142,8 +142,8 @@ extends InputStream
    * @throws  IOException  If a problem has occurred while generating data for
    *                       use by this input stream.
    */
-  public int read()
-          throws IOException
+  @Override
+  public int read() throws IOException
   {
     if (closed) {
       return -1;
@@ -155,6 +155,6 @@ extends InputStream
       throw new IOException();
     }
 
-    return ((int)b[0]);
+    return b[0];
   }
 }

@@ -45,7 +45,7 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
  * <p>
  * These heartbeat messages are sent by a replica directory server.
  */
-public class CTHeartbeatPublisherThread extends DirectoryThread
+class CTHeartbeatPublisherThread extends DirectoryThread
 {
   /**
    * The tracer object for the debug logger.
@@ -77,8 +77,8 @@ public class CTHeartbeatPublisherThread extends DirectoryThread
    *                          (in milliseconds).
    * @param serverId The serverId of the sender domain.
    */
-  public CTHeartbeatPublisherThread(String threadName, Session session,
-                  long heartbeatInterval, int serverId)
+  CTHeartbeatPublisherThread(String threadName, Session session,
+      long heartbeatInterval, int serverId)
   {
     super(threadName);
     this.session = session;
@@ -180,7 +180,7 @@ public class CTHeartbeatPublisherThread extends DirectoryThread
    * Call this method to stop the thread.
    * This method is blocking until the thread has stopped.
    */
-  public void shutdown()
+  void shutdown()
   {
     synchronized (shutdownLock)
     {

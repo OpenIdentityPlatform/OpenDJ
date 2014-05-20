@@ -1141,7 +1141,7 @@ public abstract class ReplicationDomain
     private DirectoryException exception;
 
     /** Whether the context is related to an import or an export. */
-    private boolean importInProgress;
+    private final boolean importInProgress;
 
     /** Current counter of messages exchanged during the initialization. */
     private int msgCnt = 0;
@@ -1161,19 +1161,19 @@ public abstract class ReplicationDomain
      * Start time of the initialization process. ErrorMsg timestamped before
      * this startTime will be ignored.
      */
-    private long startTime;
+    private final long startTime;
 
     /**
      * List for replicas (DS) connected to the topology when initialization
      * started.
      */
-    private Set<Integer> startList = new HashSet<Integer>(0);
+    private final Set<Integer> startList = new HashSet<Integer>(0);
 
     /**
      * List for replicas (DS) with a failure (disconnected from the topology)
      * since the initialization started.
      */
-    private Set<Integer> failureList = new HashSet<Integer>(0);
+    private final Set<Integer> failureList = new HashSet<Integer>(0);
 
     /**
      * Flow control during initialization: for each remote server, counter of
