@@ -22,9 +22,9 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS.
  */
 package org.opends.server.replication.service;
-
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -33,15 +33,13 @@ import java.io.OutputStream;
  * This class creates an output stream that can be used to export entries
  * to a synchronization domain.
  */
-public class ReplOutputStream
-       extends OutputStream
+class ReplOutputStream extends OutputStream
 {
-  // The synchronization domain on which the export is done
-  ReplicationDomain domain;
+  /** The synchronization domain on which the export is done */
+  private final ReplicationDomain domain;
 
-  // The current number of entries exported
-  private long numExportedEntries;
-  String entryBuffer = "";
+  /** The current number of entries exported */
+  private final long numExportedEntries = 0;
 
   /**
    * Creates a new ReplLDIFOutputStream related to a replication
@@ -49,23 +47,20 @@ public class ReplOutputStream
    *
    * @param domain The replication domain
    */
-  public ReplOutputStream(ReplicationDomain domain)
+  ReplOutputStream(ReplicationDomain domain)
   {
     this.domain = domain;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public void write(int i) throws IOException
   {
     throw new IOException("Invalid call");
   }
 
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public void write(byte b[], int off, int len) throws IOException
   {
     domain.exportLDIFEntry(b, off, len);
