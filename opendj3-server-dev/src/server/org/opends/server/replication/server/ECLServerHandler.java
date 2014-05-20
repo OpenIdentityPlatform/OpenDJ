@@ -393,7 +393,9 @@ public final class ECLServerHandler extends ServerHandler
       // until here session is encrypted then it depends on the negotiation
       // The session initiator decides whether to use SSL.
       if (!sessionInitiatorSSLEncryption)
+      {
         session.stopEncryption();
+      }
 
       // wait and process StartSessionMsg from remote RS
       StartECLSessionMsg inStartECLSessionMsg =
@@ -659,8 +661,10 @@ public final class ECLServerHandler extends ServerHandler
               e);
     }
     if (logger.isTraceEnabled())
+    {
       logger.trace("initializeChangelogDomainCtxts() ends with "
           + dumpState());
+    }
   }
 
   private Set<DomainContext> buildDomainContexts(String providedCookie,
@@ -685,7 +689,9 @@ public final class ECLServerHandler extends ServerHandler
     {
       // skip the 'unreal' changelog domain
       if (domain == this.replicationServerDomain)
+      {
         continue;
+      }
 
       // skip the excluded domains
       Set<String> excludedBaseDNs = startECLSessionMsg.getExcludedBaseDNs();
@@ -693,14 +699,18 @@ public final class ECLServerHandler extends ServerHandler
       {
         // this is an excluded domain
         if (allowUnknownDomains)
+        {
           startStatesFromProvidedCookie.remove(domain.getBaseDN());
+        }
         continue;
       }
 
       // skip unused domains
       final ServerState latestState = domain.getLatestServerState();
       if (latestState.isEmpty())
+      {
         continue;
+      }
 
       // Creates the new domain context
       final DomainContext newDomainCtxt;
@@ -852,7 +862,9 @@ public final class ECLServerHandler extends ServerHandler
   public void shutdown()
   {
     if (logger.isTraceEnabled())
+    {
       logger.trace(this + " shutdown()");
+    }
     releaseCursor();
     for (DomainContext domainCtxt : domainCtxts) {
       if (!domainCtxt.unRegisterHandler()) {
@@ -1006,8 +1018,10 @@ public final class ECLServerHandler extends ServerHandler
     registerIntoDomain();
 
     if (logger.isTraceEnabled())
+    {
       logger.trace(getClass().getCanonicalName() + " " + getOperationId()
           + " initialized: " + " " + dumpState() + domaimCtxtsToString(""));
+    }
   }
 
   private void initializeChangelogSearch(StartECLSessionMsg msg)
@@ -1037,7 +1051,9 @@ public final class ECLServerHandler extends ServerHandler
 
     // TODO:ECL We should refactor so that a SH always have a session
     if (session == null)
+    {
       return msg;
+    }
 
     boolean interrupted = true;
     boolean acquired = false;
@@ -1073,7 +1089,9 @@ public final class ECLServerHandler extends ServerHandler
     {
       ECLUpdateMsg eclMsg = getNextECLUpdate();
       if (eclMsg != null)
+      {
         return eclMsg.getUpdateMsg();
+      }
     }
     catch(DirectoryException de)
     {
@@ -1195,14 +1213,18 @@ public final class ECLServerHandler extends ServerHandler
     {
       final CSN csn = oldestChange.getUpdateMsg().getCSN();
       if (logger.isTraceEnabled())
+      {
         logger.trace("getNextECLUpdate updates previousCookie:" + csn);
+      }
 
       previousCookie.update(oldestChange.getBaseDN(), csn);
       oldestChange.setCookie(previousCookie);
 
       if (logger.isTraceEnabled())
+      {
         logger.trace("getNextECLUpdate returns result oldestChange="
             + oldestChange);
+      }
     }
     return oldestChange;
   }
@@ -1257,10 +1279,12 @@ public final class ECLServerHandler extends ServerHandler
       final DN baseDNFromCNIndexDB = currentRecord.getBaseDN();
 
       if (logger.isTraceEnabled())
+      {
         logger.trace("assignChangeNumber() comparing the replicaDB's and"
             + " CNIndexDB's baseDNs :" + baseDNFromReplicaDB + "?="
             + baseDNFromCNIndexDB + " timestamps:" + asDate(csnFromReplicaDB)
             + " ?older" + asDate(csnFromCNIndexDB));
+      }
 
       if (areSameChange(csnFromReplicaDB, baseDNFromReplicaDB,
           csnFromCNIndexDB, baseDNFromCNIndexDB))
@@ -1272,13 +1296,12 @@ public final class ECLServerHandler extends ServerHandler
               + currentRecord.getChangeNumber() + " to change="
               + replicaDBChange);
 
-        previousCookie =
-            new MultiDomainServerState(currentRecord.getPreviousCookie());
+        previousCookie.update(
+            new MultiDomainServerState(currentRecord.getPreviousCookie()));
         replicaDBChange.setCookie(previousCookie);
         replicaDBChange.setChangeNumber(currentRecord.getChangeNumber());
         return true;
       }
-
 
       if (!csnFromCNIndexDB.isOlderThan(csnFromReplicaDB))
       {
@@ -1290,7 +1313,6 @@ public final class ECLServerHandler extends ServerHandler
               + " and read next change from the regular changelog.");
         return false; // TO BE CHECKED
       }
-
 
       // The change from the CNIndexDB is older.
       // It means that the CNIndexDB change has been purged from the replicaDB
@@ -1340,8 +1362,10 @@ public final class ECLServerHandler extends ServerHandler
     // starvation of changelog messages
     // all domain have been unactived means are covered
     if (logger.isTraceEnabled())
+    {
       logger.trace("In cn=changelog" + "," + this + " closeInitPhase(): "
           + dumpState());
+    }
 
     // go to persistent phase if one
     for (DomainContext domainCtxt : domainCtxts) domainCtxt.active = true;
