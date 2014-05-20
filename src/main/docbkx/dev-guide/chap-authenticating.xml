@@ -104,28 +104,31 @@
   factory in order to set an SSL context, and set whether to use Start TLS.
   The SSL context lets you set a trust manager to check server certificates,
   and also set a key manager to provide keys when the server needs to check
-  your client certificates. In the simplest, not-so-secure case, you can
-  set up a trust manager that trusts all certificates.</para>
+  your client certificates.</para>
   
   <para>The following example is an excerpt from the OpenDJ LDAP SDK example,
   <filename>SimpleAuth.java</filename>.</para>
   
   <programlisting language="java"
-  >[jcp:org.forgerock.opendj.examples.SimpleAuth:--- JCite trust all ---]</programlisting>
+  >[jcp:org.forgerock.opendj.examples.SimpleAuth:--- JCite trust options ---]</programlisting>
   
-  <para>A more secure and extensive SSL context would include a trust manager
-  using a trust store and trust manager methods to check server certificates.
-  If you also want to be able to authenticate to the server using your client
-  certificate, you would need a key manager.</para>
+  <para>
+   This implementation relies on a Java Key Store format trust store,
+   and trust manager methods to check server certificates.
+   If you also want to be able to authenticate to the server
+   using your client certificate, then you would need a key manager, too.
+  </para>
   
-  <para>The authentication over SSL or using Start TLS in the trust-all case is
-  much like simple authentication over LDAP without connection-level security.
-  The primary differences are that you pass the <literal>LDAPOptions</literal>
-  to the LDAP connection factory, and that you handle the potential security
-  exception involved in setting up the SSL context.</para>
+  <para>
+   The authentication over SSL or using Start TLS is
+   much like simple authentication over LDAP without connection-level security.
+   The primary differences are that you pass the <literal>LDAPOptions</literal>
+   to the LDAP connection factory, and that you handle the potential security
+   exception involved in setting up the SSL context.
+  </para>
   
   <programlisting language="java"
-  >[jcp:org.forgerock.opendj.examples.SimpleAuth:--- JCite trust all connect ---]</programlisting>
+  >[jcp:org.forgerock.opendj.examples.SimpleAuth:--- JCite secure connect ---]</programlisting>
 
   <para>For a complete example in context, see <link
   xlink:href="http://opendj.forgerock.org/opendj-ldap-sdk-examples/xref/org/forgerock/opendj/examples/SimpleAuth.html"
