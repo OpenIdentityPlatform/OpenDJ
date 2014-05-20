@@ -26,18 +26,15 @@
  */
 package org.opends.server.replication.plugin;
 
-import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import org.opends.server.admin.server.ConfigurationAddListener;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.server.ConfigurationDeleteListener;
 import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn.AssuredType;
 import org.opends.server.admin.std.meta.ReplicationDomainCfgDefn.IsolationPolicy;
 import org.opends.server.admin.std.server.ExternalChangelogDomainCfg;
 import org.opends.server.admin.std.server.ReplicationDomainCfg;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 
@@ -47,9 +44,9 @@ import org.opends.server.types.DirectoryException;
  */
 public class DomainFakeCfg implements ReplicationDomainCfg
 {
-  private DN baseDN;
-  private int serverId;
-  private SortedSet<String> replicationServers;
+  private final DN baseDN;
+  private final int serverId;
+  private final SortedSet<String> replicationServers;
   private long heartbeatInterval = 1000;
 
   /**
@@ -67,12 +64,12 @@ public class DomainFakeCfg implements ReplicationDomainCfg
   /** Timeout (in milliseconds) when waiting for acknowledgments */
   private long assuredTimeout = 1000;
   /** Group id */
-  private int groupId = 1;
+  private final int groupId;
   /** Referrals urls to be published to other servers of the topology */
   private SortedSet<String> refUrls = new TreeSet<String>();
 
-  private SortedSet<String> fractionalExcludes = new TreeSet<String>();
-  private SortedSet<String> fractionalIncludes = new TreeSet<String>();
+  private final SortedSet<String> fractionalExcludes = new TreeSet<String>();
+  private final SortedSet<String> fractionalIncludes = new TreeSet<String>();
 
   private ExternalChangelogDomainCfg eclCfg =
     new ExternalChangelogDomainFakeCfg(true, null, null);
@@ -84,33 +81,7 @@ public class DomainFakeCfg implements ReplicationDomainCfg
    */
   public DomainFakeCfg(DN baseDN, int serverId, SortedSet<String> replServers)
   {
-    this.baseDN = baseDN;
-    this.serverId = serverId;
-    this.replicationServers = replServers;
-  }
-
-  /**
-   * Creates a new Domain with the provided information
-   * (with some fractional configuration provided)
-   */
-  public DomainFakeCfg(DN baseDN, int serverId, SortedSet<String> replServers,
-    List<String> fractionalExcludes, List<String> fractionalIncludes)
-  {
-    this(baseDN, serverId, replServers);
-    if (fractionalExcludes != null)
-    {
-      for (String str : fractionalExcludes)
-      {
-        this.fractionalExcludes.add(str);
-      }
-    }
-    if (fractionalIncludes != null)
-    {
-      for (String str : fractionalIncludes)
-      {
-        this.fractionalIncludes.add(str);
-      }
-    }
+    this(baseDN, serverId, replServers, -1);
   }
 
   /**
@@ -120,7 +91,9 @@ public class DomainFakeCfg implements ReplicationDomainCfg
   public DomainFakeCfg(DN baseDN, int serverId, SortedSet<String> replServers,
     int groupId)
   {
-    this(baseDN, serverId, replServers);
+    this.baseDN = baseDN;
+    this.serverId = serverId;
+    this.replicationServers = replServers;
     this.groupId = groupId;
   }
 
@@ -132,7 +105,7 @@ public class DomainFakeCfg implements ReplicationDomainCfg
     AssuredType assuredType, int assuredSdLevel, int groupId,
     long assuredTimeout, SortedSet<String> refUrls)
   {
-    this(baseDN, serverId, replServers);
+    this(baseDN, serverId, replServers, groupId);
     switch(assuredType)
     {
       case NOT_ASSURED:
@@ -143,28 +116,9 @@ public class DomainFakeCfg implements ReplicationDomainCfg
         break;
     }
     this.assuredSdLevel = assuredSdLevel;
-    this.groupId = groupId;
     this.assuredTimeout = assuredTimeout;
     if (refUrls != null)
       this.refUrls = refUrls;
-  }
-
-  /**
-   * Create a new Domain from the provided arguments.
-   *
-   * @param baseDN         The baseDN in string form.
-   * @param serverId       The serverID.
-   * @param replServer     The replication Server that will be used.
-   *
-   * @throws DirectoryException  When the provided string is not a valid DN.
-   */
-  public DomainFakeCfg(String baseDN, int serverId, String replServer)
-         throws DirectoryException
-  {
-    this.replicationServers = new TreeSet<String>();
-    this.replicationServers.add(replServer);
-    this.baseDN = DN.valueOf(baseDN);
-    this.serverId = serverId;
   }
 
   /**
@@ -378,54 +332,6 @@ public class DomainFakeCfg implements ReplicationDomainCfg
   public void  setExternalChangelogDomain(ExternalChangelogDomainCfg eclCfg)
   throws ConfigException
   { this.eclCfg=eclCfg;}
-
-
-
-  /**
-   * Registers to be notified when the ECL Domain is added.
-   *
-   * @param listener
-   *          The ECL Domain configuration add listener.
-   * @throws ConfigException
-   *          If the add listener could not be registered.
-   */
-  public void addECLDomainAddListener(
-      ConfigurationAddListener<ExternalChangelogDomainCfg> listener)
-      throws ConfigException
-  {}
-
-  /**
-   * Deregisters an existing ECL Domain configuration add listener.
-   *
-   * @param listener
-   *          The ECL Domain configuration add listener.
-   */
-  public void removeECLDomainAddListener(
-      ConfigurationAddListener<ExternalChangelogDomainCfg> listener)
-  {}
-
-  /**
-   * Registers to be notified the ECL Domain is deleted.
-   *
-   * @param listener
-   *          The ECL Domain configuration delete listener.
-   * @throws ConfigException
-   *          If the delete listener could not be registered.
-   */
-  public void addECLDomainDeleteListener(
-      ConfigurationDeleteListener<ExternalChangelogDomainCfg> listener)
-      throws ConfigException
-  {}
-
-  /**
-   * Deregisters an existing ECL Domain configuration delete listener.
-   *
-   * @param listener
-   *          The ECL Domain configuration delete listener.
-   */
-  public void removeECLDomainDeleteListener(
-      ConfigurationDeleteListener<ExternalChangelogDomainCfg> listener)
-  {}
 
   @Override
   public boolean isLogChangenumber()

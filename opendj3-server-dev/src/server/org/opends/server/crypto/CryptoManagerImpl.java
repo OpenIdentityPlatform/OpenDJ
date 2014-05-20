@@ -27,7 +27,11 @@
  */
 package org.opends.server.crypto;
 
-import java.io.*;
+import java.io.InputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.PrintStream;
 import java.security.*;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
@@ -153,9 +157,7 @@ public class CryptoManagerImpl
    */
   private static final SecureRandom secureRandom = new SecureRandom();
 
-  /**
-   * The random number generator used for initialization vector production.
-   */
+  /** The random number generator used for initialization vector production. */
   private static final Random pseudoRandom
           = new Random(secureRandom.nextLong());
 
@@ -440,20 +442,16 @@ public class CryptoManagerImpl
 
   /** {@inheritDoc} */
   @Override
-  public ConfigChangeResult applyConfigurationChange(
-       CryptoManagerCfg cfg)
+  public ConfigChangeResult applyConfigurationChange(CryptoManagerCfg cfg)
   {
-    ResultCode resultCode = ResultCode.SUCCESS;
-    boolean adminActionRequired = false;
-    List<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
-
     preferredDigestAlgorithm = cfg.getDigestAlgorithm();
     preferredMACAlgorithm = cfg.getMacAlgorithm();
     preferredMACAlgorithmKeyLengthBits = cfg.getMacKeyLength();
     preferredCipherTransformation = cfg.getCipherTransformation();
     preferredCipherTransformationKeyLengthBits = cfg.getCipherKeyLength();
     preferredKeyWrappingTransformation = cfg.getKeyWrappingTransformation();
-    return new ConfigChangeResult(resultCode, adminActionRequired, messages);
+    return new ConfigChangeResult(ResultCode.SUCCESS, false,
+        new ArrayList<LocalizableMessage>());
   }
 
 
@@ -1020,7 +1018,9 @@ public class CryptoManagerImpl
                   serversDN, SearchScope.SUBORDINATES,
                   SearchFilter.createFilterFromString(filter));
         if (internalSearch.getResultCode() != ResultCode.SUCCESS)
+        {
           continue;
+        }
 
         LinkedList<SearchResultEntry> resultEntries =
              internalSearch.getSearchEntries();
@@ -1113,9 +1113,11 @@ public class CryptoManagerImpl
   void importCipherKeyEntry(Entry entry)
        throws CryptoManagerException
   {
-    // Ignore the entry if it does not have the appropriate
-    // objectclass.
-    if (!entry.hasObjectClass(ocCipherKey)) return;
+    // Ignore the entry if it does not have the appropriate objectclass.
+    if (!entry.hasObjectClass(ocCipherKey))
+    {
+      return;
+    }
 
     try
     {
@@ -1140,7 +1142,10 @@ public class CryptoManagerImpl
       for (String symmetricKey : symmetricKeys)
       {
         secretKey = decodeSymmetricKeyAttribute(symmetricKey);
-        if (secretKey != null) break;
+        if (secretKey != null)
+        {
+          break;
+        }
       }
 
       if (null != secretKey) {
@@ -1208,9 +1213,11 @@ public class CryptoManagerImpl
   void importMacKeyEntry(Entry entry)
        throws CryptoManagerException
   {
-    // Ignore the entry if it does not have the appropriate
-    // objectclass.
-    if (!entry.hasObjectClass(ocMacKey)) return;
+    // Ignore the entry if it does not have the appropriate objectclass.
+    if (!entry.hasObjectClass(ocMacKey))
+    {
+      return;
+    }
 
     try
     {
@@ -1233,7 +1240,10 @@ public class CryptoManagerImpl
       for (String symmetricKey : symmetricKeys)
       {
         secretKey = decodeSymmetricKeyAttribute(symmetricKey);
-        if (secretKey != null) break;
+        if (secretKey != null)
+        {
+          break;
+        }
       }
 
       if (secretKey == null)
@@ -1630,20 +1640,17 @@ public class CryptoManagerImpl
             final String transformation,
             final int keyLengthBits)
     throws CryptoManagerException {
-
-      final Map<KeyEntryID, CipherKeyEntry> cache
-              = (null == cryptoManager)
-              ? null : cryptoManager.cipherKeyEntryCache;
+      final Map<KeyEntryID, CipherKeyEntry> cache =
+          cryptoManager != null ? cryptoManager.cipherKeyEntryCache : null;
 
       CipherKeyEntry keyEntry = new CipherKeyEntry(transformation,
               keyLengthBits);
 
-      // Validate the key entry. Record the initialization vector length, if
-      // any.
+      // Validate the key entry. Record the initialization vector length, if any
       final Cipher cipher = getCipher(keyEntry, Cipher.ENCRYPT_MODE, null);
       // TODO: https://opends.dev.java.net/issues/show_bug.cgi?id=2471
       final byte[] iv = cipher.getIV();
-      keyEntry.setIVLengthBits((null == iv) ? 0 : iv.length * Byte.SIZE);
+      keyEntry.setIVLengthBits(null == iv ? 0 : iv.length * Byte.SIZE);
 
       if (null != cache) {
         /* The key is published to ADS before making it available in the local
@@ -1918,8 +1925,8 @@ public class CryptoManagerImpl
      */
     private static String keyAlgorithmFromTransformation(
             String transformation){
-    final int separatorIndex = transformation.indexOf('/');
-      return (0 < separatorIndex)
+      final int separatorIndex = transformation.indexOf('/');
+      return 0 < separatorIndex
               ? transformation.substring(0, separatorIndex)
               : transformation;
     }
@@ -2167,8 +2174,8 @@ public class CryptoManagerImpl
     throws CryptoManagerException {
       Reject.ifNull(algorithm);
 
-      final Map<KeyEntryID, MacKeyEntry> cache = (null == cryptoManager)
-              ? null : cryptoManager.macKeyEntryCache;
+      final Map<KeyEntryID, MacKeyEntry> cache =
+          cryptoManager != null ? cryptoManager.macKeyEntryCache : null;
 
       final MacKeyEntry keyEntry = new MacKeyEntry(algorithm, keyLengthBits);
 
@@ -2657,7 +2664,7 @@ public class CryptoManagerImpl
   {
     final MacKeyEntry keyEntry = MacKeyEntry.getKeyEntry(this,
             new KeyEntryID(keyEntryID));
-    return (null == keyEntry) ? null : getMacEngine(keyEntry);
+    return keyEntry != null ? getMacEngine(keyEntry) : null;
   }
 
 
@@ -2692,7 +2699,7 @@ public class CryptoManagerImpl
     final byte[] keyID = keyEntry.getKeyID().getByteValue();
     final byte[] iv = cipher.getIV();
     final int prologueLength
-            = /* version */ 1 + keyID.length + ((null == iv) ? 0 : iv.length);
+            = /* version */ 1 + keyID.length + (iv != null ? iv.length : 0);
     final int dataLength = cipher.getOutputSize(data.length);
     final byte[] cipherText = new byte[prologueLength + dataLength];
     int writeIndex = 0;
@@ -2823,9 +2830,12 @@ public class CryptoManagerImpl
 
     final Cipher cipher = getCipher(keyEntry, Cipher.DECRYPT_MODE, iv);
     if(data.length - readIndex > 0)
-          return cipher.doFinal(data, readIndex, data.length - readIndex);
-    else {
-      //IBM Java 6 throws an IllegalArgumentException when there's n
+    {
+      return cipher.doFinal(data, readIndex, data.length - readIndex);
+    }
+    else
+    {
+      // IBM Java 6 throws an IllegalArgumentException when there's no
       // data to process.
       return cipher.doFinal();
     }
