@@ -21,14 +21,17 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2011-2013 ForgeRock AS
+ *      Copyright 2011-2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.examples;
 
+import java.io.File;
+import java.io.IOException;
 import java.security.GeneralSecurityException;
 
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
 
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ErrorResultException;
@@ -49,8 +52,15 @@ import org.forgerock.opendj.ldap.TrustManagers;
  * <li>use-starttls - (Optional) connect with StartTLS</li>
  * <li>use-ssl - (Optional) connect over SSL</li>
  * </ul>
- * The host, port, bind-dn, and bind-password are required. The use-starttls and
- * use-ssl parameters are optional and mutually exclusive.
+ * The host, port, bind-dn, and bind-password arguments are required.
+ * The use-starttls and use-ssl arguments are optional and mutually exclusive.
+ * <p>
+ * If the server certificate is self-signed,
+ * or otherwise not trusted out-of-the-box,
+ * then set the trust store by using the JSSE system property
+ * {@code -Djavax.net.ssl.trustStore=/path/to/opendj/config/keystore}
+ * and the trust store password if necessary by using the JSSE system property
+ * {@code -Djavax.net.ssl.trustStorePassword=`cat /path/to/opendj/config/keystore.pin`}.
  */
 public final class SimpleAuth {
 
@@ -96,6 +106,88 @@ public final class SimpleAuth {
         }
     }
     // --- JCite basic auth ---
+
+    // --- JCite trust options ---
+    /**
+     * For StartTLS and SSL the connection factory needs SSL context options.
+     * In the general case, a trust manager in the SSL context serves
+     * to check server certificates, and a key manager handles client keys
+     * when the server checks certificates from our client.
+     * <p>
+     * This sample expects a directory server
+     * that allows use of Start TLS on the LDAP port.
+     * This sample checks the server certificate,
+     * verifying that the certificate is currently valid,
+     * and that the host name of the server matches that of the certificate,
+     * based on a Java Key Store-format trust store.
+     * This sample does not present a client certificate.
+     *
+     * @param hostname Host name expected in the server certificate
+     * @param truststore Path to trust store file for the trust manager
+     * @param storepass Password for the trust store
+     * @return SSL context options
+     * @throws GeneralSecurityException Could not load the trust store
+     */
+    private static LDAPOptions getTrustOptions(final String hostname,
+                                               final String truststore,
+                                               final String storepass)
+            throws GeneralSecurityException {
+        LDAPOptions lo = new LDAPOptions();
+
+        TrustManager trustManager = null;
+        try {
+            trustManager = TrustManagers.checkValidityDates(
+                    TrustManagers.checkHostName(hostname,
+                            TrustManagers.checkUsingTrustStore(
+                                    truststore, storepass.toCharArray(), null)));
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+
+        if (trustManager != null) {
+            SSLContext sslContext = new SSLContextBuilder()
+                    .setTrustManager(trustManager).getSSLContext();
+            lo.setSSLContext(sslContext);
+        }
+
+        lo.setUseStartTLS(useStartTLS);
+
+        return lo;
+    }
+    // --- JCite trust options ---
+
+    // --- JCite secure connect ---
+    /**
+     * Perform authentication over a secure connection.
+     */
+    private static void secureConnect() {
+        Connection connection = null;
+
+        try {
+
+            final LDAPConnectionFactory factory =
+                    new LDAPConnectionFactory(host, port,
+                            getTrustOptions(host, keystore, storepass));
+            connection = factory.getConnection();
+            connection.bind(bindDN, bindPassword.toCharArray());
+
+            System.out.println("Authenticated as " + bindDN + ".");
+
+        } catch (final ErrorResultException e) {
+            System.err.println(e.getMessage());
+            System.exit(e.getResult().getResultCode().intValue());
+            return;
+        } catch (final GeneralSecurityException e) {
+            System.err.println(e.getMessage());
+            System.exit(ResultCode.CLIENT_SIDE_CONNECT_ERROR.intValue());
+        } finally {
+            if (connection != null) {
+                connection.close();
+            }
+        }
+    }
+    // --- JCite secure connect ---
 
     // --- JCite trust all ---
     /**
@@ -152,14 +244,16 @@ public final class SimpleAuth {
      * Authenticate using StartTLS.
      */
     private static void connectStartTLS() {
-        trustAllConnect();
+        secureConnect();
+        // trustAllConnect();
     }
 
     /**
      * Authenticate over LDAPS.
      */
     private static void connectSSL() {
-        trustAllConnect();
+        secureConnect();
+        // trustAllConnect();
     }
 
     private static String host;
@@ -168,6 +262,8 @@ public final class SimpleAuth {
     private static String bindPassword;
     private static boolean useStartTLS = false;
     private static boolean useSSL = false;
+    private static String keystore;
+    private static String storepass;
 
     /**
      * Parse command line arguments.
@@ -196,6 +292,16 @@ public final class SimpleAuth {
                 giveUp();
             }
         }
+
+        keystore = System.getProperty("javax.net.ssl.trustStore");
+        storepass = System.getProperty("javax.net.ssl.trustStorePassword");
+        if (keystore == null) { // Try to use Java's cacerts trust store.
+            keystore = System.getProperty("java.home") + File.separator
+                    + "lib" + File.separator
+                    + "security" + File.separator
+                    + "cacerts";
+            storepass = "changeit"; // Default password
+        }
     }
 
     private static void giveUp() {
@@ -207,6 +313,7 @@ public final class SimpleAuth {
         System.err.println("Usage: host port bind-dn bind-password [ use-starttls | use-ssl ]");
         System.err.println("\thost, port, bind-dn, and bind-password arguments are required.");
         System.err.println("\tuse-starttls and use-ssl are optional and mutually exclusive.");
+        System.err.println("\tOptionally set javax.net.ssl.trustStore and javax.net.ssl.trustStorePassword.");
     }
 
     private SimpleAuth() {
