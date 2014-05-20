@@ -72,7 +72,7 @@ public class PersistentServerStateTest extends ReplicationTestCase
     DN baseDn = DN.valueOf(dn);
     ServerState origState = new ServerState();
     PersistentServerState state =
-      new PersistentServerState(baseDn,  1, origState);
+        new PersistentServerState(baseDn,  1, origState);
     CSNGenerator gen1 = new CSNGenerator(1, origState);
     CSNGenerator gen2 = new CSNGenerator(2, origState);
 
@@ -81,10 +81,10 @@ public class PersistentServerStateTest extends ReplicationTestCase
 
     assertEquals(state.update(csn1), true);
     assertEquals(state.update(csn2), true);
-
     state.save();
 
-    PersistentServerState stateSaved = new PersistentServerState(baseDn, 1);
+    PersistentServerState stateSaved =
+        new PersistentServerState(baseDn, 1, new ServerState());
     CSN csn1Saved = stateSaved.getMaxCSN(1);
     CSN csn2Saved = stateSaved.getMaxCSN(2);
 
@@ -94,7 +94,7 @@ public class PersistentServerStateTest extends ReplicationTestCase
         "csn2 has not been saved or loaded correctly for " + dn);
 
     state.clear();
-    stateSaved = new PersistentServerState(baseDn,  1);
+    stateSaved = new PersistentServerState(baseDn, 1, new ServerState());
     csn1Saved = stateSaved.getMaxCSN(1);
     assertEquals(csn1Saved, null,
         "csn1 has not been saved after clear for " + dn);
