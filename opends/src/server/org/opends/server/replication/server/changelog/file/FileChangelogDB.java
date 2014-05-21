@@ -49,13 +49,12 @@ import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;
-
 import com.forgerock.opendj.util.Pair;
 
-import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
+import static org.opends.messages.ReplicationMessages.*;
 
 /**
  * Log file implementation of the ChangelogDB interface.
@@ -106,10 +105,11 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
 
   /** The local replication server. */
   private final ReplicationServer replicationServer;
+
   private final AtomicBoolean shutdown = new AtomicBoolean();
 
   static final DBCursor<UpdateMsg> EMPTY_CURSOR_REPLICA_DB =
-      new FileReplicaDBCursor(new LogFile.EmptyLogCursor<CSN, UpdateMsg>(), null);
+      new FileReplicaDBCursor(new Log.EmptyLogCursor<CSN, UpdateMsg>(), null);
 
   /**
    * Creates a new changelog DB.
@@ -122,10 +122,10 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
    *           if a problem occurs opening the supplied directory
    */
   public FileChangelogDB(final ReplicationServer replicationServer, final ReplicationServerCfg config)
-      throws ConfigException
+     throws ConfigException
   {
-    this.config = config;
     this.replicationServer = replicationServer;
+    this.config = config;
     this.dbDirectory = makeDir(config.getReplicationDBDirectory());
   }
 

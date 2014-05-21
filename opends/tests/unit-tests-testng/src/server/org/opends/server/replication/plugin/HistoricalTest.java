@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
@@ -81,6 +81,7 @@ public class HistoricalTest extends ReplicationTestCase
          + "cn: replication Server\n"
          + "ds-cfg-replication-port: " + replServerPort + "\n"
          + "ds-cfg-replication-db-directory: HistoricalTest\n"
+         + "ds-cfg-replication-db-implementation: " + replicationDbImplementation + "\n"
          + "ds-cfg-replication-server-id: 102\n";
 
     // The suffix to be synchronized.
@@ -489,7 +490,7 @@ public class HistoricalTest extends ReplicationTestCase
 
     addEntriesWithHistorical(1, entryCnt);
     // leave a little delay between adding/modifying test entries
-    // and configuring the purge delay. 
+    // and configuring the purge delay.
     Thread.sleep(10);
 
     // set the purge delay to 1 minute

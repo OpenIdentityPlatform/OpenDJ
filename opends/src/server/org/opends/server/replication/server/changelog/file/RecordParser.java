@@ -25,6 +25,7 @@
  */
 package org.opends.server.replication.server.changelog.file;
 
+import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.types.ByteString;
 
 /**
@@ -40,7 +41,6 @@ import org.opends.server.types.ByteString;
  */
 interface RecordParser<K, V>
 {
-
   /**
    * Decode a record from the provided byte array.
    * <p>
@@ -57,16 +57,45 @@ interface RecordParser<K, V>
   Record<K, V> decodeRecord(ByteString data) throws DecodingException;
 
   /**
-   * Encode the provided key and value to a byte array.
+   * Encode the provided record to a byte array.
    * <p>
    * The returned array is intended to be stored as provided in the log file.
    *
-   * @param key
-   *          The key of the record.
-   * @param value
-   *          The value of the record.
+   * @param record
+   *          The record to encode.
    * @return the bytes array representing the (key,value) record
    */
-  ByteString encodeRecord(K key, V value);
+  ByteString encodeRecord(Record<K, V> record);
+
+  /**
+   * Read the key from the provided string.
+   *
+   * @param key
+   *          The string representation of key, suitable for use in a filename,
+   *          as written by the {@code encodeKeyToString()} method.
+   * @return the key
+   * @throws ChangelogException
+   *           If key can't be read from the string.
+   */
+  K decodeKeyFromString(String key) throws ChangelogException;
+
+  /**
+   * Returns the provided key as a string that is suitable to be used in a
+   * filename.
+   *
+   * @param key
+   *          The key of a record.
+   * @return a string encoding the key, unambiguously decodable to the original
+   *         key, and suitable for use in a filename. The string should contain
+   *         only ASCII characters and no space.
+   */
+  String encodeKeyToString(K key);
+
+  /**
+   * Returns a key that is guaranted to be always higher than any other key.
+   *
+   * @return the highest possible key
+   */
+  K getMaxKey();
 
 }

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2009 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.replication;
 
@@ -100,6 +100,7 @@ public class ReSyncTest extends ReplicationTestCase
         + "cn: Replication Server\n"
         + "ds-cfg-replication-port:" + replServerPort + "\n"
         + "ds-cfg-replication-db-directory: ReSyncTest\n"
+        + "ds-cfg-replication-db-implementation: " + replicationDbImplementation + "\n"
         + "ds-cfg-replication-server-id: 104\n";
 
     // suffix synchronized

@@ -25,18 +25,14 @@
  */
 package org.opends.server.replication.server.changelog.file;
 
-import static org.opends.server.loggers.debug.DebugLogger.*;
-
-import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileDescriptor;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.SyncFailedException;
-import java.util.HashMap;
-import java.util.Map;
 
+import org.opends.server.loggers.MeteredStream;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.types.ByteString;
 import org.opends.server.util.StaticUtils;
@@ -45,80 +41,38 @@ import static org.opends.messages.ReplicationMessages.*;
 
 /**
  * A writer on a log file.
- * <p>
- * The writer is cached in order to have a single writer per file in the JVM.
  */
 class LogWriter extends OutputStream
 {
-  /** The cache of log writers. There is a single writer per file in the JVM.  */
-  private static final Map<File, LogWriter> logWritersCache = new HashMap<File, LogWriter>();
-
-  /** The exclusive lock used to acquire or close a log writer. */
-  private static final Object lock = new Object();
-
   /** The file to write in. */
   private final File file;
 
-  /** The stream to write data in the file. */
-  private final BufferedOutputStream stream;
+  /** The stream to write data in the file, capable of counting bytes written. */
+  private final MeteredStream stream;
 
   /** The file descriptor on the file. */
   private final FileDescriptor fileDescriptor;
-
-  /** The number of references on this writer. */
-  private int referenceCount;
 
   /**
    * Creates a writer on the provided file.
    *
    * @param file
    *          The file to write.
-   * @param stream
-   *          The stream to write in the file.
-   * @param fileDescriptor
-   *          The descriptor on the file.
+   * @throws ChangelogException
+   *            If a problem occurs at creation.
    */
-  private LogWriter(final File file, BufferedOutputStream stream, FileDescriptor fileDescriptor)
-      throws ChangelogException
+  public LogWriter(final File file) throws ChangelogException
   {
     this.file = file;
-    this.stream = stream;
-    this.fileDescriptor = fileDescriptor;
-    this.referenceCount = 1;
-  }
-
-  /**
-   * Returns a log writer on the provided file, creating it if necessary.
-   *
-   * @param file
-   *            The log file to write in.
-   * @return the log writer
-   * @throws ChangelogException
-   *            If a problem occurs.
-   */
-  public static LogWriter acquireWriter(File file) throws ChangelogException
-  {
-    synchronized (lock)
+    try
     {
-      LogWriter logWriter = logWritersCache.get(file);
-      if (logWriter == null)
-      {
-        try
-        {
-          final FileOutputStream stream = new FileOutputStream(file, true);
-          logWriter = new LogWriter(file, new BufferedOutputStream(stream), stream.getFD());
-        }
-        catch (Exception e)
-        {
-          throw new ChangelogException(ERR_CHANGELOG_UNABLE_TO_OPEN_LOG_FILE.get(file.getPath()));
-        }
-        logWritersCache.put(file, logWriter);
-      }
-      else
-      {
-        logWriter.incrementRefCounter();
-      }
-      return logWriter;
+      FileOutputStream fos = new FileOutputStream(file, true);
+      this.stream = new MeteredStream(fos, file.length());
+      this.fileDescriptor = fos.getFD();
+    }
+    catch (Exception e)
+    {
+      throw new ChangelogException(ERR_CHANGELOG_UNABLE_TO_OPEN_LOG_FILE.get(file.getPath()));
     }
   }
 
@@ -157,11 +111,14 @@ class LogWriter extends OutputStream
     bs.copyTo(stream);
   }
 
-  /** {@inheritDoc} */
-  @Override
-  public void flush() throws IOException
+  /**
+   * Returns the number of bytes written in the underlying file.
+   *
+   * @return the number of bytes
+   */
+  public long getBytesWritten()
   {
-    stream.flush();
+    return stream.getBytesWritten();
   }
 
   /**
@@ -178,32 +135,7 @@ class LogWriter extends OutputStream
   @Override
   public void close()
   {
-    synchronized (lock)
-    {
-      LogWriter writer = logWritersCache.get(file);
-      if (writer == null)
-      {
-        // writer is already closed
-        return;
-      }
-      // counter == 0 should never happen
-      if (referenceCount == 0 || referenceCount == 1)
-      {
-        StaticUtils.close(stream);
-        logWritersCache.remove(file);
-        referenceCount = 0;
-      }
-      else
-      {
-        referenceCount--;
-      }
-    }
+    StaticUtils.close(stream);
   }
-
-  private void incrementRefCounter()
-  {
-    referenceCount++;
-  }
-
 
 }

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.replication.common;
 
@@ -60,6 +60,9 @@ public class CSN implements Serializable, Comparable<CSN>
    * @see #toString()
    */
   public static final int STRING_ENCODING_LENGTH = 28;
+
+  /** The maximum possible value for a CSN. */
+  public static final CSN MAX_CSN_VALUE = new CSN(Long.MAX_VALUE, Integer.MAX_VALUE, Short.MAX_VALUE);
 
   private static final long serialVersionUID = -8802722277749190740L;
   private final long timeStamp;

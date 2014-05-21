@@ -80,14 +80,15 @@ public class ReplicationEnvironmentTest extends DirectoryServerTestCase
     final DN domainDN = DN.decode(DN1_AS_STRING);
 
     ReplicationEnvironment environment = new ReplicationEnvironment(rootPath.getAbsolutePath(), null);
-    LogFile<Long,ChangeNumberIndexRecord> cnDB = environment.getOrCreateCNIndexDB();
-    LogFile<CSN,UpdateMsg> replicaDB = environment.getOrCreateReplicaDB(domainDN, 1, 1);
-    LogFile<CSN,UpdateMsg> replicaDB2 = environment.getOrCreateReplicaDB(domainDN, 2, 1);
+    Log<Long,ChangeNumberIndexRecord> cnDB = environment.getOrCreateCNIndexDB();
+    Log<CSN,UpdateMsg> replicaDB = environment.getOrCreateReplicaDB(domainDN, 1, 1);
+    Log<CSN,UpdateMsg> replicaDB2 = environment.getOrCreateReplicaDB(domainDN, 2, 1);
     StaticUtils.close(cnDB, replicaDB, replicaDB2);
 
     ChangelogState state = environment.readChangelogState();
 
-    assertThat(state.getDomainToServerIds()).containsExactly(MapEntry.entry(domainDN, Arrays.asList(1, 2)));
+    assertThat(state.getDomainToServerIds()).containsKeys(domainDN);
+    assertThat(state.getDomainToServerIds().get(domainDN)).containsOnly(1, 2);
     assertThat(state.getDomainToGenerationId()).containsExactly(MapEntry.entry(domainDN, 1L));
   }
 
@@ -98,8 +99,8 @@ public class ReplicationEnvironmentTest extends DirectoryServerTestCase
     List<DN> domainDNs = Arrays.asList(DN.decode(DN1_AS_STRING), DN.decode(DN2_AS_STRING), DN.decode(DN3_AS_STRING));
 
     ReplicationEnvironment environment = new ReplicationEnvironment(rootPath.getAbsolutePath(), null);
-    LogFile<Long,ChangeNumberIndexRecord> cnDB = environment.getOrCreateCNIndexDB();
-    List<LogFile<CSN,UpdateMsg>> replicaDBs = new ArrayList<LogFile<CSN,UpdateMsg>>();
+    Log<Long,ChangeNumberIndexRecord> cnDB = environment.getOrCreateCNIndexDB();
+    List<Log<CSN,UpdateMsg>> replicaDBs = new ArrayList<Log<CSN,UpdateMsg>>();
     for (int i = 0; i <= 2 ; i++)
     {
       for (int j = 1; j <= 10; j++)
@@ -129,8 +130,8 @@ public class ReplicationEnvironmentTest extends DirectoryServerTestCase
     File rootPath = new File(TEST_DIRECTORY_CHANGELOG);
     DN domainDN = DN.decode(DN1_AS_STRING);
     ReplicationEnvironment environment = new ReplicationEnvironment(rootPath.getAbsolutePath(), null);
-    LogFile<CSN,UpdateMsg> replicaDB = environment.getOrCreateReplicaDB(domainDN, 1, 1);
-    LogFile<CSN,UpdateMsg> replicaDB2 = environment.getOrCreateReplicaDB(domainDN, 2, 1);
+    Log<CSN,UpdateMsg> replicaDB = environment.getOrCreateReplicaDB(domainDN, 1, 1);
+    Log<CSN,UpdateMsg> replicaDB2 = environment.getOrCreateReplicaDB(domainDN, 2, 1);
     StaticUtils.close(replicaDB, replicaDB2);
 
     // delete the domain directory created for the 2 replica DBs to break the
