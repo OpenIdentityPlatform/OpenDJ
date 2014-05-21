@@ -35,7 +35,8 @@ import org.opends.server.types.ByteSequenceReader;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
 import org.opends.server.util.StaticUtils;
-import org.testng.annotations.AfterMethod;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -45,11 +46,11 @@ import static org.assertj.core.api.Assertions.*;
 @Test(sequential=true)
 public class LogFileTest extends DirectoryServerTestCase
 {
-  private static final String TEST_DIRECTORY_CHANGELOG = "test-output/changelog";
+  private static final String TEST_DIRECTORY_CHANGELOG = "test-output" + File.separator + "changelog";
 
-  private static final StringRecordParser RECORD_PARSER = new StringRecordParser();
+  static final StringRecordParser RECORD_PARSER = new StringRecordParser();
 
-  private static final RecordParser<String,String> RECORD_PARSER_FAILING_TO_READ = new StringRecordParser() {
+  static final RecordParser<String,String> RECORD_PARSER_FAILING_TO_READ = new StringRecordParser() {
       @Override
       public Record<String, String> decodeRecord(ByteString data) throws DecodingException
       {
@@ -57,11 +58,18 @@ public class LogFileTest extends DirectoryServerTestCase
       }
   };
 
+  @BeforeClass
+  public void createTestDirectory()
+  {
+    File logDir = new File(TEST_DIRECTORY_CHANGELOG);
+    logDir.mkdirs();
+  }
+
   @BeforeMethod
   /** Create a new log file with ten records starting from (key1, value1) until (key10, value10). */
   public void initialize() throws Exception
   {
-    File theLogFile = new File(TEST_DIRECTORY_CHANGELOG, LogFile.LOG_FILE_NAME);
+    File theLogFile = new File(TEST_DIRECTORY_CHANGELOG, Log.HEAD_LOG_FILE_NAME);
     if (theLogFile.exists())
     {
       theLogFile.delete();
@@ -70,12 +78,12 @@ public class LogFileTest extends DirectoryServerTestCase
 
     for (int i = 1; i <= 10; i++)
     {
-      logFile.addRecord("key"+i, "value"+i);
+      logFile.append(Record.from("key"+i, "value"+i));
     }
     logFile.close();
   }
 
-  @AfterMethod
+  @AfterClass
   public void cleanTestChangelogDirectory()
   {
     final File rootPath = new File(TEST_DIRECTORY_CHANGELOG);
@@ -87,8 +95,7 @@ public class LogFileTest extends DirectoryServerTestCase
 
   private LogFile<String, String> getLogFile(RecordParser<String, String> parser) throws ChangelogException
   {
-    LogFile<String, String> logFile = LogFile.newAppendableLogFile(new File(TEST_DIRECTORY_CHANGELOG), parser);
-    return logFile;
+    return LogFile.newAppendableLogFile(new File(TEST_DIRECTORY_CHANGELOG, Log.HEAD_LOG_FILE_NAME), parser);
   }
 
   @Test
@@ -266,7 +273,7 @@ public class LogFileTest extends DirectoryServerTestCase
       for (int i = 1; i <= 100; i++)
       {
         Record<String, String> record = Record.from("newkey" + i, "newvalue" + i);
-        writeLog.addRecord(record);
+        writeLog.append(record);
         assertThat(writeLog.getNewestRecord()).as("write changelog " + i).isEqualTo(record);
         assertThat(writeLog.getOldestRecord()).as("write changelog " + i).isEqualTo(Record.from("key1", "value1"));
         assertThat(readLog.getNewestRecord()).as("read changelog " + i).isEqualTo(record);
@@ -276,35 +283,6 @@ public class LogFileTest extends DirectoryServerTestCase
     finally
     {
       StaticUtils.close(writeLog, readLog);
-    }
-  }
-
-  @Test()
-  public void testTwoConcurrentWrite() throws Exception
-  {
-    final LogFile<String, String> writeLog1 = getLogFile(RECORD_PARSER);
-    final LogFile<String, String> writeLog2 = getLogFile(RECORD_PARSER);
-    try
-    {
-      writeLog1.addRecord(Record.from("startkey", "startvalue"));
-      Thread write1 = getWriteLogThread(writeLog1, "a");
-      Thread write2 = getWriteLogThread(writeLog2, "b");
-      write1.run();
-      write2.run();
-
-      write1.join();
-      write2.join();
-      writeLog1.syncToFileSystem();
-      DBCursor<Record<String, String>> cursor = writeLog1.getCursor("startkey");
-      for (int i = 1; i <= 200; i++)
-      {
-         assertThat(cursor.next()).isTrue();
-      }
-      assertThat(cursor.getRecord()).isIn(Record.from("k-b100", "v-b100"), Record.from("k-a100", "v-a100"));
-    }
-    finally
-    {
-      StaticUtils.close(writeLog1, writeLog2);
     }
   }
 
@@ -320,30 +298,13 @@ public class LogFileTest extends DirectoryServerTestCase
       assertThat(cursor.next()).as("next() value when i=" + i).isTrue();
       assertThat(cursor.getRecord()).isEqualTo(Record.from("key" + i, "value" + i));
     }
-    assertThat(cursor.next()).isFalse();
-    assertThat(cursor.getRecord()).isNull();
+    assertThatCursorIsExhausted(cursor);
   }
 
-  /** Returns a thread that write 100 records to the provided log. */
-  private Thread getWriteLogThread(final LogFile<String, String> writeLog, final String recordPrefix)
+  private void assertThatCursorIsExhausted(DBCursor<Record<String, String>> cursor) throws Exception
   {
-    return new Thread() {
-      public void run()
-      {
-        for (int i = 1; i <= 100; i++)
-        {
-          Record<String, String> record = Record.from("k-" + recordPrefix + i, "v-" + recordPrefix + i);
-          try
-          {
-            writeLog.addRecord(record);
-          }
-          catch (ChangelogException e)
-          {
-            e.printStackTrace();
-          }
-        }
-      }
-    };
+    assertThat(cursor.next()).isFalse();
+    assertThat(cursor.getRecord()).isNull();
   }
 
   /**
@@ -374,11 +335,31 @@ public class LogFileTest extends DirectoryServerTestCase
       return length;
     }
 
-    public ByteString encodeRecord(String key, String value)
+    public ByteString encodeRecord(Record<String, String> record)
     {
       return new ByteStringBuilder()
-        .append(key).append(STRING_SEPARATOR)
-        .append(value).append(STRING_SEPARATOR).toByteString();
+        .append(record.getKey()).append(STRING_SEPARATOR)
+        .append(record.getValue()).append(STRING_SEPARATOR).toByteString();
+    }
+
+    @Override
+    public String decodeKeyFromString(String key) throws ChangelogException
+    {
+      return key;
+    }
+
+    @Override
+    public String encodeKeyToString(String key)
+    {
+      return key;
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public String getMaxKey()
+    {
+      // '~' character has the highest ASCII value
+      return "~~~~";
     }
   }
 

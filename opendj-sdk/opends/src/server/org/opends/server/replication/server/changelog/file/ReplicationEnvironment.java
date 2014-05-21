@@ -55,9 +55,7 @@ import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.util.StaticUtils;
 
-import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.util.StaticUtils.*;
 import static org.opends.messages.ReplicationMessages.*;
 
 /**
@@ -82,7 +80,9 @@ import static org.opends.messages.ReplicationMessages.*;
  * id of the server. Each directory contains the log files for the given server
  * id.</li>
  * </ul>
- * All log files end with the ".log" suffix.
+ * All log files end with the ".log" suffix. Log files always include the "head.log"
+ * file and optionally zero to many read-only log files named after the lowest key
+ * and highest key present in the log file.
  * <p>
  * Layout example with two domains "o=test1" and "o=test2", each having server
  * ids 22 and 33 :
@@ -91,24 +91,28 @@ import static org.opends.messages.ReplicationMessages.*;
  * +---changelog
  * |   \---domains.state  [contains mapping: 1 => "o=test1", 2 => "o=test2"]
  * |   \---changenumberindex
- * |      \--- current.log
+ * |      \--- head.log [contains last records written]
+ * |      \--- 1_50.log [contains records with keys in interval [1, 50]]
  * |   \---1.domain
  * |       \---generation1.id
  * |       \---22.server
- * |           \---current.log
+ * |           \---head.log
  * |       \---33.server
- * |           \---current.log
+ * |           \---head.log
  * |   \---2.domain
  * |       \---generation1.id
  * |       \---22.server
- * |           \---current.log
+ * |           \---head.log
  * |       \---33.server
- * |           \---current.log
+ * |           \---head.log
  * </pre>
  */
 class ReplicationEnvironment
 {
   private static final DebugTracer TRACER = getTracer();
+
+  // TODO : to replace by configurable value
+  private static final long MAX_LOG_FILE_SIZE_IN_BYTES = 10*1024;
 
   private static final int NO_GENERATION_ID = -1;
 
@@ -159,7 +163,7 @@ class ReplicationEnvironment
   private final String replicationRootPath;
 
   /** The list of logs that are in use. */
-  private final List<LogFile<?, ?>> logs = new CopyOnWriteArrayList<LogFile<?, ?>>();
+  private final List<Log<?, ?>> logs = new CopyOnWriteArrayList<Log<?, ?>>();
 
   /** Maps each domain DN to a domain id that is used to name directory in file system. */
   private final Map<DN, String> domains = new HashMap<DN, String>();
@@ -228,7 +232,7 @@ class ReplicationEnvironment
    * @throws ChangelogException
    *           if an error occurs.
    */
-  LogFile<CSN, UpdateMsg> getOrCreateReplicaDB(final DN domainDN, final int serverId, final long generationId)
+  Log<CSN, UpdateMsg> getOrCreateReplicaDB(final DN domainDN, final int serverId, final long generationId)
       throws ChangelogException
   {
     if (debugEnabled())
@@ -276,7 +280,7 @@ class ReplicationEnvironment
    * @throws ChangelogException
    *           when a problem occurs.
    */
-  LogFile<Long, ChangeNumberIndexRecord> getOrCreateCNIndexDB() throws ChangelogException
+  Log<Long, ChangeNumberIndexRecord> getOrCreateCNIndexDB() throws ChangelogException
   {
     final File path = getCNIndexDBPath();
     try
@@ -301,24 +305,6 @@ class ReplicationEnvironment
     if (isShuttingDown.compareAndSet(false, true))
     {
       logs.clear();
-    }
-  }
-
-  /**
-   * Clears the content of replication database.
-   *
-   * @param log
-   *          The log to clear.
-   */
-  void clearDB(final LogFile<?, ?> log)
-  {
-    try
-    {
-      log.clear();
-    }
-    catch (ChangelogException e)
-    {
-      logError(ERR_ERROR_CLEARING_DB.get(log.getName(), stackTraceToSingleLineString(e)));
     }
   }
 
@@ -506,12 +492,12 @@ class ReplicationEnvironment
   }
 
   /** Open a log from the provided path and record parser. */
-  private <K extends Comparable<K>, V> LogFile<K, V> openLog(final File serverIdPath, final RecordParser<K, V> parser)
+  private <K extends Comparable<K>, V> Log<K, V> openLog(final File serverIdPath, final RecordParser<K, V> parser)
       throws ChangelogException
   {
     checkShutDownBeforeOpening(serverIdPath);
 
-    final LogFile<K, V> log = LogFile.newAppendableLogFile(serverIdPath, parser);
+    final Log<K, V> log = Log.openLog(serverIdPath, parser, MAX_LOG_FILE_SIZE_IN_BYTES);
 
     checkShutDownAfterOpening(serverIdPath, log);
 
@@ -519,11 +505,11 @@ class ReplicationEnvironment
     return log;
   }
 
-  private void checkShutDownAfterOpening(final File serverIdPath, final LogFile<?, ?> log) throws ChangelogException
+  private void checkShutDownAfterOpening(final File serverIdPath, final Log<?, ?> log) throws ChangelogException
   {
     if (isShuttingDown.get())
     {
-      closeDB(log);
+      closeLog(log);
       throw new ChangelogException(WARN_CANNOT_OPEN_DATABASE_BECAUSE_SHUTDOWN_WAS_REQUESTED.get(serverIdPath.getPath(),
           replicationServer.getServerId()));
     }
@@ -590,7 +576,7 @@ class ReplicationEnvironment
     return new File(replicationRootPath, CN_INDEX_DB_DIRNAME);
   }
 
-  private void closeDB(final LogFile<?, ?> log)
+  private void closeLog(final Log<?, ?> log)
   {
     logs.remove(log);
     log.close();

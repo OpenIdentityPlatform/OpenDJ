@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.loggers;
 
@@ -60,14 +61,13 @@ public interface RotationPolicy<T extends LogRotationPolicyCfg>
 
 
   /**
-   * This method indicates if the log file should be
-   * rotated or not.
+   * This method indicates if the log file should be rotated or not.
    *
-   * @param writer The multi file writer writing the file to be
-   *        checked.
+   * @param writer
+   *          the file writer to be checked.
    * @return true if the log file should be rotated, false otherwise.
    */
-  public boolean rotateFile(MultifileTextWriter writer);
+  public boolean rotateFile(RotatableLogFile writer);
 
 
 }

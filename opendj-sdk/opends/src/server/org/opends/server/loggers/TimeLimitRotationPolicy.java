@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.loggers;
 import org.opends.messages.Message;
@@ -90,7 +91,7 @@ public class TimeLimitRotationPolicy implements
    * @param writer The mutli file text writer written the log file.
    * @return true if the file should be rotated, false otherwise.
    */
-  public boolean rotateFile(MultifileTextWriter writer)
+  public boolean rotateFile(RotatableLogFile writer)
   {
     long currInterval = TimeThread.getTime() -
         writer.getLastRotationTime().getTimeInMillis();

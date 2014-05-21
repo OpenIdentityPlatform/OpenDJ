@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.loggers;
 import org.opends.messages.Message;
@@ -112,7 +113,7 @@ public class FixedTimeRotationPolicy implements
   /**
    * {@inheritDoc}
    */
-  public boolean rotateFile(MultifileTextWriter writer)
+  public boolean rotateFile(RotatableLogFile writer)
   {
     Calendar lastRotationTime = writer.getLastRotationTime();
 

@@ -29,7 +29,7 @@ import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
-import org.opends.server.replication.server.changelog.file.LogFile.LogCursor;
+import org.opends.server.replication.server.changelog.file.Log.RepositionableCursor;
 
 /**
  * A cursor on ReplicaDB.
@@ -49,7 +49,7 @@ class FileReplicaDBCursor implements DBCursor<UpdateMsg>
 {
 
   /** The underlying cursor. */
-  private final LogCursor<CSN, UpdateMsg> cursor;
+  private final RepositionableCursor<CSN, UpdateMsg> cursor;
 
   /** The next record to return. */
   private Record<CSN, UpdateMsg> nextRecord;
@@ -66,7 +66,7 @@ class FileReplicaDBCursor implements DBCursor<UpdateMsg>
    *          The CSN to use as a start point (excluded from cursor, the lowest
    *          CSN higher than this CSN is used as the real start point).
    */
-  FileReplicaDBCursor(LogCursor<CSN, UpdateMsg> cursor, CSN startAfterCSN) {
+  FileReplicaDBCursor(RepositionableCursor<CSN, UpdateMsg> cursor, CSN startAfterCSN) {
     this.cursor = cursor;
     this.lastNonNullCurrentCSN = startAfterCSN;
   }
@@ -90,7 +90,6 @@ class FileReplicaDBCursor implements DBCursor<UpdateMsg>
     else
     {
       // Exhausted cursor must be able to reinitialize itself
-      cursor.rewind();
       cursor.positionTo(lastNonNullCurrentCSN, true);
 
       nextRecord = cursor.getRecord();

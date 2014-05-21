@@ -80,7 +80,7 @@ public class FileChangeNumberIndexDBTest extends ReplicationTestCase
   {
     RecordParser<Long, ChangeNumberIndexRecord> parser = FileChangeNumberIndexDB.RECORD_PARSER;
 
-    ByteString data = parser.encodeRecord(msg.getChangeNumber(), msg);
+    ByteString data = parser.encodeRecord(Record.from(msg.getChangeNumber(), msg));
     Record<Long, ChangeNumberIndexRecord> record = parser.decodeRecord(data);
 
     assertThat(record).isNotNull();
@@ -169,7 +169,10 @@ public class FileChangeNumberIndexDBTest extends ReplicationTestCase
    * in the replication changelog, the ChangeNumberIndexDB will be cleared.</li>
    * </ol>
    */
-  // TODO :: enable when purge is implemented with multi-files log
+  // TODO : this works only if we ensure that there is a rotation of ahead log file
+  // at the right place. First two records are 37 and 76 bytes long,
+  // so it means : 37 < max file size < 113 to have the last record alone in the ahead log file
+  // Re-enable this test when max file size is customizable for log
   @Test(enabled=false)
   public void testPurge() throws Exception
   {

@@ -95,7 +95,7 @@ public class FileReplicaDBTest extends ReplicationTestCase
   {
     RecordParser<CSN, UpdateMsg> parser = FileReplicaDB.RECORD_PARSER;
 
-    ByteString data = parser.encodeRecord(msg.getCSN(), msg);
+    ByteString data = parser.encodeRecord(Record.from(msg.getCSN(), msg));
     Record<CSN, UpdateMsg> record = parser.decodeRecord(data);
 
     assertThat(record).isNotNull();
@@ -264,7 +264,10 @@ public class FileReplicaDBTest extends ReplicationTestCase
     }
   }
 
-  // TODO : enable when purge is enabled with multi-files log implementation
+  // TODO : this works only if we ensure that there is a rotation of ahead log file
+  // at right place. Each record takes 54 bytes, so it means : 108 < max file size < 162 to have
+  // the last record alone in the ahead log file
+  // Re-enable this test when max file size is customizable for log
   @Test(enabled=false)
   public void testPurge() throws Exception
   {
