@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -144,11 +144,11 @@ public final class TrustManagers {
      * An X509TrustManager which rejects certificates which have expired or are
      * not yet valid.
      */
-    private static final class CheckValidatyDates implements X509TrustManager {
+    private static final class CheckValidityDates implements X509TrustManager {
 
         private final X509TrustManager trustManager;
 
-        private CheckValidatyDates(final X509TrustManager trustManager) {
+        private CheckValidityDates(final X509TrustManager trustManager) {
             this.trustManager = trustManager;
         }
 
@@ -397,7 +397,7 @@ public final class TrustManagers {
      */
     public static X509TrustManager checkValidityDates(final X509TrustManager trustManager) {
         Reject.ifNull(trustManager);
-        return new CheckValidatyDates(trustManager);
+        return new CheckValidityDates(trustManager);
     }
 
     /**
