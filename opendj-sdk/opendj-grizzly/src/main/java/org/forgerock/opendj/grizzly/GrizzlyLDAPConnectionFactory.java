@@ -339,13 +339,7 @@ public final class GrizzlyLDAPConnectionFactory implements LDAPConnectionFactory
 
     @Override
     public String toString() {
-        final StringBuilder builder = new StringBuilder();
-        builder.append("LDAPConnectionFactory(");
-        builder.append(host);
-        builder.append(':');
-        builder.append(port);
-        builder.append(')');
-        return builder.toString();
+        return getClass().getSimpleName() + "(" + host + ':' + port + ')';
     }
 
     TimeoutChecker getTimeoutChecker() {
