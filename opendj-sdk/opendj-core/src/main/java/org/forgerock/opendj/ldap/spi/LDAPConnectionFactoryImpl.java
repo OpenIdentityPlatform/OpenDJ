@@ -49,4 +49,19 @@ public interface LDAPConnectionFactoryImpl extends ConnectionFactory {
      */
     public InetSocketAddress getSocketAddress();
 
+    /**
+     * Returns the hostname used by the connections created by this factory.
+     *
+     * @return The hostname used by the connections.
+     */
+    public String getHostName();
+
+    /**
+     * Returns the remote port number used by the connections created by this
+     * factory.
+     *
+     * @return The remote port number used by the connections.
+     */
+    public int getPort();
+
 }

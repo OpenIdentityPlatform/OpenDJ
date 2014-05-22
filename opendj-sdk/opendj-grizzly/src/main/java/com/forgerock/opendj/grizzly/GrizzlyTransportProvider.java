@@ -44,9 +44,9 @@ import org.forgerock.opendj.ldap.spi.TransportProvider;
 public class GrizzlyTransportProvider implements TransportProvider {
 
     @Override
-    public LDAPConnectionFactoryImpl getLDAPConnectionFactory(InetSocketAddress address,
-            LDAPOptions options) {
-        return new GrizzlyLDAPConnectionFactory(address, options);
+    public LDAPConnectionFactoryImpl getLDAPConnectionFactory(String host, int port,
+                                                              LDAPOptions options) {
+        return new GrizzlyLDAPConnectionFactory(host, port, options);
     }
 
     @Override

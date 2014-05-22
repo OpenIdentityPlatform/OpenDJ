@@ -29,9 +29,6 @@ package org.forgerock.opendj.ldap;
 
 import static com.forgerock.opendj.util.StaticUtils.getProvider;
 
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-
 import org.forgerock.opendj.ldap.spi.LDAPConnectionFactoryImpl;
 import org.forgerock.opendj.ldap.spi.TransportProvider;
 import org.forgerock.util.Reject;
@@ -54,43 +51,8 @@ public final class LDAPConnectionFactory implements ConnectionFactory {
 
     /**
      * Creates a new LDAP connection factory which can be used to create LDAP
-     * connections to the Directory Server at the provided address.
-     *
-     * @param address
-     *            The address of the Directory Server.
-     * @throws NullPointerException
-     *             If {@code address} was {@code null}.
-     * @throws ProviderNotFoundException if no provider is available or if the
-     *             provider requested using options is not found.
-     */
-    public LDAPConnectionFactory(final InetSocketAddress address) {
-        this(address, new LDAPOptions());
-    }
-
-    /**
-     * Creates a new LDAP connection factory which can be used to create LDAP
-     * connections to the Directory Server at the provided address.
-     *
-     * @param address
-     *            The address of the Directory Server.
-     * @param options
-     *            The LDAP options to use when creating connections.
-     * @throws NullPointerException
-     *             If {@code address} or {@code options} was {@code null}.
-     * @throws ProviderNotFoundException if no provider is available or if the
-     *             provider requested using options is not found.
-     */
-    public LDAPConnectionFactory(final InetSocketAddress address, final LDAPOptions options) {
-        Reject.ifNull(address, options);
-        this.provider = getProvider(TransportProvider.class, options.getTransportProvider(),
-                options.getProviderClassLoader());
-        this.impl = provider.getLDAPConnectionFactory(address, options);
-    }
-
-    /**
-     * Creates a new LDAP connection factory which can be used to create LDAP
      * connections to the Directory Server at the provided host and port
-     * address.
+     * number.
      *
      * @param host
      *            The host name.
@@ -108,7 +70,7 @@ public final class LDAPConnectionFactory implements ConnectionFactory {
     /**
      * Creates a new LDAP connection factory which can be used to create LDAP
      * connections to the Directory Server at the provided host and port
-     * address.
+     * number.
      *
      * @param host
      *            The host name.
@@ -123,19 +85,9 @@ public final class LDAPConnectionFactory implements ConnectionFactory {
      */
     public LDAPConnectionFactory(final String host, final int port, final LDAPOptions options) {
         Reject.ifNull(host, options);
-        final InetSocketAddress address = new InetSocketAddress(host, port);
         this.provider = getProvider(TransportProvider.class, options.getTransportProvider(),
                 options.getProviderClassLoader());
-        this.impl = provider.getLDAPConnectionFactory(address, options);
-    }
-
-    /**
-     * Returns the {@code InetAddress} of the Directory Server.
-     *
-     * @return The {@code InetAddress} of the Directory Server.
-     */
-    public InetAddress getAddress() {
-        return getSocketAddress().getAddress();
+        this.impl = provider.getLDAPConnectionFactory(host, port, options);
     }
 
     @Override
@@ -163,7 +115,7 @@ public final class LDAPConnectionFactory implements ConnectionFactory {
      * @return The host name of the Directory Server.
      */
     public String getHostName() {
-        return Connections.getHostString(getSocketAddress());
+        return impl.getHostName();
     }
 
     /**
@@ -172,16 +124,7 @@ public final class LDAPConnectionFactory implements ConnectionFactory {
      * @return The port of the Directory Server.
      */
     public int getPort() {
-        return getSocketAddress().getPort();
-    }
-
-    /**
-     * Returns the address of the Directory Server.
-     *
-     * @return The address of the Directory Server.
-     */
-    public InetSocketAddress getSocketAddress() {
-        return impl.getSocketAddress();
+        return impl.getPort();
     }
 
     /**

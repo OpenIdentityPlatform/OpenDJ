@@ -91,8 +91,8 @@ public class GrizzlyLDAPConnectionTestCase extends SdkTestCase {
          * Use a very long time out in order to prevent the timeout thread from
          * triggering the timeout.
          */
-        LDAPConnectionFactory factory = new LDAPConnectionFactory(address,
-                new LDAPOptions().setTimeout(100, TimeUnit.SECONDS));
+        LDAPConnectionFactory factory = new LDAPConnectionFactory(address.getHostName(),
+                address.getPort(), new LDAPOptions().setTimeout(100, TimeUnit.SECONDS));
         GrizzlyLDAPConnection connection = (GrizzlyLDAPConnection) factory.getConnection();
         try {
             SearchRequest request =

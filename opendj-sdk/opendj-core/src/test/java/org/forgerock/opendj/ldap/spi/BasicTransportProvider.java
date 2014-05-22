@@ -50,8 +50,8 @@ public class BasicTransportProvider implements TransportProvider {
 
     /** {@inheritDoc} */
     @Override
-    public LDAPConnectionFactoryImpl getLDAPConnectionFactory(InetSocketAddress address, LDAPOptions options) {
-        return new BasicLDAPConnectionFactory(address, options);
+    public LDAPConnectionFactoryImpl getLDAPConnectionFactory(String host, int port, LDAPOptions options) {
+        return new BasicLDAPConnectionFactory(host, port, options);
     }
 
     /** {@inheritDoc} */

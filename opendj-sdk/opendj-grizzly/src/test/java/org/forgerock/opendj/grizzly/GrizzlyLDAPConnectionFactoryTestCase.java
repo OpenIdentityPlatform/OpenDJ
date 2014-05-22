@@ -35,6 +35,7 @@ import static org.mockito.Matchers.same;
 import static org.mockito.Mockito.*;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -104,8 +105,9 @@ public class GrizzlyLDAPConnectionFactoryTestCase extends SdkTestCase {
     private final AtomicReference<LDAPClientContext> context =
             new AtomicReference<LDAPClientContext>();
     private final LDAPListener server = createServer();
-    private final ConnectionFactory factory = new LDAPConnectionFactory(server.getSocketAddress(),
-            new LDAPOptions().setTimeout(1, TimeUnit.MILLISECONDS));
+    private final InetSocketAddress socketAddress = server.getSocketAddress();
+    private final ConnectionFactory factory = new LDAPConnectionFactory(socketAddress.getHostName(),
+            socketAddress.getPort(), new LDAPOptions().setTimeout(1, TimeUnit.MILLISECONDS));
     private final ConnectionFactory pool = Connections.newFixedConnectionPool(factory, 10);
     private volatile ServerConnection<Integer> serverConnection;
 
@@ -293,7 +295,9 @@ public class GrizzlyLDAPConnectionFactoryTestCase extends SdkTestCase {
     @Test
     public void testCreateLDAPConnectionFactory() throws Exception {
         // test no exception is thrown, which means transport provider is correctly loaded
-        LDAPConnectionFactory factory = new LDAPConnectionFactory(findFreeSocketAddress());
+        InetSocketAddress socketAddress = findFreeSocketAddress();
+        LDAPConnectionFactory factory = new LDAPConnectionFactory(socketAddress.getHostName(),
+                socketAddress.getPort());
         factory.close();
     }
 
@@ -301,7 +305,9 @@ public class GrizzlyLDAPConnectionFactoryTestCase extends SdkTestCase {
             expectedExceptionsMessageRegExp = "^The requested provider 'unknown' .*")
     public void testCreateLDAPConnectionFactoryFailureProviderNotFound() throws Exception {
         LDAPOptions options = new LDAPOptions().setTransportProvider("unknown");
-        LDAPConnectionFactory factory = new LDAPConnectionFactory(findFreeSocketAddress(), options);
+        InetSocketAddress socketAddress = findFreeSocketAddress();
+        LDAPConnectionFactory factory = new LDAPConnectionFactory(socketAddress.getHostName(),
+                socketAddress.getPort(), options);
         factory.close();
     }
 
@@ -311,7 +317,9 @@ public class GrizzlyLDAPConnectionFactoryTestCase extends SdkTestCase {
         LDAPOptions options =
                 new LDAPOptions().setProviderClassLoader(Thread.currentThread()
                         .getContextClassLoader());
-        LDAPConnectionFactory factory = new LDAPConnectionFactory(findFreeSocketAddress(), options);
+        InetSocketAddress socketAddress = findFreeSocketAddress();
+        LDAPConnectionFactory factory = new LDAPConnectionFactory(socketAddress.getHostName(),
+                socketAddress.getPort(), options);
         factory.close();
     }
 

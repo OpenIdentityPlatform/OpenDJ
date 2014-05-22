@@ -46,18 +46,21 @@ import org.forgerock.opendj.ldap.ServerConnectionFactory;
 public interface TransportProvider extends Provider {
 
     /**
-     * Returns an implementation of {@code LDAPConnectionFactory}.
+     * Returns an implementation of {@code LDAPConnectionFactory}. The address
+     * will be resolved each time a new connection is returned.
      *
-     * @param address
-     *            The address of the Directory Server to connect to.
+     * @param host
+     *            The hostname of the Directory Server to connect to.
+     * @param port
+     *            The port number of the Directory Server to connect to.
      * @param options
      *            The LDAP options to use when creating connections.
      * @return an implementation of {@code LDAPConnectionFactory}
      */
-    LDAPConnectionFactoryImpl getLDAPConnectionFactory(InetSocketAddress address,
+    LDAPConnectionFactoryImpl getLDAPConnectionFactory(String host, int port,
             LDAPOptions options);
 
-    /**
+  /**
      * Returns an implementation of {@code LDAPListener}.
      *
      * @param address
