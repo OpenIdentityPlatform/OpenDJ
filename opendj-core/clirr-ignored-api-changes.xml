@@ -43,6 +43,31 @@ For a description of ant style path expressions see:
 Note: waiting on https://jira.codehaus.org/browse/MCLIRR-62 to be resolved to avoid the need to use \s* in the '<to>' tags.
 -->
   <difference>
+  	<className>org/forgerock/opendj/ldap/LDAPConnectionFactory</className>
+  	<differenceType>7002</differenceType>
+  	<method>LDAPConnectionFactory(java.net.SocketAddress)</method>
+  	<justification>Moving from inetSocketAddress to host+port constructors</justification>
+  </difference>
+  <difference>
+  	<className>org/forgerock/opendj/ldap/LDAPConnectionFactory</className>
+  	<differenceType>7002</differenceType>
+  	<method>LDAPConnectionFactory(java.net.SocketAddress, org.forgerock.opendj.ldap.LDAPOptions)</method>
+  	<justification>Moving from inetSocketAddress to host+port constructors</justification>
+  </difference>
+  <difference>
+  	<className>org/forgerock/opendj/ldap/LDAPConnectionFactory</className>
+  	<differenceType>7002</differenceType>
+  	<method>java.net.InetAddress getAddress()</method>
+  	<justification>Moving from inetSocketAddress to host+port constructors</justification>
+  </difference>
+  <difference>
+  	<className>org/forgerock/opendj/ldap/LDAPConnectionFactory</className>
+  	<differenceType>7002</differenceType>
+  	<method>java.net.SocketAddress getSocketAddress()</method>
+  	<justification>Moving from inetSocketAddress to host+port constructors</justification>
+  </difference>
+
+  <difference>
     <className>org/forgerock/opendj/ldap/CoreMessages</className>
     <differenceType>8001</differenceType>
     <justification>Incorrectly reported because it is automatically generated</justification>

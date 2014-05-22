@@ -46,18 +46,22 @@ import com.forgerock.opendj.util.AsynchronousFutureResult;
 public final class BasicLDAPConnectionFactory implements LDAPConnectionFactoryImpl {
 
     private final LDAPOptions options;
-    private final InetSocketAddress socketAddress;
+    private final String host;
+    private final int port;
 
     /**
      * Creates a new LDAP connection factory which does nothing.
      *
-     * @param address
+     * @param host
      *            The address of the Directory Server to connect to.
+     * @param port
+     *            The port of the Directory Server to connect to.
      * @param options
      *            The LDAP connection options to use when creating connections.
      */
-    public BasicLDAPConnectionFactory(final InetSocketAddress address, final LDAPOptions options) {
-        this.socketAddress = address;
+    public BasicLDAPConnectionFactory(final String host, final int port, final LDAPOptions options) {
+        this.host = host;
+        this.port = port;
         this.options = new LDAPOptions(options);
     }
 
@@ -90,14 +94,26 @@ public final class BasicLDAPConnectionFactory implements LDAPConnectionFactoryIm
      * @return The address of the Directory Server.
      */
     public InetSocketAddress getSocketAddress() {
-        return socketAddress;
+        return new InetSocketAddress(host, port);
+    }
+
+    @Override
+    public String getHostName() {
+        return host;
+    }
+
+    @Override
+    public int getPort() {
+        return port;
     }
 
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
         builder.append("LDAPConnectionFactory(");
-        builder.append(getSocketAddress().toString());
+        builder.append(host);
+        builder.append(':');
+        builder.append(port);
         builder.append(')');
         return builder.toString();
     }

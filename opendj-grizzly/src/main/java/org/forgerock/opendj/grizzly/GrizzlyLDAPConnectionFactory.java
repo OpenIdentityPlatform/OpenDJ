@@ -217,7 +217,7 @@ public final class GrizzlyLDAPConnectionFactory implements LDAPConnectionFactory
                 return timeoutEndTime - currentTime;
             } else {
                 future.handleErrorResult(newErrorResult(ResultCode.CLIENT_SIDE_CONNECT_ERROR,
-                        LDAP_CONNECTION_CONNECT_TIMEOUT.get(socketAddress, getTimeout()).toString()));
+                        LDAP_CONNECTION_CONNECT_TIMEOUT.get(getSocketAddress(), getTimeout()).toString()));
                 return 0;
             }
         }
@@ -231,7 +231,8 @@ public final class GrizzlyLDAPConnectionFactory implements LDAPConnectionFactory
     private final LDAPClientFilter clientFilter;
     private final FilterChain defaultFilterChain;
     private final LDAPOptions options;
-    private final InetSocketAddress socketAddress;
+    private final String host;
+    private final int port;
 
     /**
      * Prevents the transport and timeoutChecker being released when there are
@@ -254,13 +255,15 @@ public final class GrizzlyLDAPConnectionFactory implements LDAPConnectionFactory
      * to create connections to the Directory Server at the provided host and
      * port address using provided connection options.
      *
-     * @param address
-     *            The address of the Directory Server to connect to.
+     * @param host
+     *            The hostname of the Directory Server to connect to.
+     * @param port
+     *            The port number of the Directory Server to connect to.
      * @param options
      *            The LDAP connection options to use when creating connections.
      */
-    public GrizzlyLDAPConnectionFactory(final InetSocketAddress address, final LDAPOptions options) {
-        this(address, options, null);
+    public GrizzlyLDAPConnectionFactory(final String host, final int port, final LDAPOptions options) {
+        this(host, port, options, null);
     }
 
     /**
@@ -269,18 +272,21 @@ public final class GrizzlyLDAPConnectionFactory implements LDAPConnectionFactory
      * port address using provided connection options and provided TCP
      * transport.
      *
-     * @param address
-     *            The address of the Directory Server to connect to.
+     * @param host
+     *            The hostname of the Directory Server to connect to.
+     * @param port
+     *            The port number of the Directory Server to connect to.
      * @param options
      *            The LDAP connection options to use when creating connections.
      * @param transport
      *            Grizzly TCP Transport NIO implementation to use for
      *            connections. If {@code null}, default transport will be used.
      */
-    public GrizzlyLDAPConnectionFactory(final InetSocketAddress address, final LDAPOptions options,
-            TCPNIOTransport transport) {
+    public GrizzlyLDAPConnectionFactory(final String host, final int port, final LDAPOptions options,
+                                        TCPNIOTransport transport) {
         this.transport = DEFAULT_TRANSPORT.acquireIfNull(transport);
-        this.socketAddress = address;
+        this.host = host;
+        this.port = port;
         this.options = new LDAPOptions(options);
         this.clientFilter = new LDAPClientFilter(this.options.getDecodeOptions(), 0);
         this.defaultFilterChain =
@@ -312,20 +318,32 @@ public final class GrizzlyLDAPConnectionFactory implements LDAPConnectionFactory
                         .build();
         final AsynchronousFutureResult<Connection, ResultHandler<? super Connection>> future =
                 new AsynchronousFutureResult<Connection, ResultHandler<? super Connection>>(handler);
-        connectorHandler.connect(socketAddress, new CompletionHandlerAdapter(future));
+        connectorHandler.connect(getSocketAddress(), new CompletionHandlerAdapter(future));
         return future;
     }
 
     @Override
     public InetSocketAddress getSocketAddress() {
-        return socketAddress;
+        return new InetSocketAddress(host, port);
+    }
+
+    @Override
+    public String getHostName() {
+        return host;
+    }
+
+    @Override
+    public int getPort() {
+        return port;
     }
 
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
         builder.append("LDAPConnectionFactory(");
-        builder.append(getSocketAddress().toString());
+        builder.append(host);
+        builder.append(':');
+        builder.append(port);
         builder.append(')');
         return builder.toString();
     }
