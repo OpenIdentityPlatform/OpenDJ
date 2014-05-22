@@ -270,23 +270,23 @@ $ <userinput>curl \
  --user kvaughan:bribery \
  --header "Content-Type: application/json" \
  --header "If-None-Match: *" \
- --data '{ \
-  "_id": "newuser", \
-  "contactInformation": { \
-    "telephoneNumber": "+1 408 555 1212", \
-    "emailAddress": "newuser@example.com" \
-  }, \
-  "name": { \
-    "familyName": "New", \
-    "givenName": "User" \
-  }, \
-  "displayName": "New User", \
-  "manager": [ \
-    { \
-      "_id": "kvaughan", \
-      "displayName": "Kirsten Vaughan" \
-    } \
-  ] \
+ --data '{
+  "_id": "newuser",
+  "contactInformation": {
+    "telephoneNumber": "+1 408 555 1212",
+    "emailAddress": "newuser@example.com"
+  },
+  "name": {
+    "familyName": "New",
+    "givenName": "User"
+  },
+  "displayName": "New User",
+  "manager": [
+    {
+      "_id": "kvaughan",
+      "displayName": "Kirsten Vaughan"
+    }
+  ]
  }' \
  http://opendj.example.com:8080/users/newuser?_prettyPrint=true</userinput>
 <computeroutput>{
@@ -371,28 +371,28 @@ $ <userinput>curl \
  --request PUT \
  --user kvaughan:bribery \
  --header "Content-Type: application/json" \
- --data '{ \
-   "contactInformation": { \
-     "telephoneNumber": "+1 408 555 4798", \
-     "emailAddress": "scarter@example.com" \
-   }, \
-   "name": { \
-     "familyName": "Carter", \
-     "givenName": "Sam" \
-   }, \
-   "userName": "scarter@example.com", \
-   "displayName": "Sam Carter", \
-   "groups": [ \
-     { \
-       "_id": "Accounting Managers" \
-     } \
-   ], \
-   "manager": [ \
-     { \
-       "_id": "trigden", \
-       "displayName": "Torrey Rigden" \
-     } \
-   ] \
+ --data '{
+   "contactInformation": {
+     "telephoneNumber": "+1 408 555 4798",
+     "emailAddress": "scarter@example.com"
+   },
+   "name": {
+     "familyName": "Carter",
+     "givenName": "Sam"
+   },
+   "userName": "scarter@example.com",
+   "displayName": "Sam Carter",
+   "groups": [
+     {
+       "_id": "Accounting Managers"
+     }
+   ],
+   "manager": [
+     {
+       "_id": "trigden",
+       "displayName": "Torrey Rigden"
+     }
+   ]
  }' \
  http://opendj.example.com:8080/users/scarter?_prettyPrint=true</userinput>
 <computeroutput>{
@@ -437,28 +437,28 @@ $ <userinput>curl \
  --user kvaughan:bribery \
 --header "If-Match: 00000000b017c5b8" \
  --header "Content-Type: application/json" \
- --data '{ \
-   "contactInformation": { \
-     "telephoneNumber": "+1 408 555 1212", \
-     "emailAddress": "scarter@example.com" \
-   }, \
-   "name": { \
-     "familyName": "Carter", \
-     "givenName": "Sam" \
-   }, \
-   "userName": "scarter@example.com", \
-   "displayName": "Sam Carter", \
-   "groups": [ \
-     { \
-       "_id": "Accounting Managers" \
-     } \
-   ], \
-   "manager": [ \
-     { \
-       "_id": "trigden", \
-       "displayName": "Torrey Rigden" \
-     } \
-   ] \
+ --data '{
+   "contactInformation": {
+     "telephoneNumber": "+1 408 555 1212",
+     "emailAddress": "scarter@example.com"
+   },
+   "name": {
+     "familyName": "Carter",
+     "givenName": "Sam"
+   },
+   "userName": "scarter@example.com",
+   "displayName": "Sam Carter",
+   "groups": [
+     {
+       "_id": "Accounting Managers"
+     }
+   ],
+   "manager": [
+     {
+       "_id": "trigden",
+       "displayName": "Torrey Rigden"
+     }
+   ]
  }' \
  http://opendj.example.com:8080/users/scarter?_prettyPrint=true</userinput>
 <computeroutput>{
@@ -668,12 +668,12 @@ $ <userinput>curl \
  --user kvaughan:bribery \
  --request PATCH \
  --header "Content-Type: application/json" \
- --data '[ \
-  { \
-    "operation": "replace", \
-    "field": "/contactInformation/emailAddress", \
-    "value": "babs@example.com" \
-  } \
+ --data '[
+  {
+    "operation": "replace",
+    "field": "/contactInformation/emailAddress",
+    "value": "babs@example.com"
+  }
  ]' \
  http://opendj.example.com:8080/users/bjensen?_prettyPrint=true</userinput>
 <computeroutput>{
@@ -783,16 +783,16 @@ $ <userinput>curl \
  --user kvaughan:bribery \
  --request PATCH \
  --header "Content-Type: application/json" \
- --data '[ \
-  { \
-    "operation": "add", \
-    "field": "/members", \
-    "value": [ \
-      { \
-        "_id": "bjensen" \
-      } \
-    ] \
-  } \
+ --data '[
+  {
+    "operation": "add",
+    "field": "/members",
+    "value": [
+      {
+        "_id": "bjensen"
+      }
+    ]
+  }
  ]' \
  http://opendj.example.com:8080/groups/Directory%20Administrators?_prettyPrint=true</userinput>
 <computeroutput>{
@@ -826,16 +826,16 @@ $ <userinput>curl \
  --user kvaughan:bribery \
  --request PATCH \
  --header "Content-Type: application/json" \
- --data '[ \
-  { \
-    "operation": "remove", \
-    "field": "/members", \
-    "value": [ \
-      { \
-        "_id": "bjensen" \
-      } \
-    ] \
-  } \
+ --data '[
+  {
+    "operation": "remove",
+    "field": "/members",
+    "value": [
+      {
+        "_id": "bjensen"
+      }
+    ]
+  }
  ]' \
  http://opendj.example.com:8080/groups/Directory%20Administrators?_prettyPrint=true</userinput>
 <computeroutput>{
@@ -876,12 +876,12 @@ $ <userinput>curl \
  --request PATCH \
  --header "If-Match: 00000000c1b6d4c7" \
  --header "Content-Type: application/json" \
- --data '[ \
-  { \
-    "operation": "add", \
-    "field": "/contactInformation/emailAddress", \
-    "value": "babs@example.com" \
-  } \
+ --data '[
+  {
+    "operation": "add",
+    "field": "/contactInformation/emailAddress",
+    "value": "babs@example.com"
+  }
  ]' \
  http://opendj.example.com:8080/users/bjensen?_prettyPrint=true</userinput>
 <computeroutput>{
@@ -928,23 +928,23 @@ $ <userinput>curl \
  --request POST \
  --user kvaughan:bribery \
  --header "Content-Type: application/json" \
- --data '{ \
-  "_id": "newuser", \
-  "contactInformation": { \
-    "telephoneNumber": "+1 408 555 1212", \
-    "emailAddress": "newuser@example.com" \
-  }, \
-  "name": { \
-    "familyName": "New", \
-    "givenName": "User" \
-  }, \
-  "displayName": "New User", \
-  "manager": [ \
-    { \
-      "_id": "kvaughan", \
-      "displayName": "Kirsten Vaughan" \
-    } \
-  ] \
+ --data '{
+  "_id": "newuser",
+  "contactInformation": {
+    "telephoneNumber": "+1 408 555 1212",
+    "emailAddress": "newuser@example.com"
+  },
+  "name": {
+    "familyName": "New",
+    "givenName": "User"
+  },
+  "displayName": "New User",
+  "manager": [
+    {
+      "_id": "kvaughan",
+      "displayName": "Kirsten Vaughan"
+    }
+  ]
  }' \
  "http://opendj.example.com:8080/users?_action=create&amp;_prettyPrint=true"</userinput>
 <computeroutput>{
