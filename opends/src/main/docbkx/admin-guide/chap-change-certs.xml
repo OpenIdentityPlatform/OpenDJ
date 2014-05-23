@@ -207,6 +207,7 @@ $ <userinput>keytool \
  -keyalg RSA \
  -validity 7300 \
  -keysize 2048 \
+ -ext "san=dns:opendj.example.com" \
  -dname "CN=opendj.example.com, O=Administration Connector Self-Signed Certificate" \
  -keystore admin-keystore \
  -storepass `cat admin-keystore.pin` \
@@ -288,7 +289,12 @@ Certificate fingerprints:
 
 Extensions:
 
-#1: ObjectId: 2.5.29.14 Criticality=false
+#1: ObjectId: 2.5.29.17 Criticality=false
+SubjectAlternativeName [
+  DNSName: opendj.example.com
+]
+
+#2: ObjectId: 2.5.29.14 Criticality=false
 SubjectKeyIdentifier [
 KeyIdentifier [
 0000: FE 33 69 67 FF E8 64 F6   D3 FB CD 14 1C D3 01 44  .3ig..d........D
