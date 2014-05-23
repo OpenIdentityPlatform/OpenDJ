@@ -25,7 +25,6 @@
  */
 package org.opends.server.replication.server.changelog.file;
 
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -35,7 +34,6 @@ import org.opends.server.admin.std.server.MonitorProviderCfg;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.ProtocolVersion;
 import org.opends.server.replication.protocol.UpdateMsg;
@@ -48,11 +46,9 @@ import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.InitializationException;
 
 import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 
 /**
  * Represents a replication server database for one server in the topology.
@@ -370,22 +366,12 @@ class FileReplicaDB
   /** Parser of records persisted in the ReplicaDB log. */
   private static class ReplicaDBParser implements RecordParser<CSN, UpdateMsg>
   {
-    private static final DebugTracer TRACER = getTracer();
 
     @Override
     public ByteString encodeRecord(final Record<CSN, UpdateMsg> record)
     {
       final UpdateMsg message = record.getValue();
-      try
-      {
-        return ByteString.wrap(message.getBytes());
-      }
-      catch (UnsupportedEncodingException e)
-      {
-        // should never happen
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        return ByteString.empty();
-      }
+      return ByteString.wrap(message.getBytes());
     }
 
     @Override

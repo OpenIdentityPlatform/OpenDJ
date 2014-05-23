@@ -38,6 +38,7 @@ import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperationBasis;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.ReplicationTestCase;
+import org.opends.server.replication.common.AssuredMode;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.CSNGenerator;
 import org.opends.server.replication.common.ServerState;
@@ -894,9 +895,9 @@ public class ReplicationServerTest extends ReplicationTestCase
       }
 
       // Send StartSessionMsg
-      StartSessionMsg startSessionMsg =
-        new StartSessionMsg(ServerStatus.NORMAL_STATUS,
-        new ArrayList<String>());
+      StartSessionMsg startSessionMsg = new StartSessionMsg(
+          ServerStatus.NORMAL_STATUS, new ArrayList<String>(),
+          false, AssuredMode.SAFE_DATA_MODE, (byte) 1);
       session.publish(startSessionMsg);
 
       // Read the TopologyMsg that should come back.

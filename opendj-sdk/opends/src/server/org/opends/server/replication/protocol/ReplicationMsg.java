@@ -22,11 +22,10 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
 
-import java.io.UnsupportedEncodingException;
 import java.util.zip.DataFormatException;
 
 /**
@@ -106,15 +105,8 @@ public abstract class ReplicationMsg
    *          The protocol version to use for serialization. The version should
    *          normally be older than the current one.
    * @return The encoded PDU.
-   * @throws UnsupportedEncodingException
-   *           When the encoding of the message failed because the UTF-8
-   *           encoding is not supported or the requested protocol version to
-   *           use is not supported by this PDU.
    */
-  public abstract byte[] getBytes(short protocolVersion)
-      throws UnsupportedEncodingException;
-
-
+  public abstract byte[] getBytes(short protocolVersion);
 
   /**
    * Generates a ReplicationMsg from its encoded form. This un-serialization is
@@ -128,15 +120,12 @@ public abstract class ReplicationMsg
    * @return The generated SynchronizationMessage.
    * @throws DataFormatException
    *           If the encoded form was not a valid msg.
-   * @throws UnsupportedEncodingException
-   *           If UTF8 is not supported.
    * @throws NotSupportedOldVersionPDUException
    *           If the PDU is part of an old protocol version and we do not
    *           support it.
    */
   public static ReplicationMsg generateMsg(byte[] buffer, short protocolVersion)
-      throws DataFormatException, UnsupportedEncodingException,
-      NotSupportedOldVersionPDUException
+      throws DataFormatException, NotSupportedOldVersionPDUException
   {
     switch (buffer[0])
     {
@@ -213,52 +202,5 @@ public abstract class ReplicationMsg
     default:
       throw new DataFormatException("received message with unknown type");
     }
-  }
-
-  /**
-   * Concatenate the tail byte array into the resultByteArray.
-   * The resultByteArray must be large enough before calling this method.
-   *
-   * @param tail the byte array to concatenate.
-   * @param resultByteArray The byte array to concatenate to.
-   * @param pos the position where to concatenate.
-   * @return the next position to use in the resultByteArray.
-   */
-  protected static int addByteArray(byte[] tail, byte[] resultByteArray,
-    int pos)
-  {
-    for (int i=0; i<tail.length; i++,pos++)
-    {
-      resultByteArray[pos] = tail[i];
-    }
-    resultByteArray[pos++] = 0;
-    return pos;
-  }
-
-
-
-  /**
-   * Get the length of the next String encoded in the in byte array.
-   *
-   * @param in
-   *          the byte array where to calculate the string.
-   * @param pos
-   *          the position where to start from in the byte array.
-   * @return the length of the next string.
-   * @throws DataFormatException
-   *           If the byte array does not end with null.
-   */
-  protected static int getNextLength(byte[] in, int pos)
-      throws DataFormatException
-  {
-    int offset = pos;
-    int length = 0;
-    while (in[offset++] != 0)
-    {
-      if (offset >= in.length)
-        throw new DataFormatException("byte[] is not a valid msg");
-      length++;
-    }
-    return length;
   }
 }

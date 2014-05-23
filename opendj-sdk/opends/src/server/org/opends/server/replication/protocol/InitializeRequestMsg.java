@@ -22,15 +22,13 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS.
+ *      Portions copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
 
-import java.io.UnsupportedEncodingException;
 import java.util.zip.DataFormatException;
 
 import org.opends.server.types.DN;
-import org.opends.server.types.DirectoryException;
 
 /**
  * This message is part of the replication protocol.
@@ -40,7 +38,7 @@ import org.opends.server.types.DirectoryException;
  */
 public class InitializeRequestMsg extends RoutableMsg
 {
-  private DN baseDN;
+  private final DN baseDN;
   private int initWindow = 0;
 
   /**
@@ -66,51 +64,22 @@ public class InitializeRequestMsg extends RoutableMsg
    * @throws DataFormatException If the in does not contain a properly
    *                             encoded InitializeMessage.
    */
-  public InitializeRequestMsg(byte[] in, short version)
-  throws DataFormatException
+  InitializeRequestMsg(byte[] in, short version) throws DataFormatException
   {
-    super();
-    try
+    final ByteArrayScanner scanner = new ByteArrayScanner(in);
+    final byte msgType = scanner.nextByte();
+    if (msgType != MSG_TYPE_INITIALIZE_REQUEST)
     {
-      /* first byte is the type */
-      if (in[0] != MSG_TYPE_INITIALIZE_REQUEST)
-        throw new DataFormatException(
-            "input is not a valid InitializeRequestMessage");
-      int pos = 1;
-
-      // baseDN
-      int length = getNextLength(in, pos);
-      baseDN = DN.decode(new String(in, pos, length, "UTF-8"));
-      pos += length +1;
-
-      // sender
-      length = getNextLength(in, pos);
-      String sourceServerIdString = new String(in, pos, length, "UTF-8");
-      senderID = Integer.valueOf(sourceServerIdString);
-      pos += length +1;
-
-      // destination
-      length = getNextLength(in, pos);
-      String destinationServerIdString = new String(in, pos, length, "UTF-8");
-      destination = Integer.valueOf(destinationServerIdString);
-      pos += length +1;
-
-      if (version >= ProtocolVersion.REPLICATION_PROTOCOL_V4)
-      {
-        // init window
-        length = getNextLength(in, pos);
-        String initWindowString = new String(in, pos, length, "UTF-8");
-        initWindow = Integer.valueOf(initWindowString);
-        pos += length +1;
-      }
+      throw new DataFormatException(
+          "input is not a valid InitializeRequestMessage");
     }
-    catch (UnsupportedEncodingException e)
+    baseDN = scanner.nextDN();
+    senderID = scanner.nextIntUTF8();
+    destination = scanner.nextIntUTF8();
+
+    if (version >= ProtocolVersion.REPLICATION_PROTOCOL_V4)
     {
-      throw new DataFormatException("UTF-8 is not supported by this jvm.");
-    }
-    catch (DirectoryException e)
-    {
-      throw new DataFormatException(e.getLocalizedMessage());
+      initWindow = scanner.nextIntUTF8();
     }
   }
 
@@ -128,54 +97,20 @@ public class InitializeRequestMsg extends RoutableMsg
   // Msg encoding
   // ============
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public byte[] getBytes(short version)
   {
-    try {
-      byte[] baseDNBytes = baseDN.toNormalizedString().getBytes("UTF-8");
-      byte[] senderBytes = String.valueOf(senderID).getBytes("UTF-8");
-      byte[] destinationBytes = String.valueOf(destination).getBytes("UTF-8");
-      byte[] initWindowBytes = null;
-
-      int length = 1 + baseDNBytes.length + 1 + senderBytes.length + 1
-        + destinationBytes.length + 1;
-
-      if (version >= ProtocolVersion.REPLICATION_PROTOCOL_V4)
-      {
-        initWindowBytes = String.valueOf(initWindow).getBytes("UTF-8");
-        length += initWindowBytes.length + 1;
-      }
-
-      byte[] resultByteArray = new byte[length];
-
-      // type of the operation
-      resultByteArray[0] = MSG_TYPE_INITIALIZE_REQUEST;
-      int pos = 1;
-
-      // baseDN
-      pos = addByteArray(baseDNBytes, resultByteArray, pos);
-
-      // sender
-      pos = addByteArray(senderBytes, resultByteArray, pos);
-
-      // destination
-      pos = addByteArray(destinationBytes, resultByteArray, pos);
-
-      if (version >= ProtocolVersion.REPLICATION_PROTOCOL_V4)
-      {
-        // init window
-        pos = addByteArray(initWindowBytes, resultByteArray, pos);
-      }
-
-      return resultByteArray;
-    }
-    catch (UnsupportedEncodingException e)
+    final ByteArrayBuilder builder = new ByteArrayBuilder();
+    builder.append(MSG_TYPE_INITIALIZE_REQUEST);
+    builder.append(baseDN);
+    builder.appendUTF8(senderID);
+    builder.appendUTF8(destination);
+    if (version >= ProtocolVersion.REPLICATION_PROTOCOL_V4)
     {
-      return null;
+      builder.appendUTF8(initWindow);
     }
+    return builder.toByteArray();
   }
 
   /**

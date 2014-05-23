@@ -22,11 +22,10 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS.
+ *      Portions copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
 
-import java.io.UnsupportedEncodingException;
 import java.util.zip.DataFormatException;
 
 /**
@@ -54,65 +53,26 @@ public class DoneMsg extends RoutableMsg
    * @throws DataFormatException If the in does not contain a properly,
    *                             encoded message.
    */
-  public DoneMsg(byte[] in) throws DataFormatException
+  DoneMsg(byte[] in) throws DataFormatException
   {
-    super();
-    try
+    final ByteArrayScanner scanner = new ByteArrayScanner(in);
+    final byte msgType = scanner.nextByte();
+    if (msgType != MSG_TYPE_DONE)
     {
-      // First byte is the type
-      if (in[0] != MSG_TYPE_DONE)
-        throw new DataFormatException("input is not a valid DoneMessage");
-      int pos = 1;
-
-      // sender
-      int length = getNextLength(in, pos);
-      String senderString = new String(in, pos, length, "UTF-8");
-      this.senderID = Integer.valueOf(senderString);
-      pos += length +1;
-
-      // destination
-      length = getNextLength(in, pos);
-      String destinationString = new String(in, pos, length, "UTF-8");
-      this.destination = Integer.valueOf(destinationString);
-      pos += length +1;
-
-    } catch (UnsupportedEncodingException e)
-    {
-      throw new DataFormatException("UTF-8 is not supported by this jvm.");
+      throw new DataFormatException("input is not a valid DoneMessage");
     }
+    this.senderID = scanner.nextIntUTF8();
+    this.destination = scanner.nextIntUTF8();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public byte[] getBytes(short protocolVersion)
   {
-    try
-    {
-      byte[] senderBytes = String.valueOf(senderID).getBytes("UTF-8");
-      byte[] destinationBytes = String.valueOf(destination).getBytes("UTF-8");
-
-      int length = 1 + senderBytes.length + 1
-                     + destinationBytes.length + 1;
-
-      byte[] resultByteArray = new byte[length];
-
-      /* put the type of the operation */
-      resultByteArray[0] = MSG_TYPE_DONE;
-      int pos = 1;
-
-      /* put the sender */
-      pos = addByteArray(senderBytes, resultByteArray, pos);
-
-      /* put the destination */
-      pos = addByteArray(destinationBytes, resultByteArray, pos);
-
-      return resultByteArray;
-    }
-    catch (UnsupportedEncodingException e)
-    {
-      return null;
-    }
+    final ByteArrayBuilder builder = new ByteArrayBuilder();
+    builder.append(MSG_TYPE_DONE);
+    builder.appendUTF8(senderID);
+    builder.appendUTF8(destination);
+    return builder.toByteArray();
   }
 }

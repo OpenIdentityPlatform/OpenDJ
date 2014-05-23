@@ -22,15 +22,13 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS.
+ *      Portions copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
 
-import java.io.UnsupportedEncodingException;
 import java.util.zip.DataFormatException;
 
 import org.opends.server.types.DN;
-import org.opends.server.types.DirectoryException;
 
 /**
  * This message is part of the replication protocol.
@@ -39,17 +37,17 @@ import org.opends.server.types.DirectoryException;
  */
 public class InitializeTargetMsg extends RoutableMsg
 {
-  private DN baseDN;
+  private final DN baseDN;
 
   /** Specifies the number of entries expected to be exported. */
-  private long entryCount;
+  private final long entryCount;
 
   /**
    * Specifies the serverID of the server that requested this export to happen.
    * It allows a server that previously sent an InitializeRequestMessage to know
    * that the current message is related to its own request.
    */
-  private int requestorID;
+  private final int requestorID;
 
   private int initWindow;
 
@@ -80,63 +78,24 @@ public class InitializeTargetMsg extends RoutableMsg
    * @throws DataFormatException If the in does not contain a properly
    *                             encoded InitializeMessage.
    */
-  public InitializeTargetMsg(byte[] in, short version)
-  throws DataFormatException
+  InitializeTargetMsg(byte[] in, short version) throws DataFormatException
   {
-    super();
-    try
+    final ByteArrayScanner scanner = new ByteArrayScanner(in);
+    final byte msgType = scanner.nextByte();
+    if (msgType != MSG_TYPE_INITIALIZE_TARGET)
     {
-      /* first byte is the type */
-      if (in[0] != MSG_TYPE_INITIALIZE_TARGET)
-        throw new DataFormatException(
-            "input is not a valid InitializeDestinationMessage");
-      int pos = 1;
-
-      // destination
-      int length = getNextLength(in, pos);
-      String destinationString = new String(in, pos, length, "UTF-8");
-      this.destination = Integer.valueOf(destinationString);
-      pos += length +1;
-
-      // baseDN
-      length = getNextLength(in, pos);
-      baseDN = DN.decode(new String(in, pos, length, "UTF-8"));
-      pos += length +1;
-
-      // sender
-      length = getNextLength(in, pos);
-      String senderString = new String(in, pos, length, "UTF-8");
-      senderID = Integer.valueOf(senderString);
-      pos += length +1;
-
-      // requestor
-      length = getNextLength(in, pos);
-      String requestorString = new String(in, pos, length, "UTF-8");
-      requestorID = Integer.valueOf(requestorString);
-      pos += length +1;
-
-      // entryCount
-      length = getNextLength(in, pos);
-      String entryCountString = new String(in, pos, length, "UTF-8");
-      entryCount = Long.valueOf(entryCountString);
-      pos += length +1;
-
-      if (version >= ProtocolVersion.REPLICATION_PROTOCOL_V4)
-      {
-        // init window
-        length = getNextLength(in, pos);
-        String initWindowString = new String(in, pos, length, "UTF-8");
-        initWindow = Integer.valueOf(initWindowString);
-        pos += length +1;
-      }
+      throw new DataFormatException(
+          "input is not a valid InitializeDestinationMessage");
     }
-    catch (UnsupportedEncodingException e)
+    destination = scanner.nextIntUTF8();
+    baseDN = scanner.nextDN();
+    senderID = scanner.nextIntUTF8();
+    requestorID = scanner.nextIntUTF8();
+    entryCount = scanner.nextLongUTF8();
+
+    if (version >= ProtocolVersion.REPLICATION_PROTOCOL_V4)
     {
-      throw new DataFormatException("UTF-8 is not supported by this jvm.");
-    }
-    catch (DirectoryException e)
-    {
-      throw new DataFormatException(e.getLocalizedMessage());
+      initWindow = scanner.nextIntUTF8();
     }
   }
 
@@ -185,66 +144,22 @@ public class InitializeTargetMsg extends RoutableMsg
   // Msg encoding
   // ============
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public byte[] getBytes(short version)
-  throws UnsupportedEncodingException
   {
-    try
+    final ByteArrayBuilder builder = new ByteArrayBuilder();
+    builder.append(MSG_TYPE_INITIALIZE_TARGET);
+    builder.appendUTF8(destination);
+    builder.append(baseDN);
+    builder.appendUTF8(senderID);
+    builder.appendUTF8(requestorID);
+    builder.appendUTF8(entryCount);
+    if (version >= ProtocolVersion.REPLICATION_PROTOCOL_V4)
     {
-      byte[] byteDestination = String.valueOf(destination).getBytes("UTF-8");
-      byte[] byteDn = baseDN.toNormalizedString().getBytes("UTF-8");
-      byte[] byteSender = String.valueOf(senderID).getBytes("UTF-8");
-      byte[] byteRequestor = String.valueOf(requestorID).getBytes("UTF-8");
-      byte[] byteEntryCount = String.valueOf(entryCount).getBytes("UTF-8");
-      byte[] byteInitWindow = null;
-      int length = 1 + byteDestination.length + 1
-                     + byteDn.length + 1
-                     + byteSender.length + 1
-                     + byteRequestor.length + 1
-                     + byteEntryCount.length + 1;
-
-      if (version >= ProtocolVersion.REPLICATION_PROTOCOL_V4)
-      {
-        byteInitWindow = String.valueOf(initWindow).getBytes("UTF-8");
-        length += byteInitWindow.length + 1;
-      }
-
-      byte[] resultByteArray = new byte[length];
-
-      /* put the type of the operation */
-      resultByteArray[0] = MSG_TYPE_INITIALIZE_TARGET;
-      int pos = 1;
-
-      /* put the destination */
-      pos = addByteArray(byteDestination, resultByteArray, pos);
-
-      /* put the baseDN and a terminating 0 */
-      pos = addByteArray(byteDn, resultByteArray, pos);
-
-      /* put the sender */
-      pos = addByteArray(byteSender, resultByteArray, pos);
-
-      /* put the requestorID */
-      pos = addByteArray(byteRequestor, resultByteArray, pos);
-
-      /* put the entryCount */
-      pos = addByteArray(byteEntryCount, resultByteArray, pos);
-
-      if (version >= ProtocolVersion.REPLICATION_PROTOCOL_V4)
-      {
-        /* put the initWindow */
-        pos = addByteArray(byteInitWindow, resultByteArray, pos);
-      }
-
-      return resultByteArray;
+      builder.appendUTF8(initWindow);
     }
-    catch (UnsupportedEncodingException e)
-    {
-      return null;
-    }
+    return builder.toByteArray();
   }
 
   /**

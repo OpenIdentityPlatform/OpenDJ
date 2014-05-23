@@ -26,9 +26,15 @@ package org.opends.server.replication.protocol;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Collection;
+import java.util.Map;
+import java.util.Map.Entry;
 
+import org.opends.server.protocols.asn1.ASN1;
+import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.replication.common.CSN;
+import org.opends.server.replication.common.ServerState;
 import org.opends.server.types.ByteStringBuilder;
+import org.opends.server.types.DN;
 
 /**
  * Byte array builder class encodes data into byte arrays to send messages over
@@ -42,8 +48,6 @@ import org.opends.server.types.ByteStringBuilder;
 public class ByteArrayBuilder
 {
 
-  /** This is the null byte, also known as zero byte. */
-  public static final byte NULL_BYTE = 0;
   private final ByteStringBuilder builder;
 
   /**
@@ -51,7 +55,7 @@ public class ByteArrayBuilder
    */
   public ByteArrayBuilder()
   {
-    builder = new ByteStringBuilder();
+    builder = new ByteStringBuilder(256);
   }
 
   /**
@@ -165,7 +169,8 @@ public class ByteArrayBuilder
    */
   public ByteArrayBuilder appendStrings(Collection<String> col)
   {
-    append(col.size());
+    //append(int) would have been safer, but byte is compatible with legacy code
+    append((byte) col.size());
     for (String s : col)
     {
       append(s);
@@ -174,23 +179,28 @@ public class ByteArrayBuilder
   }
 
   /**
-   * Append a String to this ByteArrayBuilder.
+   * Append a String with a zero separator to this ByteArrayBuilder,
+   * or only the zero separator if the string is null
+   * or if the string length is zero.
    *
    * @param s
-   *          the String to append.
+   *          the String to append. Can be null.
    * @return this ByteArrayBuilder
    */
   public ByteArrayBuilder append(String s)
   {
     try
     {
-      append(s.getBytes("UTF-8"));
+      if (s != null && s.length() > 0)
+      {
+        append(s.getBytes("UTF-8"));
+      }
+      return appendZeroSeparator();
     }
     catch (UnsupportedEncodingException e)
     {
       throw new RuntimeException("Should never happen", e);
     }
-    return this;
   }
 
   /**
@@ -220,14 +230,90 @@ public class ByteArrayBuilder
     return this;
   }
 
-  private ByteArrayBuilder append(byte[] sBytes)
+  /**
+   * Append a DN to this ByteArrayBuilder by converting it to a String then
+   * encoding that string to a UTF-8 byte array.
+   *
+   * @param dn
+   *          the DN to append.
+   * @return this ByteArrayBuilder
+   */
+  public ByteArrayBuilder append(DN dn)
   {
-    for (byte b : sBytes)
-    {
-      append(b);
-    }
-    append((byte) 0); // zero separator
+    append(dn.toString());
     return this;
+  }
+
+  /**
+   * Append all the bytes from the byte array to this ByteArrayBuilder.
+   *
+   * @param bytes
+   *          the byte array to append.
+   * @return this ByteArrayBuilder
+   */
+  public ByteArrayBuilder append(byte[] bytes)
+  {
+    builder.append(bytes);
+    return this;
+  }
+
+  /**
+   * Append all the bytes from the byte array to this ByteArrayBuilder
+   * and then append a final zero byte separator for compatibility
+   * with legacy implementations.
+   *
+   * @param bytes
+   *          the byte array to append.
+   * @return this ByteArrayBuilder
+   */
+  public ByteArrayBuilder appendZeroTerminated(byte[] bytes)
+  {
+    builder.append(bytes);
+    return appendZeroSeparator();
+  }
+
+  private ByteArrayBuilder appendZeroSeparator()
+  {
+    builder.append((byte) 0);
+    return this;
+  }
+
+  /**
+   * Append the byte representation of a ServerState to this ByteArrayBuilder
+   * and then append a final zero byte separator.
+   * <p>
+   * Caution: ServerState MUST be the last field. Because ServerState can
+   * contain null character (string termination of serverId string ..) it cannot
+   * be decoded using {@link ByteArrayScanner#nextString()} like the other
+   * fields. The only way is to rely on the end of the input buffer: and that
+   * forces the ServerState to be the last field. This should be changed if we
+   * want to have more than one ServerState field.
+   *
+   * @param serverState
+   *          the ServerState to append.
+   * @return this ByteArrayBuilder
+   */
+  public ByteArrayBuilder append(ServerState serverState)
+  {
+    final Map<Integer, CSN> serverIdToCSN = serverState.getServerIdToCSNMap();
+    for (Entry<Integer, CSN> entry : serverIdToCSN.entrySet())
+    {
+      // FIXME JNR: why append the serverId in addition to the CSN
+      // since the CSN already contains the serverId?
+      appendUTF8(entry.getKey()); // serverId
+      appendUTF8(entry.getValue()); // CSN
+    }
+    return appendZeroSeparator(); // stupid legacy zero separator
+  }
+
+  /**
+   * Returns a new ASN1Writer that will append bytes to this ByteArrayBuilder.
+   *
+   * @return a new ASN1Writer that will append bytes to this ByteArrayBuilder.
+   */
+  public ASN1Writer getASN1Writer()
+  {
+    return ASN1.getWriter(builder);
   }
 
   /**

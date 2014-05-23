@@ -27,9 +27,14 @@ package org.opends.server.replication.protocol;
 import java.util.Collection;
 import java.util.zip.DataFormatException;
 
+import org.opends.server.protocols.asn1.ASN1;
+import org.opends.server.protocols.asn1.ASN1Reader;
 import org.opends.server.replication.common.CSN;
+import org.opends.server.replication.common.ServerState;
 import org.opends.server.types.ByteSequenceReader;
 import org.opends.server.types.ByteString;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
 
 /**
  * Byte array scanner class helps decode data from byte arrays received via
@@ -44,6 +49,7 @@ public class ByteArrayScanner
 {
 
   private final ByteSequenceReader bytes;
+  private final byte[] byteArray;
 
   /**
    * Builds a ByteArrayScanner object that will read from the supplied byte
@@ -55,6 +61,7 @@ public class ByteArrayScanner
   public ByteArrayScanner(byte[] bytes)
   {
     this.bytes = ByteString.wrap(bytes).asReader();
+    this.byteArray = bytes;
   }
 
   /**
@@ -172,7 +179,7 @@ public class ByteArrayScanner
   /**
    * Reads the next UTF8-encoded string.
    *
-   * @return the next UTF8-encoded string.
+   * @return the next UTF8-encoded string or null if the string length is zero
    * @throws DataFormatException
    *           if no more data can be read from the input
    */
@@ -180,9 +187,15 @@ public class ByteArrayScanner
   {
     try
     {
-      final String s = bytes.getString(findZeroSeparator());
-      bytes.skip(1); // skip the zero separator
-      return s;
+      final int offset = findZeroSeparator();
+      if (offset > 0)
+      {
+        final String s = bytes.getString(offset);
+        skipZeroSeparator();
+        return s;
+      }
+      skipZeroSeparator();
+      return null;
     }
     catch (IndexOutOfBoundsException e)
     {
@@ -220,7 +233,8 @@ public class ByteArrayScanner
   public <TCol extends Collection<String>> TCol nextStrings(TCol output)
       throws DataFormatException
   {
-    final int colSize = nextInt();
+    // nextInt() would have been safer, but byte is compatible with legacy code.
+    final int colSize = nextByte();
     for (int i = 0; i < colSize; i++)
     {
       output.add(nextString());
@@ -269,6 +283,127 @@ public class ByteArrayScanner
   }
 
   /**
+   * Reads the next DN.
+   *
+   * @return the next DN.
+   * @throws DataFormatException
+   *           if DN was incorrectly encoded or no more data can be read from
+   *           the input
+   */
+  public DN nextDN() throws DataFormatException
+  {
+    try
+    {
+      return DN.decode(nextString());
+    }
+    catch (DirectoryException e)
+    {
+      throw new DataFormatException(e.getLocalizedMessage());
+    }
+  }
+
+  /**
+   * Return a new byte array containing all remaining bytes in this
+   * ByteArrayScanner.
+   *
+   * @return new byte array containing all remaining bytes
+   */
+  public byte[] remainingBytes()
+  {
+    final int length = byteArray.length - bytes.position();
+    return nextByteArray(length);
+  }
+
+  /**
+   * Return a new byte array containing all remaining bytes in this
+   * ByteArrayScanner bar the last one which is a zero terminated byte
+   * (compatible with legacy code).
+   *
+   * @return new byte array containing all remaining bytes bar the last one
+   */
+  public byte[] remainingBytesZeroTerminated()
+  {
+    /* do not copy stupid legacy zero separator */
+    final int length = byteArray.length - (bytes.position() + 1);
+    final byte[] result = nextByteArray(length);
+    bytes.skip(1); // ignore last (supposedly) zero byte
+    return result;
+  }
+
+  /**
+   * Return a new byte array containing the requested number of bytes.
+   *
+   * @param length
+   *          the number of bytes to be read and copied to the new byte array.
+   * @return new byte array containing the requested number of bytes.
+   */
+  public byte[] nextByteArray(final int length)
+  {
+    final byte[] result = new byte[length];
+    System.arraycopy(byteArray, bytes.position(), result, 0, length);
+    bytes.skip(length);
+    return result;
+  }
+
+  /**
+   * Reads the next ServerState.
+   * <p>
+   * Caution: ServerState MUST be the last field (see
+   * {@link ByteArrayBuilder#append(ServerState)} javadoc).
+   *
+   * @return the next ServerState.
+   * @throws DataFormatException
+   *           if ServerState was incorrectly encoded or no more data can be
+   *           read from the input
+   * @see ByteArrayBuilder#append(ServerState)
+   */
+  public ServerState nextServerState() throws DataFormatException
+  {
+    final ServerState result = new ServerState();
+
+    final int maxPos = byteArray.length - 1 /* stupid legacy zero separator */;
+    while (bytes.position() < maxPos)
+    {
+      final int serverId = nextIntUTF8();
+      final CSN csn = nextCSNUTF8();
+      if (serverId != csn.getServerId())
+      {
+        throw new DataFormatException("Expected serverId=" + serverId
+            + " to be the same as serverId for CSN=" + csn);
+      }
+      result.update(csn);
+    }
+    skipZeroSeparator();
+    return result;
+  }
+
+  /**
+   * Skips the next byte and verifies it is effectively the zero separator.
+   *
+   * @throws DataFormatException
+   *           if the next byte is not the zero separator.
+   */
+  public void skipZeroSeparator() throws DataFormatException
+  {
+    if (bytes.peek() != (byte) 0)
+    {
+      throw new DataFormatException("Expected a zero separator at position "
+          + bytes.position() + " but found byte " + bytes.peek());
+    }
+    bytes.skip(1);
+  }
+
+  /**
+   * Returns a new ASN1Reader that will read bytes from this ByteArrayScanner.
+   *
+   * @return a new ASN1Reader that will read bytes from this ByteArrayScanner.
+   */
+  public ASN1Reader getASN1Reader()
+  {
+    return ASN1.getReader(bytes);
+  }
+
+  /**
    * Returns whether the scanner has more bytes to consume.
    *
    * @return true if the scanner has more bytes to consume, false otherwise.
@@ -278,4 +413,10 @@ public class ByteArrayScanner
     return bytes.remaining() == 0;
   }
 
+  /** {@inheritDoc} */
+  @Override
+  public String toString()
+  {
+    return bytes.toString();
+  }
 }

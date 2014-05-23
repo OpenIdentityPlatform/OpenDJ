@@ -22,13 +22,11 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS.
+ *      Portions copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
 
-import java.io.UnsupportedEncodingException;
 import java.util.zip.DataFormatException;
-
 
 /**
  * This message is used by LDAP server or by Replication Servers to
@@ -42,7 +40,6 @@ import java.util.zip.DataFormatException;
 public class InitializeRcvAckMsg extends RoutableMsg
 {
   private final int numAck;
-
 
   /**
    * Create a new message..
@@ -65,84 +62,37 @@ public class InitializeRcvAckMsg extends RoutableMsg
    * @throws DataFormatException If the byte array does not contain a valid
    *                             encoded form of the message.
    */
-  public InitializeRcvAckMsg(byte[] in) throws DataFormatException
+  InitializeRcvAckMsg(byte[] in) throws DataFormatException
   {
-    super();
-    try
+    final ByteArrayScanner scanner = new ByteArrayScanner(in);
+    if (scanner.nextByte() != MSG_TYPE_INITIALIZE_RCV_ACK)
     {
-      // msg type
-      if (in[0] != MSG_TYPE_INITIALIZE_RCV_ACK)
-        throw new DataFormatException("input is not a valid "
-            + this.getClass().getCanonicalName());
-      int pos = 1;
-
-      // sender
-      int length = getNextLength(in, pos);
-      String senderString = new String(in, pos, length, "UTF-8");
-      senderID = Integer.valueOf(senderString);
-      pos += length +1;
-
-      // destination
-      length = getNextLength(in, pos);
-      String serverIdString = new String(in, pos, length, "UTF-8");
-      destination = Integer.valueOf(serverIdString);
-      pos += length +1;
-
-      // value fo the ack
-      length = getNextLength(in, pos);
-      String numAckStr = new String(in, pos, length, "UTF-8");
-      pos += length +1;
-      numAck = Integer.parseInt(numAckStr);
-    } catch (UnsupportedEncodingException e)
-    {
-      throw new DataFormatException("UTF-8 is not supported by this jvm.");
+      throw new DataFormatException("input is not a valid "
+          + getClass().getCanonicalName());
     }
+
+    senderID = scanner.nextIntUTF8();
+    destination = scanner.nextIntUTF8();
+    numAck = scanner.nextIntUTF8();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public byte[] getBytes(short protocolVersion)
   {
-    try {
-      byte[] byteSender = String.valueOf(senderID).getBytes("UTF-8");
-      byte[] byteDestination = String.valueOf(destination).getBytes("UTF-8");
-      byte[] byteNumAck = String.valueOf(numAck).getBytes("UTF-8");
-
-      int length = 1 + byteSender.length + 1
-                     + byteDestination.length + 1
-                     + byteNumAck.length + 1;
-
-      byte[] resultByteArray = new byte[length];
-
-      /* put the type of the operation */
-      resultByteArray[0] = MSG_TYPE_INITIALIZE_RCV_ACK;
-      int pos = 1;
-
-      // sender
-      pos = addByteArray(byteSender, resultByteArray, pos);
-
-      // destination
-      pos = addByteArray(byteDestination, resultByteArray, pos);
-
-      // ack value
-      pos = addByteArray(byteNumAck, resultByteArray, pos);
-
-      return resultByteArray;
-    }
-    catch (UnsupportedEncodingException e)
-    {
-      return null;
-    }
+    final ByteArrayBuilder builder = new ByteArrayBuilder();
+    builder.append(MSG_TYPE_INITIALIZE_RCV_ACK);
+    builder.appendUTF8(senderID);
+    builder.appendUTF8(destination);
+    builder.appendUTF8(numAck);
+    return builder.toByteArray();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public String toString()
   {
-    return this.getClass().getSimpleName()  + "=["+
+    return getClass().getSimpleName() + "=[" +
       " sender=" + this.senderID +
       " destination=" + this.destination +
       " msgID=" + this.numAck + "]";

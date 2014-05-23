@@ -22,13 +22,10 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.DataFormatException;
@@ -60,7 +57,7 @@ import org.opends.server.replication.common.CSN;
 public class AckMsg extends ReplicationMsg
 {
   /** CSN of the update that was acked. */
-  private CSN csn;
+  private final CSN csn;
 
   /**
    * Did some servers go in timeout when the matching update (corresponding to
@@ -159,50 +156,28 @@ public class AckMsg extends ReplicationMsg
    * @throws DataFormatException If in does not contain a properly encoded
    *                             AckMsg.
    */
-  public AckMsg(byte[] in) throws DataFormatException
+  AckMsg(byte[] in) throws DataFormatException
   {
-    try
+    /*
+     * The message is stored in the form:
+     * <operation type><CSN><has timeout><has degraded><has replay
+     * error><failed server ids>
+     */
+    final ByteArrayScanner scanner = new ByteArrayScanner(in);
+    final byte msgType = scanner.nextByte();
+    if (msgType != MSG_TYPE_ACK)
     {
-      /*
-       * The message is stored in the form:
-       * <operation type><CSN><has timeout><has degraded><has replay
-       * error><failed server ids>
-       */
+      throw new DataFormatException("byte[] is not a valid modify msg");
+    }
 
-      // First byte is the type
-      if (in[0] != MSG_TYPE_ACK)
-      {
-        throw new DataFormatException("byte[] is not a valid modify msg");
-      }
-      int pos = 1;
+    csn = scanner.nextCSNUTF8();
+    hasTimeout = scanner.nextBoolean();
+    hasWrongStatus = scanner.nextBoolean();
+    hasReplayError = scanner.nextBoolean();
 
-      // Read the CSN
-      int length = getNextLength(in, pos);
-      String csnStr = new String(in, pos, length, "UTF-8");
-      csn = new CSN(csnStr);
-      pos += length + 1;
-
-      // Read the hasTimeout flag
-      hasTimeout = in[pos++] == 1;
-
-      // Read the hasWrongStatus flag
-      hasWrongStatus = in[pos++] == 1;
-
-      // Read the hasReplayError flag
-      hasReplayError = in[pos++] == 1;
-
-      // Read the list of failed server ids
-      while (pos < in.length)
-      {
-        length = getNextLength(in, pos);
-        String serverIdString = new String(in, pos, length, "UTF-8");
-        Integer serverId = Integer.valueOf(serverIdString);
-        failedServers.add(serverId);
-        pos += length + 1;
-      }
-    } catch (UnsupportedEncodingException e)
+    while (!scanner.isEmpty())
     {
-      throw new DataFormatException("UTF-8 is not supported by this jvm.");
+      failedServers.add(scanner.nextIntUTF8());
     }
   }
 
@@ -216,53 +191,26 @@ public class AckMsg extends ReplicationMsg
     return csn;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public byte[] getBytes(short protocolVersion)
   {
-    try
+    /*
+     * The message is stored in the form:
+     * <operation type><CSN><has timeout><has degraded><has replay
+     * error><failed server ids>
+     */
+    final ByteArrayBuilder builder = new ByteArrayBuilder();
+    builder.append(MSG_TYPE_ACK);
+    builder.appendUTF8(csn);
+    builder.append(hasTimeout);
+    builder.append(hasWrongStatus);
+    builder.append(hasReplayError);
+    for (int serverId : failedServers)
     {
-      /*
-       * The message is stored in the form:
-       * <operation type><CSN><has timeout><has degraded><has replay
-       * error><failed server ids>
-       */
-
-      ByteArrayOutputStream oStream = new ByteArrayOutputStream(200);
-
-      // Put the type of the operation
-      oStream.write(MSG_TYPE_ACK);
-
-      // Put the CSN
-      byte[] csnByte = csn.toString().getBytes("UTF-8");
-      oStream.write(csnByte);
-      oStream.write(0);
-
-      // Put the hasTimeout flag
-      oStream.write(hasTimeout ? 1 : 0);
-
-      // Put the hasWrongStatus flag
-      oStream.write(hasWrongStatus ? 1 : 0);
-
-      // Put the hasReplayError flag
-      oStream.write(hasReplayError ? 1 : 0);
-
-      // Put the list of server ids
-      for (Integer sid : failedServers)
-      {
-        byte[] byteServerId = String.valueOf(sid).getBytes("UTF-8");
-        oStream.write(byteServerId);
-        oStream.write(0);
-      }
-
-      return oStream.toByteArray();
-    } catch (IOException e)
-    {
-      // never happens
-      return null;
+      builder.appendUTF8(serverId);
     }
+    return builder.toByteArray();
   }
 
   /**
@@ -307,21 +255,8 @@ public class AckMsg extends ReplicationMsg
    */
   public String errorsToString()
   {
-    String idList;
-    if (failedServers.size() > 0)
-    {
-      idList = "[";
-      int size = failedServers.size();
-      for (int i=0 ; i<size ; i++) {
-        idList += failedServers.get(i);
-        if ( i != (size-1) )
-          idList += ", ";
-      }
-      idList += "]";
-    } else
-    {
-      idList="none";
-    }
+    final String idList =
+        !failedServers.isEmpty() ? failedServers.toString() : "none";
 
     return "hasTimeout: " + (hasTimeout ? "yes" : "no")  + ", " +
       "hasWrongStatus: " + (hasWrongStatus ? "yes" : "no")  + ", " +

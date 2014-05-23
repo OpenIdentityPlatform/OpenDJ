@@ -26,7 +26,10 @@
  */
 package org.opends.server.replication.plugin;
 
-import java.io.*;
+import java.io.File;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.StringReader;
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -59,7 +62,10 @@ import org.opends.server.protocols.ldap.LDAPAttribute;
 import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.protocols.ldap.LDAPModification;
-import org.opends.server.replication.common.*;
+import org.opends.server.replication.common.CSN;
+import org.opends.server.replication.common.ServerState;
+import org.opends.server.replication.common.ServerStatus;
+import org.opends.server.replication.common.StatusMachineEvent;
 import org.opends.server.replication.protocol.*;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.replication.service.ReplicationDomain;
@@ -2063,9 +2069,6 @@ public final class LDAPReplicationDomain extends ReplicationDomain
         {
           msg.encode();
           pendingChanges.commitAndPushCommittedChanges(curCSN, msg);
-        } catch (UnsupportedEncodingException e)
-        {
-          // will be caught at publish time.
         }
         catch (NoSuchElementException e)
         {

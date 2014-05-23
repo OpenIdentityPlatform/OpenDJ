@@ -26,9 +26,6 @@
  */
 package org.opends.server.replication.protocol;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.*;
 import java.util.zip.DataFormatException;
 
@@ -80,7 +77,7 @@ public class StartSessionMsg extends ReplicationMsg
    * @throws java.util.zip.DataFormatException If the byte array does not
    * contain a valid encoded form of the message.
    */
-  public StartSessionMsg(byte[] in, short version) throws DataFormatException
+  StartSessionMsg(byte[] in, short version) throws DataFormatException
   {
     if (version <= ProtocolVersion.REPLICATION_PROTOCOL_V3)
     {
@@ -110,35 +107,21 @@ public class StartSessionMsg extends ReplicationMsg
     this.safeDataLevel = safeDataLevel;
   }
 
-  /**
-   * Creates a new message with the given required parameters.
-   * Assured mode is false.
-   * @param status Status we are starting with
-   * @param referralsURLs Referrals URLs to be used by peer DSs
-   */
-  public StartSessionMsg(ServerStatus status, Collection<String> referralsURLs)
-  {
-    this.referralsURLs.addAll(referralsURLs);
-    this.status = status;
-    this.assuredFlag = false;
-  }
-
   // ============
   // Msg encoding
   // ============
 
   /** {@inheritDoc} */
   @Override
-  public byte[] getBytes(short reqProtocolVersion)
-    throws UnsupportedEncodingException
+  public byte[] getBytes(short protocolVersion)
   {
-    if (reqProtocolVersion <= ProtocolVersion.REPLICATION_PROTOCOL_V3)
+    if (protocolVersion <= ProtocolVersion.REPLICATION_PROTOCOL_V3)
     {
       return getBytes_V23();
     }
     else
     {
-      return getBytes_V45(reqProtocolVersion);
+      return getBytes_V45(protocolVersion);
     }
   }
 
@@ -157,7 +140,9 @@ public class StartSessionMsg extends ReplicationMsg
 
       writer.writeStartSequence();
       for (String url : referralsURLs)
+      {
         writer.writeOctetString(url);
+      }
       writer.writeEndSequence();
 
       writer.writeStartSequence();
@@ -193,57 +178,37 @@ public class StartSessionMsg extends ReplicationMsg
      * <list of referrals urls>
      * (each referral url terminates with 0)
      */
+    final ByteArrayBuilder builder = new ByteArrayBuilder();
+    builder.append(MSG_TYPE_START_SESSION);
+    builder.append(status.getValue());
+    builder.append(assuredFlag);
+    builder.append(assuredMode.getValue());
+    builder.append(safeDataLevel);
 
-    try
+    if (referralsURLs.size() >= 1)
     {
-      ByteArrayOutputStream oStream = new ByteArrayOutputStream();
-
-      /* Put the message type */
-      oStream.write(MSG_TYPE_START_SESSION);
-
-      // Put the status
-      oStream.write(status.getValue());
-
-      // Put the assured flag
-      oStream.write(assuredFlag ? (byte) 1 : (byte) 0);
-
-      // Put assured mode
-      oStream.write(assuredMode.getValue());
-
-      // Put safe data level
-      oStream.write(safeDataLevel);
-
-      // Put the referrals URLs
-      if (referralsURLs.size() >= 1)
+      for (String url : referralsURLs)
       {
-        for (String url : referralsURLs)
-        {
-          byte[] byteArrayURL = url.getBytes("UTF-8");
-          oStream.write(byteArrayURL);
-          oStream.write(0);
-        }
+        builder.append(url);
       }
-      return oStream.toByteArray();
-    } catch (IOException e)
-    {
-      // never happens
-      return null;
     }
+    return builder.toByteArray();
   }
 
   // ============
   // Msg decoding
   // ============
 
-  private void decode_V45(byte[] in, short version)
-  throws DataFormatException
+  private void decode_V45(byte[] in, short version) throws DataFormatException
   {
     ByteSequenceReader reader = ByteString.wrap(in).asReader();
     try
     {
       if (reader.get() != MSG_TYPE_START_SESSION)
-        throw new DataFormatException("input is not a valid " +
-            this.getClass().getCanonicalName());
+      {
+        throw new DataFormatException("input is not a valid "
+            + getClass().getCanonicalName());
+      }
 
       /*
       status = ServerStatus.valueOf(asn1Reader.readOctetString().byteAt(0));
@@ -279,8 +244,7 @@ public class StartSessionMsg extends ReplicationMsg
         asn1Reader.readStartSequence();
         while (asn1Reader.hasNextElement())
         {
-          String s = asn1Reader.readOctetStringAsString();
-          this.eclIncludesForDeletes.add(s);
+          this.eclIncludesForDeletes.add(asn1Reader.readOctetStringAsString());
         }
         asn1Reader.readEndSequence();
       }
@@ -296,8 +260,7 @@ public class StartSessionMsg extends ReplicationMsg
     }
   }
 
-  private void decode_V23(byte[] in)
-  throws DataFormatException
+  private void decode_V23(byte[] in) throws DataFormatException
   {
     /*
      * The message is stored in the form:
@@ -305,46 +268,22 @@ public class StartSessionMsg extends ReplicationMsg
      * <list of referrals urls>
      * (each referral url terminates with 0)
      */
-
-    try
+    final ByteArrayScanner scanner = new ByteArrayScanner(in);
+    final byte msgType = scanner.nextByte();
+    if (msgType != MSG_TYPE_START_SESSION)
     {
-      /* first byte is the type */
-      if (in.length < 1 || in[0] != MSG_TYPE_START_SESSION)
-      {
-        throw new DataFormatException(
-          "Input is not a valid " + this.getClass().getCanonicalName());
-      }
+      throw new DataFormatException(
+          "Input is not a valid " + getClass().getCanonicalName());
+    }
 
-      /* Read the status */
-      status = ServerStatus.valueOf(in[1]);
+    status = ServerStatus.valueOf(scanner.nextByte());
+    assuredFlag = scanner.nextBoolean();
+    assuredMode = AssuredMode.valueOf(scanner.nextByte());
+    safeDataLevel = scanner.nextByte();
 
-      /* Read the assured flag */
-      assuredFlag = in[2] == 1;
-
-      /* Read the assured mode */
-      assuredMode = AssuredMode.valueOf(in[3]);
-
-      /* Read the safe data level */
-      safeDataLevel = in[4];
-
-      /* Read the referrals URLs */
-      int pos = 5;
-      while (pos < in.length)
-      {
-        /*
-         * Read the next URL
-         * first calculate the length then construct the string
-         */
-        int length = getNextLength(in, pos);
-        referralsURLs.add(new String(in, pos, length, "UTF-8"));
-        pos += length + 1;
-      }
-    } catch (UnsupportedEncodingException e)
+    while (!scanner.isEmpty())
     {
-      throw new DataFormatException("UTF-8 is not supported by this jvm.");
-    } catch (IllegalArgumentException e)
-    {
-      throw new DataFormatException(e.getMessage());
+      referralsURLs.add(scanner.nextString());
     }
   }
 
