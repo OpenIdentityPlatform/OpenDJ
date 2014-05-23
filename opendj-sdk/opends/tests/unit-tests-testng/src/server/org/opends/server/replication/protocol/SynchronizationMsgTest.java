@@ -172,7 +172,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertEquals(msg.getCSN(), generatedMsg.getCSN());
 
     // Get ECL entry attributes
-    assertAttributesEqual(entryAttrList, generatedMsg.getEclIncludes());
+    assertAttributesEqual(generatedMsg.getEclIncludes(), entryAttrList);
 
     ModifyOperation mod1 = (ModifyOperation) msg.createOperation(connection);
     ModifyOperation mod2 = (ModifyOperation) generatedMsg.createOperation(connection);
@@ -309,7 +309,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertEquals(generatedMsg.isSubtreeDelete(), subtree);
 
     // Get ECL entry attributes
-    assertAttributesEqual(entryAttrList, generatedMsg.getEclIncludes());
+    assertAttributesEqual(generatedMsg.getEclIncludes(), entryAttrList);
 
     DeleteOperation mod2 = (DeleteOperation) generatedMsg.createOperation(connection);
     assertEquals(mod2.getRequestControl(SubtreeDeleteControl.DECODER) != null, subtree);
@@ -345,10 +345,8 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     List<Modification> mods4 = new ArrayList<Modification>();
     for (int i = 0; i < 10; i++)
     {
-      Attribute attr = Attributes.create("description", "string"
-          + String.valueOf(i));
-      Modification mod = new Modification(ModificationType.ADD, attr);
-      mods4.add(mod);
+      Attribute attr = Attributes.create("description", "string" + i);
+      mods4.add(new Modification(ModificationType.ADD, attr));
     }
 
     List<Attribute> entryAttrList = getEntryAttributes();
@@ -372,8 +370,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   {
     InternalClientConnection connection =
       InternalClientConnection.getRootConnection();
-    ModifyDNOperation op =
-      new ModifyDNOperationBasis(connection, 1, 1, null,
+    ModifyDNOperation op = new ModifyDNOperationBasis(connection, 1, 1, null,
                   DN.decode(rawDN), RDN.decode(newRdn), deleteOldRdn,
                   (newSuperior.length() != 0 ? DN.decode(newSuperior) : null));
 
@@ -383,9 +380,11 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     LocalBackendModifyDNOperation localOp =
       new LocalBackendModifyDNOperation(op);
     for (Modification mod : mods)
+    {
       localOp.addModification(mod);
-    ModifyDNMsg msg = new ModifyDNMsg(localOp);
+    }
 
+    ModifyDNMsg msg = new ModifyDNMsg(localOp);
     msg.setAssured(isAssured);
     msg.setAssuredMode(assuredMode);
     msg.setSafeDataLevel(safeDataLevel);
@@ -405,7 +404,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertEquals(generatedMsg.getSafeDataLevel(), safeDataLevel);
 
     // Get ECL entry attributes
-    assertAttributesEqual(entryAttrList, generatedMsg.getEclIncludes());
+    assertAttributesEqual(generatedMsg.getEclIncludes(), entryAttrList);
 
     ModifyDNOperation moddn1 = (ModifyDNOperation) msg.createOperation(connection);
     ModifyDNOperation moddn2 = (ModifyDNOperation) generatedMsg.createOperation(connection);
@@ -464,7 +463,6 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     AddMsg msg = new AddMsg(csn, dn, "thisIsaUniqueID", "parentUniqueId",
                             objectClass, userAttributes,
                             operationalAttributes);
-
     msg.setAssured(isAssured);
     msg.setAssuredMode(assuredMode);
     msg.setSafeDataLevel(safeDataLevel);
@@ -487,7 +485,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertEquals(generatedMsg.getSafeDataLevel(), safeDataLevel);
 
     // Get ECL entry attributes
-    assertAttributesEqual(entryAttrList, generatedMsg.getEclIncludes());
+    assertAttributesEqual(generatedMsg.getEclIncludes(), entryAttrList);
 
     // Create an new Add Operation from the current addMsg
     InternalClientConnection connection =
@@ -513,7 +511,6 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     localAddOp.setAttachment(SYNCHROCONTEXT, opCtx);
 
     generatedMsg = new AddMsg(localAddOp);
-
     generatedMsg.setAssured(isAssured);
     generatedMsg.setAssuredMode(assuredMode);
     generatedMsg.setSafeDataLevel(safeDataLevel);
@@ -533,24 +530,24 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertEquals(msg.getCSN(), updateMsg.getCSN());
   }
 
-  private void assertAttributesEqual(List<Attribute> entryAttrList,
-      List<RawAttribute> genAttrList) throws LDAPException
+  private void assertAttributesEqual(List<RawAttribute> actualAttrs,
+      List<Attribute> expectedAttrs) throws LDAPException
   {
-    if (entryAttrList == null)
+    if (expectedAttrs == null)
     {
-      assertEquals(genAttrList.size(), 0);
+      Assertions.assertThat(actualAttrs).isEmpty();
       return;
     }
 
-    assertEquals(genAttrList.size(), entryAttrList.size());
-    int i = 0;
-    for (Attribute eattr : entryAttrList)
+    Assertions.assertThat(actualAttrs).hasSize(expectedAttrs.size());
+    for (int i = 0; i < expectedAttrs.size(); i++)
     {
-      final Attribute genAttr = genAttrList.get(i).toAttribute();
-      assertTrue(eattr.getName().equalsIgnoreCase(genAttr.getName()));
-      assertTrue(eattr.toString().equalsIgnoreCase(genAttr.toString()),
-          "Comparing: " + eattr + " and " + genAttr);
-      i++;
+      final Attribute expectedAttr = expectedAttrs.get(i);
+      final Attribute actualAttr = actualAttrs.get(i).toAttribute();
+
+      assertTrue(expectedAttr.getName().equalsIgnoreCase(actualAttr.getName()));
+      assertTrue(expectedAttr.toString().equalsIgnoreCase(actualAttr.toString()),
+          "Comparing: " + expectedAttr + " and " + actualAttr);
     }
   }
 
@@ -622,11 +619,10 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     {
       // This should generated an exception
       msg2 = new  AckMsg(b);
-      assertTrue(false);
+      fail("Expected DataFormatException");
     }
-    catch (DataFormatException e)
+    catch (DataFormatException expected)
     {
-      assertTrue(true);
     }
 
     // Check that retrieved CSN is OK
@@ -681,22 +677,23 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   }
 
   @DataProvider(name="createServerStartData")
-  public Object [][] createServerStartData() throws Exception
+  public Object[][] createServerStartData() throws Exception
   {
     DN baseDN = TEST_ROOT_DN;
-    ServerState state = new ServerState();
-    state.update(new CSN(0, 0,0));
-    Object[] set1 = new Object[] {1, baseDN, 0, state, 0L, false, (byte)0};
 
-    state = new ServerState();
-    state.update(new CSN(75, 5,263));
-    Object[] set2 = new Object[] {16, baseDN, 100, state, 1248L, true, (byte)31};
+    final ServerState state1 = new ServerState();
+    state1.update(new CSN(0, 0,0));
+    final ServerState state2 = new ServerState();
+    state2.update(new CSN(75, 5,263));
+    final ServerState state3 = new ServerState();
+    state3.update(new CSN(75, 98573895,45263));
 
-    state = new ServerState();
-    state.update(new CSN(75, 98573895,45263));
-    Object[] set3 = new Object[] {16, baseDN, 100, state, 1248L, true, (byte)31};
-
-    return new Object [][] { set1, set2, set3 };
+    return new Object[][]
+    {
+      {  1, baseDN,   0, state1,     0L, false, (byte) 0 },
+      { 16, baseDN, 100, state2, 1248L, true,   (byte)31 },
+      { 16, baseDN, 100, state3, 1248L, true,   (byte)31 }
+    };
   }
 
   /**
@@ -725,22 +722,23 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   }
 
   @DataProvider(name="createReplServerStartData")
-  public Object [][] createReplServerStartData() throws Exception
+  public Object[][] createReplServerStartData() throws Exception
   {
     DN baseDN = TEST_ROOT_DN;
-    ServerState state = new ServerState();
-    state.update(new CSN(0, 0,0));
-    Object[] set1 = new Object[] {1, baseDN, 0, "localhost:8989", state, 0L, (byte)0, 0};
 
-    state = new ServerState();
-    state.update(new CSN(75, 5,263));
-    Object[] set2 = new Object[] {16, baseDN, 100, "anotherHost:1025", state, 1245L, (byte)25, 3456};
+    final ServerState state1 = new ServerState();
+    state1.update(new CSN(0, 0,0));
+    final ServerState state2 = new ServerState();
+    state2.update(new CSN(75, 5,263));
+    final ServerState state3 = new ServerState();
+    state3.update(new CSN(75, 5, 45263));
 
-    state = new ServerState();
-    state.update(new CSN(75, 5, 45263));
-    Object[] set3 = new Object[] {16, baseDN, 100, "anotherHost:1025", state, 1245L, (byte)25, 3456};
-
-    return new Object [][] { set1, set2, set3 };
+    return new Object[][]
+    {
+      {1, baseDN, 0, "localhost:8989", state1, 0L, (byte)0, 0},
+      {16, baseDN, 100, "anotherHost:1025", state2, 1245L, (byte)25, 3456},
+      {16, baseDN, 100, "anotherHost:1025", state3, 1245L, (byte)25, 3456},
+    };
   }
 
   /**
@@ -769,22 +767,23 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   }
 
   @DataProvider(name="createReplServerStartDSData")
-  public Object [][] createReplServerStartDSData() throws Exception
+  public Object[][] createReplServerStartDSData() throws Exception
   {
     DN baseDN = TEST_ROOT_DN;
-    ServerState state = new ServerState();
-    state.update(new CSN(0, 0, 0));
-    Object[] set1 = new Object[] {1, baseDN, 0, "localhost:8989", state, 0L, (byte)0, 0, 0, 0};
 
-    state = new ServerState();
-    state.update(new CSN(75, 5, 263));
-    Object[] set2 = new Object[] {16, baseDN, 100, "anotherHost:1025", state, 1245L, (byte)25, 3456, 3, 31512};
+    final ServerState state1 = new ServerState();
+    state1.update(new CSN(0, 0, 0));
+    final ServerState state2 = new ServerState();
+    state2.update(new CSN(75, 5, 263));
+    final ServerState state3 = new ServerState();
+    state3.update(new CSN(123, 5, 98));
 
-    state = new ServerState();
-    state.update(new CSN(123, 5, 98));
-    Object[] set3 = new Object[] {36, baseDN, 100, "anotherHostAgain:8017", state, 6841L, (byte)32, 2496, 630, 9524};
-
-    return new Object [][] { set1, set2, set3 };
+    return new Object[][]
+    {
+      {1, baseDN, 0, "localhost:8989", state1, 0L, (byte)0, 0, 0, 0},
+      {16, baseDN, 100, "anotherHost:1025", state2, 1245L, (byte)25, 3456, 3, 31512},
+      {36, baseDN, 100, "anotherHostAgain:8017", state3, 6841L, (byte)32, 2496, 630, 9524},
+    };
   }
 
   /**
@@ -1084,32 +1083,26 @@ public class SynchronizationMsgTest extends ReplicationTestCase
 
     // RS State
     ServerState rsState = new ServerState();
-    CSN rsCSN1 = new CSN(1, 1, 1);
-    CSN rsCSN2 = new CSN(1, 1, 45678);
-    rsState.update(rsCSN1);
-    rsState.update(rsCSN2);
+    rsState.update(new CSN(1, 1, 1));
+    rsState.update(new CSN(1, 1, 45678));
 
     // LS1 state
     ServerState s1 = new ServerState();
     int sid1 = 111;
-    CSN csn1 = new CSN(1, 1, sid1);
-    s1.update(csn1);
+    s1.update(new CSN(1, 1, sid1));
 
     // LS2 state
     ServerState s2 = new ServerState();
     int sid2 = 222;
-    Long now = ((Integer)10).longValue();
-    CSN csn2 = new CSN(now, 123, sid2);
-    s2.update(csn2);
+    long now = 10;
+    s2.update(new CSN(now, 123, sid2));
 
     // LS3 state
     ServerState s3 = new ServerState();
     int sid3 = 56789;
-    CSN csn3 = new CSN(now, 123, sid3);
-    s3.update(csn3);
+    s3.update(new CSN(now, 123, sid3));
 
-    MonitorMsg msg =
-      new MonitorMsg(sender, dest);
+    MonitorMsg msg = new MonitorMsg(sender, dest);
     msg.setReplServerDbState(rsState);
     msg.setServerState(sid1, s1, now+1, true);
     msg.setServerState(sid2, s2, now+2, true);
@@ -1127,13 +1120,13 @@ public class SynchronizationMsgTest extends ReplicationTestCase
       ServerState s = newMsg.getLDAPServerState(sid);
       if (sid == sid1)
       {
-        assertEquals(s.toString(), s1.toString(), "");
-        assertEquals(now + 1, newMsg.getLDAPApproxFirstMissingDate(sid), "");
+        assertEquals(s.toString(), s1.toString());
+        assertEquals(now + 1, newMsg.getLDAPApproxFirstMissingDate(sid));
       }
       else if (sid == sid2)
       {
         assertEquals(s.toString(), s2.toString());
-        assertEquals(now + 2, newMsg.getLDAPApproxFirstMissingDate(sid), "");
+        assertEquals(now + 2, newMsg.getLDAPApproxFirstMissingDate(sid));
       }
       else
       {
@@ -1146,8 +1139,8 @@ public class SynchronizationMsgTest extends ReplicationTestCase
       ServerState s = newMsg.getRSServerState(sid);
       if (sid == sid3)
       {
-        assertEquals(s.toString(), s3.toString(), "");
-        assertEquals(now + 3, newMsg.getRSApproxFirstMissingDate(sid), "");
+        assertEquals(s.toString(), s3.toString());
+        assertEquals(now + 3, newMsg.getRSApproxFirstMissingDate(sid));
       }
       else
       {
@@ -1329,16 +1322,7 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertEquals(msg.getLastChangeNumber(), newMsg.getLastChangeNumber());
     assertTrue(msg.getCrossDomainServerState().equalsIgnoreCase(newMsg.getCrossDomainServerState()));
     assertTrue(msg.getOperationId().equalsIgnoreCase(newMsg.getOperationId()));
-    Set<String> dns2 = newMsg.getExcludedBaseDNs();
-    assertEquals(dns2.size(), 2);
-    boolean dn1found=false,dn2found=false;
-    for (String dn : dns2)
-    {
-      if (!dn1found) dn1found=(dn.compareTo(dn1)==0);
-      if (!dn2found) dn2found=(dn.compareTo(dn2)==0);
-    }
-    assertTrue(dn1found);
-    assertTrue(dn2found);
+    Assertions.assertThat(newMsg.getExcludedBaseDNs()).containsOnly(dn1, dn2);
   }
 
   private int perfRep = 100000;
@@ -1383,32 +1367,32 @@ public class SynchronizationMsgTest extends ReplicationTestCase
           "parentUniqueId");
       addOp.setAttachment(SYNCHROCONTEXT, opCtx);
       t2 = System.nanoTime();
-      createop += (t2 - t1);
+      createop += t2 - t1;
 
       // create msg from op
       AddMsg generatedMsg = new AddMsg(addOp);
       t3 = System.nanoTime();
-      createmsgfromop += (t3 - t2);
+      createmsgfromop += t3 - t2;
 
       // set entry attr
       generatedMsg.setEclIncludes(entryAttrList);
       t31 = System.nanoTime();
-      setentryattr += (t31 - t3);
+      setentryattr += t31 - t3;
 
       // encode msg
       generatedMsg.encode();
       t4 = System.nanoTime();
-      encodemsg += (t4 - t31);
+      encodemsg += t4 - t31;
 
       // getBytes
       byte[] bytes = generatedMsg.getBytes(getCurrentVersion());
       t5 = System.nanoTime();
-      getbytes += (t5 - t4);
+      getbytes += t5 - t4;
 
       // getBytes
       new AddMsg(bytes);
       t6 = System.nanoTime();
-      buildnew += (t6 - t5);
+      buildnew += t6 - t5;
     }
 
     System.out.println(
@@ -1458,32 +1442,32 @@ public class SynchronizationMsgTest extends ReplicationTestCase
       OperationContext opCtx = new ModifyContext(csn2, "thisIsaUniqueID");
       modifyOp.setAttachment(SYNCHROCONTEXT, opCtx);
       t2 = System.nanoTime();
-      createop += (t2 - t1);
+      createop += t2 - t1;
 
       // create msg from op
       ModifyMsg generatedMsg = new ModifyMsg(modifyOp);
       t3 = System.nanoTime();
-      createmsgfromop += (t3 - t2);
+      createmsgfromop += t3 - t2;
 
       // set entry attr
       // generatedMsg.setEntryAttributes(entryAttrList);
       t31 = System.nanoTime();
-      setentryattr += (t31 - t3);
+      setentryattr += t31 - t3;
 
       // encode msg
       generatedMsg.encode();
       t4 = System.nanoTime();
-      encodemsg += (t4 - t31);
+      encodemsg += t4 - t31;
 
       // getBytes
       byte[] bytes = generatedMsg.getBytes(getCurrentVersion());
       t5 = System.nanoTime();
-      getbytes += (t5 - t4);
+      getbytes += t5 - t4;
 
       // getBytes
       new ModifyMsg(bytes);
       t6 = System.nanoTime();
-      buildnew += (t6 - t5);
+      buildnew += t6 - t5;
     }
 
     System.out.println(
@@ -1532,32 +1516,32 @@ public class SynchronizationMsgTest extends ReplicationTestCase
       CSN csn = new CSN(TimeThread.getTime(), 123, 45);
       op.setAttachment(SYNCHROCONTEXT, new DeleteContext(csn, "uniqueid"));
       t2 = System.nanoTime();
-      createop += (t2 - t1);
+      createop += t2 - t1;
 
       // create msg from op
       DeleteMsg generatedMsg = new DeleteMsg(op);
       t3 = System.nanoTime();
-      createmsgfromop += (t3 - t2);
+      createmsgfromop += t3 - t2;
 
       // set entry attr
       //generatedMsg.setEntryAttributes(entryAttrList);
       t31 = System.nanoTime();
-      setentryattr += (t31 - t3);
+      setentryattr += t31 - t3;
 
       // encode msg
       generatedMsg.encode();
       t4 = System.nanoTime();
-      encodemsg += (t4 - t31);
+      encodemsg += t4 - t31;
 
       // getBytes
       byte[] bytes = generatedMsg.getBytes(getCurrentVersion());
       t5 = System.nanoTime();
-      getbytes += (t5 - t4);
+      getbytes += t5 - t4;
 
       // getBytes
       new DeleteMsg(bytes);
       t6 = System.nanoTime();
-      buildnew += (t6 - t5);
+      buildnew += t6 - t5;
     }
 
     System.out.println(
