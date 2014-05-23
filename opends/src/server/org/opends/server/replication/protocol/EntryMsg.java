@@ -22,11 +22,10 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
 
-import java.io.UnsupportedEncodingException;
 import java.util.zip.DataFormatException;
 
 /**
@@ -37,51 +36,39 @@ import java.util.zip.DataFormatException;
  */
 public class EntryMsg extends RoutableMsg
 {
-  // The byte array containing the bytes of the entry transported
-  private byte[] entryByteArray;
+  /** The byte array containing the bytes of the entry transported. */
+  private final byte[] entryByteArray;
   private int msgId = -1; // from V4
 
   /**
    * Creates a new EntryMsg.
    *
-   * @param sender      The sender of this message.
+   * @param serverID      The sender of this message.
    * @param destination The destination of this message.
    * @param entryBytes  The bytes of the entry.
    * @param msgId       Message counter.
    */
-  public EntryMsg(
-      int sender,
-      int destination,
-      byte[] entryBytes,
-      int msgId)
+  public EntryMsg(int serverID, int destination, byte[] entryBytes, int msgId)
   {
-    super(sender, destination);
-    this.entryByteArray = new byte[entryBytes.length];
-    System.arraycopy(entryBytes, 0, this.entryByteArray, 0, entryBytes.length);
-    this.msgId = msgId;
+    this(serverID, destination, entryBytes, 0, entryBytes.length, msgId);
   }
 
   /**
    * Creates a new EntryMsg.
    *
    * @param serverID    The sender of this message.
-   * @param i           The destination of this message.
+   * @param destination The destination of this message.
    * @param entryBytes  The bytes of the entry.
-   * @param pos         The starting Position in the array.
+   * @param startPos    The starting Position in the array.
    * @param length      Number of array elements to be copied.
    * @param msgId       Message counter.
    */
-  public EntryMsg(
-      int serverID,
-      int i,
-      byte[] entryBytes,
-      int pos,
-      int length,
-      int msgId)
+  public EntryMsg(int serverID, int destination, byte[] entryBytes, int startPos,
+      int length, int msgId)
   {
-    super(serverID, i);
+    super(serverID, destination);
     this.entryByteArray = new byte[length];
-    System.arraycopy(entryBytes, pos, this.entryByteArray, 0, length);
+    System.arraycopy(entryBytes, startPos, this.entryByteArray, 0, length);
     this.msgId = msgId;
   }
 
@@ -93,47 +80,22 @@ public class EntryMsg extends RoutableMsg
    * @throws DataFormatException If the byte array does not contain a valid
    *                             encoded form of the ServerStartMessage.
    */
-  public EntryMsg(byte[] in, short version) throws DataFormatException
+  EntryMsg(byte[] in, short version) throws DataFormatException
   {
-    try
+    final ByteArrayScanner scanner = new ByteArrayScanner(in);
+    final byte msgType = scanner.nextByte();
+    if (msgType != MSG_TYPE_ENTRY)
     {
-      /* first byte is the type */
-      if (in[0] != MSG_TYPE_ENTRY)
-        throw new DataFormatException("input is not a valid " +
-            this.getClass().getCanonicalName());
-      int pos = 1;
-
-      // sender
-      int length = getNextLength(in, pos);
-      String senderIDString = new String(in, pos, length, "UTF-8");
-      this.senderID = Integer.valueOf(senderIDString);
-      pos += length +1;
-
-      // destination
-      length = getNextLength(in, pos);
-      String destinationString = new String(in, pos, length, "UTF-8");
-      this.destination = Integer.valueOf(destinationString);
-      pos += length +1;
-
-      // msgCnt
-      if (version >= ProtocolVersion.REPLICATION_PROTOCOL_V4)
-      {
-        // msgCnt
-        length = getNextLength(in, pos);
-        String msgcntString = new String(in, pos, length, "UTF-8");
-        this.msgId = Integer.valueOf(msgcntString);
-        pos += length +1;
-      }
-
-      // data
-      length = in.length - (pos + 1);
-      this.entryByteArray = new byte[length];
-      System.arraycopy(in, pos, entryByteArray, 0, length);
+      throw new DataFormatException("input is not a valid "
+          + getClass().getCanonicalName());
     }
-    catch (UnsupportedEncodingException e)
+    this.senderID = scanner.nextIntUTF8();
+    this.destination = scanner.nextIntUTF8();
+    if (version >= ProtocolVersion.REPLICATION_PROTOCOL_V4)
     {
-      throw new DataFormatException("UTF-8 is not supported by this jvm.");
+      this.msgId = scanner.nextIntUTF8();
     }
+    this.entryByteArray = scanner.remainingBytesZeroTerminated();
   }
 
   /**
@@ -145,46 +107,20 @@ public class EntryMsg extends RoutableMsg
     return entryByteArray;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public byte[] getBytes(short version)
   {
-    try {
-      byte[] senderBytes = String.valueOf(senderID).getBytes("UTF-8");
-      byte[] destinationBytes = String.valueOf(destination).getBytes("UTF-8");
-      byte[] msgCntBytes = null;
-      byte[] entryBytes = entryByteArray;
-
-      int length = 1 + senderBytes.length +
-                   1 + destinationBytes.length +
-                   1 + entryBytes.length + 1;
-
-      if (version >= ProtocolVersion.REPLICATION_PROTOCOL_V4)
-      {
-        msgCntBytes = String.valueOf(msgId).getBytes("UTF-8");
-        length += (1 + msgCntBytes.length);
-      }
-
-      byte[] resultByteArray = new byte[length];
-
-      /* put the type of the operation */
-      resultByteArray[0] = MSG_TYPE_ENTRY;
-      int pos = 1;
-
-      pos = addByteArray(senderBytes, resultByteArray, pos);
-      pos = addByteArray(destinationBytes, resultByteArray, pos);
-      if (version >= ProtocolVersion.REPLICATION_PROTOCOL_V4)
-        pos = addByteArray(msgCntBytes, resultByteArray, pos);
-      pos = addByteArray(entryBytes, resultByteArray, pos);
-
-      return resultByteArray;
-    }
-    catch (UnsupportedEncodingException e)
+    final ByteArrayBuilder builder = new ByteArrayBuilder();
+    builder.append(MSG_TYPE_ENTRY);
+    builder.appendUTF8(senderID);
+    builder.appendUTF8(destination);
+    if (version >= ProtocolVersion.REPLICATION_PROTOCOL_V4)
     {
-      return null;
+      builder.appendUTF8(msgId);
     }
+    builder.appendZeroTerminated(entryByteArray);
+    return builder.toByteArray();
   }
 
   /**

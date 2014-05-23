@@ -22,12 +22,10 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -150,7 +148,7 @@ public class StartECLSessionMsg extends ReplicationMsg
    * @throws java.util.zip.DataFormatException If the byte array does not
    * contain a valid encoded form of the message.
    */
-  public StartECLSessionMsg(byte[] in) throws DataFormatException
+  StartECLSessionMsg(byte[] in) throws DataFormatException
   {
     /*
      * The message is stored in the form:
@@ -158,68 +156,25 @@ public class StartECLSessionMsg extends ReplicationMsg
      * <list of referrals urls>
      * (each referral url terminates with 0)
      */
-
-    try
+    final ByteArrayScanner scanner = new ByteArrayScanner(in);
+    final byte msgType = scanner.nextByte();
+    if (msgType != MSG_TYPE_START_ECL_SESSION)
     {
-      // first bytes are the header
-      int pos = 0;
+      throw new DataFormatException("Input is not a valid "
+          + getClass().getCanonicalName());
+    }
 
-      // first byte is the type
-      if (in.length < 1 || in[pos++] != MSG_TYPE_START_ECL_SESSION)
-      {
-        throw new DataFormatException(
-          "Input is not a valid " + this.getClass().getCanonicalName());
-      }
-
-      // start mode
-      int length = getNextLength(in, pos);
-      int requestType = Integer.parseInt(new String(in, pos, length, "UTF-8"));
-      eclRequestType = ECLRequestType.values()[requestType];
-      pos += length +1;
-
-      length = getNextLength(in, pos);
-      firstChangeNumber = Integer.valueOf(new String(in, pos, length, "UTF-8"));
-      pos += length +1;
-
-      length = getNextLength(in, pos);
-      lastChangeNumber = Integer.valueOf(new String(in, pos, length, "UTF-8"));
-      pos += length +1;
-
-      length = getNextLength(in, pos);
-      csn = new CSN(new String(in, pos, length, "UTF-8"));
-      pos += length + 1;
-
-      // persistentSearch mode
-      length = getNextLength(in, pos);
-      int persistent = Integer.parseInt(new String(in, pos, length, "UTF-8"));
-      isPersistent = Persistent.values()[persistent];
-      pos += length + 1;
-
-      // generalized state
-      length = getNextLength(in, pos);
-      crossDomainServerState = new String(in, pos, length, "UTF-8");
-      pos += length + 1;
-
-      length = getNextLength(in, pos);
-      operationId = new String(in, pos, length, "UTF-8");
-      pos += length + 1;
-
-      // excluded DN
-      length = getNextLength(in, pos);
-      String excludedDNsString = new String(in, pos, length, "UTF-8");
-      if (excludedDNsString.length()>0)
-      {
-        String[] excludedDNsStr = excludedDNsString.split(";");
-        Collections.addAll(this.excludedBaseDNs, excludedDNsStr);
-      }
-      pos += length + 1;
-
-    } catch (UnsupportedEncodingException e)
+    eclRequestType = ECLRequestType.values()[scanner.nextIntUTF8()];
+    firstChangeNumber = scanner.nextIntUTF8();
+    lastChangeNumber = scanner.nextIntUTF8();
+    csn = scanner.nextCSNUTF8();
+    isPersistent = Persistent.values()[scanner.nextIntUTF8()];
+    crossDomainServerState = scanner.nextString();
+    operationId = scanner.nextString();
+    final String excludedDNsString = scanner.nextString();
+    if (excludedDNsString.length() > 0)
     {
-      throw new DataFormatException("UTF-8 is not supported by this jvm.");
-    } catch (IllegalArgumentException e)
-    {
-      throw new DataFormatException(e.getMessage());
+      Collections.addAll(excludedBaseDNs, excludedDNsString.split(";"));
     }
   }
 
@@ -238,71 +193,26 @@ public class StartECLSessionMsg extends ReplicationMsg
     excludedBaseDNs = new HashSet<String>();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public byte[] getBytes(short protocolVersion)
   {
-    String excludedBaseDNsString =
-        StaticUtils.collectionToString(excludedBaseDNs, ";");
-
-    try
-    {
-      byte[] byteMode = toBytes(eclRequestType.ordinal());
-      // FIXME JNR Changing the lines below to use long would require a protocol
-      // version change. Leave it like this for now until the need arises.
-      byte[] byteChangeNumber = toBytes((int) firstChangeNumber);
-      byte[] byteStopChangeNumber = toBytes((int) lastChangeNumber);
-      byte[] byteCSN = csn.toString().getBytes("UTF-8");
-      byte[] bytePsearch = toBytes(isPersistent.ordinal());
-      byte[] byteGeneralizedState = toBytes(crossDomainServerState);
-      byte[] byteOperationId = toBytes(operationId);
-      byte[] byteExcludedDNs = toBytes(excludedBaseDNsString);
-
-      int length =
-        byteMode.length + 1 +
-        byteChangeNumber.length + 1 +
-        byteStopChangeNumber.length + 1 +
-        byteCSN.length + 1 +
-        bytePsearch.length + 1 +
-        byteGeneralizedState.length + 1 +
-        byteOperationId.length + 1 +
-        byteExcludedDNs.length + 1 +
-        1;
-
-      byte[] resultByteArray = new byte[length];
-      int pos = 0;
-      resultByteArray[pos++] = MSG_TYPE_START_ECL_SESSION;
-      pos = addByteArray(byteMode, resultByteArray, pos);
-      pos = addByteArray(byteChangeNumber, resultByteArray, pos);
-      pos = addByteArray(byteStopChangeNumber, resultByteArray, pos);
-      pos = addByteArray(byteCSN, resultByteArray, pos);
-      pos = addByteArray(bytePsearch, resultByteArray, pos);
-      pos = addByteArray(byteGeneralizedState, resultByteArray, pos);
-      pos = addByteArray(byteOperationId, resultByteArray, pos);
-      pos = addByteArray(byteExcludedDNs, resultByteArray, pos);
-      return resultByteArray;
-    } catch (IOException e)
-    {
-      // never happens
-      return null;
-    }
+    final ByteArrayBuilder builder = new ByteArrayBuilder();
+    builder.append(MSG_TYPE_START_ECL_SESSION);
+    builder.appendUTF8(eclRequestType.ordinal());
+    // FIXME JNR Changing the lines below to use long would require a protocol
+    // version change. Leave it like this for now until the need arises.
+    builder.appendUTF8((int) firstChangeNumber);
+    builder.appendUTF8((int) lastChangeNumber);
+    builder.appendUTF8(csn);
+    builder.appendUTF8(isPersistent.ordinal());
+    builder.append(crossDomainServerState);
+    builder.append(operationId);
+    builder.append(StaticUtils.collectionToString(excludedBaseDNs, ";"));
+    return builder.toByteArray();
   }
 
-  private byte[] toBytes(int i) throws UnsupportedEncodingException
-  {
-    return toBytes(String.valueOf(i));
-  }
-
-  private byte[] toBytes(String s) throws UnsupportedEncodingException
-  {
-    return String.valueOf(s).getBytes("UTF-8");
-  }
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String toString()
   {

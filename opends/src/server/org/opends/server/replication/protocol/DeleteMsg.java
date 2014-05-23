@@ -26,7 +26,6 @@
  */
 package org.opends.server.replication.protocol;
 
-import java.io.UnsupportedEncodingException;
 import java.util.zip.DataFormatException;
 
 import org.opends.server.controls.SubtreeDeleteControl;
@@ -54,14 +53,14 @@ public class DeleteMsg extends LDAPUpdateMsg
    *
    * @param operation the Operation from which the message must be created.
    */
-  public DeleteMsg(PostOperationDeleteOperation operation)
+  DeleteMsg(PostOperationDeleteOperation operation)
   {
     super((OperationContext) operation.getAttachment(SYNCHROCONTEXT),
            operation.getEntryDN());
     try
     {
-      if (operation.getRequestControl(SubtreeDeleteControl.DECODER) != null)
-        isSubtreeDelete = true;
+      isSubtreeDelete =
+          operation.getRequestControl(SubtreeDeleteControl.DECODER) != null;
     }
     catch(Exception e)
     {/* do nothing */}
@@ -84,19 +83,16 @@ public class DeleteMsg extends LDAPUpdateMsg
    *
    * @param in The byte[] from which the operation must be read.
    * @throws DataFormatException The input byte[] is not a valid DeleteMsg
-   * @throws UnsupportedEncodingException  If UTF8 is not supported by the jvm
    */
-  public DeleteMsg(byte[] in) throws DataFormatException,
-                                     UnsupportedEncodingException
+  DeleteMsg(byte[] in) throws DataFormatException
   {
-    byte[] allowedPduTypes = new byte[2];
-    allowedPduTypes[0] = MSG_TYPE_DELETE;
-    allowedPduTypes[1] = MSG_TYPE_DELETE_V1;
-    int pos = decodeHeader(allowedPduTypes, in);
+    final ByteArrayScanner scanner = new ByteArrayScanner(in);
+    decodeHeader(scanner, MSG_TYPE_DELETE, MSG_TYPE_DELETE_V1);
 
-    // protocol version has been read as part of the header
     if (protocolVersion >= 4)
-      decodeBody_V4(in, pos);
+    {
+      decodeBody_V4(scanner);
+    }
     else
     {
       // Keep the previous protocol version behavior - when we don't know the
@@ -115,7 +111,9 @@ public class DeleteMsg extends LDAPUpdateMsg
         InternalClientConnection.nextMessageID(), null, newDN);
 
     if (isSubtreeDelete)
+    {
       del.addRequestControl(new SubtreeDeleteControl(false));
+    }
 
     DeleteContext ctx = new DeleteContext(getCSN(), getEntryUUID());
     del.setAttachment(SYNCHROCONTEXT, ctx);
@@ -128,108 +126,47 @@ public class DeleteMsg extends LDAPUpdateMsg
 
   /** {@inheritDoc} */
   @Override
-  public byte[] getBytes_V1() throws UnsupportedEncodingException
+  public byte[] getBytes_V1()
   {
-    return encodeHeader_V1(MSG_TYPE_DELETE_V1, 0);
+    return encodeHeader_V1(MSG_TYPE_DELETE_V1)
+        .toByteArray();
   }
 
   /** {@inheritDoc} */
   @Override
-  public byte[] getBytes_V23() throws UnsupportedEncodingException
+  public byte[] getBytes_V23()
   {
-    return encodeHeader(MSG_TYPE_DELETE, 0,
-        ProtocolVersion.REPLICATION_PROTOCOL_V3);
+    return encodeHeader(MSG_TYPE_DELETE,ProtocolVersion.REPLICATION_PROTOCOL_V3)
+        .toByteArray();
   }
 
   /** {@inheritDoc} */
   @Override
-  public byte[] getBytes_V45(short reqProtocolVersion)
-      throws UnsupportedEncodingException
+  public byte[] getBytes_V45(short protocolVersion)
   {
-    // Put together the different encoded pieces
-    int bodyLength = 0;
-
-    byte[] byteEntryAttrLen =
-      String.valueOf(encodedEclIncludes.length).getBytes("UTF-8");
-
-    bodyLength += byteEntryAttrLen.length + 1;
-    bodyLength += encodedEclIncludes.length + 1;
-    byte[] byteInitiatorsName = null;
-    if (initiatorsName != null)
-    {
-      byteInitiatorsName = initiatorsName.getBytes("UTF-8");
-      bodyLength += byteInitiatorsName.length + 1;
-    }
-    else
-    {
-      bodyLength++;
-    }
-    // subtree flag
-    bodyLength++;
-
-    /* encode the header in a byte[] large enough to also contain the mods */
-    byte [] encodedMsg = encodeHeader(MSG_TYPE_DELETE, bodyLength,
-        reqProtocolVersion);
-    int pos = encodedMsg.length - bodyLength;
-    if (byteInitiatorsName != null)
-      pos = addByteArray(byteInitiatorsName, encodedMsg, pos);
-    else
-      encodedMsg[pos++] = 0;
-    pos = addByteArray(byteEntryAttrLen, encodedMsg, pos);
-    pos = addByteArray(encodedEclIncludes, encodedMsg, pos);
-
-    encodedMsg[pos++] = (byte) (isSubtreeDelete ? 1 : 0);
-
-    return encodedMsg;
+    final ByteArrayBuilder builder =
+        encodeHeader(MSG_TYPE_DELETE, protocolVersion);
+    builder.append(initiatorsName);
+    builder.appendUTF8(encodedEclIncludes.length);
+    builder.appendZeroTerminated(encodedEclIncludes);
+    builder.append(isSubtreeDelete);
+    return builder.toByteArray();
   }
 
   // ============
   // Msg decoding
   // ============
 
-  private void decodeBody_V4(byte[] in, int pos)
-  throws DataFormatException, UnsupportedEncodingException
+  private void decodeBody_V4(ByteArrayScanner scanner)
+      throws DataFormatException
   {
-    int length = getNextLength(in, pos);
-    if (length != 0)
-    {
-      initiatorsName = new String(in, pos, length, "UTF-8");
-      pos += length + 1;
-    }
-    else
-    {
-      initiatorsName = null;
-      pos += 1;
-    }
+    initiatorsName = scanner.nextString();
 
-    // Read ecl attr len
-    length = getNextLength(in, pos);
-    int eclAttrLen = Integer.valueOf(new String(in, pos, length,"UTF-8"));
-    // Skip the length
-    pos += length + 1;
+    final int eclAttrLen = scanner.nextIntUTF8();
+    encodedEclIncludes = scanner.nextByteArray(eclAttrLen);
+    scanner.skipZeroSeparator();
 
-    // Read/Don't decode entry attributes
-    encodedEclIncludes = new byte[eclAttrLen];
-    try
-    {
-      // Copy ecl attr
-      System.arraycopy(in, pos, encodedEclIncludes, 0, eclAttrLen);
-      // Skip the attrs
-      pos += eclAttrLen +1;
-    } catch (IndexOutOfBoundsException e)
-    {
-      throw new DataFormatException(e.getMessage());
-    } catch (ArrayStoreException e)
-    {
-      throw new DataFormatException(e.getMessage());
-    } catch (NullPointerException e)
-    {
-      throw new DataFormatException(e.getMessage());
-    }
-
-    // subtree flag
-    isSubtreeDelete = (in[pos] == 1);
-
+    isSubtreeDelete = scanner.nextBoolean();
   }
 
   /** {@inheritDoc} */

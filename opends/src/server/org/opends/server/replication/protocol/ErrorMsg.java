@@ -22,19 +22,16 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS.
+ *      Portions copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
-import org.opends.messages.Message;
-
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
-
-import java.io.UnsupportedEncodingException;
 import java.util.zip.DataFormatException;
 
+import org.opends.messages.Message;
 import org.opends.server.loggers.debug.DebugTracer;
+
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This message is part of the replication protocol.
@@ -43,18 +40,21 @@ import org.opends.server.loggers.debug.DebugTracer;
  */
 public class ErrorMsg extends RoutableMsg
 {
-  // The tracer object for the debug logger
+  /** The tracer object for the debug logger */
   private static final DebugTracer TRACER = getTracer();
 
-  // Specifies the messageID built from the error that was detected
-  private int msgID;
+  /** Specifies the messageID built from the error that was detected */
+  private final int msgID;
 
-  // Specifies the complementary details about the error that was detected
-  private Message details = null;
+  /** Specifies the complementary details about the error that was detected */
+  private final Message details;
 
-  // The time of creation of this message.
-  //                                        protocol version previous to V4
-  private Long creationTime = System.currentTimeMillis();
+  /**
+   * The time of creation of this message.
+   * <p>
+   * protocol version previous to V4
+   */
+  private long creationTime = System.currentTimeMillis();
 
   /**
    * Creates an ErrorMsg providing the destination server.
@@ -63,8 +63,7 @@ public class ErrorMsg extends RoutableMsg
    * @param destination The destination server or servers of this message.
    * @param details The message containing the details of the error.
    */
-  public ErrorMsg(int sender, int destination,
-                      Message details)
+  public ErrorMsg(int sender, int destination, Message details)
   {
     super(sender, destination);
     this.msgID  = details.getDescriptor().getId();
@@ -72,8 +71,10 @@ public class ErrorMsg extends RoutableMsg
     this.creationTime = System.currentTimeMillis();
 
     if (debugEnabled())
-      TRACER.debugInfo(" Creating error message" + this.toString()
-          + " " + stackTraceToSingleLineString(new Exception("trace")));
+    {
+      TRACER.debugInfo(" Creating error message" + this + " "
+          + stackTraceToSingleLineString(new Exception("trace")));
+    }
   }
 
   /**
@@ -90,7 +91,9 @@ public class ErrorMsg extends RoutableMsg
     this.creationTime = System.currentTimeMillis();
 
     if (debugEnabled())
-      TRACER.debugInfo(this.toString());
+    {
+      TRACER.debugInfo(toString());
+    }
   }
 
   /**
@@ -101,53 +104,23 @@ public class ErrorMsg extends RoutableMsg
    * @throws DataFormatException If the in does not contain a properly
    *                             encoded message.
    */
-  public ErrorMsg(byte[] in, short version)
-  throws DataFormatException
+  ErrorMsg(byte[] in, short version) throws DataFormatException
   {
-    super();
-    try
+    final ByteArrayScanner scanner = new ByteArrayScanner(in);
+    final byte msgType = scanner.nextByte();
+    if (msgType != MSG_TYPE_ERROR)
     {
-      /* first byte is the type */
-      if (in[0] != MSG_TYPE_ERROR)
-        throw new DataFormatException("input is not a valid " +
-            this.getClass().getCanonicalName());
-      int pos = 1;
-
-      // sender
-      int length = getNextLength(in, pos);
-      String senderString = new String(in, pos, length, "UTF-8");
-      senderID = Integer.valueOf(senderString);
-      pos += length +1;
-
-      // destination
-      length = getNextLength(in, pos);
-      String serverIdString = new String(in, pos, length, "UTF-8");
-      destination = Integer.valueOf(serverIdString);
-      pos += length +1;
-
-      // MsgID
-      length = getNextLength(in, pos);
-      String msgIdString = new String(in, pos, length, "UTF-8");
-      msgID = Integer.valueOf(msgIdString);
-      pos += length +1;
-
-      // Details
-      length = getNextLength(in, pos);
-      details = Message.raw(new String(in, pos, length, "UTF-8"));
-      pos += length +1;
-
-      if (version >= ProtocolVersion.REPLICATION_PROTOCOL_V4)
-      {
-        // Creation Time
-        length = getNextLength(in, pos);
-        String creationTimeString = new String(in, pos, length, "UTF-8");
-        creationTime = Long.valueOf(creationTimeString);
-        pos += length +1;
-      }
+      throw new DataFormatException("input is not a valid "
+          + getClass().getCanonicalName());
     }
-    catch (UnsupportedEncodingException e)
+    senderID = scanner.nextIntUTF8();
+    destination = scanner.nextIntUTF8();
+    msgID = scanner.nextIntUTF8();
+    details = Message.raw(scanner.nextString());
+
+    if (version >= ProtocolVersion.REPLICATION_PROTOCOL_V4)
     {
-      throw new DataFormatException("UTF-8 is not supported by this jvm.");
+      creationTime = scanner.nextLongUTF8();
     }
   }
 
@@ -175,60 +148,21 @@ public class ErrorMsg extends RoutableMsg
   // Msg encoding
   // ============
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public byte[] getBytes(short version)
   {
-    try {
-      byte[] byteSender = String.valueOf(senderID).getBytes("UTF-8");
-      byte[] byteDestination = String.valueOf(destination).getBytes("UTF-8");
-      byte[] byteErrMsgId = String.valueOf(msgID).getBytes("UTF-8");
-      byte[] byteDetails = details.toString().getBytes("UTF-8");
-      byte[] byteCreationTime = null;
-
-      int length = 1 + byteSender.length + 1
-                     + byteDestination.length + 1
-                     + byteErrMsgId.length + 1
-                     + byteDetails.length + 1;
-
-      if (version >= ProtocolVersion.REPLICATION_PROTOCOL_V4)
-      {
-        byteCreationTime = creationTime.toString().getBytes("UTF-8");
-        length += byteCreationTime.length + 1;
-      }
-
-      byte[] resultByteArray = new byte[length];
-
-      // put the type of the operation
-      resultByteArray[0] = MSG_TYPE_ERROR;
-      int pos = 1;
-
-      // sender
-      pos = addByteArray(byteSender, resultByteArray, pos);
-
-      // destination
-      pos = addByteArray(byteDestination, resultByteArray, pos);
-
-      // MsgId
-      pos = addByteArray(byteErrMsgId, resultByteArray, pos);
-
-      // details
-      pos = addByteArray(byteDetails, resultByteArray, pos);
-
-      if (version >= ProtocolVersion.REPLICATION_PROTOCOL_V4)
-      {
-        // creation time
-        pos = addByteArray(byteCreationTime, resultByteArray, pos);
-      }
-
-      return resultByteArray;
-    }
-    catch (UnsupportedEncodingException e)
+    final ByteArrayBuilder builder = new ByteArrayBuilder();
+    builder.append(MSG_TYPE_ERROR);
+    builder.appendUTF8(senderID);
+    builder.appendUTF8(destination);
+    builder.appendUTF8(msgID);
+    builder.append(details.toString());
+    if (version >= ProtocolVersion.REPLICATION_PROTOCOL_V4)
     {
-      return null;
+      builder.appendUTF8(creationTime);
     }
+    return builder.toByteArray();
   }
 
   /**
@@ -236,6 +170,7 @@ public class ErrorMsg extends RoutableMsg
    *
    * @return the string representation of this message.
    */
+  @Override
   public String toString()
   {
     return "ErrorMessage=["+
@@ -254,7 +189,7 @@ public class ErrorMsg extends RoutableMsg
    *
    * @return the creation time of this message.
    */
-  public Long getCreationTime()
+  public long getCreationTime()
   {
     return creationTime;
   }

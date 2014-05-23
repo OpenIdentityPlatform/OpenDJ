@@ -22,13 +22,11 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
 
-import java.io.UnsupportedEncodingException;
 import java.util.zip.DataFormatException;
-
 
 /**
  * This abstract message class is the superclass for start messages used
@@ -43,12 +41,7 @@ public abstract class StartMsg extends ReplicationMsg
   /** Generation id of data set we want to work with. */
   protected long  generationId;
   /** Group id of the replicated domain. */
-  protected byte groupId = (byte)-1;
-
-  /**
-   * The length of the header of this message.
-   */
-  protected int headerLength;
+  protected byte groupId = -1;
 
   /**
    * Create a new StartMsg.
@@ -66,7 +59,7 @@ public abstract class StartMsg extends ReplicationMsg
    * @param generationId    The generationId for this server.
    *
    */
-  public StartMsg(short protocolVersion, long generationId)
+  StartMsg(short protocolVersion, long generationId)
   {
     this.protocolVersion = protocolVersion;
     this.generationId = generationId;
@@ -75,196 +68,105 @@ public abstract class StartMsg extends ReplicationMsg
   /**
    * Encode the header for the start message.
    *
-   * @param type The type of the message to create.
-   * @param additionalLength Additional length needed to encode the remaining
+   * @param msgType The type of the message to create.
+   * @param builder Additional length needed to encode the remaining
    *                         part of the UpdateMessage.
-   * @param sessionProtocolVersion  The version to use when encoding the header.
-   * @return a byte array containing the common header and enough space to
-   *         encode the remaining bytes of the UpdateMessage as was specified
-   *         by the additionalLength.
-   *         (byte array length = common header length + additionalLength)
-   * @throws UnsupportedEncodingException if UTF-8 is not supported.
+   * @param protocolVersion  The version to use when encoding the header.
    */
-  public byte[] encodeHeader(
-      byte type, int additionalLength,
-      short sessionProtocolVersion)
-  throws UnsupportedEncodingException
+  void encodeHeader(byte msgType, ByteArrayBuilder builder, short protocolVersion)
   {
-
-    byte[] byteGenerationID =
-      String.valueOf(generationId).getBytes("UTF-8");
-
     /* The message header is stored in the form :
      * <message type><protocol version><generation id><group id>
      */
-    int length = 1 + 1 + byteGenerationID.length + 1 + 1 +
-                     additionalLength;
-
-    byte[] encodedMsg = new byte[length];
-
-    /* put the type of the operation */
-    encodedMsg[0] = type;
-
-    /* put the protocol version */
-    encodedMsg[1] = (byte)sessionProtocolVersion;
-
-    /* put the generationId */
-    int pos = 2;
-    pos = addByteArray(byteGenerationID, encodedMsg, pos);
-
-    /* put the group id */
-    encodedMsg[pos] = groupId;
-
-    pos++;
-    headerLength = pos;
-
-    return encodedMsg;
+    builder.append(msgType);
+    builder.append((byte) protocolVersion);
+    builder.appendUTF8(generationId);
+    builder.append(groupId);
   }
 
   /**
    * Encode the header for the start message. This uses the version 1 of the
    * replication protocol (used for compatibility purpose).
    *
-   * @param type The type of the message to create.
-   * @param additionalLength additional length needed to encode the remaining
-   *                         part of the UpdateMessage.
-   * @return a byte array containing the common header and enough space to
-   *         encode the remaining bytes of the UpdateMessage as was specified
-   *         by the additionalLength.
-   *         (byte array length = common header length + additionalLength)
-   * @throws UnsupportedEncodingException if UTF-8 is not supported.
+   * @param msgType The type of the message to create.
+   * @param builder The builder where to append the remaining part of the
+   *                UpdateMessage.
    */
-  public byte[] encodeHeader_V1(byte type, int additionalLength)
-  throws UnsupportedEncodingException
+  void encodeHeader_V1(byte msgType, ByteArrayBuilder builder)
   {
-    byte[] byteGenerationID =
-      String.valueOf(generationId).getBytes("UTF-8");
-
     /* The message header is stored in the form :
      * <message type><protocol version><generation id>
      */
-    int length = 1 + 1 + 1 +
-                     byteGenerationID.length + 1 +
-                     additionalLength;
-
-    byte[] encodedMsg = new byte[length];
-
-    /* put the type of the operation */
-    encodedMsg[0] = type;
-
-    /* put the protocol version */
-    encodedMsg[1] = (byte)ProtocolVersion.REPLICATION_PROTOCOL_V1_REAL;
-    encodedMsg[2] = (byte)0;
-
-    /* put the generationId */
-    int pos = 3;
-    headerLength = addByteArray(byteGenerationID, encodedMsg, pos);
-
-    return encodedMsg;
+    builder.append(msgType);
+    builder.append((byte) ProtocolVersion.REPLICATION_PROTOCOL_V1_REAL);
+    builder.append((byte) 0);
+    builder.appendUTF8(generationId);
   }
 
   /**
    * Decode the Header part of this message, and check its type.
    *
-   * @param types The allowed types of this message.
-   * @param encodedMsg the encoded form of the message.
-   * @return the position at which the remaining part of the message starts.
+   * @param scanner where to read the message from.
+   * @param allowedTypes The allowed types of this message.
    * @throws DataFormatException if the encodedMsg does not contain a valid
    *         common header.
    */
-  public int decodeHeader(byte[] types, byte [] encodedMsg)
-  throws DataFormatException
+  void decodeHeader(final ByteArrayScanner scanner, byte... allowedTypes)
+      throws DataFormatException
   {
-    /* first byte is the type */
-    boolean foundMatchingType = false;
-    for (byte type : types) {
-      if (type == encodedMsg[0]) {
-        foundMatchingType = true;
-        break;
-      }
+    final byte msgType = scanner.nextByte();
+    if (!isTypeAllowed(allowedTypes, msgType))
+    {
+      throw new DataFormatException("byte[] is not a valid start msg: "
+          + msgType);
     }
-    if (!foundMatchingType)
-      throw new DataFormatException("byte[] is not a valid start msg: " +
-        encodedMsg[0]);
+
+    final byte version = scanner.nextByte();
 
     // Filter for supported old versions PDUs
-    if (encodedMsg[0] == MSG_TYPE_REPL_SERVER_START_V1)
-      return decodeHeader_V1(MSG_TYPE_REPL_SERVER_START_V1, encodedMsg);
-
-    try
+    if (msgType == MSG_TYPE_REPL_SERVER_START_V1)
     {
-      /* then read the version */
-      short readVersion = (short)encodedMsg[1];
-      if (readVersion < ProtocolVersion.REPLICATION_PROTOCOL_V2)
-        throw new DataFormatException("Not a valid message: type is " +
-          encodedMsg[0] + " but protocol version byte is " + readVersion +
-          " instead of " + ProtocolVersion.getCurrentVersion());
-      protocolVersion = readVersion;
+      if (version != ProtocolVersion.REPLICATION_PROTOCOL_V1_REAL)
+      {
+        throw new DataFormatException("Not a valid message: type is " + msgType
+            + " but protocol version byte is " + version + " instead of "
+            + ProtocolVersion.REPLICATION_PROTOCOL_V1_REAL);
+      }
 
-      /* read the generationId */
-      int pos = 2;
-      int length = getNextLength(encodedMsg, pos);
-      generationId = Long.valueOf(new String(encodedMsg, pos, length,
-          "UTF-8"));
-      pos += length +1;
+      // Force version to V1
+      // We need to translate the MSG_TYPE_REPL_SERVER_START_V1 version
+      // into REPLICATION_PROTOCOL_V1 so that we only see V1 everywhere.
+      protocolVersion = ProtocolVersion.REPLICATION_PROTOCOL_V1;
 
-      /* read the group id */
-      groupId = encodedMsg[pos];
-      pos++;
-
-      return pos;
-    } catch (UnsupportedEncodingException e)
+      // In V1, version was 1 (49) in string, so with a null
+      // terminating string. Let's position the cursor at the next byte
+      scanner.skipZeroSeparator();
+      generationId = scanner.nextLongUTF8();
+    }
+    else
     {
-      throw new DataFormatException("UTF-8 is not supported by this jvm.");
+      if (version < ProtocolVersion.REPLICATION_PROTOCOL_V2)
+      {
+        throw new DataFormatException("Not a valid message: type is " + msgType
+            + " but protocol version byte is " + version + " instead of "
+            + ProtocolVersion.getCurrentVersion());
+      }
+      protocolVersion = version;
+      generationId = scanner.nextLongUTF8();
+      groupId = scanner.nextByte();
     }
   }
 
-  /**
-   * Decode the Header part of this message, and check its type. This uses the
-   * version 1 of the replication protocol (used for compatibility purpose).
-   *
-   * @param type The type of this message.
-   * @param encodedMsg the encoded form of the message.
-   * @return the position at which the remaining part of the message starts.
-   * @throws DataFormatException if the encodedMsg does not contain a valid
-   *         common header.
-   */
-  public int decodeHeader_V1(byte type, byte [] encodedMsg)
-  throws DataFormatException
+  private boolean isTypeAllowed(byte[] allowedTypes, final byte msgType)
   {
-    if (encodedMsg[0] != type)
-      throw new DataFormatException("byte[] is not a valid start msg: expected "
-        + " a V1 PDU, received: " + encodedMsg[0]);
-
-    if (encodedMsg[1] != ProtocolVersion.REPLICATION_PROTOCOL_V1_REAL)
+    for (byte allowedType : allowedTypes)
     {
-      throw new DataFormatException("Not a valid message: type is " +
-        type + " but protocol version byte is " + encodedMsg[1] + " instead of "
-        + ProtocolVersion.REPLICATION_PROTOCOL_V1_REAL);
+      if (msgType == allowedType)
+      {
+        return true;
+      }
     }
-
-    // Force version to V1
-    // We need to translate the MSG_TYPE_REPL_SERVER_START_V1 version
-    // into REPLICATION_PROTOCOL_V1 so that we only see V1 everywhere.
-    protocolVersion = ProtocolVersion.REPLICATION_PROTOCOL_V1;
-
-    try
-    {
-      // In V1, version was 1 (49) in string, so with a null
-      // terminating string. Let's position the cursor at the next byte
-      int pos = 3;
-
-      /* read the generationId */
-      int length = getNextLength(encodedMsg, pos);
-      generationId = Long.valueOf(new String(encodedMsg, pos, length,
-          "UTF-8"));
-      pos += length +1;
-
-      return pos;
-    } catch (UnsupportedEncodingException e)
-    {
-      throw new DataFormatException("UTF-8 is not supported by this jvm.");
-    }
+    return false;
   }
 
   /**

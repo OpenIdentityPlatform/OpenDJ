@@ -22,17 +22,14 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.common;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.*;
-import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListMap;
-import java.util.zip.DataFormatException;
 
 import org.opends.server.protocols.asn1.ASN1Writer;
 import org.opends.server.replication.protocol.ProtocolVersion;
@@ -75,70 +72,6 @@ public class ServerState implements Iterable<CSN>
     serverIdToCSN.clear();
   }
 
-
-  /**
-   * Creates a new ServerState object from its encoded form.
-   *
-   * @param in The byte array containing the encoded ServerState form.
-   * @param pos The position in the byte array where the encoded ServerState
-   *            starts.
-   * @param endpos The position in the byte array where the encoded ServerState
-   *               ends.
-   * @throws DataFormatException If the encoded form was not correct.
-   */
-  public ServerState(byte[] in, int pos, int endpos) throws DataFormatException
-  {
-    try
-    {
-      while (endpos > pos)
-      {
-        // FIXME JNR: why store the serverId separately from the CSN since the
-        // CSN already contains the serverId?
-
-        // read the ServerId
-        int length = getNextLength(in, pos);
-        String serverIdString = new String(in, pos, length, "UTF-8");
-        int serverId = Integer.valueOf(serverIdString);
-        pos += length +1;
-
-        // read the CSN
-        length = getNextLength(in, pos);
-        String csnString = new String(in, pos, length, "UTF-8");
-        CSN csn = new CSN(csnString);
-        pos += length +1;
-
-        // Add the serverId
-        serverIdToCSN.put(serverId, csn);
-      }
-    } catch (UnsupportedEncodingException e)
-    {
-      throw new DataFormatException("UTF-8 is not supported by this jvm.");
-    }
-  }
-
-  /**
-   * Get the length of the next String encoded in the in byte array.
-   * This method is used to cut the different parts (serverIds, CSN)
-   * of a server state.
-   *
-   * @param in the byte array where to calculate the string.
-   * @param pos the position where to start from in the byte array.
-   * @return the length of the next string.
-   * @throws DataFormatException If the byte array does not end with null.
-   */
-  private int getNextLength(byte[] in, int pos) throws DataFormatException
-  {
-    int offset = pos;
-    int length = 0;
-    while (in[offset++] != 0)
-    {
-      if (offset >= in.length)
-        throw new DataFormatException("byte[] is not a valid server state");
-      length++;
-    }
-    return length;
-  }
-
   /**
    * Forward update the Server State with a CSN. The provided CSN will be put on
    * the current object only if it is newer than the existing CSN for the same
@@ -151,7 +84,9 @@ public class ServerState implements Iterable<CSN>
   public boolean update(CSN csn)
   {
     if (csn == null)
+    {
       return false;
+    }
 
     saved = false;
 
@@ -191,7 +126,9 @@ public class ServerState implements Iterable<CSN>
   public boolean update(ServerState serverState)
   {
     if (serverState == null)
+    {
       return false;
+    }
 
     boolean updated = false;
     for (CSN csn : serverState.serverIdToCSN.values())
@@ -215,7 +152,9 @@ public class ServerState implements Iterable<CSN>
   public boolean removeCSN(CSN expectedCSN)
   {
     if (expectedCSN == null)
+    {
       return false;
+    }
 
     if (serverIdToCSN.remove(expectedCSN.getServerId(), expectedCSN))
     {
@@ -335,63 +274,18 @@ public class ServerState implements Iterable<CSN>
   }
 
   /**
-   * Add the tail into resultByteArray at position pos.
-   */
-  private int addByteArray(byte[] tail, byte[] resultByteArray, int pos)
-  {
-    for (int i=0; i<tail.length; i++,pos++)
-    {
-      resultByteArray[pos] = tail[i];
-    }
-    resultByteArray[pos++] = 0;
-    return pos;
-  }
-
-  /**
-   * Encode this ServerState object and return its byte array representation.
+   * Returns a copy of this ServerState's content as a Map of serverId => CSN.
    *
-   * @return a byte array with an encoded representation of this object.
-   * @throws UnsupportedEncodingException if UTF8 is not supported by the JVM.
+   * @return a copy of this ServerState's content as a Map of serverId => CSN.
    */
-  public byte[] getBytes() throws UnsupportedEncodingException
+  public Map<Integer, CSN> getServerIdToCSNMap()
   {
     // copy to protect from concurrent updates
     // that could change the number of elements in the Map
-    final Map<Integer, CSN> copy = new HashMap<Integer, CSN>(serverIdToCSN);
-
-    final int size = copy.size();
-    List<String> idList = new ArrayList<String>(size);
-    List<String> csnList = new ArrayList<String>(size);
-    // calculate the total length needed to allocate byte array
-    int length = 0;
-    for (Entry<Integer, CSN> entry : copy.entrySet())
-    {
-      // serverId is useless, see comment in ServerState ctor
-      final String serverIdStr = String.valueOf(entry.getKey());
-      idList.add(serverIdStr);
-      length += serverIdStr.length() + 1;
-
-      final String csnStr = entry.getValue().toString();
-      csnList.add(csnStr);
-      length += csnStr.length() + 1;
-    }
-    byte[] result = new byte[length];
-
-    // write the server state into the byte array
-    int pos = 0;
-    for (int i = 0; i < size; i++)
-    {
-      String str = idList.get(i);
-      pos = addByteArray(str.getBytes("UTF-8"), result, pos);
-      str = csnList.get(i);
-      pos = addByteArray(str.getBytes("UTF-8"), result, pos);
-    }
-    return result;
+    return new HashMap<Integer, CSN>(serverIdToCSN);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Iterator<CSN> iterator()
   {
