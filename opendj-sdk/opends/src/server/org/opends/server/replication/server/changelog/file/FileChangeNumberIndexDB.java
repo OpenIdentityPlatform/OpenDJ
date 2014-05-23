@@ -265,19 +265,15 @@ class FileChangeNumberIndexDB implements ChangeNumberIndexDB
     private Attribute createChangeNumberAttribute(final boolean isFirst)
     {
       final String attributeName = isFirst ? "first-draft-changenumber" : "last-draft-changenumber";
-      final String changeNumber = String.valueOf(getChangeNumber(isFirst));
+      final String changeNumber = String.valueOf(readChangeNumber(isFirst));
       return Attributes.create(attributeName, changeNumber);
     }
 
-    private long getChangeNumber(final boolean isFirst)
+    private long readChangeNumber(final boolean isFirst)
     {
       try
       {
-        final ChangeNumberIndexRecord record = isFirst ? readFirstRecord() : readLastRecord();
-        if (record != null)
-        {
-          return record.getChangeNumber();
-        }
+        return getChangeNumber(isFirst ? readFirstRecord() : readLastRecord());
       }
       catch (ChangelogException e)
       {
@@ -285,8 +281,8 @@ class FileChangeNumberIndexDB implements ChangeNumberIndexDB
         {
           TRACER.debugCaught(DebugLogLevel.WARNING, e);
         }
+        return NO_KEY;
       }
-      return 0;
     }
 
     /** {@inheritDoc} */
