@@ -317,12 +317,12 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
       assertThat(actualAttrs).hasSize(expectedAttrs.size());
       for (int i = 0; i < expectedAttrs.size(); i++)
       {
-        final Attribute attr = expectedAttrs.get(i);
-        final RawAttribute rattr = actualAttrs.get(i);
+        final Attribute expectedAttr = expectedAttrs.get(i);
+        final Attribute actualAttr = actualAttrs.get(i).toAttribute();
 
-        assertTrue(attr.getName().equalsIgnoreCase(rattr.toAttribute().getName()));
-        assertTrue(attr.toString().equalsIgnoreCase(rattr.toAttribute().toString()),
-            "Comparing: " + attr + " and " + rattr.toAttribute());
+        assertTrue(expectedAttr.getName().equalsIgnoreCase(actualAttr.getName()));
+        assertTrue(expectedAttr.toString().equalsIgnoreCase(actualAttr.toString()),
+            "Comparing: " + expectedAttr + " and " + actualAttr);
       }
     }
   }
