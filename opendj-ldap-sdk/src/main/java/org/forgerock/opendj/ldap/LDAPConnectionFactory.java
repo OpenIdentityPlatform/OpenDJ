@@ -86,7 +86,9 @@ public final class LDAPConnectionFactory implements ConnectionFactory {
      *            The address of the Directory Server.
      * @throws NullPointerException
      *             If {@code address} was {@code null}.
+     * @deprecated use {@link #LDAPConnectionFactory(String, int)} instead.
      */
+    @Deprecated
     public LDAPConnectionFactory(final InetSocketAddress address) {
         this(address, new LDAPOptions());
     }
@@ -101,7 +103,10 @@ public final class LDAPConnectionFactory implements ConnectionFactory {
      *            The LDAP options to use when creating connections.
      * @throws NullPointerException
      *             If {@code address} or {@code options} was {@code null}.
+     * @deprecated use {@link #LDAPConnectionFactory(String, int,
+     * org.forgerock.opendj.ldap.LDAPOptions)} instead.
      */
+    @Deprecated
     public LDAPConnectionFactory(final InetSocketAddress address, final LDAPOptions options) {
         Validator.ensureNotNull(address, options);
         this.impl = new LDAPConnectionFactoryImpl(address, options);
@@ -139,8 +144,7 @@ public final class LDAPConnectionFactory implements ConnectionFactory {
      */
     public LDAPConnectionFactory(final String host, final int port, final LDAPOptions options) {
         Validator.ensureNotNull(host, options);
-        final InetSocketAddress address = new InetSocketAddress(host, port);
-        this.impl = new LDAPConnectionFactoryImpl(address, options);
+        this.impl = new LDAPConnectionFactoryImpl(host, port, options);
     }
 
     /**

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions copyright 2011-2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -43,6 +43,8 @@ import static org.mockito.Mockito.when;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.Arrays;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
@@ -133,7 +135,7 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
 
     @DataProvider
     Object[][] connectionFactories() throws Exception {
-        Object[][] factories = new Object[21][1];
+        Object[][] factories = new Object[27][1];
 
         // HeartBeatConnectionFactory
         // Use custom search request.
@@ -141,26 +143,45 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
                 Requests.newSearchRequest("uid=user.0,ou=people,o=test", SearchScope.BASE_OBJECT,
                         "objectclass=*", "cn");
 
+        SocketAddress addr = getServerSocketAddress();
+        assertTrue(addr instanceof InetSocketAddress);
+        InetSocketAddress socketAddress = (InetSocketAddress) addr;
+
         factories[0][0] =
                 Connections.newHeartBeatConnectionFactory(new LDAPConnectionFactory(
-                        getServerSocketAddress()), 1000, 500, TimeUnit.MILLISECONDS, request);
+                        socketAddress), 1000, 500, TimeUnit.MILLISECONDS, request);
+        factories[1][0] =
+                Connections.newHeartBeatConnectionFactory(new LDAPConnectionFactory(
+                        socketAddress.getHostName(), socketAddress.getPort()), 1000, 500,
+                        TimeUnit.MILLISECONDS, request);
 
         // InternalConnectionFactory
-        factories[1][0] = Connections.newInternalConnectionFactory(LDAPServer.getInstance(), null);
+        factories[2][0] = Connections.newInternalConnectionFactory(LDAPServer.getInstance(), null);
 
         // AuthenticatedConnectionFactory
-        factories[2][0] =
-                new AuthenticatedConnectionFactory(new LDAPConnectionFactory(
-                        getServerSocketAddress()), Requests.newSimpleBindRequest("", new char[0]));
-
-        // AuthenticatedConnectionFactory with multi-stage SASL
         factories[3][0] =
                 new AuthenticatedConnectionFactory(new LDAPConnectionFactory(
-                        getServerSocketAddress()), Requests.newCRAMMD5SASLBindRequest("id:user",
+                        socketAddress), Requests.newSimpleBindRequest("", new char[0]));
+        factories[4][0] =
+                new AuthenticatedConnectionFactory(new LDAPConnectionFactory(
+                        socketAddress.getHostName(), socketAddress.getPort()),
+                        Requests.newSimpleBindRequest("", new char[0]));
+
+        // AuthenticatedConnectionFactory with multi-stage SASL
+        factories[5][0] =
+                new AuthenticatedConnectionFactory(new LDAPConnectionFactory(
+                        socketAddress), Requests.newCRAMMD5SASLBindRequest("id:user",
+                            "password".toCharArray()));
+        factories[6][0] =
+                new AuthenticatedConnectionFactory(new LDAPConnectionFactory(
+                        socketAddress.getHostName(), socketAddress.getPort()),
+                        Requests.newCRAMMD5SASLBindRequest("id:user",
                             "password".toCharArray()));
 
         // LDAPConnectionFactory with default options
-        factories[4][0] = new LDAPConnectionFactory(getServerSocketAddress());
+        factories[7][0] = new LDAPConnectionFactory(socketAddress);
+        factories[8][0] = new LDAPConnectionFactory(socketAddress.getHostName(),
+                socketAddress.getPort());
 
         // LDAPConnectionFactory with startTLS
         SSLContext sslContext =
@@ -174,16 +195,24 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
                                     "SSL_DH_anon_WITH_DES_CBC_SHA", "SSL_DH_anon_WITH_RC4_128_MD5",
                                     "TLS_DH_anon_WITH_AES_128_CBC_SHA",
                                     "TLS_DH_anon_WITH_AES_256_CBC_SHA" });
-        factories[5][0] = new LDAPConnectionFactory(getServerSocketAddress(), options);
+        factories[9][0] = new LDAPConnectionFactory(socketAddress, options);
+        factories[10][0] = new LDAPConnectionFactory(socketAddress.getHostName(),
+                socketAddress.getPort(), options);
 
         // startTLS + SASL confidentiality
         // Use IP address here so that DIGEST-MD5 host verification works if
         // local host name is not localhost (e.g. on some machines it might be
         // localhost.localdomain).
         // FIXME: enable QOP once OPENDJ-514 is fixed.
-        factories[6][0] =
+        factories[11][0] =
                 new AuthenticatedConnectionFactory(new LDAPConnectionFactory(
-                        getServerSocketAddress(), options), Requests.newDigestMD5SASLBindRequest(
+                        socketAddress, options), Requests.newDigestMD5SASLBindRequest(
+                            "id:user", "password".toCharArray()).setCipher(
+                                DigestMD5SASLBindRequest.CIPHER_LOW));
+        factories[12][0] =
+                new AuthenticatedConnectionFactory(new LDAPConnectionFactory(
+                        socketAddress.getHostName(), socketAddress.getPort(), options),
+                        Requests.newDigestMD5SASLBindRequest(
                             "id:user", "password".toCharArray()).setCipher(
                                 DigestMD5SASLBindRequest.CIPHER_LOW));
 
@@ -197,45 +226,45 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
                         getServerSocketAddress()), "online");
 
         // Connection pools.
-        factories[7][0] = Connections.newFixedConnectionPool(onlineServer, 10);
+        factories[13][0] = Connections.newFixedConnectionPool(onlineServer, 10);
 
         // Round robin.
-        factories[8][0] =
+        factories[14][0] =
                 Connections.newLoadBalancer(new RoundRobinLoadBalancingAlgorithm(Arrays.asList(
                         onlineServer, offlineServer1)));
-        factories[9][0] = factories[8][0];
-        factories[10][0] = factories[8][0];
-        factories[11][0] =
+        factories[15][0] = factories[14][0];
+        factories[16][0] = factories[14][0];
+        factories[17][0] =
                 Connections.newLoadBalancer(new RoundRobinLoadBalancingAlgorithm(Arrays.asList(
                         offlineServer1, onlineServer)));
-        factories[12][0] =
+        factories[18][0] =
                 Connections.newLoadBalancer(new RoundRobinLoadBalancingAlgorithm(Arrays.asList(
                         offlineServer1, offlineServer2, onlineServer)));
-        factories[13][0] =
+        factories[19][0] =
                 Connections.newLoadBalancer(new RoundRobinLoadBalancingAlgorithm(Arrays
                         .<ConnectionFactory> asList(Connections.newFixedConnectionPool(
                                 offlineServer1, 10), Connections.newFixedConnectionPool(
                                 onlineServer, 10))));
 
         // Fail-over.
-        factories[14][0] =
+        factories[20][0] =
                 Connections.newLoadBalancer(new FailoverLoadBalancingAlgorithm(Arrays.asList(
                         onlineServer, offlineServer1)));
-        factories[15][0] = factories[14][0];
-        factories[16][0] = factories[14][0];
-        factories[17][0] =
+        factories[21][0] = factories[20][0];
+        factories[22][0] = factories[20][0];
+        factories[23][0] =
                 Connections.newLoadBalancer(new FailoverLoadBalancingAlgorithm(Arrays.asList(
                         offlineServer1, onlineServer)));
-        factories[18][0] =
+        factories[24][0] =
                 Connections.newLoadBalancer(new FailoverLoadBalancingAlgorithm(Arrays.asList(
                         offlineServer1, offlineServer2, onlineServer)));
-        factories[19][0] =
+        factories[25][0] =
                 Connections.newLoadBalancer(new FailoverLoadBalancingAlgorithm(Arrays
                         .<ConnectionFactory> asList(Connections.newFixedConnectionPool(
                                 offlineServer1, 10), Connections.newFixedConnectionPool(
                                 onlineServer, 10))));
 
-        factories[20][0] = Connections.newFixedConnectionPool(onlineServer, 10);
+        factories[26][0] = Connections.newFixedConnectionPool(onlineServer, 10);
 
         return factories;
     }

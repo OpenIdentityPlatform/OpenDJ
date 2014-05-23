@@ -211,8 +211,8 @@ public final class LDAPConnectionFactoryImpl implements ConnectionFactory {
                 return timeoutEndTime - currentTime;
             } else {
                 future.handleErrorResult(newErrorResult(ResultCode.CLIENT_SIDE_CONNECT_ERROR,
-                        LDAP_CONNECTION_CONNECT_TIMEOUT.get(socketAddress.toString(), getTimeout())
-                                .toString()));
+                        LDAP_CONNECTION_CONNECT_TIMEOUT.get(getSocketAddress().toString(),
+                                getTimeout()).toString()));
                 return 0;
             }
         }
@@ -227,6 +227,8 @@ public final class LDAPConnectionFactoryImpl implements ConnectionFactory {
     private final FilterChain defaultFilterChain;
     private final LDAPOptions options;
     private final InetSocketAddress socketAddress;
+    private final String host;
+    private final int port;
 
     /**
      * Prevents the transport and timeoutChecker being released when there are
@@ -246,8 +248,8 @@ public final class LDAPConnectionFactoryImpl implements ConnectionFactory {
 
     /**
      * Creates a new LDAP connection factory implementation which can be used to
-     * create connections to the Directory Server at the provided host and port
-     * address using provided connection options.
+     * create connections to the Directory Server at the provided address using
+     * provided connection options.
      *
      * @param address
      *            The address of the Directory Server to connect to.
@@ -257,11 +259,37 @@ public final class LDAPConnectionFactoryImpl implements ConnectionFactory {
     public LDAPConnectionFactoryImpl(final InetSocketAddress address, final LDAPOptions options) {
         this.transport = DEFAULT_TRANSPORT.acquireIfNull(options.getTCPNIOTransport());
         this.socketAddress = address;
+        this.host = null;
+        this.port = -1;
         this.options = new LDAPOptions(options);
         this.clientFilter =
                 new LDAPClientFilter(new LDAPReader(this.options.getDecodeOptions()), 0);
         this.defaultFilterChain =
                 FilterChainBuilder.stateless().add(new TransportFilter()).add(clientFilter).build();
+    }
+
+    /**
+     * Creates a new LDAP connection factory implementation which can be used to
+     * create connections to the Directory Server at the provided host and port
+     * number using provided connection options.
+     *
+     * @param host
+     *            The host name of the Directory Server to connect to.
+     * @param port
+     *            The port number of the Directory Server to connect to.
+     * @param options
+     *            The LDAP connection options to use when creating connections.
+     */
+    public LDAPConnectionFactoryImpl(final String host, final int port, final LDAPOptions options) {
+        this.transport = DEFAULT_TRANSPORT.acquireIfNull(options.getTCPNIOTransport());
+        this.socketAddress = null;
+        this.host = host;
+        this.port = port;
+        this.options = new LDAPOptions(options);
+        this.clientFilter =
+              new LDAPClientFilter(new LDAPReader(this.options.getDecodeOptions()), 0);
+        this.defaultFilterChain =
+              FilterChainBuilder.stateless().add(new TransportFilter()).add(clientFilter).build();
     }
 
     @Override
@@ -289,7 +317,7 @@ public final class LDAPConnectionFactoryImpl implements ConnectionFactory {
                         .build();
         final AsynchronousFutureResult<Connection, ResultHandler<? super Connection>> future =
                 new AsynchronousFutureResult<Connection, ResultHandler<? super Connection>>(handler);
-        connectorHandler.connect(socketAddress, new CompletionHandlerAdapter(future));
+        connectorHandler.connect(getSocketAddress(), new CompletionHandlerAdapter(future));
         return future;
     }
 
@@ -299,14 +327,23 @@ public final class LDAPConnectionFactoryImpl implements ConnectionFactory {
      * @return The address of the Directory Server.
      */
     public InetSocketAddress getSocketAddress() {
-        return socketAddress;
+        if (socketAddress != null) {
+            return socketAddress;
+        }
+        return new InetSocketAddress(host, port);
     }
 
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
         builder.append("LDAPConnectionFactory(");
-        builder.append(getSocketAddress().toString());
+        if (socketAddress != null) {
+            builder.append(socketAddress.toString());
+        } else {
+            builder.append(host);
+            builder.append(':');
+            builder.append(port);
+        }
         builder.append(')');
         return builder.toString();
     }
