@@ -36,9 +36,12 @@ import org.opends.messages.Message;
 import org.opends.messages.Severity;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.MemoryBackend;
+import org.opends.server.controls.ExternalChangelogRequestControl;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.replication.common.CSNGenerator;
+import org.opends.server.replication.common.MultiDomainServerState;
 import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.plugin.LDAPReplicationDomain;
 import org.opends.server.replication.plugin.MultimasterReplication;
@@ -557,15 +560,31 @@ public class GenerationIdTest extends ReplicationTestCase
    */
   private void checkChangelogSize(int expectedCount, int timeout) throws Exception
   {
-    // TODO : commented this throw because test is executed through a slow test
-    //throw new RuntimeException("Dead code. Should we remove this method and the test calling it?");
+    final MultiDomainServerState state = new MultiDomainServerState();
+    final Control control = new ExternalChangelogRequestControl(true, state);
+    final List<Control> controls = newList(control);
+
+    long start = System.currentTimeMillis();
+    InternalSearchOperation searchOperation;
+    do
+    {
+      Thread.sleep(10);
+      searchOperation = connection.processSearch(
+          "cn=changelog", SearchScope.SUBORDINATE_SUBTREE,
+          DereferencePolicy.NEVER_DEREF_ALIASES, 0, 0, false,
+          "(objectclass=*)", null, controls, null);
+    }
+    while (System.currentTimeMillis() - start <= timeout
+        && searchOperation.getResultCode() != ResultCode.SUCCESS
+        && searchOperation.getSearchEntries().size() != expectedCount);
+    Assertions.assertThat(searchOperation.getSearchEntries()).hasSize(expectedCount);
   }
 
   /**
    * SingleRS tests basic features of generationID
    * with one single Replication Server.
    */
-  @Test(enabled=false)
+  @Test
   public void testSingleRS() throws Exception
   {
     String testCase = "testSingleRS";
@@ -905,8 +924,8 @@ public class GenerationIdTest extends ReplicationTestCase
    * - genId setting propagation from one RS to the others
    * - genId reset propagation from one RS to the others
    */
-  @Test(enabled=false)
-  public void testMultiRS(int i) throws Exception
+  @Test(dependsOnMethods = { "testSingleRS" })
+  public void testMultiRS() throws Exception
   {
     String testCase = "testMultiRS";
     long genId;
@@ -1045,7 +1064,7 @@ public class GenerationIdTest extends ReplicationTestCase
    * Test generationID saving when the root entry does not exist
    * at the moment when the replication is enabled.
    */
-  @Test(enabled=false, groups="slow")
+  @Test(dependsOnMethods = { "testMultiRS" }, groups = "slow")
   public void testServerStop() throws Exception
   {
     String testCase = "testServerStop";
@@ -1086,7 +1105,7 @@ public class GenerationIdTest extends ReplicationTestCase
    * Loop opening sessions to the Replication Server
    * to check that it handle correctly disconnection and reconnection.
    */
-  @Test(enabled=false, groups="slow")
+  @Test(dependsOnMethods = { "testServerStop" }, groups = "slow")
   public void testLoop() throws Exception
   {
     String testCase = "testLoop";
@@ -1123,16 +1142,4 @@ public class GenerationIdTest extends ReplicationTestCase
     }
   }
 
-  /**
-   * This is used to make sure that the 3 tests are run in the
-   * specified order since this is necessary.
-   */
-  @Test(enabled=true, groups="slow")
-  public void generationIdTest() throws Exception
-  {
-    testSingleRS();
-    testMultiRS(0);
-    testServerStop();
-    testLoop();
-  }
 }
