@@ -131,7 +131,7 @@ public class ReplServerStartDSMsg extends StartMsg
     degradedStatusThreshold =scanner.nextIntUTF8();
     weight = scanner.nextIntUTF8();
     connectedDSNumber = scanner.nextIntUTF8();
-    serverState = scanner.nextServerState();
+    serverState = scanner.nextServerStateMustComeLast();
   }
 
   /**
@@ -182,16 +182,15 @@ public class ReplServerStartDSMsg extends StartMsg
      */
     final ByteArrayBuilder builder = new ByteArrayBuilder();
     encodeHeader(MSG_TYPE_REPL_SERVER_START_DS, builder, protocolVersion);
-    builder.append(baseDN);
-    builder.appendUTF8(serverId);
-    builder.append(serverURL);
-    builder.appendUTF8(windowSize);
-    builder.append(Boolean.toString(sslEncryption));
-    builder.appendUTF8(degradedStatusThreshold);
-    builder.appendUTF8(weight);
-    builder.appendUTF8(connectedDSNumber);
-    // Caution: ServerState MUST be the last field.
-    builder.append(serverState);
+    builder.appendDN(baseDN);
+    builder.appendIntUTF8(serverId);
+    builder.appendString(serverURL);
+    builder.appendIntUTF8(windowSize);
+    builder.appendString(Boolean.toString(sslEncryption));
+    builder.appendIntUTF8(degradedStatusThreshold);
+    builder.appendIntUTF8(weight);
+    builder.appendIntUTF8(connectedDSNumber);
+    builder.appendServerStateMustComeLast(serverState);
     return builder.toByteArray();
   }
 

@@ -201,14 +201,14 @@ public class AckMsg extends ReplicationMsg
      * error><failed server ids>
      */
     final ByteArrayBuilder builder = new ByteArrayBuilder();
-    builder.append(MSG_TYPE_ACK);
-    builder.appendUTF8(csn);
-    builder.append(hasTimeout);
-    builder.append(hasWrongStatus);
-    builder.append(hasReplayError);
+    builder.appendByte(MSG_TYPE_ACK);
+    builder.appendCSNUTF8(csn);
+    builder.appendBoolean(hasTimeout);
+    builder.appendBoolean(hasWrongStatus);
+    builder.appendBoolean(hasReplayError);
     for (int serverId : failedServers)
     {
-      builder.appendUTF8(serverId);
+      builder.appendIntUTF8(serverId);
     }
     return builder.toByteArray();
   }

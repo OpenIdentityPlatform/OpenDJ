@@ -220,12 +220,12 @@ public class UpdateMsg extends ReplicationMsg
   {
     final ByteArrayBuilder builder =
         new ByteArrayBuilder(bytes(6) + csnsUTF8(1));
-    builder.append(msgType);
-    builder.append((byte) ProtocolVersion.getCurrentVersion());
-    builder.appendUTF8(getCSN());
-    builder.append(assuredFlag);
-    builder.append(assuredMode.getValue());
-    builder.append(safeDataLevel);
+    builder.appendByte(msgType);
+    builder.appendByte((byte) ProtocolVersion.getCurrentVersion());
+    builder.appendCSNUTF8(getCSN());
+    builder.appendBoolean(assuredFlag);
+    builder.appendByte(assuredMode.getValue());
+    builder.appendByte(safeDataLevel);
     return builder;
   }
 
@@ -281,7 +281,7 @@ public class UpdateMsg extends ReplicationMsg
   {
     final ByteArrayBuilder builder = encodeHeader(MSG_TYPE_GENERIC_UPDATE,
         ProtocolVersion.getCurrentVersion());
-    builder.append(payload);
+    builder.appendByteArray(payload);
     return builder.toByteArray();
   }
 

@@ -188,8 +188,8 @@ public class AddMsg extends LDAPUpdateMsg
   public byte[] getBytes_V1()
   {
     final ByteArrayBuilder builder = encodeHeader_V1(MSG_TYPE_ADD_V1);
-    builder.append(parentEntryUUID);
-    builder.append(encodedAttributes);
+    builder.appendString(parentEntryUUID);
+    builder.appendByteArray(encodedAttributes);
     return builder.toByteArray();
   }
 
@@ -199,8 +199,8 @@ public class AddMsg extends LDAPUpdateMsg
   {
     final ByteArrayBuilder builder =
         encodeHeader(MSG_TYPE_ADD, ProtocolVersion.REPLICATION_PROTOCOL_V3);
-    builder.append(parentEntryUUID);
-    builder.append(encodedAttributes);
+    builder.appendString(parentEntryUUID);
+    builder.appendByteArray(encodedAttributes);
     return builder.toByteArray();
   }
 
@@ -210,11 +210,11 @@ public class AddMsg extends LDAPUpdateMsg
   {
     final ByteArrayBuilder builder =
         encodeHeader(MSG_TYPE_ADD, protocolVersion);
-    builder.append(parentEntryUUID);
-    builder.appendUTF8(encodedAttributes.length);
-    builder.appendZeroTerminated(encodedAttributes);
-    builder.appendUTF8(encodedEclIncludes.length);
-    builder.appendZeroTerminated(encodedEclIncludes);
+    builder.appendString(parentEntryUUID);
+    builder.appendIntUTF8(encodedAttributes.length);
+    builder.appendZeroTerminatedByteArray(encodedAttributes);
+    builder.appendIntUTF8(encodedEclIncludes.length);
+    builder.appendZeroTerminatedByteArray(encodedEclIncludes);
     return builder.toByteArray();
   }
 

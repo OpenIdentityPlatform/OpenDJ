@@ -179,17 +179,17 @@ public class StartSessionMsg extends ReplicationMsg
      * (each referral url terminates with 0)
      */
     final ByteArrayBuilder builder = new ByteArrayBuilder();
-    builder.append(MSG_TYPE_START_SESSION);
-    builder.append(status.getValue());
-    builder.append(assuredFlag);
-    builder.append(assuredMode.getValue());
-    builder.append(safeDataLevel);
+    builder.appendByte(MSG_TYPE_START_SESSION);
+    builder.appendByte(status.getValue());
+    builder.appendBoolean(assuredFlag);
+    builder.appendByte(assuredMode.getValue());
+    builder.appendByte(safeDataLevel);
 
     if (referralsURLs.size() >= 1)
     {
       for (String url : referralsURLs)
       {
-        builder.append(url);
+        builder.appendString(url);
       }
     }
     return builder.toByteArray();

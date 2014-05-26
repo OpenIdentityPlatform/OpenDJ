@@ -70,9 +70,9 @@ public class DoneMsg extends RoutableMsg
   public byte[] getBytes(short protocolVersion)
   {
     final ByteArrayBuilder builder = new ByteArrayBuilder();
-    builder.append(MSG_TYPE_DONE);
-    builder.appendUTF8(senderID);
-    builder.appendUTF8(destination);
+    builder.appendByte(MSG_TYPE_DONE);
+    builder.appendIntUTF8(senderID);
+    builder.appendIntUTF8(destination);
     return builder.toByteArray();
   }
 }

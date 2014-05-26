@@ -176,7 +176,7 @@ public class ModifyMsg extends ModifyCommonMsg
   public byte[] getBytes_V1()
   {
     final ByteArrayBuilder builder = encodeHeader_V1(MSG_TYPE_MODIFY_V1);
-    builder.append(encodedMods);
+    builder.appendByteArray(encodedMods);
     return builder.toByteArray();
   }
 
@@ -186,7 +186,7 @@ public class ModifyMsg extends ModifyCommonMsg
   {
     final ByteArrayBuilder builder =
         encodeHeader(MSG_TYPE_MODIFY, ProtocolVersion.REPLICATION_PROTOCOL_V3);
-    builder.append(encodedMods);
+    builder.appendByteArray(encodedMods);
     return builder.toByteArray();
   }
 
@@ -196,10 +196,10 @@ public class ModifyMsg extends ModifyCommonMsg
   {
     final ByteArrayBuilder builder =
         encodeHeader(MSG_TYPE_MODIFY, protocolVersion);
-    builder.appendUTF8(encodedMods.length);
-    builder.append(encodedMods);
-    builder.appendUTF8(encodedEclIncludes.length);
-    builder.append(encodedEclIncludes);
+    builder.appendIntUTF8(encodedMods.length);
+    builder.appendByteArray(encodedMods);
+    builder.appendIntUTF8(encodedEclIncludes.length);
+    builder.appendByteArray(encodedEclIncludes);
     return builder.toByteArray();
   }
 
