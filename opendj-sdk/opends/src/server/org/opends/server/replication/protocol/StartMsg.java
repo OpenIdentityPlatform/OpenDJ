@@ -78,10 +78,10 @@ public abstract class StartMsg extends ReplicationMsg
     /* The message header is stored in the form :
      * <message type><protocol version><generation id><group id>
      */
-    builder.append(msgType);
-    builder.append((byte) protocolVersion);
-    builder.appendUTF8(generationId);
-    builder.append(groupId);
+    builder.appendByte(msgType);
+    builder.appendByte((byte) protocolVersion);
+    builder.appendLongUTF8(generationId);
+    builder.appendByte(groupId);
   }
 
   /**
@@ -97,10 +97,10 @@ public abstract class StartMsg extends ReplicationMsg
     /* The message header is stored in the form :
      * <message type><protocol version><generation id>
      */
-    builder.append(msgType);
-    builder.append((byte) ProtocolVersion.REPLICATION_PROTOCOL_V1_REAL);
-    builder.append((byte) 0);
-    builder.appendUTF8(generationId);
+    builder.appendByte(msgType);
+    builder.appendByte((byte) ProtocolVersion.REPLICATION_PROTOCOL_V1_REAL);
+    builder.appendByte((byte) 0);
+    builder.appendLongUTF8(generationId);
   }
 
   /**

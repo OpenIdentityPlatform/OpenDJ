@@ -208,24 +208,24 @@ public class TopologyMsg extends ReplicationMsg
      * <number of following RSInfo entries>[<RSInfo>]*
      */
     final ByteArrayBuilder builder = new ByteArrayBuilder();
-    builder.append(MSG_TYPE_TOPOLOGY);
+    builder.appendByte(MSG_TYPE_TOPOLOGY);
 
     // Put DS infos
-    builder.append((byte) replicaInfos.size());
+    builder.appendByte((byte) replicaInfos.size());
     for (DSInfo dsInfo : replicaInfos.values())
     {
-      builder.appendUTF8(dsInfo.getDsId());
+      builder.appendIntUTF8(dsInfo.getDsId());
       if (version >= REPLICATION_PROTOCOL_V6)
       {
-        builder.append(dsInfo.getDsUrl());
+        builder.appendString(dsInfo.getDsUrl());
       }
-      builder.appendUTF8(dsInfo.getRsId());
-      builder.appendUTF8(dsInfo.getGenerationId());
-      builder.append(dsInfo.getStatus().getValue());
-      builder.append(dsInfo.isAssured());
-      builder.append(dsInfo.getAssuredMode().getValue());
-      builder.append(dsInfo.getSafeDataLevel());
-      builder.append(dsInfo.getGroupId());
+      builder.appendIntUTF8(dsInfo.getRsId());
+      builder.appendLongUTF8(dsInfo.getGenerationId());
+      builder.appendByte(dsInfo.getStatus().getValue());
+      builder.appendBoolean(dsInfo.isAssured());
+      builder.appendByte(dsInfo.getAssuredMode().getValue());
+      builder.appendByte(dsInfo.getSafeDataLevel());
+      builder.appendByte(dsInfo.getGroupId());
 
       builder.appendStrings(dsInfo.getRefUrls());
 
@@ -236,22 +236,22 @@ public class TopologyMsg extends ReplicationMsg
         {
           builder.appendStrings(dsInfo.getEclIncludesForDeletes());
         }
-        builder.append((byte) dsInfo.getProtocolVersion());
+        builder.appendByte((byte) dsInfo.getProtocolVersion());
       }
     }
 
     // Put RS infos
-    builder.append((byte) rsInfos.size());
+    builder.appendByte((byte) rsInfos.size());
     for (RSInfo rsInfo : rsInfos)
     {
-      builder.appendUTF8(rsInfo.getId());
-      builder.appendUTF8(rsInfo.getGenerationId());
-      builder.append(rsInfo.getGroupId());
+      builder.appendIntUTF8(rsInfo.getId());
+      builder.appendLongUTF8(rsInfo.getGenerationId());
+      builder.appendByte(rsInfo.getGroupId());
 
       if (version >= REPLICATION_PROTOCOL_V4)
       {
-        builder.append(rsInfo.getServerUrl());
-        builder.appendUTF8(rsInfo.getWeight());
+        builder.appendString(rsInfo.getServerUrl());
+        builder.appendIntUTF8(rsInfo.getWeight());
       }
     }
 

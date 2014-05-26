@@ -198,17 +198,17 @@ public class StartECLSessionMsg extends ReplicationMsg
   public byte[] getBytes(short protocolVersion)
   {
     final ByteArrayBuilder builder = new ByteArrayBuilder();
-    builder.append(MSG_TYPE_START_ECL_SESSION);
-    builder.appendUTF8(eclRequestType.ordinal());
+    builder.appendByte(MSG_TYPE_START_ECL_SESSION);
+    builder.appendIntUTF8(eclRequestType.ordinal());
     // FIXME JNR Changing the lines below to use long would require a protocol
     // version change. Leave it like this for now until the need arises.
-    builder.appendUTF8((int) firstChangeNumber);
-    builder.appendUTF8((int) lastChangeNumber);
-    builder.appendUTF8(csn);
-    builder.appendUTF8(isPersistent.ordinal());
-    builder.append(crossDomainServerState);
-    builder.append(operationId);
-    builder.append(StaticUtils.collectionToString(excludedBaseDNs, ";"));
+    builder.appendIntUTF8((int) firstChangeNumber);
+    builder.appendIntUTF8((int) lastChangeNumber);
+    builder.appendCSNUTF8(csn);
+    builder.appendIntUTF8(isPersistent.ordinal());
+    builder.appendString(crossDomainServerState);
+    builder.appendString(operationId);
+    builder.appendString(StaticUtils.collectionToString(excludedBaseDNs, ";"));
     return builder.toByteArray();
   }
 

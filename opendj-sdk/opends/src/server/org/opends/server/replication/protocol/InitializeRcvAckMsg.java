@@ -81,10 +81,10 @@ public class InitializeRcvAckMsg extends RoutableMsg
   public byte[] getBytes(short protocolVersion)
   {
     final ByteArrayBuilder builder = new ByteArrayBuilder();
-    builder.append(MSG_TYPE_INITIALIZE_RCV_ACK);
-    builder.appendUTF8(senderID);
-    builder.appendUTF8(destination);
-    builder.appendUTF8(numAck);
+    builder.appendByte(MSG_TYPE_INITIALIZE_RCV_ACK);
+    builder.appendIntUTF8(senderID);
+    builder.appendIntUTF8(destination);
+    builder.appendIntUTF8(numAck);
     return builder.toByteArray();
   }
 

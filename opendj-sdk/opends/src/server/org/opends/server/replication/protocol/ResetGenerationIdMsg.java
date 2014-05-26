@@ -69,8 +69,8 @@ public class ResetGenerationIdMsg extends ReplicationMsg
   public byte[] getBytes(short protocolVersion)
   {
     final ByteArrayBuilder builder = new ByteArrayBuilder();
-    builder.append(MSG_TYPE_RESET_GENERATION_ID);
-    builder.appendUTF8(generationId);
+    builder.appendByte(MSG_TYPE_RESET_GENERATION_ID);
+    builder.appendLongUTF8(generationId);
     return builder.toByteArray();
   }
 

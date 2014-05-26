@@ -153,14 +153,14 @@ public class ErrorMsg extends RoutableMsg
   public byte[] getBytes(short version)
   {
     final ByteArrayBuilder builder = new ByteArrayBuilder();
-    builder.append(MSG_TYPE_ERROR);
-    builder.appendUTF8(senderID);
-    builder.appendUTF8(destination);
-    builder.appendUTF8(msgID);
-    builder.append(details.toString());
+    builder.appendByte(MSG_TYPE_ERROR);
+    builder.appendIntUTF8(senderID);
+    builder.appendIntUTF8(destination);
+    builder.appendIntUTF8(msgID);
+    builder.appendString(details.toString());
     if (version >= ProtocolVersion.REPLICATION_PROTOCOL_V4)
     {
-      builder.appendUTF8(creationTime);
+      builder.appendLongUTF8(creationTime);
     }
     return builder.toByteArray();
   }

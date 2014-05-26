@@ -109,23 +109,23 @@ public class ByteArrayTest extends DirectoryServerTestCase
     ss.update(csn);
 
     byte[] bytes = new ByteArrayBuilder()
-        .append(boTrue)
-        .append(boFalse)
-        .append(by)
-        .append(sh)
-        .append(i)
-        .append(l)
-        .append(nullStr)
-        .append(str)
+        .appendBoolean(boTrue)
+        .appendBoolean(boFalse)
+        .appendByte(by)
+        .appendShort(sh)
+        .appendInt(i)
+        .appendLong(l)
+        .appendString(nullStr)
+        .appendString(str)
         .appendStrings(col)
-        .appendUTF8(i)
-        .appendUTF8(l)
-        .append(csn)
-        .appendUTF8(csn)
-        .append(dn)
-        .appendZeroTerminated(byteArray)
-        .append(byteArray)
-        .append(ss)
+        .appendIntUTF8(i)
+        .appendLongUTF8(l)
+        .appendCSN(csn)
+        .appendCSNUTF8(csn)
+        .appendDN(dn)
+        .appendZeroTerminatedByteArray(byteArray)
+        .appendByteArray(byteArray)
+        .appendServerStateMustComeLast(ss)
         .toByteArray();
 
     final ByteArrayScanner scanner = new ByteArrayScanner(bytes);
@@ -147,14 +147,16 @@ public class ByteArrayTest extends DirectoryServerTestCase
     assertEquals(scanner.nextByteArray(byteArray.length), byteArray);
     scanner.skipZeroSeparator();
     assertEquals(scanner.nextByteArray(byteArray.length), byteArray);
-    assertEquals(scanner.nextServerState().toString(), ss.toString());
+    assertEquals(scanner.nextServerStateMustComeLast().toString(), ss.toString());
     assertTrue(scanner.isEmpty());
   }
 
   @Test
   public void testByteArrayScanner_remainingBytes() throws Exception
   {
-    final byte[] bytes = new ByteArrayBuilder().append(byteArray).toByteArray();
+    final byte[] bytes = new ByteArrayBuilder()
+        .appendByteArray(byteArray)
+        .toByteArray();
 
     final ByteArrayScanner scanner = new ByteArrayScanner(bytes);
     assertEquals(scanner.remainingBytes(), byteArray);
@@ -164,8 +166,9 @@ public class ByteArrayTest extends DirectoryServerTestCase
   @Test
   public void testByteArrayScanner_remainingBytesZeroTerminated() throws Exception
   {
-    final byte[] bytes =
-        new ByteArrayBuilder().appendZeroTerminated(byteArray).toByteArray();
+    final byte[] bytes = new ByteArrayBuilder()
+        .appendZeroTerminatedByteArray(byteArray)
+        .toByteArray();
 
     final ByteArrayScanner scanner = new ByteArrayScanner(bytes);
     assertEquals(scanner.remainingBytesZeroTerminated(), byteArray);
@@ -236,7 +239,7 @@ public class ByteArrayTest extends DirectoryServerTestCase
   @Test(expectedExceptions = DataFormatException.class)
   public void testByteArrayScanner_nextDN_throwsExceptionWhenInvalidDN() throws Exception
   {
-    final byte[] bytes = new ByteArrayBuilder().append("this is not a valid DN").toByteArray();
+    final byte[] bytes = new ByteArrayBuilder().appendString("this is not a valid DN").toByteArray();
     new ByteArrayScanner(bytes).nextDN();
   }
 
