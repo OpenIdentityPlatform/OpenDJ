@@ -25,9 +25,9 @@
  */
 package org.opends.server.replication.server.changelog.file;
 
+import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
-import static org.opends.messages.ReplicationMessages.*;
 
 import java.io.Closeable;
 import java.io.File;
@@ -47,6 +47,9 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.forgerock.util.Reject;
+import org.opends.messages.Category;
+import org.opends.messages.Message;
+import org.opends.messages.Severity;
 import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
@@ -151,6 +154,13 @@ final class Log<K extends Comparable<K>, V> implements Closeable
    * The read-only log files are associated with the highest key they contain.
    */
   private final TreeMap<K, LogFile<K, V>> logFiles = new TreeMap<K, LogFile<K, V>>();
+
+  /**
+   * The last key appended to the log. In order to keep the ordering of the keys
+   * in the log, any attempt to append a record with a key lower or equal to
+   * this key will silently fail.
+   */
+  private K lastAppendedKey;
 
   /**
    * The list of non-empty cursors opened on this log. Opened cursors may have
@@ -354,6 +364,12 @@ final class Log<K extends Comparable<K>, V> implements Closeable
       {
         return;
       }
+      if (recordIsBreakingKeyOrdering(record))
+      {
+        ErrorLogger.logError(Message.raw(Category.SYNC, Severity.NOTICE,
+            "Rejecting append to log '%s' for record: [%s]", logPath.getPath(), record.toString()));
+        return;
+      }
       LogFile<K, V> headLogFile = getHeadLogFile();
       if (headLogFile.getSizeInBytes() > sizeLimitPerLogFileInBytes)
       {
@@ -363,11 +379,21 @@ final class Log<K extends Comparable<K>, V> implements Closeable
         headLogFile = getHeadLogFile();
       }
       headLogFile.append(record);
+      lastAppendedKey = record.getKey();
     }
     finally
     {
       exclusiveLock.unlock();
     }
+  }
+
+  /**
+   * Indicates if the provided record has a key that would break the key
+   * ordering in the log.
+   */
+  private boolean recordIsBreakingKeyOrdering(final Record<K, V> record)
+  {
+    return lastAppendedKey != null && record.getKey().compareTo(lastAppendedKey) <= 0;
   }
 
   /**
@@ -814,8 +840,10 @@ final class Log<K extends Comparable<K>, V> implements Closeable
 
   private void openHeadLogFile() throws ChangelogException
   {
-    logFiles.put(recordParser.getMaxKey(),
-        LogFile.newAppendableLogFile(new File(logPath,  HEAD_LOG_FILE_NAME), recordParser));
+    final LogFile<K, V> head = LogFile.newAppendableLogFile(new File(logPath,  HEAD_LOG_FILE_NAME), recordParser);
+    Record<K,V> newestRecord = head.getNewestRecord();
+    lastAppendedKey = newestRecord == null ? null : newestRecord.getKey();
+    logFiles.put(recordParser.getMaxKey(), head);
   }
 
   private void openReadOnlyLogFile(final File logFilePath) throws ChangelogException
