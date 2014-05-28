@@ -367,7 +367,8 @@ final class Log<K extends Comparable<K>, V> implements Closeable
       if (recordIsBreakingKeyOrdering(record))
       {
         ErrorLogger.logError(Message.raw(Category.SYNC, Severity.NOTICE,
-            "Rejecting append to log '%s' for record: [%s]", logPath.getPath(), record.toString()));
+            "Rejecting append to log '%s' for record: [%s], last key appended: [%s]", logPath.getPath(), record,
+            lastAppendedKey != null ? lastAppendedKey : "null"));
         return;
       }
       LogFile<K, V> headLogFile = getHeadLogFile();
