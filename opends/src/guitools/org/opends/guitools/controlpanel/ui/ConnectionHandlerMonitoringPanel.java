@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS.
  */
 package org.opends.guitools.controlpanel.ui;
 
@@ -589,10 +590,12 @@ public class ConnectionHandlerMonitoringPanel extends StatusGenericPanel
 
   private boolean protocolHasMonitoring(ConnectionHandlerDescriptor ch)
   {
-    return (ch.getProtocol() == Protocol.LDAP) ||
-    (ch.getProtocol() == Protocol.LDAPS) ||
-    (ch.getProtocol() == Protocol.LDAP_STARTTLS) ||
-    (ch.getProtocol() == Protocol.OTHER);
+    if (ch.getState() == State.DISABLED)
+      return false;
+    return ch.getProtocol() == Protocol.LDAP ||
+      ch.getProtocol() == Protocol.LDAPS ||
+      ch.getProtocol() == Protocol.LDAP_STARTTLS ||
+      ch.getProtocol() == Protocol.OTHER;
   }
 
   /**
