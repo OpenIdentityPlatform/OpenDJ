@@ -187,6 +187,21 @@ public class ChangeNumberIndexer extends DirectoryThread
   }
 
   /**
+   * Indicates if the replica corresponding to provided domain DN and server id
+   * is offline.
+   *
+   * @param domainDN
+   *          base DN of the replica
+   * @param serverId
+   *          server id of the replica
+   * @return {@code true} if replica is offline, {@code false} otherwise
+   */
+  public boolean isReplicaOffline(DN domainDN, int serverId)
+  {
+    return replicasOffline.getCSN(domainDN, serverId) != null;
+  }
+
+  /**
    * Ensures the medium consistency point is updated by UpdateMsg.
    *
    * @param baseDN

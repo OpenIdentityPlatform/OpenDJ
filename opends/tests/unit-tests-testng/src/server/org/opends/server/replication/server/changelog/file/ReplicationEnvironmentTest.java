@@ -26,8 +26,8 @@
 package org.opends.server.replication.server.changelog.file;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.opends.server.replication.server.changelog.file.ReplicationEnvironment.*;
 
-import java.io.Closeable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -37,12 +37,14 @@ import org.assertj.core.data.MapEntry;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.replication.common.CSN;
+import org.opends.server.replication.common.CSNGenerator;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ChangelogState;
 import org.opends.server.replication.server.changelog.api.ChangeNumberIndexRecord;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.types.DN;
 import org.opends.server.util.StaticUtils;
+import org.opends.server.util.TimeThread;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -50,6 +52,9 @@ import org.testng.annotations.Test;
 @SuppressWarnings("javadoc")
 public class ReplicationEnvironmentTest extends DirectoryServerTestCase
 {
+  private static final int SERVER_ID_1 = 1;
+  private static final int SERVER_ID_2 = 2;
+
   private static final String DN1_AS_STRING = "cn=test1,dc=company.com";
   private static final String DN2_AS_STRING = "cn=te::st2,dc=company.com";
   private static final String DN3_AS_STRING = "cn=test3,dc=company.com";
@@ -74,70 +79,231 @@ public class ReplicationEnvironmentTest extends DirectoryServerTestCase
   }
 
   @Test
-  public void testCreateThenReadChangelogStateWithSingleDN() throws Exception
+  public void testReadChangelogStateWithSingleDN() throws Exception
   {
-    final File rootPath = new File(TEST_DIRECTORY_CHANGELOG);
-    final DN domainDN = DN.decode(DN1_AS_STRING);
+    Log<Long,ChangeNumberIndexRecord> cnDB = null;
+    Log<CSN,UpdateMsg> replicaDB = null, replicaDB2 = null;
+    try
+    {
+      final File rootPath = new File(TEST_DIRECTORY_CHANGELOG);
+      final DN domainDN = DN.decode(DN1_AS_STRING);
+      ReplicationEnvironment environment = new ReplicationEnvironment(rootPath.getAbsolutePath(), null);
+      cnDB = environment.getOrCreateCNIndexDB();
+      replicaDB = environment.getOrCreateReplicaDB(domainDN, SERVER_ID_1, 1);
+      replicaDB2 = environment.getOrCreateReplicaDB(domainDN, SERVER_ID_2, 1);
 
-    ReplicationEnvironment environment = new ReplicationEnvironment(rootPath.getAbsolutePath(), null);
-    Log<Long,ChangeNumberIndexRecord> cnDB = environment.getOrCreateCNIndexDB();
-    Log<CSN,UpdateMsg> replicaDB = environment.getOrCreateReplicaDB(domainDN, 1, 1);
-    Log<CSN,UpdateMsg> replicaDB2 = environment.getOrCreateReplicaDB(domainDN, 2, 1);
-    StaticUtils.close(cnDB, replicaDB, replicaDB2);
+      ChangelogState state = environment.readChangelogState();
 
-    ChangelogState state = environment.readChangelogState();
-
-    assertThat(state.getDomainToServerIds()).containsKeys(domainDN);
-    assertThat(state.getDomainToServerIds().get(domainDN)).containsOnly(1, 2);
-    assertThat(state.getDomainToGenerationId()).containsExactly(MapEntry.entry(domainDN, 1L));
+      assertThat(state.getDomainToServerIds()).containsKeys(domainDN);
+      assertThat(state.getDomainToServerIds().get(domainDN)).containsOnly(SERVER_ID_1, SERVER_ID_2);
+      assertThat(state.getDomainToGenerationId()).containsExactly(MapEntry.entry(domainDN, 1L));
+    }
+    finally
+    {
+      StaticUtils.close(cnDB, replicaDB, replicaDB2);
+    }
   }
 
   @Test
-  public void testCreateThenReadChangelogStateWithMultipleDN() throws Exception
+  public void testReadChangelogStateWithMultipleDN() throws Exception
   {
-    File rootPath = new File(TEST_DIRECTORY_CHANGELOG);
-    List<DN> domainDNs = Arrays.asList(DN.decode(DN1_AS_STRING), DN.decode(DN2_AS_STRING), DN.decode(DN3_AS_STRING));
-
-    ReplicationEnvironment environment = new ReplicationEnvironment(rootPath.getAbsolutePath(), null);
-    Log<Long,ChangeNumberIndexRecord> cnDB = environment.getOrCreateCNIndexDB();
+    Log<Long,ChangeNumberIndexRecord> cnDB = null;
     List<Log<CSN,UpdateMsg>> replicaDBs = new ArrayList<Log<CSN,UpdateMsg>>();
-    for (int i = 0; i <= 2 ; i++)
+    try
     {
-      for (int j = 1; j <= 10; j++)
+      File rootPath = new File(TEST_DIRECTORY_CHANGELOG);
+      List<DN> domainDNs = Arrays.asList(DN.decode(DN1_AS_STRING), DN.decode(DN2_AS_STRING), DN.decode(DN3_AS_STRING));
+      ReplicationEnvironment environment = new ReplicationEnvironment(rootPath.getAbsolutePath(), null);
+      cnDB = environment.getOrCreateCNIndexDB();
+      for (int i = 0; i <= 2 ; i++)
       {
-        replicaDBs.add(environment.getOrCreateReplicaDB(domainDNs.get(i), j, i+1));
+        for (int j = 1; j <= 10; j++)
+        {
+          // 3 domains, 10 server id each, generation id is different for each domain
+          replicaDBs.add(environment.getOrCreateReplicaDB(domainDNs.get(i), j, i+1));
+        }
       }
+
+      ChangelogState state = environment.readChangelogState();
+
+      assertThat(state.getDomainToServerIds()).containsKeys(domainDNs.get(0), domainDNs.get(1), domainDNs.get(2));
+      for (int i = 0; i <= 2 ; i++)
+      {
+        assertThat(state.getDomainToServerIds().get(domainDNs.get(i))).containsOnly(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+      }
+      assertThat(state.getDomainToGenerationId()).containsOnly(
+          MapEntry.entry(domainDNs.get(0), 1L),
+          MapEntry.entry(domainDNs.get(1), 2L),
+          MapEntry.entry(domainDNs.get(2), 3L));
     }
-    StaticUtils.close(cnDB);
-    StaticUtils.close(replicaDBs.toArray(new Closeable[] {}));
-
-    ChangelogState state = environment.readChangelogState();
-
-    assertThat(state.getDomainToServerIds()).containsKeys(domainDNs.get(0), domainDNs.get(1), domainDNs.get(2));
-    for (int i = 0; i <= 2 ; i++)
+    finally
     {
-      assertThat(state.getDomainToServerIds().get(domainDNs.get(i))).containsOnly(1, 2, 3, 4, 5, 6, 7, 8, 9, 10);
+      StaticUtils.close(cnDB);
+      StaticUtils.close(replicaDBs);
     }
-    assertThat(state.getDomainToGenerationId()).containsOnly(
-        MapEntry.entry(domainDNs.get(0), 1L),
-        MapEntry.entry(domainDNs.get(1), 2L),
-        MapEntry.entry(domainDNs.get(2), 3L));
+  }
+
+  @Test
+  public void testReadChangelogStateWithReplicaOffline() throws Exception
+  {
+    Log<Long,ChangeNumberIndexRecord> cnDB = null;
+    Log<CSN,UpdateMsg> replicaDB = null;
+    try
+    {
+      final File rootPath = new File(TEST_DIRECTORY_CHANGELOG);
+      final DN domainDN = DN.decode(DN1_AS_STRING);
+      ReplicationEnvironment environment = new ReplicationEnvironment(rootPath.getAbsolutePath(), null);
+      cnDB = environment.getOrCreateCNIndexDB();
+      replicaDB = environment.getOrCreateReplicaDB(domainDN, SERVER_ID_1, 1);
+
+      // put server id 1 offline
+      CSN offlineCSN = new CSN(TimeThread.getTime(), 0, SERVER_ID_1);
+      environment.notifyReplicaOffline(domainDN, offlineCSN);
+
+      ChangelogState state = environment.readChangelogState();
+
+      assertThat(state.getOfflineReplicas()).containsExactly(MapEntry.entry(domainDN, Arrays.asList(offlineCSN)));
+    }
+    finally
+    {
+      StaticUtils.close(cnDB, replicaDB);
+    }
+  }
+
+  @Test(expectedExceptions=ChangelogException.class)
+  public void testReadChangelogStateWithReplicaOfflineStateFileCorrupted() throws Exception
+  {
+    Log<Long,ChangeNumberIndexRecord> cnDB = null;
+    Log<CSN,UpdateMsg> replicaDB = null;
+    try
+    {
+      final File rootPath = new File(TEST_DIRECTORY_CHANGELOG);
+      final DN domainDN = DN.decode(DN1_AS_STRING);
+      ReplicationEnvironment environment = new ReplicationEnvironment(rootPath.getAbsolutePath(), null);
+      cnDB = environment.getOrCreateCNIndexDB();
+      replicaDB = environment.getOrCreateReplicaDB(domainDN, SERVER_ID_1, 1);
+
+      File offlineStateFile = new File(environment.getServerIdPath("1", 1), REPLICA_OFFLINE_STATE_FILENAME);
+      offlineStateFile.createNewFile();
+
+      environment.readChangelogState();
+    }
+    finally
+    {
+      StaticUtils.close(cnDB, replicaDB);
+    }
+  }
+
+  @Test
+  public void testReadChangelogStateWithReplicaOfflineSentTwice() throws Exception
+  {
+    Log<Long,ChangeNumberIndexRecord> cnDB = null;
+    Log<CSN,UpdateMsg> replicaDB = null;
+    try
+    {
+      final File rootPath = new File(TEST_DIRECTORY_CHANGELOG);
+      final DN domainDN = DN.decode(DN1_AS_STRING);
+
+      ReplicationEnvironment environment = new ReplicationEnvironment(rootPath.getAbsolutePath(), null);
+      cnDB = environment.getOrCreateCNIndexDB();
+      replicaDB = environment.getOrCreateReplicaDB(domainDN, SERVER_ID_1, 1);
+
+      // put server id 1 offline twice
+      CSNGenerator csnGenerator = new CSNGenerator(SERVER_ID_1, 100);
+      environment.notifyReplicaOffline(domainDN, csnGenerator.newCSN());
+      CSN lastOfflineCSN = csnGenerator.newCSN();
+      environment.notifyReplicaOffline(domainDN, lastOfflineCSN);
+
+      ChangelogState state = environment.readChangelogState();
+
+      assertThat(state.getOfflineReplicas()).containsExactly(MapEntry.entry(domainDN, Arrays.asList(lastOfflineCSN)));
+    }
+    finally
+    {
+      StaticUtils.close(cnDB, replicaDB);
+    }
+  }
+
+  @Test
+  public void testReadChangelogStateWithReplicaOfflineThenReplicaOnline() throws Exception
+  {
+    Log<Long,ChangeNumberIndexRecord> cnDB = null;
+    Log<CSN,UpdateMsg> replicaDB = null;
+    try
+    {
+      final File rootPath = new File(TEST_DIRECTORY_CHANGELOG);
+      final DN domainDN = DN.decode(DN1_AS_STRING);
+
+      ReplicationEnvironment environment = new ReplicationEnvironment(rootPath.getAbsolutePath(), null);
+      cnDB = environment.getOrCreateCNIndexDB();
+      replicaDB = environment.getOrCreateReplicaDB(domainDN, SERVER_ID_1, 1);
+
+      // put server id 1 offline
+      environment.notifyReplicaOffline(domainDN, new CSN(TimeThread.getTime(), 0, SERVER_ID_1));
+      // put server id 1 online again
+      environment.notifyReplicaOnline(domainDN, SERVER_ID_1);
+
+      ChangelogState state = environment.readChangelogState();
+
+      assertThat(state.getOfflineReplicas()).isEmpty();
+    }
+    finally
+    {
+      StaticUtils.close(cnDB, replicaDB);
+    }
+  }
+
+  @Test
+  public void testCreateThenReadChangelogStateWithReplicaOffline() throws Exception
+  {
+    Log<Long,ChangeNumberIndexRecord> cnDB = null;
+    Log<CSN,UpdateMsg> replicaDB = null;
+    try
+    {
+      final File rootPath = new File(TEST_DIRECTORY_CHANGELOG);
+      final DN domainDN = DN.decode(DN1_AS_STRING);
+
+      ReplicationEnvironment environment = new ReplicationEnvironment(rootPath.getAbsolutePath(), null);
+      cnDB = environment.getOrCreateCNIndexDB();
+      replicaDB = environment.getOrCreateReplicaDB(domainDN, SERVER_ID_1, 1);
+      CSN offlineCSN = new CSN(TimeThread.getTime(), 0, SERVER_ID_1);
+      environment.notifyReplicaOffline(domainDN, offlineCSN);
+
+      ChangelogState state = environment.readChangelogState();
+
+      assertThat(state.getDomainToServerIds()).containsKeys(domainDN);
+      assertThat(state.getDomainToServerIds().get(domainDN)).containsOnly(SERVER_ID_1);
+      assertThat(state.getDomainToGenerationId()).containsExactly(MapEntry.entry(domainDN, 1L));
+      assertThat(state.getOfflineReplicas()).containsExactly(MapEntry.entry(domainDN, Arrays.asList(offlineCSN)));
+    }
+    finally
+    {
+      StaticUtils.close(cnDB, replicaDB);
+    }
   }
 
   @Test(expectedExceptions=ChangelogException.class)
   public void testMissingDomainDirectory() throws Exception
   {
-    File rootPath = new File(TEST_DIRECTORY_CHANGELOG);
-    DN domainDN = DN.decode(DN1_AS_STRING);
-    ReplicationEnvironment environment = new ReplicationEnvironment(rootPath.getAbsolutePath(), null);
-    Log<CSN,UpdateMsg> replicaDB = environment.getOrCreateReplicaDB(domainDN, 1, 1);
-    Log<CSN,UpdateMsg> replicaDB2 = environment.getOrCreateReplicaDB(domainDN, 2, 1);
-    StaticUtils.close(replicaDB, replicaDB2);
+    Log<Long,ChangeNumberIndexRecord> cnDB = null;
+    Log<CSN,UpdateMsg> replicaDB = null, replicaDB2 = null;
+    try
+    {
+      File rootPath = new File(TEST_DIRECTORY_CHANGELOG);
+      DN domainDN = DN.decode(DN1_AS_STRING);
+      ReplicationEnvironment environment = new ReplicationEnvironment(rootPath.getAbsolutePath(), null);
+      replicaDB = environment.getOrCreateReplicaDB(domainDN, SERVER_ID_1, 1);
+      replicaDB2 = environment.getOrCreateReplicaDB(domainDN, SERVER_ID_2, 1);
 
-    // delete the domain directory created for the 2 replica DBs to break the
-    // consistency with domain state file
-    StaticUtils.recursiveDelete(new File(rootPath, "1.domain"));
+      // delete the domain directory created for the 2 replica DBs to break the
+      // consistency with domain state file
+      StaticUtils.recursiveDelete(new File(rootPath, "1.domain"));
 
-    environment.readChangelogState();
+      environment.readChangelogState();
+    }
+    finally
+    {
+      StaticUtils.close(cnDB, replicaDB, replicaDB2);
+    }
   }
 }
