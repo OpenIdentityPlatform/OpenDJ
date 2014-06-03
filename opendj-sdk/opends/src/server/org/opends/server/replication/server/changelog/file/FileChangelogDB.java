@@ -672,6 +672,7 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
     final ChangeNumberIndexer indexer = cnIndexer.get();
     if (indexer != null)
     {
+      notifyReplicaOnline(indexer, baseDN, updateMsg.getCSN().getServerId());
       indexer.publishUpdateMsg(baseDN, updateMsg);
     }
     return wasCreated;
@@ -679,25 +680,35 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
 
   /** {@inheritDoc} */
   @Override
-  public void replicaHeartbeat(final DN baseDN, final CSN heartbeatCSN)
+  public void replicaHeartbeat(final DN baseDN, final CSN heartbeatCSN) throws ChangelogException
   {
     final ChangeNumberIndexer indexer = cnIndexer.get();
     if (indexer != null)
     {
+      notifyReplicaOnline(indexer, baseDN, heartbeatCSN.getServerId());
       indexer.publishHeartbeat(baseDN, heartbeatCSN);
+    }
+  }
+
+  private void notifyReplicaOnline(final ChangeNumberIndexer indexer, final DN baseDN, final int serverId)
+      throws ChangelogException
+  {
+    if (indexer.isReplicaOffline(baseDN, serverId))
+    {
+      replicationEnv.notifyReplicaOnline(baseDN, serverId);
     }
   }
 
   /** {@inheritDoc} */
   @Override
-  public void replicaOffline(final DN baseDN, final CSN offlineCSN)
+  public void notifyReplicaOffline(final DN baseDN, final CSN offlineCSN) throws ChangelogException
   {
+    replicationEnv.notifyReplicaOffline(baseDN, offlineCSN);
     final ChangeNumberIndexer indexer = cnIndexer.get();
     if (indexer != null)
     {
       indexer.replicaOffline(baseDN, offlineCSN);
     }
-    // TODO save this state in the changelogStateDB?
   }
 
   /**

@@ -158,7 +158,7 @@ final class Log<K extends Comparable<K>, V> implements Closeable
   /**
    * The last key appended to the log. In order to keep the ordering of the keys
    * in the log, any attempt to append a record with a key lower or equal to
-   * this key will silently fail.
+   * this is rejected (no error but an event is logged).
    */
   private K lastAppendedKey;
 
@@ -342,6 +342,10 @@ final class Log<K extends Comparable<K>, V> implements Closeable
   /**
    * Add the provided record at the end of this log.
    * <p>
+   * The record must have a key strictly higher than the key
+   * of the last record added. If it is not the case, the record is not
+   * appended and the method returns immediately.
+   * <p>
    * In order to ensure that record is written out of buffers and persisted
    * to file system, it is necessary to explicitely call the
    * {@code syncToFileSystem()} method.
@@ -349,7 +353,7 @@ final class Log<K extends Comparable<K>, V> implements Closeable
    * @param record
    *          The record to add.
    * @throws ChangelogException
-   *           If the record can't be added to the log.
+   *           If an error occurs while adding the record to the log.
    */
   public void append(final Record<K, V> record) throws ChangelogException
   {
@@ -766,7 +770,7 @@ final class Log<K extends Comparable<K>, V> implements Closeable
     catch (IOException e)
     {
       throw new ChangelogException(
-          ERR_CHANGELOG_UNABLE_TO_RENAME_HEAD_LOG_FILE.get(HEAD_LOG_FILE_NAME, rotatedLogFile.getPath()), e);
+          ERR_CHANGELOG_UNABLE_TO_RENAME_HEAD_LOG_FILE.get(headLogFile.getPath(), rotatedLogFile.getPath()), e);
     }
   }
 
@@ -842,8 +846,8 @@ final class Log<K extends Comparable<K>, V> implements Closeable
   private void openHeadLogFile() throws ChangelogException
   {
     final LogFile<K, V> head = LogFile.newAppendableLogFile(new File(logPath,  HEAD_LOG_FILE_NAME), recordParser);
-    Record<K,V> newestRecord = head.getNewestRecord();
-    lastAppendedKey = newestRecord == null ? null : newestRecord.getKey();
+    final Record<K,V> newestRecord = head.getNewestRecord();
+    lastAppendedKey = newestRecord != null ? newestRecord.getKey() : null;
     logFiles.put(recordParser.getMaxKey(), head);
   }
 
@@ -897,7 +901,7 @@ final class Log<K extends Comparable<K>, V> implements Closeable
   /**
    * Represents a cursor than can be repositioned on a given key.
    */
-  static interface RepositionableCursor<K extends Comparable<K>,V> extends DBCursor<Record<K, V>>
+  static interface RepositionableCursor<K extends Comparable<K>, V> extends DBCursor<Record<K, V>>
   {
     /**
      * Position the cursor to the record corresponding to the provided key or to
@@ -1011,9 +1015,9 @@ final class Log<K extends Comparable<K>, V> implements Closeable
         if (key != null)
         {
           boolean isFound = currentCursor.positionTo(key, findNearest);
-          if (isFound && getRecord() == null)
+          if (isFound && getRecord() == null && !log.isHeadLogFile(currentLogFile))
           {
-            // The key to position to may be in the next file, force the switch
+            // The key to position is probably in the next file, force the switch
             isFound = next();
           }
           return isFound;
@@ -1046,6 +1050,13 @@ final class Log<K extends Comparable<K>, V> implements Closeable
       StaticUtils.close(currentCursor);
       currentLogFile = logFile;
       currentCursor = currentLogFile.getCursor();
+    }
+
+    /** {@inheritDoc} */
+    public String toString()
+    {
+      return String.format("Cursor on log : %s, current log file: %s, current cursor: %s",
+          log.logPath, currentLogFile.getFile().getName(), currentCursor);
     }
   }
 

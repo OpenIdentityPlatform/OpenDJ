@@ -166,8 +166,10 @@ public interface ReplicationDomainDB
    * @param heartbeatCSN
    *          The CSN heartbeat sent by this replica (contains the serverId and
    *          timestamp of the heartbeat)
+   * @throws ChangelogException
+   *            If a database problem happened
    */
-  void replicaHeartbeat(DN baseDN, CSN heartbeatCSN);
+  void replicaHeartbeat(DN baseDN, CSN heartbeatCSN) throws ChangelogException;
 
   /**
    * Let the DB know this replica is going down.
@@ -186,5 +188,5 @@ public interface ReplicationDomainDB
    * @throws ChangelogException
    *           If a database problem happened
    */
-  void replicaOffline(DN baseDN, CSN offlineCSN) throws ChangelogException;
+  void notifyReplicaOffline(DN baseDN, CSN offlineCSN) throws ChangelogException;
 }

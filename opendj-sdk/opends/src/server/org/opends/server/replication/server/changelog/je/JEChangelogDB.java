@@ -756,6 +756,7 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
     final ChangeNumberIndexer indexer = cnIndexer.get();
     if (indexer != null)
     {
+      notifyReplicaOnline(indexer, baseDN, updateMsg.getCSN().getServerId());
       indexer.publishUpdateMsg(baseDN, updateMsg);
     }
     return wasCreated;
@@ -763,21 +764,31 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
 
   /** {@inheritDoc} */
   @Override
-  public void replicaHeartbeat(DN baseDN, CSN heartbeatCSN)
+  public void replicaHeartbeat(DN baseDN, CSN heartbeatCSN) throws ChangelogException
   {
     final ChangeNumberIndexer indexer = cnIndexer.get();
     if (indexer != null)
     {
+      notifyReplicaOnline(indexer, baseDN, heartbeatCSN.getServerId());
       indexer.publishHeartbeat(baseDN, heartbeatCSN);
+    }
+  }
+
+  private void notifyReplicaOnline(final ChangeNumberIndexer indexer, final DN baseDN, final int serverId)
+      throws ChangelogException
+  {
+    if (indexer.isReplicaOffline(baseDN, serverId))
+    {
+      dbEnv.notifyReplicaOnline(baseDN, serverId);
     }
   }
 
   /** {@inheritDoc} */
   @Override
-  public void replicaOffline(DN baseDN, CSN offlineCSN)
+  public void notifyReplicaOffline(DN baseDN, CSN offlineCSN)
       throws ChangelogException
   {
-    dbEnv.addOfflineReplica(baseDN, offlineCSN);
+    dbEnv.notifyReplicaOffline(baseDN, offlineCSN);
     final ChangeNumberIndexer indexer = cnIndexer.get();
     if (indexer != null)
     {
