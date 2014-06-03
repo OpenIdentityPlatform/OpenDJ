@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012 ForgeRock AS
+ *      Portions Copyright 2012-2014 ForgeRock AS
  */
 
 package org.opends.guitools.controlpanel.ui;
@@ -158,10 +158,6 @@ public class LDIFViewEntryPanel extends ViewEntryPanel
   public void update(CustomSearchResult sr, boolean isReadOnly, TreePath path)
   {
     boolean sameEntry = false;
-    if (sr != null)
-    {
-      sr = filterSearchResult(sr);
-    }
     if ((searchResult != null) && (sr != null))
     {
       sameEntry = searchResult.getDN().equals(sr.getDN());

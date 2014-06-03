@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2013 ForgeRock AS
+ *      Portions Copyright 2012-2014 ForgeRock AS
  */
 
 package org.opends.admin.ads.util;
@@ -54,6 +54,7 @@ import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.TrustManager;
 
+import org.opends.server.replication.plugin.EntryHistorical;
 import org.opends.server.schema.SchemaConstants;
 
 /**
@@ -114,6 +115,8 @@ public class ConnectionUtils
     }
     env.put(Context.INITIAL_CONTEXT_FACTORY,
         "com.sun.jndi.ldap.LdapCtxFactory");
+    env.put("java.naming.ldap.attributes.binary",
+        EntryHistorical.HISTORICAL_ATTRIBUTE_NAME);
     env.put(Context.PROVIDER_URL, ldapURL);
     if (timeout >= 1)
     {
@@ -192,6 +195,8 @@ public class ConnectionUtils
     }
     env.put(Context.INITIAL_CONTEXT_FACTORY,
         "com.sun.jndi.ldap.LdapCtxFactory");
+    env.put("java.naming.ldap.attributes.binary",
+        EntryHistorical.HISTORICAL_ATTRIBUTE_NAME);
     env.put(Context.PROVIDER_URL, ldapsURL);
     env.put("java.naming.ldap.factory.socket",
         org.opends.admin.ads.util.TrustedSocketFactory.class.getName());
@@ -346,6 +351,8 @@ public class ConnectionUtils
     }
     env.put(Context.INITIAL_CONTEXT_FACTORY,
         "com.sun.jndi.ldap.LdapCtxFactory");
+    env.put("java.naming.ldap.attributes.binary",
+        EntryHistorical.HISTORICAL_ATTRIBUTE_NAME);
     env.put(Context.PROVIDER_URL, ldapURL);
     env.put(Context.SECURITY_AUTHENTICATION , "none");
 
