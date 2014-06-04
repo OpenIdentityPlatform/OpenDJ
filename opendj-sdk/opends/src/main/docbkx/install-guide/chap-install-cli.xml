@@ -817,8 +817,8 @@ To see basic server configuration status and configuration you can launch
    <para>The following command reads Babs Jensen's entry through the gateway
    to the backend holding data from <filename>Example.ldif</filename>.</para>
 
-   <screen width="98">
-$ <userinput>curl http://bjensen:hifalutin@opendj.example.com:8080/rest2ldap/users/bjensen?_prettyPrint=true</userinput>
+   <screen>
+$ <userinput>curl http://bjensen:hifalutin@opendj.example.com:8080/rest2ldap/users/bjensen</userinput>
 <computeroutput>{
   "_rev" : "000000002ee3b764",
   "schemas" : [ "urn:scim:schemas:core:1.0" ],
