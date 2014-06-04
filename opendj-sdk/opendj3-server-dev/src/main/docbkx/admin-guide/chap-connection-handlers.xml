@@ -1229,8 +1229,8 @@ $ <userinput>dsconfig \
     <para>The HTTP connection handler paths start by default at the root
     context, as shown in the following example.</para>
 
-    <screen width="88">
-$ <userinput>curl http://bjensen:hifalutin@opendj.example.com:8080/users/bjensen?_prettyPrint=true</userinput>
+    <screen>
+$ <userinput>curl http://bjensen:hifalutin@opendj.example.com:8080/users/bjensen</userinput>
 <computeroutput>{
   "_rev" : "00000000315fb731",
   "schemas" : [ "urn:scim:schemas:core:1.0" ],
@@ -1312,7 +1312,7 @@ $ <userinput>keytool \
 $ <userinput>curl \
  --cacert server-cert.pem \
  --user bjensen:hifalutin \
- https://opendj.example.com:8443/users/bjensen?_prettyPrint=true</userinput>
+ https://opendj.example.com:8443/users/bjensen</userinput>
 <computeroutput>{
   "_rev" : "0000000018c8b685",
   "schemas" : [ "urn:scim:schemas:core:1.0" ],
