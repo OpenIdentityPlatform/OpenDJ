@@ -132,6 +132,10 @@
     <term><literal>_prettyPrint=true|false</literal></term>
     <listitem>
      <para>Make the JSON resource returned easy for humans to read.</para>
+
+     <para>
+      This parameter is used though not shown in most examples that follow.
+     </para>
     </listitem>
    </varlistentry>
   </variablelist>
@@ -145,7 +149,7 @@
   authenticate.</para>
 
   <screen>
-$ <userinput>curl http://opendj.example.com:8080/users/bjensen?_prettyPrint=true</userinput>
+$ <userinput>curl http://opendj.example.com:8080/users/bjensen</userinput>
 <computeroutput>{
   "code" : 401,
   "reason" : "Unauthorized",
@@ -202,7 +206,7 @@ uid: bjensen
   <screen>
 $ <userinput>curl \
  --user bjensen:hifalutin \
- http://opendj.example.com:8080/users/bjensen?_prettyPrint=true</userinput>
+ http://opendj.example.com:8080/users/bjensen</userinput>
 <computeroutput>{
   "_rev" : "0000000016cbb68c",
   ...
@@ -213,9 +217,9 @@ $ <userinput>curl \
   <replaceable>username</replaceable>:<replaceable>password</replaceable>@ form
   in the URL, it looks like this.</para>
 
-  <screen width="81">
+  <screen>
 $ <userinput>curl \
- http://bjensen:hifalutin@opendj.example.com:8080/users/bjensen?_prettyPrint=true</userinput>
+ http://bjensen:hifalutin@opendj.example.com:8080/users/bjensen</userinput>
 <computeroutput>{
   "_rev" : "0000000016cbb68c",
   ...
@@ -228,7 +232,7 @@ $ <userinput>curl \
 $ <userinput>curl \
  --header "X-OpenIDM-Username: bjensen" \
  --header "X-OpenIDM-Password: hifalutin" \
- http://opendj.example.com:8080/users/bjensen?_prettyPrint=true</userinput>
+ http://opendj.example.com:8080/users/bjensen</userinput>
 <computeroutput>{
   "_rev" : "0000000016cbb68c",
   ...
@@ -288,7 +292,7 @@ $ <userinput>curl \
     }
   ]
  }' \
- http://opendj.example.com:8080/users/newuser?_prettyPrint=true</userinput>
+ http://opendj.example.com:8080/users/newuser</userinput>
 <computeroutput>{
   "_rev" : "000000005b337348",
   "schemas" : [ "urn:scim:schemas:core:1.0" ],
@@ -331,7 +335,7 @@ $ <userinput>curl \
 $ <userinput>curl \
  --request GET \
  --user kvaughan:bribery \
- http://opendj.example.com:8080/users/newuser?_prettyPrint=true</userinput>
+ http://opendj.example.com:8080/users/newuser</userinput>
 <computeroutput>{
   "_rev" : "000000005b337348",
   "schemas" : [ "urn:scim:schemas:core:1.0" ],
@@ -394,7 +398,7 @@ $ <userinput>curl \
      }
    ]
  }' \
- http://opendj.example.com:8080/users/scarter?_prettyPrint=true</userinput>
+ http://opendj.example.com:8080/users/scarter</userinput>
 <computeroutput>{
   "_rev" : "00000000a1923db2",
   "schemas" : [ "urn:scim:schemas:core:1.0" ],
@@ -460,7 +464,7 @@ $ <userinput>curl \
      }
    ]
  }' \
- http://opendj.example.com:8080/users/scarter?_prettyPrint=true</userinput>
+ http://opendj.example.com:8080/users/scarter</userinput>
 <computeroutput>{
   "_rev" : "00000000a1ee3da3",
   "schemas" : [ "urn:scim:schemas:core:1.0" ],
@@ -499,7 +503,7 @@ $ <userinput>curl \
 $ <userinput>curl \
  --request DELETE \
  --user kvaughan:bribery \
- http://opendj.example.com:8080/users/newuser?_prettyPrint=true</userinput>
+ http://opendj.example.com:8080/users/newuser</userinput>
 <computeroutput>{
   "_rev" : "000000003a5f3cb2",
   "schemas" : [ "urn:scim:schemas:core:1.0" ],
@@ -537,7 +541,7 @@ $ <userinput>curl \
  --request DELETE \
  --user kvaughan:bribery \
  --header "If-Match: 000000006d8d7358" \
- http://opendj.example.com:8080/users/newuser?_prettyPrint=true</userinput>
+ http://opendj.example.com:8080/users/newuser</userinput>
 <computeroutput>{
   "_rev" : "00000000383f3cae",
   "schemas" : [ "urn:scim:schemas:core:1.0" ],
@@ -626,7 +630,7 @@ $ <userinput>dsconfig \
 $ <userinput>curl \
  --request DELETE \
  --user kvaughan:bribery \
- http://opendj.example.com:8080/users/nbohr?_prettyPrint=true</userinput>
+ http://opendj.example.com:8080/users/nbohr</userinput>
 <computeroutput>{
   "_rev" : "000000003d912113",
   "schemas" : [ "urn:scim:schemas:core:1.0" ],
@@ -675,7 +679,7 @@ $ <userinput>curl \
     "value": "babs@example.com"
   }
  ]' \
- http://opendj.example.com:8080/users/bjensen?_prettyPrint=true</userinput>
+ http://opendj.example.com:8080/users/bjensen</userinput>
 <computeroutput>{
   "_rev" : "00000000f3fdd370",
   "schemas" : [ "urn:scim:schemas:core:1.0" ],
@@ -778,7 +782,7 @@ $ <userinput>curl \
   example, you can include Barbara Jensen in a group by adding her to the set
   of members.</para>
 
-  <screen width="83">
+  <screen>
 $ <userinput>curl \
  --user kvaughan:bribery \
  --request PATCH \
@@ -794,7 +798,7 @@ $ <userinput>curl \
     ]
   }
  ]' \
- http://opendj.example.com:8080/groups/Directory%20Administrators?_prettyPrint=true</userinput>
+ http://opendj.example.com:8080/groups/Directory%20Administrators</userinput>
 <computeroutput>{
   "_rev" : "00000000b70c881a",
   "schemas" : [ "urn:scim:schemas:core:1.0" ],
@@ -821,7 +825,7 @@ $ <userinput>curl \
 
   <para>Removing her from the group is similar.</para>
 
-  <screen width="83">
+  <screen>
 $ <userinput>curl \
  --user kvaughan:bribery \
  --request PATCH \
@@ -837,7 +841,7 @@ $ <userinput>curl \
     ]
   }
  ]' \
- http://opendj.example.com:8080/groups/Directory%20Administrators?_prettyPrint=true</userinput>
+ http://opendj.example.com:8080/groups/Directory%20Administrators</userinput>
 <computeroutput>{
   "_rev" : "00000000e241797e",
   "schemas" : [ "urn:scim:schemas:core:1.0" ],
@@ -866,7 +870,7 @@ $ <userinput>curl \
   <screen>
 $ <userinput>curl \
  --user kvaughan:bribery \
- "http://opendj.example.com:8080/users/bjensen?_prettyPrint=true&amp;_fields=_rev"</userinput>
+ http://opendj.example.com:8080/users/bjensen?_fields=_rev</userinput>
 <computeroutput>{
   "_rev" : "00000000c1b6d4c7"
 }</computeroutput>
@@ -883,7 +887,7 @@ $ <userinput>curl \
     "value": "babs@example.com"
   }
  ]' \
- http://opendj.example.com:8080/users/bjensen?_prettyPrint=true</userinput>
+ http://opendj.example.com:8080/users/bjensen</userinput>
 <computeroutput>{
   "_rev" : "00000000f946d377",
   "schemas" : [ "urn:scim:schemas:core:1.0" ],
@@ -923,7 +927,7 @@ $ <userinput>curl \
 
   <para>The following example creates a new user entry.</para>
 
-  <screen width="82">
+  <screen>
 $ <userinput>curl \
  --request POST \
  --user kvaughan:bribery \
@@ -946,7 +950,7 @@ $ <userinput>curl \
     }
   ]
  }' \
- "http://opendj.example.com:8080/users?_action=create&amp;_prettyPrint=true"</userinput>
+ http://opendj.example.com:8080/users?_action=create</userinput>
 <computeroutput>{
   "_rev" : "0000000034a23ca7",
   "schemas" : [ "urn:scim:schemas:core:1.0" ],
@@ -1005,7 +1009,7 @@ $ <userinput>curl \
         <para>Matches when the pointer equals the value, as in the following
         example.</para>
 
-        <screen width="87"><!-- Dropped _prettyPrint=true param for spacing. -->
+        <screen width="87">
 $ <userinput>curl \
  --user kvaughan:bribery \
  'http://opendj.example.com:8080/users?_queryFilter=userName+eq+"bjensen@example.com"'</userinput>
@@ -1043,7 +1047,7 @@ $ <userinput>curl \
         <para>Matches when the pointer contains the value, as in the following
         example.</para>
 
-        <screen width="91"><!-- Dropped _prettyPrint=true param for spacing. -->
+        <screen width="91">
 $ <userinput>curl \
  --user kvaughan:bribery \
  'http://opendj.example.com:8080/users?_queryFilter=userName+co+"jensen"&amp;_fields=userName'</userinput>
@@ -1077,7 +1081,7 @@ $ <userinput>curl \
         <para>Matches when the pointer starts with the value, as in the
         following example.</para>
 
-        <screen width="87"><!-- Dropped _prettyPrint=true param for spacing. -->
+        <screen width="87">
 $ <userinput>curl \
  --user kvaughan:bribery \
  'http://opendj.example.com:8080/users?_queryFilter=userName+sw+"ab"&amp;_fields=userName'</userinput>
@@ -1101,7 +1105,7 @@ $ <userinput>curl \
         <para>Matches when the pointer is less than the value, as in the
         following example.</para>
 
-        <screen width="87"><!-- Dropped _prettyPrint=true param for spacing. -->
+        <screen width="87">
 $ <userinput>curl \
  --user kvaughan:bribery \
  'http://opendj.example.com:8080/users?_queryFilter=userName+lt+"ac"&amp;_fields=userName'</userinput>
@@ -1125,7 +1129,7 @@ $ <userinput>curl \
         <para>Matches when the pointer is less than or equal to the value, as
         in the following example.</para>
 
-        <screen width="87"><!-- Dropped _prettyPrint=true param for spacing. -->
+        <screen width="87">
 $ <userinput>curl \
  --user kvaughan:bribery \
  'http://opendj.example.com:8080/users?_queryFilter=userName+le+"ad"&amp;_fields=userName'</userinput>
@@ -1151,7 +1155,7 @@ $ <userinput>curl \
         <para>Matches when the pointer is greater than the value, as in the
         following example.</para>
 
-        <screen width="87"><!-- Dropped _prettyPrint=true param for spacing. -->
+        <screen width="87">
 $ <userinput>curl \
  --user kvaughan:bribery \
  'http://opendj.example.com:8080/users?_queryFilter=userName+gt+"tt"&amp;_fields=userName'</userinput>
@@ -1177,7 +1181,7 @@ $ <userinput>curl \
         <para>Matches when the pointer is greater than or equal to the value,
         as in the following example.</para>
 
-        <screen width="87"><!-- Dropped _prettyPrint=true param for spacing. -->
+        <screen width="87">
 $ <userinput>curl \
  --user kvaughan:bribery \
  'http://opendj.example.com:8080/users?_queryFilter=userName+ge+"tw"&amp;_fields=userName'</userinput>
@@ -1205,7 +1209,7 @@ $ <userinput>curl \
      any resource on which the <replaceable>json-pointer</replaceable> is
      present, as in the following example.</para>
 
-     <screen><!-- Dropped _prettyPrint=true param for spacing. -->
+     <screen>
 $ <userinput>curl \
  --user kvaughan:bribery \
  'http://opendj.example.com:8080/users?_queryFilter=userName%20pr'</userinput>
@@ -1257,7 +1261,7 @@ $ <userinput>curl \
      <para>In other words you can list all resources in a collection as in the
      following example.</para>
 
-     <screen><!-- Dropped _prettyPrint=true param for spacing. -->
+     <screen>
 $ <userinput>curl \
  --user kvaughan:bribery \
  'http://opendj.example.com:8080/groups?_queryFilter=true&amp;_fields=displayName'</userinput>
@@ -1295,7 +1299,7 @@ $ <userinput>curl \
      nested inside the <literal>name</literal> and <literal>manager</literal>
      objects.</para>
 
-     <screen><!-- Dropped _prettyPrint=true param for spacing. -->
+     <screen>
 $ <userinput>curl \
  --user kvaughan:bribery \
  'http://opendj.example.com:8080/users?_queryFilter=\
@@ -1420,7 +1424,7 @@ $ <userinput>curl \
       after the last page of results specified by the cookie.
      </para>
 
-     <screen width="87"><!-- Dropped _prettyPrint=true param for spacing. -->
+     <screen width="87">
 $ <userinput>curl \
  --user bjensen:hifalutin \
  "http://opendj.example.com:8080/users?_queryFilter=true&amp;_fields=userName&amp;_pageSize=5"</userinput>
