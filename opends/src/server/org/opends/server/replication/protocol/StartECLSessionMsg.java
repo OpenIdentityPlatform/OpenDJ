@@ -172,7 +172,7 @@ public class StartECLSessionMsg extends ReplicationMsg
     crossDomainServerState = scanner.nextString();
     operationId = scanner.nextString();
     final String excludedDNsString = scanner.nextString();
-    if (excludedDNsString.length() > 0)
+    if (excludedDNsString != null && excludedDNsString.length() > 0)
     {
       Collections.addAll(excludedBaseDNs, excludedDNsString.split(";"));
     }
