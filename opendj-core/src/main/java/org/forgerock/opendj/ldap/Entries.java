@@ -22,15 +22,13 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions copyright 2011-2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
 
-import static org.forgerock.opendj.ldap.AttributeDescription.objectClass;
-
 import static com.forgerock.opendj.ldap.CoreMessages.*;
-
+import static org.forgerock.opendj.ldap.AttributeDescription.objectClass;
 import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
 
 import java.util.ArrayList;
@@ -39,6 +37,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -63,6 +62,142 @@ import com.forgerock.opendj.util.Iterables;
  * @see Entry
  */
 public final class Entries {
+    /**
+     * Options for controlling the behavior of the
+     * {@link Entries#diffEntries(Entry, Entry, DiffOptions) diffEntries}
+     * method. {@code DiffOptions} specify which attributes are compared, how
+     * they are compared, and the type of modifications generated.
+     *
+     * @see Entries#diffEntries(Entry, Entry, DiffOptions)
+     */
+    public static final class DiffOptions {
+        /**
+         * Selects which attributes will be compared. By default all user
+         * attributes will be compared.
+         */
+        private AttributeFilter attributeFilter = USER_ATTRIBUTES_ONLY_FILTER;
+
+        /**
+         * When true, attribute values are compared byte for byte, otherwise
+         * they are compared using their matching rules.
+         */
+        private boolean useExactMatching = false;
+
+        /**
+         * When greater than 0, modifications with REPLACE type will be
+         * generated for the new attributes containing at least
+         * "useReplaceMaxValues" attribute values. Otherwise, modifications with
+         * DELETE + ADD types will be generated.
+         */
+        private int useReplaceMaxValues = 0;
+
+        private DiffOptions() {
+            // Nothing to do.
+        }
+
+        /**
+         * Specifies an attribute filter which will be used to determine which
+         * attributes will be compared. By default only user attributes will be
+         * compared.
+         *
+         * @param attributeFilter
+         *            The filter which will be used to determine which
+         *            attributes will be compared.
+         * @return A reference to this set of options.
+         */
+        public DiffOptions attributes(final AttributeFilter attributeFilter) {
+            Reject.ifNull(attributeFilter);
+            this.attributeFilter = attributeFilter;
+            return this;
+        }
+
+        /**
+         * Specifies the list of attributes to be compared. By default only user
+         * attributes will be compared.
+         *
+         * @param attributeDescriptions
+         *            The names of the attributes to be compared.
+         * @return A reference to this set of options.
+         */
+        public DiffOptions attributes(final String... attributeDescriptions) {
+            return attributes(new AttributeFilter(attributeDescriptions));
+        }
+
+        /**
+         * Requests that attribute values should be compared byte for byte,
+         * rather than using their matching rules. This is useful when a client
+         * wishes to perform trivial changes to an attribute value which would
+         * otherwise be ignored by the matching rule, such as removing extra
+         * white space from an attribute, or capitalizing a user's name.
+         *
+         * @return A reference to this set of options.
+         */
+        public DiffOptions useExactMatching() {
+            this.useExactMatching = true;
+            return this;
+        }
+
+        /**
+         * Requests that all generated changes should use the
+         * {@link ModificationType#REPLACE REPLACE} modification type, rather
+         * than a combination of {@link ModificationType#DELETE DELETE} and
+         * {@link ModificationType#ADD ADD}.
+         * <p>
+         * Note that the generated changes will not be reversible, nor will they
+         * be efficient for attributes containing many values (such as groups).
+         * Enabling this option may result in more efficient updates for single
+         * valued attributes and reduce the amount of replication meta-data that
+         * needs to be maintained..
+         *
+         * @return A reference to this set of options.
+         */
+        public DiffOptions alwaysReplaceAttributes() {
+            return replaceMaxValues(Integer.MAX_VALUE);
+        }
+
+        /**
+         * Requests that the generated changes should use the
+         * {@link ModificationType#REPLACE REPLACE} modification type when the
+         * new attribute contains at most one attribute value. All other changes
+         * will use a combination of {@link ModificationType#DELETE DELETE} then
+         * {@link ModificationType#ADD ADD}.
+         * <p>
+         * Specifying this option will usually provide the best overall
+         * performance for single and multi-valued attribute updates, but the
+         * generated changes will probably not be reversible.
+         *
+         * @return A reference to this set of options.
+         */
+        public DiffOptions replaceSingleValuedAttributes() {
+            return replaceMaxValues(1);
+        }
+
+        /**
+         * Requests that the generated changes should use the
+         * {@link ModificationType#REPLACE REPLACE} modification type when the
+         * new attribute contains {@code maxValues} attribute values or less.
+         * All other changes will use a combination of
+         * {@link ModificationType#DELETE DELETE} then
+         * {@link ModificationType#ADD ADD}.
+         *
+         * @param maxValues
+         *            The maximum number of attribute values a modified
+         *            attribute can contain before reversible changes will be
+         *            generated.
+         * @return A reference to this set of options.
+         */
+        private DiffOptions replaceMaxValues(final int maxValues) {
+            // private until we can think of a good use case and better name.
+            Reject.ifFalse(maxValues >= 0, "maxValues must be >= 0");
+            this.useReplaceMaxValues = maxValues;
+            return this;
+        }
+
+        private Entry filter(final Entry entry) {
+            return attributeFilter.filteredViewOf(entry);
+        }
+
+    }
 
     private static final class UnmodifiableEntry implements Entry {
         private final Entry entry;
@@ -269,6 +404,9 @@ public final class Entries {
         }
     };
 
+    private static final AttributeFilter USER_ATTRIBUTES_ONLY_FILTER = new AttributeFilter();
+    private static final DiffOptions DEFAULT_DIFF_OPTIONS = new DiffOptions();
+
     private static final Function<Attribute, Attribute, Void> UNMODIFIABLE_ATTRIBUTE_FUNCTION =
             new Function<Attribute, Attribute, Void>() {
 
@@ -409,12 +547,15 @@ public final class Entries {
      * Creates a new modify request containing a list of modifications which can
      * be used to transform {@code fromEntry} into entry {@code toEntry}.
      * <p>
-     * The modify request is reversible: it will contain only modifications of
-     * type {@link ModificationType#ADD ADD} and {@link ModificationType#DELETE
-     * DELETE}.
+     * The changes will be generated using a default set of {@link DiffOptions
+     * options}. More specifically, only user attributes will be compared,
+     * attributes will be compared using their matching rules, and all generated
+     * changes will be reversible: it will contain only modifications of type
+     * {@link ModificationType#DELETE DELETE} then {@link ModificationType#ADD
+     * ADD}.
      * <p>
      * Finally, the modify request will use the distinguished name taken from
-     * {@code fromEntry}. Moreover, this method will not check to see if both
+     * {@code fromEntry}. This method will not check to see if both
      * {@code fromEntry} and {@code toEntry} have the same distinguished name.
      * <p>
      * This method is equivalent to:
@@ -423,35 +564,62 @@ public final class Entries {
      * ModifyRequest request = Requests.newModifyRequest(fromEntry, toEntry);
      * </pre>
      *
+     * Or:
+     *
+     * <pre>
+     * ModifyRequest request = diffEntries(fromEntry, toEntry, Entries.diffOptions());
+     * </pre>
+     *
      * @param fromEntry
      *            The source entry.
      * @param toEntry
      *            The destination entry.
      * @return A modify request containing a list of modifications which can be
      *         used to transform {@code fromEntry} into entry {@code toEntry}.
+     *         The returned request will always be non-{@code null} but may not
+     *         contain any modifications.
      * @throws NullPointerException
      *             If {@code fromEntry} or {@code toEntry} were {@code null}.
      * @see Requests#newModifyRequest(Entry, Entry)
      */
     public static ModifyRequest diffEntries(final Entry fromEntry, final Entry toEntry) {
-        Reject.ifNull(fromEntry, toEntry);
+        return diffEntries(fromEntry, toEntry, DEFAULT_DIFF_OPTIONS);
+    }
+
+    /**
+     * Creates a new modify request containing a list of modifications which can
+     * be used to transform {@code fromEntry} into entry {@code toEntry}.
+     * <p>
+     * The changes will be generated using the provided set of
+     * {@link DiffOptions}.
+     * <p>
+     * Finally, the modify request will use the distinguished name taken from
+     * {@code fromEntry}. This method will not check to see if both
+     * {@code fromEntry} and {@code toEntry} have the same distinguished name.
+     *
+     * @param fromEntry
+     *            The source entry.
+     * @param toEntry
+     *            The destination entry.
+     * @param options
+     *            The set of options which will control which attributes are
+     *            compared, how they are compared, and the type of modifications
+     *            generated.
+     * @return A modify request containing a list of modifications which can be
+     *         used to transform {@code fromEntry} into entry {@code toEntry}.
+     *         The returned request will always be non-{@code null} but may not
+     *         contain any modifications.
+     * @throws NullPointerException
+     *             If {@code fromEntry}, {@code toEntry}, or {@code options}
+     *             were {@code null}.
+     */
+    public static ModifyRequest diffEntries(final Entry fromEntry, final Entry toEntry,
+            final DiffOptions options) {
+        Reject.ifNull(fromEntry, toEntry, options);
 
         final ModifyRequest request = Requests.newModifyRequest(fromEntry.getName());
-
-        final TreeMapEntry tfrom;
-        if (fromEntry instanceof TreeMapEntry) {
-            tfrom = (TreeMapEntry) fromEntry;
-        } else {
-            tfrom = new TreeMapEntry(fromEntry);
-        }
-
-        final TreeMapEntry tto;
-        if (toEntry instanceof TreeMapEntry) {
-            tto = (TreeMapEntry) toEntry;
-        } else {
-            tto = new TreeMapEntry(toEntry);
-        }
-
+        final Entry tfrom = toFilteredTreeMapEntry(fromEntry, options);
+        final Entry tto = toFilteredTreeMapEntry(toEntry, options);
         final Iterator<Attribute> ifrom = tfrom.getAllAttributes().iterator();
         final Iterator<Attribute> ito = tto.getAllAttributes().iterator();
 
@@ -461,59 +629,98 @@ public final class Entries {
         while (afrom != null && ato != null) {
             final AttributeDescription adfrom = afrom.getAttributeDescription();
             final AttributeDescription adto = ato.getAttributeDescription();
+
             final int cmp = adfrom.compareTo(adto);
             if (cmp == 0) {
                 /*
-                 * Attribute is in both entries. Compute the set of values to be
-                 * added and removed. We won't replace the attribute because
-                 * this is not reversible.
+                 * Attribute is in both entries so compute the differences
+                 * between the old and new.
                  */
-                final Attribute addedValues = new LinkedAttribute(ato);
-                addedValues.removeAll(afrom);
-                if (!addedValues.isEmpty()) {
-                    request.addModification(new Modification(ModificationType.ADD, addedValues));
-                }
+                if (options.useReplaceMaxValues > ato.size()) {
+                    // This attribute is a candidate for replacing.
+                    if (diffAttributeNeedsReplacing(afrom, ato, options)) {
+                        request.addModification(new Modification(ModificationType.REPLACE, ato));
+                    }
+                } else if (afrom.size() == 1 && ato.size() == 1) {
+                    // Fast-path for single valued attributes.
+                    if (diffFirstValuesAreDifferent(options, afrom, ato)) {
+                        diffDeleteValues(request, afrom);
+                        diffAddValues(request, ato);
+                    }
+                } else if (options.useExactMatching) {
+                    /*
+                     * Compare multi-valued attributes using exact matching. Use
+                     * a hash sets for membership checking rather than the
+                     * attributes in order to avoid matching rule based
+                     * comparisons.
+                     */
+                    final Set<ByteString> oldValues = new LinkedHashSet<ByteString>(afrom);
+                    final Set<ByteString> newValues = new LinkedHashSet<ByteString>(ato);
 
-                final Attribute deletedValues = new LinkedAttribute(afrom);
-                deletedValues.removeAll(ato);
-                if (!deletedValues.isEmpty()) {
-                    request.addModification(new Modification(ModificationType.DELETE, deletedValues));
+                    final Set<ByteString> deletedValues = new LinkedHashSet<ByteString>(oldValues);
+                    deletedValues.removeAll(newValues);
+                    diffDeleteValues(request, deletedValues.size() == afrom.size() ? afrom
+                            : new LinkedAttribute(adfrom, deletedValues));
+
+                    final Set<ByteString> addedValues = newValues;
+                    addedValues.removeAll(oldValues);
+                    diffAddValues(request, addedValues.size() == ato.size() ? ato
+                            : new LinkedAttribute(adto, addedValues));
+                } else {
+                    // Compare multi-valued attributes using matching rules.
+                    final Attribute deletedValues = new LinkedAttribute(afrom);
+                    deletedValues.removeAll(ato);
+                    diffDeleteValues(request, deletedValues);
+
+                    final Attribute addedValues = new LinkedAttribute(ato);
+                    addedValues.removeAll(afrom);
+                    diffAddValues(request, addedValues);
                 }
 
                 afrom = ifrom.hasNext() ? ifrom.next() : null;
                 ato = ito.hasNext() ? ito.next() : null;
             } else if (cmp < 0) {
                 // afrom in source, but not destination.
-                request.addModification(new Modification(ModificationType.DELETE, afrom));
+                diffDeleteAttribute(request, afrom, options);
                 afrom = ifrom.hasNext() ? ifrom.next() : null;
             } else {
                 // ato in destination, but not in source.
-                request.addModification(new Modification(ModificationType.ADD, ato));
+                diffAddAttribute(request, ato, options);
                 ato = ito.hasNext() ? ito.next() : null;
             }
         }
 
         // Additional attributes in source entry: these must be deleted.
         if (afrom != null) {
-            request.addModification(new Modification(ModificationType.DELETE, afrom));
+            diffDeleteAttribute(request, afrom, options);
         }
-
         while (ifrom.hasNext()) {
-            final Attribute a = ifrom.next();
-            request.addModification(new Modification(ModificationType.DELETE, a));
+            diffDeleteAttribute(request, ifrom.next(), options);
         }
 
         // Additional attributes in destination entry: these must be added.
         if (ato != null) {
-            request.addModification(new Modification(ModificationType.ADD, ato));
+            diffAddAttribute(request, ato, options);
         }
-
         while (ito.hasNext()) {
-            final Attribute a = ito.next();
-            request.addModification(new Modification(ModificationType.ADD, a));
+            diffAddAttribute(request, ito.next(), options);
         }
 
         return request;
+    }
+
+    /**
+     * Returns a new set of options which may be used to control how entries are
+     * compared and changes generated using
+     * {@link #diffEntries(Entry, Entry, DiffOptions)}. By default only user
+     * attributes will be compared, matching rules will be used for comparisons,
+     * and all generated changes will be reversible.
+     *
+     * @return A new set of options which may be used to control how entries are
+     *         compared and changes generated.
+     */
+    public static DiffOptions diffOptions() {
+        return new DiffOptions();
     }
 
     /**
@@ -617,7 +824,7 @@ public final class Entries {
      * <p>
      * Sample usage:
      * <pre>
-     * List<Entry> smiths = TestCaseUtils.makeEntries(
+     * List&lt;Entry&gt; smiths = TestCaseUtils.makeEntries(
      *   "dn: cn=John Smith,dc=example,dc=com",
      *   "objectclass: inetorgperson",
      *   "cn: John Smith",
@@ -816,6 +1023,64 @@ public final class Entries {
         }
     }
 
+    private static void diffAddAttribute(final ModifyRequest request, final Attribute ato,
+            final DiffOptions diffOptions) {
+        if (diffOptions.useReplaceMaxValues > 0) {
+            request.addModification(new Modification(ModificationType.REPLACE, ato));
+        } else {
+            request.addModification(new Modification(ModificationType.ADD, ato));
+        }
+    }
+
+    private static void diffAddValues(final ModifyRequest request, final Attribute addedValues) {
+        if (addedValues != null && !addedValues.isEmpty()) {
+            request.addModification(new Modification(ModificationType.ADD, addedValues));
+        }
+    }
+
+    private static boolean diffAttributeNeedsReplacing(final Attribute afrom, final Attribute ato,
+            final DiffOptions options) {
+        if (afrom.size() != ato.size()) {
+            return true;
+        } else if (afrom.size() == 1) {
+            return diffFirstValuesAreDifferent(options, afrom, ato);
+        } else if (options.useExactMatching) {
+            /*
+             * Use a hash set for membership checking rather than the attribute
+             * in order to avoid matching rule based comparisons.
+             */
+            final Set<ByteString> oldValues = new LinkedHashSet<ByteString>(afrom);
+            return !oldValues.containsAll(ato);
+        } else {
+            return !afrom.equals(ato);
+        }
+    }
+
+    private static void diffDeleteAttribute(final ModifyRequest request, final Attribute afrom,
+            final DiffOptions diffOptions) {
+        if (diffOptions.useReplaceMaxValues > 0) {
+            request.addModification(new Modification(ModificationType.REPLACE, Attributes
+                    .emptyAttribute(afrom.getAttributeDescription())));
+        } else {
+            request.addModification(new Modification(ModificationType.DELETE, afrom));
+        }
+    }
+
+    private static void diffDeleteValues(final ModifyRequest request, final Attribute deletedValues) {
+        if (deletedValues != null && !deletedValues.isEmpty()) {
+            request.addModification(new Modification(ModificationType.DELETE, deletedValues));
+        }
+    }
+
+    private static boolean diffFirstValuesAreDifferent(final DiffOptions diffOptions,
+            final Attribute afrom, final Attribute ato) {
+        if (diffOptions.useExactMatching) {
+            return !afrom.firstValue().equals(ato.firstValue());
+        } else {
+            return !afrom.contains(ato.firstValue());
+        }
+    }
+
     private static void incrementAttribute(final Entry entry, final Attribute change)
             throws ErrorResultException {
         // First parse the change.
@@ -891,6 +1156,14 @@ public final class Entries {
                     ERR_ENTRY_UNKNOWN_MODIFICATION_TYPE.get(String.valueOf(modType)).toString());
         }
         return entry;
+    }
+
+    private static Entry toFilteredTreeMapEntry(final Entry entry, final DiffOptions options) {
+        if (entry instanceof TreeMapEntry) {
+            return options.filter(entry);
+        } else {
+            return new TreeMapEntry(options.filter(entry));
+        }
     }
 
     // Prevent instantiation.
