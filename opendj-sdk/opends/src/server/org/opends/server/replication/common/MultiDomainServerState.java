@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.common;
 
@@ -39,6 +39,8 @@ import org.opends.messages.Severity;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.ResultCode;
+
+import com.forgerock.opendj.util.Pair;
 
 import static org.opends.messages.ReplicationMessages.*;
 
@@ -98,7 +100,9 @@ public class MultiDomainServerState implements Iterable<DN>
   public boolean update(DN baseDN, CSN csn)
   {
     if (csn == null)
+    {
       return false;
+    }
 
     ServerState serverState = list.get(baseDN);
     if (serverState == null)
@@ -242,6 +246,45 @@ public class MultiDomainServerState implements Iterable<DN>
   }
 
   /**
+   * Returns the oldest Pair&lt;DN, CSN&gt; held in current object, excluding
+   * the provided CSNs. Said otherwise, the value returned is the oldest
+   * Pair&lt;DN, CSN&gt; included in the current object, that is not part of the
+   * excludedCSNs.
+   *
+   * @param excludedCSNs
+   *          the CSNs that cannot be returned
+   * @return the oldest Pair&lt;DN, CSN&gt; included in the current object that
+   *         is not part of the excludedCSNs, or {@link Pair#EMPTY} if no such
+   *         older CSN exists.
+   */
+  public Pair<DN, CSN> getOldestCSNExcluding(MultiDomainServerState excludedCSNs)
+  {
+    Pair<DN, CSN> oldest = Pair.empty();
+    for (Entry<DN, ServerState> entry : list.entrySet())
+    {
+      final DN baseDN = entry.getKey();
+      final ServerState value = entry.getValue();
+      for (Entry<Integer, CSN> entry2 : value.getServerIdToCSNMap().entrySet())
+      {
+        final CSN csn = entry2.getValue();
+        if (!isReplicaExcluded(excludedCSNs, baseDN, csn)
+            && (oldest == Pair.EMPTY || csn.isOlderThan(oldest.getSecond())))
+        {
+          oldest = Pair.of(baseDN, csn);
+        }
+      }
+    }
+    return oldest;
+  }
+
+  private boolean isReplicaExcluded(MultiDomainServerState excluded, DN baseDN,
+      CSN csn)
+  {
+    return excluded != null
+        && csn.equals(excluded.getCSN(baseDN, csn.getServerId()));
+  }
+
+  /**
    * Removes the mapping to the provided CSN if it is present in this
    * MultiDomainServerState.
    *
@@ -253,12 +296,8 @@ public class MultiDomainServerState implements Iterable<DN>
    */
   public boolean removeCSN(DN baseDN, CSN expectedCSN)
   {
-    ServerState ss = list.get(baseDN);
-    if (ss != null)
-    {
-      return ss.removeCSN(expectedCSN);
-    }
-    return false;
+    final ServerState ss = list.get(baseDN);
+    return ss != null && ss.removeCSN(expectedCSN);
   }
 
   /**
