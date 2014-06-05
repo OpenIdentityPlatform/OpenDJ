@@ -136,7 +136,7 @@
     <docPreviousVersion>2.6.0</docPreviousVersion>
     <sdkDocTargetVersion>${docTargetVersion}</sdkDocTargetVersion>
 
-    <frDocPluginVersion>2.1.0</frDocPluginVersion>
+    <frDocPluginVersion>2.1.2</frDocPluginVersion>
     <gaId>UA-23412190-8</gaId>
 
     <siteDistributionURL>scp://forgerock.org/var/www/vhosts/opendj.forgerock.org/httpdocs</siteDistributionURL>
@@ -171,7 +171,6 @@
          <projectVersion>${docTargetVersion}</projectVersion>
          <latestJson>http://docs.forgerock.org/latest.json</latestJson>
          <googleAnalyticsId>${gaId}</googleAnalyticsId>
-         <brandingVersion>2.1.1</brandingVersion><!-- Workaround for OPENDJ-1395 -->
         </configuration>
         <executions>
           <execution>
