@@ -893,9 +893,13 @@ public final class Requests {
      * Creates a new modify request containing a list of modifications which can
      * be used to transform {@code fromEntry} into entry {@code toEntry}.
      * <p>
-     * The modify request is reversible: it will contain only modifications of
-     * type {@link ModificationType#ADD ADD} and {@link ModificationType#DELETE
-     * DELETE}.
+     * The changes will be generated using a default set of
+     * {@link org.forgerock.opendj.ldap.Entries.DiffOptions options}. More
+     * specifically, only user attributes will be compared, attributes will be
+     * compared using their matching rules, and all generated changes will be
+     * reversible: it will contain only modifications of type
+     * {@link ModificationType#DELETE DELETE} then {@link ModificationType#ADD
+     * ADD}.
      * <p>
      * Finally, the modify request will use the distinguished name taken from
      * {@code fromEntry}. Moreover, this method will not check to see if both
@@ -907,12 +911,20 @@ public final class Requests {
      * ModifyRequest request = Entries.diffEntries(fromEntry, toEntry);
      * </pre>
      *
+     * Or:
+     *
+     * <pre>
+     * ModifyRequest request = Entries.diffEntries(fromEntry, toEntry, Entries.diffOptions());
+     * </pre>
+     *
      * @param fromEntry
      *            The source entry.
      * @param toEntry
      *            The destination entry.
      * @return A modify request containing a list of modifications which can be
      *         used to transform {@code fromEntry} into entry {@code toEntry}.
+     *         The returned request will always be non-{@code null} but may not
+     *         contain any modifications.
      * @throws NullPointerException
      *             If {@code fromEntry} or {@code toEntry} were {@code null}.
      * @see Entries#diffEntries(Entry, Entry)

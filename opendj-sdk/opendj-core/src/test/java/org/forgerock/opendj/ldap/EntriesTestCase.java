@@ -22,10 +22,14 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions copyright 2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
 
+import static org.fest.assertions.Assertions.assertThat;
+import static org.forgerock.opendj.ldap.Entries.diffEntries;
+import static org.forgerock.opendj.ldap.Entries.diffOptions;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
 
@@ -34,8 +38,6 @@ import java.util.Iterator;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.schema.Schema;
-import org.testng.Assert;
-import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 /**
@@ -43,188 +45,442 @@ import org.testng.annotations.Test;
  */
 @SuppressWarnings("javadoc")
 public final class EntriesTestCase extends SdkTestCase {
-    /**
-     * Creates test data for {@link #testDiffEntries}.
-     *
-     * @return The test data.
-     */
-    @DataProvider(name = "createTestDiffEntriesData")
-    public Object[][] createTestDiffEntriesData() {
-        // @formatter:off
-        Entry empty = new LinkedHashMapEntry(
-            "dn: cn=test",
-            "objectClass: top",
-            "objectClass: test"
-        );
 
-        Entry from = new LinkedHashMapEntry(
-            "dn: cn=test",
-            "objectClass: top",
-            "objectClass: test",
-            "fromOnly: fromOnlyValue",
-            "bothSame: one",
-            "bothSame: two",
-            "bothSame: three",
-            "bothDifferentDeletes: common",
-            "bothDifferentDeletes: fromOnly1",
-            "bothDifferentDeletes: fromOnly2",
-            "bothDifferentAdds: common",
-            "bothDifferentAddsAndDeletes: common",
-            "bothDifferentAddsAndDeletes: fromOnly",
-            "bothDifferentReplace: fromOnly1",
-            "bothDifferentReplace: fromOnly2"
-        );
+    @Test
+    public void testContainsObjectClass() throws Exception {
+        Entry entry =
+                new LinkedHashMapEntry("dn: cn=test", "objectClass: top", "objectClass: person");
+        Schema schema = Schema.getDefaultSchema();
 
-        Entry to = new LinkedHashMapEntry(
-            "dn: cn=test",
-            "objectClass: top",
-            "objectClass: test",
-            "toOnly: toOnlyValue",
-            "bothSame: one",
-            "bothSame: two",
-            "bothSame: three",
-            "bothDifferentDeletes: common",
-            "bothDifferentAdds: common",
-            "bothDifferentAdds: toOnly1",
-            "bothDifferentAdds: toOnly2",
-            "bothDifferentAddsAndDeletes: common",
-            "bothDifferentAddsAndDeletes: toOnly",
-            "bothDifferentReplace: toOnly1",
-            "bothDifferentReplace: toOnly2"
-        );
-
-        ModifyRequest diffFromEmpty = Requests.newModifyRequest(
-            "dn: cn=test",
-            "changetype: modify",
-            "delete: bothDifferentAdds",
-            "bothDifferentAdds: common",
-            "-",
-            "delete: bothDifferentAddsAndDeletes",
-            "bothDifferentAddsAndDeletes: common",
-            "bothDifferentAddsAndDeletes: fromOnly",
-            "-",
-            "delete: bothDifferentDeletes",
-            "bothDifferentDeletes: common",
-            "bothDifferentDeletes: fromOnly1",
-            "bothDifferentDeletes: fromOnly2",
-            "-",
-            "delete: bothDifferentReplace",
-            "bothDifferentReplace: fromOnly1",
-            "bothDifferentReplace: fromOnly2",
-            "-",
-            "delete: bothSame",
-            "bothSame: one",
-            "bothSame: two",
-            "bothSame: three",
-            "-",
-            "delete: fromOnly",
-            "fromOnly: fromOnlyValue"
-        );
-
-        ModifyRequest diffEmptyTo = Requests.newModifyRequest(
-            "dn: cn=test",
-            "changetype: modify",
-            "add: bothDifferentAdds",
-            "bothDifferentAdds: common",
-            "bothDifferentAdds: toOnly1",
-            "bothDifferentAdds: toOnly2",
-            "-",
-            "add: bothDifferentAddsAndDeletes",
-            "bothDifferentAddsAndDeletes: common",
-            "bothDifferentAddsAndDeletes: toOnly",
-            "-",
-            "add: bothDifferentDeletes",
-            "bothDifferentDeletes: common",
-            "-",
-            "add: bothDifferentReplace",
-            "bothDifferentReplace: toOnly1",
-            "bothDifferentReplace: toOnly2",
-            "-",
-            "add: bothSame",
-            "bothSame: one",
-            "bothSame: two",
-            "bothSame: three",
-            "-",
-            "add: toOnly",
-            "toOnly: toOnlyValue"
-        );
-
-        ModifyRequest diffFromTo = Requests.newModifyRequest(
-            "dn: cn=test",
-            "changetype: modify",
-            "add: bothDifferentAdds",
-            "bothDifferentAdds: toOnly1",
-            "bothDifferentAdds: toOnly2",
-            "-",
-            "add: bothDifferentAddsAndDeletes",
-            "bothDifferentAddsAndDeletes: toOnly",
-            "-",
-            "delete: bothDifferentAddsAndDeletes",
-            "bothDifferentAddsAndDeletes: fromOnly",
-            "-",
-            "delete: bothDifferentDeletes",
-            "bothDifferentDeletes: fromOnly1",
-            "bothDifferentDeletes: fromOnly2",
-            "-",
-            "add: bothDifferentReplace",
-            "bothDifferentReplace: toOnly1",
-            "bothDifferentReplace: toOnly2",
-            "-",
-            "delete: bothDifferentReplace",
-            "bothDifferentReplace: fromOnly1",
-            "bothDifferentReplace: fromOnly2",
-            "-",
-            "delete: fromOnly",
-            "fromOnly: fromOnlyValue",
-            "-",
-            "add: toOnly",
-            "toOnly: toOnlyValue"
-        );
-
-        // From, to, diff.
-        return new Object[][] {
-            { from,  empty, diffFromEmpty },
-            { empty, to,    diffEmptyTo   },
-            { from,  to,    diffFromTo    }
-        };
-
-        // @formatter:on
+        assertTrue("should contain top", Entries.containsObjectClass(entry, schema
+                .getObjectClass("top")));
+        assertTrue("should contain person", Entries.containsObjectClass(entry, schema
+                .getObjectClass("person")));
+        assertFalse("should not contain country", Entries.containsObjectClass(entry, schema
+                .getObjectClass("country")));
     }
 
-    /**
-     * Tests {@link Entries#diffEntries(Entry, Entry)}.
-     *
-     * @param from
-     *            Source entry.
-     * @param to
-     *            Destination entry.
-     * @param expected
-     *            Expected modifications.
-     */
-    @Test(dataProvider = "createTestDiffEntriesData")
-    public void testDiffEntries(final Entry from, final Entry to, final ModifyRequest expected) {
-        ModifyRequest actual = Entries.diffEntries(from, to);
+    @Test
+    public void testDiffEntriesAddDeleteAddIntermediateAttribute() {
+        // @formatter:off
+        Entry from = new LinkedHashMapEntry(
+            "dn: cn=test",
+            "sn: ignore");
+        Entry to = new LinkedHashMapEntry(
+            "dn: cn=test",
+            "description: value",
+            "sn: ignore");
+        ModifyRequest expected = Requests.newModifyRequest(
+            "dn: cn=test",
+            "changetype: modify",
+            "add: description",
+            "description: value");
+        // @formatter:on
+        assertEquals(diffEntries(from, to), expected);
+    }
 
-        Assert.assertEquals(from.getName(), actual.getName());
-        Assert.assertEquals(actual.getModifications().size(), expected.getModifications().size());
+    @Test
+    public void testDiffEntriesAddDeleteAddTrailingAttributes() {
+        // @formatter:off
+        Entry from = new LinkedHashMapEntry(
+            "dn: cn=test",
+            "cn: ignore");
+        Entry to = new LinkedHashMapEntry(
+            "dn: cn=test",
+            "cn: ignore",
+            "description: value",
+            "sn: value");
+        ModifyRequest expected = Requests.newModifyRequest(
+            "dn: cn=test",
+            "changetype: modify",
+            "add: description",
+            "description: value",
+            "-",
+            "add: sn",
+            "sn: value");
+        // @formatter:on
+        assertEquals(diffEntries(from, to), expected);
+    }
+
+    @Test
+    public void testDiffEntriesAddDeleteDeleteIntermediateAttribute() {
+        // @formatter:off
+        Entry from = new LinkedHashMapEntry(
+            "dn: cn=test",
+            "description: value",
+            "sn: ignore");
+        Entry to = new LinkedHashMapEntry(
+            "dn: cn=test",
+            "sn: ignore");
+        ModifyRequest expected = Requests.newModifyRequest(
+            "dn: cn=test",
+            "changetype: modify",
+            "delete: description",
+            "description: value");
+        // @formatter:on
+        assertEquals(diffEntries(from, to), expected);
+    }
+
+    @Test
+    public void testDiffEntriesAddDeleteDeleteTrailingAttributes() {
+        // @formatter:off
+        Entry from = new LinkedHashMapEntry(
+            "dn: cn=test",
+            "cn: ignore",
+            "description: value",
+            "sn: value");
+        Entry to = new LinkedHashMapEntry(
+            "dn: cn=test",
+            "cn: ignore");
+        ModifyRequest expected = Requests.newModifyRequest(
+            "dn: cn=test",
+            "changetype: modify",
+            "delete: description",
+            "description: value",
+            "-",
+            "delete: sn",
+            "sn: value");
+        // @formatter:on
+        assertEquals(diffEntries(from, to), expected);
+    }
+
+    @Test
+    public void testDiffEntriesAddDeleteMultiValueAddSingleValue() {
+        // @formatter:off
+        Entry from = new LinkedHashMapEntry(
+            "dn: cn=test",
+            "description: value1");
+        Entry to = new LinkedHashMapEntry(
+            "dn: cn=test",
+            "description: value1",
+            "description: value2");
+        ModifyRequest expected = Requests.newModifyRequest(
+            "dn: cn=test",
+            "changetype: modify",
+            "add: description",
+            "description: value2");
+        // @formatter:on
+        assertEquals(diffEntries(from, to), expected);
+    }
+
+    @Test
+    public void testDiffEntriesAddDeleteMultiValueDeleteSingleValue() {
+        // @formatter:off
+        Entry from = new LinkedHashMapEntry(
+            "dn: cn=test",
+            "description: value1",
+            "description: value2");
+        Entry to = new LinkedHashMapEntry(
+            "dn: cn=test",
+            "description: value1");
+        ModifyRequest expected = Requests.newModifyRequest(
+            "dn: cn=test",
+            "changetype: modify",
+            "delete: description",
+            "description: value2");
+        // @formatter:on
+        assertEquals(diffEntries(from, to), expected);
+    }
+
+    @Test
+    public void testDiffEntriesAddDeleteMultiValueSameSizeDifferentValues() {
+        // @formatter:off
+        Entry from = new LinkedHashMapEntry(
+            "dn: cn=test",
+            "description: value1",
+            "description: value2");
+        Entry to = new LinkedHashMapEntry(
+            "dn: cn=test",
+            "description: VALUE2",
+            "description: VALUE3");
+        ModifyRequest expected = Requests.newModifyRequest(
+            "dn: cn=test",
+            "changetype: modify",
+            "delete: description",
+            "description: value1",
+            "-",
+            "add: description",
+            "description: VALUE3");
+        // @formatter:on
+        assertEquals(diffEntries(from, to), expected);
+    }
+
+    @Test
+    public void testDiffEntriesAddDeleteMultiValueSameSizeDifferentValuesExact() {
+        // @formatter:off
+        Entry from = new LinkedHashMapEntry(
+            "dn: cn=test",
+            "description: value1",
+            "description: value2");
+        Entry to = new LinkedHashMapEntry(
+            "dn: cn=test",
+            "description: VALUE2",
+            "description: VALUE3");
+        ModifyRequest expected = Requests.newModifyRequest(
+            "dn: cn=test",
+            "changetype: modify",
+            "delete: description",
+            "description: value1",
+            "description: value2",
+
+            "-",
+            "add: description",
+            "description: VALUE2",
+            "description: VALUE3");
+        // @formatter:on
+        assertEquals(diffEntries(from, to, diffOptions().useExactMatching()), expected);
+    }
+
+    @Test
+    public void testDiffEntriesAddDeleteSingleValue() {
+        // @formatter:off
+        Entry from = new LinkedHashMapEntry(
+            "dn: cn=test",
+            "description: from");
+        Entry to = new LinkedHashMapEntry(
+            "dn: cn=test",
+            "description: to");
+        ModifyRequest expected = Requests.newModifyRequest(
+            "dn: cn=test",
+            "changetype: modify",
+            "delete: description",
+            "description: from",
+            "-",
+            "add: description",
+            "description: to");
+        // @formatter:on
+        assertEquals(diffEntries(from, to), expected);
+    }
+
+    @Test
+    public void testDiffEntriesAddDeleteSingleValueExactMatch() {
+        // @formatter:off
+        Entry from = new LinkedHashMapEntry(
+            "dn: cn=test",
+            "description: value");
+        Entry to = new LinkedHashMapEntry(
+            "dn: cn=test",
+            "description: VALUE");
+        ModifyRequest expected = Requests.newModifyRequest(
+            "dn: cn=test",
+            "changetype: modify",
+            "delete: description",
+            "description: value",
+            "-",
+            "add: description",
+            "description: VALUE");
+        // @formatter:on
+        assertEquals(diffEntries(from, to, diffOptions().useExactMatching()), expected);
+    }
+
+    @Test
+    public void testDiffEntriesAddDeleteSingleValueNoChange() {
+        // @formatter:off
+        Entry from = new LinkedHashMapEntry(
+            "dn: cn=test",
+            "description: value");
+        Entry to = new LinkedHashMapEntry(
+            "dn: cn=test",
+            "description: VALUE");
+        ModifyRequest expected = Requests.newModifyRequest(
+            "dn: cn=test",
+            "changetype: modify");
+        // @formatter:on
+        assertEquals(diffEntries(from, to), expected);
+    }
+
+    @Test
+    public void testDiffEntriesReplaceAddTrailingAttributes() {
+        // @formatter:off
+        Entry from = new LinkedHashMapEntry(
+            "dn: cn=test",
+            "cn: ignore");
+        Entry to = new LinkedHashMapEntry(
+            "dn: cn=test",
+            "cn: ignore",
+            "description: value",
+            "sn: value");
+        ModifyRequest expected = Requests.newModifyRequest(
+            "dn: cn=test",
+            "changetype: modify",
+            "replace: description",
+            "description: value",
+            "-",
+            "replace: sn",
+            "sn: value");
+        // @formatter:on
+        assertEquals(diffEntries(from, to, diffOptions().alwaysReplaceAttributes()), expected);
+    }
+
+    @Test
+    public void testDiffEntriesReplaceDeleteTrailingAttributes() {
+        // @formatter:off
+        Entry from = new LinkedHashMapEntry(
+            "dn: cn=test",
+            "cn: ignore",
+            "description: value",
+            "sn: value");
+        Entry to = new LinkedHashMapEntry(
+            "dn: cn=test",
+            "cn: ignore");
+        ModifyRequest expected = Requests.newModifyRequest(
+            "dn: cn=test",
+            "changetype: modify",
+            "replace: description",
+            "-",
+            "replace: sn");
+        // @formatter:on
+        assertEquals(diffEntries(from, to, diffOptions().alwaysReplaceAttributes()), expected);
+    }
+
+    @Test
+    public void testDiffEntriesReplaceFilteredAttributes() {
+        // @formatter:off
+        Entry from = new LinkedHashMapEntry(
+            "dn: cn=test",
+            "cn: from");
+        Entry to = new LinkedHashMapEntry(
+            "dn: cn=test",
+            "cn: to",
+            "description: value",
+            "sn: value");
+        ModifyRequest expected = Requests.newModifyRequest(
+            "dn: cn=test",
+            "changetype: modify",
+            "replace: cn",
+            "cn: to",
+            "-",
+            "replace: sn",
+            "sn: value");
+        // @formatter:on
+        assertEquals(diffEntries(from, to, diffOptions().alwaysReplaceAttributes().attributes("cn", "sn")),
+                expected);
+    }
+
+    @Test
+    public void testDiffEntriesReplaceMultiValueChangeSize() {
+        // @formatter:off
+        Entry from = new LinkedHashMapEntry(
+            "dn: cn=test",
+            "description: value1");
+        Entry to = new LinkedHashMapEntry(
+            "dn: cn=test",
+            "description: value1",
+            "description: value2");
+        ModifyRequest expected = Requests.newModifyRequest(
+            "dn: cn=test",
+            "changetype: modify",
+            "replace: description",
+            "description: value1",
+            "description: value2");
+        // @formatter:on
+        assertEquals(diffEntries(from, to, diffOptions().alwaysReplaceAttributes()), expected);
+    }
+
+    @Test
+    public void testDiffEntriesReplaceMultiValueSameSize() {
+        // @formatter:off
+        Entry from = new LinkedHashMapEntry(
+            "dn: cn=test",
+            "description: value1",
+            "description: value2");
+        Entry to = new LinkedHashMapEntry(
+            "dn: cn=test",
+            "description: VALUE2",
+            "description: VALUE3");
+        ModifyRequest expected = Requests.newModifyRequest(
+            "dn: cn=test",
+            "changetype: modify",
+            "replace: description",
+            "description: VALUE2",
+            "description: VALUE3");
+        // @formatter:on
+        assertEquals(diffEntries(from, to, diffOptions().alwaysReplaceAttributes()), expected);
+    }
+
+    @Test
+    public void testDiffEntriesReplaceMultiValueSameSizeExact() {
+        // @formatter:off
+        Entry from = new LinkedHashMapEntry(
+            "dn: cn=test",
+            "description: value1",
+            "description: value2");
+        Entry to = new LinkedHashMapEntry(
+            "dn: cn=test",
+            "description: value2",
+            "description: value3");
+        ModifyRequest expected = Requests.newModifyRequest(
+            "dn: cn=test",
+            "changetype: modify",
+            "replace: description",
+            "description: value2",
+            "description: value3");
+        // @formatter:on
+        assertEquals(diffEntries(from, to, diffOptions().alwaysReplaceAttributes().useExactMatching()), expected);
+    }
+
+    @Test
+    public void testDiffEntriesReplaceSingleValue() {
+        // @formatter:off
+        Entry from = new LinkedHashMapEntry(
+            "dn: cn=test",
+            "description: from");
+        Entry to = new LinkedHashMapEntry(
+            "dn: cn=test",
+            "description: to");
+        ModifyRequest expected = Requests.newModifyRequest(
+            "dn: cn=test",
+            "changetype: modify",
+            "replace: description",
+            "description: to");
+        // @formatter:on
+        assertEquals(diffEntries(from, to, diffOptions().alwaysReplaceAttributes()), expected);
+    }
+
+    @Test
+    public void testDiffEntriesReplaceSingleValueExactMatch() {
+        // @formatter:off
+        Entry from = new LinkedHashMapEntry(
+            "dn: cn=test",
+            "description: value");
+        Entry to = new LinkedHashMapEntry(
+            "dn: cn=test",
+            "description: VALUE");
+        ModifyRequest expected = Requests.newModifyRequest(
+            "dn: cn=test",
+            "changetype: modify",
+            "replace: description",
+            "description: VALUE");
+        // @formatter:on
+        assertEquals(diffEntries(from, to, diffOptions().alwaysReplaceAttributes().useExactMatching()), expected);
+    }
+
+    @Test
+    public void testDiffEntriesReplaceSingleValueNoChange() {
+        // @formatter:off
+        Entry from = new LinkedHashMapEntry(
+            "dn: cn=test",
+            "description: value");
+        Entry to = new LinkedHashMapEntry(
+            "dn: cn=test",
+            "description: VALUE");
+        ModifyRequest expected = Requests.newModifyRequest(
+            "dn: cn=test",
+            "changetype: modify");
+        // @formatter:on
+        assertEquals(diffEntries(from, to, diffOptions().alwaysReplaceAttributes()), expected);
+    }
+
+    private void assertEquals(ModifyRequest actual, ModifyRequest expected) {
+        assertThat((Object) actual.getName()).isEqualTo(expected.getName());
+        assertThat(actual.getModifications()).hasSize(expected.getModifications().size());
         Iterator<Modification> i1 = actual.getModifications().iterator();
         Iterator<Modification> i2 = expected.getModifications().iterator();
         while (i1.hasNext()) {
             Modification m1 = i1.next();
             Modification m2 = i2.next();
-
-            Assert.assertEquals(m1.getModificationType(), m2.getModificationType());
-            Assert.assertEquals(m1.getAttribute(), m2.getAttribute());
+            assertThat(m1.getModificationType()).isEqualTo(m2.getModificationType());
+            assertThat(m1.getAttribute()).isEqualTo(m2.getAttribute());
         }
-    }
-
-    @Test
-    public void testContainsObjectClass() throws Exception {
-        Entry entry = new LinkedHashMapEntry("dn: cn=test", "objectClass: top", "objectClass: person");
-        Schema schema = Schema.getDefaultSchema();
-
-        assertTrue("should contain top", Entries.containsObjectClass(entry, schema.getObjectClass("top")));
-        assertTrue("should contain person", Entries.containsObjectClass(entry, schema.getObjectClass("person")));
-        assertFalse("should not contain country", Entries.containsObjectClass(entry, schema.getObjectClass("country")));
     }
 }
