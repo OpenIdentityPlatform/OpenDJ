@@ -99,7 +99,7 @@
     <docPreviousVersion>2.6.0</docPreviousVersion>
     <sdkDocTargetVersion>${docTargetVersion}</sdkDocTargetVersion>
 
-    <frDocPluginVersion>2.1.0</frDocPluginVersion>
+    <frDocPluginVersion>2.1.2</frDocPluginVersion>
     <gaId>UA-23412190-8</gaId>
 
     <!--
@@ -200,7 +200,6 @@
          <latestJson>http://mcraig.org/fr/latest.php</latestJson><!-- Temporary workaround pending #QOZ-985-23233 -->
          <googleAnalyticsId>${gaId}</googleAnalyticsId>
          <docbkxSourceDirectory>${basedir}/src/main/docbkx</docbkxSourceDirectory>
-         <brandingVersion>2.1.1</brandingVersion><!-- Workaround for OPENDJ-1395 -->
         </configuration>
         <executions>
           <execution>
