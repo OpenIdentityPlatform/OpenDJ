@@ -21,14 +21,17 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS
+ *      Copyright 2013-2014 ForgeRock AS
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.replication.common;
 
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.types.DN;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+
+import com.forgerock.opendj.util.Pair;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.testng.Assert.*;
@@ -40,6 +43,18 @@ public class MultiDomainServerStateTest extends ReplicationTestCase
   private static final CSN csn1 = new CSN(1, 2, 3);
   private static final CSN csn2 = new CSN(4, 5, 6);
   private static final CSN csn3 = new CSN(7, 8, 3);
+
+  private static DN dn1;
+  private static DN dn2;
+  private static DN dn3;
+
+  @BeforeClass
+  public void setBaseDNs() throws Exception
+  {
+    dn1 = DN.valueOf("o=test1");
+    dn2 = DN.valueOf("o=test2");
+    dn3 = DN.valueOf("o=test3");
+  }
 
   @Test
   public void testDecodeAndEncode1() throws Exception
@@ -61,9 +76,6 @@ public class MultiDomainServerStateTest extends ReplicationTestCase
   @Test
   public void testUpdateCSN() throws Exception
   {
-    final DN dn1 = DN.valueOf("o=test1");
-    final DN dn2 = DN.valueOf("o=test2");
-
     final MultiDomainServerState state = new MultiDomainServerState();
     assertTrue(state.update(dn1, csn1));
     assertTrue(state.update(dn2, csn2));
@@ -78,9 +90,6 @@ public class MultiDomainServerStateTest extends ReplicationTestCase
   @Test
   public void testUpdateServerState() throws Exception
   {
-    final DN dn1 = DN.valueOf("o=test1");
-    final DN dn2 = DN.valueOf("o=test2");
-
     final MultiDomainServerState state = new MultiDomainServerState();
     final ServerState ss1 = new ServerState();
     assertTrue(ss1.update(csn3));
@@ -96,9 +105,6 @@ public class MultiDomainServerStateTest extends ReplicationTestCase
   @Test
   public void testUpdateMultiDomainServerState() throws Exception
   {
-    final DN dn1 = DN.valueOf("o=test1");
-    final DN dn2 = DN.valueOf("o=test2");
-
     final MultiDomainServerState state1 = new MultiDomainServerState();
     state1.update(dn1, csn3);
     state1.update(dn2, csn2);
@@ -113,9 +119,6 @@ public class MultiDomainServerStateTest extends ReplicationTestCase
   @Test(dependsOnMethods = { "testUpdateCSN" })
   public void testEqualsTo() throws Exception
   {
-    final DN dn1 = DN.valueOf("o=test1");
-    final DN dn2 = DN.valueOf("o=test2");
-
     final MultiDomainServerState state1 = new MultiDomainServerState();
     assertTrue(state1.update(dn1, csn3));
 
@@ -135,9 +138,6 @@ public class MultiDomainServerStateTest extends ReplicationTestCase
   @Test(dependsOnMethods = { "testUpdateCSN" })
   public void testIsEmpty() throws Exception
   {
-    final DN dn1 = DN.valueOf("o=test1");
-    final DN dn2 = DN.valueOf("o=test2");
-
     final MultiDomainServerState state = new MultiDomainServerState();
     assertTrue(state.isEmpty());
 
@@ -156,15 +156,7 @@ public class MultiDomainServerStateTest extends ReplicationTestCase
   @Test(dependsOnMethods = { "testUpdateCSN" })
   public void testRemoveCSN() throws Exception
   {
-    final DN dn1 = DN.valueOf("o=test1");
-    final DN dn2 = DN.valueOf("o=test2");
-    final DN dn3 = DN.valueOf("o=test3");
-
-    final MultiDomainServerState state = new MultiDomainServerState();
-
-    assertTrue(state.update(dn1, csn1));
-    assertTrue(state.update(dn2, csn1));
-    assertTrue(state.update(dn2, csn2));
+    final MultiDomainServerState state = getLastAliveCSNs();
     assertNull(state.getCSN(dn3, 42));
 
     assertFalse(state.removeCSN(dn3, csn1));
@@ -182,4 +174,71 @@ public class MultiDomainServerStateTest extends ReplicationTestCase
     assertNull(state.getCSN(dn2, csn1.getServerId()));
     assertSame(csn2, state.getCSN(dn2, csn2.getServerId()));
   }
+
+  private MultiDomainServerState getLastAliveCSNs()
+  {
+    final MultiDomainServerState lastAliveCSNs = new MultiDomainServerState();
+    assertTrue(lastAliveCSNs.update(dn1, csn1));
+    assertTrue(lastAliveCSNs.update(dn2, csn1));
+    assertTrue(lastAliveCSNs.update(dn2, csn2));
+    return lastAliveCSNs;
+  }
+
+  @Test(dependsOnMethods = { "testUpdateCSN" })
+  public void testGetOldestCSNExcluding_null() throws Exception
+  {
+    final MultiDomainServerState lastAliveCSNs = getLastAliveCSNs();
+    assertEquals(lastAliveCSNs.getOldestCSNExcluding(null), Pair.of(dn1, csn1));
+  }
+
+  @Test(dependsOnMethods = { "testUpdateCSN" })
+  public void testGetOldestCSNExcluding_empty() throws Exception
+  {
+    final MultiDomainServerState lastAliveCSNs = getLastAliveCSNs();
+    final MultiDomainServerState excluded = new MultiDomainServerState();
+
+    assertEquals(lastAliveCSNs.getOldestCSNExcluding(excluded), Pair.of(dn1, csn1));
+  }
+
+  @Test(dependsOnMethods = { "testUpdateCSN" })
+  public void testGetOldestCSNExcluding_currentOldestCSN_givesNewOldestCSN() throws Exception
+  {
+    final MultiDomainServerState lastAliveCSNs = getLastAliveCSNs();
+
+    final MultiDomainServerState excluded = new MultiDomainServerState();
+    excluded.update(dn1, csn1);
+
+    assertEquals(lastAliveCSNs.getOldestCSNExcluding(excluded), Pair.of(dn2, csn1));
+  }
+
+  @Test(dependsOnMethods = { "testUpdateCSN" })
+  public void testGetOldestCSNExcluding_CSNOlderThanCurrentOldestCSN_givesNewOldestCSN() throws Exception
+  {
+    final MultiDomainServerState lastAliveCSNs = getLastAliveCSNs();
+
+    final MultiDomainServerState excluded = new MultiDomainServerState();
+    excluded.update(dn1, csn1);
+    final CSN olderThanCSN1 = new CSN(0, 2, 3);
+    assertEquals(olderThanCSN1.getServerId(), csn1.getServerId());
+    assertTrue(olderThanCSN1.isOlderThan(csn1));
+    excluded.update(dn2, olderThanCSN1);
+
+    assertEquals(lastAliveCSNs.getOldestCSNExcluding(excluded), Pair.of(dn2, csn1));
+  }
+
+  @Test(dependsOnMethods = { "testUpdateCSN" })
+  public void testGetOldestCSNExcluding_CSNNewerThanCurrentOldestCSN_givesNewOldestCSN() throws Exception
+  {
+    final MultiDomainServerState lastAliveCSNs = getLastAliveCSNs();
+
+    final MultiDomainServerState excluded = new MultiDomainServerState();
+    excluded.update(dn1, csn1);
+    final CSN newerThanCSN1 = new CSN(42, 2, 3);
+    assertEquals(newerThanCSN1.getServerId(), csn1.getServerId());
+    assertTrue(newerThanCSN1.isNewerThan(csn1));
+    excluded.update(dn2, newerThanCSN1);
+
+    assertEquals(lastAliveCSNs.getOldestCSNExcluding(excluded), Pair.of(dn2, csn1));
+  }
+
 }
