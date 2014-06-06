@@ -149,15 +149,15 @@ public class InitializeTargetMsg extends RoutableMsg
   public byte[] getBytes(short version)
   {
     final ByteArrayBuilder builder = new ByteArrayBuilder();
-    builder.append(MSG_TYPE_INITIALIZE_TARGET);
-    builder.appendUTF8(destination);
-    builder.append(baseDN);
-    builder.appendUTF8(senderID);
-    builder.appendUTF8(requestorID);
-    builder.appendUTF8(entryCount);
+    builder.appendByte(MSG_TYPE_INITIALIZE_TARGET);
+    builder.appendIntUTF8(destination);
+    builder.appendDN(baseDN);
+    builder.appendIntUTF8(senderID);
+    builder.appendIntUTF8(requestorID);
+    builder.appendLongUTF8(entryCount);
     if (version >= ProtocolVersion.REPLICATION_PROTOCOL_V4)
     {
-      builder.appendUTF8(initWindow);
+      builder.appendIntUTF8(initWindow);
     }
     return builder.toByteArray();
   }

@@ -77,8 +77,8 @@ public class WindowMsg extends ReplicationMsg
   public byte[] getBytes(short protocolVersion)
   {
     final ByteArrayBuilder builder = new ByteArrayBuilder();
-    builder.append(MSG_TYPE_WINDOW);
-    builder.appendUTF8(numAck);
+    builder.appendByte(MSG_TYPE_WINDOW);
+    builder.appendIntUTF8(numAck);
     return builder.toByteArray();
   }
 

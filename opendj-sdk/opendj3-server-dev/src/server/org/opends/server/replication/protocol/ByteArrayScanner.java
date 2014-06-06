@@ -349,15 +349,18 @@ public class ByteArrayScanner
    * Reads the next ServerState.
    * <p>
    * Caution: ServerState MUST be the last field (see
-   * {@link ByteArrayBuilder#append(ServerState)} javadoc).
+   * {@link ByteArrayBuilder#appendServerStateMustComeLast(ServerState)} javadoc).
+   * <p>
+   * Note: the super long method name it is intentional:
+   * nobody will want to use it, which is good because nobody should.
    *
    * @return the next ServerState.
    * @throws DataFormatException
    *           if ServerState was incorrectly encoded or no more data can be
    *           read from the input
-   * @see ByteArrayBuilder#append(ServerState)
+   * @see ByteArrayBuilder#appendServerStateMustComeLast(ServerState)
    */
-  public ServerState nextServerState() throws DataFormatException
+  public ServerState nextServerStateMustComeLast() throws DataFormatException
   {
     final ServerState result = new ServerState();
 

@@ -274,7 +274,7 @@ public class MonitorMsg extends ReplicationMsg
     try
     {
       final ByteArrayBuilder builder = new ByteArrayBuilder();
-      builder.append(MSG_TYPE_REPL_SERVER_MONITOR);
+      builder.appendByte(MSG_TYPE_REPL_SERVER_MONITOR);
       append(builder, senderID, protocolVersion);
       append(builder, destination, protocolVersion);
 
@@ -298,7 +298,7 @@ public class MonitorMsg extends ReplicationMsg
       if (protocolVersion == ProtocolVersion.REPLICATION_PROTOCOL_V1)
       {
         // legacy coding mistake
-        builder.append((byte) 0);
+        builder.appendByte((byte) 0);
       }
       return builder.toByteArray();
     }
@@ -313,15 +313,15 @@ public class MonitorMsg extends ReplicationMsg
   {
     if (protocolVersion == ProtocolVersion.REPLICATION_PROTOCOL_V1)
     {
-      builder.appendUTF8(data);
+      builder.appendIntUTF8(data);
     }
     else if (protocolVersion <= ProtocolVersion.REPLICATION_PROTOCOL_V3)
     {
-      builder.append((short) data);
+      builder.appendShort((short) data);
     }
     else // protocolVersion >= ProtocolVersion.REPLICATION_PROTOCOL_V4
     {
-      builder.append(data);
+      builder.appendInt(data);
     }
   }
 

@@ -154,13 +154,13 @@ public class ECLUpdateMsg extends ReplicationMsg
   public byte[] getBytes(short protocolVersion)
   {
     final ByteArrayBuilder builder = new ByteArrayBuilder();
-    builder.append(MSG_TYPE_ECL_UPDATE);
-    builder.append(String.valueOf(cookie));
-    builder.append(baseDN);
+    builder.appendByte(MSG_TYPE_ECL_UPDATE);
+    builder.appendString(String.valueOf(cookie));
+    builder.appendDN(baseDN);
     // FIXME JNR Changing the line below to use long would require a protocol
     // version change. Leave it like this for now until the need arises.
-    builder.appendUTF8((int) changeNumber);
-    builder.appendZeroTerminated(updateMsg.getBytes(protocolVersion));
+    builder.appendIntUTF8((int) changeNumber);
+    builder.appendZeroTerminatedByteArray(updateMsg.getBytes(protocolVersion));
     return builder.toByteArray();
   }
 
