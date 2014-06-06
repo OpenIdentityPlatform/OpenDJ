@@ -276,43 +276,43 @@ public final class DirectoryServer
    * Returned when the user specified the --checkStartability option with other
    * options like printing the usage, dumping messages, displaying version, etc.
    */
-  private static int NOTHING_TO_DO = 0;
+  private static final int NOTHING_TO_DO = 0;
   /**
    * Returned when the user specified the --checkStartability option with
    * some incompatible arguments.
    */
-  private static int CHECK_ERROR = 1;
+  private static final int CHECK_ERROR = 1;
   /**
    * The server is already started.
    */
-  private static int SERVER_ALREADY_STARTED = 98;
+  private static final int SERVER_ALREADY_STARTED = 98;
   /**
    * The server must be started as detached process.
    */
-  private static int START_AS_DETACH = 99;
+  private static final int START_AS_DETACH = 99;
   /**
    * The server must be started as a non-detached process.
    */
-  private static int START_AS_NON_DETACH = 100;
+  private static final int START_AS_NON_DETACH = 100;
   /**
    * The server must be started as a window service.
    */
-  private static int START_AS_WINDOWS_SERVICE = 101;
+  private static final int START_AS_WINDOWS_SERVICE = 101;
   /**
    * The server must be started as detached and it is being called from the
    * Windows Service.
    */
-  private static int START_AS_DETACH_CALLED_FROM_WINDOWS_SERVICE = 102;
+  private static final int START_AS_DETACH_CALLED_FROM_WINDOWS_SERVICE = 102;
   /**
    * The server must be started as detached process and should not produce any
    * output.
    */
-  private static int START_AS_DETACH_QUIET = 103;
+  private static final int START_AS_DETACH_QUIET = 103;
   /**
    * The server must be started as non-detached process and should not produce
    * any output.
    */
-  private static int START_AS_NON_DETACH_QUIET = 104;
+  private static final int START_AS_NON_DETACH_QUIET = 104;
 
   /** Temporary context object, to provide instance methods instead of static methods. */
   private final DirectoryServerContext serverContext;
@@ -665,7 +665,7 @@ public final class DirectoryServer
   private int lookthroughLimit;
 
   /** The current active persistent searches. */
-  private AtomicInteger activePSearches = new AtomicInteger(0);
+  private final AtomicInteger activePSearches = new AtomicInteger(0);
 
   /** The maximum number of concurrent persistent searches. */
   private int maxPSearches;
@@ -1173,8 +1173,7 @@ public final class DirectoryServer
    * @throws  InitializationException  If a problem occurs while attempting to
    *                                   bootstrap the server.
    */
-  public void bootstrapServer()
-         throws InitializationException
+  private void bootstrapServer() throws InitializationException
   {
     // First, make sure that the server isn't currently running.  If it isn't,
     // then make sure that no other thread will try to start or bootstrap the
@@ -2134,7 +2133,7 @@ public final class DirectoryServer
    *                                   the backends that is not related to the
    *                                   server configuration.
    */
-  public void initializeBackends() throws ConfigException, InitializationException
+  private void initializeBackends() throws ConfigException, InitializationException
   {
     backendConfigManager = new BackendConfigManager(serverContext);
     backendConfigManager.initializeBackendConfig();
@@ -2231,9 +2230,8 @@ public final class DirectoryServer
    *                              workflow conflicts with the workflow
    *                              ID of an existing workflow.
    */
-  public static void createAndRegisterWorkflowsWithDefaultNetworkGroup(
-      Backend backend
-      ) throws DirectoryException
+  private static void createAndRegisterWorkflowsWithDefaultNetworkGroup(
+      Backend backend) throws DirectoryException
   {
     // Create a workflow for each backend base DN and register the workflow
     // with the default/internal/admin network group.
@@ -2264,10 +2262,8 @@ public final class DirectoryServer
    *                              workflow conflicts with the workflow
    *                              ID of an existing workflow.
    */
-  public static WorkflowImpl createWorkflow(
-      DN      baseDN,
-      Backend backend
-      ) throws DirectoryException
+  private static WorkflowImpl createWorkflow(DN baseDN, Backend backend)
+      throws DirectoryException
   {
     String backendID = backend.getBackendID();
 
@@ -2458,7 +2454,7 @@ public final class DirectoryServer
    *                                   attempting to initialize and start the
    *                                   Directory Server.
    */
-  public void configureWorkflowsManual()
+  private void configureWorkflowsManual()
       throws ConfigException, InitializationException
   {
     // First of all re-initialize the current workflow configuration
@@ -2545,7 +2541,7 @@ public final class DirectoryServer
    *                                   the group manager that is not related to
    *                                   the server configuration.
    */
-  public void initializeGroupManager()
+  private void initializeGroupManager()
          throws ConfigException, InitializationException
   {
     try
@@ -7550,16 +7546,9 @@ public final class DirectoryServer
       directoryServer.shuttingDown = true;
     }
 
-    try {
-      directoryServer.configHandler.getConfigRootEntry();
-    } catch (Exception e) {
-
-    }
-
     // Send an alert notification that the server is shutting down.
-    LocalizableMessage message = NOTE_SERVER_SHUTDOWN.get(className, reason);
     sendAlertNotification(directoryServer, ALERT_TYPE_SERVER_SHUTDOWN,
-            message);
+        NOTE_SERVER_SHUTDOWN.get(className, reason));
 
 
     // Create a shutdown monitor that will watch the rest of the shutdown
@@ -7583,7 +7572,18 @@ public final class DirectoryServer
     }
     directoryServer.connectionHandlers.clear();
 
+    if (directoryServer.workQueue != null)
+    {
+      directoryServer.workQueue.finalizeWorkQueue(reason);
+      directoryServer.workQueue.waitUntilIdle(ServerShutdownMonitor.WAIT_TIME);
+    }
 
+    // shutdown replication
+    for (SynchronizationProvider provider :
+         directoryServer.synchronizationProviders)
+    {
+      provider.finalizeSynchronizationProvider();
+    }
 
     // Call the shutdown plugins, and then finalize all the plugins defined in
     // the server.
@@ -7591,14 +7591,6 @@ public final class DirectoryServer
     {
       directoryServer.pluginConfigManager.invokeShutdownPlugins(reason);
       directoryServer.pluginConfigManager.finalizePlugins();
-    }
-
-
-    // shutdown the Synchronization Providers
-    for (SynchronizationProvider provider :
-         directoryServer.synchronizationProviders)
-    {
-      provider.finalizeSynchronizationProvider();
     }
 
     // Deregister the shutdown hook.
@@ -7609,13 +7601,6 @@ public final class DirectoryServer
         Runtime.getRuntime().removeShutdownHook(directoryServer.shutdownHook);
       }
       catch (Exception e) {}
-    }
-
-
-    // Stop the work queue.
-    if (directoryServer.workQueue != null)
-    {
-      directoryServer.workQueue.finalizeWorkQueue(reason);
     }
 
 
@@ -7776,8 +7761,8 @@ public final class DirectoryServer
         {
           logger.traceException(e2);
 
-          logger.warn(WARN_SHUTDOWN_CANNOT_RELEASE_SHARED_BACKEND_LOCK, backend
-              .getBackendID(), stackTraceToSingleLineString(e2));
+          logger.warn(WARN_SHUTDOWN_CANNOT_RELEASE_SHARED_BACKEND_LOCK,
+              backend.getBackendID(), stackTraceToSingleLineString(e2));
           // FIXME -- Do we need to send an admin alert?
         }
       }
@@ -7795,12 +7780,10 @@ public final class DirectoryServer
     }
 
     // Release exclusive lock held on server.lock file
-    String serverLockFileName = LockFileManager.getServerLockFileName();
-    StringBuilder failureReason = new StringBuilder();
-
     try {
-        if (!LockFileManager.releaseLock(serverLockFileName,
-                failureReason)) {
+        String serverLockFileName = LockFileManager.getServerLockFileName();
+        StringBuilder failureReason = new StringBuilder();
+        if (!LockFileManager.releaseLock(serverLockFileName, failureReason)) {
             logger.info(NOTE_SERVER_SHUTDOWN, className, failureReason);
         }
     } catch (Exception e) {
@@ -9008,12 +8991,10 @@ public final class DirectoryServer
    * @return Returns the class loader to be used with this directory
    *         server application.
    */
-  public static ClassLoader getClassLoader()
+  private static ClassLoader getClassLoader()
   {
     return ClassLoaderProvider.getInstance().getClassLoader();
   }
-
-
 
   /**
    * Loads the named class using this directory server application's
@@ -9211,7 +9192,7 @@ public final class DirectoryServer
    *
    * @return the workflow configuration mode
    */
-  public static boolean workflowConfigurationModeIsAuto()
+  private static boolean workflowConfigurationModeIsAuto()
   {
     return directoryServer.workflowConfigurationMode
         == WorkflowConfigurationMode.AUTO;

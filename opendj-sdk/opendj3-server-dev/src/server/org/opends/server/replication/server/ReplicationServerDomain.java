@@ -86,12 +86,12 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    * topology. Using an AtomicReference to avoid leaking references to costly
    * threads.
    */
-  private AtomicReference<MonitoringPublisher> monitoringPublisher =
+  private final AtomicReference<MonitoringPublisher> monitoringPublisher =
       new AtomicReference<MonitoringPublisher>();
   /**
    * Maintains monitor data for the current domain.
    */
-  private ReplicationDomainMonitor domainMonitor =
+  private final ReplicationDomainMonitor domainMonitor =
       new ReplicationDomainMonitor(this);
 
   /**
@@ -116,7 +116,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
 
   private final ReplicationDomainDB domainDB;
   /** The ReplicationServer that created the current instance. */
-  private ReplicationServer localReplicationServer;
+  private final ReplicationServer localReplicationServer;
 
   /**
    * The generationId of the current replication domain. The generationId is
@@ -158,7 +158,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    * The timer used to run the timeout code (timer tasks) for the assured update
    * messages we are waiting acks for.
    */
-  private Timer assuredTimeoutTimer;
+  private final Timer assuredTimeoutTimer;
   /**
    * Counter used to purge the timer tasks references in assuredTimeoutTimer,
    * every n number of treated assured messages.
@@ -186,8 +186,6 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     private boolean sendDSTopologyMsg;
     private int excludedDSForTopologyMsg = -1;
 
-
-
     /**
      * Enqueues a TopologyMsg for all the connected directory servers in order
      * to let them know the topology (every known DSs and RSs).
@@ -212,8 +210,6 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       }
     }
 
-
-
     /**
      * Enqueues a TopologyMsg for all the connected replication servers in order
      * to let them know our connected LDAP servers.
@@ -222,8 +218,6 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     {
       sendRSTopologyMsg = true;
     }
-
-
 
     /**
      * Enqueues a ChangeTimeHeartbeatMsg received from a DS for forwarding to
@@ -237,18 +231,27 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       pendingHeartbeats.put(msg.getCSN().getServerId(), msg);
     }
 
-
-
     private void enqueueDSMonitorMsg(int dsServerId, MonitorMsg msg)
     {
       pendingDSMonitorMsgs.put(dsServerId, msg);
     }
 
-
-
     private void enqueueRSMonitorMsg(int rsServerId, MonitorMsg msg)
     {
       pendingRSMonitorMsgs.put(rsServerId, msg);
+    }
+
+    /** {@inheritDoc} */
+    @Override
+    public String toString()
+    {
+      return getClass().getSimpleName()
+          + " pendingHeartbeats=" + pendingHeartbeats
+          + ", pendingDSMonitorMsgs=" + pendingDSMonitorMsgs
+          + ", pendingRSMonitorMsgs=" + pendingRSMonitorMsgs
+          + ", sendRSTopologyMsg=" + sendRSTopologyMsg
+          + ", sendDSTopologyMsg=" + sendDSTopologyMsg
+          + ", excludedDSForTopologyMsg=" + excludedDSForTopologyMsg;
     }
   }
 
@@ -2086,7 +2089,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   /**
    * Clears the Db associated with that domain.
    */
-  public void clearDbs()
+  private void clearDbs()
   {
     try
     {
@@ -2768,7 +2771,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
       }
     }
 
-    if (pendingMsgs.sendRSTopologyMsg)
+    if (pendingMsgs.sendRSTopologyMsg && !connectedRSs.isEmpty())
     {
       final TopologyMsg topoMsg = createTopologyMsgForRS();
       for (ServerHandler handler : connectedRSs.values())
