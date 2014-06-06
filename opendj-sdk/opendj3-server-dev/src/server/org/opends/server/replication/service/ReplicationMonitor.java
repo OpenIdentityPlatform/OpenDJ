@@ -42,13 +42,13 @@ import org.opends.server.types.*;
  */
 public class ReplicationMonitor extends MonitorProvider<MonitorProviderCfg>
 {
-  private ReplicationDomain domain;
+  private final ReplicationDomain domain;
 
   /**
    * Create a new replication monitor.
    * @param domain the plugin which created the monitor
    */
-  public ReplicationMonitor(ReplicationDomain domain)
+  ReplicationMonitor(ReplicationDomain domain)
   {
     this.domain = domain;
   }
@@ -231,7 +231,7 @@ public class ReplicationMonitor extends MonitorProvider<MonitorProviderCfg>
    * @param name the name of the attribute to add.
    * @param value The integer value of he attribute to add.
    */
-  public static void addMonitorData(List<Attribute> attributes, String name,
+  private static void addMonitorData(List<Attribute> attributes, String name,
       long value)
   {
     addMonitorData(attributes, name, String.valueOf(value));
@@ -245,7 +245,7 @@ public class ReplicationMonitor extends MonitorProvider<MonitorProviderCfg>
    * @param name the name of the attribute to add.
    * @param value The String value of he attribute to add.
    */
-  public static void addMonitorData(List<Attribute> attributes, String name,
+  private static void addMonitorData(List<Attribute> attributes, String name,
       String value)
   {
     AttributeType type = DirectoryServer.getDefaultAttributeType(name);
