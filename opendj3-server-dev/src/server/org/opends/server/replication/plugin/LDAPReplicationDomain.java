@@ -104,6 +104,9 @@ import static org.opends.server.util.StaticUtils.*;
  *  processing a change received from the replicationServer service,
  *  handle conflict resolution,
  *  handle protocol messages from the replicationServer.
+ * <p>
+ * FIXME Move this class to org.opends.server.replication.service
+ * or the equivalent package once this code is moved to a maven module.
  */
 public final class LDAPReplicationDomain extends ReplicationDomain
        implements ConfigurationChangeListener<ReplicationDomainCfg>,
@@ -4067,9 +4070,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
     // Now for bad data set status if needed
     if (forceBadDataSet)
     {
-      // Go into bad data set status
-      setNewStatus(StatusMachineEvent.TO_BAD_GEN_ID_STATUS_EVENT);
-      broker.signalStatusChange(status);
+      signalNewStatus(StatusMachineEvent.TO_BAD_GEN_ID_STATUS_EVENT);
       logger.info(NOTE_FRACTIONAL_BAD_DATA_SET_NEED_RESYNC, getBaseDNString());
       return; // Do not send changes to the replication server
     }

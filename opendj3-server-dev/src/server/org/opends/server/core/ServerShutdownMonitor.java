@@ -36,8 +36,17 @@ import org.opends.server.util.StaticUtils;
  * This class defines a daemon thread that will be used to monitor the server
  * shutdown process and may help nudge it along if it appears to get hung.
  */
-public class ServerShutdownMonitor extends DirectoryThread
+class ServerShutdownMonitor extends DirectoryThread
 {
+  /**
+   * Time in milliseconds for the shutdown monitor to:
+   * <ol>
+   * <li>wait before sending interrupt to threads</li>
+   * <li>wait before final shutdown</li>
+   * </ol>
+   */
+  static final long WAIT_TIME = 30000;
+
   /**
    * Indicates whether the monitor has completed and the shutdown may be
    * finalized with a call to {@link System#exit()}.
@@ -110,7 +119,7 @@ public class ServerShutdownMonitor extends DirectoryThread
 
       // For the first milestone, we'll run for up to 30 seconds just checking
       // to see whether all threads have stopped yet.
-      if (waitAllThreadsDied(30000))
+      if (waitAllThreadsDied(WAIT_TIME))
       {
         return;
       }
@@ -129,7 +138,7 @@ public class ServerShutdownMonitor extends DirectoryThread
         } catch (Exception e) {}
       }
 
-      if (waitAllThreadsDied(30000))
+      if (waitAllThreadsDied(WAIT_TIME))
       {
         return;
       }

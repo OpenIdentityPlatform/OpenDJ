@@ -48,7 +48,7 @@ import org.opends.server.types.Operation;
  *
  * One of this object is instantiated for each ReplicationDomain.
  */
-public final class RemotePendingChanges
+final class RemotePendingChanges
 {
   /**
    * A map used to store the pending changes.
@@ -124,7 +124,7 @@ public final class RemotePendingChanges
     CSN firstCSN = pendingChanges.firstKey();
     PendingChange firstChange = pendingChanges.get(firstCSN);
 
-    while ((firstChange != null) && firstChange.isCommitted())
+    while (firstChange != null && firstChange.isCommitted())
     {
       state.update(firstCSN);
       pendingChanges.remove(firstCSN);
@@ -196,17 +196,19 @@ public final class RemotePendingChanges
   public synchronized boolean checkDependencies(AddOperation op)
   {
     boolean hasDependencies = false;
-    DN targetDn = op.getEntryDN();
-    CSN csn = OperationContext.getCSN(op);
-    PendingChange change = pendingChanges.get(csn);
+    final DN targetDN = op.getEntryDN();
+    final CSN csn = OperationContext.getCSN(op);
+    final PendingChange change = pendingChanges.get(csn);
     if (change == null)
+    {
       return false;
+    }
 
     for (PendingChange pendingChange : pendingChanges.values())
     {
       if (pendingChange.getCSN().isOlderThan(csn))
       {
-        LDAPUpdateMsg pendingMsg = pendingChange.getMsg();
+        final LDAPUpdateMsg pendingMsg = pendingChange.getMsg();
         if (pendingMsg != null)
         {
           if (pendingMsg instanceof DeleteMsg)
@@ -215,7 +217,7 @@ public final class RemotePendingChanges
              * Check is the operation to be run is a deleteOperation on the
              * same DN.
              */
-            if (pendingChange.getTargetDN().equals(targetDn))
+            if (pendingMsg.getDN().equals(targetDN))
             {
               hasDependencies = true;
               addDependency(change, pendingChange);
@@ -227,7 +229,7 @@ public final class RemotePendingChanges
              * Check if the operation to be run is an addOperation on a
              * parent of the current AddOperation.
              */
-            if (pendingChange.getTargetDN().isAncestorOf(targetDn))
+            if (pendingMsg.getDN().isAncestorOf(targetDN))
             {
               hasDependencies = true;
               addDependency(change, pendingChange);
@@ -240,15 +242,15 @@ public final class RemotePendingChanges
              * the same target DN as the ADD DN
              * or a ModifyDnOperation with new DN equals to the ADD DN parent
              */
-            if (pendingChange.getTargetDN().equals(targetDn))
+            if (pendingMsg.getDN().equals(targetDN))
             {
               hasDependencies = true;
               addDependency(change, pendingChange);
             }
             else
             {
-              ModifyDNMsg pendingModDn = (ModifyDNMsg) pendingChange.getMsg();
-              if (pendingModDn.newDNIsParent(targetDn))
+              final ModifyDNMsg pendingModDn = (ModifyDNMsg) pendingMsg;
+              if (pendingModDn.newDNIsParent(targetDN))
               {
                 hasDependencies = true;
                 addDependency(change, pendingChange);
@@ -286,30 +288,26 @@ public final class RemotePendingChanges
   public synchronized boolean checkDependencies(ModifyOperation op)
   {
     boolean hasDependencies = false;
-    DN targetDn = op.getEntryDN();
-    CSN csn = OperationContext.getCSN(op);
-    PendingChange change = pendingChanges.get(csn);
+    final DN targetDN = op.getEntryDN();
+    final CSN csn = OperationContext.getCSN(op);
+    final PendingChange change = pendingChanges.get(csn);
     if (change == null)
+    {
       return false;
+    }
 
     for (PendingChange pendingChange : pendingChanges.values())
     {
       if (pendingChange.getCSN().isOlderThan(csn))
       {
-        LDAPUpdateMsg pendingMsg = pendingChange.getMsg();
-        if (pendingMsg != null)
+        final LDAPUpdateMsg pendingMsg = pendingChange.getMsg();
+        if (pendingMsg instanceof AddMsg)
         {
-          if (pendingMsg instanceof AddMsg)
+          // Check if the operation to be run is an addOperation on a same DN.
+          if (pendingMsg.getDN().equals(targetDN))
           {
-            /*
-             * Check if the operation to be run is an addOperation on a
-             * same DN.
-             */
-            if (pendingChange.getTargetDN().equals(targetDn))
-            {
-              hasDependencies = true;
-              addDependency(change, pendingChange);
-            }
+            hasDependencies = true;
+            addDependency(change, pendingChange);
           }
         }
       }
@@ -342,29 +340,30 @@ public final class RemotePendingChanges
    *
    * @return A boolean indicating if this operation has some dependencies.
    */
-  public synchronized boolean checkDependencies(ModifyDNMsg msg)
+  private synchronized boolean checkDependencies(ModifyDNMsg msg)
   {
     boolean hasDependencies = false;
-    CSN csn = msg.getCSN();
-    PendingChange change = pendingChanges.get(csn);
+    final CSN csn = msg.getCSN();
+    final PendingChange change = pendingChanges.get(csn);
     if (change == null)
+    {
       return false;
+    }
 
-    DN targetDn = change.getTargetDN();
-
+    final DN targetDN = change.getMsg().getDN();
 
     for (PendingChange pendingChange : pendingChanges.values())
     {
       if (pendingChange.getCSN().isOlderThan(csn))
       {
-        LDAPUpdateMsg pendingMsg = pendingChange.getMsg();
+        final LDAPUpdateMsg pendingMsg = pendingChange.getMsg();
         if (pendingMsg != null)
         {
           if (pendingMsg instanceof DeleteMsg)
           {
             // Check if the target of the Delete is the same
             // as the new DN of this ModifyDN
-            if (msg.newDNIsEqual(pendingChange.getTargetDN()))
+            if (msg.newDNIsEqual(pendingMsg.getDN()))
             {
               hasDependencies = true;
               addDependency(change, pendingChange);
@@ -374,14 +373,14 @@ public final class RemotePendingChanges
           {
             // Check if the Add Operation was done on the new parent of
             // the MODDN  operation
-            if (msg.newParentIsEqual(pendingChange.getTargetDN()))
+            if (msg.newParentIsEqual(pendingMsg.getDN()))
             {
               hasDependencies = true;
               addDependency(change, pendingChange);
             }
             // Check if the AddOperation was done on the same DN as the
             // target DN of the MODDN operation
-            if (pendingChange.getTargetDN().equals(targetDn))
+            if (pendingMsg.getDN().equals(targetDN))
             {
               hasDependencies = true;
               addDependency(change, pendingChange);
@@ -391,7 +390,7 @@ public final class RemotePendingChanges
           {
             // Check if the ModifyDNOperation was done from the new DN of
             // the MODDN operation
-            if (msg.newDNIsEqual(pendingChange.getTargetDN()))
+            if (msg.newDNIsEqual(pendingMsg.getDN()))
             {
               hasDependencies = true;
               addDependency(change, pendingChange);
@@ -431,17 +430,19 @@ public final class RemotePendingChanges
   public synchronized boolean checkDependencies(DeleteOperation op)
   {
     boolean hasDependencies = false;
-    DN targetDn = op.getEntryDN();
-    CSN csn = OperationContext.getCSN(op);
-    PendingChange change = pendingChanges.get(csn);
+    final DN targetDN = op.getEntryDN();
+    final CSN csn = OperationContext.getCSN(op);
+    final PendingChange change = pendingChanges.get(csn);
     if (change == null)
+    {
       return false;
+    }
 
     for (PendingChange pendingChange : pendingChanges.values())
     {
       if (pendingChange.getCSN().isOlderThan(csn))
       {
-        LDAPUpdateMsg pendingMsg = pendingChange.getMsg();
+        final LDAPUpdateMsg pendingMsg = pendingChange.getMsg();
         if (pendingMsg != null)
         {
           if (pendingMsg instanceof DeleteMsg)
@@ -450,7 +451,7 @@ public final class RemotePendingChanges
              * Check if the operation to be run is a deleteOperation on a
              * children of the current DeleteOperation.
              */
-            if (pendingChange.getTargetDN().isDescendantOf(targetDn))
+            if (pendingMsg.getDN().isDescendantOf(targetDN))
             {
               hasDependencies = true;
               addDependency(change, pendingChange);
@@ -462,7 +463,7 @@ public final class RemotePendingChanges
              * Check if the operation to be run is an addOperation on a
              * parent of the current DeleteOperation.
              */
-            if (pendingChange.getTargetDN().equals(targetDn))
+            if (pendingMsg.getDN().equals(targetDN))
             {
               hasDependencies = true;
               addDependency(change, pendingChange);
@@ -470,13 +471,13 @@ public final class RemotePendingChanges
           }
           else if (pendingMsg instanceof ModifyDNMsg)
           {
-            ModifyDNMsg pendingModDn = (ModifyDNMsg) pendingChange.getMsg();
+            final ModifyDNMsg pendingModDn = (ModifyDNMsg) pendingMsg;
             /*
              * Check if the operation to be run is an ModifyDNOperation
              * on a children of the current DeleteOperation
              */
-            if ((pendingChange.getTargetDN().isDescendantOf(targetDn)) ||
-                (pendingModDn.newDNIsParent(targetDn)))
+            if (pendingMsg.getDN().isDescendantOf(targetDN)
+                || pendingModDn.newDNIsParent(targetDN))
             {
               hasDependencies = true;
               addDependency(change, pendingChange);

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.common;
 
@@ -44,7 +44,7 @@ public class CSNGenerator
    * @see #lastTime
    */
   private int seqnum;
-  private int serverId;
+  private final int serverId;
 
   /**
    * Create a new {@link CSNGenerator}.
@@ -64,12 +64,12 @@ public class CSNGenerator
   /**
   * Create a new {@link CSNGenerator}.
   *
-  * @param id id to use when creating {@link CSN}s.
+  * @param serverId serverId to use when creating {@link CSN}s.
   * @param state This generator will be created in a way that makes sure that
   *              all {@link CSN}s generated will be larger than all the
   *              {@link CSN}s currently in state.
   */
-  public CSNGenerator(int id, ServerState state)
+  public CSNGenerator(int serverId, ServerState state)
   {
     this.lastTime = TimeThread.getTime();
     for (CSN csn : state)
@@ -78,12 +78,12 @@ public class CSNGenerator
       {
         this.lastTime = csn.getTime();
       }
-      if (csn.getServerId() == id)
+      if (csn.getServerId() == serverId)
       {
         this.seqnum = csn.getSeqnum();
       }
     }
-    this.serverId = id;
+    this.serverId = serverId;
   }
 
   /**
@@ -104,7 +104,7 @@ public class CSNGenerator
         lastTime = curTime;
       }
 
-      if (++seqnum <= 0)
+      if (++seqnum <= 0) // check no underflow happened
       {
         seqnum = 0;
         lastTime++;
@@ -155,7 +155,7 @@ public class CSNGenerator
         lastTime = ++rcvdTime;
       }
 
-      if ((serverId == changeServerId) && (seqnum < changeSeqNum))
+      if (serverId == changeServerId && seqnum < changeSeqNum)
       {
         seqnum = changeSeqNum;
       }

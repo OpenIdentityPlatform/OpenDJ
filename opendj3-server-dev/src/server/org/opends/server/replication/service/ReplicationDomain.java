@@ -210,7 +210,7 @@ public abstract class ReplicationDomain
   /**
    * Current status for this replicated domain.
    */
-  protected ServerStatus status = ServerStatus.NOT_CONNECTED_STATUS;
+  private ServerStatus status = ServerStatus.NOT_CONNECTED_STATUS;
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /** The configuration of the replication domain. */
@@ -2432,7 +2432,13 @@ public abstract class ReplicationDomain
    * event.
    * @param event The event that may make the status be changed
    */
-  protected void setNewStatus(StatusMachineEvent event)
+  protected void signalNewStatus(StatusMachineEvent event)
+  {
+    setNewStatus(event);
+    broker.signalStatusChange(status);
+  }
+
+  private void setNewStatus(StatusMachineEvent event)
   {
     ServerStatus newStatus = StatusMachine.computeNewStatus(status, event);
     if (newStatus == ServerStatus.INVALID_STATUS)
@@ -3400,7 +3406,7 @@ public abstract class ReplicationDomain
    * receive this {@link UpdateMsg} through a call of the
    * {@link #processUpdate(UpdateMsg)} message.
    *
-   * @param msg The UpdateMsg that should be pushed.
+   * @param msg The UpdateMsg that should be published.
    */
   public void publish(UpdateMsg msg)
   {

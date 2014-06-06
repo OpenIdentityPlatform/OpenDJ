@@ -22,28 +22,26 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS
+ *      Portions copyright 2014 ForgeRock AS
  */
 package org.opends.server.replication.plugin;
 
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.protocol.LDAPUpdateMsg;
-import org.opends.server.types.DN;
 import org.opends.server.types.operation.PluginOperation;
 
 /**
  * This class is use to store an operation currently
  * in progress and not yet committed in the database.
  */
-public class PendingChange implements Comparable<PendingChange>
+class PendingChange implements Comparable<PendingChange>
 {
-  private CSN csn;
+  private final CSN csn;
   private boolean committed;
   private LDAPUpdateMsg msg;
-  private PluginOperation op;
+  private final PluginOperation op;
   private ServerState dependencyState;
-  private DN targetDN;
 
   /**
    * Construct a new PendingChange.
@@ -51,7 +49,7 @@ public class PendingChange implements Comparable<PendingChange>
    * @param op the operation to use
    * @param msg the message to use (can be null for local operations)
    */
-  public PendingChange(CSN csn, PluginOperation op, LDAPUpdateMsg msg)
+  PendingChange(CSN csn, PluginOperation op, LDAPUpdateMsg msg)
   {
     this.csn = csn;
     this.committed = false;
@@ -115,15 +113,6 @@ public class PendingChange implements Comparable<PendingChange>
   }
 
   /**
-   * Set the operation associated to this PendingChange.
-   * @param op The operation associated to this PendingChange.
-   */
-  public void setOp(PluginOperation op)
-  {
-    this.op = op;
-  }
-
-  /**
    * Add the given CSN to the list of dependencies of this PendingChange.
    *
    * @param csn
@@ -152,29 +141,24 @@ public class PendingChange implements Comparable<PendingChange>
     return state.cover(dependencyState);
   }
 
-  /**
-   * Get the Target DN of this message.
-   *
-   * @return The target DN of this message.
-   */
-  public DN getTargetDN()
-  {
-    synchronized (this)
-    {
-      if (targetDN == null)
-      {
-        targetDN = msg.getDN();
-      }
-      return targetDN;
-    }
-  }
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public int compareTo(PendingChange o)
   {
-    return getCSN().compareTo(o.getCSN());
+    return csn.compareTo(o.csn);
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public String toString()
+  {
+    return getClass().getSimpleName()
+        + " committed=" + committed
+        + ", csn=" + csn.toStringUI()
+        + ", msg=[" + msg
+        + "], isOperationSynchronized="
+        + (op != null ? op.isSynchronizationOperation() : "false")
+        + ", dependencyState="
+        + (dependencyState != null ? dependencyState : "");
   }
 }
