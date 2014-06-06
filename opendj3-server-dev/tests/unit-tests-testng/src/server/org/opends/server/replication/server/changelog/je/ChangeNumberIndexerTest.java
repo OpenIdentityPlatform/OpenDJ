@@ -356,6 +356,7 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
 
     final ReplicatedUpdateMsg msg1 = msg(BASE_DN1, serverId1, 1);
     publishUpdateMsg(msg1);
+    assertExternalChangelogContent(msg1);
 
     addReplica(BASE_DN1, serverId2);
     final ReplicatedUpdateMsg msg2 = msg(BASE_DN1, serverId2, 2);
@@ -487,19 +488,19 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
     assertExternalChangelogContent(msg1);
 
     // do not wait for temporarily offline serverId1
-    final ReplicatedUpdateMsg msg3 = msg(BASE_DN1, serverId2, 3);
-    publishUpdateMsg(msg3);
-    assertExternalChangelogContent(msg1, msg3);
+    final ReplicatedUpdateMsg msg4 = msg(BASE_DN1, serverId2, 4);
+    publishUpdateMsg(msg4);
+    assertExternalChangelogContent(msg1, msg4);
 
     // serverId1 is back online, wait for changes from serverId2
-    final ReplicatedUpdateMsg msg4 = msg(BASE_DN1, serverId1, 4);
-    publishUpdateMsg(msg4);
-    assertExternalChangelogContent(msg1, msg3);
-
-    final ReplicatedUpdateMsg msg5 = msg(BASE_DN1, serverId2, 5);
+    final ReplicatedUpdateMsg msg5 = msg(BASE_DN1, serverId1, 5);
     publishUpdateMsg(msg5);
+    assertExternalChangelogContent(msg1, msg4);
+
+    final ReplicatedUpdateMsg msg6 = msg(BASE_DN1, serverId2, 6);
+    publishUpdateMsg(msg6);
     // MCP moves forward
-    assertExternalChangelogContent(msg1, msg3, msg4);
+    assertExternalChangelogContent(msg1, msg4, msg5);
   }
 
   /**
@@ -526,14 +527,37 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
     assertExternalChangelogContent();
 
     // MCP moves forward because serverId1 is not really offline
-    // since because we received a message from it after the offline replica msg
+    // since we received a message from it newer than the offline replica msg
     final ReplicatedUpdateMsg msg4 = msg(BASE_DN1, serverId2, 4);
     publishUpdateMsg(msg4);
     assertExternalChangelogContent(msg2, msg3);
 
     // back to normal operations
-    sendHeartbeat(BASE_DN1, serverId1, 4);
+    sendHeartbeat(BASE_DN1, serverId1, 5);
     assertExternalChangelogContent(msg2, msg3, msg4);
+  }
+
+  @Test(dependsOnMethods = { EMPTY_DB_NO_DS })
+  public void emptyDBTwoDSsOneKilled() throws Exception
+  {
+    addReplica(BASE_DN1, serverId1);
+    addReplica(BASE_DN1, serverId2);
+    startCNIndexer(BASE_DN1);
+    assertExternalChangelogContent();
+
+    final ReplicatedUpdateMsg msg1 = msg(BASE_DN1, serverId1, 1);
+    publishUpdateMsg(msg1);
+    // MCP cannot move forward: no news yet from serverId2
+    assertExternalChangelogContent();
+
+    sendHeartbeat(BASE_DN1, serverId2, 2);
+    // MCP moves forward: we know what serverId2 is at
+    assertExternalChangelogContent(msg1);
+
+    final ReplicatedUpdateMsg msg3 = msg(BASE_DN1, serverId1, 3);
+    publishUpdateMsg(msg3);
+    // MCP cannot move forward: serverId2 is the oldest CSN
+    assertExternalChangelogContent(msg1);
   }
 
   private void addReplica(DN baseDN, int serverId) throws Exception
