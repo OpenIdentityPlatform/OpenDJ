@@ -322,26 +322,22 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB
     {
       final String attributeName =
           isFirst ? "first-draft-changenumber" : "last-draft-changenumber";
-      final String changeNumber = String.valueOf(getChangeNumber(isFirst));
+      final String changeNumber = String.valueOf(readChangeNumber(isFirst));
       return Attributes.create(attributeName, changeNumber);
     }
 
-    private long getChangeNumber(boolean isFirst)
+    private long readChangeNumber(boolean isFirst)
     {
       try
       {
-        final ChangeNumberIndexRecord record =
-            isFirst ? db.readFirstRecord() : db.readLastRecord();
-        if (record != null)
-        {
-          return record.getChangeNumber();
-        }
+        return getChangeNumber(
+            isFirst ? db.readFirstRecord() : db.readLastRecord());
       }
       catch (ChangelogException e)
       {
         logger.traceException(e);
+        return NO_KEY;
       }
-      return 0;
     }
 
     /** {@inheritDoc} */
