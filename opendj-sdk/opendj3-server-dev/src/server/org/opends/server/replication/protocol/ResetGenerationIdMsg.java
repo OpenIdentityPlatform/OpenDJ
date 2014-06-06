@@ -26,11 +26,7 @@
  */
 package org.opends.server.replication.protocol;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.zip.DataFormatException;
-
 
 /**
  * This message is used by an LDAP server to communicate to the topology
@@ -38,7 +34,7 @@ import java.util.zip.DataFormatException;
  */
 public class ResetGenerationIdMsg extends ReplicationMsg
 {
-  private long generationId;
+  private final long generationId;
 
   /**
    * Creates a new message.
@@ -57,52 +53,25 @@ public class ResetGenerationIdMsg extends ReplicationMsg
    * @throws DataFormatException If the byte array does not contain a valid
    *                             encoded form of the WindowMessage.
    */
-  public ResetGenerationIdMsg(byte[] in) throws DataFormatException
+  ResetGenerationIdMsg(byte[] in) throws DataFormatException
   {
-    try
+    final ByteArrayScanner scanner = new ByteArrayScanner(in);
+    if (scanner.nextByte() != MSG_TYPE_RESET_GENERATION_ID)
     {
-      if (in[0] != MSG_TYPE_RESET_GENERATION_ID)
-        throw new
-        DataFormatException("input is not a valid GenerationId LocalizableMessage");
-
-      int pos = 1;
-
-      /* read the generationId */
-      int length = getNextLength(in, pos);
-      generationId = Long.valueOf(new String(in, pos, length,
-      "UTF-8"));
-      pos += length +1;
-    } catch (UnsupportedEncodingException e)
-    {
-      throw new DataFormatException("UTF-8 is not supported by this jvm.");
+      throw new DataFormatException(
+          "input is not a valid GenerationId Message");
     }
-
+    generationId = scanner.nextLongUTF8();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public byte[] getBytes(short protocolVersion)
   {
-    try
-    {
-      ByteArrayOutputStream oStream = new ByteArrayOutputStream();
-
-      /* Put the message type */
-      oStream.write(MSG_TYPE_RESET_GENERATION_ID);
-
-      // Put the generationId
-      oStream.write(String.valueOf(generationId).getBytes("UTF-8"));
-      oStream.write(0);
-
-      return oStream.toByteArray();
-    }
-    catch (IOException e)
-    {
-      // never happens
-      return null;
-    }
+    final ByteArrayBuilder builder = new ByteArrayBuilder();
+    builder.append(MSG_TYPE_RESET_GENERATION_ID);
+    builder.appendUTF8(generationId);
+    return builder.toByteArray();
   }
 
   /**
@@ -115,9 +84,7 @@ public class ResetGenerationIdMsg extends ReplicationMsg
     return this.generationId;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String toString()
   {

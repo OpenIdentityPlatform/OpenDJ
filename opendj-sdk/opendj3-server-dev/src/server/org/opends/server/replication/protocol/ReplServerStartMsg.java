@@ -26,30 +26,28 @@
  */
 package org.opends.server.replication.protocol;
 
-import java.io.UnsupportedEncodingException;
 import java.util.zip.DataFormatException;
 
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.types.DN;
-import org.opends.server.types.DirectoryException;
 
 /**
- * LocalizableMessage sent by a replication server to another replication server
+ * Message sent by a replication server to another replication server
  * at Startup.
  */
 public class ReplServerStartMsg extends StartMsg
 {
-  private Integer serverId;
-  private String serverURL;
-  private DN baseDN;
-  private int windowSize;
-  private ServerState serverState;
+  private final int serverId;
+  private final String serverURL;
+  private final DN baseDN;
+  private final int windowSize;
+  private final ServerState serverState;
 
   /**
    * Whether to continue using SSL to encrypt messages after the start
    * messages have been exchanged.
    */
-  private boolean sslEncryption;
+  private final boolean sslEncryption;
 
   /**
    * NOTE: Starting from protocol V4, we introduce a dedicated PDU for answering
@@ -106,166 +104,28 @@ public class ReplServerStartMsg extends StartMsg
    * @throws DataFormatException If the in does not contain a properly
    *                             encoded ReplServerStartMsg.
    */
-  public ReplServerStartMsg(byte[] in) throws DataFormatException
+  ReplServerStartMsg(byte[] in) throws DataFormatException
   {
-    byte[] allowedPduTypes = new byte[2];
-    allowedPduTypes[0] = MSG_TYPE_REPL_SERVER_START;
-    allowedPduTypes[1] = MSG_TYPE_REPL_SERVER_START_V1;
-    headerLength = decodeHeader(allowedPduTypes, in);
+    final ByteArrayScanner scanner = new ByteArrayScanner(in);
+    decodeHeader(scanner,
+        MSG_TYPE_REPL_SERVER_START, MSG_TYPE_REPL_SERVER_START_V1);
 
-    // Protocol version has been read as part of the header:
-    // decode the body according to the protocol version read in the header
-    switch(protocolVersion)
+    /* The ReplServerStartMsg payload is stored in the form :
+     * <baseDN><serverId><serverURL><windowSize><sslEncryption>
+     * <degradedStatusThreshold><serverState>
+     */
+    baseDN = scanner.nextDN();
+    serverId = scanner.nextIntUTF8();
+    serverURL = scanner.nextString();
+    windowSize = scanner.nextIntUTF8();
+    sslEncryption = Boolean.valueOf(scanner.nextString());
+
+    if (protocolVersion > ProtocolVersion.REPLICATION_PROTOCOL_V1)
     {
-      case ProtocolVersion.REPLICATION_PROTOCOL_V1:
-        decodeBody_V1(in, headerLength);
-        return;
+      degradedStatusThreshold = scanner.nextIntUTF8();
     }
 
-    try
-    {
-      /* The ReplServerStartMsg payload is stored in the form :
-       * <baseDN><serverId><serverURL><windowSize><sslEncryption>
-       * <degradedStatusThreshold><serverState>
-       */
-
-      /* first bytes are the header */
-      int pos = headerLength;
-
-      /* read the dn
-       * first calculate the length then construct the string
-       */
-      int length = getNextLength(in, pos);
-      baseDN = DN.valueOf(new String(in, pos, length, "UTF-8"));
-      pos += length +1;
-
-      /*
-       * read the ServerId
-       */
-      length = getNextLength(in, pos);
-      String serverIdString = new String(in, pos, length, "UTF-8");
-      serverId = Integer.valueOf(serverIdString);
-      pos += length +1;
-
-      /*
-       * read the ServerURL
-       */
-      length = getNextLength(in, pos);
-      serverURL = new String(in, pos, length, "UTF-8");
-      pos += length +1;
-
-      /*
-       * read the window size
-       */
-      length = getNextLength(in, pos);
-      windowSize = Integer.valueOf(new String(in, pos, length, "UTF-8"));
-      pos += length +1;
-
-      /*
-       * read the sslEncryption setting
-       */
-      length = getNextLength(in, pos);
-      sslEncryption = Boolean.valueOf(new String(in, pos, length, "UTF-8"));
-      pos += length +1;
-
-      /**
-       * read the degraded status threshold
-       */
-      length = getNextLength(in, pos);
-      degradedStatusThreshold =
-        Integer.valueOf(new String(in, pos, length, "UTF-8"));
-      pos += length + 1;
-
-      // Read the ServerState
-      // Caution: ServerState MUST be the last field. Because ServerState can
-      // contain null character (string termination of serverid string ..) it
-      // cannot be decoded using getNextLength() like the other fields. The
-      // only way is to rely on the end of the input buffer : and that forces
-      // the ServerState to be the last. This should be changed and we want to
-      // have more than one ServerState field.
-      serverState = new ServerState(in, pos, in.length - 1);
-    }
-    catch (UnsupportedEncodingException e)
-    {
-      throw new DataFormatException("UTF-8 is not supported by this jvm.");
-    }
-    catch (DirectoryException e)
-    {
-      throw new DataFormatException(e.getLocalizedMessage());
-    }
-  }
-
-  /**
-   * Decodes the body of a just received ReplServerStartMsg. The body is in the
-   * passed array, and starts at the provided location. This is for a PDU
-   * encoded in V1 protocol version.
-   * @param in A byte array containing the body for the ReplServerStartMsg
-   * @param pos The position in the array where the decoding should start
-   * @throws DataFormatException If the in does not contain a properly
-   *                             encoded ReplServerStartMsg.
-   */
-  public void decodeBody_V1(byte[] in, int pos) throws DataFormatException
-  {
-    try
-    {
-      /* The ReplServerStartMsg payload is stored in the form :
-       * <baseDN><serverId><serverURL><windowSize><sslEncryption>
-       * <serverState>
-       */
-
-      /* read the dn
-       * first calculate the length then construct the string
-       */
-      int length = getNextLength(in, pos);
-      baseDN = DN.valueOf(new String(in, pos, length, "UTF-8"));
-      pos += length +1;
-
-      /*
-       * read the ServerId
-       */
-      length = getNextLength(in, pos);
-      String serverIdString = new String(in, pos, length, "UTF-8");
-      serverId = Integer.valueOf(serverIdString);
-      pos += length +1;
-
-      /*
-       * read the ServerURL
-       */
-      length = getNextLength(in, pos);
-      serverURL = new String(in, pos, length, "UTF-8");
-      pos += length +1;
-
-      /*
-       * read the window size
-       */
-      length = getNextLength(in, pos);
-      windowSize = Integer.valueOf(new String(in, pos, length, "UTF-8"));
-      pos += length +1;
-
-      /*
-       * read the sslEncryption setting
-       */
-      length = getNextLength(in, pos);
-      sslEncryption = Boolean.valueOf(new String(in, pos, length, "UTF-8"));
-      pos += length +1;
-
-      // Read the ServerState
-      // Caution: ServerState MUST be the last field. Because ServerState can
-      // contain null character (string termination of serverid string ..) it
-      // cannot be decoded using getNextLength() like the other fields. The
-      // only way is to rely on the end of the input buffer : and that forces
-      // the ServerState to be the last. This should be changed and we want to
-      // have more than one ServerState field.
-      serverState = new ServerState(in, pos, in.length - 1);
-    }
-    catch (UnsupportedEncodingException e)
-    {
-      throw new DataFormatException("UTF-8 is not supported by this jvm.");
-    }
-    catch (DirectoryException e)
-    {
-      throw new DataFormatException(e.getLocalizedMessage());
-    }
+    serverState = scanner.nextServerState();
   }
 
   /**
@@ -305,69 +165,43 @@ public class ReplServerStartMsg extends StartMsg
     return this.serverState;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
-  public byte[] getBytes(short sessionProtocolVersion)
-     throws UnsupportedEncodingException
+  public byte[] getBytes(short protocolVersion)
   {
-    // If an older version requested, encode in the requested way
-    switch(sessionProtocolVersion)
+    final ByteArrayBuilder builder = new ByteArrayBuilder();
+    if (protocolVersion == ProtocolVersion.REPLICATION_PROTOCOL_V1)
     {
-      case ProtocolVersion.REPLICATION_PROTOCOL_V1:
-        return getBytes_V1();
+      /*
+       * The ReplServerStartMessage is stored in the form :
+       * <operation type><basedn><serverid><serverURL><windowsize><serverState>
+       */
+      encodeHeader_V1(MSG_TYPE_REPL_SERVER_START_V1, builder);
+      builder.append(baseDN);
+      builder.appendUTF8(serverId);
+      builder.append(serverURL);
+      builder.appendUTF8(windowSize);
+      builder.append(Boolean.toString(sslEncryption));
+      // Caution: ServerState MUST be the last field.
+      builder.append(serverState);
     }
-
-    /* The ReplServerStartMsg is stored in the form :
-     * <operation type><baseDN><serverId><serverURL><windowSize><sslEncryption>
-     * <degradedStatusThreshold><serverState>
-     */
-
-    byte[] byteDn = baseDN.toNormalizedString().getBytes("UTF-8");
-    byte[] byteServerId = String.valueOf(serverId).getBytes("UTF-8");
-    byte[] byteServerUrl = serverURL.getBytes("UTF-8");
-    byte[] byteServerState = serverState.getBytes();
-    byte[] byteWindowSize = String.valueOf(windowSize).getBytes("UTF-8");
-    byte[] byteSSLEncryption =
-      String.valueOf(sslEncryption).getBytes("UTF-8");
-    byte[] byteDegradedStatusThreshold =
-      String.valueOf(degradedStatusThreshold).getBytes("UTF-8");
-
-    int length = byteDn.length + 1 + byteServerId.length + 1 +
-      byteServerUrl.length + 1 + byteWindowSize.length + 1 +
-      byteSSLEncryption.length + 1 +
-      byteDegradedStatusThreshold.length + 1 +
-      byteServerState.length + 1;
-
-    /* encode the header in a byte[] large enough */
-    byte resultByteArray[] = encodeHeader(MSG_TYPE_REPL_SERVER_START, length,
-        sessionProtocolVersion);
-
-    int pos = headerLength;
-
-    /* put the baseDN and a terminating 0 */
-    pos = addByteArray(byteDn, resultByteArray, pos);
-
-    /* put the ServerId */
-    pos = addByteArray(byteServerId, resultByteArray, pos);
-
-    /* put the ServerURL */
-    pos = addByteArray(byteServerUrl, resultByteArray, pos);
-
-    /* put the window size */
-    pos = addByteArray(byteWindowSize, resultByteArray, pos);
-
-    /* put the SSL Encryption setting */
-    pos = addByteArray(byteSSLEncryption, resultByteArray, pos);
-
-    /* put the degraded status threshold */
-    pos = addByteArray(byteDegradedStatusThreshold, resultByteArray, pos);
-
-    /* put the ServerState */
-    pos = addByteArray(byteServerState, resultByteArray, pos);
-
-    return resultByteArray;
+    else
+    {
+      /* The ReplServerStartMsg is stored in the form :
+       * <operation type><baseDN><serverId><serverURL><windowSize><sslEncryption>
+       * <degradedStatusThreshold><serverState>
+       */
+      encodeHeader(MSG_TYPE_REPL_SERVER_START, builder, protocolVersion);
+      builder.append(baseDN);
+      builder.appendUTF8(serverId);
+      builder.append(serverURL);
+      builder.appendUTF8(windowSize);
+      builder.append(Boolean.toString(sslEncryption));
+      builder.appendUTF8(degradedStatusThreshold);
+      // Caution: ServerState MUST be the last field.
+      builder.append(serverState);
+    }
+    return builder.toByteArray();
   }
 
   /**
@@ -410,9 +244,7 @@ public class ReplServerStartMsg extends StartMsg
     this.degradedStatusThreshold = degradedStatusThreshold;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String toString()
   {
@@ -427,65 +259,5 @@ public class ReplServerStartMsg extends StartMsg
       "\nsslEncryption: " + sslEncryption +
       "\ndegradedStatusThreshold: " + degradedStatusThreshold +
       "\nwindowSize: " + windowSize;
-  }
-
-  /**
-   * Get the byte array representation of this LocalizableMessage. This uses the version
-   * 1 of the replication protocol (used for compatibility purpose).
-   *
-   * @return The byte array representation of this LocalizableMessage.
-   *
-   * @throws UnsupportedEncodingException  When the encoding of the message
-   *         failed because the UTF-8 encoding is not supported.
-   */
-  public byte[] getBytes_V1() throws UnsupportedEncodingException
-  {
-    /*
-     * The ReplServerStartMessage is stored in the form :
-     * <operation type><basedn><serverid><serverURL><windowsize><serverState>
-     */
-    try {
-      byte[] byteDn = baseDN.toNormalizedString().getBytes("UTF-8");
-      byte[] byteServerId = String.valueOf(serverId).getBytes("UTF-8");
-      byte[] byteServerUrl = serverURL.getBytes("UTF-8");
-      byte[] byteServerState = serverState.getBytes();
-      byte[] byteWindowSize = String.valueOf(windowSize).getBytes("UTF-8");
-      byte[] byteSSLEncryption =
-                     String.valueOf(sslEncryption).getBytes("UTF-8");
-
-      int length = byteDn.length + 1 + byteServerId.length + 1 +
-                   byteServerUrl.length + 1 + byteWindowSize.length + 1 +
-                   byteSSLEncryption.length + 1 +
-                   byteServerState.length + 1;
-
-      /* encode the header in a byte[] large enough */
-      byte resultByteArray[] = encodeHeader_V1(MSG_TYPE_REPL_SERVER_START_V1,
-        length);
-      int pos = headerLength;
-
-      /* put the baseDN and a terminating 0 */
-      pos = addByteArray(byteDn, resultByteArray, pos);
-
-      /* put the ServerId */
-      pos = addByteArray(byteServerId, resultByteArray, pos);
-
-      /* put the ServerURL */
-      pos = addByteArray(byteServerUrl, resultByteArray, pos);
-
-      /* put the window size */
-      pos = addByteArray(byteWindowSize, resultByteArray, pos);
-
-      /* put the SSL Encryption setting */
-      pos = addByteArray(byteSSLEncryption, resultByteArray, pos);
-
-      /* put the ServerState */
-      pos = addByteArray(byteServerState, resultByteArray, pos);
-
-      return resultByteArray;
-    }
-    catch (UnsupportedEncodingException e)
-    {
-      return null;
-    }
   }
 }

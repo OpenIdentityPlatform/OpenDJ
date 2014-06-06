@@ -26,12 +26,7 @@
  */
 package org.opends.server.replication.protocol;
 
-
-
-import java.io.UnsupportedEncodingException;
 import java.util.zip.DataFormatException;
-
-
 
 /**
  * This message is part of the replication protocol. RS1 sends a
@@ -49,8 +44,6 @@ public class MonitorRequestMsg extends ReplicationMsg
    * The serverID of the server that sends this message.
    */
   private final int senderID;
-
-
 
   /**
    * Creates a message.
@@ -76,71 +69,29 @@ public class MonitorRequestMsg extends ReplicationMsg
    * @throws DataFormatException
    *           If the in does not contain a properly, encoded message.
    */
-  public MonitorRequestMsg(byte[] in) throws DataFormatException
+  MonitorRequestMsg(byte[] in) throws DataFormatException
   {
-    try
+    final ByteArrayScanner scanner = new ByteArrayScanner(in);
+    final byte msgType = scanner.nextByte();
+    if (msgType != MSG_TYPE_REPL_SERVER_MONITOR_REQUEST)
     {
-      // First byte is the type
-      if (in[0] != MSG_TYPE_REPL_SERVER_MONITOR_REQUEST)
-        throw new DataFormatException("input is not a valid "
-            + this.getClass().getCanonicalName());
-      int pos = 1;
-
-      // sender
-      int length = getNextLength(in, pos);
-      String senderString = new String(in, pos, length, "UTF-8");
-      this.senderID = Integer.valueOf(senderString);
-      pos += length + 1;
-
-      // destination
-      length = getNextLength(in, pos);
-      String destinationString = new String(in, pos, length, "UTF-8");
-      this.destination = Integer.valueOf(destinationString);
-      pos += length + 1;
-
+      throw new DataFormatException("input is not a valid "
+          + getClass().getCanonicalName());
     }
-    catch (UnsupportedEncodingException e)
-    {
-      throw new DataFormatException("UTF-8 is not supported by this jvm.");
-    }
+    this.senderID = scanner.nextIntUTF8();
+    this.destination = scanner.nextIntUTF8();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public byte[] getBytes(short protocolVersion)
   {
-    try
-    {
-      byte[] senderBytes = String.valueOf(senderID).getBytes("UTF-8");
-      byte[] destinationBytes = String.valueOf(destination).getBytes("UTF-8");
-
-      int length = 1 + senderBytes.length + 1 + destinationBytes.length + 1;
-
-      byte[] resultByteArray = new byte[length];
-
-      /* put the type of the operation */
-      resultByteArray[0] = MSG_TYPE_REPL_SERVER_MONITOR_REQUEST;
-      int pos = 1;
-
-      /* put the sender */
-      pos = addByteArray(senderBytes, resultByteArray, pos);
-
-      /* put the destination */
-      pos = addByteArray(destinationBytes, resultByteArray, pos);
-
-      return resultByteArray;
-    }
-    catch (UnsupportedEncodingException e)
-    {
-      return null;
-    }
+    final ByteArrayBuilder builder = new ByteArrayBuilder();
+    builder.append(MSG_TYPE_REPL_SERVER_MONITOR_REQUEST);
+    builder.appendUTF8(senderID);
+    builder.appendUTF8(destination);
+    return builder.toByteArray();
   }
-
-
 
   /**
    * Get the destination.
@@ -152,8 +103,6 @@ public class MonitorRequestMsg extends ReplicationMsg
     return destination;
   }
 
-
-
   /**
    * Get the server ID of the server that sent this message.
    *
@@ -164,13 +113,12 @@ public class MonitorRequestMsg extends ReplicationMsg
     return senderID;
   }
 
-
-
   /**
    * Returns a string representation of the message.
    *
    * @return the string representation of this message.
    */
+  @Override
   public String toString()
   {
     return "[" + getClass().getCanonicalName() + " sender=" + senderID

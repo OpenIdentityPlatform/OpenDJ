@@ -26,9 +26,7 @@
  */
 package org.opends.server.replication.protocol;
 
-import java.io.UnsupportedEncodingException;
 import java.util.zip.DataFormatException;
-
 
 /**
  * This message is used by LDAP server or by Replication Servers to
@@ -42,7 +40,6 @@ import java.util.zip.DataFormatException;
 public class WindowMsg extends ReplicationMsg
 {
   private final int numAck;
-
 
   /**
    * Create a new WindowMsg.
@@ -63,77 +60,39 @@ public class WindowMsg extends ReplicationMsg
    * @throws DataFormatException If the byte array does not contain a valid
    *                             encoded form of the WindowMsg.
    */
-  public WindowMsg(byte[] in) throws DataFormatException
+  WindowMsg(byte[] in) throws DataFormatException
   {
-    /* The WindowMsg is encoded in the form :
-     * <numAck>
-     */
-    try
+    final ByteArrayScanner scanner = new ByteArrayScanner(in);
+    final byte msgType = scanner.nextByte();
+    if (msgType != MSG_TYPE_WINDOW)
     {
-      /* first byte is the type */
-      if (in[0] != MSG_TYPE_WINDOW)
-        throw new DataFormatException("input is not a valid Window LocalizableMessage");
-      int pos = 1;
-
-      /*
-       * read the number of acks contained in this message.
-       * first calculate the length then construct the string
-       */
-      int length = getNextLength(in, pos);
-      String numAckStr = new String(in, pos, length, "UTF-8");
-      pos += length +1;
-      numAck = Integer.parseInt(numAckStr);
-    } catch (UnsupportedEncodingException e)
-    {
-      throw new DataFormatException("UTF-8 is not supported by this jvm.");
+      throw new DataFormatException("input is not a valid Window Message");
     }
+
+    numAck = scanner.nextIntUTF8();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public byte[] getBytes(short protocolVersion)
   {
-    /*
-     * WindowMsg contains.
-     * <numAck>
-     */
-    try {
-      byte[] byteNumAck = String.valueOf(numAck).getBytes("UTF-8");
-
-      int length = 1 + byteNumAck.length + 1;
-
-      byte[] resultByteArray = new byte[length];
-
-      /* put the type of the operation */
-      resultByteArray[0] = MSG_TYPE_WINDOW;
-      int pos = 1;
-
-      pos = addByteArray(byteNumAck, resultByteArray, pos);
-
-      return resultByteArray;
-    }
-    catch (UnsupportedEncodingException e)
-    {
-      return null;
-    }
+    final ByteArrayBuilder builder = new ByteArrayBuilder();
+    builder.append(MSG_TYPE_WINDOW);
+    builder.appendUTF8(numAck);
+    return builder.toByteArray();
   }
 
-
   /**
-   * Get the number of message acknowledged by the Window LocalizableMessage.
+   * Get the number of message acknowledged by the Window message.
    *
-   * @return the number of message acknowledged by the Window LocalizableMessage.
+   * @return the number of message acknowledged by the Window message.
    */
   public int getNumAck()
   {
     return numAck;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String toString()
   {
