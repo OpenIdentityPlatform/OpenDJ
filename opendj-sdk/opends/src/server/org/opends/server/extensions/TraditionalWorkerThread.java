@@ -22,10 +22,9 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.extensions;
-
 
 import java.util.Map;
 
@@ -38,11 +37,10 @@ import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.Operation;
 
+import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.messages.CoreMessages.*;
 import static org.opends.server.util.StaticUtils.*;
-
 
 /**
  * This class defines a data structure for storing and interacting with a
@@ -63,7 +61,7 @@ public class TraditionalWorkerThread
   private volatile boolean shutdownRequested;
 
   /**
-   * Indicates whether this thread was stopped because the server threadnumber
+   * Indicates whether this thread was stopped because the server thread number
    * was reduced.
    */
   private boolean stoppedByReducedThreadNumber;
@@ -72,13 +70,13 @@ public class TraditionalWorkerThread
   private boolean waitingForWork;
 
   /** The operation that this worker thread is currently processing. */
-  private Operation operation;
+  private volatile Operation operation;
 
   /** The handle to the actual thread for this worker thread. */
   private Thread workerThread;
 
   /** The work queue that this worker thread will service. */
-  private TraditionalWorkQueue workQueue;
+  private final TraditionalWorkQueue workQueue;
 
 
 
@@ -129,7 +127,7 @@ public class TraditionalWorkerThread
    */
   public boolean isActive()
   {
-    return (isAlive() && (operation != null));
+    return isAlive() && operation != null;
   }
 
 
@@ -148,7 +146,7 @@ public class TraditionalWorkerThread
       try
       {
         waitingForWork = true;
-        operation = null;
+        operation = null; // this line is necessary because next line can block
         operation = workQueue.nextOperation(this);
         waitingForWork = false;
 

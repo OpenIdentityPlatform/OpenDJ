@@ -2802,10 +2802,10 @@ public class ReplicationBroker
 
     synchronized (startStopLock)
     {
+      stopChangeTimeHeartBeatPublishing();
+      stopRSHeartBeatMonitoring();
       shutdown = true;
       setConnectedRS(ConnectedRS.stopped());
-      stopRSHeartBeatMonitoring();
-      stopChangeTimeHeartBeatPublishing();
       deregisterReplicationMonitor();
     }
   }

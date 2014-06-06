@@ -52,7 +52,7 @@ public class DummyReplicationDomain extends ReplicationDomain
   }
 
   @Override
-  protected void setNewStatus(StatusMachineEvent event)
+  protected void signalNewStatus(StatusMachineEvent event)
   {
   }
 
