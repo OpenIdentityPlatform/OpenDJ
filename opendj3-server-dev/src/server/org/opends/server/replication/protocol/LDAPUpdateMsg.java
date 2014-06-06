@@ -220,14 +220,14 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
      * <assured mode> <safe data level>
      */
     final ByteArrayBuilder builder = new ByteArrayBuilder();
-    builder.append(msgType);
-    builder.append((byte) protocolVersion);
-    builder.appendUTF8(csn);
-    builder.append(dn);
-    builder.append(entryUUID);
-    builder.append(assuredFlag);
-    builder.append(assuredMode.getValue());
-    builder.append(safeDataLevel);
+    builder.appendByte(msgType);
+    builder.appendByte((byte) protocolVersion);
+    builder.appendCSNUTF8(csn);
+    builder.appendDN(dn);
+    builder.appendString(entryUUID);
+    builder.appendBoolean(assuredFlag);
+    builder.appendByte(assuredMode.getValue());
+    builder.appendByte(safeDataLevel);
     return builder;
   }
 
@@ -244,11 +244,11 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
      * <operation type><CSN><dn><assured><entryuuid><change>
      */
     final ByteArrayBuilder builder = new ByteArrayBuilder();
-    builder.append(msgType);
-    builder.appendUTF8(csn);
-    builder.append(assuredFlag);
-    builder.append(dn);
-    builder.append(entryUUID);
+    builder.appendByte(msgType);
+    builder.appendCSNUTF8(csn);
+    builder.appendBoolean(assuredFlag);
+    builder.appendDN(dn);
+    builder.appendString(entryUUID);
     return builder;
   }
 

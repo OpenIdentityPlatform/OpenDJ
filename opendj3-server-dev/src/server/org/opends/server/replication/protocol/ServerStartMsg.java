@@ -122,7 +122,7 @@ public class ServerStartMsg extends StartMsg
     windowSize = scanner.nextIntUTF8();
     heartbeatInterval = scanner.nextIntUTF8();
     sslEncryption = Boolean.valueOf(scanner.nextString());
-    serverState = scanner.nextServerState();
+    serverState = scanner.nextServerStateMustComeLast();
   }
 
   /**
@@ -205,18 +205,17 @@ public class ServerStartMsg extends StartMsg
     final ByteArrayBuilder builder = new ByteArrayBuilder();
     encodeHeader(MSG_TYPE_SERVER_START, builder, protocolVersion);
 
-    builder.append(baseDN);
-    builder.appendUTF8(serverId);
-    builder.append(serverURL);
-    builder.appendUTF8(maxReceiveDelay);
-    builder.appendUTF8(maxReceiveQueue);
-    builder.appendUTF8(maxSendDelay);
-    builder.appendUTF8(maxSendQueue);
-    builder.appendUTF8(windowSize);
-    builder.appendUTF8(heartbeatInterval);
-    builder.append(Boolean.toString(sslEncryption));
-    // Caution: ServerState MUST be the last field.
-    builder.append(serverState);
+    builder.appendDN(baseDN);
+    builder.appendIntUTF8(serverId);
+    builder.appendString(serverURL);
+    builder.appendIntUTF8(maxReceiveDelay);
+    builder.appendIntUTF8(maxReceiveQueue);
+    builder.appendIntUTF8(maxSendDelay);
+    builder.appendIntUTF8(maxSendQueue);
+    builder.appendIntUTF8(windowSize);
+    builder.appendLongUTF8(heartbeatInterval);
+    builder.appendString(Boolean.toString(sslEncryption));
+    builder.appendServerStateMustComeLast(serverState);
     return builder.toByteArray();
   }
 

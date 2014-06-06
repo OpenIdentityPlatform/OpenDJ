@@ -125,7 +125,7 @@ public class ReplServerStartMsg extends StartMsg
       degradedStatusThreshold = scanner.nextIntUTF8();
     }
 
-    serverState = scanner.nextServerState();
+    serverState = scanner.nextServerStateMustComeLast();
   }
 
   /**
@@ -177,13 +177,12 @@ public class ReplServerStartMsg extends StartMsg
        * <operation type><basedn><serverid><serverURL><windowsize><serverState>
        */
       encodeHeader_V1(MSG_TYPE_REPL_SERVER_START_V1, builder);
-      builder.append(baseDN);
-      builder.appendUTF8(serverId);
-      builder.append(serverURL);
-      builder.appendUTF8(windowSize);
-      builder.append(Boolean.toString(sslEncryption));
-      // Caution: ServerState MUST be the last field.
-      builder.append(serverState);
+      builder.appendDN(baseDN);
+      builder.appendIntUTF8(serverId);
+      builder.appendString(serverURL);
+      builder.appendIntUTF8(windowSize);
+      builder.appendString(Boolean.toString(sslEncryption));
+      builder.appendServerStateMustComeLast(serverState);
     }
     else
     {
@@ -192,14 +191,13 @@ public class ReplServerStartMsg extends StartMsg
        * <degradedStatusThreshold><serverState>
        */
       encodeHeader(MSG_TYPE_REPL_SERVER_START, builder, protocolVersion);
-      builder.append(baseDN);
-      builder.appendUTF8(serverId);
-      builder.append(serverURL);
-      builder.appendUTF8(windowSize);
-      builder.append(Boolean.toString(sslEncryption));
-      builder.appendUTF8(degradedStatusThreshold);
-      // Caution: ServerState MUST be the last field.
-      builder.append(serverState);
+      builder.appendDN(baseDN);
+      builder.appendIntUTF8(serverId);
+      builder.appendString(serverURL);
+      builder.appendIntUTF8(windowSize);
+      builder.appendString(Boolean.toString(sslEncryption));
+      builder.appendIntUTF8(degradedStatusThreshold);
+      builder.appendServerStateMustComeLast(serverState);
     }
     return builder.toByteArray();
   }

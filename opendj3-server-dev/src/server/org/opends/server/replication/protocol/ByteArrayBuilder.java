@@ -76,9 +76,9 @@ public class ByteArrayBuilder
    *          the boolean to append.
    * @return this ByteArrayBuilder
    */
-  public ByteArrayBuilder append(boolean b)
+  public ByteArrayBuilder appendBoolean(boolean b)
   {
-    append((byte) (b ? 1 : 0));
+    appendByte((byte) (b ? 1 : 0));
     return this;
   }
 
@@ -89,7 +89,7 @@ public class ByteArrayBuilder
    *          the byte to append.
    * @return this ByteArrayBuilder
    */
-  public ByteArrayBuilder append(byte b)
+  public ByteArrayBuilder appendByte(byte b)
   {
     builder.append(b);
     return this;
@@ -102,7 +102,7 @@ public class ByteArrayBuilder
    *          the short to append.
    * @return this ByteArrayBuilder
    */
-  public ByteArrayBuilder append(short s)
+  public ByteArrayBuilder appendShort(short s)
   {
     builder.append(s);
     return this;
@@ -115,7 +115,7 @@ public class ByteArrayBuilder
    *          the long to append.
    * @return this ByteArrayBuilder
    */
-  public ByteArrayBuilder append(int i)
+  public ByteArrayBuilder appendInt(int i)
   {
     builder.append(i);
     return this;
@@ -128,7 +128,7 @@ public class ByteArrayBuilder
    *          the long to append.
    * @return this ByteArrayBuilder
    */
-  public ByteArrayBuilder append(long l)
+  public ByteArrayBuilder appendLong(long l)
   {
     builder.append(l);
     return this;
@@ -142,9 +142,9 @@ public class ByteArrayBuilder
    *          the int to append.
    * @return this ByteArrayBuilder
    */
-  public ByteArrayBuilder appendUTF8(int i)
+  public ByteArrayBuilder appendIntUTF8(int i)
   {
-    return append(Integer.toString(i));
+    return appendString(Integer.toString(i));
   }
 
   /**
@@ -155,9 +155,9 @@ public class ByteArrayBuilder
    *          the long to append.
    * @return this ByteArrayBuilder
    */
-  public ByteArrayBuilder appendUTF8(long l)
+  public ByteArrayBuilder appendLongUTF8(long l)
   {
-    return append(Long.toString(l));
+    return appendString(Long.toString(l));
   }
 
   /**
@@ -169,11 +169,11 @@ public class ByteArrayBuilder
    */
   public ByteArrayBuilder appendStrings(Collection<String> col)
   {
-    //append(int) would have been safer, but byte is compatible with legacy code
-    append((byte) col.size());
+    //appendInt() would have been safer, but byte is compatible with legacy code
+    appendByte((byte) col.size());
     for (String s : col)
     {
-      append(s);
+      appendString(s);
     }
     return this;
   }
@@ -187,13 +187,13 @@ public class ByteArrayBuilder
    *          the String to append. Can be null.
    * @return this ByteArrayBuilder
    */
-  public ByteArrayBuilder append(String s)
+  public ByteArrayBuilder appendString(String s)
   {
     try
     {
       if (s != null && s.length() > 0)
       {
-        append(s.getBytes("UTF-8"));
+        appendByteArray(s.getBytes("UTF-8"));
       }
       return appendZeroSeparator();
     }
@@ -210,7 +210,7 @@ public class ByteArrayBuilder
    *          the CSN to append.
    * @return this ByteArrayBuilder
    */
-  public ByteArrayBuilder append(CSN csn)
+  public ByteArrayBuilder appendCSN(CSN csn)
   {
     csn.toByteString(builder);
     return this;
@@ -224,9 +224,9 @@ public class ByteArrayBuilder
    *          the CSN to append.
    * @return this ByteArrayBuilder
    */
-  public ByteArrayBuilder appendUTF8(CSN csn)
+  public ByteArrayBuilder appendCSNUTF8(CSN csn)
   {
-    append(csn.toString());
+    appendString(csn.toString());
     return this;
   }
 
@@ -238,9 +238,9 @@ public class ByteArrayBuilder
    *          the DN to append.
    * @return this ByteArrayBuilder
    */
-  public ByteArrayBuilder append(DN dn)
+  public ByteArrayBuilder appendDN(DN dn)
   {
-    append(dn.toString());
+    appendString(dn.toString());
     return this;
   }
 
@@ -251,7 +251,7 @@ public class ByteArrayBuilder
    *          the byte array to append.
    * @return this ByteArrayBuilder
    */
-  public ByteArrayBuilder append(byte[] bytes)
+  public ByteArrayBuilder appendByteArray(byte[] bytes)
   {
     builder.append(bytes);
     return this;
@@ -261,12 +261,15 @@ public class ByteArrayBuilder
    * Append all the bytes from the byte array to this ByteArrayBuilder
    * and then append a final zero byte separator for compatibility
    * with legacy implementations.
+   * <p>
+   * Note: the super long method name it is intentional:
+   * nobody will want to use it, which is good because nobody should.
    *
    * @param bytes
    *          the byte array to append.
    * @return this ByteArrayBuilder
    */
-  public ByteArrayBuilder appendZeroTerminated(byte[] bytes)
+  public ByteArrayBuilder appendZeroTerminatedByteArray(byte[] bytes)
   {
     builder.append(bytes);
     return appendZeroSeparator();
@@ -288,20 +291,24 @@ public class ByteArrayBuilder
    * fields. The only way is to rely on the end of the input buffer: and that
    * forces the ServerState to be the last field. This should be changed if we
    * want to have more than one ServerState field.
+   * <p>
+   * Note: the super long method name it is intentional:
+   * nobody will want to use it, which is good because nobody should.
    *
    * @param serverState
    *          the ServerState to append.
    * @return this ByteArrayBuilder
+   * @see ByteArrayScanner#nextServerStateMustComeLast()
    */
-  public ByteArrayBuilder append(ServerState serverState)
+  public ByteArrayBuilder appendServerStateMustComeLast(ServerState serverState)
   {
     final Map<Integer, CSN> serverIdToCSN = serverState.getServerIdToCSNMap();
     for (Entry<Integer, CSN> entry : serverIdToCSN.entrySet())
     {
       // FIXME JNR: why append the serverId in addition to the CSN
       // since the CSN already contains the serverId?
-      appendUTF8(entry.getKey()); // serverId
-      appendUTF8(entry.getValue()); // CSN
+      appendIntUTF8(entry.getKey()); // serverId
+      appendCSNUTF8(entry.getValue()); // CSN
     }
     return appendZeroSeparator(); // stupid legacy zero separator
   }

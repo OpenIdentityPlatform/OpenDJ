@@ -146,10 +146,10 @@ public class DeleteMsg extends LDAPUpdateMsg
   {
     final ByteArrayBuilder builder =
         encodeHeader(MSG_TYPE_DELETE, protocolVersion);
-    builder.append(initiatorsName);
-    builder.appendUTF8(encodedEclIncludes.length);
-    builder.appendZeroTerminated(encodedEclIncludes);
-    builder.append(isSubtreeDelete);
+    builder.appendString(initiatorsName);
+    builder.appendIntUTF8(encodedEclIncludes.length);
+    builder.appendZeroTerminatedByteArray(encodedEclIncludes);
+    builder.appendBoolean(isSubtreeDelete);
     return builder.toByteArray();
   }
 

@@ -120,7 +120,7 @@ public class ServerStartECLMsg extends StartMsg
     heartbeatInterval = scanner.nextIntUTF8();
     // FIXME awful encoding
     sslEncryption = Boolean.valueOf(scanner.nextString());
-    serverState = scanner.nextServerState();
+    serverState = scanner.nextServerStateMustComeLast();
   }
 
   /**
@@ -183,17 +183,16 @@ public class ServerStartECLMsg extends StartMsg
   {
     final ByteArrayBuilder builder = new ByteArrayBuilder();
     encodeHeader(MSG_TYPE_START_ECL, builder, sessionProtocolVersion);
-    builder.append(serverURL);
-    builder.appendUTF8(maxReceiveDelay);
-    builder.appendUTF8(maxReceiveQueue);
-    builder.appendUTF8(maxSendDelay);
-    builder.appendUTF8(maxSendQueue);
-    builder.appendUTF8(windowSize);
-    builder.appendUTF8(heartbeatInterval);
+    builder.appendString(serverURL);
+    builder.appendIntUTF8(maxReceiveDelay);
+    builder.appendIntUTF8(maxReceiveQueue);
+    builder.appendIntUTF8(maxSendDelay);
+    builder.appendIntUTF8(maxSendQueue);
+    builder.appendIntUTF8(windowSize);
+    builder.appendLongUTF8(heartbeatInterval);
     // FIXME awful encoding
-    builder.append(Boolean.toString(sslEncryption));
-    // Caution: ServerState MUST be the last field.
-    builder.append(serverState);
+    builder.appendString(Boolean.toString(sslEncryption));
+    builder.appendServerStateMustComeLast(serverState);
     return builder.toByteArray();
   }
 

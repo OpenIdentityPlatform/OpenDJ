@@ -181,10 +181,10 @@ public class ModifyDNMsg extends ModifyCommonMsg
   public byte[] getBytes_V1()
   {
     final ByteArrayBuilder builder = encodeHeader_V1(MSG_TYPE_MODIFYDN_V1);
-    builder.append(newRDN);
-    builder.append(newSuperior);
-    builder.append(newSuperiorEntryUUID);
-    builder.append(deleteOldRdn);
+    builder.appendString(newRDN);
+    builder.appendString(newSuperior);
+    builder.appendString(newSuperiorEntryUUID);
+    builder.appendBoolean(deleteOldRdn);
     return builder.toByteArray();
   }
 
@@ -194,11 +194,11 @@ public class ModifyDNMsg extends ModifyCommonMsg
   {
     final ByteArrayBuilder builder =
         encodeHeader(MSG_TYPE_MODIFYDN,ProtocolVersion.REPLICATION_PROTOCOL_V3);
-    builder.append(newRDN);
-    builder.append(newSuperior);
-    builder.append(newSuperiorEntryUUID);
-    builder.append(deleteOldRdn);
-    builder.appendZeroTerminated(encodedMods);
+    builder.appendString(newRDN);
+    builder.appendString(newSuperior);
+    builder.appendString(newSuperiorEntryUUID);
+    builder.appendBoolean(deleteOldRdn);
+    builder.appendZeroTerminatedByteArray(encodedMods);
     return builder.toByteArray();
   }
 
@@ -208,14 +208,14 @@ public class ModifyDNMsg extends ModifyCommonMsg
   {
     final ByteArrayBuilder builder =
         encodeHeader(MSG_TYPE_MODIFYDN, protocolVersion);
-    builder.append(newRDN);
-    builder.append(newSuperior);
-    builder.append(newSuperiorEntryUUID);
-    builder.append(deleteOldRdn);
-    builder.appendUTF8(encodedMods.length);
-    builder.appendZeroTerminated(encodedMods);
-    builder.appendUTF8(encodedEclIncludes.length);
-    builder.appendZeroTerminated(encodedEclIncludes);
+    builder.appendString(newRDN);
+    builder.appendString(newSuperior);
+    builder.appendString(newSuperiorEntryUUID);
+    builder.appendBoolean(deleteOldRdn);
+    builder.appendIntUTF8(encodedMods.length);
+    builder.appendZeroTerminatedByteArray(encodedMods);
+    builder.appendIntUTF8(encodedEclIncludes.length);
+    builder.appendZeroTerminatedByteArray(encodedEclIncludes);
     return builder.toByteArray();
   }
 

@@ -87,9 +87,9 @@ public class MonitorRequestMsg extends ReplicationMsg
   public byte[] getBytes(short protocolVersion)
   {
     final ByteArrayBuilder builder = new ByteArrayBuilder();
-    builder.append(MSG_TYPE_REPL_SERVER_MONITOR_REQUEST);
-    builder.appendUTF8(senderID);
-    builder.appendUTF8(destination);
+    builder.appendByte(MSG_TYPE_REPL_SERVER_MONITOR_REQUEST);
+    builder.appendIntUTF8(senderID);
+    builder.appendIntUTF8(destination);
     return builder.toByteArray();
   }
 

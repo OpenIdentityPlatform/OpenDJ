@@ -155,17 +155,17 @@ public class ChangeTimeHeartbeatMsg extends ReplicationMsg
     if (protocolVersion < ProtocolVersion.REPLICATION_PROTOCOL_V7)
     {
       ByteArrayBuilder builder = new ByteArrayBuilder(bytes(1) + csnsUTF8(1));
-      builder.append(MSG_TYPE_CT_HEARTBEAT);
-      builder.appendUTF8(csn);
+      builder.appendByte(MSG_TYPE_CT_HEARTBEAT);
+      builder.appendCSNUTF8(csn);
       return builder.toByteArray();
     }
 
     final ByteArrayBuilder builder = new ByteArrayBuilder(bytes(1) + csns(1));
-    builder.append(MSG_TYPE_CT_HEARTBEAT);
-    builder.append(csn);
+    builder.appendByte(MSG_TYPE_CT_HEARTBEAT);
+    builder.appendCSN(csn);
     if (protocolVersion >= ProtocolVersion.REPLICATION_PROTOCOL_V8)
     {
-      builder.append(eventType);
+      builder.appendByte(eventType);
     }
     return builder.toByteArray();
   }

@@ -112,14 +112,14 @@ public class EntryMsg extends RoutableMsg
   public byte[] getBytes(short version)
   {
     final ByteArrayBuilder builder = new ByteArrayBuilder();
-    builder.append(MSG_TYPE_ENTRY);
-    builder.appendUTF8(senderID);
-    builder.appendUTF8(destination);
+    builder.appendByte(MSG_TYPE_ENTRY);
+    builder.appendIntUTF8(senderID);
+    builder.appendIntUTF8(destination);
     if (version >= ProtocolVersion.REPLICATION_PROTOCOL_V4)
     {
-      builder.appendUTF8(msgId);
+      builder.appendIntUTF8(msgId);
     }
-    builder.appendZeroTerminated(entryByteArray);
+    builder.appendZeroTerminatedByteArray(entryByteArray);
     return builder.toByteArray();
   }
 
