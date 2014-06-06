@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.replication.common;
 
@@ -93,11 +93,6 @@ public class ServerStateTest extends ReplicationTestCase
     String stringRep = serverState.toString();
     assertTrue(stringRep.contains(csn2.toString()));
     assertTrue(stringRep.contains(csn3.toString()));
-
-    // Check getBytes
-    byte[] b = serverState.getBytes();
-    ServerState generatedServerState = new ServerState(b,0,b.length -1) ;
-    assertEquals(b, generatedServerState.getBytes()) ;
   }
 
   /**

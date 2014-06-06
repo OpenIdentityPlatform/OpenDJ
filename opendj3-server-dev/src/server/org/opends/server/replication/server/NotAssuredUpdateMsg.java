@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.replication.server;
 
@@ -31,9 +31,7 @@ import java.util.zip.DataFormatException;
 
 import org.opends.server.replication.common.AssuredMode;
 import org.opends.server.replication.common.CSN;
-import org.opends.server.replication.protocol.LDAPUpdateMsg;
-import org.opends.server.replication.protocol.ProtocolVersion;
-import org.opends.server.replication.protocol.UpdateMsg;
+import org.opends.server.replication.protocol.*;
 
 /**
  * This is a facility class that is in fact an hack to optimize replication
@@ -48,28 +46,32 @@ import org.opends.server.replication.protocol.UpdateMsg;
  * when calling the isAssured() method.
  *
  */
-public class NotAssuredUpdateMsg extends UpdateMsg
+class NotAssuredUpdateMsg extends UpdateMsg
 {
-  // The real update message this message represents
-  private UpdateMsg realUpdateMsg = null;
+  /** The real update message this message represents */
+  private final UpdateMsg realUpdateMsg;
 
-  // V1 serialized form of the real message with assured flag set to false.
-  // Ready to be sent.
-  private byte[] realUpdateMsgNotAssuredBytesV1 = null;
+  /**
+   * V1 serialized form of the real message with assured flag set to false.
+   * Ready to be sent.
+   */
+  private final byte[] realUpdateMsgNotAssuredBytesV1;
 
-  // VLatest serialized form of the real message with assured flag set to false.
-  // Ready to be sent.
-  private byte[] realUpdateMsgNotAssuredBytesVLatest = null;
+  /**
+   * VLatest serialized form of the real message with assured flag set to false.
+   * Ready to be sent.
+   */
+  private final byte[] realUpdateMsgNotAssuredBytesVLatest;
 
   /**
    * Creates a new empty UpdateMsg.
    * This class is only used by replication server code so constructor is not
    * public by security.
+   *
    * @param updateMsg The real underlying update message this object represents.
    * @throws UnsupportedEncodingException  When the pre-encoding of the message
    *         failed because the UTF-8 encoding is not supported or the
    *         requested protocol version to use is not supported by this PDU.
-   *
    */
   NotAssuredUpdateMsg(UpdateMsg updateMsg) throws UnsupportedEncodingException
   {
@@ -85,18 +87,7 @@ public class NotAssuredUpdateMsg extends UpdateMsg
        * Get the encoding form of the real message then overwrite the assured
        * flag to always be false.
        */
-      byte[] origBytes = realUpdateMsg.getBytes(
-        ProtocolVersion.REPLICATION_PROTOCOL_V1);
-      // Clone the byte array to be able to modify it without problems
-      // (ModifyMsg messages for instance do not return a cloned version of
-      // their byte array)
-      byte[] bytes = new byte[origBytes.length];
-      System.arraycopy(origBytes, 0, bytes, 0, origBytes.length);
-
-      int maxLen = bytes.length;
-      int pos;
-      int nZeroFound = 0; // Number of 0 value found
-      boolean found = false;
+      byte[] bytes = getRealUpdateMsgBytes(ProtocolVersion.REPLICATION_PROTOCOL_V1);
 
       /* Look for assured flag position:
        * The message header is stored in the form :
@@ -107,23 +98,7 @@ public class NotAssuredUpdateMsg extends UpdateMsg
        * See LDAPUpdateMsg.encodeHeader_V1() for more information
        */
       // Find end of CSN then end of dn
-      for (pos = 1; pos < maxLen; pos++)
-      {
-        if (bytes[pos] == (byte) 0)
-        {
-          nZeroFound++;
-          if (nZeroFound == 2) // 2 end of string to find
-          {
-            found = true;
-            break;
-          }
-        }
-      }
-      if (!found)
-        throw new UnsupportedEncodingException("Could not find end of CSN.");
-      pos++;
-      if (pos >= maxLen)
-        throw new UnsupportedEncodingException("Reached end of packet.");
+      int pos = findNthZeroByte(bytes, 1, 2);
       // Force assured flag to false
       bytes[pos] = 0;
 
@@ -135,16 +110,7 @@ public class NotAssuredUpdateMsg extends UpdateMsg
        * Get the encoding form of the real message then overwrite the assured
        * flag to always be false.
        */
-      origBytes = realUpdateMsg.getBytes(ProtocolVersion.getCurrentVersion());
-      // Clone the byte array to be able to modify it without problems
-      // (ModifyMsg messages for instance do not return a cloned version of
-      // their byte array)
-      bytes = new byte[origBytes.length];
-      System.arraycopy(origBytes, 0, bytes, 0, origBytes.length);
-
-      maxLen = bytes.length;
-      nZeroFound = 0; // Number of 0 value found
-      found = false;
+      bytes = getRealUpdateMsgBytes(ProtocolVersion.getCurrentVersion());
 
       /* Look for assured flag position:
        * The message header is stored in the form :
@@ -156,48 +122,22 @@ public class NotAssuredUpdateMsg extends UpdateMsg
        * See LDAPUpdateMsg.encodeHeader() for more information
        */
       // Find end of CSN then end of dn then end of uuid
-      for (pos = 2; pos < maxLen; pos++)
-      {
-        if (bytes[pos] == (byte) 0)
-        {
-          nZeroFound++;
-          if (nZeroFound == 3) // 3 end of string to find
-          {
-            found = true;
-            break;
-          }
-        }
-      }
-      if (!found)
-        throw new UnsupportedEncodingException("Could not find end of CSN.");
-      pos++;
-      if (pos >= maxLen)
-        throw new UnsupportedEncodingException("Reached end of packet.");
+      pos = findNthZeroByte(bytes, 2, 3);
       // Force assured flag to false
       bytes[pos] = 0;
 
       // Store computed VLATEST serialized form
       realUpdateMsgNotAssuredBytesVLatest = bytes;
-
-    } else
+    }
+    else
     {
+      realUpdateMsgNotAssuredBytesV1 = null;
       /**
        * Prepare VLATEST serialized form of the message:
        * Get the encoding form of the real message then overwrite the assured
        * flag to always be false.
        */
-      byte[] origBytes = realUpdateMsg.getBytes(
-          ProtocolVersion.getCurrentVersion());
-      // Clone the byte array to be able to modify it without problems
-      // (ModifyMsg messages for instance do not return a cloned version of
-      // their byte array)
-      byte[] bytes = new byte[origBytes.length];
-      System.arraycopy(origBytes, 0, bytes, 0, origBytes.length);
-
-      int maxLen = bytes.length;
-      int pos;
-      int nZeroFound = 0; // Number of 0 value found
-      boolean found = false;
+      byte[] bytes = getRealUpdateMsgBytes(ProtocolVersion.getCurrentVersion());
 
       // This is a generic update message
       /* Look for assured flag position:
@@ -210,23 +150,7 @@ public class NotAssuredUpdateMsg extends UpdateMsg
        * See UpdateMsg.encodeHeader() for more  information
        */
       // Find end of CSN
-      for (pos = 2; pos < maxLen; pos++)
-      {
-        if (bytes[pos] == (byte) 0)
-        {
-          nZeroFound++;
-          if (nZeroFound == 1) // 1 end of string to find
-          {
-            found = true;
-            break;
-          }
-        }
-      }
-      if (!found)
-        throw new UnsupportedEncodingException("Could not find end of CSN.");
-      pos++;
-      if (pos >= maxLen)
-        throw new UnsupportedEncodingException("Reached end of packet.");
+      int pos = findNthZeroByte(bytes, 2, 1);
       // Force assured flag to false
       bytes[pos] = 0;
 
@@ -236,17 +160,52 @@ public class NotAssuredUpdateMsg extends UpdateMsg
   }
 
   /**
-   * {@inheritDoc}
+   * Clones the byte array to be able to modify it without problems
+   * (ModifyMsg messages for instance do not return a cloned version of
+   * their byte array).
    */
+  private byte[] getRealUpdateMsgBytes(final short protocolVersion)
+  {
+    byte[] origBytes = realUpdateMsg.getBytes(protocolVersion);
+    byte[] bytes = new byte[origBytes.length];
+    System.arraycopy(origBytes, 0, bytes, 0, origBytes.length);
+    return bytes;
+  }
+
+  private int findNthZeroByte(byte[] bytes, int startPos, int nbToFind)
+      throws UnsupportedEncodingException
+  {
+    final int maxLen = bytes.length;
+    int nbZeroFound = 0; // Number of 0 values found
+    for (int pos = startPos; pos < maxLen; pos++)
+    {
+      if (bytes[pos] == (byte) 0)
+      {
+        nbZeroFound++;
+        if (nbZeroFound == nbToFind)
+        {
+          // nb of end of strings reached
+          pos++;
+          if (pos >= maxLen)
+          {
+            throw new UnsupportedEncodingException("Reached end of packet.");
+          }
+          return pos;
+        }
+      }
+    }
+    throw new UnsupportedEncodingException(
+        "Could not find " + nbToFind + " zero bytes in byte array.");
+  }
+
+  /** {@inheritDoc} */
   @Override
   public CSN getCSN()
   {
     return realUpdateMsg.getCSN();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isAssured()
   {
@@ -254,9 +213,7 @@ public class NotAssuredUpdateMsg extends UpdateMsg
     return false;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setAssured(boolean assured)
   {
@@ -264,78 +221,59 @@ public class NotAssuredUpdateMsg extends UpdateMsg
     // and we do not want to change the original real update message settings
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean equals(Object obj)
   {
     // Compare with the underlying real update message
-    if (obj != null)
-    {
-      if (obj.getClass() != realUpdateMsg.getClass())
-        return false;
-      return realUpdateMsg.getCSN().
-        equals(((UpdateMsg)obj).getCSN());
-    }
-    else
+    if (obj == null)
     {
       return false;
     }
+    return obj.getClass() == realUpdateMsg.getClass()
+        && realUpdateMsg.getCSN().equals(((UpdateMsg) obj).getCSN());
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public int hashCode()
   {
     return realUpdateMsg.hashCode();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public int compareTo(UpdateMsg msg)
   {
     return realUpdateMsg.compareTo(msg);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
-  public byte[] getBytes(short reqProtocolVersion)
-    throws UnsupportedEncodingException
+  public byte[] getBytes(short protocolVersion)
   {
-    if (reqProtocolVersion == ProtocolVersion.REPLICATION_PROTOCOL_V1)
+    if (protocolVersion == ProtocolVersion.REPLICATION_PROTOCOL_V1)
+    {
       return realUpdateMsgNotAssuredBytesV1;
-    else
-      return realUpdateMsgNotAssuredBytesVLatest;
+    }
+    return realUpdateMsgNotAssuredBytesVLatest;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public AssuredMode getAssuredMode()
   {
     return realUpdateMsg.getAssuredMode();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public byte getSafeDataLevel()
   {
     return realUpdateMsg.getSafeDataLevel();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setAssuredMode(AssuredMode assuredMode)
   {
@@ -343,9 +281,7 @@ public class NotAssuredUpdateMsg extends UpdateMsg
     // and we do not want to change the original real update message settings
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setSafeDataLevel(byte safeDataLevel)
   {
@@ -353,49 +289,38 @@ public class NotAssuredUpdateMsg extends UpdateMsg
     // and we do not want to change the original real update message settings
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public short getVersion()
   {
     return realUpdateMsg.getVersion();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public int size()
   {
     return realUpdateMsg.size();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
-  protected byte[] encodeHeader(byte type, int additionalLength, short version)
-    throws UnsupportedEncodingException
+  protected ByteArrayBuilder encodeHeader(byte allowedType,
+      short protocolVersion)
   {
     // Not called as only used by constructors using bytes
     return null;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
-  public int decodeHeader(byte type, byte[] encodedMsg)
-                          throws DataFormatException
+  protected void decodeHeader(byte msgType, ByteArrayScanner scanner)
+      throws DataFormatException
   {
     // Not called as only used by getBytes methods
-    return -1;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public byte[] getPayload()
   {

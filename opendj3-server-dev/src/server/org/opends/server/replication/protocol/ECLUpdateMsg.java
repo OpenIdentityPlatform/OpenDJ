@@ -26,7 +26,6 @@
  */
 package org.opends.server.replication.protocol;
 
-import java.io.UnsupportedEncodingException;
 import java.util.zip.DataFormatException;
 
 import org.opends.server.replication.common.MultiDomainServerState;
@@ -73,55 +72,32 @@ public class ECLUpdateMsg extends ReplicationMsg
    * @param in The byte array containing the encoded form of the message.
    * @throws DataFormatException If the byte array does not contain
    *         a valid encoded form of the message.
-   * @throws UnsupportedEncodingException when it occurs.
    * @throws NotSupportedOldVersionPDUException when it occurs.
    */
-  public ECLUpdateMsg(byte[] in)
-   throws DataFormatException,
-          UnsupportedEncodingException,
-          NotSupportedOldVersionPDUException
+  ECLUpdateMsg(byte[] in) throws DataFormatException,
+      NotSupportedOldVersionPDUException
   {
     try
     {
-      if (in[0] != MSG_TYPE_ECL_UPDATE)
+      final ByteArrayScanner scanner = new ByteArrayScanner(in);
+      if (scanner.nextByte() != MSG_TYPE_ECL_UPDATE)
       {
         throw new DataFormatException("byte[] is not a valid " +
             getClass().getCanonicalName());
       }
-      int pos = 1;
 
-      // Decode the cookie
-      int length = getNextLength(in, pos);
-      String cookieStr = new String(in, pos, length, "UTF-8");
-      this.cookie = new MultiDomainServerState(cookieStr);
-      pos += length + 1;
-
-      // Decode the baseDN
-      length = getNextLength(in, pos);
-      this.baseDN = DN.valueOf(new String(in, pos, length, "UTF-8"));
-      pos += length + 1;
-
-      // Decode the changeNumber
-      length = getNextLength(in, pos);
-      this.changeNumber = Integer.valueOf(new String(in, pos, length, "UTF-8"));
-      pos += length + 1;
+      this.cookie = new MultiDomainServerState(scanner.nextString());
+      this.baseDN = scanner.nextDN();
+      this.changeNumber = scanner.nextIntUTF8();
 
       // Decode the msg
-      /* Read the mods : all the remaining bytes but the terminating 0 */
-      length = in.length - pos - 1;
-      byte[] encodedMsg = new byte[length];
-      System.arraycopy(in, pos, encodedMsg, 0, length);
-      ReplicationMsg rmsg = ReplicationMsg.generateMsg(
-            encodedMsg, ProtocolVersion.getCurrentVersion());
-      this.updateMsg = (LDAPUpdateMsg)rmsg;
+      this.updateMsg = (LDAPUpdateMsg) ReplicationMsg.generateMsg(
+          scanner.remainingBytesZeroTerminated(),
+          ProtocolVersion.getCurrentVersion());
     }
     catch(DirectoryException de)
     {
       throw new DataFormatException(de.toString());
-    }
-    catch (UnsupportedEncodingException e)
-    {
-      throw new DataFormatException("UTF-8 is not supported by this jvm.");
     }
   }
 
@@ -162,9 +138,7 @@ public class ECLUpdateMsg extends ReplicationMsg
     return updateMsg;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String toString()
   {
@@ -175,39 +149,19 @@ public class ECLUpdateMsg extends ReplicationMsg
     " serviceId: " + baseDN + "]";
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public byte[] getBytes(short protocolVersion)
-      throws UnsupportedEncodingException
   {
-    byte[] byteCookie = String.valueOf(cookie).getBytes("UTF-8");
-    byte[] byteBaseDN = String.valueOf(baseDN).getBytes("UTF-8");
+    final ByteArrayBuilder builder = new ByteArrayBuilder();
+    builder.append(MSG_TYPE_ECL_UPDATE);
+    builder.append(String.valueOf(cookie));
+    builder.append(baseDN);
     // FIXME JNR Changing the line below to use long would require a protocol
     // version change. Leave it like this for now until the need arises.
-    byte[] byteChangeNumber =
-        Integer.toString((int) changeNumber).getBytes("UTF-8");
-    byte[] byteUpdateMsg = updateMsg.getBytes(protocolVersion);
-
-    int length = 1 + byteCookie.length +
-                 1 + byteBaseDN.length +
-                 1 + byteChangeNumber.length +
-                 1 + byteUpdateMsg.length + 1;
-
-    byte[] resultByteArray = new byte[length];
-
-    /* Encode type */
-    resultByteArray[0] = MSG_TYPE_ECL_UPDATE;
-    int pos = 1;
-
-    // Encode all fields
-    pos = addByteArray(byteCookie, resultByteArray, pos);
-    pos = addByteArray(byteBaseDN, resultByteArray, pos);
-    pos = addByteArray(byteChangeNumber, resultByteArray, pos);
-    pos = addByteArray(byteUpdateMsg, resultByteArray, pos);
-
-    return resultByteArray;
+    builder.appendUTF8((int) changeNumber);
+    builder.appendZeroTerminated(updateMsg.getBytes(protocolVersion));
+    return builder.toByteArray();
   }
 
   /**

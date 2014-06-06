@@ -26,30 +26,28 @@
  */
 package org.opends.server.replication.protocol;
 
-import java.io.UnsupportedEncodingException;
 import java.util.zip.DataFormatException;
 
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.types.DN;
-import org.opends.server.types.DirectoryException;
 
 /**
- * LocalizableMessage sent by a replication server to a directory server in reply to the
+ * Message sent by a replication server to a directory server in reply to the
  * ServerStartMsg.
  */
 public class ReplServerStartDSMsg extends StartMsg
 {
-  private int serverId;
-  private String serverURL;
-  private DN baseDN;
-  private int windowSize;
-  private ServerState serverState;
+  private final int serverId;
+  private final String serverURL;
+  private final DN baseDN;
+  private final int windowSize;
+  private final ServerState serverState;
 
   /**
    * Whether to continue using SSL to encrypt messages after the start
    * messages have been exchanged.
    */
-  private boolean sslEncryption;
+  private final boolean sslEncryption;
 
   /**
    * Threshold value used by the RS to determine if a DS must be put in
@@ -61,12 +59,12 @@ public class ReplServerStartDSMsg extends StartMsg
   /**
    * The weight affected to the replication server.
    */
-  private int weight = -1;
+  private final int weight;
 
   /**
    * Number of currently connected DS to the replication server.
    */
-  private int connectedDSNumber = -1;
+  private final int connectedDSNumber;
 
   /**
    * Create a ReplServerStartDSMsg.
@@ -115,100 +113,25 @@ public class ReplServerStartDSMsg extends StartMsg
    * @throws DataFormatException If the in does not contain a properly
    *                             encoded ReplServerStartDSMsg.
    */
-  public ReplServerStartDSMsg(byte[] in) throws DataFormatException
+  ReplServerStartDSMsg(byte[] in) throws DataFormatException
   {
-    byte[] allowedPduTypes = new byte[1];
-    allowedPduTypes[0] = MSG_TYPE_REPL_SERVER_START_DS;
-    headerLength = decodeHeader(allowedPduTypes, in);
+    final ByteArrayScanner scanner = new ByteArrayScanner(in);
+    decodeHeader(scanner, MSG_TYPE_REPL_SERVER_START_DS);
 
-    try
-    {
-      /* The ReplServerStartDSMsg payload is stored in the form :
-       * <baseDN><serverId><serverURL><windowSize><sslEncryption>
-       * <degradedStatusThreshold><weight><connectedDSNumber>
-       * <serverState>
-       */
-
-      /* first bytes are the header */
-      int pos = headerLength;
-
-      /* read the dn
-       * first calculate the length then construct the string
-       */
-      int length = getNextLength(in, pos);
-      baseDN = DN.valueOf(new String(in, pos, length, "UTF-8"));
-      pos += length +1;
-
-      /*
-       * read the ServerId
-       */
-      length = getNextLength(in, pos);
-      String serverIdString = new String(in, pos, length, "UTF-8");
-      serverId = Integer.valueOf(serverIdString);
-      pos += length +1;
-
-      /*
-       * read the ServerURL
-       */
-      length = getNextLength(in, pos);
-      serverURL = new String(in, pos, length, "UTF-8");
-      pos += length +1;
-
-      /*
-       * read the window size
-       */
-      length = getNextLength(in, pos);
-      windowSize = Integer.valueOf(new String(in, pos, length, "UTF-8"));
-      pos += length +1;
-
-      /*
-       * read the sslEncryption setting
-       */
-      length = getNextLength(in, pos);
-      sslEncryption = Boolean.valueOf(new String(in, pos, length, "UTF-8"));
-      pos += length +1;
-
-      /**
-       * read the degraded status threshold
-       */
-      length = getNextLength(in, pos);
-      degradedStatusThreshold =
-        Integer.valueOf(new String(in, pos, length, "UTF-8"));
-      pos += length + 1;
-
-      /*
-       * read the weight
-       */
-      length = getNextLength(in, pos);
-      String weightString = new String(in, pos, length, "UTF-8");
-      weight = Integer.valueOf(weightString);
-      pos += length +1;
-
-      /*
-       * read the connected DS number
-       */
-      length = getNextLength(in, pos);
-      String connectedDSNumberString = new String(in, pos, length, "UTF-8");
-      connectedDSNumber = Integer.valueOf(connectedDSNumberString);
-      pos += length +1;
-
-      // Read the ServerState
-      // Caution: ServerState MUST be the last field. Because ServerState can
-      // contain null character (string termination of serverid string ..) it
-      // cannot be decoded using getNextLength() like the other fields. The
-      // only way is to rely on the end of the input buffer : and that forces
-      // the ServerState to be the last. This should be changed and we want to
-      // have more than one ServerState field.
-      serverState = new ServerState(in, pos, in.length - 1);
-    }
-    catch (UnsupportedEncodingException e)
-    {
-      throw new DataFormatException("UTF-8 is not supported by this jvm.");
-    }
-    catch (DirectoryException e)
-    {
-      throw new DataFormatException(e.getLocalizedMessage());
-    }
+    /* The ReplServerStartDSMsg payload is stored in the form :
+     * <baseDN><serverId><serverURL><windowSize><sslEncryption>
+     * <degradedStatusThreshold><weight><connectedDSNumber>
+     * <serverState>
+     */
+    baseDN = scanner.nextDN();
+    serverId = scanner.nextIntUTF8();
+    serverURL = scanner.nextString();
+    windowSize = scanner.nextIntUTF8();
+    sslEncryption = Boolean.valueOf(scanner.nextString());//FIXME
+    degradedStatusThreshold =scanner.nextIntUTF8();
+    weight = scanner.nextIntUTF8();
+    connectedDSNumber = scanner.nextIntUTF8();
+    serverState = scanner.nextServerState();
   }
 
   /**
@@ -248,72 +171,28 @@ public class ReplServerStartDSMsg extends StartMsg
     return this.serverState;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
-  public byte[] getBytes(short sessionProtocolVersion)
-     throws UnsupportedEncodingException
+  public byte[] getBytes(short protocolVersion)
   {
     /* The ReplServerStartDSMsg is stored in the form :
      * <operation type><baseDN><serverId><serverURL><windowSize><sslEncryption>
      * <degradedStatusThreshold><weight><connectedDSNumber>
      * <serverState>
      */
-    byte[] byteDn = baseDN.toNormalizedString().getBytes("UTF-8");
-    byte[] byteServerId = String.valueOf(serverId).getBytes("UTF-8");
-    byte[] byteServerUrl = serverURL.getBytes("UTF-8");
-    byte[] byteServerState = serverState.getBytes();
-    byte[] byteWindowSize = String.valueOf(windowSize).getBytes("UTF-8");
-    byte[] byteSSLEncryption =
-      String.valueOf(sslEncryption).getBytes("UTF-8");
-    byte[] byteDegradedStatusThreshold =
-      String.valueOf(degradedStatusThreshold).getBytes("UTF-8");
-    byte[] byteWeight =
-      String.valueOf(weight).getBytes("UTF-8");
-    byte[] byteConnectedDSNumber =
-      String.valueOf(connectedDSNumber).getBytes("UTF-8");
-
-    int length = byteDn.length + 1 + byteServerId.length + 1 +
-      byteServerUrl.length + 1 + byteWindowSize.length + 1 +
-      byteSSLEncryption.length + 1 + byteDegradedStatusThreshold.length + 1 +
-      byteWeight.length + 1 + byteConnectedDSNumber.length + 1 +
-      byteServerState.length + 1;
-
-    /* encode the header in a byte[] large enough */
-    byte resultByteArray[] = encodeHeader(MSG_TYPE_REPL_SERVER_START_DS,
-        length, sessionProtocolVersion);
-
-    int pos = headerLength;
-
-    /* put the baseDN and a terminating 0 */
-    pos = addByteArray(byteDn, resultByteArray, pos);
-
-    /* put the ServerId */
-    pos = addByteArray(byteServerId, resultByteArray, pos);
-
-    /* put the ServerURL */
-    pos = addByteArray(byteServerUrl, resultByteArray, pos);
-
-    /* put the window size */
-    pos = addByteArray(byteWindowSize, resultByteArray, pos);
-
-    /* put the SSL Encryption setting */
-    pos = addByteArray(byteSSLEncryption, resultByteArray, pos);
-
-    /* put the degraded status threshold */
-    pos = addByteArray(byteDegradedStatusThreshold, resultByteArray, pos);
-
-    /* put the weight */
-    pos = addByteArray(byteWeight, resultByteArray, pos);
-
-    /* put the connected DS number */
-    pos = addByteArray(byteConnectedDSNumber, resultByteArray, pos);
-
-    /* put the ServerState */
-    pos = addByteArray(byteServerState, resultByteArray, pos);
-
-    return resultByteArray;
+    final ByteArrayBuilder builder = new ByteArrayBuilder();
+    encodeHeader(MSG_TYPE_REPL_SERVER_START_DS, builder, protocolVersion);
+    builder.append(baseDN);
+    builder.appendUTF8(serverId);
+    builder.append(serverURL);
+    builder.appendUTF8(windowSize);
+    builder.append(Boolean.toString(sslEncryption));
+    builder.appendUTF8(degradedStatusThreshold);
+    builder.appendUTF8(weight);
+    builder.appendUTF8(connectedDSNumber);
+    // Caution: ServerState MUST be the last field.
+    builder.append(serverState);
+    return builder.toByteArray();
   }
 
   /**
@@ -356,9 +235,7 @@ public class ReplServerStartDSMsg extends StartMsg
     this.degradedStatusThreshold = degradedStatusThreshold;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String toString()
   {

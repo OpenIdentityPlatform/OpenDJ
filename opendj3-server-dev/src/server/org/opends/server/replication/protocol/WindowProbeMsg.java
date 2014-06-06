@@ -58,9 +58,11 @@ public class WindowProbeMsg extends ReplicationMsg
    */
   public WindowProbeMsg(byte[] in) throws DataFormatException
   {
-    // WindowProbeMsg LocalizableMessage only contains its type.
+    // WindowProbeMsg only contains its type.
     if (in[0] != MSG_TYPE_WINDOW_PROBE)
-      throw new DataFormatException("input is not a valid Window LocalizableMessage");
+    {
+      throw new DataFormatException("input is not a valid WindowProbeMsg");
+    }
   }
 
   /**
@@ -69,7 +71,7 @@ public class WindowProbeMsg extends ReplicationMsg
   @Override
   public byte[] getBytes(short protocolVersion)
   {
-    // WindowProbeMsg LocalizableMessage only contains its type.
+    // WindowProbeMsg only contains its type.
     return new byte[] { MSG_TYPE_WINDOW_PROBE };
   }
 }

@@ -22,11 +22,10 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
 
-import java.io.UnsupportedEncodingException;
 import java.util.zip.DataFormatException;
 
 import org.opends.server.replication.common.ServerState;
@@ -38,26 +37,25 @@ import org.opends.server.replication.common.ServerState;
  */
 public class ServerStartECLMsg extends StartMsg
 {
-  private String serverURL;
-  private int maxReceiveQueue;
-  private int maxSendQueue;
-  private int maxReceiveDelay;
-  private int maxSendDelay;
-  private int windowSize;
-  private ServerState serverState = null;
+  private final String serverURL;
+  private final int maxReceiveQueue;
+  private final int maxSendQueue;
+  private final int maxReceiveDelay;
+  private final int maxSendDelay;
+  private final int windowSize;
+  private final ServerState serverState;
 
   /**
    * The time in milliseconds between heartbeats from the replication
    * server.  Zero means heartbeats are off.
    */
-  private long heartbeatInterval = 0;
+  private final long heartbeatInterval;
 
   /**
    * Whether to continue using SSL to encrypt messages after the start
    * messages have been exchanged.
    */
-
-  private boolean sslEncryption;
+  private final boolean sslEncryption;
 
   /**
    * Creates a new ServerStartMsg. This message is to be sent by an LDAP
@@ -108,86 +106,21 @@ public class ServerStartECLMsg extends StartMsg
    * @throws DataFormatException If the byte array does not contain a valid
    *                             encoded form of the ServerStartMsg.
    */
-  public ServerStartECLMsg(byte[] in) throws DataFormatException
+  ServerStartECLMsg(byte[] in) throws DataFormatException
   {
-    byte[] allowedPduTypes = new byte[1];
-    allowedPduTypes[0] = MSG_TYPE_START_ECL;
-    headerLength = decodeHeader(allowedPduTypes, in);
+    final ByteArrayScanner scanner = new ByteArrayScanner(in);
+    decodeHeader(scanner, MSG_TYPE_START_ECL);
 
-    try
-    {
-      /* first bytes are the header */
-      int pos = headerLength;
-
-      /*
-       * read the ServerURL
-       */
-      int length = getNextLength(in, pos);
-      serverURL = new String(in, pos, length, "UTF-8");
-      pos += length +1;
-
-      /*
-       * read the maxReceiveDelay
-       */
-      length = getNextLength(in, pos);
-      maxReceiveDelay = Integer.valueOf(new String(in, pos, length, "UTF-8"));
-      pos += length +1;
-
-      /*
-       * read the maxReceiveQueue
-       */
-      length = getNextLength(in, pos);
-      maxReceiveQueue = Integer.valueOf(new String(in, pos, length, "UTF-8"));
-      pos += length +1;
-
-      /*
-       * read the maxSendDelay
-       */
-      length = getNextLength(in, pos);
-      maxSendDelay = Integer.valueOf(new String(in, pos, length, "UTF-8"));
-      pos += length +1;
-
-      /*
-       * read the maxSendQueue
-       */
-      length = getNextLength(in, pos);
-      maxSendQueue = Integer.valueOf(new String(in, pos, length, "UTF-8"));
-      pos += length +1;
-
-      /*
-       * read the windowSize
-       */
-      length = getNextLength(in, pos);
-      windowSize = Integer.valueOf(new String(in, pos, length, "UTF-8"));
-      pos += length +1;
-
-      /*
-       * read the heartbeatInterval
-       */
-      length = getNextLength(in, pos);
-      heartbeatInterval = Integer.valueOf(new String(in, pos, length, "UTF-8"));
-      pos += length +1;
-
-      /*
-       * read the sslEncryption setting
-       */
-      length = getNextLength(in, pos);
-      sslEncryption = Boolean.valueOf(new String(in, pos, length, "UTF-8"));
-      pos += length +1;
-
-      // Read the ServerState
-      // Caution: ServerState MUST be the last field. Because ServerState can
-      // contain null character (string termination of sererid string ..) it
-      // cannot be decoded using getNextLength() like the other fields. The
-      // only way is to rely on the end of the input buffer : and that forces
-      // the ServerState to be the last. This should be changed and we want to
-      // have more than one ServerState field.
-      serverState = new ServerState(in, pos, in.length - 1);
-
-    } catch (UnsupportedEncodingException e)
-    {
-      throw new DataFormatException("UTF-8 is not supported by this jvm.");
-    }
+    serverURL = scanner.nextString();
+    maxReceiveDelay = scanner.nextIntUTF8();
+    maxReceiveQueue = scanner.nextIntUTF8();
+    maxSendDelay = scanner.nextIntUTF8();
+    maxSendQueue = scanner.nextIntUTF8();
+    windowSize = scanner.nextIntUTF8();
+    heartbeatInterval = scanner.nextIntUTF8();
+    // FIXME awful encoding
+    sslEncryption = Boolean.valueOf(scanner.nextString());
+    serverState = scanner.nextServerState();
   }
 
   /**
@@ -244,69 +177,24 @@ public class ServerStartECLMsg extends StartMsg
     return serverState;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public byte[] getBytes(short sessionProtocolVersion)
   {
-    try {
-      byte[] byteServerUrl = serverURL.getBytes("UTF-8");
-      byte[] byteMaxRecvDelay =
-                     String.valueOf(maxReceiveDelay).getBytes("UTF-8");
-      byte[] byteMaxRecvQueue =
-                     String.valueOf(maxReceiveQueue).getBytes("UTF-8");
-      byte[] byteMaxSendDelay =
-                     String.valueOf(maxSendDelay).getBytes("UTF-8");
-      byte[] byteMaxSendQueue =
-                     String.valueOf(maxSendQueue).getBytes("UTF-8");
-      byte[] byteWindowSize =
-                     String.valueOf(windowSize).getBytes("UTF-8");
-      byte[] byteHeartbeatInterval =
-                     String.valueOf(heartbeatInterval).getBytes("UTF-8");
-      byte[] byteSSLEncryption =
-                     String.valueOf(sslEncryption).getBytes("UTF-8");
-      byte[] byteServerState = serverState.getBytes();
-
-      int length = byteServerUrl.length + 1 +
-                   byteMaxRecvDelay.length + 1 +
-                   byteMaxRecvQueue.length + 1 +
-                   byteMaxSendDelay.length + 1 +
-                   byteMaxSendQueue.length + 1 +
-                   byteWindowSize.length + 1 +
-                   byteHeartbeatInterval.length + 1 +
-                   byteSSLEncryption.length + 1 +
-                   byteServerState.length + 1;
-
-      /* encode the header in a byte[] large enough to also contain the mods */
-      byte resultByteArray[] = encodeHeader(MSG_TYPE_START_ECL, length,
-          sessionProtocolVersion);
-      int pos = headerLength;
-
-      pos = addByteArray(byteServerUrl, resultByteArray, pos);
-
-      pos = addByteArray(byteMaxRecvDelay, resultByteArray, pos);
-
-      pos = addByteArray(byteMaxRecvQueue, resultByteArray, pos);
-
-      pos = addByteArray(byteMaxSendDelay, resultByteArray, pos);
-
-      pos = addByteArray(byteMaxSendQueue, resultByteArray, pos);
-
-      pos = addByteArray(byteWindowSize, resultByteArray, pos);
-
-      pos = addByteArray(byteHeartbeatInterval, resultByteArray, pos);
-
-      pos = addByteArray(byteSSLEncryption, resultByteArray, pos);
-
-      pos = addByteArray(byteServerState, resultByteArray, pos);
-
-      return resultByteArray;
-    }
-    catch (UnsupportedEncodingException e)
-    {
-      return null;
-    }
+    final ByteArrayBuilder builder = new ByteArrayBuilder();
+    encodeHeader(MSG_TYPE_START_ECL, builder, sessionProtocolVersion);
+    builder.append(serverURL);
+    builder.appendUTF8(maxReceiveDelay);
+    builder.appendUTF8(maxReceiveQueue);
+    builder.appendUTF8(maxSendDelay);
+    builder.appendUTF8(maxSendQueue);
+    builder.appendUTF8(windowSize);
+    builder.appendUTF8(heartbeatInterval);
+    // FIXME awful encoding
+    builder.append(Boolean.toString(sslEncryption));
+    // Caution: ServerState MUST be the last field.
+    builder.append(serverState);
+    return builder.toByteArray();
   }
 
   /**
@@ -343,13 +231,11 @@ public class ServerStartECLMsg extends StartMsg
     return sslEncryption;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String toString()
   {
-    return this.getClass().getCanonicalName() + " content: " +
+    return getClass().getCanonicalName() + " content: " +
       "\nprotocolVersion: " + protocolVersion +
       "\ngenerationId: " + generationId +
       "\ngroupId: " + groupId +

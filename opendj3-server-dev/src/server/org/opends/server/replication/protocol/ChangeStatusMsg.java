@@ -22,11 +22,12 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS.
+ *      Portions copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.replication.protocol;
 
 import java.util.zip.DataFormatException;
+
 import org.opends.server.replication.common.ServerStatus;
 
 /**
@@ -36,10 +37,10 @@ import org.opends.server.replication.common.ServerStatus;
  */
 public class ChangeStatusMsg extends ReplicationMsg
 {
-  // The status we want the DS to enter (used when from RS to DS)
-  private ServerStatus requestedStatus = ServerStatus.INVALID_STATUS;
-  // The new status the DS just entered (used when from DS to RS)
-  private ServerStatus newStatus = ServerStatus.INVALID_STATUS;
+  /** The status we want the DS to enter (used when from RS to DS) */
+  private final ServerStatus requestedStatus;
+  /** The new status the DS just entered (used when from DS to RS) */
+  private ServerStatus newStatus;
 
   /**
    * Create a new ChangeStatusMsg.
@@ -61,25 +62,19 @@ public class ChangeStatusMsg extends ReplicationMsg
    * @throws DataFormatException If the byte array does not contain a valid
    *                             encoded form of the ChangeStatusMsg.
    */
-  public ChangeStatusMsg(byte[] encodedMsg) throws DataFormatException
+  ChangeStatusMsg(byte[] encodedMsg) throws DataFormatException
   {
     /*
      * The message is stored in the form:
      * <message type><requested status><new status>
      */
-
-    /* First byte is the type */
-    if (encodedMsg[0] != ReplicationMsg.MSG_TYPE_CHANGE_STATUS)
-    {
-      throw new DataFormatException("byte[] is not a valid msg");
-    }
-
     try
     {
-      /* Then the requested status */
+      if (encodedMsg[0] != ReplicationMsg.MSG_TYPE_CHANGE_STATUS)
+      {
+        throw new DataFormatException("byte[] is not a valid msg");
+      }
       requestedStatus = ServerStatus.valueOf(encodedMsg[1]);
-
-      /* Then the new status */
       newStatus = ServerStatus.valueOf(encodedMsg[2]);
     } catch (IllegalArgumentException e)
     {
@@ -87,9 +82,7 @@ public class ChangeStatusMsg extends ReplicationMsg
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public byte[] getBytes(short protocolVersion)
   {
@@ -97,18 +90,12 @@ public class ChangeStatusMsg extends ReplicationMsg
      * The message is stored in the form:
      * <message type><requested status><new status>
      */
-    byte[] encodedMsg = new byte[3];
-
-    /* Put the type of the operation */
-    encodedMsg[0] = ReplicationMsg.MSG_TYPE_CHANGE_STATUS;
-
-    /* Put the requested status */
-    encodedMsg[1] = requestedStatus.getValue();
-
-    /* Put the requested status */
-    encodedMsg[2] = newStatus.getValue();
-
-    return encodedMsg;
+    return new byte[]
+    {
+      ReplicationMsg.MSG_TYPE_CHANGE_STATUS,
+      requestedStatus.getValue(),
+      newStatus.getValue()
+    };
   }
 
   /**
@@ -129,9 +116,7 @@ public class ChangeStatusMsg extends ReplicationMsg
     return newStatus;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String toString()
   {

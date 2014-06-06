@@ -24,7 +24,6 @@
  *      Copyright 2008 Sun Microsystems, Inc.
  *      Portions Copyright 2013-2014 ForgeRock AS.
  */
-
 package org.opends.server.replication.protocol;
 
 import java.util.zip.DataFormatException;
@@ -52,20 +51,18 @@ public class HeartbeatMsg extends ReplicationMsg
    * @throws java.util.zip.DataFormatException If the byte array does not
    * contain a valid encoded form of the message.
    */
-  public HeartbeatMsg(byte[] in) throws DataFormatException
+  HeartbeatMsg(byte[] in) throws DataFormatException
   {
     /* The heartbeat message is encoded in the form :
      * <msg-type>
      */
-
-    /* first byte is the type */
     if (in.length != 1 || in[0] != MSG_TYPE_HEARTBEAT)
-      throw new DataFormatException("Input is not a valid Heartbeat LocalizableMessage.");
+    {
+      throw new DataFormatException("Input is not a valid Heartbeat Message.");
+    }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public byte[] getBytes(short protocolVersion)
   {
@@ -73,13 +70,7 @@ public class HeartbeatMsg extends ReplicationMsg
      * The heartbeat message contains:
      * <msg-type>
      */
-    int length = 1;
-    byte[] resultByteArray = new byte[length];
-
-    /* put the message type */
-    resultByteArray[0] = MSG_TYPE_HEARTBEAT;
-
-    return resultByteArray;
+    return new byte[] { MSG_TYPE_HEARTBEAT };
   }
 
   /** {@inheritDoc} */

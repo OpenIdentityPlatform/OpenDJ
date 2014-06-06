@@ -27,7 +27,6 @@
 package org.opends.server.replication.protocol;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.zip.DataFormatException;
@@ -87,7 +86,7 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
    * @param dn The DN of the entry on which the change
    *           that caused the creation of this object happened
    */
-  public LDAPUpdateMsg(OperationContext ctx, DN dn)
+  LDAPUpdateMsg(OperationContext ctx, DN dn)
   {
     this.protocolVersion = ProtocolVersion.getCurrentVersion();
     this.csn = ctx.getCSN();
@@ -105,7 +104,7 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
    * @param dn        The DN of the entry on which the change
    *                  that caused the creation of this object happened
    */
-  public LDAPUpdateMsg(CSN csn, String entryUUID, DN dn)
+  LDAPUpdateMsg(CSN csn, String entryUUID, DN dn)
   {
     this.protocolVersion = ProtocolVersion.getCurrentVersion();
     this.csn = csn;
@@ -114,34 +113,26 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
   }
 
   /**
-   * Generates an Update LocalizableMessage with the provided information.
+   * Generates an Update message with the provided information.
    *
    * @param op The operation for which the message must be created.
    * @return The generated message.
    */
   public static LDAPUpdateMsg generateMsg(PostOperationOperation op)
   {
-    LDAPUpdateMsg msg = null;
     switch (op.getOperationType())
     {
     case MODIFY :
-      msg = new ModifyMsg((PostOperationModifyOperation) op);
-      break;
-
+      return new ModifyMsg((PostOperationModifyOperation) op);
     case ADD:
-      msg = new AddMsg((PostOperationAddOperation) op);
-      break;
-
+      return new AddMsg((PostOperationAddOperation) op);
     case DELETE :
-      msg = new DeleteMsg((PostOperationDeleteOperation) op);
-      break;
-
+      return new DeleteMsg((PostOperationDeleteOperation) op);
     case MODIFY_DN :
-      msg = new ModifyDNMsg( (PostOperationModifyDNOperation) op);
-      break;
+      return new ModifyDNMsg( (PostOperationModifyDNOperation) op);
+    default:
+      return null;
     }
-
-    return msg;
   }
 
   /**
@@ -214,138 +205,62 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
    * of a synchronized portion of code.
    *
    * This method is not synchronized and therefore not MT safe.
-   *
-   * @throws UnsupportedEncodingException when encoding fails.
    */
-  public void encode() throws UnsupportedEncodingException
+  public void encode()
   {
     bytes = getBytes(ProtocolVersion.getCurrentVersion());
   }
 
-  /**
-   * Encode the common header for all the UpdateMsg. This uses the current
-   * protocol version.
-   *
-   * @param type the type of UpdateMsg to encode.
-   * @param additionalLength additional length needed to encode the remaining
-   *                         part of the UpdateMsg.
-   * @param version The ProtocolVersion to use when encoding.
-   * @return a byte array containing the common header and enough space to
-   *         encode the remaining bytes of the UpdateMsg as was specified
-   *         by the additionalLength.
-   *         (byte array length = common header length + additionalLength)
-   * @throws UnsupportedEncodingException if UTF-8 is not supported.
-   */
+  /** {@inheritDoc} */
   @Override
-  public byte[] encodeHeader(byte type, int additionalLength, short version)
-    throws UnsupportedEncodingException
+  public ByteArrayBuilder encodeHeader(byte msgType, short protocolVersion)
   {
-    byte[] byteDn = dn.toString().getBytes("UTF-8");
-    byte[] csnByte = getCSN().toString().getBytes("UTF-8");
-    byte[] byteEntryuuid = getEntryUUID().getBytes("UTF-8");
-
     /* The message header is stored in the form :
      * <operation type><protocol version><CSN><dn><entryuuid><assured>
      * <assured mode> <safe data level>
-     * the length of result byte array is therefore :
-     *   1 + 1 + CSN length + 1 + dn length + 1 + uuid length + 1 + 1
-     *   + 1 + 1 + additional_length
      */
-    int length = 8 + csnByte.length + byteDn.length
-                 + byteEntryuuid.length + additionalLength;
-
-    byte[] encodedMsg = new byte[length];
-
-    // put the type of the operation
-    encodedMsg[0] = type;
-
-    // put the protocol version
-    encodedMsg[1] = (byte) version;
-    int pos = 2;
-
-    // Put the CSN
-    pos = addByteArray(csnByte, encodedMsg, pos);
-
-    // Put the DN and a terminating 0
-    pos = addByteArray(byteDn, encodedMsg, pos);
-
-    // Put the entry uuid and a terminating 0
-    pos = addByteArray(byteEntryuuid, encodedMsg, pos);
-
-    // Put the assured flag
-    encodedMsg[pos++] = (assuredFlag ? (byte) 1 : 0);
-
-    // Put the assured mode
-    encodedMsg[pos++] = assuredMode.getValue();
-
-    // Put the safe data level
-    encodedMsg[pos++] = safeDataLevel;
-
-    return encodedMsg;
+    final ByteArrayBuilder builder = new ByteArrayBuilder();
+    builder.append(msgType);
+    builder.append((byte) protocolVersion);
+    builder.appendUTF8(csn);
+    builder.append(dn);
+    builder.append(entryUUID);
+    builder.append(assuredFlag);
+    builder.append(assuredMode.getValue());
+    builder.append(safeDataLevel);
+    return builder;
   }
 
   /**
    * Encode the common header for all the UpdateMessage. This uses the version
    * 1 of the replication protocol (used for compatibility purpose).
    *
-   * @param type the type of UpdateMessage to encode.
-   * @param additionalLength additional length needed to encode the remaining
-   *                         part of the UpdateMessage.
-   * @return a byte array containing the common header and enough space to
-   *         encode the remaining bytes of the UpdateMessage as was specified
-   *         by the additionalLength.
-   *         (byte array length = common header length + additionalLength)
-   * @throws UnsupportedEncodingException if UTF-8 is not supported.
+   * @param msgType the type of UpdateMessage to encode.
+   * @return a byte array builder containing the common header
    */
-  public byte[] encodeHeader_V1(byte type, int additionalLength)
-    throws UnsupportedEncodingException
+  ByteArrayBuilder encodeHeader_V1(byte msgType)
   {
-    byte[] byteDn = dn.toString().getBytes("UTF-8");
-    byte[] csnByte = getCSN().toString().getBytes("UTF-8");
-    byte[] byteEntryuuid = getEntryUUID().getBytes("UTF-8");
-
     /* The message header is stored in the form :
      * <operation type><CSN><dn><assured><entryuuid><change>
-     * the length of result byte array is therefore :
-     *   1 + CSN length + 1 + dn length + 1  + 1 +
-     *   uuid length + 1 + additional_length
      */
-    int length = 5 + csnByte.length + byteDn.length
-                 + byteEntryuuid.length + additionalLength;
-
-    byte[] encodedMsg = new byte[length];
-
-    // put the type of the operation
-    encodedMsg[0] = type;
-    int pos = 1;
-
-    // put the CSN
-    pos = addByteArray(csnByte, encodedMsg, pos);
-
-    // put the assured information
-    encodedMsg[pos++] = (assuredFlag ? (byte) 1 : 0);
-
-    // put the DN and a terminating 0
-    pos = addByteArray(byteDn, encodedMsg, pos);
-
-    // put the entry uuid and a terminating 0
-    pos = addByteArray(byteEntryuuid, encodedMsg, pos);
-
-    return encodedMsg;
+    final ByteArrayBuilder builder = new ByteArrayBuilder();
+    builder.append(msgType);
+    builder.appendUTF8(csn);
+    builder.append(assuredFlag);
+    builder.append(dn);
+    builder.append(entryUUID);
+    return builder;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
-  public byte[] getBytes(short reqProtocolVersion)
-    throws UnsupportedEncodingException
+  public byte[] getBytes(short protocolVersion)
   {
-    if (reqProtocolVersion == ProtocolVersion.REPLICATION_PROTOCOL_V1)
+    if (protocolVersion == ProtocolVersion.REPLICATION_PROTOCOL_V1)
     {
       return getBytes_V1();
     }
-    else if (reqProtocolVersion <= ProtocolVersion.REPLICATION_PROTOCOL_V3)
+    else if (protocolVersion <= ProtocolVersion.REPLICATION_PROTOCOL_V3)
     {
       return getBytes_V23();
     }
@@ -355,56 +270,46 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
       if (bytes == null)
       {
         // this is the current version of the protocol
-        bytes = getBytes_V45(reqProtocolVersion);
+        bytes = getBytes_V45(protocolVersion);
       }
       return bytes;
     }
   }
 
   /**
-   * Get the byte array representation of this LocalizableMessage. This uses the version
+   * Get the byte array representation of this message. This uses the version
    * 1 of the replication protocol (used for compatibility purpose).
    *
-   * @return The byte array representation of this LocalizableMessage.
-   *
-   * @throws UnsupportedEncodingException  When the encoding of the message
-   *         failed because the UTF-8 encoding is not supported.
+   * @return The byte array representation of this message.
    */
-  public abstract byte[] getBytes_V1() throws UnsupportedEncodingException;
+  protected abstract byte[] getBytes_V1();
 
   /**
-   * Get the byte array representation of this LocalizableMessage. This uses the version
+   * Get the byte array representation of this message. This uses the version
    * 2 of the replication protocol (used for compatibility purpose).
    *
-   * @return The byte array representation of this LocalizableMessage.
-   *
-   * @throws UnsupportedEncodingException  When the encoding of the message
-   *         failed because the UTF-8 encoding is not supported.
+   * @return The byte array representation of this message.
    */
-  public abstract byte[] getBytes_V23() throws UnsupportedEncodingException;
-
+  protected abstract byte[] getBytes_V23();
 
   /**
-   * Get the byte array representation of this LocalizableMessage. This uses the provided
+   * Get the byte array representation of this message. This uses the provided
    * version number which must be version 4 or newer.
-   * @param reqProtocolVersion TODO
    *
-   * @return The byte array representation of this LocalizableMessage.
-   *
-   * @throws UnsupportedEncodingException  When the encoding of the message
-   *         failed because the UTF-8 encoding is not supported.
+   * @param protocolVersion the actual protocol version to encode into
+   * @return The byte array representation of this Message.
    */
-  public abstract byte[] getBytes_V45(short reqProtocolVersion)
-      throws UnsupportedEncodingException;
-
+  protected abstract byte[] getBytes_V45(short protocolVersion);
 
   /**
    * Encode a list of attributes.
    */
-   static private byte[] encodeAttributes(Collection<Attribute> attributes)
+   private static byte[] encodeAttributes(Collection<Attribute> attributes)
    {
      if (attributes==null)
+     {
        return new byte[0];
+     }
      try
      {
        ByteStringBuilder byteBuilder = new ByteStringBuilder();
@@ -426,153 +331,64 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
   // ============
 
   /**
-   * Decode the Header part of this Update LocalizableMessage, and check its type.
+   * Decode the Header part of this Update message, and check its type.
    *
-   * @param types The allowed types of this Update LocalizableMessage.
-   * @param encodedMsg the encoded form of the UpdateMsg.
-   * @return the position at which the remaining part of the message starts.
+   * @param scanner the encoded form of the UpdateMsg.
+   * @param allowedTypes The allowed types of this Update Message.
    * @throws DataFormatException if the encodedMsg does not contain a valid
    *         common header.
    */
-   public int decodeHeader(byte[] types, byte[] encodedMsg)
-                          throws DataFormatException
-   {
-     // first byte is the type
-     boolean foundMatchingType = false;
-     for (byte type : types)
-     {
-       if (type == encodedMsg[0])
-       {
-         foundMatchingType = true;
-         break;
-       }
-     }
-     if (!foundMatchingType)
-       throw new DataFormatException("byte[] is not a valid update msg: "
-           + encodedMsg[0]);
-
-     /*
-      * For older protocol version PDUs, decode the matching version header
-      * instead.
-      */
-     if ((encodedMsg[0] == MSG_TYPE_ADD_V1) ||
-         (encodedMsg[0] == MSG_TYPE_DELETE_V1) ||
-         (encodedMsg[0] == MSG_TYPE_MODIFYDN_V1) ||
-         (encodedMsg[0] == MSG_TYPE_MODIFY_V1))
-     {
-       return decodeHeader_V1(encodedMsg);
-     }
-
-     // read the protocol version
-     protocolVersion = encodedMsg[1];
-
-     try
-     {
-       // Read the CSN
-       int pos = 2;
-       int length = getNextLength(encodedMsg, pos);
-       String csnStr = new String(encodedMsg, pos, length, "UTF-8");
-       pos += length + 1;
-       csn = new CSN(csnStr);
-
-       // Read the dn
-       length = getNextLength(encodedMsg, pos);
-       dn = DN.valueOf(new String(encodedMsg, pos, length, "UTF-8"));
-       pos += length + 1;
-
-       // Read the entryuuid
-       length = getNextLength(encodedMsg, pos);
-       entryUUID = new String(encodedMsg, pos, length, "UTF-8");
-       pos += length + 1;
-
-       // Read the assured information
-       assuredFlag = encodedMsg[pos++] == 1;
-
-       // Read the assured mode
-       assuredMode = AssuredMode.valueOf(encodedMsg[pos++]);
-
-       // Read the safe data level
-       safeDataLevel = encodedMsg[pos++];
-
-       return pos;
-     }
-     catch (UnsupportedEncodingException e)
-     {
-       throw new DataFormatException("UTF-8 is not supported by this jvm.");
-     }
-     catch (IllegalArgumentException e)
-     {
-       throw new DataFormatException(e.getLocalizedMessage());
-     }
-     catch (DirectoryException e)
-     {
-       throw new DataFormatException(e.getLocalizedMessage());
-     }
-  }
-
-  /**
-   * Decode the Header part of this Update LocalizableMessage, and check its type. This
-   * uses the version 1 of the replication protocol (used for compatibility
-   * purpose).
-   *
-   * @param encodedMsg the encoded form of the UpdateMessage.
-   * @return the position at which the remaining part of the message starts.
-   * @throws DataFormatException if the encodedMsg does not contain a valid
-   *         common header.
-   */
-  public int decodeHeader_V1(byte[] encodedMsg)
-                          throws DataFormatException
+  void decodeHeader(ByteArrayScanner scanner, byte... allowedTypes)
+      throws DataFormatException
   {
-    if ((encodedMsg[0] != MSG_TYPE_ADD_V1) &&
-      (encodedMsg[0] != MSG_TYPE_DELETE_V1) &&
-      (encodedMsg[0] != MSG_TYPE_MODIFYDN_V1) &&
-      (encodedMsg[0] != MSG_TYPE_MODIFY_V1))
-      throw new DataFormatException("byte[] is not a valid update msg: expected"
-        + " a V1 PDU, received: " + encodedMsg[0]);
-
-    // Force version to V1 (other new parameters take their default values
-    // (assured stuff...))
-    protocolVersion = ProtocolVersion.REPLICATION_PROTOCOL_V1;
-
-    try
+    final byte msgType = scanner.nextByte();
+    if (!isTypeAllowed(msgType, allowedTypes))
     {
-      // read the CSN
-      int pos = 1;
-      int length = getNextLength(encodedMsg, pos);
-      String csnStr = new String(encodedMsg, pos, length, "UTF-8");
-      pos += length + 1;
-      csn = new CSN(csnStr);
-
-      // read the assured information
-      assuredFlag = encodedMsg[pos++] == 1;
-
-      // read the dn
-      length = getNextLength(encodedMsg, pos);
-      dn = DN.valueOf(new String(encodedMsg, pos, length, "UTF-8"));
-      pos += length + 1;
-
-      // read the entryuuid
-      length = getNextLength(encodedMsg, pos);
-      entryUUID = new String(encodedMsg, pos, length, "UTF-8");
-      pos += length + 1;
-
-      return pos;
+      throw new DataFormatException("byte[] is not a valid update msg: "
+          + msgType);
     }
-    catch (UnsupportedEncodingException e)
+
+    if (msgType == MSG_TYPE_ADD_V1
+        || msgType == MSG_TYPE_DELETE_V1
+        || msgType == MSG_TYPE_MODIFYDN_V1
+        || msgType == MSG_TYPE_MODIFY_V1)
     {
-      throw new DataFormatException("UTF-8 is not supported by this jvm.");
+      /*
+       * For older protocol versions, decode the matching version header instead
+       */
+      // Force version to V1 (other new parameters take their default values
+      // (assured stuff...))
+      protocolVersion = ProtocolVersion.REPLICATION_PROTOCOL_V1;
+      csn = scanner.nextCSNUTF8();
+      assuredFlag = scanner.nextBoolean();
+      dn = scanner.nextDN();
+      entryUUID = scanner.nextString();
     }
-    catch (DirectoryException e)
+    else
     {
-      throw new DataFormatException(e.getLocalizedMessage());
+      protocolVersion = scanner.nextByte();
+      csn = scanner.nextCSNUTF8();
+      dn = scanner.nextDN();
+      entryUUID = scanner.nextString();
+      assuredFlag = scanner.nextBoolean();
+      assuredMode = AssuredMode.valueOf(scanner.nextByte());
+      safeDataLevel = scanner.nextByte();
     }
   }
 
-  /**
-   * Return the number of bytes used by this message.
-   *
-   * @return The number of bytes used by this message.
-   */
+  private boolean isTypeAllowed(final byte msgType, byte... allowedTypes)
+  {
+    for (byte allowedType : allowedTypes)
+    {
+      if (msgType == allowedType)
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /** {@inheritDoc} */
   @Override
   public abstract int size();
 
@@ -617,7 +433,7 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
    * @throws LDAPException when it occurs.
    * @throws DecodeException when it occurs.
    */
-  public ArrayList<RawAttribute> decodeRawAttributes(byte[] in)
+  ArrayList<RawAttribute> decodeRawAttributes(byte[] in)
   throws LDAPException, DecodeException
   {
     ArrayList<RawAttribute> rattr = new ArrayList<RawAttribute>();
@@ -646,7 +462,7 @@ public abstract class LDAPUpdateMsg extends UpdateMsg
    * @throws LDAPException when it occurs.
    * @throws DecodeException when it occurs.
    */
-  public ArrayList<Attribute> decodeAttributes(byte[] in)
+  ArrayList<Attribute> decodeAttributes(byte[] in)
   throws LDAPException, DecodeException
   {
     ArrayList<Attribute> lattr = new ArrayList<Attribute>();

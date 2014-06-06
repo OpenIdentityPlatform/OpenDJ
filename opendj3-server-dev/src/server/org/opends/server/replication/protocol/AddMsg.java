@@ -26,7 +26,6 @@
  */
 package org.opends.server.replication.protocol;
 
-import java.io.UnsupportedEncodingException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -65,7 +64,7 @@ public class AddMsg extends LDAPUpdateMsg
    * Creates a new AddMessage.
    * @param op the operation to use when creating the message
    */
-  public AddMsg(PostOperationAddOperation op)
+  AddMsg(PostOperationAddOperation op)
   {
     super((AddContext) op.getAttachment(SYNCHROCONTEXT), op.getEntryDN());
 
@@ -144,22 +143,19 @@ public class AddMsg extends LDAPUpdateMsg
    *
    * @param in The byte[] from which the operation must be read.
    * @throws DataFormatException The input byte[] is not a valid AddMsg
-   * @throws UnsupportedEncodingException If UTF8 is not supported by the jvm
    */
-  public AddMsg(byte[] in) throws DataFormatException,
-                                  UnsupportedEncodingException
+  public AddMsg(byte[] in) throws DataFormatException
   {
-    byte[] allowedPduTypes = new byte[2];
-    allowedPduTypes[0] = MSG_TYPE_ADD;
-    allowedPduTypes[1] = MSG_TYPE_ADD_V1;
-    int pos = decodeHeader(allowedPduTypes, in);
+    final ByteArrayScanner scanner = new ByteArrayScanner(in);
+    decodeHeader(scanner, MSG_TYPE_ADD, MSG_TYPE_ADD_V1);
 
-    // protocol version has been read as part of the header
     if (protocolVersion <= 3)
-      decodeBody_V123(in, pos);
+    {
+      decodeBody_V123(scanner);
+    }
     else
     {
-      decodeBody_V4(in, pos);
+      decodeBody_V4(scanner);
     }
     if (protocolVersion==ProtocolVersion.getCurrentVersion())
     {
@@ -190,122 +186,37 @@ public class AddMsg extends LDAPUpdateMsg
 
   /** {@inheritDoc} */
   @Override
-  public byte[] getBytes_V1() throws UnsupportedEncodingException
+  public byte[] getBytes_V1()
   {
-    int bodyLength = encodedAttributes.length;
-    byte[] byteParentId = null;
-    if (parentEntryUUID != null)
-    {
-      byteParentId = parentEntryUUID.getBytes("UTF-8");
-      bodyLength += byteParentId.length + 1;
-    }
-    else
-    {
-      bodyLength += 1;
-    }
-
-    /* encode the header in a byte[] large enough to also contain the mods */
-    byte [] resultByteArray = encodeHeader_V1(MSG_TYPE_ADD_V1, bodyLength);
-
-    int pos = resultByteArray.length - bodyLength;
-
-    if (byteParentId != null)
-      pos = addByteArray(byteParentId, resultByteArray, pos);
-    else
-      resultByteArray[pos++] = 0;
-
-    /* put the attributes */
-    for (int i=0; i<encodedAttributes.length; i++,pos++)
-    {
-      resultByteArray[pos] = encodedAttributes[i];
-    }
-    return resultByteArray;
+    final ByteArrayBuilder builder = encodeHeader_V1(MSG_TYPE_ADD_V1);
+    builder.append(parentEntryUUID);
+    builder.append(encodedAttributes);
+    return builder.toByteArray();
   }
 
   /** {@inheritDoc} */
   @Override
-  public byte[] getBytes_V23() throws UnsupportedEncodingException
+  public byte[] getBytes_V23()
   {
-    // Put together the different encoded pieces
-    int bodyLength = encodedAttributes.length;
-
-    // Compute the total length of the body
-    byte[] byteParentId = null;
-    if (parentEntryUUID != null)
-    {
-      // Encode parentID now to get the length of the encoded bytes
-      byteParentId = parentEntryUUID.getBytes("UTF-8");
-      bodyLength += byteParentId.length + 1;
-    }
-    else
-    {
-      bodyLength += 1;
-    }
-
-    /* encode the header in a byte[] large enough to also contain the mods */
-    byte [] resultByteArray = encodeHeader(MSG_TYPE_ADD, bodyLength,
-          ProtocolVersion.REPLICATION_PROTOCOL_V3);
-
-    int pos = resultByteArray.length - bodyLength;
-
-    if (byteParentId != null)
-      pos = addByteArray(byteParentId, resultByteArray, pos);
-    else
-      resultByteArray[pos++] = 0;
-
-    /* put the attributes */
-    for (int i=0; i<encodedAttributes.length; i++,pos++)
-    {
-      resultByteArray[pos] = encodedAttributes[i];
-    }
-    return resultByteArray;
+    final ByteArrayBuilder builder =
+        encodeHeader(MSG_TYPE_ADD, ProtocolVersion.REPLICATION_PROTOCOL_V3);
+    builder.append(parentEntryUUID);
+    builder.append(encodedAttributes);
+    return builder.toByteArray();
   }
 
   /** {@inheritDoc} */
   @Override
-  public byte[] getBytes_V45(short reqProtocolVersion)
-      throws UnsupportedEncodingException
+  public byte[] getBytes_V45(short protocolVersion)
   {
-    // Put together the different encoded pieces
-    int bodyLength = 0;
-
-    // Compute the total length of the body
-    byte[] byteParentId = null;
-    if (parentEntryUUID != null)
-    {
-      // Encode parentID now to get the length of the encoded bytes
-      byteParentId = parentEntryUUID.getBytes("UTF-8");
-      bodyLength += byteParentId.length + 1;
-    }
-    else
-    {
-      bodyLength += 1;
-    }
-
-    byte[] byteAttrLen =
-      String.valueOf(encodedAttributes.length).getBytes("UTF-8");
-    bodyLength += byteAttrLen.length + 1;
-    bodyLength += encodedAttributes.length + 1;
-
-    byte[] byteEntryAttrLen =
-      String.valueOf(encodedEclIncludes.length).getBytes("UTF-8");
-    bodyLength += byteEntryAttrLen.length + 1;
-    bodyLength += encodedEclIncludes.length + 1;
-
-    /* encode the header in a byte[] large enough to also contain the mods */
-    byte [] encodedMsg = encodeHeader(MSG_TYPE_ADD, bodyLength,
-        reqProtocolVersion);
-
-    int pos = encodedMsg.length - bodyLength;
-    if (byteParentId != null)
-      pos = addByteArray(byteParentId, encodedMsg, pos);
-    else
-      encodedMsg[pos++] = 0;
-    pos = addByteArray(byteAttrLen, encodedMsg, pos);
-    pos = addByteArray(encodedAttributes, encodedMsg, pos);
-    pos = addByteArray(byteEntryAttrLen, encodedMsg, pos);
-    pos = addByteArray(encodedEclIncludes, encodedMsg, pos);
-    return encodedMsg;
+    final ByteArrayBuilder builder =
+        encodeHeader(MSG_TYPE_ADD, protocolVersion);
+    builder.append(parentEntryUUID);
+    builder.appendUTF8(encodedAttributes.length);
+    builder.appendZeroTerminated(encodedAttributes);
+    builder.appendUTF8(encodedEclIncludes.length);
+    builder.appendZeroTerminated(encodedEclIncludes);
+    return builder.toByteArray();
   }
 
   private byte[] encodeAttributes(
@@ -368,11 +279,17 @@ public class AddMsg extends LDAPUpdateMsg
       new LDAPAttribute(objectClass).write(writer);
 
       for (Attribute a : userAttributes)
+      {
         new LDAPAttribute(a).write(writer);
+      }
 
       if (operationalAttributes != null)
+      {
         for (Attribute a : operationalAttributes)
+        {
           new LDAPAttribute(a).write(writer);
+        }
+      }
     }
     catch(Exception e)
     {
@@ -385,89 +302,24 @@ public class AddMsg extends LDAPUpdateMsg
   // Msg decoding
   // ============
 
-  private void decodeBody_V123(byte[] in, int pos)
-  throws DataFormatException, UnsupportedEncodingException
+  private void decodeBody_V123(ByteArrayScanner scanner)
+      throws DataFormatException
   {
-    // read the parent unique Id
-    int length = getNextLength(in, pos);
-    if (length != 0)
-    {
-      parentEntryUUID = new String(in, pos, length, "UTF-8");
-      pos += length + 1;
-    }
-    else
-    {
-      parentEntryUUID = null;
-      pos += 1;
-    }
-
-    // Read/Don't decode attributes : all the remaining bytes
-    encodedAttributes = new byte[in.length-pos];
-    int i =0;
-    while (pos<in.length)
-    {
-      encodedAttributes[i++] = in[pos++];
-    }
+    parentEntryUUID = scanner.nextString();
+    encodedAttributes = scanner.remainingBytes();
   }
 
-  private void decodeBody_V4(byte[] in, int pos)
-  throws DataFormatException, UnsupportedEncodingException
+  private void decodeBody_V4(ByteArrayScanner scanner)
+      throws DataFormatException
   {
-    // read the parent unique Id
-    int length = getNextLength(in, pos);
-    if (length != 0)
-    {
-      parentEntryUUID = new String(in, pos, length, "UTF-8");
-      pos += length + 1;
-    }
-    else
-    {
-      parentEntryUUID = null;
-      pos += 1;
-    }
+    parentEntryUUID = scanner.nextString();
 
-    // Read attr len
-    length = getNextLength(in, pos);
-    int attrLen = Integer.valueOf(new String(in, pos, length,"UTF-8"));
-    pos += length + 1;
+    final int attrLen = scanner.nextIntUTF8();
+    encodedAttributes = scanner.nextByteArray(attrLen);
+    scanner.skipZeroSeparator();
 
-    // Read/Don't decode attributes
-    this.encodedAttributes = new byte[attrLen];
-    try
-    {
-      System.arraycopy(in, pos, encodedAttributes, 0, attrLen);
-    } catch (IndexOutOfBoundsException e)
-    {
-      throw new DataFormatException(e.getMessage());
-    } catch (ArrayStoreException e)
-    {
-      throw new DataFormatException(e.getMessage());
-    } catch (NullPointerException e)
-    {
-      throw new DataFormatException(e.getMessage());
-    }
-    pos += attrLen + 1;
-
-    // Read ecl attr len
-    length = getNextLength(in, pos);
-    int eclAttrLen = Integer.valueOf(new String(in, pos, length,"UTF-8"));
-    pos += length + 1;
-
-    // Read/Don't decode entry attributes
-    encodedEclIncludes = new byte[eclAttrLen];
-    try
-    {
-      System.arraycopy(in, pos, encodedEclIncludes, 0, eclAttrLen);
-    } catch (IndexOutOfBoundsException e)
-    {
-      throw new DataFormatException(e.getMessage());
-    } catch (ArrayStoreException e)
-    {
-      throw new DataFormatException(e.getMessage());
-    } catch (NullPointerException e)
-    {
-      throw new DataFormatException(e.getMessage());
-    }
+    final int eclAttrLen = scanner.nextIntUTF8();
+    encodedEclIncludes = scanner.nextByteArray(eclAttrLen);
   }
 
   /** {@inheritDoc} */
