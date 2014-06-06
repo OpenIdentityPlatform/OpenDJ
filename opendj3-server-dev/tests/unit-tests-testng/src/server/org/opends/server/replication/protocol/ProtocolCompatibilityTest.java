@@ -26,14 +26,12 @@
  */
 package org.opends.server.replication.protocol;
 
-import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.zip.DataFormatException;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ModificationType;
@@ -51,6 +49,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.replication.protocol.OperationContext.*;
@@ -66,12 +65,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
 
   short REPLICATION_PROTOCOL_VLAST = ProtocolVersion.getCurrentVersion();
 
-  /**
-   * Set up the environment for performing the tests in this Class.
-   *
-   * @throws Exception
-   *           If the environment could not be set up.
-   */
+  /** Set up the environment for performing the tests in this class. */
   @BeforeClass
   @Override
   public void setUp() throws Exception
@@ -79,11 +73,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     super.setUp();
   }
 
-  /**
-   * Clean up the environment.
-   *
-   * @throws Exception If the environment could not be set up.
-   */
+  /** Clean up the environment. */
   @AfterClass
   @Override
   public void classCleanUp() throws Exception
@@ -92,19 +82,21 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
   }
 
   @DataProvider(name="createReplServerStartData")
-  public Object [][] createReplServerStartData() throws Exception
+  public Object[][] createReplServerStartData() throws Exception
   {
-    DN baseDN = DN.valueOf("o=test");
-    ServerState state = new ServerState();
-    state.update(new CSN(0, 0,0));
-    Object[] set1 = new Object[] {1, baseDN, 0, "localhost:8989", state, 0L, (byte)0, 0};
+    final DN baseDN1 = DN.valueOf("o=test");
+    final ServerState state1 = new ServerState();
+    state1.update(new CSN(0, 0,0));
 
-    baseDN = DN.valueOf("dc=example,dc=com");
-    state = new ServerState();
-    state.update(new CSN(75, 5,263));
-    Object[] set2 = new Object[] {16, baseDN, 100, "anotherHost:1025", state, 1245L, (byte)25, 3456};
+    final DN baseDN2 = DN.valueOf("dc=example,dc=com");
+    final ServerState state2 = new ServerState();
+    state2.update(new CSN(75, 5,263));
 
-    return new Object [][] { set1, set2 };
+    return new Object[][]
+    {
+      {  1, baseDN1,   0, "localhost:8989",   state1,    0L, (byte)  0,    0},
+      { 16, baseDN2, 100, "anotherHost:1025", state2, 1245L, (byte) 25, 3456},
+    };
   }
 
   /**
@@ -176,9 +168,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     // Entry attributes
     Attribute eattr1 = Attributes.create("description", "eav description");
     Attribute eattr2 = Attributes.create("namingcontexts", "eav naming contexts");
-    List<Attribute> entryAttrList = new ArrayList<Attribute>();
-    entryAttrList.add(eattr1);
-    entryAttrList.add(eattr2);
+    List<Attribute> entryAttrList = newList(eattr1, eattr2);
 
     return new Object[][] {
       {"dc=example,dc=com", false, AssuredMode.SAFE_DATA_MODE, (byte)0, null},
@@ -188,16 +178,16 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
 
   @Test(dataProvider = "createAddData")
   public void addMsgTestVLASTV2(String rawDN, boolean isAssured, AssuredMode assuredMode,
-    byte safeDataLevel, List<Attribute> entryAttrList)
-         throws Exception
+      byte safeDataLevel, List<Attribute> entryAttrList)
+      throws Exception
   {
     // TODO: addMsgTest as soon as V3 will have any incompatibility with V2
   }
 
   @Test(dataProvider = "createAddData")
   public void addMsgTestVLASTV1(String rawDN, boolean isAssured, AssuredMode assuredMode,
-    byte safeDataLevel, List<Attribute> entryAttrList)
-  throws Exception
+      byte safeDataLevel, List<Attribute> entryAttrList)
+      throws Exception
   {
     final DN dn = DN.valueOf(rawDN);
 
@@ -208,16 +198,14 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     objectClassList.put(DirectoryServer.getObjectClass("organization"),
         "organization");
 
-    ArrayList<Attribute> userAttributes = new ArrayList<Attribute>(1);
     Attribute attr = Attributes.create("o", "com");
-    userAttributes.add(attr);
+    List<Attribute> userAttributes = newList(attr);
     HashMap<AttributeType, List<Attribute>> userAttList = new HashMap<AttributeType, List<Attribute>>();
     userAttList.put(attr.getAttributeType(), userAttributes);
 
 
-    ArrayList<Attribute> operationalAttributes = new ArrayList<Attribute>(1);
     attr = Attributes.create("creatorsName", "dc=creator");
-    operationalAttributes.add(attr);
+    List<Attribute> operationalAttributes = newList(attr);
     HashMap<AttributeType,List<Attribute>> opList=
       new HashMap<AttributeType,List<Attribute>>();
     opList.put(attr.getAttributeType(), operationalAttributes);
@@ -303,21 +291,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     assertEquals(msg.getSafeDataLevel(), vlastMsg.getSafeDataLevel());
 
     // Get ECL entry attributes
-    ArrayList<RawAttribute> genAttrList = vlastMsg.getEclIncludes();
-    if (entryAttrList==null)
-      assertTrue(genAttrList.size()==0);
-    else
-    {
-      assertTrue(genAttrList.size()==entryAttrList.size());
-      int i=0;
-      for (Attribute eattr : entryAttrList)
-      {
-        assertTrue(eattr.getName().equalsIgnoreCase(genAttrList.get(i).toAttribute().getName()));
-        assertTrue(eattr.toString().equalsIgnoreCase(genAttrList.get(i).toAttribute().toString()),
-            "Comparing: " + eattr + " and " + genAttrList.get(i).toAttribute());
-        i++;
-      }
-    }
+    assertAttributesEqual(vlastMsg.getEclIncludes(), entryAttrList);
 
     //        Create an add operation from each message to compare attributes (kept encoded in messages)
     op = msg.createOperation(connection, dn);
@@ -336,6 +310,28 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     assertEquals(addOpBasis.getUserAttributes(), genAddOpBasis.getUserAttributes());
   }
 
+  private void assertAttributesEqual(List<RawAttribute> actualAttrs,
+      List<Attribute> expectedAttrs) throws LDAPException
+  {
+    if (expectedAttrs == null)
+    {
+      assertThat(actualAttrs).isEmpty();
+    }
+    else
+    {
+      assertThat(actualAttrs).hasSize(expectedAttrs.size());
+      for (int i = 0; i < expectedAttrs.size(); i++)
+      {
+        final Attribute expectedAttr = expectedAttrs.get(i);
+        final Attribute actualAttr = actualAttrs.get(i).toAttribute();
+
+        assertTrue(expectedAttr.getName().equalsIgnoreCase(actualAttr.getName()));
+        assertTrue(expectedAttr.toString().equalsIgnoreCase(actualAttr.toString()),
+            "Comparing: " + expectedAttr + " and " + actualAttr);
+      }
+    }
+  }
+
   /**
    * Build some data for the DeleteMsg test below.
    */
@@ -345,9 +341,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     // Entry attributes
     Attribute eattr1 = Attributes.create("description", "eav description");
     Attribute eattr2 = Attributes.create("namingcontexts", "eav naming contexts");
-    List<Attribute> entryAttrList = new ArrayList<Attribute>();
-    entryAttrList.add(eattr1);
-    entryAttrList.add(eattr2);
+    List<Attribute> entryAttrList = newList(eattr1, eattr2);
 
     return new Object[][] {
       {"dc=example,dc=com", false, AssuredMode.SAFE_DATA_MODE, (byte)0, null},
@@ -361,8 +355,8 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
    */
   @Test(dataProvider = "createDeleteData")
   public void deleteMsgTestVLASTV2(String rawDN, boolean isAssured, AssuredMode assuredMode,
-    byte safeDataLevel, List<Attribute> entryAttrList)
-         throws Exception
+      byte safeDataLevel, List<Attribute> entryAttrList)
+      throws Exception
   {
     // TODO: deleteMsgTestVLASTV2 as soon as V3 will have any incompatibility with V2
   }
@@ -373,8 +367,8 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
    */
   @Test(dataProvider = "createDeleteData")
   public void deleteMsgTestVLASTV1(String rawDN, boolean isAssured, AssuredMode assuredMode,
-    byte safeDataLevel, List<Attribute> entryAttrList)
-  throws Exception
+      byte safeDataLevel, List<Attribute> entryAttrList)
+      throws Exception
   {
     final DN dn = DN.valueOf(rawDN);
 
@@ -440,21 +434,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     assertEquals(msg.getSafeDataLevel(), vlastMsg.getSafeDataLevel());
 
     // Get ECL entry attributes
-    ArrayList<RawAttribute> genAttrList = vlastMsg.getEclIncludes();
-    if (entryAttrList==null)
-      assertTrue(genAttrList.size()==0);
-    else
-    {
-      assertTrue(genAttrList.size()==entryAttrList.size());
-      int i=0;
-      for (Attribute attr : entryAttrList)
-      {
-        assertTrue(attr.getName().equalsIgnoreCase(genAttrList.get(i).toAttribute().getName()));
-        assertTrue(attr.toString().equalsIgnoreCase(genAttrList.get(i).toAttribute().toString()),
-            "Comparing: " + attr + " and " + genAttrList.get(i).toAttribute());
-        i++;
-      }
-    }
+    assertAttributesEqual(vlastMsg.getEclIncludes(), entryAttrList);
   }
 
   /**
@@ -469,44 +449,35 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
 
     Attribute attr1 = Attributes.create("description", "new value");
     Modification mod1 = new Modification(ModificationType.REPLACE, attr1);
-    List<Modification> mods1 = new ArrayList<Modification>();
-    mods1.add(mod1);
+    List<Modification> mods1 = newList(mod1);
 
     Attribute attr2 = Attributes.empty("description");
     Modification mod2 = new Modification(ModificationType.DELETE, attr2);
-    List<Modification> mods2 = new ArrayList<Modification>();
-    mods2.add(mod1);
-    mods2.add(mod2);
+    List<Modification> mods2 = newList(mod1, mod2);
 
     AttributeBuilder builder = new AttributeBuilder(type);
-    List<Modification> mods3 = new ArrayList<Modification>();
     builder.add("string");
     builder.add("value");
     builder.add("again");
     Attribute attr3 = builder.toAttribute();
     Modification mod3 = new Modification(ModificationType.ADD, attr3);
-    mods3.add(mod3);
+    List<Modification> mods3 = newList(mod3);
 
     List<Modification> mods4 = new ArrayList<Modification>();
     for (int i = 0; i < 10; i++)
     {
-      Attribute attr = Attributes.create("description", "string"
-          + String.valueOf(i));
-      Modification mod = new Modification(ModificationType.ADD, attr);
-      mods4.add(mod);
+      Attribute attr = Attributes.create("description", "string" + i);
+      mods4.add(new Modification(ModificationType.ADD, attr));
     }
 
     Attribute attr5 = Attributes.create("namingcontexts", "o=test");
     Modification mod5 = new Modification(ModificationType.REPLACE, attr5);
-    List<Modification> mods5 = new ArrayList<Modification>();
-    mods5.add(mod5);
+    List<Modification> mods5 = newList(mod5);
 
     // Entry attributes
     Attribute eattr1 = Attributes.create("description", "eav description");
     Attribute eattr2 = Attributes.create("namingcontexts", "eav naming contexts");
-    List<Attribute> entryAttrList = new ArrayList<Attribute>();
-    entryAttrList.add(eattr1);
-    entryAttrList.add(eattr2);
+    List<Attribute> entryAttrList = newList(eattr1, eattr2);
 
     return new Object[][] {
         { csn1, "dc=test", mods1, false, AssuredMode.SAFE_DATA_MODE, (byte) 0, null },
@@ -627,21 +598,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     assertEquals(origVlastMsg.getSafeDataLevel(), generatedVlastMsg.getSafeDataLevel());
     assertEquals(origVlastMsg.getSafeDataLevel(), generatedVlastMsg.getSafeDataLevel());
     // Get ECL entry attributes
-    ArrayList<RawAttribute> genAttrList = generatedVlastMsg.getEclIncludes();
-    if (entryAttrList==null)
-      assertTrue(genAttrList.size()==0);
-    else
-    {
-      assertTrue(genAttrList.size()==entryAttrList.size());
-      int i=0;
-      for (Attribute attr : entryAttrList)
-      {
-        assertTrue(attr.getName().equalsIgnoreCase(genAttrList.get(i).toAttribute().getName()));
-        assertTrue(attr.toString().equalsIgnoreCase(genAttrList.get(i).toAttribute().toString()),
-            "Comparing: " + attr + " and " + genAttrList.get(i).toAttribute());
-        i++;
-      }
-    }
+    assertAttributesEqual(generatedVlastMsg.getEclIncludes(), entryAttrList);
 
     // Create a modify operation from each message to compare mods (kept encoded in messages)
     opFromOrigVlast = origVlastMsg.createOperation(connection);
@@ -668,39 +625,31 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
 
     Attribute attr1 = Attributes.create("description", "new value");
     Modification mod1 = new Modification(ModificationType.REPLACE, attr1);
-    List<Modification> mods1 = new ArrayList<Modification>();
-    mods1.add(mod1);
+    List<Modification> mods1 = newList(mod1);
 
     Attribute attr2 = Attributes.empty("description");
     Modification mod2 = new Modification(ModificationType.DELETE, attr2);
-    List<Modification> mods2 = new ArrayList<Modification>();
-    mods2.add(mod1);
-    mods2.add(mod2);
+    List<Modification> mods2 = newList(mod1, mod2);
 
     AttributeBuilder builder = new AttributeBuilder(type);
-    List<Modification> mods3 = new ArrayList<Modification>();
     builder.add("string");
     builder.add("value");
     builder.add("again");
     Attribute attr3 = builder.toAttribute();
     Modification mod3 = new Modification(ModificationType.ADD, attr3);
-    mods3.add(mod3);
+    List<Modification> mods3 = newList(mod3);
 
     List<Modification> mods4 = new ArrayList<Modification>();
     for (int i = 0; i < 10; i++)
     {
-      Attribute attr = Attributes.create("description", "string"
-          + String.valueOf(i));
-      Modification mod = new Modification(ModificationType.ADD, attr);
-      mods4.add(mod);
+      Attribute attr = Attributes.create("description", "string" + i);
+      mods4.add(new Modification(ModificationType.ADD, attr));
     }
 
     // Entry attributes
     Attribute eattr1 = Attributes.create("description", "eav description");
     Attribute eattr2 = Attributes.create("namingcontexts", "eav naming contexts");
-    List<Attribute> entryAttrList = new ArrayList<Attribute>();
-    entryAttrList.add(eattr1);
-    entryAttrList.add(eattr2);
+    List<Attribute> entryAttrList = newList(eattr1, eattr2);
 
     return new Object[][] {
         {"dc=test,dc=com", "dc=new", "11111111-1111-1111-1111-111111111111", "22222222-2222-2222-2222-222222222222", false, "dc=change", mods1, false, AssuredMode.SAFE_DATA_MODE, (byte)0, null},
@@ -828,21 +777,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     assertEquals(msg.deleteOldRdn(), vlastMsg.deleteOldRdn());
 
     // Get ECL entry attributes
-    ArrayList<RawAttribute> genAttrList = vlastMsg.getEclIncludes();
-    if (entryAttrList==null)
-      assertTrue(genAttrList.size()==0);
-    else
-    {
-      assertTrue(genAttrList.size()==entryAttrList.size());
-      int i=0;
-      for (Attribute attr : entryAttrList)
-      {
-        assertTrue(attr.getName().equalsIgnoreCase(genAttrList.get(i).toAttribute().getName()));
-        assertTrue(attr.toString().equalsIgnoreCase(genAttrList.get(i).toAttribute().toString()),
-            "Comparing: " + attr + " and " + genAttrList.get(i).toAttribute());
-        i++;
-      }
-    }
+    assertAttributesEqual(vlastMsg.getEclIncludes(), entryAttrList);
 
     // Create a modDn operation from each message to compare mods (kept encoded in messages)
     op = msg.createOperation(connection);
@@ -912,13 +847,10 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
    *
    * The data provider generates arguments containing a pre-formatted
    * UpdateMsg and the corresponding data.
-   *
    */
   @Test(dataProvider = "createOldUpdateData")
-  public void createOldUpdate(
-      String encodedString, Class<?> msgType, CSN csn, String dn)
-      throws UnsupportedEncodingException, DataFormatException,
-      NotSupportedOldVersionPDUException, DirectoryException
+  public void createOldUpdate(String encodedString, Class<?> msgType, CSN csn, String dn)
+      throws Exception
   {
     LDAPUpdateMsg msg = (LDAPUpdateMsg) ReplicationMsg.generateMsg(
         hexStringToByteArray(encodedString), ProtocolVersion.REPLICATION_PROTOCOL_V3);
@@ -984,10 +916,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
   @DataProvider(name = "createoldAckMsgData")
   public Object[][] createoldAckMsgData()
   {
-    ArrayList<Integer> fservers4 = new ArrayList<Integer>();
-    fservers4.add(new Integer(100));
-    fservers4.add(new Integer(2000));
-    fservers4.add(new Integer(30000));
+    List<Integer> fservers4 = newList(100, 2000, 30000);
 
     return new Object[][] {
         {"05303030303031323366316535383832383030326430303030303037" +
@@ -1026,8 +955,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
 
   @Test(dataProvider = "createStartSessionData")
   public void oldStartSessionPDUs(String pdu, ServerStatus status,
-      boolean assured, AssuredMode assuredMode, byte level)
-         throws Exception
+      boolean assured, AssuredMode assuredMode, byte level) throws Exception
   {
     StartSessionMsg msg = new StartSessionMsg(hexStringToByteArray(pdu),
         ProtocolVersion.REPLICATION_PROTOCOL_V3);
@@ -1040,7 +968,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
   }
 
   @DataProvider
-  public Object [][] createTopologyData() throws Exception
+  public Object[][] createTopologyData() throws Exception
   {
     List<String> urls1 = newList(
         "ldap://ldap.iplanet.com/o=test??sub?(sn=Jensen)",
@@ -1124,7 +1052,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
   }
 
   @DataProvider(name="createEntryMsgData")
-  public Object [][] createEntryMsgData() throws Exception
+  public Object[][] createEntryMsgData() throws Exception
   {
     int sid = 1;
     int dest = 2;
@@ -1175,7 +1103,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
   }
 
   @DataProvider(name="createErrorMsgData")
-  public Object [][] createErrorMsgData() throws Exception
+  public Object[][] createErrorMsgData() throws Exception
   {
     int sender = 1;
     int dest = 2;
@@ -1189,7 +1117,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
    */
   @Test(enabled=true, dataProvider="createErrorMsgData")
   public void errorMsgTestVLASTV3(int sender, int dest, LocalizableMessage message)
-  throws Exception
+      throws Exception
   {
     // Create VLAST message
     ErrorMsg msg = new ErrorMsg(sender, dest, message);
@@ -1221,14 +1149,16 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
   }
 
   @DataProvider(name="createInitializationRequestMsgData")
-  public Object [][] createInitializationRequestMsgData() throws Exception
+  public Object[][] createInitializationRequestMsgData() throws Exception
   {
     int sender = 1;
     int dest = 2;
     DN baseDN = DN.valueOf("dc=whatever");
     int initWindow = 22;
-    Object[] set1 = new Object[] { sender, dest, baseDN, initWindow };
-    return new Object [][] { set1};
+    return new Object[][]
+    {
+      { sender, dest, baseDN, initWindow },
+    };
   }
 
   /**
@@ -1271,7 +1201,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
   }
 
   @DataProvider(name="createInitializeTargetMsgData")
-  public Object [][] createInitializeTargetMsgData() throws Exception
+  public Object[][] createInitializeTargetMsgData() throws Exception
   {
     int sender = 1;
     int dest = 2;
@@ -1279,8 +1209,10 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     DN baseDN = DN.valueOf("dc=whatever");
     int entryCount = 56;
     int initWindow = 22;
-    Object[] set1 = new Object[] {sender, dest, initiator, baseDN, entryCount, initWindow };
-    return new Object [][] { set1};
+    return new Object[][]
+    {
+      { sender, dest, initiator, baseDN, entryCount, initWindow },
+    };
   }
 
   /**
@@ -1290,7 +1222,7 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
   @Test(enabled=true, dataProvider="createInitializeTargetMsgData")
   public void initializeTargetMsgTestVLASTV3(int sender, int dest,
       int initiator, DN baseDN, int entryCount, int initWindow)
-  throws Exception
+      throws Exception
   {
     // Create VLAST message
     InitializeTargetMsg msg = new InitializeTargetMsg(baseDN, sender, dest,
@@ -1336,16 +1268,15 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
           1, 2}};
   }
   @Test(dataProvider = "createEntryMsgV3")
-  public void entryMsgPDUV3(
-      String pduV3, int dest, int sender) throws Exception
+  public void entryMsgPDUV3(String pduV3, int dest, int sender) throws Exception
   {
     // this msg is changed by V4, so we want to test that V>3 server can
     // build a V>3 version when it receives a V3 PDU from a V3 server.
     EntryMsg msg = new EntryMsg(hexStringToByteArray(pduV3),
         ProtocolVersion.REPLICATION_PROTOCOL_V3);
-    assertEquals(msg.getDestination(), dest, "Expected:" + dest);
-    assertEquals(msg.getSenderID(), sender, "Expected:" + sender);
-    assertEquals(msg.getMsgId(), -1, "Expected:-1");
+    assertEquals(msg.getDestination(), dest);
+    assertEquals(msg.getSenderID(), sender);
+    assertEquals(msg.getMsgId(), -1);
     // we should test EntryBytes
   }
 
@@ -1364,9 +1295,9 @@ public class ProtocolCompatibilityTest extends ReplicationTestCase {
     // build a V>3 version when it receives a V3 PDU from a V3 server.
     ErrorMsg msg = new ErrorMsg(hexStringToByteArray(pduV3),
         ProtocolVersion.REPLICATION_PROTOCOL_V3);
-    assertEquals(msg.getDestination(), 9, "Expected:"+9);
-    assertEquals(msg.getSenderID(), 8, "Expected:"+8);
-    assertTrue(0==msg.getDetails().toString().compareTo(errorDetails));
+    assertEquals(msg.getDestination(), dest);
+    assertEquals(msg.getSenderID(), sender);
+    assertEquals(msg.getDetails().toString(), errorDetails);
   }
 
   @DataProvider(name = "initializeTargetMsgV3")
