@@ -8991,7 +8991,7 @@ public final class DirectoryServer
    * @return Returns the class loader to be used with this directory
    *         server application.
    */
-  private static ClassLoader getClassLoader()
+  public static ClassLoader getClassLoader()
   {
     return ClassLoaderProvider.getInstance().getClassLoader();
   }
