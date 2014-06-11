@@ -56,6 +56,7 @@ import static org.opends.messages.ToolMessages.ERR_UPGRADE_UNKNOWN_OC_ATT;
 import static org.opends.server.tools.upgrade.FileManager.deleteRecursively;
 import static org.opends.server.tools.upgrade.FileManager.rename;
 import static org.opends.server.tools.upgrade.Installation.*;
+import static org.opends.server.util.ChangeOperationType.*;
 
 /**
  * Common utility methods needed by the upgrade.
@@ -435,22 +436,23 @@ final class UpgradeUtils
   /**
    * Updates the config file during the upgrade process.
    *
-   *
    * @param configPath
    *          The original path to the file.
    * @param filter
-   *          The filter to avoid files.
+   *          The filter to select entries. Only useful for modify change type.
    * @param changeType
    *          The change type which must be applied to ldif lines.
-   * @param lines
+   * @param ldifLines
    *          The change record ldif lines.
+   *          For ADD change type, the first line must be the dn.
+   *          For DELETE change type, the first and only line must be the dn.
    * @throws IOException
    *           If an Exception occurs during the input output methods.
    * @return The changes number that have occurred.
    */
   static int updateConfigFile(final String configPath,
       final Filter filter, final ChangeOperationType changeType,
-      final String... lines) throws IOException
+      final String... ldifLines) throws IOException
   {
     final File original = new File(configPath);
     final File copyConfig =
@@ -473,55 +475,65 @@ final class UpgradeUtils
       writer.writeComment(INFO_CONFIG_FILE_HEADER.get());
       writer.setWrapColumn(0);
 
-      boolean alreadyExist = false;
-      String dn = null;
-      if (filter == null && changeType == ChangeOperationType.ADD)
+      boolean entryAlreadyExist = false;
+      DN ldifDN = null;
+      if (filter == null && (changeType == ADD || changeType == DELETE))
       {
-        // For an Add, the first line should start with dn:
-        dn = lines[0].replaceFirst("dn: ","");
+        // The first line should start with dn:
+        ldifDN = DN.valueOf(ldifLines[0].replaceFirst("dn: ", ""));
       }
-      final Matcher matcher =
-          filter != null ? filter.matcher(schema) : Filter.alwaysFalse()
-              .matcher(schema);
+      final Filter f = filter != null ? filter : Filter.alwaysFalse();
+      final Matcher matcher = f.matcher(schema);
       while (entryReader.hasNext())
       {
         Entry entry = entryReader.readEntry();
+        final DN entryDN = entry.getName();
         // Searching for the related entries
-        if (matcher.matches(entry) == ConditionResult.TRUE)
+        if (changeType == MODIFY
+            && matcher.matches(entry) == ConditionResult.TRUE)
         {
           try
           {
-            final ModifyRequest mr =
-                Requests.newModifyRequest(readLDIFLines(entry.getName(),
-                    changeType, lines));
+            final ModifyRequest mr = Requests.newModifyRequest(
+                readLDIFLines(entryDN, changeType, ldifLines));
             entry = Entries.modifyEntryPermissive(entry, mr.getModifications());
             changeCount++;
-            LOG.log(Level.INFO,
-                String.format("The following entry has been modified : %s",
-                    entry.getName()));
+            LOG.log(Level.INFO, String.format(
+                "The following entry has been modified : %s", entryDN));
           }
           catch (Exception ex)
           {
             LOG.log(Level.SEVERE, ex.getMessage());
           }
         }
-        if (dn != null // This is an ADD
-            && entry.getName().equals(DN.valueOf(dn)))
+
+        if (entryDN.equals(ldifDN))
         {
-          LOG.log(Level.INFO, String.format("Entry %s found", entry.getName()
-              .toString()));
-          alreadyExist = true;
+          LOG.log(Level.INFO, String.format(
+              "Entry %s found", entryDN.toString()));
+          entryAlreadyExist = true;
+
+          if (changeType == DELETE)
+          {
+            entry = null;
+            changeCount++;
+            LOG.log(Level.INFO, String.format(
+                "The following entry has been deleted : %s", entryDN));
+          }
         }
-        writer.writeEntry(entry);
+
+        if (entry != null)
+        {
+          writer.writeEntry(entry);
+        }
       }
 
-      // If it's an ADD and the entry doesn't exist yet
-      if (dn != null && !alreadyExist)
+      if (changeType == ADD && !entryAlreadyExist)
       {
-        final AddRequest ar = Requests.newAddRequest(lines);
+        final AddRequest ar = Requests.newAddRequest(ldifLines);
         writer.writeEntry(ar);
         LOG.log(Level.INFO, String.format("Entry successfully added %s in %s",
-            dn, original.getAbsolutePath()));
+            ldifDN, original.getAbsolutePath()));
         changeCount++;
       }
     }
@@ -873,7 +885,7 @@ final class UpgradeUtils
     final String[] modifiedLines = new String[lines.length + 2];
 
     int index = 0;
-    if (changeType == ChangeOperationType.MODIFY)
+    if (changeType == MODIFY)
     {
       modifiedLines[0] = "dn: " + dn;
       modifiedLines[1] = "changetype: modify";
