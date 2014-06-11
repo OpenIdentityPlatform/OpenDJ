@@ -130,7 +130,7 @@ public final class Upgrade
         "delete: objectClass",
         "objectClass: ds-cfg-file-based-access-log-publisher"));
 
-    register ("2.5.0.7466",
+    register("2.5.0.7466",
         renameSnmpSecurityConfig(INFO_UPGRADE_TASK_7466_SUMMARY.get()));
 
     register("2.5.0.7748",
@@ -315,6 +315,19 @@ public final class Upgrade
     /** See OPENDJ-1295 */
     register("2.7.0.10215",
         copySchemaFile("03-pwpolicyextension.ldif"));
+
+    /** See OPENDJ-1490 and OPENDJ-1454 */
+    register("2.7.0.10703",
+        deleteConfigEntry(INFO_UPGRADE_TASK_10733_1_SUMMARY.get(),
+        "dn: ds-cfg-backend-id=replicationChanges,cn=Backends,cn=config"),
+        modifyConfigEntry(INFO_UPGRADE_TASK_10733_2_SUMMARY.get(),
+        "(objectClass=ds-cfg-dsee-compat-access-control-handler)",
+        "delete: ds-cfg-global-aci",
+        "ds-cfg-global-aci: "
+            + "(target=\"ldap:///dc=replicationchanges\")"
+            + "(targetattr=\"*\")"
+            + "(version 3.0; acl \"Replication backend access\"; "
+            + "deny (all) userdn=\"ldap:///anyone\";)"));
 
     /*
      * All upgrades will refresh the server configuration schema and generate
