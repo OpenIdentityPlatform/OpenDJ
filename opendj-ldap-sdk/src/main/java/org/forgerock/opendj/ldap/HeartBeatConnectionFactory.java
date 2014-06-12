@@ -828,7 +828,9 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
         private boolean checkState(final ResultHandler<?> h) {
             final ErrorResultException error = state.getConnectionError();
             if (error != null) {
-                h.handleErrorResult(error);
+                if (h != null) {
+                    h.handleErrorResult(error);
+                }
                 return false;
             } else {
                 return true;
