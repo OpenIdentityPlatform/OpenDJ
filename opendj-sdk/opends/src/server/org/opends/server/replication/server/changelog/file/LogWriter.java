@@ -76,6 +76,16 @@ class LogWriter extends OutputStream
     }
   }
 
+  /**
+   * Returns the file used by this writer.
+   *
+   * @return the file
+   */
+  File getFile()
+  {
+    return file;
+  }
+
   /** {@inheritDoc} */
   @Override
   public void write(int b) throws IOException

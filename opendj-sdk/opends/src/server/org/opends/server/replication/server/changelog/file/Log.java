@@ -158,7 +158,7 @@ final class Log<K extends Comparable<K>, V> implements Closeable
   /**
    * The last key appended to the log. In order to keep the ordering of the keys
    * in the log, any attempt to append a record with a key lower or equal to
-   * this is rejected (no error but an event is logged).
+   * this key is rejected (no error but an event is logged).
    */
   private K lastAppendedKey;
 
