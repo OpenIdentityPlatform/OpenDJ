@@ -35,22 +35,33 @@ import static org.opends.messages.ReplicationMessages.*;
 
 /**
  * A Pool of readers to a log file.
+
+ *
+ * @param <K>
+ *          Type of the key of a record, which must be comparable.
+ * @param <V>
+ *          Type of the value of a record.
  */
 // TODO : implement a real pool - reusing readers instead of opening-closing them each time
-class LogReaderPool
+class LogReaderPool<K extends Comparable<K>, V>
 {
   /** The file to read. */
   private final File file;
+
+  private final RecordParser<K, V> parser;
 
   /**
    * Creates a pool of readers for provided file.
    *
    * @param file
-   *            The file to read.
+   *          The file to read.
+   * @param parser
+   *          The parser to decode the records read.
    */
-  LogReaderPool(File file)
+  LogReaderPool(File file, RecordParser<K, V> parser)
   {
     this.file = file;
+    this.parser = parser;
   }
 
   /**
@@ -63,9 +74,9 @@ class LogReaderPool
    * @throws ChangelogException
    *            If the file can't be found or read.
    */
-  RandomAccessFile get() throws ChangelogException
+  BlockLogReader<K, V> get() throws ChangelogException
   {
-    return getRandomAccess(file);
+    return getReader(file);
   }
 
   /**
@@ -77,17 +88,17 @@ class LogReaderPool
    *          The random access reader to a file previously acquired with this
    *          pool.
    */
-  void release(RandomAccessFile reader)
+  void release(BlockLogReader<K, V> reader)
   {
     StaticUtils.close(reader);
   }
 
   /** Returns a random access file to read this log. */
-  private RandomAccessFile getRandomAccess(File file) throws ChangelogException
+  private BlockLogReader<K, V> getReader(File file) throws ChangelogException
   {
     try
     {
-      return new RandomAccessFile(file, "r");
+      return BlockLogReader.newReader(file, new RandomAccessFile(file, "r"), parser) ;
     }
     catch (Exception e)
     {

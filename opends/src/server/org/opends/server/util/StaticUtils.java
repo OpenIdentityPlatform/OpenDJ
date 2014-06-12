@@ -3463,32 +3463,36 @@ public final class StaticUtils
 
 
   /**
-   * Attempts to delete the specified file or directory.  If it is a directory,
+   * Attempts to delete the specified file or directory. If it is a directory,
    * then any files or subdirectories that it contains will be recursively
    * deleted as well.
    *
-   * @param  file  The file or directory to be removed.
-   *
-   * @return  <CODE>true</CODE> if the specified file and any subordinates are
-   *          all successfully removed, or <CODE>false</CODE> if at least one
-   *          element in the subtree could not be removed.
+   * @param file
+   *          The file or directory to be removed.
+   * @return {@code true} if the specified file and any subordinates are all
+   *         successfully removed, or {@code false} if at least one element in
+   *         the subtree could not be removed or file does not exists.
    */
   public static boolean recursiveDelete(File file)
   {
-    boolean successful = true;
-    if (file.isDirectory())
+    if (file.exists())
     {
-      File[] childList = file.listFiles();
-      if (childList != null)
+      boolean successful = true;
+      if (file.isDirectory())
       {
-        for (File f : childList)
+        File[] childList = file.listFiles();
+        if (childList != null)
         {
-          successful &= recursiveDelete(f);
+          for (File f : childList)
+          {
+            successful &= recursiveDelete(f);
+          }
         }
       }
-    }
 
-    return (successful & file.delete());
+      return (successful & file.delete());
+    }
+    return false;
   }
 
 
