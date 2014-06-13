@@ -49,12 +49,13 @@ import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;
+
 import com.forgerock.opendj.util.Pair;
 
+import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
-import static org.opends.messages.ReplicationMessages.*;
 
 /**
  * Log file implementation of the ChangelogDB interface.
@@ -402,12 +403,6 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
     // - then throw the first encountered exception
     ChangelogException firstException = null;
 
-    final ChangeNumberIndexer indexer = cnIndexer.get();
-    if (indexer != null)
-    {
-      indexer.clear();
-    }
-
     for (DN baseDN : this.domainToReplicaDBs.keySet())
     {
       removeDomain(baseDN);
@@ -497,6 +492,11 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
     Map<Integer, FileReplicaDB> domainMap = domainToReplicaDBs.get(baseDN);
     if (domainMap != null)
     {
+      final ChangeNumberIndexer indexer = this.cnIndexer.get();
+      if (indexer != null)
+      {
+        indexer.clear(baseDN);
+      }
       synchronized (domainMap)
       {
         domainMap = domainToReplicaDBs.remove(baseDN);
