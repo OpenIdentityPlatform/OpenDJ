@@ -344,19 +344,15 @@ class FileChangeNumberIndexDB implements ChangeNumberIndexDB
       try
       {
         ByteSequenceReader reader = data.asReader();
-        Long changeNumber = reader.getLong();
-
+        final long changeNumber = reader.getLong();
         String previousCookie = reader.getString(getNextStringLength(reader));
         reader.skip(1);
-
-        String baseDN = reader.getString(getNextStringLength(reader));
+        final DN baseDN = DN.decode(
+            reader.getString(getNextStringLength(reader)));
         reader.skip(1);
-        DN dn = DN.decode(baseDN);
+        final CSN csn = CSN.valueOf(reader.getByteString(reader.remaining()));
 
-        ByteString csnBytes = reader.getByteString(reader.remaining());
-        CSN csn = CSN.valueOf(csnBytes);
-
-        return Record.from(changeNumber, new ChangeNumberIndexRecord(changeNumber, previousCookie, dn, csn));
+        return Record.from(changeNumber, new ChangeNumberIndexRecord(changeNumber, previousCookie, baseDN, csn));
       }
       catch (Exception e)
       {
