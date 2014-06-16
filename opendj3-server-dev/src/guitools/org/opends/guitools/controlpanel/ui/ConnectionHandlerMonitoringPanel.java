@@ -590,10 +590,12 @@ public class ConnectionHandlerMonitoringPanel extends StatusGenericPanel
 
   private boolean protocolHasMonitoring(ConnectionHandlerDescriptor ch)
   {
-    return (ch.getProtocol() == Protocol.LDAP) ||
-    (ch.getProtocol() == Protocol.LDAPS) ||
-    (ch.getProtocol() == Protocol.LDAP_STARTTLS) ||
-    (ch.getProtocol() == Protocol.OTHER);
+    if (ch.getState() == State.DISABLED)
+      return false;
+    return ch.getProtocol() == Protocol.LDAP ||
+      ch.getProtocol() == Protocol.LDAPS ||
+      ch.getProtocol() == Protocol.LDAP_STARTTLS ||
+      ch.getProtocol() == Protocol.OTHER;
   }
 
   /**
