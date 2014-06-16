@@ -26,19 +26,15 @@
  */
 package org.opends.server.extensions;
 
-
-
 import org.testng.annotations.Test;
 
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.SaltedMD5PasswordStorageSchemeCfgDefn;
 import org.opends.server.admin.std.server.SaltedMD5PasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
-import org.opends.server.schema.UserPasswordSyntax;
 import org.forgerock.opendj.ldap.ByteString;
 
 import static org.testng.Assert.*;
-
 
 /**
  * A set of test cases for the salted MD5 password storage scheme.
@@ -54,17 +50,12 @@ public class SaltedMD5PasswordStorageSchemeTestCase
     super("cn=Salted MD5,cn=Password Storage Schemes,cn=config");
   }
 
-
-
   /**
    * Retrieves an initialized instance of this password storage scheme.
    *
    * @return  An initialized instance of this password storage scheme.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
    */
-  protected PasswordStorageScheme getScheme()
-         throws Exception
+  protected PasswordStorageScheme getScheme() throws Exception
   {
     SaltedMD5PasswordStorageScheme scheme =
          new SaltedMD5PasswordStorageScheme();
@@ -83,12 +74,9 @@ public class SaltedMD5PasswordStorageSchemeTestCase
 
   /**
    * Tests matching with a different salt size.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
    */
   @Test
-  public void testDifferentSaltSize()
-    throws Exception {
+  public void testDifferentSaltSize() throws Exception {
     SaltedMD5PasswordStorageScheme scheme =
       new SaltedMD5PasswordStorageScheme();
 
@@ -104,4 +92,3 @@ public class SaltedMD5PasswordStorageSchemeTestCase
       ByteString.valueOf("so5s1vK3oEi4uL/oVY3bqs5LRlKjgMN+u4A4bw==")));
   }
 }
-
