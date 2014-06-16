@@ -53,7 +53,6 @@ import org.opends.guitools.controlpanel.ui.nodes.BasicNode;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.AttributeSyntax;
-import org.opends.server.replication.plugin.EntryHistorical;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.AttributeType;
 import org.forgerock.opendj.ldap.ByteString;
@@ -630,87 +629,6 @@ public abstract class ViewEntryPanel extends StatusGenericPanel
     }
     return isEditable;
   }
-
-  /**
-   * This method is called because the ds-sync-hist attribute has a
-   * DirectoryString syntax, but it contains byte[] on it (if there has been
-   * a modification in a binary value).
-   * @param sr the search result to use.
-   * @return the filtered search result to be used to be displayed.
-   */
-  protected CustomSearchResult filterSearchResult(CustomSearchResult sr)
-  {
-    CustomSearchResult filteredSr;
-    List<Object> values =
-      sr.getAttributeValues(EntryHistorical.HISTORICAL_ATTRIBUTE_NAME);
-    if (values != null)
-    {
-      List<Object> newValues = new ArrayList<Object>();
-      for (Object v : values)
-      {
-        newValues.add(filterStringValue(String.valueOf(v)));
-      }
-      if (newValues.equals(values))
-      {
-        filteredSr = sr;
-      }
-      else
-      {
-        filteredSr = sr.duplicate();
-        filteredSr.set(EntryHistorical.HISTORICAL_ATTRIBUTE_NAME, newValues);
-      }
-    }
-    else
-    {
-      filteredSr = sr;
-    }
-    return filteredSr;
-  }
-
-  /**
-   * This method is called because the ds-sync-hist attribute has a
-   * DirectoryString syntax, but it contains byte[] on it (if there has been
-   * a modification in a binary value).
-   * @param value the value to be filtered.
-   * @return the value that will actually be displayed.
-   */
-  private String filterStringValue(String value)
-  {
-    String filteredValue;
-    // Parse the value to find out if this corresponds to a change in a
-    // binary attribute.
-    int index = value.indexOf(":");
-    if (index != -1)
-    {
-      String modifiedAttr = value.substring(0, index).trim();
-      modifiedAttr = Utilities.getAttributeNameWithoutOptions(modifiedAttr);
-      if (isBinary(modifiedAttr))
-      {
-        String replTag = "repl:";
-        int index2 = value.indexOf(replTag, index);
-        if (index2 != -1)
-        {
-          filteredValue = value.substring(0, index2+replTag.length()) +
-          INFO_CTRL_PANEL_DS_SYNC_HIST_BINARY_VALUE.get();
-        }
-        else
-        {
-          filteredValue = value.substring(0, index+1) +
-          INFO_CTRL_PANEL_DS_SYNC_HIST_BINARY_VALUE.get();
-        }
-      }
-      else
-      {
-        filteredValue = value;
-      }
-    }
-    else
-    {
-      filteredValue = value;
-    }
-    return filteredValue;
-  }
-
 
   /**
    * Returns the list of superior object classes (to top) for a given object

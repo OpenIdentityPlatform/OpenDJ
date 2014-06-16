@@ -436,10 +436,6 @@ public class SimplifiedViewEntryPanel extends ViewEntryPanel
   public void update(CustomSearchResult sr, boolean isReadOnly, TreePath path)
   {
     boolean sameEntry = false;
-    if (sr != null)
-    {
-      sr = filterSearchResult(sr);
-    }
     if ((searchResult != null) && (sr != null))
     {
       sameEntry = searchResult.getDN().equals(sr.getDN());
