@@ -83,8 +83,8 @@ public final class UpgradeTasks
   static boolean isRebuildAllIndexesTaskAccepted = false;
 
   /**
-   * Returns a new upgrade task which applies an LDIF record to all
-   * configuration entries matching the provided filter.
+   * Returns a new upgrade task which adds a config entry to the underlying
+   * config file.
    *
    * @param summary
    *          The summary of this upgrade task.
@@ -200,6 +200,30 @@ public final class UpgradeTasks
           manageTaskException(context, ERR_UPGRADE_ADD_CONFIG_FILE_FAILS.get(
               configFile.getName(), e.getMessage()), pnc);
         }
+      }
+    };
+  }
+
+  /**
+   * Returns a new upgrade task which deletes a config entry from the underlying
+   * config file.
+   *
+   * @param summary
+   *          The summary of this upgrade task.
+   * @param dnInLDIF
+   *          The dn to delete in the form of LDIF.
+   * @return A new upgrade task which applies an LDIF record to all
+   *         configuration entries matching the provided filter.
+   */
+  public static UpgradeTask deleteConfigEntry(final LocalizableMessage summary,
+      final String dnInLDIF)
+  {
+    return new AbstractUpgradeTask()
+    {
+      @Override
+      public void perform(final UpgradeContext context) throws ClientException
+      {
+        perform0(summary, null, ChangeOperationType.DELETE, context, dnInLDIF);
       }
     };
   }
@@ -803,33 +827,7 @@ public final class UpgradeTasks
       {
         if (userConfirmation)
         {
-          displayTaskLogInformation(summary.toString(), null, ldif);
-
-          final ProgressNotificationCallback pnc =
-              new ProgressNotificationCallback(0, summary, 20);
-
-          context.notifyProgress(pnc);
-
-          try
-          {
-            // TODO change the directory to the config if it exists.
-            final File configFile =
-                new File(configDirectory,
-                    Installation.CURRENT_CONFIG_FILE_NAME);
-
-            final int changeCount =
-                updateConfigFile(configFile.getPath(), null,
-                    ChangeOperationType.ADD, ldif);
-
-            displayChangeCount(configFile.getPath(), changeCount);
-
-            context.notifyProgress(pnc.setProgress(100));
-          }
-          catch (final Exception e)
-          {
-            manageTaskException(context,
-                LocalizableMessage.raw(e.getMessage()), pnc);
-          }
+          perform0(summary, null, ChangeOperationType.ADD, context, ldif);
         }
       }
     };
@@ -907,37 +905,44 @@ public final class UpgradeTasks
       {
         if (userConfirmation)
         {
-          displayTaskLogInformation(summary.toString(), filter, ldif);
-
-          final ProgressNotificationCallback pnc =
-              new ProgressNotificationCallback(0, summary, 20);
-
-          context.notifyProgress(pnc);
-
-          try
-          {
-            final File configFile =
-                new File(configDirectory,
-                    Installation.CURRENT_CONFIG_FILE_NAME);
-
-            final int changeCount =
-                updateConfigFile(configFile.getPath(), Filter.valueOf(filter),
-                    ChangeOperationType.MODIFY, ldif);
-
-            displayChangeCount(configFile.getPath(), changeCount);
-
-            context.notifyProgress(pnc.setProgress(100));
-          }
-          catch (final Exception e)
-          {
-            manageTaskException(context,
-                LocalizableMessage.raw(e.getMessage()), pnc);
-          }
+          perform0(summary, filter, ChangeOperationType.MODIFY, context, ldif);
         }
       }
+
     };
   }
 
+  private static void perform0(final LocalizableMessage summary, final String filter,
+      final ChangeOperationType changeOperationType,
+      final UpgradeContext context, final String... ldif)
+      throws ClientException
+  {
+    displayTaskLogInformation(summary.toString(), filter, ldif);
+
+    final ProgressNotificationCallback pnc =
+        new ProgressNotificationCallback(0, summary, 20);
+
+    context.notifyProgress(pnc);
+
+    try
+    {
+      final File configFile =
+          new File(configDirectory, Installation.CURRENT_CONFIG_FILE_NAME);
+
+      final Filter filterVal = filter != null ? Filter.valueOf(filter) : null;
+      final int changeCount =
+          updateConfigFile(configFile.getPath(), filterVal,
+              changeOperationType, ldif);
+
+      displayChangeCount(configFile.getPath(), changeCount);
+
+      context.notifyProgress(pnc.setProgress(100));
+    }
+    catch (final Exception e)
+    {
+      manageTaskException(context, LocalizableMessage.raw(e.getMessage()), pnc);
+    }
+  }
 
   // Prevent instantiation.
   private UpgradeTasks()
