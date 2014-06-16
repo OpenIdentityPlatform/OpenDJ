@@ -454,12 +454,6 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
     // - then throw the first encountered exception
     ChangelogException firstException = null;
 
-    final ChangeNumberIndexer indexer = cnIndexer.get();
-    if (indexer != null)
-    {
-      indexer.clear();
-    }
-
     for (DN baseDN : this.domainToReplicaDBs.keySet())
     {
       removeDomain(baseDN);
@@ -546,6 +540,11 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
     Map<Integer, JEReplicaDB> domainMap = domainToReplicaDBs.get(baseDN);
     if (domainMap != null)
     {
+      final ChangeNumberIndexer indexer = this.cnIndexer.get();
+      if (indexer != null)
+      {
+        indexer.clear(baseDN);
+      }
       synchronized (domainMap)
       {
         domainMap = domainToReplicaDBs.remove(baseDN);
