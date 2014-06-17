@@ -26,9 +26,11 @@
 package org.opends.server.replication.server.changelog.file;
 
 import java.io.File;
+import java.io.RandomAccessFile;
 
 import org.opends.messages.Message;
 import org.opends.server.DirectoryServerTestCase;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
 import org.opends.server.types.ByteSequenceReader;
@@ -38,6 +40,7 @@ import org.opends.server.util.StaticUtils;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static org.assertj.core.api.Assertions.*;
@@ -46,65 +49,51 @@ import static org.assertj.core.api.Assertions.*;
 @Test(sequential=true)
 public class LogFileTest extends DirectoryServerTestCase
 {
-  private static final String TEST_DIRECTORY_CHANGELOG = "test-output" + File.separator + "changelog";
+  private static final File TEST_DIRECTORY = new File(TestCaseUtils.getUnitTestRootPath(), "changelog-unit");
+
+  private static final File TEST_LOG_FILE = new File(TEST_DIRECTORY, Log.HEAD_LOG_FILE_NAME);
 
   static final StringRecordParser RECORD_PARSER = new StringRecordParser();
-
-  static final RecordParser<String,String> RECORD_PARSER_FAILING_TO_READ = new StringRecordParser() {
-      @Override
-      public Record<String, String> decodeRecord(ByteString data) throws DecodingException
-      {
-        throw new DecodingException(Message.raw("Error when parsing record"));
-      }
-  };
-
-  static final RecordParser<String,String> CORRUPTING_RECORD_PARSER = new StringRecordParser() {
-    @Override
-    public ByteString encodeRecord(Record<String, String> record)
-    {
-      // write the key only, to corrupt the log file
-      return new ByteStringBuilder().append(record.getKey()).toByteString();
-    }
-  };
 
   @BeforeClass
   public void createTestDirectory()
   {
-    File logDir = new File(TEST_DIRECTORY_CHANGELOG);
-    logDir.mkdirs();
+    TEST_DIRECTORY.mkdirs();
   }
 
   @BeforeMethod
   /** Create a new log file with ten records starting from (key1, value1) until (key10, value10). */
   public void initialize() throws Exception
   {
-    File theLogFile = new File(TEST_DIRECTORY_CHANGELOG, Log.HEAD_LOG_FILE_NAME);
-    if (theLogFile.exists())
+    if (TEST_LOG_FILE.exists())
     {
-      theLogFile.delete();
+      TEST_LOG_FILE.delete();
     }
-    LogFile<String, String> logFile = getLogFile(RECORD_PARSER);
+    LogFile<String, String> logFile =  null;
+    try
+    {
+      logFile = getLogFile(RECORD_PARSER);
 
-    for (int i = 1; i <= 10; i++)
-    {
-      logFile.append(Record.from(String.format("key%02d", i), "value"+i));
+      for (int i = 1; i <= 10; i++)
+      {
+        logFile.append(Record.from(String.format("key%02d", i), "value"+i));
+      }
     }
-    logFile.close();
+    finally
+    {
+      StaticUtils.close(logFile);
+    }
   }
 
   @AfterClass
   public void cleanTestChangelogDirectory()
   {
-    final File rootPath = new File(TEST_DIRECTORY_CHANGELOG);
-    if (rootPath.exists())
-    {
-      StaticUtils.recursiveDelete(rootPath);
-    }
+    StaticUtils.recursiveDelete(TEST_DIRECTORY);
   }
 
   private LogFile<String, String> getLogFile(RecordParser<String, String> parser) throws ChangelogException
   {
-    return LogFile.newAppendableLogFile(new File(TEST_DIRECTORY_CHANGELOG, Log.HEAD_LOG_FILE_NAME), parser);
+    return LogFile.newAppendableLogFile(TEST_LOG_FILE, parser);
   }
 
   @Test
@@ -227,7 +216,9 @@ public class LogFileTest extends DirectoryServerTestCase
   @Test(expectedExceptions=ChangelogException.class)
   public void testCursorWhenParserFailsToRead() throws Exception
   {
-    LogFile<String, String> changelog = getLogFile(RECORD_PARSER_FAILING_TO_READ);
+    FailingStringRecordParser parser = new FailingStringRecordParser();
+    LogFile<String, String> changelog = getLogFile(parser);
+    parser.setFailToRead(true);
     try {
       changelog.getCursor("key");
     }
@@ -263,6 +254,72 @@ public class LogFileTest extends DirectoryServerTestCase
     }
     finally {
       StaticUtils.close(changelog);
+    }
+  }
+
+  @DataProvider(name = "corruptedRecordData")
+  Object[][] corruptedRecordData()
+  {
+    return new Object[][]
+    {
+      // write partial record size (should be 4 bytes)
+      { 1, new ByteStringBuilder().append((byte) 0) },
+      // write partial record size (should be 4 bytes)
+      { 2, new ByteStringBuilder().append((byte) 0).append((byte) 0).append((byte) 0) },
+      // write size only
+      { 3, new ByteStringBuilder().append(10) },
+      // write size + key
+      { 4, new ByteStringBuilder().append(100).append("key") },
+      // write size + key + separator
+      { 5, new ByteStringBuilder().append(100).append("key").append(StringRecordParser.STRING_SEPARATOR) },
+      // write size + key + separator + partial value
+      { 6, new ByteStringBuilder().append(100).append("key").append(StringRecordParser.STRING_SEPARATOR).append("v") },
+    };
+  }
+
+  @Test(dataProvider="corruptedRecordData")
+  public void testRecoveryOnCorruptedLogFile(
+      @SuppressWarnings("unused") int unusedId,
+      ByteStringBuilder corruptedRecordData) throws Exception
+  {
+    LogFile<String, String> logFile = null;
+    DBCursor<Record<String, String>> cursor = null;
+    try
+    {
+      corruptTestLogFile(corruptedRecordData);
+
+      // open the log file: the file should be repaired at this point
+      logFile = getLogFile(RECORD_PARSER);
+
+      // write a new valid record
+      logFile.append(Record.from(String.format("key%02d", 11), "value"+ 11));
+
+      // ensure log can be fully read including the new record
+      cursor = logFile.getCursor("key05");
+      assertThat(cursor.getRecord()).isEqualTo(Record.from("key05", "value5"));
+      assertThatCursorCanBeFullyRead(cursor, 6, 11);
+    }
+    finally
+    {
+      StaticUtils.close(logFile);
+    }
+  }
+
+  /**
+   * Append some raw data to the TEST_LOG_FILE. Intended to corrupt the log
+   * file.
+   */
+  private void corruptTestLogFile(ByteStringBuilder corruptedRecordData) throws Exception
+  {
+    RandomAccessFile output = null;
+    try {
+      output = new RandomAccessFile(TEST_LOG_FILE, "rwd");
+      output.seek(output.length());
+      output.write(corruptedRecordData.toByteArray());
+    }
+    finally
+    {
+      StaticUtils.close(output);
     }
   }
 
@@ -369,6 +426,27 @@ public class LogFileTest extends DirectoryServerTestCase
     {
       // '~' character has the highest ASCII value
       return "~~~~";
+    }
+  }
+
+  /** A parser that can be set to fail when reading. */
+  static class FailingStringRecordParser extends StringRecordParser
+  {
+    private boolean failToRead = false;
+
+    @Override
+    public Record<String, String> decodeRecord(ByteString data) throws DecodingException
+    {
+      if (failToRead)
+      {
+        throw new DecodingException(Message.raw("Error when parsing record"));
+      }
+      return super.decodeRecord(data);
+    }
+
+    void setFailToRead(boolean shouldFail)
+    {
+      failToRead = shouldFail;
     }
   }
 

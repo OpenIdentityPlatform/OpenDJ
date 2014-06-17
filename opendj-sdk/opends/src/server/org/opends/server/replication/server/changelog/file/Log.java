@@ -26,7 +26,6 @@
 package org.opends.server.replication.server.changelog.file;
 
 import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.io.Closeable;
@@ -51,7 +50,6 @@ import org.opends.messages.Category;
 import org.opends.messages.Message;
 import org.opends.messages.Severity;
 import org.opends.server.loggers.ErrorLogger;
-import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
 import org.opends.server.replication.server.changelog.file.LogFile.LogFileCursor;
@@ -105,8 +103,6 @@ import com.forgerock.opendj.util.Pair;
  */
 final class Log<K extends Comparable<K>, V> implements Closeable
 {
-  private static final DebugTracer TRACER = getTracer();
-
   private static final String LOG_FILE_SUFFIX = ".log";
 
   static final String HEAD_LOG_FILE_NAME = "head" + LOG_FILE_SUFFIX;
@@ -699,6 +695,23 @@ final class Log<K extends Comparable<K>, V> implements Closeable
     finally
     {
       exclusiveLock.unlock();
+    }
+  }
+
+  /**
+   * Dump this log as a text files, intended for debugging purpose only.
+   *
+   * @param dumpDirectory
+   *          Directory that will contains log files with text format
+   *          and ".txt" extensions
+   * @throws ChangelogException
+   *           If an error occurs during dump
+   */
+  void dumpAsTextFile(File dumpDirectory) throws ChangelogException
+  {
+    for (LogFile<K, V> logFile : logFiles.values())
+    {
+      logFile.dumpAsTextFile(new File(dumpDirectory, logFile.getFile().getName() + ".txt"));
     }
   }
 

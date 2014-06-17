@@ -35,6 +35,7 @@ import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
+import org.opends.server.replication.server.changelog.file.LogFileTest.FailingStringRecordParser;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
@@ -228,7 +229,9 @@ public class LogTest extends DirectoryServerTestCase
   @Test(expectedExceptions=ChangelogException.class)
   public void testCursorWhenParserFailsToRead() throws Exception
   {
-    Log<String, String> log = openLog(LogFileTest.RECORD_PARSER_FAILING_TO_READ);
+    FailingStringRecordParser parser = new FailingStringRecordParser();
+    Log<String, String> log = openLog(parser);
+    parser.setFailToRead(true);
     try {
       log.getCursor("key");
     }
