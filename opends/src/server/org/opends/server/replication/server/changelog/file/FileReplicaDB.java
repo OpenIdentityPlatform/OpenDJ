@@ -203,21 +203,6 @@ class FileReplicaDB
   }
 
   /**
-   * Get the number of changes.
-   *
-   * @return Returns the number of changes.
-   */
-  long getChangesCount()
-  {
-    final CSNLimits limits = csnLimits;
-    if (limits.newestCSN != null && limits.oldestCSN != null)
-    {
-      return limits.newestCSN.getSeqnum() - limits.oldestCSN.getSeqnum() + 1;
-    }
-    return 0;
-  }
-
-  /**
    * Returns a cursor that allows to retrieve the update messages from this DB,
    * starting at the position defined by the smallest CSN that is strictly
    * higher than the provided CSN.
@@ -361,6 +346,16 @@ class FileReplicaDB
   long getNumberRecords() throws ChangelogException
   {
     return log.getNumberOfRecords();
+  }
+
+  /**
+   * Dump this DB as text files, intended for debugging purpose only.
+   *
+   * @throws ChangelogException
+   *           If an error occurs during dump
+   */
+  void dumpAsTextFiles() throws ChangelogException {
+    log.dumpAsTextFile(log.getPath());
   }
 
   /** Parser of records persisted in the ReplicaDB log. */

@@ -26,6 +26,7 @@
 package org.opends.server.replication.server.changelog.file;
 
 import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 
 import java.io.BufferedWriter;
@@ -33,6 +34,7 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 
 import org.forgerock.util.Reject;
 import org.opends.messages.Message;
@@ -103,7 +105,15 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
     this.isWriteEnabled = isWriteEnabled;
 
     createLogFileIfNotExists();
-    writer = isWriteEnabled ? BlockLogWriter.newWriter(new LogWriter(logfile), parser) : null;
+    if (isWriteEnabled)
+    {
+      ensureLogFileIsValid(parser);
+      writer = BlockLogWriter.newWriter(new LogWriter(logfile), parser);
+    }
+    else
+    {
+      writer = null;
+    }
     readerPool = new LogReaderPool<K, V>(logfile, parser);
   }
 
@@ -180,6 +190,44 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
     catch (IOException e)
     {
       throw new ChangelogException(ERR_CHANGELOG_UNABLE_TO_CREATE_LOG_FILE.get(logfile.getPath()), e);
+    }
+  }
+
+  /**
+   * Ensure that log file is not corrupted, by checking it is valid and cleaning
+   * the end of file if necessary, to remove a partially written record.
+   * <p>
+   * If log file is cleaned to remove a partially written record, then a message
+   * is logged for information.
+   *
+   * @throws ChangelogException
+   *           If an error occurs or if log file is corrupted and can't be
+   *           cleaned
+   */
+  private void ensureLogFileIsValid(final RecordParser<K, V> parser) throws ChangelogException
+  {
+    BlockLogReader<K, V> reader = null;
+    try
+    {
+      final RandomAccessFile readerWriter = new RandomAccessFile(logfile, "rws");
+      reader = BlockLogReader.newReader(logfile, readerWriter, parser) ;
+      final long lastValidPosition = reader.checkLogIsValid();
+      if (lastValidPosition != -1)
+      {
+          // truncate the file to point where last valid record has been read
+          readerWriter.setLength(lastValidPosition);
+          logError(INFO_CHANGELOG_LOG_FILE_RECOVERED.get(logfile.getPath()));
+      }
+    }
+    catch (IOException e)
+    {
+      throw new ChangelogException(ERR_CHANGELOG_UNABLE_TO_RECOVER_LOG_FILE.get(
+          logfile.getPath(),
+          StaticUtils.stackTraceToSingleLineString(e)));
+    }
+    finally
+    {
+      StaticUtils.close(reader);
     }
   }
 
