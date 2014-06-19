@@ -994,7 +994,8 @@ $ <userinput>dsreplication \
  --adminPassword password \
  --baseDN dc=example,dc=com \
  --host1 master.example.com \
- --port1 4444 --bindDN1 "cn=Directory Manager" \
+ --port1 4444 \
+ --bindDN1 "cn=Directory Manager" \
  --bindPassword1 password \
  --host2 ds-only.example.com \
  --port2 4444 \
