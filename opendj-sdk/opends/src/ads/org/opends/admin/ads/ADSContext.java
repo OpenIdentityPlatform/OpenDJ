@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2012-2013 ForgeRock AS
+ *      Portions Copyright 2012-2014 ForgeRock AS
  */
 
 package org.opends.admin.ads;
@@ -1720,6 +1720,7 @@ public class ADSContext
     privilege.add("privilege-change");
     privilege.add("unindexed-search");
     privilege.add("subentry-write");
+    privilege.add("changelog-read");
     return privilege;
   }
 
