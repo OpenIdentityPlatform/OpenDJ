@@ -207,6 +207,13 @@ public class ECLSearchOperation
       replicationServer  = wfe.getReplicationServer();
       clientConnection   = getClientConnection();
 
+      if (!clientConnection.hasPrivilege(Privilege.CHANGELOG_READ, this))
+      {
+        setResultCode(ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+        appendErrorMessage(NOTE_SEARCH_CHANGELOG_INSUFFICIENT_PRIVILEGES.get());
+        return;
+      }
+
       final StartECLSessionMsg startECLSessionMsg = new StartECLSessionMsg();
 
       // Set default behavior as "from change number".

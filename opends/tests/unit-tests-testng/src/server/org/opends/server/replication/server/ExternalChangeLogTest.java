@@ -45,6 +45,7 @@ import org.opends.server.controls.PersistentSearchControl;
 import org.opends.server.core.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.plugins.InvocationCounterPlugin;
+import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.*;
 import org.opends.server.replication.ReplicationTestCase;
@@ -393,7 +394,29 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     // TODO: test with optimization when code done.
     ECLFilterOnReplicationCSN(csn);
   }
-
+  
+  //Verifies that is not possible to read the changelog without the changelog-read privilege
+  @Test(enabled=true, dependsOnMethods = { "ECLReplicationServerTest"})
+  public void ECLChangelogReadPrivilegeTest() throws Exception
+  {  
+     InternalClientConnection conn =
+           new InternalClientConnection(new AuthenticationInfo());
+     InternalSearchOperation ico = conn.processSearch(
+          "cn=changelog",
+          SearchScope.WHOLE_SUBTREE,
+          DereferencePolicy.NEVER_DEREF_ALIASES,
+          0, // Size limit
+          0, // Time limit
+          false, // Types only
+          "(objectclass=*)",
+          ALL_ATTRIBUTES,
+          NO_CONTROL,
+          null);
+     
+     assertEquals(ico.getResultCode(), ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+     assertEquals(ico.getErrorMessage().toMessage(), NOTE_SEARCH_CHANGELOG_INSUFFICIENT_PRIVILEGES.get());
+  }
+  
   private void ECLIsNotASupportedSuffix() throws Exception
   {
     ECLCompatTestLimits(0,0, false);
