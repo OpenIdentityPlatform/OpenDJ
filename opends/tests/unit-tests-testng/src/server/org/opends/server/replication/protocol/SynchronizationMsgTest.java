@@ -829,28 +829,18 @@ public class SynchronizationMsgTest extends ReplicationTestCase
   @Test
   public void changeTimeHeartbeatMsgTest() throws Exception
   {
-    final short v1 = REPLICATION_PROTOCOL_V1;
-    final short v7 = REPLICATION_PROTOCOL_V7;
-    final short v8 = REPLICATION_PROTOCOL_V8;
-
     final CSN csn = new CSN(System.currentTimeMillis(), 0, 42);
-    final ChangeTimeHeartbeatMsg heartbeatMsg = ChangeTimeHeartbeatMsg.heartbeatMsg(csn);
-    assertCTHearbeatMsg(heartbeatMsg, v1, false);
-    assertCTHearbeatMsg(heartbeatMsg, v7, false);
-    assertCTHearbeatMsg(heartbeatMsg, v8, false);
-
-    final ChangeTimeHeartbeatMsg offlineMsg = ChangeTimeHeartbeatMsg.replicaOfflineMsg(csn);
-    assertCTHearbeatMsg(offlineMsg, v1, false);
-    assertCTHearbeatMsg(offlineMsg, v7, false);
-    assertCTHearbeatMsg(offlineMsg, v8, true);
+    final ChangeTimeHeartbeatMsg heartbeatMsg = new ChangeTimeHeartbeatMsg(csn);
+    assertCTHearbeatMsg(heartbeatMsg, REPLICATION_PROTOCOL_V1);
+    assertCTHearbeatMsg(heartbeatMsg, REPLICATION_PROTOCOL_V7);
   }
 
-  private void assertCTHearbeatMsg(ChangeTimeHeartbeatMsg heartbeatMsg,
-      short version, boolean expected) throws DataFormatException
+  private void assertCTHearbeatMsg(ChangeTimeHeartbeatMsg expectedMsg,
+      short version) throws DataFormatException
   {
-    final byte[] bytes = heartbeatMsg.getBytes(version);
+    final byte[] bytes = expectedMsg.getBytes(version);
     ChangeTimeHeartbeatMsg decodedMsg = new ChangeTimeHeartbeatMsg(bytes, version);
-    assertEquals(decodedMsg.isReplicaOfflineMsg(), expected);
+    assertEquals(decodedMsg.getCSN(), expectedMsg.getCSN());
   }
 
   /**
