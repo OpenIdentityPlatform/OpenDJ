@@ -1718,6 +1718,7 @@ public class ADSContext
     privilege.add("privilege-change");
     privilege.add("unindexed-search");
     privilege.add("subentry-write");
+    privilege.add("changelog-read");
     return privilege;
   }
 
