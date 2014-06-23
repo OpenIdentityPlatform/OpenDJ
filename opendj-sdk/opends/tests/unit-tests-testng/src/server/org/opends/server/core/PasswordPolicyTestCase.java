@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -42,13 +42,12 @@ import org.opends.server.admin.std.server.PasswordPolicyCfg;
 import org.opends.server.api.PasswordStorageScheme;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
+import org.opends.server.schema.UserPasswordSyntax;
 import org.opends.server.tools.LDAPModify;
-import org.opends.server.types.AttributeType;
-import org.opends.server.types.DN;
-import org.opends.server.types.Entry;
-import org.opends.server.types.InitializationException;
+import org.opends.server.types.*;
 import org.opends.server.util.TimeThread;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.testng.Assert.*;
 
 
@@ -4277,6 +4276,170 @@ public class PasswordPolicyTestCase
 
 
   /**
+   * Sleep until we can be sure that the time thread has been updated.
+   *
+   * Otherwise, password changes can all appear to be in the same
+   * millisecond and really weird things start to happen because of the way
+   * that we handle conflicts in password history timestamps.  In short, if
+   * the history is already at the maximum count and all the previous
+   * changes occurred in the same millisecond as the new change, then it's
+   * possible for a new change to come with a timestamp that is before the
+   * timestamps of all the existing values.
+   *
+   * @throws InterruptedException
+   */
+  private void advanceTimeThread() throws InterruptedException
+  {
+    long timeThreadCurrentTime = TimeThread.getTime();
+    while (timeThreadCurrentTime == TimeThread.getTime())
+    {
+      Thread.sleep(10);
+    }
+  }
+
+
+
+  /**
+   * Check there are 3 securely stored passwords in the entry's password history.
+   *
+   * @param  dn  The entry to check.
+   *
+   * @return The password history.
+   */
+  private Attribute checkPasswordHistory(String dn)
+      throws DirectoryException
+  {
+    Entry entry = DirectoryServer.getEntry(DN.decode(dn));
+    assertNotNull(entry);
+    AttributeType pwdHistory = DirectoryServer.getAttributeType("pwdhistory");
+    assertNotNull(pwdHistory);
+    Attribute historyAttr = entry.getExactAttribute(pwdHistory, null);
+    assertNotNull(historyAttr);
+    assertThat(historyAttr).hasSize(3);
+
+    for (AttributeValue v : historyAttr)
+    {
+      String[] history = v.getValue().toString().split("#");
+      assertEquals(history.length, 3);
+      String[] pwComps = UserPasswordSyntax.decodeUserPassword(history[2]);
+      PasswordStorageScheme<?> scheme = DirectoryServer.getPasswordStorageScheme(pwComps[0]);
+      assertTrue(scheme.isStorageSchemeSecure());
+    }
+
+    return historyAttr;
+  }
+
+
+
+  /**
+   * Use multiple storage schemes in the policy. Verify that history only
+   * contains one secure version of each password, is truncated correctly,
+   * and continues to change after reaching maximum.
+   *
+   * @throws  Exception  If an unexpected problem occurs.
+   */
+  @Test()
+  public void testHistoryWithMultipleSchemes()
+         throws Exception
+  {
+    TestCaseUtils.initializeTestBackend(true);
+    TestCaseUtils.dsconfig(
+            "set-password-policy-prop",
+            "--policy-name", "Default Password Policy",
+            "--set", "password-history-count:3",
+            "--set", "default-password-storage-scheme:Base64",
+            "--set", "default-password-storage-scheme:Salted SHA-256");
+
+    TestCaseUtils.addEntry(
+            "dn: uid=test.user,o=test",
+            "objectClass: top",
+            "objectClass: person",
+            "objectClass: organizationalPerson",
+            "objectClass: inetOrgPerson",
+            "uid: test.user",
+            "givenName: Test",
+            "sn: User",
+            "cn: Test User",
+            "userPassword: originalPassword",
+            "ds-privilege-name: bypass-acl");
+
+    try
+    {
+      // Change the password three times.
+      String newPWsPath = TestCaseUtils.createTempFile(
+              "dn: uid=test.user,o=test",
+              "changetype: modify",
+              "replace: userPassword",
+              "userPassword: newPassword1",
+              "",
+              "dn: uid=test.user,o=test",
+              "changetype: modify",
+              "replace: userPassword",
+              "userPassword: newPassword2",
+              "",
+              "dn: uid=test.user,o=test",
+              "changetype: modify",
+              "replace: userPassword",
+              "userPassword: newPassword3");
+
+      String[] args = new String[]
+              {
+                      "-h", "127.0.0.1",
+                      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+                      "-D", "uid=test.user,o=test",
+                      "-w", "originalPassword",
+                      "-f", newPWsPath
+              };
+
+      assertEquals(LDAPModify.mainModify(args, false, System.out, System.err),
+              0);
+
+
+      advanceTimeThread();
+
+
+      Attribute historyAfterThreeMods = checkPasswordHistory("uid=test.user,o=test");
+
+      newPWsPath = TestCaseUtils.createTempFile(
+              "dn: uid=test.user,o=test",
+              "changetype: modify",
+              "replace: userPassword",
+              "userPassword: newPassword4");
+
+      args = new String[]
+              {
+                      "-h", "127.0.0.1",
+                      "-p", String.valueOf(TestCaseUtils.getServerLdapPort()),
+                      "-D", "uid=test.user,o=test",
+                      "-w", "newPassword3",
+                      "-f", newPWsPath
+              };
+
+      assertEquals(LDAPModify.mainModify(args, false, System.out, System.err),
+              0);
+
+
+      advanceTimeThread();
+
+
+      Attribute historyAfterFourMods = checkPasswordHistory("uid=test.user,o=test");
+
+      // check history is now different (OPENDJ-1497)
+      assertFalse(historyAfterThreeMods.equals(historyAfterFourMods));
+
+    }
+    finally
+    {
+      TestCaseUtils.dsconfig(
+              "set-password-policy-prop",
+              "--policy-name", "Default Password Policy",
+              "--set", "default-password-storage-scheme:Salted SHA-1",
+              "--set", "password-history-count:0");
+    }
+  }
+
+
+  /**
    * Tests the Directory Server's password history maintenance capabilities
    * using only the password history count configuration option.
    *
@@ -4362,19 +4525,7 @@ public class PasswordPolicyTestCase
                    0);
 
 
-      // Sleep until we can be sure that the time thread has been updated.
-      // Otherwise, the password changes can all appear to be in the same
-      // millisecond and really weird things start to happen because of the way
-      // that we handle conflicts in password history timestamps.  In short, if
-      // the history is already at the maximum count and all the previous
-      // changes occurred in the same millisecond as the new change, then it's
-      // possible for a new change to come with a timestamp that is before the
-      // timestamps of all the existing values.
-      long timeThreadCurrentTime = TimeThread.getTime();
-      while (timeThreadCurrentTime == TimeThread.getTime())
-      {
-        Thread.sleep(10);
-      }
+      advanceTimeThread();
 
 
       // Make sure that we still can't use the original password.
@@ -4417,12 +4568,7 @@ public class PasswordPolicyTestCase
                    0);
 
 
-      // Sleep again to ensure that the time thread is updated.
-      timeThreadCurrentTime = TimeThread.getTime();
-      while (timeThreadCurrentTime == TimeThread.getTime())
-      {
-        Thread.sleep(10);
-      }
+      advanceTimeThread();
 
 
       // Make sure that we can't use the second new password.
@@ -4445,12 +4591,7 @@ public class PasswordPolicyTestCase
                   0);
 
 
-      // Sleep again to ensure that the time thread is updated.
-      timeThreadCurrentTime = TimeThread.getTime();
-      while (timeThreadCurrentTime == TimeThread.getTime())
-      {
-        Thread.sleep(10);
-      }
+      advanceTimeThread();
 
 
       // Reduce the password history count from 3 to 2 and verify that we can
