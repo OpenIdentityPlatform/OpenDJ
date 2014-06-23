@@ -2508,14 +2508,7 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
   {
     try
     {
-      if (msg.isReplicaOfflineMsg())
-      {
-        domainDB.notifyReplicaOffline(baseDN, msg.getCSN());
-      }
-      else
-      {
-        domainDB.replicaHeartbeat(baseDN, msg.getCSN());
-      }
+      domainDB.replicaHeartbeat(baseDN, msg.getCSN());
     }
     catch (ChangelogException e)
     {
