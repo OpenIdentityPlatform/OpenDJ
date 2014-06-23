@@ -399,26 +399,19 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     ECLFilterOnReplicationCSN(csn);
   }
   
-  //Verifies that is not possible to read the changelog without the changelog-read privilege
+  /**
+   * Verifies that is not possible to read the changelog without the changelog-read privilege
+   */
   @Test(enabled=true, dependsOnMethods = { "ECLReplicationServerTest"})
   public void ECLChangelogReadPrivilegeTest() throws Exception
-  {  
-     InternalClientConnection conn =
-           new InternalClientConnection(new AuthenticationInfo());
-     InternalSearchOperation ico = conn.processSearch(
-          "cn=changelog",
-          SearchScope.WHOLE_SUBTREE,
-          DereferenceAliasesPolicy.NEVER,
-          0, // Size limit
-          0, // Time limit
-          false, // Types only
-          "(objectclass=*)",
-          ALL_ATTRIBUTES,
-          NO_CONTROL,
-          null);
+  {
+    AuthenticationInfo nonPrivilegedUser = new AuthenticationInfo();
      
-     assertEquals(ico.getResultCode(), ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
-     assertEquals(ico.getErrorMessage().toMessage(), NOTE_SEARCH_CHANGELOG_INSUFFICIENT_PRIVILEGES.get());
+    InternalClientConnection conn = new InternalClientConnection(nonPrivilegedUser);
+    InternalSearchOperation ico = conn.processSearch("cn=changelog", SearchScope.WHOLE_SUBTREE, "(objectclass=*)");
+
+    assertEquals(ico.getResultCode(), ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
+    assertEquals(ico.getErrorMessage().toMessage(), NOTE_SEARCH_CHANGELOG_INSUFFICIENT_PRIVILEGES.get());
   }
   
   private void ECLIsNotASupportedSuffix() throws Exception
