@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -270,6 +270,58 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     return timeValues;
   }
 
+
+  /**
+   * Get the broken-down components of the given password value.
+   *
+   * @param  v  The encoded password value to break down.
+   *
+   * @return An array of components.
+   */
+  private StringBuilder[] getPasswordComponents(AttributeValue v)
+      throws DirectoryException
+  {
+    if (passwordPolicy.isAuthPasswordSyntax())
+    {
+      return AuthPasswordSyntax.decodeAuthPassword(v.toString());
+    }
+    else
+    {
+      String[] userPwComponents = UserPasswordSyntax.decodeUserPassword(v.toString());
+      StringBuilder[] pwComponents = new StringBuilder[userPwComponents.length];
+      for (int i = 0; i < userPwComponents.length; ++i)
+      {
+        pwComponents[i] = new StringBuilder(userPwComponents[i]);
+      }
+      return pwComponents;
+    }
+  }
+
+
+
+  /**
+   * Get the password storage scheme used by a given password value.
+   *
+   * @param  v  The encoded password value to check.
+   *
+   * @return  The scheme used by the password.
+   *
+   * @throws  DirectoryException  If the password could not be decoded.
+   */
+  private PasswordStorageScheme<?> getPasswordStorageScheme(AttributeValue v)
+      throws DirectoryException
+  {
+    if (passwordPolicy.isAuthPasswordSyntax())
+    {
+      StringBuilder[] pwComps = AuthPasswordSyntax.decodeAuthPassword(v.toString());
+      return DirectoryServer.getAuthPasswordStorageScheme(pwComps[0].toString());
+    }
+    else
+    {
+      String[] pwComps = UserPasswordSyntax.decodeUserPassword(v.toString());
+      return DirectoryServer.getPasswordStorageScheme(pwComps[0]);
+    }
+  }
 
 
   /**
@@ -2554,22 +2606,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
       {
         try
         {
-          StringBuilder[] pwComponents;
-          if (usesAuthPasswordSyntax)
-          {
-            pwComponents =
-                 AuthPasswordSyntax.decodeAuthPassword(v.getValue().toString());
-          }
-          else
-          {
-            String[] userPwComponents =
-                 UserPasswordSyntax.decodeUserPassword(v.getValue().toString());
-            pwComponents = new StringBuilder[userPwComponents.length];
-            for (int i = 0; i < userPwComponents.length; ++i)
-            {
-              pwComponents[i] = new StringBuilder(userPwComponents[i]);
-            }
-          }
+          StringBuilder[] pwComponents = getPasswordComponents(v);
 
           String schemeName = pwComponents[0].toString();
           PasswordStorageScheme<?> scheme = (usesAuthPasswordSyntax)
@@ -2647,22 +2684,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
       {
         try
         {
-          StringBuilder[] pwComponents;
-          if (usesAuthPasswordSyntax)
-          {
-            pwComponents =
-                 AuthPasswordSyntax.decodeAuthPassword(v.getValue().toString());
-          }
-          else
-          {
-            String[] userPwComponents =
-                 UserPasswordSyntax.decodeUserPassword(v.getValue().toString());
-            pwComponents = new StringBuilder[userPwComponents.length];
-            for (int i = 0; i < userPwComponents.length; ++i)
-            {
-              pwComponents[i] = new StringBuilder(userPwComponents[i]);
-            }
-          }
+          StringBuilder[] pwComponents = getPasswordComponents(v);
 
           String schemeName = pwComponents[0].toString();
           PasswordStorageScheme<?> scheme = (usesAuthPasswordSyntax)
@@ -2881,22 +2903,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
         try
         {
-          StringBuilder[] pwComponents;
-          if (usesAuthPasswordSyntax)
-          {
-            pwComponents =
-                 AuthPasswordSyntax.decodeAuthPassword(v.getValue().toString());
-          }
-          else
-          {
-            String[] userPwComponents =
-                 UserPasswordSyntax.decodeUserPassword(v.getValue().toString());
-            pwComponents = new StringBuilder[userPwComponents.length];
-            for (int i = 0; i < userPwComponents.length; ++i)
-            {
-              pwComponents[i] = new StringBuilder(userPwComponents[i]);
-            }
-          }
+          StringBuilder[] pwComponents = getPasswordComponents(v);
 
           String schemeName = pwComponents[0].toString();
           PasswordStorageScheme<?> scheme = (usesAuthPasswordSyntax)
@@ -3080,7 +3087,6 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
       // list or not.
       return false;
     }
-
 
     // Check to see if the provided password is equal to any of the current
     // passwords.  If so, then we'll consider it to be in the history.
@@ -3370,8 +3376,10 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
 
   /**
-   * Updates the password history information for this user by adding all
-   * current passwords to it.
+   * Updates the password history information for this user by adding one of
+   * the passwords to it. It will choose the first password encoded using a
+   * secure storage scheme, and will fall back to a password encoded using an
+   * insecure storage scheme if necessary.
    */
   public void updatePasswordHistory()
   {
@@ -3381,9 +3389,40 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     {
       for (Attribute a : attrList)
       {
+        boolean usesAuthPasswordSyntax = passwordPolicy.isAuthPasswordSyntax();
+        String insecurePassword = null;
         for (AttributeValue v : a)
         {
-          addPasswordToHistory(v.getValue().toString());
+          try
+          {
+            PasswordStorageScheme<?> scheme = getPasswordStorageScheme(v);
+
+            if (scheme.isStorageSchemeSecure())
+            {
+              addPasswordToHistory(v.getValue().toString());
+              insecurePassword = null;
+              // no need to check any more values for this attribute
+              break;
+            }
+            else if (insecurePassword == null)
+            {
+              insecurePassword = v.getValue().toString();
+            }
+          }
+          catch (DirectoryException e)
+          {
+            if (debugEnabled())
+            {
+              TRACER.debugInfo("Encoded password " + v.getValue().toString() +
+                      " cannot be decoded and cannot be added to history.");
+            }
+          }
+        }
+        // If we get here we haven't found a password encoded securely, so we
+        // have to use one of the other values.
+        if (insecurePassword != null)
+        {
+          addPasswordToHistory(insecurePassword);
         }
       }
     }
