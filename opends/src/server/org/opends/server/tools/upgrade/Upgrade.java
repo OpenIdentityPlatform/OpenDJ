@@ -329,6 +329,13 @@ public final class Upgrade
             + "(version 3.0; acl \"Replication backend access\"; "
             + "deny (all) userdn=\"ldap:///anyone\";)"));
 
+    /** See OPENDJ-1351 */
+    register("2.7.0.10820",
+        modifyConfigEntry(INFO_UPGRADE_TASK_10820_SUMMARY.get(),
+        "(objectClass=ds-cfg-root-dn)",
+        "add: ds-cfg-default-root-privilege-name",
+        "ds-cfg-default-root-privilege-name: changelog-read"));
+
     /*
      * All upgrades will refresh the server configuration schema and generate
      * a new upgrade folder.
