@@ -226,7 +226,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     ECLCompatWriteReadAllOps(5);
   }
 
-  @Test(enabled=true, dependsOnMethods = { "PrimaryTest"})
+  @Test(enabled = true, dependsOnMethods = { "TestWithAndWithoutControl" })
   public void TestWithIncludeAttributes() throws Exception
   {
     ECLIncludeAttributes();
