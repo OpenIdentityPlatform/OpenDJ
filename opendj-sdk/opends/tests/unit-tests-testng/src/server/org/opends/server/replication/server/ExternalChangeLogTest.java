@@ -163,14 +163,14 @@ public class ExternalChangeLogTest extends ReplicationTestCase
    * Launcher.
    */
   @Test(enabled=true)
-  public void ECLReplicationServerPreTest() throws Exception
+  public void PreTest() throws Exception
   {
     // No RSDomain created yet => RS only case => ECL is not a supported
     ECLIsNotASupportedSuffix();
   }
 
-  @Test(enabled=true, dependsOnMethods = { "ECLReplicationServerPreTest"})
-  public void ECLReplicationServerTest() throws Exception
+  @Test(enabled=true, dependsOnMethods = { "PreTest"})
+  public void PrimaryTest() throws Exception
   {
     replicationServer.getChangelogDB().setPurgeDelay(0);
     // let's enable ECl manually now that we tested that ECl is not available
@@ -190,23 +190,31 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     ECLCompatTestLimits(1,4,true);
   }
 
-  @Test(enabled=false, dependsOnMethods = { "ECLReplicationServerTest"})
-  public void ECLReplicationServerTest1() throws Exception
+  @Test(enabled=false, dependsOnMethods = { "PrimaryTest"})
+  public void TestWithTwoDomains() throws Exception
   {
     replicationServer.getChangelogDB().setPurgeDelay(0);
     // Test with a mix of domains, a mix of DSes
     ECLTwoDomains();
   }
 
-  @Test(enabled=false, dependsOnMethods = { "ECLReplicationServerTest"})
-  public void ECLReplicationServerTest2() throws Exception
+  @Test(enabled=false, dependsOnMethods = { "PrimaryTest"})
+  public void TestAfterChangelogTrim() throws Exception
   {
     // Test ECL after changelog trimming
     ECLAfterChangelogTrim();
   }
 
-  @Test(enabled=true, dependsOnMethods = { "ECLReplicationServerTest"})
-  public void ECLReplicationServerTest3() throws Exception
+  @Test(enabled=true, dependsOnMethods = { "PrimaryTest"})
+  public void TestAfterDomainIsRemoved() throws Exception
+  {
+    ECLAfterDomainIsRemoved();
+  }
+
+
+
+  @Test(enabled=true, dependsOnMethods = { "PrimaryTest"})
+  public void TestWithAndWithoutControl() throws Exception
   {
     replicationServer.getChangelogDB().setPurgeDelay(0);
     // Write changes and read ECL from start
@@ -218,20 +226,20 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     ECLCompatWriteReadAllOps(5);
   }
 
-  @Test(enabled=true, dependsOnMethods = { "ECLReplicationServerTest"})
-  public void ECLReplicationServerTest4() throws Exception
+  @Test(enabled=true, dependsOnMethods = { "PrimaryTest"})
+  public void TestWithIncludeAttributes() throws Exception
   {
     ECLIncludeAttributes();
   }
 
-  @Test(enabled=true, dependsOnMethods = { "ECLReplicationServerTest"})
-  public void ECLReplicationServerTest5() throws Exception
+  @Test(enabled=true, dependsOnMethods = { "PrimaryTest"})
+  public void TestChangeTimeHeartBeat() throws Exception
   {
     ChangeTimeHeartbeatTest();
   }
 
-  @Test(enabled=true, dependsOnMethods = { "ECLReplicationServerTest"})
-  public void ECLReplicationServerTest6() throws Exception
+  @Test(enabled=true, dependsOnMethods = { "PrimaryTest"})
+  public void TestOperationalAttributesNotVisibleOutsideRootDSE() throws Exception
   {
     // Test that ECL Operational, virtual attributes are not visible
     // outside rootDSE. Next test will test access in RootDSE.
@@ -239,8 +247,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     ECLOperationalAttributesFailTest();
   }
 
-  @Test(enabled=false, dependsOnMethods = { "ECLReplicationServerTest"})
-  public void ECLReplicationServerFullTest() throws Exception
+  @Test(enabled=false, dependsOnMethods = { "PrimaryTest"})
+  public void PrimaryFullTest() throws Exception
   {
     // ***********************************************
     // First set of test are in the cookie mode
@@ -250,22 +258,22 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     ECLOnPrivateBackend();
   }
 
-  @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
-  public void ECLReplicationServerFullTest1() throws Exception
+  @Test(enabled=true, groups="slow", dependsOnMethods = { "PrimaryTest"})
+  public void FullTestRemoteAPIWithEmptyECL() throws Exception
   {
     // Test remote API (ECL through replication protocol) with empty ECL
     ECLRemoteEmpty();
   }
 
-  @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
-  public void ECLReplicationServerFullTest2() throws Exception
+  @Test(enabled=true, groups="slow", dependsOnMethods = { "PrimaryTest"})
+  public void FullTestWithEmptyECL() throws Exception
   {
     // Test with empty changelog
     ECLEmpty();
   }
 
-  @Test(enabled=false, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
-  public void ECLReplicationServerFullTest3() throws Exception
+  @Test(enabled=false, groups="slow", dependsOnMethods = { "PrimaryTest"})
+  public void FullTestPrimaryPlusOperationAttributesNotVisible() throws Exception
   {
     replicationServer.getChangelogDB().setPurgeDelay(0);
     // Test all types of ops.
@@ -281,29 +289,29 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     ECLCompatTestLimits(1, 4, true);
   }
 
-  @Test(enabled=false, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
-  public void ECLReplicationServerFullTest4() throws Exception
+  @Test(enabled=false, groups="slow", dependsOnMethods = { "PrimaryTest"})
+  public void FullTestRemoteAPIWithNonEmptyECL() throws Exception
   {
     // Test remote API (ECL through replication protocol) with NON empty ECL
     ECLRemoteNonEmpty();
   }
 
-  @Test(enabled=false, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
-  public void ECLReplicationServerFullTest7() throws Exception
+  @Test(enabled=false, groups="slow", dependsOnMethods = { "PrimaryTest"})
+  public void FullTestPersistentSearchWithChangesOnlyRequest() throws Exception
   {
     // Persistent search with changesOnly request
     ECLPsearch(true, false);
   }
 
-  @Test(enabled=false, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
-  public void ECLReplicationServerFullTest8() throws Exception
+  @Test(enabled=false, groups="slow", dependsOnMethods = { "PrimaryTest"})
+  public void FullTestPersistentSearchWithInitValuesRequest() throws Exception
   {
     // Persistent search with init values request
     ECLPsearch(false, false);
   }
 
-  @Test(enabled=false, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
-  public void ECLReplicationServerFullTest9() throws Exception
+  @Test(enabled=false, groups="slow", dependsOnMethods = { "PrimaryTest"})
+  public void FullTestSimultaneousPersistentSearches() throws Exception
   {
     // Simultaneous psearches
     ECLSimultaneousPsearches();
@@ -315,24 +323,16 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   // TODO:ECL Test the attributes list and values returned in ECL entries
   // TODO:ECL Test search -s base, -s one
 
-  @Test(enabled=false, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
-  public void ECLReplicationServerFullTest11() throws Exception
-  {
-    // Test directly from the java object that the changeTimeHeartbeatState
-    // stored are ok.
-    ChangeTimeHeartbeatTest();
-  }
-
-  @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
-  public void ECLReplicationServerFullTest12() throws Exception
+  @Test(enabled=true, groups="slow", dependsOnMethods = { "PrimaryTest"})
+  public void FullTestFilters() throws Exception
   {
     // Test the different forms of filter that are parsed in order to
     // optimize the request.
     ECLFilterTest();
   }
 
-  @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
-  public void ECLReplicationServerFullTest13() throws Exception
+  @Test(enabled=true, groups="slow", dependsOnMethods = { "PrimaryTest"})
+  public void FullTestDraftCompatModeWithEmptyECL() throws Exception
   {
     // ***********************************************
     // Second set of test are in the draft compat mode
@@ -341,14 +341,14 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     ECLCompatEmpty();
   }
 
-  @Test(enabled=true, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
-  public void ECLReplicationServerFullTest14() throws Exception
+  @Test(enabled=true, groups="slow", dependsOnMethods = { "PrimaryTest"})
+  public void FullTestRequestFromInvalidChangeNumber() throws Exception
   {
     // Request from an invalid change number
     ECLCompatBadSeqnum();
   }
 
-  @Test(enabled=false, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
+  @Test(enabled=false, groups="slow", dependsOnMethods = { "PrimaryTest"})
   public void ECLReplicationServerFullTest15() throws Exception
   {
     replicationServer.getChangelogDB().setPurgeDelay(0);
@@ -384,7 +384,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     ECLPsearch(true, true);
   }
 
-  @Test(enabled=false, groups="slow", dependsOnMethods = { "ECLReplicationServerTest"})
+  @Test(enabled=false, groups="slow", dependsOnMethods = { "PrimaryTest"})
   public void ECLReplicationServerFullTest16() throws Exception
   {
     // Persistent search in init + changes mode
@@ -394,11 +394,11 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     // TODO: test with optimization when code done.
     ECLFilterOnReplicationCSN(csn);
   }
-  
+
   //Verifies that is not possible to read the changelog without the changelog-read privilege
-  @Test(enabled=true, dependsOnMethods = { "ECLReplicationServerTest"})
+  @Test(enabled=true, dependsOnMethods = { "PrimaryTest"})
   public void ECLChangelogReadPrivilegeTest() throws Exception
-  {  
+  {
      InternalClientConnection conn =
            new InternalClientConnection(new AuthenticationInfo());
      InternalSearchOperation ico = conn.processSearch(
@@ -412,11 +412,11 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           ALL_ATTRIBUTES,
           NO_CONTROL,
           null);
-     
+
      assertEquals(ico.getResultCode(), ResultCode.INSUFFICIENT_ACCESS_RIGHTS);
      assertEquals(ico.getErrorMessage().toMessage(), NOTE_SEARCH_CHANGELOG_INSUFFICIENT_PRIVILEGES.get());
   }
-  
+
   private void ECLIsNotASupportedSuffix() throws Exception
   {
     ECLCompatTestLimits(0,0, false);
@@ -934,8 +934,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   /** Test ECL content after replication changelogDB trimming */
   private void ECLAfterChangelogTrim() throws Exception
   {
-    String tn = "ECLAfterChangelogTrim";
-    debugInfo(tn, "Starting test");
+    String testName = "ECLAfterChangelogTrim";
+    debugInfo(testName, "Starting test");
 
     ReplicationBroker server01 = null;
     try
@@ -948,16 +948,16 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           100, replicationServerPort, brokerSessionTimeout);
 
       final CSN[] csns = generateCSNs(3, SERVER_ID_1);
-      publishDeleteMsgInOTest(server01, csns[0], tn, 1);
+      publishDeleteMsgInOTest(server01, csns[0], testName, 1);
 
       Thread.sleep(1000);
 
       // Test that last cookie has been updated
       String cookieNotEmpty = readLastCookie();
-      debugInfo(tn, "Store cookie not empty=\"" + cookieNotEmpty + "\"");
+      debugInfo(testName, "Store cookie not empty=\"" + cookieNotEmpty + "\"");
 
-      publishDeleteMsgInOTest(server01, csns[1], tn, 2);
-      publishDeleteMsgInOTest(server01, csns[2], tn, 3);
+      publishDeleteMsgInOTest(server01, csns[1], testName, 2);
+      publishDeleteMsgInOTest(server01, csns[2], testName, 3);
 
       // ---
       // 2. Now set up a very short purge delay on the replication changelogs
@@ -969,22 +969,22 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       // since replication changelog has been trimmed
       String cookie= "";
       InternalSearchOperation searchOp =
-          searchOnCookieChangelog("(targetDN=*)", cookie, 0, tn, SUCCESS);
+          searchOnCookieChangelog("(targetDN=*)", cookie, 0, testName, SUCCESS);
 
       // ---
       // 4. Assert that a request with the current last cookie returns nothing
       // since replication changelog has been trimmed
       cookie = readLastCookie();
-      debugInfo(tn, "2. Search with last cookie=" + cookie + "\"");
-      searchOp = searchOnCookieChangelog("(targetDN=*)", cookie, 0, tn, SUCCESS);
+      debugInfo(testName, "2. Search with last cookie=" + cookie + "\"");
+      searchOp = searchOnCookieChangelog("(targetDN=*)", cookie, 0, testName, SUCCESS);
 
       // ---
       // 5. Assert that a request with an "old" cookie - one that refers to
       //    changes that have been removed by the replication changelog trimming
       //    returns the appropriate error.
-      debugInfo(tn, "d1 trimdate" + getDomainOldestState(TEST_ROOT_DN));
-      debugInfo(tn, "d2 trimdate" + getDomainOldestState(TEST_ROOT_DN2));
-      searchOp = searchOnCookieChangelog("(targetDN=*)", cookieNotEmpty, 0, tn, UNWILLING_TO_PERFORM);
+      debugInfo(testName, "d1 trimdate" + getDomainOldestState(TEST_ROOT_DN));
+      debugInfo(testName, "d2 trimdate" + getDomainOldestState(TEST_ROOT_DN2));
+      searchOp = searchOnCookieChangelog("(targetDN=*)", cookieNotEmpty, 0, testName, UNWILLING_TO_PERFORM);
       assertTrue(searchOp.getErrorMessage().toString().startsWith(
           ERR_RESYNC_REQUIRED_TOO_OLD_DOMAIN_IN_PROVIDED_COOKIE.get(TEST_ROOT_DN_STRING).toString()),
           searchOp.getErrorMessage().toString());
@@ -995,7 +995,69 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       // And reset changelog purge delay for the other tests.
       replicationServer.getChangelogDB().setPurgeDelay(15 * 1000);
     }
-    debugInfo(tn, "Ending test successfully");
+    debugInfo(testName, "Ending test successfully");
+  }
+
+  /** Test ECL content after a domain has been removed. */
+  private void ECLAfterDomainIsRemoved() throws Exception
+  {
+    String testName = "ECLAfterDomainIsRemoved";
+    debugInfo(testName, "Starting test");
+
+    ReplicationBroker server01 = null;
+    try
+    {
+      // ---
+      // 1. Populate the changelog and read the cookie
+
+      // Creates server broker on o=test
+      server01 = openReplicationSession(TEST_ROOT_DN, SERVER_ID_1, 100, replicationServerPort, brokerSessionTimeout);
+
+      final CSN[] csns = generateCSNs(3, SERVER_ID_1);
+      publishDeleteMsgInOTest(server01, csns[0], testName, 1);
+
+      Thread.sleep(1000);
+
+      // Test that last cookie has been updated
+      String cookieNotEmpty = readLastCookie();
+      debugInfo(testName, "Store cookie not empty=\"" + cookieNotEmpty + "\"");
+
+      publishDeleteMsgInOTest(server01, csns[1], testName, 2);
+      publishDeleteMsgInOTest(server01, csns[2], testName, 3);
+
+      // ---
+      // 2. Now remove the domain by sending a reset message
+      ResetGenerationIdMsg msg = new ResetGenerationIdMsg(23657);
+      server01.publish(msg);
+
+      // ---
+      // 3. Assert that a request with an empty cookie returns nothing
+      // since replication changelog has been cleared
+      String cookie= "";
+      InternalSearchOperation searchOp = null;
+      searchOnCookieChangelog("(targetDN=*)", cookie, 0, testName, SUCCESS);
+
+      // ---
+      // 4. Assert that a request with the current last cookie returns nothing
+      // since replication changelog has been cleared
+      cookie = readLastCookie();
+      debugInfo(testName, "2. Search with last cookie=" + cookie + "\"");
+      searchOp = searchOnCookieChangelog("(targetDN=*)", cookie, 0, testName, SUCCESS);
+
+      // ---
+      // 5. Assert that a request with an "old" cookie - one that refers to
+      //    changes that have been removed by the replication changelog clearing
+      //    returns the appropriate error.
+      debugInfo(testName, "d1 trimdate" + getDomainOldestState(TEST_ROOT_DN));
+      debugInfo(testName, "d2 trimdate" + getDomainOldestState(TEST_ROOT_DN2));
+      searchOp = searchOnCookieChangelog("(targetDN=*)", cookieNotEmpty, 0, testName, UNWILLING_TO_PERFORM);
+      assertThat(searchOp.getErrorMessage().toString()).contains("unknown replicated domain", TEST_ROOT_DN_STRING.toString());
+    }
+    finally
+    {
+      stop(server01);
+    }
+    debugInfo(testName, "Ending test successfully");
   }
 
   private void debugAndWriteEntries(LDIFWriter ldifWriter,
