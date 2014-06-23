@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.types;
 
@@ -229,7 +229,15 @@ public enum Privilege
    * The privilege that provides the ability to perform write
    * operations on LDAP subentries.
    */
-  SUBENTRY_WRITE("subentry-write");
+  SUBENTRY_WRITE("subentry-write"),
+
+
+
+  /**
+   * The privilege that provides the ability to perform read
+   * operations on the changelog.
+   */
+  CHANGELOG_READ("changelog-read");
 
 
 
@@ -282,6 +290,7 @@ public enum Privilege
     DEFAULT_ROOT_PRIV_SET.add(PRIVILEGE_CHANGE);
     DEFAULT_ROOT_PRIV_SET.add(UNINDEXED_SEARCH);
     DEFAULT_ROOT_PRIV_SET.add(SUBENTRY_WRITE);
+    DEFAULT_ROOT_PRIV_SET.add(CHANGELOG_READ);
   }
 
 
