@@ -255,6 +255,30 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
   }
 
 
+  /**
+   * Get the password storage scheme used by a given password value.
+   *
+   * @param  v  The encoded password value to check.
+   *
+   * @return  The scheme used by the password.
+   *
+   * @throws  DirectoryException  If the password could not be decoded.
+   */
+  private PasswordStorageScheme<?> getPasswordStorageScheme(ByteString v)
+      throws DirectoryException
+  {
+    if (passwordPolicy.isAuthPasswordSyntax())
+    {
+      StringBuilder[] pwComps = AuthPasswordSyntax.decodeAuthPassword(v.toString());
+      return DirectoryServer.getAuthPasswordStorageScheme(pwComps[0].toString());
+    }
+    else
+    {
+      String[] pwComps = UserPasswordSyntax.decodeUserPassword(v.toString());
+      return DirectoryServer.getPasswordStorageScheme(pwComps[0]);
+    }
+  }
+
 
   /**
    * {@inheritDoc}
@@ -2528,7 +2552,14 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
   }
 
 
-
+  /**
+   * Get the broken-down components of the given password value.
+   *
+   * @param  usesAuthPasswordSyntax  true if the value is an authPassword.
+   * @param  v  The encoded password value to break down.
+   *
+   * @return An array of components.
+   */
   private StringBuilder[] getPwComponents(boolean usesAuthPasswordSyntax,
       ByteString v) throws DirectoryException
   {
@@ -2863,7 +2894,6 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
       return false;
     }
 
-
     // Check to see if the provided password is equal to any of the current
     // passwords.  If so, then we'll consider it to be in the history.
     if (passwordMatches(password))
@@ -3151,8 +3181,10 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
 
 
   /**
-   * Updates the password history information for this user by adding all
-   * current passwords to it.
+   * Updates the password history information for this user by adding one of
+   * the passwords to it. It will choose the first password encoded using a
+   * secure storage scheme, and will fall back to a password encoded using an
+   * insecure storage scheme if necessary.
    */
   public void updatePasswordHistory()
   {
@@ -3162,9 +3194,40 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
     {
       for (Attribute a : attrList)
       {
+        boolean usesAuthPasswordSyntax = passwordPolicy.isAuthPasswordSyntax();
+        ByteString insecurePassword = null;
         for (ByteString v : a)
         {
-          addPasswordToHistory(v.toString());
+          try
+          {
+            PasswordStorageScheme<?> scheme = getPasswordStorageScheme(v);
+
+            if (scheme.isStorageSchemeSecure())
+            {
+              addPasswordToHistory(v.toString());
+              insecurePassword = null;
+              // no need to check any more values for this attribute
+              break;
+            }
+            else if (insecurePassword == null)
+            {
+              insecurePassword = v;
+            }
+          }
+          catch (DirectoryException e)
+          {
+            if (logger.isTraceEnabled())
+            {
+              logger.trace("Encoded password " + v.toString() +
+                      " cannot be decoded and cannot be added to history.");
+            }
+          }
+        }
+        // If we get here we haven't found a password encoded securely, so we
+        // have to use one of the other values.
+        if (insecurePassword != null)
+        {
+          addPasswordToHistory(insecurePassword.toString());
         }
       }
     }
