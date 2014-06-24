@@ -2584,7 +2584,7 @@ objectClass: top
 objectClass: ds-cfg-administration-connector
 cn: Administration Connector
 ds-cfg-listen-address: 0.0.0.0
-ds-cfg-listen-port: 4444
+ds-cfg-listen-port: ${admin-listen-port}
 ds-cfg-ssl-cert-nickname: admin-cert
 ds-cfg-key-manager-provider: cn=Administration,cn=Key Manager Providers,cn=config
 ds-cfg-trust-manager-provider: cn=Administration,cn=Trust Manager Providers,cn=config
