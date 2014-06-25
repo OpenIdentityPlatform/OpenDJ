@@ -104,8 +104,7 @@ public class LogFileTest extends DirectoryServerTestCase
     try {
       cursor = changelog.getCursor();
 
-      assertThat(cursor.getRecord()).isEqualTo(Record.from("key01", "value1"));
-      assertThatCursorCanBeFullyRead(cursor, 2, 10);
+      assertThatCursorCanBeFullyRead(cursor, 1, 10);
     }
     finally {
       StaticUtils.close(cursor, changelog);
@@ -120,8 +119,7 @@ public class LogFileTest extends DirectoryServerTestCase
     try {
       cursor = changelog.getCursor("key05");
 
-      assertThat(cursor.getRecord()).isEqualTo(Record.from("key05", "value5"));
-      assertThatCursorCanBeFullyRead(cursor, 6, 10);
+      assertThatCursorCanBeFullyRead(cursor, 5, 10);
     }
     finally {
       StaticUtils.close(cursor, changelog);
@@ -153,9 +151,7 @@ public class LogFileTest extends DirectoryServerTestCase
     try {
       cursor = changelog.getCursor(null);
 
-      // should start from start
-      assertThat(cursor.getRecord()).isEqualTo(Record.from("key01", "value1"));
-      assertThatCursorCanBeFullyRead(cursor, 2, 10);
+      assertThatCursorCanBeFullyRead(cursor, 1, 10);
     }
     finally {
       StaticUtils.close(cursor, changelog);
@@ -170,9 +166,7 @@ public class LogFileTest extends DirectoryServerTestCase
     try {
       cursor = changelog.getNearestCursor("key01");
 
-      // lowest higher key is key2
-      assertThat(cursor.getRecord()).isEqualTo(Record.from("key02", "value2"));
-      assertThatCursorCanBeFullyRead(cursor, 3, 10);
+      assertThatCursorCanBeFullyRead(cursor, 2, 10);
     }
     finally {
       StaticUtils.close(cursor, changelog);
@@ -187,9 +181,7 @@ public class LogFileTest extends DirectoryServerTestCase
     try {
       cursor = changelog.getNearestCursor("key00");
 
-      // lowest higher key is key1
-      assertThat(cursor.getRecord()).isEqualTo(Record.from("key01", "value1"));
-      assertThatCursorCanBeFullyRead(cursor, 2, 10);
+      assertThatCursorCanBeFullyRead(cursor, 1, 10);
     }
     finally {
       StaticUtils.close(cursor, changelog);
@@ -204,9 +196,7 @@ public class LogFileTest extends DirectoryServerTestCase
     try {
       cursor = changelog.getNearestCursor(null);
 
-      // should start from start
-      assertThat(cursor.getRecord()).isEqualTo(Record.from("key01", "value1"));
-      assertThatCursorCanBeFullyRead(cursor, 2, 10);
+      assertThatCursorCanBeFullyRead(cursor, 1, 10);
     }
     finally {
       StaticUtils.close(cursor, changelog);
@@ -296,8 +286,7 @@ public class LogFileTest extends DirectoryServerTestCase
 
       // ensure log can be fully read including the new record
       cursor = logFile.getCursor("key05");
-      assertThat(cursor.getRecord()).isEqualTo(Record.from("key05", "value5"));
-      assertThatCursorCanBeFullyRead(cursor, 6, 11);
+      assertThatCursorCanBeFullyRead(cursor, 5, 11);
     }
     finally
     {
@@ -359,6 +348,7 @@ public class LogFileTest extends DirectoryServerTestCase
   private void assertThatCursorCanBeFullyRead(DBCursor<Record<String, String>> cursor, int fromIndex, int endIndex)
       throws Exception
   {
+    assertThat(cursor.getRecord()).isNull();
     for (int i = fromIndex; i <= endIndex; i++)
     {
       assertThat(cursor.next()).as("next() value when i=" + i).isTrue();

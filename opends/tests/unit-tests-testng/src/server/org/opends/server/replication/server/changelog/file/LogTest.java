@@ -88,8 +88,7 @@ public class LogTest extends DirectoryServerTestCase
     try {
       cursor = log.getCursor();
 
-      assertThat(cursor.getRecord()).isEqualTo(Record.from("key001", "value1"));
-      assertThatCursorCanBeFullyRead(cursor, 2, 10);
+      assertThatCursorCanBeFullyReadFromStart(cursor, 1, 10);
     }
     finally {
       StaticUtils.close(cursor, log);
@@ -104,8 +103,7 @@ public class LogTest extends DirectoryServerTestCase
     try {
       cursor = log.getCursor("key005");
 
-      assertThat(cursor.getRecord()).isEqualTo(Record.from("key005", "value5"));
-      assertThatCursorCanBeFullyRead(cursor, 6, 10);
+      assertThatCursorCanBeFullyReadFromStart(cursor, 5, 10);
     }
     finally {
       StaticUtils.close(cursor, log);
@@ -138,9 +136,7 @@ public class LogTest extends DirectoryServerTestCase
     try {
       cursor = log.getCursor(null);
 
-      // should start from first record
-      assertThat(cursor.getRecord()).isEqualTo(Record.from("key001", "value1"));
-      assertThatCursorCanBeFullyRead(cursor, 2, 10);
+      assertThatCursorCanBeFullyReadFromStart(cursor, 1, 10);
     }
     finally {
       StaticUtils.close(cursor, log);
@@ -155,20 +151,14 @@ public class LogTest extends DirectoryServerTestCase
     try {
       // this key is the first key of the log file "key1_key2.log"
       cursor1 = log.getNearestCursor("key001");
-      // lowest higher key is key2
-      assertThat(cursor1.getRecord()).isEqualTo(Record.from("key002", "value2"));
-      assertThatCursorCanBeFullyRead(cursor1, 3, 10);
+      assertThatCursorCanBeFullyReadFromStart(cursor1, 2, 10);
 
       // this key is the last key of the log file "key3_key4.log"
       cursor2 = log.getNearestCursor("key004");
-      // lowest higher key is key5
-      assertThat(cursor2.getRecord()).isEqualTo(Record.from("key005", "value5"));
-      assertThatCursorCanBeFullyRead(cursor2, 6, 10);
+      assertThatCursorCanBeFullyReadFromStart(cursor2, 5, 10);
 
       cursor3 = log.getNearestCursor("key009");
-      // lowest higher key is key10
-      assertThat(cursor3.getRecord()).isEqualTo(Record.from("key010", "value10"));
-      assertThatCursorIsExhausted(cursor3);
+      assertThatCursorCanBeFullyReadFromStart(cursor3, 10, 10);
     }
     finally {
       StaticUtils.close(cursor1, cursor2, cursor3, log);
@@ -200,9 +190,7 @@ public class LogTest extends DirectoryServerTestCase
       // key is between key005 and key006
       cursor = log.getNearestCursor("key005000");
 
-      // lowest higher key is key006
-      assertThat(cursor.getRecord()).isEqualTo(Record.from("key006", "value6"));
-      assertThatCursorCanBeFullyRead(cursor, 7, 10);
+      assertThatCursorCanBeFullyReadFromStart(cursor, 6, 10);
     }
     finally {
       StaticUtils.close(cursor, log);
@@ -217,9 +205,7 @@ public class LogTest extends DirectoryServerTestCase
     try {
       cursor = log.getNearestCursor(null);
 
-      // should start from start
-      assertThat(cursor.getRecord()).isEqualTo(Record.from("key001", "value1"));
-      assertThatCursorCanBeFullyRead(cursor, 2, 10);
+      assertThatCursorCanBeFullyReadFromStart(cursor, 1, 10);
     }
     finally {
       StaticUtils.close(cursor, log);
@@ -324,7 +310,7 @@ public class LogTest extends DirectoryServerTestCase
       }
       writeLog1.syncToFileSystem();
       cursor = writeLog1.getCursor("key020");
-      for (int i = 1; i <= 60; i++)
+      for (int i = 1; i <= 61; i++)
       {
          assertThat(cursor.next()).isTrue();
       }
@@ -370,7 +356,7 @@ public class LogTest extends DirectoryServerTestCase
       log = openLog(LogFileTest.RECORD_PARSER);
       cursor = log.getCursor();
       // advance cursor to last record to ensure it is pointing to ahead log file
-      advanceCursorFromFirstRecordTo(cursor, 10);
+      advanceCursorUpTo(cursor, 1, 10);
 
       // add new records to ensure the ahead log file is rotated
       for (int i = 11; i <= 20; i++)
@@ -396,13 +382,13 @@ public class LogTest extends DirectoryServerTestCase
     {
       log = openLog(LogFileTest.RECORD_PARSER);
       cursor1 = log.getCursor();
-      advanceCursorFromFirstRecordTo(cursor1, 1);
+      advanceCursorUpTo(cursor1, 1, 1);
       cursor2 = log.getCursor();
-      advanceCursorFromFirstRecordTo(cursor2, 4);
+      advanceCursorUpTo(cursor2, 1, 4);
       cursor3 = log.getCursor();
-      advanceCursorFromFirstRecordTo(cursor3, 9);
+      advanceCursorUpTo(cursor3, 1, 9);
       cursor4 = log.getCursor();
-      advanceCursorFromFirstRecordTo(cursor4, 10);
+      advanceCursorUpTo(cursor4, 1, 10);
 
       // add new records to ensure the ahead log file is rotated
       for (int i = 11; i <= 20; i++)
@@ -503,6 +489,7 @@ public class LogTest extends DirectoryServerTestCase
       log.purgeUpTo(purgeKey);
 
       cursor = log.getCursor();
+      assertThat(cursor.next()).isTrue();
       assertThat(cursor.getRecord()).isEqualTo(firstRecordExpectedAfterPurge);
       assertThatCursorCanBeFullyRead(cursor, cursorStartIndex, cursorEndIndex);
     }
@@ -510,13 +497,6 @@ public class LogTest extends DirectoryServerTestCase
     {
       StaticUtils.close(cursor, log);
     }
-  }
-
-  private void advanceCursorFromFirstRecordTo(DBCursor<Record<String, String>> cursor, int endIndex)
-      throws Exception
-  {
-    assertThat(cursor.getRecord()).isEqualTo(Record.from("key001", "value1"));
-    advanceCursorUpTo(cursor, 2, endIndex);
   }
 
   private void advanceCursorUpTo(DBCursor<Record<String, String>> cursor, int fromIndex, int endIndex)
@@ -538,6 +518,16 @@ public class LogTest extends DirectoryServerTestCase
   {
     advanceCursorUpTo(cursor, fromIndex, endIndex);
     assertThatCursorIsExhausted(cursor);
+  }
+
+  /**
+   * Read the cursor until exhaustion, beginning at start of cursor.
+   */
+  private void assertThatCursorCanBeFullyReadFromStart(DBCursor<Record<String, String>> cursor, int fromIndex, int endIndex)
+      throws Exception
+      {
+    assertThat(cursor.getRecord()).isNull();
+    assertThatCursorCanBeFullyRead(cursor, fromIndex, endIndex);
   }
 
   private void assertThatCursorIsExhausted(DBCursor<Record<String, String>> cursor) throws Exception

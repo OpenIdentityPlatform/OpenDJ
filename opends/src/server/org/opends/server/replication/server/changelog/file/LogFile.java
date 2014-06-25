@@ -313,10 +313,9 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
    * Returns a cursor that allows to retrieve the records from this log,
    * starting at the first position.
    * <p>
-   * The returned cursor initially points to record corresponding to the first
-   * key, that is {@code cursor.getRecord()} is equals to the record
-   * corresponding to the first key before any call to {@code cursor.next()}
-   * method.
+   * The returned cursor initially points to no record, that is
+   * {@code cursor.getRecord()} is equals {@code null} before any call to
+   * {@code cursor.next()} method.
    *
    * @return a cursor on the log records, which is never {@code null}
    * @throws ChangelogException
@@ -331,9 +330,10 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
    * Returns a cursor that allows to retrieve the records from this log,
    * starting at the position defined by the provided key.
    * <p>
-   * The returned cursor initially points to record corresponding to the key,
-   * that is {@code cursor.getRecord()} is equals to the record corresponding to
-   * the key before any call to {@code cursor.next()} method.
+   * The returned cursor initially points to no record, that is
+   * {@code cursor.getRecord()} is equals to {@code null} before any call to
+   * {@code cursor.next()} method. After the first call to {@code cursor.next()}
+   * the cursor points to the record corresponding to the key.
    *
    * @param key
    *          Key to use as a start position for the cursor. If key is
@@ -352,10 +352,10 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
    * starting at the position defined by the smallest key that is higher than
    * the provided key.
    * <p>
-   * The returned cursor initially points to record corresponding to the key
-   * found, that is {@code cursor.getRecord()} is equals to the record
-   * corresponding to the key found before any call to {@code cursor.next()}
-   * method.
+   * The returned cursor initially points to no record, that is
+   * {@code cursor.getRecord()} is equals to {@code null} before any call to
+   * {@code cursor.next()} method. After the first call to {@code cursor.next()}
+   * the cursor points to the record corresponding to the key found.
    *
    * @param key
    *          Key to use as a start position for the cursor. If key is
@@ -421,7 +421,7 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
     try
     {
       cursor = getCursor();
-      return cursor.getRecord();
+      return cursor.next() ? cursor.getRecord() : null;
     }
     finally
     {
@@ -443,7 +443,7 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
     try
     {
       cursor = getCursor();
-      Record<K, V> record = cursor.getRecord();
+      Record<K, V> record = null;
       while (cursor.next())
       {
         record = cursor.getRecord();
@@ -470,15 +470,9 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
     try
     {
       cursor = getCursor();
-      Record<K, V> record = cursor.getRecord();
-      if (record == null)
-      {
-        return 0L;
-      }
-      long counter = 1L;
+      long counter = 0L;
       while (cursor.next())
       {
-        record = cursor.getRecord();
         counter++;
       }
       return counter;
@@ -580,8 +574,8 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
   /**
    * Implements a repositionable cursor on the log file.
    * <p>
-   * The cursor initially points to a record, that is {@code cursor.getRecord()}
-   * is equals to the first record available from the cursor before any call to
+   * The cursor initially points to no record, that is
+   * {@code cursor.getRecord()} is equals to {@code null} before any call to
    * {@code cursor.next()} method.
    */
   static final class LogFileCursor<K extends Comparable<K>, V> implements RepositionableCursor<K,V>
@@ -596,6 +590,12 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
     private Record<K,V> currentRecord;
 
     /**
+     * The initial record when starting from a given key. It must be
+     * stored because it is read in advance.
+     */
+    private Record<K,V> initialRecord;
+
+    /**
      * Creates a cursor on the provided log.
      *
      * @param logFile
@@ -607,16 +607,6 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
     {
       this.logFile = logFile;
       this.reader = logFile.getReader();
-      try
-      {
-        // position to the first record.
-        next();
-      }
-      catch (ChangelogException e)
-      {
-        close();
-        throw e;
-      }
     }
 
     /**
@@ -638,6 +628,13 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
     @Override
     public boolean next() throws ChangelogException
     {
+      if (initialRecord != null)
+      {
+        // initial record is used only once
+        currentRecord = initialRecord;
+        initialRecord = null;
+        return true;
+      }
       currentRecord = reader.readRecord();
       return currentRecord != null;
     }
@@ -654,7 +651,7 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
     public boolean positionTo(final K key, boolean findNearest) throws ChangelogException {
       final Pair<Boolean, Record<K, V>> result = reader.seekToRecord(key, findNearest);
       final boolean found = result.getFirst();
-      currentRecord = found ? result.getSecond() : null;
+      initialRecord = found ? result.getSecond() : null;
       return found;
     }
 

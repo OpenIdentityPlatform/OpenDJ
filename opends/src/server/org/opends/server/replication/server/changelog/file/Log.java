@@ -424,10 +424,9 @@ final class Log<K extends Comparable<K>, V> implements Closeable
    * Returns a cursor that allows to retrieve the records from this log,
    * starting at the first position.
    * <p>
-   * The returned cursor initially points to record corresponding to the first
-   * key, that is {@code cursor.getRecord()} is equals to the record
-   * corresponding to the first key before any call to {@code cursor.next()}
-   * method.
+   * The returned cursor initially points to no record, that is
+   * {@code cursor.getRecord()} is equals to {@code null} before any call to
+   * {@code cursor.next()} method.
    *
    * @return a cursor on the log records, which is never {@code null}
    * @throws ChangelogException
@@ -463,9 +462,9 @@ final class Log<K extends Comparable<K>, V> implements Closeable
    * Returns a cursor that allows to retrieve the records from this log,
    * starting at the position defined by the provided key.
    * <p>
-   * The returned cursor initially points to record corresponding to the key,
-   * that is {@code cursor.getRecord()} is equals to the record corresponding to
-   * the key before any call to {@code cursor.next()} method.
+   * The returned cursor initially points to no record, that is
+   * {@code cursor.getRecord()} is equals to {@code null} before any call to
+   * {@code cursor.next()} method.
    *
    * @param key
    *          Key to use as a start position for the cursor. If key is
@@ -484,10 +483,10 @@ final class Log<K extends Comparable<K>, V> implements Closeable
    * starting at the position defined by the smallest key that is higher than
    * the provided key.
    * <p>
-   * The returned cursor initially points to record corresponding to the key
-   * found, that is {@code cursor.getRecord()} is equals to the record
-   * corresponding to the key found before any call to {@code cursor.next()}
-   * method.
+   * The returned cursor initially points to no record, that is
+   * {@code cursor.getRecord()} is equals to {@code null} before any call to
+   * {@code cursor.next()} method. After the first call to {@code cursor.next()}
+   * the cursor points to the record corresponding to the key found.
    *
    * @param key
    *          Key to use as a start position for the cursor. If key is
@@ -1027,7 +1026,7 @@ final class Log<K extends Comparable<K>, V> implements Closeable
         if (logFile != null)
         {
           switchToLogFile(logFile);
-          return true;
+          return currentCursor.next();
         }
         return false;
       }
@@ -1069,17 +1068,7 @@ final class Log<K extends Comparable<K>, V> implements Closeable
         {
           switchToLogFile(logFile);
         }
-        if (key != null)
-        {
-          boolean isFound = currentCursor.positionTo(key, findNearest);
-          if (isFound && getRecord() == null && !log.isHeadLogFile(currentLogFile))
-          {
-            // The key to position is probably in the next file, force the switch
-            isFound = next();
-          }
-          return isFound;
-        }
-        return true;
+        return (key == null) ? true : currentCursor.positionTo(key, findNearest);
       }
       finally
       {
