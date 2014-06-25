@@ -32,18 +32,28 @@ import org.opends.server.replication.server.changelog.api.DBCursor;
 import org.opends.server.replication.server.changelog.file.Log.RepositionableCursor;
 
 /**
- * A cursor on ReplicaDB.
+ * A cursor on ReplicaDB, which can re-initialize itself after exhaustion.
  * <p>
- * This cursor behaves specially in two ways :
- * <ul>
- *  <li>The cursor initially points to a {@code null} value: the
- *      {@code getRecord()} method return {@code null} if called before any call to
- *      {@code next()} method.</li>
- *  <li>The cursor automatically re-initializes itself if it is exhausted: when
- *      exhausted, the cursor re-position itself to the last non null CSN previously
- *      read.
- *  <li>
- * </ul>
+ * The cursor provides a java.sql.ResultSet like API :
+ * <pre>
+ * {@code
+ *  FileReplicaDBCursor cursor = ...;
+ *  try {
+ *    while (cursor.next()) {
+ *      Record record = cursor.getRecord();
+ *      // ... can call cursor.getRecord() again: it will return the same result
+ *    }
+ *  }
+ *  finally {
+ *    close(cursor);
+ *  }
+ * }
+ * </pre>
+ * <p>
+ * The cursor automatically re-initializes itself if it is exhausted: if a
+ * record is newly available, a subsequent call to the {@code next()} method will
+ * return {@code true} and the record will be available by calling {@code getRecord()}
+ * method.
  */
 class FileReplicaDBCursor implements DBCursor<UpdateMsg>
 {
@@ -54,7 +64,7 @@ class FileReplicaDBCursor implements DBCursor<UpdateMsg>
   /** The next record to return. */
   private Record<CSN, UpdateMsg> nextRecord;
 
-  /** The CSN to re-start with in case the cursor is exhausted. */
+  /**  The CSN to re-start with in case the cursor is exhausted. */
   private CSN lastNonNullCurrentCSN;
 
   /**
@@ -82,25 +92,33 @@ class FileReplicaDBCursor implements DBCursor<UpdateMsg>
   @Override
   public boolean next() throws ChangelogException
   {
-    nextRecord = cursor.getRecord();
-    if (nextRecord != null)
+    if (cursor.next())
     {
+      nextRecord = cursor.getRecord();
+      if (nextRecord.getKey().compareTo(lastNonNullCurrentCSN) > 0)
+      {
+        lastNonNullCurrentCSN = nextRecord.getKey();
+        return true;
+      }
+    }
+    return nextWhenCursorIsExhaustedOrNotCorrectlyPositionned();
+  }
+
+  /** Re-initialize the cursor after the last non null CSN. */
+  private boolean nextWhenCursorIsExhaustedOrNotCorrectlyPositionned() throws ChangelogException
+  {
+    final boolean found = cursor.positionTo(lastNonNullCurrentCSN, true);
+    if (found && cursor.next())
+    {
+      nextRecord = cursor.getRecord();
       lastNonNullCurrentCSN = nextRecord.getKey();
+      return true;
     }
     else
     {
-      // Exhausted cursor must be able to reinitialize itself
-      cursor.positionTo(lastNonNullCurrentCSN, true);
-
-      nextRecord = cursor.getRecord();
-      if (nextRecord != null)
-      {
-        lastNonNullCurrentCSN = nextRecord.getKey();
-      }
+      nextRecord = null;
+      return false;
     }
-    // the underlying cursor is one record in advance
-    cursor.next();
-    return nextRecord != null;
   }
 
   /** {@inheritDoc} */

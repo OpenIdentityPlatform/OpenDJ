@@ -47,9 +47,15 @@ class FileChangeNumberIndexDBCursor implements DBCursor<ChangeNumberIndexRecord>
    *
    * @param cursor
    *          The underlying cursor to read log.
+   * @throws ChangelogException
+   *            If an error occurs.
    */
-  FileChangeNumberIndexDBCursor(final DBCursor<Record<Long, ChangeNumberIndexRecord>> cursor) {
+  FileChangeNumberIndexDBCursor(final DBCursor<Record<Long, ChangeNumberIndexRecord>> cursor)
+      throws ChangelogException
+  {
     this.cursor = cursor;
+    // cursor is positioned to first record at start
+    next();
   }
 
   /** {@inheritDoc} */

@@ -217,8 +217,19 @@ public class FileReplicaDBTest extends ReplicationTestCase
     }
   }
 
-  @Test
-  public void testGenerateCursorFromWithCursorReinitialization() throws Exception
+  @DataProvider
+  Object[][] dataForTestsWithCursorReinitialization()
+  {
+    return new Object[][] {
+      // the index to use in CSN array for the start key of the cursor
+      { 0 },
+      { 1 },
+      { 4 },
+    };
+  }
+
+  @Test(dataProvider="dataForTestsWithCursorReinitialization")
+  public void testGenerateCursorFromWithCursorReinitialization(int csnIndexForStartKey) throws Exception
   {
     ReplicationServer replicationServer = null;
     DBCursor<UpdateMsg> cursor = null;
@@ -231,27 +242,25 @@ public class FileReplicaDBTest extends ReplicationTestCase
 
       CSN[] csns = generateCSNs(1, System.currentTimeMillis(), 6);
 
-      cursor = replicaDB.generateCursorFrom(csns[0]);
+      cursor = replicaDB.generateCursorFrom(csns[csnIndexForStartKey]);
       assertFalse(cursor.next());
 
-      for (int i = 0; i < 5; i++)
+      int[] indicesToAdd = new int[] { 0, 1, 2, 4 };
+      for (int i : indicesToAdd)
       {
-        if (i != 3)
-        {
-          replicaDB.add(new DeleteMsg(TEST_ROOT_DN, csns[i], "uid"));
-        }
+        replicaDB.add(new DeleteMsg(TEST_ROOT_DN, csns[i], "uid"));
       }
       waitChangesArePersisted(replicaDB, 4);
 
-      assertTrue(cursor.next());
-      assertEquals(cursor.getRecord().getCSN(), csns[1]);
-      assertTrue(cursor.next());
-      assertEquals(cursor.getRecord().getCSN(), csns[2]);
-      assertTrue(cursor.next());
-      assertEquals(cursor.getRecord().getCSN(), csns[4]);
+      for (int i = csnIndexForStartKey+1; i < 5; i++)
+      {
+        if (i != 3)
+        {
+          assertTrue(cursor.next());
+          assertEquals(cursor.getRecord().getCSN(), csns[i], "index i=" + i);
+        }
+      }
       assertFalse(cursor.next());
-      StaticUtils.close(cursor);
-
     }
     finally
     {
