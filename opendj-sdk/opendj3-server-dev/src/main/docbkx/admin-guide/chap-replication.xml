@@ -1410,6 +1410,534 @@ $ <userinput>dsconfig \
    <literal>sessionToken</literal> attribute in the directory server
    schema.</para>
   </section>
+
+  <section xml:id="repl-break-into-ds-and-rs">
+   <title>Breaking a Multi-role Server Into Stand-alone Components</title>
+
+   <para>
+    As described in <xref linkend="about-repl" />,
+    a replication topology is made up of
+    servers playing the role of directory server,
+    and servers playing the role of replication server.
+    By default, each replicated OpenDJ server plays both roles.
+    Some deployments call for stand-alone directory servers
+    and stand-alone replication servers, however.<footnote>
+     <para>
+      In practice, "stand-alone" technically usually refers only to the role
+      with respect to replication of user data.
+      In fact stand-alone servers generally continue
+      to play both roles for server configuration data
+      under <literal>cn=admin data</literal> and <literal>cn=schema</literal>.
+      The update traffic to these suffixes is however
+      generally orders of magnitude lower than update traffic for user data.
+     </para>
+    </footnote>
+   </para>
+
+   <para>
+    If possible avoid breaking apart an existing multi-role server.
+    Instead, set up stand-alone servers as described in
+    <xref linkend="repl-dedicated-servers" />
+    and <xref linkend="repl-dedicated-replica" />.
+   </para>
+
+   <para>
+    The following procedure breaks a multi-role server
+    into two stand-alone servers
+    while preserving existing data.
+    It does require disk space initially to hold copies of existing data.
+   </para>
+
+   <procedure xml:id="repl-split-multi-role-server">
+    <title>To Break a Multi-role Server Into Stand-alone Components</title>
+
+    <para>
+     The following steps show how to break a multi-role OpenDJ server
+     into a stand-alone directory server and a stand-alone replication server.
+    </para>
+
+    <para>
+     While you carry out this procedure, do not allow any client traffic
+     to the servers you modify.
+    </para>
+
+    <step>
+     <para>
+      Make sure you have already set up
+      at least a couple of OpenDJ servers that replicate user data.
+     </para>
+
+     <itemizedlist>
+      <para>
+       This example starts with the following multi-role servers.
+      </para>
+
+      <listitem>
+       <para>
+        <filename>/path/to/dsrs1</filename>
+        (ports: 1389, 1636, 4444, 8989;
+        replicating user data for <literal>dc=example,dc=com</literal>)
+       </para>
+      </listitem>
+
+      <listitem>
+       <para>
+        <filename>/path/to/dsrs2</filename>
+        (ports: 2389, 2636, 5444, 9989;
+        replicating user data for <literal>dc=example,dc=com</literal>)
+       </para>
+      </listitem>
+     </itemizedlist>
+
+     <para>
+      <filename>/path/to/dsrs1</filename> is the target server
+      to be broken into stand-alone components.
+     </para>
+
+     <para>
+      When you begin, the target server has
+      both directory server and replication server components.
+     </para>
+
+     <itemizedlist>
+      <para>
+       Before you proceed:
+      </para>
+
+      <listitem>
+       <para>
+        Read the rest of the procedure, and make sure you understand the steps.
+       </para>
+      </listitem>
+
+      <listitem>
+       <para>
+        Direct client traffic away from the target server.
+       </para>
+      </listitem>
+
+      <listitem>
+       <para>
+        Back up the target server.
+       </para>
+      </listitem>
+     </itemizedlist>
+    </step>
+
+    <step xml:id="repl-id-status">
+     <para>
+      Run the <command>dsreplication status</command> command
+      before making changes.
+     </para>
+
+     <screen>
+$ <userinput>dsreplication \
+ status \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --adminUID admin \
+ --adminPassword password \
+ --baseDN "cn=admin data" \
+ --baseDN cn=schema \
+ --baseDN dc=example,dc=com \
+ --trustAll \
+ --no-prompt</userinput>
+<computeroutput>
+Suffix DN         :...: DS ID : RS ID :...
+------------------:...:-------:-------:...
+cn=admin data     :...: 29388 : 32560 :...
+cn=admin data     :...: 7044  : 29137 :...
+cn=schema         :...: 24612 : 32560 :...
+cn=schema         :...: 22295 : 29137 :...
+dc=example,dc=com :...: 20360 : 32560 :...
+dc=example,dc=com :...: 12164 : 29137 :...
+...</computeroutput>
+     </screen>
+
+     <para>
+      Keep the output of the command for the IDs shown.
+      The information is used later in this procedure.
+     </para>
+    </step>
+
+    <step>
+     <para>
+      Temporarily disable the multimaster synchronization provider
+      on the target server.
+     </para>
+
+     <screen>
+$ <userinput>dsconfig \
+ set-synchronization-provider-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --provider-name "Multimaster Synchronization" \
+ --set enabled:false \
+ --trustAll \
+ --no-prompt</userinput>
+     </screen>
+
+     <para>
+      This step is also shown in <xref linkend="stop-repl-tmp" />.
+     </para>
+    </step>
+
+    <step>
+     <para>
+      Temporarily disable the backend holding the replicated data.
+     </para>
+
+     <screen>
+$ <userinput>dsconfig \
+ set-backend-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --backend-name userRoot \
+ --set enabled:false \
+ --trustAll \
+ --no-prompt</userinput>
+     </screen>
+    </step>
+
+    <step>
+     <para>
+      Stop the target server.
+     </para>
+
+     <screen>
+$ <userinput>stop-ds</userinput>
+<computeroutput>Stopping Server...
+... msg=The Directory Server is now stopped</computeroutput>
+     </screen>
+    </step>
+
+    <step>
+     <para>
+      Make two copies of the server files.
+     </para>
+
+     <screen>
+$ <userinput>cd /path/to/</userinput>
+     </screen>
+
+     <para>
+      One copy is to become the stand-alone directory server.
+     </para>
+
+     <screen>
+$ <userinput>cp -r dsrs1 ds</userinput>
+     </screen>
+
+     <para>
+      The other copy is to become the stand-alone replication server.
+     </para>
+
+     <screen>
+$ <userinput>cp -r dsrs1 rs</userinput>
+     </screen>
+    </step>
+
+    <step>
+     <para>
+      Start the copy that is to become the stand-alone directory server,
+      remove the replication server and changelog configuration,
+      enable the user data backend,
+      and then enable the multimaster synchronization provider
+      on the directory server.
+     </para>
+
+     <programlisting language="shell">
+# The following command removes the replication server configuration.
+
+dsconfig \
+ delete-replication-server \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --provider-name "Multimaster Synchronization" \
+ --trustAll \
+ --no-prompt
+
+# The following command disables the changelog for the user data
+# in dc=example,dc=com.
+
+dsconfig \
+ set-external-changelog-domain-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --provider-name "Multimaster Synchronization" \
+ --domain-name dc=example,dc=com
+ --set enabled:false
+ --trustAll \
+ --no-prompt
+
+# The following command enables the user data backend.
+
+dsconfig \
+ set-backend-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --backend-name userRoot \
+ --set enabled:true \
+ --trustAll \
+ --no-prompt
+
+# The following command enables the multimaster synchronization provider.
+
+dsconfig \
+ set-synchronization-provider-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --provider-name "Multimaster Synchronization" \
+ --set enabled:true \
+ --trustAll \
+ --no-prompt
+     </programlisting>
+
+     <para>
+      You can then remove the files for the changelog on the directory server.
+     </para>
+
+     <screen>
+$ <userinput>rm /path/to/ds/changelogDb/*</userinput>
+     </screen>
+    </step>
+
+    <step>
+     <para>
+      If the replication server is on the same host as the directory server,
+      carefully change the connection handler port numbers
+      and the administration port number in the configuration file
+      before starting the replication server.
+      Before making any changes, make sure that the new port numbers you use
+      are available, and not in use by any other services on the system.
+     </para>
+
+     <para>
+      Change the port numbers for the LDAP and LDAPS connection handlers
+      as described in the procedure
+      <link
+       xlink:show="new"
+       xlink:href="admin-guide#change-ldap-port"
+      ><citetitle>To Change the LDAP Port Number</citetitle></link>.
+     </para>
+
+     <para>
+      The following example changes the administration port to 6444.
+      After this command succeeds, you must restart the server
+      in order to use the <command>dsconfig</command> command again.
+     </para>
+
+     <screen>
+$ <userinput>dsconfig \
+ set-administration-connector-prop \
+ --port 4444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --set listen-port:6444 \
+ --trustAll \
+ --no-prompt</userinput>
+     </screen>
+
+     <para>
+      Restart the server to be able to connect on the new administration port.
+     </para>
+
+     <screen>
+$ <userinput>stop-ds --restart</userinput>
+<computeroutput>Stopping Server...
+...
+...The Directory Server has started successfully</computeroutput>
+     </screen>
+    </step>
+
+    <step>
+     <para>
+      Change the server ID values for the
+      <literal>cn=admin data</literal> and <literal>cn=schema</literal>
+      replication domains
+      on the copy that is to become the stand-alone replication server.
+     </para>
+
+     <para>
+      Replication uses unique server IDs
+      to distinguish between different directory server replicas.
+      When you make identical copies of the original multi-role server,
+      the server IDs on the new stand-alone directory server
+      and on the new stand-alone replication server are identical.
+     </para>
+
+     <para>
+      For the user data replication domains,
+      such as <literal>dc=example,dc=com</literal>,
+      you are going to fix the duplicate server ID problem
+      as part of this procedure.
+      When you remove the replication domain configuration information
+      from the new stand-alone replication server for user data,
+      part of the configuration information that you remove is the server ID.
+      For the administrative data and directory schema, however,
+      the new stand-alone replication server
+      must maintain its administrative and schema data
+      in sync with other servers,
+      so it still holds that data like any other directory server.
+      The server IDs for the
+      <literal>cn=admin data</literal> and <literal>cn=schema</literal>
+      replication domains
+      must therefore be changed
+      so as not to conflict with other existing server IDs.
+     </para>
+
+     <para>
+      If you try to edit server IDs
+      by using the <command>dsconfig</command> command,
+      you encounter an error:
+     </para>
+
+     <literallayout class="monospaced">
+The Replication Domain property "server-id" is read-only and cannot be
+modified
+     </literallayout>
+
+     <para>
+      You must instead edit the server ID values
+      directly in the configuration file
+      while the new stand-alone replication server is stopped.
+     </para>
+
+     <para>
+      Before editing the configuration file,
+      refer to the information you gather in <xref linkend="repl-id-status" />
+      for the list of IDs that are in use in the replication topology.
+      You must choose server ID values that are unique,
+      and that are between 0 and 65535 inclusive.
+     </para>
+
+     <para>
+      After choosing two valid, unused server ID values,
+      carefully edit the configuration file,
+      <filename>/path/to/rs/config/config.ldif</filename>,
+      to change the <literal>ds-cfg-server-id</literal> values
+      for the entries with DNs
+      <literal>cn=cn=admin data,cn=domains,cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config</literal>
+      and
+      <literal>cn=cn=schema,cn=domains,cn=Multimaster Synchronization,cn=Synchronization Providers,cn=config</literal>.
+     </para>
+
+     <para>
+      For example if the duplicate server IDs were 29388 and 24612,
+      and you edited the configuration file to use 12345 and 23456 instead,
+      the result might appear as follows:
+     </para>
+
+     <screen>
+$ <userinput>grep -B 1 ds-cfg-server-id /path/to/rs/config/config.ldif</userinput>
+<computeroutput>cn: cn=admin data
+#ds-cfg-server-id: 29388
+ds-cfg-server-id: 12345
+--
+cn: cn=schema
+#ds-cfg-server-id: 24612
+ds-cfg-server-id: 23456</computeroutput>
+     </screen>
+    </step>
+
+    <step>
+     <para>
+      Start the copy that is to become the stand-alone replication server,
+      remove the user data backend configuration,
+      remove the replication domain for the user data,
+      and then enable the multimaster synchronization provider on the directory server.
+     </para>
+
+     <programlisting language="shell">
+# The following command removes the user data backend configuration.
+
+dsconfig \
+ delete-backend \
+ --port 6444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --backend-name userRoot \
+ --trustAll \
+ --no-prompt
+
+# The following command removes the replication domain for the user data.
+
+dsconfig \
+ delete-replication-domain \
+ --port 6444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --provider-name "Multimaster Synchronization" \
+ --domain-name dc=example,dc=com \
+ --trustAll \
+ --no-prompt
+
+# The following command enables the multimaster synchronization provider.
+
+dsconfig \
+ set-synchronization-provider-prop \
+ --port 6444 \
+ --hostname opendj.example.com \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --provider-name "Multimaster Synchronization" \
+ --set enabled:true \
+ --trustAll \
+ --no-prompt
+     </programlisting>
+
+     <para>
+      You can then remove the files for the user data backend
+      on the replication server.
+     </para>
+
+     <screen>
+$ <userinput>rm -rf /path/to/rs/db/userRoot</userinput>
+     </screen>
+    </step>
+
+    <step>
+     <para>
+      If you have moved servers with secure ports configured,
+      the host names in the server certificates might no longer correspond
+      to the new host names.
+     </para>
+
+     <para>
+      For details, see the chapter,
+      <link
+       xlink:show="new"
+       xlink:href="admin-guide#chap-change-certs"
+       xlink:role="http://docbook.org/xlink/role/olink"
+      ><citetitle>Changing Server Certificates</citetitle></link>.
+     </para>
+    </step>
+
+    <step>
+     <para>
+      After testing that everything is working to your satisfaction,
+      you can allow normal client traffic to the new directory server,
+      and retire the old multi-role server
+      (<command>rm -rf /path/to/dsrs1</command> in this example).
+     </para>
+    </step>
+   </procedure>
+  </section>
  </section>
  
  <section xml:id="repl-change-notification">
