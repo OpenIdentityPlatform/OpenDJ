@@ -45,6 +45,7 @@ import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.changelog.api.*;
 import org.opends.server.replication.server.changelog.je.ChangeNumberIndexer;
 import org.opends.server.replication.server.changelog.je.CompositeDBCursor;
+import org.opends.server.replication.server.changelog.je.ReplicaOfflineCursor;
 import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.util.StaticUtils;
@@ -388,7 +389,7 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
   {
     if (debugEnabled())
     {
-      TRACER.debugError("clear the FileChangelogDB");
+      TRACER.debugInfo("clear the FileChangelogDB");
     }
     if (!dbDirectory.exists())
     {
@@ -631,16 +632,37 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
       throws ChangelogException
   {
     final Set<Integer> serverIds = getDomainMap(baseDN).keySet();
+    final ChangelogState state = replicationEnv.readChangelogState();
     final Map<DBCursor<UpdateMsg>, Void> cursors = new HashMap<DBCursor<UpdateMsg>, Void>(serverIds.size());
     for (int serverId : serverIds)
     {
       // get the last already sent CSN from that server to get a cursor
       final CSN lastCSN = startAfterServerState != null ? startAfterServerState.getCSN(serverId) : null;
-      cursors.put(getCursorFrom(baseDN, serverId, lastCSN), null);
+      final DBCursor<UpdateMsg> replicaDBCursor = getCursorFrom(baseDN, serverId, lastCSN);
+      final CSN offlineCSN = getOfflineCSN(state, baseDN, serverId, startAfterServerState);
+      cursors.put(new ReplicaOfflineCursor(replicaDBCursor, offlineCSN), null);
     }
     // recycle exhausted cursors,
     // because client code will not manage the cursors itself
     return new CompositeDBCursor<Void>(cursors, true);
+  }
+
+  private CSN getOfflineCSN(final ChangelogState state, DN baseDN, int serverId,
+      ServerState startAfterServerState)
+  {
+    final List<CSN> domain = state.getOfflineReplicas().get(baseDN);
+    if (domain != null)
+    {
+      for (CSN offlineCSN : domain)
+      {
+        if (serverId == offlineCSN.getServerId()
+            && !startAfterServerState.cover(offlineCSN))
+        {
+          return offlineCSN;
+        }
+      }
+    }
+    return null;
   }
 
   /** {@inheritDoc} */

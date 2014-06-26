@@ -223,7 +223,13 @@ public final class ECLServerHandler extends ServerHandler
       {
         final UpdateMsg newMsg = mh.getNextMessage(false /* non blocking */);
 
-        if (newMsg == null)
+        if (newMsg instanceof ReplicaOfflineMsg)
+        {
+          // and ReplicaOfflineMsg cannot be returned to a search on cn=changelog
+          // proceed as if it was never returned
+          continue;
+        }
+        else if (newMsg == null)
         { // in non blocking mode, null means no more messages
           return null;
         }

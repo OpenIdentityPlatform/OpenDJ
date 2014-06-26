@@ -29,6 +29,7 @@ package org.opends.server.replication.plugin;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.protocol.LDAPUpdateMsg;
+import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.types.operation.PluginOperation;
 
 /**
@@ -39,7 +40,7 @@ class PendingChange implements Comparable<PendingChange>
 {
   private final CSN csn;
   private boolean committed;
-  private LDAPUpdateMsg msg;
+  private UpdateMsg msg;
   private final PluginOperation op;
   private ServerState dependencyState;
 
@@ -49,7 +50,7 @@ class PendingChange implements Comparable<PendingChange>
    * @param op the operation to use
    * @param msg the message to use (can be null for local operations)
    */
-  PendingChange(CSN csn, PluginOperation op, LDAPUpdateMsg msg)
+  PendingChange(CSN csn, PluginOperation op, UpdateMsg msg)
   {
     this.csn = csn;
     this.committed = false;
@@ -89,9 +90,24 @@ class PendingChange implements Comparable<PendingChange>
    * @return the message if operation was a replication operation
    * null if the operation was a local operation
    */
-  public LDAPUpdateMsg getMsg()
+  public UpdateMsg getMsg()
   {
     return msg;
+  }
+
+  /**
+   * Get the LDAPUpdateMsg associated to this PendingChange.
+   *
+   * @return the LDAPUpdateMsg if operation was a replication operation, null
+   *         otherwise
+   */
+  public LDAPUpdateMsg getLDAPUpdateMsg()
+  {
+    if (msg instanceof LDAPUpdateMsg)
+    {
+      return (LDAPUpdateMsg) msg;
+    }
+    return null;
   }
 
   /**

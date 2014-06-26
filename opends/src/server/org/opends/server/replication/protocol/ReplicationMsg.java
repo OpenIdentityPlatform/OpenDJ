@@ -85,6 +85,9 @@ public abstract class ReplicationMsg
   //   EntryMsg, InitializeRequestMsg, InitializeTargetMsg, ErrorMsg
   //   TopologyMsg
 
+  /** @since {@link ProtocolVersion#REPLICATION_PROTOCOL_V8} */
+  static final byte MSG_TYPE_REPLICA_OFFLINE = 37;
+
   // Adding a new type of message here probably requires to
   // change accordingly generateMsg method below
 
@@ -199,6 +202,8 @@ public abstract class ReplicationMsg
       return new StopMsg(buffer);
     case MSG_TYPE_INITIALIZE_RCV_ACK:
       return new InitializeRcvAckMsg(buffer);
+    case MSG_TYPE_REPLICA_OFFLINE:
+      return new ReplicaOfflineMsg(buffer);
     default:
       throw new DataFormatException("received message with unknown type");
     }
