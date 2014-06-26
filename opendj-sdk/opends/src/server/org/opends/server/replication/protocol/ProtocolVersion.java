@@ -99,7 +99,7 @@ public class ProtocolVersion
   /**
    * The constant for the 8th version of the replication protocol.
    * <ul>
-   * <li>StopMsg now has a timestamp to communicate the replica stop time.</li>
+   * <li>New ReplicaOfflineMsg.</li>
    * </ul>
    */
   public static final short REPLICATION_PROTOCOL_V8 = 8;

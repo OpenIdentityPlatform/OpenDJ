@@ -843,6 +843,17 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertEquals(decodedMsg.getCSN(), expectedMsg.getCSN());
   }
 
+  @Test
+  public void replicaOfflineMsgTest() throws Exception
+  {
+    final CSN csn = new CSN(System.currentTimeMillis(), 0, 42);
+    final ReplicaOfflineMsg expectedMsg = new ReplicaOfflineMsg(csn);
+
+    final byte[] bytes = expectedMsg.getBytes(REPLICATION_PROTOCOL_V8);
+    ReplicaOfflineMsg decodedMsg = new ReplicaOfflineMsg(bytes);
+    assertEquals(decodedMsg.getCSN(), expectedMsg.getCSN());
+  }
+
   /**
    * Test that WindowMsg encoding and decoding works
    * by checking that : msg == new WindowMsg(msg.getBytes()).

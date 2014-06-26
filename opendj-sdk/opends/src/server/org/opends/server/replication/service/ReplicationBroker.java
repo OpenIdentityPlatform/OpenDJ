@@ -2802,6 +2802,7 @@ public class ReplicationBroker
 
     synchronized (startStopLock)
     {
+      domain.publishReplicaOfflineMsg();
       shutdown = true;
       setConnectedRS(ConnectedRS.stopped());
       stopRSHeartBeatMonitoring();

@@ -334,9 +334,13 @@ class ReplicationEnvironment
    */
   void clearGenerationId(final DN domainDN) throws ChangelogException
   {
-    synchronized(domainLock)
+    synchronized (domainLock)
     {
       final String domainId = domains.get(domainDN);
+      if (domainId == null)
+      {
+        return; // unknow domain => no-op
+      }
       final File idFile = retrieveGenerationIdFile(getDomainPath(domainId));
       if (idFile != null)
       {
@@ -365,6 +369,10 @@ class ReplicationEnvironment
     {
       clearGenerationId(baseDN);
       final String domainId = domains.get(baseDN);
+      if (domainId == null)
+      {
+        return; // unknow domain => no-op
+      }
       final File generationIdPath = getGenerationIdPath(domainId, NO_GENERATION_ID);
       ensureGenerationIdFileExists(generationIdPath);
     }
@@ -386,11 +394,14 @@ class ReplicationEnvironment
     synchronized (domainLock)
     {
       final String domainId = domains.get(domainDN);
+      if (domainId == null)
+      {
+        return; // unknow domain => no-op
+      }
       final File serverIdPath = getServerIdPath(domainId, offlineCSN.getServerId());
       if (!serverIdPath.exists())
       {
-        throw new ChangelogException(ERR_CHANGELOG_UNABLE_TO_ADD_REPLICA_OFFLINE_WRONG_PATH.get(
-            domainDN.toString(), offlineCSN.getServerId(), serverIdPath.getPath()));
+        return; // no serverId anymore => no-op
       }
       final File offlineFile = new File(serverIdPath, REPLICA_OFFLINE_STATE_FILENAME);
       Writer writer = null;
@@ -428,6 +439,10 @@ class ReplicationEnvironment
     synchronized (domainLock)
     {
       final String domainId = domains.get(domainDN);
+      if (domainId == null)
+      {
+        return; // unknow domain => no-op
+      }
       final File offlineFile = new File(getServerIdPath(domainId, serverId), REPLICA_OFFLINE_STATE_FILENAME);
       if (offlineFile.exists())
       {
@@ -512,14 +527,12 @@ class ReplicationEnvironment
       throws ChangelogException
   {
     final File domainDirectory = getDomainPath(domainEntry.getValue());
-    final String generationId = retrieveGenerationId(domainDirectory);
-    if (generationId == null)
-    {
-      throw new ChangelogException(ERR_CHANGELOG_READ_STATE_NO_GENERATION_ID_FOUND.get(
-          replicationRootPath, domainDirectory.getPath()));
-    }
     final DN domainDN = domainEntry.getKey();
-    state.setDomainGenerationId(domainDN, toGenerationId(generationId));
+    final String generationId = retrieveGenerationId(domainDirectory);
+    if (generationId != null)
+    {
+      state.setDomainGenerationId(domainDN, toGenerationId(generationId));
+    }
 
     final File[] serverIds = domainDirectory.listFiles(SERVER_ID_FILE_FILTER);
     if (serverIds == null)
