@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions copyright 2011-2014 ForgeRock AS
  */
 
 package com.forgerock.opendj.util;
@@ -104,6 +104,16 @@ public class ASCIICharPropTestCase extends UtilTestCase {
                 false, // is digit
                 false, // is key char
                 false  // is compat key char
+            },
+            {
+                '=',
+                false, // uppercase
+                -1,    // hex
+                -1,    // decimal
+                false, // is letter
+                false, // is digit
+                false, // is key char
+                true  // is compat key char
             },
             {
                 'a',
