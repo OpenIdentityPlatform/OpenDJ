@@ -164,7 +164,7 @@ public final class ASCIICharProp implements Comparable<ASCIICharProp> {
             this.isDigit = false;
             this.isLetter = false;
             this.isKeyChar = c == '-';
-            this.isCompatKeyChar = (c == '-') || (c == '.') || (c == '_');
+            this.isCompatKeyChar = (c == '-') || (c == '.') || (c == '_') || (c == '=');
             this.isHexChar = false;
             this.hexValue = -1;
             this.decimalValue = -1;
@@ -255,8 +255,10 @@ public final class ASCIICharProp implements Comparable<ASCIICharProp> {
      * will be permitted:
      *
      * <pre>
-     * USCORE  = %x5F ; underscore ("_")
+     * HYPHEN  = %x2D ; hyphen ("-")
      * DOT     = %x2E ; period (".")
+     * EQUALS  = %x3D ; equals sign ("=")
+     * USCORE  = %x5F ; underscore ("_")
      * </pre>
      *
      * @param allowCompatChars

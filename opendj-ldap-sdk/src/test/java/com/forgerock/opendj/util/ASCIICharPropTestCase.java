@@ -106,6 +106,16 @@ public class ASCIICharPropTestCase extends UtilTestCase {
                 false  // is compat key char
             },
             {
+                '=',
+                false, // uppercase
+                -1,    // hex
+                -1,    // decimal
+                false, // is letter
+                false, // is digit
+                false, // is key char
+                true  // is compat key char
+            },
+            {
                 'a',
                 false, // uppercase
                 10,    // hex
