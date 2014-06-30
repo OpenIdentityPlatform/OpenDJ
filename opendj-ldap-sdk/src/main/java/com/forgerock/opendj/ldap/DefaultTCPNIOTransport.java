@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions copyright 2011-2014 ForgeRock AS
  */
 
 package com.forgerock.opendj.ldap;
@@ -36,6 +36,7 @@ import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransportBuilder;
 import org.glassfish.grizzly.strategies.SameThreadIOStrategy;
 import org.glassfish.grizzly.strategies.WorkerThreadIOStrategy;
+import org.glassfish.grizzly.threadpool.ThreadPoolConfig;
 
 import com.forgerock.opendj.util.ReferenceCountedObject;
 
@@ -54,7 +55,7 @@ final class DefaultTCPNIOTransport extends ReferenceCountedObject<TCPNIOTranspor
     @Override
     protected void destroyInstance(final TCPNIOTransport instance) {
         try {
-            instance.stop();
+            instance.shutdownNow();
         } catch (final IOException e) {
             DEBUG_LOG.log(Level.WARNING,
                     "An error occurred while shutting down the Grizzly transport", e.getMessage());
@@ -102,9 +103,9 @@ final class DefaultTCPNIOTransport extends ReferenceCountedObject<TCPNIOTranspor
             selectorThreadCount =
                     useWorkerThreadStrategy ? Math.max(2, cpus / 4) : Math.max(5, (cpus / 2) - 1);
         }
-
-        builder.getSelectorThreadPoolConfig().setCorePoolSize(selectorThreadCount).setMaxPoolSize(
-                selectorThreadCount).setPoolName("OpenDJ LDAP SDK Grizzly selector thread");
+        builder.setSelectorThreadPoolConfig(ThreadPoolConfig.defaultConfig().setCorePoolSize(
+                selectorThreadCount).setMaxPoolSize(selectorThreadCount).setPoolName(
+                "OpenDJ LDAP SDK Grizzly selector thread"));
 
         // Calculate the number of worker threads.
         if (builder.getWorkerThreadPoolConfig() != null) {
@@ -116,9 +117,9 @@ final class DefaultTCPNIOTransport extends ReferenceCountedObject<TCPNIOTranspor
             } else {
                 workerThreadCount = useWorkerThreadStrategy ? Math.max(5, (cpus * 2)) : 0;
             }
-
-            builder.getWorkerThreadPoolConfig().setCorePoolSize(workerThreadCount).setMaxPoolSize(
-                    workerThreadCount).setPoolName("OpenDJ LDAP SDK Grizzly worker thread");
+            builder.setWorkerThreadPoolConfig(ThreadPoolConfig.defaultConfig().setCorePoolSize(
+                    workerThreadCount).setMaxPoolSize(workerThreadCount).setPoolName(
+                    "OpenDJ LDAP SDK Grizzly worker thread"));
         }
 
         // Parse IO related options.
