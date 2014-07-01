@@ -27,7 +27,7 @@
 package org.opends.server.replication.plugin;
 
 import java.util.ArrayList;
-import java.util.LinkedHashSet;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -51,7 +51,7 @@ import static org.opends.server.protocols.internal.InternalClientConnection.*;
  */
 class PersistentServerState
 {
-   private final DN baseDn;
+   private final DN baseDN;
    private final int serverId;
    private final ServerState state;
 
@@ -64,13 +64,13 @@ class PersistentServerState
    * Create a new PersistentServerState based on an already existing
    * ServerState.
    *
-   * @param baseDn    The baseDN for which the ServerState is created.
+   * @param baseDN    The baseDN for which the ServerState is created.
    * @param serverId  The serverId.
    * @param state     The serverState.
    */
-  PersistentServerState(DN baseDn, int serverId, ServerState state)
+  PersistentServerState(DN baseDN, int serverId, ServerState state)
   {
-    this.baseDn = baseDn;
+    this.baseDN = baseDN;
     this.serverId = serverId;
     this.state = state;
     loadState();
@@ -108,7 +108,7 @@ class PersistentServerState
   {
     if (!state.isSaved())
     {
-      state.setSaved(updateStateEntry() == ResultCode.SUCCESS);
+      state.setSaved(updateStateEntry());
     }
   }
 
@@ -158,18 +158,16 @@ class PersistentServerState
        * Search the database entry that is used to periodically
        * save the ServerState
        */
-      LinkedHashSet<String> attributes = new LinkedHashSet<String>(1);
-      attributes.add(REPLICATION_STATE);
       final InternalSearchOperation search = getRootConnection().processSearch(
-          baseDn,
-          SearchScope.BASE_OBJECT, DereferencePolicy.NEVER_DEREF_ALIASES,
-          0, 0, false, filter, attributes);
-      if (((search.getResultCode() != ResultCode.SUCCESS)) &&
-          ((search.getResultCode() != ResultCode.NO_SUCH_OBJECT)))
+          baseDN, SearchScope.BASE_OBJECT, DereferencePolicy.NEVER_DEREF_ALIASES,
+          0, 0, false, filter, Collections.singleton(REPLICATION_STATE));
+      final ResultCode resultCode = search.getResultCode();
+      if (resultCode != ResultCode.SUCCESS
+          && resultCode != ResultCode.NO_SUCH_OBJECT)
       {
         logError(ERR_ERROR_SEARCHING_RUV.get(
-            search.getResultCode().getResultCodeName(), search.toString(),
-            search.getErrorMessage(), baseDn.toString()));
+            resultCode.getResultCodeName(), search.toString(),
+            search.getErrorMessage(), baseDN.toString()));
         return null;
       }
       return getFirstResult(search);
@@ -193,15 +191,13 @@ class PersistentServerState
     {
       SearchFilter filter = SearchFilter.createFilterFromString(
           "(&(objectclass=ds-cfg-replication-domain)"
-          + "(ds-cfg-base-dn=" + baseDn + "))");
+          + "(ds-cfg-base-dn=" + baseDN + "))");
 
-      LinkedHashSet<String> attributes = new LinkedHashSet<String>(1);
-      attributes.add(REPLICATION_STATE);
       final InternalSearchOperation op = getRootConnection().processSearch(
           DN.decode("cn=config"),
           SearchScope.SUBORDINATE_SUBTREE,
           DereferencePolicy.NEVER_DEREF_ALIASES,
-          1, 0, false, filter, attributes);
+          1, 0, false, filter, Collections.singleton(REPLICATION_STATE));
       return getFirstResult(op);
     }
     catch (DirectoryException e)
@@ -234,12 +230,10 @@ class PersistentServerState
   {
     AttributeType synchronizationStateType =
       DirectoryServer.getAttributeType(REPLICATION_STATE);
-    List<Attribute> attrs =
-      resultEntry.getAttribute(synchronizationStateType);
+    List<Attribute> attrs = resultEntry.getAttribute(synchronizationStateType);
     if (attrs != null)
     {
-      Attribute attr = attrs.get(0);
-      for (AttributeValue value : attr)
+      for (AttributeValue value : attrs.get(0))
       {
         update(new CSN(value.toString()));
       }
@@ -250,12 +244,12 @@ class PersistentServerState
    * Save the current values of this PersistentState object
    * in the appropriate entry of the database.
    *
-   * @return a ResultCode indicating if the method was successful.
+   * @return a boolean indicating if the method was successful.
    */
-  private ResultCode updateStateEntry()
+  private boolean updateStateEntry()
   {
     // Generate a modify operation on the Server State baseDN Entry.
-    ResultCode result = runUpdateStateEntry(baseDn);
+    ResultCode result = runUpdateStateEntry(baseDN);
     if (result == ResultCode.NO_SUCH_OBJECT)
     {
       // The base entry does not exist yet in the database or has been deleted,
@@ -263,11 +257,10 @@ class PersistentServerState
       SearchResultEntry configEntry = searchConfigEntry();
       if (configEntry != null)
       {
-        DN configDN = configEntry.getDN();
-        result = runUpdateStateEntry(configDN);
+        result = runUpdateStateEntry(configEntry.getDN());
       }
     }
-    return result;
+    return result == ResultCode.SUCCESS;
   }
 
   /**
@@ -283,14 +276,12 @@ class PersistentServerState
     ArrayList<ByteString> values = state.toASN1ArrayList();
 
     LDAPAttribute attr = new LDAPAttribute(REPLICATION_STATE, values);
-    LDAPModification mod = new LDAPModification(ModificationType.REPLACE, attr);
-    ArrayList<RawModification> mods = new ArrayList<RawModification>(1);
-    mods.add(mod);
+    RawModification mod = new LDAPModification(ModificationType.REPLACE, attr);
 
     ModifyOperationBasis op = new ModifyOperationBasis(getRootConnection(),
           nextOperationID(), nextMessageID(), null,
           ByteString.valueOf(serverStateEntryDN.toString()),
-          mods);
+          Collections.singletonList(mod));
     op.setInternalOperation(true);
     op.setSynchronizationOperation(true);
     op.setDontSynchronize(true);
@@ -301,7 +292,7 @@ class PersistentServerState
               op.getResultCode().getResultCodeName().toString(),
               op.toString(),
               op.getErrorMessage().toString(),
-              baseDn.toString()));
+              baseDN.toString()));
     }
     return op.getResultCode();
   }
@@ -356,7 +347,7 @@ class PersistentServerState
       InternalSearchOperation op;
       try
       {
-        op = LDAPReplicationDomain.searchForChangedEntries(baseDn,
+        op = LDAPReplicationDomain.searchForChangedEntries(baseDN,
                 serverStateMaxCSN, null);
       }
       catch (Exception  e)
@@ -368,7 +359,7 @@ class PersistentServerState
       {
         // An error happened trying to search for the updates
         // Log an error
-        logError(ERR_CANNOT_RECOVER_CHANGES.get(baseDn.toNormalizedString()));
+        logError(ERR_CANNOT_RECOVER_CHANGES.get(baseDN.toNormalizedString()));
         return;
       }
 
@@ -394,7 +385,7 @@ class PersistentServerState
       {
         // Update the serverState with the new maxCSN present in the database
         update(dbMaxCSN);
-        logError(NOTE_SERVER_STATE_RECOVERY.get(baseDn.toNormalizedString(),
+        logError(NOTE_SERVER_STATE_RECOVERY.get(baseDN.toNormalizedString(),
             dbMaxCSN.toString()));
       }
     }
@@ -410,5 +401,15 @@ class PersistentServerState
   public CSN getMaxCSN(int serverId)
   {
     return state.getCSN(serverId);
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public String toString()
+  {
+    return getClass().getSimpleName()
+        + " baseDN=" + baseDN
+        + " serverId=" + serverId
+        + " " + REPLICATION_STATE + "=" + state;
   }
 }
