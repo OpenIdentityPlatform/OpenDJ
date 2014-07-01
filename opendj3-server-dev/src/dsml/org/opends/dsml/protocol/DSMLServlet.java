@@ -63,6 +63,7 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.soap.*;
+import javax.xml.soap.SOAPConstants;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
@@ -131,9 +132,12 @@ public class DSMLServlet extends HttpServlet {
 
   private static JAXBContext jaxbContext;
   private ObjectFactory objFactory;
-  private MessageFactory messageFactory;
   private DocumentBuilder db;
   private static Schema schema;
+  private MessageFactory messageFactory;
+  private MessageFactory messageFactorySOAP_1_1;
+  private MessageFactory messageFactorySOAP_1_2;
+  private String contentType;
 
   // this extends the default handler of SAX parser. It helps to retrieve the
   // requestID value when the xml request is malformed and thus unparsable
@@ -225,7 +229,8 @@ public class DSMLServlet extends HttpServlet {
       }
 
       objFactory = new ObjectFactory();
-      messageFactory = MessageFactory.newInstance();
+      messageFactorySOAP_1_1 = MessageFactory.newInstance(SOAPConstants.SOAP_1_1_PROTOCOL);
+      messageFactorySOAP_1_2 = MessageFactory.newInstance(SOAPConstants.SOAP_1_2_PROTOCOL);
       DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
       dbf.setNamespaceAware(true);
       db = dbf.newDocumentBuilder();
@@ -375,7 +380,17 @@ public class DSMLServlet extends HttpServlet {
     while (en.hasMoreElements()) {
       String headerName = (String) en.nextElement();
       String headerVal = req.getHeader(headerName);
-      if (headerName.equalsIgnoreCase("authorization")) {
+      if (headerName.equalsIgnoreCase("content-type")) {
+        if (headerVal.startsWith(SOAPConstants.SOAP_1_1_CONTENT_TYPE)) {
+          messageFactory = messageFactorySOAP_1_1;
+          contentType = SOAPConstants.SOAP_1_1_CONTENT_TYPE;
+        } else if (headerVal.startsWith(SOAPConstants.SOAP_1_2_CONTENT_TYPE)) {
+          messageFactory = messageFactorySOAP_1_2;
+          contentType = SOAPConstants.SOAP_1_2_CONTENT_TYPE;
+        } else {
+          throw new ServletException("Content-Type does not match SOAP 1.1 or SOAP 1.2");
+        }
+      } else if (headerName.equalsIgnoreCase("authorization")) {
         if (headerVal.startsWith("Basic ")) {
           authenticationInHeader = true;
           String authorization = headerVal.substring(6).trim();
@@ -769,7 +784,7 @@ public class DSMLServlet extends HttpServlet {
     header.detachNode();
     SOAPBody replyBody = reply.getSOAPBody();
 
-    res.setHeader("Content-Type", "text/xml");
+    res.setHeader("Content-Type", contentType);
 
     replyBody.addDocument(doc);
 
