@@ -423,10 +423,6 @@ final class Log<K extends Comparable<K>, V> implements Closeable
   /**
    * Returns a cursor that allows to retrieve the records from this log,
    * starting at the first position.
-   * <p>
-   * The returned cursor initially points to no record, that is
-   * {@code cursor.getRecord()} is equals to {@code null} before any call to
-   * {@code cursor.next()} method.
    *
    * @return a cursor on the log records, which is never {@code null}
    * @throws ChangelogException
@@ -461,10 +457,6 @@ final class Log<K extends Comparable<K>, V> implements Closeable
   /**
    * Returns a cursor that allows to retrieve the records from this log,
    * starting at the position defined by the provided key.
-   * <p>
-   * The returned cursor initially points to no record, that is
-   * {@code cursor.getRecord()} is equals to {@code null} before any call to
-   * {@code cursor.next()} method.
    *
    * @param key
    *          Key to use as a start position for the cursor. If key is
@@ -482,11 +474,6 @@ final class Log<K extends Comparable<K>, V> implements Closeable
    * Returns a cursor that allows to retrieve the records from this log,
    * starting at the position defined by the smallest key that is higher than
    * the provided key.
-   * <p>
-   * The returned cursor initially points to no record, that is
-   * {@code cursor.getRecord()} is equals to {@code null} before any call to
-   * {@code cursor.next()} method. After the first call to {@code cursor.next()}
-   * the cursor points to the record corresponding to the key found.
    *
    * @param key
    *          Key to use as a start position for the cursor. If key is
@@ -942,7 +929,9 @@ final class Log<K extends Comparable<K>, V> implements Closeable
   }
 
   /**
-   * Represents a cursor than can be repositioned on a given key.
+   * Represents a DB Cursor than can be repositioned on a given key.
+   * <p>
+   * Note that as a DBCursor, it provides a java.sql.ResultSet like API.
    */
   static interface RepositionableCursor<K extends Comparable<K>, V> extends DBCursor<Record<K, V>>
   {
@@ -967,10 +956,6 @@ final class Log<K extends Comparable<K>, V> implements Closeable
 
   /**
    * Implements a cursor on the log.
-   * <p>
-   * The cursor initially points to a record, that is {@code cursor.getRecord()}
-   * is equals to the first record available from the cursor before any call to
-   * {@code cursor.next()} method.
    * <p>
    * The cursor uses the log shared lock to ensure reads are not done during a rotation.
    * <p>

@@ -630,10 +630,8 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
         final CSN csn = newestMsg.getCSN();
         when(cnIndexDB.getNewestRecord()).thenReturn(
             new ChangeNumberIndexRecord(initialCookie.toString(), baseDN, csn));
-        final SequentialDBCursor cursor =
-            cursors.get(Pair.of(baseDN, csn.getServerId()));
+        final SequentialDBCursor cursor = cursors.get(Pair.of(baseDN, csn.getServerId()));
         cursor.add(newestMsg);
-        cursor.next(); // simulate the cursor had been initialized with this change
       }
       initialCookie.update(msg.getBaseDN(), msg.getCSN());
     }
