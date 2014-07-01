@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS
+ *      Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.replication.server.changelog.api;
 
@@ -32,15 +32,23 @@ import java.io.Closeable;
  * anymore, a cursor must be closed to release all the resources into the
  * database.
  * <p>
- * Here is a typical usage pattern:
- *
+ * The cursor provides a java.sql.ResultSet like API : it is positioned before
+ * the first requested record and needs to be moved forward by calling
+ * {@link DBCursor#next()}.
+ * <p>
+ * Usage:
  * <pre>
- * DBCursor&lt;T&gt; cursor = ...;         // obtain a new cursor,
- *                                   // already initialized
- * T record1 = cursor.getRecord();   // get the first record
- * while (cursor.next()) {           // advance to the next record
- *   T record = cursor.getRecord();  // get the next record
- *   ...                             // etc.
+ * {@code
+ *  DBCursor cursor = ...;
+ *  try {
+ *    while (cursor.next()) {
+ *      Record record = cursor.getRecord();
+ *      // ... can call cursor.getRecord() again: it will return the same result
+ *    }
+ *  }
+ *  finally {
+ *    close(cursor);
+ *  }
  * }
  * </pre>
  *

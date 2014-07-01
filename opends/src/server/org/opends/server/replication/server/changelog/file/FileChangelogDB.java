@@ -639,6 +639,7 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
       // get the last already sent CSN from that server to get a cursor
       final CSN lastCSN = startAfterServerState != null ? startAfterServerState.getCSN(serverId) : null;
       final DBCursor<UpdateMsg> replicaDBCursor = getCursorFrom(baseDN, serverId, lastCSN);
+      replicaDBCursor.next();
       final CSN offlineCSN = getOfflineCSN(state, baseDN, serverId, startAfterServerState);
       cursors.put(new ReplicaOfflineCursor(replicaDBCursor, offlineCSN), null);
     }
@@ -673,9 +674,7 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
     final FileReplicaDB replicaDB = getReplicaDB(baseDN, serverId);
     if (replicaDB != null)
     {
-      DBCursor<UpdateMsg> cursor = replicaDB.generateCursorFrom(startAfterCSN);
-      cursor.next();
-      return cursor;
+      return replicaDB.generateCursorFrom(startAfterCSN);
     }
     return EMPTY_CURSOR_REPLICA_DB;
   }

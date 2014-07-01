@@ -39,10 +39,16 @@ class SequentialDBCursor implements DBCursor<UpdateMsg>
   private final List<UpdateMsg> msgs;
   private UpdateMsg current;
 
+  /**
+   * A cursor built from a list of update messages.
+   * <p>
+   * This cursor provides a java.sql.ResultSet-like API to be consistent with the
+   * {@code DBCursor} API : it is positioned before the first requested record
+   * and needs to be moved forward by calling {@link DBCursor#next()}.
+   */
   public SequentialDBCursor(UpdateMsg... msgs)
   {
     this.msgs = new ArrayList<UpdateMsg>(Arrays.asList(msgs));
-    next();
   }
 
   public void add(UpdateMsg msg)

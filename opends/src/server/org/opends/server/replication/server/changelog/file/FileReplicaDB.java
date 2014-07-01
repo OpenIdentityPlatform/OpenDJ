@@ -206,10 +206,6 @@ class FileReplicaDB
    * Returns a cursor that allows to retrieve the update messages from this DB,
    * starting at the position defined by the smallest CSN that is strictly
    * higher than the provided CSN.
-   * <p>
-   * The returned cursor initially points to no record, that is
-   * {@code cursor.getRecord()} is equals {@code null} before any call to
-   * {@code cursor.next()} method.
    *
    * @param startAfterCSN
    *          The position where the cursor must start. If null, start from the

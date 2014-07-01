@@ -29,6 +29,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.opends.server.DirectoryServerTestCase;
+import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
@@ -49,6 +50,8 @@ public class CompositeDBCursorTest extends DirectoryServerTestCase
   private UpdateMsg msg2;
   private UpdateMsg msg3;
   private UpdateMsg msg4;
+  private UpdateMsg msg5;
+  private UpdateMsg msg6;
   private String baseDN1 = "dc=forgerock,dc=com";
   private String baseDN2 = "dc=example,dc=com";
 
@@ -59,6 +62,8 @@ public class CompositeDBCursorTest extends DirectoryServerTestCase
     msg2 = new FakeUpdateMsg(2);
     msg3 = new FakeUpdateMsg(3);
     msg4 = new FakeUpdateMsg(4);
+    msg5 = new FakeUpdateMsg(5);
+    msg6 = new FakeUpdateMsg(6);
   }
 
   @Test
@@ -85,6 +90,17 @@ public class CompositeDBCursorTest extends DirectoryServerTestCase
     assertInOrder(compCursor,
         of(msg1, baseDN1),
         of(msg2, baseDN1));
+  }
+
+  @Test
+  public void threeElementsCursor() throws Exception
+  {
+    final CompositeDBCursor<String> compCursor =
+        newCompositeDBCursor(of(new SequentialDBCursor(msg1, msg2, msg3), baseDN1));
+    assertInOrder(compCursor,
+        of(msg1, baseDN1),
+        of(msg2, baseDN1),
+        of(msg3, baseDN1));
   }
 
   @Test
@@ -121,7 +137,32 @@ public class CompositeDBCursorTest extends DirectoryServerTestCase
   }
 
   @Test
-  public void recycleTwoElementCursors() throws Exception
+  public void twoThreeElementCursors() throws Exception
+  {
+    final CompositeDBCursor<String> compCursor = newCompositeDBCursor(
+        of(new SequentialDBCursor(msg2, msg3, msg6), baseDN1),
+        of(new SequentialDBCursor(msg1, msg4, msg5), baseDN2));
+    assertInOrder(compCursor,
+        of(msg1, baseDN2),
+        of(msg2, baseDN1),
+        of(msg3, baseDN1),
+        of(msg4, baseDN2),
+        of(msg5, baseDN2),
+        of(msg6, baseDN1));
+  }
+
+  @Test
+  public void recycleTwoElementsCursor() throws Exception
+  {
+    final CompositeDBCursor<String> compCursor = newCompositeDBCursor(
+        of(new SequentialDBCursor(msg1, null, msg2), baseDN1));
+    assertNextRecord(compCursor, of(msg1, baseDN1));
+    assertFalse(compCursor.next());
+    assertNextRecord(compCursor, of(msg2, baseDN1));
+  }
+
+  @Test
+  public void recycleTwoElementsCursors() throws Exception
   {
     final CompositeDBCursor<String> compCursor = newCompositeDBCursor(
         of(new SequentialDBCursor(msg2, null, msg4), baseDN1),
@@ -133,6 +174,50 @@ public class CompositeDBCursorTest extends DirectoryServerTestCase
         of(msg4, baseDN1));
   }
 
+  // TODO : this test fails because msg2 is returned twice
+  @Test(enabled=false)
+  public void recycleTwoElementsCursorsLongerExhaustion() throws Exception
+  {
+    final CompositeDBCursor<String> compCursor = newCompositeDBCursor(
+        of(new SequentialDBCursor(null, null, msg1), baseDN1),
+        of(new SequentialDBCursor(msg2, msg3, msg4), baseDN2));
+    assertInOrder(compCursor,
+        of(msg2, baseDN2),
+        of(msg1, baseDN1),
+        of(msg3, baseDN2),
+        of(msg4, baseDN2));
+  }
+
+  @Test
+  public void recycleThreeElementsCursors() throws Exception
+  {
+    final CompositeDBCursor<String> compCursor = newCompositeDBCursor(
+        of(new SequentialDBCursor(msg2, msg3, null, msg6), baseDN1),
+        of(new SequentialDBCursor(null, msg1, null, msg4, msg5), baseDN2));
+    assertInOrder(compCursor,
+        of(msg1, baseDN2),
+        of(msg2, baseDN1),
+        of(msg3, baseDN1),
+        of(msg4, baseDN2),
+        of(msg5, baseDN2),
+        of(msg6, baseDN1));
+  }
+
+  @Test
+  public void recycleThreeElementsCursorsLongerExhaustion() throws Exception
+  {
+    final CompositeDBCursor<String> compCursor = newCompositeDBCursor(
+        of(new SequentialDBCursor(msg2, msg3, null, msg6), baseDN1),
+        of(new SequentialDBCursor(null, msg1, null, null, msg4, msg5), baseDN2));
+    assertInOrder(compCursor,
+        of(msg1, baseDN2),
+        of(msg2, baseDN1),
+        of(msg3, baseDN1),
+        of(msg4, baseDN2),
+        of(msg5, baseDN2),
+        of(msg6, baseDN1));
+  }
+
   private CompositeDBCursor<String> newCompositeDBCursor(
       Pair<? extends DBCursor<UpdateMsg>, String>... pairs) throws Exception
   {
@@ -140,6 +225,9 @@ public class CompositeDBCursorTest extends DirectoryServerTestCase
         new HashMap<DBCursor<UpdateMsg>, String>();
     for (Pair<? extends DBCursor<UpdateMsg>, String> pair : pairs)
     {
+      // The cursors in the composite are expected to be pointing
+      // to first record available
+      pair.getFirst().next();
       cursorsMap.put(pair.getFirst(), pair.getSecond());
     }
     return new CompositeDBCursor<String>(cursorsMap, true);
@@ -148,13 +236,26 @@ public class CompositeDBCursorTest extends DirectoryServerTestCase
   private void assertInOrder(final CompositeDBCursor<String> compCursor,
       Pair<UpdateMsg, String>... expecteds) throws ChangelogException
   {
-    for (final Pair<UpdateMsg, String> expected : expecteds)
+    for (int i = 0; i < expecteds.length ; i++)
     {
-      assertTrue(compCursor.next());
-      assertSame(compCursor.getRecord(), expected.getFirst());
-      assertSame(compCursor.getData(), expected.getSecond());
+      final Pair<UpdateMsg, String> expected = expecteds[i];
+      final String index = " at element i=" + i;
+      assertTrue(compCursor.next(), index);
+      assertSame(compCursor.getRecord(), expected.getFirst(), index);
+      assertSame(compCursor.getData(), expected.getSecond(), index);
     }
     assertFalse(compCursor.next());
+    assertNull(compCursor.getRecord());
+    assertNull(compCursor.getData());
     compCursor.close();
   }
+
+  private void assertNextRecord(final CompositeDBCursor<String> compCursor,
+      Pair<UpdateMsg, String> expected) throws ChangelogException
+  {
+    assertTrue(compCursor.next());
+    assertSame(compCursor.getRecord(), expected.getFirst());
+    assertSame(compCursor.getData(), expected.getSecond());
+  }
+
 }

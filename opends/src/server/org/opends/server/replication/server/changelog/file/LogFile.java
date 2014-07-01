@@ -312,10 +312,6 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
   /**
    * Returns a cursor that allows to retrieve the records from this log,
    * starting at the first position.
-   * <p>
-   * The returned cursor initially points to no record, that is
-   * {@code cursor.getRecord()} is equals {@code null} before any call to
-   * {@code cursor.next()} method.
    *
    * @return a cursor on the log records, which is never {@code null}
    * @throws ChangelogException
@@ -329,11 +325,6 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
   /**
    * Returns a cursor that allows to retrieve the records from this log,
    * starting at the position defined by the provided key.
-   * <p>
-   * The returned cursor initially points to no record, that is
-   * {@code cursor.getRecord()} is equals to {@code null} before any call to
-   * {@code cursor.next()} method. After the first call to {@code cursor.next()}
-   * the cursor points to the record corresponding to the key.
    *
    * @param key
    *          Key to use as a start position for the cursor. If key is
@@ -351,11 +342,6 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
    * Returns a cursor that allows to retrieve the records from this log,
    * starting at the position defined by the smallest key that is higher than
    * the provided key.
-   * <p>
-   * The returned cursor initially points to no record, that is
-   * {@code cursor.getRecord()} is equals to {@code null} before any call to
-   * {@code cursor.next()} method. After the first call to {@code cursor.next()}
-   * the cursor points to the record corresponding to the key found.
    *
    * @param key
    *          Key to use as a start position for the cursor. If key is
@@ -571,13 +557,7 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
     return logfile.equals(other.logfile);
   }
 
-  /**
-   * Implements a repositionable cursor on the log file.
-   * <p>
-   * The cursor initially points to no record, that is
-   * {@code cursor.getRecord()} is equals to {@code null} before any call to
-   * {@code cursor.next()} method.
-   */
+  /** Implements a repositionable cursor on the log file. */
   static final class LogFileCursor<K extends Comparable<K>, V> implements RepositionableCursor<K,V>
   {
     /** The underlying log on which entries are read. */
