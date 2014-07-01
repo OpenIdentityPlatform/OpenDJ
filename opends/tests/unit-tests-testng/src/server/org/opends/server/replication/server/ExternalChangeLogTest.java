@@ -28,7 +28,6 @@ package org.opends.server.replication.server;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.StringReader;
 import java.net.Socket;
 import java.util.*;
@@ -159,17 +158,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     debugInfo("configure", "ReplicationServer created"+replicationServer);
   }
 
-  /**
-   * Launcher.
-   */
-  @Test(enabled=true)
-  public void PreTest() throws Exception
-  {
-    // No RSDomain created yet => RS only case => ECL is not a supported
-    ECLIsNotASupportedSuffix();
-  }
-
-  @Test(enabled=true, dependsOnMethods = { "PreTest"})
+  @Test(enabled = true, dependsOnMethods = { "TestECLIsNotASupportedSuffix" })
   public void PrimaryTest() throws Exception
   {
     replicationServer.getChangelogDB().setPurgeDelay(0);
@@ -190,29 +179,6 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     ECLCompatTestLimits(1,4,true);
   }
 
-  @Test(enabled=false, dependsOnMethods = { "PrimaryTest"})
-  public void TestWithTwoDomains() throws Exception
-  {
-    replicationServer.getChangelogDB().setPurgeDelay(0);
-    // Test with a mix of domains, a mix of DSes
-    ECLTwoDomains();
-  }
-
-  @Test(enabled=false, dependsOnMethods = { "PrimaryTest"})
-  public void TestAfterChangelogTrim() throws Exception
-  {
-    // Test ECL after changelog trimming
-    ECLAfterChangelogTrim();
-  }
-
-  @Test(enabled=true, dependsOnMethods = { "PrimaryTest"})
-  public void TestAfterDomainIsRemoved() throws Exception
-  {
-    ECLAfterDomainIsRemoved();
-  }
-
-
-
   @Test(enabled=true, dependsOnMethods = { "PrimaryTest"})
   public void TestWithAndWithoutControl() throws Exception
   {
@@ -224,27 +190,6 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
     // Write additional changes and read ECL from a provided change number
     ECLCompatWriteReadAllOps(5);
-  }
-
-  @Test(enabled = true, dependsOnMethods = { "TestWithAndWithoutControl" })
-  public void TestWithIncludeAttributes() throws Exception
-  {
-    ECLIncludeAttributes();
-  }
-
-  @Test(enabled=true, dependsOnMethods = { "PrimaryTest"})
-  public void TestChangeTimeHeartBeat() throws Exception
-  {
-    ChangeTimeHeartbeatTest();
-  }
-
-  @Test(enabled=true, dependsOnMethods = { "PrimaryTest"})
-  public void TestOperationalAttributesNotVisibleOutsideRootDSE() throws Exception
-  {
-    // Test that ECL Operational, virtual attributes are not visible
-    // outside rootDSE. Next test will test access in RootDSE.
-    // This one checks in data.
-    ECLOperationalAttributesFailTest();
   }
 
   @Test(enabled=false, dependsOnMethods = { "PrimaryTest"})
@@ -279,10 +224,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     // Test all types of ops.
     ECLAllOps(); // Do not clean the db for the next test
 
-    // Test that ECL Operational, virtual attributes are not visible
-    // outside rootDSE. Next test will test access in RootDSE.
-    // This one checks in data.
-    ECLOperationalAttributesFailTest();
+    // Test after this one will test access in RootDSE. This one checks in data.
+    TestECLOperationalAttributesNotVisibleOutsideRootDSE();
 
     // First and last should be ok whenever a request has been done or not
     // in compat mode.
@@ -296,25 +239,18 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     ECLRemoteNonEmpty();
   }
 
+  /** Persistent search with changesOnly request */
   @Test(enabled=false, groups="slow", dependsOnMethods = { "PrimaryTest"})
   public void FullTestPersistentSearchWithChangesOnlyRequest() throws Exception
   {
-    // Persistent search with changesOnly request
     ECLPsearch(true, false);
   }
 
+  /** Persistent search with init values request */
   @Test(enabled=false, groups="slow", dependsOnMethods = { "PrimaryTest"})
   public void FullTestPersistentSearchWithInitValuesRequest() throws Exception
   {
-    // Persistent search with init values request
     ECLPsearch(false, false);
-  }
-
-  @Test(enabled=false, groups="slow", dependsOnMethods = { "PrimaryTest"})
-  public void FullTestSimultaneousPersistentSearches() throws Exception
-  {
-    // Simultaneous psearches
-    ECLSimultaneousPsearches();
   }
 
   // TODO:ECL Test SEARCH abandon and check everything shutdown and cleaned
@@ -410,7 +346,9 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     assertEquals(ico.getErrorMessage().toMessage(), NOTE_SEARCH_CHANGELOG_INSUFFICIENT_PRIVILEGES.get());
   }
 
-  private void ECLIsNotASupportedSuffix() throws Exception
+  /** No RSDomain created yet => RS only case => ECL is not a supported. */
+  @Test(enabled = true)
+  public void TestECLIsNotASupportedSuffix() throws Exception
   {
     ECLCompatTestLimits(0,0, false);
   }
@@ -470,11 +408,15 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   }
 
   /**
-   * Objectives
-   *   - Test that everything is ok with changes on 2 suffixes
-   * Procedure
-   *   - From 1 remote ECL session,
-   *   - Test simple update to be received from 2 suffixes
+   * Objectives:
+   * <ul>
+   * <li>Test that everything is ok with changes on 2 suffixes</li>
+   * </ul>
+   * Procedure:
+   * <ul>
+   * <li>From 1 remote ECL session,</li>
+   * <li>Test simple update to be received from 2 suffixes</li>
+   * </ul>
    */
   private void ECLRemoteNonEmpty() throws Exception
   {
@@ -558,7 +500,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     debugInfo(tn, "Starting test\n\n");
 
     // root entry returned
-    searchOnChangelog("(objectclass=*)", Collections.<String> emptySet(), createControls(""),
+    searchOnChangelog("(objectclass=*)", Collections.<String> emptySet(), createCookieControl(""),
         1, ResultCode.SUCCESS, tn);
 
     debugInfo(tn, "Ending test successfully");
@@ -569,12 +511,11 @@ public class ExternalChangeLogTest extends ReplicationTestCase
    * @param cookie The provided cookie.
    * @return The built list of controls.
    */
-  private List<Control> createControls(String cookie) throws DirectoryException
+  private List<Control> createCookieControl(String cookie) throws DirectoryException
   {
     final MultiDomainServerState state = new MultiDomainServerState(cookie);
-    final List<Control> controls = new ArrayList<Control>(1);
-    controls.add(new ExternalChangelogRequestControl(true, state));
-    return controls;
+    final Control cookieControl = new ExternalChangelogRequestControl(true, state);
+    return newList(cookieControl);
   }
 
   /**
@@ -666,11 +607,16 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   }
 
   /**
-   * From embedded ECL Search ECL with 4 messages on 2 suffixes from 2 brokers
+   * From embedded ECL Search ECL with 4 messages on 2 suffixes from 2 brokers.
+   * Test with a mix of domains, a mix of DSes.
    */
-  private void ECLTwoDomains() throws Exception
+  @Test(enabled=false, dependsOnMethods = { "PrimaryTest"})
+  public void TestECLWithTwoDomains() throws Exception
   {
-    String tn = "ECLTwoDomains";
+    replicationServer.getChangelogDB().setPurgeDelay(0);
+
+
+    String tn = "TestECLWithTwoDomains";
     debugInfo(tn, "Starting test");
 
     ReplicationBroker s1test = null;
@@ -880,7 +826,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       throws Exception
   {
     debugInfo(testName, "Search with cookie=[" + cookie + "] filter=[" + filterString + "]");
-    return searchOnChangelog(filterString, ALL_ATTRIBUTES, createControls(cookie),
+    return searchOnChangelog(filterString, ALL_ATTRIBUTES, createCookieControl(cookie),
         expectedNbEntries, expectedResultCode, testName);
   }
 
@@ -925,9 +871,10 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   }
 
   /** Test ECL content after replication changelogDB trimming */
-  private void ECLAfterChangelogTrim() throws Exception
+  @Test(enabled=false, dependsOnMethods = { "PrimaryTest"})
+  public void testECLAfterChangelogTrim() throws Exception
   {
-    String testName = "ECLAfterChangelogTrim";
+    String testName = "testECLAfterChangelogTrim";
     debugInfo(testName, "Starting test");
 
     ReplicationBroker server01 = null;
@@ -992,9 +939,10 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   }
 
   /** Test ECL content after a domain has been removed. */
-  private void ECLAfterDomainIsRemoved() throws Exception
+  @Test(enabled=true, dependsOnMethods = { "PrimaryTest"})
+  public void testECLAfterDomainIsRemoved() throws Exception
   {
-    String testName = "ECLAfterDomainIsRemoved";
+    String testName = "testECLAfterDomainIsRemoved";
     debugInfo(testName, "Starting test");
 
     ReplicationBroker server01 = null;
@@ -1131,7 +1079,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           baseUUID,
           entry.getObjectClassAttribute(),
           entry.getAttributes(),
-          new ArrayList<Attribute>());
+          Collections.<Attribute> emptyList());
       server01.publish(addMsg);
       debugInfo(tn, " publishes " + addMsg.getCSN());
 
@@ -1248,31 +1196,27 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     assertThat(actualDN).isEqualToIgnoringCase(expectedDN);
   }
 
-  private List<String> getControls(String resultString)
+  private List<String> getControls(String resultString) throws Exception
   {
-    StringReader r=new StringReader(resultString);
-    BufferedReader br=new BufferedReader(r);
-    List<String> ctrlList = new ArrayList<String>();
-    try {
-      while(true) {
-        String s = br.readLine();
-        if(s == null)
-        {
-          break;
-        }
-        if(!s.startsWith("#"))
-        {
-          continue;
-        }
-        String[] a=s.split(": ");
-        if(a.length != 2)
-        {
-          break;
-        }
-        ctrlList.add(a[1]);
+    final BufferedReader br = new BufferedReader(new StringReader(resultString));
+    final List<String> ctrlList = new ArrayList<String>();
+    while (true)
+    {
+      final String s = br.readLine();
+      if (s == null)
+      {
+        break;
       }
-    } catch (IOException e) {
-      assertEquals(0, 1, e.getMessage());
+      if (!s.startsWith("#"))
+      {
+        continue;
+      }
+      final String[] a = s.split(": ");
+      if (a.length != 2)
+      {
+        break;
+      }
+      ctrlList.add(a[1]);
     }
     return ctrlList;
   }
@@ -1432,7 +1376,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
       // Creates cookie control
       String cookie = "";
-      List<Control> controls = createControls(cookie);
+      List<Control> controls = createCookieControl(cookie);
       if (compatMode)
       {
         cookie = null;
@@ -1574,7 +1518,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
             createSearchRequest("(targetDN=*directpsearch*,o=test)", null);
 
         debugInfo(tn, "ACI test : sending search");
-        message = new LDAPMessage(2, searchRequest, createControls(""));
+        message = new LDAPMessage(2, searchRequest, createCookieControl(""));
         w.writeMessage(message);
 
         searchesDone=0;
@@ -1653,11 +1597,12 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   }
 
   /**
-   * Test parallel simultaneous psearch with different filters.
+   * Test parallel simultaneous persistent search with different filters.
    */
-  private void ECLSimultaneousPsearches() throws Exception
+  @Test(enabled = false, groups = "slow", dependsOnMethods = { "PrimaryTest" })
+  public void FullTestSimultaneousPersistentSearches() throws Exception
   {
-    String tn = "ECLSimultaneousPsearches";
+    String tn = "FullTestSimultaneousPersistentSearches";
     debugInfo(tn, "Starting test \n\n");
     Socket s1 = null, s2 = null, s3 = null;
     ReplicationBroker server01 = null;
@@ -1723,7 +1668,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
       // Creates cookie control
       String cookie = "";
-      List<Control> controls = createControls(cookie);
+      List<Control> controls = createCookieControl(cookie);
       if (compatMode)
       {
         cookie = null;
@@ -2162,9 +2107,10 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   /**
    * FIXME this test actually tests nothing: there are no asserts.
    */
-  private void ChangeTimeHeartbeatTest() throws Exception
+  @Test(enabled = true, dependsOnMethods = { "PrimaryTest" })
+  public void testChangeTimeHeartbeat() throws Exception
   {
-    String tn = "ChangeTimeHeartbeatTest";
+    String tn = "testChangeTimeHeartbeat";
     debugInfo(tn, "Starting test");
     ReplicationBroker s1test = null;
     ReplicationBroker s2test = null;
@@ -2291,7 +2237,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
           baseUUID,
           entry.getObjectClassAttribute(),
           entry.getAttributes(),
-          new ArrayList<Attribute>());
+          Collections.<Attribute> emptyList());
       server01.publish(addMsg);
       debugInfo(tn, " publishes " + addMsg.getCSN());
 
@@ -2603,9 +2549,13 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     debugInfo(tn, "Ending test with success");
   }
 
-  private void ECLOperationalAttributesFailTest() throws Exception
+  /**
+   * Test that ECL Operational, virtual attributes are not visible outside rootDSE.
+   */
+  @Test(enabled = true, dependsOnMethods = { "PrimaryTest" })
+  public void TestECLOperationalAttributesNotVisibleOutsideRootDSE() throws Exception
   {
-    String tn = "ECLOperationalAttributesFailTest";
+    String tn = "TestECLOperationalAttributesNotVisibleOutsideRootDSE";
     // The goal is to verify that the Changelog attributes are not
     // available in other entries. We u
     debugInfo(tn, "Starting test \n\n");
@@ -2622,9 +2572,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
             0, // Time limit
             false, // Types only
             "(objectclass=*)",
-            attributes,
-            NO_CONTROL,
-            null);
+            attributes);
     waitOpResult(searchOp, ResultCode.SUCCESS);
 
     final List<SearchResultEntry> entries = searchOp.getSearchEntries();
@@ -2720,9 +2668,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
         0, // Time limit
         false, // Types only
         "(objectclass=*)",
-        attributes,
-        NO_CONTROL,
-        null);
+        attributes);
     waitOpResult(searchOp, ResultCode.SUCCESS);
     return searchOp;
   }
@@ -2773,11 +2719,12 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   }
 
   /**
-   * Test ECl entry attributes, and there configuration.
+   * Test ECl entry attributes, and their configuration.
    */
-  private void ECLIncludeAttributes() throws Exception
+  @Test(enabled = true, dependsOnMethods = { "TestWithAndWithoutControl" })
+  public void TestECLWithIncludeAttributes() throws Exception
   {
-    String tn = "ECLIncludeAttributes";
+    String tn = "TestECLWithIncludeAttributes";
     debugInfo(tn, "Starting test\n\n");
 
     final String backendId3 = "test3";
@@ -2952,9 +2899,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   private List<Modification> createMods(String attributeName, String valueString)
   {
     Attribute attr = Attributes.create(attributeName, valueString);
-    List<Modification> mods = new ArrayList<Modification>();
-    mods.add(new Modification(ModificationType.REPLACE, attr));
-    return mods;
+    return newList(new Modification(ModificationType.REPLACE, attr));
   }
 
   private Entry parseIncludedAttributes(SearchResultEntry resultEntry,
@@ -2969,8 +2914,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     return TestCaseUtils.makeEntry(ldif);
   }
 
-  private void waitOpResult(Operation operation, ResultCode expectedResult)
-      throws Exception
+  private void waitOpResult(Operation operation, ResultCode expectedResult) throws Exception
   {
     int i = 0;
     while (operation.getResultCode() == ResultCode.UNDEFINED

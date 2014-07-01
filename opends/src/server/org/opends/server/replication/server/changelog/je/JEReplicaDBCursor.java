@@ -30,7 +30,7 @@ import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
-import org.opends.server.replication.server.changelog.je.ReplicationDB.*;
+import org.opends.server.replication.server.changelog.je.ReplicationDB.ReplServerDBCursor;
 
 /**
  * Berkeley DB JE implementation of {@link DBCursor}.
@@ -89,11 +89,7 @@ public class JEReplicaDBCursor implements DBCursor<UpdateMsg>
     final ReplServerDBCursor localCursor = cursor;
     currentChange = localCursor != null ? localCursor.next() : null;
 
-    if (currentChange != null)
-    {
-      lastNonNullCurrentCSN = currentChange.getCSN();
-    }
-    else
+    if (currentChange == null)
     {
       synchronized (this)
       {
@@ -105,13 +101,14 @@ public class JEReplicaDBCursor implements DBCursor<UpdateMsg>
         // and fixing such issue with unit tests.
         cursor = db.openReadCursor(lastNonNullCurrentCSN);
         currentChange = cursor.next();
-        if (currentChange != null)
-        {
-          lastNonNullCurrentCSN = currentChange.getCSN();
-        }
       }
     }
-    return currentChange != null;
+    if (currentChange != null)
+    {
+      lastNonNullCurrentCSN = currentChange.getCSN();
+      return true;
+    }
+    return false;
   }
 
   /** {@inheritDoc} */

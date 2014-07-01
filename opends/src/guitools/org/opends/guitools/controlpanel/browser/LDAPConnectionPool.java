@@ -22,12 +22,11 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
-
 package org.opends.guitools.controlpanel.browser;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 
 import javax.naming.NamingException;
@@ -41,6 +40,8 @@ import org.opends.guitools.controlpanel.event.ReferralAuthenticationListener;
 import org.opends.server.types.DN;
 import org.opends.server.types.LDAPURL;
 import org.opends.server.types.SearchScope;
+
+import static org.opends.admin.ads.util.ConnectionUtils.*;
 
 /**
  * An LDAPConnectionPool is a pool of LDAPConnection.
@@ -71,11 +72,12 @@ import org.opends.server.types.SearchScope;
  */
 public class LDAPConnectionPool {
 
-  HashMap<String, AuthRecord> authTable = new HashMap<String, AuthRecord>();
-  HashMap<String, ConnectionRecord> connectionTable =
+  private final HashMap<String, AuthRecord> authTable =
+      new HashMap<String, AuthRecord>();
+  private final HashMap<String, ConnectionRecord> connectionTable =
     new HashMap<String, ConnectionRecord>();
 
-  ArrayList<ReferralAuthenticationListener> listeners;
+  private ArrayList<ReferralAuthenticationListener> listeners;
 
   private Control[] requestControls = new Control[] {};
   private ApplicationTrustManager trustManager;
@@ -89,28 +91,20 @@ public class LDAPConnectionPool {
    * connection pool, <CODE>false</CODE> otherwise.
    */
   public boolean isConnectionRegistered(InitialLdapContext ctx) {
-    boolean isConnectionRegistered = false;
     for (String key : connectionTable.keySet())
     {
       ConnectionRecord cr = connectionTable.get(key);
-      if (cr.ctx != null) {
-        isConnectionRegistered =
-         ConnectionUtils.getHostName(cr.ctx).equals(
-             ConnectionUtils.getHostName(ctx)) &&
-        (ConnectionUtils.getPort(cr.ctx) == ConnectionUtils.getPort(ctx)) &&
-        ConnectionUtils.getBindDN(cr.ctx).equals(
-            ConnectionUtils.getBindDN(ctx)) &&
-        ConnectionUtils.getBindPassword(cr.ctx).equals(
-            ConnectionUtils.getBindPassword(ctx)) &&
-        (ConnectionUtils.isSSL(cr.ctx) == ConnectionUtils.isSSL(ctx)) &&
-        (ConnectionUtils.isStartTLS(cr.ctx) == ConnectionUtils.isStartTLS(ctx));
-      }
-      if (isConnectionRegistered)
-      {
-        break;
+      if (cr.ctx != null
+          && getHostName(cr.ctx).equals(getHostName(ctx))
+          && getPort(cr.ctx) == getPort(ctx)
+          && getBindDN(cr.ctx).equals(getBindDN(ctx))
+          && getBindPassword(cr.ctx).equals(getBindPassword(ctx))
+          && isSSL(cr.ctx) == isSSL(ctx)
+          && isStartTLS(cr.ctx) == isStartTLS(ctx)) {
+        return true;
       }
     }
-    return isConnectionRegistered;
+    return false;
   }
 
   /**
@@ -119,12 +113,7 @@ public class LDAPConnectionPool {
    */
   public void registerConnection(InitialLdapContext ctx) {
     registerAuth(ctx);
-    LDAPURL url = makeLDAPUrl(
-                  ConnectionUtils.getHostName(ctx),
-                  ConnectionUtils.getPort(ctx),
-                  "",
-                  ConnectionUtils.isSSL(ctx)
-                  );
+    LDAPURL url = makeLDAPUrl(ctx);
     String key = makeKeyFromLDAPUrl(url);
     ConnectionRecord cr = new ConnectionRecord();
     cr.ctx = ctx;
@@ -141,11 +130,7 @@ public class LDAPConnectionPool {
   public void unregisterConnection(InitialLdapContext ctx)
   throws NamingException
   {
-    LDAPURL url = makeLDAPUrl(
-        ConnectionUtils.getHostName(ctx),
-        ConnectionUtils.getPort(ctx),
-        "",
-        ConnectionUtils.isSSL(ctx));
+    LDAPURL url = makeLDAPUrl(ctx);
     unRegisterAuth(url);
     String key = makeKeyFromLDAPUrl(url);
     connectionTable.remove(key);
@@ -161,17 +146,6 @@ public class LDAPConnectionPool {
       listeners = new ArrayList<ReferralAuthenticationListener>();
     }
     listeners.add(listener);
-  }
-
-  /**
-   * Removes a referral authentication listener.
-   * @param listener the referral authentication listener.
-   */
-  public void removeReferralAuthenticationListener(
-      ReferralAuthenticationListener listener) {
-    if (listeners != null) {
-      listeners.remove(listener);
-    }
   }
 
   /**
@@ -287,34 +261,16 @@ public class LDAPConnectionPool {
     if (targetRecord == null) { // ldc is not in _connectionTable -> bug
       throw new IllegalArgumentException("Invalid LDAP connection");
     }
-    else {
-      synchronized(targetRecord) {
-        targetRecord.counter--;
-        if ((targetRecord.counter == 0) && targetRecord.disconnectAfterUse) {
-          disconnectAndRemove(targetRecord);
-        }
-      }
-    }
-  }
 
-
-  /**
-   * Disconnect the connections which are not being used.
-   * Connections being used will be disconnected as soon
-   * as they are released.
-   */
-  public synchronized void flush() {
-    for (ConnectionRecord cr : connectionTable.values())
+    synchronized (targetRecord)
     {
-      if (cr.counter <= 0) {
-        disconnectAndRemove(cr);
-      }
-      else {
-        cr.disconnectAfterUse = true;
+      targetRecord.counter--;
+      if (targetRecord.counter == 0 && targetRecord.disconnectAfterUse)
+      {
+        disconnectAndRemove(targetRecord);
       }
     }
   }
-
 
   /**
    * Register authentication data.
@@ -331,14 +287,11 @@ public class LDAPConnectionPool {
    * provided authentication (for testing purposes).
    * @throws NamingException if an error occurs connecting.
    */
-  public void registerAuth(LDAPURL ldapUrl, String dn, String pw,
-      boolean connect)
-  throws NamingException {
+  private void registerAuth(LDAPURL ldapUrl, String dn, String pw,
+      boolean connect) throws NamingException {
 
     String key = makeKeyFromLDAPUrl(ldapUrl);
-    AuthRecord ar;
-    ar = new AuthRecord();
-    ar.ldapUrl  = ldapUrl;
+    final AuthRecord ar = new AuthRecord();
     ar.dn       = dn;
     ar.password = pw;
 
@@ -371,15 +324,10 @@ public class LDAPConnectionPool {
    * @param ctx the connection that we retrieve the authentication information
    * from.
    */
-  public void registerAuth(InitialLdapContext ctx) {
-    LDAPURL url = makeLDAPUrl(
-      ConnectionUtils.getHostName(ctx),
-      ConnectionUtils.getPort(ctx),
-      "",
-      ConnectionUtils.isSSL(ctx));
+  private void registerAuth(InitialLdapContext ctx) {
+    LDAPURL url = makeLDAPUrl(ctx);
     try {
-      registerAuth(url, ConnectionUtils.getBindDN(ctx),
-          ConnectionUtils.getBindPassword(ctx), false);
+      registerAuth(url, getBindDN(ctx), getBindPassword(ctx), false);
     }
     catch (NamingException x) {
       throw new RuntimeException("Bug");
@@ -395,51 +343,12 @@ public class LDAPConnectionPool {
    * unregistered.
    * @throws NamingException if the unbind fails.
    */
-  public void unRegisterAuth(LDAPURL ldapUrl) throws NamingException {
+  private void unRegisterAuth(LDAPURL ldapUrl) throws NamingException {
     String key = makeKeyFromLDAPUrl(ldapUrl);
 
     authTable.remove(key);
     notifyListeners();
   }
-
-  /**
-   * Get authentication DN registered for this url.
-   * @param ldapUrl the LDAP URL for which we want to get authentication DN.
-   * @return the bind DN of the authentication.
-   */
-  public synchronized String getAuthDN(LDAPURL ldapUrl) {
-    String result;
-    String key = makeKeyFromLDAPUrl(ldapUrl);
-    AuthRecord ar = authTable.get(key);
-    if (ar == null) {
-      result = null;
-    }
-    else {
-      result = ar.dn;
-    }
-    return result;
-  }
-
-
-  /**
-   * Get authentication password registered for this url.
-   * @param ldapUrl the LDAP URL for which we want to get authentication
-   * password.
-   * @return the password of the authentication.
-   */
-  public synchronized String getAuthPassword(LDAPURL ldapUrl) {
-    String result;
-    String key = makeKeyFromLDAPUrl(ldapUrl);
-    AuthRecord ar = authTable.get(key);
-    if (ar == null) {
-      result = null;
-    }
-    else {
-      result = ar.password;
-    }
-    return result;
-  }
-
 
   /**
    * Disconnect the connection associated to a record
@@ -490,8 +399,7 @@ public class LDAPConnectionPool {
    */
   private static String makeKeyFromRecord(ConnectionRecord rec) {
     String protocol = ConnectionUtils.isSSL(rec.ctx) ? "LDAPS" : "LDAP";
-    return protocol + ":" + ConnectionUtils.getHostName(rec.ctx) + ":" +
-    ConnectionUtils.getPort(rec.ctx);
+    return protocol + ":" + getHostName(rec.ctx) + ":" + getPort(rec.ctx);
   }
 
   /**
@@ -505,24 +413,18 @@ public class LDAPConnectionPool {
   private InitialLdapContext createLDAPConnection(LDAPURL ldapUrl,
       AuthRecord ar) throws NamingException
   {
-    InitialLdapContext ctx;
-
     // Take the base DN out of the URL and only keep the protocol, host and port
     ldapUrl = new LDAPURL(ldapUrl.getScheme(), ldapUrl.getHost(),
           ldapUrl.getPort(), (DN)null, null, null, null, null);
 
     if (isSecureLDAPUrl(ldapUrl))
     {
-      ctx = ConnectionUtils.createLdapsContext(ldapUrl.toString(), ar.dn,
+      return ConnectionUtils.createLdapsContext(ldapUrl.toString(), ar.dn,
           ar.password, getConnectTimeout(), null,
-          getTrustManager() , getKeyManager());
+          getTrustManager(), getKeyManager());
     }
-    else
-    {
-      ctx = ConnectionUtils.createLdapContext(ldapUrl.toString(), ar.dn,
-          ar.password, getConnectTimeout(), null);
-    }
-    return ctx;
+    return ConnectionUtils.createLdapContext(ldapUrl.toString(), ar.dn,
+        ar.password, getConnectTimeout(), null);
   }
 
   /**
@@ -579,26 +481,16 @@ public class LDAPConnectionPool {
    * @return <CODE>true</CODE> if the LDAP URL is secure and <CODE>false</CODE>
    * otherwise.
    */
-  public static boolean isSecureLDAPUrl(LDAPURL url) {
+  private static boolean isSecureLDAPUrl(LDAPURL url) {
     return !LDAPURL.DEFAULT_SCHEME.equalsIgnoreCase(url.getScheme());
   }
 
-
-  /**
-   * Make an url from the specified arguments.
-   * @param host the host.
-   * @param port the port.
-   * @param dn the dn.
-   * @param secure whether it is a secure URL or not.
-   * @return an LDAP URL from the specified arguments.
-   */
-  public static LDAPURL makeLDAPUrl(String host, int port, String dn,
-      boolean secure) {
+  private LDAPURL makeLDAPUrl(InitialLdapContext ctx) {
     return new LDAPURL(
-        secure ? "ldaps" : LDAPURL.DEFAULT_SCHEME,
-            host,
-            port,
-            dn,
+        isSSL(ctx) ? "ldaps" : LDAPURL.DEFAULT_SCHEME,
+            getHostName(ctx),
+            getPort(ctx),
+            "",
             null, // no attributes
             SearchScope.BASE_OBJECT,
             null, // No filter
@@ -643,20 +535,12 @@ public class LDAPConnectionPool {
         null); // No extensions
   }
 
-  /**
-   * Returns a collection of AuthRecord.
-   * @return a collection of AuthRecord.
-   */
-  Collection<?> getRegisteredAuthentication() {
-    return authTable.values();
-  }
 }
 
 /**
  * A structure representing authentication data.
  */
 class AuthRecord {
-  LDAPURL ldapUrl;
   String dn;
   String password;
 }
