@@ -120,8 +120,7 @@ class ReplicationEnvironment
 {
   private static final DebugTracer TRACER = getTracer();
 
-  // TODO : to replace by configurable value
-  private static final long MAX_LOG_FILE_SIZE_IN_BYTES = 10*1024;
+  private static final long MAX_LOG_FILE_SIZE_IN_BYTES = 10*1024*1024;
 
   private static final int NO_GENERATION_ID = -1;
 

@@ -204,6 +204,7 @@ public class FileChangeNumberIndexDBTest extends ReplicationTestCase
       DBCursor<ChangeNumberIndexRecord> cursor = cnIndexDB.getCursorFrom(oldestCN);
       try
       {
+        assertTrue(cursor.next());
         assertEqualTo(cursor.getRecord(), csns[0], baseDN1, cookies.get(0));
         assertTrue(cursor.next());
         assertEqualTo(cursor.getRecord(), csns[1], baseDN2, cookies.get(1));
@@ -319,6 +320,7 @@ public class FileChangeNumberIndexDBTest extends ReplicationTestCase
     DBCursor<ChangeNumberIndexRecord> cursor = cnIndexDB.getCursorFrom(changeNumber);
     try
     {
+      cursor.next();
       return cursor.getRecord().getPreviousCookie();
     }
     finally
@@ -334,10 +336,10 @@ public class FileChangeNumberIndexDBTest extends ReplicationTestCase
     {
       for (int i = 0; i < cns.length; i++)
       {
+        assertTrue(cursor.next());
         assertEquals(cursor.getRecord().getChangeNumber(), cns[i]);
-        final boolean isNotLast = i + 1 < cns.length;
-        assertEquals(cursor.next(), isNotLast);
       }
+      assertFalse(cursor.next());
     }
     finally
     {

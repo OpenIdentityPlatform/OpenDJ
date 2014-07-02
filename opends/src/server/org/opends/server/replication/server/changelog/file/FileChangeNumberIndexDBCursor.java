@@ -31,10 +31,6 @@ import org.opends.server.replication.server.changelog.api.DBCursor;
 
 /**
  * A cursor on ChangeNumberIndexDB.
- * <p>
- * The cursor initially points to a record, that is {@code cursor.getRecord()}
- * is equals to the first record available from the cursor before any call to
- * {@code cursor.next()} method.
  */
 class FileChangeNumberIndexDBCursor implements DBCursor<ChangeNumberIndexRecord>
 {
@@ -54,8 +50,6 @@ class FileChangeNumberIndexDBCursor implements DBCursor<ChangeNumberIndexRecord>
       throws ChangelogException
   {
     this.cursor = cursor;
-    // cursor is positioned to first record at start
-    next();
   }
 
   /** {@inheritDoc} */
