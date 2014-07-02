@@ -548,12 +548,11 @@ public final class ECLServerHandler extends ServerHandler
     // Read the CNIndexDB to see whether it contains startChangeNumber
     DBCursor<ChangeNumberIndexRecord> cursor =
         cnIndexDB.getCursorFrom(startChangeNumber);
-    final ChangeNumberIndexRecord startRecord = cursor.getRecord();
-    if (startRecord != null)
+    if (cursor.next())
     {
       // found the provided startChangeNumber, let's return it
       cnIndexDBCursor = cursor;
-      return startRecord.getPreviousCookie();
+      return cursor.getRecord().getPreviousCookie();
     }
     close(cursor);
 
@@ -572,8 +571,7 @@ public final class ECLServerHandler extends ServerHandler
     if (startChangeNumber < oldestChangeNumber)
     {
       cursor = cnIndexDB.getCursorFrom(oldestChangeNumber);
-      final ChangeNumberIndexRecord oldestRecord = cursor.getRecord();
-      if (oldestRecord == null)
+      if (!cursor.next())
       {
         // This should not happen
         close(cursor);
@@ -582,7 +580,7 @@ public final class ECLServerHandler extends ServerHandler
       }
 
       cnIndexDBCursor = cursor;
-      return oldestRecord.getPreviousCookie();
+      return cursor.getRecord().getPreviousCookie();
     }
     else if (startChangeNumber <= newestChangeNumber)
     {
@@ -613,6 +611,7 @@ public final class ECLServerHandler extends ServerHandler
   {
     DBCursor<ChangeNumberIndexRecord> cursor =
         cnIndexDB.getCursorFrom(startChangeNumber);
+    cursor.next();
     if (cursor.getRecord() == null)
     {
       close(cursor);

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.server.changelog.je;
 
@@ -44,7 +44,13 @@ public class JEChangeNumberIndexDBCursor implements
   private DraftCNDBCursor draftCNDbCursor;
 
   /**
-   * Creates a new ReplicationIterator. All created iterator must be released by
+   * As underlying cursor is already pointing to a record at start, this
+   * indicator allow to shift the pointed record at initialization time.
+   */
+  private boolean isInitialized = false;
+
+  /**
+   * Creates a new DB Cursor. All created iterator must be released by
    * the caller using the {@link #close()} method.
    *
    * @param db
@@ -66,7 +72,7 @@ public class JEChangeNumberIndexDBCursor implements
   {
     try
     {
-      return this.draftCNDbCursor.currentRecord();
+      return isInitialized ? draftCNDbCursor.currentRecord() : null;
     }
     catch (Exception e)
     {
@@ -81,7 +87,15 @@ public class JEChangeNumberIndexDBCursor implements
   {
     if (draftCNDbCursor != null)
     {
-      return draftCNDbCursor.next();
+      if (!isInitialized)
+      {
+        isInitialized = true;
+        return draftCNDbCursor.currentRecord() != null;
+      }
+      else
+      {
+        return draftCNDbCursor.next();
+      }
     }
     return false;
   }

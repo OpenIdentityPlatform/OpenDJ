@@ -89,7 +89,7 @@ public interface ChangeNumberIndexDB
    *
    * @param startChangeNumber
    *          The position where the iterator must start.
-   * @return a new ReplicationIterator that allows to browse this DB managed by
+   * @return a new DBCursor that allows to browse this DB managed by
    *         this object and starting at the position defined by a given
    *         changeNumber.
    * @throws ChangelogException
