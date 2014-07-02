@@ -46,20 +46,20 @@ import static org.opends.messages.ReplicationMessages.*;
  * used to test the Generic Replication Service.
  */
 @SuppressWarnings("javadoc")
-public class FakeStressReplicationDomain extends ReplicationDomain
+class FakeStressReplicationDomain extends ReplicationDomain
 {
   /**
    * A blocking queue that is used to send the UpdateMsg received from the
    * Replication Service.
    */
-  private BlockingQueue<UpdateMsg> queue;
+  private final BlockingQueue<UpdateMsg> queue;
 
-  public FakeStressReplicationDomain(DN baseDN, int serverID,
+  FakeStressReplicationDomain(DN baseDN, int serverID,
       SortedSet<String> replicationServers, long heartbeatInterval,
       BlockingQueue<UpdateMsg> queue) throws ConfigException
   {
     super(newConfig(baseDN, serverID, replicationServers, heartbeatInterval), 1);
-    startPublishService(getConfig());
+    startPublishService();
     startListenService();
     this.queue = queue;
   }
