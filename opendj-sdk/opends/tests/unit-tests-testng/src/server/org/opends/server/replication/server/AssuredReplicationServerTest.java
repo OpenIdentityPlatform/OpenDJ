@@ -133,9 +133,9 @@ public class AssuredReplicationServerTest
   private static final int OTHER_GID_BIS = 3;
 
   /** Default generation id */
-  private static long DEFAULT_GENID = EMPTY_DN_GENID;
+  private static final long DEFAULT_GENID = EMPTY_DN_GENID;
   /** Other generation id */
-  private static long OTHER_GENID = 500L;
+  private static final long OTHER_GENID = 500L;
 
   /*
    * Definitions for the scenario of the fake DS
@@ -302,7 +302,7 @@ public class AssuredReplicationServerTest
     FakeReplicationDomain fakeReplicationDomain =
         new FakeReplicationDomain(config, generationId, scenario, serverState);
 
-    fakeReplicationDomain.startPublishService(config);
+    fakeReplicationDomain.startPublishService();
     if (startListen)
       fakeReplicationDomain.startListenService();
 
@@ -445,18 +445,17 @@ public class AssuredReplicationServerTest
    * According to the configured scenario, it will answer to updates with acks
    * as the scenario is requesting.
    */
-  public class FakeReplicationDomain extends ReplicationDomain
+  private class FakeReplicationDomain extends ReplicationDomain
   {
     /** The scenario this DS is expecting */
-    private int scenario = -1;
+    private final int scenario;
 
-    private CSNGenerator gen;
+    private final CSNGenerator gen;
 
     /** False if a received update had assured parameters not as expected */
     private boolean everyUpdatesAreOk = true;
     /** Number of received updates */
     private int nReceivedUpdates = 0;
-
     private int nWrongReceivedUpdates = 0;
 
     /**
@@ -473,7 +472,7 @@ public class AssuredReplicationServerTest
      * behavior upon reception of updates)
      * @throws org.opends.server.config.ConfigException
      */
-    public FakeReplicationDomain(ReplicationDomainCfg config,
+    private FakeReplicationDomain(ReplicationDomainCfg config,
         long generationId, int scenario, ServerState serverState)
         throws ConfigException
     {
@@ -483,7 +482,7 @@ public class AssuredReplicationServerTest
       gen = new CSNGenerator(config.getServerId(), 0L);
     }
 
-    public boolean receivedUpdatesOk()
+    private boolean receivedUpdatesOk()
     {
       return everyUpdatesAreOk;
     }
@@ -591,7 +590,7 @@ public class AssuredReplicationServerTest
      * Sends a new update from this DS
      * @throws TimeoutException If timeout waiting for an assured ack
      */
-    public void sendNewFakeUpdate() throws TimeoutException
+    private void sendNewFakeUpdate() throws TimeoutException
     {
       // Create a new delete update message (the simplest to create)
       DeleteMsg delMsg = new DeleteMsg(getBaseDN(), gen.newCSN(), UUID.randomUUID().toString());

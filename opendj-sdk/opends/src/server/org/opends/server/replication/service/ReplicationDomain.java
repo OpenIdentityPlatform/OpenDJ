@@ -70,7 +70,7 @@ import static org.opends.server.replication.common.StatusMachine.*;
  *   The startup phase of the ReplicationDomain subclass,
  *   should read the list of replication servers from the configuration,
  *   instantiate a {@link ServerState} then start the publish service
- *   by calling {@link #startPublishService(ReplicationDomainCfg)}.
+ *   by calling {@link #startPublishService()}.
  *   At this point it can start calling the {@link #publish(UpdateMsg)}
  *   method if needed.
  * <p>
@@ -399,11 +399,7 @@ public abstract class ReplicationDomain
    */
   public ReplicationDomain(ReplicationDomainCfg config, long generationId)
   {
-    this.config = config;
-    this.assuredConfig = config;
-    this.generationId = generationId;
-    this.state = new ServerState();
-    this.generator = new CSNGenerator(getServerId(), state);
+    this(config, generationId, new ServerState());
   }
 
   /**
@@ -525,16 +521,6 @@ public abstract class ReplicationDomain
   public ServerStatus getStatus()
   {
     return status;
-  }
-
-  /**
-   * Returns the current config of this ReplicationDomain.
-   *
-   * @return the config
-   */
-  protected ReplicationDomainCfg getConfig()
-  {
-    return config;
   }
 
   /**
@@ -2967,13 +2953,10 @@ public abstract class ReplicationDomain
    * has been called, the publish service can be used by calling the
    * {@link #publish(UpdateMsg)} method.
    *
-   * @param config
-   *          The configuration that should be used.
    * @throws ConfigException
    *           If the DirectoryServer configuration was incorrect.
    */
-  public void startPublishService(ReplicationDomainCfg config)
-      throws ConfigException
+  public void startPublishService() throws ConfigException
   {
     synchronized (sessionLock)
     {
@@ -2994,7 +2977,7 @@ public abstract class ReplicationDomain
    * calling the {@link #processUpdate(UpdateMsg)}.
    * <p>
    * This method must be called once and must be called after the
-   * {@link #startPublishService(ReplicationDomainCfg)}.
+   * {@link #startPublishService()}.
    */
   public void startListenService()
   {
@@ -3104,7 +3087,7 @@ public abstract class ReplicationDomain
    * <p>
    * The Replication Service will restart from the point indicated by the
    * {@link ServerState} that was given as a parameter to the
-   * {@link #startPublishService(ReplicationDomainCfg)} at startup time.
+   * {@link #startPublishService()} at startup time.
    * <p>
    * If some data have changed in the repository during the period of time when
    * the Replication Service was disabled, this {@link ServerState} should
@@ -3456,42 +3439,6 @@ public abstract class ReplicationDomain
   public void publishReplicaOfflineMsg()
   {
     // Here to be overridden
-  }
-
-  /**
-   * Publish information to the Replication Service (not assured mode).
-   *
-   * @param msg  The byte array containing the information that should
-   *             be sent to the remote entities.
-   */
-  void publish(byte[] msg)
-  {
-    UpdateMsg update;
-    synchronized (this)
-    {
-      update = new UpdateMsg(generator.newCSN(), msg);
-      /*
-      If assured replication is configured, this will prepare blocking
-      mechanism. If assured replication is disabled, this returns immediately
-      */
-      prepareWaitForAckIfAssuredEnabled(update);
-
-      publish(update);
-    }
-
-    try
-    {
-      /*
-      If assured replication is enabled, this will wait for the matching ack or
-      time out. If assured replication is disabled, this returns immediately
-      */
-      waitForAckIfAssuredEnabled(update);
-    } catch (TimeoutException ex)
-    {
-      // This exception may only be raised if assured replication is enabled
-      logError(NOTE_DS_ACK_TIMEOUT.get(getBaseDNString(),
-          Long.toString(getAssuredTimeout()), update.toString()));
-    }
   }
 
   /**
