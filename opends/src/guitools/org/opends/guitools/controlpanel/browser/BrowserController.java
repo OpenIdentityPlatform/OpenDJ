@@ -73,7 +73,8 @@ import org.opends.guitools.controlpanel.util.NumSubordinateHacker;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.types.LDAPURL;
-import org.opends.server.util.ServerConstants;
+
+import static org.opends.server.util.ServerConstants.*;
 
 /**
  * This is the main class of the LDAP entry browser.  It is in charge of
@@ -109,6 +110,10 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    */
   public static final String ALL_OBJECTS_FILTER =
     "(|(objectClass=*)(objectClass=ldapsubentry))";
+
+  private final static String NUMSUBORDINATES_ATTR = "numsubordinates";
+  private final static String HASSUBORDINATES_ATTR = "hassubordinates";
+  private final static String ACI_ATTR = "aci";
 
   private final JTree tree;
   private final DefaultTreeModel treeModel;
@@ -173,7 +178,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
 
     // NUMSUBORDINATE HACK
     // Create an empty hacker to avoid null value test.
-    // However this value will be overriden by full hacker.
+    // However this value will be overridden by full hacker.
     numSubordinateHacker = new NumSubordinateHacker();
   }
 
@@ -251,7 +256,6 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     return  connectionPool;
   }
 
-
   /**
    * Return the icon pool used by this controller.
    * @return the icon pool used by this controller.
@@ -317,7 +321,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
   public TreePath addNodeUnderRoot(String nodeDn) {
     SuffixNode parentNode = rootNode;
     int index = findChildNode(parentNode, nodeDn);
-    if (index >= 0) { // A node has alreay this dn -> bug
+    if (index >= 0) { // A node has already this dn -> bug
       throw new IllegalArgumentException("Duplicate node dn " + nodeDn);
     }
     index = -(index + 1);
@@ -327,6 +331,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
 
     return new TreePath(treeModel.getPathToRoot(newNode));
   }
+
 
   /**
    * Remove all the suffixes.
@@ -381,7 +386,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
   }
 
   /**
-   * Says wether we are showing the attribute name or not.
+   * Says whether we are showing the attribute name or not.
    * @return <CODE>true</CODE> if we are showing the attribute name and
    * <CODE>false</CODE> otherwise.
    */
@@ -756,7 +761,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
 
   /**
    * Remove all the children below parentNode *without changing the leaf state*.
-   * If specified, it keeps the SuffixNode and recurse on them. Inform the tree
+   * If specified, it keeps the SuffixNode and recurses on them. Inform the tree
    * model.
    * @param parentNode the parent node.
    * @param keepSuffixes whether the suffixes should be kept or not.
@@ -974,32 +979,27 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    */
   public boolean isConfigurationNode(BasicNode node)
   {
+    if (node instanceof RootNode)
+    {
+        return true;
+    }
     if (node instanceof SuffixNode)
     {
       String dn = node.getDN();
-      if (Utilities.areDnsEqual(dn, ADSContext.getAdministrationSuffixDN()) ||
+      return (Utilities.areDnsEqual(dn, ADSContext.getAdministrationSuffixDN()) ||
           Utilities.areDnsEqual(dn, ConfigConstants.DN_DEFAULT_SCHEMA_ROOT) ||
           Utilities.areDnsEqual(dn, ConfigConstants.DN_TASK_ROOT) ||
           Utilities.areDnsEqual(dn, ConfigConstants.DN_CONFIG_ROOT) ||
           Utilities.areDnsEqual(dn, ConfigConstants.DN_MONITOR_ROOT) ||
           Utilities.areDnsEqual(dn, ConfigConstants.DN_TRUST_STORE_ROOT) ||
           Utilities.areDnsEqual(dn, ConfigConstants.DN_BACKUP_ROOT) ||
-          Utilities.areDnsEqual(dn, ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT))
-      {
-        return true;
-      }
-    }
-    else if (node instanceof RootNode)
-    {
-      return true;
+          Utilities.areDnsEqual(dn, DN_EXTERNAL_CHANGELOG_ROOT));
     }
     else
     {
       BasicNode parentNode = (BasicNode)node.getParent();
       return isConfigurationNode(parentNode);
     }
-
-    return false;
   }
 
   /**
@@ -1129,12 +1129,12 @@ implements TreeExpansionListener, ReferralAuthenticationListener
   String[] getAttrsForRedSearch() {
     ArrayList<String> v = new ArrayList<String>();
 
-    v.add("objectClass");
-    v.add("numsubordinates");
-    v.add("hassubordinates");
-    v.add("ref");
+    v.add(OBJECTCLASS_ATTRIBUTE_TYPE_NAME);
+    v.add(NUMSUBORDINATES_ATTR);
+    v.add(HASSUBORDINATES_ATTR);
+    v.add(ATTR_REFERRAL_URL);
     if ((displayFlags & DISPLAY_ACI_COUNT) != 0) {
-      v.add("aci");
+      v.add(ACI_ATTR);
     }
     if (!RDN_ATTRIBUTE.equals(displayAttribute)) {
       v.add(displayAttribute);
@@ -1150,19 +1150,19 @@ implements TreeExpansionListener, ReferralAuthenticationListener
   String[] getAttrsForBlackSearch() {
     if (!RDN_ATTRIBUTE.equals(displayAttribute)) {
       return new String[] {
-          "objectClass",
-          "numsubordinates",
-          "hassubordinates",
-          "ref",
-          "aci",
+          OBJECTCLASS_ATTRIBUTE_TYPE_NAME,
+          NUMSUBORDINATES_ATTR,
+          HASSUBORDINATES_ATTR,
+          ATTR_REFERRAL_URL,
+          ACI_ATTR,
           displayAttribute};
     } else {
       return new String[] {
-          "objectClass",
-          "numsubordinates",
-          "hassubordinates",
-          "ref",
-          "aci"
+          OBJECTCLASS_ATTRIBUTE_TYPE_NAME,
+          NUMSUBORDINATES_ATTR,
+          HASSUBORDINATES_ATTR,
+          ATTR_REFERRAL_URL,
+          ACI_ATTR
       };
     }
   }
@@ -1302,8 +1302,8 @@ implements TreeExpansionListener, ReferralAuthenticationListener
         nodeChanged = updateNodeRendering(node, task.getDisplayedEntry());
       }
     }
-    else if (newState == NodeRefresher.State.CANCELLED
-        && newState == NodeRefresher.State.INTERRUPTED) {
+    else if ((newState == NodeRefresher.State.CANCELLED) ||
+        (newState == NodeRefresher.State.INTERRUPTED)) {
 
       // Let's collapse task.getNode()
       tree.collapsePath(new TreePath(treeModel.getPathToRoot(node)));
@@ -1446,10 +1446,10 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     // To avoid testing each child to the hacker,
     // we verify here if the parent node is parent of
     // any entry listed in the hacker.
-    // In most case, the dontTrust flag will false and
+    // In most case, the doNotTrust flag will false and
     // no overhead will be caused in the child loop.
     LDAPURL parentUrl = findUrlForDisplayedEntry(parent);
-    boolean dontTrust = numSubordinateHacker.containsChildrenOf(parentUrl);
+    boolean doNotTrust = numSubordinateHacker.containsChildrenOf(parentUrl);
 
     // Walk through the entries
     for (SearchResult entry : task.getChildEntries())
@@ -1474,13 +1474,13 @@ implements TreeExpansionListener, ReferralAuthenticationListener
         child = new BasicNode(entry.getName());
         parent.insert(child, index);
         updateNodeRendering(child, entry);
-        insertIndex.add(Integer.valueOf(index));
+        insertIndex.add(index);
 //      System.out.println("Inserted " + child.getDN() + " at " + index);
       }
       else { // Else we update the existing one
         child = (BasicNode)parent.getChildAt(index);
         if (updateNodeRendering(child, entry)) {
-          changedIndex.add(Integer.valueOf(index));
+          changedIndex.add(index);
         }
         // The node is no longer obsolete
         child.setObsolete(false);
@@ -1492,9 +1492,9 @@ implements TreeExpansionListener, ReferralAuthenticationListener
       // If the child entry's DN is found in the hacker's list, then we ignore
       // the numSubordinate attribute... :((
       boolean hasNoSubOrdinates;
-      if (!child.hasSubOrdinates() && dontTrust) {
-        LDAPURL childUrl = findUrlForDisplayedEntry(child);
-        hasNoSubOrdinates = !numSubordinateHacker.contains(childUrl);
+      if (!child.hasSubOrdinates() && doNotTrust) {
+        hasNoSubOrdinates = !numSubordinateHacker.contains(
+            findUrlForDisplayedEntry(child));
       }
       else {
         hasNoSubOrdinates = !child.hasSubOrdinates();
@@ -1560,12 +1560,12 @@ implements TreeExpansionListener, ReferralAuthenticationListener
   private boolean updateNodeRendering(BasicNode node, SearchResult entry)
   throws NamingException {
     if (entry != null) {
-      // Get the numsubordinates
       node.setNumSubOrdinates(getNumSubOrdinates(entry));
       node.setHasSubOrdinates(
           node.getNumSubOrdinates() > 0 || getHasSubOrdinates(entry));
       node.setReferral(getReferral(entry));
-      Set<String> ocValues = ConnectionUtils.getValues(entry, "objectClass");
+      Set<String> ocValues = ConnectionUtils.getValues(entry,
+          OBJECTCLASS_ATTRIBUTE_TYPE_NAME);
       if (ocValues != null) {
         node.setObjectClassValues(ocValues.toArray(new String[ocValues.size()]));
       }
@@ -1637,14 +1637,13 @@ implements TreeExpansionListener, ReferralAuthenticationListener
     // Determine if the rendering needs to be updated
     boolean changed =
         node.getIcon() != newIcon
-        || node.getDisplayName() != newDisplayName
+        || !node.getDisplayName().equals(newDisplayName)
         || node.getFontStyle() != newStyle;
     if (changed) {
       node.setIcon(newIcon);
       node.setDisplayName(newDisplayName);
       node.setFontStyle(newStyle);
     }
-
     return changed;
   }
 
@@ -1853,21 +1852,21 @@ implements TreeExpansionListener, ReferralAuthenticationListener
 
 
   /**
-   * Get the value of the numsubordinates attribute.
-   * If numsubordinates is not present, returns 0.
+   * Get the value of the numSubordinates attribute.
+   * If numSubordinates is not present, returns 0.
    * @param entry the entry to analyze.
    * @throws NamingException if an error occurs.
-   * @return the value of the numsubordinates attribute.  0 if the attribute
+   * @return the value of the numSubordinates attribute.  0 if the attribute
    * could not be found.
    */
   private static int getNumSubOrdinates(SearchResult entry) throws NamingException
   {
-    return toInt(ConnectionUtils.getFirstValue(entry, "numsubordinates"));
+    return toInt(ConnectionUtils.getFirstValue(entry, NUMSUBORDINATES_ATTR));
   }
 
   /**
    * Returns whether the entry has subordinates or not.  It uses an algorithm
-   * based in hassubordinates and numsubordinates attributes.
+   * based in hasSubordinates and numSubordinates attributes.
    * @param entry the entry to analyze.
    * @throws NamingException if an error occurs.
    * @return {@code true} if the entry has subordinates according to the values
@@ -1877,7 +1876,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
   public static boolean getHasSubOrdinates(SearchResult entry)
   throws NamingException
   {
-    String v = ConnectionUtils.getFirstValue(entry, "hassubordinates");
+    String v = ConnectionUtils.getFirstValue(entry, HASSUBORDINATES_ATTR);
     if (v != null) {
       return "true".equalsIgnoreCase(v);
     }
@@ -1885,15 +1884,15 @@ implements TreeExpansionListener, ReferralAuthenticationListener
   }
 
   /**
-   * Get the value of the numsubordinates attribute.
-   * If numsubordinates is not present, returns 0.
+   * Get the value of the numSubordinates attribute.
+   * If numSubordinates is not present, returns 0.
    * @param entry the entry to analyze.
-   * @return the value of the numsubordinates attribute.  0 if the attribute
+   * @return the value of the numSubordinates attribute.  0 if the attribute
    * could not be found.
    */
   private static int getNumSubOrdinates(CustomSearchResult entry)
   {
-    List<Object> vs = entry.getAttributeValues("numsubordinates");
+    List<Object> vs = entry.getAttributeValues(NUMSUBORDINATES_ATTR);
     String v = null;
     if (vs != null && !vs.isEmpty())
     {
@@ -1921,7 +1920,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
 
   /**
    * Returns whether the entry has subordinates or not.  It uses an algorithm
-   * based in hassubordinates and numsubordinates attributes.
+   * based in hasSubordinates and numSubordinates attributes.
    * @param entry the entry to analyze.
    * @return {@code true} if the entry has subordinates according to the values
    * of hasSubordinates and numSubordinates, returns {@code false} if none of
@@ -1929,7 +1928,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
    */
   public static boolean getHasSubOrdinates(CustomSearchResult entry)
   {
-    List<Object> vs = entry.getAttributeValues("hassubordinates");
+    List<Object> vs = entry.getAttributeValues(HASSUBORDINATES_ATTR);
     String v = null;
     if (vs != null && !vs.isEmpty())
     {
@@ -1954,7 +1953,8 @@ implements TreeExpansionListener, ReferralAuthenticationListener
   public static String[] getReferral(SearchResult entry) throws NamingException
   {
     String[] result = null;
-    Set<String> values = ConnectionUtils.getValues(entry, "objectClass");
+    Set<String> values = ConnectionUtils.getValues(entry,
+        OBJECTCLASS_ATTRIBUTE_TYPE_NAME);
     if (values != null)
     {
       for (String value : values)
@@ -1962,7 +1962,8 @@ implements TreeExpansionListener, ReferralAuthenticationListener
         boolean isReferral = "referral".equalsIgnoreCase(value);
         if (isReferral)
         {
-          Set<String> refValues = ConnectionUtils.getValues(entry, "ref");
+          Set<String> refValues = ConnectionUtils.getValues(entry,
+              ATTR_REFERRAL_URL);
           if (refValues != null)
           {
             result = new String[refValues.size()];
@@ -2250,10 +2251,7 @@ implements TreeExpansionListener, ReferralAuthenticationListener
      */
     @Override
     public boolean representsSameNode(BrowserNodeInfo node) {
-      if (node != null) {
-        return node.getNode() == node;
-      }
-      return false;
+      return node != null && node.getNode() == node;
     }
   }
 
