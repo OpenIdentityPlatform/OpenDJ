@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.server;
 
@@ -38,6 +38,7 @@ import org.opends.server.replication.protocol.UpdateMsg;
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.replication.common.ServerStatus.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -99,82 +100,19 @@ public class ServerWriter extends DirectoryThread
     {
       while (true)
       {
-        UpdateMsg update = replicationServerDomain.take(this.handler);
-        if (update == null)
+        final UpdateMsg updateMsg = replicationServerDomain.take(this.handler);
+        if (updateMsg == null)
         {
           // this connection is closing
           errMessage = Message.raw(
            "Connection closure: null update returned by domain.");
           return;
         }
-
-        // Ignore updates in some cases
-        long referenceGenerationId = replicationServerDomain.getGenerationId();
-        if (handler.isDataServer())
+        else if (!isUpdateMsgFiltered(updateMsg))
         {
-          /**
-           * Ignore updates to DS in bad BAD_GENID_STATUS or FULL_UPDATE_STATUS
-           *
-           * The RSD lock should not be taken here as it is acceptable to have a
-           * delay between the time the server has a wrong status and the fact
-           * we detect it: the updates that succeed to pass during this time
-           * will have no impact on remote server. But it is interesting to not
-           * saturate uselessly the network if the updates are not necessary so
-           * this check to stop sending updates is interesting anyway. Not
-           * taking the RSD lock allows to have better performances in normal
-           * mode (most of the time).
-           */
-          ServerStatus dsStatus = handler.getStatus();
-          if (dsStatus == ServerStatus.BAD_GEN_ID_STATUS
-              || dsStatus == ServerStatus.FULL_UPDATE_STATUS)
-          {
-            if (dsStatus == ServerStatus.BAD_GEN_ID_STATUS)
-            {
-              logError(WARN_IGNORING_UPDATE_TO_DS_BADGENID.get(
-                  handler.getReplicationServerId(),
-                  update.getCSN().toString(),
-                  handler.getBaseDNString(), handler.getServerId(),
-                  session.getReadableRemoteAddress(),
-                  handler.getGenerationId(),
-                  referenceGenerationId));
-            }
-            else if (dsStatus == ServerStatus.FULL_UPDATE_STATUS)
-            {
-              logError(WARN_IGNORING_UPDATE_TO_DS_FULLUP.get(
-                  handler.getReplicationServerId(),
-                  update.getCSN().toString(),
-                  handler.getBaseDNString(), handler.getServerId(),
-                  session.getReadableRemoteAddress()));
-            }
-            continue;
-          }
+          // Publish the update to the remote server using a protocol version it supports
+          session.publish(updateMsg);
         }
-        else
-        {
-          /**
-           * Ignore updates to RS with bad gen id
-           * (no system managed status for a RS)
-           */
-          if (referenceGenerationId != handler.getGenerationId()
-              || referenceGenerationId == -1
-              || handler.getGenerationId() == -1)
-          {
-            logError(
-                WARN_IGNORING_UPDATE_TO_RS.get(
-                    handler.getReplicationServerId(),
-                    update.getCSN().toString(),
-                    handler.getBaseDNString(),
-                    handler.getServerId(),
-                    session.getReadableRemoteAddress(),
-                    handler.getGenerationId(),
-                    referenceGenerationId));
-            continue;
-          }
-        }
-
-        // Publish the update to the remote server using a protocol version he
-        // it supports
-        session.publish(update);
       }
     }
     catch (SocketException e)
@@ -204,5 +142,64 @@ public class ServerWriter extends DirectoryThread
         TRACER.debugInfo(getName() + " stopped " + errMessage);
       }
     }
+  }
+
+  private boolean isUpdateMsgFiltered(UpdateMsg updateMsg)
+  {
+    if (handler.isDataServer())
+    {
+      /**
+       * Ignore updates to DS in bad BAD_GENID_STATUS or FULL_UPDATE_STATUS
+       *
+       * The RSD lock should not be taken here as it is acceptable to have a delay
+       * between the time the server has a wrong status and the fact we detect it:
+       * the updates that succeed to pass during this time will have no impact on remote server.
+       * But it is interesting to not saturate uselessly the network
+       * if the updates are not necessary so this check to stop sending updates is interesting anyway.
+       * Not taking the RSD lock allows to have better performances in normal mode (most of the time).
+       */
+      final ServerStatus dsStatus = handler.getStatus();
+      if (dsStatus == BAD_GEN_ID_STATUS)
+      {
+        logError(WARN_IGNORING_UPDATE_TO_DS_BADGENID.get(
+            handler.getReplicationServerId(),
+            updateMsg.getCSN().toString(),
+            handler.getBaseDNString(), handler.getServerId(),
+            session.getReadableRemoteAddress(),
+            handler.getGenerationId(),
+            replicationServerDomain.getGenerationId()));
+        return true;
+      }
+      else if (dsStatus == FULL_UPDATE_STATUS)
+      {
+        logError(WARN_IGNORING_UPDATE_TO_DS_FULLUP.get(
+            handler.getReplicationServerId(),
+            updateMsg.getCSN().toString(),
+            handler.getBaseDNString(), handler.getServerId(),
+            session.getReadableRemoteAddress()));
+        return true;
+      }
+    }
+    else
+    {
+      /**
+       * Ignore updates to RS with bad gen id
+       * (no system managed status for a RS)
+       */
+      final long referenceGenerationId = replicationServerDomain.getGenerationId();
+      if (referenceGenerationId != handler.getGenerationId()
+          || referenceGenerationId == -1 || handler.getGenerationId() == -1)
+      {
+        logError(WARN_IGNORING_UPDATE_TO_RS.get(
+            handler.getReplicationServerId(),
+            updateMsg.getCSN().toString(),
+            handler.getBaseDNString(), handler.getServerId(),
+            session.getReadableRemoteAddress(),
+            handler.getGenerationId(),
+            referenceGenerationId));
+        return true;
+      }
+    }
+    return false;
   }
 }
