@@ -37,8 +37,8 @@ import org.opends.messages.Category;
 import org.opends.messages.Message;
 import org.opends.messages.Severity;
 import org.opends.server.admin.server.ConfigurationChangeListener;
-import org.opends.server.admin.std.meta.ReplicationServerCfgDefn.*;
-import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn.*;
+import org.opends.server.admin.std.meta.ReplicationServerCfgDefn.ReplicationDBImplementation;
+import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn.ConflictBehavior;
 import org.opends.server.admin.std.server.ReplicationServerCfg;
 import org.opends.server.admin.std.server.UserDefinedVirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
@@ -51,9 +51,13 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.*;
 import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.protocol.*;
-import org.opends.server.replication.server.changelog.api.*;
+import org.opends.server.replication.server.changelog.api.ChangeNumberIndexDB;
+import org.opends.server.replication.server.changelog.api.ChangeNumberIndexRecord;
+import org.opends.server.replication.server.changelog.api.ChangelogDB;
+import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.file.FileChangelogDB;
 import org.opends.server.replication.server.changelog.je.JEChangelogDB;
+import org.opends.server.replication.service.DSRSShutdownSync;
 import org.opends.server.types.*;
 import org.opends.server.util.ServerConstants;
 import org.opends.server.util.StaticUtils;
@@ -82,6 +86,7 @@ public final class ReplicationServer
 
   /** The current configuration of this replication server. */
   private ReplicationServerCfg config;
+  private final DSRSShutdownSync dsrsShutdownSync;
 
   /**
    * This table is used to store the list of dn for which we are currently
@@ -126,34 +131,39 @@ public final class ReplicationServer
   /**
    * Creates a new Replication server using the provided configuration entry.
    *
-   * @param configuration The configuration of this replication server.
+   * @param cfg The configuration of this replication server.
    * @throws ConfigException When Configuration is invalid.
    */
-  public ReplicationServer(ReplicationServerCfg configuration)
-    throws ConfigException
+  public ReplicationServer(ReplicationServerCfg cfg) throws ConfigException
   {
-    this.config = configuration;
-    ReplicationDBImplementation dbImpl = configuration.getReplicationDBImplementation();
-    if (dbImpl == ReplicationDBImplementation.JE)
+    this(cfg, new DSRSShutdownSync());
+  }
+
+  /**
+   * Creates a new Replication server using the provided configuration entry.
+   *
+   * @param cfg The configuration of this replication server.
+   * @param dsrsShutdownSync Synchronization object for shutdown of combined DS/RS instances.
+   * @throws ConfigException When Configuration is invalid.
+   */
+  public ReplicationServer(ReplicationServerCfg cfg,
+      DSRSShutdownSync dsrsShutdownSync) throws ConfigException
+  {
+    this.config = cfg;
+    this.dsrsShutdownSync = dsrsShutdownSync;
+    ReplicationDBImplementation dbImpl = cfg.getReplicationDBImplementation();
+    if (DebugLogger.debugEnabled())
     {
-      if (DebugLogger.debugEnabled())
-      {
-        TRACER.debugMessage(DebugLogLevel.INFO, "Using JE as DB implementation for changelog DB");
-      }
-      this.changelogDB = new JEChangelogDB(this, configuration);
+      TRACER.debugMessage(DebugLogLevel.INFO, "Using " + dbImpl
+          + " as DB implementation for changelog DB");
     }
-    else
-    {
-      if (DebugLogger.debugEnabled())
-      {
-        TRACER.debugMessage(DebugLogLevel.INFO, "Using LOG FILE as DB implementation for changelog DB");
-      }
-      this.changelogDB = new FileChangelogDB(this, configuration);
-    }
+    this.changelogDB = dbImpl == ReplicationDBImplementation.JE
+        ? new JEChangelogDB(this, cfg)
+        : new FileChangelogDB(this, cfg);
 
     replSessionSecurity = new ReplSessionSecurity();
     initialize();
-    configuration.addChangeListener(this);
+    cfg.addChangeListener(this);
 
     localPorts.add(getReplicationPort());
 
@@ -1225,6 +1235,16 @@ public final class ReplicationServer
   public ChangelogDB getChangelogDB()
   {
     return this.changelogDB;
+  }
+
+  /**
+   * Returns the synchronization object for shutdown of combined DS/RS instances.
+   *
+   * @return the synchronization object for shutdown of combined DS/RS instances.
+   */
+  DSRSShutdownSync getDSRSShutdownSync()
+  {
+    return dsrsShutdownSync;
   }
 
   /** {@inheritDoc} */

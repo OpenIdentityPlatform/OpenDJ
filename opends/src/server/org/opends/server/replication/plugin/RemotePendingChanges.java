@@ -126,7 +126,10 @@ final class RemotePendingChanges
 
     while (firstChange != null && firstChange.isCommitted())
     {
-      state.update(firstCSN);
+      if (firstChange.getMsg().contributesToDomainState())
+      {
+        state.update(firstCSN);
+      }
       pendingChanges.remove(firstCSN);
 
       if (pendingChanges.isEmpty())
