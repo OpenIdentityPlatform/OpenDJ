@@ -30,6 +30,7 @@ import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.cli.CliConstants.DEFAULT_LDAP_CONNECT_TIMEOUT;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.SearchScope;
 
 /**
  * This class regroup commons arguments used by the different CLI.
@@ -719,6 +720,24 @@ public final class CommonArguments {
     }
 
     /**
+     * Returns the "searchScope" string argument.<br>
+     * <i> N.B : the 's' short option is also used by servicestate, sourceldif, randomSeed, script-friendly.</i>
+     *
+     * @return The "searchScope" argument.
+     * @throws ArgumentException
+     *             If there is a problem with any of the parameters used to create this argument.
+     */
+    public static  MultiChoiceArgument<SearchScope> getSearchScope() throws ArgumentException {
+        final MultiChoiceArgument<SearchScope> searchScope = new MultiChoiceArgument<SearchScope>(
+                OPTION_LONG_SEARCHSCOPE, OPTION_SHORT_SEARCHSCOPE, OPTION_LONG_SEARCHSCOPE, false, true,
+                INFO_SEARCH_SCOPE_PLACEHOLDER.get(), SearchScope.values(), false,
+                INFO_SEARCH_DESCRIPTION_SEARCH_SCOPE.get());
+        searchScope.setPropertyName(OPTION_LONG_SEARCHSCOPE);
+        searchScope.setDefaultValue(SearchScope.WHOLE_SUBTREE);
+        return searchScope;
+    }
+
+    /**
      * Returns the "serverRoot" string argument. <br>
      * <i> N.B : the 'R' short option is also used by rejectfile, restart.</i>
      *
@@ -735,7 +754,7 @@ public final class CommonArguments {
 
     /**
      * Returns the "servicestate" boolean argument. <br>
-     * <i> N.B : the 's' short option is also used by sourceldif, randomSeed, script-friendly.</i>
+     * <i> N.B : the 's' short option is also used by searchScope, sourceldif, randomSeed, script-friendly.</i>
      *
      * @return The "servicestate" argument.
      * @throws ArgumentException
@@ -747,8 +766,8 @@ public final class CommonArguments {
     }
 
     /**
-     * Returns the "script-friendly" boolean argument. <i> N.B : the 's' short option is also used by servicestate,
-     * sourceldif, randomSeed.</i>
+     * Returns the "script-friendly" boolean argument.<br>
+     * <i> N.B : the 's' short option is also used by searchScope, servicestate, sourceldif, randomSeed.</i>
      *
      * @return The "script-friendly" argument.
      * @throws ArgumentException
@@ -849,7 +868,7 @@ public final class CommonArguments {
 
     /**
      * Returns the "sourceldif" string argument. <br>
-     * <i> N.B : the 's' short option is also used by servicestate, randomSeed, script-friendly.</i>
+     * <i> N.B : the 's' short option is also used by searchScope, servicestate, randomSeed, script-friendly.</i>
      *
      * @param description
      *            The description of this argument.
