@@ -338,6 +338,16 @@ public final class ArgumentConstants {
     public static final String OPTION_LONG_SASLOPTION = "saslOption";
 
     /**
+     * The value for the short option searchScope.
+     */
+    public static final  char OPTION_SHORT_SEARCHSCOPE = 's';
+
+    /**
+     * The value for the long option searchScope.
+     */
+    public static final String OPTION_LONG_SEARCHSCOPE = "searchScope";
+
+    /**
      * The value for the short option geteffectiverights control authzid.
      */
     public static final char OPTION_SHORT_EFFECTIVERIGHTSUSER = 'g';

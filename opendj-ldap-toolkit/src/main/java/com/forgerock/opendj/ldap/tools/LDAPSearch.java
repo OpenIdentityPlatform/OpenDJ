@@ -274,12 +274,7 @@ public final class LDAPSearch extends ConsoleApplication {
             baseDN.setPropertyName(OPTION_LONG_BASEDN);
             argParser.addArgument(baseDN);
 
-            searchScope =
-                    new MultiChoiceArgument<SearchScope>("searchScope", 's', "searchScope", false,
-                            true, INFO_SEARCH_SCOPE_PLACEHOLDER.get(), SearchScope.values(), false,
-                            INFO_SEARCH_DESCRIPTION_SEARCH_SCOPE.get());
-            searchScope.setPropertyName("searchScope");
-            searchScope.setDefaultValue(SearchScope.WHOLE_SUBTREE);
+            searchScope = CommonArguments.getSearchScope();
             argParser.addArgument(searchScope);
 
             filename =
