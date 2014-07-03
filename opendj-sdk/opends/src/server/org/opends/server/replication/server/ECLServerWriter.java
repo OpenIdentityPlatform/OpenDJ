@@ -35,6 +35,7 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.protocol.DoneMsg;
 import org.opends.server.replication.protocol.ECLUpdateMsg;
 import org.opends.server.replication.protocol.Session;
+import org.opends.server.replication.service.DSRSShutdownSync;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -50,7 +51,7 @@ import static org.opends.server.util.StaticUtils.*;
  * This class defines a server writer, which is used to send changes to a
  * directory server.
  */
-public class ECLServerWriter extends ServerWriter
+class ECLServerWriter extends ServerWriter
 {
   /**
    * The tracer object for the debug logger.
@@ -62,7 +63,7 @@ public class ECLServerWriter extends ServerWriter
   private final ReplicationServerDomain replicationServerDomain;
   private boolean suspended;
   private volatile boolean shutdown;
-  private PersistentSearch mypsearch;
+  private final PersistentSearch mypsearch;
 
   /**
    * Create a ServerWriter.
@@ -72,10 +73,10 @@ public class ECLServerWriter extends ServerWriter
    * @param replicationServerDomain the ReplicationServerDomain of this
    *                    ServerWriter.
    */
-  public ECLServerWriter(Session session, ECLServerHandler handler,
+  ECLServerWriter(Session session, ECLServerHandler handler,
       ReplicationServerDomain replicationServerDomain)
   {
-    super(session, handler, replicationServerDomain);
+    super(session, handler, replicationServerDomain, new DSRSShutdownSync());
 
     setName("Replication ECL Writer Thread for operation " +
         handler.getOperationId());
@@ -85,21 +86,26 @@ public class ECLServerWriter extends ServerWriter
     this.replicationServerDomain = replicationServerDomain;
     this.suspended = false;
     this.shutdown = false;
+    this.mypsearch = findPersistentSearch(handler);
+  }
 
-    // Look for the psearch object related to this operation, the one that
-    // will be notified with new entries to be returned.
-    ECLWorkflowElement wfe =
-        (ECLWorkflowElement) DirectoryServer
-            .getWorkflowElement(ECLWorkflowElement.ECL_WORKFLOW_ELEMENT);
+  /**
+   * Look for the persistent search object related to this operation, the one
+   * that will be notified with new entries to be returned.
+   */
+  private PersistentSearch findPersistentSearch(ECLServerHandler handler)
+  {
+    ECLWorkflowElement wfe = (ECLWorkflowElement)
+        DirectoryServer.getWorkflowElement(ECLWorkflowElement.ECL_WORKFLOW_ELEMENT);
     for (PersistentSearch psearch : wfe.getPersistentSearches())
     {
       if (psearch.getSearchOperation().toString().equals(
           handler.getOperationId()))
       {
-        mypsearch = psearch;
-        break;
+        return psearch;
       }
     }
+    return null;
   }
 
   /**
@@ -107,7 +113,7 @@ public class ECLServerWriter extends ServerWriter
    * waiting for the startCLSessionMsg. Then it may be
    * suspended between 2 jobs, each job being a separate search.
    */
-  public synchronized void suspendWriter()
+  private synchronized void suspendWriter()
   {
     suspended = true;
   }
@@ -115,7 +121,7 @@ public class ECLServerWriter extends ServerWriter
   /**
    * Resume the writer.
    */
-  public synchronized void resumeWriter()
+  synchronized void resumeWriter()
   {
     suspended = false;
     notify();
@@ -187,7 +193,7 @@ public class ECLServerWriter extends ServerWriter
    * @throws IOException when raised (connection closure)
    * @throws InterruptedException when raised
    */
-  public void doIt() throws IOException, InterruptedException
+  private void doIt() throws IOException, InterruptedException
   {
     while (true)
     {
@@ -237,7 +243,7 @@ public class ECLServerWriter extends ServerWriter
   /**
    * Shutdown the writer.
    */
-  public synchronized void shutdownWriter()
+  synchronized void shutdownWriter()
   {
     shutdown = true;
     notify();

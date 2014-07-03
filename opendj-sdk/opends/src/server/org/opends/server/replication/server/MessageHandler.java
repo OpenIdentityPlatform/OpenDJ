@@ -45,6 +45,7 @@ import org.opends.server.types.*;
 
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.types.Attributes.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -231,13 +232,10 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
   public List<Attribute> getMonitorData()
   {
     List<Attribute> attributes = new ArrayList<Attribute>();
-    attributes.add(Attributes.create("handler", getMonitorInstanceName()));
-    attributes.add(
-        Attributes.create("queue-size", String.valueOf(msgQueue.count())));
-    attributes.add(
-        Attributes.create(
-            "queue-size-bytes", String.valueOf(msgQueue.bytesCount())));
-    attributes.add(Attributes.create("following", String.valueOf(following)));
+    attributes.add(create("handler", getMonitorInstanceName()));
+    attributes.add(create("queue-size", String.valueOf(msgQueue.count())));
+    attributes.add(create("queue-size-bytes", String.valueOf(msgQueue.bytesCount())));
+    attributes.add(create("following", String.valueOf(following)));
     return attributes;
   }
 
@@ -422,21 +420,20 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
    */
   public CSN getOlderUpdateCSN()
   {
-    CSN result = null;
     synchronized (msgQueue)
     {
       if (following)
       {
         if (!msgQueue.isEmpty())
         {
-          result = msgQueue.first().getCSN();
+          return msgQueue.first().getCSN();
         }
       }
       else
       {
         if (!lateQueue.isEmpty())
         {
-          result = lateQueue.first().getCSN();
+          return lateQueue.first().getCSN();
         }
         else
         {
@@ -447,11 +444,11 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
           the lateQueue when it will send the next update but we are not yet
           there. So let's take the last change not sent directly from the db.
           */
-          result = findOldestCSNFromReplicaDBs();
+          return findOldestCSNFromReplicaDBs();
         }
       }
     }
-    return result;
+    return null;
   }
 
   private CSN findOldestCSNFromReplicaDBs()
@@ -460,10 +457,13 @@ class MessageHandler extends MonitorProvider<MonitorProviderCfg>
     try
     {
       cursor = replicationServerDomain.getCursorFrom(serverState);
-      cursor.next();
-      if (cursor.getRecord() != null)
+      while (cursor.next())
       {
-        return cursor.getRecord().getCSN();
+        final UpdateMsg record = cursor.getRecord();
+        if (record.contributesToDomainState())
+        {
+          return record.getCSN();
+        }
       }
       return null;
     }
