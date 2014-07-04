@@ -20,20 +20,18 @@
   !
   ! CCPL HEADER END
   !
-  !      Copyright 2013 ForgeRock AS
+  !      Copyright 2013-2014 ForgeRock AS
   !
 -->
 <appendix xml:id='appendix-rest2ldap'
           xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
           xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-          xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
-          xmlns:xlink='http://www.w3.org/1999/xlink'
-          xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+          xsi:schemaLocation='http://docbook.org/ns/docbook
+                              http://docbook.org/xml/5.0/xsd/docbook.xsd'
+          xmlns:xlink='http://www.w3.org/1999/xlink'>
  <title>REST LDAP Configuration</title>
  <indexterm><primary>REST</primary></indexterm>
  <indexterm><primary>HTTP</primary></indexterm>
- <!-- This belongs in an OpenDJ reference. Ultimately this doc should
-      be generated, too, rather than written by hand. CREST-71? -->
 
  <itemizedlist>
   <para>OpenDJ offers two alternatives for RESTful access to directory
@@ -664,8 +662,18 @@
         <varlistentry>
          <term>"namingStrategy" (required)</term>
          <listitem>
-          <para>The approach used to map LDAP entry names to JSON resources. The
-          following naming strategies are supported.</para>
+          <para>
+           The approach used to map LDAP entry names to JSON resources.
+          </para>
+
+          <para>
+           LDAP entries mapped to JSON resources
+           must be immediate subordinates of the mapping's "baseDN".
+          </para>
+
+          <para>
+           The following naming strategies are supported.
+          </para>
 
           <itemizedlist>
            <listitem>
