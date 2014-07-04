@@ -193,13 +193,23 @@ dn: uid=bjensen,ou=People,dc=example,dc=com
 uid: bjensen
   </programlisting>
 
-  <para>Given this pattern in the user entries, the default REST to LDAP
-  configuration assumes that the user name on the HTTP side is the value of
-  the user ID, and that user entries can be found under
-  <literal>ou=People,dc=example,dc=com</literal>. In other words, Babs Jensen
-  authenticates as <literal>bjensen</literal> (password:
-  <literal>hifalutin</literal>) over HTTP. This is mapped for an LDAP bind
-  to the bind DN <literal>uid=bjensen,ou=People,dc=example,dc=com</literal>.</para>
+  <para>
+   Given this pattern in the user entries,
+   the default REST to LDAP configuration assumes that the user name
+   on the HTTP side is the value of the user ID,
+   and that user entries can be found directly under
+   <literal>ou=People,dc=example,dc=com</literal>.<footnote>
+    <para>
+     In general, REST to LDAP mappings require
+     that LDAP entries mapped to JSON resources
+     be immediate subordinates of the mapping's baseDN.
+    </para>
+   </footnote>
+   In other words, Babs Jensen authenticates as <literal>bjensen</literal>
+   (password: <literal>hifalutin</literal>) over HTTP.
+   This is mapped for an LDAP bind to the bind DN
+   <literal>uid=bjensen,ou=People,dc=example,dc=com</literal>.
+  </para>
 
   <para>With HTTP Basic authentication, it looks like this.</para>
 
