@@ -781,6 +781,12 @@ aci: (targetattr = "uid")(version 3.0;acl "Search and read uid";
     </listitem>
    </varlistentry>
    <varlistentry>
+    <term><literal>changelog-read</literal>*</term>
+    <listitem>
+     <para>Read the changelog (under <literal>cn=changelog</literal>)</para>
+    </listitem>
+   </varlistentry>
+   <varlistentry>
     <term><literal>config-read</literal>*</term>
     <listitem>
      <para>Read the server configuration</para>
