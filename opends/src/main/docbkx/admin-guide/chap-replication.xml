@@ -1972,13 +1972,23 @@ $ <userinput>rm -rf /path/to/rs/db/userRoot</userinput>
     <option>--noReplicationServer</option> or
     <option>--onlyReplicationServer</option> options.</para>
 
-    <para>With replication enabled, the changelog data can be accessed under
-    <literal>cn=changelog</literal>. For example, the following search shows
-    the publicly visible data available before any changes have been
-    made.</para>
+    <para>
+     With replication enabled, the data is under <literal>cn=changelog</literal>.
+     The user reading the changelog must however
+     have access to read and search the changelog
+     and must have the <literal>changelog-read</literal> privilege.
+     By default, Directory Manager has this privilege.
+    </para>
     
     <screen>
-$ <userinput>ldapsearch --baseDN cn=changelog --port 1389 "(objectclass=*)" \* +</userinput>
+$ <userinput>ldapsearch \
+ --hostname opendj.example.com \
+ --port 1389 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --baseDN cn=changelog \
+ "(objectclass=*)" \
+ \* +</userinput>
 <computeroutput>dn: cn=changelog
 cn: changelog
 objectClass: top
@@ -1987,6 +1997,17 @@ subschemaSubentry: cn=schema
 hasSubordinates: false
 entryDN: cn=changelog</computeroutput>
     </screen>
+
+    <para>
+     To allow other users to read the changelog,
+     add the <literal>changelog-read</literal> privilege to their entries.
+     For details on how to add a privilege, see the section,
+     <link
+      xlink:href="admin-guide#configure-privileges"
+      xlink:show="new"
+      xlink:role="http://docbook.org/xlink/role/olink"
+     ><citetitle>Configuring Privileges</citetitle></link>.
+    </para>
    </step>
   </procedure>
   
@@ -2003,10 +2024,12 @@ entryDN: cn=changelog</computeroutput>
    and then start reading the next set of changes from where it left off on
    the previous request.</para>
    
-   <para>This procedure shows the client reading the change log as
-   <literal>cn=Directory Manager</literal>. Make sure your client application
-   reads the changes with sufficient access to view all the changes it
-   needs to see.</para>
+   <para>
+    This procedure shows the client reading the change log as
+    <literal>cn=Directory Manager</literal>.
+    Make sure your client application reads the changes
+    with sufficient access and privileges to view all the changes it needs to see.
+   </para>
    
    <step>
     <para>Send an initial search request using the LDAP control with no
