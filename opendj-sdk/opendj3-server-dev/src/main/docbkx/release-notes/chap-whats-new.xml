@@ -42,6 +42,18 @@
 
     <listitem>
      <para>
+      OpenDJ directory server now requires a privilege,
+      <literal>changelog-read</literal> to read and search entries
+      under <literal>cn=changelog</literal>
+      (<link
+        xlink:show="new"
+        xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1351"
+      >OPENDJ-1351</link>).
+     </para>
+    </listitem>
+
+    <listitem>
+     <para>
       OpenDJ directory server now provides a mechanism
       to reference password validators from subentry password policies
       (<link xlink:show="new"
