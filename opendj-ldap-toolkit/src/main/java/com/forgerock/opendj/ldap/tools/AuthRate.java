@@ -31,6 +31,7 @@ import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import static com.forgerock.opendj.ldap.tools.Utils.setDefaultPerfToolProperties;
 import static com.forgerock.opendj.cli.Utils.filterExitCode;
 
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -356,6 +357,18 @@ public final class AuthRate extends ConsoleApplication {
         // Nothing to do.
     }
 
+    /**
+     * Constructor to allow tests.
+     *
+     * @param out
+     *            output stream of console application
+     * @param err
+     *            error stream of console application
+     */
+    AuthRate(PrintStream out, PrintStream err) {
+        super(out, err);
+    }
+
     /** {@inheritDoc} */
     @Override
     public boolean isInteractive() {
@@ -374,7 +387,7 @@ public final class AuthRate extends ConsoleApplication {
         return verbose.isPresent();
     }
 
-    private int run(final String[] args) {
+    int run(final String[] args) {
         // Create the command-line argument parser for use with this program.
         final LocalizableMessage toolDescription = INFO_AUTHRATE_TOOL_DESCRIPTION.get();
         final ArgumentParser argParser =

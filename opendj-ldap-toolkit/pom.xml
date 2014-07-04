@@ -40,9 +40,13 @@
   <dependencies>
     <dependency>
       <groupId>org.forgerock.opendj</groupId>
-      <artifactId>opendj-ldap-sdk</artifactId>
+      <artifactId>opendj-core</artifactId>
       <version>${project.version}</version>
-      <type>pom</type>
+    </dependency>
+    <dependency>
+      <groupId>org.forgerock.opendj</groupId>
+      <artifactId>opendj-grizzly</artifactId>
+      <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -62,7 +66,14 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>org.forgerock</groupId>
+      <groupId>org.forgerock.opendj</groupId>
+      <artifactId>opendj-core</artifactId>
+      <version>${project.version}</version>
+      <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+   	  <groupId>org.forgerock</groupId>
       <artifactId>forgerock-build-tools</artifactId>
       <version>${forgerockBuildToolsVersion}</version>
       <scope>test</scope>
@@ -121,6 +132,18 @@
           </execution>
         </executions>
       </plugin>
+      <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-failsafe-plugin</artifactId>
+          <executions>
+	          <execution>
+	          	<goals>
+	          		<goal>integration-test</goal>
+	          		<goal>verify</goal>
+	          	</goals>
+	          </execution>
+          </executions>
+     </plugin>
     </plugins>
   </build>
 </project>

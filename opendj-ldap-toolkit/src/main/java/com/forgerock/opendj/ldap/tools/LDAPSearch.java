@@ -35,6 +35,7 @@ import static org.forgerock.util.Utils.closeSilently;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -214,6 +215,16 @@ public final class LDAPSearch extends ConsoleApplication {
         // Nothing to do.
     }
 
+    /**
+     * Constructor to allow tests.
+     *
+     * @param out output stream of console application
+     * @param err error stream of console application
+     */
+    LDAPSearch(PrintStream out, PrintStream err) {
+      super(out, err);
+    }
+
     /** {@inheritDoc} */
     public boolean isInteractive() {
         return false;
@@ -225,7 +236,8 @@ public final class LDAPSearch extends ConsoleApplication {
         return verbose.isPresent();
     }
 
-    private int run(final String[] args, final boolean returnMatchingEntries) {
+    /** Run ldapsearch with provided command-line arguments. **/
+    int run(final String[] args, final boolean returnMatchingEntries) {
         /* Create the command-line argument parser for use with this
          program.*/
         final LocalizableMessage toolDescription = INFO_LDAPSEARCH_TOOL_DESCRIPTION.get();

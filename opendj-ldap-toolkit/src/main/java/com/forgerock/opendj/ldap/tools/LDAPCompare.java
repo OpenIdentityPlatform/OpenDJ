@@ -30,12 +30,14 @@ import static com.forgerock.opendj.cli.ArgumentConstants.*;
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 import static com.forgerock.opendj.cli.Utils.filterExitCode;
 import static com.forgerock.opendj.cli.Utils.readBytesFromFile;
+import static org.forgerock.util.Utils.closeSilently;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintStream;
 import java.util.ArrayList;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -86,6 +88,24 @@ public final class LDAPCompare extends ConsoleApplication {
     }
 
     /**
+     * Constructor to allow tests.
+     *
+     * @param out output stream of console application
+     * @param err error stream of console application
+     */
+    LDAPCompare(PrintStream out, PrintStream err) {
+      super(out, err);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isInteractive() {
+        return false;
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override
@@ -123,7 +143,7 @@ public final class LDAPCompare extends ConsoleApplication {
         return ResultCode.SUCCESS.intValue();
     }
 
-    private int run(final String[] args) {
+    int run(final String[] args) {
         // Create the command-line argument parser for use with this
         // program.
         final LocalizableMessage toolDescription = INFO_LDAPCOMPARE_TOOL_DESCRIPTION.get();
@@ -382,16 +402,7 @@ public final class LDAPCompare extends ConsoleApplication {
                 }
             }
         } finally {
-            if (connection != null) {
-                connection.close();
-            }
-            if (rdr != null) {
-                try {
-                    rdr.close();
-                } catch (final IOException ioe) {
-                    // Just ignore
-                }
-            }
+            closeSilently(connection, rdr);
         }
 
         return 0;

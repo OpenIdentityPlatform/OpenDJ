@@ -155,9 +155,6 @@ public final class ConnectionFactoryProvider {
     /** The console application linked to this connection in interactive mode. */
     private final ConsoleApplication app;
 
-    /** The LDAP options for this connection. */
-    private LDAPOptions options;
-
     /** If this connection should be an admin connection. */
     private boolean isAdminConnection = false;
 
@@ -174,25 +171,7 @@ public final class ConnectionFactoryProvider {
      */
     public ConnectionFactoryProvider(final ArgumentParser argumentParser,
             final ConsoleApplication app) throws ArgumentException {
-        this(argumentParser, app, CliConstants.DEFAULT_ROOT_USER_DN, DEFAULT_LDAP_PORT, false, null);
-    }
-
-    /**
-     * Default constructor to create a connection factory designed for use with command line tools,
-     * adding basic LDAP connection arguments to the specified parser (e.g: hostname, bindname...etc).
-     *
-     * @param argumentParser
-     *            The argument parser.
-     * @param app
-     *            The console application linked to this connection factory.
-     * @param options
-     *            The common options for this LDAP client connection.
-     * @throws ArgumentException
-     *             If an error occurs during parsing the arguments.
-     */
-    public ConnectionFactoryProvider(final ArgumentParser argumentParser, final ConsoleApplication app,
-            final LDAPOptions options) throws ArgumentException {
-        this(argumentParser, app, CliConstants.DEFAULT_ROOT_USER_DN, DEFAULT_LDAP_PORT, false, options);
+        this(argumentParser, app, "", DEFAULT_LDAP_PORT, false);
     }
 
     /**
@@ -209,16 +188,13 @@ public final class ConnectionFactoryProvider {
      *            The LDAP port default's value.
      * @param alwaysSSL
      *            {@code true} if this connection should be used with SSL.
-     * @param options
-     *            The LDAP options of this connection factory.
      * @throws ArgumentException
      *             If an error occurs during parsing the elements.
      */
     public ConnectionFactoryProvider(final ArgumentParser argumentParser,
             final ConsoleApplication app, final String defaultBindDN, final int defaultPort,
-            final boolean alwaysSSL, final LDAPOptions options) throws ArgumentException {
+            final boolean alwaysSSL) throws ArgumentException {
         this.app = app;
-        this.options = options == null ? new LDAPOptions() : options;
         useSSLArg = CommonArguments.getUseSSL();
 
         if (!alwaysSSL) {
@@ -449,6 +425,8 @@ public final class ConnectionFactoryProvider {
                 throw new ArgumentException(ERR_LDAP_CONN_CANNOT_INITIALIZE_SSL.get(e.toString()),
                         e);
             }
+
+            LDAPOptions options = new LDAPOptions();
 
             if (sslContext != null) {
                 options.setSSLContext(sslContext).setUseStartTLS(useStartTLSArg.isPresent());

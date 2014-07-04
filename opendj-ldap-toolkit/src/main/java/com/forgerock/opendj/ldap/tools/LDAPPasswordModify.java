@@ -87,6 +87,14 @@ public final class LDAPPasswordModify extends ConsoleApplication {
      * {@inheritDoc}
      */
     @Override
+    public boolean isInteractive() {
+        return false;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public boolean isVerbose() {
         return verbose.isPresent();
     }

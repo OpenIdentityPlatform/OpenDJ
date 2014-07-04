@@ -237,11 +237,19 @@ public final class LDAPModify extends ConsoleApplication {
      * {@inheritDoc}
      */
     @Override
+    public boolean isInteractive() {
+        return false;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public boolean isVerbose() {
         return verbose.isPresent();
     }
 
-    private int run(final String[] args) {
+    int run(final String[] args) {
         // Create the command-line argument parser for use with this program.
         final LocalizableMessage toolDescription = INFO_LDAPMODIFY_TOOL_DESCRIPTION.get();
         final ArgumentParser argParser =
