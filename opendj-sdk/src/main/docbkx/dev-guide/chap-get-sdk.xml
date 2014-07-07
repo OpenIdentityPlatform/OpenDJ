@@ -123,11 +123,16 @@
 &lt;dependencies&gt;
   &lt;dependency&gt;
     &lt;groupId&gt;${project.groupId}&lt;/groupId&gt;
-    &lt;artifactId&gt;opendj-ldap-sdk&lt;/artifactId&gt;
+    &lt;artifactId&gt;opendj-core&lt;/artifactId&gt;
     &lt;version&gt;<?eval ${docTargetVersion}?>&lt;/version&gt;
-    &lt;type&gt;pom&lt;/type&gt;
   &lt;/dependency&gt;
-&lt;/dependencies&gt;</programlisting>
+  &lt;dependency&gt;
+    &lt;groupId&gt;${project.groupId}&lt;/groupId&gt;
+    &lt;artifactId&gt;opendj-grizzly&lt;/artifactId&gt;
+    &lt;version&gt;<?eval ${docTargetVersion}?>&lt;/version&gt;
+  &lt;/dependency&gt;
+&lt;/dependencies&gt;
+	</programlisting>
    </step>
   </procedure>
 
