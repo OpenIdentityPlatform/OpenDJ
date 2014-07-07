@@ -105,7 +105,7 @@ public class ReplicationEnvironmentTest extends DirectoryServerTestCase
       assertThat(state.getDomainToServerIds().get(domainDN)).containsOnly(SERVER_ID_1, SERVER_ID_2);
       assertThat(state.getDomainToGenerationId()).containsExactly(MapEntry.entry(domainDN, 1L));
 
-      assertThat(state).isEqualTo(environment.getChangelogState());
+      assertThat(state.isEqualTo(environment.getChangelogState())).isTrue();
     }
     finally
     {
@@ -145,7 +145,7 @@ public class ReplicationEnvironmentTest extends DirectoryServerTestCase
           MapEntry.entry(domainDNs.get(1), 2L),
           MapEntry.entry(domainDNs.get(2), 3L));
 
-      assertThat(state).isEqualTo(environment.getChangelogState());
+      assertThat(state.isEqualTo(environment.getChangelogState())).isTrue();
     }
     finally
     {
@@ -176,7 +176,7 @@ public class ReplicationEnvironmentTest extends DirectoryServerTestCase
       assertThat(state.getOfflineReplicas().getSnapshot())
           .containsExactly(MapEntry.entry(domainDN, Arrays.asList(offlineCSN)));
 
-      assertThat(state).isEqualTo(environment.getChangelogState());
+      assertThat(state.isEqualTo(environment.getChangelogState())).isTrue();
     }
     finally
     {
@@ -231,7 +231,7 @@ public class ReplicationEnvironmentTest extends DirectoryServerTestCase
       final ChangelogState state = environment.readOnDiskChangelogState();
       assertThat(state.getOfflineReplicas().getSnapshot())
           .containsExactly(MapEntry.entry(domainDN, Arrays.asList(lastOfflineCSN)));
-      assertThat(state).isEqualTo(environment.getChangelogState());
+      assertThat(state.isEqualTo(environment.getChangelogState())).isTrue();
     }
     finally
     {
@@ -260,7 +260,7 @@ public class ReplicationEnvironmentTest extends DirectoryServerTestCase
 
       final ChangelogState state = environment.readOnDiskChangelogState();
       assertThat(state.getOfflineReplicas()).isEmpty();
-      assertThat(state).isEqualTo(environment.getChangelogState());
+      assertThat(state.isEqualTo(environment.getChangelogState())).isTrue();
     }
     finally
     {
@@ -292,7 +292,7 @@ public class ReplicationEnvironmentTest extends DirectoryServerTestCase
       assertThat(state.getOfflineReplicas().getSnapshot())
           .containsExactly(MapEntry.entry(domainDN, Arrays.asList(offlineCSN)));
 
-      assertThat(state).isEqualTo(environment.getChangelogState());
+      assertThat(state.isEqualTo(environment.getChangelogState())).isTrue();
     }
     finally
     {
