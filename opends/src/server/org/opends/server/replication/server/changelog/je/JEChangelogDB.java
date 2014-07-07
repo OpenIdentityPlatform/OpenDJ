@@ -39,6 +39,7 @@ import org.opends.server.api.DirectoryThread;
 import org.opends.server.config.ConfigException;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.CSN;
+import org.opends.server.replication.common.MultiDomainServerState;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ChangelogState;
@@ -316,7 +317,7 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
     {
       final File dbDir = getFileForPath(config.getReplicationDBDirectory());
       dbEnv = new ReplicationDbEnv(dbDir.getAbsolutePath(), replicationServer);
-      final ChangelogState changelogState = dbEnv.readChangelogState();
+      final ChangelogState changelogState = dbEnv.getChangelogState();
       initializeToChangelogState(changelogState);
       if (config.isComputeChangeNumber())
       {
@@ -341,7 +342,7 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
     {
       replicationServer.getReplicationServerDomain(entry.getKey(), true).initGenerationID(entry.getValue());
     }
-    for (Map.Entry<DN, List<Integer>> entry : changelogState.getDomainToServerIds().entrySet())
+    for (Map.Entry<DN, Set<Integer>> entry : changelogState.getDomainToServerIds().entrySet())
     {
       for (int serverId : entry.getValue())
       {
@@ -643,7 +644,7 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
   {
     if (computeChangeNumber)
     {
-      startIndexer(dbEnv.readChangelogState());
+      startIndexer(dbEnv.getChangelogState());
     }
     else
     {
@@ -707,7 +708,7 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
       throws ChangelogException
   {
     final Set<Integer> serverIds = getDomainMap(baseDN).keySet();
-    final ChangelogState state = dbEnv.readChangelogState();
+    final MultiDomainServerState offlineReplicas = dbEnv.getChangelogState().getOfflineReplicas();
     final Map<DBCursor<UpdateMsg>, Void> cursors = new HashMap<DBCursor<UpdateMsg>, Void>(serverIds.size());
     for (int serverId : serverIds)
     {
@@ -715,7 +716,7 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
       final CSN lastCSN = startAfterServerState != null ? startAfterServerState.getCSN(serverId) : null;
       final DBCursor<UpdateMsg> replicaDBCursor = getCursorFrom(baseDN, serverId, lastCSN);
       replicaDBCursor.next();
-      final CSN offlineCSN = getOfflineCSN(state, baseDN, serverId, startAfterServerState);
+      final CSN offlineCSN = getOfflineCSN(offlineReplicas, baseDN, serverId, startAfterServerState);
       cursors.put(new ReplicaOfflineCursor(replicaDBCursor, offlineCSN), null);
     }
     // recycle exhausted cursors,
@@ -723,13 +724,13 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
     return new CompositeDBCursor<Void>(cursors, true);
   }
 
-  private CSN getOfflineCSN(final ChangelogState state, DN baseDN, int serverId,
+  private CSN getOfflineCSN(final MultiDomainServerState offlineReplicas, DN baseDN, int serverId,
       ServerState startAfterServerState)
   {
-    final List<CSN> domain = state.getOfflineReplicas().get(baseDN);
-    if (domain != null)
+    final ServerState domainState = offlineReplicas.getServerState(baseDN);
+    if (domainState != null)
     {
-      for (CSN offlineCSN : domain)
+      for (CSN offlineCSN : domainState)
       {
         if (serverId == offlineCSN.getServerId()
             && !startAfterServerState.cover(offlineCSN))

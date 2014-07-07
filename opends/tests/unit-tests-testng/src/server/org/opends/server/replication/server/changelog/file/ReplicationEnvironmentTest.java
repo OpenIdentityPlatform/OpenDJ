@@ -25,9 +25,6 @@
  */
 package org.opends.server.replication.server.changelog.file;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.opends.server.replication.server.changelog.file.ReplicationEnvironment.*;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -45,9 +42,13 @@ import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.types.DN;
 import org.opends.server.util.StaticUtils;
 import org.opends.server.util.TimeThread;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+
+import static org.assertj.core.api.Assertions.*;
+import static org.opends.server.replication.server.changelog.file.ReplicationEnvironment.*;
 
 @SuppressWarnings("javadoc")
 public class ReplicationEnvironmentTest extends DirectoryServerTestCase
@@ -65,7 +66,13 @@ public class ReplicationEnvironmentTest extends DirectoryServerTestCase
   public void setUp() throws Exception
   {
     // This test suite depends on having the schema available for DN decoding.
-    TestCaseUtils.startServer();
+    TestCaseUtils.startFakeServer();
+  }
+
+  @AfterClass
+  public void tearDown() throws Exception
+  {
+    TestCaseUtils.shutdownFakeServer();
   }
 
   @AfterMethod
@@ -92,11 +99,13 @@ public class ReplicationEnvironmentTest extends DirectoryServerTestCase
       replicaDB = environment.getOrCreateReplicaDB(domainDN, SERVER_ID_1, 1);
       replicaDB2 = environment.getOrCreateReplicaDB(domainDN, SERVER_ID_2, 1);
 
-      ChangelogState state = environment.readChangelogState();
+      final ChangelogState state = environment.readOnDiskChangelogState();
 
       assertThat(state.getDomainToServerIds()).containsKeys(domainDN);
       assertThat(state.getDomainToServerIds().get(domainDN)).containsOnly(SERVER_ID_1, SERVER_ID_2);
       assertThat(state.getDomainToGenerationId()).containsExactly(MapEntry.entry(domainDN, 1L));
+
+      assertThat(state).isEqualTo(environment.getChangelogState());
     }
     finally
     {
@@ -124,7 +133,7 @@ public class ReplicationEnvironmentTest extends DirectoryServerTestCase
         }
       }
 
-      ChangelogState state = environment.readChangelogState();
+      final ChangelogState state = environment.readOnDiskChangelogState();
 
       assertThat(state.getDomainToServerIds()).containsKeys(domainDNs.get(0), domainDNs.get(1), domainDNs.get(2));
       for (int i = 0; i <= 2 ; i++)
@@ -135,6 +144,8 @@ public class ReplicationEnvironmentTest extends DirectoryServerTestCase
           MapEntry.entry(domainDNs.get(0), 1L),
           MapEntry.entry(domainDNs.get(1), 2L),
           MapEntry.entry(domainDNs.get(2), 3L));
+
+      assertThat(state).isEqualTo(environment.getChangelogState());
     }
     finally
     {
@@ -160,9 +171,12 @@ public class ReplicationEnvironmentTest extends DirectoryServerTestCase
       CSN offlineCSN = new CSN(TimeThread.getTime(), 0, SERVER_ID_1);
       environment.notifyReplicaOffline(domainDN, offlineCSN);
 
-      ChangelogState state = environment.readChangelogState();
+      final ChangelogState state = environment.readOnDiskChangelogState();
 
-      assertThat(state.getOfflineReplicas()).containsExactly(MapEntry.entry(domainDN, Arrays.asList(offlineCSN)));
+      assertThat(state.getOfflineReplicas().getSnapshot())
+          .containsExactly(MapEntry.entry(domainDN, Arrays.asList(offlineCSN)));
+
+      assertThat(state).isEqualTo(environment.getChangelogState());
     }
     finally
     {
@@ -186,7 +200,7 @@ public class ReplicationEnvironmentTest extends DirectoryServerTestCase
       File offlineStateFile = new File(environment.getServerIdPath("1", 1), REPLICA_OFFLINE_STATE_FILENAME);
       offlineStateFile.createNewFile();
 
-      environment.readChangelogState();
+      environment.readOnDiskChangelogState();
     }
     finally
     {
@@ -214,9 +228,10 @@ public class ReplicationEnvironmentTest extends DirectoryServerTestCase
       CSN lastOfflineCSN = csnGenerator.newCSN();
       environment.notifyReplicaOffline(domainDN, lastOfflineCSN);
 
-      ChangelogState state = environment.readChangelogState();
-
-      assertThat(state.getOfflineReplicas()).containsExactly(MapEntry.entry(domainDN, Arrays.asList(lastOfflineCSN)));
+      final ChangelogState state = environment.readOnDiskChangelogState();
+      assertThat(state.getOfflineReplicas().getSnapshot())
+          .containsExactly(MapEntry.entry(domainDN, Arrays.asList(lastOfflineCSN)));
+      assertThat(state).isEqualTo(environment.getChangelogState());
     }
     finally
     {
@@ -243,9 +258,9 @@ public class ReplicationEnvironmentTest extends DirectoryServerTestCase
       // put server id 1 online again
       environment.notifyReplicaOnline(domainDN, SERVER_ID_1);
 
-      ChangelogState state = environment.readChangelogState();
-
+      final ChangelogState state = environment.readOnDiskChangelogState();
       assertThat(state.getOfflineReplicas()).isEmpty();
+      assertThat(state).isEqualTo(environment.getChangelogState());
     }
     finally
     {
@@ -269,12 +284,15 @@ public class ReplicationEnvironmentTest extends DirectoryServerTestCase
       CSN offlineCSN = new CSN(TimeThread.getTime(), 0, SERVER_ID_1);
       environment.notifyReplicaOffline(domainDN, offlineCSN);
 
-      ChangelogState state = environment.readChangelogState();
+      final ChangelogState state = environment.readOnDiskChangelogState();
 
       assertThat(state.getDomainToServerIds()).containsKeys(domainDN);
       assertThat(state.getDomainToServerIds().get(domainDN)).containsOnly(SERVER_ID_1);
       assertThat(state.getDomainToGenerationId()).containsExactly(MapEntry.entry(domainDN, 1L));
-      assertThat(state.getOfflineReplicas()).containsExactly(MapEntry.entry(domainDN, Arrays.asList(offlineCSN)));
+      assertThat(state.getOfflineReplicas().getSnapshot())
+          .containsExactly(MapEntry.entry(domainDN, Arrays.asList(offlineCSN)));
+
+      assertThat(state).isEqualTo(environment.getChangelogState());
     }
     finally
     {
@@ -299,7 +317,7 @@ public class ReplicationEnvironmentTest extends DirectoryServerTestCase
       // consistency with domain state file
       StaticUtils.recursiveDelete(new File(rootPath, "1.domain"));
 
-      environment.readChangelogState();
+      environment.readOnDiskChangelogState();
     }
     finally
     {
