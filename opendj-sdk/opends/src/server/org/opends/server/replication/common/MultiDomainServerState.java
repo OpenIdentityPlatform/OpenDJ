@@ -26,7 +26,10 @@
  */
 package org.opends.server.replication.common;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
@@ -168,7 +171,31 @@ public class MultiDomainServerState implements Iterable<DN>
   }
 
   /**
+   * Returns a snapshot of this object.
+   *
+   * @return an unmodifiable Map representing a snapshot of this object.
+   */
+  public Map<DN, List<CSN>> getSnapshot()
+  {
+    if (list.isEmpty())
+    {
+      return Collections.emptyMap();
+    }
+    final Map<DN, List<CSN>> map = new HashMap<DN, List<CSN>>();
+    for (Entry<DN, ServerState> entry : list.entrySet())
+    {
+      final List<CSN> l = entry.getValue().getSnapshot();
+      if (!l.isEmpty())
+      {
+        map.put(entry.getKey(), l);
+      }
+    }
+    return Collections.unmodifiableMap(map);
+  }
+
+  /**
    * Returns a string representation of this object.
+   *
    * @return The string representation.
    */
   @Override
