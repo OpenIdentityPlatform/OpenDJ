@@ -93,9 +93,6 @@
       <outputDirectory>lib</outputDirectory>
       <directoryMode>0755</directoryMode>
       <fileMode>0644</fileMode>
-      <excludes>
-        <exclude>org.forgerock.opendj:opendj-ldap-sdk</exclude>
-      </excludes>
     </dependencySet>
   </dependencySets>
 </assembly>

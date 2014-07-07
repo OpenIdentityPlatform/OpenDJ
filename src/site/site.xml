@@ -62,7 +62,7 @@
   </menu>
 
   <menu name="OpenDJ LDAP SDK" inherit="top">
-    <item name="About" href="opendj-ldap-sdk" />
+    <item name="About" href="opendj-core" />
     <item name="Grizzly Integration" href="opendj-grizzly" />
     <item name="Examples" href="opendj-ldap-sdk-examples" />
     <item name="Toolkit" href="opendj-ldap-toolkit" />
