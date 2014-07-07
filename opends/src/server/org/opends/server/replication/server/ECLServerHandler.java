@@ -719,7 +719,7 @@ public final class ECLServerHandler extends ServerHandler
           startStatesFromProvidedCookie.remove(domain.getBaseDN());
       if (startECLSessionMsg.getPersistent() == PERSISTENT_CHANGES_ONLY)
       {
-        newDomainCtxt = newDomainContext(domain, null, latestState);
+        newDomainCtxt = newDomainContext(domain, latestState, null);
       }
       else
       {
