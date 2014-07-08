@@ -78,7 +78,8 @@ public class InternalSearchMonitorTestCase
   {
     InternalSearchOperation op = getRootConnection().processSearch(
         "cn=monitor", WHOLE_SUBTREE, "(objectClass=*)");
-    assertEquals(op.getResultCode(), ResultCode.SUCCESS);
+    assertEquals(op.getResultCode(), ResultCode.SUCCESS,
+        "Failed to search cn=monitor subtree. Got error message: " + op.getErrorMessage());
   }
 
 
@@ -116,7 +117,8 @@ public class InternalSearchMonitorTestCase
     final String monitorDN = "cn="+monitorName+",cn=monitor";
     InternalSearchOperation op = getRootConnection().processSearch(
         monitorDN, BASE_OBJECT, "(objectClass=*)");
-    assertEquals(op.getResultCode(), ResultCode.SUCCESS);
+    assertEquals(op.getResultCode(), ResultCode.SUCCESS,
+        "Failed to read " + monitorDN + " entry. Got error message: " + op.getErrorMessage());
   }
 
   /**
@@ -128,15 +130,17 @@ public class InternalSearchMonitorTestCase
   public void testWithSubtreeAndBaseMonitorSearch() throws Exception
   {
     final InternalClientConnection conn = getRootConnection();
-    InternalSearchOperation searchOperation = conn.processSearch(
+    InternalSearchOperation op = conn.processSearch(
         "cn=monitor", WHOLE_SUBTREE, "(objectClass=*)");
-    assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
+    assertEquals(op.getResultCode(), ResultCode.SUCCESS,
+        "Failed to search cn=monitor subtree. Got error message: " + op.getErrorMessage());
 
-    for (SearchResultEntry sre : searchOperation.getSearchEntries())
+    for (SearchResultEntry sre : op.getSearchEntries())
     {
-      final InternalSearchOperation op = conn.processSearch(
+      final InternalSearchOperation readOp = conn.processSearch(
           sre.getDN(), BASE_OBJECT, createFilterFromString("(objectClass=*)"));
-      assertEquals(op.getResultCode(), ResultCode.SUCCESS);
+      assertEquals(readOp.getResultCode(), ResultCode.SUCCESS,
+          "Failed to read " + sre.getDN() + " entry. Got error message: " + readOp.getErrorMessage());
     }
   }
 

@@ -81,12 +81,12 @@ public class GenerationIdTest extends ReplicationTestCase
   private static final String REPLICATION_GENERATION_ID = "ds-sync-generation-id";
 
   private static final int WINDOW_SIZE = 10;
-  private static final int server1ID = 1;
-  private static final int server2ID = 2;
-  private static final int server3ID = 3;
-  private static final int replServerId1 = 11;
-  private static final int replServerId2 = 12;
-  private static final int replServerId3 = 13;
+  private static final int server1ID = 901;
+  private static final int server2ID = 902;
+  private static final int server3ID = 903;
+  private static final int replServerId1 = 911;
+  private static final int replServerId2 = 912;
+  private static final int replServerId3 = 913;
 
   private DN baseDN;
   private ReplicationBroker broker2;
@@ -450,7 +450,7 @@ public class GenerationIdTest extends ReplicationTestCase
 
   private int getRSPort(int replServerId) throws Exception
   {
-    return replServerPort[replServerId - 11];
+    return replServerPort[replServerId - replServerId1];
   }
 
   private long readGenIdFromSuffixRootEntry() throws Exception
@@ -1139,6 +1139,7 @@ public class GenerationIdTest extends ReplicationTestCase
     {
       stop(broker);
       postTest();
+      debugInfo("Successfully ending " + testCase);
     }
   }
 
