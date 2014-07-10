@@ -98,17 +98,9 @@
     <module>opendj-server2x-adapter</module>
   </modules>
   <properties>
-    <currentSDKversion>${project.version}</currentSDKversion>
-    <stableSDKversion>version.not.defined</stableSDKversion>
-    <currentServerVersion>2.6.0</currentServerVersion>
-    <stableServerVersion>2.6.0</stableServerVersion>
-    <docTargetVersion>2.6.1</docTargetVersion>
-    <sdkDocTargetVersion>2.6.7</sdkDocTargetVersion>
-    <siteDistributionURL>scp://forgerock.org/var/www/vhosts/opendj.forgerock.org/httpdocs</siteDistributionURL>
-    <i18nFrameworkVersion>1.4.0</i18nFrameworkVersion>
     <grizzlyFrameworkVersion>2.3.14</grizzlyFrameworkVersion>
     <forgerockRestVersion>2.0.2</forgerockRestVersion>
-    <gaId>UA-23412190-8</gaId>
+    <i18nFrameworkVersion>1.4.0</i18nFrameworkVersion>
     <!-- OSGi bundles properties -->
     <opendj.osgi.import.additional />
     <!--
@@ -121,24 +113,36 @@
      ${opendj.osgi.import.additional},
      *
     </opendj.osgi.import>
-    <!--
-       Release date and publication date are set at release build time.
-         -D"releaseDate=Software release date: January 1, 1970"
-         -D"pubDate=Publication date: December 31, 1969"
-       At all other times, the dates should be empty.
-    -->
-    <releaseDate />
-    <softwareReleaseDate>${releaseDate}</softwareReleaseDate>
-    <pubDate />
-    <publicationDate>${pubDate}</publicationDate>
+
     <checkstyleHeaderLocation>org/forgerock/checkstyle/opendj-java-header</checkstyleHeaderLocation>
-    <frDocPluginVersion>2.0.0</frDocPluginVersion>
+
+    <!-- START Documentation properties -->
+    <docTargetVersion>${project.version}</docTargetVersion><!-- Reset before final publication -->
+    <docPreviousVersion>2.6.0</docPreviousVersion>
+    <sdkDocTargetVersion>${docTargetVersion}</sdkDocTargetVersion>
+
+    <frDocPluginVersion>2.1.3</frDocPluginVersion>
+    <gaId>UA-23412190-8</gaId>
+
+    <siteDistributionURL>scp://forgerock.org/var/www/vhosts/opendj.forgerock.org/httpdocs</siteDistributionURL>
+
+    <!--
+      Release date and publication date are set at release build time.
+        -D"releaseDate=Software release date: January 1, 1970"
+        -D"pubDate=Publication date: December 31, 1969"
+      At all other times, the dates should be empty.
+    -->
+    <releaseDate/>
+    <softwareReleaseDate>${releaseDate}</softwareReleaseDate>
+    <pubDate/>
+    <publicationDate>${pubDate}</publicationDate>
 
     <!-- Permit doc build to override relative locations of non DocBook content -->
+    <coreDocBase>http://opendj.forgerock.org/doc/</coreDocBase>
     <configRefBase>http://docs.forgerock.org/en/opendj/2.6.0/configref/</configRefBase>
     <serverJavadocBase>http://docs.forgerock.org/en/opendj/2.6.0/javadoc/</serverJavadocBase>
     <sdkJavadocBase>http://docs.forgerock.org/en/opendj/2.6.0/javadoc/</sdkJavadocBase>
-    
+    <!-- END Documentation properties -->
   </properties>
   <build>
     <plugins>
@@ -177,6 +181,8 @@
         <inherited>false</inherited>
         <configuration>
          <projectName>OpenDJ</projectName>
+         <projectVersion>${docTargetVersion}</projectVersion>
+         <latestJson>http://docs.forgerock.org/latest.json</latestJson>
          <googleAnalyticsId>${gaId}</googleAnalyticsId>
         </configuration>
         <executions>
