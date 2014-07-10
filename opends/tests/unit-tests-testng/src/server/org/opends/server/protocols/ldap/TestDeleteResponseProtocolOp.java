@@ -22,19 +22,26 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2014 ForgeRock AS.
  */
 package org.opends.server.protocols.ldap;
 
-import static org.testng.Assert.*;
-import org.testng.annotations.*;
-import org.opends.server.protocols.asn1.*;
-import org.opends.server.types.*;
-import org.opends.server.core.DirectoryServer;
-import static org.opends.server.util.ServerConstants.EOL;
 import org.opends.messages.Message;
+import org.opends.server.TestCaseUtils;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.protocols.asn1.ASN1;
+import org.opends.server.protocols.asn1.ASN1Reader;
+import org.opends.server.protocols.asn1.ASN1Writer;
+import org.opends.server.types.*;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+
+import static org.opends.server.util.ServerConstants.EOL;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 /**
  * This class defines a set of tests for the
@@ -42,11 +49,6 @@ import java.util.Iterator;
  */
 public class TestDeleteResponseProtocolOp extends LdapTestCase
 {
-  /**
-   * The protocol op type for delete response.
-   */
-  public static final byte OP_TYPE_DELETE_REQUEST = 0x4A;
-
   /**
    * The protocol op type for delete responses.
    */
@@ -62,14 +64,17 @@ public class TestDeleteResponseProtocolOp extends LdapTestCase
    */
   private static final Message resultMsg = Message.raw("Test Successful");
 
-/**
+  /**
    * The DN to use for delete result operations
    */
   private DN dn;
 
   @BeforeClass
-  public void setupDN()
+  public void setupDN() throws Exception
   {
+    // Starts the server if not already started
+    TestCaseUtils.startServer();
+
     //Setup the DN to use in the response tests.
 
     AttributeType attribute =
@@ -116,11 +121,8 @@ public class TestDeleteResponseProtocolOp extends LdapTestCase
   @Test
   public void testConstructors() throws Exception
   {
-    DeleteResponseProtocolOp deleteResponse;
-    ArrayList<LDAPAttribute> attributes;
-
     //Test to make sure the constructor with result code param works.
-    deleteResponse = new DeleteResponseProtocolOp(resultCode);
+    DeleteResponseProtocolOp deleteResponse = new DeleteResponseProtocolOp(resultCode);
     assertEquals(deleteResponse.getResultCode(), resultCode);
 
     //Test to make sure the constructor with result code and error message
@@ -130,7 +132,7 @@ public class TestDeleteResponseProtocolOp extends LdapTestCase
     assertEquals(deleteResponse.getResultCode(), resultCode);
 
     //Test to make sure the constructor with result code, message, dn, and
-    //referal params works.
+    //referral params works.
     ArrayList<String> referralURLs = new ArrayList<String>();
     referralURLs.add("ds1.example.com");
     referralURLs.add("ds2.example.com");
