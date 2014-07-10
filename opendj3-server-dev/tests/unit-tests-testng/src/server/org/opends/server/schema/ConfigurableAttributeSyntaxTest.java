@@ -96,8 +96,8 @@ public class ConfigurableAttributeSyntaxTest extends SchemaTestCase
 
          {relaxedConfig, SYNTAX_TELEPHONE_OID, "+1+512 315 0280", true},
          {relaxedConfig, SYNTAX_TELEPHONE_OID, "+1x512x315x0280", true},
-         {strictConfig, SYNTAX_TELEPHONE_OID, "   ", false},
-         {strictConfig, SYNTAX_TELEPHONE_OID, "", false},
+         {relaxedConfig, SYNTAX_TELEPHONE_OID, "   ", false},
+         {relaxedConfig, SYNTAX_TELEPHONE_OID, "", false},
     };
   }
 
