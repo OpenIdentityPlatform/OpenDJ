@@ -29,6 +29,8 @@ package org.opends.server.protocols.ldap;
 import org.forgerock.opendj.io.*;
 import org.forgerock.opendj.ldap.ByteString;
 import static org.opends.server.util.ServerConstants.EOL;
+
+import org.opends.server.TestCaseUtils;
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.core.DirectoryServer;
@@ -47,11 +49,6 @@ import org.testng.annotations.*;
  * org.opends.server.protocol.ldap.AddResponseProtocolOp class.
  */
 public class TestAddResponseProtocolOp extends DirectoryServerTestCase {
-  /**
-   * The protocol op type for add requests.
-   */
-  private static final byte OP_TYPE_ADD_REQUEST = 0x68;
-
   /**
    * The protocol op type for add responses.
    */
@@ -73,10 +70,12 @@ public class TestAddResponseProtocolOp extends DirectoryServerTestCase {
   private DN dn;
 
   @BeforeClass
-  public void setupDN()
+  public void setupDN() throws Exception
   {
-    //Setup the DN to use in the response tests.
+    // Starts the server if not already started
+    TestCaseUtils.startServer();
 
+    //Setup the DN to use in the response tests.
     AttributeType attribute =
         DirectoryServer.getDefaultAttributeType("testAttribute");
     ByteString attributeValue = ByteString.valueOf("testValue");
@@ -115,9 +114,8 @@ public class TestAddResponseProtocolOp extends DirectoryServerTestCase {
   @Test
   public void testConstructors() throws Exception
   {
-    AddResponseProtocolOp addResponse;
     //Test to make sure the constructor with result code param works.
-    addResponse = new AddResponseProtocolOp(resultCode);
+    AddResponseProtocolOp addResponse = new AddResponseProtocolOp(resultCode);
     assertEquals(addResponse.getResultCode(), resultCode);
 
     //Test to make sure the constructor with result code and error message
@@ -127,7 +125,7 @@ public class TestAddResponseProtocolOp extends DirectoryServerTestCase {
     assertEquals(addResponse.getResultCode(), resultCode);
 
     //Test to make sure the constructor with result code, message, dn, and
-    //referal params works.
+    //referral params works.
     ArrayList<String> referralURLs = new ArrayList<String>();
     referralURLs.add("ds1.example.com");
     referralURLs.add("ds2.example.com");
