@@ -33,6 +33,8 @@ import java.util.TreeMap;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.CSNGenerator;
 import org.opends.server.replication.protocol.LDAPUpdateMsg;
+import org.opends.server.replication.protocol.ReplicaOfflineMsg;
+import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.service.ReplicationDomain;
 import org.opends.server.types.operation.PluginOperation;
 
@@ -136,6 +138,20 @@ class PendingChanges
   }
 
   /**
+   * Add a replica offline message to the pending list.
+   */
+  public synchronized void putReplicaOfflineMsg()
+  {
+    final CSN offlineCSN = csnGenerator.newCSN();
+    final PendingChange pendingChange =
+        new PendingChange(offlineCSN, null, new ReplicaOfflineMsg(offlineCSN));
+    pendingChange.setCommitted(true);
+
+    pendingChanges.put(offlineCSN, pendingChange);
+    pushCommittedChanges();
+  }
+
+  /**
    * Push all committed local changes to the replicationServer service.
    */
   synchronized void pushCommittedChanges()
@@ -152,19 +168,25 @@ class PendingChanges
     while (firstChange != null && firstChange.isCommitted())
     {
       final PluginOperation op = firstChange.getOp();
-      if (op != null && !op.isSynchronizationOperation())
+      final UpdateMsg msg = firstChange.getMsg();
+      if (msg instanceof LDAPUpdateMsg
+          && op != null
+          && !op.isSynchronizationOperation())
       {
-        final LDAPUpdateMsg updateMsg = firstChange.getMsg();
         if (!recoveringOldChanges)
         {
-          domain.publish(updateMsg);
+          domain.publish(msg);
         }
         else
         {
           // do not push updates until the RS catches up.
           // @see #setRecovering(boolean)
-          domain.getServerState().update(updateMsg.getCSN());
+          domain.getServerState().update(msg.getCSN());
         }
+      }
+      else if (msg instanceof ReplicaOfflineMsg)
+      {
+        domain.publish(msg);
       }
 
       // false warning: firstEntry will not be null if firstChange is not null

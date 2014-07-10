@@ -3417,6 +3417,15 @@ public abstract class ReplicationDomain
   }
 
   /**
+   * Publishes a replica offline message if all pending changes for current
+   * replica have been sent out.
+   */
+  public void publishReplicaOfflineMsg()
+  {
+    // Here to be overridden
+  }
+
+  /**
    * Publish information to the Replication Service (not assured mode).
    *
    * @param msg  The byte array containing the information that should

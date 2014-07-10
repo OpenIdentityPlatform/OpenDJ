@@ -2006,6 +2006,13 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     addOperation.setAttachment(SYNCHROCONTEXT, ctx);
   }
 
+  /** {@inheritDoc} */
+  @Override
+  public void publishReplicaOfflineMsg()
+  {
+    pendingChanges.putReplicaOfflineMsg();
+  }
+
   /**
    * Check if an operation must be synchronized.
    * Also update the list of pending changes and the server RUV
