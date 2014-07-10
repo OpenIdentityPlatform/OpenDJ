@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ! CCPL HEADER START
+  !
+  ! This work is licensed under the Creative Commons
+  ! Attribution-NonCommercial-NoDerivs 3.0 Unported License.
+  ! To view a copy of this license, visit
+  ! http://creativecommons.org/licenses/by-nc-nd/3.0/
+  ! or send a letter to Creative Commons, 444 Castro Street,
+  ! Suite 900, Mountain View, California, 94041, USA.
+  !
+  ! You can also obtain a copy of the license at
+  ! trunk/opendj3/legal-notices/CC-BY-NC-ND.txt.
+  ! See the License for the specific language governing permissions
+  ! and limitations under the License.
+  !
+  ! If applicable, add the following below this CCPL HEADER, with the fields
+  ! enclosed by brackets "[]" replaced with your own identifying information:
+  !      Portions Copyright [yyyy] [name of copyright owner]
+  !
+  ! CCPL HEADER END
+  !
+  !      Copyright 2014 ForgeRock AS
+  !    
+-->
+<chapter xml:id='chap-before-you-install'
+ xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+ xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+ xsi:schemaLocation='http://docbook.org/ns/docbook
+                     http://docbook.org/xml/5.0/xsd/docbook.xsd'>
+ <title>Before You Install OpenDJ LDAP SDK Software</title>
+
+ <para>
+  This chapter covers requirements to consider before you run OpenDJ LDAP SDK.
+ </para>
+
+ <section xml:id="prerequisites-java">
+  <title>Java Environment</title>
+
+  <para>
+   OpenDJ LDAP SDK is a pure Java library.
+   OpenDJ LDAP SDK therefore should run on any system with full Java support.
+   OpenDJ software runs on a variety of operating systems,
+   including but not limited to Solaris SPARC and x86,
+   various Linux distributions,
+   Microsoft Windows,
+   and Apple Mac OS X.
+  </para>
+  
+  <para>
+   OpenDJ software requires Java 6 or 7,
+   specifically at least the Java Standard Edition runtime environment.
+   To build applications with OpenDJ LDAP SDK,
+   you need the corresponding Java SDK.
+  </para>
+
+  <para>
+   ForgeRock recommends that you keep your Java installation up to date
+   with the latest security fixes.
+  </para>
+ </section>
+
+</chapter>
