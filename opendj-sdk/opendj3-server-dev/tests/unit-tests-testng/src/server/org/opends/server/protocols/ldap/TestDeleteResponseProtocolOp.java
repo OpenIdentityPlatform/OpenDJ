@@ -51,11 +51,6 @@ import static org.testng.Assert.*;
 public class TestDeleteResponseProtocolOp extends LdapTestCase
 {
   /**
-   * The protocol op type for delete response.
-   */
-  public static final byte OP_TYPE_DELETE_REQUEST = 0x4A;
-
-  /**
    * The protocol op type for delete responses.
    */
   public static final byte OP_TYPE_DELETE_RESPONSE = 0x6B;
