@@ -157,7 +157,7 @@ final class RemotePendingChanges
       if (change.dependenciesIsCovered(state))
       {
         dependentChanges.remove(change);
-        return change.getMsg();
+        return change.getLDAPUpdateMsg();
       }
     }
     return null;
@@ -208,7 +208,7 @@ final class RemotePendingChanges
     {
       if (pendingChange.getCSN().isOlderThan(csn))
       {
-        final LDAPUpdateMsg pendingMsg = pendingChange.getMsg();
+        final LDAPUpdateMsg pendingMsg = pendingChange.getLDAPUpdateMsg();
         if (pendingMsg != null)
         {
           if (pendingMsg instanceof DeleteMsg)
@@ -300,7 +300,7 @@ final class RemotePendingChanges
     {
       if (pendingChange.getCSN().isOlderThan(csn))
       {
-        final LDAPUpdateMsg pendingMsg = pendingChange.getMsg();
+        final LDAPUpdateMsg pendingMsg = pendingChange.getLDAPUpdateMsg();
         if (pendingMsg instanceof AddMsg)
         {
           // Check if the operation to be run is an addOperation on a same DN.
@@ -350,13 +350,13 @@ final class RemotePendingChanges
       return false;
     }
 
-    final DN targetDN = change.getMsg().getDN();
+    final DN targetDN = change.getLDAPUpdateMsg().getDN();
 
     for (PendingChange pendingChange : pendingChanges.values())
     {
       if (pendingChange.getCSN().isOlderThan(csn))
       {
-        final LDAPUpdateMsg pendingMsg = pendingChange.getMsg();
+        final LDAPUpdateMsg pendingMsg = pendingChange.getLDAPUpdateMsg();
         if (pendingMsg != null)
         {
           if (pendingMsg instanceof DeleteMsg)
@@ -442,7 +442,7 @@ final class RemotePendingChanges
     {
       if (pendingChange.getCSN().isOlderThan(csn))
       {
-        final LDAPUpdateMsg pendingMsg = pendingChange.getMsg();
+        final LDAPUpdateMsg pendingMsg = pendingChange.getLDAPUpdateMsg();
         if (pendingMsg != null)
         {
           if (pendingMsg instanceof DeleteMsg)

@@ -29,7 +29,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.opends.server.DirectoryServerTestCase;
-import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
@@ -56,10 +55,10 @@ public class CompositeDBCursorTest extends DirectoryServerTestCase
   @BeforeClass
   public void setupMsgs()
   {
-    msg1 = newUpdateMsg(1);
-    msg2 = newUpdateMsg(2);
-    msg3 = newUpdateMsg(3);
-    msg4 = newUpdateMsg(4);
+    msg1 = new FakeUpdateMsg(1);
+    msg2 = new FakeUpdateMsg(2);
+    msg3 = new FakeUpdateMsg(3);
+    msg4 = new FakeUpdateMsg(4);
   }
 
   @Test
@@ -132,19 +131,6 @@ public class CompositeDBCursorTest extends DirectoryServerTestCase
         of(msg2, baseDN1),
         of(msg3, baseDN2),
         of(msg4, baseDN1));
-  }
-
-  private UpdateMsg newUpdateMsg(final int t)
-  {
-    return new UpdateMsg(new CSN(t, t, t), new byte[t])
-    {
-      /** {@inheritDoc} */
-      @Override
-      public String toString()
-      {
-        return "UpdateMsg(" + t + ")";
-      }
-    };
   }
 
   private CompositeDBCursor<String> newCompositeDBCursor(
