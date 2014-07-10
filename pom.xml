@@ -98,7 +98,7 @@
     <module>opendj-server2x-adapter</module>
   </modules>
   <properties>
-    <grizzlyFrameworkVersion>2.3.14</grizzlyFrameworkVersion>
+    <grizzlyFrameworkVersion>2.3.11</grizzlyFrameworkVersion>
     <forgerockRestVersion>2.0.2</forgerockRestVersion>
     <i18nFrameworkVersion>1.4.0</i18nFrameworkVersion>
     <!-- OSGi bundles properties -->
