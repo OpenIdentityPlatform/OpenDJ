@@ -22,33 +22,33 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2014 ForgeRock AS.
  */
 package org.opends.server.protocols.ldap;
 
-import org.opends.server.protocols.asn1.*;
-import static org.opends.server.util.ServerConstants.EOL;
-import org.opends.server.types.*;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.DirectoryServerTestCase;
 import org.opends.messages.Message;
+import org.opends.server.DirectoryServerTestCase;
+import org.opends.server.TestCaseUtils;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.protocols.asn1.ASN1;
+import org.opends.server.protocols.asn1.ASN1Reader;
+import org.opends.server.protocols.asn1.ASN1Writer;
+import org.opends.server.types.*;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import static org.testng.Assert.*;
-
-import org.testng.annotations.*;
+import static org.opends.server.util.ServerConstants.EOL;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 /**
  * This class defines a set of tests for the
  * org.opends.server.protocol.ldap.AddResponseProtocolOp class.
  */
 public class TestAddResponseProtocolOp extends DirectoryServerTestCase {
-  /**
-   * The protocol op type for add requests.
-   */
-  private static final byte OP_TYPE_ADD_REQUEST = 0x68;
-
   /**
    * The protocol op type for add responses.
    */
@@ -70,8 +70,11 @@ public class TestAddResponseProtocolOp extends DirectoryServerTestCase {
   private DN dn;
 
   @BeforeClass
-  public void setupDN()
+  public void setupDN() throws Exception
   {
+    // Starts the server if not already started
+    TestCaseUtils.startServer();
+
     //Setup the DN to use in the response tests.
 
     AttributeType attribute =
@@ -118,7 +121,6 @@ public class TestAddResponseProtocolOp extends DirectoryServerTestCase {
   public void testConstructors() throws Exception
   {
     AddResponseProtocolOp addResponse;
-    ArrayList<LDAPAttribute> attributes;
 
     //Test to make sure the constructor with result code param works.
     addResponse = new AddResponseProtocolOp(resultCode);
@@ -131,7 +133,7 @@ public class TestAddResponseProtocolOp extends DirectoryServerTestCase {
     assertEquals(addResponse.getResultCode(), resultCode);
 
     //Test to make sure the constructor with result code, message, dn, and
-    //referal params works.
+    //referral params works.
     ArrayList<String> referralURLs = new ArrayList<String>();
     referralURLs.add("ds1.example.com");
     referralURLs.add("ds2.example.com");

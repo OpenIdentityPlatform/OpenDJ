@@ -22,21 +22,26 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2014 ForgeRock AS.
  */
 package org.opends.server.protocols.ldap;
 
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.protocols.asn1.*;
-import org.opends.server.types.*;
-import static org.opends.server.util.ServerConstants.EOL;
 import org.opends.messages.Message;
+import org.opends.server.TestCaseUtils;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.protocols.asn1.ASN1;
+import org.opends.server.protocols.asn1.ASN1Reader;
+import org.opends.server.protocols.asn1.ASN1Writer;
+import org.opends.server.types.*;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+
+import static org.opends.server.util.ServerConstants.EOL;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 /**
  * This class defines a set of tests for the
@@ -44,13 +49,6 @@ import java.util.Iterator;
  */
 public class TestCompareResponseProtocolOp extends LdapTestCase
 {
-  /**
-   * The protocol op type for compare requests.
-   */
-  public static final byte OP_TYPE_COMPARE_REQUEST = 0x6E;
-
-
-
   /**
    * The protocol op type for compare responses.
    */
@@ -72,15 +70,15 @@ public class TestCompareResponseProtocolOp extends LdapTestCase
   private DN dn;
 
   @BeforeClass
-  public void setupDN()
+  public void setupDN() throws Exception
   {
-    //Setup the DN to use in the response tests.
+    // Starts the server if not already started
+    TestCaseUtils.startServer();
 
+    //Setup the DN to use in the response tests.
     AttributeType attribute =
         DirectoryServer.getDefaultAttributeType("testAttribute");
-
     AttributeValue attributeValue = AttributeValues.create(attribute, "testValue");
-
     RDN[] rdns = new RDN[1];
     rdns[0] = RDN.create(attribute, attributeValue);
     dn = new DN(rdns);
@@ -120,11 +118,8 @@ public class TestCompareResponseProtocolOp extends LdapTestCase
   @Test
   public void testConstructors() throws Exception
   {
-    CompareResponseProtocolOp compareResponse;
-    ArrayList<LDAPAttribute> attributes;
-
     //Test to make sure the constructor with result code param works.
-    compareResponse = new CompareResponseProtocolOp(resultCode);
+    CompareResponseProtocolOp compareResponse = new CompareResponseProtocolOp(resultCode);
     assertEquals(compareResponse.getResultCode(), resultCode);
 
     //Test to make sure the constructor with result code and error message
@@ -134,7 +129,7 @@ public class TestCompareResponseProtocolOp extends LdapTestCase
     assertEquals(compareResponse.getResultCode(), resultCode);
 
     //Test to make sure the constructor with result code, message, dn, and
-    //referal params works.
+    //referral params works.
     ArrayList<String> referralURLs = new ArrayList<String>();
     referralURLs.add("ds1.example.com");
     referralURLs.add("ds2.example.com");
@@ -369,7 +364,6 @@ public class TestCompareResponseProtocolOp extends LdapTestCase
   @Test
   public void TestToStringMultiLine() throws Exception
   {
-    CompareResponseProtocolOp compareResponse;
     StringBuilder buffer = new StringBuilder();
     StringBuilder key = new StringBuilder();
 
@@ -380,8 +374,8 @@ public class TestCompareResponseProtocolOp extends LdapTestCase
     int indent = 5;
     int i;
 
-    compareResponse = new CompareResponseProtocolOp(resultCode, resultMsg, dn,
-                                                  referralURLs);
+    CompareResponseProtocolOp compareResponse =
+        new CompareResponseProtocolOp(resultCode, resultMsg, dn, referralURLs);
     compareResponse.toString(buffer, indent);
 
     StringBuilder indentBuf = new StringBuilder(indent);
