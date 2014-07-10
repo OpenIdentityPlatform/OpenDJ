@@ -53,7 +53,7 @@
    Deprecated APIs are listed in the API Specification, on the
    <link
     xlink:show="new"
-    xlink:href="${sdkJavadocBase}/index.html?deprecated-list.html"
+    xlink:href="${sdkJavadocBase}index.html?deprecated-list.html"
    >Deprecated list</link> page.
   </para>
 
