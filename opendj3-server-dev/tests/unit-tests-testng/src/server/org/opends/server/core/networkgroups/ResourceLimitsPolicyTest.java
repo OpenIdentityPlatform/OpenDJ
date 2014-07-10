@@ -30,18 +30,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.admin.std.server.ResourceLimitsQOSPolicyCfg;
+import org.opends.server.api.ClientConnection;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
 import org.opends.server.protocols.ldap.LDAPFilter;
 import org.opends.server.types.DN;
 import org.opends.server.types.SearchFilter;
-import org.forgerock.opendj.ldap.SearchScope;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.mockito.Mockito.*;
 import static org.testng.Assert.*;
 
 /**
@@ -82,7 +85,7 @@ public class ResourceLimitsPolicyTest extends DirectoryServerTestCase {
   @DataProvider (name = "SearchFilterSet")
   public Object[][] initSearchFilterSet()
   {
-    Object[][] myData = {
+    return new Object[][] {
       // Presence filter
       { 5, "(cn=*)", true},
       // Substring filter
@@ -100,8 +103,6 @@ public class ResourceLimitsPolicyTest extends DirectoryServerTestCase {
       { 5, "(|(objectclass=*)(cn=Dir*))", false },
       { 5, "(|(objectclass=*)(cn=Direc*))",  true }
     };
-
-    return myData;
   }
 
 
@@ -113,76 +114,50 @@ public class ResourceLimitsPolicyTest extends DirectoryServerTestCase {
 
   /**
    * Tests the max number of connections resource limit.
-   * @throws Exception If the test failed unexpectedly.
    */
   @Test (groups = "virtual")
-  public void testMaxNumberOfConnections()
-          throws Exception
+  public void testMaxNumberOfConnections() throws Exception
   {
-    List<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
-
-    ResourceLimitsPolicyFactory factory = new ResourceLimitsPolicyFactory();
-    ResourceLimitsPolicy limits =
-        factory.createQOSPolicy(new MockResourceLimitsQOSPolicyCfg()
-              {
-
-                @Override
-                public int getMaxConnections()
-                {
-                  return 1;
-                }
-
-              });
+    final ResourceLimitsQOSPolicyCfg cfg = mock(ResourceLimitsQOSPolicyCfg.class);
+    when(cfg.getMaxConnections()).thenReturn(1);
+    final ResourceLimitsPolicy limits = createQOSPolicy(cfg);
 
     InternalClientConnection conn1 = new InternalClientConnection(DN.NULL_DN);
     limits.addConnection(conn1);
 
-    assertTrue(limits.isAllowed(conn1, null, true, messages));
+    assertOperationIsAllowed(limits, conn1, null, true);
 
     InternalClientConnection conn2 = new InternalClientConnection(DN.NULL_DN);
     limits.addConnection(conn2);
-    assertFalse(limits.isAllowed(conn2, null, true, messages));
+    assertOperationIsAllowed(limits, conn2, null, false);
 
     limits.removeConnection(conn1);
-    assertTrue(limits.isAllowed(conn2, null, true, messages));
+    assertOperationIsAllowed(limits, conn2, null, true);
 
     limits.removeConnection(conn2);
   }
 
   /**
    * Tests the max number of connections from same IP resource limit.
-   * @throws Exception If the test failed unexpectedly.
    */
   @Test (groups = "virtual")
-  public void testMaxNumberOfConnectionsFromSameIp()
-          throws Exception
+  public void testMaxNumberOfConnectionsFromSameIp() throws Exception
   {
-    List<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
-
-    ResourceLimitsPolicyFactory factory = new ResourceLimitsPolicyFactory();
-    ResourceLimitsPolicy limits =
-        factory.createQOSPolicy(new MockResourceLimitsQOSPolicyCfg()
-              {
-
-                @Override
-                public int getMaxConnectionsFromSameIP()
-                {
-                  return 1;
-                }
-
-              });
+    final ResourceLimitsQOSPolicyCfg cfg = mock(ResourceLimitsQOSPolicyCfg.class);
+    when(cfg.getMaxConnectionsFromSameIP()).thenReturn(1);
+    final ResourceLimitsPolicy limits = createQOSPolicy(cfg);
 
     InternalClientConnection conn1 = new InternalClientConnection(DN.NULL_DN);
     limits.addConnection(conn1);
 
-    assertTrue(limits.isAllowed(conn1, null, true, messages));
+    assertOperationIsAllowed(limits, conn1, null, true);
 
     InternalClientConnection conn2 = new InternalClientConnection(DN.NULL_DN);
     limits.addConnection(conn2);
-    assertFalse(limits.isAllowed(conn2, null, true, messages));
+    assertOperationIsAllowed(limits, conn2, null, false);
 
     limits.removeConnection(conn1);
-    assertTrue(limits.isAllowed(conn2, null, true, messages));
+    assertOperationIsAllowed(limits, conn2, null, true);
 
     limits.removeConnection(conn2);
   }
@@ -192,7 +167,6 @@ public class ResourceLimitsPolicyTest extends DirectoryServerTestCase {
    * @param minLength minimum search filter substring length
    * @param searchFilter the search filter to test
    * @param success boolean indicating the expected result
-   * @throws Exception If the test failed unexpectedly.
    */
   @Test (dataProvider = "SearchFilterSet", groups = "virtual")
   public void testMinSubstringLength(
@@ -201,20 +175,9 @@ public class ResourceLimitsPolicyTest extends DirectoryServerTestCase {
           boolean success)
           throws Exception
   {
-    List<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
-
-    ResourceLimitsPolicyFactory factory = new ResourceLimitsPolicyFactory();
-    ResourceLimitsPolicy limits =
-        factory.createQOSPolicy(new MockResourceLimitsQOSPolicyCfg()
-              {
-
-                @Override
-                public int getMinSubstringLength()
-                {
-                  return minLength;
-                }
-
-              });
+    final ResourceLimitsQOSPolicyCfg cfg = mock(ResourceLimitsQOSPolicyCfg.class);
+    when(cfg.getMinSubstringLength()).thenReturn(minLength);
+    final ResourceLimitsPolicy limits = createQOSPolicy(cfg);
 
     InternalClientConnection conn1 = new InternalClientConnection(DN.NULL_DN);
     limits.addConnection(conn1);
@@ -224,37 +187,22 @@ public class ResourceLimitsPolicyTest extends DirectoryServerTestCase {
         SearchScope.BASE_OBJECT,
         LDAPFilter.decode(searchFilter).toSearchFilter());
 
-    assertEquals(limits.isAllowed(conn1, search, true, messages), success);
+    assertOperationIsAllowed(limits, conn1, search, success);
     limits.removeConnection(conn1);
   }
 
-
   /**
    * Tests the 'max number of operations per interval' resource limit.
-   * @throws Exception If the test failed unexpectedly.
    */
   @Test (groups = "virtual")
-  public void testMaxThroughput()
-          throws Exception
+  public void testMaxThroughput() throws Exception
   {
-    List<LocalizableMessage> messages = new ArrayList<LocalizableMessage>();
     final long interval = 1000; // Unit is milliseconds
 
-    ResourceLimitsPolicyFactory factory = new ResourceLimitsPolicyFactory();
-    ResourceLimitsPolicy limits = factory.createQOSPolicy(
-      new MockResourceLimitsQOSPolicyCfg() {
-        @Override
-        public int getMaxOpsPerInterval()
-        {
-          return 1;
-        }
-
-        @Override
-        public long getMaxOpsInterval()
-        {
-          return interval;
-        }
-      });
+    final ResourceLimitsQOSPolicyCfg cfg = mock(ResourceLimitsQOSPolicyCfg.class);
+    when(cfg.getMaxOpsPerInterval()).thenReturn(1);
+    when(cfg.getMaxOpsInterval()).thenReturn(interval);
+    final ResourceLimitsPolicy limits = createQOSPolicy(cfg);
 
     InternalClientConnection conn = new InternalClientConnection(DN.NULL_DN);
     limits.addConnection(conn);
@@ -262,23 +210,48 @@ public class ResourceLimitsPolicyTest extends DirectoryServerTestCase {
     final DN dn = DN.valueOf("dc=example,dc=com");
     final SearchFilter all = SearchFilter.createFilterFromString("(objectclass=*)");
 
-    // First operation is allowed
-    InternalSearchOperation search1 =
+    final InternalSearchOperation search1 =
         conn.processSearch(dn, SearchScope.BASE_OBJECT, all);
-    assertTrue(limits.isAllowed(conn, search1, true, messages));
+    assertOperationIsAllowed(limits, conn, search1, true,
+        "First operation should be allowed");
 
-    // Second operation in the same interval is refused
-    InternalSearchOperation search2 =
+    final InternalSearchOperation search2 =
         conn.processSearch(dn, SearchScope.BASE_OBJECT, all);
-    assertFalse(limits.isAllowed(conn, search2, true, messages));
+    assertOperationIsAllowed(limits, conn,
+        search2, false,
+        "Second operation in the same interval should be disallowed");
 
     // Wait for the end of the interval => counters are reset
     Thread.sleep(interval);
 
-    // The operation is allowed
-    InternalSearchOperation search3 =
+    final InternalSearchOperation search3 =
         conn.processSearch(dn, SearchScope.BASE_OBJECT, all);
-    assertTrue(limits.isAllowed(conn, search3, true, messages));
+    assertOperationIsAllowed(limits, conn, search3, true,
+        "Third operation should be allowed");
+  }
+
+  private void assertOperationIsAllowed(ResourceLimitsPolicy limits,
+      ClientConnection conn, InternalSearchOperation operation, boolean expected)
+  {
+    assertOperationIsAllowed(limits, conn, operation, expected, null);
+  }
+
+  private void assertOperationIsAllowed(ResourceLimitsPolicy limits,
+      ClientConnection conn, InternalSearchOperation operation,
+      boolean expected, String assertMsg)
+  {
+    final String msg = assertMsg != null ? assertMsg :
+      "Operation should be " + (expected ? "" : "dis") + "allowed";
+
+    final List<LocalizableMessage> messages =
+        new ArrayList<LocalizableMessage>();
+    final boolean actual = limits.isAllowed(conn, operation, true, messages);
+    assertEquals(actual, expected, msg + ". Messages=" + messages);
+  }
+
+  private ResourceLimitsPolicy createQOSPolicy(ResourceLimitsQOSPolicyCfg cfg) throws Exception
+  {
+    return new ResourceLimitsPolicyFactory().createQOSPolicy(cfg);
   }
 
 }
