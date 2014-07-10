@@ -88,7 +88,8 @@ public class InternalSearchMonitorTestCase
     InternalSearchOperation searchOperation =
          conn.processSearch(DN.valueOf("cn=monitor"), SearchScope.WHOLE_SUBTREE,
               SearchFilter.createFilterFromString("(objectClass=*)"));
-    assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
+    assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS,
+        "Failed to search cn=monitor subtree. Got error message: " + searchOperation.getErrorMessage());
   }
 
 
@@ -138,7 +139,8 @@ public class InternalSearchMonitorTestCase
          conn.processSearch(monitorDN,
               SearchScope.BASE_OBJECT,
               SearchFilter.createFilterFromString("(objectClass=*)"));
-    assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
+    assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS,
+        "Failed to read " + monitorDN + " entry. Got error message: " + searchOperation.getErrorMessage());
   }
 
   /**
@@ -157,15 +159,17 @@ public class InternalSearchMonitorTestCase
     InternalSearchOperation searchOperation =
          conn.processSearch(DN.valueOf("cn=monitor"), SearchScope.WHOLE_SUBTREE,
               SearchFilter.createFilterFromString("(objectClass=*)"));
-    assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
+    assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS,
+        "Failed to search cn=monitor subtree. Got error message: " + searchOperation.getErrorMessage());
 
     for (SearchResultEntry sre : searchOperation.getSearchEntries())
     {
       SearchFilter filter =
            SearchFilter.createFilterFromString("(objectClass=*)");
-      searchOperation =
+      InternalSearchOperation readOperation =
            conn.processSearch(sre.getName(), SearchScope.BASE_OBJECT, filter);
-      assertEquals(searchOperation.getResultCode(), ResultCode.SUCCESS);
+      assertEquals(readOperation.getResultCode(), ResultCode.SUCCESS,
+          "Failed to read " + sre.getName() + " entry. Got error message: " + readOperation.getErrorMessage());
     }
   }
 
