@@ -39,48 +39,22 @@ import static org.opends.server.replication.protocol.ProtocolVersion.*;
  */
 public class ChangeTimeHeartbeatMsg extends ReplicationMsg
 {
-  private static final byte NORMAL_HEARTBEAT = 0;
-  private static final byte REPLICA_OFFLINE_HEARTBEAT = 1;
 
   /**
    * The CSN containing the change time.
    */
   private final CSN csn;
-  /**
-   * The CSN containing the change time.
-   */
-  private final byte eventType;
-
-  private ChangeTimeHeartbeatMsg(CSN csn, byte eventType)
-  {
-    this.csn = csn;
-    this.eventType = eventType;
-  }
 
   /**
-   * Factory method that builds a change time heartbeat message providing the
-   * change time value in a CSN.
+   * Constructor of a Change Time Heartbeat message providing the change time
+   * value in a CSN.
    *
    * @param csn
    *          The provided CSN.
-   * @return a new ChangeTimeHeartbeatMsg
    */
-  public static ChangeTimeHeartbeatMsg heartbeatMsg(CSN csn)
+  public ChangeTimeHeartbeatMsg(CSN csn)
   {
-    return new ChangeTimeHeartbeatMsg(csn, NORMAL_HEARTBEAT);
-  }
-
-  /**
-   * Factory method that builds a change time heartbeat message for a replica
-   * going offline.
-   *
-   * @param offlineCSN
-   *          the serverId and timestamp of the replica going offline
-   * @return a new ChangeTimeHeartbeatMsg
-   */
-  public static ChangeTimeHeartbeatMsg replicaOfflineMsg(CSN offlineCSN)
-  {
-    return new ChangeTimeHeartbeatMsg(offlineCSN, REPLICA_OFFLINE_HEARTBEAT);
+    this.csn = csn;
   }
 
   /**
@@ -91,17 +65,6 @@ public class ChangeTimeHeartbeatMsg extends ReplicationMsg
   public CSN getCSN()
   {
     return csn;
-  }
-
-  /**
-   * Returns whether this is a replica offline message.
-   *
-   * @return true if this is a replica offline message, false if this is a
-   *         regular heartbeat message.
-   */
-  public boolean isReplicaOfflineMsg()
-  {
-    return eventType == REPLICA_OFFLINE_HEARTBEAT;
   }
 
   /**
@@ -130,9 +93,6 @@ public class ChangeTimeHeartbeatMsg extends ReplicationMsg
       csn = version >= REPLICATION_PROTOCOL_V7
           ? scanner.nextCSN()
           : scanner.nextCSNUTF8();
-      eventType = version >= REPLICATION_PROTOCOL_V8
-          ? scanner.nextByte()
-          : NORMAL_HEARTBEAT;
 
       if (!scanner.isEmpty())
       {
@@ -163,10 +123,6 @@ public class ChangeTimeHeartbeatMsg extends ReplicationMsg
     final ByteArrayBuilder builder = new ByteArrayBuilder(bytes(1) + csns(1));
     builder.appendByte(MSG_TYPE_CT_HEARTBEAT);
     builder.appendCSN(csn);
-    if (protocolVersion >= ProtocolVersion.REPLICATION_PROTOCOL_V8)
-    {
-      builder.appendByte(eventType);
-    }
     return builder.toByteArray();
   }
 

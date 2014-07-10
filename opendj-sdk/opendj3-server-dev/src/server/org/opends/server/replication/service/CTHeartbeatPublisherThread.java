@@ -101,7 +101,7 @@ class CTHeartbeatPublisherThread extends DirectoryThread
         if (now > session.getLastPublishTime() + heartbeatInterval)
         {
           final CSN csn = new CSN(now, 0, serverId);
-          session.publish(ChangeTimeHeartbeatMsg.heartbeatMsg(csn));
+          session.publish(new ChangeTimeHeartbeatMsg(csn));
           lastHeartbeatTime = csn.getTime();
         }
 
@@ -127,26 +127,6 @@ class CTHeartbeatPublisherThread extends DirectoryThread
             }
           }
         }
-      }
-
-      if (shutdown)
-      {
-        /*
-         * Shortcoming: this thread is restarted each time the DS reconnects,
-         * e.g. during load balancing. This is not that much of a problem
-         * because the ChangeNumberIndexer tolerates receiving replica offline
-         * heartbeats and then receiving messages back again.
-         */
-        /*
-         * However, during shutdown we need to be sure that all pending client
-         * operations have either completed or have been aborted before shutting
-         * down replication. Otherwise, the medium consistency will move forward
-         * without knowing about these changes.
-         */
-        final long now = System.currentTimeMillis();
-        final int seqNum = lastHeartbeatTime == now ? 1 : 0;
-        final CSN offlineCSN = new CSN(now, seqNum, serverId);
-        session.publish(ChangeTimeHeartbeatMsg.replicaOfflineMsg(offlineCSN));
       }
     }
     catch (IOException e)
