@@ -31,7 +31,9 @@
  xmlns:xlink='http://www.w3.org/1999/xlink'
  xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <info>
-  <title>OpenDJ <?eval ${docTargetVersion}?> Release Notes</title>
+  <xinclude:include href="../shared/mediaobject-fr-logo.xml" />
+  <title>OpenDJ Release Notes</title>
+  <subtitle>Version ${docTargetVersion}</subtitle>
   <abstract>
    <para>Notes covering OpenDJ hardware &amp; software requirements, fixes,
    known issues. The OpenDJ project offers open source LDAP directory services
@@ -43,7 +45,8 @@
   </copyright>
   <authorgroup>
    <author>
-    <personname><firstname>Mark</firstname><surname>Craig</surname></personname>
+    <personname><firstname>Mark </firstname><surname>Craig</surname></personname>
+    <xinclude:include href="../shared/affiliation-fr.xml"/>
    </author>
   </authorgroup>
   <xinclude:include href='../legal.xml' />
