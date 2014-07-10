@@ -36,6 +36,7 @@ import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
 import org.opends.server.DirectoryServerTestCase;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
 import org.testng.annotations.BeforeClass;
@@ -48,14 +49,8 @@ import static org.testng.Assert.*;
  * This class defines a set of tests for the
  * org.opends.server.protocol.ldap.ModifyDNResponseProtocolOp class.
  */
-public class TestModifyDNResponseProtocolOp extends DirectoryServerTestCase {
-  /**
-   * The protocol op type for modify DN requests.
-   */
-  public static final byte OP_TYPE_MODIFY_DN_REQUEST = 0x6C;
-
-
-
+public class TestModifyDNResponseProtocolOp extends DirectoryServerTestCase
+{
   /**
    * The protocol op type for modify DN responses.
    */
@@ -77,8 +72,11 @@ public class TestModifyDNResponseProtocolOp extends DirectoryServerTestCase {
   private DN dn;
 
   @BeforeClass
-  public void setupDN()
+  public void setupDN() throws Exception
   {
+    // Starts the server if not already started
+    TestCaseUtils.startServer();
+
     //Setup the DN to use in the response tests.
     AttributeType attribute =
         DirectoryServer.getDefaultAttributeType("testAttribute");
@@ -120,9 +118,8 @@ public class TestModifyDNResponseProtocolOp extends DirectoryServerTestCase {
   @Test
   public void testConstructors() throws Exception
   {
-    ModifyDNResponseProtocolOp modifyResponse;
     //Test to make sure the constructor with result code param works.
-    modifyResponse = new ModifyDNResponseProtocolOp(resultCode);
+    ModifyDNResponseProtocolOp modifyResponse = new ModifyDNResponseProtocolOp(resultCode);
     assertEquals(modifyResponse.getResultCode(), resultCode);
 
     //Test to make sure the constructor with result code and error message
@@ -132,7 +129,7 @@ public class TestModifyDNResponseProtocolOp extends DirectoryServerTestCase {
     assertEquals(modifyResponse.getResultCode(), resultCode);
 
     //Test to make sure the constructor with result code, message, dn, and
-    //referal params works.
+    //referral params works.
     ArrayList<String> referralURLs = new ArrayList<String>();
     referralURLs.add("ds1.example.com");
     referralURLs.add("ds2.example.com");

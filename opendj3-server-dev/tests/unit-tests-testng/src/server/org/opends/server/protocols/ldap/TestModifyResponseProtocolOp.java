@@ -35,6 +35,7 @@ import org.forgerock.opendj.io.ASN1Reader;
 import org.forgerock.opendj.io.ASN1Writer;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ByteStringBuilder;
+import org.opends.server.TestCaseUtils;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.types.*;
 import org.testng.annotations.BeforeClass;
@@ -49,13 +50,6 @@ import static org.testng.Assert.*;
  */
 public class TestModifyResponseProtocolOp extends LdapTestCase
 {
-  /**
-   * The protocol op type for modify requests.
-   */
-  public static final byte OP_TYPE_MODIFY_REQUEST = 0x66;
-
-
-
   /**
    * The protocol op type for modify responses.
    */
@@ -77,10 +71,12 @@ public class TestModifyResponseProtocolOp extends LdapTestCase
   private DN dn;
 
   @BeforeClass
-  public void setupDN()
+  public void setupDN() throws Exception
   {
-    //Setup the DN to use in the response tests.
+    // Starts the server if not already started
+    TestCaseUtils.startServer();
 
+    //Setup the DN to use in the response tests.
     AttributeType attribute =
         DirectoryServer.getDefaultAttributeType("testAttribute");
     ByteString attributeValue = ByteString.valueOf("testValue");
@@ -121,9 +117,8 @@ public class TestModifyResponseProtocolOp extends LdapTestCase
   @Test
   public void testConstructors() throws Exception
   {
-    ModifyResponseProtocolOp modifyResponse;
     //Test to make sure the constructor with result code param works.
-    modifyResponse = new ModifyResponseProtocolOp(resultCode);
+    ModifyResponseProtocolOp modifyResponse = new ModifyResponseProtocolOp(resultCode);
     assertEquals(modifyResponse.getResultCode(), resultCode);
 
     //Test to make sure the constructor with result code and error message
@@ -133,7 +128,7 @@ public class TestModifyResponseProtocolOp extends LdapTestCase
     assertEquals(modifyResponse.getResultCode(), resultCode);
 
     //Test to make sure the constructor with result code, message, dn, and
-    //referal params works.
+    //referral params works.
     ArrayList<String> referralURLs = new ArrayList<String>();
     referralURLs.add("ds1.example.com");
     referralURLs.add("ds2.example.com");
