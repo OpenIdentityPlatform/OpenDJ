@@ -48,7 +48,32 @@
    The following bugs were fixed in this release.
   </para>
 
-  <para>TODO</para><!-- https://github.com/markcraig/release-notes-list-builder -->
+  <!-- List generated at 12:53:11 20140710 using http://bugster.forgerock.org/jira/rest/api/2/search?jql=project+%3D+OPENDJ+AND+type+%3D+Bug+AND+component+not+in+%28Documentation%2C+QA%29+AND+fixVersion+in+%28%222.6.9-sdk%22%2C+%222.6.8-sdk%22%2C+%222.6.7-sdk%22%2C+%222.6.6-sdk%22%2C+%222.6.5-sdk%22%2C+%222.6.4-sdk%22%2C+%222.6.3-sdk%22%2C+%222.6.2-sdk%22%2C+%222.6.1-sdk%22%29+AND+status+%3D+Resolved&startAt=0&maxResults=500&fields=summary-->
+  <itemizedlist>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1491" xlink:show="new">OPENDJ-1491</link>: NPE can occur during connection failover</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1396" xlink:show="new">OPENDJ-1396</link>: newHeartBeatConnectionFactory uses wrong units for DEFAULT_TIMEOUT_IN_SECONDS</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1348" xlink:show="new">OPENDJ-1348</link>: Various connection pool implementations do not recover if the target server is powered off and restarted</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1320" xlink:show="new">OPENDJ-1320</link>: Fix ABI compatibility breaks between 2.6.6 and 2.6.0 SDK</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1270" xlink:show="new">OPENDJ-1270</link>: Avoid unnecessary DNS lookups when performing bind requests</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1258" xlink:show="new">OPENDJ-1258</link>: Default heartbeat timeout of 500ms is too aggressive</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1249" xlink:show="new">OPENDJ-1249</link>: ConnectionFactory timeout setting is applied for Active Directory persistent search requests</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1247" xlink:show="new">OPENDJ-1247</link>: Client side timeouts do not cancel bind or startTLS requests properly</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1209" xlink:show="new">OPENDJ-1209</link>: Impossible to use OpenDJ SDK 2.6.4  with OpenDJ server 2.6.0</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1203" xlink:show="new">OPENDJ-1203</link>: MemoryBackend does not raise an error when trying to delete non-existent attribute</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1197" xlink:show="new">OPENDJ-1197</link>: API is lacking functionality to specify TCP connect timeout as well as various TCP socket options (e.g. TcpNoDelay).</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1168" xlink:show="new">OPENDJ-1168</link>: Warning message displayed when heartbeat check fails with a bind connection pool</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1156" xlink:show="new">OPENDJ-1156</link>: NPE in ReferenceCountedObject after shutting down directory</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1137" xlink:show="new">OPENDJ-1137</link>: ConnectionEntryReader does not provide a means for accessing controls in the search result</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1121" xlink:show="new">OPENDJ-1121</link>: Closing a connection after closing the connectionfactory causes NPE</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1105" xlink:show="new">OPENDJ-1105</link>: Rest2LDAP never returns a response when invalid parameters or content are provided on Jetty 8</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1058" xlink:show="new">OPENDJ-1058</link>: HeartbeatConnectionFactory does not actively shutdown dead connections</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1049" xlink:show="new">OPENDJ-1049</link>: ReferenceCountedObject can be released twice in some circumstances</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1044" xlink:show="new">OPENDJ-1044</link>: Doing a PUT with JSON data identical to what is on the server results in 400 status code</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-973" xlink:show="new">OPENDJ-973</link>: Create resource using PUT results in 500 Internal Server Error</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-734" xlink:show="new">OPENDJ-734</link>: NPE when attempting SSL connect with client certs</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-672" xlink:show="new">OPENDJ-672</link>: LDAP SDK SSL connect attempts fail with horrible stack trace when handshake fails</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-661" xlink:show="new">OPENDJ-661</link>: TimeoutChecker throws NullPointerException on application shutdown</para></listitem>
+  </itemizedlist>
  </section>
 
  <section xml:id="limitations">
@@ -67,6 +92,20 @@
    at the time this release became available.
   </para>
 
-  <para>TODO</para><!-- https://github.com/markcraig/release-notes-list-builder -->
+  <!-- List generated at 12:53:27 20140710 using http://bugster.forgerock.org/jira/rest/api/2/search?jql=project+%3D+OPENDJ+AND+type+%3D+Bug+AND+component+%3D+%22opendj+sdk%22+AND+resolution+%3D+Unresolved&startAt=0&maxResults=500&fields=summary-->
+  <itemizedlist>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1477" xlink:show="new">OPENDJ-1477</link>: Constant re-allocation of DN per-schema caches</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1475" xlink:show="new">OPENDJ-1475</link>: Allow checking for alternative DNS names in server certificates when setting up secure connections</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1024" xlink:show="new">OPENDJ-1024</link>: modrate/searchrate: provide --warmUpDuration parameter</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1023" xlink:show="new">OPENDJ-1023</link>: modrate/searchrate: provide --duration parameter</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-1022" xlink:show="new">OPENDJ-1022</link>: modrate/searchrate: provide --numOperations parameter</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-860" xlink:show="new">OPENDJ-860</link>: Returning false from SearchResultHandler.handleXXX should prevent subsequent notifications.</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-674" xlink:show="new">OPENDJ-674</link>: OpenDJ LDAP SDK should not leave app threads indefinitely waiting on futures when unexpected internal errors occur.</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-607" xlink:show="new">OPENDJ-607</link>: RoundRobinLoadBalancingAlgorithm balancing is not optimum after failure of a connection factory</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-514" xlink:show="new">OPENDJ-514</link>: OpenDJ SDK SASL integrity/confidentiality violates protocol</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-442" xlink:show="new">OPENDJ-442</link>: ldapsearch asking for password with GSSAPI when it should not need to</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-174" xlink:show="new">OPENDJ-174</link>: Investigate and fix performance regression introduced in fix for OPENDJ-127</para></listitem>
+   <listitem><para><link xlink:href="https://bugster.forgerock.org/jira/browse/OPENDJ-155" xlink:show="new">OPENDJ-155</link>: Add support for OpenDJ extended matching rules and syntaxes</para></listitem>
+  </itemizedlist>
  </section>
 </chapter>
