@@ -26,30 +26,30 @@
  */
 package org.opends.server.replication.plugin;
 
-import org.forgerock.i18n.LocalizableMessage;
-
 import java.util.List;
+
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.server.ConfigException;
+import org.forgerock.opendj.ldap.ResultCode;
 
 import org.opends.server.admin.server.ConfigurationAddListener;
 import org.opends.server.admin.server.ConfigurationDeleteListener;
-import org.opends.server.admin.std.server.ReplicationSynchronizationProviderCfg;
 import org.opends.server.admin.std.server.ReplicationServerCfg;
-import org.forgerock.opendj.config.server.ConfigException;
+import org.opends.server.admin.std.server.ReplicationSynchronizationProviderCfg;
 import org.opends.server.replication.server.ReplicationServer;
+import org.opends.server.replication.service.DSRSShutdownSync;
 import org.opends.server.types.ConfigChangeResult;
-import org.forgerock.opendj.ldap.ResultCode;
-
 
 /**
  * This class is used to create and object that can
  * register in the admin framework as a listener for changes, add and delete
  * on the ReplicationServer configuration objects.
- *
  */
 public class ReplicationServerListener
        implements ConfigurationAddListener<ReplicationServerCfg>,
        ConfigurationDeleteListener<ReplicationServerCfg>
 {
+  private final DSRSShutdownSync dsrsShutdownSync;
   private ReplicationServer replicationServer;
 
   /**
@@ -58,36 +58,36 @@ public class ReplicationServerListener
    *
    * @param configuration The configuration that will be used to listen
    *                      for replicationServer configuration changes.
-   *
+   * @param dsrsShutdownSync Synchronization object for shutdown of combined DS/RS instances.
    * @throws ConfigException if the ReplicationServerListener can't register for
    *                         listening to changes on the provided configuration
    *                         object.
    */
   public ReplicationServerListener(
-      ReplicationSynchronizationProviderCfg configuration)
-      throws ConfigException
+      ReplicationSynchronizationProviderCfg configuration,
+      DSRSShutdownSync dsrsShutdownSync) throws ConfigException
   {
     configuration.addReplicationServerAddListener(this);
     configuration.addReplicationServerDeleteListener(this);
 
+    this.dsrsShutdownSync = dsrsShutdownSync;
     if (configuration.hasReplicationServer())
     {
-      ReplicationServerCfg server = configuration.getReplicationServer();
-      replicationServer = new ReplicationServer(server);
+      final ReplicationServerCfg cfg = configuration.getReplicationServer();
+      replicationServer = new ReplicationServer(cfg, dsrsShutdownSync);
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  public ConfigChangeResult applyConfigurationAdd(
-      ReplicationServerCfg configuration)
+  /** {@inheritDoc} */
+  @Override
+  public ConfigChangeResult applyConfigurationAdd(ReplicationServerCfg cfg)
   {
     try
     {
-      replicationServer = new ReplicationServer(configuration);
+      replicationServer = new ReplicationServer(cfg, dsrsShutdownSync);
       return new ConfigChangeResult(ResultCode.SUCCESS, false);
-    } catch (ConfigException e)
+    }
+    catch (ConfigException e)
     {
       // we should never get to this point because the configEntry has
       // already been validated in configAddisAcceptable
@@ -95,14 +95,12 @@ public class ReplicationServerListener
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public boolean isConfigurationAddAcceptable(
-      ReplicationServerCfg configuration, List<LocalizableMessage> unacceptableReasons)
+      ReplicationServerCfg cfg, List<LocalizableMessage> unacceptableReasons)
   {
-    return ReplicationServer.isConfigurationAcceptable(
-      configuration, unacceptableReasons);
+    return ReplicationServer.isConfigurationAcceptable(cfg, unacceptableReasons);
   }
 
   /**
@@ -111,14 +109,14 @@ public class ReplicationServerListener
   public void shutdown()
   {
     if (replicationServer != null)
+    {
       replicationServer.shutdown();
+    }
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  public ConfigChangeResult applyConfigurationDelete(
-      ReplicationServerCfg configuration)
+  /** {@inheritDoc} */
+  @Override
+  public ConfigChangeResult applyConfigurationDelete(ReplicationServerCfg cfg)
   {
     // There can be only one replicationServer, just shutdown the
     // replicationServer currently configured.
@@ -129,11 +127,10 @@ public class ReplicationServerListener
     return new ConfigChangeResult(ResultCode.SUCCESS, false);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public boolean isConfigurationDeleteAcceptable(
-      ReplicationServerCfg configuration, List<LocalizableMessage> unacceptableReasons)
+      ReplicationServerCfg cfg, List<LocalizableMessage> unacceptableReasons)
   {
     return true;
   }

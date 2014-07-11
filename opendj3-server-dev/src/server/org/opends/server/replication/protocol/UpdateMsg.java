@@ -294,4 +294,14 @@ public class UpdateMsg extends ReplicationMsg
   {
     return payload;
   }
+
+  /**
+   * Whether the current message can update the "ds-sync-state" attribute.
+   *
+   * @return true if current message can update the "ds-sync-state" attribute, false otherwise.
+   */
+  public boolean contributesToDomainState()
+  {
+    return true;
+  }
 }

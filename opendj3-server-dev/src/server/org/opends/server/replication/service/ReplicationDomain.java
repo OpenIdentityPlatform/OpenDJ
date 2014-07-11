@@ -2974,7 +2974,8 @@ public abstract class ReplicationDomain
               // The server is shutting down.
               listenerThread.initiateShutdown();
             }
-            else if (processUpdate(updateMsg))
+            else if (processUpdate(updateMsg)
+                && updateMsg.contributesToDomainState())
             {
               /*
                * Warning: in synchronous mode, no way to tell the replay of an
@@ -3393,9 +3394,11 @@ public abstract class ReplicationDomain
    */
   public void publish(UpdateMsg msg)
   {
-    // Publish the update
     broker.publish(msg);
-    state.update(msg.getCSN());
+    if (msg.contributesToDomainState())
+    {
+      state.update(msg.getCSN());
+    }
     numSentUpdates.incrementAndGet();
   }
 
