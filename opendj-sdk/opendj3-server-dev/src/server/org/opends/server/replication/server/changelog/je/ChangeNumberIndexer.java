@@ -25,8 +25,13 @@
  */
 package org.opends.server.replication.server.changelog.je;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.ConcurrentSkipListSet;
@@ -356,8 +361,7 @@ public class ChangeNumberIndexer extends DirectoryThread
     // initialize the DB cursor and the last seen updates
     // to ensure the medium consistency CSN can move forward
     final ReplicationDomainDB domainDB = changelogDB.getReplicationDomainDB();
-    for (Entry<DN, List<Integer>> entry
-        : changelogState.getDomainToServerIds().entrySet())
+    for (Entry<DN, Set<Integer>> entry : changelogState.getDomainToServerIds().entrySet())
     {
       final DN baseDN = entry.getKey();
       if (!isECLEnabledDomain(baseDN))
@@ -400,12 +404,10 @@ public class ChangeNumberIndexer extends DirectoryThread
       nextChangeForInsertDBCursor.next();
     }
 
-    for (Entry<DN, List<CSN>> entry : changelogState.getOfflineReplicas()
-        .entrySet())
+    final MultiDomainServerState offlineReplicas = changelogState.getOfflineReplicas();
+    for (DN baseDN : offlineReplicas)
     {
-      final DN baseDN = entry.getKey();
-      final List<CSN> offlineCSNs = entry.getValue();
-      for (CSN offlineCSN : offlineCSNs)
+      for (CSN offlineCSN : offlineReplicas.getServerState(baseDN))
       {
         if (isECLEnabledDomain(baseDN))
         {

@@ -25,12 +25,13 @@
  */
 package org.opends.server.replication.server;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentSkipListMap;
 
 import org.opends.server.replication.common.CSN;
+import org.opends.server.replication.common.MultiDomainServerState;
 import org.opends.server.types.DN;
 
 /**
@@ -43,15 +44,16 @@ import org.opends.server.types.DN;
  * <p>
  * This class is used during replication initialization to decouple the code
  * that reads the changelogStateDB from the code that makes use of its data.
+ *
+ * @ThreadSafe
  */
 public class ChangelogState
 {
 
-  private final Map<DN, Long> domainToGenerationId = new HashMap<DN, Long>();
-  private final Map<DN, List<Integer>> domainToServerIds =
-      new HashMap<DN, List<Integer>>();
-  private final Map<DN, List<CSN>> offlineReplicas =
-      new HashMap<DN, List<CSN>>();
+  private final ConcurrentSkipListMap<DN, Long> domainToGenerationId = new ConcurrentSkipListMap<DN, Long>();
+  private final ConcurrentSkipListMap<DN, Set<Integer>> domainToServerIds =
+      new ConcurrentSkipListMap<DN, Set<Integer>>();
+  private final MultiDomainServerState offlineReplicas = new MultiDomainServerState();
 
   /**
    * Sets the generationId for the supplied replication domain.
@@ -76,11 +78,16 @@ public class ChangelogState
    */
   public void addServerIdToDomain(int serverId, DN baseDN)
   {
-    List<Integer> serverIds = domainToServerIds.get(baseDN);
+    Set<Integer> serverIds = domainToServerIds.get(baseDN);
     if (serverIds == null)
     {
-      serverIds = new LinkedList<Integer>();
-      domainToServerIds.put(baseDN, serverIds);
+      serverIds = new HashSet<Integer>();
+      final Set<Integer> existingServerIds =
+          domainToServerIds.putIfAbsent(baseDN, serverIds);
+      if (existingServerIds != null)
+      {
+        serverIds = existingServerIds;
+      }
     }
     serverIds.add(serverId);
   }
@@ -95,13 +102,25 @@ public class ChangelogState
    */
   public void addOfflineReplica(DN baseDN, CSN offlineCSN)
   {
-    List<CSN> offlineCSNs = offlineReplicas.get(baseDN);
-    if (offlineCSNs == null)
+    offlineReplicas.update(baseDN, offlineCSN);
+  }
+
+  /**
+   * Removes the following replica information from the offline list.
+   *
+   * @param baseDN
+   *          the baseDN of the offline replica
+   * @param serverId
+   *          the serverId that is not offline anymore
+   */
+  public void removeOfflineReplica(DN baseDN, int serverId)
+  {
+    CSN csn;
+    do
     {
-      offlineCSNs = new LinkedList<CSN>();
-      offlineReplicas.put(baseDN, offlineCSNs);
+      csn = offlineReplicas.getCSN(baseDN, serverId);
     }
-    offlineCSNs.add(offlineCSN);
+    while (csn != null && !offlineReplicas.removeCSN(baseDN, csn));
   }
 
   /**
@@ -119,19 +138,49 @@ public class ChangelogState
    *
    * @return a Map of domainBaseDN => List&lt;serverId&gt;.
    */
-  public Map<DN, List<Integer>> getDomainToServerIds()
+  public Map<DN, Set<Integer>> getDomainToServerIds()
   {
     return domainToServerIds;
   }
 
   /**
-   * Returns the Map of domainBaseDN => List&lt;offlineCSN&gt;.
+   * Returns the internal MultiDomainServerState for offline replicas.
    *
-   * @return a Map of domainBaseDN => List&lt;offlineCSN&gt;.
+   * @return the MultiDomainServerState for offline replicas.
    */
-  public Map<DN, List<CSN>> getOfflineReplicas()
+  public MultiDomainServerState getOfflineReplicas()
   {
     return offlineReplicas;
+  }
+
+  /**
+   * Returns whether the current ChangelogState is equal to the provided
+   * ChangelogState.
+   * <p>
+   * Note: Only use for tests!!<br>
+   * This method should only be used by tests because it creates a lot of
+   * intermediate objects which is not suitable for production.
+   *
+   * @param other
+   *          the ChangelogState to compare with
+   * @return true if the current ChangelogState is equal to the provided
+   *         ChangelogState, false otherwise.
+   */
+  public boolean isEqualTo(ChangelogState other)
+  {
+    if (other == null)
+    {
+      return false;
+    }
+    if (this == other)
+    {
+      return true;
+    }
+    return domainToGenerationId.equals(other.domainToGenerationId)
+        && domainToServerIds.equals(other.domainToServerIds)
+        // Note: next line is not suitable for production
+        // because it creates lots of Lists and Maps
+        && offlineReplicas.getSnapshot().equals(other.offlineReplicas.getSnapshot());
   }
 
   /** {@inheritDoc} */

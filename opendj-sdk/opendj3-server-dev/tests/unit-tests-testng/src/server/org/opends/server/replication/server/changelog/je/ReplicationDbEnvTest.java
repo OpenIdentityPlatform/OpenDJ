@@ -28,6 +28,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.HashSet;
 
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
@@ -70,10 +71,15 @@ public class ReplicationDbEnvTest extends DirectoryServerTestCase
     }
 
     @Override
-    protected Database openDatabase(String databaseName)
-        throws ChangelogException, RuntimeException
+    protected Database openDatabase(String databaseName) throws ChangelogException, RuntimeException
     {
       return null;
+    }
+
+    @Override
+    protected ChangelogState readOnDiskChangelogState() throws ChangelogException
+    {
+      return new ChangelogState();
     }
   }
 
@@ -129,8 +135,8 @@ public class ReplicationDbEnvTest extends DirectoryServerTestCase
         entry(baseDN, generationId));
     if (!replicas.isEmpty())
     {
-      assertThat(state.getDomainToServerIds()).containsExactly(
-          entry(baseDN, replicas));
+      assertThat(state.getDomainToServerIds())
+          .containsExactly(entry(baseDN, new HashSet<Integer>(replicas)));
     }
     else
     {
@@ -138,8 +144,8 @@ public class ReplicationDbEnvTest extends DirectoryServerTestCase
     }
     if (!offlineReplicas.isEmpty())
     {
-      assertThat(state.getOfflineReplicas()).containsExactly(
-          entry(baseDN, offlineReplicas));
+      assertThat(state.getOfflineReplicas().getSnapshot())
+          .containsExactly(entry(baseDN, offlineReplicas));
     }
     else
     {
