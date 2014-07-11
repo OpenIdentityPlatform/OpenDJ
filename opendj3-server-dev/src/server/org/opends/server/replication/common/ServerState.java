@@ -250,6 +250,20 @@ public class ServerState implements Iterable<CSN>
   }
 
   /**
+   * Returns a snapshot of this object.
+   *
+   * @return an unmodifiable List representing a snapshot of this object.
+   */
+  public List<CSN> getSnapshot()
+  {
+    if (serverIdToCSN.isEmpty())
+    {
+      return Collections.emptyList();
+    }
+    return Collections.unmodifiableList(new ArrayList<CSN>(serverIdToCSN.values()));
+  }
+
+  /**
    * Return the text representation of ServerState.
    * @return the text representation of ServerState
    */
