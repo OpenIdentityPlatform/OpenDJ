@@ -22,20 +22,10 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
-
 package org.opends.guitools.controlpanel.browser;
 
-import static org.opends.messages.AdminToolMessages.*;
-
-import java.awt.Canvas;
-import java.awt.Image;
-import java.awt.MediaTracker;
-import java.awt.image.ColorModel;
-import java.awt.image.ImageObserver;
-import java.awt.image.MemoryImageSource;
-import java.awt.image.PixelGrabber;
 import java.util.HashMap;
 import java.util.Set;
 import java.util.SortedSet;
@@ -45,6 +35,8 @@ import javax.swing.ImageIcon;
 import org.opends.guitools.controlpanel.util.Utilities;
 import org.opends.quicksetup.ui.UIFactory;
 import org.opends.server.util.ServerConstants;
+
+import static org.opends.messages.AdminToolMessages.*;
 
 /**
  * This class is used as a cache containing the icons that are used by the
@@ -66,10 +58,11 @@ public class IconPool {
    */
   public static final int MODIFIER_ERROR    = 0x04;
 
-  private HashMap<String, ImageIcon> iconTable =
+  private final HashMap<String, ImageIcon> iconTable =
     new HashMap<String, ImageIcon>();
-  private HashMap<String, String> pathTable = new HashMap<String, String>();
-  private HashMap<String, String> descriptionTable =
+  private final HashMap<String, String> pathTable =
+      new HashMap<String, String>();
+  private final HashMap<String, String> descriptionTable =
     new HashMap<String, String>();
   private ImageIcon defaultLeafIcon;
   private ImageIcon suffixIcon;
@@ -117,12 +110,9 @@ public class IconPool {
     "passwordpolicy", INFO_PASSWORD_POLICY_ICON_DESCRIPTION.get().toString()
   };
 
-  private String GENERIC_OBJECT_DESCRIPTION = "Generic entry";
+  private final String GENERIC_OBJECT_DESCRIPTION = "Generic entry";
 
-  /**
-   * The default constructor.
-   *
-   */
+  /** The default constructor. */
   public IconPool() {
     // Recopy ICON_PATH in pathTable for fast access
     for (int i = 0; i < ICON_PATH.length; i = i+2) {
@@ -144,15 +134,12 @@ public class IconPool {
    * modifiers.
    */
   public ImageIcon getIcon(SortedSet<String> objectClasses, int modifiers) {
-    ImageIcon result;
-
     String key = makeKey(objectClasses, modifiers);
-    result = iconTable.get(key);
+    ImageIcon result = iconTable.get(key);
     if (result == null) {
       result = makeIcon(objectClasses, modifiers);
       iconTable.put(key, result);
     }
-
     return result;
   }
 
@@ -270,7 +257,7 @@ public class IconPool {
     ImageIcon result;
 
     // Find the icon associated to the object class
-    if ((objectClasses == null) || (objectClasses.size() == 0)) {
+    if (objectClasses == null || objectClasses.size() == 0) {
       result = getDefaultContainerIcon();
     }
     else {
@@ -328,87 +315,8 @@ public class IconPool {
     if(ocValues != null) {
       result.append(Utilities.getStringFromCollection(ocValues, ""));
     }
-    result.append(String.valueOf(modifiers));
+    result.append(modifiers);
     return result.toString();
   }
 
-
-
-    /**
-     * Returns a RemoteImage corresponding to the superposition of the icon
-     * Image and the mask Image.
-     *
-     * @param icon the RemoteImage that we want to bar.
-     * @param mask the ImageIcond to be used as mask.
-     * @return a RemoteImage corresponding to the superposition of the icon
-     * Image and the mask Image.
-     */
-  public static ImageIcon maskedIcon(ImageIcon icon, ImageIcon mask) {
-    ImageIcon fReturn;
-    int TRANSPARENT = 16711165;  // The value of a transparent pixel
-
-    int h = icon.getIconHeight();
-    int w = icon.getIconWidth();
-
-    if (mask.getImageLoadStatus() != MediaTracker.COMPLETE) {
-      return null;
-    }
-    Image maskImage = mask.getImage();
-
-    Image scaledMaskImage = maskImage.getScaledInstance(w, h ,
-        Image.SCALE_SMOOTH);
-
-    ImageIcon scaledMask = new ImageIcon(scaledMaskImage);
-    if (scaledMask.getImageLoadStatus() != MediaTracker.COMPLETE) {
-      return null;
-    }
-
-    int[] iconPixels = new int[w * h];
-    try {
-      PixelGrabber pg =
-        new PixelGrabber(icon.getImage(), 0, 0, w, h, iconPixels, 0, w);
-      pg.grabPixels();
-
-      if ((pg.status() & ImageObserver.ABORT) !=0) {
-        return null;
-      }
-    } catch (Exception e) {
-      e.printStackTrace();
-      return null;
-    }
-    int[] filterPixels = new int[w * h];
-    try {
-      PixelGrabber pgf =
-        new PixelGrabber(scaledMask.getImage(), 0, 0, w, h, filterPixels, 0, w);
-      pgf.grabPixels();
-
-      if ((pgf.status() & ImageObserver.ABORT) !=0) {
-        fReturn = null;
-        return fReturn;
-      }
-    } catch (Exception e) {
-      e.printStackTrace();
-      fReturn = null;
-      return fReturn;
-    }
-
-
-    int[] newPixels = new int[w * h];
-
-    for( int i = 0; i < h; i++)
-      for (int j = 0; j < w; j++)
-        if (filterPixels[j + i*w] != TRANSPARENT) {
-          newPixels[j + i*w] = filterPixels[j + i*w];
-        } else {
-          newPixels[j + i*w] = iconPixels[j + i*w];
-        }
-    Canvas component = new Canvas();
-
-    Image newImage = component.getToolkit().createImage(
-        new MemoryImageSource(
-            w, h, ColorModel.getRGBdefault(), newPixels, 0, w));
-    fReturn = new ImageIcon(newImage, icon.getDescription());
-
-    return fReturn;
-  }
 }
