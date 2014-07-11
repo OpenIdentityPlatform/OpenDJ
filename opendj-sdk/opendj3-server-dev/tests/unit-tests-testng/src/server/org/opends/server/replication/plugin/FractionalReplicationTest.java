@@ -26,19 +26,12 @@
  */
 package org.opends.server.replication.plugin;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.*;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ModificationType;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.task.Task;
 import org.opends.server.core.DirectoryServer;
@@ -48,16 +41,15 @@ import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.protocol.AddMsg;
 import org.opends.server.replication.protocol.ModifyDNMsg;
 import org.opends.server.replication.protocol.ModifyMsg;
-import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
+import org.opends.server.replication.service.FakeReplicationDomain;
 import org.opends.server.replication.service.ReplicationDomain;
 import org.opends.server.types.*;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.testng.Assert.*;
 
@@ -103,7 +95,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
   private static final String ENTRY_UUID3 =
     "33333333-3333-3333-3333-333333333333";
   /** Dn of the manipulated entry */
-  private static String ENTRY_DN = "uid=1," + TEST_ROOT_DN_STRING;
+  private static final String ENTRY_DN = "uid=1," + TEST_ROOT_DN_STRING;
 
   /**
    * Optional attribute not part of concerned attributes of the fractional
@@ -123,7 +115,7 @@ public class FractionalReplicationTest extends ReplicationTestCase {
   /** Second test backend */
   private static final String TEST2_ROOT_DN_STRING = "dc=example,dc=com";
   private static final String TEST2_ORG_DN_STRING = "o=test2," + TEST2_ROOT_DN_STRING;
-  private static String ENTRY_DN2 = "uid=1," + TEST2_ORG_DN_STRING;
+  private static final String ENTRY_DN2 = "uid=1," + TEST2_ORG_DN_STRING;
 
   private void debugInfo(String s) {
     logger.error(LocalizableMessage.raw(s));
@@ -536,107 +528,6 @@ public class FractionalReplicationTest extends ReplicationTestCase {
         new ReplServerFakeConfiguration(replServerPort, dir, 0, RS_ID, 0, 100,
             replServers);
     replicationServer = new ReplicationServer(conf);
-  }
-
-  private static DomainFakeCfg newConfig(DN baseDN, int serverID,
-      SortedSet<String> replicationServers, long heartbeatInterval)
-  {
-    DomainFakeCfg fakeCfg =
-        new DomainFakeCfg(baseDN, serverID, replicationServers);
-    fakeCfg.setHeartbeatInterval(heartbeatInterval);
-    fakeCfg.setChangetimeHeartbeatInterval(500);
-    return fakeCfg;
-  }
-
-  /**
-   * This class is the minimum implementation of a Concrete ReplicationDomain
-   * used to be able to connect to the RS with a known genid. Also to be able
-   * to send updates
-   */
-  private class FakeReplicationDomain extends ReplicationDomain
-  {
-    /**
-     * A blocking queue that is used to receive updates from the Replication
-     * Service.
-     */
-    private BlockingQueue<UpdateMsg> queue =
-        new LinkedBlockingQueue<UpdateMsg>();
-
-    /** A string that will be exported should exportBackend be called. */
-    private String exportString;
-
-    /**
-     * A StringBuilder that will be used to build a new String should the import
-     * be called.
-     */
-    private StringBuilder importString;
-    private int exportedEntryCount;
-
-    public FakeReplicationDomain(DN baseDN, int serverID,
-        SortedSet<String> replicationServers, long heartbeatInterval,
-        long generationId) throws ConfigException
-    {
-      super(newConfig(baseDN, serverID, replicationServers, heartbeatInterval),
-          generationId);
-      startPublishService(getConfig());
-      startListenService();
-    }
-
-    public void initExport(String exportString, int exportedEntryCount)
-    {
-      this.exportString = exportString;
-      this.exportedEntryCount = exportedEntryCount;
-    }
-
-    @Override
-    public long countEntries() throws DirectoryException
-    {
-      return exportedEntryCount;
-    }
-
-    @Override
-    protected void exportBackend(OutputStream output) throws DirectoryException
-    {
-      try
-      {
-        output.write(exportString.getBytes());
-        output.flush();
-        output.close();
-      } catch (IOException e)
-      {
-        throw new DirectoryException(ResultCode.OPERATIONS_ERROR,
-          ERR_BACKEND_EXPORT_ENTRY.get("", ""));
-      }
-    }
-
-    @Override
-    protected void importBackend(InputStream input) throws DirectoryException
-    {
-      byte[] buffer = new byte[1000];
-
-      int ret;
-      do
-      {
-        try
-        {
-          ret = input.read(buffer, 0, 1000);
-        } catch (IOException e)
-        {
-          throw new DirectoryException(
-            ResultCode.OPERATIONS_ERROR,
-            ERR_BACKEND_EXPORT_ENTRY.get("", ""));
-        }
-        importString.append(new String(buffer, 0, ret));
-      } while (ret >= 0);
-    }
-
-    @Override
-    public boolean processUpdate(UpdateMsg updateMsg)
-    {
-      if (queue != null)
-        queue.add(updateMsg);
-      return true;
-    }
   }
 
   private static final String REPLICATION_GENERATION_ID =

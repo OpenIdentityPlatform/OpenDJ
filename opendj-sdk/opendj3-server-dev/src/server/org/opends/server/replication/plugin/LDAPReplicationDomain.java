@@ -513,7 +513,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     // register as an AlertGenerator
     DirectoryServer.registerAlertGenerator(this);
 
-    startPublishService(configuration);
+    startPublishService();
   }
 
   /**
