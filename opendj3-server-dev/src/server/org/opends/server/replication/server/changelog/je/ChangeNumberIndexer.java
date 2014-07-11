@@ -39,7 +39,11 @@ import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ChangelogState;
-import org.opends.server.replication.server.changelog.api.*;
+import org.opends.server.replication.server.changelog.api.ChangeNumberIndexRecord;
+import org.opends.server.replication.server.changelog.api.ChangelogDB;
+import org.opends.server.replication.server.changelog.api.ChangelogException;
+import org.opends.server.replication.server.changelog.api.DBCursor;
+import org.opends.server.replication.server.changelog.api.ReplicationDomainDB;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.util.StaticUtils;
@@ -690,7 +694,13 @@ public class ChangeNumberIndexer extends DirectoryThread
       {
         StaticUtils.close(map.values());
       }
-      newCursors.remove(baseDN);
+      for (Iterator<Pair<DN, Integer>> it = newCursors.keySet().iterator(); it.hasNext();)
+      {
+        if (it.next().getFirst().equals(baseDN))
+        {
+          it.remove();
+        }
+      }
     }
   }
 
