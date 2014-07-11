@@ -33,7 +33,9 @@ import java.util.TreeSet;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.backends.task.Task;
 import org.opends.server.replication.ReplicationTestCase;
@@ -44,12 +46,13 @@ import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
-import org.opends.server.replication.service.ReplicationDomain.*;
+import org.opends.server.replication.service.ReplicationDomain.ImportExportContext;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.testng.Assert.*;
 
@@ -59,6 +62,7 @@ import static org.testng.Assert.*;
 @SuppressWarnings("javadoc")
 public class ReplicationDomainTest extends ReplicationTestCase
 {
+  private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
   private static final Task NO_INIT_TASK = null;
 
   @DataProvider(name = "publishAndReceiveData")
@@ -117,7 +121,7 @@ public class ReplicationDomainTest extends ReplicationTestCase
        * Check that domain2 receives it shortly after.
        */
       byte[] test = {1, 2, 3 ,4, 0, 1, 2, 3, 4, 5};
-      domain1.publish(test);
+      publish(domain1, test);
 
       UpdateMsg rcvdMsg = rcvQueue2.poll(20, TimeUnit.SECONDS);
       assertNotNull(rcvdMsg);
@@ -185,6 +189,39 @@ public class ReplicationDomainTest extends ReplicationTestCase
     }
   }
 
+  /**
+   * Publish information to the Replication Service (not assured mode).
+   *
+   * @param msg  The byte array containing the information that should
+   *             be sent to the remote entities.
+   */
+  void publish(FakeReplicationDomain domain, byte[] msg)
+  {
+    UpdateMsg updateMsg;
+    synchronized (this)
+    {
+      updateMsg = new UpdateMsg(domain.getGenerator().newCSN(), msg);
+      // If assured replication is configured,
+      // this will prepare blocking mechanism.
+      // If assured replication is disabled, this returns immediately
+      domain.prepareWaitForAckIfAssuredEnabled(updateMsg);
+      domain.publish(updateMsg);
+    }
+
+    try
+    {
+      // If assured replication is enabled,
+      // this will wait for the matching ack or time out.
+      // If assured replication is disabled, this returns immediately
+      domain.waitForAckIfAssuredEnabled(updateMsg);
+    }
+    catch (TimeoutException ex)
+    {
+      // This exception may only be raised if assured replication is enabled
+      logger.info(NOTE_DS_ACK_TIMEOUT, domain.getBaseDNString(), domain.getAssuredTimeout(), updateMsg);
+    }
+  }
+
   private void assertExpectedServerStatuses(Map<Integer, DSInfo> dsInfos,
       int domain1ServerId, int domain2ServerId)
   {
@@ -236,35 +273,29 @@ public class ReplicationDomainTest extends ReplicationTestCase
        */
       byte[] test = {1, 2, 3 ,4, 0, 1, 2, 3, 4, 5};
 
-      long timeStart = System.nanoTime();
-      for (int i=0; i< 100000; i++)
-        domain1.publish(test);
       long timeNow = System.nanoTime();
-      System.out.println(timeNow - timeStart);
-
-      timeStart = timeNow;
-      for (int i=0; i< 100000; i++)
-        domain1.publish(test);
-      timeNow = System.nanoTime();
-      System.out.println(timeNow - timeStart);
-
-      timeStart = timeNow;
-      for (int i=0; i< 100000; i++)
-        domain1.publish(test);
-      timeNow = System.nanoTime();
-      System.out.println(timeNow - timeStart);
-
-      timeStart = timeNow;
-      for (int i=0; i< 100000; i++)
-        domain1.publish(test);
-      timeNow = System.nanoTime();
-      System.out.println(timeNow - timeStart);
+      timeNow = publishRepeatedly(domain1, test, timeNow);
+      timeNow = publishRepeatedly(domain1, test, timeNow);
+      timeNow = publishRepeatedly(domain1, test, timeNow);
+      timeNow = publishRepeatedly(domain1, test, timeNow);
     }
     finally
     {
       disable(domain1);
       remove(replServer1);
     }
+  }
+
+  private long publishRepeatedly(FakeReplicationDomain domain1, byte[] test, long timeNow)
+  {
+    long timeStart = timeNow;
+    for (int i = 0; i < 100000; i++)
+    {
+      publish(domain1, test);
+    }
+    timeNow = System.nanoTime();
+    System.out.println(timeNow - timeStart);
+    return timeNow;
   }
 
   private ReplicationServer createReplicationServer(int serverId,

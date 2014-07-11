@@ -58,20 +58,19 @@ public class FakeReplicationDomain extends ReplicationDomain
   private String exportString;
 
   /**
-   * A StringBuilder that will be used to build a build a new String should the
-   * import be called.
+   * A StringBuilder that will be used to build a new String should the import
+   * be called.
    */
   private StringBuilder importString;
 
   private int exportedEntryCount;
 
   private FakeReplicationDomain(DN baseDN, int serverID,
-      SortedSet<String> replicationServers, int window, long heartbeatInterval)
-      throws ConfigException
+      SortedSet<String> replicationServers, int window, long heartbeatInterval,
+      long generationId) throws ConfigException
   {
-    super(newConfig(baseDN, serverID, replicationServers, window,
-        heartbeatInterval), 1);
-    startPublishService(getConfig());
+    super(newConfig(baseDN, serverID, replicationServers, window, heartbeatInterval), generationId);
+    startPublishService();
     startListenService();
   }
 
@@ -86,21 +85,34 @@ public class FakeReplicationDomain extends ReplicationDomain
   }
 
   public FakeReplicationDomain(DN baseDN, int serverID,
+      SortedSet<String> replicationServers, long heartbeatInterval,
+      long generationId) throws ConfigException
+  {
+    this(baseDN, serverID, replicationServers, 100, heartbeatInterval, generationId);
+  }
+
+  FakeReplicationDomain(DN baseDN, int serverID,
       SortedSet<String> replicationServers, int window, long heartbeatInterval,
       BlockingQueue<UpdateMsg> queue) throws ConfigException
   {
-    this(baseDN, serverID, replicationServers, window, heartbeatInterval);
+    this(baseDN, serverID, replicationServers, window, heartbeatInterval, 1);
     this.queue = queue;
   }
 
-  public FakeReplicationDomain(DN baseDN, int serverID,
+  FakeReplicationDomain(DN baseDN, int serverID,
       SortedSet<String> replicationServers, long heartbeatInterval,
       String exportString, StringBuilder importString, int exportedEntryCount)
       throws ConfigException
   {
-    this(baseDN, serverID, replicationServers, 100, heartbeatInterval);
+    this(baseDN, serverID, replicationServers, 100, heartbeatInterval, 1);
     this.exportString = exportString;
     this.importString = importString;
+    this.exportedEntryCount = exportedEntryCount;
+  }
+
+  public void initExport(String exportString, int exportedEntryCount)
+  {
+    this.exportString = exportString;
     this.exportedEntryCount = exportedEntryCount;
   }
 
