@@ -72,7 +72,7 @@ public abstract class ServerHandler extends MessageHandler
   /**
    * The session opened with the remote server.
    */
-  protected Session session;
+  protected final Session session;
 
   /**
    * The serverURL of the remote server.
@@ -81,40 +81,39 @@ public abstract class ServerHandler extends MessageHandler
   /**
    * Number of updates received from the server in assured safe read mode.
    */
-  protected int assuredSrReceivedUpdates = 0;
+  private int assuredSrReceivedUpdates = 0;
   /**
    * Number of updates received from the server in assured safe read mode that
    * timed out.
    */
-  protected AtomicInteger assuredSrReceivedUpdatesTimeout = new AtomicInteger();
+  private final AtomicInteger assuredSrReceivedUpdatesTimeout = new AtomicInteger();
   /**
    * Number of updates sent to the server in assured safe read mode.
    */
-  protected int assuredSrSentUpdates = 0;
+  private int assuredSrSentUpdates = 0;
   /**
    * Number of updates sent to the server in assured safe read mode that timed
    * out.
    */
-  protected AtomicInteger assuredSrSentUpdatesTimeout = new AtomicInteger();
+  private final AtomicInteger assuredSrSentUpdatesTimeout = new AtomicInteger();
   /**
    * Number of updates received from the server in assured safe data mode.
    */
-  protected int assuredSdReceivedUpdates = 0;
+  private int assuredSdReceivedUpdates = 0;
   /**
    * Number of updates received from the server in assured safe data mode that
    * timed out.
    */
-  protected AtomicInteger assuredSdReceivedUpdatesTimeout = new AtomicInteger();
+  private final AtomicInteger assuredSdReceivedUpdatesTimeout = new AtomicInteger();
   /**
    * Number of updates sent to the server in assured safe data mode.
    */
-  protected int assuredSdSentUpdates = 0;
+  private int assuredSdSentUpdates = 0;
 
   /**
-   * Number of updates sent to the server in assured safe data mode that timed
-   * out.
+   * Number of updates sent to the server in assured safe data mode that timed out.
    */
-  protected AtomicInteger assuredSdSentUpdatesTimeout = new AtomicInteger();
+  private final AtomicInteger assuredSdSentUpdatesTimeout = new AtomicInteger();
 
   /**
    * The associated ServerWriter that sends messages to the remote server.
@@ -305,7 +304,8 @@ public abstract class ServerHandler extends MessageHandler
       // sendWindow MUST be created before starting the writer
       sendWindow = new Semaphore(sendWindowSize);
 
-      writer = new ServerWriter(session, this, replicationServerDomain);
+      writer = new ServerWriter(session, this, replicationServerDomain,
+          replicationServer.getDSRSShutdownSync());
       reader = new ServerReader(session, this);
 
       session.setName("Replication server RS(" + getReplicationServerId()
@@ -630,7 +630,7 @@ public abstract class ServerHandler extends MessageHandler
    * Increment the number of updates sent to the server in assured safe data
    * mode.
    */
-  public void incrementAssuredSdSentUpdates()
+  private void incrementAssuredSdSentUpdates()
   {
     assuredSdSentUpdates++;
   }
@@ -666,7 +666,7 @@ public abstract class ServerHandler extends MessageHandler
    * Increment the number of updates sent to the server in assured safe read
    * mode.
    */
-  public void incrementAssuredSrSentUpdates()
+  private void incrementAssuredSrSentUpdates()
   {
     assuredSrSentUpdates++;
   }

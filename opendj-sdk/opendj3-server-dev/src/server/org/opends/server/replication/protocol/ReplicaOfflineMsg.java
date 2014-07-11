@@ -106,6 +106,13 @@ public class ReplicaOfflineMsg extends UpdateMsg
 
   /** {@inheritDoc} */
   @Override
+  public boolean contributesToDomainState()
+  {
+    return false; // replica offline msg MUST NOT update the ds-sync-state
+  }
+
+  /** {@inheritDoc} */
+  @Override
   public String toString()
   {
     return getClass().getSimpleName() + " offlineCSN=" + csn;

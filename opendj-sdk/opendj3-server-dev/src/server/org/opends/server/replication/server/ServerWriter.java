@@ -32,8 +32,10 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.opends.server.api.DirectoryThread;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.replication.common.ServerStatus;
+import org.opends.server.replication.protocol.ReplicaOfflineMsg;
 import org.opends.server.replication.protocol.Session;
 import org.opends.server.replication.protocol.UpdateMsg;
+import org.opends.server.replication.service.DSRSShutdownSync;
 
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.replication.common.ServerStatus.*;
@@ -50,8 +52,7 @@ public class ServerWriter extends DirectoryThread
   private final Session session;
   private final ServerHandler handler;
   private final ReplicationServerDomain replicationServerDomain;
-
-
+  private final DSRSShutdownSync dsrsShutdownSync;
 
   /**
    * Create a ServerWriter. Then ServerWriter then waits on the ServerHandler
@@ -63,9 +64,11 @@ public class ServerWriter extends DirectoryThread
    *          handler for which the ServerWriter is created.
    * @param replicationServerDomain
    *          The ReplicationServerDomain of this ServerWriter.
+   * @param dsrsShutdownSync Synchronization object for shutdown of combined DS/RS instances.
    */
   public ServerWriter(Session session, ServerHandler handler,
-      ReplicationServerDomain replicationServerDomain)
+      ReplicationServerDomain replicationServerDomain,
+      DSRSShutdownSync dsrsShutdownSync)
   {
     // Session may be null for ECLServerWriter.
     super("Replication server RS(" + handler.getReplicationServerId()
@@ -75,6 +78,7 @@ public class ServerWriter extends DirectoryThread
     this.session = session;
     this.handler = handler;
     this.replicationServerDomain = replicationServerDomain;
+    this.dsrsShutdownSync = dsrsShutdownSync;
   }
 
   /**
@@ -93,7 +97,9 @@ public class ServerWriter extends DirectoryThread
     LocalizableMessage errMessage = null;
     try
     {
-      while (true)
+      boolean shutdown = false;
+      while (!shutdown
+          || !dsrsShutdownSync.canShutdown(replicationServerDomain.getBaseDN()))
       {
         final UpdateMsg updateMsg = replicationServerDomain.take(this.handler);
         if (updateMsg == null)
@@ -101,12 +107,16 @@ public class ServerWriter extends DirectoryThread
           // this connection is closing
           errMessage = LocalizableMessage.raw(
            "Connection closure: null update returned by domain.");
-          return;
+          shutdown = true;
         }
         else if (!isUpdateMsgFiltered(updateMsg))
         {
           // Publish the update to the remote server using a protocol version it supports
           session.publish(updateMsg);
+          if (updateMsg instanceof ReplicaOfflineMsg)
+          {
+            dsrsShutdownSync.replicaOfflineMsgForwarded(replicationServerDomain.getBaseDN());
+          }
         }
       }
     }

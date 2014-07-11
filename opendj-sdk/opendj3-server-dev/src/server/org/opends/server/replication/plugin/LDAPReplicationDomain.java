@@ -70,6 +70,7 @@ import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.common.StatusMachineEvent;
 import org.opends.server.replication.protocol.*;
+import org.opends.server.replication.service.DSRSShutdownSync;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.replication.service.ReplicationDomain;
 import org.opends.server.tasks.PurgeConflictsHistoricalTask;
@@ -185,6 +186,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   public static final String DS_SYNC_CONFLICT = "ds-sync-conflict";
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
+  private final DSRSShutdownSync dsrsShutdownSync;
   /**
    * The update to replay message queue where the listener thread is going to
    * push incoming update messages.
@@ -455,14 +457,17 @@ public final class LDAPReplicationDomain extends ReplicationDomain
    *
    * @param configuration    The configuration of this ReplicationDomain.
    * @param updateToReplayQueue The queue for update messages to replay.
+   * @param dsrsShutdownSync Synchronization object for shutdown of combined DS/RS instances.
    * @throws ConfigException In case of invalid configuration.
    */
   LDAPReplicationDomain(ReplicationDomainCfg configuration,
-      BlockingQueue<UpdateToReplay> updateToReplayQueue) throws ConfigException
+      BlockingQueue<UpdateToReplay> updateToReplayQueue,
+      DSRSShutdownSync dsrsShutdownSync) throws ConfigException
   {
     super(configuration, -1);
 
     this.updateToReplayQueue = updateToReplayQueue;
+    this.dsrsShutdownSync = dsrsShutdownSync;
 
     // Get assured configuration
     readAssuredConfig(configuration, false);
@@ -2011,6 +2016,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
   public void publishReplicaOfflineMsg()
   {
     pendingChanges.putReplicaOfflineMsg();
+    dsrsShutdownSync.replicaOfflineMsgSent(getBaseDN());
   }
 
   /**
