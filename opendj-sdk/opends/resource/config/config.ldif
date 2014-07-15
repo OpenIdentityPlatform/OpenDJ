@@ -1643,6 +1643,14 @@ cn: PBKDF2
 ds-cfg-java-class: org.opends.server.extensions.PBKDF2PasswordStorageScheme
 ds-cfg-enabled: true
 
+dn: cn=PKCS5S2,cn=Password Storage Schemes,cn=config
+objectClass: top
+objectClass: ds-cfg-password-storage-scheme
+objectClass: ds-cfg-pkcs5s2-password-storage-scheme
+cn: PKCS5S2
+ds-cfg-java-class: org.opends.server.extensions.PKCS5S2PasswordStorageScheme
+ds-cfg-enabled: true
+
 dn: cn=SHA-1,cn=Password Storage Schemes,cn=config
 objectClass: top
 objectClass: ds-cfg-password-storage-scheme
