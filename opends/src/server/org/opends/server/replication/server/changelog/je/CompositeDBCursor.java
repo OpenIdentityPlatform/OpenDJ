@@ -93,24 +93,19 @@ abstract class CompositeDBCursor<Data> implements DBCursor<UpdateMsg>
       return false;
     }
 
-    if (state == UNINITIALIZED)
+    // If previous state was ready, then we must advance the first cursor
+    // (which UpdateMsg has been consumed).
+    // To keep consistent the cursors' order in the SortedSet, it is necessary
+    // to remove the first cursor, then add it again after moving it forward.
+    final Entry<DBCursor<UpdateMsg>, Data> cursorToAdvance =
+        state != UNINITIALIZED ? cursors.pollFirstEntry() : null;
+    state = READY;
+    recycleExhaustedCursors();
+    if (cursorToAdvance != null)
     {
-      state = READY;
-    }
-    else
-    {
-      // Previous state was READY => we must advance the first cursor
-      // because the UpdateMsg it is pointing has already been consumed.
-      // To keep consistent the cursors' order in the SortedSet, it is necessary
-      // to remove the first cursor, then add it again after moving it forward.
-      final Entry<DBCursor<UpdateMsg>, Data> cursorToAdvance = cursors.pollFirstEntry();
-      if (cursorToAdvance != null)
-      {
-        addCursor(cursorToAdvance.getKey(), cursorToAdvance.getValue());
-      }
+      addCursor(cursorToAdvance.getKey(), cursorToAdvance.getValue());
     }
 
-    recycleExhaustedCursors();
     removeNoLongerNeededCursors();
     incorporateNewCursors();
     return !cursors.isEmpty();
