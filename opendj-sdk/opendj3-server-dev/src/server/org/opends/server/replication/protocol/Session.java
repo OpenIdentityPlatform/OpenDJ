@@ -319,6 +319,11 @@ public final class Session extends DirectoryThread implements Closeable
   public void publish(final ReplicationMsg msg) throws IOException
   {
     final byte[] buffer = msg.getBytes(protocolVersion);
+    if (buffer == null)
+    {
+      // skip anything that cannot be encoded for this peer.
+      return;
+    }
     if (isRunning.get())
     {
       while (!closeInitiated)

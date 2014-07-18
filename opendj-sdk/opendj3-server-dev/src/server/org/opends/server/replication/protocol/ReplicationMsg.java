@@ -107,7 +107,8 @@ public abstract class ReplicationMsg
    * @param protocolVersion
    *          The protocol version to use for serialization. The version should
    *          normally be older than the current one.
-   * @return The encoded PDU.
+   * @return The encoded PDU, or <code>null</code> if the message isn't supported
+   *          in that protocol version.
    */
   public abstract byte[] getBytes(short protocolVersion);
 
