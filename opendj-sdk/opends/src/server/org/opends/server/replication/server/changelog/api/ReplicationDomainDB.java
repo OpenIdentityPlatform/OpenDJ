@@ -26,8 +26,10 @@
 package org.opends.server.replication.server.changelog.api;
 
 import org.opends.server.replication.common.CSN;
+import org.opends.server.replication.common.MultiDomainServerState;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.protocol.UpdateMsg;
+import org.opends.server.replication.server.changelog.je.MultiDomainDBCursor;
 import org.opends.server.types.DN;
 
 /**
@@ -89,6 +91,26 @@ public interface ReplicationDomainDB
    */
   void removeDomain(DN baseDN) throws ChangelogException;
 
+  /**
+   * Generates a {@link DBCursor} across all the domains starting after the
+   * provided {@link MultiDomainServerState} for each domain.
+   * <p>
+   * When the cursor is not used anymore, client code MUST call the
+   * {@link DBCursor#close()} method to free the resources and locks used by the
+   * cursor.
+   *
+   * @param startAfterState
+   *          Starting point for each domain cursor. If any {@link ServerState}
+   *          for a domain is null, then start from the oldest CSN for each
+   *          replicaDBs
+   * @return a non null {@link DBCursor}
+   * @throws ChangelogException
+   *           If a database problem happened
+   * @see #getCursorFrom(DN, ServerState)
+   */
+  public MultiDomainDBCursor getCursorFrom(MultiDomainServerState startAfterState)
+      throws ChangelogException;
+
   // serverId methods
 
   /**
@@ -102,16 +124,17 @@ public interface ReplicationDomainDB
    *
    * @param baseDN
    *          the replication domain baseDN
-   * @param startAfterServerState
+   * @param startAfterState
    *          Starting point for each ReplicaDB cursor. If any CSN for a
    *          replicaDB is null, then start from the oldest CSN for this
    *          replicaDB
    * @return a non null {@link DBCursor}
    * @throws ChangelogException
    *           If a database problem happened
+   * @see #getCursorFrom(DN, int, CSN)
    */
-  DBCursor<UpdateMsg> getCursorFrom(DN baseDN,
-      ServerState startAfterServerState) throws ChangelogException;
+  DBCursor<UpdateMsg> getCursorFrom(DN baseDN, ServerState startAfterState)
+      throws ChangelogException;
 
   /**
    * Generates a {@link DBCursor} for one replicaDB for the specified
@@ -134,6 +157,14 @@ public interface ReplicationDomainDB
    */
   DBCursor<UpdateMsg> getCursorFrom(DN baseDN, int serverId, CSN startAfterCSN)
       throws ChangelogException;
+
+  /**
+   * Unregisters the provided cursor from this replication domain.
+   *
+   * @param cursor
+   *          the cursor to unregister.
+   */
+  void unregisterCursor(DBCursor<?> cursor);
 
   /**
    * Publishes the provided change to the changelog DB for the specified

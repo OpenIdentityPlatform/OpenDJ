@@ -127,7 +127,11 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
   private ChangeNumberIndexDB cnIndexDB;
   @Mock
   private ReplicationDomainDB domainDB;
-  private Map<Pair<DN, Integer>, SequentialDBCursor> cursors;
+
+  private List<DN> eclEnabledDomains;
+  private MultiDomainDBCursor multiDomainCursor;
+  private Map<Pair<DN, Integer>, SequentialDBCursor> replicaDBCursors;
+  private Map<DN, DomainDBCursor> domainDBCursors;
   private ChangelogState initialState;
   private Map<DN, ServerState> domainNewestCSNs;
   private ChangeNumberIndexer cnIndexer;
@@ -152,13 +156,18 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
   public void setup() throws Exception
   {
     MockitoAnnotations.initMocks(this);
-    when(changelogDB.getChangeNumberIndexDB()).thenReturn(cnIndexDB);
-    when(changelogDB.getReplicationDomainDB()).thenReturn(domainDB);
 
+    multiDomainCursor = new MultiDomainDBCursor(domainDB);
     initialState = new ChangelogState();
     initialCookie = new MultiDomainServerState();
-    cursors = new HashMap<Pair<DN, Integer>, SequentialDBCursor>();
+    replicaDBCursors = new HashMap<Pair<DN, Integer>, SequentialDBCursor>();
+    domainDBCursors = new HashMap<DN, DomainDBCursor>();
     domainNewestCSNs = new HashMap<DN, ServerState>();
+
+    when(changelogDB.getChangeNumberIndexDB()).thenReturn(cnIndexDB);
+    when(changelogDB.getReplicationDomainDB()).thenReturn(domainDB);
+    when(domainDB.getCursorFrom(any(MultiDomainServerState.class))).thenReturn(
+        multiDomainCursor);
   }
 
   @AfterMethod
@@ -172,15 +181,17 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
   @Test
   public void emptyDBNoDS() throws Exception
   {
-    startCNIndexer(BASE_DN1);
+    eclEnabledDomains = Arrays.asList(BASE_DN1);
+    startCNIndexer();
     assertExternalChangelogContent();
   }
 
   @Test(dependsOnMethods = { EMPTY_DB_NO_DS })
   public void emptyDBOneDS() throws Exception
   {
+    eclEnabledDomains = Arrays.asList(BASE_DN1);
     addReplica(BASE_DN1, serverId1);
-    startCNIndexer(BASE_DN1);
+    startCNIndexer();
     assertExternalChangelogContent();
 
     final ReplicatedUpdateMsg msg1 = msg(BASE_DN1, serverId1, 1);
@@ -191,10 +202,11 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
   @Test(dependsOnMethods = { EMPTY_DB_NO_DS })
   public void nonEmptyDBOneDS() throws Exception
   {
+    eclEnabledDomains = Arrays.asList(BASE_DN1);
     final ReplicatedUpdateMsg msg1 = msg(BASE_DN1, serverId1, 1);
     addReplica(BASE_DN1, serverId1);
     setCNIndexDBInitialRecords(msg1);
-    startCNIndexer(BASE_DN1);
+    startCNIndexer();
     assertExternalChangelogContent();
 
     final ReplicatedUpdateMsg msg2 = msg(BASE_DN1, serverId1, 2);
@@ -205,9 +217,10 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
   @Test(dependsOnMethods = { EMPTY_DB_NO_DS })
   public void emptyDBTwoDSs() throws Exception
   {
+    eclEnabledDomains = Arrays.asList(BASE_DN1);
     addReplica(BASE_DN1, serverId1);
     addReplica(BASE_DN1, serverId2);
-    startCNIndexer(BASE_DN1);
+    startCNIndexer();
     assertExternalChangelogContent();
 
     // simulate messages received out of order
@@ -223,9 +236,10 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
   @Test(dependsOnMethods = { EMPTY_DB_NO_DS })
   public void emptyDBTwoDSsDifferentDomains() throws Exception
   {
+    eclEnabledDomains = Arrays.asList(BASE_DN1, BASE_DN2);
     addReplica(BASE_DN1, serverId1);
     addReplica(BASE_DN2, serverId2);
-    startCNIndexer(BASE_DN1, BASE_DN2);
+    startCNIndexer();
     assertExternalChangelogContent();
 
     final ReplicatedUpdateMsg msg1 = msg(BASE_DN1, serverId1, 1);
@@ -258,8 +272,9 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
   @Test(dependsOnMethods = { EMPTY_DB_NO_DS })
   public void emptyDBTwoDSsDoesNotLoseChanges() throws Exception
   {
+    eclEnabledDomains = Arrays.asList(BASE_DN1);
     addReplica(BASE_DN1, serverId1);
-    startCNIndexer(BASE_DN1);
+    startCNIndexer();
     assertExternalChangelogContent();
 
     final ReplicatedUpdateMsg msg1 = msg(BASE_DN1, serverId1, 1);
@@ -286,12 +301,13 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
   @Test(dependsOnMethods = { EMPTY_DB_NO_DS })
   public void nonEmptyDBTwoDSs() throws Exception
   {
+    eclEnabledDomains = Arrays.asList(BASE_DN1);
     final ReplicatedUpdateMsg msg1 = msg(BASE_DN1, serverId1, 1);
     final ReplicatedUpdateMsg msg2 = msg(BASE_DN1, serverId2, 2);
     addReplica(BASE_DN1, serverId1);
     addReplica(BASE_DN1, serverId2);
     setCNIndexDBInitialRecords(msg1, msg2);
-    startCNIndexer(BASE_DN1);
+    startCNIndexer();
     assertExternalChangelogContent();
 
     final ReplicatedUpdateMsg msg3 = msg(BASE_DN1, serverId2, 3);
@@ -311,9 +327,10 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
   @Test(dependsOnMethods = { EMPTY_DB_NO_DS })
   public void emptyDBTwoDSsOneSendsNoUpdatesForSomeTime() throws Exception
   {
+    eclEnabledDomains = Arrays.asList(BASE_DN1);
     addReplica(BASE_DN1, serverId1);
     addReplica(BASE_DN1, serverId2);
-    startCNIndexer(BASE_DN1);
+    startCNIndexer();
     assertExternalChangelogContent();
 
     final ReplicatedUpdateMsg msg1Sid2 = msg(BASE_DN1, serverId2, 1);
@@ -328,10 +345,11 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
   @Test(dependsOnMethods = { EMPTY_DB_NO_DS })
   public void emptyDBThreeDSsOneIsNotECLEnabledDomain() throws Exception
   {
+    eclEnabledDomains = Arrays.asList(BASE_DN1);
     addReplica(ADMIN_DATA_DN, serverId1);
     addReplica(BASE_DN1, serverId2);
     addReplica(BASE_DN1, serverId3);
-    startCNIndexer(BASE_DN1);
+    startCNIndexer();
     assertExternalChangelogContent();
 
     // cn=admin data will does not participate in the external changelog
@@ -349,8 +367,9 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
   @Test(dependsOnMethods = { EMPTY_DB_NO_DS })
   public void emptyDBOneInitialDSAnotherDSJoining() throws Exception
   {
+    eclEnabledDomains = Arrays.asList(BASE_DN1);
     addReplica(BASE_DN1, serverId1);
-    startCNIndexer(BASE_DN1);
+    startCNIndexer();
     assertExternalChangelogContent();
 
     final ReplicatedUpdateMsg msg1 = msg(BASE_DN1, serverId1, 1);
@@ -370,8 +389,9 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
   @Test(dependsOnMethods = { EMPTY_DB_NO_DS })
   public void emptyDBOneInitialDSAnotherDSJoining2() throws Exception
   {
+    eclEnabledDomains = Arrays.asList(BASE_DN1);
     addReplica(BASE_DN1, serverId1);
-    startCNIndexer(BASE_DN1);
+    startCNIndexer();
     assertExternalChangelogContent();
 
     final ReplicatedUpdateMsg msg1 = msg(BASE_DN1, serverId1, 1);
@@ -389,9 +409,10 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
   @Test(dependsOnMethods = { EMPTY_DB_NO_DS })
   public void emptyDBTwoDSsOneSendingHeartbeats() throws Exception
   {
+    eclEnabledDomains = Arrays.asList(BASE_DN1);
     addReplica(BASE_DN1, serverId1);
     addReplica(BASE_DN1, serverId2);
-    startCNIndexer(BASE_DN1);
+    startCNIndexer();
     assertExternalChangelogContent();
 
     final ReplicatedUpdateMsg msg1 = msg(BASE_DN1, serverId1, 1);
@@ -406,9 +427,10 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
   @Test(dependsOnMethods = { EMPTY_DB_NO_DS })
   public void emptyDBTwoDSsOneGoingOffline() throws Exception
   {
+    eclEnabledDomains = Arrays.asList(BASE_DN1);
     addReplica(BASE_DN1, serverId1);
     addReplica(BASE_DN1, serverId2);
-    startCNIndexer(BASE_DN1);
+    startCNIndexer();
     assertExternalChangelogContent();
 
     final ReplicatedUpdateMsg msg1 = msg(BASE_DN1, serverId1, 1);
@@ -439,10 +461,11 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
   @Test(dependsOnMethods = { EMPTY_DB_NO_DS })
   public void emptyDBTwoDSsOneInitiallyOffline() throws Exception
   {
+    eclEnabledDomains = Arrays.asList(BASE_DN1);
     addReplica(BASE_DN1, serverId1);
     addReplica(BASE_DN1, serverId2);
     initialState.addOfflineReplica(BASE_DN1, new CSN(1, 1, serverId1));
-    startCNIndexer(BASE_DN1);
+    startCNIndexer();
     assertExternalChangelogContent();
 
     final ReplicatedUpdateMsg msg2 = msg(BASE_DN1, serverId2, 2);
@@ -472,12 +495,13 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
   @Test(dependsOnMethods = { EMPTY_DB_NO_DS })
   public void emptyDBTwoDSsOneInitiallyWithChangesThenOffline() throws Exception
   {
+    eclEnabledDomains = Arrays.asList(BASE_DN1);
     addReplica(BASE_DN1, serverId1);
     addReplica(BASE_DN1, serverId2);
     final ReplicatedUpdateMsg msg1 = msg(BASE_DN1, serverId1, 1);
     publishUpdateMsg(msg1);
     initialState.addOfflineReplica(BASE_DN1, new CSN(2, 1, serverId1));
-    startCNIndexer(BASE_DN1);
+    startCNIndexer();
 
     // blocked until we receive info for serverId2
     assertExternalChangelogContent();
@@ -516,13 +540,14 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
   @Test(dependsOnMethods = { EMPTY_DB_NO_DS })
   public void emptyDBTwoDSsOneInitiallyPersistedOfflineThenChanges() throws Exception
   {
+    eclEnabledDomains = Arrays.asList(BASE_DN1);
     addReplica(BASE_DN1, serverId1);
     addReplica(BASE_DN1, serverId2);
     initialState.addOfflineReplica(BASE_DN1, new CSN(1, 1, serverId1));
     final ReplicatedUpdateMsg msg2 = msg(BASE_DN1, serverId1, 2);
     final ReplicatedUpdateMsg msg3 = msg(BASE_DN1, serverId1, 3);
     publishUpdateMsg(msg2, msg3);
-    startCNIndexer(BASE_DN1);
+    startCNIndexer();
     assertExternalChangelogContent();
 
     // MCP moves forward because serverId1 is not really offline
@@ -539,9 +564,10 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
   @Test(dependsOnMethods = { EMPTY_DB_NO_DS })
   public void emptyDBTwoDSsOneKilled() throws Exception
   {
+    eclEnabledDomains = Arrays.asList(BASE_DN1);
     addReplica(BASE_DN1, serverId1);
     addReplica(BASE_DN1, serverId2);
-    startCNIndexer(BASE_DN1);
+    startCNIndexer();
     assertExternalChangelogContent();
 
     final ReplicatedUpdateMsg msg1 = msg(BASE_DN1, serverId1, 1);
@@ -561,10 +587,26 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
 
   private void addReplica(DN baseDN, int serverId) throws Exception
   {
-    final SequentialDBCursor cursor = new SequentialDBCursor();
-    cursors.put(Pair.of(baseDN, serverId), cursor);
-    when(domainDB.getCursorFrom(eq(baseDN), eq(serverId), any(CSN.class)))
-        .thenReturn(cursor);
+    final SequentialDBCursor replicaDBCursor = new SequentialDBCursor();
+    replicaDBCursors.put(Pair.of(baseDN, serverId), replicaDBCursor);
+
+    if (isECLEnabledDomain2(baseDN))
+    {
+      DomainDBCursor domainDBCursor = domainDBCursors.get(baseDN);
+      if (domainDBCursor == null)
+      {
+        domainDBCursor = new DomainDBCursor(baseDN, domainDB);
+        domainDBCursors.put(baseDN, domainDBCursor);
+
+        multiDomainCursor.addDomain(baseDN, null);
+        when(domainDB.getCursorFrom(eq(baseDN), any(ServerState.class)))
+            .thenReturn(domainDBCursor);
+      }
+      domainDBCursor.addReplicaDB(serverId, null);
+      when(domainDB.getCursorFrom(eq(baseDN), eq(serverId), any(CSN.class)))
+          .thenReturn(replicaDBCursor);
+    }
+
     when(domainDB.getDomainNewestCSNs(baseDN)).thenReturn(
         getDomainNewestCSNs(baseDN));
     initialState.addServerIdToDomain(serverId, baseDN);
@@ -581,19 +623,24 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
     return serverState;
   }
 
-  private void startCNIndexer(DN... eclEnabledDomains)
+  private void startCNIndexer()
   {
-    final List<DN> eclEnabledDomainList = Arrays.asList(eclEnabledDomains);
     cnIndexer = new ChangeNumberIndexer(changelogDB, initialState)
     {
       @Override
       protected boolean isECLEnabledDomain(DN baseDN)
       {
-        return eclEnabledDomainList.contains(baseDN);
+        return isECLEnabledDomain2(baseDN);
       }
+
     };
     cnIndexer.start();
     waitForWaitingState(cnIndexer);
+  }
+
+  private boolean isECLEnabledDomain2(DN baseDN)
+  {
+    return eclEnabledDomains.contains(baseDN);
   }
 
   private void stopCNIndexer() throws Exception
@@ -630,7 +677,8 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
         final CSN csn = newestMsg.getCSN();
         when(cnIndexDB.getNewestRecord()).thenReturn(
             new ChangeNumberIndexRecord(initialCookie.toString(), baseDN, csn));
-        final SequentialDBCursor cursor = cursors.get(Pair.of(baseDN, csn.getServerId()));
+        final SequentialDBCursor cursor =
+            replicaDBCursors.get(Pair.of(baseDN, csn.getServerId()));
         cursor.add(newestMsg);
       }
       initialCookie.update(msg.getBaseDN(), msg.getCSN());
@@ -642,7 +690,7 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
     for (ReplicatedUpdateMsg msg : msgs)
     {
       final SequentialDBCursor cursor =
-          cursors.get(Pair.of(msg.getBaseDN(), msg.getCSN().getServerId()));
+          replicaDBCursors.get(Pair.of(msg.getBaseDN(), msg.getCSN().getServerId()));
       if (msg.isEmptyCursor())
       {
         cursor.add(null);
@@ -745,11 +793,4 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
     };
   }
 
-  @Test(dataProvider = "precedingCSNDataProvider")
-  public void getPrecedingCSN(CSN start, CSN expected)
-  {
-    cnIndexer = new ChangeNumberIndexer(changelogDB, initialState);
-    CSN precedingCSN = this.cnIndexer.getPrecedingCSN(start);
-    assertThat(precedingCSN).isEqualTo(expected);
-  }
 }
