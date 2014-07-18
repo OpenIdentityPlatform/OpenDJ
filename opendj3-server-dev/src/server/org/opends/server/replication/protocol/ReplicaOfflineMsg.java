@@ -90,6 +90,10 @@ public class ReplicaOfflineMsg extends UpdateMsg
   @Override
   public byte[] getBytes(short protocolVersion)
   {
+    if (protocolVersion < ProtocolVersion.REPLICATION_PROTOCOL_V8)
+    {
+      return null;
+    }
     final ByteArrayBuilder builder = new ByteArrayBuilder(size());
     builder.appendByte(MSG_TYPE_REPLICA_OFFLINE);
     builder.appendShort(protocolVersion);
