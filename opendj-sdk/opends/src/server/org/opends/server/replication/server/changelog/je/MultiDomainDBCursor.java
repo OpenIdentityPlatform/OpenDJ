@@ -38,6 +38,8 @@ import org.opends.server.types.DN;
 
 /**
  * Cursor iterating over a all the replication domain known to the changelog DB.
+ *
+ * \@NotThreadSafe
  */
 public class MultiDomainDBCursor extends CompositeDBCursor<DN>
 {

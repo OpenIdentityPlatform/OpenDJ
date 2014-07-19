@@ -34,8 +34,9 @@ import org.opends.server.types.DebugLogLevel;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 
 /**
- * This class allows to iterate through the changes received from a given
- * LDAP Server Identifier.
+ * This class allows to iterate through the changes comming from the change number index DB.
+ *
+ * \@NotThreadSafe
  */
 public class JEChangeNumberIndexDBCursor implements
     DBCursor<ChangeNumberIndexRecord>

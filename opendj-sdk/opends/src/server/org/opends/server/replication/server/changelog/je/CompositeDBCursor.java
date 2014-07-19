@@ -41,6 +41,7 @@ import org.opends.server.util.StaticUtils;
  *
  * @param <Data>
  *          The type of data associated with each cursor
+ * \@NotThreadSafe
  */
 abstract class CompositeDBCursor<Data> implements DBCursor<UpdateMsg>
 {
