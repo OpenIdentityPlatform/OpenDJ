@@ -54,6 +54,8 @@ import org.opends.server.replication.server.changelog.file.Log.RepositionableCur
  * record is newly available, a subsequent call to the {@code next()} method will
  * return {@code true} and the record will be available by calling {@code getRecord()}
  * method.
+ *
+ * \@NotThreadSafe
  */
 class FileReplicaDBCursor implements DBCursor<UpdateMsg>
 {

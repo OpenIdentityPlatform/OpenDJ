@@ -31,6 +31,8 @@ import org.opends.server.replication.server.changelog.api.DBCursor;
 
 /**
  * A cursor on ChangeNumberIndexDB.
+ *
+ * \@NotThreadSafe
  */
 class FileChangeNumberIndexDBCursor implements DBCursor<ChangeNumberIndexRecord>
 {
