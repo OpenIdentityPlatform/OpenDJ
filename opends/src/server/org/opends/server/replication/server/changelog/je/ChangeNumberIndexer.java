@@ -425,13 +425,26 @@ public class ChangeNumberIndexer extends DirectoryThread
       {
         try
         {
-          while (!domainsToClear.isEmpty())
+          if (!domainsToClear.isEmpty())
           {
-            final DN baseDNToClear = domainsToClear.first();
-            nextChangeForInsertDBCursor.removeDomain(baseDNToClear);
-            // Only release the waiting thread
-            // once this domain's state has been cleared.
-            domainsToClear.remove(baseDNToClear);
+            final DN cursorData = nextChangeForInsertDBCursor.getData();
+            final boolean callNextOnCursor =
+                cursorData != null && domainsToClear.contains(cursorData);
+            while (!domainsToClear.isEmpty())
+            {
+              final DN baseDNToClear = domainsToClear.first();
+              nextChangeForInsertDBCursor.removeDomain(baseDNToClear);
+              // Only release the waiting thread
+              // once this domain's state has been cleared.
+              domainsToClear.remove(baseDNToClear);
+            }
+
+            if (callNextOnCursor)
+            {
+              // The next change to consume comes from a domain to be removed.
+              // Call DBCursor.next() to ensure this domain is removed
+              nextChangeForInsertDBCursor.next();
+            }
           }
 
           // Do not call DBCursor.next() here

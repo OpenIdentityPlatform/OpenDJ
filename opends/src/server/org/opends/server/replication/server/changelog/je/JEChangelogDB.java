@@ -41,6 +41,7 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.MultiDomainServerState;
 import org.opends.server.replication.common.ServerState;
+import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ChangelogState;
 import org.opends.server.replication.server.ReplicationServer;
@@ -186,7 +187,7 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
     }
   }
 
-  private Map<Integer, JEReplicaDB> getDomainMap(DN baseDN)
+  private Map<Integer, JEReplicaDB> getDomainMap(final DN baseDN)
   {
     final Map<Integer, JEReplicaDB> domainMap = domainToReplicaDBs.get(baseDN);
     if (domainMap != null)
@@ -196,26 +197,9 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
     return Collections.emptyMap();
   }
 
-  private JEReplicaDB getReplicaDB(DN baseDN, int serverId)
+  private JEReplicaDB getReplicaDB(final DN baseDN, final int serverId)
   {
     return getDomainMap(baseDN).get(serverId);
-  }
-
-  /**
-   * Provision resources for the specified serverId in the specified replication
-   * domain.
-   *
-   * @param baseDN
-   *          the replication domain where to add the serverId
-   * @param serverId
-   *          the server Id to add to the replication domain
-   * @throws ChangelogException
-   *           If a database error happened.
-   */
-  private void commission(DN baseDN, int serverId, ReplicationServer rs)
-      throws ChangelogException
-  {
-    getOrCreateReplicaDB(baseDN, serverId, rs);
   }
 
   /**
@@ -279,10 +263,13 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
       return previousValue;
     }
 
-    // we just created a new domain => update all cursors
-    for (MultiDomainDBCursor cursor : registeredMultiDomainCursors)
+    if (MultimasterReplication.isECLEnabledDomain(baseDN))
     {
-      cursor.addDomain(baseDN, null);
+      // we just created a new domain => update all cursors
+      for (MultiDomainDBCursor cursor : registeredMultiDomainCursors)
+      {
+        cursor.addDomain(baseDN, null);
+      }
     }
     return newValue;
   }
@@ -360,7 +347,7 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
     {
       for (int serverId : entry.getValue())
       {
-        commission(entry.getKey(), serverId, replicationServer);
+        getOrCreateReplicaDB(entry.getKey(), serverId, replicationServer);
       }
     }
   }
@@ -695,7 +682,7 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
       {
         try
         {
-          cnIndexDB = new JEChangeNumberIndexDB(this.replicationEnv);
+          cnIndexDB = new JEChangeNumberIndexDB(replicationEnv);
         }
         catch (Exception e)
         {
@@ -774,10 +761,10 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
 
   /** {@inheritDoc} */
   @Override
-  public DBCursor<UpdateMsg> getCursorFrom(final DN baseDN, final int serverId, CSN startAfterCSN)
+  public DBCursor<UpdateMsg> getCursorFrom(final DN baseDN, final int serverId, final CSN startAfterCSN)
       throws ChangelogException
   {
-    JEReplicaDB replicaDB = getReplicaDB(baseDN, serverId);
+    final JEReplicaDB replicaDB = getReplicaDB(baseDN, serverId);
     if (replicaDB != null)
     {
       final DBCursor<UpdateMsg> cursor =

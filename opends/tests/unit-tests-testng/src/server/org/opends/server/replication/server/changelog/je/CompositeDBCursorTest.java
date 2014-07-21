@@ -25,6 +25,9 @@
  */
 package org.opends.server.replication.server.changelog.je;
 
+import java.util.Collections;
+import java.util.Iterator;
+
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
@@ -50,14 +53,9 @@ public class CompositeDBCursorTest extends DirectoryServerTestCase
     }
 
     @Override
-    protected boolean isCursorNoLongerNeededFor(String data)
+    protected Iterator<String> removedCursorsIterator()
     {
-      return false;
-    }
-
-    @Override
-    protected void cursorRemoved(String data)
-    {
+      return Collections.EMPTY_LIST.iterator();
     }
   }
 

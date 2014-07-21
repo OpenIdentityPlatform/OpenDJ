@@ -129,19 +129,29 @@ abstract class CompositeDBCursor<Data> implements DBCursor<UpdateMsg>
 
   private void removeNoLongerNeededCursors()
   {
-    for (Iterator<Entry<DBCursor<UpdateMsg>, Data>> iterator =
-        cursors.entrySet().iterator(); iterator.hasNext();)
+    for (final Iterator<Data> iter = removedCursorsIterator(); iter.hasNext();)
     {
-      final Entry<DBCursor<UpdateMsg>, Data> entry = iterator.next();
-      final Data data = entry.getValue();
-      if (isCursorNoLongerNeededFor(data))
+      final Data dataToFind = iter.next();
+      for (Iterator<Entry<DBCursor<UpdateMsg>, Data>> cursorIter =
+          cursors.entrySet().iterator(); cursorIter.hasNext();)
       {
-        entry.getKey().close();
-        iterator.remove();
-        cursorRemoved(data);
+        final Entry<DBCursor<UpdateMsg>, Data> entry = cursorIter.next();
+        if (dataToFind.equals(entry.getValue()))
+        {
+          entry.getKey().close();
+          cursorIter.remove();
+        }
       }
+      iter.remove();
     }
   }
+
+  /**
+   * Returns an Iterator over the data associated to cursors that must be removed.
+   *
+   * @return an Iterator over the data associated to cursors that must be removed.
+   */
+  protected abstract Iterator<Data> removedCursorsIterator();
 
   /**
    * Adds a cursor to this composite cursor. It first calls
@@ -189,23 +199,6 @@ abstract class CompositeDBCursor<Data> implements DBCursor<UpdateMsg>
    *           if a database problem occurred
    */
   protected abstract void incorporateNewCursors() throws ChangelogException;
-
-  /**
-   * Returns whether the cursor associated to the provided data should be removed.
-   *
-   * @param data the data associated to the cursor to be tested
-   * @return true if the cursor associated to the provided data should be removed,
-   *         false otherwise
-   */
-  protected abstract boolean isCursorNoLongerNeededFor(Data data);
-
-  /**
-   * Notifies that the cursor associated to the provided data has been removed.
-   *
-   * @param data
-   *          the data associated to the removed cursor
-   */
-  protected abstract void cursorRemoved(Data data);
 
   /**
    * Returns the data associated to the cursor that returned the current record.

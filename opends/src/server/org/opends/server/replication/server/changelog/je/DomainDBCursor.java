@@ -24,6 +24,7 @@
  */
 package org.opends.server.replication.server.changelog.je;
 
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -110,16 +111,10 @@ public class DomainDBCursor extends CompositeDBCursor<Void>
 
   /** {@inheritDoc} */
   @Override
-  protected boolean isCursorNoLongerNeededFor(Void data)
+  @SuppressWarnings("unchecked")
+  protected Iterator<Void> removedCursorsIterator()
   {
-    return false; // Not needed
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  protected void cursorRemoved(Void data)
-  {
-    // Not used so far
+    return Collections.EMPTY_LIST.iterator(); // nothing to remove
   }
 
   /** {@inheritDoc} */
