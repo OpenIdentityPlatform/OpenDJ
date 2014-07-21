@@ -22,26 +22,22 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.common;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 
 import org.opends.messages.Message;
-import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.UserDefinedVirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.types.*;
 import org.opends.server.util.ServerConstants;
-import org.opends.server.workflowelement.externalchangelog.ECLWorkflowElement;
 
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -53,7 +49,6 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
  */
 public class LastCookieVirtualProvider
    extends VirtualAttributeProvider<UserDefinedVirtualAttributeCfg>
-   implements ConfigurationChangeListener<UserDefinedVirtualAttributeCfg>
 {
 
   /**
@@ -61,15 +56,18 @@ public class LastCookieVirtualProvider
    */
   private static final DebugTracer TRACER = getTracer();
 
+  private final ReplicationServer replicationServer;
+
   /**
    * Creates a new instance of this member virtual attribute provider.
+   *
+   * @param replicationServer
+   *            The replication server.
    */
-  public LastCookieVirtualProvider()
+  public LastCookieVirtualProvider(ReplicationServer replicationServer)
   {
     super();
-
-    // All initialization should be performed in the
-    // initializeVirtualAttributeProvider method.
+    this.replicationServer = replicationServer;
   }
 
   /** {@inheritDoc} */
@@ -94,17 +92,13 @@ public class LastCookieVirtualProvider
   {
     try
     {
-      ECLWorkflowElement eclwe = (ECLWorkflowElement)
-      DirectoryServer.getWorkflowElement("EXTERNAL CHANGE LOG");
-      if (eclwe!=null)
+      if (replicationServer != null)
       {
         // Set a list of excluded domains (also exclude 'cn=changelog' itself)
-        Set<String> excludedDomains =
-          MultimasterReplication.getECLDisabledDomains();
+        Set<String> excludedDomains = MultimasterReplication.getECLDisabledDomains();
         excludedDomains.add(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT);
 
-        final ReplicationServer rs = eclwe.getReplicationServer();
-        String newestCookie = rs.getNewestECLCookie(excludedDomains).toString();
+        String newestCookie = replicationServer.getNewestECLCookie(excludedDomains).toString();
         final ByteString cookie = ByteString.valueOf(newestCookie);
         return Collections.singleton(AttributeValues.create(cookie, cookie));
       }
@@ -138,20 +132,4 @@ public class LastCookieVirtualProvider
     searchOperation.appendErrorMessage(message);
   }
 
-  /** {@inheritDoc} */
-  @Override
-  public boolean isConfigurationChangeAcceptable(
-                      UserDefinedVirtualAttributeCfg configuration,
-                      List<Message> unacceptableReasons)
-  {
-    return false;
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public ConfigChangeResult applyConfigurationChange(
-                                 UserDefinedVirtualAttributeCfg configuration)
-  {
-    return new ConfigChangeResult(ResultCode.OTHER, false);
-  }
 }

@@ -22,24 +22,20 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.replication.common;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 
 import org.opends.messages.Message;
-import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.UserDefinedVirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
-import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.types.*;
-import org.opends.server.workflowelement.externalchangelog.ECLWorkflowElement;
 
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -49,20 +45,22 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
  */
 public class LastChangeNumberVirtualAttributeProvider
        extends VirtualAttributeProvider<UserDefinedVirtualAttributeCfg>
-       implements ConfigurationChangeListener<UserDefinedVirtualAttributeCfg>
 {
   /** The tracer object for the debug logger. */
   private static final DebugTracer TRACER = getTracer();
 
+  private final ReplicationServer replicationServer;
+
   /**
    * Creates a new instance of this member virtual attribute provider.
+   *
+   * @param replicationServer
+   *            The replication server.
    */
-  public LastChangeNumberVirtualAttributeProvider()
+  public LastChangeNumberVirtualAttributeProvider(ReplicationServer replicationServer)
   {
     super();
-
-    // All initialization should be performed in the
-    // initializeVirtualAttributeProvider method.
+    this.replicationServer = replicationServer;
   }
 
   /** {@inheritDoc} */
@@ -87,12 +85,9 @@ public class LastChangeNumberVirtualAttributeProvider
     String value = "0";
     try
     {
-      ECLWorkflowElement eclwe = (ECLWorkflowElement)
-      DirectoryServer.getWorkflowElement("EXTERNAL CHANGE LOG");
-      if (eclwe != null)
+      if (replicationServer != null)
       {
-        final ReplicationServer rs = eclwe.getReplicationServer();
-        final long[] limits = rs.getECLChangeNumberLimits();
+        final long[] limits = replicationServer.getECLChangeNumberLimits();
         value = String.valueOf(limits[1]);
       }
     }
@@ -130,21 +125,5 @@ public class LastChangeNumberVirtualAttributeProvider
     searchOperation.appendErrorMessage(message);
   }
 
-  /** {@inheritDoc} */
-  @Override
-  public boolean isConfigurationChangeAcceptable(
-                      UserDefinedVirtualAttributeCfg configuration,
-                      List<Message> unacceptableReasons)
-  {
-    return false;
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public ConfigChangeResult applyConfigurationChange(
-                                 UserDefinedVirtualAttributeCfg configuration)
-  {
-    return new ConfigChangeResult(ResultCode.OTHER, false);
-  }
 }
 
