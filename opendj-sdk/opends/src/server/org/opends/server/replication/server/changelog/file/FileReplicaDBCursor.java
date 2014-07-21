@@ -36,7 +36,6 @@ import org.opends.server.replication.server.changelog.file.Log.RepositionableCur
  * <p>
  * The cursor provides a java.sql.ResultSet like API :
  * <pre>
- * {@code
  *  FileReplicaDBCursor cursor = ...;
  *  try {
  *    while (cursor.next()) {
@@ -116,11 +115,8 @@ class FileReplicaDBCursor implements DBCursor<UpdateMsg>
       lastNonNullCurrentCSN = nextRecord.getKey();
       return true;
     }
-    else
-    {
-      nextRecord = null;
-      return false;
-    }
+    nextRecord = null;
+    return false;
   }
 
   /** {@inheritDoc} */

@@ -41,6 +41,7 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.MultiDomainServerState;
 import org.opends.server.replication.common.ServerState;
+import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ChangelogState;
 import org.opends.server.replication.server.ReplicationServer;
@@ -237,10 +238,13 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
       return previousValue;
     }
 
-    // we just created a new domain => update all cursors
-    for (MultiDomainDBCursor cursor : registeredMultiDomainCursors)
+    if (MultimasterReplication.isECLEnabledDomain(baseDN))
     {
-      cursor.addDomain(baseDN, null);
+      // we just created a new domain => update all cursors
+      for (MultiDomainDBCursor cursor : registeredMultiDomainCursors)
+      {
+        cursor.addDomain(baseDN, null);
+      }
     }
     return newValue;
   }
@@ -417,10 +421,6 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
    */
   public void clearDB() throws ChangelogException
   {
-    if (debugEnabled())
-    {
-      TRACER.debugInfo("clear the FileChangelogDB");
-    }
     if (!dbDirectory.exists())
     {
       return;
@@ -868,7 +868,7 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
             }
           }
 
-          for (final Map<Integer, FileReplicaDB> domainMap: domainToReplicaDBs.values())
+          for (final Map<Integer, FileReplicaDB> domainMap : domainToReplicaDBs.values())
           {
             for (final FileReplicaDB replicaDB : domainMap.values())
             {

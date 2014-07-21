@@ -107,16 +107,9 @@ public class MultiDomainDBCursor extends CompositeDBCursor<DN>
 
   /** {@inheritDoc} */
   @Override
-  protected boolean isCursorNoLongerNeededFor(DN baseDN)
+  protected Iterator<DN> removedCursorsIterator()
   {
-    return removeDomains.contains(baseDN);
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  protected void cursorRemoved(DN baseDN)
-  {
-    removeDomains.remove(baseDN);
+    return removeDomains.iterator();
   }
 
   /** {@inheritDoc} */
