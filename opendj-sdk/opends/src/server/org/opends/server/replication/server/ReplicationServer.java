@@ -498,14 +498,40 @@ public final class ReplicationServer
     NetworkGroup.getAdminNetworkGroup().registerWorkflow(workflowImpl);
     NetworkGroup.getInternalNetworkGroup().registerWorkflow(workflowImpl);
 
-    DirectoryServer.registerVirtualAttribute(buildVirtualAttributeRule(
-        "lastexternalchangelogcookie", new LastCookieVirtualProvider()));
-    DirectoryServer.registerVirtualAttribute(buildVirtualAttributeRule(
-        "firstchangenumber", new FirstChangeNumberVirtualAttributeProvider()));
-    DirectoryServer.registerVirtualAttribute(buildVirtualAttributeRule(
-        "lastchangenumber", new LastChangeNumberVirtualAttributeProvider()));
-    DirectoryServer.registerVirtualAttribute(buildVirtualAttributeRule(
-        "changelog", new ChangelogBaseDNVirtualAttributeProvider()));
+    registerVirtualAttributeRules();
+  }
+
+  private List<VirtualAttributeRule> getVirtualAttributesRules() throws DirectoryException
+  {
+    final List<VirtualAttributeRule> rules = new ArrayList<VirtualAttributeRule>();
+    rules.add(buildVirtualAttributeRule("lastexternalchangelogcookie", new LastCookieVirtualProvider(this)));
+    rules.add(buildVirtualAttributeRule("firstchangenumber", new FirstChangeNumberVirtualAttributeProvider(this)));
+    rules.add(buildVirtualAttributeRule("lastchangenumber", new LastChangeNumberVirtualAttributeProvider(this)));
+    rules.add(buildVirtualAttributeRule("changelog", new ChangelogBaseDNVirtualAttributeProvider()));
+    return rules;
+  }
+
+  private void registerVirtualAttributeRules() throws DirectoryException {
+    for (VirtualAttributeRule rule : getVirtualAttributesRules())
+    {
+      DirectoryServer.registerVirtualAttribute(rule);
+    }
+  }
+
+  private void deregisterVirtualAttributeRules()
+  {
+    try
+    {
+      for (VirtualAttributeRule rule : getVirtualAttributesRules())
+      {
+        DirectoryServer.deregisterVirtualAttribute(rule);
+      }
+    }
+    catch (DirectoryException e)
+    {
+      // Should never happen
+      throw new RuntimeException(e);
+    }
   }
 
   private static VirtualAttributeRule buildVirtualAttributeRule(String attrName,
@@ -553,24 +579,7 @@ public final class ReplicationServer
 
       NetworkGroup.getDefaultNetworkGroup().deregisterWorkflow(eclWorkflowID);
 
-      try
-      {
-        DirectoryServer.deregisterVirtualAttribute(buildVirtualAttributeRule(
-            "lastexternalchangelogcookie", new LastCookieVirtualProvider()));
-        DirectoryServer.deregisterVirtualAttribute(buildVirtualAttributeRule(
-            "firstchangenumber",
-            new FirstChangeNumberVirtualAttributeProvider()));
-        DirectoryServer.deregisterVirtualAttribute(buildVirtualAttributeRule(
-            "lastchangenumber",
-            new LastChangeNumberVirtualAttributeProvider()));
-        DirectoryServer.deregisterVirtualAttribute(buildVirtualAttributeRule(
-            "changelog", new ChangelogBaseDNVirtualAttributeProvider()));
-      }
-      catch (DirectoryException e)
-      {
-        // Should never happen
-        throw new RuntimeException(e);
-      }
+      deregisterVirtualAttributeRules();
 
       eclwf.deregister();
       eclwf.finalizeWorkflow();
