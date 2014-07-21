@@ -22,13 +22,14 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.core;
 
 import java.util.List;
 import java.util.Set;
 
+import org.opends.server.controls.ExternalChangelogRequestControl;
 import org.opends.server.controls.MatchedValuesControl;
 import org.opends.server.types.*;
 
@@ -488,4 +489,21 @@ public interface SearchOperation extends Operation
    */
   public abstract void setProxiedAuthorizationDN(DN proxiedAuthorizationDN);
 
+  /**
+   * Retrieves the external changelog request control.
+   *
+   * @return the external changelog request control, or {@code null}
+   *  if the control has not been requested.
+   */
+  public abstract ExternalChangelogRequestControl getECLRequestControl();
+
+  /**
+   * Sets the external changelog request control.
+   * <p>
+   * It should be set only when searching the external changelog.
+   *
+   * @param control
+   *            The external changelog request control.
+   */
+  public abstract void setECLRequestControl(ExternalChangelogRequestControl control);
 }

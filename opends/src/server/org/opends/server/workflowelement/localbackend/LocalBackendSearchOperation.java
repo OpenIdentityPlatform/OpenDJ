@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.workflowelement.localbackend;
 
@@ -526,20 +526,32 @@ public class LocalBackendSearchOperation
         {
           // Do nothing here and let AciHandler deal with it.
         }
-
-        // NYI -- Add support for additional controls.
-
-        else if (c.isCritical())
+        else if (OID_ECL_COOKIE_EXCHANGE_CONTROL.equals(oid))
         {
-          if ((backend == null) || (! backend.supportsControl(oid)))
+          if (c.isCritical() && !backendSupportsControl(oid))
           {
             throw new DirectoryException(
-                           ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
-                           ERR_SEARCH_UNSUPPORTED_CRITICAL_CONTROL.get(oid));
+                ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
+                ERR_SEARCH_UNSUPPORTED_CRITICAL_CONTROL_ECL_COOKIE_EXCHANGE.get(backend.getBackendID()));
           }
+          setECLRequestControl(getRequestControl(ExternalChangelogRequestControl.DECODER));
+        }
+        // NYI -- Add support for additional controls.
+
+        else if (c.isCritical() && !backendSupportsControl(oid))
+        {
+          throw new DirectoryException(
+              ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
+              ERR_SEARCH_UNSUPPORTED_CRITICAL_CONTROL.get(oid));
         }
       }
     }
+  }
+
+  /** Indicates if the backend supports the control corresponding to provided oid. */
+  private boolean backendSupportsControl(final String oid)
+  {
+    return backend != null && backend.supportsControl(oid);
   }
 }
 

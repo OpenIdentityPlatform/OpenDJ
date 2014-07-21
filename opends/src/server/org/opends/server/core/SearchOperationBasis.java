@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -34,6 +34,7 @@ import org.opends.server.api.AuthenticationPolicyState;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.plugin.PluginResult;
 import org.opends.server.controls.AccountUsableResponseControl;
+import org.opends.server.controls.ExternalChangelogRequestControl;
 import org.opends.server.controls.MatchedValuesControl;
 import org.opends.server.core.networkgroups.NetworkGroup;
 import org.opends.server.loggers.debug.DebugLogger;
@@ -162,6 +163,8 @@ public class SearchOperationBasis
 
   /** Indicates whether to send the search result done to the client or not. */
   private boolean sendResponse = true;
+
+  private ExternalChangelogRequestControl eclRequestControl;
 
   /**
    * Creates a new search operation with the provided information.
@@ -1076,6 +1079,20 @@ public class SearchOperationBasis
   public void setMatchedValuesControl(MatchedValuesControl controls)
   {
     this.matchedValuesControl = controls;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public ExternalChangelogRequestControl getECLRequestControl()
+  {
+    return eclRequestControl;
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public void setECLRequestControl(ExternalChangelogRequestControl control)
+  {
+    eclRequestControl = control;
   }
 
   /**
