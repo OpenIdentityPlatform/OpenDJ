@@ -28,6 +28,7 @@ package org.opends.server.replication.server.changelog.file;
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy.*;
 
 import java.io.BufferedWriter;
 import java.io.Closeable;
@@ -41,6 +42,8 @@ import org.opends.messages.Message;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
+import org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingStrategy;
+import org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy;
 import org.opends.server.replication.server.changelog.file.Log.RepositionableCursor;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.util.StaticUtils;
@@ -335,7 +338,7 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
    */
   LogFileCursor<K, V> getCursor(final K key) throws ChangelogException
   {
-    return getCursor(key, false);
+    return getCursor(key, KeyMatchingStrategy.EQUAL_TO_KEY, PositionStrategy.ON_MATCHING_KEY);
   }
 
   /**
@@ -352,12 +355,15 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
    */
   LogFileCursor<K, V> getNearestCursor(final K key) throws ChangelogException
   {
-    return getCursor(key, true);
+    return getCursor(key, KeyMatchingStrategy.GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY);
   }
 
   /** Returns a cursor starting from a key, using the strategy corresponding to provided indicator. */
-  private LogFileCursor<K, V> getCursor(final K key, boolean findNearest)
-      throws ChangelogException
+  private LogFileCursor<K, V> getCursor(
+      final K key,
+      final KeyMatchingStrategy matchingStrategy,
+      final PositionStrategy positionStrategy)
+          throws ChangelogException
   {
     if (key == null)
     {
@@ -367,7 +373,7 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
     try
     {
       cursor = new LogFileCursor<K, V>(this);
-      cursor.positionTo(key, findNearest);
+      cursor.positionTo(key, matchingStrategy, positionStrategy);
       // if target is not found, cursor is positioned at end of stream
       return cursor;
     }
@@ -628,8 +634,9 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
 
     /** {@inheritDoc} */
     @Override
-    public boolean positionTo(final K key, boolean findNearest) throws ChangelogException {
-      final Pair<Boolean, Record<K, V>> result = reader.seekToRecord(key, findNearest);
+    public boolean positionTo(final K key, final KeyMatchingStrategy match, final PositionStrategy pos)
+        throws ChangelogException {
+      final Pair<Boolean, Record<K, V>> result = reader.seekToRecord(key, match, pos);
       final boolean found = result.getFirst();
       initialRecord = found ? result.getSecond() : null;
       return found;

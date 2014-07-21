@@ -26,6 +26,7 @@
 package org.opends.server.replication.server.changelog.file;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy.*;
 import static org.opends.server.replication.server.changelog.file.LogFileTest.*;
 
 import java.io.File;
@@ -150,14 +151,14 @@ public class LogTest extends DirectoryServerTestCase
     DBCursor<Record<String, String>> cursor1 = null, cursor2 = null, cursor3 = null;
     try {
       // this key is the first key of the log file "key1_key2.log"
-      cursor1 = log.getNearestCursor("key001");
+      cursor1 = log.getNearestCursor("key001", AFTER_MATCHING_KEY);
       assertThatCursorCanBeFullyReadFromStart(cursor1, 2, 10);
 
       // this key is the last key of the log file "key3_key4.log"
-      cursor2 = log.getNearestCursor("key004");
+      cursor2 = log.getNearestCursor("key004", AFTER_MATCHING_KEY);
       assertThatCursorCanBeFullyReadFromStart(cursor2, 5, 10);
 
-      cursor3 = log.getNearestCursor("key009");
+      cursor3 = log.getNearestCursor("key009", AFTER_MATCHING_KEY);
       assertThatCursorCanBeFullyReadFromStart(cursor3, 10, 10);
     }
     finally {
@@ -171,7 +172,7 @@ public class LogTest extends DirectoryServerTestCase
     Log<String, String> log = openLog(LogFileTest.RECORD_PARSER);
     DBCursor<Record<String, String>> cursor = null;
     try {
-      cursor = log.getNearestCursor("key010");
+      cursor = log.getNearestCursor("key010", AFTER_MATCHING_KEY);
 
       // lowest higher key does not exist
       assertThatCursorIsExhausted(cursor);
@@ -188,7 +189,7 @@ public class LogTest extends DirectoryServerTestCase
     DBCursor<Record<String, String>> cursor = null;
     try {
       // key is between key005 and key006
-      cursor = log.getNearestCursor("key005000");
+      cursor = log.getNearestCursor("key005000", AFTER_MATCHING_KEY);
 
       assertThatCursorCanBeFullyReadFromStart(cursor, 6, 10);
     }
@@ -203,7 +204,7 @@ public class LogTest extends DirectoryServerTestCase
     Log<String, String> log = openLog(LogFileTest.RECORD_PARSER);
     DBCursor<Record<String, String>> cursor = null;
     try {
-      cursor = log.getNearestCursor(null);
+      cursor = log.getNearestCursor(null, null);
 
       assertThatCursorCanBeFullyReadFromStart(cursor, 1, 10);
     }

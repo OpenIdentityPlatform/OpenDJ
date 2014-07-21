@@ -26,6 +26,8 @@
 package org.opends.server.replication.server.changelog.file;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingStrategy.*;
+import static org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy.*;
 import static org.opends.server.replication.server.changelog.file.BlockLogReader.*;
 
 import java.io.File;
@@ -38,6 +40,8 @@ import java.util.List;
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
+import org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingStrategy;
+import org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy;
 import org.opends.server.types.ByteSequenceReader;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
@@ -203,7 +207,11 @@ public class BlockLogReaderWriterTest extends DirectoryServerTestCase
     try
     {
       reader = newReader(blockSize);
-      Pair<Boolean, Record<Integer, Integer>> result = reader.seekToRecord(key, findNearest);
+      KeyMatchingStrategy matchStrategy =
+          findNearest ? KeyMatchingStrategy.GREATER_THAN_OR_EQUAL_TO_KEY : KeyMatchingStrategy.EQUAL_TO_KEY;
+      PositionStrategy posStrategy =
+          findNearest ? PositionStrategy.AFTER_MATCHING_KEY : PositionStrategy.ON_MATCHING_KEY;
+      Pair<Boolean, Record<Integer, Integer>> result = reader.seekToRecord(key, matchStrategy, posStrategy);
 
       assertThat(result.getFirst()).isEqualTo(expectedFound);
       assertThat(result.getSecond()).isEqualTo(expectedRecord);
@@ -331,7 +339,8 @@ public class BlockLogReaderWriterTest extends DirectoryServerTestCase
       for (Integer key : keysToSeek)
       {
         final long ts = System.nanoTime();
-        Pair<Boolean, Record<Integer, Integer>> result = reader.seekToRecord(key, false);
+        Pair<Boolean, Record<Integer, Integer>> result =
+            reader.seekToRecord(key, GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY);
         final long te = System.nanoTime() - ts;
         if (te < minTime) minTime = te;
         if (te > maxTime) maxTime = te;
@@ -354,7 +363,8 @@ public class BlockLogReaderWriterTest extends DirectoryServerTestCase
       for (Integer val : keysToSeek)
       {
         long ts = System.nanoTime();
-        Pair<Boolean, Record<Integer, Integer>> result = reader.positionToKeySequentially(0, val, false);
+        Pair<Boolean, Record<Integer, Integer>> result =
+            reader.positionToKeySequentially(0, val, GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY);
         assertThat(result.getSecond()).isEqualTo(Record.from(val, val));
         long te = System.nanoTime() - ts;
         if (te < minTime) minTime = te;

@@ -29,6 +29,7 @@ import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.MultiDomainServerState;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.protocol.UpdateMsg;
+import org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy;
 import org.opends.server.replication.server.changelog.je.MultiDomainDBCursor;
 import org.opends.server.types.DN;
 
@@ -92,30 +93,33 @@ public interface ReplicationDomainDB
   void removeDomain(DN baseDN) throws ChangelogException;
 
   /**
-   * Generates a {@link DBCursor} across all the domains starting after the
+   * Generates a {@link DBCursor} across all the domains starting at or after the
    * provided {@link MultiDomainServerState} for each domain.
    * <p>
    * When the cursor is not used anymore, client code MUST call the
    * {@link DBCursor#close()} method to free the resources and locks used by the
    * cursor.
    *
-   * @param startAfterState
+   * @param startState
    *          Starting point for each domain cursor. If any {@link ServerState}
    *          for a domain is null, then start from the oldest CSN for each
    *          replicaDBs
+   * @param positionStrategy
+   *          Cursor position strategy, which allow to indicates at which
+   *          exact position the cursor must start
    * @return a non null {@link DBCursor}
    * @throws ChangelogException
    *           If a database problem happened
-   * @see #getCursorFrom(DN, ServerState)
+   * @see #getCursorFrom(DN, ServerState, PositionStrategy)
    */
-  public MultiDomainDBCursor getCursorFrom(MultiDomainServerState startAfterState)
+  public MultiDomainDBCursor getCursorFrom(MultiDomainServerState startState, PositionStrategy positionStrategy)
       throws ChangelogException;
 
   // serverId methods
 
   /**
    * Generates a {@link DBCursor} across all the replicaDBs for the specified
-   * replication domain starting after the provided {@link ServerState} for each
+   * replication domain starting at or after the provided {@link ServerState} for each
    * replicaDBs.
    * <p>
    * When the cursor is not used anymore, client code MUST call the
@@ -124,21 +128,24 @@ public interface ReplicationDomainDB
    *
    * @param baseDN
    *          the replication domain baseDN
-   * @param startAfterState
+   * @param startState
    *          Starting point for each ReplicaDB cursor. If any CSN for a
    *          replicaDB is null, then start from the oldest CSN for this
    *          replicaDB
+   * @param positionStrategy
+   *          Cursor position strategy, which allow to indicates at which
+   *          exact position the cursor must start
    * @return a non null {@link DBCursor}
    * @throws ChangelogException
    *           If a database problem happened
-   * @see #getCursorFrom(DN, int, CSN)
+   * @see #getCursorFrom(DN, int, CSN, PositionStrategy)
    */
-  DBCursor<UpdateMsg> getCursorFrom(DN baseDN, ServerState startAfterState)
+  DBCursor<UpdateMsg> getCursorFrom(DN baseDN, ServerState startState, PositionStrategy positionStrategy)
       throws ChangelogException;
 
   /**
    * Generates a {@link DBCursor} for one replicaDB for the specified
-   * replication domain and serverId starting after the provided {@link CSN}.
+   * replication domain and serverId starting at or after the provided {@link CSN}.
    * <p>
    * When the cursor is not used anymore, client code MUST call the
    * {@link DBCursor#close()} method to free the resources and locks used by the
@@ -148,14 +155,17 @@ public interface ReplicationDomainDB
    *          the replication domain baseDN of the replicaDB
    * @param serverId
    *          the serverId of the replicaDB
-   * @param startAfterCSN
+   * @param startCSN
    *          Starting point for the ReplicaDB cursor. If the CSN is null, then
    *          start from the oldest CSN for this replicaDB
+   * @param positionStrategy
+   *          Cursor position strategy, which allow to indicates at which
+   *          exact position the cursor must start
    * @return a non null {@link DBCursor}
    * @throws ChangelogException
    *           If a database problem happened
    */
-  DBCursor<UpdateMsg> getCursorFrom(DN baseDN, int serverId, CSN startAfterCSN)
+  DBCursor<UpdateMsg> getCursorFrom(DN baseDN, int serverId, CSN startCSN, PositionStrategy positionStrategy)
       throws ChangelogException;
 
   /**

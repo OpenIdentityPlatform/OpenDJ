@@ -41,6 +41,7 @@ import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.ReplicationServerDomain;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
+import org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy;
 import org.opends.server.replication.server.changelog.file.Log.RepositionableCursor;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
@@ -203,21 +204,25 @@ class FileReplicaDB
   }
 
   /**
-   * Returns a cursor that allows to retrieve the update messages from this DB,
-   * starting at the position defined by the smallest CSN that is strictly
-   * higher than the provided CSN.
+   * Returns a cursor that allows to retrieve the update messages from this DB.
+   * The starting position is defined by the provided CSN and cursor
+   * positioning strategy.
    *
-   * @param startAfterCSN
+   * @param startCSN
    *          The position where the cursor must start. If null, start from the
    *          oldest CSN
+   * @param positionStrategy
+   *          Cursor position strategy, which allow to choose if cursor must
+   *          start from the provided CSN or just after the provided CSN.
    * @return a new {@link DBCursor} to retreive update messages.
    * @throws ChangelogException
    *           if a database problem happened
    */
-  DBCursor<UpdateMsg> generateCursorFrom(CSN startAfterCSN) throws ChangelogException
+  DBCursor<UpdateMsg> generateCursorFrom(final CSN startCSN, final PositionStrategy positionStrategy)
+      throws ChangelogException
   {
-    RepositionableCursor<CSN, UpdateMsg> cursor = log.getNearestCursor(startAfterCSN);
-    return new FileReplicaDBCursor(cursor, startAfterCSN);
+    RepositionableCursor<CSN, UpdateMsg> cursor = log.getNearestCursor(startCSN, positionStrategy);
+    return new FileReplicaDBCursor(cursor, startCSN, positionStrategy);
   }
 
   /**

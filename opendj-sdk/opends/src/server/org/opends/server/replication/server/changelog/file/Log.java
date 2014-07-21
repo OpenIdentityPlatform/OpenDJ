@@ -26,6 +26,7 @@
 package org.opends.server.replication.server.changelog.file;
 
 import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingStrategy.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.io.Closeable;
@@ -52,6 +53,8 @@ import org.opends.messages.Severity;
 import org.opends.server.loggers.ErrorLogger;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
+import org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingStrategy;
+import org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy;
 import org.opends.server.replication.server.changelog.file.LogFile.LogFileCursor;
 import org.opends.server.util.StaticUtils;
 
@@ -439,7 +442,7 @@ final class Log<K extends Comparable<K>, V> implements Closeable
         return new EmptyLogCursor<K, V>();
       }
       cursor = new LogCursor<K, V>(this);
-      cursor.positionTo(null, false);
+      cursor.positionTo(null, null, null);
       registerCursor(cursor);
       return cursor;
     }
@@ -467,28 +470,35 @@ final class Log<K extends Comparable<K>, V> implements Closeable
    */
   public RepositionableCursor<K, V> getCursor(final K key) throws ChangelogException
   {
-    return getCursor(key, false);
+    return getCursor(key, KeyMatchingStrategy.EQUAL_TO_KEY, null);
   }
 
   /**
-   * Returns a cursor that allows to retrieve the records from this log,
-   * starting at the position defined by the smallest key that is higher than
-   * the provided key.
+   * Returns a cursor that allows to retrieve the records from this log.
+   * The starting position is defined by the provided key and cursor
+   * positioning strategy.
    *
    * @param key
    *          Key to use as a start position for the cursor. If key is
    *          {@code null}, cursor will point at the first record of the log.
+   * @param positionStrategy
+   *          The cursor positioning strategy.
    * @return a cursor on the log records, which is never {@code null}
    * @throws ChangelogException
    *           If the cursor can't be created.
    */
-  public RepositionableCursor<K, V> getNearestCursor(final K key) throws ChangelogException
+  public RepositionableCursor<K, V> getNearestCursor(final K key, PositionStrategy positionStrategy)
+      throws ChangelogException
   {
-    return getCursor(key, true);
+    return getCursor(key, KeyMatchingStrategy.GREATER_THAN_OR_EQUAL_TO_KEY, positionStrategy);
   }
 
-  /** Returns a cursor starting from a key, using the strategy corresponding to provided boolean. */
-  private RepositionableCursor<K, V> getCursor(final K key, boolean findNearest) throws ChangelogException
+  /**
+   * Returns a cursor starting from a key, using the provided matching and
+   * position strategies for the cursor.
+   */
+  private RepositionableCursor<K, V> getCursor(final K key, final KeyMatchingStrategy matchingStrategy,
+      final PositionStrategy positionStrategy) throws ChangelogException
   {
     if (key == null)
     {
@@ -503,9 +513,9 @@ final class Log<K extends Comparable<K>, V> implements Closeable
         return new EmptyLogCursor<K, V>();
       }
       cursor = new LogCursor<K, V>(this);
-      final boolean isFound = cursor.positionTo(key, findNearest);
-      // for nearest case, it is ok if the target is not found
-      if (isFound || findNearest)
+      final boolean isFound = cursor.positionTo(key, matchingStrategy, positionStrategy);
+      // When not matching the exact key, it is ok if the target is not found
+      if (isFound || matchingStrategy == GREATER_THAN_OR_EQUAL_TO_KEY)
       {
         registerCursor(cursor);
         return cursor;
@@ -936,22 +946,23 @@ final class Log<K extends Comparable<K>, V> implements Closeable
   static interface RepositionableCursor<K extends Comparable<K>, V> extends DBCursor<Record<K, V>>
   {
     /**
-     * Position the cursor to the record corresponding to the provided key or to
-     * the nearest key (the lowest key higher than the provided key).
+     * Position the cursor to the record corresponding to the provided key and
+     * provided matching and positioning strategies.
      *
      * @param key
      *          Key to use as a start position for the cursor. If key is
      *          {@code null}, use the key of the first record instead.
-     * @param findNearest
-     *          If {@code true}, start position is the lowest key that is higher
-     *          than the provided key, otherwise start position is the provided
-     *          key.
-     * @return {@code true} if cursor is successfully positionned to the key or
-     *         the nearest key, {@code false} otherwise.
+     * @param matchStrategy
+     *          The cursor key matching strategy.
+     * @param positionStrategy
+     *          The cursor positioning strategy.
+     * @return {@code true} if cursor is successfully positioned, or
+     *         {@code false} otherwise.
      * @throws ChangelogException
      *           If an error occurs when positioning cursor.
      */
-    boolean positionTo(K key, boolean findNearest) throws ChangelogException;
+    boolean positionTo(K key, KeyMatchingStrategy matchStrategy, PositionStrategy positionStrategy)
+        throws ChangelogException;
   }
 
   /**
@@ -1039,7 +1050,11 @@ final class Log<K extends Comparable<K>, V> implements Closeable
 
     /** {@inheritDoc} */
     @Override
-    public boolean positionTo(final K key, final boolean findNearest) throws ChangelogException
+    public boolean positionTo(
+        final K key,
+        final KeyMatchingStrategy matchStrategy,
+        final PositionStrategy positionStrategy)
+            throws ChangelogException
     {
       if (actAsEmptyCursor)
       {
@@ -1053,7 +1068,7 @@ final class Log<K extends Comparable<K>, V> implements Closeable
         {
           switchToLogFile(logFile);
         }
-        return (key == null) ? true : currentCursor.positionTo(key, findNearest);
+        return (key == null) ? true : currentCursor.positionTo(key, matchStrategy, positionStrategy);
       }
       finally
       {
@@ -1128,7 +1143,7 @@ final class Log<K extends Comparable<K>, V> implements Closeable
 
     /** {@inheritDoc} */
     @Override
-    public boolean positionTo(K key, boolean returnLowestHigher) throws ChangelogException
+    public boolean positionTo(K key, KeyMatchingStrategy match, PositionStrategy pos) throws ChangelogException
     {
       return false;
     }

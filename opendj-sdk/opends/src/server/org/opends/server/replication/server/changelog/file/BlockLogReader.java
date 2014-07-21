@@ -26,6 +26,8 @@
 package org.opends.server.replication.server.changelog.file;
 
 import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingStrategy.*;
+import static org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy.*;
 
 import java.io.Closeable;
 import java.io.EOFException;
@@ -33,7 +35,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
+import org.forgerock.util.Reject;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
+import org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingStrategy;
+import org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
 import org.opends.server.util.StaticUtils;
@@ -135,31 +140,35 @@ class BlockLogReader<K extends Comparable<K>, V> implements Closeable
   }
 
   /**
-   * Position the reader to the record corresponding to the provided key or to
-   * the nearest key (the lowest key higher than the provided key), and returns
-   * the last record read.
+   * Position the reader to the record corresponding to the provided key and
+   * matching and positioning strategies. Returns the last record read.
    *
    * @param key
    *          Key to use as a start position. Key must not be {@code null}.
-   * @param findNextRecord
-   *          If {@code true}, start position is the lowest key that is higher
-   *          than the provided key, otherwise start position is the provided
-   *          key.
+   * @param matchStrategy
+   *          The key matching strategy.
+   * @param positionStrategy
+   *          The positioning strategy.
    * @return The pair (key_found, last_record_read). key_found is a boolean
-   *         indicating if reader is successfully positioned to the key or the
-   *         nearest key. last_record_read is the last record that was read.
-   *         When key_found is equals to {@code false}, then last_record_read is
-   *         always {@code null}. When key_found is equals to {@code true},
-   *         last_record_read can be valued or be {@code null}
+   *         indicating if reader is successfully positioned. last_record_read
+   *         is the last record that was read. When key_found is equals to
+   *         {@code false}, then last_record_read is always {@code null}. When
+   *         key_found is equals to {@code true}, last_record_read can be valued
+   *         or be {@code null}
    * @throws ChangelogException
    *           If an error occurs when seeking the key.
    */
-  public Pair<Boolean, Record<K,V>> seekToRecord(final K key, final boolean findNextRecord) throws ChangelogException
+  public Pair<Boolean, Record<K,V>> seekToRecord(
+      final K key,
+      final KeyMatchingStrategy matchStrategy,
+      final PositionStrategy positionStrategy)
+          throws ChangelogException
   {
+    Reject.checkNotNull(key);
     final long markerPosition = searchClosestBlockStartToKey(key);
     if (markerPosition >= 0)
     {
-      return positionToKeySequentially(markerPosition, key, findNextRecord);
+      return positionToKeySequentially(markerPosition, key, matchStrategy, positionStrategy);
     }
     return Pair.of(false, null);
   }
@@ -440,39 +449,42 @@ class BlockLogReader<K extends Comparable<K>, V> implements Closeable
 
   /**
    * Position to provided key, starting from provided block start position and
-   * reading sequentially until key is found.
+   * reading sequentially until key is found according to matching and
+   * positioning strategies.
    *
    * @param blockStartPosition
    *          Position of read pointer in the file, expected to be the start of
    *          a block where a record offset is written.
    * @param key
    *          The key to find.
-   * @param findNextRecord
-   *          If {@code true}, position at the end of this method is the lowest
-   *          key that is higher than the provided key, otherwise position is
-   *          the provided key.
+   * @param matchStrategy
+   *          The key matching strategy.
+   * @param positionStrategy
+   *          The positioning strategy.
    * @return The pair ({@code true}, last record read) if reader is successfully
-   *         positioned to the key or the nearest key (last record may be null
-   *         if end of file is reached), ({@code false}, null) otherwise.
+   *         positioned (last record may be null if end of file is reached), (
+   *         {@code false}, null) otherwise.
    * @throws ChangelogException
-   *            If an error occurs.
+   *           If an error occurs.
    */
    Pair<Boolean, Record<K,V>> positionToKeySequentially(
        final long blockStartPosition,
        final K key,
-       final boolean findNextRecord)
+       final KeyMatchingStrategy matchStrategy,
+       final PositionStrategy positionStrategy)
        throws ChangelogException {
     Record<K,V> record = readRecord(blockStartPosition);
     do {
       if (record != null)
       {
         final int keysComparison = record.getKey().compareTo(key);
-        final boolean matches = findNextRecord ? keysComparison >= 0 : record.getKey().equals(key);
+        final boolean matches = (matchStrategy == EQUAL_TO_KEY && keysComparison == 0)
+            || (matchStrategy == GREATER_THAN_OR_EQUAL_TO_KEY && keysComparison >= 0);
         if (matches)
         {
-          if (findNextRecord && keysComparison == 0)
+          if (positionStrategy == AFTER_MATCHING_KEY && keysComparison == 0)
           {
-            // skip key in order to position on lowest higher key
+            // skip matching key
             record = readRecord();
           }
           return Pair.of(true, record);
