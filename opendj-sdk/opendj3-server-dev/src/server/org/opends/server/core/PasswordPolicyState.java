@@ -2689,7 +2689,7 @@ public final class PasswordPolicyState extends AuthenticationPolicyState
    */
   public void handleDeprecatedStorageSchemes(ByteString password)
   {
-    if (passwordPolicy.getDefaultPasswordStorageSchemes().isEmpty())
+    if (passwordPolicy.getDeprecatedPasswordStorageSchemes().isEmpty())
     {
       if (logger.isTraceEnabled())
       {
