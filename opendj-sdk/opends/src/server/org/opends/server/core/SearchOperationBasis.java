@@ -1081,20 +1081,6 @@ public class SearchOperationBasis
     this.matchedValuesControl = controls;
   }
 
-  /** {@inheritDoc} */
-  @Override
-  public ExternalChangelogRequestControl getECLRequestControl()
-  {
-    return eclRequestControl;
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public void setECLRequestControl(ExternalChangelogRequestControl control)
-  {
-    eclRequestControl = control;
-  }
-
   /**
    * {@inheritDoc}
    */
