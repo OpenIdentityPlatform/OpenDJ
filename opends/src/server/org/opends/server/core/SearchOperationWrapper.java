@@ -29,7 +29,6 @@ package org.opends.server.core;
 import java.util.List;
 import java.util.Set;
 
-import org.opends.server.controls.ExternalChangelogRequestControl;
 import org.opends.server.controls.MatchedValuesControl;
 import org.opends.server.types.*;
 
@@ -491,20 +490,6 @@ public abstract class SearchOperationWrapper extends
   @Override
   public void setProxiedAuthorizationDN(DN proxiedAuthorizationDN){
     getOperation().setProxiedAuthorizationDN(proxiedAuthorizationDN);
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public ExternalChangelogRequestControl getECLRequestControl()
-  {
-    return getOperation().getECLRequestControl();
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public void setECLRequestControl(ExternalChangelogRequestControl control)
-  {
-    getOperation().setECLRequestControl(control);
   }
 
 }

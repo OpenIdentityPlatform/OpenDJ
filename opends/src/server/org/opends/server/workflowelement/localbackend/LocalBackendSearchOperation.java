@@ -526,16 +526,6 @@ public class LocalBackendSearchOperation
         {
           // Do nothing here and let AciHandler deal with it.
         }
-        else if (OID_ECL_COOKIE_EXCHANGE_CONTROL.equals(oid))
-        {
-          if (c.isCritical() && !backendSupportsControl(oid))
-          {
-            throw new DirectoryException(
-                ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
-                ERR_SEARCH_UNSUPPORTED_CRITICAL_CONTROL_ECL_COOKIE_EXCHANGE.get(backend.getBackendID()));
-          }
-          setECLRequestControl(getRequestControl(ExternalChangelogRequestControl.DECODER));
-        }
         // NYI -- Add support for additional controls.
 
         else if (c.isCritical() && !backendSupportsControl(oid))
