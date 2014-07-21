@@ -41,6 +41,7 @@ import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.changelog.api.DBCursor;
+import org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DN;
 import org.opends.server.util.StaticUtils;
@@ -52,6 +53,7 @@ import static org.testng.Assert.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy.*;
 
 /**
  * Test the FileReplicaDB class
@@ -193,17 +195,17 @@ public class FileReplicaDBTest extends ReplicationTestCase
       }
       waitChangesArePersisted(replicaDB, 4);
 
-      cursor = replicaDB.generateCursorFrom(csns[0]);
+      cursor = replicaDB.generateCursorFrom(csns[0], AFTER_MATCHING_KEY);
       assertTrue(cursor.next());
       assertEquals(cursor.getRecord().getCSN(), csns[1]);
       StaticUtils.close(cursor);
 
-      cursor = replicaDB.generateCursorFrom(csns[3]);
+      cursor = replicaDB.generateCursorFrom(csns[3], AFTER_MATCHING_KEY);
       assertTrue(cursor.next());
       assertEquals(cursor.getRecord().getCSN(), csns[4]);
       StaticUtils.close(cursor);
 
-      cursor = replicaDB.generateCursorFrom(csns[4]);
+      cursor = replicaDB.generateCursorFrom(csns[4], AFTER_MATCHING_KEY);
       assertFalse(cursor.next());
       assertNull(cursor.getRecord());
     }
@@ -242,7 +244,7 @@ public class FileReplicaDBTest extends ReplicationTestCase
 
       CSN[] csns = generateCSNs(1, System.currentTimeMillis(), 6);
 
-      cursor = replicaDB.generateCursorFrom(csns[csnIndexForStartKey]);
+      cursor = replicaDB.generateCursorFrom(csns[csnIndexForStartKey], PositionStrategy.AFTER_MATCHING_KEY);
       assertFalse(cursor.next());
 
       int[] indicesToAdd = new int[] { 0, 1, 2, 4 };
@@ -547,7 +549,7 @@ public class FileReplicaDBTest extends ReplicationTestCase
       return;
     }
 
-    DBCursor<UpdateMsg> cursor = replicaDB.generateCursorFrom(csns[0]);
+    DBCursor<UpdateMsg> cursor = replicaDB.generateCursorFrom(csns[0], AFTER_MATCHING_KEY);
     try
     {
       // Cursor points to a null record initially
@@ -574,7 +576,7 @@ public class FileReplicaDBTest extends ReplicationTestCase
     DBCursor<UpdateMsg> cursor = null;
     try
     {
-      cursor = replicaDB.generateCursorFrom(csn);
+      cursor = replicaDB.generateCursorFrom(csn, AFTER_MATCHING_KEY);
       assertFalse(cursor.next());
       assertNull(cursor.getRecord());
     }

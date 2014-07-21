@@ -187,6 +187,7 @@ public class CompositeDBCursorTest extends DirectoryServerTestCase
         of(msg4, baseDN1));
   }
 
+  @Test
   public void recycleTwoElementsCursorsLongerExhaustion() throws Exception
   {
     final CompositeDBCursor<String> compCursor = newCompositeDBCursor(

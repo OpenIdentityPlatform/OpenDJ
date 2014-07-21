@@ -54,6 +54,8 @@ public class DomainDBCursor extends CompositeDBCursor<Void>
    */
   private static final CSN NULL_CSN = new CSN(0, 0, 0);
 
+  private final PositionStrategy positionStrategy;
+
   /**
    * Builds a DomainDBCursor instance.
    *
@@ -61,11 +63,15 @@ public class DomainDBCursor extends CompositeDBCursor<Void>
    *          the replication domain baseDN of this cursor
    * @param domainDB
    *          the DB for the provided replication domain
+   * @param positionStrategy
+   *          Cursor position strategy, which allow to indicates at which
+   *          exact position the cursor must start
    */
-  public DomainDBCursor(DN baseDN, ReplicationDomainDB domainDB)
+  public DomainDBCursor(DN baseDN, ReplicationDomainDB domainDB, PositionStrategy positionStrategy)
   {
     this.baseDN = baseDN;
     this.domainDB = domainDB;
+    this.positionStrategy = positionStrategy;
   }
 
   /**
@@ -102,8 +108,9 @@ public class DomainDBCursor extends CompositeDBCursor<Void>
       final Entry<Integer, CSN> pair = iter.next();
       final int serverId = pair.getKey();
       final CSN csn = pair.getValue();
-      final CSN startAfterCSN = !NULL_CSN.equals(csn) ? csn : null;
-      final DBCursor<UpdateMsg> cursor = domainDB.getCursorFrom(baseDN, serverId, startAfterCSN);
+      final CSN startCSN = !NULL_CSN.equals(csn) ? csn : null;
+      final DBCursor<UpdateMsg> cursor =
+          domainDB.getCursorFrom(baseDN, serverId, startCSN, positionStrategy);
       addCursor(cursor, null);
       iter.remove();
     }
