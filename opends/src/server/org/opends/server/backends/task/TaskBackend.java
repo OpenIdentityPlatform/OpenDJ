@@ -26,8 +26,6 @@
  */
 package org.opends.server.backends.task;
 
-
-
 import java.io.*;
 import java.net.InetAddress;
 import java.security.MessageDigest;
@@ -41,7 +39,6 @@ import java.util.zip.ZipOutputStream;
 import javax.crypto.Mac;
 
 import org.opends.messages.Message;
-import org.opends.server.admin.Configuration;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.TaskBackendCfg;
 import org.opends.server.api.Backend;
@@ -59,15 +56,13 @@ import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
-
-
 /**
  * This class provides an implementation of a Directory Server backend that may
  * be used to execute various kinds of administrative tasks on a one-time or
  * recurring basis.
  */
 public class TaskBackend
-       extends Backend
+       extends Backend<TaskBackendCfg>
        implements ConfigurationChangeListener<TaskBackendCfg>
 {
   /**
@@ -77,44 +72,46 @@ public class TaskBackend
 
 
 
-  // The current configuration state.
+  /** The current configuration state. */
   private TaskBackendCfg currentConfig;
 
-  // The DN of the configuration entry for this backend.
+  /** The DN of the configuration entry for this backend. */
   private DN configEntryDN;
 
-  // The DN of the entry that will serve as the parent for all recurring task
-  // entries.
+  /**
+   * The DN of the entry that will serve as the parent for all recurring task
+   * entries.
+   */
   private DN recurringTaskParentDN;
 
-  // The DN of the entry that will serve as the parent for all scheduled task
-  // entries.
+  /**
+   * The DN of the entry that will serve as the parent for all scheduled task
+   * entries.
+   */
   private DN scheduledTaskParentDN;
 
-  // The DN of the entry that will serve as the root for all task entries.
+  /** The DN of the entry that will serve as the root for all task entries. */
   private DN taskRootDN;
 
-  // The set of base DNs defined for this backend.
+  /** The set of base DNs defined for this backend. */
   private DN[] baseDNs;
 
-  // The set of supported controls for this backend.
-  private HashSet<String> supportedControls;
-
-  // The set of supported features for this backend.
-  private HashSet<String> supportedFeatures;
-
-  // The length of time in seconds after a task is completed that it should be
-  // removed from the set of scheduled tasks.
+  /**
+   * The length of time in seconds after a task is completed that it should be
+   * removed from the set of scheduled tasks.
+   */
   private long retentionTime;
 
-  // The e-mail address to use for the sender from notification messages.
+  /** The e-mail address to use for the sender from notification messages. */
   private String notificationSenderAddress;
 
-  // The path to the task backing file.
+  /** The path to the task backing file. */
   private String taskBackingFile;
 
-  // The task scheduler that will be responsible for actually invoking scheduled
-  // tasks.
+  /**
+   * The task scheduler that will be responsible for actually invoking scheduled
+   * tasks.
+   */
   private TaskScheduler taskScheduler;
 
 
@@ -133,19 +130,13 @@ public class TaskBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public void configureBackend(Configuration config)
-         throws ConfigException
+  /** {@inheritDoc} */
+  @Override
+  public void configureBackend(TaskBackendCfg cfg) throws ConfigException
   {
-    Validator.ensureNotNull(config);
-    Validator.ensureTrue(config instanceof TaskBackendCfg);
+    Validator.ensureNotNull(cfg);
 
-    TaskBackendCfg cfg = (TaskBackendCfg)config;
-
-    DN[] baseDNs = new DN[cfg.getBaseDN().size()];
+    final DN[] baseDNs = new DN[cfg.getBaseDN().size()];
     cfg.getBaseDN().toArray(baseDNs);
 
     ConfigEntry configEntry = DirectoryServer.getConfigEntry(cfg.dn());
@@ -155,10 +146,9 @@ public class TaskBackend
 
     // Make sure that the provided set of base DNs contains exactly one value.
     // We will only allow one base for task entries.
-    if ((baseDNs == null) || (baseDNs.length == 0))
+    if (baseDNs.length == 0)
     {
-      Message message = ERR_TASKBE_NO_BASE_DNS.get();
-      throw new ConfigException(message);
+      throw new ConfigException(ERR_TASKBE_NO_BASE_DNS.get());
     }
     else if (baseDNs.length > 1)
     {
@@ -172,7 +162,7 @@ public class TaskBackend
       taskRootDN = baseDNs[0];
 
       String recurringTaskBaseString = RECURRING_TASK_BASE_RDN + "," +
-                                       taskRootDN.toString();
+                                       taskRootDN;
       try
       {
         recurringTaskParentDN = DN.decode(recurringTaskBaseString);
@@ -191,7 +181,7 @@ public class TaskBackend
       }
 
       String scheduledTaskBaseString = SCHEDULED_TASK_BASE_RDN + "," +
-                                       taskRootDN.toString();
+                                       taskRootDN;
       try
       {
         scheduledTaskParentDN = DN.decode(scheduledTaskBaseString);
@@ -235,19 +225,13 @@ public class TaskBackend
     // Get the path to the task data backing file.
     taskBackingFile = cfg.getTaskBackingFile();
 
-    // Define an empty sets for the supported controls and features.
-    supportedControls = new HashSet<String>(0);
-    supportedFeatures = new HashSet<String>(0);
-
     currentConfig = cfg;
   }
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void initializeBackend()
          throws ConfigException, InitializationException
   {
@@ -280,10 +264,8 @@ public class TaskBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void finalizeBackend()
   {
     currentConfig.removeTaskChangeListener(this);
@@ -332,10 +314,8 @@ public class TaskBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public DN[] getBaseDNs()
   {
     return baseDNs;
@@ -343,10 +323,8 @@ public class TaskBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public long getEntryCount()
   {
     if (taskScheduler != null)
@@ -359,10 +337,8 @@ public class TaskBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean isLocal()
   {
     // For the purposes of this method, this is a local backend.
@@ -371,10 +347,8 @@ public class TaskBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean isIndexed(AttributeType attributeType, IndexType indexType)
   {
     // All searches in this backend will always be considered indexed.
@@ -383,10 +357,8 @@ public class TaskBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public ConditionResult hasSubordinates(DN entryDN)
          throws DirectoryException
   {
@@ -407,10 +379,8 @@ public class TaskBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public long numSubordinates(DN entryDN, boolean subtree)
       throws DirectoryException
   {
@@ -465,10 +435,8 @@ public class TaskBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public Entry getEntry(DN entryDN)
          throws DirectoryException
   {
@@ -523,10 +491,8 @@ public class TaskBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void addEntry(Entry entry, AddOperation addOperation)
          throws DirectoryException
   {
@@ -571,10 +537,8 @@ public class TaskBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void deleteEntry(DN entryDN, DeleteOperation deleteOperation)
          throws DirectoryException
   {
@@ -653,10 +617,8 @@ public class TaskBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void replaceEntry(Entry oldEntry, Entry newEntry,
       ModifyOperation modifyOperation) throws DirectoryException
   {
@@ -855,24 +817,20 @@ public class TaskBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void renameEntry(DN currentDN, Entry entry,
                                    ModifyDNOperation modifyDNOperation)
          throws DirectoryException
   {
-    Message message = ERR_TASKBE_MODIFY_DN_NOT_SUPPORTED.get();
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+        ERR_BACKEND_MODIFY_DN_NOT_SUPPORTED.get(String.valueOf(currentDN), getBackendID()));
   }
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void search(SearchOperation searchOperation)
          throws DirectoryException, CanceledOperationException {
     // Look at the base DN and scope for the search operation to decide which
@@ -975,9 +933,8 @@ public class TaskBackend
                                          scheduledTaskParentDN, null);
           }
 
-          if (((searchScope == SearchScope.BASE_OBJECT) ||
-               (searchScope == SearchScope.WHOLE_SUBTREE)) &&
-              searchFilter.matchesEntry(e))
+          if ((searchScope == SearchScope.BASE_OBJECT || searchScope == SearchScope.WHOLE_SUBTREE)
+              && searchFilter.matchesEntry(e))
           {
             searchOperation.returnEntry(e, null);
           }
@@ -1004,9 +961,8 @@ public class TaskBackend
                                          recurringTaskParentDN, null);
           }
 
-          if (((searchScope == SearchScope.BASE_OBJECT) ||
-               (searchScope == SearchScope.WHOLE_SUBTREE)) &&
-              searchFilter.matchesEntry(e))
+          if ((searchScope == SearchScope.BASE_OBJECT || searchScope == SearchScope.WHOLE_SUBTREE)
+              && searchFilter.matchesEntry(e))
           {
             searchOperation.returnEntry(e, null);
           }
@@ -1030,12 +986,9 @@ public class TaskBackend
     if (searchRoot)
     {
       Entry e = taskScheduler.getTaskRootEntry();
-      if (searchFilter.matchesEntry(e))
+      if (searchFilter.matchesEntry(e) && !searchOperation.returnEntry(e, null))
       {
-        if (! searchOperation.returnEntry(e, null))
-        {
-          return;
-        }
+        return;
       }
     }
 
@@ -1043,75 +996,59 @@ public class TaskBackend
     if (searchScheduledParent)
     {
       Entry e = taskScheduler.getScheduledTaskParentEntry();
-      if (searchFilter.matchesEntry(e))
+      if (searchFilter.matchesEntry(e) && !searchOperation.returnEntry(e, null))
       {
-        if (! searchOperation.returnEntry(e, null))
-        {
-          return;
-        }
+        return;
       }
     }
 
 
-    if (searchScheduledTasks)
+    if (searchScheduledTasks
+        && !taskScheduler.searchScheduledTasks(searchOperation))
     {
-      if (! taskScheduler.searchScheduledTasks(searchOperation))
-      {
-        return;
-      }
+      return;
     }
 
 
     if (searchRecurringParent)
     {
       Entry e = taskScheduler.getRecurringTaskParentEntry();
-      if (searchFilter.matchesEntry(e))
-      {
-        if (! searchOperation.returnEntry(e, null))
-        {
-          return;
-        }
-      }
-    }
-
-
-    if (searchRecurringTasks)
-    {
-      if (! taskScheduler.searchRecurringTasks(searchOperation))
+      if (searchFilter.matchesEntry(e) && !searchOperation.returnEntry(e, null))
       {
         return;
       }
     }
+
+
+    if (searchRecurringTasks
+        && !taskScheduler.searchRecurringTasks(searchOperation))
+    {
+      return;
+    }
   }
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public HashSet<String> getSupportedControls()
+  /** {@inheritDoc} */
+  @Override
+  public Set<String> getSupportedControls()
   {
-    return supportedControls;
+    return Collections.emptySet();
   }
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public HashSet<String> getSupportedFeatures()
+  /** {@inheritDoc} */
+  @Override
+  public Set<String> getSupportedFeatures()
   {
-    return supportedFeatures;
+    return Collections.emptySet();
   }
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean supportsLDIFExport()
   {
     // LDIF exports are supported.
@@ -1120,10 +1057,8 @@ public class TaskBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void exportLDIF(LDIFExportConfig exportConfig)
          throws DirectoryException
   {
@@ -1203,88 +1138,47 @@ public class TaskBackend
     }
     finally
     {
-      try
-      {
-        ldifWriter.close();
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-      }
-      try
-      {
-        ldifReader.close();
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-      }
+      close(ldifWriter, ldifReader);
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean supportsLDIFImport()
   {
-    // This backend does not support LDIF imports.
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public LDIFImportResult importLDIF(LDIFImportConfig importConfig)
          throws DirectoryException
   {
-    // This backend does not support LDIF imports.
-    Message message = ERR_TASKBE_IMPORT_NOT_SUPPORTED.get();
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+        ERR_BACKEND_IMPORT_NOT_SUPPORTED.get(getBackendID()));
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean supportsBackup()
   {
-    // This backend does provide a backup/restore mechanism.
     return true;
   }
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean supportsBackup(BackupConfig backupConfig,
                                 StringBuilder unsupportedReason)
   {
-    // This backend does provide a backup/restore mechanism.
     return true;
   }
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void createBackup(BackupConfig backupConfig)
          throws DirectoryException
   {
@@ -1497,16 +1391,7 @@ public class TaskBackend
       if (debugEnabled()) {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-
-      try {
-        inputStream.close();
-      } catch (Exception e2) {
-      }
-
-      try {
-        zipStream.close();
-      } catch (Exception e2) {
-      }
+      close(inputStream, zipStream);
 
       message = ERR_TASKS_BACKUP_CANNOT_BACKUP_TASKS_FILE.get(baseName,
         stackTraceToSingleLineString(e));
@@ -1580,10 +1465,8 @@ public class TaskBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void removeBackup(BackupDirectory backupDirectory,
                            String backupID)
          throws DirectoryException
@@ -1640,10 +1523,8 @@ public class TaskBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean supportsRestore()
   {
     // This backend does provide a backup/restore mechanism.
@@ -1652,10 +1533,8 @@ public class TaskBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void restoreBackup(RestoreConfig restoreConfig)
          throws DirectoryException
   {
@@ -1973,22 +1852,17 @@ public class TaskBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public boolean isConfigurationAcceptable(Configuration configuration,
+  /** {@inheritDoc} */
+  @Override
+  public boolean isConfigurationAcceptable(TaskBackendCfg config,
                                            List<Message> unacceptableReasons)
   {
-    TaskBackendCfg config = (TaskBackendCfg) configuration;
     return isConfigAcceptable(config, unacceptableReasons, null);
   }
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(TaskBackendCfg configEntry,
                                             List<Message> unacceptableReasons)
@@ -2024,8 +1898,8 @@ public class TaskBackend
     try
     {
       String tmpBackingFile = config.getTaskBackingFile();
-      if ((taskBackingFile == null) ||
-          (! taskBackingFile.equals(tmpBackingFile)))
+      if (taskBackingFile == null ||
+          !taskBackingFile.equals(tmpBackingFile))
       {
         File f = getFileForPath(tmpBackingFile);
         if (f.exists())
@@ -2084,9 +1958,7 @@ public class TaskBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(TaskBackendCfg configEntry)
   {
@@ -2325,9 +2197,7 @@ public class TaskBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void preloadEntryCache() throws UnsupportedOperationException {
     throw new UnsupportedOperationException("Operation not supported.");

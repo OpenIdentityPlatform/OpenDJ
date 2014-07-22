@@ -22,29 +22,29 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.api;
 
-
-
+import org.opends.server.admin.std.server.BackendCfg;
 import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
-import org.opends.server.types.DirectoryException;
 import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.InitializationException;
-
 
 /**
  * This class defines the set of methods and structures that must be
  * implemented by a Directory Server configuration handler.
+ *
+ * @param <C> the BackendCfg class in use with this ConfigHandler
  */
 @org.opends.server.types.PublicAPI(
      stability=org.opends.server.types.StabilityLevel.VOLATILE,
      mayInstantiate=false,
      mayExtend=true,
      mayInvoke=true)
-public abstract class ConfigHandler
-       extends Backend
+public abstract class ConfigHandler<C extends BackendCfg> extends Backend<C>
 {
   /**
    * Bootstraps this configuration handler using the information in

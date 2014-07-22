@@ -92,7 +92,7 @@ import org.opends.server.util.*;
 import org.opends.server.util.args.*;
 import org.opends.server.workflowelement.WorkflowElement;
 import org.opends.server.workflowelement.WorkflowElementConfigManager;
-import org.opends.server.workflowelement.localbackend.*;
+import org.opends.server.workflowelement.localbackend.LocalBackendWorkflowElement;
 
 /**
  * This class defines the core of the Directory Server.  It manages the startup
@@ -649,7 +649,7 @@ public final class DirectoryServer
 
 
   /** The set of backends registered with the server. */
-  private TreeMap<String,Backend> backends;
+  private TreeMap<String, Backend<?>> backends;
 
   /**
    * The mapping between backends and their unique identifiers for their offline
@@ -659,10 +659,31 @@ public final class DirectoryServer
   private ConcurrentMap<String, Long> offlineBackendsStateIDs;
 
   /** The set of supported controls registered with the Directory Server. */
-  private TreeSet<String> supportedControls;
+  private final TreeSet<String> supportedControls = new TreeSet<String>(Arrays.asList(
+      OID_LDAP_ASSERTION,
+      OID_LDAP_READENTRY_PREREAD,
+      OID_LDAP_READENTRY_POSTREAD,
+      OID_LDAP_NOOP_OPENLDAP_ASSIGNED,
+      OID_PERSISTENT_SEARCH,
+      OID_PROXIED_AUTH_V1,
+      OID_PROXIED_AUTH_V2,
+      OID_AUTHZID_REQUEST,
+      OID_MATCHED_VALUES,
+      OID_LDAP_SUBENTRIES,
+      OID_LDUP_SUBENTRIES,
+      OID_PASSWORD_POLICY_CONTROL,
+      OID_PERMISSIVE_MODIFY_CONTROL,
+      OID_REAL_ATTRS_ONLY,
+      OID_VIRTUAL_ATTRS_ONLY,
+      OID_ACCOUNT_USABLE_CONTROL,
+      OID_NS_PASSWORD_EXPIRED,
+      OID_NS_PASSWORD_EXPIRING));
 
   /** The set of supported feature OIDs registered with the Directory Server. */
-  private TreeSet<String> supportedFeatures;
+  private final TreeSet<String> supportedFeatures = new TreeSet<String>(Arrays.asList(
+      OID_ALL_OPERATIONAL_ATTRS_FEATURE,
+      OID_MODIFY_INCREMENT_FEATURE,
+      OID_TRUE_FALSE_FILTERS_FEATURE));
 
   /**
    * The trust manager provider configuration manager for the Directory Server.
@@ -895,7 +916,7 @@ public final class DirectoryServer
       directoryServer.monitorProviders =
            new ConcurrentHashMap<String,
                     MonitorProvider<? extends MonitorProviderCfg>>();
-      directoryServer.backends = new TreeMap<String,Backend>();
+      directoryServer.backends = new TreeMap<String, Backend<?>>();
       directoryServer.offlineBackendsStateIDs =
            new ConcurrentHashMap<String,Long>();
       directoryServer.backendInitializationListeners =
@@ -910,8 +931,6 @@ public final class DirectoryServer
       directoryServer.synchronizationProviders =
            new CopyOnWriteArrayList<SynchronizationProvider
                                    <SynchronizationProviderCfg>>();
-      directoryServer.supportedControls = new TreeSet<String>();
-      directoryServer.supportedFeatures = new TreeSet<String>();
       directoryServer.supportedLDAPVersions =
            new ConcurrentHashMap<Integer,List<ConnectionHandler>>();
       directoryServer.connectionHandlers =
@@ -1404,11 +1423,6 @@ public final class DirectoryServer
 
       // Reset the map as we can no longer guarantee offline state.
       directoryServer.offlineBackendsStateIDs.clear();
-
-      // Register the supported controls and supported features.
-      initializeSupportedControls();
-      initializeSupportedFeatures();
-
 
       // Initialize all the extended operation handlers.
       initializeExtendedOperations();
@@ -2394,23 +2408,19 @@ public final class DirectoryServer
 
     // For each base DN in a backend create a workflow and register
     // the workflow with the default network group
-    Map<String, Backend> backendMap = getBackends();
-    for (String backendID: backendMap.keySet())
+    for (Backend<?> backend : getBackends().values())
     {
-      Backend backend = backendMap.get(backendID);
       for (DN baseDN: backend.getBaseDNs())
       {
-        WorkflowImpl workflowImpl;
         try
         {
-          workflowImpl = createWorkflow(baseDN, backend);
+          final WorkflowImpl workflowImpl = createWorkflow(baseDN, backend);
           registerWorkflowWithInternalNetworkGroup(workflowImpl);
           registerWorkflowWithAdminNetworkGroup(workflowImpl);
           registerWorkflowWithDefaultNetworkGroup(workflowImpl);
         }
         catch (DirectoryException e)
         {
-          // TODO Auto-generated catch block
           throw new ConfigException(e.getMessageObject());
         }
       }
@@ -2480,61 +2490,6 @@ public final class DirectoryServer
   public static SubentryManager getSubentryManager()
   {
     return directoryServer.subentryManager;
-  }
-
-
-
-  /**
-   * Initializes the set of supported controls for the Directory Server.
-   *
-   * @throws  ConfigException  If there is a configuration problem with the
-   *                           list of supported controls.
-   *
-   * @throws  InitializationException  If a problem occurs while initializing
-   *                                   the set of supported controls that is not
-   *                                   related to the server configuration.
-   */
-  private void initializeSupportedControls()
-          throws ConfigException, InitializationException
-  {
-    supportedControls.add(OID_LDAP_ASSERTION);
-    supportedControls.add(OID_LDAP_READENTRY_PREREAD);
-    supportedControls.add(OID_LDAP_READENTRY_POSTREAD);
-    supportedControls.add(OID_LDAP_NOOP_OPENLDAP_ASSIGNED);
-    supportedControls.add(OID_PERSISTENT_SEARCH);
-    supportedControls.add(OID_PROXIED_AUTH_V1);
-    supportedControls.add(OID_PROXIED_AUTH_V2);
-    supportedControls.add(OID_AUTHZID_REQUEST);
-    supportedControls.add(OID_MATCHED_VALUES);
-    supportedControls.add(OID_LDAP_SUBENTRIES);
-    supportedControls.add(OID_LDUP_SUBENTRIES);
-    supportedControls.add(OID_PASSWORD_POLICY_CONTROL);
-    supportedControls.add(OID_PERMISSIVE_MODIFY_CONTROL);
-    supportedControls.add(OID_REAL_ATTRS_ONLY);
-    supportedControls.add(OID_VIRTUAL_ATTRS_ONLY);
-    supportedControls.add(OID_ACCOUNT_USABLE_CONTROL);
-    supportedControls.add(OID_NS_PASSWORD_EXPIRED);
-    supportedControls.add(OID_NS_PASSWORD_EXPIRING);
-  }
-
-
-
-  /**
-   * Initializes the set of supported features for the Directory Server.
-   *
-   * @throws  ConfigException  If there is a configuration problem with the
-   *                           list of supported features.
-   *
-   * @throws  InitializationException  If a problem occurs while initializing
-   *                                   the set of supported features that is not
-   *                                   related to the server configuration.
-   */
-  private void initializeSupportedFeatures()
-          throws ConfigException, InitializationException
-  {
-    supportedFeatures.add(OID_ALL_OPERATIONAL_ATTRS_FEATURE);
-    supportedFeatures.add(OID_MODIFY_INCREMENT_FEATURE);
-    supportedFeatures.add(OID_TRUE_FALSE_FILTERS_FEATURE);
   }
 
 
@@ -5958,9 +5913,9 @@ public final class DirectoryServer
    * @return  The set of backends that have been registered with the Directory
    *          Server.
    */
-  public static Map<String,Backend> getBackends()
+  public static Map<String, Backend> getBackends()
   {
-    return directoryServer.backends;
+    return (Map) directoryServer.backends;
   }
 
 
@@ -6008,7 +5963,7 @@ public final class DirectoryServer
    *                              conflicts with the backend ID of an existing
    *                              backend.
    */
-  public static void registerBackend(Backend backend)
+  public static void registerBackend(Backend<?> backend)
          throws DirectoryException
   {
     ensureNotNull(backend);
@@ -6018,8 +5973,8 @@ public final class DirectoryServer
 
     synchronized (directoryServer)
     {
-      TreeMap<String, Backend> newBackends =
-          new TreeMap<String, Backend>(directoryServer.backends);
+      TreeMap<String, Backend<?>> newBackends =
+          new TreeMap<String, Backend<?>>(directoryServer.backends);
       if (newBackends.containsKey(backendID))
       {
         Message message = ERR_REGISTER_BACKEND_ALREADY_EXISTS.get(backendID);
@@ -6064,8 +6019,8 @@ public final class DirectoryServer
 
     synchronized (directoryServer)
     {
-      TreeMap<String,Backend> newBackends =
-           new TreeMap<String,Backend>(directoryServer.backends);
+      TreeMap<String, Backend<?>> newBackends =
+          new TreeMap<String, Backend<?>>(directoryServer.backends);
       newBackends.remove(backend.getBackendID());
 
       directoryServer.backends = newBackends;
