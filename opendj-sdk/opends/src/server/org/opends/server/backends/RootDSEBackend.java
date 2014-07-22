@@ -22,18 +22,15 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.backends;
-
-
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -45,7 +42,6 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLParameters;
 
 import org.opends.messages.Message;
-import org.opends.server.admin.Configuration;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.RootDSEBackendCfg;
 import org.opends.server.api.Backend;
@@ -65,15 +61,12 @@ import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.Validator;
 
 import static org.opends.messages.BackendMessages.*;
-import static org.opends.messages.ConfigMessages.
-     ERR_CONFIG_BACKEND_ERROR_INTERACTING_WITH_BACKEND_ENTRY;
+import static org.opends.messages.ConfigMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-
-
 
 /**
  * This class defines a backend to hold the Directory Server root DSE.  It is a
@@ -88,52 +81,50 @@ import static org.opends.server.util.StaticUtils.*;
  * with the other backends.
  */
 public class RootDSEBackend
-       extends Backend
+       extends Backend<RootDSEBackendCfg>
        implements ConfigurationChangeListener<RootDSEBackendCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
+  /** The tracer object for the debug logger. */
   private static final DebugTracer TRACER = getTracer();
 
-
-
-  // The set of standard "static" attributes that we will always include in the
-  // root DSE entry and won't change while the server is running.
+  /**
+   * The set of standard "static" attributes that we will always include in the
+   * root DSE entry and won't change while the server is running.
+   */
   private ArrayList<Attribute> staticDSEAttributes;
 
-  // The set of user-defined attributes that will be included in the root DSE
-  // entry.
+  /**
+   * The set of user-defined attributes that will be included in the root DSE
+   * entry.
+   */
   private ArrayList<Attribute> userDefinedAttributes;
 
-  // Indicates whether the attributes of the root DSE should always be treated
-  // as user attributes even if they are defined as operational in the schema.
+  /**
+   * Indicates whether the attributes of the root DSE should always be treated
+   * as user attributes even if they are defined as operational in the schema.
+   */
   private boolean showAllAttributes;
 
-  // The set of subordinate base DNs and their associated backends that will be
-  // used for non-base searches.
+  /**
+   * The set of subordinate base DNs and their associated backends that will be
+   * used for non-base searches.
+   */
   private ConcurrentHashMap<DN,Backend> subordinateBaseDNs;
 
-  // The set of objectclasses that will be used in the root DSE entry.
+  /** The set of objectclasses that will be used in the root DSE entry. */
   private HashMap<ObjectClass,String> dseObjectClasses;
 
-  // The current configuration state.
+  /** The current configuration state. */
   private RootDSEBackendCfg currentConfig;
 
-  // The DN of the configuration entry for this backend.
+  /** The DN of the configuration entry for this backend. */
   private DN configEntryDN;
 
-  // The DN for the root DSE.
+  /** The DN for the root DSE. */
   private DN rootDSEDN;
 
-  // The set of base DNs for this backend.
+  /** The set of base DNs for this backend. */
   private DN[] baseDNs;
-
-  // The set of supported controls for this backend.
-  private HashSet<String> supportedControls;
-
-  // The set of supported features for this backend.
-  private HashSet<String> supportedFeatures;
 
 
 
@@ -149,27 +140,17 @@ public class RootDSEBackend
     // Perform all initialization in initializeBackend.
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public void configureBackend(Configuration config)
-         throws ConfigException
+  /** {@inheritDoc} */
+  @Override
+  public void configureBackend(RootDSEBackendCfg config) throws ConfigException
   {
     Validator.ensureNotNull(config);
-    Validator.ensureTrue(config instanceof RootDSEBackendCfg);
-    currentConfig = (RootDSEBackendCfg)config;
+    currentConfig = config;
     configEntryDN = config.dn();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void initializeBackend()
          throws ConfigException, InitializationException
   {
@@ -270,12 +251,10 @@ public class RootDSEBackend
     // the root DSE.
     staticDSEAttributes = new ArrayList<Attribute>();
 
-    staticDSEAttributes.add(createAttribute(ATTR_VENDOR_NAME,
-                                            ATTR_VENDOR_NAME_LC,
+    staticDSEAttributes.add(Attributes.create(ATTR_VENDOR_NAME,
                                             SERVER_VENDOR_NAME));
 
-    staticDSEAttributes.add(createAttribute(ATTR_VENDOR_VERSION,
-                                 ATTR_VENDOR_VERSION_LC,
+    staticDSEAttributes.add(Attributes.create(ATTR_VENDOR_VERSION,
                                  DirectoryServer.getVersionString()));
 
 
@@ -298,11 +277,6 @@ public class RootDSEBackend
     dseObjectClasses.put(rootDSEOC, OC_ROOT_DSE);
 
 
-    // Define an empty sets for the supported controls and features.
-    supportedControls = new HashSet<String>(0);
-    supportedFeatures = new HashSet<String>(0);
-
-
     // Set the backend ID for this backend. The identifier needs to be
     // specific enough to avoid conflict with user backend identifiers.
     setBackendID("__root.dse__");
@@ -312,12 +286,8 @@ public class RootDSEBackend
     currentConfig.addChangeListener(this);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void finalizeBackend()
   {
     currentConfig.removeChangeListener(this);
@@ -337,69 +307,44 @@ public class RootDSEBackend
   private boolean isDSEConfigAttribute(Attribute attribute)
   {
     AttributeType attrType = attribute.getAttributeType();
-    if (attrType.hasName(ATTR_ROOT_DSE_SUBORDINATE_BASE_DN.toLowerCase()) ||
-        attrType.hasName(ATTR_ROOTDSE_SHOW_ALL_ATTRIBUTES.toLowerCase()) ||
-        attrType.hasName(ATTR_COMMON_NAME))
-    {
-      return true;
-    }
-
-    return false;
+    return attrType.hasName(ATTR_ROOT_DSE_SUBORDINATE_BASE_DN.toLowerCase())
+        || attrType.hasName(ATTR_ROOTDSE_SHOW_ALL_ATTRIBUTES.toLowerCase())
+        || attrType.hasName(ATTR_COMMON_NAME);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public DN[] getBaseDNs()
   {
     return baseDNs;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public synchronized long getEntryCount()
   {
     // There is always just a single entry in this backend.
     return 1;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean isLocal()
   {
     // For the purposes of this method, this is a local backend.
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean isIndexed(AttributeType attributeType, IndexType indexType)
   {
     // All searches in this backend will always be considered indexed.
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public ConditionResult hasSubordinates(DN entryDN)
          throws DirectoryException
   {
@@ -418,12 +363,8 @@ public class RootDSEBackend
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public long numSubordinates(DN entryDN, boolean subtree)
          throws DirectoryException
   {
@@ -468,17 +409,13 @@ public class RootDSEBackend
     return count;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public Entry getEntry(DN entryDN)
          throws DirectoryException
   {
     // If the requested entry was the root DSE, then create and return it.
-    if ((entryDN == null) || entryDN.isNullDN())
+    if (entryDN == null || entryDN.isNullDN())
     {
       return getRootDSE();
     }
@@ -560,127 +497,37 @@ public class RootDSEBackend
 
     Attribute publicNamingContextAttr = createDNAttribute(ATTR_NAMING_CONTEXTS,
         ATTR_NAMING_CONTEXTS_LC, namingContexts);
-    if (!publicNamingContextAttr.isEmpty())
-    {
-      List<Attribute> publicNamingContextAttrs = new ArrayList<Attribute>(1);
-      publicNamingContextAttrs.add(publicNamingContextAttr);
-      if (showAllAttributes
-          || (!publicNamingContextAttr.getAttributeType().isOperational()))
-      {
-        dseUserAttrs.put(publicNamingContextAttr.getAttributeType(),
-            publicNamingContextAttrs);
-      }
-      else
-      {
-        dseOperationalAttrs.put(publicNamingContextAttr.getAttributeType(),
-            publicNamingContextAttrs);
-      }
-    }
+    addAttribute(publicNamingContextAttr, dseUserAttrs, dseOperationalAttrs);
 
 
     // Add the "ds-private-naming-contexts" attribute.
     Attribute privateNamingContextAttr = createDNAttribute(
         ATTR_PRIVATE_NAMING_CONTEXTS, ATTR_PRIVATE_NAMING_CONTEXTS,
         DirectoryServer.getPrivateNamingContexts().keySet());
-    if (!privateNamingContextAttr.isEmpty())
-    {
-      List<Attribute> privateNamingContextAttrs = new ArrayList<Attribute>(1);
-      privateNamingContextAttrs.add(privateNamingContextAttr);
-      if (showAllAttributes
-          || (!privateNamingContextAttr.getAttributeType().isOperational()))
-      {
-        dseUserAttrs.put(privateNamingContextAttr.getAttributeType(),
-            privateNamingContextAttrs);
-      }
-      else
-      {
-        dseOperationalAttrs.put(privateNamingContextAttr.getAttributeType(),
-            privateNamingContextAttrs);
-      }
-    }
+    addAttribute(privateNamingContextAttr, dseUserAttrs, dseOperationalAttrs);
 
     // Add the "supportedControl" attribute.
     Attribute supportedControlAttr = createAttribute(ATTR_SUPPORTED_CONTROL,
         ATTR_SUPPORTED_CONTROL_LC, DirectoryServer.getSupportedControls());
-    if (!supportedControlAttr.isEmpty())
-    {
-      List<Attribute> supportedControlAttrs = new ArrayList<Attribute>(1);
-      supportedControlAttrs.add(supportedControlAttr);
-      if (showAllAttributes
-          || (!supportedControlAttr.getAttributeType().isOperational()))
-      {
-        dseUserAttrs.put(supportedControlAttr.getAttributeType(),
-            supportedControlAttrs);
-      }
-      else
-      {
-        dseOperationalAttrs.put(supportedControlAttr.getAttributeType(),
-            supportedControlAttrs);
-      }
-    }
+    addAttribute(supportedControlAttr, dseUserAttrs, dseOperationalAttrs);
 
     // Add the "supportedExtension" attribute.
     Attribute supportedExtensionAttr = createAttribute(
         ATTR_SUPPORTED_EXTENSION, ATTR_SUPPORTED_EXTENSION_LC, DirectoryServer
             .getSupportedExtensions().keySet());
-    if (!supportedExtensionAttr.isEmpty())
-    {
-      List<Attribute> supportedExtensionAttrs = new ArrayList<Attribute>(1);
-      supportedExtensionAttrs.add(supportedExtensionAttr);
-      if (showAllAttributes
-          || (!supportedExtensionAttr.getAttributeType().isOperational()))
-      {
-        dseUserAttrs.put(supportedExtensionAttr.getAttributeType(),
-            supportedExtensionAttrs);
-      }
-      else
-      {
-        dseOperationalAttrs.put(supportedExtensionAttr.getAttributeType(),
-            supportedExtensionAttrs);
-      }
-    }
+    addAttribute(supportedExtensionAttr, dseUserAttrs, dseOperationalAttrs);
 
     // Add the "supportedFeature" attribute.
     Attribute supportedFeatureAttr = createAttribute(ATTR_SUPPORTED_FEATURE,
         ATTR_SUPPORTED_FEATURE_LC, DirectoryServer.getSupportedFeatures());
-    if (!supportedFeatureAttr.isEmpty())
-    {
-      List<Attribute> supportedFeatureAttrs = new ArrayList<Attribute>(1);
-      supportedFeatureAttrs.add(supportedFeatureAttr);
-      if (showAllAttributes
-          || (!supportedFeatureAttr.getAttributeType().isOperational()))
-      {
-        dseUserAttrs.put(supportedFeatureAttr.getAttributeType(),
-            supportedFeatureAttrs);
-      }
-      else
-      {
-        dseOperationalAttrs.put(supportedFeatureAttr.getAttributeType(),
-            supportedFeatureAttrs);
-      }
-    }
+    addAttribute(supportedFeatureAttr, dseUserAttrs, dseOperationalAttrs);
 
 
     // Add the "supportedSASLMechanisms" attribute.
     Attribute supportedSASLMechAttr = createAttribute(
         ATTR_SUPPORTED_SASL_MECHANISMS, ATTR_SUPPORTED_SASL_MECHANISMS_LC,
         DirectoryServer.getSupportedSASLMechanisms().keySet());
-    if (!supportedSASLMechAttr.isEmpty())
-    {
-      List<Attribute> supportedSASLMechAttrs = new ArrayList<Attribute>(1);
-      supportedSASLMechAttrs.add(supportedSASLMechAttr);
-      if (showAllAttributes
-          || (!supportedSASLMechAttr.getAttributeType().isOperational()))
-      {
-        dseUserAttrs.put(supportedSASLMechAttr.getAttributeType(),
-            supportedSASLMechAttrs);
-      }
-      else
-      {
-        dseOperationalAttrs.put(supportedSASLMechAttr.getAttributeType(),
-            supportedSASLMechAttrs);
-      }
-    }
+    addAttribute(supportedSASLMechAttr, dseUserAttrs, dseOperationalAttrs);
 
 
     // Add the "supportedLDAPVersions" attribute.
@@ -693,22 +540,7 @@ public class RootDSEBackend
          createAttribute(ATTR_SUPPORTED_LDAP_VERSION,
                          ATTR_SUPPORTED_LDAP_VERSION_LC,
                          versionStrings);
-    if (!supportedLDAPVersionAttr.isEmpty())
-    {
-      List<Attribute> supportedLDAPVersionAttrs = new ArrayList<Attribute>(1);
-      supportedLDAPVersionAttrs.add(supportedLDAPVersionAttr);
-      if (showAllAttributes
-          || (!supportedLDAPVersionAttr.getAttributeType().isOperational()))
-      {
-        dseUserAttrs.put(supportedLDAPVersionAttr.getAttributeType(),
-            supportedLDAPVersionAttrs);
-      }
-      else
-      {
-        dseOperationalAttrs.put(supportedLDAPVersionAttr.getAttributeType(),
-            supportedLDAPVersionAttrs);
-      }
-    }
+    addAttribute(supportedLDAPVersionAttr, dseUserAttrs, dseOperationalAttrs);
 
 
     // Add the "supportedAuthPasswordSchemes" attribute.
@@ -722,8 +554,8 @@ public class RootDSEBackend
       ArrayList<Attribute> supportedAuthPWSchemesAttrs =
            new ArrayList<Attribute>(1);
       supportedAuthPWSchemesAttrs.add(supportedAuthPWSchemesAttr);
-      if (showAllAttributes ||
-          (! supportedSASLMechAttr.getAttributeType().isOperational()))
+      if (showAllAttributes
+          || !supportedSASLMechAttr.getAttributeType().isOperational())
       {
         dseUserAttrs.put(supportedAuthPWSchemesAttr.getAttributeType(),
                          supportedAuthPWSchemesAttrs);
@@ -769,62 +601,28 @@ public class RootDSEBackend
     Attribute supportedTLSProtocolsAttr = createAttribute(
         ATTR_SUPPORTED_TLS_PROTOCOLS, ATTR_SUPPORTED_TLS_PROTOCOLS_LC,
         supportedTlsProtocols);
-    if (!supportedTLSProtocolsAttr.isEmpty())
-    {
-      List<Attribute> supportedTLSProtocolsAttrs = new ArrayList<Attribute>(1);
-      supportedTLSProtocolsAttrs.add(supportedTLSProtocolsAttr);
-      if (showAllAttributes
-          || (!supportedTLSProtocolsAttr.getAttributeType().isOperational()))
-      {
-        dseUserAttrs.put(supportedTLSProtocolsAttr.getAttributeType(),
-            supportedTLSProtocolsAttrs);
-      }
-      else
-      {
-        dseOperationalAttrs.put(supportedTLSProtocolsAttr.getAttributeType(),
-            supportedTLSProtocolsAttrs);
-      }
-    }
+    addAttribute(supportedTLSProtocolsAttr, dseUserAttrs, dseOperationalAttrs);
 
     // Add the "supportedTLSCiphers" attribute.
     Attribute supportedTLSCiphersAttr = createAttribute(
         ATTR_SUPPORTED_TLS_CIPHERS, ATTR_SUPPORTED_TLS_CIPHERS_LC,
         supportedTlsCiphers);
-    if (!supportedTLSCiphersAttr.isEmpty())
-    {
-      List<Attribute> supportedTLSCiphersAttrs = new ArrayList<Attribute>(1);
-      supportedTLSCiphersAttrs.add(supportedTLSCiphersAttr);
-      if (showAllAttributes
-          || (!supportedTLSCiphersAttr.getAttributeType().isOperational()))
-      {
-        dseUserAttrs.put(supportedTLSCiphersAttr.getAttributeType(),
-            supportedTLSCiphersAttrs);
-      }
-      else
-      {
-        dseOperationalAttrs.put(supportedTLSCiphersAttr.getAttributeType(),
-            supportedTLSCiphersAttrs);
-      }
-    }
+    addAttribute(supportedTLSCiphersAttr, dseUserAttrs, dseOperationalAttrs);
 
     // Add all the standard "static" attributes.
     for (Attribute a : staticDSEAttributes)
     {
       AttributeType type = a.getAttributeType();
 
-      if (type.isOperational() && (! showAllAttributes))
+      if (type.isOperational() && !showAllAttributes)
       {
         List<Attribute> attrs = dseOperationalAttrs.get(type);
         if (attrs == null)
         {
           attrs = new ArrayList<Attribute>();
-          attrs.add(a);
           dseOperationalAttrs.put(type, attrs);
         }
-        else
-        {
-          attrs.add(a);
-        }
+        attrs.add(a);
       }
       else
       {
@@ -832,13 +630,9 @@ public class RootDSEBackend
         if (attrs == null)
         {
           attrs = new ArrayList<Attribute>();
-          attrs.add(a);
           dseUserAttrs.put(type, attrs);
         }
-        else
-        {
-          attrs.add(a);
-        }
+        attrs.add(a);
       }
     }
 
@@ -848,19 +642,15 @@ public class RootDSEBackend
     {
       AttributeType type = a.getAttributeType();
 
-      if (type.isOperational() && (! showAllAttributes))
+      if (type.isOperational() && !showAllAttributes)
       {
         List<Attribute> attrs = dseOperationalAttrs.get(type);
         if (attrs == null)
         {
           attrs = new ArrayList<Attribute>();
-          attrs.add(a);
           dseOperationalAttrs.put(type, attrs);
         }
-        else
-        {
-          attrs.add(a);
-        }
+        attrs.add(a);
       }
       else
       {
@@ -868,13 +658,9 @@ public class RootDSEBackend
         if (attrs == null)
         {
           attrs = new ArrayList<Attribute>();
-          attrs.add(a);
           dseUserAttrs.put(type, attrs);
         }
-        else
-        {
-          attrs.add(a);
-        }
+        attrs.add(a);
       }
     }
 
@@ -887,6 +673,26 @@ public class RootDSEBackend
   }
 
 
+
+  private void addAttribute(Attribute publicNamingContextAttr,
+      HashMap<AttributeType, List<Attribute>> userAttrs,
+      HashMap<AttributeType, List<Attribute>> operationalAttrs)
+  {
+    if (!publicNamingContextAttr.isEmpty())
+    {
+      List<Attribute> privateNamingContextAttrs = new ArrayList<Attribute>(1);
+      privateNamingContextAttrs.add(publicNamingContextAttr);
+      final AttributeType attrType = publicNamingContextAttr.getAttributeType();
+      if (showAllAttributes || !attrType.isOperational())
+      {
+        userAttrs.put(attrType, privateNamingContextAttrs);
+      }
+      else
+      {
+        operationalAttrs.put(attrType, privateNamingContextAttrs);
+      }
+    }
+  }
 
   /**
    * Determines the workflow nodes which handle subordinate naming contexts.
@@ -925,26 +731,6 @@ public class RootDSEBackend
 
     return subNC;
   }
-
-
-
-  /**
-   * }
-   * Creates an attribute for the root DSE with the following criteria.
-   *
-   * @param  name       The name for the attribute.
-   * @param  lowerName  The name for the attribute formatted in all lowercase
-   *                    characters.
-   * @param  value      The value to use for the attribute.
-   *
-   * @return  The constructed attribute.
-   */
-  private Attribute createAttribute(String name, String lowerName,
-                                    String value)
-  {
-    return Attributes.create(name, value);
-  }
-
 
 
   /**
@@ -1008,12 +794,8 @@ public class RootDSEBackend
     return builder.toAttribute();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean entryExists(DN entryDN)
          throws DirectoryException
   {
@@ -1052,40 +834,26 @@ public class RootDSEBackend
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void addEntry(Entry entry, AddOperation addOperation)
          throws DirectoryException
   {
-    Message message =
-        ERR_ROOTDSE_ADD_NOT_SUPPORTED.get(String.valueOf(entry.getDN()));
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+        ERR_BACKEND_ADD_NOT_SUPPORTED.get(String.valueOf(entry.getDN()), getBackendID()));
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void deleteEntry(DN entryDN, DeleteOperation deleteOperation)
          throws DirectoryException
   {
-    Message message =
-        ERR_ROOTDSE_DELETE_NOT_SUPPORTED.get(String.valueOf(entryDN));
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+        ERR_BACKEND_DELETE_NOT_SUPPORTED.get(String.valueOf(entryDN), getBackendID()));
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void replaceEntry(Entry oldEntry, Entry newEntry,
       ModifyOperation modifyOperation) throws DirectoryException
   {
@@ -1094,27 +862,18 @@ public class RootDSEBackend
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void renameEntry(DN currentDN, Entry entry,
                                    ModifyDNOperation modifyDNOperation)
          throws DirectoryException
   {
-    Message message =
-        ERR_ROOTDSE_MODIFY_DN_NOT_SUPPORTED.get(String.valueOf(currentDN));
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+        ERR_BACKEND_MODIFY_DN_NOT_SUPPORTED.get(String.valueOf(currentDN), getBackendID()));
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void search(SearchOperation searchOperation)
          throws DirectoryException, CanceledOperationException {
     DN baseDN = searchOperation.getBaseDN();
@@ -1157,7 +916,7 @@ public class RootDSEBackend
 
           Backend b = entry.getValue();
           Entry subBaseEntry = b.getEntry(subBase);
-          if ((subBaseEntry != null) && filter.matchesEntry(subBaseEntry))
+          if (subBaseEntry != null && filter.matchesEntry(subBaseEntry))
           {
             searchOperation.returnEntry(subBaseEntry, null);
           }
@@ -1241,46 +1000,30 @@ public class RootDSEBackend
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public HashSet<String> getSupportedControls()
+  /** {@inheritDoc} */
+  @Override
+  public Set<String> getSupportedControls()
   {
-    return supportedControls;
+    return Collections.emptySet();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public HashSet<String> getSupportedFeatures()
+  /** {@inheritDoc} */
+  @Override
+  public Set<String> getSupportedFeatures()
   {
-    return supportedFeatures;
+    return Collections.emptySet();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean supportsLDIFExport()
   {
     // We will only export the DSE entry itself.
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void exportLDIF(LDIFExportConfig exportConfig)
          throws DirectoryException
   {
@@ -1324,144 +1067,85 @@ public class RootDSEBackend
     }
     finally
     {
-      try
-      {
-        ldifWriter.close();
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-      }
+      close(ldifWriter);
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean supportsLDIFImport()
   {
-    // This backend does not support LDIF imports.
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public LDIFImportResult importLDIF(LDIFImportConfig importConfig)
          throws DirectoryException
   {
-    // This backend does not support LDIF imports.
-    Message message = ERR_ROOTDSE_IMPORT_NOT_SUPPORTED.get();
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+        ERR_BACKEND_IMPORT_AND_EXPORT_NOT_SUPPORTED.get(getBackendID()));
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean supportsBackup()
   {
-    // This backend does not provide a backup/restore mechanism.
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean supportsBackup(BackupConfig backupConfig,
                                 StringBuilder unsupportedReason)
   {
-    // This backend does not provide a backup/restore mechanism.
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void createBackup(BackupConfig backupConfig)
          throws DirectoryException
   {
-    // This backend does not provide a backup/restore mechanism.
     Message message = ERR_ROOTDSE_BACKUP_AND_RESTORE_NOT_SUPPORTED.get();
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void removeBackup(BackupDirectory backupDirectory,
                            String backupID)
          throws DirectoryException
   {
-    // This backend does not provide a backup/restore mechanism.
     Message message = ERR_ROOTDSE_BACKUP_AND_RESTORE_NOT_SUPPORTED.get();
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean supportsRestore()
   {
-    // This backend does not provide a backup/restore mechanism.
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void restoreBackup(RestoreConfig restoreConfig)
          throws DirectoryException
   {
-    // This backend does not provide a backup/restore mechanism.
     Message message = ERR_ROOTDSE_BACKUP_AND_RESTORE_NOT_SUPPORTED.get();
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public boolean isConfigurationAcceptable(Configuration configuration,
+  /** {@inheritDoc} */
+  @Override
+  public boolean isConfigurationAcceptable(RootDSEBackendCfg config,
                                            List<Message> unacceptableReasons)
   {
-    RootDSEBackendCfg config = (RootDSEBackendCfg) configuration;
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
        RootDSEBackendCfg cfg,
@@ -1509,11 +1193,7 @@ public class RootDSEBackend
     return configIsAcceptable;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(RootDSEBackendCfg cfg)
   {
@@ -1629,8 +1309,7 @@ public class RootDSEBackend
 
       if (subordinateBaseDNs == null)
       {
-        Message message = INFO_ROOTDSE_USING_SUFFIXES_AS_BASE_DNS.get();
-        messages.add(message);
+        messages.add(INFO_ROOTDSE_USING_SUFFIXES_AS_BASE_DNS.get());
       }
       else
       {
@@ -1668,22 +1347,16 @@ public class RootDSEBackend
 
 
       userDefinedAttributes = userAttrs;
-      Message message = INFO_ROOTDSE_USING_NEW_USER_ATTRS.get();
-      messages.add(message);
+      messages.add(INFO_ROOTDSE_USING_NEW_USER_ATTRS.get());
     }
 
 
     return new ConfigChangeResult(resultCode, adminActionRequired, messages);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void preloadEntryCache() throws UnsupportedOperationException {
     throw new UnsupportedOperationException("Operation not supported.");
   }
 }
-

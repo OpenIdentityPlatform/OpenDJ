@@ -22,11 +22,9 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2014 ForgeRock AS.
  */
 package org.opends.server.backends;
-
-
 
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.ConfigMessages.*;
@@ -34,13 +32,11 @@ import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
 import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.getExceptionMessage;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
+import static org.opends.server.util.StaticUtils.*;
 
 import java.util.*;
 
 import org.opends.messages.Message;
-import org.opends.server.admin.Configuration;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.MonitorBackendCfg;
 import org.opends.server.api.Backend;
@@ -55,15 +51,13 @@ import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.TimeThread;
 import org.opends.server.util.Validator;
 
-
-
 /**
  * This class defines a backend to hold Directory Server monitor entries. It
  * will not actually store anything, but upon request will retrieve the
  * requested monitor and dynamically generate the associated entry. It will also
  * construct a base monitor entry with some useful server-wide data.
  */
-public class MonitorBackend extends Backend implements
+public class MonitorBackend extends Backend<MonitorBackendCfg> implements
     ConfigurationChangeListener<MonitorBackendCfg>
 {
   /**
@@ -71,30 +65,25 @@ public class MonitorBackend extends Backend implements
    */
   private static final DebugTracer TRACER = getTracer();
 
-  // The set of user-defined attributes that will be included in the base
-  // monitor entry.
+  /** The set of user-defined attributes that will be included in the base
+   * monitor entry.
+*/
   private ArrayList<Attribute> userDefinedAttributes;
 
-  // The set of objectclasses that will be used in monitor entries.
+  /** The set of objectclasses that will be used in monitor entries. */
   private HashMap<ObjectClass, String> monitorObjectClasses;
 
-  // The DN of the configuration entry for this backend.
+  /** The DN of the configuration entry for this backend. */
   private DN configEntryDN;
 
-  // The current configuration state.
+  /** The current configuration state. */
   private MonitorBackendCfg currentConfig;
 
-  // The DN for the base monitor entry.
+  /** The DN for the base monitor entry. */
   private DN baseMonitorDN;
 
-  // The set of base DNs for this backend.
+  /** The set of base DNs for this backend. */
   private DN[] baseDNs;
-
-  // The set of supported controls for this backend.
-  private HashSet<String> supportedControls;
-
-  // The set of supported features for this backend.
-  private HashSet<String> supportedFeatures;
 
 
 
@@ -108,25 +97,17 @@ public class MonitorBackend extends Backend implements
     super();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void addEntry(final Entry entry, final AddOperation addOperation)
       throws DirectoryException
   {
-    final Message message = ERR_MONITOR_ADD_NOT_SUPPORTED.get(String
-        .valueOf(entry.getDN()));
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+        ERR_BACKEND_ADD_NOT_SUPPORTED.get(String.valueOf(entry.getDN()), getBackendID()));
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public ConfigChangeResult applyConfigurationChange(
       final MonitorBackendCfg backendCfg)
   {
@@ -184,19 +165,14 @@ public class MonitorBackend extends Backend implements
     return new ConfigChangeResult(resultCode, adminActionRequired, messages);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public void configureBackend(final Configuration config)
+  /** {@inheritDoc} */
+  @Override
+  public void configureBackend(final MonitorBackendCfg config)
       throws ConfigException
   {
     Validator.ensureNotNull(config);
-    Validator.ensureTrue(config instanceof MonitorBackendCfg);
 
-    final MonitorBackendCfg cfg = (MonitorBackendCfg) config;
+    final MonitorBackendCfg cfg = config;
     final ConfigEntry configEntry = DirectoryServer.getConfigEntry(cfg.dn());
 
     // Make sure that a configuration entry was provided. If not, then we will
@@ -245,10 +221,6 @@ public class MonitorBackend extends Backend implements
         OC_MONITOR_ENTRY, true);
     monitorObjectClasses.put(monitorOC, OC_MONITOR_ENTRY);
 
-    // Define an empty sets for the supported controls and features.
-    supportedControls = new HashSet<String>(0);
-    supportedFeatures = new HashSet<String>(0);
-
     // Create the set of base DNs that we will handle. In this case, it's just
     // the DN of the base monitor entry.
     try
@@ -273,51 +245,33 @@ public class MonitorBackend extends Backend implements
     currentConfig = cfg;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void createBackup(final BackupConfig backupConfig)
       throws DirectoryException
   {
-    // This backend does not provide a backup/restore mechanism.
-    final Message message = ERR_MONITOR_BACKUP_AND_RESTORE_NOT_SUPPORTED.get();
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+        ERR_BACKEND_BACKUP_AND_RESTORE_NOT_SUPPORTED.get(getBackendID()));
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void deleteEntry(final DN entryDN,
       final DeleteOperation deleteOperation) throws DirectoryException
   {
-    final Message message = ERR_MONITOR_DELETE_NOT_SUPPORTED.get(String
-        .valueOf(entryDN));
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+        ERR_BACKEND_DELETE_NOT_SUPPORTED.get(String.valueOf(entryDN), getBackendID()));
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean entryExists(final DN entryDN) throws DirectoryException
   {
     return getDIT().containsKey(entryDN);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void exportLDIF(final LDIFExportConfig exportConfig)
       throws DirectoryException
   {
@@ -354,17 +308,7 @@ public class MonitorBackend extends Backend implements
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      try
-      {
-        ldifWriter.close();
-      }
-      catch (final Exception e2)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e2);
-        }
-      }
+      close(ldifWriter);
 
       final Message message = ERR_MONITOR_UNABLE_TO_EXPORT_BASE
           .get(stackTraceToSingleLineString(e));
@@ -388,17 +332,7 @@ public class MonitorBackend extends Backend implements
           TRACER.debugCaught(DebugLogLevel.ERROR, e);
         }
 
-        try
-        {
-          ldifWriter.close();
-        }
-        catch (final Exception e2)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e2);
-          }
-        }
+        close(ldifWriter);
 
         final Message message = ERR_MONITOR_UNABLE_TO_EXPORT_PROVIDER_ENTRY
             .get(monitorProvider.getMonitorInstanceName(),
@@ -408,26 +342,11 @@ public class MonitorBackend extends Backend implements
       }
     }
 
-    // Close the monitor provider and return.
-    try
-    {
-      ldifWriter.close();
-    }
-    catch (final Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-    }
+    close(ldifWriter);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void finalizeBackend()
   {
     currentConfig.removeMonitorChangeListener(this);
@@ -444,31 +363,22 @@ public class MonitorBackend extends Backend implements
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public DN[] getBaseDNs()
   {
     return baseDNs;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public Entry getEntry(final DN entryDN) throws DirectoryException
   {
     // If the requested entry was null, then throw an exception.
     if (entryDN == null)
     {
-      final Message message = ERR_MONITOR_GET_ENTRY_NULL.get();
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-          message);
+          ERR_BACKEND_GET_ENTRY_NULL.get(getBackendID()));
     }
 
     // If the requested entry was the monitor base entry, then retrieve it
@@ -491,45 +401,29 @@ public class MonitorBackend extends Backend implements
     return getEntry(entryDN, dit);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public long getEntryCount()
   {
     return getDIT().size();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public HashSet<String> getSupportedControls()
+  /** {@inheritDoc} */
+  @Override
+  public Set<String> getSupportedControls()
   {
-    return supportedControls;
+    return Collections.emptySet();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public HashSet<String> getSupportedFeatures()
+  /** {@inheritDoc} */
+  @Override
+  public Set<String> getSupportedFeatures()
   {
-    return supportedFeatures;
+    return Collections.emptySet();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public ConditionResult hasSubordinates(final DN entryDN)
       throws DirectoryException
   {
@@ -552,26 +446,17 @@ public class MonitorBackend extends Backend implements
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public LDIFImportResult importLDIF(final LDIFImportConfig importConfig)
       throws DirectoryException
   {
-    // This backend does not support LDIF imports.
-    final Message message = ERR_MONITOR_IMPORT_NOT_SUPPORTED.get();
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+        ERR_BACKEND_IMPORT_NOT_SUPPORTED.get(getBackendID()));
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void initializeBackend() throws ConfigException,
       InitializationException
   {
@@ -596,11 +481,8 @@ public class MonitorBackend extends Backend implements
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public boolean isConfigurationChangeAcceptable(
       final MonitorBackendCfg backendCfg,
       final List<Message> unacceptableReasons)
@@ -610,12 +492,8 @@ public class MonitorBackend extends Backend implements
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean isIndexed(final AttributeType attributeType,
       final IndexType indexType)
   {
@@ -623,24 +501,16 @@ public class MonitorBackend extends Backend implements
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean isLocal()
   {
     // For the purposes of this method, this is a local backend.
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public long numSubordinates(final DN entryDN, final boolean subtree)
       throws DirectoryException
   {
@@ -668,51 +538,33 @@ public class MonitorBackend extends Backend implements
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void preloadEntryCache() throws UnsupportedOperationException
   {
     throw new UnsupportedOperationException("Operation not supported.");
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void removeBackup(final BackupDirectory backupDirectory,
       final String backupID) throws DirectoryException
   {
-    // This backend does not provide a backup/restore mechanism.
-    final Message message = ERR_MONITOR_BACKUP_AND_RESTORE_NOT_SUPPORTED.get();
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+        ERR_BACKEND_BACKUP_AND_RESTORE_NOT_SUPPORTED.get(getBackendID()));
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void renameEntry(final DN currentDN, final Entry entry,
       final ModifyDNOperation modifyDNOperation) throws DirectoryException
   {
-    final Message message = ERR_MONITOR_MODIFY_DN_NOT_SUPPORTED.get(String
-        .valueOf(currentDN));
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+        ERR_BACKEND_MODIFY_DN_NOT_SUPPORTED.get(String.valueOf(currentDN), getBackendID()));
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void replaceEntry(final Entry oldEntry, final Entry newEntry,
       final ModifyOperation modifyOperation) throws DirectoryException
   {
@@ -721,26 +573,17 @@ public class MonitorBackend extends Backend implements
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void restoreBackup(final RestoreConfig restoreConfig)
       throws DirectoryException
   {
-    // This backend does not provide a backup/restore mechanism.
-    final Message message = ERR_MONITOR_BACKUP_AND_RESTORE_NOT_SUPPORTED.get();
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+        ERR_BACKEND_BACKUP_AND_RESTORE_NOT_SUPPORTED.get(getBackendID()));
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void search(final SearchOperation searchOperation)
       throws DirectoryException
   {
@@ -765,10 +608,8 @@ public class MonitorBackend extends Backend implements
         }
         matchedDN = matchedDN.getParent();
       }
-      final Message message = ERR_MEMORYBACKEND_ENTRY_DOESNT_EXIST.get(String
-          .valueOf(baseDN));
-      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message,
-          matchedDN, null);
+      final Message message = ERR_BACKEND_ENTRY_DOESNT_EXIST.get(String.valueOf(baseDN), getBackendID());
+      throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message, matchedDN, null);
     }
 
     // Walk through all entries and send the ones that match.
@@ -792,37 +633,23 @@ public class MonitorBackend extends Backend implements
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean supportsBackup()
   {
-    // This backend does not provide a backup/restore mechanism.
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean supportsBackup(final BackupConfig backupConfig,
       final StringBuilder unsupportedReason)
   {
-    // This backend does not provide a backup/restore mechanism.
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean supportsLDIFExport()
   {
     // We can export all the monitor entries as a point-in-time snapshot.
@@ -831,27 +658,17 @@ public class MonitorBackend extends Backend implements
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean supportsLDIFImport()
   {
-    // This backend does not support LDIF imports.
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean supportsRestore()
   {
-    // This backend does not provide a backup/restore mechanism.
     return false;
   }
 
@@ -939,13 +756,12 @@ public class MonitorBackend extends Backend implements
     monitorUserAttrs.put(currentTimeAttr.getAttributeType(), currentTimeList);
 
     // Add the uptime as a human-readable string.
-    long upSeconds = ((System.currentTimeMillis() - DirectoryServer
-        .getStartTime()) / 1000);
-    final long upDays = (upSeconds / 86400);
+    long upSeconds = (System.currentTimeMillis() - DirectoryServer.getStartTime()) / 1000;
+    final long upDays = upSeconds / 86400;
     upSeconds %= 86400;
-    final long upHours = (upSeconds / 3600);
+    final long upHours = upSeconds / 3600;
     upSeconds %= 3600;
-    final long upMinutes = (upSeconds / 60);
+    final long upMinutes = upSeconds / 60;
     upSeconds %= 60;
     final Message upTimeStr = INFO_MONITOR_UPTIME.get(upDays, upHours,
         upMinutes, upSeconds);
@@ -1209,17 +1025,12 @@ public class MonitorBackend extends Backend implements
   private boolean isMonitorConfigAttribute(final Attribute attribute)
   {
     final AttributeType attrType = attribute.getAttributeType();
-    if (attrType.hasName(ATTR_COMMON_NAME)
+    return attrType.hasName(ATTR_COMMON_NAME)
         || attrType.hasName(ATTR_BACKEND_ENABLED.toLowerCase())
         || attrType.hasName(ATTR_BACKEND_CLASS.toLowerCase())
         || attrType.hasName(ATTR_BACKEND_BASE_DN.toLowerCase())
         || attrType.hasName(ATTR_BACKEND_ID.toLowerCase())
-        || attrType.hasName(ATTR_BACKEND_WRITABILITY_MODE.toLowerCase()))
-    {
-      return true;
-    }
-
-    return false;
+        || attrType.hasName(ATTR_BACKEND_WRITABILITY_MODE.toLowerCase());
   }
 
 }

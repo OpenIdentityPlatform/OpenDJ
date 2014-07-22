@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.backends;
 
@@ -31,7 +31,6 @@ import java.util.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.opends.messages.Message;
-import org.opends.server.admin.Configuration;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.LDIFBackendCfg;
 import org.opends.server.api.AlertGenerator;
@@ -41,7 +40,10 @@ import org.opends.server.controls.SubtreeDeleteControl;
 import org.opends.server.core.*;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
-import org.opends.server.util.*;
+import org.opends.server.util.LDIFException;
+import org.opends.server.util.LDIFReader;
+import org.opends.server.util.LDIFWriter;
+import org.opends.server.util.StaticUtils;
 
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
@@ -57,7 +59,7 @@ import static org.opends.server.util.StaticUtils.*;
  * re-written on disk.
  */
 public class LDIFBackend
-       extends Backend
+       extends Backend<LDIFBackendCfg>
        implements ConfigurationChangeListener<LDIFBackendCfg>, AlertGenerator
 {
   /**
@@ -77,10 +79,8 @@ public class LDIFBackend
   private Set<DN> baseDNSet;
 
   /** The set of supported controls for this backend. */
-  private Set<String> supportedControls;
-
-  /** The set of supported features for this backend. */
-  private Set<String> supportedFeatures;
+  private final Set<String> supportedControls =
+      Collections.singleton(OID_SUBTREE_DELETE_CONTROL);
 
   /** The current configuration for this backend. */
   private LDIFBackendCfg currentConfig;
@@ -113,10 +113,8 @@ public class LDIFBackend
     backendLock = new ReentrantReadWriteLock(useFairLocking);
   }
 
-
-
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public void initializeBackend()
          throws ConfigException, InitializationException
   {
@@ -323,10 +321,8 @@ public class LDIFBackend
     }
   }
 
-
-
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public void finalizeBackend()
   {
     backendLock.writeLock().lock();
@@ -357,19 +353,15 @@ public class LDIFBackend
     }
   }
 
-
-
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public DN[] getBaseDNs()
   {
     return baseDNs;
   }
 
-
-
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public long getEntryCount()
   {
     backendLock.readLock().lock();
@@ -389,29 +381,23 @@ public class LDIFBackend
     }
   }
 
-
-
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public boolean isLocal()
   {
     return true;
   }
 
-
-
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public boolean isIndexed(AttributeType attributeType, IndexType indexType)
   {
     // All searches in this backend will always be considered indexed.
     return true;
   }
 
-
-
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public ConditionResult hasSubordinates(DN entryDN)
          throws DirectoryException
   {
@@ -446,10 +432,8 @@ public class LDIFBackend
     }
   }
 
-
-
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public long numSubordinates(DN entryDN, boolean subtree)
          throws DirectoryException
   {
@@ -498,10 +482,8 @@ public class LDIFBackend
     }
   }
 
-
-
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public Entry getEntry(DN entryDN)
   {
     backendLock.readLock().lock();
@@ -516,10 +498,8 @@ public class LDIFBackend
     }
   }
 
-
-
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public boolean entryExists(DN entryDN)
   {
     backendLock.readLock().lock();
@@ -534,10 +514,8 @@ public class LDIFBackend
     }
   }
 
-
-
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public void addEntry(Entry entry, AddOperation addOperation)
          throws DirectoryException
   {
@@ -611,10 +589,8 @@ public class LDIFBackend
     }
   }
 
-
-
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public void deleteEntry(DN entryDN, DeleteOperation deleteOperation)
          throws DirectoryException
   {
@@ -740,10 +716,8 @@ public class LDIFBackend
     }
   }
 
-
-
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public void replaceEntry(Entry oldEntry, Entry newEntry,
       ModifyOperation modifyOperation) throws DirectoryException
   {
@@ -784,10 +758,8 @@ public class LDIFBackend
     }
   }
 
-
-
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public void renameEntry(DN currentDN, Entry entry,
                           ModifyDNOperation modifyDNOperation)
          throws DirectoryException
@@ -927,10 +899,8 @@ public class LDIFBackend
     }
   }
 
-
-
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public void search(SearchOperation searchOperation)
          throws DirectoryException
   {
@@ -998,37 +968,29 @@ public class LDIFBackend
     }
   }
 
-
-
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public Set<String> getSupportedControls()
   {
     return supportedControls;
   }
 
-
-
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public Set<String> getSupportedFeatures()
   {
-    return supportedFeatures;
+    return Collections.emptySet();
   }
 
-
-
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public boolean supportsLDIFExport()
   {
     return true;
   }
 
-
-
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public void exportLDIF(LDIFExportConfig exportConfig)
          throws DirectoryException
   {
@@ -1085,19 +1047,15 @@ public class LDIFBackend
     }
   }
 
-
-
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public boolean supportsLDIFImport()
   {
     return true;
   }
 
-
-
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public LDIFImportResult importLDIF(LDIFImportConfig importConfig)
          throws DirectoryException
   {
@@ -1267,31 +1225,23 @@ public class LDIFBackend
     }
   }
 
-
-
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public boolean supportsBackup()
   {
-    // This backend does not provide a backup/restore mechanism.
     return false;
   }
 
-
-
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public boolean supportsBackup(BackupConfig backupConfig,
                                 StringBuilder unsupportedReason)
   {
-    // This backend does not provide a backup/restore mechanism.
     return false;
   }
 
-
-
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public void createBackup(BackupConfig backupConfig)
          throws DirectoryException
   {
@@ -1299,10 +1249,8 @@ public class LDIFBackend
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
-
-
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public void removeBackup(BackupDirectory backupDirectory, String backupID)
          throws DirectoryException
   {
@@ -1310,20 +1258,15 @@ public class LDIFBackend
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
-
-
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public boolean supportsRestore()
   {
-    // This backend does not provide a backup/restore mechanism.
     return false;
   }
 
-
-
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public void restoreBackup(RestoreConfig restoreConfig)
          throws DirectoryException
   {
@@ -1331,17 +1274,13 @@ public class LDIFBackend
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
-
-
   /** {@inheritDoc} */
-  @Override()
-  public void configureBackend(Configuration config)
-         throws ConfigException
+  @Override
+  public void configureBackend(LDIFBackendCfg config) throws ConfigException
   {
     if (config != null)
     {
-      Validator.ensureTrue(config instanceof LDIFBackendCfg);
-      currentConfig = (LDIFBackendCfg) config;
+      currentConfig = config;
       currentConfig.addLDIFChangeListener(this);
 
       baseDNs = new DN[currentConfig.getBaseDN().size()];
@@ -1355,16 +1294,9 @@ public class LDIFBackend
       baseDNSet = new HashSet<DN>();
       Collections.addAll(baseDNSet, baseDNs);
 
-      supportedControls = new HashSet<String>(1);
-      supportedControls.add(OID_SUBTREE_DELETE_CONTROL);
-
-      supportedFeatures = new HashSet<String>(0);
-
       ldifFilePath = currentConfig.getLDIFFile();
     }
   }
-
-
 
   /** {@inheritDoc} */
   @Override
@@ -1383,8 +1315,6 @@ public class LDIFBackend
 
     return configAcceptable;
   }
-
-
 
   /** {@inheritDoc} */
   @Override
@@ -1419,8 +1349,6 @@ public class LDIFBackend
                                   messages);
   }
 
-
-
   /** {@inheritDoc} */
   @Override
   public DN getComponentEntryDN()
@@ -1428,16 +1356,12 @@ public class LDIFBackend
     return currentConfig.dn();
   }
 
-
-
   /** {@inheritDoc} */
   @Override
   public String getClassName()
   {
     return LDIFBackend.class.getName();
   }
-
-
 
   /** {@inheritDoc} */
   @Override
@@ -1450,8 +1374,6 @@ public class LDIFBackend
 
     return alerts;
   }
-
-
 
   /** {@inheritDoc} */
   @Override

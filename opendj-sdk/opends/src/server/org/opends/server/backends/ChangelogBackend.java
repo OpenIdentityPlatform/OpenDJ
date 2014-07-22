@@ -25,21 +25,26 @@
  */
 package org.opends.server.backends;
 
+import java.util.Collections;
 import java.util.Set;
 
 import org.opends.server.admin.Configuration;
 import org.opends.server.api.Backend;
+import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.SearchOperation;
+import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.BackupConfig;
 import org.opends.server.types.BackupDirectory;
 import org.opends.server.types.CanceledOperationException;
 import org.opends.server.types.ConditionResult;
+import org.opends.server.types.DebugLogLevel;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
@@ -49,6 +54,13 @@ import org.opends.server.types.LDIFExportConfig;
 import org.opends.server.types.LDIFImportConfig;
 import org.opends.server.types.LDIFImportResult;
 import org.opends.server.types.RestoreConfig;
+import org.opends.server.types.ResultCode;
+import org.opends.server.util.Validator;
+
+import static org.opends.messages.BackendMessages.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * A backend that provides access to the changelog, ie the "cn=changelog" suffix.
@@ -56,34 +68,89 @@ import org.opends.server.types.RestoreConfig;
  */
 public class ChangelogBackend extends Backend
 {
+  private static final DebugTracer TRACER = getTracer();
+
+  /** The DN for the base changelog entry. */
+  private DN baseChangelogDN;
+
+  /** The set of base DNs for this backend. */
+  private DN[] baseDNs;
+
+  /** The set of supported controls for this backend. */
+  private final Set<String> supportedControls =
+      Collections.singleton(OID_ECL_COOKIE_EXCHANGE_CONTROL);
 
   /** {@inheritDoc} */
   @Override
-  public void configureBackend(Configuration cfg) throws ConfigException
+  public void configureBackend(final Configuration cfg) throws ConfigException
   {
-    throw new RuntimeException("Not implemented");
+    Validator.ensureNotNull(cfg);
+
+    final ConfigEntry configEntry = DirectoryServer.getConfigEntry(cfg.dn());
+
+    // Make sure that a configuration entry was provided. If not, then we will
+    // not be able to complete initialization.
+    if (configEntry == null)
+    {
+      throw new ConfigException(ERR_BACKEND_CONFIG_ENTRY_NULL.get(getBackendID()));
+    }
+
+    // Create the set of base DNs that we will handle. In this case, it's just
+    // the DN of the base changelog entry.
+    try
+    {
+      baseChangelogDN = DN.decode(DN_EXTERNAL_CHANGELOG_ROOT);
+    }
+    catch (final Exception e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+      throw new ConfigException(
+          ERR_BACKEND_CANNOT_DECODE_BACKEND_ROOT_DN.get(getBackendID(), getExceptionMessage(e)), e);
+    }
+
+    this.baseDNs = new DN[] { baseChangelogDN };
   }
 
   /** {@inheritDoc} */
   @Override
-  public void initializeBackend() throws ConfigException,
-      InitializationException
+  public void initializeBackend() throws ConfigException, InitializationException
   {
-    throw new RuntimeException("Not implemented");
+    try
+    {
+      DirectoryServer.registerBaseDN(baseChangelogDN, this, true);
+    }
+    catch (final Exception e)
+    {
+      throw new InitializationException(
+          ERR_BACKEND_CANNOT_REGISTER_BASEDN.get(baseChangelogDN.toString(), getExceptionMessage(e)), e);
+    }
   }
 
   /** {@inheritDoc} */
   @Override
   public void finalizeBackend()
   {
-    throw new RuntimeException("Not implemented");
+    try
+    {
+      DirectoryServer.deregisterBaseDN(baseChangelogDN);
+    }
+    catch (final Exception e)
+    {
+      if (debugEnabled())
+      {
+        TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
+    }
   }
 
   /** {@inheritDoc} */
   @Override
   public DN[] getBaseDNs()
   {
-    throw new RuntimeException("Not implemented");
+    return baseDNs;
   }
 
   /** {@inheritDoc} */
@@ -111,6 +178,11 @@ public class ChangelogBackend extends Backend
   @Override
   public Entry getEntry(DN entryDN) throws DirectoryException
   {
+    if (entryDN == null)
+    {
+      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
+          ERR_BACKEND_GET_ENTRY_NULL.get(getBackendID()));
+    }
     throw new RuntimeException("Not implemented");
   }
 
@@ -134,7 +206,8 @@ public class ChangelogBackend extends Backend
   public void addEntry(Entry entry, AddOperation addOperation)
       throws DirectoryException, CanceledOperationException
   {
-    throw new RuntimeException("Not implemented");
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+        ERR_BACKEND_ADD_NOT_SUPPORTED.get(String.valueOf(entry.getDN()), getBackendID()));
   }
 
   /** {@inheritDoc} */
@@ -142,7 +215,8 @@ public class ChangelogBackend extends Backend
   public void deleteEntry(DN entryDN, DeleteOperation deleteOperation)
       throws DirectoryException, CanceledOperationException
   {
-    throw new RuntimeException("Not implemented");
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+        ERR_BACKEND_DELETE_NOT_SUPPORTED.get(String.valueOf(entryDN), getBackendID()));
   }
 
   /** {@inheritDoc} */
@@ -151,7 +225,8 @@ public class ChangelogBackend extends Backend
       ModifyOperation modifyOperation) throws DirectoryException,
       CanceledOperationException
   {
-    throw new RuntimeException("Not implemented");
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+        ERR_BACKEND_MODIFY_NOT_SUPPORTED.get(String.valueOf(newEntry.getDN()), getBackendID()));
   }
 
   /** {@inheritDoc} */
@@ -160,7 +235,8 @@ public class ChangelogBackend extends Backend
       ModifyDNOperation modifyDNOperation) throws DirectoryException,
       CanceledOperationException
   {
-    throw new RuntimeException("Not implemented");
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+        ERR_BACKEND_MODIFY_DN_NOT_SUPPORTED.get(String.valueOf(currentDN), getBackendID()));
   }
 
   /** {@inheritDoc} */
@@ -175,21 +251,21 @@ public class ChangelogBackend extends Backend
   @Override
   public Set<String> getSupportedControls()
   {
-    throw new RuntimeException("Not implemented");
+    return supportedControls;
   }
 
   /** {@inheritDoc} */
   @Override
   public Set<String> getSupportedFeatures()
   {
-    throw new RuntimeException("Not implemented");
+    return Collections.emptySet();
   }
 
   /** {@inheritDoc} */
   @Override
   public boolean supportsLDIFExport()
   {
-    throw new RuntimeException("Not implemented");
+    return false;
   }
 
   /** {@inheritDoc} */
@@ -197,14 +273,15 @@ public class ChangelogBackend extends Backend
   public void exportLDIF(LDIFExportConfig exportConfig)
       throws DirectoryException
   {
-    throw new RuntimeException("Not implemented");
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+        ERR_BACKEND_IMPORT_AND_EXPORT_NOT_SUPPORTED.get(getBackendID()));
   }
 
   /** {@inheritDoc} */
   @Override
   public boolean supportsLDIFImport()
   {
-    throw new RuntimeException("Not implemented");
+    return false;
   }
 
   /** {@inheritDoc} */
@@ -212,7 +289,8 @@ public class ChangelogBackend extends Backend
   public LDIFImportResult importLDIF(LDIFImportConfig importConfig)
       throws DirectoryException
   {
-    throw new RuntimeException("Not implemented");
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+        ERR_BACKEND_IMPORT_AND_EXPORT_NOT_SUPPORTED.get(getBackendID()));
   }
 
   /** {@inheritDoc} */
@@ -234,7 +312,8 @@ public class ChangelogBackend extends Backend
   @Override
   public void createBackup(BackupConfig backupConfig) throws DirectoryException
   {
-    throw new RuntimeException("Not implemented");
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+        ERR_BACKEND_BACKUP_AND_RESTORE_NOT_SUPPORTED.get(getBackendID()));
   }
 
   /** {@inheritDoc} */
@@ -242,7 +321,8 @@ public class ChangelogBackend extends Backend
   public void removeBackup(BackupDirectory backupDirectory, String backupID)
       throws DirectoryException
   {
-    throw new RuntimeException("Not implemented");
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+        ERR_BACKEND_BACKUP_AND_RESTORE_NOT_SUPPORTED.get(getBackendID()));
   }
 
   /** {@inheritDoc} */
@@ -257,7 +337,8 @@ public class ChangelogBackend extends Backend
   public void restoreBackup(RestoreConfig restoreConfig)
       throws DirectoryException
   {
-    throw new RuntimeException("Not implemented");
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+        ERR_BACKEND_BACKUP_AND_RESTORE_NOT_SUPPORTED.get(getBackendID()));
   }
 
   /** {@inheritDoc} */

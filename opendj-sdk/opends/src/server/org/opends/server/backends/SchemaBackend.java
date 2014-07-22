@@ -26,8 +26,6 @@
  */
 package org.opends.server.backends;
 
-
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -37,6 +35,7 @@ import java.io.OutputStream;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -55,7 +54,6 @@ import java.util.zip.ZipOutputStream;
 import javax.crypto.Mac;
 
 import org.opends.messages.Message;
-import org.opends.server.admin.Configuration;
 import org.opends.server.admin.std.server.SchemaBackendCfg;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.api.AlertGenerator;
@@ -86,7 +84,6 @@ import org.opends.server.util.DynamicConstants;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.LDIFWriter;
-import org.opends.server.util.Validator;
 
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.ConfigMessages.*;
@@ -98,14 +95,12 @@ import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
-
 /**
  * This class defines a backend to hold the Directory Server schema information.
  * It is a kind of meta-backend in that it doesn't actually hold any data but
  * rather dynamically generates the schema entry whenever it is requested.
  */
-public class SchemaBackend
-     extends Backend
+public class SchemaBackend extends Backend<SchemaBackendCfg>
      implements ConfigurationChangeListener<SchemaBackendCfg>, AlertGenerator
 {
   /**
@@ -228,12 +223,6 @@ public class SchemaBackend
   /** The set of objectclasses that will be used in the schema entry. */
   private HashMap<ObjectClass,String> schemaObjectClasses;
 
-  /** The set of supported controls for this backend. */
-  private Set<String> supportedControls;
-
-  /** The set of supported features for this backend. */
-  private Set<String> supportedFeatures;
-
   /** The time that the schema was last modified. */
   private long modifyTime;
 
@@ -257,25 +246,18 @@ public class SchemaBackend
     // Perform all initialization in initializeBackend.
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public void configureBackend(Configuration config)
-       throws ConfigException
+  /** {@inheritDoc} */
+  @Override
+  public void configureBackend(SchemaBackendCfg cfg) throws ConfigException
   {
     // Make sure that a configuration entry was provided.  If not, then we will
     // not be able to complete initialization.
-    if (config == null)
+    if (cfg == null)
     {
       Message message = ERR_SCHEMA_CONFIG_ENTRY_NULL.get();
       throw new ConfigException(message);
     }
 
-    Validator.ensureTrue(config instanceof SchemaBackendCfg);
-    SchemaBackendCfg cfg = (SchemaBackendCfg)config;
     ConfigEntry configEntry = DirectoryServer.getConfigEntry(cfg.dn());
 
     configEntryDN = configEntry.getDN();
@@ -318,11 +300,6 @@ public class SchemaBackend
     ObjectClass subschemaOC = DirectoryServer.getObjectClass(OC_SUBSCHEMA,
                                                              true);
     schemaObjectClasses.put(subschemaOC, OC_SUBSCHEMA);
-
-
-    // Define empty sets for the supported controls and features.
-    supportedControls = new HashSet<String>(0);
-    supportedFeatures = new HashSet<String>(0);
 
 
     configEntryDN = configEntry.getDN();
@@ -381,12 +358,8 @@ public class SchemaBackend
     currentConfig = cfg;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void initializeBackend()
          throws ConfigException, InitializationException
   {
@@ -451,8 +424,7 @@ public class SchemaBackend
         {
           String runningUnitTestsStr =
                System.getProperty(PROPERTY_RUNNING_UNIT_TESTS);
-          if ((runningUnitTestsStr != null) &&
-              runningUnitTestsStr.equalsIgnoreCase("true"))
+          if ("true".equalsIgnoreCase(runningUnitTestsStr))
           {
             Schema.writeConcatenatedSchema();
             concatFile = new File(upgradeDirectory, SCHEMA_CONCAT_FILE_NAME);
@@ -525,12 +497,8 @@ public class SchemaBackend
     currentConfig.addSchemaChangeListener(this);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void finalizeBackend()
   {
     currentConfig.removeSchemaChangeListener(this);
@@ -580,83 +548,55 @@ public class SchemaBackend
 
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public DN[] getBaseDNs()
   {
     return baseDNs;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public long getEntryCount()
   {
     // There is always only a single entry in this backend.
     return 1;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean isLocal()
   {
     // For the purposes of this method, this is a local backend.
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean isIndexed(AttributeType attributeType, IndexType indexType)
   {
     // All searches in this backend will always be considered indexed.
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public ConditionResult hasSubordinates(DN entryDN)
          throws DirectoryException
   {
     return ConditionResult.FALSE;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public long numSubordinates(DN entryDN, boolean subtree)
          throws DirectoryException
   {
     return 0L;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public Entry getEntry(DN entryDN)
          throws DirectoryException
   {
@@ -726,8 +666,7 @@ public class SchemaBackend
         AttributeType attrType = rdn.getAttributeType(i);
         Attribute a = Attributes.create(attrType, rdn
             .getAttributeValue(i));
-        ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-        attrList.add(a);
+        ArrayList<Attribute> attrList = newArrayList(a);
 
         if (attrType.isOperational())
         {
@@ -805,10 +744,9 @@ public class SchemaBackend
       builder.addAll(valueSet);
     }
 
-    ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-    attrList.add(builder.toAttribute());
-    if (attributeTypesType.isOperational() &&
-        (ignoreShowAllOption || (!showAllAttributes)))
+    ArrayList<Attribute> attrList = newArrayList(builder.toAttribute());
+    if (attributeTypesType.isOperational()
+        && (ignoreShowAllOption || !showAllAttributes))
     {
       operationalAttrs.put(attributeTypesType, attrList);
     }
@@ -850,11 +788,10 @@ public class SchemaBackend
 
     builder = new AttributeBuilder(objectClassesType, ATTR_OBJECTCLASSES);
     builder.addAll(valueSet);
-    attrList = new ArrayList<Attribute>(1);
-    attrList.add(builder.toAttribute());
+    attrList = newArrayList(builder.toAttribute());
 
-    if (objectClassesType.isOperational() &&
-        (ignoreShowAllOption || (!showAllAttributes)))
+    if (objectClassesType.isOperational()
+        && (ignoreShowAllOption || !showAllAttributes))
     {
       operationalAttrs.put(objectClassesType, attrList);
     }
@@ -866,11 +803,10 @@ public class SchemaBackend
     // Add the "matchingRules" attribute.
     builder = new AttributeBuilder(matchingRulesType, ATTR_MATCHING_RULES);
     builder.addAll(DirectoryServer.getMatchingRuleSet());
-    attrList = new ArrayList<Attribute>(1);
-    attrList.add(builder.toAttribute());
+    attrList = newArrayList(builder.toAttribute());
 
-    if (matchingRulesType.isOperational() &&
-        (ignoreShowAllOption || (!showAllAttributes)))
+    if (matchingRulesType.isOperational()
+        && (ignoreShowAllOption || !showAllAttributes))
     {
       operationalAttrs.put(matchingRulesType, attrList);
     }
@@ -882,8 +818,7 @@ public class SchemaBackend
     // Add the "ldapSyntaxes" attribute.
     builder = new AttributeBuilder(ldapSyntaxesType, ATTR_LDAP_SYNTAXES);
     builder.addAll(DirectoryServer.getAttributeSyntaxSet());
-    attrList = new ArrayList<Attribute>(1);
-    attrList.add(builder.toAttribute());
+    attrList = newArrayList(builder.toAttribute());
 
     // Note that we intentionally ignore showAllAttributes for
     // attribute syntaxes, name forms, matching rule uses, DIT content
@@ -901,92 +836,20 @@ public class SchemaBackend
       userAttrs.put(ldapSyntaxesType, attrList);
     }
 
-    // If there are any name forms defined, then add them.
-    valueSet = DirectoryServer.getNameFormSet();
-    if (!valueSet.isEmpty())
-    {
-      builder = new AttributeBuilder(nameFormsType, ATTR_NAME_FORMS);
-      builder.addAll(valueSet);
-      attrList = new ArrayList<Attribute>(1);
-      attrList.add(builder.toAttribute());
-
-      if (nameFormsType.isOperational())
-      {
-        operationalAttrs.put(nameFormsType, attrList);
-      }
-      else
-      {
-        userAttrs.put(nameFormsType, attrList);
-      }
-    }
-
-    // If there are any DIT content rules defined, then add them.
-    valueSet = DirectoryServer.getDITContentRuleSet();
-    if (!valueSet.isEmpty())
-    {
-      builder = new AttributeBuilder(ditContentRulesType,
-          ATTR_DIT_CONTENT_RULES);
-      builder.addAll(valueSet);
-      attrList = new ArrayList<Attribute>(1);
-      attrList.add(builder.toAttribute());
-
-      if (ditContentRulesType.isOperational())
-      {
-        operationalAttrs.put(ditContentRulesType, attrList);
-      }
-      else
-      {
-        userAttrs.put(ditContentRulesType, attrList);
-      }
-    }
-
-    // If there are any DIT structure rules defined, then add them.
-    valueSet = DirectoryServer.getDITStructureRuleSet();
-    if (!valueSet.isEmpty())
-    {
-      builder = new AttributeBuilder(ditStructureRulesType,
-          ATTR_DIT_STRUCTURE_RULES);
-      builder.addAll(valueSet);
-      attrList = new ArrayList<Attribute>(1);
-      attrList.add(builder.toAttribute());
-
-      if (ditStructureRulesType.isOperational())
-      {
-        operationalAttrs.put(ditStructureRulesType, attrList);
-      }
-      else
-      {
-        userAttrs.put(ditStructureRulesType, attrList);
-      }
-    }
-
-    // If there are any matching rule uses defined, then add them.
-    valueSet = DirectoryServer.getMatchingRuleUseSet();
-    if (!valueSet.isEmpty())
-    {
-      builder = new AttributeBuilder(matchingRuleUsesType,
-          ATTR_MATCHING_RULE_USE);
-      builder.addAll(valueSet);
-      attrList = new ArrayList<Attribute>(1);
-      attrList.add(builder.toAttribute());
-
-      if (matchingRuleUsesType.isOperational())
-      {
-        operationalAttrs.put(matchingRuleUsesType, attrList);
-      }
-      else
-      {
-        userAttrs.put(matchingRuleUsesType, attrList);
-      }
-    }
+    addAttributeIfValuesExist(nameFormsType, ATTR_NAME_FORMS,
+        DirectoryServer.getNameFormSet(), userAttrs, operationalAttrs);
+    addAttributeIfValuesExist(ditContentRulesType, ATTR_DIT_CONTENT_RULES,
+        DirectoryServer.getDITContentRuleSet(), userAttrs, operationalAttrs);
+    addAttributeIfValuesExist(ditStructureRulesType, ATTR_DIT_STRUCTURE_RULES,
+        DirectoryServer.getDITStructureRuleSet(), userAttrs, operationalAttrs);
+    addAttributeIfValuesExist(matchingRuleUsesType, ATTR_MATCHING_RULE_USE,
+        DirectoryServer.getMatchingRuleUseSet(), userAttrs, operationalAttrs);
 
     // Add the lastmod attributes.
-    attrList = new ArrayList<Attribute>(1);
-    attrList.add(Attributes.create(creatorsNameType, creatorsName));
+    attrList = newArrayList(Attributes.create(creatorsNameType, creatorsName));
     operationalAttrs.put(creatorsNameType, attrList);
 
-    attrList = new ArrayList<Attribute>(1);
-    attrList.add(Attributes.create(createTimestampType, createTimestamp));
+    attrList = newArrayList(Attributes.create(createTimestampType, createTimestamp));
     operationalAttrs.put(createTimestampType, attrList);
 
     if (DirectoryServer.getSchema().getYoungestModificationTime() != modifyTime)
@@ -999,12 +862,10 @@ public class SchemaBackend
       }
     }
 
-    attrList = new ArrayList<Attribute>(1);
-    attrList.add(Attributes.create(modifiersNameType, modifiersName));
+    attrList = newArrayList(Attributes.create(modifiersNameType, modifiersName));
     operationalAttrs.put(modifiersNameType, attrList);
 
-    attrList = new ArrayList<Attribute>(1);
-    attrList.add(Attributes.create(modifyTimestampType, modifyTimestamp));
+    attrList = newArrayList(Attributes.create(modifyTimestampType, modifyTimestamp));
     operationalAttrs.put(modifyTimestampType, attrList);
 
     // Add the extra attributes.
@@ -1012,8 +873,7 @@ public class SchemaBackend
         .getExtraAttributes();
     for (Attribute attribute : attributes.values())
     {
-      attrList = new ArrayList<Attribute>(1);
-      attrList.add(attribute);
+      attrList = newArrayList(attribute);
       operationalAttrs.put(attribute.getAttributeType(), attrList);
     }
 
@@ -1028,13 +888,9 @@ public class SchemaBackend
         if (attrs == null)
         {
           attrs = new ArrayList<Attribute>();
-          attrs.add(a);
           operationalAttrs.put(type, attrs);
         }
-        else
-        {
-          attrs.add(a);
-        }
+        attrs.add(a);
       }
       else
       {
@@ -1042,13 +898,9 @@ public class SchemaBackend
         if (attrs == null)
         {
           attrs = new ArrayList<Attribute>();
-          attrs.add(a);
           userAttrs.put(type, attrs);
         }
-        else
-        {
-          attrs.add(a);
-        }
+        attrs.add(a);
       }
     }
 
@@ -1059,12 +911,38 @@ public class SchemaBackend
     return e;
   }
 
+  /** If there are any values defined, then add them. */
+  private void addAttributeIfValuesExist(final AttributeType attrType,
+      final String attrName, final Set<AttributeValue> valueSet,
+      final Map<AttributeType, List<Attribute>> userAttrs,
+      final Map<AttributeType, List<Attribute>> operationalAttrs)
+  {
+    if (!valueSet.isEmpty())
+    {
+      AttributeBuilder builder = new AttributeBuilder(attrType, attrName);
+      builder.addAll(valueSet);
+      ArrayList<Attribute> attrList = newArrayList(builder.toAttribute());
 
+      if (attrType.isOperational())
+      {
+        operationalAttrs.put(attrType, attrList);
+      }
+      else
+      {
+        userAttrs.put(attrType, attrList);
+      }
+    }
+  }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  private ArrayList<Attribute> newArrayList(Attribute a)
+  {
+    ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
+    attrList.add(a);
+    return attrList;
+  }
+
+  /** {@inheritDoc} */
+  @Override
   public boolean entryExists(DN entryDN)
          throws DirectoryException
   {
@@ -1081,40 +959,26 @@ public class SchemaBackend
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void addEntry(Entry entry, AddOperation addOperation)
          throws DirectoryException
   {
-    Message message =
-        ERR_SCHEMA_ADD_NOT_SUPPORTED.get(String.valueOf(entry.getDN()));
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+        ERR_BACKEND_ADD_NOT_SUPPORTED.get(String.valueOf(entry.getDN()), getBackendID()));
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void deleteEntry(DN entryDN, DeleteOperation deleteOperation)
          throws DirectoryException
   {
-    Message message =
-        ERR_SCHEMA_DELETE_NOT_SUPPORTED.get(String.valueOf(entryDN));
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+        ERR_BACKEND_DELETE_NOT_SUPPORTED.get(String.valueOf(entryDN), getBackendID()));
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void replaceEntry(Entry oldEntry, Entry newEntry,
       ModifyOperation modifyOperation) throws DirectoryException
   {
@@ -1555,8 +1419,8 @@ public class SchemaBackend
 
 
         case REPLACE:
-          if ((!m.isInternal()) &&
-              (!modifyOperation.isSynchronizationOperation()))
+          if (!m.isInternal()
+              && !modifyOperation.isSynchronizationOperation())
           {
             Message message = ERR_SCHEMA_INVALID_MODIFICATION_TYPE.get(
                 String.valueOf(m.getModificationType()));
@@ -1749,7 +1613,7 @@ public class SchemaBackend
 
     // Make sure that none of the associated matching rules are marked OBSOLETE.
     MatchingRule mr = attributeType.getEqualityMatchingRule();
-    if ((mr != null) && mr.isObsolete())
+    if (mr != null && mr.isObsolete())
     {
       Message message = ERR_SCHEMA_MODIFY_ATTRTYPE_OBSOLETE_MR.get(
           attributeType.getNameOrOID(), mr.getNameOrOID());
@@ -1757,7 +1621,7 @@ public class SchemaBackend
     }
 
     mr = attributeType.getOrderingMatchingRule();
-    if ((mr != null) && mr.isObsolete())
+    if (mr != null && mr.isObsolete())
     {
       Message message = ERR_SCHEMA_MODIFY_ATTRTYPE_OBSOLETE_MR.get(
           attributeType.getNameOrOID(), mr.getNameOrOID());
@@ -1765,7 +1629,7 @@ public class SchemaBackend
     }
 
     mr = attributeType.getSubstringMatchingRule();
-    if ((mr != null) && mr.isObsolete())
+    if (mr != null && mr.isObsolete())
     {
       Message message = ERR_SCHEMA_MODIFY_ATTRTYPE_OBSOLETE_MR.get(
           attributeType.getNameOrOID(), mr.getNameOrOID());
@@ -1773,7 +1637,7 @@ public class SchemaBackend
     }
 
     mr = attributeType.getApproximateMatchingRule();
-    if ((mr != null) && mr.isObsolete())
+    if (mr != null && mr.isObsolete())
     {
       Message message = ERR_SCHEMA_MODIFY_ATTRTYPE_OBSOLETE_MR.get(
           attributeType.getNameOrOID(), mr.getNameOrOID());
@@ -1787,7 +1651,7 @@ public class SchemaBackend
     {
       schema.registerAttributeType(attributeType, false);
       String schemaFile = attributeType.getSchemaFile();
-      if ((schemaFile == null) || (schemaFile.length() == 0))
+      if (schemaFile == null || schemaFile.length() == 0)
       {
         schemaFile = FILE_USER_SCHEMA_ELEMENTS;
         attributeType.setSchemaFile(schemaFile);
@@ -1801,11 +1665,11 @@ public class SchemaBackend
       schema.registerAttributeType(attributeType, false);
       schema.rebuildDependentElements(existingType);
 
-      if ((attributeType.getSchemaFile() == null) ||
-          (attributeType.getSchemaFile().length() == 0))
+      if (attributeType.getSchemaFile() == null
+          || attributeType.getSchemaFile().length() == 0)
       {
         String schemaFile = existingType.getSchemaFile();
-        if ((schemaFile == null) || (schemaFile.length() == 0))
+        if (schemaFile == null || schemaFile.length() == 0)
         {
           schemaFile = FILE_USER_SCHEMA_ELEMENTS;
         }
@@ -1817,13 +1681,9 @@ public class SchemaBackend
       {
         String newSchemaFile = attributeType.getSchemaFile();
         String oldSchemaFile = existingType.getSchemaFile();
-        if ((oldSchemaFile == null) || oldSchemaFile.equals(newSchemaFile))
+        modifiedSchemaFiles.add(newSchemaFile);
+        if (oldSchemaFile != null && !oldSchemaFile.equals(newSchemaFile))
         {
-          modifiedSchemaFiles.add(newSchemaFile);
-        }
-        else
-        {
-          modifiedSchemaFiles.add(newSchemaFile);
           modifiedSchemaFiles.add(oldSchemaFile);
         }
       }
@@ -1868,7 +1728,7 @@ public class SchemaBackend
     // See if the specified attribute type is actually defined in the server
     // schema.  If not, then fail.
     AttributeType removeType = schema.getAttributeType(attributeType.getOID());
-    if ((removeType == null) || (! removeType.equals(attributeType)))
+    if (removeType == null || !removeType.equals(attributeType))
     {
       Message message = ERR_SCHEMA_MODIFY_REMOVE_NO_SUCH_ATTRIBUTE_TYPE.get(
           attributeType.getNameOrOID());
@@ -1884,8 +1744,8 @@ public class SchemaBackend
       Modification m = modifications.get(i);
       Attribute    a = m.getAttribute();
 
-      if ((m.getModificationType() != ModificationType.ADD) ||
-          (! a.getAttributeType().equals(attributeTypesType)))
+      if (m.getModificationType() != ModificationType.ADD
+          || !a.getAttributeType().equals(attributeTypesType))
       {
         continue;
       }
@@ -1927,7 +1787,7 @@ public class SchemaBackend
     for (AttributeType at : schema.getAttributeTypes().values())
     {
       AttributeType superiorType = at.getSuperiorType();
-      if ((superiorType != null) && superiorType.equals(removeType))
+      if (superiorType != null && superiorType.equals(removeType))
       {
         Message message = ERR_SCHEMA_MODIFY_REMOVE_AT_SUPERIOR_TYPE.get(
             removeType.getNameOrOID(), superiorType.getNameOrOID());
@@ -2119,7 +1979,7 @@ public class SchemaBackend
     {
       schema.registerObjectClass(objectClass, false);
       String schemaFile = objectClass.getSchemaFile();
-      if ((schemaFile == null) || (schemaFile.length() == 0))
+      if (schemaFile == null || schemaFile.length() == 0)
       {
         schemaFile = FILE_USER_SCHEMA_ELEMENTS;
         objectClass.setSchemaFile(schemaFile);
@@ -2133,11 +1993,11 @@ public class SchemaBackend
       schema.registerObjectClass(objectClass, false);
       schema.rebuildDependentElements(existingClass);
 
-      if ((objectClass.getSchemaFile() == null) ||
-          (objectClass.getSchemaFile().length() == 0))
+      if (objectClass.getSchemaFile() == null ||
+          objectClass.getSchemaFile().length() == 0)
       {
         String schemaFile = existingClass.getSchemaFile();
-        if ((schemaFile == null) || (schemaFile.length() == 0))
+        if (schemaFile == null || schemaFile.length() == 0)
         {
           schemaFile = FILE_USER_SCHEMA_ELEMENTS;
         }
@@ -2149,13 +2009,9 @@ public class SchemaBackend
       {
         String newSchemaFile = objectClass.getSchemaFile();
         String oldSchemaFile = existingClass.getSchemaFile();
-        if ((oldSchemaFile == null) || oldSchemaFile.equals(newSchemaFile))
+        modifiedSchemaFiles.add(newSchemaFile);
+        if (oldSchemaFile != null && !oldSchemaFile.equals(newSchemaFile))
         {
-          modifiedSchemaFiles.add(newSchemaFile);
-        }
-        else
-        {
-          modifiedSchemaFiles.add(newSchemaFile);
           modifiedSchemaFiles.add(oldSchemaFile);
         }
       }
@@ -2199,7 +2055,7 @@ public class SchemaBackend
     // See if the specified objectclass is actually defined in the server
     // schema.  If not, then fail.
     ObjectClass removeClass = schema.getObjectClass(objectClass.getOID());
-    if ((removeClass == null) || (! removeClass.equals(objectClass)))
+    if (removeClass == null || !removeClass.equals(objectClass))
     {
       Message message = ERR_SCHEMA_MODIFY_REMOVE_NO_SUCH_OBJECTCLASS.get(
           objectClass.getNameOrOID());
@@ -2215,8 +2071,8 @@ public class SchemaBackend
       Modification m = modifications.get(i);
       Attribute    a = m.getAttribute();
 
-      if ((m.getModificationType() != ModificationType.ADD) ||
-          (! a.getAttributeType().equals(objectClassesType)))
+      if (m.getModificationType() != ModificationType.ADD ||
+          !a.getAttributeType().equals(objectClassesType))
       {
         continue;
       }
@@ -2425,7 +2281,7 @@ public class SchemaBackend
     {
       schema.registerNameForm(nameForm, false);
       String schemaFile = nameForm.getSchemaFile();
-      if ((schemaFile == null) || (schemaFile.length() == 0))
+      if (schemaFile == null || schemaFile.length() == 0)
       {
         schemaFile = FILE_USER_SCHEMA_ELEMENTS;
         nameForm.setSchemaFile(schemaFile);
@@ -2439,11 +2295,11 @@ public class SchemaBackend
       schema.registerNameForm(nameForm, false);
       schema.rebuildDependentElements(existingNF);
 
-      if ((nameForm.getSchemaFile() == null) ||
-          (nameForm.getSchemaFile().length() == 0))
+      if (nameForm.getSchemaFile() == null ||
+          nameForm.getSchemaFile().length() == 0)
       {
         String schemaFile = existingNF.getSchemaFile();
-        if ((schemaFile == null) || (schemaFile.length() == 0))
+        if (schemaFile == null || schemaFile.length() == 0)
         {
           schemaFile = FILE_USER_SCHEMA_ELEMENTS;
         }
@@ -2455,13 +2311,9 @@ public class SchemaBackend
       {
         String newSchemaFile = nameForm.getSchemaFile();
         String oldSchemaFile = existingNF.getSchemaFile();
-        if ((oldSchemaFile == null) || oldSchemaFile.equals(newSchemaFile))
+        modifiedSchemaFiles.add(newSchemaFile);
+        if (oldSchemaFile != null && !oldSchemaFile.equals(newSchemaFile))
         {
-          modifiedSchemaFiles.add(newSchemaFile);
-        }
-        else
-        {
-          modifiedSchemaFiles.add(newSchemaFile);
           modifiedSchemaFiles.add(oldSchemaFile);
         }
       }
@@ -2504,7 +2356,7 @@ public class SchemaBackend
     // See if the specified name form is actually defined in the server schema.
     // If not, then fail.
     NameForm removeNF = schema.getNameForm(nameForm.getOID());
-    if ((removeNF == null) || (! removeNF.equals(nameForm)))
+    if (removeNF == null || !removeNF.equals(nameForm))
     {
       Message message = ERR_SCHEMA_MODIFY_REMOVE_NO_SUCH_NAME_FORM.get(
           nameForm.getNameOrOID());
@@ -2520,8 +2372,8 @@ public class SchemaBackend
       Modification m = modifications.get(i);
       Attribute    a = m.getAttribute();
 
-      if ((m.getModificationType() != ModificationType.ADD) ||
-          (! a.getAttributeType().equals(nameFormsType)))
+      if (m.getModificationType() != ModificationType.ADD ||
+          !a.getAttributeType().equals(nameFormsType))
       {
         continue;
       }
@@ -2636,7 +2488,7 @@ public class SchemaBackend
     ObjectClass structuralClass = ditContentRule.getStructuralClass();
     DITContentRule existingRuleForClass =
          schema.getDITContentRule(structuralClass);
-    if ((existingRuleForClass != null) && (existingRuleForClass != existingDCR))
+    if (existingRuleForClass != null && existingRuleForClass != existingDCR)
     {
       Message message = ERR_SCHEMA_MODIFY_STRUCTURAL_OC_CONFLICT_FOR_ADD_DCR.
           get(ditContentRule.getName(), structuralClass.getNameOrOID(),
@@ -2746,7 +2598,7 @@ public class SchemaBackend
     {
       schema.registerDITContentRule(ditContentRule, false);
       String schemaFile = ditContentRule.getSchemaFile();
-      if ((schemaFile == null) || (schemaFile.length() == 0))
+      if (schemaFile == null || schemaFile.length() == 0)
       {
         schemaFile = FILE_USER_SCHEMA_ELEMENTS;
         ditContentRule.setSchemaFile(schemaFile);
@@ -2760,11 +2612,11 @@ public class SchemaBackend
       schema.registerDITContentRule(ditContentRule, false);
       schema.rebuildDependentElements(existingDCR);
 
-      if ((ditContentRule.getSchemaFile() == null) ||
-          (ditContentRule.getSchemaFile().length() == 0))
+      if (ditContentRule.getSchemaFile() == null ||
+          ditContentRule.getSchemaFile().length() == 0)
       {
         String schemaFile = existingDCR.getSchemaFile();
-        if ((schemaFile == null) || (schemaFile.length() == 0))
+        if (schemaFile == null || schemaFile.length() == 0)
         {
           schemaFile = FILE_USER_SCHEMA_ELEMENTS;
         }
@@ -2776,13 +2628,9 @@ public class SchemaBackend
       {
         String newSchemaFile = ditContentRule.getSchemaFile();
         String oldSchemaFile = existingDCR.getSchemaFile();
-        if ((oldSchemaFile == null) || oldSchemaFile.equals(newSchemaFile))
+        modifiedSchemaFiles.add(newSchemaFile);
+        if (oldSchemaFile != null && !oldSchemaFile.equals(newSchemaFile))
         {
-          modifiedSchemaFiles.add(newSchemaFile);
-        }
-        else
-        {
-          modifiedSchemaFiles.add(newSchemaFile);
           modifiedSchemaFiles.add(oldSchemaFile);
         }
       }
@@ -2828,7 +2676,7 @@ public class SchemaBackend
     // schema.  If not, then fail.
     DITContentRule removeDCR =
          schema.getDITContentRule(ditContentRule.getStructuralClass());
-    if ((removeDCR == null) || (! removeDCR.equals(ditContentRule)))
+    if (removeDCR == null || !removeDCR.equals(ditContentRule))
     {
       Message message =
           ERR_SCHEMA_MODIFY_REMOVE_NO_SUCH_DCR.get(ditContentRule.getName());
@@ -2888,7 +2736,7 @@ public class SchemaBackend
         {
           // We really do want to use the "!=" operator here because it's
           // acceptable if we find match for the same object instance.
-          if ((existingDSR != null) && (existingDSR != dsr))
+          if (existingDSR != null && existingDSR != dsr)
           {
             Message message = ERR_SCHEMA_MODIFY_MULTIPLE_CONFLICTS_FOR_ADD_DSR.
                 get(ditStructureRule.getNameOrRuleID(),
@@ -2922,8 +2770,8 @@ public class SchemaBackend
     NameForm nameForm = ditStructureRule.getNameForm();
     DITStructureRule existingRuleForNameForm =
          schema.getDITStructureRule(nameForm);
-    if ((existingRuleForNameForm != null) &&
-        (existingRuleForNameForm != existingDSR))
+    if (existingRuleForNameForm != null &&
+        existingRuleForNameForm != existingDSR)
     {
       Message message = ERR_SCHEMA_MODIFY_NAME_FORM_CONFLICT_FOR_ADD_DSR.
           get(ditStructureRule.getNameOrRuleID(), nameForm.getNameOrOID(),
@@ -2967,7 +2815,7 @@ public class SchemaBackend
     {
       schema.registerDITStructureRule(ditStructureRule, false);
       String schemaFile = ditStructureRule.getSchemaFile();
-      if ((schemaFile == null) || (schemaFile.length() == 0))
+      if (schemaFile == null || schemaFile.length() == 0)
       {
         schemaFile = FILE_USER_SCHEMA_ELEMENTS;
         ditStructureRule.setSchemaFile(schemaFile);
@@ -2981,11 +2829,11 @@ public class SchemaBackend
       schema.registerDITStructureRule(ditStructureRule, false);
       schema.rebuildDependentElements(existingDSR);
 
-      if ((ditStructureRule.getSchemaFile() == null) ||
-          (ditStructureRule.getSchemaFile().length() == 0))
+      if (ditStructureRule.getSchemaFile() == null ||
+          ditStructureRule.getSchemaFile().length() == 0)
       {
         String schemaFile = existingDSR.getSchemaFile();
-        if ((schemaFile == null) || (schemaFile.length() == 0))
+        if (schemaFile == null || schemaFile.length() == 0)
         {
           schemaFile = FILE_USER_SCHEMA_ELEMENTS;
         }
@@ -2997,13 +2845,9 @@ public class SchemaBackend
       {
         String newSchemaFile = ditStructureRule.getSchemaFile();
         String oldSchemaFile = existingDSR.getSchemaFile();
-        if ((oldSchemaFile == null) || oldSchemaFile.equals(newSchemaFile))
+        modifiedSchemaFiles.add(newSchemaFile);
+        if (oldSchemaFile != null && !oldSchemaFile.equals(newSchemaFile))
         {
-          modifiedSchemaFiles.add(newSchemaFile);
-        }
-        else
-        {
-          modifiedSchemaFiles.add(newSchemaFile);
           modifiedSchemaFiles.add(oldSchemaFile);
         }
       }
@@ -3049,7 +2893,7 @@ public class SchemaBackend
     // schema.  If not, then fail.
     DITStructureRule removeDSR =
          schema.getDITStructureRule(ditStructureRule.getRuleID());
-    if ((removeDSR == null) || (! removeDSR.equals(ditStructureRule)))
+    if (removeDSR == null || !removeDSR.equals(ditStructureRule))
     {
       Message message = ERR_SCHEMA_MODIFY_REMOVE_NO_SUCH_DSR.get(
           ditStructureRule.getNameOrRuleID());
@@ -3065,8 +2909,8 @@ public class SchemaBackend
       Modification m = modifications.get(i);
       Attribute    a = m.getAttribute();
 
-      if ((m.getModificationType() != ModificationType.ADD) ||
-          (! a.getAttributeType().equals(ditStructureRulesType)))
+      if (m.getModificationType() != ModificationType.ADD ||
+          !a.getAttributeType().equals(ditStructureRulesType))
       {
         continue;
       }
@@ -3189,7 +3033,7 @@ public class SchemaBackend
     MatchingRule matchingRule = matchingRuleUse.getMatchingRule();
     MatchingRuleUse existingMRUForRule =
          schema.getMatchingRuleUse(matchingRule);
-    if ((existingMRUForRule != null) && (existingMRUForRule != existingMRU))
+    if (existingMRUForRule != null && existingMRUForRule != existingMRU)
     {
       Message message = ERR_SCHEMA_MODIFY_MR_CONFLICT_FOR_ADD_MR_USE.
           get(matchingRuleUse.getName(), matchingRule.getNameOrOID(),
@@ -3230,7 +3074,7 @@ public class SchemaBackend
     {
       schema.registerMatchingRuleUse(matchingRuleUse, false);
       String schemaFile = matchingRuleUse.getSchemaFile();
-      if ((schemaFile == null) || (schemaFile.length() == 0))
+      if (schemaFile == null || schemaFile.length() == 0)
       {
         schemaFile = FILE_USER_SCHEMA_ELEMENTS;
         matchingRuleUse.setSchemaFile(schemaFile);
@@ -3244,11 +3088,11 @@ public class SchemaBackend
       schema.registerMatchingRuleUse(matchingRuleUse, false);
       schema.rebuildDependentElements(existingMRU);
 
-      if ((matchingRuleUse.getSchemaFile() == null) ||
-          (matchingRuleUse.getSchemaFile().length() == 0))
+      if (matchingRuleUse.getSchemaFile() == null ||
+          matchingRuleUse.getSchemaFile().length() == 0)
       {
         String schemaFile = existingMRU.getSchemaFile();
-        if ((schemaFile == null) || (schemaFile.length() == 0))
+        if (schemaFile == null || schemaFile.length() == 0)
         {
           schemaFile = FILE_USER_SCHEMA_ELEMENTS;
         }
@@ -3260,13 +3104,9 @@ public class SchemaBackend
       {
         String newSchemaFile = matchingRuleUse.getSchemaFile();
         String oldSchemaFile = existingMRU.getSchemaFile();
-        if ((oldSchemaFile == null) || oldSchemaFile.equals(newSchemaFile))
+        modifiedSchemaFiles.add(newSchemaFile);
+        if (oldSchemaFile != null && !oldSchemaFile.equals(newSchemaFile))
         {
-          modifiedSchemaFiles.add(newSchemaFile);
-        }
-        else
-        {
-          modifiedSchemaFiles.add(newSchemaFile);
           modifiedSchemaFiles.add(oldSchemaFile);
         }
       }
@@ -3313,7 +3153,7 @@ public class SchemaBackend
     // schema.  If not, then fail.
     MatchingRuleUse removeMRU =
          schema.getMatchingRuleUse(matchingRuleUse.getMatchingRule());
-    if ((removeMRU == null) || (! removeMRU.equals(matchingRuleUse)))
+    if (removeMRU == null || !removeMRU.equals(matchingRuleUse))
     {
       Message message = ERR_SCHEMA_MODIFY_REMOVE_NO_SUCH_MR_USE.get(
           matchingRuleUse.getName());
@@ -3379,7 +3219,7 @@ public class SchemaBackend
     {
       schema.registerLdapSyntaxDescription(ldapSyntaxDesc, false);
       String schemaFile = ldapSyntaxDesc.getSchemaFile();
-      if ((schemaFile == null) || (schemaFile.length() == 0))
+      if (schemaFile == null || schemaFile.length() == 0)
       {
         schemaFile = FILE_USER_SCHEMA_ELEMENTS;
         ldapSyntaxDesc.setSchemaFile(schemaFile);
@@ -3393,11 +3233,11 @@ public class SchemaBackend
       schema.registerLdapSyntaxDescription(ldapSyntaxDesc, false);
       schema.rebuildDependentElements(existingLSD);
 
-      if ((ldapSyntaxDesc.getSchemaFile() == null) ||
-          (ldapSyntaxDesc.getSchemaFile().length() == 0))
+      if (ldapSyntaxDesc.getSchemaFile() == null ||
+          ldapSyntaxDesc.getSchemaFile().length() == 0)
       {
         String schemaFile = ldapSyntaxDesc.getSchemaFile();
-        if ((schemaFile == null) || (schemaFile.length() == 0))
+        if (schemaFile == null || schemaFile.length() == 0)
         {
           schemaFile = FILE_USER_SCHEMA_ELEMENTS;
         }
@@ -3409,13 +3249,9 @@ public class SchemaBackend
       {
         String newSchemaFile = ldapSyntaxDesc.getSchemaFile();
         String oldSchemaFile = existingLSD.getSchemaFile();
-        if ((oldSchemaFile == null) || oldSchemaFile.equals(newSchemaFile))
+        modifiedSchemaFiles.add(newSchemaFile);
+        if (oldSchemaFile != null && !oldSchemaFile.equals(newSchemaFile))
         {
-          modifiedSchemaFiles.add(newSchemaFile);
-        }
-        else
-        {
-          modifiedSchemaFiles.add(newSchemaFile);
           modifiedSchemaFiles.add(oldSchemaFile);
         }
       }
@@ -3424,7 +3260,7 @@ public class SchemaBackend
 
 
 
-  //Gets rid of the ldap syntax description.
+  /** Gets rid of the ldap syntax description. */
   private void removeLdapSyntaxDescription(LDAPSyntaxDescription ldapSyntaxDesc,
                                     Schema schema,
                                     Set<String> modifiedSchemaFiles)
@@ -3437,7 +3273,7 @@ public class SchemaBackend
     String oid = ldapSyntaxDesc.getLdapSyntaxDescriptionSyntax().getOID();
     LDAPSyntaxDescription removeLSD = schema.getLdapSyntaxDescription(oid);
 
-    if ((removeLSD == null) || (! removeLSD.equals(ldapSyntaxDesc)))
+    if (removeLSD == null || !removeLSD.equals(ldapSyntaxDesc))
     {
       Message message =
           ERR_SCHEMA_MODIFY_REMOVE_NO_SUCH_LSD.get(oid);
@@ -3690,13 +3526,12 @@ public class SchemaBackend
     }
 
 
-    if (schemaFile.equals(FILE_USER_SCHEMA_ELEMENTS))
+    if (FILE_USER_SCHEMA_ELEMENTS.equals(schemaFile))
     {
       Map<String, Attribute> attributes = schema.getExtraAttributes();
       for (Attribute attribute : attributes.values())
       {
-        ArrayList<Attribute> attrList = new ArrayList<Attribute>(1);
-        attrList.add(attribute);
+        ArrayList<Attribute> attrList = newArrayList(attribute);
         schemaEntry.putAttribute(attribute.getAttributeType(), attrList);
       }
     }
@@ -3751,9 +3586,9 @@ public class SchemaBackend
     }
 
     AttributeType superiorType = attributeType.getSuperiorType();
-    if ((superiorType != null) &&
+    if (superiorType != null &&
         schemaFile.equals(superiorType.getSchemaFile()) &&
-        (! addedTypes.contains(superiorType)))
+        !addedTypes.contains(superiorType))
     {
       addAttrTypeToSchemaFile(schema, schemaFile, superiorType, values,
                               addedTypes, depth+1);
@@ -3804,7 +3639,7 @@ public class SchemaBackend
     for(ObjectClass superiorClass : objectClass.getSuperiorClasses())
     {
       if (schemaFile.equals(superiorClass.getSchemaFile()) &&
-          (! addedClasses.contains(superiorClass)))
+          !addedClasses.contains(superiorClass))
       {
         addObjectClassToSchemaFile(schema, schemaFile, superiorClass, values,
                                    addedClasses, depth+1);
@@ -3854,7 +3689,7 @@ public class SchemaBackend
 
     for (DITStructureRule dsr : ditStructureRule.getSuperiorRules())
     {
-      if (schemaFile.equals(dsr.getSchemaFile()) && (! addedDSRs.contains(dsr)))
+      if (schemaFile.equals(dsr.getSchemaFile()) && !addedDSRs.contains(dsr))
       {
         addDITStructureRuleToSchemaFile(schema, schemaFile, dsr, values,
                                         addedDSRs, depth+1);
@@ -3937,12 +3772,9 @@ public class SchemaBackend
       {
         try
         {
-          if (f.exists())
+          if (f.exists() && !f.delete())
           {
-            if (! f.delete())
-            {
-              allCleaned = false;
-            }
+            allCleaned = false;
           }
         }
         catch (Exception e2)
@@ -4023,12 +3855,9 @@ public class SchemaBackend
 
         try
         {
-          if (origFile.exists())
+          if (origFile.exists() && !origFile.renameTo(installedFile))
           {
-            if (! origFile.renameTo(installedFile))
-            {
-              allRestored = false;
-            }
+            allRestored = false;
           }
         }
         catch (Exception e2)
@@ -4134,21 +3963,7 @@ public class SchemaBackend
     }
     finally
     {
-      if (inputStream != null)
-      {
-        try
-        {
-          inputStream.close();
-        }
-        catch (Exception e)
-        {
-          if (debugEnabled())
-          {
-            TRACER.debugCaught(DebugLogLevel.ERROR, e);
-          }
-        }
-      }
-
+      close(inputStream);
       if (outputStream != null)
       {
         outputStream.close();
@@ -4167,7 +3982,7 @@ public class SchemaBackend
    */
   private void cleanUpTempSchemaFiles(HashMap<String,File> tempSchemaFiles)
   {
-    if ((tempSchemaFiles == null) || tempSchemaFiles.isEmpty())
+    if (tempSchemaFiles == null || tempSchemaFiles.isEmpty())
     {
       return;
     }
@@ -4191,27 +4006,18 @@ public class SchemaBackend
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void renameEntry(DN currentDN, Entry entry,
                                    ModifyDNOperation modifyDNOperation)
          throws DirectoryException
   {
-    Message message =
-        ERR_SCHEMA_MODIFY_DN_NOT_SUPPORTED.get(String.valueOf(currentDN));
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+        ERR_BACKEND_MODIFY_DN_NOT_SUPPORTED.get(String.valueOf(currentDN), getBackendID()));
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void search(SearchOperation searchOperation)
          throws DirectoryException
   {
@@ -4245,8 +4051,8 @@ public class SchemaBackend
     // If it's a onelevel or subordinate subtree search, then we will never
     // match anything since there isn't anything below the schema.
     SearchScope scope = searchOperation.getScope();
-    if ((scope == SearchScope.SINGLE_LEVEL) ||
-        (scope == SearchScope.SUBORDINATE_SUBTREE))
+    if (scope == SearchScope.SINGLE_LEVEL ||
+        scope == SearchScope.SUBORDINATE_SUBTREE)
     {
       return;
     }
@@ -4262,46 +4068,30 @@ public class SchemaBackend
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public Set<String> getSupportedControls()
   {
-    return supportedControls;
+    return Collections.emptySet();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public Set<String> getSupportedFeatures()
   {
-    return supportedFeatures;
+    return Collections.emptySet();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean supportsLDIFExport()
   {
     // We will only export the DSE entry itself.
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void exportLDIF(LDIFExportConfig exportConfig)
          throws DirectoryException
   {
@@ -4345,37 +4135,19 @@ public class SchemaBackend
     }
     finally
     {
-      try
-      {
-        ldifWriter.close();
-      }
-      catch (Exception e)
-      {
-        if (debugEnabled())
-        {
-          TRACER.debugCaught(DebugLogLevel.ERROR, e);
-        }
-      }
+      close(ldifWriter);
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean supportsLDIFImport()
   {
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public LDIFImportResult importLDIF(LDIFImportConfig importConfig)
          throws DirectoryException
   {
@@ -4501,7 +4273,7 @@ public class SchemaBackend
     // and add them in the existing schema.
     List<Attribute> attrList = newSchemaEntry.getAttribute(attributeAttrType);
     Set<String> oidList = new HashSet<String>(1000);
-    if ((attrList != null) && (! attrList.isEmpty()))
+    if (attrList != null && !attrList.isEmpty())
     {
       for (Attribute a : attrList)
       {
@@ -4513,8 +4285,7 @@ public class SchemaBackend
           AttributeType attrType = AttributeTypeSyntax.decodeAttributeType(
               v.getValue(), schema, false);
           String schemaFile = attrType.getSchemaFile();
-          if ((schemaFile != null) &&
-              (schemaFile.equals(CONFIG_SCHEMA_ELEMENTS_FILE)))
+          if (CONFIG_SCHEMA_ELEMENTS_FILE.equals(schemaFile))
           {
             // Don't import the file containing the definitions of the
             // Schema elements used for configuration because these
@@ -4529,8 +4300,8 @@ public class SchemaBackend
             // unless it is already defined with the same syntax.
             AttributeType oldAttrType =
               schema.getAttributeType(attrType.getOID());
-            if ((oldAttrType == null) ||
-                (!oldAttrType.toString().equals(attrType.toString())))
+            if (oldAttrType == null ||
+                !oldAttrType.toString().equals(attrType.toString()))
             {
               newSchema.registerAttributeType(attrType, true);
 
@@ -4566,9 +4337,8 @@ public class SchemaBackend
     for (AttributeType removeType : currentAttrTypes.values())
     {
       String schemaFile = removeType.getSchemaFile();
-      if ((schemaFile != null) &&
-           ((schemaFile.equals(CONFIG_SCHEMA_ELEMENTS_FILE)) ||
-            (schemaFile.equals(CORE_SCHEMA_ELEMENTS_FILE))) )
+      if (CONFIG_SCHEMA_ELEMENTS_FILE.equals(schemaFile)
+          || CORE_SCHEMA_ELEMENTS_FILE.equals(schemaFile))
       {
         // Don't import the file containing the definitions of the
         // Schema elements used for configuration because these
@@ -4619,7 +4389,7 @@ public class SchemaBackend
 
     oidList.clear();
     List<Attribute> ocList = newSchemaEntry.getAttribute(objectclassAttrType);
-    if ((ocList != null) && (! ocList.isEmpty()))
+    if (ocList != null && !ocList.isEmpty())
     {
       for (Attribute a : ocList)
       {
@@ -4630,8 +4400,7 @@ public class SchemaBackend
           ObjectClass newObjectClass = ObjectClassSyntax.decodeObjectClass(
               v.getValue(), newSchema, true);
           String schemaFile = newObjectClass.getSchemaFile();
-          if ((schemaFile != null) &&
-              (schemaFile.equals(CONFIG_SCHEMA_ELEMENTS_FILE)))
+          if (CONFIG_SCHEMA_ELEMENTS_FILE.equals(schemaFile))
           {
             // Don't import the file containing the definitions of the
             // Schema elements used for configuration because these
@@ -4651,8 +4420,8 @@ public class SchemaBackend
             // unless it is already defined with the same syntax.
             ObjectClass oldObjectClass =
               schema.getObjectClass(newObjectClass.getOID());
-            if ((oldObjectClass == null) ||
-                (!oldObjectClass.toString().equals(newObjectClass.toString())))
+            if (oldObjectClass == null ||
+                !oldObjectClass.toString().equals(newObjectClass.toString()))
             {
               newSchema.registerObjectClass(newObjectClass, true);
 
@@ -4688,8 +4457,7 @@ public class SchemaBackend
     for (ObjectClass removeClass : currentObjectClasses.values())
     {
       String schemaFile = removeClass.getSchemaFile();
-      if ((schemaFile != null) &&
-          (schemaFile.equals(CONFIG_SCHEMA_ELEMENTS_FILE)))
+      if (CONFIG_SCHEMA_ELEMENTS_FILE.equals(schemaFile))
       {
         // Don't import the file containing the definition of the
         // Schema elements used for configuration because these
@@ -4716,24 +4484,16 @@ public class SchemaBackend
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean supportsBackup()
   {
     // We do support an online backup mechanism for the schema.
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean supportsBackup(BackupConfig backupConfig,
                                 StringBuilder unsupportedReason)
   {
@@ -4744,12 +4504,8 @@ public class SchemaBackend
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void createBackup(BackupConfig backupConfig)
          throws DirectoryException
   {
@@ -4948,12 +4704,7 @@ public class SchemaBackend
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
 
-      try
-      {
-        zipStream.close();
-      } catch (Exception e2)
-      {
-    }
+      close(zipStream);
 
       message = ERR_SCHEMA_BACKUP_CANNOT_BACKUP_SCHEMA_FILE.get(commentName,
           stackTraceToSingleLineString(e));
@@ -5057,22 +4808,7 @@ public class SchemaBackend
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
           }
 
-           try
-          {
-            if (inputStream != null)
-            {
-              inputStream.close();
-            }
-          } catch (Exception e2)
-          {
-          }
-
-           try
-          {
-            zipStream.close();
-          } catch (Exception e2)
-          {
-          }
+          close(inputStream, zipStream);
 
           message = ERR_SCHEMA_BACKUP_CANNOT_BACKUP_SCHEMA_FILE.get(baseName,
               stackTraceToSingleLineString(e));
@@ -5145,12 +4881,8 @@ public class SchemaBackend
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void removeBackup(BackupDirectory backupDirectory,
                            String backupID)
          throws DirectoryException
@@ -5205,24 +4937,16 @@ public class SchemaBackend
     archiveFile.delete();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean supportsRestore()
   {
     // We will provide a restore, but only for offline operations.
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void restoreBackup(RestoreConfig restoreConfig)
          throws DirectoryException
   {
@@ -5523,7 +5247,7 @@ public class SchemaBackend
       // If we're doing the restore, then create the output stream to write the
       // file.
       OutputStream outputStream = null;
-      if ((! verifyOnly) && restoreIt)
+      if (!verifyOnly && restoreIt)
       {
         String filePath = baseDirPath + File.separator + fileName;
         try
@@ -5698,11 +5422,7 @@ public class SchemaBackend
     logError(message);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
        SchemaBackendCfg configEntry,
@@ -5711,11 +5431,7 @@ public class SchemaBackend
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(
        SchemaBackendCfg backendCfg)
@@ -5905,33 +5621,21 @@ public class SchemaBackend
     this.showAllAttributes = showAllAttributes;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public DN getComponentEntryDN()
   {
     return configEntryDN;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getClassName()
   {
     return CLASS_NAME;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Map<String, String> getAlerts()
   {
@@ -5945,11 +5649,7 @@ public class SchemaBackend
     return alerts;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void preloadEntryCache() throws UnsupportedOperationException {
     throw new UnsupportedOperationException("Operation not supported.");
