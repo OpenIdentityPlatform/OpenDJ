@@ -21,9 +21,11 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS
+ *      Copyright 2013-2014 ForgeRock AS
  */
 package com.forgerock.opendj.util;
+
+import java.util.Comparator;
 
 /**
  * Ordered pair of arbitrary objects.
@@ -35,8 +37,28 @@ package com.forgerock.opendj.util;
  */
 public final class Pair<F, S> {
 
+    private static final class ComparablePairComparator
+            <F extends Comparable<F>, S extends Comparable<S>>
+            implements Comparator<Pair<F, S>> {
+        /** {@inheritDoc} */
+        @Override
+        public int compare(Pair<F, S> o1, Pair<F, S> o2) {
+            final int compareResult = o1.getFirst().compareTo(o2.getFirst());
+            if (compareResult == 0) {
+                return o1.getSecond().compareTo(o2.getSecond());
+            }
+            return compareResult;
+        }
+    }
+
     /** An empty Pair. */
     public static final Pair<?, ?> EMPTY = Pair.of(null, null);
+
+    /**
+     * {@link Comparator} for {@link Pair}s made of {@link Comparable} elements.
+     */
+    @SuppressWarnings("rawtypes")
+    public static final Comparator COMPARATOR = new ComparablePairComparator();
 
     /** The first pair element. */
     private final F first;
@@ -86,6 +108,21 @@ public final class Pair<F, S> {
     @SuppressWarnings("unchecked")
     public static <F, S> Pair<F, S> empty() {
         return (Pair<F, S>) EMPTY;
+    }
+
+    /**
+     * Returns a comparator for Pairs of comparable objects.
+     *
+     * @param <F>
+     *            type of the first pair element
+     * @param <S>
+     *            type of the second pair element
+     * @return a comparator for Pairs of comparable objects.
+     */
+    @SuppressWarnings("unchecked")
+    public static <F extends Comparable<F>, S extends Comparable<S>>
+    Comparator<Pair<F, S>> getPairComparator() {
+        return COMPARATOR;
     }
 
     /**
