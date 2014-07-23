@@ -55,6 +55,16 @@ import org.forgerock.opendj.ldif.LDIFEntryWriter;
  */
 public final class MakeLDIF extends ConsoleApplication {
 
+    /**
+     * The value for the constant option in LDIF generator tools.
+     */
+    public static final String OPTION_LONG_CONSTANT = "constant";
+
+    /**
+     * The value for the path to look for LDIF resources (e.g data files).
+     */
+    public static final String OPTION_LONG_RESOURCE_PATH = "resourcePath";
+
     private static final int EXIT_CODE_SUCCESS = 0;
     private static final int EXIT_CODE_FAILURE = 1;
 
@@ -84,7 +94,7 @@ public final class MakeLDIF extends ConsoleApplication {
         StringArgument resourcePath;
         StringArgument constants;
         try {
-            resourcePath = new StringArgument("resourcepath", 'r', "resourcePath", false, false, true,
+            resourcePath = new StringArgument("resourcepath", 'r', OPTION_LONG_RESOURCE_PATH, false, false, true,
                     INFO_PATH_PLACEHOLDER.get(), null, null, INFO_MAKELDIF_DESCRIPTION_RESOURCE_PATH.get());
             argParser.addArgument(resourcePath);
 
@@ -97,7 +107,7 @@ public final class MakeLDIF extends ConsoleApplication {
                     false, true, INFO_SEED_PLACEHOLDER.get(), 0, null, INFO_MAKELDIF_DESCRIPTION_SEED.get());
             argParser.addArgument(randomSeed);
 
-            constants = new StringArgument("constant", 'c', "constant", false, true, true,
+            constants = new StringArgument("constant", 'c', OPTION_LONG_CONSTANT, false, true, true,
                     INFO_CONSTANT_PLACEHOLDER.get(),
                     null, null, INFO_MAKELDIF_DESCRIPTION_CONSTANT.get());
             argParser.addArgument(constants);
@@ -168,17 +178,15 @@ public final class MakeLDIF extends ConsoleApplication {
         return EXIT_CODE_SUCCESS;
     }
 
-    /**
-     * Returns the initialized generator, or null if a problem occurs.
-     */
-    private EntryGenerator createGenerator(final String templatePath, final StringArgument resourcePath,
-            final IntegerArgument randomSeedArg, final StringArgument constants) {
-        final EntryGenerator generator = new EntryGenerator(templatePath);
+    static EntryGenerator createGenerator(final String templatePath, final StringArgument resourcePath,
+                                            final IntegerArgument randomSeedArg, final StringArgument constants,
+                                            final boolean generateBranches, final ConsoleApplication app) {
+        final EntryGenerator generator = new EntryGenerator(templatePath).setGenerateBranches(generateBranches);
 
         if (resourcePath.isPresent()) {
             final File resourceDir = new File(resourcePath.getValue());
             if (!resourceDir.exists()) {
-                errPrintln(ERR_MAKELDIF_NO_SUCH_RESOURCE_DIRECTORY.get(resourcePath.getValue()));
+                app.errPrintln(ERR_LDIF_GEN_TOOL_NO_SUCH_RESOURCE_DIRECTORY.get(resourcePath.getValue()));
                 generator.close();
                 return null;
             }
@@ -189,14 +197,14 @@ public final class MakeLDIF extends ConsoleApplication {
             try {
                 generator.setRandomSeed(randomSeedArg.getIntValue());
             } catch (ArgumentException ae) {
-                errPrintln(ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
+                app.errPrintln(ERR_ERROR_PARSING_ARGS.get(ae.getMessage()));
                 generator.close();
                 return null;
             }
         }
 
         if (constants.isPresent()) {
-            if (!addConstantsToGenerator(constants, generator)) {
+            if (!addConstantsToGenerator(constants, generator, app)) {
                 generator.close();
                 return null;
             }
@@ -206,7 +214,7 @@ public final class MakeLDIF extends ConsoleApplication {
         try {
             generator.hasNext();
         } catch (IOException e) {
-            errPrintln(ERR_MAKELDIF_EXCEPTION_DURING_PARSE.get(e.getMessage()));
+            app.errPrintln(ERR_LDIF_GEN_TOOL_EXCEPTION_DURING_PARSE.get(e.getMessage()));
             generator.close();
             return null;
         }
@@ -217,11 +225,12 @@ public final class MakeLDIF extends ConsoleApplication {
     /**
      * Returns true if all constants are added to generator, false otherwise.
      */
-    private boolean addConstantsToGenerator(StringArgument constants, EntryGenerator generator) {
+    private static boolean addConstantsToGenerator(StringArgument constants, EntryGenerator generator,
+                                                       final ConsoleApplication app) {
         for (final String constant : constants.getValues()) {
             final String[] chunks = constant.split("=");
             if (chunks.length != 2) {
-                errPrintln(ERR_CONSTANT_ARG_CANNOT_DECODE.get(constant));
+                app.errPrintln(ERR_CONSTANT_ARG_CANNOT_DECODE.get(constant));
                 return false;
             }
             generator.setConstant(chunks[0], chunks[1]);
@@ -229,8 +238,14 @@ public final class MakeLDIF extends ConsoleApplication {
         return true;
     }
 
+
+    private EntryGenerator createGenerator(final String templatePath, final StringArgument resourcePath,
+            final IntegerArgument randomSeedArg, final StringArgument constants) {
+        return createGenerator(templatePath, resourcePath, randomSeedArg, constants, true, this);
+    }
+
     /**
-     * Returns true if generation is successfull, false otherwise.
+     * Returns true if generation is successful, false otherwise.
      */
     private boolean generateEntries(final EntryGenerator generator, final LDIFEntryWriter writer,
             final StringArgument ldifFile) {

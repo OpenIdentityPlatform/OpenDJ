@@ -139,9 +139,9 @@ public final class SearchRate extends ConsoleApplication {
         private DereferenceAliasesPolicy dereferencesAliasesPolicy;
         private String[] attributes;
 
-        private SearchPerformanceRunner(final ArgumentParser argParser, final ConsoleApplication app)
+        private SearchPerformanceRunner(final PerformanceRunnerOptions options)
                 throws ArgumentException {
-            super(argParser, app, false, false, false);
+            super(options);
         }
 
         @Override
@@ -225,7 +225,7 @@ public final class SearchRate extends ConsoleApplication {
             Utils.setDefaultPerfToolProperties();
 
             connectionFactoryProvider = new ConnectionFactoryProvider(argParser, this);
-            runner = new SearchPerformanceRunner(argParser, this);
+            runner = new SearchPerformanceRunner(new PerformanceRunnerOptions(argParser, this));
 
             propertiesFileArgument = CommonArguments.getPropertiesFile();
             argParser.addArgument(propertiesFileArgument);

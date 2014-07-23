@@ -321,9 +321,9 @@ public final class AuthRate extends ConsoleApplication {
         private BindRequest bindRequest;
         private int invalidCredPercent;
 
-        private BindPerformanceRunner(final ArgumentParser argParser, final ConsoleApplication app)
+        private BindPerformanceRunner(final PerformanceRunnerOptions options)
                 throws ArgumentException {
-            super(argParser, app, true, true, true);
+            super(options);
         }
 
         @Override
@@ -408,9 +408,13 @@ public final class AuthRate extends ConsoleApplication {
 
         try {
             setDefaultPerfToolProperties();
+            PerformanceRunnerOptions options = new PerformanceRunnerOptions(argParser, this);
+            options.setSupportsRebind(false);
+            options.setSupportsAsynchronousRequests(false);
+            options.setSupportsMultipleThreadsPerConnection(false);
 
             connectionFactoryProvider = new ConnectionFactoryProvider(argParser, this);
-            runner = new BindPerformanceRunner(argParser, this);
+            runner = new BindPerformanceRunner(options);
 
             propertiesFileArgument = CommonArguments.getPropertiesFile();
             argParser.addArgument(propertiesFileArgument);

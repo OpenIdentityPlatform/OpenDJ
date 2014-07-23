@@ -111,6 +111,12 @@ public final class EntryGenerator implements EntryReader {
      */
     private InputStream templateStream;
 
+    /** Indicates whether branch entries should be generated.
+     *
+     *  Default is {@code true}
+     */
+    private boolean generateBranches = true;
+
     /** Dictionary of constants to use in the template file. */
     private Map<String, String> constants = new HashMap<String, String>();
 
@@ -222,6 +228,20 @@ public final class EntryGenerator implements EntryReader {
     }
 
     /**
+     * Sets the flag which indicates whether branch entries should be generated.
+     *
+     * The default is {@code true}.
+     *
+     * @param generateBranches
+     *              Indicates whether or not the branches DN entries has to be generated.
+     * @return A reference to this {@code EntryGenerator}.
+     */
+    public EntryGenerator setGenerateBranches(boolean generateBranches) {
+        this.generateBranches = generateBranches;
+        return this;
+    }
+
+    /**
      * Checks if there are some warning(s) after parsing the template file.
      * <p>
      * Warnings are available only after the first call to {@code hasNext()} or
@@ -286,7 +306,7 @@ public final class EntryGenerator implements EntryReader {
         if (schema == null) {
             schema = Schema.getDefaultSchema();
         }
-        templateFile = new TemplateFile(schema, constants, resourcePath, new Random(randomSeed));
+        templateFile = new TemplateFile(schema, constants, resourcePath, new Random(randomSeed), generateBranches);
         try {
             if (templatePath != null) {
                 templateFile.parse(templatePath, warnings);

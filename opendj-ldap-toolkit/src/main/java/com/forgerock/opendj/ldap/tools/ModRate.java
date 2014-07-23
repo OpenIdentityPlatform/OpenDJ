@@ -102,9 +102,9 @@ public final class ModRate extends ConsoleApplication {
         private String baseDN;
         private String[] modStrings;
 
-        private ModifyPerformanceRunner(final ArgumentParser argParser, final ConsoleApplication app)
+        private ModifyPerformanceRunner(final PerformanceRunnerOptions options)
                 throws ArgumentException {
-            super(argParser, app, false, false, false);
+            super(options);
         }
 
         @Override
@@ -175,7 +175,7 @@ public final class ModRate extends ConsoleApplication {
             Utils.setDefaultPerfToolProperties();
 
             connectionFactoryProvider = new ConnectionFactoryProvider(argParser, this);
-            runner = new ModifyPerformanceRunner(argParser, this);
+            runner = new ModifyPerformanceRunner(new PerformanceRunnerOptions(argParser, this));
 
             propertiesFileArgument = CommonArguments.getPropertiesFile();
             argParser.addArgument(propertiesFileArgument);

@@ -74,16 +74,19 @@ public abstract class ToolsITCase extends ForgeRockTestCase {
     }
 
     private void checkOutputStream(ByteStringBuilder out, Object expectedOutput) {
+        String lineSeparator = System.getProperty("line.separator");
         String toCompare = expectedOutput.toString();
 
         if (expectedOutput instanceof LocalizableMessage) {
             toCompare = wrapText((LocalizableMessage) expectedOutput, MAX_LINE_WIDTH);
         }
 
+        toCompare = toCompare.replace(lineSeparator, " ");
+
         if (toCompare.isEmpty()) {
             assertThat(out.toString().length()).isEqualTo(0);
         } else {
-            assertThat(out.toString()).contains(toCompare);
+            assertThat(out.toString().replace(lineSeparator, " ")).contains(toCompare);
         }
 
     }

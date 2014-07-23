@@ -68,7 +68,7 @@ public class MakeLDIFTestCase extends ToolsTestCase {
               expectedErrOutput(ERR_ERROR_PARSING_ARGS.get("")) },
 
             { args("-r", "unknown/path" , "example.template"),
-              expectedErrOutput(ERR_MAKELDIF_NO_SUCH_RESOURCE_DIRECTORY.get("unknown/path")) },
+              expectedErrOutput(ERR_LDIF_GEN_TOOL_NO_SUCH_RESOURCE_DIRECTORY.get("unknown/path")) },
 
             { args("-o", "unknown/path" , "example.template"),
               expectedErrOutput(ERR_MAKELDIF_UNABLE_TO_CREATE_LDIF.get("unknown/path", "")) },
