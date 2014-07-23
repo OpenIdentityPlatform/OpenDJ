@@ -240,7 +240,9 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
       return previousValue;
     }
 
-    if (MultimasterReplication.isECLEnabledDomain(baseDN))
+    // When called at replication startup, the isECLEnabledDomain() method blocks on STARTING state.
+    // Checking cursors list ensure that it is never called in the startup case.
+    if (!registeredMultiDomainCursors.isEmpty() && MultimasterReplication.isECLEnabledDomain(baseDN))
     {
       // we just created a new domain => update all cursors
       for (MultiDomainDBCursor cursor : registeredMultiDomainCursors)
