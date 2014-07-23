@@ -343,13 +343,12 @@ public class ChangeNumberIndexer extends DirectoryThread
         {
           /*
            * initialize with the oldest possible CSN in order for medium
-           * consistency to wait for all replicas to be alive before moving
-           * forward
+           * consistency to wait for all replicas to be alive before moving forward
            */
           lastAliveCSNs.update(baseDN, oldestPossibleCSN(serverId));
         }
 
-        ServerState latestKnownState = domainDB.getDomainNewestCSNs(baseDN);
+        final ServerState latestKnownState = domainDB.getDomainNewestCSNs(baseDN);
         lastAliveCSNs.update(baseDN, latestKnownState);
       }
     }
@@ -360,14 +359,20 @@ public class ChangeNumberIndexer extends DirectoryThread
     if (newestRecord != null)
     {
       // restore the "previousCookie" state before shutdown
-      final UpdateMsg record = nextChangeForInsertDBCursor.getRecord();
+      UpdateMsg record = nextChangeForInsertDBCursor.getRecord();
+      if (record instanceof ReplicaOfflineMsg)
+      {
+        // ignore: replica offline messages are never stored in the CNIndexDB
+        nextChangeForInsertDBCursor.next();
+        record = nextChangeForInsertDBCursor.getRecord();
+      }
+
       // sanity check: ensure that when initializing the cursors at the previous
       // cookie, the next change we find is the newest record in the CNIndexDB
       if (!record.getCSN().equals(newestRecord.getCSN()))
       {
-        throw new ChangelogException(
-            ERR_CHANGE_NUMBER_INDEXER_INCONSISTENT_CSN_READ.get(newestRecord
-                .getCSN().toStringUI(), record.getCSN().toStringUI()));
+        throw new ChangelogException(ERR_CHANGE_NUMBER_INDEXER_INCONSISTENT_CSN_READ.get(
+            newestRecord.getCSN().toStringUI(), record.getCSN().toStringUI()));
       }
       // Now we can update the mediumConsistencyRUV
       mediumConsistencyRUV.update(newestRecord.getBaseDN(), record.getCSN());
@@ -417,8 +422,7 @@ public class ChangeNumberIndexer extends DirectoryThread
     {
       /*
        * initialize here to allow fast application start up and avoid errors due
-       * cursors being created in a different thread to the one where they are
-       * used.
+       * cursors being created in a different thread to the one where they are used.
        */
       initialize();
 
