@@ -104,6 +104,9 @@ final class TemplateFile {
     /** The name of the file holding the list of last names. */
     private static final String LAST_NAME_FILE = "last.names";
 
+    /** Default value for infinite number of entries. */
+    private static final int INFINITE_ENTRIES = -1;
+
     /**
      * A map of the contents of various text files used during the parsing
      * process, mapped from absolute path to the array of lines in the file.
@@ -149,6 +152,9 @@ final class TemplateFile {
     /** The next last name that should be used. */
     private String lastName;
 
+    /** Indicates whether branch entries should be generated. */
+    private boolean generateBranches;
+
     /**
      * The resource path to use for filesystem elements that cannot be found
      * anywhere else.
@@ -180,7 +186,7 @@ final class TemplateFile {
      *             if a problem occurs when initializing
      */
     TemplateFile(Schema schema, Map<String, String> constants, String resourcePath) throws IOException {
-        this(schema, constants, resourcePath, new Random());
+        this(schema, constants, resourcePath, new Random(), true);
     }
 
     /**
@@ -197,12 +203,16 @@ final class TemplateFile {
      *            {@code null}.
      * @param random
      *            The random number generator for this template file.
+     * @param generateBranches
+     *            Indicates whether branch entries should be generated.
      * @throws IOException
      *             if a problem occurs when initializing
      */
-    TemplateFile(Schema schema, Map<String, String> constants, String resourcePath, Random random)
+    TemplateFile(Schema schema, Map<String, String> constants, String resourcePath,
+                    Random random, boolean generateBranches)
             throws IOException {
         Reject.ifNull(schema, random);
+        this.generateBranches = generateBranches;
         this.schema = schema;
         this.constants = constants != null ? constants : new HashMap<String, String>();
         this.resourcePath = resourcePath;
@@ -466,7 +476,7 @@ final class TemplateFile {
         // Finalize the branch and template definitions
         // and then update the template file variables.
         for (Branch b : templateData.branches.values()) {
-            b.completeBranchInitialization(templateData.templates);
+            b.completeBranchInitialization(templateData.templates, generateBranches);
         }
 
         for (Template t : templateData.templates.values()) {
@@ -835,30 +845,31 @@ final class TemplateFile {
     private Pair<String, Integer> parseSubordinateTemplate(final int lineNumber, final String line,
             final Element element, final String elementName, final List<LocalizableMessage> warnings)
             throws DecodeException {
-        // It's a subordinate template, so we'll want to parse
-        // the template name and the number of entries.
+        // It's a subordinate template, so we'll want to parse the template name
+        // and the number of entries if it is provided.
         final int colonPos = line.indexOf(':', SUBORDINATE_TEMPLATE_LABEL.length());
+        final String templateName;
+        int numEntries = INFINITE_ENTRIES;
+
         if (colonPos <= SUBORDINATE_TEMPLATE_LABEL.length()) {
-            throw DecodeException.fatalError(ERR_ENTRY_GENERATOR_SUBORDINATE_TEMPLATE_NO_COLON.get(
-                    lineNumber, element.getLabel(), elementName));
-        }
+            //No number of entries provided, generator will provides an infinite number of entries
+            templateName = line.substring(SUBORDINATE_TEMPLATE_LABEL.length(), line.length()).trim();
+        } else {
+            templateName = line.substring(SUBORDINATE_TEMPLATE_LABEL.length(), colonPos).trim();
 
-        final String templateName = line.substring(SUBORDINATE_TEMPLATE_LABEL.length(), colonPos).trim();
-
-        try {
-            final int numEntries = Integer.parseInt(line.substring(colonPos + 1).trim());
-            if (numEntries < 0) {
-                throw DecodeException.fatalError(ERR_ENTRY_GENERATOR_SUBORDINATE_INVALID_NUM_ENTRIES.get(
-                        lineNumber, element.getLabel(), elementName, numEntries, templateName));
-            } else if (numEntries == 0) {
-                warnings.add(WARN_ENTRY_GENERATOR_SUBORDINATE_ZERO_ENTRIES.get(
-                        lineNumber, element.getLabel(), elementName, templateName));
+            try {
+                numEntries = Integer.parseInt(line.substring(colonPos + 1).trim());
+                if (numEntries == 0) {
+                    warnings.add(WARN_ENTRY_GENERATOR_SUBORDINATE_ZERO_ENTRIES.get(
+                            lineNumber, element.getLabel(), elementName, templateName));
+                }
+            } catch (NumberFormatException nfe) {
+                throw DecodeException.fatalError(ERR_ENTRY_GENERATOR_SUBORDINATE_CANT_PARSE_NUMENTRIES.get(
+                        templateName, lineNumber, element.getLabel(), elementName));
             }
-            return Pair.of(templateName, numEntries);
-        } catch (NumberFormatException nfe) {
-            throw DecodeException.fatalError(ERR_ENTRY_GENERATOR_SUBORDINATE_CANT_PARSE_NUMENTRIES.get(
-                    templateName, lineNumber, element.getLabel(), elementName));
         }
+
+        return Pair.of(templateName, numEntries);
     }
 
     private static final int PARSING_STATIC_TEXT = 0;
@@ -1417,14 +1428,9 @@ final class TemplateFile {
          * initialization is completed. In particular, it should make sure that
          * all referenced subordinate templates actually exist in the template
          * file.
-         *
-         * @param templates
-         *            The set of templates defined in the template file.
-         * @throws DecodeException
-         *             If any of the subordinate templates are not defined in
-         *             the template file.
          */
-        private void completeBranchInitialization(final Map<String, Template> templates) throws DecodeException {
+        private void completeBranchInitialization(final Map<String, Template> templates,
+                            boolean generateBranches) throws DecodeException {
             subordinateTemplates = new ArrayList<Template>();
             for (int i = 0; i < subordinateTemplateNames.size(); i++) {
                 subordinateTemplates.add(templates.get(subordinateTemplateNames.get(i).toLowerCase()));
@@ -1434,7 +1440,7 @@ final class TemplateFile {
                 }
             }
 
-            nextEntry = buildBranchEntry();
+            nextEntry = buildBranchEntry(generateBranches);
         }
 
         DN getBranchDN() {
@@ -1491,10 +1497,8 @@ final class TemplateFile {
 
         /**
          * Returns the entry corresponding to this branch.
-         *
-         * @return the entry, or null if it can't be generated
          */
-        private TemplateEntry buildBranchEntry() {
+        private TemplateEntry buildBranchEntry(boolean generateBranches) {
             final TemplateEntry entry = new TemplateEntry(this);
             final List<TemplateLine> lines = new ArrayList<TemplateLine>(rdnLines);
             lines.addAll(extraLines);
@@ -1504,6 +1508,11 @@ final class TemplateFile {
             for (int i = 0; i < subordinateTemplates.size(); i++) {
                 subordinateTemplates.get(i).reset(entry.getDN(), numEntriesPerTemplate.get(i));
             }
+
+            if (!generateBranches) {
+                return null;
+            }
+
             return entry;
         }
 
@@ -1685,7 +1694,10 @@ final class TemplateFile {
         /** parent DN of entries to generate for this template. */
         private DN parentDN;
 
-        /** Number of entries to generate for this template. */
+        /**
+         * Number of entries to generate for this template.
+         * Negative number means infinite generation.
+         */
         private int numberOfEntries;
 
         /** Current count of generated entries for this template. */
@@ -1747,7 +1759,7 @@ final class TemplateFile {
             if (nextEntry != null) {
                 return true;
             }
-            while (entriesCount < numberOfEntries) {
+            while ((entriesCount < numberOfEntries) || generateForever()) {
                 // get the template entry
                 if (!currentEntryIsInitialized) {
                     nextEntry = buildTemplateEntry();
@@ -1771,6 +1783,10 @@ final class TemplateFile {
                 subTemplateIndex = 0;
             }
             return false;
+        }
+
+        private boolean generateForever() {
+            return numberOfEntries < 0;
         }
 
         /**

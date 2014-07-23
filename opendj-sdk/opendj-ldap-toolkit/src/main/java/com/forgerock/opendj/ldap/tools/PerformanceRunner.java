@@ -28,6 +28,7 @@
 package com.forgerock.opendj.ldap.tools;
 
 import static org.forgerock.util.Utils.closeSilently;
+import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 
 import java.io.IOException;
 import java.lang.management.GarbageCollectorMXBean;
@@ -70,39 +71,22 @@ abstract class PerformanceRunner implements ConnectionEventListener {
      */
     class StatsThread extends Thread {
         private final String[] additionalColumns;
-
         private final List<GarbageCollectorMXBean> beans;
-
         private final Set<Double> percentiles;
-
         private final int numColumns;
-
         private ReversableArray etimes = new ReversableArray(100000);
-
         private final ReversableArray array = new ReversableArray(200000);
-
         protected long totalSuccessCount;
-
         protected long totalOperationCount;
-
         protected long totalFailedCount;
-
         protected long totalWaitTime;
-
         protected int successCount;
-
         protected int operationCount;
-
         protected int failedCount;
-
         protected long waitTime;
-
         protected long lastStatTime;
-
         protected long lastGCDuration;
-
         protected double recentDuration;
-
         protected double averageDuration;
 
         public StatsThread(final String[] additionalColumns) {
@@ -351,10 +335,10 @@ abstract class PerformanceRunner implements ConnectionEventListener {
      *            The type of expected result.
      */
     class UpdateStatsResultHandler<S extends Result> implements ResultHandler<S> {
-        private final long startTime;
+        protected final long currentTime;
 
-        UpdateStatsResultHandler(final long startTime) {
-            this.startTime = startTime;
+        UpdateStatsResultHandler(final long currentTime) {
+            this.currentTime = currentTime;
         }
 
         @Override
@@ -371,7 +355,7 @@ abstract class PerformanceRunner implements ConnectionEventListener {
         }
 
         private void updateStats() {
-            final long eTime = System.nanoTime() - startTime;
+            final long eTime = System.nanoTime() - currentTime;
             waitRecentTime.getAndAdd(eTime);
             synchronized (this) {
                 final ReversableArray array = eTimeBuffer.get();
@@ -451,7 +435,9 @@ abstract class PerformanceRunner implements ConnectionEventListener {
                 count++;
                 if (!isAsync) {
                     try {
-                        future.get();
+                        if (future != null) {
+                            future.get();
+                        }
                     } catch (final InterruptedException e) {
                         // Ignore and check stop requested
                         continue;
@@ -603,20 +589,15 @@ abstract class PerformanceRunner implements ConnectionEventListener {
     }
 
     private static final String[] EMPTY_STRINGS = new String[0];
-
     private final AtomicInteger operationRecentCount = new AtomicInteger();
-
     protected final AtomicInteger successRecentCount = new AtomicInteger();
-
     protected final AtomicInteger failedRecentCount = new AtomicInteger();
-
     private final AtomicLong waitRecentTime = new AtomicLong();
 
     private final AtomicReference<ReversableArray> eTimeBuffer =
             new AtomicReference<ReversableArray>(new ReversableArray(100000));
 
     private final ConsoleApplication app;
-
     private DataSource[] dataSourcePrototypes;
 
     // Thread local copies of the data sources
@@ -638,51 +619,34 @@ abstract class PerformanceRunner implements ConnectionEventListener {
     };
 
     private volatile boolean stopRequested;
-
     private int numThreads;
-
     private int numConnections;
-
     private int targetThroughput;
-
     private int maxIterations;
-
     private boolean isAsync;
-
     private boolean noRebind;
-
     private int statsInterval;
-
     private final IntegerArgument numThreadsArgument;
-
     private final IntegerArgument maxIterationsArgument;
-
     private final IntegerArgument statsIntervalArgument;
-
     private final IntegerArgument targetThroughputArgument;
-
     private final IntegerArgument numConnectionsArgument;
-
     private final IntegerArgument percentilesArgument;
-
     private final BooleanArgument keepConnectionsOpen;
-
     private final BooleanArgument noRebindArgument;
-
     private final BooleanArgument asyncArgument;
-
     private final StringArgument arguments;
 
-    PerformanceRunner(final ArgumentParser argParser, final ConsoleApplication app,
-            final boolean neverRebind, final boolean neverAsynchronous,
-            final boolean alwaysSingleThreaded) throws ArgumentException {
-        this.app = app;
+    PerformanceRunner(final PerformanceRunnerOptions options) throws ArgumentException {
+        ArgumentParser argParser = options.getArgumentParser();
+
+        this.app = options.getConsoleApplication();
         numThreadsArgument =
                 new IntegerArgument("numThreads", 't', "numThreads", false, false, true,
                         LocalizableMessage.raw("{numThreads}"), 1, null, true, 1, false, 0,
                         LocalizableMessage.raw("Number of worker threads per connection"));
         numThreadsArgument.setPropertyName("numThreads");
-        if (!alwaysSingleThreaded) {
+        if (options.supportsMultipleThreadsPerConnection()) {
             argParser.addArgument(numThreadsArgument);
         } else {
             numThreadsArgument.addValue("1");
@@ -735,7 +699,7 @@ abstract class PerformanceRunner implements ConnectionEventListener {
                 new BooleanArgument("noRebind", 'F', "noRebind", LocalizableMessage
                         .raw("Keep connections open and don't rebind"));
         noRebindArgument.setPropertyName("noRebind");
-        if (!neverRebind) {
+        if (options.supportsRebind()) {
             argParser.addArgument(noRebindArgument);
         }
 
@@ -744,7 +708,7 @@ abstract class PerformanceRunner implements ConnectionEventListener {
                         .raw("Use asynchronous mode and don't "
                                 + "wait for results before sending the next request"));
         asyncArgument.setPropertyName("asynchronous");
-        if (!neverAsynchronous) {
+        if (options.supportsAsynchronousRequests()) {
             argParser.addArgument(asyncArgument);
         }
 
@@ -767,7 +731,9 @@ abstract class PerformanceRunner implements ConnectionEventListener {
                                         + "arguments, they can be generated per iteration with the "
                                         + "following functions: " + StaticUtils.EOL
                                         + DataSource.getUsage()));
-        argParser.addArgument(arguments);
+        if (options.supportsGeneratorArgument()) {
+            argParser.addArgument(arguments);
+        }
     }
 
     @Override
@@ -804,15 +770,19 @@ abstract class PerformanceRunner implements ConnectionEventListener {
         noRebind = noRebindArgument.isPresent();
 
         if (!noRebindArgument.isPresent() && this.numThreads > 1) {
-            throw new ArgumentException(LocalizableMessage.raw("--"
-                    + noRebindArgument.getLongIdentifier() + " must be used if --"
-                    + numThreadsArgument.getLongIdentifier() + " is > 1"));
+            throw new ArgumentException(ERR_TOOL_ARG_MUST_BE_USED_WHEN_ARG_CONDITION.get(
+                "--" + noRebindArgument.getLongIdentifier(), "--" + numThreadsArgument.getLongIdentifier(), "> 1"));
         }
 
         if (!noRebindArgument.isPresent() && asyncArgument.isPresent()) {
-            throw new ArgumentException(LocalizableMessage.raw("--"
-                    + noRebindArgument.getLongIdentifier() + " must be used when using --"
-                    + asyncArgument.getLongIdentifier()));
+            throw new ArgumentException(ERR_TOOL_ARG_NEEDED_WHEN_USING_ARG.get(
+                "--" + noRebindArgument.getLongIdentifier(), asyncArgument.getLongIdentifier()));
+        }
+
+        if (maxIterationsArgument.isPresent() && maxIterations <= 0) {
+            throw new ArgumentException(ERR_TOOL_NOT_ENOUGH_ITERATIONS.get(
+                "--" + maxIterationsArgument.getLongIdentifier(), numConnections * numThreads,
+                numConnectionsArgument.getLongIdentifier(), numThreadsArgument.getLongIdentifier()));
         }
 
         dataSourcePrototypes = DataSource.parse(arguments.getValues());

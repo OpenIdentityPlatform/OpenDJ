@@ -410,6 +410,8 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
             // Remove this from the map.
             entryMap.remove(dn);
             requestsInProgress.remove(context);
+            result = Responses.newResult(ResultCode.SUCCESS);
+            handler.handleResult(result);
         }
 
         public <R extends ExtendedResult> void handleExtendedRequest(final Integer context,
