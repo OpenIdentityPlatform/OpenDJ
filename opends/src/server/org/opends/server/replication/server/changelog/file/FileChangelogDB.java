@@ -41,7 +41,6 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.MultiDomainServerState;
 import org.opends.server.replication.common.ServerState;
-import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ChangelogState;
 import org.opends.server.replication.server.ReplicationServer;
@@ -230,8 +229,7 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
     }
 
     // unlucky, the domainMap does not exist: take the hit and create the
-    // newValue, even though the same could be done concurrently by another
-    // thread
+    // newValue, even though the same could be done concurrently by another thread
     final ConcurrentMap<Integer, FileReplicaDB> newValue = new ConcurrentHashMap<Integer, FileReplicaDB>();
     final ConcurrentMap<Integer, FileReplicaDB> previousValue = domainToReplicaDBs.putIfAbsent(baseDN, newValue);
     if (previousValue != null)
@@ -240,15 +238,10 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
       return previousValue;
     }
 
-    // When called at replication startup, the isECLEnabledDomain() method blocks on STARTING state.
-    // Checking cursors list ensure that it is never called in the startup case.
-    if (!registeredMultiDomainCursors.isEmpty() && MultimasterReplication.isECLEnabledDomain(baseDN))
+    // we just created a new domain => update all cursors
+    for (MultiDomainDBCursor cursor : registeredMultiDomainCursors)
     {
-      // we just created a new domain => update all cursors
-      for (MultiDomainDBCursor cursor : registeredMultiDomainCursors)
-      {
-        cursor.addDomain(baseDN, null);
-      }
+      cursor.addDomain(baseDN, null);
     }
     return newValue;
   }
