@@ -25,23 +25,21 @@
  */
 package org.opends.server.extensions;
 
-
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.PKCS5S2PasswordStorageSchemeCfgDefn;
 import org.opends.server.admin.std.server.PKCS5S2PasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
-import org.opends.server.types.ByteString;
 import org.opends.server.types.Entry;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import static org.testng.Assert.assertTrue;
-
+import static org.testng.Assert.*;
 
 /**
  * A set of test cases for the PKCS5S2 password storage scheme.
  */
+@SuppressWarnings("javadoc")
 public class PKCS5S2PasswordStorageSchemeTestCase
        extends PasswordStorageSchemeTestCase
 {
@@ -53,46 +51,23 @@ public class PKCS5S2PasswordStorageSchemeTestCase
     super("cn=PKCS5S2,cn=Password Storage Schemes,cn=config");
   }
 
-
   /**
-   * Retrieves a set of passwords that may be used to test the password storage
-   * scheme.
+   * Retrieves a set of passwords that may be used to test the password storage scheme.
    *
-   * @return  A set of passwords that may be used to test the password storage
-   *          scheme.
+   * @return  A set of passwords that may be used to test the password storage scheme.
    */
+  @Override
   @DataProvider(name = "testPasswords")
   public Object[][] getTestPasswords()
   {
-    return new Object[][]
-    {
-      /*
-       * JDK Bug 6879540. Empty passwords are not accepted when generating PBESpecKey.
-       * The bug is present in Java 6 and some version of Java 7.
-       * new Object[] { ByteString.empty() },
-       * new Object[] { ByteString.valueOf("") },
-       */
-      new Object[] { ByteString.valueOf("\u0000") },
-      new Object[] { ByteString.valueOf("\t") },
-      new Object[] { ByteString.valueOf("\n") },
-      new Object[] { ByteString.valueOf("\r\n") },
-      new Object[] { ByteString.valueOf(" ") },
-      new Object[] { ByteString.valueOf("Test1\tTest2\tTest3") },
-      new Object[] { ByteString.valueOf("Test1\nTest2\nTest3") },
-      new Object[] { ByteString.valueOf("Test1\r\nTest2\r\nTest3") },
-      new Object[] { ByteString.valueOf("a") },
-      new Object[] { ByteString.valueOf("ab") },
-      new Object[] { ByteString.valueOf("abc") },
-      new Object[] { ByteString.valueOf("abcd") },
-      new Object[] { ByteString.valueOf("abcde") },
-      new Object[] { ByteString.valueOf("abcdef") },
-      new Object[] { ByteString.valueOf("abcdefg") },
-      new Object[] { ByteString.valueOf("abcdefgh") },
-      new Object[] { ByteString.valueOf("The Quick Brown Fox Jumps Over " +
-          "The Lazy Dog") },
-      new Object[] { ByteString.valueOf("\u00BFD\u00F3nde est\u00E1 el " +
-          "ba\u00F1o?") }
-    };
+    final Object[][] testPasswords = super.getTestPasswords();
+
+    // JDK Bug 6879540. Empty passwords are not accepted when generating PBESpecKey.
+    // The bug is present in Java 6 and some version of Java 7.
+    final int newLength = testPasswords.length - 2;
+    final Object[][] results = new Object[newLength][];
+    System.arraycopy(testPasswords, 2, results, 0, newLength);
+    return results;
   }
 
 
@@ -100,11 +75,9 @@ public class PKCS5S2PasswordStorageSchemeTestCase
    * Retrieves an initialized instance of this password storage scheme.
    *
    * @return  An initialized instance of this password storage scheme.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
    */
-  protected PasswordStorageScheme getScheme()
-         throws Exception
+  @Override
+  protected PasswordStorageScheme<?> getScheme() throws Exception
   {
     PKCS5S2PasswordStorageScheme scheme =
          new PKCS5S2PasswordStorageScheme();
@@ -128,10 +101,8 @@ public class PKCS5S2PasswordStorageSchemeTestCase
    * @return  A set of couple (cleartext, encrypted) passwords that
    *          may be used to test the PKCS5S2 password storage scheme
    */
-
   @DataProvider(name = "testPKCS5S2Passwords")
-  public Object[][] getTestPKCS5S2Passwords()
-         throws Exception
+  public Object[][] getTestPKCS5S2Passwords() throws Exception
   {
     return new Object[][]
     {
@@ -173,7 +144,6 @@ public class PKCS5S2PasswordStorageSchemeTestCase
     boolean allowPreencodedDefault = setAllowPreencodedPasswords(true);
 
     try {
-
       Entry userEntry = TestCaseUtils.makeEntry(
        "dn: uid=testPKCS5S2.user,o=test",
        "objectClass: top",
@@ -188,8 +158,7 @@ public class PKCS5S2PasswordStorageSchemeTestCase
 
       TestCaseUtils.addEntry(userEntry);
 
-      assertTrue(TestCaseUtils.canBind("uid=testPKCS5S2.user,o=test",
-                  plaintextPassword),
+      assertTrue(TestCaseUtils.canBind("uid=testPKCS5S2.user,o=test", plaintextPassword),
                "Failed to bind when pre-encoded password = \"" +
                encodedPassword + "\" and " +
                "plaintext password = \"" +
@@ -200,4 +169,3 @@ public class PKCS5S2PasswordStorageSchemeTestCase
   }
 
 }
-
