@@ -89,7 +89,7 @@ abstract class PerformanceRunner implements ConnectionEventListener {
         protected double recentDuration;
         protected double averageDuration;
 
-        public StatsThread(final String[] additionalColumns) {
+        public StatsThread(final String... additionalColumns) {
             super("Stats Thread");
 
             this.additionalColumns = additionalColumns;
@@ -325,6 +325,35 @@ abstract class PerformanceRunner implements ConnectionEventListener {
 
         String[] getAdditionalColumns() {
             return EMPTY_STRINGS;
+        }
+
+        void resetStats() {
+            failedCount = 0;
+            operationCount = 0;
+            successCount = 0;
+            operationRecentCount.set(0);
+            successRecentCount.set(0);
+            failedRecentCount.set(0);
+            waitRecentTime.set(0);
+        }
+    }
+
+    private class TimerThread extends Thread {
+        private long timeToWait;
+
+        public TimerThread(long timeToWait) {
+            this.timeToWait = timeToWait;
+        }
+
+        @Override
+        public void run() {
+            try {
+                Thread.sleep(timeToWait);
+            } catch (InterruptedException e) {
+                throw new IllegalStateException(e);
+            } finally {
+                stopRequested = true;
+            }
         }
     }
 
@@ -619,15 +648,21 @@ abstract class PerformanceRunner implements ConnectionEventListener {
     };
 
     private volatile boolean stopRequested;
+    private volatile boolean isWarmingUp;
     private int numThreads;
     private int numConnections;
     private int targetThroughput;
     private int maxIterations;
+    /** Warm-up duration time in ms. **/
+    private long warmUpDuration;
+    /** Max duration time in ms, 0 for unlimited. **/
+    private long maxDurationTime;
     private boolean isAsync;
     private boolean noRebind;
     private int statsInterval;
     private final IntegerArgument numThreadsArgument;
     private final IntegerArgument maxIterationsArgument;
+    private final IntegerArgument maxDurationArgument;
     private final IntegerArgument statsIntervalArgument;
     private final IntegerArgument targetThroughputArgument;
     private final IntegerArgument numConnectionsArgument;
@@ -636,6 +671,7 @@ abstract class PerformanceRunner implements ConnectionEventListener {
     private final BooleanArgument noRebindArgument;
     private final BooleanArgument asyncArgument;
     private final StringArgument arguments;
+    protected final IntegerArgument warmUpArgument;
 
     PerformanceRunner(final PerformanceRunnerOptions options) throws ArgumentException {
         ArgumentParser argParser = options.getArgumentParser();
@@ -665,6 +701,18 @@ abstract class PerformanceRunner implements ConnectionEventListener {
                                 .raw("Max iterations, 0 for unlimited"));
         maxIterationsArgument.setPropertyName("maxIterations");
         argParser.addArgument(maxIterationsArgument);
+
+        maxDurationArgument =
+            new IntegerArgument("maxDuration", 'd', "maxDuration", false, false, true,
+                LocalizableMessage.raw("{maxDuration}"), 0, null, true, 1, false, 0,
+                LocalizableMessage.raw("Maximum duration in seconds, 0 for unlimited"));
+        argParser.addArgument(maxDurationArgument);
+
+        warmUpArgument =
+            new IntegerArgument("warmUpDuration", 'B', "warmUpDuration", false, false, true,
+                LocalizableMessage.raw("{warmUpDuration}"), 0, null,
+                LocalizableMessage.raw("Warm up duration in seconds"));
+        argParser.addArgument(warmUpArgument);
 
         statsIntervalArgument =
                 new IntegerArgument("statInterval", 'i', "statInterval", false, false, true,
@@ -762,7 +810,9 @@ abstract class PerformanceRunner implements ConnectionEventListener {
     public final void validate() throws ArgumentException {
         numConnections = numConnectionsArgument.getIntValue();
         numThreads = numThreadsArgument.getIntValue();
+        warmUpDuration = warmUpArgument.getIntValue() * 1000L;
         maxIterations = maxIterationsArgument.getIntValue() / numConnections / numThreads;
+        maxDurationTime = maxDurationArgument.getIntValue() * 1000L;
         statsInterval = statsIntervalArgument.getIntValue() * 1000;
         targetThroughput = targetThroughputArgument.getIntValue();
 
@@ -807,6 +857,7 @@ abstract class PerformanceRunner implements ConnectionEventListener {
 
         Connection connection = null;
         try {
+            isWarmingUp = warmUpDuration > 0;
             for (int i = 0; i < numConnections; i++) {
                 if (keepConnectionsOpen.isPresent() || noRebindArgument.isPresent()) {
                     connection = connectionFactory.getConnectionAsync(null).get();
@@ -820,7 +871,20 @@ abstract class PerformanceRunner implements ConnectionEventListener {
                 }
             }
 
-            final Thread statsThread = newStatsThread();
+            if (maxDurationTime > 0) {
+                new TimerThread(maxDurationTime).start();
+            }
+
+            final StatsThread statsThread = newStatsThread();
+
+            if (isWarmingUp) {
+                if (!app.isScriptFriendly()) {
+                    app.println(INFO_TOOL_WARMING_UP.get(warmUpDuration / 1000));
+                }
+                Thread.sleep(warmUpDuration);
+                statsThread.resetStats();
+                isWarmingUp = false;
+            }
             statsThread.start();
 
             for (final Thread t : threads) {

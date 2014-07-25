@@ -83,11 +83,16 @@ public final class SearchRate extends ConsoleApplication {
         }
 
         private final class SearchStatsThread extends StatsThread {
-            private final String[] extraColumn;
+            private final String[] extraColumn = new String[1];
 
             private SearchStatsThread() {
-                super(new String[] { "Entries/Srch" });
-                extraColumn = new String[1];
+                super("Entries/Srch");
+            }
+
+            @Override
+            void resetStats() {
+                super.resetStats();
+                entryRecentCount.set(0);
             }
 
             @Override

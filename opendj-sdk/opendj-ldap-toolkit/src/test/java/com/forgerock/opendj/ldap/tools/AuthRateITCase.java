@@ -26,6 +26,7 @@
 package com.forgerock.opendj.ldap.tools;
 
 import static com.forgerock.opendj.ldap.tools.ToolsMessages.ERR_ERROR_PARSING_ARGS;
+import static com.forgerock.opendj.ldap.tools.ToolsMessages.INFO_TOOL_WARMING_UP;
 import static org.fest.assertions.Assertions.assertThat;
 import static org.forgerock.util.Utils.closeSilently;
 
@@ -44,12 +45,22 @@ public class AuthRateITCase extends ToolsITCase {
     public Object[][] authRateArgs() throws Exception {
         return new Object[][] {
             { args(""), "", ERR_ERROR_PARSING_ARGS.get("") },
-            // Simple test
+            // Warm-up test case
             {
-                args("-h", TestCaseUtils.getServerSocketAddress().getHostName(), "-p",
-                    Integer.toString(TestCaseUtils.getServerSocketAddress().getPort()), "-g", "rand(0,1000)", "-D",
-                    "uid=%d,ou=people,o=test", "-w", "password", "-i", "1", "-c", "1", "-m", "10", "-f", "-S"),
-                THROUGHPUT_TEXT, "" }, };
+                args("-h", TestCaseUtils.getServerSocketAddress().getHostName(),
+                     "-p", Integer.toString(TestCaseUtils.getServerSocketAddress().getPort()),
+                     "-g", "rand(0,1000)", "-D", "uid=%d,ou=people,o=test", "-w", "password",
+                     "-i", "1", "-m", "10", "-f", "-B", "1"),
+                INFO_TOOL_WARMING_UP.get(1), "" },
+
+            // Correct test case
+            {
+                args("-h", TestCaseUtils.getServerSocketAddress().getHostName(),
+                     "-p", Integer.toString(TestCaseUtils.getServerSocketAddress().getPort()),
+                     "-g", "rand(0,1000)", "-D", "uid=%d,ou=people,o=test", "-w", "password",
+                     "-i", "1", "-c", "1", "-m", "10", "-f", "-S", "-B", "0"),
+                THROUGHPUT_TEXT, "" },
+        };
     }
 
     @Test(dataProvider = "authRateArgs")
@@ -67,7 +78,7 @@ public class AuthRateITCase extends ToolsITCase {
             checkOuputStreams(out, err, expectedOut, expectedErr);
             String outContent = out.toString();
 
-            if (outContent.contains(THROUGHPUT_TEXT)) {
+            if (expectedOut.toString().contains(THROUGHPUT_TEXT)) {
                 // Check that there was no error in search
                 String[] authRateResLines = outContent.split(System.getProperty("line.separator"));
                 //Skip header line
