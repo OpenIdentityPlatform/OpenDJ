@@ -223,6 +223,10 @@ public class PKCS5S2PasswordStorageScheme
     try
     {
       int pos = authInfo.indexOf(':');
+      if (pos == -1)
+      {
+        return false;
+      }
       int iterations = Integer.parseInt(authInfo.substring(0, pos));
       byte[] saltBytes   = Base64.decode(authInfo.substring(pos + 1));
       byte[] digestBytes = Base64.decode(authValue);

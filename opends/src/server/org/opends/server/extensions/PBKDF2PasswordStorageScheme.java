@@ -163,7 +163,7 @@ public class PBKDF2PasswordStorageScheme
     System.arraycopy(saltBytes, 0, hashPlusSalt, digestBytes.length,
                      NUM_SALT_BYTES);
 
-    return ByteString.valueOf(iterations + ':' + Base64.encode(hashPlusSalt));
+    return ByteString.valueOf(iterations + ":" + Base64.encode(hashPlusSalt));
   }
 
   /** {@inheritDoc} */
@@ -186,6 +186,10 @@ public class PBKDF2PasswordStorageScheme
     {
       String stored = storedPassword.toString();
       int pos = stored.indexOf(':');
+      if (pos == -1)
+      {
+        throw new Exception();
+      }
 
       final int iterations = Integer.parseInt(stored.substring(0, pos));
       byte[] decodedBytes = Base64.decode(stored.substring(pos + 1));
@@ -335,6 +339,10 @@ public class PBKDF2PasswordStorageScheme
     try
     {
       int pos = authInfo.indexOf(':');
+      if (pos == -1)
+      {
+        throw new Exception();
+      }
       int iterations = Integer.parseInt(authInfo.substring(0, pos));
       byte[] saltBytes   = Base64.decode(authInfo.substring(pos + 1));
       byte[] digestBytes = Base64.decode(authValue);
