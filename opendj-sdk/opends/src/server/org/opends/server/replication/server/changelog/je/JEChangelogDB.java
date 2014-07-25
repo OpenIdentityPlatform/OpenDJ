@@ -42,7 +42,6 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.MultiDomainServerState;
 import org.opends.server.replication.common.ServerState;
-import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ChangelogState;
 import org.opends.server.replication.server.ReplicationServer;
@@ -58,7 +57,6 @@ import com.forgerock.opendj.util.Pair;
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -256,8 +254,7 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
     }
 
     // unlucky, the domainMap does not exist: take the hit and create the
-    // newValue, even though the same could be done concurrently by another
-    // thread
+    // newValue, even though the same could be done concurrently by another thread
     final ConcurrentMap<Integer, JEReplicaDB> newValue = new ConcurrentHashMap<Integer, JEReplicaDB>();
     final ConcurrentMap<Integer, JEReplicaDB> previousValue = domainToReplicaDBs.putIfAbsent(baseDN, newValue);
     if (previousValue != null)
@@ -266,15 +263,10 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
       return previousValue;
     }
 
-    // When called at replication startup, the isECLEnabledDomain() method blocks on STARTING state.
-    // Checking cursors list ensure that it is never called in the startup case.
-    if (!registeredMultiDomainCursors.isEmpty() && MultimasterReplication.isECLEnabledDomain(baseDN))
+    // we just created a new domain => update all cursors
+    for (MultiDomainDBCursor cursor : registeredMultiDomainCursors)
     {
-      // we just created a new domain => update all cursors
-      for (MultiDomainDBCursor cursor : registeredMultiDomainCursors)
-      {
-        cursor.addDomain(baseDN, null);
-      }
+      cursor.addDomain(baseDN, null);
     }
     return newValue;
   }
