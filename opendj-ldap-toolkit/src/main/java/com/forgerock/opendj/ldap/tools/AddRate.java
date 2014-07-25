@@ -117,7 +117,14 @@ public class AddRate extends ConsoleApplication {
             private final String[] extraColumn = new String[1];
 
             private AddRateStatsThread() {
-                super(new String[] { "Add%" });
+                super("Add%");
+            }
+
+            @Override
+            void resetStats() {
+                super.resetStats();
+                nbAdd.set(0);
+                nbDelete.set(0);
             }
 
             @Override
@@ -176,7 +183,7 @@ public class AddRate extends ConsoleApplication {
                 case SIZE_THRESHOLD:
                     return dnEntriesAdded.size() > sizeThreshold;
                 case AGE_THRESHOLD:
-                    long olderEntryTimestamp = (Long) dnEntriesAdded.firstKey();
+                    long olderEntryTimestamp = dnEntriesAdded.firstKey();
                     return (olderEntryTimestamp + timeToWait) < currentTime;
                 default:
                     return false;
