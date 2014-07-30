@@ -52,7 +52,7 @@ class PerformanceRunnerOptions {
     }
 
     void setSupportsRebind(boolean supportsRebind) {
-        this.supportsRebind = !supportsRebind;
+        this.supportsRebind = supportsRebind;
     }
 
     boolean supportsAsynchronousRequests() {
