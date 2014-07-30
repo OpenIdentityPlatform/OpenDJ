@@ -26,7 +26,7 @@
  ! -->
 <!-- Using entities prevent constantly declaring the same versions -->
 <!DOCTYPE ivy-module [
-    <!ENTITY grizzly.version    "2.3.14">
+    <!ENTITY grizzly.version    "2.3.16">
     <!ENTITY opendj.sdk.version "3.0.0-SNAPSHOT">
     <!ENTITY i18n.version       "1.4.2-SNAPSHOT">
     <!ENTITY crest.version      "2.1.0-SNAPSHOT">
