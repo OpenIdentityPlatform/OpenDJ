@@ -3796,23 +3796,37 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
 
 
   /**
-   * Push the modifications contained in the given parameter as a modification
-   * that would happen on a local server. The modifications are not applied to
-   * the local database, historical information is not updated but a CSN is
-   * generated and the ServerState associated to this domain is updated.
+   * Push the schema modifications contained in the given parameter as a
+   * modification that would happen on a local server. The modifications are not
+   * applied to the local schema backend and historical information is not
+   * updated; but a CSN is generated and the ServerState associated to the
+   * schema domain is updated.
    *
    * @param modifications
-   *          The modification to push
+   *          The schema modifications to push
    */
-  void synchronizeModifications(List<Modification> modifications)
+  void synchronizeSchemaModifications(List<Modification> modifications)
   {
     ModifyOperation op = new ModifyOperationBasis(
         conn, nextOperationID(), nextMessageID(), null,
         DirectoryServer.getSchemaDN(), modifications);
-    LocalBackendModifyOperation localOp = new LocalBackendModifyOperation(op);
 
+    final Entry schema;
+    try
+    {
+      schema = DirectoryServer.getEntry(DirectoryServer.getSchemaDN());
+    }
+    catch (DirectoryException e)
+    {
+      logger.traceException(e);
+      logger.error(ERR_BACKEND_SEARCH_ENTRY.get(DirectoryServer.getSchemaDN().toString(),
+              stackTraceToSingleLineString(e)));
+      return;
+    }
+
+    LocalBackendModifyOperation localOp = new LocalBackendModifyOperation(op);
     CSN csn = generateCSN(localOp);
-    OperationContext ctx = new ModifyContext(csn, "schema");
+    OperationContext ctx = new ModifyContext(csn, getEntryUUID(schema));
     localOp.setAttachment(SYNCHROCONTEXT, ctx);
     localOp.setResultCode(ResultCode.SUCCESS);
     synchronize(localOp);

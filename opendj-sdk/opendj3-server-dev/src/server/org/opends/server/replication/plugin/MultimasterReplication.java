@@ -597,7 +597,7 @@ public class MultimasterReplication
     LDAPReplicationDomain domain = findDomain(DirectoryServer.getSchemaDN(), null);
     if (domain != null)
     {
-      domain.synchronizeModifications(modifications);
+      domain.synchronizeSchemaModifications(modifications);
     }
   }
 
