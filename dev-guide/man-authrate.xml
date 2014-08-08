@@ -28,7 +28,8 @@
  version='5.0' xml:lang='en'
  xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
  xsi:schemaLocation='http://docbook.org/ns/docbook
-                     http://docbook.org/xml/5.0/xsd/docbook.xsd'>
+                     http://docbook.org/xml/5.0/xsd/docbook.xsd'
+ xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <info><copyright><year>2011-2014</year><holder>ForgeRock AS</holder></copyright></info>
  <refmeta>
   <refentrytitle>authrate</refentrytitle><manvolnum>1</manvolnum>
@@ -57,6 +58,8 @@
   bind DN by specifying the base DN and a filter. The retrieved entry DN will
   be appended as the last argument in the argument list when evaluating format
   strings.</para>
+
+  <xinclude:include href="../shared/informalexample-net-tweaks.xml" />
  </refsect1>
  <refsect1>
   <title>Options</title>
