@@ -22,29 +22,22 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2010 ForgeRock AS.
+ *      Portions Copyright 2010-2014 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
-
-import static org.testng.Assert.*;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
-
-import org.opends.server.TestCaseUtils;
-
 import org.opends.server.admin.server.AdminTestCaseUtils;
-import org.opends.server.admin.std.meta.
-            SaltedSHA512PasswordStorageSchemeCfgDefn;
+import org.opends.server.admin.std.meta.SaltedSHA512PasswordStorageSchemeCfgDefn;
 import org.opends.server.admin.std.server.SaltedSHA512PasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
-import org.opends.server.types.Entry;
-
-
+import org.opends.server.types.DirectoryException;
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 /**
  * A set of test cases for the salted SHA-512 password storage scheme.
  */
+@SuppressWarnings("javadoc")
 public class SaltedSHA512PasswordStorageSchemeTestCase
        extends PasswordStorageSchemeTestCase
 {
@@ -65,8 +58,8 @@ public class SaltedSHA512PasswordStorageSchemeTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  protected PasswordStorageScheme getScheme()
-         throws Exception
+  @Override
+  protected PasswordStorageScheme<?> getScheme() throws Exception
   {
     SaltedSHA512PasswordStorageScheme scheme =
          new SaltedSHA512PasswordStorageScheme();
@@ -106,39 +99,13 @@ public class SaltedSHA512PasswordStorageSchemeTestCase
           String plaintextPassword,
           String encodedPassword) throws Exception
   {
-    // Start/clear-out the memory backend
-    TestCaseUtils.initializeTestBackend(true);
-
-    boolean allowPreencodedDefault = setAllowPreencodedPasswords(true);
-
-    try {
-
-      Entry userEntry = TestCaseUtils.makeEntry(
-       "dn: uid=testSSHA512.user,o=test",
-       "objectClass: top",
-       "objectClass: person",
-       "objectClass: organizationalPerson",
-       "objectClass: inetOrgPerson",
-       "uid: testSSHA512.user",
-       "givenName: TestSSHA512",
-       "sn: User",
-       "cn: TestSSHA512 User",
-       "userPassword: " + encodedPassword);
-
-
-      // Add the entry
-      TestCaseUtils.addEntry(userEntry);
-
-      assertTrue(TestCaseUtils.canBind("uid=testSSHA512.user,o=test",
-                  plaintextPassword),
-               "Failed to bind when pre-encoded password = \"" +
-               encodedPassword + "\" and " +
-               "plaintext password = \"" +
-               plaintextPassword + "\"" );
-    } finally {
-      setAllowPreencodedPasswords(allowPreencodedDefault);
-    }
+    testAuthPasswords("TestSSHA512", plaintextPassword, encodedPassword);
   }
 
+  /** {@inheritDoc} */
+  @Override
+  protected String encodeOffline(byte[] plaintextBytes) throws DirectoryException
+  {
+    return SaltedSHA512PasswordStorageScheme.encodeOffline(plaintextBytes);
+  }
 }
-

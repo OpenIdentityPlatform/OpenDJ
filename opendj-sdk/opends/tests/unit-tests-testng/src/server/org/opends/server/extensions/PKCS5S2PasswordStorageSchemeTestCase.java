@@ -25,16 +25,13 @@
  */
 package org.opends.server.extensions;
 
-import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.PKCS5S2PasswordStorageSchemeCfgDefn;
 import org.opends.server.admin.std.server.PKCS5S2PasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
-import org.opends.server.types.Entry;
+import org.opends.server.types.DirectoryException;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
-
-import static org.testng.Assert.*;
 
 /**
  * A set of test cases for the PKCS5S2 password storage scheme.
@@ -138,34 +135,13 @@ public class PKCS5S2PasswordStorageSchemeTestCase
           String plaintextPassword,
           String encodedPassword) throws Exception
   {
-    // Start/clear-out the memory backend
-    TestCaseUtils.initializeTestBackend(true);
+    testAuthPasswords("TestPKCS5S2", plaintextPassword, encodedPassword);
+  }
 
-    boolean allowPreencodedDefault = setAllowPreencodedPasswords(true);
-
-    try {
-      Entry userEntry = TestCaseUtils.makeEntry(
-       "dn: uid=testPKCS5S2.user,o=test",
-       "objectClass: top",
-       "objectClass: person",
-       "objectClass: organizationalPerson",
-       "objectClass: inetOrgPerson",
-       "uid: testPKCS5S2.user",
-       "givenName: TestPKCS5S2",
-       "sn: User",
-       "cn: TestPKCS5S2 User",
-       "userPassword: " + encodedPassword);
-
-      TestCaseUtils.addEntry(userEntry);
-
-      assertTrue(TestCaseUtils.canBind("uid=testPKCS5S2.user,o=test", plaintextPassword),
-               "Failed to bind when pre-encoded password = \"" +
-               encodedPassword + "\" and " +
-               "plaintext password = \"" +
-               plaintextPassword + "\"" );
-    } finally {
-      setAllowPreencodedPasswords(allowPreencodedDefault);
-    }
+  @Override
+  protected String encodeOffline(final byte[] plaintextBytes) throws DirectoryException
+  {
+    return PKCS5S2PasswordStorageScheme.encodeOffline(plaintextBytes);
   }
 
 }

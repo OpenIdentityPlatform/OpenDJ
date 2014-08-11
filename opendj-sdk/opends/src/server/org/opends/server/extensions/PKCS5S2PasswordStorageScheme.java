@@ -89,7 +89,6 @@ public class PKCS5S2PasswordStorageScheme
   /** The secure random number generator to use to generate the salt values. */
   private SecureRandom random;
 
-
   /**
    * Creates a new instance of this password storage scheme.  Note that no
    * initialization should be performed here, as all initialization should be
@@ -130,8 +129,7 @@ public class PKCS5S2PasswordStorageScheme
       throws DirectoryException
   {
     byte[] saltBytes      = new byte[NUM_SALT_BYTES];
-    byte[] digestBytes = createRandomSaltAndEncode(plaintext, saltBytes);
-    // Append the hashed value to the salt and base64-the whole thing.
+    byte[] digestBytes = encodeWithRandomSalt(plaintext, saltBytes);
     byte[] hashPlusSalt = concatenateSaltPlusHash(saltBytes, digestBytes);
 
     return ByteString.valueOf(Base64.encode(hashPlusSalt));
@@ -155,7 +153,6 @@ public class PKCS5S2PasswordStorageScheme
     try
     {
       String stored = storedPassword.toString();
-
       byte[] decodedBytes = Base64.decode(stored);
 
       if (decodedBytes.length != NUM_SALT_BYTES + SHA1_LENGTH)
@@ -168,8 +165,8 @@ public class PKCS5S2PasswordStorageScheme
       }
 
       final int saltLength = NUM_SALT_BYTES;
-      byte[] saltBytes = new byte[saltLength];
-      byte[] digestBytes = new byte[SHA1_LENGTH];
+      final byte[] digestBytes = new byte[SHA1_LENGTH];
+      final byte[] saltBytes = new byte[saltLength];
       System.arraycopy(decodedBytes, 0, saltBytes, 0, saltLength);
       System.arraycopy(decodedBytes, saltLength, digestBytes, 0, SHA1_LENGTH);
       return encodeAndMatch(plaintextPassword, saltBytes, digestBytes, iterations);
@@ -208,7 +205,7 @@ public class PKCS5S2PasswordStorageScheme
       throws DirectoryException
   {
     byte[] saltBytes      = new byte[NUM_SALT_BYTES];
-    byte[] digestBytes = createRandomSaltAndEncode(plaintext, saltBytes);
+    byte[] digestBytes = encodeWithRandomSalt(plaintext, saltBytes);
     // Encode and return the value.
     return ByteString.valueOf(AUTH_PASSWORD_SCHEME_NAME_PKCS5S2 + '$'
         + iterations + ':' + Base64.encode(saltBytes) + '$'
@@ -225,7 +222,7 @@ public class PKCS5S2PasswordStorageScheme
       int pos = authInfo.indexOf(':');
       if (pos == -1)
       {
-        return false;
+        throw new Exception();
       }
       int iterations = Integer.parseInt(authInfo.substring(0, pos));
       byte[] saltBytes   = Base64.decode(authInfo.substring(pos + 1));
@@ -286,94 +283,53 @@ public class PKCS5S2PasswordStorageScheme
    * user password).
    *
    * @param  passwordBytes  The bytes that make up the clear-text password.
-   *
    * @return  The encoded password string, including the scheme name in curly
    *          braces.
-   *
    * @throws  DirectoryException  If a problem occurs during processing.
    */
   public static String encodeOffline(byte[] passwordBytes)
       throws DirectoryException
   {
     byte[] saltBytes = new byte[NUM_SALT_BYTES];
-    byte[] digestBytes;
-
-    try
-    {
-      SecureRandom.getInstance(SECURE_PRNG_SHA1).nextBytes(saltBytes);
-
-      char[] plaintextChars = Arrays.toString(passwordBytes).toCharArray();
-      KeySpec spec = new PBEKeySpec(plaintextChars, saltBytes,iterations,
-          SHA1_LENGTH * 8);
-      digestBytes = SecretKeyFactory
-          .getInstance(MESSAGE_DIGEST_ALGORITHM_PBKDF2)
-          .generateSecret(spec).getEncoded();
-    }
-    catch (Exception e)
-    {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
-          CLASS_NAME, getExceptionMessage(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-          message, e);
-    }
-
-    // Append the hashed value to the salt and base64-the whole thing.
+    byte[] digestBytes = encodeWithRandomSalt(ByteString.wrap(passwordBytes), saltBytes);
     byte[] hashPlusSalt = concatenateSaltPlusHash(saltBytes, digestBytes);
 
     return '{' + STORAGE_SCHEME_NAME_PKCS5S2 + '}' +
         Base64.encode(hashPlusSalt);
   }
 
-
-  private boolean encodeAndMatch(ByteSequence plaintext,
-                                 byte[] saltBytes, byte[] digestBytes, int iterations)
+  private static byte[] encodeWithRandomSalt(ByteString plaintext, byte[] saltBytes)
+      throws DirectoryException
   {
     try
     {
-      byte[] userDigestBytes = encodeWithSalt(plaintext, saltBytes, iterations);
-      return Arrays.equals(digestBytes, userDigestBytes);
+      final SecureRandom random = SecureRandom.getInstance(SECURE_PRNG_SHA1);
+      final SecretKeyFactory factory = SecretKeyFactory.getInstance(MESSAGE_DIGEST_ALGORITHM_PBKDF2);
+      return encodeWithRandomSalt(plaintext, saltBytes, random, factory);
+    }
+    catch (DirectoryException e)
+    {
+      throw e;
     }
     catch (Exception e)
     {
-      return false;
+      throw cannotEncodePassword(e);
     }
   }
 
-
-  private byte[] createRandomSaltAndEncode(ByteSequence plaintext, byte[] saltBytes) throws DirectoryException {
-    synchronized(factoryLock)
-    {
-      random.nextBytes(saltBytes);
-      return encodeWithSalt(plaintext, saltBytes, iterations);
-    }
-  }
-
-  private byte[] encodeWithSalt(ByteSequence plaintext, byte[] saltBytes, int iterations) throws DirectoryException {
-    char[] plaintextChars = null;
+  private static byte[] encodeWithSalt(ByteSequence plaintext, byte[] saltBytes,
+      int iterations, final SecretKeyFactory factory) throws DirectoryException
+  {
+    final char[] plaintextChars = plaintext.toString().toCharArray();
     try
     {
-      plaintextChars = plaintext.toString().toCharArray();
-      KeySpec spec = new PBEKeySpec(
-          plaintextChars, saltBytes,
-          iterations, SHA1_LENGTH * 8);
+      KeySpec spec =
+          new PBEKeySpec(plaintextChars, saltBytes, iterations, SHA1_LENGTH * 8);
       return factory.generateSecret(spec).getEncoded();
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
-          CLASS_NAME, getExceptionMessage(e));
-      throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-          message, e);
+      throw cannotEncodePassword(e);
     }
     finally
     {
@@ -384,12 +340,56 @@ public class PKCS5S2PasswordStorageScheme
     }
   }
 
-  private static byte[] concatenateSaltPlusHash(byte[] saltBytes, byte[] digestBytes) {
-    byte[] hashPlusSalt = new byte[digestBytes.length + NUM_SALT_BYTES];
+  private boolean encodeAndMatch(ByteSequence plaintext, byte[] saltBytes,
+      byte[] digestBytes, int iterations)
+  {
+    synchronized (factoryLock)
+    {
+      try
+      {
+        final byte[] userDigestBytes =
+            encodeWithSalt(plaintext, saltBytes, iterations, factory);
+        return Arrays.equals(digestBytes, userDigestBytes);
+      }
+      catch (Exception e)
+      {
+        return false;
+      }
+    }
+  }
 
+  private byte[] encodeWithRandomSalt(ByteSequence plaintext, byte[] saltBytes)
+      throws DirectoryException
+  {
+    synchronized (factoryLock)
+    {
+      return encodeWithRandomSalt(plaintext, saltBytes, random, factory);
+    }
+  }
+
+  private static byte[] encodeWithRandomSalt(ByteSequence plaintext, byte[] saltBytes,
+      SecureRandom random, final SecretKeyFactory factory) throws DirectoryException
+  {
+    random.nextBytes(saltBytes);
+    return encodeWithSalt(plaintext, saltBytes, iterations, factory);
+  }
+
+  private static DirectoryException cannotEncodePassword(Exception e)
+  {
+    if (debugEnabled())
+    {
+      TRACER.debugCaught(DebugLogLevel.ERROR, e);
+    }
+
+    Message message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
+        CLASS_NAME, getExceptionMessage(e));
+    return new DirectoryException(DirectoryServer.getServerErrorResultCode(), message, e);
+  }
+
+  private static byte[] concatenateSaltPlusHash(byte[] saltBytes, byte[] digestBytes) {
+    final byte[] hashPlusSalt = new byte[digestBytes.length + NUM_SALT_BYTES];
     System.arraycopy(saltBytes, 0, hashPlusSalt, 0, NUM_SALT_BYTES);
-    System.arraycopy(digestBytes, 0, hashPlusSalt, NUM_SALT_BYTES,
-        digestBytes.length);
+    System.arraycopy(digestBytes, 0, hashPlusSalt, NUM_SALT_BYTES, digestBytes.length);
     return hashPlusSalt;
   }
 
