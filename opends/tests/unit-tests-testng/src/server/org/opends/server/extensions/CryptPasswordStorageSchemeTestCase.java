@@ -22,56 +22,31 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2010-2013 ForgeRock AS.
+ *      Portions Copyright 2010-2014 ForgeRock AS.
  *      Portions Copyright 2012 Dariusz Janny <dariusz.janny@gmail.com>
  */
 package org.opends.server.extensions;
-
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
-
-import java.util.ArrayList;
 
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.CryptPasswordStorageSchemeCfgDefn;
 import org.opends.server.admin.std.server.CryptPasswordStorageSchemeCfg;
-import org.opends.server.config.ConfigEntry;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.ModifyOperation;
-import org.opends.server.core.PasswordPolicy;
-import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.schema.AuthPasswordSyntax;
-import org.opends.server.schema.UserPasswordSyntax;
-import org.opends.server.types.Attributes;
 import org.opends.server.types.ByteString;
-import org.opends.server.types.DN;
-import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
-import org.opends.server.types.Modification;
-import org.opends.server.types.ModificationType;
-import org.opends.server.types.ResultCode;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
+
+import static org.opends.server.extensions.PasswordStorageSchemeTestCase.*;
 
 
 /**
  * A set of test cases for the crypt password storage scheme.
  */
+@SuppressWarnings("javadoc")
 public class CryptPasswordStorageSchemeTestCase
        extends ExtensionsTestCase
 {
-  // The configuration entry for this password storage scheme.
-  private ConfigEntry configEntry;
-
-  // The string representation of the DN of the configuration entry for this
-  // password storage scheme.
-  private static final String configDNString =
-          "cn=Crypt,cn=Password Storage Schemes,cn=config";
-
   // Names of all the crypt algorithms we want to test.
   private static final String[] names = { "unix", "md5", "sha256", "sha512" };
 
@@ -82,7 +57,6 @@ public class CryptPasswordStorageSchemeTestCase
   public CryptPasswordStorageSchemeTestCase()
   {
     super();
-    this.configEntry    = null;
   }
 
 
@@ -90,13 +64,10 @@ public class CryptPasswordStorageSchemeTestCase
    * Ensures that the Directory Server is started before running any of these
    * tests.
    */
-  @BeforeClass()
-  public void startServer()
-         throws Exception
+  @BeforeClass
+  public void startServer() throws Exception
   {
     TestCaseUtils.startServer();
-
-    configEntry = DirectoryServer.getConfigEntry(DN.decode(configDNString));
   }
 
 
@@ -111,31 +82,7 @@ public class CryptPasswordStorageSchemeTestCase
   @DataProvider(name = "testPasswords")
   public Object[][] getTestPasswords()
   {
-    return new Object[][]
-    {
-      new Object[] { ByteString.empty() },
-      new Object[] { ByteString.valueOf("") },
-      new Object[] { ByteString.valueOf("\u0000") },
-      new Object[] { ByteString.valueOf("\t") },
-      new Object[] { ByteString.valueOf("\n") },
-      new Object[] { ByteString.valueOf("\r\n") },
-      new Object[] { ByteString.valueOf(" ") },
-      new Object[] { ByteString.valueOf("Test1\tTest2\tTest3") },
-      new Object[] { ByteString.valueOf("Test1\nTest2\nTest3") },
-      new Object[] { ByteString.valueOf("Test1\r\nTest2\r\nTest3") },
-      new Object[] { ByteString.valueOf("a") },
-      new Object[] { ByteString.valueOf("ab") },
-      new Object[] { ByteString.valueOf("abc") },
-      new Object[] { ByteString.valueOf("abcd") },
-      new Object[] { ByteString.valueOf("abcde") },
-      new Object[] { ByteString.valueOf("abcdef") },
-      new Object[] { ByteString.valueOf("abcdefg") },
-      new Object[] { ByteString.valueOf("abcdefgh") },
-      new Object[] { ByteString.valueOf("The Quick Brown Fox Jumps Over " +
-                                         "The Lazy Dog") },
-      new Object[] { ByteString.valueOf("\u00BFD\u00F3nde est\u00E1 el " +
-                                         "ba\u00F1o?") }
-    };
+    return getTestPasswordsStatic();
   }
 
 
@@ -144,7 +91,6 @@ public class CryptPasswordStorageSchemeTestCase
    * provided password, and ensures that the encoded value is correct.
    *
    * @param  plaintext  The plain-text version of the password to encode.
-   *
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test(dataProvider = "testPasswords")
@@ -153,94 +99,15 @@ public class CryptPasswordStorageSchemeTestCase
   {
     for (String name : names)
     {
-      CryptPasswordStorageScheme scheme = getScheme(name);
-      assertNotNull(scheme);
-      assertNotNull(scheme.getStorageSchemeName());
-
-      ByteString encodedPassword = scheme.encodePassword(plaintext);
-      assertNotNull(encodedPassword);
-      assertTrue(scheme.passwordMatches(plaintext, encodedPassword));
-      assertFalse(scheme.passwordMatches(plaintext,
-                                         ByteString.valueOf("garbage")));
-
-      ByteString schemeEncodedPassword =
-           scheme.encodePasswordWithScheme(plaintext);
-      String[] pwComponents = UserPasswordSyntax.decodeUserPassword(
-                                   schemeEncodedPassword.toString());
-      assertNotNull(pwComponents);
-
-
-      if (scheme.supportsAuthPasswordSyntax())
-      {
-        assertNotNull(scheme.getAuthPasswordSchemeName());
-        ByteString encodedAuthPassword = scheme.encodeAuthPassword(plaintext);
-        StringBuilder[] authPWComponents =
-             AuthPasswordSyntax.decodeAuthPassword(
-                  encodedAuthPassword.toString());
-        assertTrue(scheme.authPasswordMatches(plaintext,
-                                              authPWComponents[1].toString(),
-                                              authPWComponents[2].toString()));
-        assertFalse(scheme.authPasswordMatches(plaintext, ",", "foo"));
-        assertFalse(scheme.authPasswordMatches(plaintext, "foo", ","));
-      }
-      else
-      {
-        try
-        {
-          scheme.encodeAuthPassword(plaintext);
-          throw new Exception("Expected encodedAuthPassword to fail for scheme " +
-                              scheme.getStorageSchemeName() +
-                              " because it doesn't support auth passwords.");
-        }
-        catch (DirectoryException de)
-        {
-          // This was expected.
-        }
-
-        assertFalse(scheme.authPasswordMatches(plaintext, "foo", "bar"));
-      }
-
-
-      if (scheme.isReversible())
-      {
-        assertEquals(scheme.getPlaintextValue(encodedPassword), plaintext);
-      }
-      else
-      {
-        try
-        {
-          scheme.getPlaintextValue(encodedPassword);
-          throw new Exception("Expected getPlaintextValue to fail for scheme " +
-                              scheme.getStorageSchemeName() +
-                              " because it is not reversible.");
-        }
-        catch (DirectoryException de)
-        {
-          // This was expected.
-        }
-      }
-
-      scheme.isStorageSchemeSecure();
-      
+      testStorageScheme(plaintext, getScheme(name));
     }
   }
-
 
 
   @DataProvider
   public Object[][] passwordsForBinding()
   {
-    return new Object[][]
-    {
-      // In the case of a clear-text password, these values will be shoved
-      // un-excaped into an LDIF file, so make sure they don't include \n
-      // or other characters that will cause LDIF parsing errors.
-      // We really don't need many test cases here, since that functionality
-      // is tested above.
-      new Object[] { ByteString.valueOf("a") },
-      new Object[] { ByteString.valueOf("abcdefgh") },
-      new Object[] { ByteString.valueOf("abcdefghi") },
-    };
+    return PasswordStorageSchemeTestCase.passwordsForBinding();
   }
 
 
@@ -255,86 +122,8 @@ public class CryptPasswordStorageSchemeTestCase
   {
     for (String name: names)
     {
-      // Start/clear-out the memory backend
-      TestCaseUtils.initializeTestBackend(true);
-
-      setAllowPreencodedPasswords(true);
-
-      CryptPasswordStorageScheme scheme = getScheme(name);
-      ByteString schemeEncodedPassword =
-          scheme.encodePasswordWithScheme(plainPassword);
-
-      //
-      // This code creates a user with the encoded password,
-      // and then verifies that they can bind with the raw password.
-      //
-
-      Entry userEntry = TestCaseUtils.makeEntry(
-          "dn: uid=test.user,o=test",
-          "objectClass: top",
-          "objectClass: person",
-          "objectClass: organizationalPerson",
-          "objectClass: inetOrgPerson",
-          "uid: test.user",
-          "givenName: Test",
-          "sn: User",
-          "cn: Test User",
-          "ds-privilege-name: bypass-acl",
-          "userPassword: " + schemeEncodedPassword.toString());
-
-      // Add the entry
-      TestCaseUtils.addEntry(userEntry);
-
-      assertTrue(TestCaseUtils.canBind("uid=test.user,o=test",
-          plainPassword.toString()),
-          "Failed to bind when pre-encoded password = \"" +
-              schemeEncodedPassword.toString() + "\" and " +
-              "plaintext password = \"" +
-              plainPassword.toString() + "\"");
+      testSettingEncodedPassword(plainPassword, getScheme(name));
     }
-  }
-
-
-  /**
-   * Sets whether or not to allow pre-encoded password values for the
-   * current password storage scheme and returns the previous value so that
-   * it can be restored.
-   *
-   * @param allowPreencoded whether or not to allow pre-encoded passwords
-   * @return the previous value for the allow preencoded passwords
-   */
-  private boolean setAllowPreencodedPasswords(boolean allowPreencoded)
-          throws Exception
-  {
-    // This code was borrowed from
-    // PasswordPolicyTestCase.testAllowPreEncodedPasswordsAuth
-    boolean previousValue = false;
-    try {
-      DN dn = DN.decode("cn=Default Password Policy,cn=Password Policies,cn=config");
-      PasswordPolicy p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
-      previousValue = p.isAllowPreEncodedPasswords();
-
-      String attr  = "ds-cfg-allow-pre-encoded-passwords";
-
-      ArrayList<Modification> mods = new ArrayList<Modification>();
-      mods.add(new Modification(ModificationType.REPLACE,
-          Attributes.create(attr, String.valueOf(allowPreencoded))));
-
-      InternalClientConnection conn =
-           InternalClientConnection.getRootConnection();
-      ModifyOperation modifyOperation = conn.processModify(dn, mods);
-      assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
-
-      p = (PasswordPolicy) DirectoryServer.getAuthenticationPolicy(dn);
-      assertEquals(p.isAllowPreEncodedPasswords(), allowPreencoded);
-    } catch (Exception e) {
-      System.err.println("Failed to set ds-cfg-allow-pre-encoded-passwords " +
-                         " to " + allowPreencoded);
-      e.printStackTrace();
-      throw e;
-    }
-
-    return previousValue;
   }
 
   /**
@@ -373,38 +162,7 @@ public class CryptPasswordStorageSchemeTestCase
           String plaintextPassword,
           String encodedPassword) throws Exception
   {
-      // Start/clear-out the memory backend
-    TestCaseUtils.initializeTestBackend(true);
-
-    boolean allowPreencodedDefault = setAllowPreencodedPasswords(true);
-
-    try {
-
-      Entry userEntry = TestCaseUtils.makeEntry(
-       "dn: uid=testCrypt.user,o=test",
-       "objectClass: top",
-       "objectClass: person",
-       "objectClass: organizationalPerson",
-       "objectClass: inetOrgPerson",
-       "uid: testCrypt.user",
-       "givenName: TestCrypt",
-       "sn: User",
-       "cn: TestCrypt User",
-       "userPassword: " + encodedPassword);
-
-
-      // Add the entry
-      TestCaseUtils.addEntry(userEntry);
-
-      assertTrue(TestCaseUtils.canBind("uid=testCrypt.user,o=test",
-                  plaintextPassword),
-               "Failed to bind when pre-encoded password = \"" +
-               encodedPassword + "\" and " +
-               "plaintext password = \"" +
-               plaintextPassword + "\"" );
-    } finally {
-      setAllowPreencodedPasswords(allowPreencodedDefault);
-    }
+    testAuthPasswords("TestCrypt", plaintextPassword, encodedPassword);
   }
 
   /**
