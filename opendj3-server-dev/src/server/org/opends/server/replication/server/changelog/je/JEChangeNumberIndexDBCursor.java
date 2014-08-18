@@ -31,8 +31,9 @@ import org.opends.server.replication.server.changelog.api.*;
 import org.opends.server.replication.server.changelog.je.DraftCNDB.*;
 
 /**
- * This class allows to iterate through the changes received from a given
- * LDAP Server Identifier.
+ * This class allows to iterate through the changes comming from the change number index DB.
+ *
+ * \@NotThreadSafe
  */
 public class JEChangeNumberIndexDBCursor implements
     DBCursor<ChangeNumberIndexRecord>
