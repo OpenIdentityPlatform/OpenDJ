@@ -54,6 +54,7 @@ import java.io.Closeable;
  *
  * @param <T>
  *          type of the record being returned
+ * \@NotThreadSafe
  */
 public interface DBCursor<T> extends Closeable
 {

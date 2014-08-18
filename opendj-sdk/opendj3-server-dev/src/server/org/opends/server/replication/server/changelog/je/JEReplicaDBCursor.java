@@ -34,6 +34,8 @@ import org.opends.server.replication.server.changelog.je.ReplicationDB.ReplServe
 
 /**
  * Berkeley DB JE implementation of {@link DBCursor}.
+ *
+ * \@NotThreadSafe
  */
 public class JEReplicaDBCursor implements DBCursor<UpdateMsg>
 {

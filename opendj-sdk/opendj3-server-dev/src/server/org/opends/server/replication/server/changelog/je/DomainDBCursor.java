@@ -38,6 +38,8 @@ import org.opends.server.types.DN;
 
 /**
  * Cursor iterating over a replication domain's replica DBs.
+ *
+ * \@NotThreadSafe
  */
 public class DomainDBCursor extends CompositeDBCursor<Void>
 {
