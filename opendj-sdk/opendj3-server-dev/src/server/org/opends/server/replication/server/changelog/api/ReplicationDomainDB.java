@@ -96,8 +96,6 @@ public interface ReplicationDomainDB
    * replication domain starting after the provided {@link ServerState} for each
    * replicaDBs.
    * <p>
-   * The cursor is already advanced to the records after the serverState.
-   * <p>
    * When the cursor is not used anymore, client code MUST call the
    * {@link DBCursor#close()} method to free the resources and locks used by the
    * cursor.
@@ -118,8 +116,6 @@ public interface ReplicationDomainDB
   /**
    * Generates a {@link DBCursor} for one replicaDB for the specified
    * replication domain and serverId starting after the provided {@link CSN}.
-   * <p>
-   * The cursor is already advanced to the records after the CSN.
    * <p>
    * When the cursor is not used anymore, client code MUST call the
    * {@link DBCursor#close()} method to free the resources and locks used by the

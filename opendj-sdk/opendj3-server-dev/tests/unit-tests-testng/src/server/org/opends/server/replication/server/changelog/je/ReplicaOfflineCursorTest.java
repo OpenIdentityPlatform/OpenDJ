@@ -65,7 +65,7 @@ public class ReplicaOfflineCursorTest extends ReplicationTestCase
   public void cursorReturnsTrue() throws Exception
   {
     final UpdateMsg updateMsg = new FakeUpdateMsg(timestamp++);
-    delegateCursor = new SequentialDBCursor(null, updateMsg);
+    delegateCursor = new SequentialDBCursor(updateMsg);
 
     final ReplicaOfflineCursor cursor = new ReplicaOfflineCursor(delegateCursor, null);
     assertThat(cursor.getRecord()).isNull();
@@ -95,7 +95,7 @@ public class ReplicaOfflineCursorTest extends ReplicationTestCase
   public void cursorReturnsUpdateMsgThenReplicaOfflineMsg() throws Exception
   {
     final UpdateMsg updateMsg = new FakeUpdateMsg(timestamp++);
-    delegateCursor = new SequentialDBCursor(null, updateMsg);
+    delegateCursor = new SequentialDBCursor(updateMsg);
 
     final CSN offlineCSN = new CSN(timestamp++, 1, 1);
     final ReplicaOfflineCursor cursor = new ReplicaOfflineCursor(delegateCursor, offlineCSN);
@@ -116,7 +116,7 @@ public class ReplicaOfflineCursorTest extends ReplicationTestCase
     final CSN outdatedOfflineCSN = new CSN(timestamp++, 1, 1);
 
     final UpdateMsg updateMsg = new FakeUpdateMsg(timestamp++);
-    delegateCursor = new SequentialDBCursor(null, updateMsg);
+    delegateCursor = new SequentialDBCursor(updateMsg);
 
     final ReplicaOfflineCursor cursor = new ReplicaOfflineCursor(delegateCursor, outdatedOfflineCSN);
     assertThat(cursor.getRecord()).isNull();

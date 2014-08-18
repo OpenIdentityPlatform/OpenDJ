@@ -463,6 +463,7 @@ public class ChangeNumberIndexer extends DirectoryThread
     {
       final ReplicationDomainDB domainDB = changelogDB.getReplicationDomainDB();
       cursor = domainDB.getCursorFrom(baseDN, serverId, startAfterCSN);
+      cursor.next();
       map.put(serverId, cursor);
       return false;
     }
