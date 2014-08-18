@@ -95,6 +95,16 @@ import static org.testng.Assert.*;
 public class ExternalChangeLogTest extends ReplicationTestCase
 {
 
+  private static class Results
+  {
+
+    public final List<SearchResultEntryProtocolOp> searchResultEntries =
+        new ArrayList<SearchResultEntryProtocolOp>();
+    public long searchReferences;
+    public long searchesDone;
+
+  }
+
   private static final int SERVER_ID_1 = 1201;
   private static final int SERVER_ID_2 = 1202;
 
@@ -188,14 +198,15 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   @Test(enabled=true, dependsOnMethods = { "PrimaryTest"})
   public void TestWithAndWithoutControl() throws Exception
   {
+    final String tn = "TestWithAndWithoutControl";
     replicationServer.getChangelogDB().setPurgeDelay(0);
     // Write changes and read ECL from start
-    ECLCompatWriteReadAllOps(1);
+    ECLCompatWriteReadAllOps(1, tn);
 
     ECLCompatNoControl(1);
 
     // Write additional changes and read ECL from a provided change number
-    ECLCompatWriteReadAllOps(5);
+    ECLCompatWriteReadAllOps(5, tn);
   }
 
   @Test(enabled=false, dependsOnMethods = { "PrimaryTest"})
@@ -293,12 +304,13 @@ public class ExternalChangeLogTest extends ReplicationTestCase
   @Test(enabled=false, groups="slow", dependsOnMethods = { "PrimaryTest"})
   public void ECLReplicationServerFullTest15() throws Exception
   {
+    final String tn = "ECLReplicationServerFullTest15";
     replicationServer.getChangelogDB().setPurgeDelay(0);
     // Write 4 changes and read ECL from start
-    ECLCompatWriteReadAllOps(1);
+    ECLCompatWriteReadAllOps(1, tn);
 
     // Write 4 additional changes and read ECL from a provided change number
-    CSN csn = ECLCompatWriteReadAllOps(5);
+    CSN csn = ECLCompatWriteReadAllOps(5, tn);
 
     // Test request from a provided change number - read 6
     ECLCompatReadFrom(6, csn);
@@ -895,15 +907,12 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
       final CSN[] csns = generateCSNs(3, SERVER_ID_1);
       publishDeleteMsgInOTest(server01, csns[0], testName, 1);
-
-      Thread.sleep(1000);
-
-      // Test that last cookie has been updated
-      String cookieNotEmpty = readLastCookie();
-      debugInfo(testName, "Store cookie not empty=\"" + cookieNotEmpty + "\"");
-
+      final String firstCookie = assertLastCookieDifferentThanLastValue("");
+      String lastCookie = firstCookie;
       publishDeleteMsgInOTest(server01, csns[1], testName, 2);
+      lastCookie = assertLastCookieDifferentThanLastValue(lastCookie);
       publishDeleteMsgInOTest(server01, csns[2], testName, 3);
+      lastCookie = assertLastCookieDifferentThanLastValue(lastCookie);
 
       // ---
       // 2. Now set up a very short purge delay on the replication changelogs
@@ -930,7 +939,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       //    returns the appropriate error.
       debugInfo(testName, "d1 trimdate" + getDomainOldestState(TEST_ROOT_DN));
       debugInfo(testName, "d2 trimdate" + getDomainOldestState(TEST_ROOT_DN2));
-      searchOp = searchOnCookieChangelog("(targetDN=*)", cookieNotEmpty, 0, testName, UNWILLING_TO_PERFORM);
+      searchOp = searchOnCookieChangelog("(targetDN=*)", firstCookie, 0, testName, UNWILLING_TO_PERFORM);
       assertTrue(searchOp.getErrorMessage().toString().startsWith(
           ERR_RESYNC_REQUIRED_TOO_OLD_DOMAIN_IN_PROVIDED_COOKIE.get(TEST_ROOT_DN_STRING).toString()),
           searchOp.getErrorMessage().toString());
@@ -962,26 +971,21 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
       final CSN[] csns = generateCSNs(3, SERVER_ID_1);
       publishDeleteMsgInOTest(server01, csns[0], testName, 1);
-
-      Thread.sleep(1000);
-
-      // Test that last cookie has been updated
-      String cookieNotEmpty = readLastCookie();
-      debugInfo(testName, "Store cookie not empty=\"" + cookieNotEmpty + "\"");
-
+      final String firstCookie = assertLastCookieDifferentThanLastValue("");
+      String lastCookie = firstCookie;
       publishDeleteMsgInOTest(server01, csns[1], testName, 2);
+      lastCookie = assertLastCookieDifferentThanLastValue(lastCookie);
       publishDeleteMsgInOTest(server01, csns[2], testName, 3);
+      lastCookie = assertLastCookieDifferentThanLastValue(lastCookie);
 
       // ---
       // 2. Now remove the domain by sending a reset message
-      ResetGenerationIdMsg msg = new ResetGenerationIdMsg(23657);
-      server01.publish(msg);
+      server01.publish(new ResetGenerationIdMsg(23657));
 
       // ---
       // 3. Assert that a request with an empty cookie returns nothing
       // since replication changelog has been cleared
       String cookie= "";
-      InternalSearchOperation searchOp = null;
       searchOnCookieChangelog("(targetDN=*)", cookie, 0, testName, SUCCESS);
 
       // ---
@@ -989,7 +993,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       // since replication changelog has been cleared
       cookie = readLastCookie();
       debugInfo(testName, "2. Search with last cookie=" + cookie + "\"");
-      searchOp = searchOnCookieChangelog("(targetDN=*)", cookie, 0, testName, SUCCESS);
+      searchOnCookieChangelog("(targetDN=*)", cookie, 0, testName, SUCCESS);
 
       // ---
       // 5. Assert that a request with an "old" cookie - one that refers to
@@ -997,7 +1001,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       //    returns the appropriate error.
       debugInfo(testName, "d1 trimdate" + getDomainOldestState(TEST_ROOT_DN));
       debugInfo(testName, "d2 trimdate" + getDomainOldestState(TEST_ROOT_DN2));
-      searchOp = searchOnCookieChangelog("(targetDN=*)", cookieNotEmpty, 0, testName, UNWILLING_TO_PERFORM);
+      final InternalSearchOperation searchOp =
+          searchOnCookieChangelog("(targetDN=*)", firstCookie, 0, testName, UNWILLING_TO_PERFORM);
       assertThat(searchOp.getErrorMessage().toString()).contains("unknown replicated domain", TEST_ROOT_DN_STRING.toString());
     }
     finally
@@ -1005,6 +1010,23 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       stop(server01);
     }
     debugInfo(testName, "Ending test successfully");
+  }
+
+  private String assertLastCookieDifferentThanLastValue(final String lastCookie) throws Exception
+  {
+    int cnt = 0;
+    while (cnt < 100)
+    {
+      final String newCookie = readLastCookie();
+      if (!newCookie.equals(lastCookie))
+      {
+        return newCookie;
+      }
+      cnt++;
+      Thread.sleep(10);
+    }
+    Assertions.fail("Expected last cookie would have been updated, but it always stayed at value '" + lastCookie + "'");
+    return null;// dead code
   }
 
   private void debugAndWriteEntries(LDIFWriter ldifWriter,
@@ -1074,10 +1096,11 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
       // Publish ADD
       csnCounter++;
-      String lentry = "dn: uid="+tn+"2," + TEST_ROOT_DN_STRING + "\n"
-          + "objectClass: top\n" + "objectClass: domain\n"
-          + "entryUUID: "+user1entryUUID+"\n";
-      Entry entry = TestCaseUtils.entryFromLdifString(lentry);
+      Entry entry = TestCaseUtils.entryFromLdifString(
+          "dn: uid=" + tn + "2," + TEST_ROOT_DN_STRING + "\n"
+          + "objectClass: top\n"
+          + "objectClass: domain\n"
+          + "entryUUID: " + user1entryUUID + "\n");
       AddMsg addMsg = new AddMsg(
           csns[csnCounter],
           DN.valueOf("uid="+tn+"2," + TEST_ROOT_DN_STRING),
@@ -1412,49 +1435,27 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
       InvocationCounterPlugin.resetAllCounters();
 
-      long searchEntries;
-      long searchReferences = ldapStatistics.getSearchResultReferences();
-      long searchesDone     = ldapStatistics.getSearchResultsDone();
+      final Results results = new Results();
+      results.searchReferences = ldapStatistics.getSearchResultReferences();
+      results.searchesDone     = ldapStatistics.getSearchResultsDone();
 
       debugInfo(tn, "Search Persistent filter=(targetDN=*"+tn+"*,o=test)");
-      LDAPMessage message = new LDAPMessage(2, searchRequest, controls);
-      w.writeMessage(message);
+      w.writeMessage(new LDAPMessage(2, searchRequest, controls));
       Thread.sleep(500);
 
       if (!changesOnly)
       {
         // Wait for change 1
         debugInfo(tn, "Waiting for init search expected to return change 1");
-        searchEntries = 0;
+        readMessages(tn, r, results, 1, "Init search Result=");
+        for (SearchResultEntryProtocolOp searchResultEntry : results.searchResultEntries)
         {
-          while (searchEntries < 1 && (message = r.readMessage()) != null)
-          {
-            debugInfo(tn, "Init search Result=" +
-                message.getProtocolOpType() + message + " " + searchEntries);
-            switch (message.getProtocolOpType())
-            {
-            case LDAPConstants.OP_TYPE_SEARCH_RESULT_ENTRY:
-              SearchResultEntryProtocolOp searchResultEntry =
-                  message.getSearchResultEntryProtocolOp();
-              searchEntries++;
-              // FIXME:ECL Double check 1 is really the valid value here.
-              checkValue(searchResultEntry.toSearchResultEntry(),"changenumber",
-                  (compatMode?"1":"0"));
-              break;
-
-            case LDAPConstants.OP_TYPE_SEARCH_RESULT_REFERENCE:
-              searchReferences++;
-              break;
-
-            case LDAPConstants.OP_TYPE_SEARCH_RESULT_DONE:
-              assertSuccessful(message);
-              searchesDone++;
-              break;
-            }
-          }
+          // FIXME:ECL Double check 1 is really the valid value here.
+          final String cn = compatMode ? "1" : "0";
+          checkValue(searchResultEntry.toSearchResultEntry(), "changenumber", cn);
         }
         debugInfo(tn, "INIT search done with success. searchEntries="
-            + searchEntries + " #searchesDone="+ searchesDone);
+            + results.searchResultEntries.size() + " #searchesDone=" + results.searchesDone);
       }
 
       // Produces change 2
@@ -1470,30 +1471,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       " published , psearch will now wait for new entries");
 
       // wait for the 1 new entry
-      searchEntries = 0;
-      SearchResultEntryProtocolOp searchResultEntry = null;
-      while (searchEntries < 1 && (message = r.readMessage()) != null)
-      {
-        debugInfo(tn, "psearch search  Result=" +
-            message.getProtocolOpType() + message);
-        switch (message.getProtocolOpType())
-        {
-        case LDAPConstants.OP_TYPE_SEARCH_RESULT_ENTRY:
-          searchResultEntry = message.getSearchResultEntryProtocolOp();
-          searchEntries++;
-          break;
-
-        case LDAPConstants.OP_TYPE_SEARCH_RESULT_REFERENCE:
-          searchReferences++;
-          break;
-
-        case LDAPConstants.OP_TYPE_SEARCH_RESULT_DONE:
-          assertSuccessful(message);
-//        assertEquals(InvocationCounterPlugin.waitForPostResponse(), 1);
-          searchesDone++;
-          break;
-        }
-      }
+      readMessages(tn, r, results, 1, "psearch search  Result=");
+      SearchResultEntryProtocolOp searchResultEntry = results.searchResultEntries.get(0);
       Thread.sleep(1000);
 
       // Check we received change 2
@@ -1523,11 +1502,12 @@ public class ExternalChangeLogTest extends ReplicationTestCase
             createSearchRequest("(targetDN=*directpsearch*,o=test)", null);
 
         debugInfo(tn, "ACI test : sending search");
-        message = new LDAPMessage(2, searchRequest, createCookieControl(""));
-        w.writeMessage(message);
+        w.writeMessage(new LDAPMessage(2, searchRequest, createCookieControl("")));
 
-        searchesDone=0;
-        searchEntries = 0;
+        LDAPMessage message;
+        int searchesDone = 0;
+        int searchEntries = 0;
+        int searchReferences = 0;
         while ((searchesDone==0) && (message = r.readMessage()) != null)
         {
           debugInfo(tn, "ACI test : message returned " +
@@ -1719,125 +1699,53 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
       InvocationCounterPlugin.resetAllCounters();
 
-      ldapStatistics.getSearchRequests();
-      long searchEntries    = ldapStatistics.getSearchResultEntries();
-      ldapStatistics.getSearchResultReferences();
-      long searchesDone     = ldapStatistics.getSearchResultsDone();
+      final Results results = new Results();
+      results.searchesDone = ldapStatistics.getSearchResultsDone();
 
-      LDAPMessage message;
-      message = new LDAPMessage(2, searchRequest1, controls);
-      w1.writeMessage(message);
+      w1.writeMessage(new LDAPMessage(2, searchRequest1, controls));
       Thread.sleep(500);
-
-      message = new LDAPMessage(2, searchRequest2, controls);
-      w2.writeMessage(message);
+      w2.writeMessage(new LDAPMessage(2, searchRequest2, controls));
       Thread.sleep(500);
-
-      message = new LDAPMessage(2, searchRequest3, controls);
-      w3.writeMessage(message);
+      w3.writeMessage(new LDAPMessage(2, searchRequest3, controls));
       Thread.sleep(500);
 
       if (!changesOnly)
       {
         debugInfo(tn, "Search1  Persistent filter=" + searchRequest1.getFilter()
                   + " expected to return change " + csn1);
-        searchEntries = 0;
-        message = null;
-
         {
-          while (searchEntries < 1 && (message = r1.readMessage()) != null)
+          readMessages(tn, r1, results, 1, "Search1 Result=");
+          final int searchEntries = results.searchResultEntries.size();
+          if (searchEntries == 1)
           {
-            debugInfo(tn, "Search1 Result=" +
-                message.getProtocolOpType() + " " + message);
-            switch (message.getProtocolOpType())
-            {
-            case LDAPConstants.OP_TYPE_SEARCH_RESULT_ENTRY:
-              SearchResultEntryProtocolOp searchResultEntry =
-                  message.getSearchResultEntryProtocolOp();
-              searchEntries++;
-              if (searchEntries==1)
-              {
-                checkValue(searchResultEntry.toSearchResultEntry(),"replicationcsn",csn1.toString());
-                checkValue(searchResultEntry.toSearchResultEntry(),"changenumber",
-                    (compatMode?"10":"0"));
-              }
-              break;
-
-            case LDAPConstants.OP_TYPE_SEARCH_RESULT_REFERENCE:
-              break;
-
-            case LDAPConstants.OP_TYPE_SEARCH_RESULT_DONE:
-              assertSuccessful(message);
-              searchesDone++;
-              break;
-            }
+            final SearchResultEntryProtocolOp searchResultEntry = results.searchResultEntries.get(1);
+            final String cn = compatMode ? "10" : "0";
+            checkValue(searchResultEntry.toSearchResultEntry(),"replicationcsn",csn1.toString());
+            checkValue(searchResultEntry.toSearchResultEntry(), "changenumber", cn);
           }
+          debugInfo(tn, "Search1 done with success. searchEntries="
+              + searchEntries + " #searchesDone=" + results.searchesDone);
         }
-        debugInfo(tn, "Search1 done with success. searchEntries="
-            + searchEntries + " #searchesDone="+ searchesDone);
 
-        searchEntries = 0;
-        message = null;
         {
           debugInfo(tn, "Search 2  Persistent filter=" + searchRequest2.getFilter()
               + " expected to return change " + csn2 + " & " + csn3);
-          while (searchEntries < 2 && (message = r2.readMessage()) != null)
+          readMessages(tn, r2, results, 2, "Search 2 Result=");
+          for (SearchResultEntryProtocolOp searchResultEntry : results.searchResultEntries)
           {
-            debugInfo(tn, "Search 2 Result=" +
-                message.getProtocolOpType() + message);
-            switch (message.getProtocolOpType())
-            {
-            case LDAPConstants.OP_TYPE_SEARCH_RESULT_ENTRY:
-              SearchResultEntryProtocolOp searchResultEntry =
-                  message.getSearchResultEntryProtocolOp();
-              searchEntries++;
-              checkValue(searchResultEntry.toSearchResultEntry(),"changenumber",
-                  (compatMode?"10":"0"));
-              break;
-
-            case LDAPConstants.OP_TYPE_SEARCH_RESULT_REFERENCE:
-              break;
-
-            case LDAPConstants.OP_TYPE_SEARCH_RESULT_DONE:
-              assertSuccessful(message);
-              searchesDone++;
-              break;
-            }
+            final String cn = compatMode ? "10" : "0";
+            checkValue(searchResultEntry.toSearchResultEntry(), "changenumber", cn);
           }
+          debugInfo(tn, "Search2 done with success. searchEntries="
+              + results.searchResultEntries.size() + " #searchesDone=" + results.searchesDone);
         }
-        debugInfo(tn, "Search2 done with success. searchEntries="
-            + searchEntries + " #searchesDone="+ searchesDone);
 
 
-        searchEntries = 0;
-        message = null;
-        {
-          debugInfo(tn, "Search3  Persistent filter=" + searchRequest3.getFilter()
-              + " expected to return change top + " + csn1 + " & " + csn2 + " & " + csn3);
-          while (searchEntries < 4 && (message = r3.readMessage()) != null)
-          {
-            debugInfo(tn, "Search3 Result=" +
-                message.getProtocolOpType() + " " + message);
-
-            switch (message.getProtocolOpType())
-            {
-            case LDAPConstants.OP_TYPE_SEARCH_RESULT_ENTRY:
-              searchEntries++;
-              break;
-
-            case LDAPConstants.OP_TYPE_SEARCH_RESULT_REFERENCE:
-              break;
-
-            case LDAPConstants.OP_TYPE_SEARCH_RESULT_DONE:
-              assertSuccessful(message);
-              searchesDone++;
-              break;
-            }
-          }
-        }
+        debugInfo(tn, "Search3  Persistent filter=" + searchRequest3.getFilter()
+            + " expected to return change top + " + csn1 + " & " + csn2 + " & " + csn3);
+        readMessages(tn, r3, results, 4, "Search3 Result=");
         debugInfo(tn, "Search3 done with success. searchEntries="
-            + searchEntries + " #searchesDone="+ searchesDone);
-
+            + results.searchResultEntries.size() + " #searchesDone=" + results.searchesDone);
       }
 
       // Produces additional change
@@ -1871,82 +1779,19 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       debugInfo(tn, delMsg13.getCSN()  + " published additionally ");
 
       // wait 11
-      searchEntries = 0;
-      message = null;
-      while (searchEntries < 1 && (message = r1.readMessage()) != null)
-      {
-        debugInfo(tn, "Search 11 Result=" +
-            message.getProtocolOpType() + " " + message);
-        switch (message.getProtocolOpType())
-        {
-        case LDAPConstants.OP_TYPE_SEARCH_RESULT_ENTRY:
-          searchEntries++;
-          break;
-
-        case LDAPConstants.OP_TYPE_SEARCH_RESULT_REFERENCE:
-          break;
-
-        case LDAPConstants.OP_TYPE_SEARCH_RESULT_DONE:
-          assertSuccessful(message);
-//        assertEquals(InvocationCounterPlugin.waitForPostResponse(), 1);
-          searchesDone++;
-          break;
-        }
-      }
+      readMessages(tn, r1, results, 1, "Search 11 Result=");
       Thread.sleep(1000);
       debugInfo(tn, "Search 1 successfully receives additional changes");
 
       // wait 12 & 13
-      searchEntries = 0;
-      message = null;
-      while (searchEntries < 2 && (message = r2.readMessage()) != null)
-      {
-        debugInfo(tn, "psearch search 12 Result=" +
-            message.getProtocolOpType() + " " + message);
-        switch (message.getProtocolOpType())
-        {
-        case LDAPConstants.OP_TYPE_SEARCH_RESULT_ENTRY:
-          searchEntries++;
-          break;
-
-        case LDAPConstants.OP_TYPE_SEARCH_RESULT_REFERENCE:
-          break;
-
-        case LDAPConstants.OP_TYPE_SEARCH_RESULT_DONE:
-          assertSuccessful(message);
-//        assertEquals(InvocationCounterPlugin.waitForPostResponse(), 1);
-          searchesDone++;
-          break;
-        }
-      }
+      readMessages(tn, r2, results, 2, "psearch search 12 Result=");
       Thread.sleep(1000);
       debugInfo(tn, "Search 2 successfully receives additional changes");
 
       // wait 11 & 12 & 13
-      searchEntries = 0;
-      SearchResultEntryProtocolOp searchResultEntry = null;
-      message = null;
-      while (searchEntries < 3 && (message = r3.readMessage()) != null)
-      {
-        debugInfo(tn, "psearch search 13 Result=" +
-            message.getProtocolOpType() + " " + message);
-        switch (message.getProtocolOpType())
-        {
-        case LDAPConstants.OP_TYPE_SEARCH_RESULT_ENTRY:
-          searchResultEntry = message.getSearchResultEntryProtocolOp();
-          searchEntries++;
-          break;
-
-        case LDAPConstants.OP_TYPE_SEARCH_RESULT_REFERENCE:
-          break;
-
-        case LDAPConstants.OP_TYPE_SEARCH_RESULT_DONE:
-          assertSuccessful(message);
-//        assertEquals(InvocationCounterPlugin.waitForPostResponse(), 1);
-          searchesDone++;
-          break;
-        }
-      }
+      readMessages(tn, r3, results, 3, "psearch search 13 Result=");
+      SearchResultEntryProtocolOp searchResultEntry =
+          results.searchResultEntries.get(results.searchResultEntries.size() - 1);
       Thread.sleep(1000);
 
       // Check we received change 13
@@ -1959,6 +1804,35 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       waitForClose(s1, s2, s3);
     }
     debugInfo(tn, "Ends test successfully");
+  }
+
+  private void readMessages(String tn, org.opends.server.tools.LDAPReader r,
+      final Results results, final int i, final String string) throws Exception
+  {
+    results.searchResultEntries.clear();
+
+    LDAPMessage message;
+    while (results.searchResultEntries.size() < i
+        && (message = r.readMessage()) != null)
+    {
+      debugInfo(tn, string + message.getProtocolOpType() + " " + message);
+
+      switch (message.getProtocolOpType())
+      {
+      case LDAPConstants.OP_TYPE_SEARCH_RESULT_ENTRY:
+        results.searchResultEntries.add(message.getSearchResultEntryProtocolOp());
+        break;
+
+      case LDAPConstants.OP_TYPE_SEARCH_RESULT_REFERENCE:
+        results.searchReferences++;
+        break;
+
+      case LDAPConstants.OP_TYPE_SEARCH_RESULT_DONE:
+        assertSuccessful(message);
+        results.searchesDone++;
+        break;
+      }
+    }
   }
 
   private void assertSuccessful(LDAPMessage message)
@@ -2007,10 +1881,9 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       new BindRequestProtocolOp(
           ByteString.valueOf(bindDN),
           3, ByteString.valueOf(password));
-    LDAPMessage message = new LDAPMessage(1, bindRequest);
-    w.writeMessage(message);
+    w.writeMessage(new LDAPMessage(1, bindRequest));
 
-    message = r.readMessage();
+    final LDAPMessage message = r.readMessage();
     BindResponseProtocolOp bindResponse = message.getBindResponseProtocolOp();
 //  assertEquals(InvocationCounterPlugin.waitForPostResponse(), 1);
     assertEquals(bindResponse.getResultCode(), expected);
@@ -2204,9 +2077,9 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     debugInfo(tn, "Ending test successfully");
   }
 
-  private CSN ECLCompatWriteReadAllOps(long firstChangeNumber) throws Exception
+  private CSN ECLCompatWriteReadAllOps(long firstChangeNumber, String testName) throws Exception
   {
-    String tn = "ECLCompatWriteReadAllOps/" + firstChangeNumber;
+    String tn = testName + "-ECLCompatWriteReadAllOps/" + firstChangeNumber;
     debugInfo(tn, "Starting test\n\n");
     LDAPReplicationDomain domain = null;
     try
@@ -2224,17 +2097,16 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       CSN[] csns = generateCSNs(4, SERVER_ID_1);
 
       // Publish DEL
-      DeleteMsg delMsg = newDeleteMsg("uid=" + tn + "1," + TEST_ROOT_DN_STRING, csns[0], user1entryUUID);
+      DeleteMsg delMsg = newDeleteMsg("uid=" + tn + "-1," + TEST_ROOT_DN_STRING, csns[0], user1entryUUID);
       server01.publish(delMsg);
       debugInfo(tn, " publishes " + delMsg.getCSN());
 
       // Publish ADD
-      String lentry =
-          "dn: uid="+tn+"2," + TEST_ROOT_DN_STRING + "\n"
+      Entry entry = TestCaseUtils.entryFromLdifString(
+          "dn: uid=" + tn + "-2," + TEST_ROOT_DN_STRING + "\n"
           + "objectClass: top\n"
           + "objectClass: domain\n"
-          + "entryUUID: "+user1entryUUID+"\n";
-      Entry entry = TestCaseUtils.entryFromLdifString(lentry);
+          + "entryUUID: " + user1entryUUID + "\n");
       AddMsg addMsg = new AddMsg(
           csns[1],
           entry.getName(),
@@ -2247,7 +2119,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       debugInfo(tn, " publishes " + addMsg.getCSN());
 
       // Publish MOD
-      DN baseDN = DN.valueOf("uid="+tn+"3," + TEST_ROOT_DN_STRING);
+      DN baseDN = DN.valueOf("uid="+tn+"-3," + TEST_ROOT_DN_STRING);
       List<Modification> mods = createMods("description", "new value");
       ModifyMsg modMsg = new ModifyMsg(csns[2], baseDN, mods, user1entryUUID);
       server01.publish(modMsg);
@@ -2255,7 +2127,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
       // Publish modDN
       ModifyDNOperation op = new ModifyDNOperationBasis(connection, 1, 1, null,
-          DN.valueOf("uid="+tn+"4," + TEST_ROOT_DN_STRING), // entryDN
+          DN.valueOf("uid="+tn+"-4," + TEST_ROOT_DN_STRING), // entryDN
           RDN.decode("uid="+tn+"new4"), // new rdn
           true,  // deleteoldrdn
           TEST_ROOT_DN2); // new superior
@@ -2265,8 +2137,8 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       server01.publish(modDNMsg);
       debugInfo(tn, " publishes " + modDNMsg.getCSN());
 
-      String filter = "(targetdn=*" + tn + "*,o=test)";
-      InternalSearchOperation searchOp = searchOnChangelog(filter, 4, tn, SUCCESS);
+      InternalSearchOperation searchOp =
+          searchOnChangelog("(targetdn=*" + tn + "*,o=test)", 4, tn, SUCCESS);
 
       // test 4 entries returned
       final LDIFWriter ldifWriter = getLDIFWriter();
@@ -2276,7 +2148,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       stop(server01);
 
       // Test with filter on change number
-      filter =
+      String filter =
           "(&(targetdn=*" + tn + "*,o=test)"
             + "(&(changenumber>=" + firstChangeNumber + ")"
               + "(changenumber<=" + (firstChangeNumber + 3) + ")))";
@@ -2339,7 +2211,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
       long firstChangeNumber, int i, String tn, CSN csn)
   {
     final long changeNumber = firstChangeNumber + i;
-    final String targetDN = "uid=" + tn + (i + 1) + "," + TEST_ROOT_DN_STRING;
+    final String targetDN = "uid=" + tn + "-" + (i + 1) + "," + TEST_ROOT_DN_STRING;
 
     assertDNEquals(resultEntry, changeNumber);
     checkValue(resultEntry, "changenumber", String.valueOf(changeNumber));
@@ -2352,9 +2224,11 @@ public class ExternalChangeLogTest extends ReplicationTestCase
 
   private void assertDNEquals(SearchResultEntry resultEntry, long changeNumber)
   {
-    String actualDN = resultEntry.getName().toNormalizedString();
-    String expectedDN = "changenumber=" + changeNumber + ",cn=changelog";
-    assertThat(actualDN).isEqualToIgnoringCase(expectedDN);
+    final String actualDN = resultEntry.getName().toNormalizedString();
+    final String expectedDN = "changenumber=" + changeNumber + ",cn=changelog";
+    assertThat(actualDN)
+        .as("Unexpected DN for entry " + resultEntry)
+        .isEqualToIgnoringCase(expectedDN);
   }
 
   private void ECLCompatReadFrom(long firstChangeNumber, Object csn) throws Exception
@@ -2548,7 +2422,7 @@ public class ExternalChangeLogTest extends ReplicationTestCase
     while (!cnIndexDB.isEmpty())
     {
       debugInfo(tn, "cnIndexDB.count=" + cnIndexDB.count());
-      Thread.sleep(200);
+      Thread.sleep(10);
     }
 
     debugInfo(tn, "Ending test with success");

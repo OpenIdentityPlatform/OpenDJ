@@ -25,8 +25,8 @@
  */
 package org.opends.server.replication.server.changelog.je;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Collections;
+import java.util.Iterator;
 
 import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.replication.protocol.UpdateMsg;
@@ -44,6 +44,20 @@ import static org.testng.Assert.*;
 @SuppressWarnings({ "javadoc", "unchecked" })
 public class CompositeDBCursorTest extends DirectoryServerTestCase
 {
+
+  private final class ConcreteCompositeDBCursor extends CompositeDBCursor<String>
+  {
+    @Override
+    protected void incorporateNewCursors() throws ChangelogException
+    {
+    }
+
+    @Override
+    protected Iterator<String> removedCursorsIterator()
+    {
+      return Collections.EMPTY_LIST.iterator();
+    }
+  }
 
   private UpdateMsg msg1;
   private UpdateMsg msg2;
@@ -173,8 +187,6 @@ public class CompositeDBCursorTest extends DirectoryServerTestCase
         of(msg4, baseDN1));
   }
 
-  // TODO : this test fails because msg2 is returned twice
-  @Test(enabled=false)
   public void recycleTwoElementsCursorsLongerExhaustion() throws Exception
   {
     final CompositeDBCursor<String> compCursor = newCompositeDBCursor(
@@ -220,16 +232,12 @@ public class CompositeDBCursorTest extends DirectoryServerTestCase
   private CompositeDBCursor<String> newCompositeDBCursor(
       Pair<? extends DBCursor<UpdateMsg>, String>... pairs) throws Exception
   {
-    final Map<DBCursor<UpdateMsg>, String> cursorsMap =
-        new HashMap<DBCursor<UpdateMsg>, String>();
+    final CompositeDBCursor<String> cursor = new ConcreteCompositeDBCursor();
     for (Pair<? extends DBCursor<UpdateMsg>, String> pair : pairs)
     {
-      // The cursors in the composite are expected to be pointing
-      // to first record available
-      pair.getFirst().next();
-      cursorsMap.put(pair.getFirst(), pair.getSecond());
+      cursor.addCursor(pair.getFirst(), pair.getSecond());
     }
-    return new CompositeDBCursor<String>(cursorsMap, true);
+    return cursor;
   }
 
   private void assertInOrder(final CompositeDBCursor<String> compCursor,
