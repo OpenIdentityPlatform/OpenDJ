@@ -65,16 +65,6 @@ public class JEReplicaDBCursor implements DBCursor<UpdateMsg>
     this.db = db;
     this.replicaDB = replicaDB;
     this.lastNonNullCurrentCSN = startAfterCSN;
-
-    try
-    {
-      cursor = db.openReadCursor(startAfterCSN);
-    }
-    catch(Exception e)
-    {
-      // we didn't find it in the db
-      cursor = null;
-    }
   }
 
   /** {@inheritDoc} */
