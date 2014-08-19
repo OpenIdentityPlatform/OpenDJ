@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS.
+ *      Portions copyright 2011-2014 ForgeRock AS.
  */
 
 package com.forgerock.opendj.ldap.tools;
@@ -745,7 +745,7 @@ abstract class PerformanceRunner implements ConnectionEventListener {
 
         noRebindArgument =
                 new BooleanArgument("noRebind", 'F', "noRebind", LocalizableMessage
-                        .raw("Keep connections open and don't rebind"));
+                        .raw("Keep connections open and do not rebind"));
         noRebindArgument.setPropertyName("noRebind");
         if (options.supportsRebind()) {
             argParser.addArgument(noRebindArgument);
@@ -753,7 +753,7 @@ abstract class PerformanceRunner implements ConnectionEventListener {
 
         asyncArgument =
                 new BooleanArgument("asynchronous", 'A', "asynchronous", LocalizableMessage
-                        .raw("Use asynchronous mode and don't "
+                        .raw("Use asynchronous mode and do not "
                                 + "wait for results before sending the next request"));
         asyncArgument.setPropertyName("asynchronous");
         if (options.supportsAsynchronousRequests()) {

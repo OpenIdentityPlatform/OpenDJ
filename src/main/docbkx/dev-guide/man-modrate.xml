@@ -97,7 +97,7 @@
    <varlistentry>
     <term><option>-F, --noRebind</option></term>
     <listitem>
-     <para>Keep connections open and don't rebind</para>
+     <para>Keep connections open and do not rebind</para>
     </listitem>
    </varlistentry>
    <varlistentry>
