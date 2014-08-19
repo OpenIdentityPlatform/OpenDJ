@@ -60,6 +60,29 @@ public interface DBCursor<T> extends Closeable
 {
 
   /**
+   * Represents a cursor key matching strategy, which allow to choose if only
+   * the exact key must be found or if any key equals or higher should match.
+   */
+  public enum KeyMatchingStrategy {
+    /** matches only if the exact key is found. */
+    EQUAL_TO_KEY,
+    /** matches if the key or a greater key is found. */
+    GREATER_THAN_OR_EQUAL_TO_KEY
+  }
+
+  /**
+   * Represents a cursor positioning strategy, which allow to choose if the start point
+   * corresponds to the record at the provided key or the record just after the provided
+   * key.
+   */
+  public enum PositionStrategy {
+    /** start point is on the matching key. */
+    ON_MATCHING_KEY,
+    /** start point is after the matching key. */
+    AFTER_MATCHING_KEY
+  }
+
+  /**
    * Getter for the current record.
    *
    * @return The current record.

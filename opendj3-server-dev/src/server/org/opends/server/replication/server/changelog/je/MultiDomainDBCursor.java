@@ -50,15 +50,21 @@ public class MultiDomainDBCursor extends CompositeDBCursor<DN>
   private final ConcurrentSkipListSet<DN> removeDomains =
       new ConcurrentSkipListSet<DN>();
 
+  private final PositionStrategy positionStrategy;
+
   /**
    * Builds a MultiDomainDBCursor instance.
    *
    * @param domainDB
    *          the replication domain management DB
+   * @param positionStrategy
+   *          Cursor position strategy, which allow to indicates at which
+   *          exact position the cursor must start
    */
-  public MultiDomainDBCursor(ReplicationDomainDB domainDB)
+  public MultiDomainDBCursor(ReplicationDomainDB domainDB, PositionStrategy positionStrategy)
   {
     this.domainDB = domainDB;
+    this.positionStrategy = positionStrategy;
   }
 
   /**
@@ -86,7 +92,7 @@ public class MultiDomainDBCursor extends CompositeDBCursor<DN>
       final Entry<DN, ServerState> entry = iter.next();
       final DN baseDN = entry.getKey();
       final ServerState serverState = entry.getValue();
-      final DBCursor<UpdateMsg> domainDBCursor = domainDB.getCursorFrom(baseDN, serverState);
+      final DBCursor<UpdateMsg> domainDBCursor = domainDB.getCursorFrom(baseDN, serverState, positionStrategy);
       addCursor(domainDBCursor, baseDN);
       iter.remove();
     }
