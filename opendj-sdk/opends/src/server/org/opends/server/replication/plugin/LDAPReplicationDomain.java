@@ -4264,13 +4264,25 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
 
       if (lastRetrievedChange != null)
       {
+        if (debugEnabled())
+          TRACER.debugInfo("publish loop"
+                  + " >=" + currentStartCSN + " <=" + endCSN
+                  + " nentries=" + op.getEntriesSent()
+                  + " result=" + op.getResultCode()
+                  + " lastRetrievedChange=" + lastRetrievedChange);
         currentStartCSN = lastRetrievedChange;
       }
       else
       {
+        if (debugEnabled())
+          TRACER.debugInfo("publish loop"
+                  + " >=" + currentStartCSN + " <=" + endCSN
+                  + " nentries=" + op.getEntriesSent()
+                  + " result=" + op.getResultCode()
+                  + " no changes");
         currentStartCSN = endCSN;
       }
-    } while (pendingChanges.recoveryUntil(lastRetrievedChange)
+    } while (pendingChanges.recoveryUntil(currentStartCSN)
           && op.getResultCode().equals(ResultCode.SUCCESS));
 
     return op.getResultCode().equals(ResultCode.SUCCESS);
