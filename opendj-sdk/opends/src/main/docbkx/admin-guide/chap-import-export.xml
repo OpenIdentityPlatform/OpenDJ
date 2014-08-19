@@ -335,12 +335,17 @@ description: This is the description for Aaccf Amar.
    <secondary>Creating</secondary>
   </indexterm>
   
-  <para>OpenDJ stores your data in a <firstterm>backend</firstterm>. OpenDJ
-  stores directory data in backends. Backends are what you backup and restore.
-  By default, OpenDJ stores your data in a backend named
-  <literal>userRoot</literal>. You can create new backends using the
-  <command>dsconfig</command> command. The following example creates a
-  local backend named <literal>testData</literal>.</para>
+  <para>
+   OpenDJ stores your directory data in a <firstterm>backend</firstterm>.
+   Backends are what you backup and restore.
+   By default, OpenDJ stores your data in a backend named <literal>userRoot</literal>.
+  </para>
+
+  <para>
+   You can create new backends using the <command>dsconfig</command> command.
+   The following example creates a local backend named <literal>testData</literal>.
+  </para>
+
   <screen>
 $ <userinput>dsconfig create-backend --backend-name testData --type local-db</userinput>
 
@@ -407,6 +412,59 @@ The Local DB Backend was created successfully</computeroutput>
   <para>Alternatively, you can create a new backend in OpenDJ Control Panel
   (Directory Data > New Base DN > Backend > New Backend:
   <replaceable>backend-name</replaceable>).</para>
+ </section>
+
+ <section xml:id="update-database-backend">
+  <title>Updating an Existing Backend to Add a New Base DN</title>
+  <indexterm>
+   <primary>Database backend</primary>
+   <secondary>Updating</secondary>
+  </indexterm>
+
+  <para>
+   In addition to letting you create new backends as described in
+   <xref linkend="create-database-backend" />,
+   OpenDJ lets you add a new base DN to an existing backend.
+  </para>
+
+  <para>
+   The following example adds the suffix <literal>o=example</literal>
+   to the existing backend <literal>userRoot</literal>.
+  </para>
+
+  <screen>
+$ <userinput>dsconfig \
+ set-backend-prop \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --backend-name userRoot \
+ --add base-dn:o=example \
+ --trustAll \
+ --no-prompt</userinput>
+
+$ <userinput>dsconfig \
+ get-backend-prop \
+ --hostname opendj.example.com \
+ --port 4444 \
+ --bindDN "cn=Directory Manager" \
+ --bindPassword password \
+ --backend-name userRoot \
+ --property base-dn \
+ --trustAll \
+ --no-prompt</userinput>
+<computeroutput>Property : Value(s)
+---------:-------------------------------
+base-dn  : "dc=example,dc=com", o=example</computeroutput>
+  </screen>
+
+  <para>
+   Alternatively, you can update an existing backend in OpenDJ Control Panel
+   (Directory Data > New Base DN,
+   then select the existing backend from the dropdown Backend list,
+   and enter the new Base DN name).
+  </para>
  </section>
 
  <section xml:id="delete-database-backend">
