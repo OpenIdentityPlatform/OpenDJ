@@ -53,6 +53,7 @@ import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.replication.common.ServerStatus.*;
 import static org.opends.server.replication.common.StatusMachineEvent.*;
 import static org.opends.server.replication.protocol.ProtocolVersion.*;
+import static org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -1347,12 +1348,12 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
    * @return a non null {@link DBCursor} going from oldest to newest CSN
    * @throws ChangelogException
    *           If a database problem happened
-   * @see ReplicationDomainDB#getCursorFrom(DN, ServerState)
+   * @see ReplicationDomainDB#getCursorFrom(DN, ServerState, PositionStrategy)
    */
   public DBCursor<UpdateMsg> getCursorFrom(ServerState startAfterServerState)
       throws ChangelogException
   {
-    return domainDB.getCursorFrom(baseDN, startAfterServerState);
+    return domainDB.getCursorFrom(baseDN, startAfterServerState, AFTER_MATCHING_KEY);
   }
 
   /**
