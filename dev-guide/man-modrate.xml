@@ -75,6 +75,20 @@
      <para>Base DN format string</para>
     </listitem>
    </varlistentry>
+
+   <varlistentry>
+    <term><option>-B, --warmUpDuration {warmUpDuration}</option></term>
+    <listitem>
+     <para>
+      Warm up duration in seconds
+     </para>
+
+     <para>
+      Default value: 0
+     </para>
+    </listitem>
+   </varlistentry>
+
    <varlistentry>
     <term><option>-c, --numConnections {numConnections}</option></term>
     <listitem>
@@ -82,6 +96,20 @@
      <para>Default value: 1</para>
     </listitem>
    </varlistentry>
+
+   <varlistentry>
+    <term><option>-d, --maxDuration {maxDuration}</option></term>
+    <listitem>
+     <para>
+      Maximum duration in seconds, 0 for unlimited
+     </para>
+
+     <para>
+      Default value: 0
+     </para>
+    </listitem>
+   </varlistentry>
+
    <varlistentry>
     <term><option>-e, --percentile {percentile}</option></term>
     <listitem>
