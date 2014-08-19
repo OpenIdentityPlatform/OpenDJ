@@ -35,10 +35,10 @@ import org.testng.annotations.Test;
 import static org.assertj.core.api.Assertions.*;
 
 /**
- * Test the ReplicaOfflineCursor class.
+ * Test the {@link ReplicaCursor} class.
  */
 @SuppressWarnings("javadoc")
-public class ReplicaOfflineCursorTest extends ReplicationTestCase
+public class ReplicaCursorTest extends ReplicationTestCase
 {
 
   private int timestamp;
@@ -55,7 +55,7 @@ public class ReplicaOfflineCursorTest extends ReplicationTestCase
   {
     delegateCursor = new SequentialDBCursor();
 
-    final ReplicaOfflineCursor cursor = new ReplicaOfflineCursor(delegateCursor, null);
+    final ReplicaCursor cursor = newReplicaCursor(delegateCursor, null);
     assertThat(cursor.getRecord()).isNull();
     assertThat(cursor.next()).isFalse();
     assertThat(cursor.getRecord()).isNull();
@@ -67,7 +67,7 @@ public class ReplicaOfflineCursorTest extends ReplicationTestCase
     final UpdateMsg updateMsg = new FakeUpdateMsg(timestamp++);
     delegateCursor = new SequentialDBCursor(updateMsg);
 
-    final ReplicaOfflineCursor cursor = new ReplicaOfflineCursor(delegateCursor, null);
+    final ReplicaCursor cursor = newReplicaCursor(delegateCursor, null);
     assertThat(cursor.getRecord()).isNull();
     assertThat(cursor.next()).isTrue();
     assertThat(cursor.getRecord()).isSameAs(updateMsg);
@@ -81,7 +81,7 @@ public class ReplicaOfflineCursorTest extends ReplicationTestCase
     delegateCursor = new SequentialDBCursor();
 
     final CSN offlineCSN = new CSN(timestamp++, 1, 1);
-    final ReplicaOfflineCursor cursor = new ReplicaOfflineCursor(delegateCursor, offlineCSN);
+    final ReplicaCursor cursor = newReplicaCursor(delegateCursor, offlineCSN);
     assertThat(cursor.getRecord()).isNull();
     assertThat(cursor.next()).isTrue();
     final UpdateMsg record = cursor.getRecord();
@@ -98,7 +98,7 @@ public class ReplicaOfflineCursorTest extends ReplicationTestCase
     delegateCursor = new SequentialDBCursor(updateMsg);
 
     final CSN offlineCSN = new CSN(timestamp++, 1, 1);
-    final ReplicaOfflineCursor cursor = new ReplicaOfflineCursor(delegateCursor, offlineCSN);
+    final ReplicaCursor cursor = newReplicaCursor(delegateCursor, offlineCSN);
     assertThat(cursor.getRecord()).isNull();
     assertThat(cursor.next()).isTrue();
     assertThat(cursor.getRecord()).isSameAs(updateMsg);
@@ -118,12 +118,17 @@ public class ReplicaOfflineCursorTest extends ReplicationTestCase
     final UpdateMsg updateMsg = new FakeUpdateMsg(timestamp++);
     delegateCursor = new SequentialDBCursor(updateMsg);
 
-    final ReplicaOfflineCursor cursor = new ReplicaOfflineCursor(delegateCursor, outdatedOfflineCSN);
+    final ReplicaCursor cursor = newReplicaCursor(delegateCursor, outdatedOfflineCSN);
     assertThat(cursor.getRecord()).isNull();
     assertThat(cursor.next()).isTrue();
     assertThat(cursor.getRecord()).isSameAs(updateMsg);
     assertThat(cursor.next()).isFalse();
     assertThat(cursor.getRecord()).isNull();
+  }
+
+  private ReplicaCursor newReplicaCursor(DBCursor<UpdateMsg> delegateCursor, CSN offlineCSN)
+  {
+    return new ReplicaCursor(delegateCursor, offlineCSN, null, null);
   }
 
 }

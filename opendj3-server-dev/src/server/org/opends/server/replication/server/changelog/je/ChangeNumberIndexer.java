@@ -541,11 +541,10 @@ public class ChangeNumberIndexer extends DirectoryThread
         /*
          * replica is not back online, Medium consistency point has gone past
          * its last offline time, and there are no more changes after the
-         * offline CSN in the cursor: remove everything known about it:
-         * cursor, offlineCSN from lastAliveCSN and remove all knowledge of
-         * this replica from the medium consistency RUV.
+         * offline CSN in the cursor: remove everything known about it
+         * (offlineCSN from lastAliveCSN and remove all knowledge of this replica
+         * from the medium consistency RUV).
          */
-        // TODO JNR how to close cursor for offline replica?
         lastAliveCSNs.removeCSN(mcBaseDN, offlineCSN);
         mediumConsistencyRUV.removeCSN(mcBaseDN, offlineCSN);
       }
