@@ -87,6 +87,7 @@
    <filename>/path/to/opendj-ldap-toolkit-<?eval ${sdkDocTargetVersion}?>/bin</filename>.</para>
   </partintro>
 
+  <xinclude:include href='man-addrate.xml' />
   <xinclude:include href='man-authrate.xml' />
   <xinclude:include href='man-ldapcompare.xml' />
   <xinclude:include href='man-ldapmodify.xml' />
