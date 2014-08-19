@@ -947,6 +947,7 @@ Clear                   : clear         : true
 CRYPT                   : crypt         : true
 MD5                     : md5           : true
 PBKDF2                  : pbkdf2        : true
+PKCS5S2                 : pkcs5s2       : true
 RC4                     : rc4           : true
 Salted MD5              : salted-md5    : true
 Salted SHA-1            : salted-sha1   : true

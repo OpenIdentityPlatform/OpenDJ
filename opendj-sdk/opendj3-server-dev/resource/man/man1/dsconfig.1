@@ -1,13 +1,13 @@
 '\" t
 .\"     Title: dsconfig
 .\"    Author: 
-.\" Generator: DocBook XSL-NS Stylesheets v1.76.1 <http://docbook.sf.net/>
-.\"      Date: 06/19/2013
+.\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
+.\"      Date: 08/19/2014
 .\"    Manual: Tools Reference
-.\"    Source: OpenDJ 2.6.0
+.\"    Source: OpenDJ 3.0.0-SNAPSHOT
 .\"  Language: English
 .\"
-.TH "DSCONFIG" "1" "06/19/2013" "OpenDJ 2\&.6\&.0" "Tools Reference"
+.TH "DSCONFIG" "1" "08/19/2014" "OpenDJ 3\&.0\&.0\-SNAPSHOT" "Tools Reference"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -359,9 +359,118 @@ get\-\fIcomponent\fR\-prop
 set\-\fIcomponent\fR\-prop
 .RE
 .PP
-Component properties for the
-\fBdsconfig\fR
-command are covered in the
+Here,
+\fIcomponent\fR
+names correspond to the names of managed object types referred to as
+\m[blue]\fBComponents\fR\m[]
+in the
+OpenDJ Configuration Reference, and that have no parent components\&. (In other words, only the names of components with no parents correspond to subcommands\&.) Subcommand
+\fIcomponent\fR
+names are lower\-case, hyphenated versions of the friendly names used in the
+OpenDJ Configuration Reference\&. When you act on an actual configuration component, you provide the name of the component as an option argument\&.
+.PP
+For example, the Log Publisher component has these corresponding subcommands\&.
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+\fBcreate\-log\-publisher\fR
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+\fBlist\-log\-publishers\fR
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+\fBdelete\-log\-publisher\fR
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+\fBget\-log\-publisher\-prop\fR
+.RE
+.sp
+.RS 4
+.ie n \{\
+\h'-04'\(bu\h'+03'\c
+.\}
+.el \{\
+.sp -1
+.IP \(bu 2.3
+.\}
+\fBset\-log\-publisher\-prop\fR
+.RE
+.PP
+When you create or delete Log Publisher components and when you get and set their configuration properties, you provide the name of the actual log publisher, which you can find by using the
+\fBlist\-log\-publishers\fR
+subcommand\&.
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+$ \fBdsconfig \e
+ list\-log\-publishers \e
+ \-\-hostname opendj\&.example\&.com \e
+ \-\-port 4444 \e
+ \-\-bindDN "cn=Directory Manager" \e
+ \-\-bindPassword password \e
+ \-\-trustAll\fR
+
+Log Publisher                 : Type                   : enabled
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-:\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-:\-\-\-\-\-\-\-\-
+File\-Based Access Logger      : file\-based\-access      : true
+File\-Based Audit Logger       : file\-based\-audit       : false
+File\-Based Debug Logger       : file\-based\-debug       : false
+File\-Based Error Logger       : file\-based\-error       : true
+File\-Based HTTP Access Logger : file\-based\-http\-access : false
+Replication Repair Logger     : file\-based\-error       : true
+
+$ \fBdsconfig \e
+ get\-log\-publisher\-prop \e
+ \-\-publisher\-name "File\-Based Access Logger" \e
+ \-\-property rotation\-policy \e
+ \-\-hostname opendj\&.example\&.com \e
+ \-\-port 4444 \e
+ \-\-bindDN "cn=Directory Manager" \e
+ \-\-bindPassword password \e
+ \-\-trustAll\fR
+Property        : Value(s)
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-:\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+rotation\-policy : 24 Hours Time Limit Rotation Policy, Size Limit Rotation
+                : Policy
+  
+.fi
+.if n \{\
+.RE
+.\}
+.PP
+To find documentation for specific component properties, also see the
 \m[blue]\fBOpenDJ Configuration Reference\fR\m[]\&.
 .PP
 Many subcommands let you set property values\&. Notice in the reference for the subcommands below that specific options are available for handling multi\-valued properties\&. Whereas you can assign a single property value using the
@@ -875,7 +984,7 @@ Assigns a value to a property where PROP is the name of the property and VALUE i
 .PP
 \fB\-t | \-\-type {type}\fR
 .RS 4
-The type of Password Storage Scheme which should be created\&. The value for TYPE can be one of: aes | base64 | blowfish | clear | crypt | custom | md5 | pbkdf2 | rc4 | salted\-md5 | salted\-sha1 | salted\-sha256 | salted\-sha384 | salted\-sha512 | sha1 | triple\-des
+The type of Password Storage Scheme which should be created\&. The value for TYPE can be one of: aes | base64 | blowfish | clear | crypt | custom | md5 | pbkdf2 | pkcs5s2 | rc4 | salted\-md5 | salted\-sha1 | salted\-sha256 | salted\-sha384 | salted\-sha512 | sha1 | triple\-des
 .RE
 .SS "dsconfig create\-password\-validator"
 .PP
@@ -4312,7 +4421,7 @@ in interactive, menu\-driven mode on the default port of the current host\&.
 .RS 4
 .\}
 .nf
-$ dsconfig \-h `hostname` \-p 4444 \-D "cn=Directory Manager" \-w password
+$ \fBdsconfig \-h opendj\&.example\&.com \-p 4444 \-D "cn=Directory Manager" \-w password\fR
 
 >>>> OpenDJ configuration console main menu
 
@@ -4341,26 +4450,27 @@ What do you want to configure?
 
     q)   quit
 
-Enter choice: 
+Enter choice:
+  
 .fi
 .if n \{\
 .RE
 .\}
 .PP
-The following examples demonstrates generating a batch file that corresponds to an interactive session enabling the debug log\&. The example then demonstates using a modified batch file to disable the debug log\&.
+The following examples demonstrates generating a batch file that corresponds to an interactive session enabling the debug log\&. The example then demonstrates using a modified batch file to disable the debug log\&.
 .sp
 .if n \{\
 .RS 4
 .\}
 .nf
-$ dsconfig
- \-\-hostname `hostname`
- \-\-port 4444
- \-\-bindDN "cn=Directory Manager"
- \-\-bindPassword password
- \-\-commandFilePath ~/enable\-debug\-log\&.batch
+$ \fBdsconfig \e
+ \-\-hostname opendj\&.example\&.com \e
+ \-\-port 4444 \e
+ \-\-bindDN "cn=Directory Manager" \e
+ \-\-bindPassword password \e
+ \-\-commandFilePath ~/enable\-debug\-log\&.batch\fR
  \&.\&.\&.
-$ cat ~/enable\-debug\-log\&.batch
+$ \fBcat ~/enable\-debug\-log\&.batch\fR
 # dsconfig session start date: 19/Oct/2011:08:52:22 +0000
 
 # Session operation number: 1
@@ -4375,9 +4485,9 @@ dsconfig set\-log\-publisher\-prop \e
           \-\-bindPassword ****** \e
           \-\-no\-prompt
 
-$ cp ~/enable\-debug\-log\&.batch ~/disable\-debug\-log\&.batch
-$ vi ~/disable\-debug\-log\&.batch
-$ cat ~/disable\-debug\-log\&.batch
+$ \fBcp ~/enable\-debug\-log\&.batch ~/disable\-debug\-log\&.batch\fR
+$ \fBvi ~/disable\-debug\-log\&.batch\fR
+$ \fBcat ~/disable\-debug\-log\&.batch\fR
 set\-log\-publisher\-prop \e
           \-\-publisher\-name File\-Based\e Debug\e Logger \e
           \-\-set enabled:false \e
@@ -4388,7 +4498,7 @@ set\-log\-publisher\-prop \e
           \-\-bindPassword password \e
           \-\-no\-prompt
 
-$ dsconfig \-\-batchFilePath ~/disable\-debug\-log\&.batch \-\-no\-prompt
+$ \fBdsconfig \-\-batchFilePath ~/disable\-debug\-log\&.batch \-\-no\-prompt\fR
 set\-log\-publisher\-prop
 \-\-publisher\-name
 File\-Based Debug Logger
@@ -4407,6 +4517,7 @@ password
 \-\-no\-prompt
 
 $
+  
 .fi
 .if n \{\
 .RE
@@ -4418,5 +4529,5 @@ dsconfig
 itself, and include the bind password for the administrative user (or replace that option with an alternative, such as reading the password from a file)\&.
 .SH "COPYRIGHT"
 .br
-Copyright \(co 2011-2013 ForgeRock AS
+Copyright \(co 2011-2014 ForgeRock AS
 .br
