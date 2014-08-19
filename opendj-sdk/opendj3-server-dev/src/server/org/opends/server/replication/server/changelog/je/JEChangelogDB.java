@@ -42,7 +42,6 @@ import org.opends.server.api.DirectoryThread;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.MultiDomainServerState;
 import org.opends.server.replication.common.ServerState;
-import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ChangelogState;
 import org.opends.server.replication.server.ReplicationServer;
@@ -251,8 +250,7 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
     }
 
     // unlucky, the domainMap does not exist: take the hit and create the
-    // newValue, even though the same could be done concurrently by another
-    // thread
+    // newValue, even though the same could be done concurrently by another thread
     final ConcurrentMap<Integer, JEReplicaDB> newValue = new ConcurrentHashMap<Integer, JEReplicaDB>();
     final ConcurrentMap<Integer, JEReplicaDB> previousValue = domainToReplicaDBs.putIfAbsent(baseDN, newValue);
     if (previousValue != null)
@@ -261,13 +259,10 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
       return previousValue;
     }
 
-    if (MultimasterReplication.isECLEnabledDomain(baseDN))
+    // we just created a new domain => update all cursors
+    for (MultiDomainDBCursor cursor : registeredMultiDomainCursors)
     {
-      // we just created a new domain => update all cursors
-      for (MultiDomainDBCursor cursor : registeredMultiDomainCursors)
-      {
-        cursor.addDomain(baseDN, null);
-      }
+      cursor.addDomain(baseDN, null);
     }
     return newValue;
   }

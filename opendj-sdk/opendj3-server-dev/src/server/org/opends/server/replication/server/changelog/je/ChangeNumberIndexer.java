@@ -34,7 +34,6 @@ import org.opends.server.api.DirectoryThread;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.MultiDomainServerState;
 import org.opends.server.replication.common.ServerState;
-import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.protocol.ReplicaOfflineMsg;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ChangelogState;
@@ -42,11 +41,11 @@ import org.opends.server.replication.server.changelog.api.ChangeNumberIndexRecor
 import org.opends.server.replication.server.changelog.api.ChangelogDB;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.ReplicationDomainDB;
-import org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
 
 import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -71,6 +70,7 @@ public class ChangeNumberIndexer extends DirectoryThread
   private final ChangelogDB changelogDB;
   /** Only used for initialization, and then discarded. */
   private ChangelogState changelogState;
+  private final ECLEnabledDomainPredicate predicate;
 
   /*
    * The following MultiDomainServerState fields must be thread safe, because
@@ -119,7 +119,7 @@ public class ChangeNumberIndexer extends DirectoryThread
    *
    * @NonNull
    */
-  private MultiDomainDBCursor nextChangeForInsertDBCursor;
+  private ECLMultiDomainDBCursor nextChangeForInsertDBCursor;
 
   /**
    * Builds a ChangeNumberIndexer object.
@@ -131,9 +131,26 @@ public class ChangeNumberIndexer extends DirectoryThread
    */
   ChangeNumberIndexer(ChangelogDB changelogDB, ChangelogState changelogState)
   {
+    this(changelogDB, changelogState, new ECLEnabledDomainPredicate());
+  }
+
+  /**
+   * Builds a ChangeNumberIndexer object.
+   *
+   * @param changelogDB
+   *          the changelogDB
+   * @param changelogState
+   *          the changelog state used for initialization
+   * @param predicate
+   *          tells whether a domain is enabled for the external changelog
+   */
+  ChangeNumberIndexer(ChangelogDB changelogDB, ChangelogState changelogState,
+      ECLEnabledDomainPredicate predicate)
+  {
     super("Change number indexer");
     this.changelogDB = changelogDB;
     this.changelogState = changelogState;
+    this.predicate = predicate;
   }
 
   /**
@@ -146,7 +163,7 @@ public class ChangeNumberIndexer extends DirectoryThread
    */
   public void publishHeartbeat(DN baseDN, CSN heartbeatCSN)
   {
-    if (!isECLEnabledDomain(baseDN))
+    if (!predicate.isECLEnabledDomain(baseDN))
     {
       return;
     }
@@ -169,7 +186,7 @@ public class ChangeNumberIndexer extends DirectoryThread
   public void publishUpdateMsg(DN baseDN, UpdateMsg updateMsg)
       throws ChangelogException
   {
-    if (!isECLEnabledDomain(baseDN))
+    if (!predicate.isECLEnabledDomain(baseDN))
     {
       return;
     }
@@ -177,24 +194,6 @@ public class ChangeNumberIndexer extends DirectoryThread
     final CSN oldestCSNBefore = getOldestLastAliveCSN();
     lastAliveCSNs.update(baseDN, updateMsg.getCSN());
     tryNotify(oldestCSNBefore);
-  }
-
-  /**
-   * Returns whether the provided baseDN represents a replication domain enabled
-   * for the external changelog.
-   * <p>
-   * This method is a test seam that break the dependency on a static method.
-   *
-   * @param baseDN
-   *          the replication domain to check
-   * @return true if the provided baseDN is enabled for the external changelog,
-   *         false if the provided baseDN is disabled for the external changelog
-   *         or unknown to multimaster replication.
-   * @see MultimasterReplication#isECLEnabledDomain(DN)
-   */
-  protected boolean isECLEnabledDomain(DN baseDN)
-  {
-    return MultimasterReplication.isECLEnabledDomain(baseDN);
   }
 
   /**
@@ -207,7 +206,7 @@ public class ChangeNumberIndexer extends DirectoryThread
    */
   public void replicaOffline(DN baseDN, CSN offlineCSN)
   {
-    if (!isECLEnabledDomain(baseDN))
+    if (!predicate.isECLEnabledDomain(baseDN))
     {
       return;
     }
@@ -320,7 +319,7 @@ public class ChangeNumberIndexer extends DirectoryThread
     for (Entry<DN, Set<Integer>> entry : changelogState.getDomainToServerIds().entrySet())
     {
       final DN baseDN = entry.getKey();
-      if (isECLEnabledDomain(baseDN))
+      if (predicate.isECLEnabledDomain(baseDN))
       {
         for (Integer serverId : entry.getValue())
         {
@@ -336,7 +335,8 @@ public class ChangeNumberIndexer extends DirectoryThread
       }
     }
 
-    nextChangeForInsertDBCursor = domainDB.getCursorFrom(mediumConsistencyRUV, PositionStrategy.AFTER_MATCHING_KEY);
+    nextChangeForInsertDBCursor = new ECLMultiDomainDBCursor(predicate,
+        domainDB.getCursorFrom(mediumConsistencyRUV, AFTER_MATCHING_KEY));
     nextChangeForInsertDBCursor.next();
 
     if (newestRecord != null)
@@ -367,7 +367,7 @@ public class ChangeNumberIndexer extends DirectoryThread
     {
       for (CSN offlineCSN : offlineReplicas.getServerState(baseDN))
       {
-        if (isECLEnabledDomain(baseDN))
+        if (predicate.isECLEnabledDomain(baseDN))
         {
           replicasOffline.update(baseDN, offlineCSN);
           // a replica offline message could also be the very last time
