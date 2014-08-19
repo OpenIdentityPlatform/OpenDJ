@@ -136,6 +136,7 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
   private Map<DN, DomainDBCursor> domainDBCursors;
   private ChangelogState initialState;
   private Map<DN, ServerState> domainNewestCSNs;
+  private ECLEnabledDomainPredicate predicate;
   private ChangeNumberIndexer cnIndexer;
   private MultiDomainServerState initialCookie;
 
@@ -592,7 +593,7 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
     final SequentialDBCursor replicaDBCursor = new SequentialDBCursor();
     replicaDBCursors.put(Pair.of(baseDN, serverId), replicaDBCursor);
 
-    if (isECLEnabledDomain2(baseDN))
+    if (predicate.isECLEnabledDomain(baseDN))
     {
       DomainDBCursor domainDBCursor = domainDBCursors.get(baseDN);
       if (domainDBCursor == null)
@@ -627,22 +628,17 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
 
   private void startCNIndexer()
   {
-    cnIndexer = new ChangeNumberIndexer(changelogDB, initialState)
+    predicate = new ECLEnabledDomainPredicate()
     {
       @Override
-      protected boolean isECLEnabledDomain(DN baseDN)
+      public boolean isECLEnabledDomain(DN baseDN)
       {
-        return isECLEnabledDomain2(baseDN);
+        return eclEnabledDomains.contains(baseDN);
       }
-
     };
+    cnIndexer = new ChangeNumberIndexer(changelogDB, initialState, predicate);
     cnIndexer.start();
     waitForWaitingState(cnIndexer);
-  }
-
-  private boolean isECLEnabledDomain2(DN baseDN)
-  {
-    return eclEnabledDomains.contains(baseDN);
   }
 
   private void stopCNIndexer() throws Exception
