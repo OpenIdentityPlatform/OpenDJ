@@ -29,6 +29,7 @@ import java.io.File;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -49,7 +50,7 @@ import org.opends.server.replication.server.changelog.api.DBCursor.PositionStrat
 import org.opends.server.replication.server.changelog.je.ChangeNumberIndexer;
 import org.opends.server.replication.server.changelog.je.DomainDBCursor;
 import org.opends.server.replication.server.changelog.je.MultiDomainDBCursor;
-import org.opends.server.replication.server.changelog.je.ReplicaOfflineCursor;
+import org.opends.server.replication.server.changelog.je.ReplicaCursor;
 import org.opends.server.types.DN;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.util.StaticUtils;
@@ -94,6 +95,8 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
       new HashMap<DN, List<DomainDBCursor>>();
   private final CopyOnWriteArrayList<MultiDomainDBCursor> registeredMultiDomainCursors =
       new CopyOnWriteArrayList<MultiDomainDBCursor>();
+  private final ConcurrentSkipListMap<Pair<DN, Integer>, List<ReplicaCursor>> replicaCursors =
+      new ConcurrentSkipListMap<Pair<DN, Integer>, List<ReplicaCursor>>(Pair.COMPARATOR);
   private ReplicationEnvironment replicationEnv;
   private final ReplicationServerCfg config;
   private final File dbDirectory;
@@ -714,16 +717,28 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
   /** {@inheritDoc} */
   @Override
   public DBCursor<UpdateMsg> getCursorFrom(final DN baseDN, final int serverId, final CSN startCSN,
-      PositionStrategy positionStrategy) throws ChangelogException
+      final PositionStrategy positionStrategy) throws ChangelogException
   {
     final FileReplicaDB replicaDB = getReplicaDB(baseDN, serverId);
     if (replicaDB != null)
     {
       final DBCursor<UpdateMsg> cursor = replicaDB.generateCursorFrom(startCSN, positionStrategy);
       final CSN offlineCSN = getOfflineCSN(baseDN, serverId, startCSN);
-      // TODO JNR if (offlineCSN != null) ??
-      // What about replicas that suddenly become offline?
-      return new ReplicaOfflineCursor(cursor, offlineCSN);
+      final Pair<DN, Integer> replicaID = Pair.of(baseDN, serverId);
+      final ReplicaCursor replicaCursor = new ReplicaCursor(cursor, offlineCSN, replicaID, this);
+
+      synchronized (replicaCursors)
+      {
+        List<ReplicaCursor> cursors = replicaCursors.get(replicaID);
+        if (cursors == null)
+        {
+          cursors = new ArrayList<ReplicaCursor>();
+          replicaCursors.put(replicaID, cursors);
+        }
+        cursors.add(replicaCursor);
+      }
+
+      return replicaCursor;
     }
     return EMPTY_CURSOR_REPLICA_DB;
   }
@@ -746,6 +761,15 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
         {
           cursors.remove(cursor);
         }
+      }
+    }
+    else if (cursor instanceof ReplicaCursor)
+    {
+      final ReplicaCursor replicaCursor = (ReplicaCursor) cursor;
+      final List<ReplicaCursor> cursors = replicaCursors.get(replicaCursor.getReplicaID());
+      if (cursors != null)
+      {
+        cursors.remove(cursor);
       }
     }
   }
@@ -788,6 +812,7 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
     {
       replicationEnv.notifyReplicaOnline(baseDN, serverId);
     }
+    updateCursorsWithOfflineCSN(baseDN, serverId, null);
   }
 
   /** {@inheritDoc} */
@@ -799,6 +824,19 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
     if (indexer != null)
     {
       indexer.replicaOffline(baseDN, offlineCSN);
+    }
+    updateCursorsWithOfflineCSN(baseDN, offlineCSN.getServerId(), offlineCSN);
+  }
+
+  private void updateCursorsWithOfflineCSN(final DN baseDN, final int serverId, final CSN offlineCSN)
+  {
+    final List<ReplicaCursor> cursors = replicaCursors.get(Pair.of(baseDN, serverId));
+    if (cursors != null)
+    {
+      for (ReplicaCursor cursor : cursors)
+      {
+        cursor.setOfflineCSN(offlineCSN);
+      }
     }
   }
 
