@@ -27,7 +27,6 @@ package org.opends.server.replication.server.changelog.je;
 import java.util.Iterator;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentSkipListMap;
-import java.util.concurrent.ConcurrentSkipListSet;
 
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.protocol.UpdateMsg;
@@ -47,8 +46,6 @@ public class MultiDomainDBCursor extends CompositeDBCursor<DN>
 
   private final ConcurrentSkipListMap<DN, ServerState> newDomains =
       new ConcurrentSkipListMap<DN, ServerState>();
-  private final ConcurrentSkipListSet<DN> removeDomains =
-      new ConcurrentSkipListSet<DN>();
 
   private final PositionStrategy positionStrategy;
 
@@ -108,14 +105,7 @@ public class MultiDomainDBCursor extends CompositeDBCursor<DN>
    */
   public void removeDomain(DN baseDN)
   {
-    removeDomains.add(baseDN);
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  protected Iterator<DN> removedCursorsIterator()
-  {
-    return removeDomains.iterator();
+    removeCursor(baseDN);
   }
 
   /** {@inheritDoc} */
@@ -125,7 +115,6 @@ public class MultiDomainDBCursor extends CompositeDBCursor<DN>
     super.close();
     domainDB.unregisterCursor(this);
     newDomains.clear();
-    removeDomains.clear();
   }
 
 }

@@ -107,7 +107,6 @@ abstract class CompositeDBCursor<Data> implements DBCursor<UpdateMsg>
       addCursor(cursorToAdvance.getKey(), cursorToAdvance.getValue());
     }
 
-    removeNoLongerNeededCursors();
     incorporateNewCursors();
     return !cursors.isEmpty();
   }
@@ -127,31 +126,31 @@ abstract class CompositeDBCursor<Data> implements DBCursor<UpdateMsg>
     }
   }
 
-  private void removeNoLongerNeededCursors()
+  /**
+   * Removes the cursor matching the provided data.
+   *
+   * @param dataToFind
+   *          the data for which the cursor must be found and removed
+   */
+  protected void removeCursor(final Data dataToFind)
   {
-    for (final Iterator<Data> iter = removedCursorsIterator(); iter.hasNext();)
-    {
-      final Data dataToFind = iter.next();
-      for (Iterator<Entry<DBCursor<UpdateMsg>, Data>> cursorIter =
-          cursors.entrySet().iterator(); cursorIter.hasNext();)
-      {
-        final Entry<DBCursor<UpdateMsg>, Data> entry = cursorIter.next();
-        if (dataToFind.equals(entry.getValue()))
-        {
-          entry.getKey().close();
-          cursorIter.remove();
-        }
-      }
-      iter.remove();
-    }
+    removeCursor(this.cursors, dataToFind);
+    removeCursor(this.exhaustedCursors, dataToFind);
   }
 
-  /**
-   * Returns an Iterator over the data associated to cursors that must be removed.
-   *
-   * @return an Iterator over the data associated to cursors that must be removed.
-   */
-  protected abstract Iterator<Data> removedCursorsIterator();
+  private void removeCursor(Map<DBCursor<UpdateMsg>, Data> cursors, Data dataToFind)
+  {
+    for (Iterator<Entry<DBCursor<UpdateMsg>, Data>> cursorIter =
+        cursors.entrySet().iterator(); cursorIter.hasNext();)
+    {
+      final Entry<DBCursor<UpdateMsg>, Data> entry = cursorIter.next();
+      if (dataToFind.equals(entry.getValue()))
+      {
+        entry.getKey().close();
+        cursorIter.remove();
+      }
+    }
+  }
 
   /**
    * Adds a cursor to this composite cursor. It first calls
