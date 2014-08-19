@@ -25,11 +25,6 @@
  */
 package org.opends.server.replication.server.changelog.je;
 
-import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy.*;
-import static org.opends.server.util.StaticUtils.*;
-
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
@@ -49,6 +44,11 @@ import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.ReplicationDomainDB;
 import org.opends.server.types.DN;
 import org.opends.server.types.DirectoryException;
+
+import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * Thread responsible for inserting replicated changes into the ChangeNumber
@@ -430,26 +430,13 @@ public class ChangeNumberIndexer extends DirectoryThread
       {
         try
         {
-          if (!domainsToClear.isEmpty())
+          while (!domainsToClear.isEmpty())
           {
-            final DN cursorData = nextChangeForInsertDBCursor.getData();
-            final boolean callNextOnCursor =
-                cursorData != null && domainsToClear.contains(cursorData);
-            while (!domainsToClear.isEmpty())
-            {
-              final DN baseDNToClear = domainsToClear.first();
-              nextChangeForInsertDBCursor.removeDomain(baseDNToClear);
-              // Only release the waiting thread
-              // once this domain's state has been cleared.
-              domainsToClear.remove(baseDNToClear);
-            }
-
-            if (callNextOnCursor)
-            {
-              // The next change to consume comes from a domain to be removed.
-              // Call DBCursor.next() to ensure this domain is removed
-              nextChangeForInsertDBCursor.next();
-            }
+            final DN baseDNToClear = domainsToClear.first();
+            nextChangeForInsertDBCursor.removeDomain(baseDNToClear);
+            // Only release the waiting thread
+            // once this domain's state has been cleared.
+            domainsToClear.remove(baseDNToClear);
           }
 
           // Do not call DBCursor.next() here
