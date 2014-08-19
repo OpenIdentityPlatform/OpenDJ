@@ -1038,7 +1038,7 @@ rotation-policy : 24 Hours Time Limit Rotation Policy, Size Limit Rotation
   <varlistentry>
    <term><option>-t | --type {type}</option></term>
    <listitem>
-    <para>The type of Password Storage Scheme which should be created. The value for TYPE can be one of: aes | base64 | blowfish | clear | crypt | custom | md5 | pbkdf2 | rc4 | salted-md5 | salted-sha1 | salted-sha256 | salted-sha384 | salted-sha512 | sha1 | triple-des</para>
+    <para>The type of Password Storage Scheme which should be created. The value for TYPE can be one of: aes | base64 | blowfish | clear | crypt | custom | md5 | pbkdf2 | pkcs5s2 | rc4 | salted-md5 | salted-sha1 | salted-sha256 | salted-sha384 | salted-sha512 | sha1 | triple-des</para>
    </listitem>
   </varlistentry>
  </variablelist>
