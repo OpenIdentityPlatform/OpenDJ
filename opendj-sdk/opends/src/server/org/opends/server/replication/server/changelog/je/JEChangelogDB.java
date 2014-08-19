@@ -34,7 +34,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.forgerock.util.Reject;
 import org.opends.messages.MessageBuilder;
 import org.opends.server.admin.std.server.ReplicationServerCfg;
 import org.opends.server.api.DirectoryThread;
@@ -183,7 +182,9 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
     catch (Exception e)
     {
       if (debugEnabled())
+      {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
+      }
 
       final MessageBuilder mb = new MessageBuilder(e.getLocalizedMessage()).append(" ")
           .append(String.valueOf(dbDirectory));
@@ -585,7 +586,9 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
             firstException = e;
           }
           else if (debugEnabled())
+          {
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          }
         }
       }
     }
@@ -687,7 +690,9 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
         catch (Exception e)
         {
           if (debugEnabled())
+          {
             TRACER.debugCaught(DebugLogLevel.ERROR, e);
+          }
           logError(ERR_CHANGENUMBER_DATABASE.get(e.getLocalizedMessage()));
         }
       }
@@ -765,12 +770,10 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
   public DBCursor<UpdateMsg> getCursorFrom(final DN baseDN, final int serverId, final CSN startCSN,
       final PositionStrategy positionStrategy) throws ChangelogException
   {
-    Reject.ifTrue(positionStrategy == PositionStrategy.ON_MATCHING_KEY, "The position strategy ON_MATCHING_KEY"
-        + " is not supported for the JE implementation fo changelog");
     final JEReplicaDB replicaDB = getReplicaDB(baseDN, serverId);
     if (replicaDB != null)
     {
-      final DBCursor<UpdateMsg> cursor = replicaDB.generateCursorFrom(startCSN);
+      final DBCursor<UpdateMsg> cursor = replicaDB.generateCursorFrom(startCSN, positionStrategy);
       final CSN offlineCSN = getOfflineCSN(baseDN, serverId, startCSN);
       final Pair<DN, Integer> replicaID = Pair.of(baseDN, serverId);
       final ReplicaCursor replicaCursor = new ReplicaCursor(cursor, offlineCSN, replicaID, this);
@@ -860,7 +863,7 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
     {
       replicationEnv.notifyReplicaOnline(baseDN, serverId);
     }
-    updateCursorsWithOfflineCSN(baseDN, null);
+    updateCursorsWithOfflineCSN(baseDN, serverId, null);
   }
 
   /** {@inheritDoc} */
@@ -873,12 +876,12 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
     {
       indexer.replicaOffline(baseDN, offlineCSN);
     }
-    updateCursorsWithOfflineCSN(baseDN, offlineCSN);
+    updateCursorsWithOfflineCSN(baseDN, offlineCSN.getServerId(), offlineCSN);
   }
 
-  private void updateCursorsWithOfflineCSN(final DN baseDN, final CSN offlineCSN)
+  private void updateCursorsWithOfflineCSN(final DN baseDN, int serverId, final CSN offlineCSN)
   {
-    final List<ReplicaCursor> cursors = replicaCursors.get(Pair.of(baseDN, offlineCSN));
+    final List<ReplicaCursor> cursors = replicaCursors.get(Pair.of(baseDN, serverId));
     if (cursors != null && !cursors.isEmpty())
     {
       for (ReplicaCursor cursor : cursors)
