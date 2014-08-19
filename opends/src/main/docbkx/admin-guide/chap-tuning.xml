@@ -212,10 +212,21 @@
   xlink:role="http://docbook.org/xlink/role/olink">make-ldif</link> to generate
   sample data that match what you expect to find in production.</para>
   
-  <para>The OpenDJ LDAP Toolkit provides three command-line tools to help
-  with basic performance testing.</para>
+  <para>
+   The OpenDJ LDAP Toolkit provides command-line tools
+   to help with basic performance testing.
+  </para>
   
   <itemizedlist>
+   <listitem>
+    <para>
+     The
+     <link
+      xlink:show="new"
+      xlink:href="${coreDocBase}dev-guide#addrate-1"
+     >addrate</link> command measures add and delete throughput and response time.
+    </para>
+   </listitem>
    <listitem>
     <para>The <link xlink:show="new"
     xlink:href="${coreDocBase}dev-guide#authrate-1">authrate</link> command
@@ -233,9 +244,10 @@
    </listitem>
   </itemizedlist>
   
-  <para>All three commands show you information about the response time
-  distributions, and allow you to perform tests at specific levels of
-  throughput.</para>
+  <para>
+   All these commands show you information about the response time distributions,
+   and allow you to perform tests at specific levels of throughput.
+  </para>
 
   <para>If you need additional precision when evaluating response times, use
   the global configuration setting <literal>etime-resolution</literal> to
