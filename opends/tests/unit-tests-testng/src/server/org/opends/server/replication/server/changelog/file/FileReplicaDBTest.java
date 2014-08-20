@@ -27,7 +27,10 @@ package org.opends.server.replication.server.changelog.file;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 
+import org.assertj.core.api.SoftAssertions;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.ReplicationServerCfgDefn.ReplicationDBImplementation;
 import org.opends.server.admin.std.server.ReplicationServerCfg;
@@ -40,20 +43,21 @@ import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
+import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
 import org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DN;
-import org.opends.server.util.StaticUtils;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import static org.testng.Assert.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy.*;
+import static org.opends.server.util.StaticUtils.*;
+import static org.testng.Assert.*;
 
 /**
  * Test the FileReplicaDB class
@@ -124,9 +128,7 @@ public class FileReplicaDBTest extends ReplicationTestCase
     }
     finally
     {
-      if (replicaDB != null) {
-        replicaDB.shutdown();
-      }
+      shutdown(replicaDB);
       remove(replicationServer);
     }
   }
@@ -150,7 +152,7 @@ public class FileReplicaDBTest extends ReplicationTestCase
       waitChangesArePersisted(replicaDB, 3);
 
       assertFoundInOrder(replicaDB, csns[0], csns[1], csns[2]);
-      assertNotFound(replicaDB, csns[4]);
+      assertNotFound(replicaDB, csns[4], AFTER_MATCHING_KEY);
 
       assertEquals(replicaDB.getOldestCSN(), csns[0]);
       assertEquals(replicaDB.getNewestCSN(), csns[2]);
@@ -162,13 +164,11 @@ public class FileReplicaDBTest extends ReplicationTestCase
       assertFoundInOrder(replicaDB, csns[0], csns[1], csns[2], csns[3]);
       assertFoundInOrder(replicaDB, csns[2], csns[3]);
       assertFoundInOrder(replicaDB, csns[3]);
-      assertNotFound(replicaDB, csns[4]);
+      assertNotFound(replicaDB, csns[4], AFTER_MATCHING_KEY);
     }
     finally
     {
-      if (replicaDB != null) {
-        replicaDB.shutdown();
-      }
+      shutdown(replicaDB);
       remove(replicationServer);
     }
   }
@@ -177,7 +177,6 @@ public class FileReplicaDBTest extends ReplicationTestCase
   public void testGenerateCursorFrom() throws Exception
   {
     ReplicationServer replicationServer = null;
-    DBCursor<UpdateMsg> cursor = null;
     FileReplicaDB replicaDB = null;
     try
     {
@@ -185,36 +184,31 @@ public class FileReplicaDBTest extends ReplicationTestCase
       replicationServer = configureReplicationServer(100000, 10);
       replicaDB = newReplicaDB(replicationServer);
 
-      CSN[] csns = generateCSNs(1, System.currentTimeMillis(), 6);
-      for (int i = 0; i < 5; i++)
+      final CSN[] csns = generateCSNs(1, System.currentTimeMillis(), 5);
+      final ArrayList<CSN> csns2 = new ArrayList<CSN>(Arrays.asList(csns));
+      csns2.remove(csns[3]);
+
+      for (CSN csn : csns2)
       {
-        if (i != 3)
-        {
-          replicaDB.add(new DeleteMsg(TEST_ROOT_DN, csns[i], "uid"));
-        }
+        replicaDB.add(new DeleteMsg(TEST_ROOT_DN, csn, "uid"));
       }
       waitChangesArePersisted(replicaDB, 4);
 
-      cursor = replicaDB.generateCursorFrom(csns[0], AFTER_MATCHING_KEY);
-      assertTrue(cursor.next());
-      assertEquals(cursor.getRecord().getCSN(), csns[1]);
-      StaticUtils.close(cursor);
+      for (CSN csn : csns2)
+      {
+        assertNextCSN(replicaDB, csn, ON_MATCHING_KEY, csn);
+      }
+      assertNextCSN(replicaDB, csns[3], ON_MATCHING_KEY, csns[4]);
 
-      cursor = replicaDB.generateCursorFrom(csns[3], AFTER_MATCHING_KEY);
-      assertTrue(cursor.next());
-      assertEquals(cursor.getRecord().getCSN(), csns[4]);
-      StaticUtils.close(cursor);
-
-      cursor = replicaDB.generateCursorFrom(csns[4], AFTER_MATCHING_KEY);
-      assertFalse(cursor.next());
-      assertNull(cursor.getRecord());
+      for (int i = 0; i < csns2.size() - 1; i++)
+      {
+        assertNextCSN(replicaDB, csns2.get(i), AFTER_MATCHING_KEY, csns2.get(i + 1));
+      }
+      assertNotFound(replicaDB, csns[4], AFTER_MATCHING_KEY);
     }
     finally
     {
-      StaticUtils.close(cursor);
-      if (replicaDB != null) {
-        replicaDB.shutdown();
-      }
+      shutdown(replicaDB);
       remove(replicationServer);
     }
   }
@@ -242,9 +236,9 @@ public class FileReplicaDBTest extends ReplicationTestCase
       replicationServer = configureReplicationServer(100000, 10);
       replicaDB = newReplicaDB(replicationServer);
 
-      CSN[] csns = generateCSNs(1, System.currentTimeMillis(), 6);
+      CSN[] csns = generateCSNs(1, System.currentTimeMillis(), 5);
 
-      cursor = replicaDB.generateCursorFrom(csns[csnIndexForStartKey], PositionStrategy.AFTER_MATCHING_KEY);
+      cursor = replicaDB.generateCursorFrom(csns[csnIndexForStartKey], AFTER_MATCHING_KEY);
       assertFalse(cursor.next());
 
       int[] indicesToAdd = new int[] { 0, 1, 2, 4 };
@@ -266,11 +260,8 @@ public class FileReplicaDBTest extends ReplicationTestCase
     }
     finally
     {
-      StaticUtils.close(cursor);
-      if (replicaDB != null)
-      {
-        replicaDB.shutdown();
-      }
+      close(cursor);
+      shutdown(replicaDB);
       remove(replicationServer);
     }
   }
@@ -283,12 +274,12 @@ public class FileReplicaDBTest extends ReplicationTestCase
   public void testPurge() throws Exception
   {
     ReplicationServer replicationServer = null;
+    FileReplicaDB replicaDB = null;
     try
     {
       TestCaseUtils.startServer();
       replicationServer = configureReplicationServer(100, 5000);
-
-      final FileReplicaDB replicaDB = newReplicaDB(replicationServer);
+      replicaDB = newReplicaDB(replicationServer);
 
       CSN[] csns = generateCSNs(1, 0, 5);
 
@@ -320,6 +311,7 @@ public class FileReplicaDBTest extends ReplicationTestCase
     }
     finally
     {
+      shutdown(replicaDB);
       remove(replicationServer);
     }
   }
@@ -338,7 +330,6 @@ public class FileReplicaDBTest extends ReplicationTestCase
     {
       TestCaseUtils.startServer();
       replicationServer = configureReplicationServer(100, 5000);
-
       replicaDB = newReplicaDB(replicationServer);
 
       CSN[] csns = generateCSNs(1, 0, 3);
@@ -359,11 +350,43 @@ public class FileReplicaDBTest extends ReplicationTestCase
     }
     finally
     {
-      if (replicaDB != null)
-      {
-        replicaDB.shutdown();
-      }
+      shutdown(replicaDB);
       remove(replicationServer);
+    }
+  }
+
+  private void assertNextCSN(FileReplicaDB replicaDB, final CSN startCSN,
+      final PositionStrategy positionStrategy, final CSN expectedCSN)
+      throws ChangelogException
+  {
+    DBCursor<UpdateMsg> cursor = replicaDB.generateCursorFrom(startCSN, positionStrategy);
+    try
+    {
+      final SoftAssertions softly = new SoftAssertions();
+      softly.assertThat(cursor.next()).isTrue();
+      softly.assertThat(cursor.getRecord().getCSN()).isEqualTo(expectedCSN);
+      softly.assertAll();
+    }
+    finally
+    {
+      close(cursor);
+    }
+  }
+
+  private void assertNotFound(FileReplicaDB replicaDB, final CSN startCSN,
+      final PositionStrategy positionStrategy) throws ChangelogException
+  {
+    DBCursor<UpdateMsg> cursor = replicaDB.generateCursorFrom(startCSN, positionStrategy);
+    try
+    {
+      final SoftAssertions softly = new SoftAssertions();
+      softly.assertThat(cursor.next()).isFalse();
+      softly.assertThat(cursor.getRecord()).isNull();
+      softly.assertAll();
+    }
+    finally
+    {
+      close(cursor);
     }
   }
 
@@ -371,7 +394,7 @@ public class FileReplicaDBTest extends ReplicationTestCase
    * Test the logic that manages counter records in the FileReplicaDB in order to
    * optimize the oldest and newest records in the replication changelog db.
    */
-  @Test(enabled=true, groups = { "opendj-256" })
+  @Test(groups = { "opendj-256" })
   public void testGetOldestNewestCSNs() throws Exception
   {
     // It's worth testing with 2 different setting for counterRecord
@@ -410,7 +433,6 @@ public class FileReplicaDBTest extends ReplicationTestCase
       testRoot = createCleanDir();
       dbEnv = new ReplicationEnvironment(testRoot.getPath(), replicationServer);
       replicaDB = new FileReplicaDB(1, TEST_ROOT_DN, replicationServer, dbEnv);
-      //replicaDB.setCounterRecordWindowSize(counterWindow);
 
       // Populate the db with 'max' msg
       int mySeqnum = 1;
@@ -434,7 +456,6 @@ public class FileReplicaDBTest extends ReplicationTestCase
       replicaDB.shutdown();
 
       replicaDB = new FileReplicaDB(1, TEST_ROOT_DN, replicationServer, dbEnv);
-      //replicaDB.setCounterRecordWindowSize(counterWindow);
 
       assertEquals(replicaDB.getOldestCSN(), csns[1], "Wrong oldest CSN");
       assertEquals(replicaDB.getNewestCSN(), csns[max], "Wrong newest CSN");
@@ -468,10 +489,7 @@ public class FileReplicaDBTest extends ReplicationTestCase
     }
     finally
     {
-      if (replicaDB != null)
-      {
-        replicaDB.shutdown();
-      }
+      shutdown(replicaDB);
       if (dbEnv != null)
       {
         dbEnv.shutdown();
@@ -481,7 +499,15 @@ public class FileReplicaDBTest extends ReplicationTestCase
     }
   }
 
-  private CSN[] generateCSNs(int serverId, long timestamp, int number)
+  private void shutdown(FileReplicaDB replicaDB)
+  {
+    if (replicaDB != null)
+    {
+      replicaDB.shutdown();
+    }
+  }
+
+  static CSN[] generateCSNs(int serverId, long timestamp, int number)
   {
     CSNGenerator gen = new CSNGenerator(serverId, timestamp);
     CSN[] csns = new CSN[number];
@@ -518,9 +544,8 @@ public class FileReplicaDBTest extends ReplicationTestCase
       throws IOException, ConfigException
   {
     final int changelogPort = findFreePort();
-    final ReplicationServerCfg conf =
-        new ReplServerFakeConfiguration(changelogPort, null, ReplicationDBImplementation.LOG, 0, 2, queueSize,
-            windowSize, null);
+    final ReplicationServerCfg conf = new ReplServerFakeConfiguration(
+        changelogPort, null, ReplicationDBImplementation.LOG, 0, 2, queueSize, windowSize, null);
     return new ReplicationServer(conf);
   }
 
@@ -549,40 +574,34 @@ public class FileReplicaDBTest extends ReplicationTestCase
       return;
     }
 
-    DBCursor<UpdateMsg> cursor = replicaDB.generateCursorFrom(csns[0], AFTER_MATCHING_KEY);
-    try
-    {
-      // Cursor points to a null record initially
-      assertNull(cursor.getRecord());
-
-      for (int i = 1; i < csns.length; i++)
-      {
-        final String msg = "i=" + i + ", csns[i]=" + csns[i].toStringUI();
-        assertTrue(cursor.next(), msg);
-        assertEquals(cursor.getRecord().getCSN(), csns[i], msg);
-      }
-      assertFalse(cursor.next());
-      assertNull(cursor.getRecord(), "Actual change=" + cursor.getRecord()
-          + ", Expected null");
-    }
-    finally
-    {
-      StaticUtils.close(cursor);
-    }
+    assertFoundInOrder(replicaDB, AFTER_MATCHING_KEY, csns);
+    assertFoundInOrder(replicaDB, ON_MATCHING_KEY, csns);
   }
 
-  private void assertNotFound(FileReplicaDB replicaDB, CSN csn) throws Exception
+  private void assertFoundInOrder(FileReplicaDB replicaDB,
+      final PositionStrategy positionStrategy, CSN... csns) throws ChangelogException
   {
-    DBCursor<UpdateMsg> cursor = null;
+    DBCursor<UpdateMsg> cursor = replicaDB.generateCursorFrom(csns[0], positionStrategy);
     try
     {
-      cursor = replicaDB.generateCursorFrom(csn, AFTER_MATCHING_KEY);
-      assertFalse(cursor.next());
-      assertNull(cursor.getRecord());
+      assertNull(cursor.getRecord(), "Cursor should point to a null record initially");
+
+      for (int i = positionStrategy == ON_MATCHING_KEY ? 0 : 1; i < csns.length; i++)
+      {
+        final String msg = "i=" + i + ", csns[i]=" + csns[i].toStringUI();
+        final SoftAssertions softly = new SoftAssertions();
+        softly.assertThat(cursor.next()).as(msg).isTrue();
+        softly.assertThat(cursor.getRecord().getCSN()).as(msg).isEqualTo(csns[i]);
+        softly.assertAll();
+      }
+      final SoftAssertions softly = new SoftAssertions();
+      softly.assertThat(cursor.next()).isFalse();
+      softly.assertThat(cursor.getRecord()).isNull();
+      softly.assertAll();
     }
     finally
     {
-      StaticUtils.close(cursor);
+      close(cursor);
     }
   }
 

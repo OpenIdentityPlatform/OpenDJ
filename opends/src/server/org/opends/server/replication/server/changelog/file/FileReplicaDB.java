@@ -97,15 +97,10 @@ class FileReplicaDB
    * @NonNull
    */
   private volatile CSNLimits csnLimits;
-
   private final int serverId;
-
   private final DN baseDN;
-
   private final DbMonitorProvider dbMonitor = new DbMonitorProvider();
-
   private final ReplicationServer replicationServer;
-
   private final ReplicationEnvironment replicationEnv;
 
   /**
@@ -171,7 +166,9 @@ class FileReplicaDB
           ERR_COULD_NOT_ADD_CHANGE_TO_SHUTTING_DOWN_REPLICA_DB.get(updateMsg
               .toString(), String.valueOf(baseDN), String.valueOf(serverId)));
     }
+
     log.append(Record.from(updateMsg.getCSN(), updateMsg));
+
     final CSNLimits limits = csnLimits;
     final boolean updateNew = limits.newestCSN == null || limits.newestCSN.isOlderThan(updateMsg.getCSN());
     final boolean updateOld = limits.oldestCSN == null;
@@ -205,8 +202,8 @@ class FileReplicaDB
 
   /**
    * Returns a cursor that allows to retrieve the update messages from this DB.
-   * The starting position is defined by the provided CSN and cursor
-   * positioning strategy.
+   * The starting position is defined by the provided CSN and cursor positioning
+   * strategy.
    *
    * @param startCSN
    *          The position where the cursor must start. If null, start from the
@@ -214,7 +211,7 @@ class FileReplicaDB
    * @param positionStrategy
    *          Cursor position strategy, which allow to choose if cursor must
    *          start from the provided CSN or just after the provided CSN.
-   * @return a new {@link DBCursor} to retreive update messages.
+   * @return a new {@link DBCursor} to retrieve update messages.
    * @throws ChangelogException
    *           if a database problem happened
    */
@@ -315,8 +312,8 @@ class FileReplicaDB
   public String toString()
   {
     final CSNLimits limits = csnLimits;
-    return getClass().getSimpleName() + " " + baseDN + " " + serverId + " " + limits.oldestCSN + " "
-        + limits.newestCSN;
+    return getClass().getSimpleName() + " " + baseDN + " " + serverId + " "
+        + limits.oldestCSN + " " + limits.newestCSN;
   }
 
   /**
