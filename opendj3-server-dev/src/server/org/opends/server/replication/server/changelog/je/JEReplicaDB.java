@@ -41,6 +41,7 @@ import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.ReplicationServerDomain;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
+import org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy;
 import org.opends.server.replication.server.changelog.je.ReplicationDB.ReplServerDBCursor;
 import org.opends.server.types.Attribute;
 import org.opends.server.types.Attributes;
@@ -177,18 +178,20 @@ public class JEReplicaDB
    * Generate a new {@link DBCursor} that allows to browse the db managed by
    * this ReplicaDB and starting at the position defined by a given CSN.
    *
-   * @param startAfterCSN
+   * @param startCSN
    *          The position where the cursor must start. If null, start from the
    *          oldest CSN
+   * @param positionStrategy
+   *          indicates at which exact position the cursor must start
    * @return a new {@link DBCursor} that allows to browse the db managed by this
    *         ReplicaDB and starting at the position defined by a given CSN.
    * @throws ChangelogException
    *           if a database problem happened
    */
-  public DBCursor<UpdateMsg> generateCursorFrom(CSN startAfterCSN)
+  public DBCursor<UpdateMsg> generateCursorFrom(CSN startCSN, PositionStrategy positionStrategy)
       throws ChangelogException
   {
-    return new JEReplicaDBCursor(db, startAfterCSN, this);
+    return new JEReplicaDBCursor(db, startCSN, positionStrategy, this);
   }
 
   /**
