@@ -83,7 +83,46 @@ public class JEReplicaDBTest extends ReplicationTestCase
     TEST_ROOT_DN = DN.valueOf(TEST_ROOT_DN_STRING);
   }
 
-  @Test(enabled=true)
+  @Test
+  public void testGenerateCursorFrom() throws Exception
+  {
+    ReplicationServer replicationServer = null;
+    JEReplicaDB replicaDB = null;
+    try
+    {
+      TestCaseUtils.startServer();
+      replicationServer = configureReplicationServer(100000, 10);
+      replicaDB = newReplicaDB(replicationServer);
+
+      final CSN[] csns = generateCSNs(1, System.currentTimeMillis(), 5);
+      final ArrayList<CSN> csns2 = new ArrayList<CSN>(Arrays.asList(csns));
+      csns2.remove(csns[3]);
+
+      for (CSN csn : csns2)
+      {
+        replicaDB.add(new DeleteMsg(TEST_ROOT_DN, csn, "uid"));
+      }
+
+      for (CSN csn : csns2)
+      {
+        assertNextCSN(replicaDB, csn, ON_MATCHING_KEY, csn);
+      }
+      assertNextCSN(replicaDB, csns[3], ON_MATCHING_KEY, csns[4]);
+
+      for (int i = 0; i < csns2.size() - 1; i++)
+      {
+        assertNextCSN(replicaDB, csns2.get(i), AFTER_MATCHING_KEY, csns2.get(i + 1));
+      }
+      assertNotFound(replicaDB, csns[4], AFTER_MATCHING_KEY);
+    }
+    finally
+    {
+      shutdown(replicaDB);
+      remove(replicationServer);
+    }
+  }
+
+  @Test
   void testTrim() throws Exception
   {
     ReplicationServer replicationServer = null;
@@ -94,7 +133,7 @@ public class JEReplicaDBTest extends ReplicationTestCase
       replicationServer = configureReplicationServer(100, 5000);
       replicaDB = newReplicaDB(replicationServer);
 
-      CSN[] csns = newCSNs(1, 0, 5);
+      CSN[] csns = generateCSNs(1, 0, 5);
 
       replicaDB.add(new DeleteMsg(TEST_ROOT_DN, csns[0], "uid"));
       replicaDB.add(new DeleteMsg(TEST_ROOT_DN, csns[1], "uid"));
@@ -145,89 +184,13 @@ public class JEReplicaDBTest extends ReplicationTestCase
     }
   }
 
-  static CSN[] newCSNs(int serverId, long timestamp, int number)
-  {
-    CSNGenerator gen = new CSNGenerator(serverId, timestamp);
-    CSN[] csns = new CSN[number];
-    for (int i = 0; i < csns.length; i++)
-    {
-      csns[i] = gen.newCSN();
-    }
-    return csns;
-  }
-
-  private ReplicationServer configureReplicationServer(int windowSize, int queueSize)
-      throws IOException, ConfigException
-  {
-    final int changelogPort = findFreePort();
-    final ReplicationServerCfg conf =
-        new ReplServerFakeConfiguration(changelogPort, null, 0, 2, queueSize, windowSize, null);
-    return new ReplicationServer(conf);
-  }
-
-  private JEReplicaDB newReplicaDB(ReplicationServer rs) throws Exception
-  {
-    final JEChangelogDB changelogDB = (JEChangelogDB) rs.getChangelogDB();
-    return changelogDB.getOrCreateReplicaDB(TEST_ROOT_DN, 1, rs).getFirst();
-  }
-
-  private File createCleanDir() throws IOException
-  {
-    String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
-    String path = System.getProperty(TestCaseUtils.PROPERTY_BUILD_DIR, buildRoot
-            + File.separator + "build");
-    path = path + File.separator + "unit-tests" + File.separator + "JEReplicaDB";
-    final File testRoot = new File(path);
-    TestCaseUtils.deleteDirectory(testRoot);
-    testRoot.mkdirs();
-    return testRoot;
-  }
-
-  private void assertFoundInOrder(JEReplicaDB replicaDB, CSN... csns) throws Exception
-  {
-    if (csns.length == 0)
-    {
-      return;
-    }
-
-    assertFoundInOrder(replicaDB, AFTER_MATCHING_KEY, csns);
-    assertFoundInOrder(replicaDB, ON_MATCHING_KEY, csns);
-  }
-
-  private void assertFoundInOrder(JEReplicaDB replicaDB,
-      final PositionStrategy positionStrategy, CSN... csns) throws ChangelogException
-  {
-    DBCursor<UpdateMsg> cursor = replicaDB.generateCursorFrom(csns[0], positionStrategy);
-    try
-    {
-      assertNull(cursor.getRecord(), "Cursor should point to a null record initially");
-
-      for (int i = positionStrategy == ON_MATCHING_KEY ? 0 : 1; i < csns.length; i++)
-      {
-        final String msg = "i=" + i + ", csns[i]=" + csns[i].toStringUI();
-        final SoftAssertions softly = new SoftAssertions();
-        softly.assertThat(cursor.next()).as(msg).isTrue();
-        softly.assertThat(cursor.getRecord().getCSN()).as(msg).isEqualTo(csns[i]);
-        softly.assertAll();
-      }
-      final SoftAssertions softly = new SoftAssertions();
-      softly.assertThat(cursor.next()).isFalse();
-      softly.assertThat(cursor.getRecord()).isNull();
-      softly.assertAll();
-    }
-    finally
-    {
-      close(cursor);
-    }
-  }
-
   /**
    * Test the feature of clearing a JEReplicaDB used by a replication server.
    * The clear feature is used when a replication server receives a request to
    * reset the generationId of a given domain.
    */
-  @Test(enabled=true)
-  void testClear() throws Exception
+  @Test
+  public void testClear() throws Exception
   {
     ReplicationServer replicationServer = null;
     JEReplicaDB replicaDB = null;
@@ -237,7 +200,7 @@ public class JEReplicaDBTest extends ReplicationTestCase
       replicationServer = configureReplicationServer(100, 5000);
       replicaDB = newReplicaDB(replicationServer);
 
-      CSN[] csns = newCSNs(1, 0, 3);
+      CSN[] csns = generateCSNs(1, 0, 3);
 
       // Add the changes and check they are here
       replicaDB.add(new DeleteMsg(TEST_ROOT_DN, csns[0], "uid"));
@@ -252,45 +215,6 @@ public class JEReplicaDBTest extends ReplicationTestCase
 
       assertEquals(null, replicaDB.getOldestCSN());
       assertEquals(null, replicaDB.getNewestCSN());
-    }
-    finally
-    {
-      shutdown(replicaDB);
-      remove(replicationServer);
-    }
-  }
-
-  @Test
-  public void testGenerateCursorFrom() throws Exception
-  {
-    ReplicationServer replicationServer = null;
-    JEReplicaDB replicaDB = null;
-    try
-    {
-      TestCaseUtils.startServer();
-      replicationServer = configureReplicationServer(100000, 10);
-      replicaDB = newReplicaDB(replicationServer);
-
-      final CSN[] csns = newCSNs(1, System.currentTimeMillis(), 5);
-      final ArrayList<CSN> csns2 = new ArrayList<CSN>(Arrays.asList(csns));
-      csns2.remove(csns[3]);
-
-      for (CSN csn : csns2)
-      {
-        replicaDB.add(new DeleteMsg(TEST_ROOT_DN, csn, "uid"));
-      }
-
-      for (CSN csn : csns2)
-      {
-        assertNextCSN(replicaDB, csn, ON_MATCHING_KEY, csn);
-      }
-      assertNextCSN(replicaDB, csns[3], ON_MATCHING_KEY, csns[4]);
-
-      for (int i = 0; i < csns2.size() - 1; i++)
-      {
-        assertNextCSN(replicaDB, csns2.get(i), AFTER_MATCHING_KEY, csns2.get(i + 1));
-      }
-      assertNotFound(replicaDB, csns[4], AFTER_MATCHING_KEY);
     }
     finally
     {
@@ -338,7 +262,7 @@ public class JEReplicaDBTest extends ReplicationTestCase
    * Test the logic that manages counter records in the JEReplicaDB in order to
    * optimize the oldest and newest records in the replication changelog db.
    */
-  @Test(enabled=true, groups = { "opendj-256" })
+  @Test(groups = { "opendj-256" })
   void testGetOldestNewestCSNs() throws Exception
   {
     // It's worth testing with 2 different setting for counterRecord
@@ -403,7 +327,7 @@ public class JEReplicaDBTest extends ReplicationTestCase
       assertEquals(replicaDB.getNewestCSN(), csns[max], "Wrong newest CSN");
 
       // Populate the db with 'max' msg
-      for (int i=max+1; i<=(2*max); i++)
+      for (int i=max+1; i<=2 * max; i++)
       {
         csns[i] = new CSN(now + i, mySeqnum, 1);
         replicaDB.add(new DeleteMsg(TEST_ROOT_DN, csns[i], "uid"));
@@ -413,7 +337,6 @@ public class JEReplicaDBTest extends ReplicationTestCase
       assertEquals(replicaDB.getOldestCSN(), csns[1], "Wrong oldest CSN");
       assertEquals(replicaDB.getNewestCSN(), csns[2 * max], "Wrong newest CSN");
 
-      //
       replicaDB.purgeUpTo(new CSN(Long.MAX_VALUE, 0, 0));
 
       String testcase = "AFTER PURGE (oldest, newest)=";
@@ -446,6 +369,82 @@ public class JEReplicaDBTest extends ReplicationTestCase
     if (replicaDB != null)
     {
       replicaDB.shutdown();
+    }
+  }
+
+  static CSN[] generateCSNs(int serverId, long timestamp, int number)
+  {
+    CSNGenerator gen = new CSNGenerator(serverId, timestamp);
+    CSN[] csns = new CSN[number];
+    for (int i = 0; i < csns.length; i++)
+    {
+      csns[i] = gen.newCSN();
+    }
+    return csns;
+  }
+
+  private ReplicationServer configureReplicationServer(int windowSize, int queueSize)
+      throws IOException, ConfigException
+  {
+    final int changelogPort = findFreePort();
+    final ReplicationServerCfg conf = new ReplServerFakeConfiguration(
+        changelogPort, null, 0, 2, queueSize, windowSize, null);
+    return new ReplicationServer(conf);
+  }
+
+  private JEReplicaDB newReplicaDB(ReplicationServer rs) throws Exception
+  {
+    final JEChangelogDB changelogDB = (JEChangelogDB) rs.getChangelogDB();
+    return changelogDB.getOrCreateReplicaDB(TEST_ROOT_DN, 1, rs).getFirst();
+  }
+
+  private File createCleanDir() throws IOException
+  {
+    String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
+    String path = System.getProperty(TestCaseUtils.PROPERTY_BUILD_DIR, buildRoot
+            + File.separator + "build");
+    path = path + File.separator + "unit-tests" + File.separator + "JEReplicaDB";
+    final File testRoot = new File(path);
+    TestCaseUtils.deleteDirectory(testRoot);
+    testRoot.mkdirs();
+    return testRoot;
+  }
+
+  private void assertFoundInOrder(JEReplicaDB replicaDB, CSN... csns) throws Exception
+  {
+    if (csns.length == 0)
+    {
+      return;
+    }
+
+    assertFoundInOrder(replicaDB, AFTER_MATCHING_KEY, csns);
+    assertFoundInOrder(replicaDB, ON_MATCHING_KEY, csns);
+  }
+
+  private void assertFoundInOrder(JEReplicaDB replicaDB,
+      final PositionStrategy positionStrategy, CSN... csns) throws ChangelogException
+  {
+    DBCursor<UpdateMsg> cursor = replicaDB.generateCursorFrom(csns[0], positionStrategy);
+    try
+    {
+      assertNull(cursor.getRecord(), "Cursor should point to a null record initially");
+
+      for (int i = positionStrategy == ON_MATCHING_KEY ? 0 : 1; i < csns.length; i++)
+      {
+        final String msg = "i=" + i + ", csns[i]=" + csns[i].toStringUI();
+        final SoftAssertions softly = new SoftAssertions();
+        softly.assertThat(cursor.next()).as(msg).isTrue();
+        softly.assertThat(cursor.getRecord().getCSN()).as(msg).isEqualTo(csns[i]);
+        softly.assertAll();
+      }
+      final SoftAssertions softly = new SoftAssertions();
+      softly.assertThat(cursor.next()).isFalse();
+      softly.assertThat(cursor.getRecord()).isNull();
+      softly.assertAll();
+    }
+    finally
+    {
+      close(cursor);
     }
   }
 
