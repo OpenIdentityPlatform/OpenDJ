@@ -107,7 +107,7 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
       DN baseDN2 = DN.decode("o=baseDN2");
       DN baseDN3 = DN.decode("o=baseDN3");
 
-      CSN[] csns = newCSNs(1, 0, 3);
+      CSN[] csns = generateCSNs(1, 0, 3);
 
       // Add records
       final JEChangeNumberIndexDB cnIndexDB = getCNIndexDB(replicationServer);
@@ -205,7 +205,7 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
       DN baseDN2 = DN.decode("o=baseDN2");
       DN baseDN3 = DN.decode("o=baseDN3");
 
-      CSN[] csns = newCSNs(1, 0, 3);
+      CSN[] csns = generateCSNs(1, 0, 3);
 
       // Add records
       final JEChangeNumberIndexDB cnIndexDB = getCNIndexDB(replicationServer);

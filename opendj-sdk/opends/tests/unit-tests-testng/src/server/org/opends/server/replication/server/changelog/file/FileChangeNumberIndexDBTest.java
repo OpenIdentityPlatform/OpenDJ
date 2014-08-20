@@ -32,7 +32,6 @@ import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.ReplicationServerCfgDefn.ReplicationDBImplementation;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.CSN;
-import org.opends.server.replication.common.CSNGenerator;
 import org.opends.server.replication.common.MultiDomainServerState;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
@@ -48,6 +47,7 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.opends.server.replication.server.changelog.file.FileReplicaDBTest.*;
 import static org.testng.Assert.*;
 
 @SuppressWarnings("javadoc")
@@ -233,17 +233,6 @@ public class FileChangeNumberIndexDBTest extends ReplicationTestCase
     }
   }
 
-  private CSN[] generateCSNs(int serverId, long timestamp, int number)
-  {
-    CSNGenerator gen = new CSNGenerator(serverId, timestamp);
-    CSN[] csns = new CSN[number];
-    for (int i = 0; i < csns.length; i++)
-    {
-      csns[i] = gen.newCSN();
-    }
-    return csns;
-  }
-
   private long[] addThreeRecords(FileChangeNumberIndexDB cnIndexDB) throws Exception
   {
     // Prepare data to be stored in the db
@@ -334,10 +323,10 @@ public class FileChangeNumberIndexDBTest extends ReplicationTestCase
   {
     try
     {
-      for (int i = 0; i < cns.length; i++)
+      for (long cn : cns)
       {
         assertTrue(cursor.next());
-        assertEquals(cursor.getRecord().getChangeNumber(), cns[i]);
+        assertEquals(cursor.getRecord().getChangeNumber(), cn);
       }
       assertFalse(cursor.next());
     }
