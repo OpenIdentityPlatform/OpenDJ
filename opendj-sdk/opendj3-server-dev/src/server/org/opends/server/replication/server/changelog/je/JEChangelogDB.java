@@ -37,7 +37,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.config.server.ConfigException;
-import org.forgerock.util.Reject;
 import org.opends.server.admin.std.server.ReplicationServerCfg;
 import org.opends.server.api.DirectoryThread;
 import org.opends.server.replication.common.CSN;
@@ -578,7 +577,10 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
           {
             firstException = e;
           }
-          else logger.traceException(e);
+          else
+          {
+            logger.traceException(e);
+          }
         }
       }
     }
@@ -757,12 +759,10 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
   public DBCursor<UpdateMsg> getCursorFrom(final DN baseDN, final int serverId, final CSN startCSN,
       final PositionStrategy positionStrategy) throws ChangelogException
   {
-    Reject.ifTrue(positionStrategy == PositionStrategy.ON_MATCHING_KEY, "The position strategy ON_MATCHING_KEY"
-        + " is not supported for the JE implementation fo changelog");
     final JEReplicaDB replicaDB = getReplicaDB(baseDN, serverId);
     if (replicaDB != null)
     {
-      final DBCursor<UpdateMsg> cursor = replicaDB.generateCursorFrom(startCSN);
+      final DBCursor<UpdateMsg> cursor = replicaDB.generateCursorFrom(startCSN, positionStrategy);
       final CSN offlineCSN = getOfflineCSN(baseDN, serverId, startCSN);
       final Pair<DN, Integer> replicaID = Pair.of(baseDN, serverId);
       final ReplicaCursor replicaCursor = new ReplicaCursor(cursor, offlineCSN, replicaID, this);
@@ -853,12 +853,12 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
     {
       indexer.replicaOffline(baseDN, offlineCSN);
     }
-    updateCursorsWithOfflineCSN(baseDN, offlineCSN);
+    updateCursorsWithOfflineCSN(baseDN, offlineCSN.getServerId(), offlineCSN);
   }
 
-  private void updateCursorsWithOfflineCSN(final DN baseDN, final CSN offlineCSN)
+  private void updateCursorsWithOfflineCSN(final DN baseDN, int serverId, final CSN offlineCSN)
   {
-    final List<ReplicaCursor> cursors = replicaCursors.get(Pair.of(baseDN, offlineCSN));
+    final List<ReplicaCursor> cursors = replicaCursors.get(Pair.of(baseDN, serverId));
     if (cursors != null && !cursors.isEmpty())
     {
       for (ReplicaCursor cursor : cursors)
