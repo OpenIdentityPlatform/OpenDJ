@@ -33,7 +33,7 @@ import org.opends.server.types.DN;
  * Multi domain DB cursor that only returns updates for the domains which have
  * been enabled for the external changelog.
  */
-class ECLMultiDomainDBCursor implements DBCursor<UpdateMsg>
+public final class ECLMultiDomainDBCursor implements DBCursor<UpdateMsg>
 {
 
   private final ECLEnabledDomainPredicate predicate;
