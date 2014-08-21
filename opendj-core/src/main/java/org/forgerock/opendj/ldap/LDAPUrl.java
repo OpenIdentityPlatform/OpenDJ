@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -736,8 +736,8 @@ public final class LDAPUrl {
 
     private int parseHostPort(final String urlString, final String hostAndPort,
             final StringBuilder host) {
+        Reject.ifNull(urlString);
         Reject.ifNull(hostAndPort);
-        Reject.ifNull((Object) port);
         Reject.ifNull(host);
         int urlPort = isSecured ? DEFAULT_SSL_PORT : DEFAULT_PORT;
         if (hostAndPort.length() == 0) {

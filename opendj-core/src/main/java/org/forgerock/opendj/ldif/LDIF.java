@@ -20,7 +20,7 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2011-2013 ForgeRock AS
+ *      Copyright 2011-2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldif;
@@ -231,7 +231,7 @@ public final class LDIF {
                 }
             }
 
-            private Entry nextEntry(final Iterator<byte[][]> i) throws IOException {
+            private Entry nextEntry(final Iterator<byte[][]> i) {
                 if (i.hasNext()) {
                     return decodeEntry(i.next()[1]);
                 }
