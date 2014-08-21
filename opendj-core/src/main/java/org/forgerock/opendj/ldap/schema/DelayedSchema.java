@@ -21,20 +21,21 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2011 ForgeRock AS
+ *      Copyright 2011-2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.schema;
 
 /**
- * This class is used to maintain a reference to the default schema and avoid
+ * This class is used to maintain a reference to the global schemas and avoids
  * having to reference the core schema in the {@link Schema} class since this
  * can cause initialization errors because the CoreSchema depends on Schema.
  */
-final class DefaultSchema {
-    static volatile Schema schema = Schema.getCoreSchema();
+final class DelayedSchema {
+    static final Schema EMPTY_SCHEMA = new SchemaBuilder("Empty Schema").toSchema().asNonStrictSchema();
+    static volatile Schema defaultSchema = Schema.getCoreSchema();
 
-    private DefaultSchema() {
+    private DelayedSchema() {
         // Prevent instantiation.
     }
 }

@@ -34,7 +34,7 @@ import org.testng.annotations.Test;
  */
 @SuppressWarnings("javadoc")
 public class SchemaTestCase extends AbstractSchemaTestCase {
-    @Test(description = "Unit test for OPENDJ-1477", enabled = false)
+    @Test(description = "Unit test for OPENDJ-1477")
     public void asNonStrictSchemaAlwaysReturnsSameInstance() {
         final Schema schema = Schema.getCoreSchema();
         final Schema nonStrictSchema1 = schema.asNonStrictSchema();
@@ -43,7 +43,7 @@ public class SchemaTestCase extends AbstractSchemaTestCase {
         assertThat(nonStrictSchema1).isSameAs(nonStrictSchema2);
     }
 
-    @Test(description = "Unit test for OPENDJ-1477", enabled = false)
+    @Test(description = "Unit test for OPENDJ-1477")
     public void asStrictSchemaAlwaysReturnsSameInstance() {
         final Schema schema = Schema.getCoreSchema();
         final Schema strictSchema1 = schema.asStrictSchema();
