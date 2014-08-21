@@ -32,7 +32,7 @@ import org.opends.server.types.DN;
  *
  * @FunctionalInterface
  */
-class ECLEnabledDomainPredicate
+public class ECLEnabledDomainPredicate
 {
 
   /**

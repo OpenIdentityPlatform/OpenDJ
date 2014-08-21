@@ -661,11 +661,24 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
   public MultiDomainDBCursor getCursorFrom(final MultiDomainServerState startState,
       final PositionStrategy positionStrategy) throws ChangelogException
   {
+    final Set<DN> excludedDomainDns = Collections.emptySet();
+    return getCursorFrom(startState, positionStrategy, excludedDomainDns);
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public MultiDomainDBCursor getCursorFrom(final MultiDomainServerState startState,
+      final PositionStrategy positionStrategy, final Set<DN> excludedDomainDns)
+      throws ChangelogException
+  {
     final MultiDomainDBCursor cursor = new MultiDomainDBCursor(this, positionStrategy);
     registeredMultiDomainCursors.add(cursor);
     for (DN baseDN : domainToReplicaDBs.keySet())
     {
-      cursor.addDomain(baseDN, startState.getServerState(baseDN));
+      if (!excludedDomainDns.contains(baseDN))
+      {
+        cursor.addDomain(baseDN, startState.getServerState(baseDN));
+      }
     }
     return cursor;
   }

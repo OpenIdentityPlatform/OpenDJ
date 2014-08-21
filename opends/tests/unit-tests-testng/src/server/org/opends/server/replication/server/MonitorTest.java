@@ -41,6 +41,8 @@ import org.opends.server.replication.common.CSNGenerator;
 import org.opends.server.replication.plugin.LDAPReplicationDomain;
 import org.opends.server.replication.protocol.AddMsg;
 import org.opends.server.replication.protocol.ReplicationMsg;
+import org.opends.server.replication.server.changelog.je.ECLEnabledDomainPredicate;
+import org.opends.server.replication.service.DSRSShutdownSync;
 import org.opends.server.replication.service.ReplicationBroker;
 import org.opends.server.tools.LDAPSearch;
 import org.opends.server.types.Attribute;
@@ -174,7 +176,15 @@ public class MonitorTest extends ReplicationTestCase
     ReplServerFakeConfiguration conf =
         new ReplServerFakeConfiguration(chPort, chDir, replicationDbImplementation, 0, changelogId, 0,
             100, servers);
-    ReplicationServer replicationServer = new ReplicationServer(conf);
+    final DN testBaseDN = this.baseDN;
+    ReplicationServer replicationServer = new ReplicationServer(conf, new DSRSShutdownSync(), new ECLEnabledDomainPredicate()
+    {
+      @Override
+      public boolean isECLEnabledDomain(DN baseDN)
+      {
+        return testBaseDN.equals(baseDN);
+      }
+    });
     Thread.sleep(1000);
 
     return replicationServer;
