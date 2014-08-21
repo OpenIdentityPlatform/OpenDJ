@@ -83,6 +83,8 @@ abstract class TemplateTag {
      * @param warnings
      *            A list into which any appropriate warning messages may be
      *            placed.
+     * @throws DecodeException
+     *             If tag cannot be initialized.
      */
     void initializeForBranch(Schema schema, TemplateFile templateFile, Branch branch, String[] arguments,
             int lineNumber, List<LocalizableMessage> warnings) throws DecodeException {

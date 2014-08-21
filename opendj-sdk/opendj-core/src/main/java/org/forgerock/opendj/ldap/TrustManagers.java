@@ -119,7 +119,7 @@ public final class TrustManagers {
             return hostMatch;
         }
 
-        private void verifyHostName(final X509Certificate[] chain) throws CertificateException {
+        private void verifyHostName(final X509Certificate[] chain) {
             try {
                 // TODO: NPE if root DN.
                 final DN dn =
