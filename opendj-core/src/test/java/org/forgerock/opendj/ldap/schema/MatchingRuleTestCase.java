@@ -43,7 +43,7 @@ import org.testng.annotations.Test;
  * This class tests the MatchingRule class. The matching rule builder can be only used with the schema builder.
  */
 @SuppressWarnings("javadoc")
-public class MatchingRuleTestCase extends SchemaTestCase {
+public class MatchingRuleTestCase extends AbstractSchemaTestCase {
 
     @Test()
     public final void testCreatesBasicMatchingRule() {

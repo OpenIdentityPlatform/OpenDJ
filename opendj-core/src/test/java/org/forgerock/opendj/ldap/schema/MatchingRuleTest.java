@@ -38,7 +38,7 @@ import org.testng.annotations.Test;
  * Test The equality matching rules and the equality matching rule api.
  */
 @SuppressWarnings("javadoc")
-public abstract class MatchingRuleTest extends SchemaTestCase {
+public abstract class MatchingRuleTest extends AbstractSchemaTestCase {
     /**
      * Generate invalid assertion values for the Matching Rule test.
      *

@@ -39,7 +39,7 @@ import com.forgerock.opendj.util.SubstringReader;
  * Test schema utilities.
  */
 @SuppressWarnings("javadoc")
-public class SchemaUtilsTest extends SchemaTestCase {
+public class SchemaUtilsTest extends AbstractSchemaTestCase {
 
     @DataProvider(name = "invalidOIDs")
     public Object[][] createInvalidOIDs() {

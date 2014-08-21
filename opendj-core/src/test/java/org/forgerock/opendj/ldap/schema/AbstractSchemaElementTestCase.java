@@ -39,7 +39,7 @@ import org.testng.annotations.Test;
  * Abstract schema element tests.
  */
 @SuppressWarnings("javadoc")
-public abstract class AbstractSchemaElementTestCase extends SchemaTestCase {
+public abstract class AbstractSchemaElementTestCase extends AbstractSchemaTestCase {
     protected static final Map<String, List<String>> EMPTY_PROPS = Collections.emptyMap();
     protected static final List<String> EMPTY_NAMES = Collections.emptyList();
 

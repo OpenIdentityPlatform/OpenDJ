@@ -42,7 +42,7 @@ import org.testng.annotations.Test;
  * with the schema builder.
  */
 @SuppressWarnings("javadoc")
-public class NameFormTestCase extends SchemaTestCase {
+public class NameFormTestCase extends AbstractSchemaTestCase {
 
     /**
      * Creates a new form using the required parameters only (oid, structural

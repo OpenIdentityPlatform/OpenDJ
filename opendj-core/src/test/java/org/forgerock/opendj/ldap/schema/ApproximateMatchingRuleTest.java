@@ -37,7 +37,7 @@ import org.testng.annotations.Test;
  * Approximate matching rule tests.
  */
 @SuppressWarnings("javadoc")
-public class ApproximateMatchingRuleTest extends SchemaTestCase {
+public class ApproximateMatchingRuleTest extends AbstractSchemaTestCase {
     MatchingRule metaphone = Schema.getCoreSchema().getMatchingRule(AMR_DOUBLE_METAPHONE_NAME);
 
     /**

@@ -21,17 +21,33 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Copyright 2014 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
-import org.forgerock.testng.ForgeRockTestCase;
+import static org.fest.assertions.Assertions.assertThat;
+
 import org.testng.annotations.Test;
 
 /**
- * An abstract class that all schema unit test should extend.
+ * Tests the Schema class.
  */
-@Test(groups = { "precommit", "schema", "sdk" })
-public abstract class SchemaTestCase extends ForgeRockTestCase {
+@SuppressWarnings("javadoc")
+public class SchemaTestCase extends AbstractSchemaTestCase {
+    @Test(description = "Unit test for OPENDJ-1477", enabled = false)
+    public void asNonStrictSchemaAlwaysReturnsSameInstance() {
+        final Schema schema = Schema.getCoreSchema();
+        final Schema nonStrictSchema1 = schema.asNonStrictSchema();
+        final Schema nonStrictSchema2 =
+                schema.asNonStrictSchema().asStrictSchema().asNonStrictSchema();
+        assertThat(nonStrictSchema1).isSameAs(nonStrictSchema2);
+    }
+
+    @Test(description = "Unit test for OPENDJ-1477", enabled = false)
+    public void asStrictSchemaAlwaysReturnsSameInstance() {
+        final Schema schema = Schema.getCoreSchema();
+        final Schema strictSchema1 = schema.asStrictSchema();
+        final Schema strictSchema2 = schema.asStrictSchema().asNonStrictSchema().asStrictSchema();
+        assertThat(strictSchema1).isSameAs(strictSchema2);
+    }
 }
