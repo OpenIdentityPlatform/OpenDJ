@@ -22,20 +22,16 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions copyright 2012 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
-import org.testng.Assert;
+import org.forgerock.testng.ForgeRockTestCase;
 import org.testng.annotations.Test;
 
 /**
- * Core schema tests
+ * An abstract class that all schema unit test should extend.
  */
-@SuppressWarnings("javadoc")
-public class CoreSchemaTest extends AbstractSchemaTestCase {
-    @Test
-    public final void testCoreSchemaWarnings() {
-        // Make sure core schema doesn't have any warnings.
-        Assert.assertTrue(Schema.getCoreSchema().getWarnings().isEmpty());
-    }
+@Test(groups = { "precommit", "schema", "sdk" })
+public abstract class AbstractSchemaTestCase extends ForgeRockTestCase {
 }

@@ -36,7 +36,7 @@ import org.testng.annotations.Test;
  * This class tests the Syntax class.
  */
 @SuppressWarnings("javadoc")
-public class SyntaxTestCase extends SchemaTestCase {
+public class SyntaxTestCase extends AbstractSchemaTestCase {
 
     @Test()
     public final void testCreatesANewSyntax() {

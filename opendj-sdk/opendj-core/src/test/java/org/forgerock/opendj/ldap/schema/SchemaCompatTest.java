@@ -33,7 +33,7 @@ import org.testng.annotations.Test;
 /**
  * Tests schema compatibility options.
  */
-public class SchemaCompatTest extends SchemaTestCase {
+public class SchemaCompatTest extends AbstractSchemaTestCase {
     /**
      * Returns test data for valid attribute descriptions.
      *

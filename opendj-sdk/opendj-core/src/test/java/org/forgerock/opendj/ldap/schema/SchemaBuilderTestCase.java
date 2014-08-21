@@ -55,7 +55,7 @@ import org.forgerock.opendj.ldap.responses.Responses;
  * Test SchemaBuilder.
  */
 @SuppressWarnings("javadoc")
-public class SchemaBuilderTestCase extends SchemaTestCase {
+public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
 
     /**
      * Tests that schema validation resolves dependencies between parent/child

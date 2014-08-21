@@ -38,7 +38,7 @@ import org.testng.annotations.Test;
  * Ordering matching rule tests.
  */
 @SuppressWarnings("javadoc")
-public abstract class OrderingMatchingRuleTest extends SchemaTestCase {
+public abstract class OrderingMatchingRuleTest extends AbstractSchemaTestCase {
     /**
      * Create data for the OrderingMatchingRulesInvalidValues test.
      *

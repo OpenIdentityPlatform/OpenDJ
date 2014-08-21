@@ -38,7 +38,7 @@ import org.testng.annotations.Test;
  * Syntax tests.
  */
 @SuppressWarnings("javadoc")
-public abstract class AbstractSyntaxTestCase extends SchemaTestCase {
+public abstract class AbstractSyntaxTestCase extends AbstractSchemaTestCase {
     /**
      * Create data for the testAcceptableValues test. This should be a table of
      * tables with 2 elements. The first one should be the value to test, the

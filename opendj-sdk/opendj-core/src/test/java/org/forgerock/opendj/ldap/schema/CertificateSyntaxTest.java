@@ -38,7 +38,7 @@ import static org.testng.Assert.fail;
 /**
  * Certificate syntax tests.
  */
-public class CertificateSyntaxTest extends SchemaTestCase {
+public class CertificateSyntaxTest extends AbstractSchemaTestCase {
 
     /**
      * Create data for the testAcceptableValues test. This should be a table of

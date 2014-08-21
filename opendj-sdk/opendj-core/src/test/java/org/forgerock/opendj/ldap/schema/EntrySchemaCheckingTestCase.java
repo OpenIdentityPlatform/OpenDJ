@@ -46,7 +46,7 @@ import org.testng.annotations.Test;
  * Test schema validation using {@link Schema#validateEntry}.
  */
 @Test
-public class EntrySchemaCheckingTestCase extends SchemaTestCase {
+public class EntrySchemaCheckingTestCase extends AbstractSchemaTestCase {
 
     /**
      * Tests schema checking for an entry covered by a DIT content rule to

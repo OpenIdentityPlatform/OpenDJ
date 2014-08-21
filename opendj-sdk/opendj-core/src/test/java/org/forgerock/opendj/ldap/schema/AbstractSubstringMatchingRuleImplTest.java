@@ -50,7 +50,7 @@ import static org.testng.Assert.*;
  * Tests all generic code of AbstractSubstringMatchingRuleImpl.
  */
 @SuppressWarnings("javadoc")
-public class AbstractSubstringMatchingRuleImplTest extends SchemaTestCase {
+public class AbstractSubstringMatchingRuleImplTest extends AbstractSchemaTestCase {
 
     private static class FakeSubstringMatchingRuleImpl extends AbstractSubstringMatchingRuleImpl {
 

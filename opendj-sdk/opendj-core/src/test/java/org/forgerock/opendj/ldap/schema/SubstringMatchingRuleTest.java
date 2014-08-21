@@ -42,7 +42,7 @@ import org.testng.annotations.Test;
  * is intended to be extended by one class for each substring matching rules.
  */
 @SuppressWarnings("javadoc")
-public abstract class SubstringMatchingRuleTest extends SchemaTestCase {
+public abstract class SubstringMatchingRuleTest extends AbstractSchemaTestCase {
     /**
      * Generate invalid assertion values for the Matching Rule test.
      *
