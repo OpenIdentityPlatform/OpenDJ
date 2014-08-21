@@ -2578,15 +2578,16 @@ public final class SchemaBuilder {
         }
 
         final Schema schema =
-                new Schema(localSchemaName, allowMalformedNamesAndOptions,
-                        allowMalformedJPEGPhotos, allowMalformedCertificates, allowNonStandardTelephoneNumbers,
-                        allowZeroLengthDirectoryStrings, defaultSyntax, defaultMatchingRule,
-                        numericOID2Syntaxes, numericOID2MatchingRules, numericOID2MatchingRuleUses,
+                new Schema.StrictImpl(localSchemaName, allowMalformedNamesAndOptions,
+                        allowMalformedJPEGPhotos, allowMalformedCertificates,
+                        allowNonStandardTelephoneNumbers, allowZeroLengthDirectoryStrings,
+                        defaultSyntax, defaultMatchingRule, numericOID2Syntaxes,
+                        numericOID2MatchingRules, numericOID2MatchingRuleUses,
                         numericOID2AttributeTypes, numericOID2ObjectClasses, numericOID2NameForms,
                         numericOID2ContentRules, id2StructureRules, name2MatchingRules,
                         name2MatchingRuleUses, name2AttributeTypes, name2ObjectClasses,
                         name2NameForms, name2ContentRules, name2StructureRules,
-                        objectClass2NameForms, nameForm2StructureRules, warnings);
+                        objectClass2NameForms, nameForm2StructureRules, warnings).asStrictSchema();
         validate(schema);
 
         // Re-init this builder so that it can continue to be used afterwards.

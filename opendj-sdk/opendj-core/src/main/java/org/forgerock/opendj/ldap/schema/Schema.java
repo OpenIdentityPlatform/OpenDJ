@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions copyright 2011-2014 ForgeRock AS
  *      Portions Copyright 2014 Manuel Gaupp
  */
 package org.forgerock.opendj.ldap.schema;
@@ -72,252 +72,11 @@ import org.forgerock.util.Reject;
  * </UL>
  */
 public final class Schema {
-    private static final class EmptyImpl implements Impl {
-
-        private final boolean isStrict;
-
-        private EmptyImpl(final boolean isStrict) {
-            this.isStrict = isStrict;
-        }
-
-        @Override
-        public boolean allowMalformedNamesAndOptions() {
-            return true;
-        }
-
-        @Override
-        public boolean allowNonStandardTelephoneNumbers() {
-            return true;
-        }
-
-        @Override
-        public boolean allowMalformedJPEGPhotos() {
-            return true;
-        }
-
-        @Override
-        public boolean allowMalformedCertificates() {
-            return true;
-        }
-
-        @Override
-        public boolean allowZeroLengthDirectoryStrings() {
-            return false;
-        }
-
-        @Override
-        public Syntax getDefaultSyntax() {
-            return Schema.getCoreSchema().getDefaultSyntax();
-        }
-
-        @Override
-        public MatchingRule getDefaultMatchingRule() {
-            return Schema.getCoreSchema().getDefaultMatchingRule();
-        }
-
-        @Override
-        public AttributeType getAttributeType(final Schema schema, final String name) {
-            if (isStrict) {
-                throw new UnknownSchemaElementException(WARN_ATTR_TYPE_UNKNOWN.get(name));
-            } else {
-                // Return a place-holder.
-                return new AttributeType(schema, name);
-            }
-        }
-
-        @Override
-        public Collection<AttributeType> getAttributeTypes() {
-            return Collections.emptyList();
-        }
-
-        @Override
-        public List<AttributeType> getAttributeTypesWithName(final String name) {
-            return Collections.emptyList();
-        }
-
-        @Override
-        public DITContentRule getDITContentRule(final ObjectClass structuralClass) {
-            return null;
-        }
-
-        @Override
-        public DITContentRule getDITContentRule(final String name) {
-            throw new UnknownSchemaElementException(WARN_DCR_UNKNOWN.get(name));
-        }
-
-        @Override
-        public Collection<DITContentRule> getDITContentRules() {
-            return Collections.emptyList();
-        }
-
-        @Override
-        public Collection<DITContentRule> getDITContentRulesWithName(final String name) {
-            return Collections.emptyList();
-        }
-
-        @Override
-        public DITStructureRule getDITStructureRule(final int ruleID) {
-            throw new UnknownSchemaElementException(WARN_DSR_UNKNOWN.get(String.valueOf(ruleID)));
-        }
-
-        @Override
-        public Collection<DITStructureRule> getDITStructureRules(final NameForm nameForm) {
-            return Collections.emptyList();
-        }
-
-        @Override
-        public Collection<DITStructureRule> getDITStructureRulesWithName(final String name) {
-            return Collections.emptyList();
-        }
-
-        @Override
-        public Collection<DITStructureRule> getDITStuctureRules() {
-            return Collections.emptyList();
-        }
-
-        @Override
-        public MatchingRule getMatchingRule(final String name) {
-            throw new UnknownSchemaElementException(WARN_MR_UNKNOWN.get(name));
-        }
-
-        @Override
-        public Collection<MatchingRule> getMatchingRules() {
-            return Collections.emptyList();
-        }
-
-        @Override
-        public Collection<MatchingRule> getMatchingRulesWithName(final String name) {
-            return Collections.emptyList();
-        }
-
-        @Override
-        public MatchingRuleUse getMatchingRuleUse(final MatchingRule matchingRule) {
-            return null;
-        }
-
-        @Override
-        public MatchingRuleUse getMatchingRuleUse(final String name) {
-            throw new UnknownSchemaElementException(WARN_MRU_UNKNOWN.get(name));
-        }
-
-        @Override
-        public Collection<MatchingRuleUse> getMatchingRuleUses() {
-            return Collections.emptyList();
-        }
-
-        @Override
-        public Collection<MatchingRuleUse> getMatchingRuleUsesWithName(final String name) {
-            return Collections.emptyList();
-        }
-
-        @Override
-        public NameForm getNameForm(final String name) {
-            throw new UnknownSchemaElementException(WARN_NAMEFORM_UNKNOWN.get(name));
-        }
-
-        @Override
-        public Collection<NameForm> getNameForms() {
-            return Collections.emptyList();
-        }
-
-        @Override
-        public Collection<NameForm> getNameForms(final ObjectClass structuralClass) {
-            return Collections.emptyList();
-        }
-
-        @Override
-        public Collection<NameForm> getNameFormsWithName(final String name) {
-            return Collections.emptyList();
-        }
-
-        @Override
-        public ObjectClass getObjectClass(final String name) {
-            throw new UnknownSchemaElementException(WARN_OBJECTCLASS_UNKNOWN.get(name));
-        }
-
-        @Override
-        public Collection<ObjectClass> getObjectClasses() {
-            return Collections.emptyList();
-        }
-
-        @Override
-        public Collection<ObjectClass> getObjectClassesWithName(final String name) {
-            return Collections.emptyList();
-        }
-
-        /** {@inheritDoc} */
-        @Override
-        public String getSchemaName() {
-            return "Empty Schema";
-        }
-
-        @Override
-        public Syntax getSyntax(final Schema schema, final String numericOID) {
-            // Fake up a syntax substituted by the default syntax.
-            return new Syntax(schema, numericOID);
-        }
-
-        @Override
-        public Collection<Syntax> getSyntaxes() {
-            return Collections.emptyList();
-        }
-
-        @Override
-        public Collection<LocalizableMessage> getWarnings() {
-            return Collections.emptyList();
-        }
-
-        @Override
-        public boolean hasAttributeType(final String name) {
-            // In theory a non-strict schema always contains the requested
-            // attribute type, so we could always return true. However, we
-            // should provide a way for callers to differentiate between a
-            // real attribute type and a faked up attribute type.
-            return false;
-        }
-
-        @Override
-        public boolean hasDITContentRule(final String name) {
-            return false;
-        }
-
-        @Override
-        public boolean hasDITStructureRule(final int ruleID) {
-            return false;
-        }
-
-        @Override
-        public boolean hasMatchingRule(final String name) {
-            return false;
-        }
-
-        @Override
-        public boolean hasMatchingRuleUse(final String name) {
-            return false;
-        }
-
-        @Override
-        public boolean hasNameForm(final String name) {
-            return false;
-        }
-
-        @Override
-        public boolean hasObjectClass(final String name) {
-            return false;
-        }
-
-        @Override
-        public boolean hasSyntax(final String numericOID) {
-            return false;
-        }
-
-        @Override
-        public boolean isStrict() {
-            return isStrict;
-        }
-    }
-
     private static interface Impl {
+        Schema asNonStrictSchema();
+
+        Schema asStrictSchema();
+
         boolean allowMalformedNamesAndOptions();
 
         boolean allowMalformedJPEGPhotos();
@@ -414,6 +173,16 @@ public final class Schema {
 
         private NonStrictImpl(final StrictImpl strictImpl) {
             this.strictImpl = strictImpl;
+        }
+
+        @Override
+        public Schema asNonStrictSchema() {
+            return strictImpl.asNonStrictSchema();
+        }
+
+        @Override
+        public Schema asStrictSchema() {
+            return strictImpl.asStrictSchema();
         }
 
         @Override
@@ -650,7 +419,7 @@ public final class Schema {
         }
     }
 
-    private static final class StrictImpl implements Impl {
+    static final class StrictImpl implements Impl {
         private final Map<Integer, DITStructureRule> id2StructureRules;
         private final Map<String, List<AttributeType>> name2AttributeTypes;
         private final Map<String, List<DITContentRule>> name2ContentRules;
@@ -677,6 +446,8 @@ public final class Schema {
         private final boolean allowMalformedNamesAndOptions;
         private final Syntax defaultSyntax;
         private final MatchingRule defaultMatchingRule;
+        private final Schema strictSchema;
+        private final Schema nonStrictSchema;
 
         StrictImpl(final String schemaName, final boolean allowMalformedNamesAndOptions,
                 final boolean allowMalformedJPEGPhotos,
@@ -730,6 +501,18 @@ public final class Schema {
             this.objectClass2NameForms = Collections.unmodifiableMap(objectClass2NameForms);
             this.nameForm2StructureRules = Collections.unmodifiableMap(nameForm2StructureRules);
             this.warnings = Collections.unmodifiableList(warnings);
+            this.strictSchema = new Schema(this);
+            this.nonStrictSchema = new Schema(new NonStrictImpl(this));
+        }
+
+        @Override
+        public Schema asNonStrictSchema() {
+            return nonStrictSchema;
+        }
+
+        @Override
+        public Schema asStrictSchema() {
+            return strictSchema;
         }
 
         @Override
@@ -1118,12 +901,6 @@ public final class Schema {
         }
     }
 
-    /*
-     * WARNING: do not reference the core schema in the following declarations.
-     */
-
-    private static final Schema EMPTY_STRICT_SCHEMA = new Schema(new EmptyImpl(true));
-    private static final Schema EMPTY_NON_STRICT_SCHEMA = new Schema(new EmptyImpl(false));
     static final String ATTR_ATTRIBUTE_TYPES = "attributeTypes";
     static final String ATTR_DIT_CONTENT_RULES = "dITContentRules";
     static final String ATTR_DIT_STRUCTURE_RULES = "dITStructureRules";
@@ -1164,7 +941,7 @@ public final class Schema {
      * @return The default schema which should be used by this application.
      */
     public static Schema getDefaultSchema() {
-        return DefaultSchema.schema;
+        return DelayedSchema.defaultSchema;
     }
 
     /**
@@ -1174,7 +951,7 @@ public final class Schema {
      * @return The empty schema.
      */
     public static Schema getEmptySchema() {
-        return EMPTY_NON_STRICT_SCHEMA;
+        return DelayedSchema.EMPTY_SCHEMA;
     }
 
     /**
@@ -1350,7 +1127,7 @@ public final class Schema {
      */
     public static void setDefaultSchema(final Schema schema) {
         Reject.ifNull(schema);
-        DefaultSchema.schema = schema;
+        DelayedSchema.defaultSchema = schema;
     }
 
     /**
@@ -1368,44 +1145,7 @@ public final class Schema {
 
     private final Impl impl;
 
-    Schema(final String schemaName, final boolean allowMalformedNamesAndOptions,
-            final boolean allowMalformedJPEGPhotos,
-            final boolean allowMalformedCertificates,
-            final boolean allowNonStandardTelephoneNumbers,
-            final boolean allowZeroLengthDirectoryStrings,
-            final Syntax defaultSyntax,
-            final MatchingRule defaultMatchingRule,
-            final Map<String, Syntax> numericOID2Syntaxes,
-            final Map<String, MatchingRule> numericOID2MatchingRules,
-            final Map<String, MatchingRuleUse> numericOID2MatchingRuleUses,
-            final Map<String, AttributeType> numericOID2AttributeTypes,
-            final Map<String, ObjectClass> numericOID2ObjectClasses,
-            final Map<String, NameForm> numericOID2NameForms,
-            final Map<String, DITContentRule> numericOID2ContentRules,
-            final Map<Integer, DITStructureRule> id2StructureRules,
-            final Map<String, List<MatchingRule>> name2MatchingRules,
-            final Map<String, List<MatchingRuleUse>> name2MatchingRuleUses,
-            final Map<String, List<AttributeType>> name2AttributeTypes,
-            final Map<String, List<ObjectClass>> name2ObjectClasses,
-            final Map<String, List<NameForm>> name2NameForms,
-            final Map<String, List<DITContentRule>> name2ContentRules,
-            final Map<String, List<DITStructureRule>> name2StructureRules,
-            final Map<String, List<NameForm>> objectClass2NameForms,
-            final Map<String, List<DITStructureRule>> nameForm2StructureRules,
-            final List<LocalizableMessage> warnings) {
-        impl =
-                new StrictImpl(schemaName, allowMalformedNamesAndOptions, allowMalformedJPEGPhotos,
-                        allowMalformedCertificates, allowNonStandardTelephoneNumbers,
-                        allowZeroLengthDirectoryStrings, defaultSyntax, defaultMatchingRule,
-                        numericOID2Syntaxes, numericOID2MatchingRules, numericOID2MatchingRuleUses,
-                        numericOID2AttributeTypes, numericOID2ObjectClasses, numericOID2NameForms,
-                        numericOID2ContentRules, id2StructureRules, name2MatchingRules,
-                        name2MatchingRuleUses, name2AttributeTypes, name2ObjectClasses,
-                        name2NameForms, name2ContentRules, name2StructureRules,
-                        objectClass2NameForms, nameForm2StructureRules, warnings);
-    }
-
-    private Schema(final Impl impl) {
+    Schema(final Impl impl) {
         this.impl = impl;
     }
 
@@ -1503,14 +1243,7 @@ public final class Schema {
      * @see Schema#isStrict()
      */
     public Schema asNonStrictSchema() {
-        if (!impl.isStrict()) {
-            return this;
-        } else if (impl instanceof StrictImpl) {
-            return new Schema(new NonStrictImpl((StrictImpl) impl));
-        } else {
-            // EmptyImpl
-            return EMPTY_NON_STRICT_SCHEMA;
-        }
+        return impl.asNonStrictSchema();
     }
 
     /**
@@ -1522,14 +1255,7 @@ public final class Schema {
      * @see Schema#isStrict()
      */
     public Schema asStrictSchema() {
-        if (impl.isStrict()) {
-            return this;
-        } else if (impl instanceof NonStrictImpl) {
-            return new Schema(((NonStrictImpl) impl).strictImpl);
-        } else {
-            // EmptyImpl
-            return EMPTY_STRICT_SCHEMA;
-        }
+        return impl.asStrictSchema();
     }
 
     /**
