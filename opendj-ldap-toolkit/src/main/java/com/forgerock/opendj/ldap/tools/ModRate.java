@@ -243,7 +243,7 @@ public final class ModRate extends ConsoleApplication {
             }
             String.format(runner.baseDN, data);
         } catch (final Exception ex1) {
-            errPrintln(LocalizableMessage.raw("Error formatting filter or base DN: " + ex1.toString()));
+            errPrintln(LocalizableMessage.raw("Error formatting filter or base DN: " + ex1));
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
 

@@ -130,7 +130,7 @@ public final class LDIFDiff extends ConsoleApplication {
         try {
             // First source file.
             final List<String> trailingArguments = argParser.getTrailingArguments();
-            if (!trailingArguments.get(0).equals("-")) {
+            if (!"-".equals(trailingArguments.get(0))) {
                 try {
                     sourceInputStream = new FileInputStream(trailingArguments.get(0));
                 } catch (final FileNotFoundException e) {
@@ -143,7 +143,7 @@ public final class LDIFDiff extends ConsoleApplication {
             }
 
             // Patch file.
-            if (!trailingArguments.get(1).equals("-")) {
+            if (!"-".equals(trailingArguments.get(1))) {
                 try {
                     targetInputStream = new FileInputStream(trailingArguments.get(1));
                 } catch (final FileNotFoundException e) {
@@ -156,7 +156,7 @@ public final class LDIFDiff extends ConsoleApplication {
             }
 
             // Output file.
-            if (outputFilename.isPresent() && !outputFilename.getValue().equals("-")) {
+            if (outputFilename.isPresent() && !"-".equals(outputFilename.getValue())) {
                 try {
                     outputStream = new FileOutputStream(outputFilename.getValue());
                 } catch (final FileNotFoundException e) {

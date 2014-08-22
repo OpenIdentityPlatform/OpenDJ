@@ -141,7 +141,7 @@ public final class LDIFModify extends ConsoleApplication {
         try {
             // First source file.
             final List<String> trailingArguments = argParser.getTrailingArguments();
-            if (!trailingArguments.get(0).equals("-")) {
+            if (!"-".equals(trailingArguments.get(0))) {
                 try {
                     sourceInputStream = new FileInputStream(trailingArguments.get(0));
                 } catch (final FileNotFoundException e) {
@@ -154,7 +154,7 @@ public final class LDIFModify extends ConsoleApplication {
             }
 
             // Patch file.
-            if (trailingArguments.size() > 1 && !trailingArguments.get(1).equals("-")) {
+            if (trailingArguments.size() > 1 && !"-".equals(trailingArguments.get(1))) {
                 try {
                     changesInputStream = new FileInputStream(trailingArguments.get(1));
                 } catch (final FileNotFoundException e) {
@@ -167,7 +167,7 @@ public final class LDIFModify extends ConsoleApplication {
             }
 
             // Output file.
-            if (outputFilename.isPresent() && !outputFilename.getValue().equals("-")) {
+            if (outputFilename.isPresent() && !"-".equals(outputFilename.getValue())) {
                 try {
                     outputStream = new FileOutputStream(outputFilename.getValue());
                 } catch (final FileNotFoundException e) {

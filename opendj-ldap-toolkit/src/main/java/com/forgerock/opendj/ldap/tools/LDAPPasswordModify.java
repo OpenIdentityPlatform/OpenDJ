@@ -83,17 +83,13 @@ public final class LDAPPasswordModify extends ConsoleApplication {
         // Nothing to do.
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isInteractive() {
         return false;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isVerbose() {
         return verbose.isPresent();
@@ -279,7 +275,7 @@ public final class LDAPPasswordModify extends ConsoleApplication {
             errPrintln(message);
 
             final String errorMessage = e.getResult().getDiagnosticMessage();
-            if ((errorMessage != null) && (errorMessage.length() > 0)) {
+            if (errorMessage != null && errorMessage.length() > 0) {
                 message = ERR_LDAPPWMOD_FAILURE_ERROR_MESSAGE.get(errorMessage);
                 errPrintln(message);
             }
@@ -292,21 +288,16 @@ public final class LDAPPasswordModify extends ConsoleApplication {
             return e.getResult().getResultCode().intValue();
         }
 
-        LocalizableMessage message = INFO_LDAPPWMOD_SUCCESSFUL.get();
-        println(message);
+        println(INFO_LDAPPWMOD_SUCCESSFUL.get());
 
         final String additionalInfo = result.getDiagnosticMessage();
-        if ((additionalInfo != null) && (additionalInfo.length() > 0)) {
-
-            message = INFO_LDAPPWMOD_ADDITIONAL_INFO.get(additionalInfo);
-            println(message);
+        if (additionalInfo != null && additionalInfo.length() > 0) {
+            println(INFO_LDAPPWMOD_ADDITIONAL_INFO.get(additionalInfo));
         }
 
         if (result.getGeneratedPassword() != null) {
-            message =
-                    INFO_LDAPPWMOD_GENERATED_PASSWORD.get(ByteString.valueOf(
-                            result.getGeneratedPassword()).toString());
-            println(message);
+            println(INFO_LDAPPWMOD_GENERATED_PASSWORD.get(ByteString.valueOf(
+                    result.getGeneratedPassword()).toString()));
         }
 
         return 0;

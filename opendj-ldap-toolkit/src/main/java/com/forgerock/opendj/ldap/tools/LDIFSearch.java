@@ -194,9 +194,7 @@ public final class LDIFSearch extends ConsoleApplication {
                 }
             }
             // The rest are attributes
-            for (final String s : filterAndAttributeStrings) {
-                attributes.add(s);
-            }
+            attributes.addAll(filterAndAttributeStrings);
         }
 
         if (filename.isPresent()) {
@@ -207,12 +205,11 @@ public final class LDIFSearch extends ConsoleApplication {
                 String line = null;
 
                 while ((line = in.readLine()) != null) {
-                    if (line.trim().equals("")) {
+                    if ("".equals(line.trim())) {
                         // ignore empty lines.
                         continue;
                     }
-                    final Filter ldapFilter = Filter.valueOf(line);
-                    filters.add(ldapFilter);
+                    filters.add(Filter.valueOf(line));
                 }
             } catch (final LocalizedIllegalArgumentException e) {
                 errPrintln(e.getMessageObject());
@@ -254,7 +251,7 @@ public final class LDIFSearch extends ConsoleApplication {
 
         try {
             // First source file.
-            if (!trailingArguments.get(0).equals("-")) {
+            if (!"-".equals(trailingArguments.get(0))) {
                 try {
                     sourceInputStream = new FileInputStream(trailingArguments.get(0));
                 } catch (final FileNotFoundException e) {
@@ -267,7 +264,7 @@ public final class LDIFSearch extends ConsoleApplication {
             }
 
             // Output file.
-            if (outputFilename.isPresent() && !outputFilename.getValue().equals("-")) {
+            if (outputFilename.isPresent() && !"-".equals(outputFilename.getValue())) {
                 try {
                     outputStream = new FileOutputStream(outputFilename.getValue());
                 } catch (final FileNotFoundException e) {

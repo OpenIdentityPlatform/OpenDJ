@@ -183,25 +183,19 @@ public final class SearchRate extends ConsoleApplication {
         // Nothing to do.
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isInteractive() {
         return false;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isScriptFriendly() {
         return scriptFriendly.isPresent();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isVerbose() {
         return verbose.isPresent();
@@ -302,9 +296,7 @@ public final class SearchRate extends ConsoleApplication {
              the first trailing argument is considered the filter, the other as attributes.*/
             runner.filter = filterAndAttributeStrings.remove(0);
             // The rest are attributes
-            for (final String s : filterAndAttributeStrings) {
-                attributes.add(s);
-            }
+            attributes.addAll(filterAndAttributeStrings);
         }
         runner.attributes = attributes.toArray(new String[attributes.size()]);
         runner.baseDN = baseDN.getValue();
@@ -323,7 +315,7 @@ public final class SearchRate extends ConsoleApplication {
             String.format(runner.filter, data);
             String.format(runner.baseDN, data);
         } catch (final Exception ex1) {
-            errPrintln(LocalizableMessage.raw("Error formatting filter or base DN: " + ex1.toString()));
+            errPrintln(LocalizableMessage.raw("Error formatting filter or base DN: " + ex1));
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }
 

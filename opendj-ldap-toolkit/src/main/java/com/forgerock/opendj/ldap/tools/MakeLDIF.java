@@ -203,11 +203,10 @@ public final class MakeLDIF extends ConsoleApplication {
             }
         }
 
-        if (constants.isPresent()) {
-            if (!addConstantsToGenerator(constants, generator, app)) {
-                generator.close();
-                return null;
-            }
+        if (constants.isPresent()
+                && !addConstantsToGenerator(constants, generator, app)) {
+            generator.close();
+            return null;
         }
 
         // Force initialization of generator
@@ -273,7 +272,7 @@ public final class MakeLDIF extends ConsoleApplication {
         // nothing to do
     }
 
-    // To allow tests
+    /** To allow tests. */
     MakeLDIF(PrintStream out, PrintStream err) {
         super(out, err);
     }

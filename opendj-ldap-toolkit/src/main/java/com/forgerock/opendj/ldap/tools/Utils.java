@@ -87,25 +87,25 @@ final class Utils {
         }
 
         final String lowerOID = StaticUtils.toLowerCase(controlOID);
-        if (lowerOID.equals("accountusable") || lowerOID.equals("accountusability")) {
+        if ("accountusable".equals(lowerOID) || "accountusability".equals(lowerOID)) {
             controlOID = AccountUsabilityRequestControl.OID;
-        } else if (lowerOID.equals("authzid") || lowerOID.equals("authorizationidentity")) {
+        } else if ("authzid".equals(lowerOID) || "authorizationidentity".equals(lowerOID)) {
             controlOID = AuthorizationIdentityRequestControl.OID;
-        } else if (lowerOID.equals("noop") || lowerOID.equals("no-op")) {
+        } else if ("noop".equals(lowerOID) || "no-op".equals(lowerOID)) {
             // controlOID = OID_LDAP_NOOP_OPENLDAP_ASSIGNED;
-        } else if (lowerOID.equals("subentries")) {
+        } else if ("subentries".equals(lowerOID)) {
             // controlOID = OID_LDAP_SUBENTRIES;
-        } else if (lowerOID.equals("managedsait")) {
+        } else if ("managedsait".equals(lowerOID)) {
             // controlOID = OID_MANAGE_DSAIT_CONTROL;
-        } else if (lowerOID.equals("pwpolicy") || lowerOID.equals("passwordpolicy")) {
+        } else if ("pwpolicy".equals(lowerOID) || "passwordpolicy".equals(lowerOID)) {
             controlOID = PasswordPolicyRequestControl.OID;
-        } else if (lowerOID.equals("subtreedelete") || lowerOID.equals("treedelete")) {
+        } else if ("subtreedelete".equals(lowerOID) || "treedelete".equals(lowerOID)) {
             controlOID = SubtreeDeleteRequestControl.OID;
-        } else if (lowerOID.equals("realattrsonly") || lowerOID.equals("realattributesonly")) {
+        } else if ("realattrsonly".equals(lowerOID) || "realattributesonly".equals(lowerOID)) {
             // controlOID = OID_REAL_ATTRS_ONLY;
-        } else if (lowerOID.equals("virtualattrsonly") || lowerOID.equals("virtualattributesonly")) {
+        } else if ("virtualattrsonly".equals(lowerOID) || "virtualattributesonly".equals(lowerOID)) {
             // controlOID = OID_VIRTUAL_ATTRS_ONLY;
-        } else if (lowerOID.equals("effectiverights") || lowerOID.equals("geteffectiverights")) {
+        } else if ("effectiverights".equals(lowerOID) || "geteffectiverights".equals(lowerOID)) {
             controlOID = GetEffectiveRightsRequestControl.OID;
         }
 
@@ -117,9 +117,9 @@ final class Utils {
 
         idx = remainder.indexOf(":");
         if (idx == -1) {
-            if (remainder.equalsIgnoreCase("true")) {
+            if ("true".equalsIgnoreCase(remainder)) {
                 controlCriticality = true;
-            } else if (remainder.equalsIgnoreCase("false")) {
+            } else if ("false".equalsIgnoreCase(remainder)) {
                 controlCriticality = false;
             } else {
                 // TODO: I18N
@@ -131,9 +131,9 @@ final class Utils {
         }
 
         final String critical = remainder.substring(0, idx);
-        if (critical.equalsIgnoreCase("true")) {
+        if ("true".equalsIgnoreCase(critical)) {
             controlCriticality = true;
-        } else if (critical.equalsIgnoreCase("false")) {
+        } else if ("false".equalsIgnoreCase(critical)) {
             controlCriticality = false;
         } else {
             // TODO: I18N
@@ -180,8 +180,8 @@ final class Utils {
                     .getResult().getResultCode().toString()));
         }
 
-        if ((ere.getResult().getDiagnosticMessage() != null)
-                && (ere.getResult().getDiagnosticMessage().length() > 0)) {
+        if (ere.getResult().getDiagnosticMessage() != null
+                && ere.getResult().getDiagnosticMessage().length() > 0) {
             app.errPrintln(ERR_TOOL_ERROR_MESSAGE.get(ere.getResult().getDiagnosticMessage()));
         }
 
@@ -294,7 +294,7 @@ final class Utils {
         }
     }
 
-    // Prevent instantiation.
+    /** Prevent instantiation. */
     private Utils() {
         // Do nothing.
     }

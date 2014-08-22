@@ -160,7 +160,7 @@ public final class LDAPModify extends ConsoleApplication {
                 errPrintln(msg);
                 errPrintln(ERR_TOOL_RESULT_CODE.get(r.getResultCode().intValue(), r.getResultCode()
                         .toString()));
-                if ((r.getDiagnosticMessage() != null) && (r.getDiagnosticMessage().length() > 0)) {
+                if (r.getDiagnosticMessage() != null && r.getDiagnosticMessage().length() > 0) {
                     errPrintln(LocalizableMessage.raw(r.getDiagnosticMessage()));
                 }
                 if (r.getMatchedDN() != null && r.getMatchedDN().length() > 0) {
@@ -169,7 +169,7 @@ public final class LDAPModify extends ConsoleApplication {
             } else {
                 final LocalizableMessage msg = INFO_OPERATION_SUCCESSFUL.get(operationType, name);
                 println(msg);
-                if ((r.getDiagnosticMessage() != null) && (r.getDiagnosticMessage().length() > 0)) {
+                if (r.getDiagnosticMessage() != null && r.getDiagnosticMessage().length() > 0) {
                     errPrintln(LocalizableMessage.raw(r.getDiagnosticMessage()));
                 }
                 if (r.getReferralURIs() != null) {
@@ -233,17 +233,13 @@ public final class LDAPModify extends ConsoleApplication {
         // Nothing to do.
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isInteractive() {
         return false;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isVerbose() {
         return verbose.isPresent();

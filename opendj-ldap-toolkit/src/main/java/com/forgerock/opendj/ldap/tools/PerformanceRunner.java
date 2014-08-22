@@ -24,7 +24,6 @@
  *      Copyright 2010 Sun Microsystems, Inc.
  *      Portions copyright 2011-2014 ForgeRock AS.
  */
-
 package com.forgerock.opendj.ldap.tools;
 
 import static org.forgerock.util.Utils.closeSilently;
@@ -420,7 +419,7 @@ abstract class PerformanceRunner implements ConnectionEventListener {
             Connection connection;
 
             final double targetTimeInMS =
-                    (1000.0 / (targetThroughput / (double) (numThreads * numConnections)));
+                    1000.0 / (targetThroughput / (double) (numThreads * numConnections));
             double sleepTimeInMS = 0;
             long start;
             while (!stopRequested && !(maxIterations > 0 && count >= maxIterations)) {
@@ -629,11 +628,9 @@ abstract class PerformanceRunner implements ConnectionEventListener {
     private final ConsoleApplication app;
     private DataSource[] dataSourcePrototypes;
 
-    // Thread local copies of the data sources
+    /** Thread local copies of the data sources. */
     private final ThreadLocal<DataSource[]> dataSources = new ThreadLocal<DataSource[]>() {
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         protected DataSource[] initialValue() {
             final DataSource[] prototypes = getDataSources();
