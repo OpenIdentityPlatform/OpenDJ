@@ -97,17 +97,13 @@ public final class LDAPCompare extends ConsoleApplication {
       super(out, err);
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isInteractive() {
         return false;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isVerbose() {
         return verbose.isPresent();
@@ -131,7 +127,7 @@ public final class LDAPCompare extends ConsoleApplication {
                 final Result r = ere.getResult();
                 errPrintln(ERR_TOOL_RESULT_CODE.get(r.getResultCode().intValue(), r.getResultCode()
                         .toString()));
-                if ((r.getDiagnosticMessage() != null) && (r.getDiagnosticMessage().length() > 0)) {
+                if (r.getDiagnosticMessage() != null && r.getDiagnosticMessage().length() > 0) {
                     errPrintln(LocalizableMessage.raw(r.getDiagnosticMessage()));
                 }
                 if (r.getMatchedDN() != null && r.getMatchedDN().length() > 0) {
@@ -256,14 +252,11 @@ public final class LDAPCompare extends ConsoleApplication {
 
         // First element should be an attribute string.
         final String attributeString = attrAndDNStrings.remove(0);
-
         // Rest are DN strings
-        for (final String s : attrAndDNStrings) {
-            dnStrings.add(s);
-        }
+        dnStrings.addAll(attrAndDNStrings);
 
         // If no DNs were provided, then exit with an error.
-        if (dnStrings.isEmpty() && (!filename.isPresent())) {
+        if (dnStrings.isEmpty() && !filename.isPresent()) {
             errPrintln(ERR_LDAPCOMPARE_NO_DNS.get());
             return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
         }

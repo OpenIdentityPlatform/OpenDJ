@@ -94,7 +94,7 @@ import com.forgerock.opendj.util.StaticUtils;
  */
 public final class LDAPSearch extends ConsoleApplication {
     private class LDAPSearchResultHandler implements SearchResultHandler {
-        private int entryCount = 0;
+        private int entryCount;
 
         /** {@inheritDoc} */
         public boolean handleEntry(final SearchResultEntry entry) {
@@ -474,9 +474,7 @@ public final class LDAPSearch extends ConsoleApplication {
                 }
             }
             // The rest are attributes
-            for (final String s : filterAndAttributeStrings) {
-                attributes.add(s);
-            }
+            attributes.addAll(filterAndAttributeStrings);
         }
 
         if (filename.isPresent()) {
@@ -487,7 +485,7 @@ public final class LDAPSearch extends ConsoleApplication {
                 String line = null;
 
                 while ((line = in.readLine()) != null) {
-                    if (line.trim().equals("")) {
+                    if ("".equals(line.trim())) {
                         // ignore empty lines.
                         continue;
                     }
@@ -614,7 +612,7 @@ public final class LDAPSearch extends ConsoleApplication {
                 return ResultCode.CLIENT_SIDE_PARAM_ERROR.intValue();
             } else {
                 final String token = tokenizer.nextToken();
-                if (!token.equals("ps")) {
+                if (!"ps".equals(token)) {
                     final LocalizableMessage message =
                             ERR_PSEARCH_DOESNT_START_WITH_PS.get(String.valueOf(infoString));
                     errPrintln(message);
@@ -634,16 +632,16 @@ public final class LDAPSearch extends ConsoleApplication {
                 } else {
                     do {
                         final String token = st.nextToken();
-                        if (token.equals("add")) {
+                        if ("add".equals(token)) {
                             ct.add(PersistentSearchChangeType.ADD);
-                        } else if (token.equals("delete") || token.equals("del")) {
+                        } else if ("delete".equals(token) || "del".equals(token)) {
                             ct.add(PersistentSearchChangeType.DELETE);
-                        } else if (token.equals("modify") || token.equals("mod")) {
+                        } else if ("modify".equals(token) || "mod".equals(token)) {
                             ct.add(PersistentSearchChangeType.MODIFY);
-                        } else if (token.equals("modifydn") || token.equals("moddn")
-                                || token.equals("modrdn")) {
+                        } else if ("modifydn".equals(token) || "moddn".equals(token)
+                                || "modrdn".equals(token)) {
                             ct.add(PersistentSearchChangeType.MODIFY_DN);
-                        } else if (token.equals("any") || token.equals("all")) {
+                        } else if ("any".equals(token) || "all".equals(token)) {
                             ct.add(PersistentSearchChangeType.ADD);
                             ct.add(PersistentSearchChangeType.DELETE);
                             ct.add(PersistentSearchChangeType.MODIFY);
@@ -660,9 +658,9 @@ public final class LDAPSearch extends ConsoleApplication {
 
             if (tokenizer.hasMoreTokens()) {
                 final String token = tokenizer.nextToken();
-                if (token.equals("1") || token.equals("true") || token.equals("yes")) {
+                if ("1".equals(token) || "true".equals(token) || "yes".equals(token)) {
                     changesOnly = true;
-                } else if (token.equals("0") || token.equals("false") || token.equals("no")) {
+                } else if ("0".equals(token) || "false".equals(token) || "no".equals(token)) {
                     changesOnly = false;
                 } else {
                     final LocalizableMessage message =
@@ -674,9 +672,9 @@ public final class LDAPSearch extends ConsoleApplication {
 
             if (tokenizer.hasMoreTokens()) {
                 final String token = tokenizer.nextToken();
-                if (token.equals("1") || token.equals("true") || token.equals("yes")) {
+                if ("1".equals(token) || "true".equals(token) || "yes".equals(token)) {
                     returnECs = true;
-                } else if (token.equals("0") || token.equals("false") || token.equals("no")) {
+                } else if ("0".equals(token) || "false".equals(token) || "no".equals(token)) {
                     returnECs = false;
                 } else {
                     final LocalizableMessage message =
@@ -850,12 +848,9 @@ public final class LDAPSearch extends ConsoleApplication {
                     final ServerSideSortResponseControl control =
                             result.getControl(ServerSideSortResponseControl.DECODER,
                                     new DecodeOptions());
-                    if (control != null) {
-                        if (control.getResult() != ResultCode.SUCCESS) {
-                            final LocalizableMessage msg =
-                                    WARN_LDAPSEARCH_SORT_ERROR.get(control.getResult().toString());
-                            println(msg);
-                        }
+                    if (control != null
+                            && control.getResult() != ResultCode.SUCCESS) {
+                        println(WARN_LDAPSEARCH_SORT_ERROR.get(control.getResult().toString()));
                     }
                 } catch (final DecodeException e) {
                     errPrintln(ERR_DECODE_CONTROL_FAILURE.get(e.getLocalizedMessage()));
@@ -888,23 +883,19 @@ public final class LDAPSearch extends ConsoleApplication {
                     SimplePagedResultsControl control =
                             result.getControl(SimplePagedResultsControl.DECODER,
                                     new DecodeOptions());
-                    if (control != null) {
-                        if (control.getCookie().length() > 0) {
-                            if (!isQuiet()) {
-                                pressReturnToContinue();
-                            }
-                            final Iterator<Control> iterator = search.getControls().iterator();
-                            while (iterator.hasNext()) {
-                                if (iterator.next().getOID().equals(SimplePagedResultsControl.OID)) {
-                                    iterator.remove();
-                                }
-                            }
-                            control =
-                                    SimplePagedResultsControl.newControl(true, pageSize, control
-                                            .getCookie());
-                            search.addControl(control);
-                            continue;
+                    if (control != null && control.getCookie().length() > 0) {
+                        if (!isQuiet()) {
+                            pressReturnToContinue();
                         }
+                        final Iterator<Control> iterator = search.getControls().iterator();
+                        while (iterator.hasNext()) {
+                            if (SimplePagedResultsControl.OID.equals(iterator.next().getOID())) {
+                                iterator.remove();
+                            }
+                        }
+                        control = SimplePagedResultsControl.newControl(true, pageSize, control.getCookie());
+                        search.addControl(control);
+                        continue;
                     }
                 } catch (final DecodeException e) {
                     errPrintln(ERR_DECODE_CONTROL_FAILURE.get(e.getLocalizedMessage()));
@@ -913,8 +904,8 @@ public final class LDAPSearch extends ConsoleApplication {
                 errPrintln();
                 errPrintln(ERR_TOOL_RESULT_CODE.get(result.getResultCode().intValue(), result
                         .getResultCode().toString()));
-                if ((result.getDiagnosticMessage() != null)
-                        && (result.getDiagnosticMessage().length() > 0)) {
+                if (result.getDiagnosticMessage() != null
+                        && result.getDiagnosticMessage().length() > 0) {
                     errPrintln(LocalizableMessage.raw(result.getDiagnosticMessage()));
                 }
                 if (result.getMatchedDN() != null && result.getMatchedDN().length() > 0) {
