@@ -22,12 +22,13 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.workflowelement.localbackend;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.concurrent.locks.Lock;
 
 import org.opends.messages.Message;
@@ -63,41 +64,25 @@ public class LocalBackendModifyDNOperation
              PostResponseModifyDNOperation,
              PostSynchronizationModifyDNOperation
 {
-  /**
-   * The tracer object for the debug logger.
-   */
+  /** The tracer object for the debug logger. */
   private static final DebugTracer TRACER = getTracer();
 
+  /** The backend in which the operation is to be processed. */
+  private Backend<?> backend;
 
-
-  /**
-   * The backend in which the operation is to be processed.
-   */
-  private Backend backend;
-
-  /**
-   * Indicates whether the no-op control was included in the request.
-   */
+  /** Indicates whether the no-op control was included in the request. */
   private boolean noOp;
 
-  /**
-   * The client connection on which this operation was requested.
-   */
+  /** The client connection on which this operation was requested. */
   private ClientConnection clientConnection;
 
-  /**
-   * The original DN of the entry.
-   */
+  /** The original DN of the entry. */
   private DN entryDN;
 
-  /**
-   * The current entry, before it is renamed.
-   */
+  /** The current entry, before it is renamed. */
   private Entry currentEntry;
 
-  /**
-   * The new entry, as it will appear after it has been renamed.
-   */
+  /** The new entry, as it will appear after it has been renamed. */
   private Entry newEntry;
 
   /** The LDAP post-read request control, if present in the request. */
@@ -106,9 +91,7 @@ public class LocalBackendModifyDNOperation
   /** The LDAP pre-read request control, if present in the request. */
   private LDAPPreReadRequestControl preReadRequest;
 
-  /**
-   * The new RDN for the entry.
-   */
+  /** The new RDN for the entry. */
   private RDN newRDN;
 
 
@@ -224,8 +207,7 @@ public class LocalBackendModifyDNOperation
           // Notify persistent searches.
           for (PersistentSearch psearch : wfe.getPersistentSearches())
           {
-            psearch.processModifyDN(newEntry, getChangeNumber(), currentEntry
-                .getDN());
+            psearch.processModifyDN(newEntry, currentEntry.getDN());
           }
 
           // Notify change listeners.
@@ -244,10 +226,8 @@ public class LocalBackendModifyDNOperation
                 TRACER.debugCaught(DebugLogLevel.ERROR, e);
               }
 
-              Message message =
-                  ERR_MODDN_ERROR_NOTIFYING_CHANGE_LISTENER
-                      .get(getExceptionMessage(e));
-              logError(message);
+              logError(ERR_MODDN_ERROR_NOTIFYING_CHANGE_LISTENER
+                  .get(getExceptionMessage(e)));
             }
           }
         }
@@ -304,7 +284,7 @@ public class LocalBackendModifyDNOperation
 
     // Get the backend for the current entry, and the backend for the new
     // entry. If either is null, or if they are different, then fail.
-    Backend currentBackend = backend;
+    Backend<?> currentBackend = backend;
     if (currentBackend == null)
     {
       setResultCode(ResultCode.NO_SUCH_OBJECT);
@@ -313,7 +293,7 @@ public class LocalBackendModifyDNOperation
       return;
     }
 
-    Backend newBackend = DirectoryServer.getBackend(newDN);
+    Backend<?> newBackend = DirectoryServer.getBackend(newDN);
     if (newBackend == null)
     {
       setResultCode(ResultCode.NO_SUCH_OBJECT);
@@ -589,14 +569,14 @@ public class LocalBackendModifyDNOperation
     LocalBackendWorkflowElement.removeAllDisallowedControls(entryDN, this);
 
     List<Control> requestControls = getRequestControls();
-    if ((requestControls != null) && (! requestControls.isEmpty()))
+    if (requestControls != null && !requestControls.isEmpty())
     {
-      for (int i=0; i < requestControls.size(); i++)
+      for (ListIterator<Control> iter = requestControls.listIterator(); iter.hasNext();)
       {
-        Control c   = requestControls.get(i);
+        Control c = iter.next();
         String  oid = c.getOID();
 
-        if (oid.equals(OID_LDAP_ASSERTION))
+        if (OID_LDAP_ASSERTION.equals(oid))
         {
           LDAPAssertionRequestControl assertControl =
                 getRequestControl(LDAPAssertionRequestControl.DECODER);
@@ -657,17 +637,16 @@ public class LocalBackendModifyDNOperation
                     de.getMessageObject()));
           }
         }
-        else if (oid.equals(OID_LDAP_NOOP_OPENLDAP_ASSIGNED))
+        else if (OID_LDAP_NOOP_OPENLDAP_ASSIGNED.equals(oid))
         {
           noOp = true;
         }
-        else if (oid.equals(OID_LDAP_READENTRY_PREREAD))
+        else if (OID_LDAP_READENTRY_PREREAD.equals(oid))
         {
-          preReadRequest =
-                getRequestControl(LDAPPreReadRequestControl.DECODER);
-          requestControls.set(i, preReadRequest);
+          preReadRequest = getRequestControl(LDAPPreReadRequestControl.DECODER);
+          iter.set(preReadRequest);
         }
-        else if (oid.equals(OID_LDAP_READENTRY_POSTREAD))
+        else if (OID_LDAP_READENTRY_POSTREAD.equals(oid))
         {
           if (c instanceof LDAPPostReadRequestControl)
           {
@@ -675,12 +654,11 @@ public class LocalBackendModifyDNOperation
           }
           else
           {
-            postReadRequest =
-                  getRequestControl(LDAPPostReadRequestControl.DECODER);
-            requestControls.set(i, postReadRequest);
+            postReadRequest = getRequestControl(LDAPPostReadRequestControl.DECODER);
+            iter.set(postReadRequest);
           }
         }
-        else if (oid.equals(OID_PROXIED_AUTH_V1))
+        else if (OID_PROXIED_AUTH_V1.equals(oid))
         {
           // Log usage of legacy proxy authz V1 control.
           addAdditionalLogItem(AdditionalLogItem.keyOnly(getClass(),
@@ -699,16 +677,9 @@ public class LocalBackendModifyDNOperation
 
           Entry authorizationEntry = proxyControl.getAuthorizationEntry();
           setAuthorizationEntry(authorizationEntry);
-          if (authorizationEntry == null)
-          {
-            setProxiedAuthorizationDN(DN.nullDN());
-          }
-          else
-          {
-            setProxiedAuthorizationDN(authorizationEntry.getDN());
-          }
+          setProxiedAuthorizationDN(getDN(authorizationEntry));
         }
-        else if (oid.equals(OID_PROXIED_AUTH_V2))
+        else if (OID_PROXIED_AUTH_V2.equals(oid))
         {
           // The requester must have the PROXIED_AUTH privilege in order to
           // be able to use this control.
@@ -723,33 +694,23 @@ public class LocalBackendModifyDNOperation
 
           Entry authorizationEntry = proxyControl.getAuthorizationEntry();
           setAuthorizationEntry(authorizationEntry);
-          if (authorizationEntry == null)
-          {
-            setProxiedAuthorizationDN(DN.nullDN());
-          }
-          else
-          {
-            setProxiedAuthorizationDN(authorizationEntry.getDN());
-          }
+          setProxiedAuthorizationDN(getDN(authorizationEntry));
         }
-
-        // NYI -- Add support for additional controls.
-
-        else if (c.isCritical())
+        else if (c.isCritical()
+            && (backend == null || !backend.supportsControl(oid)))
         {
-          if ((backend == null) || (! backend.supportsControl(oid)))
-          {
-            throw new DirectoryException(
-                           ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
-                           ERR_MODDN_UNSUPPORTED_CRITICAL_CONTROL.get(
-                                String.valueOf(entryDN), oid));
-          }
+          throw new DirectoryException(
+              ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
+              ERR_MODDN_UNSUPPORTED_CRITICAL_CONTROL.get(String.valueOf(entryDN), oid));
         }
       }
     }
   }
 
-
+  private DN getDN(Entry e)
+  {
+    return e != null ? e.getDN() : DN.nullDN();
+  }
 
   /**
    * Updates the entry so that its attributes are changed to reflect the changes
@@ -777,14 +738,12 @@ public class LocalBackendModifyDNOperation
 
         // If the associated attribute type is marked NO-USER-MODIFICATION, then
         // refuse the update.
-        if (a.getAttributeType().isNoUserModification())
+        if (a.getAttributeType().isNoUserModification()
+            && !isInternalOperation()
+            && !isSynchronizationOperation())
         {
-          if (! (isInternalOperation() || isSynchronizationOperation()))
-          {
-            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                           ERR_MODDN_OLD_RDN_ATTR_IS_NO_USER_MOD.get(
-                                String.valueOf(entryDN), a.getName()));
-          }
+          throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+              ERR_MODDN_OLD_RDN_ATTR_IS_NO_USER_MOD.get(String.valueOf(entryDN), a.getName()));
         }
 
         List<AttributeValue> missingValues = new LinkedList<AttributeValue>();
@@ -816,7 +775,7 @@ public class LocalBackendModifyDNOperation
         // refuse the update.
         if (a.getAttributeType().isNoUserModification())
         {
-          if (! (isInternalOperation() || isSynchronizationOperation()))
+          if (!isInternalOperation() && !isSynchronizationOperation())
           {
             throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
                            ERR_MODDN_NEW_RDN_ATTR_IS_NO_USER_MOD.get(
@@ -833,7 +792,7 @@ public class LocalBackendModifyDNOperation
     // If the server is configured to check the schema and the operation is not
     // a synchronization operation, make sure that the resulting entry is valid
     // as per the server schema.
-    if ((DirectoryServer.checkSchema()) && (! isSynchronizationOperation()))
+    if (DirectoryServer.checkSchema() && !isSynchronizationOperation())
     {
       MessageBuilder invalidReason = new MessageBuilder();
       if (! newEntry.conformsToSchema(null, false, true, true,
@@ -1013,4 +972,3 @@ public class LocalBackendModifyDNOperation
       }
   }
 }
-

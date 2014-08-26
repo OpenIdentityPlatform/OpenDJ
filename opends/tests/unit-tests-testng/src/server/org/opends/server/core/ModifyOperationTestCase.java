@@ -22,13 +22,9 @@
  *
  *
  *      Copyright 2006-2011 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.core;
-
-import static org.opends.server.TestCaseUtils.*;
-import static org.opends.server.protocols.ldap.LDAPConstants.*;
-import static org.testng.Assert.*;
 
 import java.net.Socket;
 import java.util.ArrayList;
@@ -54,8 +50,13 @@ import org.opends.server.util.StaticUtils;
 import org.opends.server.workflowelement.localbackend.LocalBackendModifyOperation;
 import org.testng.annotations.*;
 
+import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.ldap.LDAPConstants.*;
+import static org.testng.Assert.*;
+
 /**
- * A set of test cases for modify operations
+ * A set of test cases for modify operations.
  */
 @SuppressWarnings("javadoc")
 public class ModifyOperationTestCase
@@ -67,14 +68,13 @@ public class ModifyOperationTestCase
     TestCaseUtils.restartServer();
   }
 
-  // Some of the tests disable the backends, so we reenable them here.
+  /** Some of the tests disable the backends, so we reenable them here. */
   @AfterMethod(alwaysRun=true)
   public void reenableBackend() throws DirectoryException {
-    Object[][] backendBaseDNs = getBaseDNs();
-    for (Object[] backendBaseDN2 : backendBaseDNs)
+    for (Object[] backendBaseDN2 : getBaseDNs())
     {
-      String backendBaseDN = backendBaseDN2[0].toString();
-      Backend b = DirectoryServer.getBackend(DN.decode(backendBaseDN));
+      final DN baseDN = DN.decode(backendBaseDN2[0].toString());
+      Backend<?> b = DirectoryServer.getBackend(baseDN);
       b.setWritabilityMode(WritabilityMode.ENABLED);
     }
   }
@@ -208,9 +208,7 @@ public class ModifyOperationTestCase
       DN entryDn, List<Modification> modifications)
   {
     return new ModifyOperationBasis(
-        InternalClientConnection.getRootConnection(),
-        InternalClientConnection.nextOperationID(),
-        InternalClientConnection.nextMessageID(),
+        getRootConnection(), nextOperationID(), nextMessageID(),
         requestControls, entryDn, modifications);
   }
 
@@ -218,9 +216,7 @@ public class ModifyOperationTestCase
       ByteString rawEntryDn, List<RawModification> rawModifications)
   {
     return new ModifyOperationBasis(
-        InternalClientConnection.getRootConnection(),
-        InternalClientConnection.nextOperationID(),
-        InternalClientConnection.nextMessageID(),
+        getRootConnection(), nextOperationID(), nextMessageID(),
         requestControls, rawEntryDn, rawModifications);
   }
 
@@ -239,9 +235,7 @@ public class ModifyOperationTestCase
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   protected Operation[] createTestOperations()
          throws Exception
@@ -373,8 +367,7 @@ public class ModifyOperationTestCase
 
     modifyOperation.addRawModification(replace(attr));
 
-    assertEquals(modifyOperation.getRawModifications().size(),
-                 (rawMods.size() + 1));
+    assertEquals(modifyOperation.getRawModifications().size(), rawMods.size() + 1);
 
     modifyOperation.setRawModifications(rawMods);
     assertEquals(modifyOperation.getRawModifications().size(), rawMods.size());
@@ -398,7 +391,7 @@ public class ModifyOperationTestCase
     assertTrue(modifyOperation.getProcessingTime() >= 0);
 
     List<LocalBackendModifyOperation> localOps =
-      (List) (modifyOperation.getAttachment(Operation.LOCALBACKENDOPERATIONS));
+      (List) modifyOperation.getAttachment(Operation.LOCALBACKENDOPERATIONS);
     assertNotNull(localOps);
     for (LocalBackendModifyOperation curOp : localOps)
     {
@@ -407,9 +400,6 @@ public class ModifyOperationTestCase
       assertNotNull(curOp.getCurrentEntry());
       assertNotNull(curOp.getModifiedEntry());
     }
-
-    long changeNumber = modifyOperation.getChangeNumber();
-    modifyOperation.setChangeNumber(changeNumber);
   }
 
 
@@ -428,9 +418,6 @@ public class ModifyOperationTestCase
     assertTrue(modifyOperation.getProcessingStopTime() >=
                modifyOperation.getProcessingStartTime());
     assertTrue(modifyOperation.getProcessingTime() >= 0);
-
-    long changeNumber = modifyOperation.getChangeNumber();
-    modifyOperation.setChangeNumber(changeNumber);
   }
 
 
@@ -454,15 +441,12 @@ public class ModifyOperationTestCase
              Attributes.create("description", "foo")));
 
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
     List<Modification> mods = new ArrayList<Modification>();
     mods.add(new Modification(ModificationType.REPLACE,
         Attributes.create("l", "Austin")));
 
     ModifyOperation modifyOperation =
-         conn.processModify(DN.decode("o=test"), mods);
+        getRootConnection().processModify(DN.decode("o=test"), mods);
     assertEquals(modifyOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveSuccessfulOperationElements(modifyOperation);
 
@@ -793,34 +777,27 @@ public class ModifyOperationTestCase
   private ModifyOperation processModify(String entryDN,
       List<RawModification> mods)
   {
-    InternalClientConnection conn =
-        InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
     return conn.processModify(ByteString.valueOf(entryDN), mods);
   }
 
   private ModifyOperation processModify(String entryDN, RawModification... mods)
   {
-    InternalClientConnection conn =
-        InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
     return conn.processModify(ByteString.valueOf(entryDN), Arrays.asList(mods));
   }
 
   private ModifyOperation processModify(String entryDN,
       List<RawModification> mods, List<Control> requestControls)
   {
-    InternalClientConnection conn =
-        InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
     return conn.processModify(ByteString.valueOf(entryDN), mods, requestControls);
   }
 
   private void processAdd(String... entryLines) throws Exception
   {
     Entry entry = TestCaseUtils.makeEntry(entryLines);
-    InternalClientConnection conn =
-        InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-        conn.processAdd(entry.getDN(), entry.getObjectClasses(), entry
-            .getUserAttributes(), entry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(entry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -1425,9 +1402,7 @@ public class ModifyOperationTestCase
 
     InternalSearchOperation searchOperation =
          new InternalSearchOperation(
-              InternalClientConnection.getRootConnection(),
-              InternalClientConnection.nextOperationID(),
-              InternalClientConnection.nextMessageID(),
+              getRootConnection(), nextOperationID(), nextMessageID(),
               new ArrayList<Control>(),
               ByteString.valueOf("uid=test.user," + baseDN),
               SearchScope.WHOLE_SUBTREE,
@@ -1477,9 +1452,7 @@ public class ModifyOperationTestCase
 
     InternalSearchOperation searchOperation =
          new InternalSearchOperation(
-              InternalClientConnection.getRootConnection(),
-              InternalClientConnection.nextOperationID(),
-              InternalClientConnection.nextMessageID(),
+              getRootConnection(), nextOperationID(), nextMessageID(),
               new ArrayList<Control>(),
               ByteString.valueOf(baseDN),
               SearchScope.WHOLE_SUBTREE,
@@ -1532,9 +1505,7 @@ public class ModifyOperationTestCase
 
     InternalSearchOperation searchOperation =
          new InternalSearchOperation(
-              InternalClientConnection.getRootConnection(),
-              InternalClientConnection.nextOperationID(),
-              InternalClientConnection.nextMessageID(),
+              getRootConnection(), nextOperationID(), nextMessageID(),
               new ArrayList<Control>(),
               ByteString.valueOf(baseDN),
               SearchScope.WHOLE_SUBTREE,
@@ -2617,7 +2588,7 @@ public class ModifyOperationTestCase
          "mail: foo",
          "employeeNumber: 1");
 
-    Backend b = DirectoryServer.getBackend(DN.decode(baseDN));
+    Backend<?> b = DirectoryServer.getBackend(DN.decode(baseDN));
     b.setWritabilityMode(WritabilityMode.DISABLED);
 
     LDAPAttribute attr = newLDAPAttribute("objectClass", "extensibleObject");
@@ -2655,7 +2626,7 @@ public class ModifyOperationTestCase
          "mail: foo",
          "employeeNumber: 1");
 
-    Backend b = DirectoryServer.getBackend(DN.decode(baseDN));
+    Backend<?> b = DirectoryServer.getBackend(DN.decode(baseDN));
     b.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
 
     LDAPAttribute attr = newLDAPAttribute("objectClass", "extensibleObject");
@@ -2693,7 +2664,7 @@ public class ModifyOperationTestCase
          "mail: foo",
          "employeeNumber: 1");
 
-    Backend b = DirectoryServer.getBackend(DN.decode(baseDN));
+    Backend<?> b = DirectoryServer.getBackend(DN.decode(baseDN));
     b.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
 
 
@@ -3559,7 +3530,7 @@ responseLoop:
         "cn: Test User",
         "userPassword: password",
         "userPassword;deleted: oldpassword");
-    Backend backend = DirectoryServer.getBackend(TEST_BACKEND_ID);
+    Backend<?> backend = DirectoryServer.getBackend(TEST_BACKEND_ID);
     backend.addEntry(e, null); // Don't use add operation.
 
     // Constraint violation.
@@ -3601,7 +3572,7 @@ responseLoop:
         "cn: Test User",
         "userPassword: password",
         "userPassword;deleted: oldpassword");
-    Backend backend = DirectoryServer.getBackend(TEST_BACKEND_ID);
+    Backend<?> backend = DirectoryServer.getBackend(TEST_BACKEND_ID);
     backend.addEntry(e, null); // Don't use add operation.
 
     // Constraint violation.

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2014 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -42,7 +43,7 @@ public interface ModifyOperation extends Operation
    *
    * @return  The raw, unprocessed entry DN as included in the client request.
    */
-  public abstract ByteString getRawEntryDN();
+  ByteString getRawEntryDN();
 
   /**
    * Specifies the raw, unprocessed entry DN as included in the client request.
@@ -51,7 +52,7 @@ public interface ModifyOperation extends Operation
    * @param  rawEntryDN  The raw, unprocessed entry DN as included in the client
    *                     request.
    */
-  public abstract void setRawEntryDN(ByteString rawEntryDN);
+  void setRawEntryDN(ByteString rawEntryDN);
 
   /**
    * Retrieves the DN of the entry to modify.  This should not be called by
@@ -61,7 +62,7 @@ public interface ModifyOperation extends Operation
    * @return  The DN of the entry to modify, or <CODE>null</CODE> if the raw
    *          entry DN has not yet been processed.
    */
-  public abstract DN getEntryDN();
+  DN getEntryDN();
 
   /**
    * Retrieves the set of raw, unprocessed modifications as included in the
@@ -72,7 +73,7 @@ public interface ModifyOperation extends Operation
    * @return  The set of raw, unprocessed modifications as included in the
    *          client request.
    */
-  public abstract List<RawModification> getRawModifications();
+  List<RawModification> getRawModifications();
 
   /**
    * Adds the provided modification to the set of raw modifications for this
@@ -81,15 +82,14 @@ public interface ModifyOperation extends Operation
    * @param  rawModification  The modification to add to the set of raw
    *                          modifications for this modify operation.
    */
-  public abstract void addRawModification(RawModification rawModification);
+  void addRawModification(RawModification rawModification);
 
   /**
    * Specifies the raw modifications for this modify operation.
    *
    * @param  rawModifications  The raw modifications for this modify operation.
    */
-  public abstract void setRawModifications(
-      List<RawModification> rawModifications);
+  void setRawModifications(List<RawModification> rawModifications);
 
   /**
    * Retrieves the set of modifications for this modify operation.  Its contents
@@ -99,7 +99,7 @@ public interface ModifyOperation extends Operation
    *          <CODE>null</CODE> if the modifications have not yet been
    *          processed.
    */
-  public abstract List<Modification> getModifications();
+  List<Modification> getModifications();
 
   /**
    * Adds the provided modification to the set of modifications to this modify
@@ -111,26 +111,7 @@ public interface ModifyOperation extends Operation
    * @throws  DirectoryException  If an unexpected problem occurs while applying
    *                              the modification to the entry.
    */
-  public abstract void addModification(Modification modification)
-      throws DirectoryException;
-
-  /**
-   * Retrieves the change number that has been assigned to this operation.
-   *
-   * @return  The change number that has been assigned to this operation, or -1
-   *          if none has been assigned yet or if there is no applicable
-   *          synchronization mechanism in place that uses change numbers.
-   */
-  public abstract long getChangeNumber();
-
-  /**
-   * Specifies the change number that has been assigned to this operation by the
-   * synchronization mechanism.
-   *
-   * @param  changeNumber  The change number that has been assigned to this
-   *                       operation by the synchronization mechanism.
-   */
-  public abstract void setChangeNumber(long changeNumber);
+  void addModification(Modification modification) throws DirectoryException;
 
   /**
    * Retrieves the proxied authorization DN for this operation if proxied
@@ -140,7 +121,7 @@ public interface ModifyOperation extends Operation
    *          authorization has been requested, or {@code null} if proxied
    *          authorization has not been requested.
    */
-  public abstract DN getProxiedAuthorizationDN();
+  DN getProxiedAuthorizationDN();
 
   /**
    * Set the proxied authorization DN for this operation if proxied
@@ -151,6 +132,6 @@ public interface ModifyOperation extends Operation
    *          authorization has been requested, or {@code null} if proxied
    *          authorization has not been requested.
    */
-  public abstract void setProxiedAuthorizationDN(DN proxiedAuthorizationDN);
+  void setProxiedAuthorizationDN(DN proxiedAuthorizationDN);
 
 }

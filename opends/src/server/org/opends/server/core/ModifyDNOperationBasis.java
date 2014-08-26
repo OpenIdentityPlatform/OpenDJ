@@ -22,13 +22,9 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS.
+ *      Portions copyright 2011-2014 ForgeRock AS.
  */
 package org.opends.server.core;
-
-import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.loggers.AccessLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,7 +37,11 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.PostResponseModifyDNOperation;
 import org.opends.server.types.operation.PreParseModifyDNOperation;
-import org.opends.server.workflowelement.localbackend.*;
+import org.opends.server.workflowelement.localbackend.LocalBackendModifyDNOperation;
+
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.loggers.AccessLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 
 /**
  * This class defines an operation that may be used to alter the DN of an entry
@@ -95,14 +95,11 @@ public class ModifyDNOperationBasis
    */
   private List<Modification> modifications;
 
-  /** The change number that has been assigned to this operation. */
-  private long changeNumber;
-
   /** The new RDN for the entry. */
   private RDN newRDN;
 
   /** The new entry DN. */
-  private DN newDN = null;
+  private DN newDN;
 
   /**
    * Creates a new modify DN operation with the provided information.
@@ -142,7 +139,6 @@ public class ModifyDNOperationBasis
     responseControls = new ArrayList<Control>();
     cancelRequest    = null;
     modifications    = null;
-    changeNumber     = -1;
   }
 
 
@@ -192,25 +188,16 @@ public class ModifyDNOperationBasis
     responseControls = new ArrayList<Control>();
     cancelRequest    = null;
     modifications    = null;
-    changeNumber     = -1;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final ByteString getRawEntryDN()
   {
     return rawEntryDN;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void setRawEntryDN(ByteString rawEntryDN)
   {
@@ -219,11 +206,7 @@ public class ModifyDNOperationBasis
     entryDN = null;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final DN getEntryDN()
   {
@@ -246,18 +229,14 @@ public class ModifyDNOperationBasis
     return entryDN;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final ByteString getRawNewRDN()
   {
     return rawNewRDN;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void setRawNewRDN(ByteString rawNewRDN)
   {
@@ -267,9 +246,7 @@ public class ModifyDNOperationBasis
     newDN = null;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final RDN getNewRDN()
   {
@@ -293,37 +270,28 @@ public class ModifyDNOperationBasis
     return newRDN;
   }
 
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final boolean deleteOldRDN()
   {
     return deleteOldRDN;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void setDeleteOldRDN(boolean deleteOldRDN)
   {
     this.deleteOldRDN = deleteOldRDN;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final ByteString getRawNewSuperior()
   {
     return rawNewSuperior;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void setRawNewSuperior(ByteString rawNewSuperior)
   {
@@ -333,9 +301,7 @@ public class ModifyDNOperationBasis
     newDN = null;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final DN getNewSuperior()
   {
@@ -366,20 +332,14 @@ public class ModifyDNOperationBasis
     return newSuperior;
   }
 
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final List<Modification> getModifications()
   {
     return modifications;
   }
 
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void addModification(Modification modification)
   {
@@ -393,50 +353,22 @@ public class ModifyDNOperationBasis
     }
   }
 
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final Entry getOriginalEntry()
   {
     return null;
   }
 
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final Entry getUpdatedEntry()
   {
     return null;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
-  public final long getChangeNumber()
-  {
-    return changeNumber;
-  }
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public final void setChangeNumber(long changeNumber)
-  {
-    this.changeNumber = changeNumber;
-  }
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
   public final OperationType getOperationType()
   {
     // Note that no debugging will be done in this method because it is a likely
@@ -445,41 +377,29 @@ public class ModifyDNOperationBasis
     return OperationType.MODIFY_DN;
   }
 
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public DN getProxiedAuthorizationDN()
   {
     return proxiedAuthorizationDN;
   }
 
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public final List<Control> getResponseControls()
   {
     return responseControls;
   }
 
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public final void addResponseControl(Control control)
   {
     responseControls.add(control);
   }
 
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public final void removeResponseControl(Control control)
   {
     responseControls.remove(control);
@@ -656,11 +576,8 @@ public class ModifyDNOperationBasis
             String.valueOf(entryDN)));
   }
 
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public final void toString(StringBuilder buffer)
   {
     buffer.append("ModifyDNOperation(connID=");
@@ -682,20 +599,14 @@ public class ModifyDNOperationBasis
     buffer.append(")");
   }
 
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setProxiedAuthorizationDN(DN dn)
   {
     proxiedAuthorizationDN = dn;
   }
 
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public DN getNewDN()
   {
@@ -715,7 +626,7 @@ public class ModifyDNOperationBasis
         parentDN = newSuperior;
       }
 
-      if ((parentDN == null) || parentDN.isNullDN())
+      if (parentDN == null || parentDN.isNullDN())
       {
         setResultCode(ResultCode.UNWILLING_TO_PERFORM);
         appendErrorMessage(ERR_MODDN_NO_PARENT.get(String.valueOf(entryDN)));
