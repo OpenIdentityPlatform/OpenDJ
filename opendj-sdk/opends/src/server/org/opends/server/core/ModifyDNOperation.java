@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2014 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -45,7 +46,7 @@ public interface ModifyDNOperation
    *
    * @return  The raw, unprocessed entry DN as included in the client request.
    */
-  public ByteString getRawEntryDN();
+  ByteString getRawEntryDN();
 
   /**
    * Specifies the raw, unprocessed entry DN as included in the client request.
@@ -54,7 +55,7 @@ public interface ModifyDNOperation
    * @param  rawEntryDN  The raw, unprocessed entry DN as included in the client
    *                     request.
    */
-  public void setRawEntryDN(ByteString rawEntryDN);
+  void setRawEntryDN(ByteString rawEntryDN);
 
 
   /**
@@ -65,7 +66,7 @@ public interface ModifyDNOperation
    * @return  The DN of the entry to rename, or <CODE>null</CODE> if the raw
    *          entry DN has not yet been processed.
    */
-  public DN getEntryDN();
+  DN getEntryDN();
 
   /**
    * Retrieves the raw, unprocessed newRDN as included in the request from the
@@ -75,7 +76,7 @@ public interface ModifyDNOperation
    * @return  The raw, unprocessed newRDN as included in the request from the
    *          client.
    */
-  public ByteString getRawNewRDN();
+  ByteString getRawNewRDN();
 
   /**
    * Specifies the raw, unprocessed newRDN as included in the request from the
@@ -85,7 +86,7 @@ public interface ModifyDNOperation
    * @param  rawNewRDN  The raw, unprocessed newRDN as included in the request
    *                    from the client.
    */
-  public void setRawNewRDN(ByteString rawNewRDN);
+  void setRawNewRDN(ByteString rawNewRDN);
 
   /**
    * Retrieves the new RDN to use for the entry.  This should not be called by
@@ -95,7 +96,7 @@ public interface ModifyDNOperation
    * @return  The new RDN to use for the entry, or <CODE>null</CODE> if the raw
    *          newRDN has not yet been processed.
    */
-  public RDN getNewRDN();
+  RDN getNewRDN();
 
 
   /**
@@ -104,7 +105,7 @@ public interface ModifyDNOperation
    * @return  <CODE>true</CODE> if the current RDN value should be removed from
    *          the entry, or <CODE>false</CODE> if not.
    */
-  public boolean deleteOldRDN();
+  boolean deleteOldRDN();
 
   /**
    * Specifies whether the current RDN value should be removed from the entry.
@@ -112,7 +113,7 @@ public interface ModifyDNOperation
    * @param  deleteOldRDN  Specifies whether the current RDN value should be
    *                       removed from the entry.
    */
-  public void setDeleteOldRDN(boolean deleteOldRDN);
+  void setDeleteOldRDN(boolean deleteOldRDN);
 
   /**
    * Retrieves the raw, unprocessed newSuperior from the client request.  This
@@ -122,7 +123,7 @@ public interface ModifyDNOperation
    * @return  The raw, unprocessed newSuperior from the client request, or
    *          <CODE>null</CODE> if there is none.
    */
-  public ByteString getRawNewSuperior();
+  ByteString getRawNewSuperior();
 
   /**
    * Specifies the raw, unprocessed newSuperior for this modify DN operation, as
@@ -132,7 +133,7 @@ public interface ModifyDNOperation
    * @param  rawNewSuperior  The raw, unprocessed newSuperior as provided in the
    *                         request from the client.
    */
-  public void setRawNewSuperior(ByteString rawNewSuperior);
+  void setRawNewSuperior(ByteString rawNewSuperior);
 
   /**
    * Retrieves the newSuperior DN for the entry.  This should not be called by
@@ -144,7 +145,7 @@ public interface ModifyDNOperation
    *          no newSuperior DN for this request or if the raw newSuperior has
    *          not yet been processed.
    */
-  public DN getNewSuperior();
+  DN getNewSuperior();
 
   /**
    * Retrieves the new DN for the entry.
@@ -152,7 +153,7 @@ public interface ModifyDNOperation
    * @return The new DN for the entry, or <CODE>null</CODE> if there is
    *          neither newRDN, nor entryDN for this request.
    */
-  public DN getNewDN();
+  DN getNewDN();
 
   /**
    * Retrieves the set of modifications applied to attributes of the target
@@ -171,7 +172,7 @@ public interface ModifyDNOperation
    *          of the modify DN processing, or <CODE>null</CODE> if that
    *          information is not yet available (e.g., during pre-parse plugins).
    */
-  public List<Modification> getModifications();
+  List<Modification> getModifications();
 
   /**
    * Adds the provided modification to the set of modifications to be applied
@@ -181,7 +182,7 @@ public interface ModifyDNOperation
    * @param  modification  The modification to add to the set of modifications
    *                       to apply to the entry.
    */
-  public void addModification(Modification modification);
+  void addModification(Modification modification);
 
   /**
    * Retrieves the current entry, before it is renamed.  This will not be
@@ -191,7 +192,7 @@ public interface ModifyDNOperation
    * @return  The current entry, or <CODE>null</CODE> if it is not yet
    *           available.
    */
-  public Entry getOriginalEntry();
+  Entry getOriginalEntry();
 
 
   /**
@@ -202,27 +203,7 @@ public interface ModifyDNOperation
    * @return  The updated entry, or <CODE>null</CODE> if it is not yet
    *           available.
    */
-  public Entry getUpdatedEntry();
-
-  /**
-   * Retrieves the change number that has been assigned to this operation.
-   *
-   * @return  The change number that has been assigned to this operation, or -1
-   *          if none has been assigned yet or if there is no applicable
-   *          synchronization mechanism in place that uses change numbers.
-   */
-  public long getChangeNumber();
-
-
-  /**
-   * Specifies the change number that has been assigned to this operation by the
-   * synchronization mechanism.
-   *
-   * @param  changeNumber  The change number that has been assigned to this
-   *                       operation by the synchronization mechanism.
-   */
-  public void setChangeNumber(long changeNumber);
-
+  Entry getUpdatedEntry();
 
   /**
    * Retrieves the proxied authorization DN for this operation if proxied
@@ -232,7 +213,7 @@ public interface ModifyDNOperation
    *          authorization has been requested, or {@code null} if proxied
    *          authorization has not been requested.
    */
-  public DN getProxiedAuthorizationDN();
+  DN getProxiedAuthorizationDN();
 
 
   /**
@@ -243,6 +224,6 @@ public interface ModifyDNOperation
    *            authorization has been requested, or {@code null} if proxied
    *            authorization has not been requested.
    */
-  public void setProxiedAuthorizationDN(DN dn);
+  void setProxiedAuthorizationDN(DN dn);
 
 }

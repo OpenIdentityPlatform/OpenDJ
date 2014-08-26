@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
+ *      Portions copyright 2014 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -43,7 +44,7 @@ public interface DeleteOperation extends Operation
    *
    * @return  The raw, unprocessed entry DN as included in the client request.
    */
-  public abstract ByteString getRawEntryDN();
+  ByteString getRawEntryDN();
 
   /**
    * Specifies the raw, unprocessed entry DN as included in the client request.
@@ -53,7 +54,7 @@ public interface DeleteOperation extends Operation
    * @param  rawEntryDN  The raw, unprocessed entry DN as included in the client
    *                     request.
    */
-  public abstract void setRawEntryDN(ByteString rawEntryDN);
+  void setRawEntryDN(ByteString rawEntryDN);
 
   /**
    * Retrieves the DN of the entry to delete.  This should not be called by
@@ -63,25 +64,7 @@ public interface DeleteOperation extends Operation
    * @return  The DN of the entry to delete, or <CODE>null</CODE> if the raw
    *          entry DN has not yet been processed.
    */
-  public abstract DN getEntryDN();
-
-  /**
-   * Retrieves the change number that has been assigned to this operation.
-   *
-   * @return  The change number that has been assigned to this operation, or -1
-   *          if none has been assigned yet or if there is no applicable
-   *          synchronization mechanism in place that uses change numbers.
-   */
-  public abstract long getChangeNumber();
-
-  /**
-   * Specifies the change number that has been assigned to this operation by the
-   * synchronization mechanism.
-   *
-   * @param  changeNumber  The change number that has been assigned to this
-   *                       operation by the synchronization mechanism.
-   */
-  public abstract void setChangeNumber(long changeNumber);
+  DN getEntryDN();
 
   /**
    * Retrieves the proxied authorization DN for this operation if proxied
@@ -91,7 +74,7 @@ public interface DeleteOperation extends Operation
    *          authorization has been requested, or {@code null} if proxied
    *          authorization has not been requested.
    */
-  public abstract DN getProxiedAuthorizationDN();
+  DN getProxiedAuthorizationDN();
 
   /**
    * Set the proxied authorization DN for this operation if proxied
@@ -102,7 +85,7 @@ public interface DeleteOperation extends Operation
    *          authorization has been requested, or {@code null} if proxied
    *          authorization has not been requested.
    */
-  public abstract void setProxiedAuthorizationDN(DN proxiedAuthorizationDN);
+  void setProxiedAuthorizationDN(DN proxiedAuthorizationDN);
 
 
 }

@@ -22,16 +22,9 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.workflowelement.localbackend;
-
-import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -55,6 +48,13 @@ import org.opends.server.types.operation.PostSynchronizationAddOperation;
 import org.opends.server.types.operation.PreOperationAddOperation;
 import org.opends.server.util.TimeThread;
 
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
 /**
  * This class defines an operation used to add an entry in a local backend
  * of the Directory Server.
@@ -64,52 +64,32 @@ public class LocalBackendAddOperation
        implements PreOperationAddOperation, PostOperationAddOperation,
                   PostResponseAddOperation, PostSynchronizationAddOperation
 {
-  /**
-   * The tracer object for the debug logger.
-   */
+  /** The tracer object for the debug logger. */
   private static final DebugTracer TRACER = getTracer();
 
-  /**
-   * The backend in which the entry is to be added.
-   */
-  private Backend backend;
+  /** The backend in which the entry is to be added. */
+  private Backend<?> backend;
 
-  /**
-   * Indicates whether the request includes the LDAP no-op control.
-   */
+  /** Indicates whether the request includes the LDAP no-op control. */
   private boolean noOp;
 
-  /**
-   * The DN of the entry to be added.
-   */
+  /** The DN of the entry to be added. */
   private DN entryDN;
 
-  /**
-   * The entry being added to the server.
-   */
+  /** The entry being added to the server. */
   private Entry entry;
 
-  /**
-   * The post-read request control included in the request, if applicable.
-   */
+  /** The post-read request control included in the request, if applicable. */
   private LDAPPostReadRequestControl postReadRequest;
 
-  /**
-   * The set of object classes for the entry to add.
-   */
+  /** The set of object classes for the entry to add. */
   private Map<ObjectClass, String> objectClasses;
 
-  /**
-   * The set of operational attributes for the entry to add.
-   */
+  /** The set of operational attributes for the entry to add. */
   private Map<AttributeType, List<Attribute>> operationalAttributes;
 
-  /**
-   * The set of user attributes for the entry to add.
-   */
+  /** The set of user attributes for the entry to add. */
   private Map<AttributeType, List<Attribute>> userAttributes;
-
-
 
   /**
    * Creates a new operation that may be used to add a new entry in a
@@ -207,7 +187,7 @@ public class LocalBackendAddOperation
           // Notify persistent searches.
           for (PersistentSearch psearch : wfe.getPersistentSearches())
           {
-            psearch.processAdd(entry, getChangeNumber());
+            psearch.processAdd(entry);
           }
 
           // Notify change listeners.
@@ -216,8 +196,7 @@ public class LocalBackendAddOperation
           {
             try
             {
-              changeListener.handleAddOperation(LocalBackendAddOperation.this,
-                  entry);
+              changeListener.handleAddOperation(LocalBackendAddOperation.this, entry);
             }
             catch (Exception e)
             {
@@ -310,8 +289,9 @@ public class LocalBackendAddOperation
       userAttributes = getUserAttributes();
       operationalAttributes = getOperationalAttributes();
 
-      if ((objectClasses == null) || (userAttributes == null)
-          || (operationalAttributes == null))
+      if (objectClasses == null
+          || userAttributes == null
+          || operationalAttributes == null)
       {
         return;
       }
@@ -423,8 +403,7 @@ public class LocalBackendAddOperation
       if (backend == null)
       {
         setResultCode(ResultCode.NO_SUCH_OBJECT);
-        appendErrorMessage(Message.raw("No backend for entry "
-            + entryDN.toString())); // TODO: i18n
+        appendErrorMessage(Message.raw("No backend for entry " + entryDN)); // TODO: i18n
         return;
       }
 
@@ -600,16 +579,15 @@ public class LocalBackendAddOperation
   {
     for (AttributeType at : attributes.keySet())
     {
-      if (at.isNoUserModification())
+      if (at.isNoUserModification()
+          && !isInternalOperation()
+          && !isSynchronizationOperation())
       {
-        if (!(isInternalOperation() || isSynchronizationOperation()))
-        {
-          setResultCodeAndMessageNoInfoDisclosure(entryDN,
-              ResultCode.CONSTRAINT_VIOLATION,
-              ERR_ADD_ATTR_IS_NO_USER_MOD.get(
-                  String.valueOf(entryDN), at.getNameOrOID()));
-          return true;
-        }
+        setResultCodeAndMessageNoInfoDisclosure(entryDN,
+            ResultCode.CONSTRAINT_VIOLATION,
+            ERR_ADD_ATTR_IS_NO_USER_MOD.get(
+                String.valueOf(entryDN), at.getNameOrOID()));
+        return true;
       }
     }
     return false;
@@ -821,7 +799,7 @@ public class LocalBackendAddOperation
     // See if a password was specified.
     AttributeType passwordAttribute = passwordPolicy.getPasswordAttribute();
     List<Attribute> attrList = entry.getAttribute(passwordAttribute);
-    if ((attrList == null) || attrList.isEmpty())
+    if (attrList == null || attrList.isEmpty())
     {
       // The entry doesn't have a password, so no action is required.
       return;
@@ -849,9 +827,9 @@ public class LocalBackendAddOperation
       return;
     }
 
-    if ((!isInternalOperation())
-        && (!passwordPolicy.isAllowMultiplePasswordValues())
-        && (passwordAttr.size() > 1))
+    if (!isInternalOperation()
+        && !passwordPolicy.isAllowMultiplePasswordValues()
+        && passwordAttr.size() > 1)
     {
       // FIXME -- What if they're pre-encoded and might all be the
       // same?
@@ -875,44 +853,35 @@ public class LocalBackendAddOperation
       {
         if (AuthPasswordSyntax.isEncoded(value))
         {
-          if (isInternalOperation() ||
-              passwordPolicy.isAllowPreEncodedPasswords())
+          if (isInternalOperation()
+              || passwordPolicy.isAllowPreEncodedPasswords())
           {
             builder.add(v);
             continue;
           }
           else
           {
-            addPWPolicyControl(
-                 PasswordPolicyErrorType.INSUFFICIENT_PASSWORD_QUALITY);
+            addPWPolicyControl(PasswordPolicyErrorType.INSUFFICIENT_PASSWORD_QUALITY);
 
-            Message message = ERR_PWPOLICY_PREENCODED_NOT_ALLOWED.get(
-                passwordAttribute.getNameOrOID());
             throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                         message);
+                ERR_PWPOLICY_PREENCODED_NOT_ALLOWED.get(passwordAttribute.getNameOrOID()));
           }
         }
       }
-      else
+      else if (UserPasswordSyntax.isEncoded(value))
       {
-        if (UserPasswordSyntax.isEncoded(value))
+        if (isInternalOperation()
+            || passwordPolicy.isAllowPreEncodedPasswords())
         {
-          if (isInternalOperation() ||
-              passwordPolicy.isAllowPreEncodedPasswords())
-          {
-            builder.add(v);
-            continue;
-          }
-          else
-          {
-            addPWPolicyControl(
-                 PasswordPolicyErrorType.INSUFFICIENT_PASSWORD_QUALITY);
+          builder.add(v);
+          continue;
+        }
+        else
+        {
+          addPWPolicyControl(PasswordPolicyErrorType.INSUFFICIENT_PASSWORD_QUALITY);
 
-            Message message = ERR_PWPOLICY_PREENCODED_NOT_ALLOWED.get(
-                passwordAttribute.getNameOrOID());
-            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                         message);
-          }
+          throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+              ERR_PWPOLICY_PREENCODED_NOT_ALLOWED.get(passwordAttribute.getNameOrOID()));
         }
       }
 
@@ -1005,10 +974,9 @@ public class LocalBackendAddOperation
   {
     for (Control c : getRequestControls())
     {
-      if (c.getOID().equals(OID_PASSWORD_POLICY_CONTROL))
+      if (OID_PASSWORD_POLICY_CONTROL.equals(c.getOID()))
       {
-        addResponseControl(new PasswordPolicyResponseControl(null, 0,
-                                                             errorType));
+        addResponseControl(new PasswordPolicyResponseControl(null, 0, errorType));
       }
     }
   }
@@ -1137,12 +1105,11 @@ public class LocalBackendAddOperation
     List<Control> requestControls = getRequestControls();
     if (requestControls != null && !requestControls.isEmpty())
     {
-      for (int i=0; i < requestControls.size(); i++)
+      for (Control c : requestControls)
       {
-        Control c   = requestControls.get(i);
         String  oid = c.getOID();
 
-        if (oid.equals(OID_LDAP_ASSERTION))
+        if (OID_LDAP_ASSERTION.equals(oid))
         {
           // RFC 4528 mandates support for Add operation basically
           // suggesting an assertion on self. As daft as it may be
@@ -1205,16 +1172,16 @@ public class LocalBackendAddOperation
                     de.getMessageObject()));
           }
         }
-        else if (oid.equals(OID_LDAP_NOOP_OPENLDAP_ASSIGNED))
+        else if (OID_LDAP_NOOP_OPENLDAP_ASSIGNED.equals(oid))
         {
           noOp = true;
         }
-        else if (oid.equals(OID_LDAP_READENTRY_POSTREAD))
+        else if (OID_LDAP_READENTRY_POSTREAD.equals(oid))
         {
           postReadRequest =
                 getRequestControl(LDAPPostReadRequestControl.DECODER);
         }
-        else if (oid.equals(OID_PROXIED_AUTH_V1))
+        else if (OID_PROXIED_AUTH_V1.equals(oid))
         {
           // Log usage of legacy proxy authz V1 control.
           addAdditionalLogItem(AdditionalLogItem.keyOnly(getClass(),
@@ -1233,16 +1200,9 @@ public class LocalBackendAddOperation
 
           Entry authorizationEntry = proxyControl.getAuthorizationEntry();
           setAuthorizationEntry(authorizationEntry);
-          if (authorizationEntry == null)
-          {
-            setProxiedAuthorizationDN(DN.nullDN());
-          }
-          else
-          {
-            setProxiedAuthorizationDN(authorizationEntry.getDN());
-          }
+          setProxiedAuthorizationDN(getDN(authorizationEntry));
         }
-        else if (oid.equals(OID_PROXIED_AUTH_V2))
+        else if (OID_PROXIED_AUTH_V2.equals(oid))
         {
           // The requester must have the PROXIED_AUTH privilege in order to
           // be able to use this control.
@@ -1258,34 +1218,27 @@ public class LocalBackendAddOperation
 
           Entry authorizationEntry = proxyControl.getAuthorizationEntry();
           setAuthorizationEntry(authorizationEntry);
-          if (authorizationEntry == null)
-          {
-            setProxiedAuthorizationDN(DN.nullDN());
-          }
-          else
-          {
-            setProxiedAuthorizationDN(authorizationEntry.getDN());
-          }
+          setProxiedAuthorizationDN(getDN(authorizationEntry));
         }
-        else if (oid.equals(OID_PASSWORD_POLICY_CONTROL))
+        else if (OID_PASSWORD_POLICY_CONTROL.equals(oid))
         {
           // We don't need to do anything here because it's already handled
           // in LocalBackendAddOperation.handlePasswordPolicy().
         }
-
         // NYI -- Add support for additional controls.
-        else if (c.isCritical())
+        else if (c.isCritical()
+            && (backend == null || !backend.supportsControl(oid)))
         {
-          if ((backend == null) || (! backend.supportsControl(oid)))
-          {
-            throw newDirectoryException(entryDN,
-                           ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
-                           ERR_ADD_UNSUPPORTED_CRITICAL_CONTROL.get(
-                                String.valueOf(entryDN), oid));
-          }
+          throw newDirectoryException(entryDN,
+              ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
+              ERR_ADD_UNSUPPORTED_CRITICAL_CONTROL.get(String.valueOf(entryDN), oid));
         }
       }
     }
   }
-}
 
+  private DN getDN(Entry e)
+  {
+    return e != null ? e.getDN() : DN.nullDN();
+  }
+}

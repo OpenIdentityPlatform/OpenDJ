@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2010 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS
+ *      Portions copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -41,7 +41,7 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.PostResponseDeleteOperation;
 import org.opends.server.types.operation.PreParseDeleteOperation;
-import org.opends.server.workflowelement.localbackend.*;
+import org.opends.server.workflowelement.localbackend.LocalBackendDeleteOperation;
 
 /**
  * This class defines an operation that may be used to remove an entry from the
@@ -70,10 +70,6 @@ public class DeleteOperationBasis
   /** The set of response controls for this delete operation. */
   private List<Control> responseControls;
 
-  /** The change number that has been assigned to this operation. */
-  private long changeNumber;
-
-
   /**
    * Creates a new delete operation with the provided information.
    *
@@ -99,7 +95,6 @@ public class DeleteOperationBasis
     entryDN          = null;
     responseControls = new ArrayList<Control>();
     cancelRequest    = null;
-    changeNumber     = -1;
   }
 
 
@@ -128,21 +123,16 @@ public class DeleteOperationBasis
     rawEntryDN       = ByteString.valueOf(entryDN.toString());
     responseControls = new ArrayList<Control>();
     cancelRequest    = null;
-    changeNumber     = -1;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final ByteString getRawEntryDN()
   {
     return rawEntryDN;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void setRawEntryDN(ByteString rawEntryDN)
   {
@@ -151,9 +141,7 @@ public class DeleteOperationBasis
     entryDN = null;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final DN getEntryDN()
   {
@@ -180,27 +168,7 @@ public class DeleteOperationBasis
     return entryDN;
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public final long getChangeNumber()
-  {
-    return changeNumber;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public final void setChangeNumber(long changeNumber)
-  {
-    this.changeNumber = changeNumber;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public final OperationType getOperationType()
   {
@@ -209,45 +177,35 @@ public class DeleteOperationBasis
     return OperationType.DELETE;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public DN getProxiedAuthorizationDN()
   {
     return proxiedAuthorizationDN;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public final List<Control> getResponseControls()
   {
     return responseControls;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public final void addResponseControl(Control control)
   {
     responseControls.add(control);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public final void removeResponseControl(Control control)
   {
     responseControls.remove(control);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   public final void toString(StringBuilder buffer)
   {
@@ -259,18 +217,15 @@ public class DeleteOperationBasis
     buffer.append(rawEntryDN);
     buffer.append(")");
   }
-  /**
-   * {@inheritDoc}
-   */
+
+  /** {@inheritDoc} */
   @Override
   public void setProxiedAuthorizationDN(DN proxiedAuthorizationDN)
   {
     this.proxiedAuthorizationDN = proxiedAuthorizationDN;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void run()
   {

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions Copyright 2013 ForgeRock AS
+ *      Portions Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -30,7 +30,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.opends.server.types.*;
-
 
 /**
  * This abstract class wraps/decorates a given add operation.
@@ -51,108 +50,77 @@ public abstract class AddOperationWrapper extends
     super(add);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void addObjectClass(ObjectClass objectClass, String name)
   {
     getOperation().addObjectClass(objectClass, name);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void addRawAttribute(RawAttribute rawAttribute)
   {
     getOperation().addRawAttribute(rawAttribute);
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public long getChangeNumber()
-  {
-    return getOperation().getChangeNumber();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public DN getEntryDN()
   {
     return getOperation().getEntryDN();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Map<ObjectClass, String> getObjectClasses()
   {
     return getOperation().getObjectClasses();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Map<AttributeType, List<Attribute>> getOperationalAttributes()
   {
     return getOperation().getOperationalAttributes();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public List<RawAttribute> getRawAttributes()
   {
     return getOperation().getRawAttributes();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ByteString getRawEntryDN()
   {
     return getOperation().getRawEntryDN();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Map<AttributeType, List<Attribute>> getUserAttributes()
   {
     return getOperation().getUserAttributes();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void removeAttribute(AttributeType attributeType)
   {
     getOperation().removeAttribute(attributeType);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void removeObjectClass(ObjectClass objectClass)
   {
     getOperation().removeObjectClass(objectClass);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setAttribute(AttributeType attributeType,
       List<Attribute> attributeList)
@@ -160,54 +128,35 @@ public abstract class AddOperationWrapper extends
     getOperation().setAttribute(attributeType, attributeList);
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void setChangeNumber(long changeNumber)
-  {
-    getOperation().setChangeNumber(changeNumber);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setRawAttributes(List<RawAttribute> rawAttributes)
   {
     getOperation().setRawAttributes(rawAttributes);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setRawEntryDN(ByteString rawEntryDN)
   {
     getOperation().setRawEntryDN(rawEntryDN);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String toString()
   {
     return getOperation().toString();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public DN getProxiedAuthorizationDN()
   {
     return getOperation().getProxiedAuthorizationDN();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setProxiedAuthorizationDN(DN proxiedAuthorizationDN)
   {

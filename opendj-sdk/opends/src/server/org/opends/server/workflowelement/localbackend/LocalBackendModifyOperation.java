@@ -22,20 +22,14 @@
  *
  *
  *      Copyright 2008-2011 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.workflowelement.localbackend;
-
-import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
 
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.concurrent.locks.Lock;
 
 import org.opends.messages.Message;
@@ -54,6 +48,13 @@ import org.opends.server.types.operation.PostSynchronizationModifyOperation;
 import org.opends.server.types.operation.PreOperationModifyOperation;
 import org.opends.server.util.Validator;
 
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
 /**
  * This class defines an operation used to modify an entry in a local backend
  * of the Directory Server.
@@ -64,15 +65,11 @@ public class LocalBackendModifyOperation
                   PostResponseModifyOperation,
                   PostSynchronizationModifyOperation
 {
-  /**
-   * The tracer object for the debug logger.
-   */
+  /** The tracer object for the debug logger. */
   private static final DebugTracer TRACER = getTracer();
 
-  /**
-   * The backend in which the target entry exists.
-   */
-  protected Backend backend;
+  /** The backend in which the target entry exists. */
+  private Backend<?> backend;
 
   /** Indicates whether the request included the user's current password. */
   private boolean currentPasswordProvided;
@@ -81,60 +78,40 @@ public class LocalBackendModifyOperation
    * Indicates whether the user's account has been enabled or disabled
    * by this modify operation.
    */
-  protected boolean enabledStateChanged;
+  private boolean enabledStateChanged;
 
   /** Indicates whether the user's account is currently enabled. */
   private boolean isEnabled;
 
-  /**
-   * Indicates whether the request included the LDAP no-op control.
-   */
-  protected boolean noOp;
+  /** Indicates whether the request included the LDAP no-op control. */
+  private boolean noOp;
 
-  /**
-   * Indicates whether the request included the Permissive Modify control.
-   */
-  protected boolean permissiveModify = false;
+  /** Indicates whether the request included the Permissive Modify control. */
+  private boolean permissiveModify;
 
-  /**
-   * Indicates whether this modify operation includes a password change.
-   */
-  protected boolean passwordChanged;
+  /** Indicates whether this modify operation includes a password change. */
+  private boolean passwordChanged;
 
-  /**
-   * Indicates whether the request included the password policy request control.
-   */
-  protected boolean pwPolicyControlRequested;
+  /** Indicates whether the request included the password policy request control. */
+  private boolean pwPolicyControlRequested;
 
-  /**
-   * Indicates whether the password change is a self-change.
-   */
-  protected boolean selfChange;
+  /** Indicates whether the password change is a self-change. */
+  private boolean selfChange;
 
-  /**
-   * Indicates whether the user's account was locked before this change.
-   */
-  protected boolean wasLocked = false;
+  /** Indicates whether the user's account was locked before this change. */
+  private boolean wasLocked;
 
-  /**
-   * The client connection associated with this operation.
-   */
-  protected ClientConnection clientConnection;
+  /** The client connection associated with this operation. */
+  private ClientConnection clientConnection;
 
-  /**
-   * The DN of the entry to modify.
-   */
-  protected DN entryDN;
+  /** The DN of the entry to modify. */
+  private DN entryDN;
 
-  /**
-   * The current entry, before any changes are applied.
-   */
-  protected Entry currentEntry = null;
+  /** The current entry, before any changes are applied. */
+  private Entry currentEntry;
 
-  /**
-   * The modified entry that will be stored in the backend.
-   */
-  protected Entry modifiedEntry = null;
+  /** The modified entry that will be stored in the backend. */
+  private Entry modifiedEntry;
 
   /** The number of passwords contained in the modify operation. */
   private int numPasswords;
@@ -146,25 +123,19 @@ public class LocalBackendModifyOperation
   private LDAPPreReadRequestControl preReadRequest;
 
   /** The set of clear-text current passwords (if any were provided).*/
-  private List<AttributeValue> currentPasswords = null;
+  private List<AttributeValue> currentPasswords;
 
   /** The set of clear-text new passwords (if any were provided).*/
-  private List<AttributeValue> newPasswords = null;
+  private List<AttributeValue> newPasswords;
 
-  /**
-   * The set of modifications contained in this request.
-   */
-  protected List<Modification> modifications;
+  /** The set of modifications contained in this request. */
+  private List<Modification> modifications;
 
-  /**
-   * The password policy error type for this operation.
-   */
-  protected PasswordPolicyErrorType pwpErrorType;
+  /** The password policy error type for this operation. */
+  private PasswordPolicyErrorType pwpErrorType;
 
-  /**
-   * The password policy state for this modify operation.
-   */
-  protected PasswordPolicyState pwPolicyState;
+  /** The password policy state for this modify operation. */
+  private PasswordPolicyState pwPolicyState;
 
 
 
@@ -349,8 +320,7 @@ public class LocalBackendModifyOperation
           // Notify persistent searches.
           for (PersistentSearch psearch : wfe.getPersistentSearches())
           {
-            psearch.processModify(modifiedEntry, getChangeNumber(),
-                currentEntry);
+            psearch.processModify(modifiedEntry, currentEntry);
           }
 
           // Notify change listeners.
@@ -370,9 +340,8 @@ public class LocalBackendModifyOperation
                 TRACER.debugCaught(DebugLogLevel.ERROR, e);
               }
 
-              Message message = ERR_MODIFY_ERROR_NOTIFYING_CHANGE_LISTENER
-                  .get(getExceptionMessage(e));
-              logError(message);
+              logError(ERR_MODIFY_ERROR_NOTIFYING_CHANGE_LISTENER
+                  .get(getExceptionMessage(e)));
             }
           }
         }
@@ -401,8 +370,7 @@ public class LocalBackendModifyOperation
     if (modifications.isEmpty())
     {
       setResultCode(ResultCode.CONSTRAINT_VIOLATION);
-      appendErrorMessage(ERR_MODIFY_NO_MODIFICATIONS.get(String
-          .valueOf(entryDN)));
+      appendErrorMessage(ERR_MODIFY_NO_MODIFICATIONS.get(String.valueOf(entryDN)));
       return;
     }
 
@@ -417,8 +385,7 @@ public class LocalBackendModifyOperation
       if (entryLock == null)
       {
         setResultCode(ResultCode.BUSY);
-        appendErrorMessage(ERR_MODIFY_CANNOT_LOCK_ENTRY.get(
-            String.valueOf(entryDN)));
+        appendErrorMessage(ERR_MODIFY_CANNOT_LOCK_ENTRY.get(String.valueOf(entryDN)));
         return;
       }
 
@@ -431,8 +398,7 @@ public class LocalBackendModifyOperation
       if (currentEntry == null)
       {
         setResultCode(ResultCode.NO_SUCH_OBJECT);
-        appendErrorMessage(ERR_MODIFY_NO_SUCH_ENTRY
-            .get(String.valueOf(entryDN)));
+        appendErrorMessage(ERR_MODIFY_NO_SUCH_ENTRY.get(String.valueOf(entryDN)));
 
         // See if one of the entry's ancestors exists.
         setMatchedDN(findMatchedDN(entryDN));
@@ -451,7 +417,8 @@ public class LocalBackendModifyOperation
 
       // Check that the authorizing account isn't required to change its
       // password.
-      if ((!isInternalOperation()) && !selfChange
+      if (!isInternalOperation()
+          && !selfChange
           && getAuthorizationEntry() != null)
       {
         AuthenticationPolicy authzPolicy =
@@ -524,7 +491,7 @@ public class LocalBackendModifyOperation
       handleInitialPasswordPolicyProcessing();
       performAdditionalPasswordChangedProcessing();
 
-      if ((!passwordChanged) && (!isInternalOperation()) && selfChange
+      if (!passwordChanged && !isInternalOperation() && selfChange
           && pwPolicyState != null && pwPolicyState.mustChangePassword())
       {
         // The user did not attempt to change their password.
@@ -538,11 +505,10 @@ public class LocalBackendModifyOperation
       // If the server is configured to check the schema and the
       // operation is not a synchronization operation,
       // make sure that the new entry is valid per the server schema.
-      if ((DirectoryServer.checkSchema()) && (!isSynchronizationOperation()))
+      if (DirectoryServer.checkSchema() && !isSynchronizationOperation())
       {
         MessageBuilder invalidReason = new MessageBuilder();
-        if (!modifiedEntry.conformsToSchema(null, false, false, false,
-            invalidReason))
+        if (!modifiedEntry.conformsToSchema(null, false, false, false, invalidReason))
         {
           setResultCode(ResultCode.OBJECTCLASS_VIOLATION);
           appendErrorMessage(ERR_MODIFY_VIOLATES_SCHEMA.get(String
@@ -682,16 +648,16 @@ public class LocalBackendModifyOperation
    * @throws  DirectoryException  If a problem is encountered with any of the
    *                              controls.
    */
-  protected void processRequestControls() throws DirectoryException
+  private void processRequestControls() throws DirectoryException
   {
     LocalBackendWorkflowElement.removeAllDisallowedControls(entryDN, this);
 
     List<Control> requestControls = getRequestControls();
-    if ((requestControls != null) && (! requestControls.isEmpty()))
+    if (requestControls != null && !requestControls.isEmpty())
     {
-      for (int i=0; i < requestControls.size(); i++)
+      for (ListIterator<Control> iter = requestControls.listIterator(); iter.hasNext();)
       {
-        Control c   = requestControls.get(i);
+        Control c = iter.next();
         String  oid = c.getOID();
 
         if (oid.equals(OID_LDAP_ASSERTION))
@@ -764,8 +730,7 @@ public class LocalBackendModifyOperation
         }
         else if (oid.equals(OID_LDAP_READENTRY_PREREAD))
         {
-          preReadRequest =
-                getRequestControl(LDAPPreReadRequestControl.DECODER);
+          preReadRequest = getRequestControl(LDAPPreReadRequestControl.DECODER);
         }
         else if (oid.equals(OID_LDAP_READENTRY_POSTREAD))
         {
@@ -775,9 +740,8 @@ public class LocalBackendModifyOperation
           }
           else
           {
-            postReadRequest =
-                getRequestControl(LDAPPostReadRequestControl.DECODER);
-            requestControls.set(i, postReadRequest);
+            postReadRequest = getRequestControl(LDAPPostReadRequestControl.DECODER);
+            iter.set(postReadRequest);
           }
         }
         else if (oid.equals(OID_PROXIED_AUTH_V1))
@@ -799,14 +763,7 @@ public class LocalBackendModifyOperation
 
           Entry authorizationEntry = proxyControl.getAuthorizationEntry();
           setAuthorizationEntry(authorizationEntry);
-          if (authorizationEntry == null)
-          {
-            setProxiedAuthorizationDN(DN.nullDN());
-          }
-          else
-          {
-            setProxiedAuthorizationDN(authorizationEntry.getDN());
-          }
+          setProxiedAuthorizationDN(getDN(authorizationEntry));
         }
         else if (oid.equals(OID_PROXIED_AUTH_V2))
         {
@@ -823,44 +780,37 @@ public class LocalBackendModifyOperation
 
           Entry authorizationEntry = proxyControl.getAuthorizationEntry();
           setAuthorizationEntry(authorizationEntry);
-          if (authorizationEntry == null)
-          {
-            setProxiedAuthorizationDN(DN.nullDN());
-          }
-          else
-          {
-            setProxiedAuthorizationDN(authorizationEntry.getDN());
-          }
+          setProxiedAuthorizationDN(getDN(authorizationEntry));
         }
         else if (oid.equals(OID_PASSWORD_POLICY_CONTROL))
         {
           pwPolicyControlRequested = true;
         }
-
         // NYI -- Add support for additional controls.
-        else if (c.isCritical())
+        else if (c.isCritical()
+            && (backend == null || !backend.supportsControl(oid)))
         {
-          if ((backend == null) || (! backend.supportsControl(oid)))
-          {
-            throw newDirectoryException(currentEntry,
-                           ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
-                           ERR_MODIFY_UNSUPPORTED_CRITICAL_CONTROL.get(
-                                String.valueOf(entryDN), oid));
-          }
+          throw newDirectoryException(currentEntry,
+              ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
+              ERR_MODIFY_UNSUPPORTED_CRITICAL_CONTROL.get(String.valueOf(entryDN), oid));
         }
       }
     }
   }
 
-   /**
+  private DN getDN(Entry e)
+  {
+    return e != null ? e.getDN() : DN.nullDN();
+  }
+
+  /**
    * Handles schema processing for non-password modifications.
    *
    * @throws  DirectoryException  If a problem is encountered that should cause
    *                              the modify operation to fail.
    */
-  protected void handleSchemaProcessing() throws DirectoryException
+  private void handleSchemaProcessing() throws DirectoryException
   {
-
     for (Modification m : modifications)
     {
       Attribute     a = m.getAttribute();
@@ -868,37 +818,30 @@ public class LocalBackendModifyOperation
 
 
       // If the attribute type is marked "NO-USER-MODIFICATION" then fail unless
-      // this is an internal operation or is related to synchronization in some
-      // way.
-      if (t.isNoUserModification())
+      // this is an internal operation or is related to synchronization in some way.
+      if (t.isNoUserModification()
+          && !isInternalOperation()
+          && !isSynchronizationOperation()
+          && !m.isInternal())
       {
-        if (! (isInternalOperation() || isSynchronizationOperation() ||
-                m.isInternal()))
-        {
-          throw newDirectoryException(currentEntry,
-              ResultCode.CONSTRAINT_VIOLATION,
-              ERR_MODIFY_ATTR_IS_NO_USER_MOD.get(
-                          String.valueOf(entryDN), a.getName()));
-        }
+        throw newDirectoryException(currentEntry,
+            ResultCode.CONSTRAINT_VIOLATION, ERR_MODIFY_ATTR_IS_NO_USER_MOD
+                .get(String.valueOf(entryDN), a.getName()));
       }
 
       // If the attribute type is marked "OBSOLETE" and the modification is
       // setting new values, then fail unless this is an internal operation or
       // is related to synchronization in some way.
-      if (t.isObsolete())
+      if (t.isObsolete()
+          && !a.isEmpty()
+          && m.getModificationType() != ModificationType.DELETE
+          && !isInternalOperation()
+          && !isSynchronizationOperation()
+          && !m.isInternal())
       {
-        if (!a.isEmpty() &&
-                (m.getModificationType() != ModificationType.DELETE))
-        {
-          if (! (isInternalOperation() || isSynchronizationOperation() ||
-                  m.isInternal()))
-          {
-            throw newDirectoryException(currentEntry,
-                ResultCode.CONSTRAINT_VIOLATION,
-                ERR_MODIFY_ATTR_IS_OBSOLETE.get(
-                            String.valueOf(entryDN), a.getName()));
-          }
-        }
+        throw newDirectoryException(currentEntry,
+            ResultCode.CONSTRAINT_VIOLATION,
+            ERR_MODIFY_ATTR_IS_OBSOLETE.get(String.valueOf(entryDN), a.getName()));
       }
 
 
@@ -916,10 +859,9 @@ public class LocalBackendModifyOperation
 
       // If the modification is not updating the password attribute,
       // then perform any schema processing.
-      boolean isPassword = (pwPolicyState != null)
-          && t.equals(pwPolicyState.getAuthenticationPolicy()
-              .getPasswordAttribute());
-      if (!isPassword )
+      boolean isPassword = pwPolicyState != null
+          && t.equals(pwPolicyState.getAuthenticationPolicy().getPasswordAttribute());
+      if (!isPassword)
       {
         switch (m.getModificationType())
         {
@@ -949,8 +891,7 @@ public class LocalBackendModifyOperation
    * @throws  DirectoryException  If a problem is encountered that should cause
    *                              the modify operation to fail.
    */
-  protected void handleInitialPasswordPolicyProcessing()
-          throws DirectoryException
+  private void handleInitialPasswordPolicyProcessing() throws DirectoryException
   {
     // Declare variables used for password policy state processing.
     currentPasswordProvided = false;
@@ -963,8 +904,8 @@ public class LocalBackendModifyOperation
       return;
     }
 
-    if (currentEntry.hasAttribute(
-            pwPolicyState.getAuthenticationPolicy().getPasswordAttribute()))
+    final PasswordPolicy authPolicy = pwPolicyState.getAuthenticationPolicy();
+    if (currentEntry.hasAttribute(authPolicy.getPasswordAttribute()))
     {
       // It may actually have more than one, but we can't tell the difference if
       // the values are encoded, and its enough for our purposes just to know
@@ -986,22 +927,17 @@ public class LocalBackendModifyOperation
       for (Modification m : modifications)
       {
         AttributeType t = m.getAttribute().getAttributeType();
-        boolean isPassword = t.equals(pwPolicyState.getAuthenticationPolicy()
-            .getPasswordAttribute());
+        boolean isPassword = t.equals(authPolicy.getPasswordAttribute());
         if (isPassword)
         {
           passwordChanged = true;
-          if (! selfChange)
+          if (!selfChange && !clientConnection.hasPrivilege(Privilege.PASSWORD_RESET, this))
           {
-            if (! clientConnection.hasPrivilege(Privilege.PASSWORD_RESET, this))
-            {
-              pwpErrorType = PasswordPolicyErrorType.PASSWORD_MOD_NOT_ALLOWED;
-              throw new DirectoryException(
-                      ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
-                      ERR_MODIFY_PWRESET_INSUFFICIENT_PRIVILEGES.get());
-            }
+            pwpErrorType = PasswordPolicyErrorType.PASSWORD_MOD_NOT_ALLOWED;
+            throw new DirectoryException(
+                ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
+                ERR_MODIFY_PWRESET_INSUFFICIENT_PRIVILEGES.get());
           }
-
           break;
         }
       }
@@ -1017,8 +953,7 @@ public class LocalBackendModifyOperation
       // If the modification is updating the password attribute, then perform
       // any necessary password policy processing.  This processing should be
       // skipped for synchronization operations.
-      boolean isPassword = t.equals(pwPolicyState.getAuthenticationPolicy()
-          .getPasswordAttribute());
+      boolean isPassword = t.equals(authPolicy.getPasswordAttribute());
       if (isPassword)
       {
         if (!isSynchronizationOperation())
@@ -1050,9 +985,7 @@ public class LocalBackendModifyOperation
             }
 
             // If it's a self change, then see if that's allowed.
-            if (selfChange
-                && (!pwPolicyState.getAuthenticationPolicy()
-                    .isAllowUserPasswordChanges()))
+            if (selfChange && !authPolicy.isAllowUserPasswordChanges())
             {
               pwpErrorType = PasswordPolicyErrorType.PASSWORD_MOD_NOT_ALLOWED;
               throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
@@ -1062,9 +995,8 @@ public class LocalBackendModifyOperation
 
             // If we require secure password changes, then makes sure it's a
             // secure communication channel.
-            if (pwPolicyState.getAuthenticationPolicy()
-                .isRequireSecurePasswordChanges()
-                && (!clientConnection.isSecure()))
+            if (authPolicy.isRequireSecurePasswordChanges()
+                && !clientConnection.isSecure())
             {
               pwpErrorType = PasswordPolicyErrorType.PASSWORD_MOD_NOT_ALLOWED;
               throw new DirectoryException(ResultCode.CONFIDENTIALITY_REQUIRED,
@@ -1211,8 +1143,7 @@ public class LocalBackendModifyOperation
 
         for (ByteString s : pwPolicyState.encodePassword(v.getValue()))
         {
-          builder.add(AttributeValues.create(
-              pwAttr.getAttributeType(), s));
+          builder.add(AttributeValues.create(pwAttr.getAttributeType(), s));
         }
       }
     }
@@ -1251,7 +1182,7 @@ public class LocalBackendModifyOperation
     {
       if (pwPolicyState.passwordIsPreEncoded(v.getValue()))
       {
-        if ((!isInternalOperation()) && selfChange)
+        if (!isInternalOperation() && selfChange)
         {
           pwpErrorType = PasswordPolicyErrorType.INSUFFICIENT_PASSWORD_QUALITY;
           throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
@@ -1261,9 +1192,8 @@ public class LocalBackendModifyOperation
         {
           // We still need to check if the pre-encoded password matches
           // an existing value, to decrease the number of passwords.
-          List<Attribute> attrList = currentEntry.getAttribute(pwAttr
-              .getAttributeType());
-          if ((attrList == null) || (attrList.isEmpty()))
+          List<Attribute> attrList = currentEntry.getAttribute(pwAttr.getAttributeType());
+          if (attrList == null || attrList.isEmpty())
           {
             throw new DirectoryException(ResultCode.NO_SUCH_ATTRIBUTE,
                 ERR_MODIFY_NO_EXISTING_VALUES.get());
@@ -1288,8 +1218,7 @@ public class LocalBackendModifyOperation
       }
       else
       {
-        List<Attribute> attrList = currentEntry.getAttribute(pwAttr
-            .getAttributeType());
+        List<Attribute> attrList = currentEntry.getAttribute(pwAttr.getAttributeType());
         if ((attrList == null) || (attrList.isEmpty()))
         {
           throw new DirectoryException(ResultCode.NO_SUCH_ATTRIBUTE,
@@ -1406,10 +1335,9 @@ public class LocalBackendModifyOperation
     // If the server is configured to check schema and the operation
     // is not a synchronization operation, make sure that all the new
     // values are valid according to the associated syntax.
-    if ((DirectoryServer.checkSchema()) && (!isSynchronizationOperation()))
+    if (DirectoryServer.checkSchema() && !isSynchronizationOperation())
     {
-      AcceptRejectWarn syntaxPolicy = DirectoryServer
-          .getSyntaxEnforcementPolicy();
+      AcceptRejectWarn syntaxPolicy = DirectoryServer.getSyntaxEnforcementPolicy();
       AttributeSyntax<?> syntax = attr.getAttributeType().getSyntax();
 
       if (syntaxPolicy == AcceptRejectWarn.REJECT)
@@ -1568,9 +1496,9 @@ public class LocalBackendModifyOperation
         AttributeType t = attr.getAttributeType();
 
         RDN rdn = modifiedEntry.getDN().getRDN();
-        if ((rdn !=  null) && rdn.hasAttributeType(t) &&
-            (! modifiedEntry.hasValue(t, attr.getOptions(),
-                                      rdn.getAttributeValue(t))))
+        if (rdn != null
+            && rdn.hasAttributeType(t)
+            && !modifiedEntry.hasValue(t, attr.getOptions(), rdn.getAttributeValue(t)))
         {
           throw newDirectoryException(currentEntry,
               ResultCode.NOT_ALLOWED_ON_RDN,
@@ -1578,27 +1506,20 @@ public class LocalBackendModifyOperation
                   String.valueOf(entryDN), attr.getName()));
         }
       }
-      else
+      else if (!permissiveModify)
       {
-        if (! permissiveModify)
-        {
-          String missingValuesStr = collectionToString(missingValues, ", ");
+        String missingValuesStr = collectionToString(missingValues, ", ");
 
-          throw newDirectoryException(currentEntry,
-              ResultCode.NO_SUCH_ATTRIBUTE,
-              ERR_MODIFY_DELETE_MISSING_VALUES.get(
-                  String.valueOf(entryDN), attr.getName(), missingValuesStr));
-        }
+        throw newDirectoryException(currentEntry,
+            ResultCode.NO_SUCH_ATTRIBUTE,
+            ERR_MODIFY_DELETE_MISSING_VALUES.get(
+                String.valueOf(entryDN), attr.getName(), missingValuesStr));
       }
     }
-    else
+    else if (!permissiveModify)
     {
-      if (! permissiveModify)
-      {
-        throw newDirectoryException(currentEntry, ResultCode.NO_SUCH_ATTRIBUTE,
-                     ERR_MODIFY_DELETE_NO_SUCH_ATTR.get(
-                          String.valueOf(entryDN), attr.getName()));
-      }
+      throw newDirectoryException(currentEntry, ResultCode.NO_SUCH_ATTRIBUTE,
+          ERR_MODIFY_DELETE_NO_SUCH_ATTR.get(String.valueOf(entryDN), attr.getName()));
     }
   }
 
@@ -1620,7 +1541,7 @@ public class LocalBackendModifyOperation
     // If the server is configured to check schema and the operation
     // is not a synchronization operation, make sure that all the
     // new values are valid according to the associated syntax.
-    if ((DirectoryServer.checkSchema()) && (!isSynchronizationOperation()))
+    if (DirectoryServer.checkSchema() && !isSynchronizationOperation())
     {
       AcceptRejectWarn syntaxPolicy = DirectoryServer
           .getSyntaxEnforcementPolicy();
@@ -1691,14 +1612,12 @@ public class LocalBackendModifyOperation
     // Make sure that the RDN attribute value(s) has not been removed.
     AttributeType t = attr.getAttributeType();
     RDN rdn = modifiedEntry.getDN().getRDN();
-    if ((rdn != null)
+    if (rdn != null
         && rdn.hasAttributeType(t)
-        && (!modifiedEntry.hasValue(t, attr.getOptions(), rdn
-            .getAttributeValue(t))))
+        && !modifiedEntry.hasValue(t, attr.getOptions(), rdn.getAttributeValue(t)))
     {
       throw newDirectoryException(modifiedEntry, ResultCode.NOT_ALLOWED_ON_RDN,
-          ERR_MODIFY_DELETE_RDN_ATTR.get(String.valueOf(entryDN), attr
-              .getName()));
+          ERR_MODIFY_DELETE_RDN_ATTR.get(String.valueOf(entryDN), attr.getName()));
     }
   }
 
@@ -1720,20 +1639,17 @@ public class LocalBackendModifyOperation
     // The specified attribute type must not be an RDN attribute.
     AttributeType t = attr.getAttributeType();
     RDN rdn = modifiedEntry.getDN().getRDN();
-    if ((rdn != null) && rdn.hasAttributeType(t))
+    if (rdn != null && rdn.hasAttributeType(t))
     {
       throw newDirectoryException(modifiedEntry, ResultCode.NOT_ALLOWED_ON_RDN,
-          ERR_MODIFY_INCREMENT_RDN.get(String.valueOf(entryDN),
-              attr.getName()));
+          ERR_MODIFY_INCREMENT_RDN.get(String.valueOf(entryDN), attr.getName()));
     }
 
-    // The provided attribute must have a single value, and it must be
-    // an integer.
+    // The provided attribute must have a single value, and it must be an integer
     if (attr.isEmpty())
     {
       throw newDirectoryException(modifiedEntry, ResultCode.PROTOCOL_ERROR,
-          ERR_MODIFY_INCREMENT_REQUIRES_VALUE.get(String.valueOf(entryDN), attr
-              .getName()));
+          ERR_MODIFY_INCREMENT_REQUIRES_VALUE.get(String.valueOf(entryDN), attr.getName()));
     }
 
     if (attr.size() > 1)
@@ -1832,10 +1748,10 @@ public class LocalBackendModifyOperation
 
     // If it was a self change, then see if the current password was provided
     // and handle accordingly.
+    final PasswordPolicy authPolicy = pwPolicyState.getAuthenticationPolicy();
     if (selfChange
-        && pwPolicyState.getAuthenticationPolicy()
-            .isPasswordChangeRequiresCurrentPassword()
-        && (!currentPasswordProvided))
+        && authPolicy.isPasswordChangeRequiresCurrentPassword()
+        && !currentPasswordProvided)
     {
       pwpErrorType = PasswordPolicyErrorType.MUST_SUPPLY_OLD_PASSWORD;
 
@@ -1846,9 +1762,7 @@ public class LocalBackendModifyOperation
 
     // If this change would result in multiple password values, then see if
     // that's OK.
-    if ((numPasswords > 1)
-        && (!pwPolicyState.getAuthenticationPolicy()
-            .isAllowMultiplePasswordValues()))
+    if (numPasswords > 1 && !authPolicy.isAllowMultiplePasswordValues())
     {
       pwpErrorType = PasswordPolicyErrorType.PASSWORD_MOD_NOT_ALLOWED;
       throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
@@ -1857,9 +1771,7 @@ public class LocalBackendModifyOperation
 
 
     // If any of the password values should be validated, then do so now.
-    if (selfChange
-        || (!pwPolicyState.getAuthenticationPolicy()
-            .isSkipValidationForAdministrators()))
+    if (selfChange || !authPolicy.isSkipValidationForAdministrators())
     {
       if (newPasswords != null)
       {
@@ -1911,11 +1823,9 @@ public class LocalBackendModifyOperation
           if (! pwPolicyState.passwordIsAcceptable(this, modifiedEntry,
                                    v.getValue(), clearPasswords, invalidReason))
           {
-            pwpErrorType =
-                 PasswordPolicyErrorType.INSUFFICIENT_PASSWORD_QUALITY;
+            pwpErrorType = PasswordPolicyErrorType.INSUFFICIENT_PASSWORD_QUALITY;
             throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                         ERR_MODIFY_PW_VALIDATION_FAILED.get(
-                                              invalidReason));
+                ERR_MODIFY_PW_VALIDATION_FAILED.get(invalidReason));
           }
         }
       }
@@ -1929,15 +1839,12 @@ public class LocalBackendModifyOperation
       {
         for (AttributeValue v : newPasswords)
         {
-          if (pwPolicyState.isPasswordInHistory(v.getValue()))
+          if (pwPolicyState.isPasswordInHistory(v.getValue())
+              && (selfChange || !authPolicy.isSkipValidationForAdministrators()))
           {
-            if (selfChange || (! pwPolicyState.getAuthenticationPolicy().
-                                      isSkipValidationForAdministrators()))
-            {
-              pwpErrorType = PasswordPolicyErrorType.PASSWORD_IN_HISTORY;
-              throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
-                                           ERR_MODIFY_PW_IN_HISTORY.get());
-            }
+            pwpErrorType = PasswordPolicyErrorType.PASSWORD_IN_HISTORY;
+            throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION,
+                ERR_MODIFY_PW_IN_HISTORY.get());
           }
         }
 
@@ -1958,8 +1865,7 @@ public class LocalBackendModifyOperation
     pwPolicyState.clearGraceLoginTimes();
     pwPolicyState.clearWarnedTime();
 
-    if (pwPolicyState.getAuthenticationPolicy().isForceChangeOnAdd() ||
-        pwPolicyState.getAuthenticationPolicy().isForceChangeOnReset())
+    if (authPolicy.isForceChangeOnAdd() || authPolicy.isForceChangeOnReset())
     {
       if (selfChange)
       {
@@ -1967,18 +1873,16 @@ public class LocalBackendModifyOperation
       }
       else
       {
-        if ((pwpErrorType == null) &&
-            pwPolicyState.getAuthenticationPolicy().isForceChangeOnReset())
+        if (pwpErrorType == null && authPolicy.isForceChangeOnReset())
         {
           pwpErrorType = PasswordPolicyErrorType.CHANGE_AFTER_RESET;
         }
 
-        pwPolicyState.setMustChangePassword(
-             pwPolicyState.getAuthenticationPolicy().isForceChangeOnReset());
+        pwPolicyState.setMustChangePassword(authPolicy.isForceChangeOnReset());
       }
     }
 
-    if (pwPolicyState.getAuthenticationPolicy().getRequireChangeByTime() > 0)
+    if (authPolicy.getRequireChangeByTime() > 0)
     {
       pwPolicyState.setRequiredChangeTime();
     }
@@ -1993,7 +1897,7 @@ public class LocalBackendModifyOperation
    * Handles any account status notifications that may be needed as a result of
    * modify processing.
    */
-  protected void handleAccountStatusNotifications()
+  private void handleAccountStatusNotifications()
   {
     if (pwPolicyState == null)
     {
@@ -2075,7 +1979,7 @@ public class LocalBackendModifyOperation
    * @return  {@code true} if processing should continue for the operation, or
    *          {@code false} if not.
    */
-  protected boolean handleConflictResolution() {
+  private boolean handleConflictResolution() {
       for (SynchronizationProvider<?> provider :
           DirectoryServer.getSynchronizationProviders()) {
           try {
@@ -2107,7 +2011,7 @@ public class LocalBackendModifyOperation
    * @return  {@code true} if processing should continue for the operation, or
    *          {@code false} if not.
    */
-  protected boolean processPreOperation() {
+  private boolean processPreOperation() {
       for (SynchronizationProvider<?> provider :
           DirectoryServer.getSynchronizationProviders()) {
           try {
@@ -2136,7 +2040,7 @@ public class LocalBackendModifyOperation
   /**
    * Invoke post operation synchronization providers.
    */
-  protected void processSynchPostOperationPlugins() {
+  private void processSynchPostOperationPlugins() {
       for (SynchronizationProvider<?> provider :
           DirectoryServer.getSynchronizationProviders()) {
           try {

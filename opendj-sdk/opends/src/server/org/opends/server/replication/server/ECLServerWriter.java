@@ -149,13 +149,17 @@ class ECLServerWriter extends ServerWriter
         }
 
         if (shutdown)
+        {
           return;
+        }
 
         // Not suspended
         doIt();
 
         if (shutdown)
+        {
           return;
+        }
 
         suspendWriter();
       }
@@ -178,12 +182,14 @@ class ECLServerWriter extends ServerWriter
     }
     finally
     {
-      if (session!=null)
+      if (session != null)
       {
         session.close();
       }
       if (replicationServerDomain != null)
+      {
         replicationServerDomain.stopServer(handler, false);
+      }
     }
   }
 
@@ -195,24 +201,10 @@ class ECLServerWriter extends ServerWriter
    */
   private void doIt() throws IOException, InterruptedException
   {
-    while (true)
+    while (!shutdown && !suspended)
     {
-      if (shutdown || suspended)
-      {
-        return;
-      }
-
-      ECLUpdateMsg update = null;
-      try
-      {
-        update = handler.takeECLUpdate();
-      }
-      catch(DirectoryException de)
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, de);
-      }
-
-      if (update == null)
+      final ECLUpdateMsg updateMsg = takeECLUpdate(handler);
+      if (updateMsg == null)
       {
         if (session != null && handler.isInitPhaseDone())
         {
@@ -232,11 +224,22 @@ class ECLServerWriter extends ServerWriter
       }
       else
       {
-        // Publish the update to the remote server using a protocol version it
-        // supports
-        publish(update);
-        update = null;
+        // Publish the update to the remote server using a protocol version it supports
+        publish(updateMsg);
       }
+    }
+  }
+
+  private ECLUpdateMsg takeECLUpdate(ECLServerHandler handler)
+  {
+    try
+    {
+      return handler.takeECLUpdate();
+    }
+    catch(DirectoryException de)
+    {
+      TRACER.debugCaught(DebugLogLevel.ERROR, de);
+      return null;
     }
   }
 
@@ -255,7 +258,9 @@ class ECLServerWriter extends ServerWriter
   private void publish(ECLUpdateMsg msg) throws IOException
   {
     if (debugEnabled())
+    {
       TRACER.debugInfo(getName() + " publishes msg=[" + msg + "]");
+    }
 
     if (session != null)
     {
@@ -265,8 +270,10 @@ class ECLServerWriter extends ServerWriter
     {
       try
       {
+        // Using processAdd() because all ECLUpdateMsgs are adds to the external changelog
+        // (even though the underlying changes can be adds, deletes, modifies or modDNs)
         Entry eclEntry = ECLSearchOperation.createEntryFromMsg(msg);
-        mypsearch.processAdd(eclEntry, -1);
+        mypsearch.processAdd(eclEntry);
       }
       catch (Exception e)
       {
