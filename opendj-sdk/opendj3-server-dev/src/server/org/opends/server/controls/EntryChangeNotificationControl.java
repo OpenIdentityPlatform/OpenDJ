@@ -122,7 +122,7 @@ public class EntryChangeNotificationControl
   }
 
   /**
-   * The Control Decoder that can be used to decode this control.
+   * The ControlDecoder that can be used to decode this control.
    */
   public static final ControlDecoder<EntryChangeNotificationControl> DECODER =
     new Decoder();
@@ -230,7 +230,7 @@ public class EntryChangeNotificationControl
 
 
   /**
-   * Writes this control's value to an ASN.1 writer. The value (if any) must be
+   * Writes this control value to an ASN.1 writer. The value (if any) must be
    * written as an ASN1OctetString.
    *
    * @param writer The ASN.1 output stream to write to.
