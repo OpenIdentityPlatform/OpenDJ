@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.controls;
 import org.opends.messages.Message;
@@ -53,7 +54,7 @@ public class EntryChangeNotificationControl
        extends Control
 {
   /**
-   * ControlDecoder implentation to decode this control from a ByteString.
+   * ControlDecoder implementation to decode this control from a ByteString.
    */
   private final static class Decoder
       implements ControlDecoder<EntryChangeNotificationControl>
@@ -130,7 +131,7 @@ public class EntryChangeNotificationControl
   }
 
   /**
-   * The Control Decoder that can be used to decode this control.
+   * The ControlDecoder that can be used to decode this control.
    */
   public static final ControlDecoder<EntryChangeNotificationControl> DECODER =
     new Decoder();
@@ -242,7 +243,7 @@ public class EntryChangeNotificationControl
 
 
   /**
-   * Writes this control's value to an ASN.1 writer. The value (if any) must be
+   * Writes this control value to an ASN.1 writer. The value (if any) must be
    * written as an ASN1OctetString.
    *
    * @param writer The ASN.1 output stream to write to.
