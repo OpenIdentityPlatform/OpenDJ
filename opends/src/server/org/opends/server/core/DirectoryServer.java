@@ -26,19 +26,6 @@
  */
 package org.opends.server.core;
 
-import static org.opends.messages.ConfigMessages.*;
-import static org.opends.messages.CoreMessages.*;
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.AccessLogger.*;
-import static org.opends.server.loggers.ErrorLogger.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.schema.SchemaConstants.*;
-import static org.opends.server.util.DynamicConstants.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-import static org.opends.server.util.Validator.*;
-
 import java.io.*;
 import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
@@ -93,6 +80,19 @@ import org.opends.server.util.args.*;
 import org.opends.server.workflowelement.WorkflowElement;
 import org.opends.server.workflowelement.WorkflowElementConfigManager;
 import org.opends.server.workflowelement.localbackend.LocalBackendWorkflowElement;
+
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.loggers.AccessLogger.*;
+import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.server.util.DynamicConstants.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+import static org.opends.server.util.Validator.*;
 
 /**
  * This class defines the core of the Directory Server.  It manages the startup
@@ -404,13 +404,6 @@ public final class DirectoryServer
 
   /** The set of backup task listeners registered with the Directory Server. */
   private CopyOnWriteArrayList<BackupTaskListener> backupTaskListeners;
-
-  /**
-   * The set of change notification listeners registered with the Directory
-   * Server.
-   */
-  private List<ChangeNotificationListener>
-               changeNotificationListeners;
 
   /** The set of connection handlers registered with the Directory Server. */
   private List<ConnectionHandler> connectionHandlers;
@@ -922,8 +915,6 @@ public final class DirectoryServer
       directoryServer.backendInitializationListeners =
            new CopyOnWriteArraySet<BackendInitializationListener>();
       directoryServer.baseDnRegistry = new BaseDnRegistry();
-      directoryServer.changeNotificationListeners =
-           new CopyOnWriteArrayList<ChangeNotificationListener>();
       directoryServer.initializationCompletedListeners =
            new CopyOnWriteArrayList<InitializationCompletedListener>();
       directoryServer.shutdownListeners =
@@ -941,7 +932,6 @@ public final class DirectoryServer
            new ConcurrentHashMap<String,ExtendedOperationHandler>();
       directoryServer.saslMechanismHandlers =
            new ConcurrentHashMap<String,SASLMechanismHandler>();
-      directoryServer.authenticatedUsers = new AuthenticatedUsers();
       directoryServer.offlineSchemaChanges = new LinkedList<Modification>();
       directoryServer.backupTaskListeners =
            new CopyOnWriteArrayList<BackupTaskListener>();
@@ -1378,23 +1368,15 @@ public final class DirectoryServer
       certificateMapperConfigManager.initializeCertificateMappers();
 
 
-      // Initialize the identity mappers.
       initializeIdentityMappers();
 
-
-      // Initialize the root DNs.
       rootDNConfigManager = new RootDNConfigManager();
       rootDNConfigManager.initializeRootDNs();
 
-
-      // Initialize the subentry manager.
+      directoryServer.authenticatedUsers = new AuthenticatedUsers();
+      // initialize both subentry manager and group manager for this backend.
       initializeSubentryManager();
-
-      // Initialize the group manager.
       initializeGroupManager();
-
-      // Now we can initialize both subentry manager and group manager
-      // for this backend.
       subentryManager.performBackendInitializationProcessing(configHandler);
       groupManager.performBackendInitializationProcessing(configHandler);
 
@@ -1424,13 +1406,8 @@ public final class DirectoryServer
       // Reset the map as we can no longer guarantee offline state.
       directoryServer.offlineBackendsStateIDs.clear();
 
-      // Initialize all the extended operation handlers.
       initializeExtendedOperations();
-
-
-      // Initialize all the SASL mechanism handlers.
       initializeSASLMechanisms();
-
 
       // Initialize all the connection handlers
       // (including the administration connector).
@@ -1439,13 +1416,9 @@ public final class DirectoryServer
         initializeConnectionHandlers();
       }
 
-
-      // Initialize all the monitor providers.
       monitorConfigManager = new MonitorConfigManager();
       monitorConfigManager.initializeMonitorProviders();
 
-
-      // Initialize all the authentication policy components.
       initializeAuthenticationPolicyComponents();
 
 
@@ -7154,54 +7127,6 @@ public final class DirectoryServer
     checkCanEnqueueRequest(operation);
     return directoryServer.workQueue.trySubmitOperation(operation);
   }
-
-
-  /**
-   * Retrieves the set of change notification listeners registered with the
-   * Directory Server.
-   *
-   * @return  The set of change notification listeners registered with the
-   *          Directory Server.
-   */
-  public static List<ChangeNotificationListener>
-                     getChangeNotificationListeners()
-  {
-    return directoryServer.changeNotificationListeners;
-  }
-
-
-
-  /**
-   * Registers the provided change notification listener with the Directory
-   * Server so that it will be notified of any add, delete, modify, or modify DN
-   * operations that are performed.
-   *
-   * @param  changeListener  The change notification listener to register with
-   *                         the Directory Server.
-   */
-  public static void registerChangeNotificationListener(
-                          ChangeNotificationListener changeListener)
-  {
-    directoryServer.changeNotificationListeners.add(changeListener);
-  }
-
-
-
-  /**
-   * Deregisters the provided change notification listener with the Directory
-   * Server so that it will no longer be notified of any add, delete, modify, or
-   * modify DN operations that are performed.
-   *
-   * @param  changeListener  The change notification listener to deregister with
-   *                         the Directory Server.
-   */
-  public static void deregisterChangeNotificationListener(
-                          ChangeNotificationListener changeListener)
-  {
-    directoryServer.changeNotificationListeners.remove(changeListener);
-  }
-
-
 
   /**
    * Retrieves the set of synchronization providers that have been registered
