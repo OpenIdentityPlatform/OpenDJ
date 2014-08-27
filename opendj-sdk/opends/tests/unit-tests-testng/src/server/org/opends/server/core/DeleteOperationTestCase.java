@@ -68,9 +68,8 @@ public class DeleteOperationTestCase extends OperationTestCase
   }
 
   /** {@inheritDoc} */
-  @Override()
-  protected Operation[] createTestOperations()
-         throws Exception
+  @Override
+  protected Operation[] createTestOperations() throws Exception
   {
     List<Control> noControls = new ArrayList<Control>();
     return new Operation[]
@@ -130,7 +129,7 @@ public class DeleteOperationTestCase extends OperationTestCase
    * Tests the <CODE>getEntryDN</CODE> method that should decode the rawEntryDN
    * to compute the entryDN.
    */
-  @Test()
+  @Test
   public void testGetEntryDNNull()
   {
     DeleteOperation deleteOperation =
@@ -145,9 +144,8 @@ public class DeleteOperationTestCase extends OperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testGetEntryDNNotNull()
-         throws Exception
+  @Test
+  public void testGetEntryDNNotNull() throws Exception
   {
     DeleteOperation deleteOperation =
         newDeleteOperation(null, DN.decode("o=test"));
@@ -165,9 +163,8 @@ public class DeleteOperationTestCase extends OperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testGetEntryDNChangedToNull()
-         throws Exception
+  @Test
+  public void testGetEntryDNChangedToNull() throws Exception
   {
     DeleteOperation deleteOperation =
         newDeleteOperation(null, DN.decode("o=test"));
@@ -201,9 +198,8 @@ public class DeleteOperationTestCase extends OperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testGetEntryToDeleteExists()
-         throws Exception
+  @Test
+  public void testGetEntryToDeleteExists() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
 
@@ -221,13 +217,13 @@ public class DeleteOperationTestCase extends OperationTestCase
 
   private DeleteOperation processDeleteRaw(String entryDN)
   {
-    InternalClientConnection conn =getRootConnection();
+    InternalClientConnection conn = getRootConnection();
     return conn.processDelete(ByteString.valueOf(entryDN));
   }
 
   private DeleteOperation processDelete(String entryDN) throws DirectoryException
   {
-    InternalClientConnection conn =getRootConnection();
+    InternalClientConnection conn = getRootConnection();
     return conn.processDelete(DN.decode(entryDN));
   }
 
@@ -244,9 +240,8 @@ public class DeleteOperationTestCase extends OperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testGetEntryToDeleteNonExistent()
-         throws Exception
+  @Test
+  public void testGetEntryToDeleteNonExistent() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
 
@@ -268,9 +263,8 @@ public class DeleteOperationTestCase extends OperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testExternalDelete()
-         throws Exception
+  @Test
+  public void testExternalDelete() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
 
@@ -285,9 +279,8 @@ public class DeleteOperationTestCase extends OperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testDeleteWithValidRawDNSuffix()
-         throws Exception
+  @Test
+  public void testDeleteWithValidRawDNSuffix() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
 
@@ -303,9 +296,8 @@ public class DeleteOperationTestCase extends OperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testDeleteWithValidProcessedDNSuffix()
-         throws Exception
+  @Test
+  public void testDeleteWithValidProcessedDNSuffix() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
 
@@ -321,9 +313,8 @@ public class DeleteOperationTestCase extends OperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testDeleteWithValidRawDNLeaf()
-         throws Exception
+  @Test
+  public void testDeleteWithValidRawDNLeaf() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
 
@@ -344,9 +335,8 @@ public class DeleteOperationTestCase extends OperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testDeleteWithValidProcessedDNLeaf()
-         throws Exception
+  @Test
+  public void testDeleteWithValidProcessedDNLeaf() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
 
@@ -367,9 +357,8 @@ public class DeleteOperationTestCase extends OperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testDeleteWithMalformedRawDN()
-         throws Exception
+  @Test
+  public void testDeleteWithMalformedRawDN() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
 
@@ -385,9 +374,8 @@ public class DeleteOperationTestCase extends OperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testDeleteWithNonExistentSuffixRawDN()
-         throws Exception
+  @Test
+  public void testDeleteWithNonExistentSuffixRawDN() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
 
@@ -403,9 +391,8 @@ public class DeleteOperationTestCase extends OperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testDeleteWithNonExistentSuffixProcessedDN()
-         throws Exception
+  @Test
+  public void testDeleteWithNonExistentSuffixProcessedDN() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
 
@@ -420,9 +407,8 @@ public class DeleteOperationTestCase extends OperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testDeleteWithRawDNBelowNonExistentSuffix()
-         throws Exception
+  @Test
+  public void testDeleteWithRawDNBelowNonExistentSuffix() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
 
@@ -438,9 +424,8 @@ public class DeleteOperationTestCase extends OperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testDeleteWithProcessedDNBelowNonExistentSuffix()
-         throws Exception
+  @Test
+  public void testDeleteWithProcessedDNBelowNonExistentSuffix() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
 
@@ -456,9 +441,8 @@ public class DeleteOperationTestCase extends OperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testDeleteWithNonExistentRawDNBelowExistingSuffix()
-         throws Exception
+  @Test
+  public void testDeleteWithNonExistentRawDNBelowExistingSuffix() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
 
@@ -474,9 +458,8 @@ public class DeleteOperationTestCase extends OperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testDeleteWithNonExistentProcessedDNBelowExistingSuffix()
-         throws Exception
+  @Test
+  public void testDeleteWithNonExistentProcessedDNBelowExistingSuffix() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
 
@@ -491,9 +474,8 @@ public class DeleteOperationTestCase extends OperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testDeleteWithNonLeafRawDN()
-         throws Exception
+  @Test
+  public void testDeleteWithNonLeafRawDN() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
 
@@ -513,9 +495,8 @@ public class DeleteOperationTestCase extends OperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testDeleteWithNonLeafProcessedDN()
-         throws Exception
+  @Test
+  public void testDeleteWithNonLeafProcessedDN() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
 
@@ -536,9 +517,8 @@ public class DeleteOperationTestCase extends OperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testDeleteWithServerWritabilityDisabled()
-         throws Exception
+  @Test
+  public void testDeleteWithServerWritabilityDisabled() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
 
@@ -558,9 +538,8 @@ public class DeleteOperationTestCase extends OperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testInternalDeleteWithServerWritabilityInternalOnly()
-         throws Exception
+  @Test
+  public void testInternalDeleteWithServerWritabilityInternalOnly() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
 
@@ -580,9 +559,8 @@ public class DeleteOperationTestCase extends OperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testExternalDeleteWithServerWritabilityInternalOnly()
-         throws Exception
+  @Test
+  public void testExternalDeleteWithServerWritabilityInternalOnly() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
 
@@ -602,9 +580,8 @@ public class DeleteOperationTestCase extends OperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testDeleteWithBackendWritabilityDisabled()
-         throws Exception
+  @Test
+  public void testDeleteWithBackendWritabilityDisabled() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
 
@@ -625,9 +602,8 @@ public class DeleteOperationTestCase extends OperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testInternalDeleteWithBackendWritabilityInternalOnly()
-         throws Exception
+  @Test
+  public void testInternalDeleteWithBackendWritabilityInternalOnly() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
 
@@ -648,9 +624,8 @@ public class DeleteOperationTestCase extends OperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testExternalDeleteWithBackendWritabilityInternalOnly()
-         throws Exception
+  @Test
+  public void testExternalDeleteWithBackendWritabilityInternalOnly() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
 
@@ -681,9 +656,8 @@ public class DeleteOperationTestCase extends OperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testCancelBeforeStartup()
-         throws Exception
+  @Test
+  public void testCancelBeforeStartup() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
 
@@ -702,9 +676,8 @@ public class DeleteOperationTestCase extends OperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testCancelAfterOperation()
-         throws Exception
+  @Test
+  public void testCancelAfterOperation() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
 
@@ -729,8 +702,7 @@ public class DeleteOperationTestCase extends OperationTestCase
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test(groups = { "slow" })
-  public void testCannotLockEntry()
-         throws Exception
+  public void testCannotLockEntry() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
 
@@ -754,9 +726,8 @@ public class DeleteOperationTestCase extends OperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testDisconnectInPreParseDelete()
-         throws Exception
+  @Test
+  public void testDisconnectInPreParseDelete() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
 
@@ -802,9 +773,8 @@ public class DeleteOperationTestCase extends OperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testDisconnectInPreOperationDelete()
-         throws Exception
+  @Test
+  public void testDisconnectInPreOperationDelete() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
 
@@ -851,9 +821,8 @@ public class DeleteOperationTestCase extends OperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testDisconnectInPostOperationDelete()
-         throws Exception
+  @Test
+  public void testDisconnectInPostOperationDelete() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
 
@@ -900,9 +869,8 @@ public class DeleteOperationTestCase extends OperationTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testDisconnectInPostResponseDelete()
-         throws Exception
+  @Test
+  public void testDisconnectInPostResponseDelete() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
 
@@ -970,23 +938,28 @@ responseLoop:
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testSuccessWithNotificationListener()
-         throws Exception
+  @Test
+  public void testSuccessWithNotificationListener() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
 
     TestChangeNotificationListener changeListener =
          new TestChangeNotificationListener();
-    DirectoryServer.registerChangeNotificationListener(changeListener);
-    assertEquals(changeListener.getAddCount(), 0);
+    DirectoryServer.registerInternalPlugin(changeListener);
+    try
+    {
+      assertEquals(changeListener.getAddCount(), 0);
 
-    DeleteOperation deleteOperation = processDeleteRaw("o=test");
-    assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
-    retrieveCompletedOperationElements(deleteOperation);
+      DeleteOperation deleteOperation = processDeleteRaw("o=test");
+      assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
+      retrieveCompletedOperationElements(deleteOperation);
 
-    assertEquals(changeListener.getDeleteCount(), 1);
-    DirectoryServer.deregisterChangeNotificationListener(changeListener);
+      assertEquals(changeListener.getDeleteCount(), 1);
+    }
+    finally
+    {
+      DirectoryServer.deregisterInternalPlugin(changeListener);
+    }
   }
 
 
@@ -997,22 +970,27 @@ responseLoop:
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testFailureWithNotificationListener()
-         throws Exception
+  @Test
+  public void testFailureWithNotificationListener() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
 
     TestChangeNotificationListener changeListener =
          new TestChangeNotificationListener();
-    DirectoryServer.registerChangeNotificationListener(changeListener);
-    assertEquals(changeListener.getAddCount(), 0);
+    DirectoryServer.registerInternalPlugin(changeListener);
+    try
+    {
+      assertEquals(changeListener.getAddCount(), 0);
 
-    DeleteOperation deleteOperation = processDeleteRaw("cn=nonexistent,o=test");
-    assertFalse(deleteOperation.getResultCode() == ResultCode.SUCCESS);
+      DeleteOperation deleteOperation = processDeleteRaw("cn=nonexistent,o=test");
+      assertFalse(deleteOperation.getResultCode() == ResultCode.SUCCESS);
 
-    assertEquals(changeListener.getDeleteCount(), 0);
-    DirectoryServer.deregisterChangeNotificationListener(changeListener);
+      assertEquals(changeListener.getDeleteCount(), 0);
+    }
+    finally
+    {
+      DirectoryServer.deregisterInternalPlugin(changeListener);
+    }
   }
 
 
@@ -1023,9 +1001,8 @@ responseLoop:
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  @Test()
-  public void testShortCircuitInPreParse()
-         throws Exception
+  @Test
+  public void testShortCircuitInPreParse() throws Exception
   {
     TestCaseUtils.initializeTestBackend(true);
 
@@ -1039,4 +1016,3 @@ responseLoop:
     assertTrue(DirectoryServer.entryExists(DN.decode("o=test")));
   }
 }
-

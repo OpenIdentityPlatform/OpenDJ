@@ -31,7 +31,6 @@ import java.util.concurrent.locks.Lock;
 
 import org.opends.messages.Message;
 import org.opends.server.api.Backend;
-import org.opends.server.api.ChangeNotificationListener;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.api.plugin.PluginResult;
@@ -176,30 +175,9 @@ public class LocalBackendDeleteOperation
         @Override
         public void run()
         {
-          // Notify persistent searches.
           for (PersistentSearch psearch : wfe.getPersistentSearches())
           {
             psearch.processDelete(entry);
-          }
-
-          // Notify change listeners.
-          for (ChangeNotificationListener changeListener : DirectoryServer
-              .getChangeNotificationListeners())
-          {
-            try
-            {
-              changeListener.handleDeleteOperation(LocalBackendDeleteOperation.this, entry);
-            }
-            catch (Exception e)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
-
-              logError(ERR_DELETE_ERROR_NOTIFYING_CHANGE_LISTENER
-                  .get(getExceptionMessage(e)));
-            }
           }
         }
       });

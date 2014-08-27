@@ -317,32 +317,9 @@ public class LocalBackendModifyOperation
         @Override
         public void run()
         {
-          // Notify persistent searches.
           for (PersistentSearch psearch : wfe.getPersistentSearches())
           {
             psearch.processModify(modifiedEntry, currentEntry);
-          }
-
-          // Notify change listeners.
-          for (ChangeNotificationListener changeListener : DirectoryServer
-              .getChangeNotificationListeners())
-          {
-            try
-            {
-              changeListener
-                  .handleModifyOperation(LocalBackendModifyOperation.this,
-                      currentEntry, modifiedEntry);
-            }
-            catch (Exception e)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
-
-              logError(ERR_MODIFY_ERROR_NOTIFYING_CHANGE_LISTENER
-                  .get(getExceptionMessage(e)));
-            }
           }
         }
       });

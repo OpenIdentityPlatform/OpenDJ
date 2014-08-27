@@ -34,7 +34,6 @@ import java.util.concurrent.locks.Lock;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.server.api.Backend;
-import org.opends.server.api.ChangeNotificationListener;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.api.plugin.PluginResult;
@@ -204,31 +203,9 @@ public class LocalBackendModifyDNOperation
         @Override
         public void run()
         {
-          // Notify persistent searches.
           for (PersistentSearch psearch : wfe.getPersistentSearches())
           {
             psearch.processModifyDN(newEntry, currentEntry.getDN());
-          }
-
-          // Notify change listeners.
-          for (ChangeNotificationListener changeListener : DirectoryServer
-              .getChangeNotificationListeners())
-          {
-            try
-            {
-              changeListener.handleModifyDNOperation(
-                  LocalBackendModifyDNOperation.this, currentEntry, newEntry);
-            }
-            catch (Exception e)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
-
-              logError(ERR_MODDN_ERROR_NOTIFYING_CHANGE_LISTENER
-                  .get(getExceptionMessage(e)));
-            }
           }
         }
       });

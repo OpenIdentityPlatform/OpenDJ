@@ -184,30 +184,9 @@ public class LocalBackendAddOperation
         @Override
         public void run()
         {
-          // Notify persistent searches.
           for (PersistentSearch psearch : wfe.getPersistentSearches())
           {
             psearch.processAdd(entry);
-          }
-
-          // Notify change listeners.
-          for (ChangeNotificationListener changeListener : DirectoryServer
-              .getChangeNotificationListeners())
-          {
-            try
-            {
-              changeListener.handleAddOperation(LocalBackendAddOperation.this, entry);
-            }
-            catch (Exception e)
-            {
-              if (debugEnabled())
-              {
-                TRACER.debugCaught(DebugLogLevel.ERROR, e);
-              }
-
-              logError(ERR_ADD_ERROR_NOTIFYING_CHANGE_LISTENER
-                  .get(getExceptionMessage(e)));
-            }
           }
         }
       });

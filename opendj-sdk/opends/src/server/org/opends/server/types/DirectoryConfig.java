@@ -22,21 +22,17 @@
  *
  *
  *      Copyright 2006-2009 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS.
+ *      Portions copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.types;
 import java.util.List;
-import org.opends.messages.Message;
-
-
-
 import java.util.Map;
 import java.util.Set;
 
+import org.opends.messages.Message;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.ApproximateMatchingRule;
 import org.opends.server.api.AttributeSyntax;
-import org.opends.server.api.ChangeNotificationListener;
 import org.opends.server.api.ConfigHandler;
 import org.opends.server.api.EqualityMatchingRule;
 import org.opends.server.api.ExtendedOperationHandler;
@@ -50,10 +46,9 @@ import org.opends.server.config.ConfigEntry;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
 
-
 /**
  * This interface defines a set of methods that may be used by
- * third-party code to obtatin information about the core Directory
+ * third-party code to obtain information about the core Directory
  * Server configuration and the instances of various kinds of
  * components that have registered themselves with the server.
  * <BR><BR>
@@ -1088,43 +1083,6 @@ public final class DirectoryConfig
   {
     DirectoryServer.deregisterSASLMechanismHandler(name);
   }
-
-
-
-  /**
-   * Registers the provided change notification listener with the
-   * Directory Server so that it will be notified of any add, delete,
-   * modify, or modify DN operations that are performed.
-   *
-   * @param  changeListener  The change notification listener to
-   *                         register with the Directory Server.
-   */
-  public static void
-       registerChangeNotificationListener(
-            ChangeNotificationListener changeListener)
-  {
-    DirectoryServer.registerChangeNotificationListener(
-                         changeListener);
-  }
-
-
-
-  /**
-   * Deregisters the provided change notification listener with the
-   * Directory Server so that it will no longer be notified of any
-   * add, delete, modify, or modify DN operations that are performed.
-   *
-   * @param  changeListener  The change notification listener to
-   *                         deregister with the Directory Server.
-   */
-  public static void deregisterChangeNotificationListener(
-                          ChangeNotificationListener changeListener)
-  {
-    DirectoryServer.deregisterChangeNotificationListener(
-                         changeListener);
-  }
-
-
 
   /**
    * Registers the provided shutdown listener with the Directory

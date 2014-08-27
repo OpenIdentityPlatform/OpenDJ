@@ -22,95 +22,93 @@
  *
  *
  *      Copyright 2008-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
-
 package org.opends.server.crypto;
 
+import java.util.ArrayList;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+
+import org.opends.admin.ads.ADSContext;
+import org.opends.messages.Message;
 import org.opends.server.api.Backend;
 import org.opends.server.api.BackendInitializationListener;
-import org.opends.server.api.ChangeNotificationListener;
-import org.opends.server.loggers.debug.DebugTracer;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
+import org.opends.server.api.plugin.InternalDirectoryServerPlugin;
+import org.opends.server.api.plugin.PluginResult.PostResponse;
+import org.opends.server.config.ConfigConstants;
+import org.opends.server.controls.EntryChangeNotificationControl;
+import org.opends.server.controls.PersistentSearchChangeType;
+import org.opends.server.core.AddOperation;
+import org.opends.server.core.DeleteOperation;
+import org.opends.server.core.DirectoryServer;
 import org.opends.server.loggers.ErrorLogger;
+import org.opends.server.loggers.debug.DebugTracer;
+import org.opends.server.protocols.internal.InternalClientConnection;
+import org.opends.server.protocols.internal.InternalSearchOperation;
+import org.opends.server.protocols.ldap.LDAPControl;
 import org.opends.server.types.*;
 import org.opends.server.types.operation.PostResponseAddOperation;
 import org.opends.server.types.operation.PostResponseDeleteOperation;
 import org.opends.server.types.operation.PostResponseModifyOperation;
-import org.opends.server.types.operation.PostResponseModifyDNOperation;
-import static org.opends.server.util.StaticUtils.stackTraceToSingleLineString;
-import static org.opends.server.util.ServerConstants.OC_TOP;
-import static org.opends.server.util.ServerConstants.
-     OID_ENTRY_CHANGE_NOTIFICATION;
-import org.opends.server.config.ConfigConstants;
-import static org.opends.server.config.ConfigConstants.OC_CRYPTO_INSTANCE_KEY;
-import static org.opends.server.config.ConfigConstants.OC_CRYPTO_CIPHER_KEY;
-import static org.opends.server.config.ConfigConstants.OC_CRYPTO_MAC_KEY;
-import org.opends.server.protocols.internal.InternalClientConnection;
-import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.protocols.ldap.LDAPControl;
-import org.opends.server.controls.PersistentSearchChangeType;
-import org.opends.server.controls.EntryChangeNotificationControl;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.DeleteOperation;
-import org.opends.server.core.AddOperation;
-import static org.opends.messages.CoreMessages.*;
-import org.opends.messages.Message;
-import org.opends.admin.ads.ADSContext;
 
-import java.util.LinkedHashSet;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.HashMap;
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.api.plugin.PluginType.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines an object that synchronizes certificates from the admin
  * data branch into the trust store backend, and synchronizes secret-key entries
  * from the admin data branch to the crypto manager secret-key cache.
  */
-public class CryptoManagerSync
-     implements BackendInitializationListener, ChangeNotificationListener
+public class CryptoManagerSync extends InternalDirectoryServerPlugin
+     implements BackendInitializationListener
 {
-  /**
-   * The debug log tracer for this object.
-   */
+  /** The debug log tracer for this object. */
   private static final DebugTracer TRACER = getTracer();
 
-
-
-  // The DN of the administration suffix.
+  /** The DN of the administration suffix. */
   private DN adminSuffixDN;
 
-  // The DN of the instance keys container within the admin suffix.
+  /** The DN of the instance keys container within the admin suffix. */
   private DN instanceKeysDN;
 
-  // The DN of the secret keys container within the admin suffix.
+  /** The DN of the secret keys container within the admin suffix. */
   private DN secretKeysDN;
 
-  // The DN of the trust store root.
+  /** The DN of the trust store root. */
   private DN trustStoreRootDN;
 
-  // The attribute type that is used to specify a server instance certificate.
-  AttributeType attrCert;
+  /** The attribute type that is used to specify a server instance certificate. */
+  private final AttributeType attrCert;
 
-  // The attribute type that holds a server certificate identifier.
-  AttributeType attrAlias;
+  /** The attribute type that holds a server certificate identifier. */
+  private final AttributeType attrAlias;
 
-  // The attribute type that holds the time a key was compromised.
-  AttributeType attrCompromisedTime;
+  /** The attribute type that holds the time a key was compromised. */
+  private final AttributeType attrCompromisedTime;
 
-  // A filter on object class to select key entries.
+  /** A filter on object class to select key entries. */
   private SearchFilter keySearchFilter;
 
-  // The instance key objectclass.
-  private ObjectClass ocInstanceKey;
+  /** The instance key objectclass. */
+  private final ObjectClass ocInstanceKey;
 
-  // The cipher key objectclass.
-  private ObjectClass ocCipherKey;
+  /** The cipher key objectclass. */
+  private final ObjectClass ocCipherKey;
 
-  // The mac key objectclass.
-  private ObjectClass ocMacKey;
+  /** The mac key objectclass. */
+  private final ObjectClass ocMacKey;
+
+  /** Dummy configuration DN. */
+  private static final String CONFIG_DN = "cn=Crypto Manager Sync,cn=config";
 
   /**
    * Creates a new instance of this trust store synchronization thread.
@@ -119,29 +117,17 @@ public class CryptoManagerSync
    * initialization, such as a failure to publish the instance-key-pair
    * public-key-certificate in ADS.
    */
-  public CryptoManagerSync()
-          throws InitializationException
+  public CryptoManagerSync() throws InitializationException
   {
-    this(true);
-  }
-
-  /**
-   * Creates a new instance of this trust store synchronization thread.
-   *
-   * @param publishInstanceKey whether the instance key must be published in
-   * the ADS or not.
-   * @throws InitializationException in case an exception occurs during
-   * initialization, such as a failure to publish the instance-key-pair
-   * public-key-certificate in ADS.
-   */
-  public CryptoManagerSync(boolean publishInstanceKey)
-  throws InitializationException
-  {
+    super(toDN(CONFIG_DN), EnumSet.of(
+        // No implementation required for modify_dn operations
+        // FIXME: Technically it is possible to perform a subtree modDN
+        // in this case however such subtree modDN would essentially be
+        // moving configuration branches which should not happen.
+        POST_RESPONSE_ADD, POST_RESPONSE_MODIFY, POST_RESPONSE_DELETE),
+        true);
     try {
-      if (publishInstanceKey)
-      {
-        CryptoManagerImpl.publishInstanceKeyEntryInADS();
-      }
+      CryptoManagerImpl.publishInstanceKeyEntryInADS();
     }
     catch (CryptoManagerException ex) {
       throw new InitializationException(ex.getMessageObject());
@@ -163,15 +149,11 @@ public class CryptoManagerSync
     }
     catch (DirectoryException e)
     {
-      //
     }
 
-    ocInstanceKey = DirectoryServer.getObjectClass(
-         OC_CRYPTO_INSTANCE_KEY, true);
-    ocCipherKey = DirectoryServer.getObjectClass(
-         OC_CRYPTO_CIPHER_KEY, true);
-    ocMacKey = DirectoryServer.getObjectClass(
-         OC_CRYPTO_MAC_KEY, true);
+    ocInstanceKey = DirectoryServer.getObjectClass(OC_CRYPTO_INSTANCE_KEY, true);
+    ocCipherKey = DirectoryServer.getObjectClass(OC_CRYPTO_CIPHER_KEY, true);
+    ocMacKey = DirectoryServer.getObjectClass(OC_CRYPTO_MAC_KEY, true);
 
     attrCert = DirectoryServer.getAttributeType(
          ConfigConstants.ATTR_CRYPTO_PUBLIC_KEY_CERTIFICATE, true);
@@ -185,22 +167,32 @@ public class CryptoManagerSync
       searchAdminSuffix();
     }
 
-    DirectoryServer.registerChangeNotificationListener(this);
+    DirectoryServer.registerInternalPlugin(this);
+  }
+
+  private static DN toDN(final String dn) throws InitializationException
+  {
+    try
+    {
+      return DN.decode(dn);
+    }
+    catch (DirectoryException e)
+    {
+      throw new RuntimeException(e);
+    }
   }
 
 
   private void searchAdminSuffix()
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
     LinkedHashSet<String> attributes = new LinkedHashSet<String>(0);
 
     ArrayList<Control> controls = new ArrayList<Control>(0);
 
     InternalSearchOperation searchOperation =
-         new InternalSearchOperation(conn,
-                                     InternalClientConnection.nextOperationID(),
-                                     InternalClientConnection.nextMessageID(),
+         new InternalSearchOperation(getRootConnection(),
+                                     nextOperationID(),
+                                     nextMessageID(),
                                      controls,
                                      adminSuffixDN, SearchScope.WHOLE_SUBTREE,
                                      DereferencePolicy.NEVER_DEREF_ALIASES,
@@ -242,9 +234,8 @@ public class CryptoManagerSync
   }
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public void performBackendInitializationProcessing(Backend backend)
   {
     DN[] baseDNs = backend.getBaseDNs();
@@ -260,9 +251,8 @@ public class CryptoManagerSync
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
+  @Override
   public void performBackendFinalizationProcessing(Backend backend)
   {
     // No implementation required.
@@ -315,7 +305,7 @@ public class CryptoManagerSync
       {
         for (Control c : controls)
         {
-          if (c.getOID().equals(OID_ENTRY_CHANGE_NOTIFICATION))
+          if (OID_ENTRY_CHANGE_NOTIFICATION.equals(c.getOID()))
           {
             if (c instanceof LDAPControl)
             {
@@ -340,8 +330,7 @@ public class CryptoManagerSync
       if (ecn != null &&
            ecn.getChangeType() == PersistentSearchChangeType.DELETE)
       {
-        // The entry was deleted so we should remove it from the local trust
-        // store.
+        // entry was deleted so remove it from the local trust store
         if (dstEntry != null)
         {
           deleteEntry(dstDN);
@@ -349,24 +338,21 @@ public class CryptoManagerSync
       }
       else if (searchEntry.hasAttribute(attrCompromisedTime))
       {
-        // The key was compromised so we should remove it from the local
-        // trust store.
+        // key was compromised so remove it from the local trust store
         if (dstEntry != null)
         {
           deleteEntry(dstDN);
         }
       }
+      else if (dstEntry == null)
+      {
+        // The entry was added
+        addEntry(searchEntry, dstDN);
+      }
       else
       {
-        // The entry was added or modified.
-        if (dstEntry == null)
-        {
-          addEntry(searchEntry, dstDN);
-        }
-        else
-        {
-          modifyEntry(searchEntry, dstEntry);
-        }
+        // The entry was modified
+        modifyEntry(searchEntry, dstEntry);
       }
     }
   }
@@ -380,11 +366,8 @@ public class CryptoManagerSync
    */
   private void modifyEntry(Entry srcEntry, Entry dstEntry)
   {
-    List<Attribute> srcList;
-    srcList = srcEntry.getAttribute(attrCert);
-
-    List<Attribute> dstList;
-    dstList = dstEntry.getAttribute(attrCert);
+    List<Attribute> srcList = srcEntry.getAttribute(attrCert);
+    List<Attribute> dstList = dstEntry.getAttribute(attrCert);
 
     // Check for changes to the certificate value.
     boolean differ = false;
@@ -395,20 +378,11 @@ public class CryptoManagerSync
         differ = true;
       }
     }
-    else if (dstList == null)
+    else if (dstList == null
+        || srcList.size() != dstList.size()
+        || !srcList.equals(dstList))
     {
       differ = true;
-    }
-    else if (srcList.size() != dstList.size())
-    {
-      differ = true;
-    }
-    else
-    {
-      if (!srcList.equals(dstList))
-      {
-        differ = true;
-      }
     }
 
     if (differ)
@@ -485,18 +459,22 @@ public class CryptoManagerSync
     }
   }
 
-
-  /**
-   * {@inheritDoc}
-   */
-  public void handleAddOperation(PostResponseAddOperation addOperation,
-                                 Entry entry)
+  /** {@inheritDoc} */
+  @Override
+  public PostResponse doPostResponse(PostResponseAddOperation op)
   {
-    if (addOperation.getEntryDN().isDescendantOf(instanceKeysDN))
+    if (op.getResultCode() != ResultCode.SUCCESS)
+    {
+      return PostResponse.continueOperationProcessing();
+    }
+
+    final Entry entry = op.getEntryToAdd();
+    final DN entryDN = op.getEntryDN();
+    if (entryDN.isDescendantOf(instanceKeysDN))
     {
       handleInstanceKeyAddOperation(entry);
     }
-    else if (addOperation.getEntryDN().isDescendantOf(secretKeysDN))
+    else if (entryDN.isDescendantOf(secretKeysDN))
     {
       try
       {
@@ -511,11 +489,11 @@ public class CryptoManagerSync
       }
       catch (CryptoManagerException e)
       {
-        Message message = Message.raw("Failed to import key entry: %s",
-                                      e.getMessage());
-        ErrorLogger.logError(message);
+        ErrorLogger.logError(
+            Message.raw("Failed to import key entry: %s", e.getMessage()));
       }
     }
+    return PostResponse.continueOperationProcessing();
   }
 
 
@@ -536,18 +514,17 @@ public class CryptoManagerSync
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  public void handleDeleteOperation(PostResponseDeleteOperation deleteOperation,
-                                    Entry entry)
+  /** {@inheritDoc} */
+  @Override
+  public PostResponse doPostResponse(PostResponseDeleteOperation op)
   {
-    if (!deleteOperation.getEntryDN().isDescendantOf(instanceKeysDN))
+    if (op.getResultCode() != ResultCode.SUCCESS
+        || !op.getEntryDN().isDescendantOf(instanceKeysDN))
     {
-      return;
+      return PostResponse.continueOperationProcessing();
     }
 
-    RDN srcRDN = entry.getDN().getRDN();
+    RDN srcRDN = op.getEntryToDelete().getDN().getRDN();
 
     // Only process the entry if it has the expected form of RDN.
     // FIXME: Technically it is possible to perform a subtree in
@@ -556,23 +533,28 @@ public class CryptoManagerSync
     if (!srcRDN.isMultiValued() &&
          srcRDN.getAttributeType(0).equals(attrAlias))
     {
-      DN dstDN = trustStoreRootDN.concat(srcRDN);
-
-      deleteEntry(dstDN);
+      DN destDN = trustStoreRootDN.concat(srcRDN);
+      deleteEntry(destDN);
     }
+    return PostResponse.continueOperationProcessing();
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  public void handleModifyOperation(PostResponseModifyOperation modifyOperation,
-                                    Entry oldEntry, Entry newEntry)
+  /** {@inheritDoc} */
+  @Override
+  public PostResponse doPostResponse(PostResponseModifyOperation op)
   {
-    if (modifyOperation.getEntryDN().isDescendantOf(instanceKeysDN))
+    if (op.getResultCode() != ResultCode.SUCCESS)
+    {
+      return PostResponse.continueOperationProcessing();
+    }
+
+    final Entry newEntry = op.getModifiedEntry();
+    final DN entryDN = op.getEntryDN();
+    if (entryDN.isDescendantOf(instanceKeysDN))
     {
       handleInstanceKeyModifyOperation(newEntry);
     }
-    else if (modifyOperation.getEntryDN().isDescendantOf(secretKeysDN))
+    else if (entryDN.isDescendantOf(secretKeysDN))
     {
       try
       {
@@ -592,6 +574,7 @@ public class CryptoManagerSync
         ErrorLogger.logError(message);
       }
     }
+    return PostResponse.continueOperationProcessing();
   }
 
   private void handleInstanceKeyModifyOperation(Entry newEntry)
@@ -624,30 +607,14 @@ public class CryptoManagerSync
           deleteEntry(dstDN);
         }
       }
+      else if (dstEntry == null)
+      {
+        addEntry(newEntry, dstDN);
+      }
       else
       {
-        if (dstEntry == null)
-        {
-          addEntry(newEntry, dstDN);
-        }
-        else
-        {
-          modifyEntry(newEntry, dstEntry);
-        }
+        modifyEntry(newEntry, dstEntry);
       }
     }
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  public void handleModifyDNOperation(
-       PostResponseModifyDNOperation modifyDNOperation, Entry oldEntry,
-       Entry newEntry)
-  {
-    // No implementation required.
-    // FIXME: Technically it is possible to perform a subtree modDN
-    // in this case however such subtree modDN would essentially be
-    // moving configuration branches which should not happen.
   }
 }
