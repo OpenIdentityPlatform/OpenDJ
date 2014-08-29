@@ -389,20 +389,9 @@ public class ChangelogBackend extends Backend<Configuration>
   @Override
   public void search(final SearchOperation searchOperation) throws DirectoryException
   {
-    final Set<String> excludedDomains = MultimasterReplication.getECLDisabledDomains();
-    excludedDomains.add(DN_EXTERNAL_CHANGELOG_ROOT);
-    SearchParams params = new SearchParams(searchOperation.toString(), excludedDomains);
-    final ExternalChangelogRequestControl eclRequestControl =
-        searchOperation.getRequestControl(ExternalChangelogRequestControl.DECODER);
-    if (eclRequestControl == null)
-    {
-      params.requestType = REQUEST_TYPE_FROM_CHANGE_NUMBER;
-    }
-    else
-    {
-      params.requestType = REQUEST_TYPE_FROM_COOKIE;
-      params.multiDomainServerState = eclRequestControl.getCookie();
-    }
+    checkChangelogReadPrivilege(searchOperation);
+
+    final SearchParams params = buildSearchParameters(searchOperation);
 
     optimizeSearchParameters(params, searchOperation.getBaseDN(), searchOperation.getFilter());
     try
@@ -416,6 +405,25 @@ public class ChangelogBackend extends Backend<Configuration>
           searchOperation.getFilter().toString(),
           stackTraceToSingleLineString(e)));
     }
+  }
+
+  private SearchParams buildSearchParameters(final SearchOperation searchOperation) throws DirectoryException
+  {
+    final Set<String> excludedDomains = MultimasterReplication.getECLDisabledDomains();
+    excludedDomains.add(DN_EXTERNAL_CHANGELOG_ROOT);
+    final SearchParams params = new SearchParams(searchOperation.toString(), excludedDomains);
+    final ExternalChangelogRequestControl eclRequestControl =
+        searchOperation.getRequestControl(ExternalChangelogRequestControl.DECODER);
+    if (eclRequestControl == null)
+    {
+      params.requestType = REQUEST_TYPE_FROM_CHANGE_NUMBER;
+    }
+    else
+    {
+      params.requestType = REQUEST_TYPE_FROM_COOKIE;
+      params.multiDomainServerState = eclRequestControl.getCookie();
+    }
+    return params;
   }
 
   /** {@inheritDoc} */
@@ -1196,6 +1204,15 @@ public class ChangelogBackend extends Backend<Configuration>
     logError(Message.raw(Category.SYNC, Severity.MILD_ERROR,
         "An exception was encountered while trying to encode a replication " + messageType + " message for entry \""
         + entryDN + "\" into an External Change Log entry: " + exception.getMessage()));
+  }
+
+  private void checkChangelogReadPrivilege(SearchOperation searchOp) throws DirectoryException
+  {
+    if (!searchOp.getClientConnection().hasPrivilege(Privilege.CHANGELOG_READ, searchOp))
+    {
+      throw new DirectoryException(ResultCode.INSUFFICIENT_ACCESS_RIGHTS,
+          NOTE_SEARCH_CHANGELOG_INSUFFICIENT_PRIVILEGES.get());
+    }
   }
 
   /**
