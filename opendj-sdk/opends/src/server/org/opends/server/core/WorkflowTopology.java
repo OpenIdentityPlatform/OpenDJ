@@ -22,13 +22,12 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.core;
 
-
 import org.opends.server.types.DN;
 import org.opends.server.types.SearchScope;
-
 
 /**
  * This class is the base class used to build the workflow topology.
@@ -40,30 +39,10 @@ import org.opends.server.types.SearchScope;
  * nodes in the workflow topology (WorkflowTopologyNode) and the second
  * one is used to implement the root DSE node (RootDseWorkflowTopology).
  */
-
 public abstract class WorkflowTopology implements Workflow
 {
-  // The workflow implementation containing the task tree (ie. the processing)
-  private WorkflowImpl workflowImpl = null;
-
-
-  /**
-   * Each workflow node may have specific tasks to be executed before
-   * the workflow task tree. The tasks to execute before are stored in
-   * the following array, which is empty at the moment (implementation
-   * will come later on when needed).
-   */
-  // private WorkflowElement[] preWorkflowElements = null;
-
-
-  /**
-   * Each workflow node may have specific tasks to be executed after
-   * the workflow task tree. The tasks to execute after are stored in
-   * the following array, which is empty at the moment (implementation
-   * will come later on when needed).
-   */
-  // private WorkflowElement[] postWorkflowElements = null;
-
+  /** The workflow implementation containing the task tree (ie. the processing). */
+  private WorkflowImpl workflowImpl;
 
   /**
    * Create a new instance of the workflow topology base class.
@@ -97,6 +76,7 @@ public abstract class WorkflowTopology implements Workflow
    *
    * @return the base DN of the workflow containing the processing.
    */
+  @Override
   public DN getBaseDN()
   {
     return getWorkflowImpl().getBaseDN();
@@ -112,10 +92,7 @@ public abstract class WorkflowTopology implements Workflow
    * @return the new scope to use for searches on subordinate workflows,
    *         <code>null</code> when current scope is 'base'
    */
-
-  protected SearchScope elaborateScopeForSearchInSubordinates(
-      SearchScope currentScope
-      )
+  protected SearchScope elaborateScopeForSearchInSubordinates(SearchScope currentScope)
   {
     switch (currentScope)
     {
@@ -129,6 +106,13 @@ public abstract class WorkflowTopology implements Workflow
     default:
       return currentScope;
     }
+  }
+
+  /** {@inheritDoc} */
+  @Override
+  public String toString()
+  {
+    return getClass().getSimpleName() + " " + workflowImpl;
   }
 
 }
