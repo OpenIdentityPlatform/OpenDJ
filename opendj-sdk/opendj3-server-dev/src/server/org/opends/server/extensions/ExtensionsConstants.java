@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS.
+ *      Portions copyright 2013-2014 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
@@ -81,9 +81,14 @@ public class ExtensionsConstants
    * The authentication password scheme name for use with passwords encoded in a
    * PBKDF2 representation.
    */
-  public static final String AUTH_PASSWORD_SCHEME_NAME_PBKDF2 =
-       "PBKDF2";
+  public static final String AUTH_PASSWORD_SCHEME_NAME_PBKDF2 = "PBKDF2";
 
+
+  /**
+   * The authentication password scheme name for use with passwords encoded in a
+   * PKCS5S2 representation.
+   */
+  public static final String AUTH_PASSWORD_SCHEME_NAME_PKCS5S2 = "PKCS5S2";
 
 
   /**
@@ -323,6 +328,13 @@ public class ExtensionsConstants
    * a PBKDF2 representation.
    */
   public static final String STORAGE_SCHEME_NAME_PBKDF2 = "PBKDF2";
+
+
+  /**
+   * The password storage scheme name that will be used for passwords stored in
+   * a PKCS5S2 representation.
+   */
+  public static final String STORAGE_SCHEME_NAME_PKCS5S2 = "PKCS5S2";
 
 
 

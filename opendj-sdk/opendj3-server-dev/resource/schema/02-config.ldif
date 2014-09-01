@@ -5730,3 +5730,8 @@ objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.20
         ds-cfg-allow-zero-length-values-directory-string $
         ds-cfg-strip-syntax-min-upper-bound-attribute-type-description )
   X-ORIGIN 'OpenDJ Directory Server' )
+objectClasses: ( 1.3.6.1.4.1.36733.2.1.2.21
+  NAME 'ds-cfg-pkcs5s2-password-storage-scheme'
+  SUP ds-cfg-password-storage-scheme
+  STRUCTURAL
+  X-ORIGIN 'OpenDJ Directory Server' )
