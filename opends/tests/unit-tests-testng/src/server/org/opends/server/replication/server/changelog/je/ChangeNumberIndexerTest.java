@@ -41,10 +41,7 @@ import org.opends.server.replication.common.MultiDomainServerState;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ChangelogState;
-import org.opends.server.replication.server.changelog.api.ChangeNumberIndexDB;
-import org.opends.server.replication.server.changelog.api.ChangeNumberIndexRecord;
-import org.opends.server.replication.server.changelog.api.ChangelogDB;
-import org.opends.server.replication.server.changelog.api.ReplicationDomainDB;
+import org.opends.server.replication.server.changelog.api.*;
 import org.opends.server.types.DN;
 import org.testng.annotations.*;
 
@@ -635,7 +632,16 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
         return eclEnabledDomains.contains(baseDN);
       }
     };
-    cnIndexer = new ChangeNumberIndexer(changelogDB, initialState, predicate);
+    cnIndexer = new ChangeNumberIndexer(changelogDB, initialState, predicate)
+    {
+      /** {@inheritDoc} */
+      @Override
+      protected void notifyEntryAddedToChangelog(DN baseDN, long changeNumber,
+          String previousCookie, UpdateMsg msg) throws ChangelogException
+      {
+        // avoid problems with ChangelogBackend initialization
+      }
+    };
     cnIndexer.start();
     waitForWaitingState(cnIndexer);
   }

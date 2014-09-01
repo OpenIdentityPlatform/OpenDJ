@@ -26,14 +26,6 @@
  */
 package org.opends.server.backends;
 
-import static org.opends.messages.BackendMessages.*;
-import static org.opends.messages.ConfigMessages.*;
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-
 import java.util.*;
 
 import org.opends.messages.Message;
@@ -51,6 +43,13 @@ import org.opends.server.util.LDIFWriter;
 import org.opends.server.util.TimeThread;
 import org.opends.server.util.Validator;
 
+import static org.opends.messages.BackendMessages.*;
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
 /**
  * This class defines a backend to hold Directory Server monitor entries. It
  * will not actually store anything, but upon request will retrieve the
@@ -65,9 +64,10 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
    */
   private static final DebugTracer TRACER = getTracer();
 
-  /** The set of user-defined attributes that will be included in the base
+  /**
+   * The set of user-defined attributes that will be included in the base
    * monitor entry.
-*/
+   */
   private ArrayList<Attribute> userDefinedAttributes;
 
   /** The set of objectclasses that will be used in monitor entries. */
@@ -349,6 +349,7 @@ public class MonitorBackend extends Backend<MonitorBackendCfg> implements
   @Override
   public void finalizeBackend()
   {
+    super.finalizeBackend();
     currentConfig.removeMonitorChangeListener(this);
     try
     {

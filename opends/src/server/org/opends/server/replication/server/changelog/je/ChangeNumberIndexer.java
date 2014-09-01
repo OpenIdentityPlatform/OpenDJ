@@ -31,6 +31,7 @@ import java.util.concurrent.ConcurrentSkipListSet;
 
 import org.opends.messages.Message;
 import org.opends.server.api.DirectoryThread;
+import org.opends.server.backends.ChangelogBackend;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.MultiDomainServerState;
@@ -491,9 +492,9 @@ public class ChangeNumberIndexer extends DirectoryThread
           // OK, the oldest change is older than the medium consistency point
           // let's publish it to the CNIndexDB.
           final String previousCookie = mediumConsistencyRUV.toString();
-          final ChangeNumberIndexRecord record =
-              new ChangeNumberIndexRecord(previousCookie, baseDN, csn);
-          changelogDB.getChangeNumberIndexDB().addRecord(record);
+          final long changeNumber = changelogDB.getChangeNumberIndexDB().addRecord(
+              new ChangeNumberIndexRecord(previousCookie, baseDN, csn));
+          notifyEntryAddedToChangelog(baseDN, changeNumber, previousCookie, msg);
           moveForwardMediumConsistencyPoint(csn, baseDN);
         }
         catch (InterruptedException ignored)
@@ -520,6 +521,29 @@ public class ChangeNumberIndexer extends DirectoryThread
       nextChangeForInsertDBCursor.close();
       nextChangeForInsertDBCursor = null;
     }
+  }
+
+  /**
+   * Notifies the {@link ChangelogBackend} that a new entry has been added.
+   *
+   * @param baseDN
+   *          the baseDN of the newly added entry.
+   * @param changeNumber
+   *          the change number of the newly added entry. It will be greater
+   *          than zero for entries added to the change number index and less
+   *          than or equal to zero for entries added to any replica DB
+   * @param cookieString
+   *          a string representing the cookie of the newly added entry. This is
+   *          only meaningful for entries added to the change number index
+   * @param msg
+   *          the update message of the newly added entry
+   * @throws ChangelogException
+   *           If a problem occurs while notifying of the newly added entry.
+   */
+  protected void notifyEntryAddedToChangelog(DN baseDN, long changeNumber,
+      String cookieString, UpdateMsg msg) throws ChangelogException
+  {
+    ChangelogBackend.getInstance().notifyEntryAdded(baseDN, changeNumber, cookieString, msg);
   }
 
   /**

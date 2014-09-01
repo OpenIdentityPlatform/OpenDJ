@@ -26,9 +26,6 @@
  */
 package org.opends.guitools.controlpanel.util;
 
-import static org.opends.messages.ConfigMessages.*;
-import static org.opends.server.util.StaticUtils.*;
-
 import java.io.File;
 import java.util.Collections;
 import java.util.HashMap;
@@ -63,6 +60,9 @@ import org.opends.server.types.RestoreConfig;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
 
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.server.util.StaticUtils.*;
+
 /**
  * A class used to read the configuration from a file.  This config file
  * handler does not allow to modify the configuration, only to read it.
@@ -90,6 +90,7 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler<BackendCfg>
   @Override
   public void finalizeConfigHandler()
   {
+    finalizeBackend();
   }
 
   /** {@inheritDoc} */
@@ -294,12 +295,6 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler<BackendCfg>
   /** {@inheritDoc} */
   @Override
   public void exportLDIF(LDIFExportConfig arg0) throws DirectoryException
-  {
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public void finalizeBackend()
   {
   }
 

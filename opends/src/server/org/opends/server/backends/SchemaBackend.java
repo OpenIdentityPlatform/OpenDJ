@@ -51,11 +51,12 @@ import java.util.zip.Deflater;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
+
 import javax.crypto.Mac;
 
 import org.opends.messages.Message;
-import org.opends.server.admin.std.server.SchemaBackendCfg;
 import org.opends.server.admin.server.ConfigurationChangeListener;
+import org.opends.server.admin.std.server.SchemaBackendCfg;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.Backend;
 import org.opends.server.api.ClientConnection;
@@ -89,8 +90,8 @@ import static org.opends.messages.BackendMessages.*;
 import static org.opends.messages.ConfigMessages.*;
 import static org.opends.messages.SchemaMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.loggers.ErrorLogger.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.schema.SchemaConstants.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -501,6 +502,7 @@ public class SchemaBackend extends Backend<SchemaBackendCfg>
   @Override
   public void finalizeBackend()
   {
+    super.finalizeBackend();
     currentConfig.removeSchemaChangeListener(this);
 
     for (DN baseDN : baseDNs)

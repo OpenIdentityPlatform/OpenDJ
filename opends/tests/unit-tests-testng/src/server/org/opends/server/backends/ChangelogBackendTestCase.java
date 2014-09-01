@@ -25,16 +25,6 @@
  */
 package org.opends.server.backends;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.opends.messages.ReplicationMessages.*;
-import static org.opends.server.TestCaseUtils.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.replication.protocol.OperationContext.*;
-import static org.opends.server.types.ResultCode.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-import static org.testng.Assert.*;
-
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -107,6 +97,17 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import com.forgerock.opendj.util.Pair;
+
+import static org.assertj.core.api.Assertions.*;
+import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.server.TestCaseUtils.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.replication.protocol.OperationContext.*;
+import static org.opends.server.types.ResultCode.*;
+import static org.opends.server.util.CollectionUtils.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+import static org.testng.Assert.*;
 
 @SuppressWarnings("javadoc")
 public class ChangelogBackendTestCase extends ReplicationTestCase
@@ -241,7 +242,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     }
   }
 
-  @Test(enabled=false)
+  @Test
   public void searchInCookieModeOnOneSuffixUsingEmptyCookie() throws Exception
   {
     String test = "EmptyCookie";
@@ -268,7 +269,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     debugInfo(test, "Ending search with success");
   }
 
-  @Test(enabled=false)
+  @Test
   public void searchInCookieModeOnOneSuffix() throws Exception
   {
     String test = "CookieOneSuffix";
@@ -305,7 +306,6 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     searchOp = searchChangelogUsingCookie("(targetdn=*" + test + "*,o=test)", cookies[3], nbEntries, SUCCESS, test);
 
     debugInfo(test, "Ending search with success");
-
   }
 
   @Test(enabled=false)
@@ -520,7 +520,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
       debugInfo(test, "Ending test successfully");
   }
 
-  @Test(enabled=false)
+  @Test
   public void searchInDraftModeWithInvalidChangeNumber() throws Exception
   {
     String testName = "UnknownChangeNumber";
@@ -531,7 +531,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     debugInfo(testName, "Ending test with success");
   }
 
-  @Test(enabled=false)
+  @Test
   public void searchInDraftModeOnOneSuffix() throws Exception
   {
     long firstChangeNumber = 1;
@@ -547,7 +547,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     debugInfo(testName, "Ending search with success");
   }
 
-  @Test(enabled=false)
+  @Test
   public void searchInDraftModeOnOneSuffixMultipleTimes() throws Exception
   {
     replicationServer.getChangelogDB().setPurgeDelay(0);
@@ -582,7 +582,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
   /**
    * Verifies that is not possible to read the changelog without the changelog-read privilege
    */
-  @Test(enabled=false)
+  @Test
   public void searchingWithoutPrivilegeShouldFail() throws Exception
   {
     AuthenticationInfo nonPrivilegedUser = new AuthenticationInfo();
@@ -594,7 +594,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     assertEquals(op.getErrorMessage().toMessage(), NOTE_SEARCH_CHANGELOG_INSUFFICIENT_PRIVILEGES.get());
   }
 
-  @Test(enabled=false)
+  @Test
   public void persistentSearch() throws Exception
   {
    // TODO
@@ -603,7 +603,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
    // ExternalChangeLogTest#ECLReplicationServerFullTest16
   }
 
-  @Test(enabled=false)
+  @Test
   public void simultaneousPersistentSearches() throws Exception
   {
     // TODO
@@ -624,7 +624,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
   /**
    * With an empty RS, a search should return only root entry.
    */
-  @Test(enabled=false)
+  @Test
   public void searchWhenNoChangesShouldReturnRootEntryOnly() throws Exception
   {
     String testName = "EmptyRS";
@@ -635,7 +635,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     debugInfo(testName, "Ending test successfully");
   }
 
-  @Test(enabled=false)
+  @Test
   public void operationalAndVirtualAttributesShouldNotBeVisibleOutsideRootDSE() throws Exception
   {
     String testName = "attributesVisibleOutsideRootDSE";
@@ -1082,7 +1082,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
   private List<Modification> createAttributeModif(String attributeName, String valueString)
   {
     Attribute attr = Attributes.create(attributeName, valueString);
-    return newList(new Modification(ModificationType.REPLACE, attr));
+    return newArrayList(new Modification(ModificationType.REPLACE, attr));
   }
 
   private UpdateMsg generateModDNMsg(String baseDn, CSN csn, String testName) throws Exception

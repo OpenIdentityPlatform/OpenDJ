@@ -41,9 +41,9 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.*;
 import org.opends.server.schema.BooleanSyntax;
 import org.opends.server.schema.GeneralizedTimeSyntax;
+import org.opends.server.types.*;
 
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
@@ -207,6 +207,7 @@ public class BackupBackend
   @Override
   public void finalizeBackend()
   {
+    super.finalizeBackend();
     currentConfig.removeBackupChangeListener(this);
 
     try

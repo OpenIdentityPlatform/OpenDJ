@@ -901,6 +901,7 @@ public class ConfigFileHandler
   @Override
   public void finalizeConfigHandler()
   {
+    finalizeBackend();
     try
     {
       DirectoryServer.deregisterBaseDN(configRootEntry.getDN());
@@ -912,13 +913,6 @@ public class ConfigFileHandler
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
     }
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public void finalizeBackend()
-  {
-    // No implementation is required.
   }
 
   /** {@inheritDoc} */

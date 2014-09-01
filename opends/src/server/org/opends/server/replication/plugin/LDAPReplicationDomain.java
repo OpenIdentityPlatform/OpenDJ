@@ -76,7 +76,6 @@ import org.opends.server.types.*;
 import org.opends.server.types.operation.*;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.TimeThread;
-import org.opends.server.workflowelement.externalchangelog.ECLWorkflowElement;
 import org.opends.server.workflowelement.localbackend.LocalBackendModifyOperation;
 
 import static org.opends.messages.ReplicationMessages.*;
@@ -475,7 +474,7 @@ public final class LDAPReplicationDomain extends ReplicationDomain
     storeECLConfiguration(configuration);
     solveConflictFlag = isSolveConflict(configuration);
 
-    Backend backend = getBackend();
+    Backend<?> backend = getBackend();
     if (backend == null)
     {
       throw new ConfigException(ERR_SEARCHING_DOMAIN_BACKEND.get(
@@ -3490,7 +3489,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
   private long exportBackend(OutputStream output, boolean checksumOutput)
       throws DirectoryException
   {
-    Backend backend = getBackend();
+    Backend<?> backend = getBackend();
 
     //  Acquire a shared lock for the backend.
     try
@@ -3623,7 +3622,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
    * @throws DirectoryException
    *           If the backend could not be disabled or locked exclusively.
    */
-  private void preBackendImport(Backend backend) throws DirectoryException
+  private void preBackendImport(Backend<?> backend) throws DirectoryException
   {
     // Stop saving state
     stateSavingDisabled = true;
@@ -3653,10 +3652,9 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
   @Override
   protected void importBackend(InputStream input) throws DirectoryException
   {
+    Backend<?> backend = getBackend();
+
     LDIFImportConfig importConfig = null;
-
-    Backend backend = getBackend();
-
     ImportExportContext ieCtx = getImportExportContext();
     try
     {
@@ -3742,7 +3740,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
    * @param backend The backend implied in the import.
    * @exception DirectoryException Thrown when an error occurs.
    */
-  private void closeBackendImport(Backend backend) throws DirectoryException
+  private void closeBackendImport(Backend<?> backend) throws DirectoryException
   {
     String lockFile = LockFileManager.getBackendLockFileName(backend);
     StringBuilder failureReason = new StringBuilder();
@@ -3810,7 +3808,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
    * Returns the backend associated to this domain.
    * @return The associated backend.
    */
-  private Backend getBackend()
+  private Backend<?> getBackend()
   {
     return DirectoryServer.getBackend(getBaseDN());
   }
@@ -4098,30 +4096,6 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
 
     super.sessionInitiated(initStatus, rsState);
 
-    // Now that we are connected , we can enable ECL if :
-    // 1/ RS must in the same JVM and created an ECL_WORKFLOW_ELEMENT
-    // and 2/ this domain must NOT be private
-    if (!getBackend().isPrivateBackend())
-    {
-      try
-      {
-        ECLWorkflowElement wfe = (ECLWorkflowElement)
-        DirectoryServer.getWorkflowElement(
-            ECLWorkflowElement.ECL_WORKFLOW_ELEMENT);
-        if (wfe != null)
-        {
-          wfe.getReplicationServer().enableECL();
-        }
-      }
-      catch (DirectoryException de)
-      {
-        logError(NOTE_ERR_UNABLE_TO_ENABLE_ECL.get(
-            "Replication Domain on " + getBaseDNString(),
-            stackTraceToSingleLineString(de)));
-        // and go on
-      }
-    }
-
     // Now for bad data set status if needed
     if (forceBadDataSet)
     {
@@ -4375,7 +4349,7 @@ private boolean solveNamingConflict(ModifyDNOperation op, LDAPUpdateMsg msg)
   @Override
   public long countEntries() throws DirectoryException
   {
-    Backend backend = getBackend();
+    Backend<?> backend = getBackend();
     if (!backend.supportsLDIFExport())
     {
       Message msg = ERR_INIT_EXPORT_NOT_SUPPORTED.get(backend.getBackendID());

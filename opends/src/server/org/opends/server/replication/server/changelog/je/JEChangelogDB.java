@@ -37,6 +37,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.opends.messages.MessageBuilder;
 import org.opends.server.admin.std.server.ReplicationServerCfg;
 import org.opends.server.api.DirectoryThread;
+import org.opends.server.backends.ChangelogBackend;
 import org.opends.server.config.ConfigException;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.CSN;
@@ -845,6 +846,8 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
         csn.getServerId(), replicationServer);
     final JEReplicaDB replicaDB = pair.getFirst();
     replicaDB.add(updateMsg);
+
+    ChangelogBackend.getInstance().notifyEntryAdded(baseDN, 0, null, updateMsg);
 
     final ChangeNumberIndexer indexer = cnIndexer.get();
     if (indexer != null)

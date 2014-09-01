@@ -26,12 +26,6 @@
  */
 package org.opends.server.backends;
 
-import static org.opends.messages.BackendMessages.*;
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -78,6 +72,12 @@ import org.opends.server.types.FilePermission;
 import org.opends.server.util.CertificateManager;
 import org.opends.server.util.SetupUtils;
 import org.opends.server.util.Validator;
+
+import static org.opends.messages.BackendMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines a backend used to provide an LDAP view of public keys
@@ -367,6 +367,7 @@ public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
   @Override
   public void finalizeBackend()
   {
+    super.finalizeBackend();
     configuration.addTrustStoreChangeListener(this);
 
     try

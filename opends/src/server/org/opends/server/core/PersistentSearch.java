@@ -34,13 +34,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import org.opends.server.controls.EntryChangeNotificationControl;
 import org.opends.server.controls.PersistentSearchChangeType;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.CancelResult;
-import org.opends.server.types.Control;
-import org.opends.server.types.DN;
-import org.opends.server.types.DebugLogLevel;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Entry;
-import org.opends.server.types.ResultCode;
+import org.opends.server.types.*;
 
 import static org.opends.server.controls.PersistentSearchChangeType.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -113,10 +107,8 @@ public final class PersistentSearch
       psearch.isCancelled = true;
 
       // The persistent search can no longer be cancelled.
-      psearch.searchOperation.getClientConnection().deregisterPersistentSearch(
-          psearch);
+      psearch.searchOperation.getClientConnection().deregisterPersistentSearch(psearch);
 
-      //Decrement of psearch count maintained by the server.
       DirectoryServer.deregisterPersistentSearch();
 
       // Notify any cancellation callbacks.
@@ -161,25 +153,33 @@ public final class PersistentSearch
   /** The reference to the associated search operation. */
   private final SearchOperation searchOperation;
 
-
+  /**
+   * Indicates whether to only return entries that have been updated since the
+   * beginning of the search.
+   */
+  private final boolean changesOnly;
 
   /**
-   * Creates a new persistent search object with the provided
-   * information.
+   * Creates a new persistent search object with the provided information.
    *
    * @param searchOperation
    *          The search operation for this persistent search.
    * @param changeTypes
    *          The change types for which changes should be examined.
+   * @param changesOnly
+   *          whether to only return entries that have been updated since the
+   *          beginning of the search
    * @param returnECs
-   *          Indicates whether to include entry change notification
-   *          controls in search result entries sent to the client.
+   *          Indicates whether to include entry change notification controls in
+   *          search result entries sent to the client.
    */
   public PersistentSearch(SearchOperation searchOperation,
-      Set<PersistentSearchChangeType> changeTypes, boolean returnECs)
+      Set<PersistentSearchChangeType> changeTypes, boolean changesOnly,
+      boolean returnECs)
   {
     this.searchOperation = searchOperation;
     this.changeTypes = changeTypes;
+    this.changesOnly = changesOnly;
     this.returnECs = returnECs;
   }
 
@@ -238,6 +238,18 @@ public final class PersistentSearch
   public SearchOperation getSearchOperation()
   {
     return searchOperation;
+  }
+
+  /**
+   * Returns whether only entries updated after the beginning of this persistent
+   * search should be returned.
+   *
+   * @return true if only entries updated after the beginning of this search
+   *         should be returned, false otherwise
+   */
+  public boolean isChangesOnly()
+  {
+    return changesOnly;
   }
 
   /**
