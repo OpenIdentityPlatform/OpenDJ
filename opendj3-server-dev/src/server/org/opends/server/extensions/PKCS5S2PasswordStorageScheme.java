@@ -26,14 +26,16 @@
  */
 package org.opends.server.extensions;
 
-import org.opends.messages.Message;
+import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ByteSequence;
+import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.admin.std.server.PKCS5S2PasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
-import org.opends.server.config.ConfigException;
 import org.opends.server.core.DirectoryServer;
-import org.opends.server.loggers.ErrorLogger;
-import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.types.*;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.InitializationException;
 import org.opends.server.util.Base64;
 
 import javax.crypto.SecretKeyFactory;
@@ -45,8 +47,6 @@ import java.util.Arrays;
 
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.extensions.ExtensionsConstants.*;
-import static org.opends.server.loggers.debug.DebugLogger.debugEnabled;
-import static org.opends.server.loggers.debug.DebugLogger.getTracer;
 import static org.opends.server.util.StaticUtils.getExceptionMessage;
 
 /**
@@ -61,10 +61,7 @@ import static org.opends.server.util.StaticUtils.getExceptionMessage;
 public class PKCS5S2PasswordStorageScheme
     extends PasswordStorageScheme<PKCS5S2PasswordStorageSchemeCfg>
 {
-  /**
-   * The tracer object for the debug logger.
-   */
-  private static final DebugTracer TRACER = getTracer();
+    private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
   /**
    * The fully-qualified name of this class.
@@ -123,7 +120,7 @@ public class PKCS5S2PasswordStorageScheme
   @Override()
   public void initializePasswordStorageScheme(
       PKCS5S2PasswordStorageSchemeCfg configuration)
-      throws ConfigException, InitializationException
+      throws InitializationException
   {
     try
     {
@@ -196,10 +193,8 @@ public class PKCS5S2PasswordStorageScheme
 
       if (decodedBytes.length != NUM_SALT_BYTES + SHA1_LENGTH)
       {
-        Message message =
-            ERR_PWSCHEME_INVALID_BASE64_DECODED_STORED_PASSWORD.get(
-                storedPassword.toString());
-        ErrorLogger.logError(message);
+        logger.error(ERR_PWSCHEME_INVALID_BASE64_DECODED_STORED_PASSWORD.get(
+            storedPassword.toString()));
         return false;
       }
       System.arraycopy(decodedBytes, 0, saltBytes, 0, saltLength);
@@ -208,14 +203,9 @@ public class PKCS5S2PasswordStorageScheme
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message = ERR_PWSCHEME_CANNOT_BASE64_DECODE_STORED_PASSWORD.get(
-          storedPassword.toString(), String.valueOf(e));
-      ErrorLogger.logError(message);
+      logger.traceException(e);
+      logger.error(ERR_PWSCHEME_CANNOT_BASE64_DECODE_STORED_PASSWORD.get(
+          storedPassword.toString(), String.valueOf(e)));
       return false;
     }
 
@@ -290,12 +280,8 @@ public class PKCS5S2PasswordStorageScheme
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      return false;
+        logger.traceException(e);
+        return false;
     }
 
     return encodeAndMatch(plaintextPassword, saltBytes, digestBytes, iterations);
@@ -321,7 +307,7 @@ public class PKCS5S2PasswordStorageScheme
   public ByteString getPlaintextValue(ByteSequence storedPassword)
       throws DirectoryException
   {
-    Message message =
+    LocalizableMessage message =
         ERR_PWSCHEME_NOT_REVERSIBLE.get(STORAGE_SCHEME_NAME_PKCS5S2);
     throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
   }
@@ -336,7 +322,7 @@ public class PKCS5S2PasswordStorageScheme
                                                   String authValue)
       throws DirectoryException
   {
-    Message message =
+    LocalizableMessage message =
         ERR_PWSCHEME_NOT_REVERSIBLE.get(AUTH_PASSWORD_SCHEME_NAME_PKCS5S2);
     throw new DirectoryException(ResultCode.CONSTRAINT_VIOLATION, message);
   }
@@ -386,12 +372,8 @@ public class PKCS5S2PasswordStorageScheme
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
-
-      Message message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
+      logger.traceException(e);
+      LocalizableMessage message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
           CLASS_NAME, getExceptionMessage(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
           message, e);
@@ -446,12 +428,9 @@ public class PKCS5S2PasswordStorageScheme
     }
     catch (Exception e)
     {
-      if (debugEnabled())
-      {
-        TRACER.debugCaught(DebugLogLevel.ERROR, e);
-      }
+      logger.traceException(e);
 
-      Message message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
+      LocalizableMessage message = ERR_PWSCHEME_CANNOT_ENCODE_PASSWORD.get(
           CLASS_NAME, getExceptionMessage(e));
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
           message, e);
