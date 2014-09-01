@@ -34,12 +34,16 @@ import java.util.concurrent.TimeUnit;
 import org.opends.messages.Category;
 import org.opends.messages.Message;
 import org.opends.messages.Severity;
+import org.opends.server.backends.ChangelogBackend;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.MultiDomainServerState;
 import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.common.ServerStatus;
 import org.opends.server.replication.protocol.*;
-import org.opends.server.replication.server.changelog.api.*;
+import org.opends.server.replication.server.changelog.api.ChangeNumberIndexDB;
+import org.opends.server.replication.server.changelog.api.ChangeNumberIndexRecord;
+import org.opends.server.replication.server.changelog.api.ChangelogException;
+import org.opends.server.replication.server.changelog.api.DBCursor;
 import org.opends.server.types.*;
 import org.opends.server.util.ServerConstants;
 
@@ -47,10 +51,8 @@ import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.replication.protocol.ProtocolVersion.*;
-import static org.opends.server.replication.protocol.StartECLSessionMsg
-.ECLRequestType.*;
-import static org.opends.server.replication.protocol.StartECLSessionMsg
-.Persistent.*;
+import static org.opends.server.replication.protocol.StartECLSessionMsg.ECLRequestType.*;
+import static org.opends.server.replication.protocol.StartECLSessionMsg.Persistent.*;
 import static org.opends.server.util.StaticUtils.*;
 
 /**
@@ -150,8 +152,13 @@ public final class ECLServerHandler extends ServerHandler
     private final ReplicationServerDomain rsDomain;
 
     /**
-     * Active when there are still changes supposed eligible for the ECL. It is
-     * active by default.
+     * Active when there are still changes supposed eligible for the ECL.
+     * Here is the lifecycle of this field:
+     * <ol>
+     * <li>active==true at the start of the INIT phase,</li>
+     * <li>active==false when there are no more changes for a domain in the the INIT phase,</li>
+     * <li>active==true if it is a persistent search on external changelog. It never moves again</li>
+     * </ol>
      */
     private boolean active = true;
     private UpdateMsg nextMsg;
@@ -349,8 +356,7 @@ public final class ECLServerHandler extends ServerHandler
     super(session, queueSize, replicationServer, rcvWindowSize);
     try
     {
-      DN baseDN = DN.decode(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT);
-      setBaseDNAndDomain(baseDN, true);
+      setBaseDNAndDomain(ChangelogBackend.CHANGELOG_BASE_DN, true);
     }
     catch(DirectoryException de)
     {
@@ -849,14 +855,6 @@ public final class ECLServerHandler extends ServerHandler
   }
 
   /**
-   * Registers this handler into its related domain and notifies the domain.
-   */
-  private void registerIntoDomain()
-  {
-    replicationServerDomain.registerHandler(this);
-  }
-
-  /**
    * Shutdown this handler.
    */
   @Override
@@ -867,16 +865,23 @@ public final class ECLServerHandler extends ServerHandler
       TRACER.debugInfo(this + " shutdown()");
     }
     releaseCursor();
-    for (DomainContext domainCtxt : domainCtxts) {
-      if (!domainCtxt.unRegisterHandler()) {
-        logError(Message.raw(Category.SYNC, Severity.NOTICE,
-            this + " shutdown() - error when unregistering handler "
-                + domainCtxt.mh));
+
+    if (domainCtxts != null)
+    {
+      for (DomainContext domainCtxt : domainCtxts)
+      {
+        if (!domainCtxt.unRegisterHandler())
+        {
+          logError(Message.raw(Category.SYNC, Severity.NOTICE, this
+              + " shutdown() - error when unregistering handler "
+              + domainCtxt.mh));
+        }
+        domainCtxt.stopServer();
       }
-      domainCtxt.stopServer();
+      domainCtxts = null;
     }
+
     super.shutdown();
-    domainCtxts = null;
   }
 
   private void releaseCursor()
@@ -1018,11 +1023,11 @@ public final class ECLServerHandler extends ServerHandler
       closeInitPhase();
     }
 
-    registerIntoDomain();
+    replicationServerDomain.registerHandler(this);
 
     if (debugEnabled())
     {
-      TRACER.debugInfo(getClass().getCanonicalName() + " " + getOperationId()
+      TRACER.debugInfo(getClass().getSimpleName() + " " + getOperationId()
           + " initialized: " + " " + dumpState() + domaimCtxtsToString(""));
     }
   }
@@ -1373,7 +1378,7 @@ public final class ECLServerHandler extends ServerHandler
           + dumpState());
     }
 
-    // go to persistent phase if one
+    // set all domains to be active again for the persistent phase
     for (DomainContext domainCtxt : domainCtxts) domainCtxt.active = true;
 
     if (startECLSessionMsg.getPersistent() != NON_PERSISTENT)

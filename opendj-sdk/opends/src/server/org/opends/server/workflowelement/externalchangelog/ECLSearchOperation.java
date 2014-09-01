@@ -34,6 +34,7 @@ import org.opends.messages.Message;
 import org.opends.messages.Severity;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.plugin.PluginResult;
+import org.opends.server.backends.ChangelogBackend;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.controls.*;
 import org.opends.server.core.*;
@@ -54,13 +55,12 @@ import org.opends.server.util.TimeThread;
 
 import static org.opends.messages.CoreMessages.*;
 import static org.opends.messages.ReplicationMessages.*;
+import static org.opends.server.backends.ChangelogBackend.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.replication.protocol.StartECLSessionMsg
-.ECLRequestType.*;
-import static org.opends.server.replication.protocol.StartECLSessionMsg
-.Persistent.*;
+import static org.opends.server.replication.protocol.StartECLSessionMsg.ECLRequestType.*;
+import static org.opends.server.replication.protocol.StartECLSessionMsg.Persistent.*;
 import static org.opends.server.util.LDIFWriter.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -118,22 +118,6 @@ public class ECLSearchOperation
   /** The attribute type for the "modifiersName" attribute. */
   private static final AttributeType MODIFIERS_NAME_TYPE =
       DirectoryConfig.getAttributeType(OP_ATTR_MODIFIERS_NAME_LC, true);
-
-
-  /** The associated DN. */
-  private static final DN CHANGELOG_ROOT_DN;
-  static
-  {
-    try
-    {
-      CHANGELOG_ROOT_DN = DN
-          .decode(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT);
-    }
-    catch (Exception e)
-    {
-      throw new RuntimeException(e);
-    }
-  }
 
   /**
    * The replication server in which the search on ECL is to be performed.
@@ -300,7 +284,10 @@ public class ECLSearchOperation
       // If there's a persistent search, then register it with the server.
       if (persistentSearch != null)
       {
-        wfe.registerPersistentSearch(persistentSearch);
+        ChangelogBackend.getInstance().registerPersistentSearch(persistentSearch);
+        // TODO JNR Add callback on cancel,
+        // see ECLWorkflowElement.registerPersistentSearch().
+        // This will be removed very soon anyway.
         persistentSearch.enable();
       }
 
@@ -529,6 +516,7 @@ public class ECLSearchOperation
 
           persistentSearch = new PersistentSearch(this,
               psearchControl.getChangeTypes(),
+              psearchControl.getChangesOnly(),
               psearchControl.getReturnECs());
 
           // If we're only interested in changes, then we don't actually want
@@ -607,7 +595,7 @@ public class ECLSearchOperation
       ECLUpdateMsg update = eclServerHandler.getNextECLUpdate();
 
       // Return root entry if requested.
-      if (CHANGELOG_ROOT_DN.matchesBaseAndScope(baseDN, getScope()))
+      if (CHANGELOG_BASE_DN.matchesBaseAndScope(baseDN, getScope()))
       {
         final Entry entry = createRootEntry(update != null);
         if (filter.matchesEntry(entry) && !returnEntry(entry, null))
@@ -618,7 +606,7 @@ public class ECLSearchOperation
         }
       }
 
-      if (baseDN.equals(CHANGELOG_ROOT_DN)
+      if (baseDN.equals(CHANGELOG_BASE_DN)
           && getScope().equals(SearchScope.BASE_OBJECT))
       {
         // Only the change log root entry was requested. There is no need to
@@ -924,9 +912,9 @@ public class ECLSearchOperation
     addAttributeByUppercaseName("hassubordinates", "hasSubordinates",
         Boolean.toString(hasSubordinates), userAttrs, operationalAttrs);
     addAttributeByUppercaseName("entrydn", "entryDN",
-        CHANGELOG_ROOT_DN.toNormalizedString(), userAttrs, operationalAttrs);
+        DN_EXTERNAL_CHANGELOG_ROOT, userAttrs, operationalAttrs);
 
-    return new Entry(CHANGELOG_ROOT_DN, CHANGELOG_ROOT_OBJECT_CLASSES,
+    return new Entry(CHANGELOG_BASE_DN, CHANGELOG_ROOT_OBJECT_CLASSES,
         userAttrs, operationalAttrs);
   }
 

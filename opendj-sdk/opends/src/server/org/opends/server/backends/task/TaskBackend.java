@@ -268,8 +268,8 @@ public class TaskBackend
   @Override
   public void finalizeBackend()
   {
+    super.finalizeBackend();
     currentConfig.removeTaskChangeListener(this);
-
 
     try
     {

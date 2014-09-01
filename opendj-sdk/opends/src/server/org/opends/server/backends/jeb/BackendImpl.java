@@ -332,7 +332,7 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
   @Override
   public void finalizeBackend()
   {
-    // Deregister as a change listener.
+    super.finalizeBackend();
     cfg.removeLocalDBChangeListener(this);
 
     // Deregister our base DNs.
@@ -371,24 +371,18 @@ public class BackendImpl extends Backend<LocalDBBackendCfg>
       {
         TRACER.debugCaught(DebugLogLevel.ERROR, e);
       }
-      Message message = ERR_JEB_DATABASE_EXCEPTION.get(e.getMessage());
-      logError(message);
+      logError(ERR_JEB_DATABASE_EXCEPTION.get(e.getMessage()));
     }
 
     // Checksum this db environment and register its offline state id/checksum.
-    DirectoryServer.registerOfflineBackendStateID(this.getBackendID(),
-      checksumDbEnv());
-
-    //Deregister the alert generator.
+    DirectoryServer.registerOfflineBackendStateID(getBackendID(), checksumDbEnv());
     DirectoryServer.deregisterAlertGenerator(this);
 
     // Make sure the thread counts are zero for next initialization.
     threadTotalCount.set(0);
     threadWriteCount.set(0);
 
-    // Log an informational message.
-    Message message = NOTE_BACKEND_OFFLINE.get(cfg.getBackendId());
-    logError(message);
+    logError(NOTE_BACKEND_OFFLINE.get(cfg.getBackendId()));
   }
 
   /** {@inheritDoc} */

@@ -290,6 +290,7 @@ public class RootDSEBackend
   @Override
   public void finalizeBackend()
   {
+    super.finalizeBackend();
     currentConfig.removeChangeListener(this);
   }
 
