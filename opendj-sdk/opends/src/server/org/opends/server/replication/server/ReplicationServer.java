@@ -625,10 +625,24 @@ public final class ReplicationServer
    */
   public void validateServerState(MultiDomainServerState state, Set<DN> ignoredBaseDNs) throws DirectoryException
   {
-    // TODO : should skip unused domains, where domain.getLatestServerState(); is empty
-    final Set<DN> domains = getDomainDNs(ignoredBaseDNs);
-    final Set<DN> stateDomains = state.getSnapshot().keySet();
-    final Set<DN> domainsCopy = new HashSet<DN>(domains);
+    // Build the two sets of DNs to compare
+    final Set<DN> activeServerDomains = new HashSet<DN>();
+    for (final DN dn : getDomainDNs(ignoredBaseDNs))
+    {
+      final ServerState lastServerState = getReplicationServerDomain(dn).getLatestServerState();
+      if (!lastServerState.isEmpty())
+      {
+         activeServerDomains.add(dn);
+      }
+    }
+    final Set<DN> stateDomains = new HashSet<DN>();
+    for (final DN dn : state)
+    {
+      stateDomains.add(dn);
+    }
+
+    // The two sets of DNs are expected to be the same. Check this.
+    final Set<DN> domainsCopy = new HashSet<DN>(activeServerDomains);
     final Set<DN> stateDomainsCopy = new HashSet<DN>(stateDomains);
     domainsCopy.removeAll(stateDomains);
     if (!domainsCopy.isEmpty())
@@ -642,11 +656,11 @@ public final class ReplicationServer
           ERR_RESYNC_REQUIRED_MISSING_DOMAIN_IN_PROVIDED_COOKIE.get(
               missingDomains, "<" + state.toString() + missingDomains + ">"));
     }
-    stateDomainsCopy.removeAll(domains);
+    stateDomainsCopy.removeAll(activeServerDomains);
     if (!stateDomainsCopy.isEmpty())
     {
       final StringBuilder startState = new StringBuilder();
-      for (DN dn : domains) {
+      for (DN dn : activeServerDomains) {
         startState.append(dn).append(":").append(state.getServerState(dn).toString()).append(";");
       }
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
