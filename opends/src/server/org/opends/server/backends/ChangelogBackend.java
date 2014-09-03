@@ -30,7 +30,7 @@ import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.config.ConfigConstants.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.replication.protocol.StartECLSessionMsg.ECLRequestType.*;
+import static org.opends.server.replication.plugin.MultimasterReplication.*;
 import static org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy.*;
 import static org.opends.server.util.LDIFWriter.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -54,13 +54,11 @@ import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.MultiDomainServerState;
 import org.opends.server.replication.common.ServerState;
-import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.protocol.AddMsg;
 import org.opends.server.replication.protocol.DeleteMsg;
 import org.opends.server.replication.protocol.LDAPUpdateMsg;
 import org.opends.server.replication.protocol.ModifyCommonMsg;
 import org.opends.server.replication.protocol.ModifyDNMsg;
-import org.opends.server.replication.protocol.StartECLSessionMsg.ECLRequestType;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.ReplicationServerDomain;
@@ -356,28 +354,21 @@ public class ChangelogBackend extends Backend<Configuration>
     {
       return 1;
     }
-    // Search with cookie mode to count all update messages
-    final SearchParams params = new SearchParams(getExcludedDomains());
-    params.requestType = REQUEST_TYPE_FROM_COOKIE;
+
+    // Search with cookie mode to count all update messages cross replica
+    final SearchParams params = new SearchParams(getExcludedChangelogDomains());
     params.cookie = new MultiDomainServerState();
-    NumSubordinatesSearchOperation searchOp = new NumSubordinatesSearchOperation();
     try
     {
+      final NumSubordinatesSearchOperation searchOp = new NumSubordinatesSearchOperation();
       search0(params, searchOp);
+      return searchOp.numSubordinates;
     }
     catch (ChangelogException e)
     {
       throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, ERR_CHANGELOG_BACKEND_NUM_SUBORDINATES.get(
           CHANGELOG_BASE_DN.toString(), stackTraceToSingleLineString(e)));
     }
-    return searchOp.numSubordinates;
-  }
-
-  private Set<String> getExcludedDomains()
-  {
-    final Set<String> domains = MultimasterReplication.getECLDisabledDomains();
-    domains.add(DN_EXTERNAL_CHANGELOG_ROOT);
-    return domains;
   }
 
   /**
@@ -542,16 +533,11 @@ public class ChangelogBackend extends Backend<Configuration>
 
   private SearchParams buildSearchParameters(final SearchOperation searchOperation) throws DirectoryException
   {
-    final SearchParams params = new SearchParams(getExcludedDomains());
+    final SearchParams params = new SearchParams(getExcludedChangelogDomains());
     final ExternalChangelogRequestControl eclRequestControl =
         searchOperation.getRequestControl(ExternalChangelogRequestControl.DECODER);
-    if (eclRequestControl == null)
+    if (eclRequestControl != null)
     {
-      params.requestType = REQUEST_TYPE_FROM_CHANGE_NUMBER;
-    }
-    else
-    {
-      params.requestType = REQUEST_TYPE_FROM_COOKIE;
       params.cookie = eclRequestControl.getCookie();
     }
     return params;
@@ -673,7 +659,6 @@ public class ChangelogBackend extends Backend<Configuration>
    */
   static class SearchParams
   {
-    private ECLRequestType requestType;
     private final Set<String> excludedBaseDNs;
     private long lowestChangeNumber = -1;
     private long highestChangeNumber = -1;
@@ -685,7 +670,7 @@ public class ChangelogBackend extends Backend<Configuration>
      */
     SearchParams()
     {
-      this.excludedBaseDNs = Collections.emptySet();
+      this(Collections.<String> emptySet());
     }
 
     /**
@@ -697,6 +682,17 @@ public class ChangelogBackend extends Backend<Configuration>
     SearchParams(final Set<String> excludedBaseDNs)
     {
       this.excludedBaseDNs = excludedBaseDNs;
+    }
+
+    /**
+     * Returns whether this search is cookie based.
+     *
+     * @return true if this search is cookie-based, false if this search is
+     *         change number-based.
+     */
+    private boolean isCookieBasedSearch()
+    {
+      return cookie != null;
     }
 
     /**
@@ -909,16 +905,13 @@ public class ChangelogBackend extends Backend<Configuration>
   private void search0(final SearchParams searchParams, final SearchOperation searchOperation)
       throws DirectoryException, ChangelogException
   {
-    switch (searchParams.requestType)
+    if (searchParams.isCookieBasedSearch())
     {
-      case REQUEST_TYPE_FROM_CHANGE_NUMBER:
-        searchFromChangeNumber(searchParams, searchOperation);
-        break;
-      case REQUEST_TYPE_FROM_COOKIE:
-        searchFromCookie(searchParams, searchOperation);
-        break;
-      default:
-        // not handled
+      searchFromCookie(searchParams, searchOperation);
+    }
+    else
+    {
+      searchFromChangeNumber(searchParams, searchOperation);
     }
   }
 

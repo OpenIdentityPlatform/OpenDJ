@@ -153,9 +153,7 @@ public class FileReplicaDBTest extends ReplicationTestCase
 
       assertFoundInOrder(replicaDB, csns[0], csns[1], csns[2]);
       assertNotFound(replicaDB, csns[4], AFTER_MATCHING_KEY);
-
-      assertEquals(replicaDB.getOldestCSN(), csns[0]);
-      assertEquals(replicaDB.getNewestCSN(), csns[2]);
+      assertLimits(replicaDB, csns[0], csns[2]);
 
       DeleteMsg update4 = new DeleteMsg(TEST_ROOT_DN, csns[3], "uid");
       replicaDB.add(update4);
@@ -338,15 +336,11 @@ public class FileReplicaDBTest extends ReplicationTestCase
       replicaDB.add(new DeleteMsg(TEST_ROOT_DN, csns[0], "uid"));
       replicaDB.add(new DeleteMsg(TEST_ROOT_DN, csns[1], "uid"));
       replicaDB.add(new DeleteMsg(TEST_ROOT_DN, csns[2], "uid"));
-
-      assertEquals(csns[0], replicaDB.getOldestCSN());
-      assertEquals(csns[2], replicaDB.getNewestCSN());
+      assertLimits(replicaDB, csns[0], csns[2]);
 
       // Clear DB and check it is cleared.
       replicaDB.clear();
-
-      assertEquals(null, replicaDB.getOldestCSN());
-      assertEquals(null, replicaDB.getNewestCSN());
+      assertLimits(replicaDB, null, null);
     }
     finally
     {
@@ -445,9 +439,7 @@ public class FileReplicaDBTest extends ReplicationTestCase
         mySeqnum+=2;
       }
       waitChangesArePersisted(replicaDB, max, counterWindow);
-
-      assertEquals(replicaDB.getOldestCSN(), csns[1], "Wrong oldest CSN");
-      assertEquals(replicaDB.getNewestCSN(), csns[max], "Wrong newest CSN");
+      assertLimits(replicaDB, csns[1], csns[max]);
 
       // Now we want to test that after closing and reopening the db, the
       // counting algo is well reinitialized and when new messages are added
@@ -456,9 +448,7 @@ public class FileReplicaDBTest extends ReplicationTestCase
       replicaDB.shutdown();
 
       replicaDB = new FileReplicaDB(1, TEST_ROOT_DN, replicationServer, dbEnv);
-
-      assertEquals(replicaDB.getOldestCSN(), csns[1], "Wrong oldest CSN");
-      assertEquals(replicaDB.getNewestCSN(), csns[max], "Wrong newest CSN");
+      assertLimits(replicaDB, csns[1], csns[max]);
 
       // Populate the db with 'max' msg
       for (int i=max+1; i<=2 * max; i++)
@@ -468,9 +458,7 @@ public class FileReplicaDBTest extends ReplicationTestCase
         mySeqnum+=2;
       }
       waitChangesArePersisted(replicaDB, 2 * max, counterWindow);
-
-      assertEquals(replicaDB.getOldestCSN(), csns[1], "Wrong oldest CSN");
-      assertEquals(replicaDB.getNewestCSN(), csns[2 * max], "Wrong newest CSN");
+      assertLimits(replicaDB, csns[1], csns[2 * max]);
 
       replicaDB.purgeUpTo(new CSN(Long.MAX_VALUE, 0, 0));
 
@@ -497,6 +485,14 @@ public class FileReplicaDBTest extends ReplicationTestCase
       remove(replicationServer);
       TestCaseUtils.deleteDirectory(testRoot);
     }
+  }
+
+  private void assertLimits(FileReplicaDB replicaDB, CSN oldestCSN, CSN newestCSN)
+  {
+    final SoftAssertions softly = new SoftAssertions();
+    softly.assertThat(replicaDB.getOldestCSN()).as("Wrong oldest CSN").isEqualTo(oldestCSN);
+    softly.assertThat(replicaDB.getNewestCSN()).as("Wrong newest CSN").isEqualTo(newestCSN);
+    softly.assertAll();
   }
 
   private void shutdown(FileReplicaDB replicaDB)

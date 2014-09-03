@@ -36,8 +36,6 @@ import org.opends.server.core.*;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.*;
-import org.opends.server.replication.protocol.StartECLSessionMsg.ECLRequestType;
-import org.opends.server.replication.protocol.StartECLSessionMsg.Persistent;
 import org.opends.server.types.*;
 import org.opends.server.util.TimeThread;
 import org.opends.server.workflowelement.localbackend.LocalBackendAddOperation;
@@ -630,52 +628,6 @@ public class SynchronizationMsgTest extends ReplicationTestCase
         msg1.getBytes(getCurrentVersion()), getCurrentVersion());
   }
 
-  @Test(enabled=true)
-  public void eclUpdateMsg()
-         throws Exception
-  {
-    // create a msg to put in the eclupdatemsg
-    InternalClientConnection connection =
-      InternalClientConnection.getRootConnection();
-    DeleteOperation deleteOp =
-      new DeleteOperationBasis(connection, 1, 1,null, DN.decode("cn=t1"));
-    LocalBackendDeleteOperation op = new LocalBackendDeleteOperation(deleteOp);
-    CSN csn = new CSN(TimeThread.getTime(), 123, 45);
-    op.setAttachment(SYNCHROCONTEXT, new DeleteContext(csn, "uniqueid"));
-    DeleteMsg delmsg = new DeleteMsg(op);
-    long changeNumber = 21;
-
-    DN baseDN = DN.decode("dc=example,dc=com");
-
-    // create a cookie
-    MultiDomainServerState cookie =
-      new MultiDomainServerState(
-          "o=test:000001210b6f21e904b100000001 000001210b6f21e904b200000001;" +
-          "o=test2:000001210b6f21e904b100000002 000001210b6f21e904b200000002;");
-
-    // Constructor test
-    ECLUpdateMsg msg1 = new ECLUpdateMsg(delmsg, cookie, baseDN, changeNumber);
-    assertTrue(msg1.getCookie().equalsTo(cookie));
-    assertEquals(msg1.getBaseDN(), baseDN);
-    assertEquals(msg1.getChangeNumber(), changeNumber);
-    DeleteMsg delmsg2 = (DeleteMsg)msg1.getUpdateMsg();
-    assertEquals(delmsg.compareTo(delmsg2), 0);
-
-    // Constructor test (with byte[])
-    ECLUpdateMsg msg2 = new ECLUpdateMsg(msg1.getBytes(getCurrentVersion()));
-    assertTrue(msg2.getCookie().equalsTo(msg2.getCookie()));
-    assertTrue(msg2.getCookie().equalsTo(cookie));
-    assertEquals(msg2.getBaseDN(), msg1.getBaseDN());
-    assertEquals(msg2.getBaseDN(), baseDN);
-    assertEquals(msg2.getChangeNumber(), msg1.getChangeNumber());
-    assertEquals(msg2.getChangeNumber(), changeNumber);
-
-    DeleteMsg delmsg1 = (DeleteMsg)msg1.getUpdateMsg();
-    delmsg2 = (DeleteMsg)msg2.getUpdateMsg();
-    assertEquals(delmsg2.compareTo(delmsg), 0);
-    assertEquals(delmsg2.compareTo(delmsg1), 0);
-  }
-
   @DataProvider(name="createServerStartData")
   public Object[][] createServerStartData() throws Exception
   {
@@ -764,55 +716,6 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     assertEquals(msg.getGroupId(), newMsg.getGroupId());
     assertEquals(msg.getDegradedStatusThreshold(),
                  newMsg.getDegradedStatusThreshold());
-  }
-
-  @DataProvider(name="createReplServerStartDSData")
-  public Object[][] createReplServerStartDSData() throws Exception
-  {
-    DN baseDN = TEST_ROOT_DN;
-
-    final ServerState state1 = new ServerState();
-    state1.update(new CSN(0, 0, 0));
-    final ServerState state2 = new ServerState();
-    state2.update(new CSN(75, 5, 263));
-    final ServerState state3 = new ServerState();
-    state3.update(new CSN(123, 5, 98));
-
-    return new Object[][]
-    {
-      {1, baseDN, 0, "localhost:8989", state1, 0L, (byte)0, 0, 0, 0},
-      {16, baseDN, 100, "anotherHost:1025", state2, 1245L, (byte)25, 3456, 3, 31512},
-      {36, baseDN, 100, "anotherHostAgain:8017", state3, 6841L, (byte)32, 2496, 630, 9524},
-    };
-  }
-
-  /**
-   * Test that ReplServerStartDSMsg encoding and decoding works
-   * by checking that : msg == new ReplServerStartMsg(msg.getBytes()).
-   */
-  @Test(dataProvider="createReplServerStartDSData")
-  public void replServerStartDSMsgTest(int serverId, DN baseDN, int window,
-         String url, ServerState state, long genId, byte groupId, int degTh,
-         int weight, int connectedDSNumber) throws Exception
-  {
-    ReplServerStartDSMsg msg = new ReplServerStartDSMsg(serverId,
-        url, baseDN, window, state, genId,
-        true, groupId, degTh, weight, connectedDSNumber);
-    ReplServerStartDSMsg newMsg = new ReplServerStartDSMsg(msg.getBytes(getCurrentVersion()));
-    assertEquals(msg.getServerId(), newMsg.getServerId());
-    assertEquals(msg.getServerURL(), newMsg.getServerURL());
-    assertEquals(msg.getBaseDN(), newMsg.getBaseDN());
-    assertEquals(msg.getWindowSize(), newMsg.getWindowSize());
-    assertEquals(msg.getServerState().getCSN(1),
-        newMsg.getServerState().getCSN(1));
-    assertEquals(newMsg.getVersion(), getCurrentVersion());
-    assertEquals(msg.getGenerationId(), newMsg.getGenerationId());
-    assertEquals(msg.getSSLEncryption(), newMsg.getSSLEncryption());
-    assertEquals(msg.getGroupId(), newMsg.getGroupId());
-    assertEquals(msg.getDegradedStatusThreshold(),
-                 newMsg.getDegradedStatusThreshold());
-    assertEquals(msg.getWeight(), newMsg.getWeight());
-    assertEquals(msg.getConnectedDSNumber(), newMsg.getConnectedDSNumber());
   }
 
   /**
@@ -1260,70 +1163,6 @@ public class SynchronizationMsgTest extends ReplicationTestCase
     UpdateMsg msg = new UpdateMsg(csn, test.getBytes());
     UpdateMsg newMsg = new UpdateMsg(msg.getBytes());
     assertEquals(test.getBytes(), newMsg.getPayload());
-  }
-
-  /**
-   * Test that ServerStartMsg encoding and decoding works
-   * by checking that : msg == new ServerStartMsg(msg.getBytes()).
-   */
-  @Test(enabled=true,dataProvider="createServerStartData")
-  public void startECLMsgTest(int serverId, DN baseDN, int window,
-         ServerState state, long genId, boolean sslEncryption, byte groupId) throws Exception
-  {
-    ServerStartECLMsg msg = new ServerStartECLMsg(
-        "localhost:1234", window, window, window, window, window, window, state,
-        genId, sslEncryption, groupId);
-    ServerStartECLMsg newMsg = new ServerStartECLMsg(msg.getBytes(getCurrentVersion()));
-    assertEquals(msg.getServerURL(), newMsg.getServerURL());
-    assertEquals(msg.getMaxReceiveDelay(), newMsg.getMaxReceiveDelay());
-    assertEquals(msg.getMaxReceiveQueue(), newMsg.getMaxReceiveQueue());
-    assertEquals(msg.getMaxSendDelay(), newMsg.getMaxSendDelay());
-    assertEquals(msg.getMaxSendQueue(), newMsg.getMaxSendQueue());
-    assertEquals(msg.getWindowSize(), newMsg.getWindowSize());
-    assertEquals(msg.getHeartbeatInterval(), newMsg.getHeartbeatInterval());
-    assertEquals(msg.getSSLEncryption(), newMsg.getSSLEncryption());
-    assertEquals(msg.getServerState().getCSN(1),
-        newMsg.getServerState().getCSN(1));
-    assertEquals(newMsg.getVersion(), getCurrentVersion());
-    assertEquals(msg.getGenerationId(), newMsg.getGenerationId());
-    assertEquals(msg.getGroupId(), newMsg.getGroupId());
-  }
-
-  /**
-   * Test StartSessionMsg encoding and decoding.
-   */
-  @Test()
-  public void startECLSessionMsgTest() throws Exception
-  {
-    // data
-    CSN csn = new CSN(TimeThread.getTime(), 123, 45);
-    ServerState state = new ServerState();
-    assertTrue(state.update(new CSN(75, 5,263)));
-
-    // create original
-    StartECLSessionMsg msg = new StartECLSessionMsg();
-    msg.setCSN(csn);
-    msg.setCrossDomainServerState("fakegenstate");
-    msg.setPersistent(Persistent.PERSISTENT);
-    msg.setFirstChangeNumber(13);
-    msg.setLastChangeNumber(14);
-    msg.setECLRequestType(ECLRequestType.REQUEST_TYPE_EQUALS_REPL_CHANGE_NUMBER);
-    msg.setOperationId("fakeopid");
-    String dn1 = "cn=admin data";
-    String dn2 = "cn=config";
-    msg.setExcludedDNs(newSet(dn1, dn2));
-
-    // create copy
-    StartECLSessionMsg newMsg = new StartECLSessionMsg(msg.getBytes(getCurrentVersion()));
-    // test equality between the two copies
-    assertEquals(msg.getCSN(), newMsg.getCSN());
-    assertEquals(msg.getPersistent(), newMsg.getPersistent());
-    assertEquals(msg.getFirstChangeNumber(), newMsg.getFirstChangeNumber());
-    assertEquals(msg.getECLRequestType(), newMsg.getECLRequestType());
-    assertEquals(msg.getLastChangeNumber(), newMsg.getLastChangeNumber());
-    assertTrue(msg.getCrossDomainServerState().equalsIgnoreCase(newMsg.getCrossDomainServerState()));
-    assertTrue(msg.getOperationId().equalsIgnoreCase(newMsg.getOperationId()));
-    Assertions.assertThat(newMsg.getExcludedBaseDNs()).containsOnly(dn1, dn2);
   }
 
   private int perfRep = 100000;

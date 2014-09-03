@@ -115,7 +115,6 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
    */
   private long purgeDelayInMillis;
   private final AtomicReference<ChangelogDBPurger> cnPurger = new AtomicReference<ChangelogDBPurger>();
-  private volatile long latestPurgeDate;
 
   /** The local replication server. */
   private final ReplicationServer replicationServer;
@@ -513,18 +512,6 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
 
   /** {@inheritDoc} */
   @Override
-  public ServerState getDomainOldestCSNs(DN baseDN)
-  {
-    final ServerState result = new ServerState();
-    for (JEReplicaDB replicaDB : getDomainMap(baseDN).values())
-    {
-      result.update(replicaDB.getOldestCSN());
-    }
-    return result;
-  }
-
-  /** {@inheritDoc} */
-  @Override
   public ServerState getDomainNewestCSNs(DN baseDN)
   {
     final ServerState result = new ServerState();
@@ -667,13 +654,6 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
     {
       indexer.start();
     }
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public long getDomainLatestTrimDate(final DN baseDN)
-  {
-    return latestPurgeDate;
   }
 
   /** {@inheritDoc} */
@@ -975,8 +955,6 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
               replicaDB.purgeUpTo(oldestNotPurgedCSN);
             }
           }
-
-          latestPurgeDate = purgeTimestamp;
 
           jeFriendlySleep(computeSleepTimeUntilNextPurge(oldestNotPurgedCSN));
         }
