@@ -383,7 +383,7 @@ public class MultiDomainServerState implements Iterable<DN>
    *              when an error occurs
    * @return the split state.
    */
-  public static Map<DN, ServerState> splitGenStateToServerStates(
+  private static Map<DN, ServerState> splitGenStateToServerStates(
       String multiDomainServerState) throws DirectoryException
   {
     Map<DN, ServerState> startStates = new TreeMap<DN, ServerState>();

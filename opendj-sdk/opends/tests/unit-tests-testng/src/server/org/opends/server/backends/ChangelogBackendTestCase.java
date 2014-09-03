@@ -51,7 +51,6 @@ import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.CSNGenerator;
 import org.opends.server.replication.common.MultiDomainServerState;
-import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.plugin.DomainFakeCfg;
 import org.opends.server.replication.plugin.ExternalChangelogDomainFakeCfg;
 import org.opends.server.replication.plugin.LDAPReplicationDomain;
@@ -66,6 +65,9 @@ import org.opends.server.replication.protocol.ResetGenerationIdMsg;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
+import org.opends.server.replication.server.changelog.api.DBCursor;
+import org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy;
+import org.opends.server.replication.server.changelog.api.ReplicationDomainDB;
 import org.opends.server.replication.server.changelog.je.ECLEnabledDomainPredicate;
 import org.opends.server.replication.service.DSRSShutdownSync;
 import org.opends.server.replication.service.ReplicationBroker;
@@ -428,13 +430,11 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
           generateDeleteMsg(TEST_ROOT_DN_STRING,  csn9, test, 9));
 
       // ensure oldest state is correct for each suffix and for each server id
-      final ServerState oldestState = getDomainOldestState(DN_OTEST);
-      assertEquals(oldestState.getCSN(SERVER_ID_1), csn1);
-      assertEquals(oldestState.getCSN(serverId22), csn7);
+      isOldestCSNForReplica(DN_OTEST, csn1);
+      isOldestCSNForReplica(DN_OTEST, csn7);
 
-      final ServerState oldestState2 = getDomainOldestState(DN_OTEST2);
-      assertEquals(oldestState2.getCSN(SERVER_ID_2), csn2);
-      assertEquals(oldestState2.getCSN(serverId11), csn6);
+      isOldestCSNForReplica(DN_OTEST2, csn2);
+      isOldestCSNForReplica(DN_OTEST2, csn6);
 
       // test last cookie on root DSE
       MultiDomainServerState expectedLastCookie =
@@ -460,7 +460,20 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     finally
     {
       removeBackend(backendForSecondSuffix);
-      //replicationServer.getChangelogDB().getReplicationDomainDB().removeDomain(ROOT_DN_OTEST2);
+    }
+  }
+
+  private void isOldestCSNForReplica(DN baseDN, CSN csn) throws Exception
+  {
+    final ReplicationDomainDB domainDB = replicationServer.getChangelogDB().getReplicationDomainDB();
+    final DBCursor<UpdateMsg> cursor =
+        domainDB.getCursorFrom(baseDN, csn.getServerId(), null, PositionStrategy.ON_MATCHING_KEY);
+    try {
+      assertTrue(cursor.next(),
+          "Expected to be to find at least one change in replicaDB(" + baseDN + " " + csn.getServerId() + ")");
+      assertEquals(cursor.getRecord().getCSN(), csn);
+    }finally{
+      close(cursor);
     }
   }
 
@@ -817,11 +830,6 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
       results.add(new CSN(getAttributeValue(entry, "replicationCSN")));
     }
     return results;
-  }
-
-  private ServerState getDomainOldestState(DN baseDN)
-  {
-    return replicationServer.getReplicationServerDomain(baseDN).getOldestState();
   }
 
   private void assertSearchParameters(SearchParams searchParams, long firstChangeNumber,

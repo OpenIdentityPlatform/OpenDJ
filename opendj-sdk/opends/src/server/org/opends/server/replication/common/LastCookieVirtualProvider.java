@@ -34,13 +34,12 @@ import org.opends.server.admin.std.server.UserDefinedVirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.loggers.debug.DebugTracer;
-import org.opends.server.replication.plugin.MultimasterReplication;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.types.*;
-import org.opends.server.util.ServerConstants;
 
 import static org.opends.messages.ExtensionMessages.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.replication.plugin.MultimasterReplication.*;
 
 /**
  * This class implements a virtual attribute provider in the root-dse entry
@@ -94,11 +93,7 @@ public class LastCookieVirtualProvider
     {
       if (replicationServer != null)
       {
-        // Set a list of excluded domains (also exclude 'cn=changelog' itself)
-        Set<String> excludedDomains = MultimasterReplication.getECLDisabledDomains();
-        excludedDomains.add(ServerConstants.DN_EXTERNAL_CHANGELOG_ROOT);
-
-        String newestCookie = replicationServer.getNewestECLCookie(excludedDomains).toString();
+        String newestCookie = replicationServer.getNewestECLCookie(getExcludedChangelogDomains()).toString();
         final ByteString cookie = ByteString.valueOf(newestCookie);
         return Collections.singleton(AttributeValues.create(cookie, cookie));
       }

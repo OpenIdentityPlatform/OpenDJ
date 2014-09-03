@@ -43,18 +43,6 @@ public interface ReplicationDomainDB
 {
 
   /**
-   * Returns the oldest {@link CSN}s from the replicaDBs for each serverId in
-   * the specified replication domain.
-   *
-   * @param baseDN
-   *          the replication domain baseDN
-   * @return a new ServerState object holding the {serverId => oldest CSN}
-   *         mapping. If a replica DB is empty or closed, the oldest CSN will be
-   *         null for that replica. The caller owns the generated ServerState.
-   */
-  ServerState getDomainOldestCSNs(DN baseDN);
-
-  /**
    * Returns the newest {@link CSN}s from the replicaDBs for each serverId in
    * the specified replication domain.
    *
@@ -65,18 +53,6 @@ public interface ReplicationDomainDB
    *         that replica. The caller owns the generated ServerState.
    */
   ServerState getDomainNewestCSNs(DN baseDN);
-
-  /**
-   * Retrieves the latest trim date for the specified replication domain.
-   * <p>
-   * FIXME will be removed when ECLServerHandler will not be responsible anymore
-   * for lazily building the ChangeNumberIndexDB.
-   *
-   * @param baseDN
-   *          the replication domain baseDN
-   * @return the domain latest trim date
-   */
-  long getDomainLatestTrimDate(DN baseDN);
 
   /**
    * Removes all the data relating to the specified replication domain and

@@ -120,13 +120,12 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
    */
   private long purgeDelayInMillis;
   private final AtomicReference<ChangelogDBPurger> cnPurger = new AtomicReference<ChangelogDBPurger>();
-  private volatile long latestPurgeDate;
 
   /** The local replication server. */
   private final ReplicationServer replicationServer;
   private final AtomicBoolean shutdown = new AtomicBoolean();
 
-  static final DBCursor<UpdateMsg> EMPTY_CURSOR_REPLICA_DB =
+  private static final DBCursor<UpdateMsg> EMPTY_CURSOR_REPLICA_DB =
       new FileReplicaDBCursor(new Log.EmptyLogCursor<CSN, UpdateMsg>(), null, AFTER_MATCHING_KEY);
 
   /**
@@ -486,18 +485,6 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
 
   /** {@inheritDoc} */
   @Override
-  public ServerState getDomainOldestCSNs(DN baseDN)
-  {
-    final ServerState result = new ServerState();
-    for (FileReplicaDB replicaDB : getDomainMap(baseDN).values())
-    {
-      result.update(replicaDB.getOldestCSN());
-    }
-    return result;
-  }
-
-  /** {@inheritDoc} */
-  @Override
   public ServerState getDomainNewestCSNs(DN baseDN)
   {
     final ServerState result = new ServerState();
@@ -618,13 +605,6 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
     {
       indexer.start();
     }
-  }
-
-  /** {@inheritDoc} */
-  @Override
-  public long getDomainLatestTrimDate(final DN baseDN)
-  {
-    return latestPurgeDate;
   }
 
   /** {@inheritDoc} */
@@ -926,8 +906,6 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
               replicaDB.purgeUpTo(oldestNotPurgedCSN);
             }
           }
-
-          latestPurgeDate = purgeTimestamp;
 
           jeFriendlySleep(computeSleepTimeUntilNextPurge(oldestNotPurgedCSN));
         }

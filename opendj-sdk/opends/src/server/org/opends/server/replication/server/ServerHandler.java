@@ -114,12 +114,12 @@ public abstract class ServerHandler extends MessageHandler
   /**
    * The associated ServerWriter that sends messages to the remote server.
    */
-  protected ServerWriter writer;
+  private ServerWriter writer;
 
   /**
    * The associated ServerReader that receives messages from the remote server.
    */
-  protected ServerReader reader;
+  private ServerReader reader;
 
   // window
   private int rcvWindow;
@@ -132,11 +132,11 @@ public abstract class ServerHandler extends MessageHandler
   /**
    * Semaphore that the writer uses to control the flow to the remote server.
    */
-  protected Semaphore sendWindow;
+  private Semaphore sendWindow;
   /**
    * The initial size of the sending window.
    */
-  protected int sendWindowSize;
+  private int sendWindowSize;
   /**
    * remote generation id.
    */
@@ -161,7 +161,7 @@ public abstract class ServerHandler extends MessageHandler
    * The time in milliseconds between heartbeats from the replication
    * server.  Zero means heartbeats are off.
    */
-  protected long heartbeatInterval = 0;
+  protected long heartbeatInterval;
 
   /**
    * The thread that will send heartbeats.
@@ -171,7 +171,7 @@ public abstract class ServerHandler extends MessageHandler
   /**
    * Set when ServerWriter is stopping.
    */
-  protected volatile boolean shutdownWriter = false;
+  private volatile boolean shutdownWriter;
 
   /**
    * Weight of this remote server.
@@ -539,22 +539,16 @@ public abstract class ServerHandler extends MessageHandler
     }
 
     // Window stats
-    attributes.add(Attributes.create("max-send-window", String
-        .valueOf(sendWindowSize)));
-    attributes.add(Attributes.create("current-send-window", String
-        .valueOf(sendWindow.availablePermits())));
-    attributes.add(Attributes.create("max-rcv-window", String
-        .valueOf(maxRcvWindow)));
-    attributes.add(Attributes.create("current-rcv-window", String
-        .valueOf(rcvWindow)));
+    attributes.add(Attributes.create("max-send-window", String.valueOf(sendWindowSize)));
+    attributes.add(Attributes.create("current-send-window", String.valueOf(sendWindow.availablePermits())));
+    attributes.add(Attributes.create("max-rcv-window", String.valueOf(maxRcvWindow)));
+    attributes.add(Attributes.create("current-rcv-window", String.valueOf(rcvWindow)));
 
     // Encryption
-    attributes.add(Attributes.create("ssl-encryption", String
-        .valueOf(session.isEncrypted())));
+    attributes.add(Attributes.create("ssl-encryption", String.valueOf(session.isEncrypted())));
 
     // Data generation
-    attributes.add(Attributes.create("generation-id", String
-        .valueOf(generationId)));
+    attributes.add(Attributes.create("generation-id", String.valueOf(generationId)));
 
     return attributes;
   }
@@ -919,20 +913,12 @@ public abstract class ServerHandler extends MessageHandler
   }
 
   /**
-   * Requests to shutdown the writer.
-   */
-  protected void shutdownWriter()
-  {
-    shutdownWriter = true;
-  }
-
-  /**
    * Shutdown This ServerHandler.
    */
   @Override
   public void shutdown()
   {
-    shutdownWriter();
+    shutdownWriter = true;
     setConsumerActive(false);
     super.shutdown();
 
@@ -1133,21 +1119,6 @@ public abstract class ServerHandler extends MessageHandler
       TRACER.debugInfo("In " + this.replicationServer.getMonitorInstanceName()
           + ", " + getClass().getSimpleName() + " " + this + " :"
           + "\nSH SESSION HANDSHAKE RECEIVED A STOP MESSAGE");
-    }
-  }
-
-  /**
-   * Log the messages involved in the Topology/StartSession handshake.
-   * @param inStartECLSessionMsg The message received first.
-   */
-  protected void logStartECLSessionHandshake(
-      StartECLSessionMsg inStartECLSessionMsg)
-  {
-    if (debugEnabled())
-    {
-      TRACER.debugInfo("In " + this.replicationServer.getMonitorInstanceName()
-          + ", " + getClass().getSimpleName() + " " + this + " :"
-          + "\nSH SESSION HANDSHAKE RECEIVED:\n" + inStartECLSessionMsg);
     }
   }
 

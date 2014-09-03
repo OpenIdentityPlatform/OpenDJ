@@ -71,8 +71,11 @@ public abstract class ReplicationMsg
   static final byte MSG_TYPE_GENERIC_UPDATE = 29;
 
   // Added for protocol version 3
+  @Deprecated
   static final byte MSG_TYPE_START_ECL = 30;
+  @Deprecated
   static final byte MSG_TYPE_START_ECL_SESSION = 31;
+  @Deprecated
   static final byte MSG_TYPE_ECL_UPDATE = 32;
   static final byte MSG_TYPE_CT_HEARTBEAT = 33;
 
@@ -190,11 +193,12 @@ public abstract class ReplicationMsg
     case MSG_TYPE_GENERIC_UPDATE:
       return new UpdateMsg(buffer);
     case MSG_TYPE_START_ECL:
-      return new ServerStartECLMsg(buffer);
     case MSG_TYPE_START_ECL_SESSION:
-      return new StartECLSessionMsg(buffer);
     case MSG_TYPE_ECL_UPDATE:
-      return new ECLUpdateMsg(buffer);
+      // Legacy versions never sent such messages to other instances (other JVMs).
+      // They were only used in the combined DS-RS case.
+      // It is safe to totally ignore these values since code now uses the ChangelogBackend.
+      return null;
     case MSG_TYPE_CT_HEARTBEAT:
       return new ChangeTimeHeartbeatMsg(buffer, protocolVersion);
     case MSG_TYPE_REPL_SERVER_START_DS:
