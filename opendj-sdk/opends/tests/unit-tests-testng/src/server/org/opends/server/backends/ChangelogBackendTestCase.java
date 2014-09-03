@@ -40,9 +40,11 @@ import org.opends.server.admin.std.server.ExternalChangelogDomainCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.backends.ChangelogBackend.SearchParams;
 import org.opends.server.controls.ExternalChangelogRequestControl;
+import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyDNOperationBasis;
+import org.opends.server.core.ModifyOperation;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchListener;
@@ -199,7 +201,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
       @Override
       public boolean isECLEnabledDomain(DN baseDN)
       {
-        return baseDN.equals(DN_OTEST) || baseDN.equals(DN_OTEST2) || baseDN.equals(DN_OTEST3);
+        return baseDN.toString().startsWith("o=test");
       }
     });
     debugInfo("configure", "ReplicationServer created:" + replicationServer);
@@ -310,7 +312,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     debugInfo(test, "Ending search with success");
   }
 
-  @Test(enabled=false)
+  @Test
   public void searchInCookieModeAfterDomainIsRemoved() throws Exception
   {
     String test = "CookieAfterDomainIsRemoved";
@@ -350,7 +352,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
    * one suffix if run before them, so it is necessary to add them as
    * dependencies.
    */
-  @Test(enabled=false, dependsOnMethods = {
+  @Test(enabled=true, dependsOnMethods = {
     "searchInCookieModeOnOneSuffixUsingEmptyCookie",
     "searchInCookieModeOnOneSuffix",
     "searchInCookieModeAfterDomainIsRemoved",
@@ -477,13 +479,13 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     }
   }
 
-  @Test(enabled=false, dependsOnMethods = { "searchInCookieModeOnTwoSuffixes" })
+  @Test(enabled=true, dependsOnMethods = { "searchInCookieModeOnTwoSuffixes" })
   public void searchInCookieModeOnTwoSuffixesWithPrivateBackend() throws Exception
   {
       String test = "CookiePrivateBackend";
       debugInfo(test, "Starting test");
 
-      // Use o=test3 to avoid collision with o=test2 used by searchInCookieModeOnTwoSuffixes test
+      // Use o=test3 to avoid collision with o=test2 already used by a previous test
       Backend<?> backend3 = null;
       Pair<ReplicationBroker,LDAPReplicationDomain> replication1 = null;
       LDAPReplicationDomain domain2 = null;
@@ -620,7 +622,149 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
   public void simultaneousPersistentSearches() throws Exception
   {
     // TODO
-    // see testECLAfterDomainIsRemoved
+    // see FullTestSimultaneousPersistentSearches
+  }
+
+  @Test(enabled=true, dependsOnMethods = { "searchInCookieModeOnTwoSuffixesWithPrivateBackend"})
+  public void searchInCookieModeUseOfIncludeAttributes() throws Exception
+  {
+    String test = "IncludeAttributes";
+    debugInfo(test, "Starting test\n\n");
+
+    // Use o=test4 and o=test5 to avoid collision with existing suffixes already used by previous test
+    final String backendId4 = "test4";
+    final DN baseDN4 = DN.decode("o=" + backendId4);
+    final String backendId5 = "test5";
+    final DN baseDN5 = DN.decode("o=" + backendId5);
+    Backend<?> backend4 = null;
+    Backend<?> backend5 = null;
+    LDAPReplicationDomain domain4 = null;
+    LDAPReplicationDomain domain5 = null;
+    LDAPReplicationDomain domain41 = null;
+    try
+    {
+      SortedSet<String> replServers = newSortedSet("localhost:" + replicationServerPort);
+
+      // backend4 and domain4
+      backend4 = initializeMemoryBackend(false, backendId4);
+      DomainFakeCfg domainConf = new DomainFakeCfg(baseDN4, 1702, replServers);
+      SortedSet<String> eclInclude = newSortedSet("sn", "roomnumber");
+      domain4 = startNewReplicationDomain(domainConf, eclInclude, eclInclude);
+
+      // backend5 and domain5
+      backend5 = initializeMemoryBackend(false, backendId5);
+      domainConf = new DomainFakeCfg(baseDN5, 1703, replServers);
+      eclInclude = newSortedSet("objectclass");
+      SortedSet<String> eclIncludeForDeletes = newSortedSet("*");
+      domain5 = startNewReplicationDomain(domainConf, eclInclude, eclIncludeForDeletes);
+
+      // domain41
+      domainConf = new DomainFakeCfg(baseDN4, 1704, replServers);
+      eclInclude = newSortedSet("cn");
+      domain41 = startNewReplicationDomain(domainConf, eclInclude, eclInclude);
+
+      Thread.sleep(1000);
+
+      addEntry(createEntry(baseDN4));
+      addEntry(createEntry(baseDN5));
+
+      Entry uentry1 = entryFromLdifString(makeLdif(
+          "dn: cn=Fiona Jensen,o=" + backendId4,
+          "objectclass: top",
+          "objectclass: person",
+          "objectclass: organizationalPerson",
+          "objectclass: inetOrgPerson",
+          "cn: Fiona Jensen",
+          "sn: Jensen",
+          "uid: fiona",
+          "telephonenumber: 12121212"));
+      addEntry(uentry1);
+
+      Entry uentry2 = entryFromLdifString(makeLdif(
+          "dn: cn=Robert Hue,o=" + backendId5,
+          "objectclass: top",
+          "objectclass: person",
+          "objectclass: organizationalPerson",
+          "objectclass: inetOrgPerson",
+          "cn: Robert Hue",
+          "sn: Robby",
+          "uid: robert",
+          "telephonenumber: 131313"));
+      addEntry(uentry2);
+
+      // mod 'sn' of fiona with 'sn' configured as ecl-incl-att
+      final ModifyOperation modOp1 = connection.processModify(uentry1.getDN(), createAttributeModif("sn", "newsn"));
+      waitForSearchOpResult(modOp1, ResultCode.SUCCESS);
+
+      // mod 'telephonenumber' of robert
+      final ModifyOperation modOp2 = connection.processModify(uentry2.getDN(),
+          createAttributeModif("telephonenumber", "555555"));
+      waitForSearchOpResult(modOp2, ResultCode.SUCCESS);
+
+      // moddn robert to robert2
+      ModifyDNOperation modDNOp = connection.processModifyDN(
+          DN.decode("cn=Robert Hue," + baseDN5),
+          RDN.decode("cn=Robert Hue2"), true,
+          baseDN5);
+      waitForSearchOpResult(modDNOp, ResultCode.SUCCESS);
+
+      // del robert
+      final DeleteOperation delOp = connection.processDelete(DN.decode("cn=Robert Hue2," + baseDN5));
+      waitForSearchOpResult(delOp, ResultCode.SUCCESS);
+
+      // Search on all suffixes
+      String cookie = "";
+      InternalSearchOperation searchOp = searchChangelogUsingCookie("(targetDN=*)", cookie, 8, SUCCESS, test);
+
+      for (SearchResultEntry resultEntry : searchOp.getSearchEntries())
+      {
+        String targetdn = getAttributeValue(resultEntry, "targetdn");
+
+        if (targetdn.endsWith("cn=robert hue,o=" + backendId5)
+            || targetdn.endsWith("cn=robert hue2,o="  + backendId5))
+        {
+          Entry targetEntry = parseIncludedAttributes(resultEntry, targetdn);
+
+          Set<String> eoc = newSet("person", "inetOrgPerson", "organizationalPerson", "top");
+          assertAttributeValues(targetEntry, "objectclass", eoc);
+
+          String changeType = getAttributeValue(resultEntry, "changetype");
+          if ("delete".equals(changeType))
+          {
+            // We are using "*" for deletes so should get back 4 attributes.
+            assertThat(targetEntry.getAttributes()).hasSize(4);
+            assertAttributeValue(targetEntry, "uid", "robert");
+            assertAttributeValue(targetEntry, "cn", "Robert Hue2");
+            assertAttributeValue(targetEntry, "telephonenumber", "555555");
+            assertAttributeValue(targetEntry, "sn", "Robby");
+          }
+          else
+          {
+            assertThat(targetEntry.getAttributes()).isEmpty();
+          }
+        }
+        else if (targetdn.endsWith("cn=fiona jensen,o=" + backendId4))
+        {
+          Entry targetEntry = parseIncludedAttributes(resultEntry, targetdn);
+
+          assertThat(targetEntry.getAttributes()).hasSize(2);
+          assertAttributeValue(targetEntry,"sn","jensen");
+          assertAttributeValue(targetEntry,"cn","Fiona Jensen");
+        }
+        assertAttributeValue(resultEntry,"changeinitiatorsname", "cn=Internal Client,cn=Root DNs,cn=config");
+      }
+    }
+    finally
+    {
+      final DN fionaDN = DN.decode("cn=Fiona Jensen,o=" + backendId4);
+      waitForSearchOpResult(connection.processDelete(fionaDN), ResultCode.SUCCESS);
+      waitForSearchOpResult(connection.processDelete(baseDN4), ResultCode.SUCCESS);
+      waitForSearchOpResult(connection.processDelete(baseDN5), ResultCode.SUCCESS);
+
+      removeReplicationDomains(domain41, domain4, domain5);
+      removeBackend(backend4, backend5);
+    }
+    debugInfo(test, "Ending test with success");
   }
 
   // TODO : other tests methods in ECLTest
@@ -1254,6 +1398,21 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
         .isEqualTo(expected);
   }
 
+  private static void assertAttributeValues(Entry entry, String attrName, Set<String> expectedValues)
+  {
+    final Set<String> values = new HashSet<String>();
+    for (Attribute attr : entry.getAttribute(attrName))
+    {
+      for (AttributeValue value : attr)
+      {
+        values.add(value.toString());
+      }
+    }
+    assertThat(values)
+      .as("In entry " + entry + " incorrect values for attribute '" + attrName + "'")
+      .isEqualTo(expectedValues);
+  }
+
   private static void assertAttributeValue(Entry entry, String attrName, String expectedValue)
   {
     assertFalse(expectedValue.contains("\n"),
@@ -1315,7 +1474,6 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     return results;
   }
 
-  // TODO : share this code with other classes
   private static String getAttributeValue(Entry entry, String attrName)
   {
     List<Attribute> attrs = entry.getAttribute(attrName.toLowerCase());
@@ -1326,6 +1484,17 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     Attribute a = attrs.iterator().next();
     AttributeValue av = a.iterator().next();
     return av.toString();
+  }
+
+  private Entry parseIncludedAttributes(SearchResultEntry resultEntry, String targetdn) throws Exception
+  {
+    // Parse includedAttributes as an entry.
+    String includedAttributes = getAttributeValue(resultEntry, "includedattributes");
+    String[] ldifAttributeLines = includedAttributes.split("\\n");
+    String[] ldif = new String[ldifAttributeLines.length + 1];
+    System.arraycopy(ldifAttributeLines, 0, ldif, 1, ldifAttributeLines.length);
+    ldif[0] = "dn: " + targetdn;
+    return TestCaseUtils.makeEntry(ldif);
   }
 
   private void debugAndWriteEntries(LDIFWriter ldifWriter,List<SearchResultEntry> entries, String tn) throws Exception
