@@ -378,8 +378,8 @@ public class ChangelogBackend extends Backend<Configuration>
       try
       {
         final ReplicationDomainDB replicationDomainDB = getChangelogDB().getReplicationDomainDB();
-        final MultiDomainDBCursor cursor =
-            replicationDomainDB.getCursorFrom(null, ON_MATCHING_KEY, getExcludedBaseDNs());
+        final MultiDomainDBCursor cursor = replicationDomainDB.getCursorFrom(
+            new MultiDomainServerState(), ON_MATCHING_KEY, getExcludedBaseDNs());
         try
         {
           baseEntryHasSubordinates = cursor.next();
