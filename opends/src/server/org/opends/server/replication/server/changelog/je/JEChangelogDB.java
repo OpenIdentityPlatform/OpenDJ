@@ -512,6 +512,18 @@ public class JEChangelogDB implements ChangelogDB, ReplicationDomainDB
 
   /** {@inheritDoc} */
   @Override
+  public ServerState getDomainOldestCSNs(DN baseDN)
+  {
+    final ServerState result = new ServerState();
+    for (JEReplicaDB replicaDB : getDomainMap(baseDN).values())
+    {
+      result.update(replicaDB.getOldestCSN());
+    }
+    return result;
+  }
+
+  /** {@inheritDoc} */
+  @Override
   public ServerState getDomainNewestCSNs(DN baseDN)
   {
     final ServerState result = new ServerState();

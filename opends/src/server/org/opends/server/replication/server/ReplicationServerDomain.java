@@ -2382,6 +2382,17 @@ public class ReplicationServerDomain extends MonitorProvider<MonitorProviderCfg>
     return attributes;
   }
 
+  /**
+   * Returns the oldest known state for the domain, made of the oldest CSN
+   * stored for each serverId.
+   *
+   * @return the start state of the domain.
+   */
+  public ServerState getOldestState()
+  {
+    return domainDB.getDomainOldestCSNs(baseDN);
+  }
+
   private void sendTopologyMsg(String type, ServerHandler handler,
       TopologyMsg msg)
   {

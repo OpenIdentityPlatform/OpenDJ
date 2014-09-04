@@ -485,6 +485,18 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
 
   /** {@inheritDoc} */
   @Override
+  public ServerState getDomainOldestCSNs(DN baseDN)
+  {
+    final ServerState result = new ServerState();
+    for (FileReplicaDB replicaDB : getDomainMap(baseDN).values())
+    {
+      result.update(replicaDB.getOldestCSN());
+    }
+    return result;
+  }
+
+  /** {@inheritDoc} */
+  @Override
   public ServerState getDomainNewestCSNs(DN baseDN)
   {
     final ServerState result = new ServerState();

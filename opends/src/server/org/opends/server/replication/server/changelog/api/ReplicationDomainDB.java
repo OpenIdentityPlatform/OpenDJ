@@ -43,6 +43,18 @@ public interface ReplicationDomainDB
 {
 
   /**
+   * Returns the oldest {@link CSN}s from the replicaDBs for each serverId in
+   * the specified replication domain.
+   *
+   * @param baseDN
+   *          the replication domain baseDN
+   * @return a new ServerState object holding the {serverId => oldest CSN}
+   *         mapping. If a replica DB is empty or closed, the oldest CSN will be
+   *         null for that replica. The caller owns the generated ServerState.
+   */
+  ServerState getDomainOldestCSNs(DN baseDN);
+
+  /**
    * Returns the newest {@link CSN}s from the replicaDBs for each serverId in
    * the specified replication domain.
    *
