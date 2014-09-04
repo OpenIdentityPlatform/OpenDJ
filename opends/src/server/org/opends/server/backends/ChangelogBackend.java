@@ -769,8 +769,6 @@ public class ChangelogBackend extends Backend<Configuration>
      * Returns the set of DNs to exclude from the search.
      *
      * @return the DNs corresponding to domains to exclude from the search.
-     * @throws DirectoryException
-     *           If a DN can't be decoded.
      */
     Set<DN> getExcludedBaseDNs()
     {
