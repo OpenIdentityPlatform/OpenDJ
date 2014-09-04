@@ -1021,7 +1021,7 @@ public class ChangelogBackend extends Backend<Configuration>
     final MultiDomainServerState state = searchParams.cookie;
     if (state != null && !state.isEmpty())
     {
-      replicationServer.validateServerState(state, searchParams.getExcludedBaseDNs());
+      replicationServer.validateCookie(state, searchParams.getExcludedBaseDNs());
     }
   }
 
