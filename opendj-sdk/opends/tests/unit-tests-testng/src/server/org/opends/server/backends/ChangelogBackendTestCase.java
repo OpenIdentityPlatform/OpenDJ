@@ -613,22 +613,6 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     assertEquals(op.getErrorMessage().toMessage(), NOTE_SEARCH_CHANGELOG_INSUFFICIENT_PRIVILEGES.get());
   }
 
-  @Test
-  public void persistentSearch() throws Exception
-  {
-   // TODO
-   // ExternalChangeLogTest#FullTestPersistentSearchWithChangesOnlyRequest
-   // ExternalChangeLogTest#FullTestPersistentSearchWithInitValuesRequest
-   // ExternalChangeLogTest#ECLReplicationServerFullTest16
-  }
-
-  @Test
-  public void simultaneousPersistentSearches() throws Exception
-  {
-    // TODO
-    // see FullTestSimultaneousPersistentSearches
-  }
-
   @Test(enabled=true, dependsOnMethods = { "searchInCookieModeOnTwoSuffixesWithPrivateBackend"})
   public void searchInCookieModeUseOfIncludeAttributes() throws Exception
   {
@@ -770,17 +754,6 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
     }
     debugInfo(test, "Ending test with success");
   }
-
-  // TODO : other tests methods in ECLTest
-  // test search after a purge ? cf testECLAfterChangelogTrim
-  // testChangeTimeHeartbeat
-  // TestECLWithIncludeAttributes
-
-  // TODO: list of todos extracted from ExternalChangeLogTest
-  // ECL Test SEARCH abandon and check everything shutdown and cleaned
-  // ECL Test PSEARCH abandon and check everything shutdown and cleaned
-  // ECL Test the attributes list and values returned in ECL entries
-  // ECL Test search -s base, -s one
 
   /**
    * With an empty RS, a search should return only root entry.
