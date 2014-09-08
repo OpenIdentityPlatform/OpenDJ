@@ -24,10 +24,11 @@
   !    
 -->
 <chapter xml:id='chap-uninstall'
- xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
- xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook
-                     http://docbook.org/xml/5.0/xsd/docbook.xsd'>
+         xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+         xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+         xsi:schemaLocation='http://docbook.org/ns/docbook
+                             http://docbook.org/xml/5.0/xsd/docbook.xsd'
+         xmlns:xlink='http://www.w3.org/1999/xlink'>
  <title>Removing OpenDJ Servers</title>
  <indexterm><primary>Uninstalling</primary></indexterm>
  
@@ -43,6 +44,15 @@
  <procedure xml:id="uninstall-gui">
   <title>To Uninstall OpenDJ From the Graphical Uninstaller</title>
   <step>
+   <para>
+    Run the
+    <link
+     xlink:show="new"
+     xlink:href="admin-guide#uninstall-1"
+     xlink:role="http://docbook.org/xlink/role/olink"
+    ><command>uninstall</command></link> command.
+   </para>
+
    <para>(UNIX) Run <command>/path/to/opendj/uninstall</command>.</para>
    <para>(Windows) Double-click <filename>/path/to/opendj\uninstall.bat</filename>.</para>
    <para>(Mac OS X) Double-click <filename>/path/to/opendj/Uninstall.app</filename>.</para>

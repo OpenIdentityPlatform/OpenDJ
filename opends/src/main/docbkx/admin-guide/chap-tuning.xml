@@ -249,10 +249,16 @@
    and allow you to perform tests at specific levels of throughput.
   </para>
 
-  <para>If you need additional precision when evaluating response times, use
-  the global configuration setting <literal>etime-resolution</literal> to
-  change elapsed processing time resolution from milliseconds (default) to
-  nanoseconds.</para>
+  <para>
+   If you need additional precision when evaluating response times,
+   use the global configuration setting,
+   <link
+    xlink:show="new"
+    xlink:href="${configRefBase}global.html#etime-resolution"
+   ><literal>etime-resolution</literal></link>,
+   to change elapsed processing time resolution
+   from milliseconds (default) to nanoseconds.
+  </para>
 
   <screen>
 $ <userinput>dsconfig \
@@ -284,9 +290,16 @@ $ <userinput>dsconfig \
    the following JVM options. These apply to the Sun/Oracle JVM.</para>
    
    <tip>
-    <para>To apply JVM settings for your server, edit
-    <filename>config/java.properties</filename>, and apply the changes with the
-    <command>dsjavaproperties</command> command.</para>
+    <para>
+     To apply JVM settings for your server,
+     edit <filename>config/java.properties</filename>,
+     and apply the changes with the
+     <link
+      xlink:show="new"
+      xlink:href="admin-guide#dsjavaproperties-1"
+      xlink:role="http://docbook.org/xlink/role/olink"
+     ><command>dsjavaproperties</command></link> command.
+    </para>
    </tip>
    
    <variablelist>
@@ -358,16 +371,27 @@ $ <userinput>dsconfig \
    <para>By default, OpenDJ compressing attribute descriptions and object class
    sets to reduce data size. This is called compact encoding.</para>
 
-   <para>By default, OpenDJ does not however compress entries stored in its
-   backend database. If your entries hold values that compress well &#8212;
-   such as text, and not JPEG photos or MP3 audio &#8212; you can gain space
-   by setting the local DB backend property
-   <literal>entries-compressed</literal> to <literal>true</literal> before you
-   (re-)import data from LDIF. With <literal>entries-compressed: true</literal>
-   OpenDJ compresses entries before writing them to the database.<footnote>
-   <para>OpenDJ does not proactively rewrite all entries in the database after
-   you change the settings. Instead, to force OpenDJ to compress all entries,
-   import the data from LDIF.</para></footnote></para>
+   <para>
+    By default, OpenDJ does not however compress entries
+    stored in its backend database.
+    If your entries hold values that compress well &#8212;
+    such as text, and not JPEG photos or MP3 audio &#8212;
+    you can gain space by setting the local DB backend property,
+    <link
+     xlink:show="new"
+     xlink:href="${configRefBase}local-db-backend.html#entries-compressed"
+    ><literal>entries-compressed</literal></link>,
+    to <literal>true</literal> before you (re-)import data from LDIF.
+    With <literal>entries-compressed: true</literal>
+    OpenDJ compresses entries before writing them to the database.<footnote>
+     <para>
+      OpenDJ does not proactively rewrite all entries in the database
+      after you change the settings.
+      Instead, to force OpenDJ to compress all entries,
+      import the data from LDIF.
+     </para>
+    </footnote>
+   </para>
    
    <screen>
 $ <userinput>dsconfig \
@@ -402,13 +426,21 @@ $ <userinput>import-ldif \
    </indexterm>
    
    <para>You can tweak OpenDJ to speed up import of large LDIF files.</para>
-   
-   <para>By default, the temporary directory used for scratch files is
-   <filename>import-tmp</filename> under the directory where you installed
-   OpenDJ. Use <command>import-ldif</command> with the
-   <option>--tmpdirectory</option> option to set this directory to a
-   <literal>tmpfs</literal> file system, such as
-   <filename>/tmp</filename>.</para>
+
+   <para>
+    By default, the temporary directory used for scratch files is
+    <filename>import-tmp</filename> under the directory
+    where you installed OpenDJ.
+    Use the
+    <link
+     xlink:show="new"
+     xlink:href="admin-guide#import-ldif-1"
+     xlink:role="http://docbook.org/xlink/role/olink"
+    ><command>import-ldif</command></link> command
+    with the <option>--tmpdirectory</option> option
+    to set this directory to a <literal>tmpfs</literal> file system,
+    such as <filename>/tmp</filename>.
+   </para>
    
    <para>In some cases, you can improve performance by using the
    <option>--threadCount</option> option with the
@@ -426,24 +458,44 @@ $ <userinput>import-ldif \
   <section xml:id="perf-db-cache">
    <title>Database Cache Settings</title>
    
-   <para>Database cache size is, by default, set as a percentage of the JVM
-   heap, using the backend property <literal>db-cache-percent</literal>.
-   Alternatively, you use the backend property
-   <literal>db-cache-size</literal> to set the size. If you set up multiple
-   database backends, the total percent of JVM heap used must remain less than
-   100, and must leave space for other uses. Default settings work for servers
-   with one user data backend JVM heaps up to 2 GB. For heaps larger than 2 GB,
-   you can allocate a larger percentage of heap space to DB cache.</para>
+   <para>
+    Database cache size is, by default, set as a percentage of the JVM heap
+    by using the backend property,
+    <link
+     xlink:show="new"
+     xlink:href="${configRefBase}local-db-backend.html#db-cache-percent"
+    ><literal>db-cache-percent</literal></link>.
+    Alternatively, you use the backend property,
+    <link
+     xlink:show="new"
+     xlink:href="${configRefBase}local-db-backend.html#db-cache-size"
+    ><literal>db-cache-size</literal></link>,
+    to set the size.
+    If you set up multiple database backends,
+    the total percent of JVM heap used must remain less than 100,
+    and must leave space for other uses.
+    Default settings work for servers
+    with one user data backend JVM heaps up to 2 GB.
+    For heaps larger than 2 GB,
+    you can allocate a larger percentage of heap space to DB cache.
+   </para>
    
    <para>Depending on the size of your database, you have a choice to make
    about database cache settings.</para>
    
-   <para>By caching the entire database in the JVM heap, you can get more
-   deterministic response times and limit disk I/O. Yet, caching the whole
-   DB can require a very large JVM, which you must pre-load on startup, and
-   which can result in long garbage collections and a difficult-to-manage
-   JVM. Test database pre-load on startup by setting the
-   <literal>preload-time-limit</literal> for the backend.</para>
+   <para>
+    By caching the entire database in the JVM heap,
+    you can get more deterministic response times and limit disk I/O.
+    Yet, caching the whole DB can require a very large JVM,
+    which you must pre-load on startup,
+    and which can result in long garbage collections
+    and a difficult-to-manage JVM.
+    Test database pre-load on startup by setting the
+    <link
+     xlink:show="new"
+     xlink:href="${configRefBase}local-db-backend.html#preload-time-limit"
+    ><literal>preload-time-limit</literal></link>
+    for the backend.</para>
    
    <screen>
 $ <userinput>dsconfig \
@@ -494,8 +546,14 @@ $ <userinput>dsconfig \
  --no-prompt</userinput>
    </screen>
 
-   <para>You can use the global setting, <literal>entry-cache-preload</literal>,
-   to force OpenDJ to load the entry cache as part of server startup.</para>
+   <para>
+    You can use the global setting,
+    <link
+     xlink:show="new"
+     xlink:href="${configRefBase}global.html#entry-cache-preload"
+    ><literal>entry-cache-preload</literal></link>,
+    to force OpenDJ to load the entry cache as part of server startup.
+   </para>
 
   <screen>
 $ <userinput>dsconfig \

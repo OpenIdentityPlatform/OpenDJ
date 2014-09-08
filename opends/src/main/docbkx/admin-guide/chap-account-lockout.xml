@@ -53,8 +53,20 @@
   number of times on each replica before being locked out on all replicas.</para>
  </note>
   
- <para>This chapter shows you how to set up account lockout policies,
- and how to intervene manually to lock and unlock accounts.</para>
+ <para>
+  This chapter shows you how to set up account lockout policies by using the
+  <link
+   xlink:show="new"
+   xlink:href="admin-guide#dsconfig-1"
+   xlink:role="http://docbook.org/xlink/role/olink"
+  ><command>dsconfig</command></link> command,
+  and how to intervene manually to lock and unlock accounts by using the
+  <link
+   xlink:show="new"
+   xlink:href="admin-guide#manage-account-1"
+   xlink:role="http://docbook.org/xlink/role/olink"
+  ><command>manage-account</command></link> command.
+ </para>
  
  <section xml:id="configure-account-lockout">
   <title>Configuring Account Lockout</title>

@@ -24,11 +24,11 @@
   !    
 -->
 <chapter xml:id='chap-admin-tools'
- xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
- xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd'
- xmlns:xlink='http://www.w3.org/1999/xlink'
- xmlns:xinclude='http://www.w3.org/2001/XInclude'>
+         xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+         xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+         xsi:schemaLocation='http://docbook.org/ns/docbook
+                             http://docbook.org/xml/5.0/xsd/docbook.xsd'
+         xmlns:xlink='http://www.w3.org/1999/xlink'>
  <title>Administration Interfaces &amp; Tools</title>
 
  <para>OpenDJ server software installs with a cross-platform, Java Swing-based
@@ -57,7 +57,15 @@
   administration server port, making a secure LDAPS connection.</para>
   
   <itemizedlist>
-   <para>Start OpenDJ Control Panel.</para>
+   <para>
+    Start OpenDJ Control Panel by running the
+    <link
+     xlink:show="new"
+     xlink:href="admin-guide#control-panel-1"
+     xlink:role="http://docbook.org/xlink/role/olink"
+    ><command>control-panel</command></link> command.
+   </para>
+
    <listitem>
     <para>(Linux, Solaris) Run <command>/path/to/opendj/bin/control-panel</command>.</para>
    </listitem>
@@ -203,12 +211,24 @@
    </tgroup>
   </table>
 
-  <para>The <command>setup</command>, <command>upgrade</command>, and
-  <command>uninstall</command> tools are located in the parent directory of the
-  other tools, as these tools are not used for everyday administration.
-  For example, if the path to most tools is
-  <filename>/path/to/opendj/bin</filename> you can find these tools in
-  <filename>/path/to/opendj</filename>.</para>
+  <para>
+   You find the installation and upgrade tools,
+   <command>setup</command>,
+   <command>upgrade</command>,
+   and <command>uninstall</command>,
+   in the parent directory of the other tools,
+   as these tools are not used for everyday administration.
+   For example, if the path to most tools is
+   <filename>/path/to/opendj/bin</filename>
+   you can find these tools in
+   <filename>/path/to/opendj</filename>.
+   For instructions on how to use the installation and upgrade tools, see the
+   <link
+    xlink:show="new"
+    xlink:href="install-guide#install-guide"
+    xlink:role="http://docbook.org/xlink/role/olink"
+   ><citetitle>Installation Guide</citetitle></link>.
+  </para>
 
   <para>All OpenDJ command-line tools take the <option>--help</option> option.</para>
 

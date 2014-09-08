@@ -385,12 +385,23 @@ $ <userinput>dsconfig \
    <secondary>Configuring</secondary>
   </indexterm>
   
-  <para>You modify index configurations using the <command>dsconfig</command>
-  command. The configuration changes then take effect after you rebuild the
-  index according to the new configuration, using the
-  <command>rebuild-index</command>. The <command>dsconfig
-  --help-database</command> command lists subcommands for creating, reading,
-  updating, and deleting index configuration.</para>
+  <para>
+   You modify index configurations by using the
+   <link
+    xlink:show="new"
+    xlink:href="admin-guide#dsconfig-1"
+    xlink:role="http://docbook.org/xlink/role/olink"
+   ><command>dsconfig</command></link> command.
+   The configuration changes then take effect
+   after you rebuild the index according to the new configuration, using the
+   <link
+    xlink:show="new"
+    xlink:href="admin-guide#rebuild-index-1"
+    xlink:role="http://docbook.org/xlink/role/olink"
+   ><command>rebuild-index</command></link> command.
+   The <command>dsconfig --help-database</command> command lists subcommands
+   for creating, reading, updating, and deleting index configuration.
+  </para>
   
   <tip>
    <para>Indexes are per directory backend rather than per suffix. To maintain
@@ -625,6 +636,17 @@ Rebuild Index task 20120131164324838 has been successfully completed</computerou
     is shown in the following example, where an index has just been created
     for <literal>newUnusedAttribute</literal>.</para>
 
+    <para>
+     Start by testing the index status by using the
+     <link
+      xlink:show="new"
+      xlink:href="admin-guide#dbtest-1"
+      xlink:role="http://docbook.org/xlink/role/olink"
+     ><command>dbtest</command></link> command.
+     The final column show in the output is the Index Valid column,
+     <literal>false</literal> before the rebuild, <literal>true</literal> after.
+    </para>
+
     <screen>
 $ <userinput>dbtest \
  list-index-status \
@@ -810,9 +832,15 @@ $ <userinput>rebuild-index \
    <secondary>Verifying</secondary>
   </indexterm>
   
-  <para>You can verify that indexes correspond to current directory data,
-  and that indexes do not contain errors using the
-  <command>verify-index</command> command.</para>
+  <para>
+   You can verify that indexes correspond to current directory data,
+   and that indexes do not contain errors by using the
+   <link
+    xlink:show="new"
+    xlink:href="admin-guide#verify-index-1"
+    xlink:role="http://docbook.org/xlink/role/olink"
+   ><command>verify-index</command></link> command.
+  </para>
   
   <example xml:id="verify-index-example">
    <title>Verify Index</title>

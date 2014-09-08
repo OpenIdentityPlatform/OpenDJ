@@ -143,11 +143,18 @@
    <para>Unzip <filename>OpenDJ-<?eval ${docTargetVersion}?>.zip</filename>
    in the file system directory where you want to install the server.</para>
 
-   <para>Unlike the web-based Quick Setup install, the <command>setup</command>
-   command uses the directory where you unzipped the files as the installation
-   directory, and does not ask you where to install OpenDJ. Therefore, if you
-   want to install elsewhere on the file system, unzip the files in that
-   location.</para>
+   <para>
+    Unlike the web-based Quick Setup install, the
+    <link
+     xlink:show="new"
+     xlink:href="admin-guide#setup-1"
+     xlink:role="http://docbook.org/xlink/role/olink"
+    ><command>setup</command></link> command uses
+    the directory where you unzipped the files as the installation directory,
+    and does not ask you where to install OpenDJ.
+    Therefore, if you want to install elsewhere on the file system,
+    unzip the files in that location.
+   </para>
 
    <para>When you unzip <filename>OpenDJ-<?eval ${docTargetVersion}?>.zip</filename>,
    a top-level <filename>opendj</filename> directory is created in the directory
@@ -381,8 +388,15 @@ To see basic server configuration status and configuration you can launch \
   </step>
 
   <step>
-   <para>Run the <command>status</command> command to make sure your OpenDJ
-   server is working as expected.</para>
+   <para>
+    Run the
+    <link
+     xlink:show="new"
+     xlink:href="admin-guide#status-1"
+     xlink:role="http://docbook.org/xlink/role/olink"
+    ><command>status</command></link> command
+    to make sure your OpenDJ server is working as expected.
+   </para>
 
    <screen>
 $ <userinput>/path/to/opendj/bin/status</userinput>

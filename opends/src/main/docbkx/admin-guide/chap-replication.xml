@@ -333,8 +333,15 @@
    <secondary>Configuring</secondary>
   </indexterm>
   
-  <para>This section shows how to configure replication with command-line
-  tools.</para>
+  <para>
+   This section shows how to configure replication with command-line tools,
+   such as the
+   <link
+    xlink:show="new"
+    xlink:href="admin-guide#dsreplication-1"
+    xlink:role="http://docbook.org/xlink/role/olink"
+   ><command>dsreplication</command></link> command.
+  </para>
   
   <section xml:id="enable-repl">
    <title>Enabling Replication</title>
@@ -613,8 +620,15 @@ for a detailed log of this operation.</computeroutput>
    <procedure xml:id="stop-repl-tmp">
     <title>To Stop Replication Temporarily For a Replica</title>
 
-    <para>If you need to stop a server from replicating temporarily, you can
-    do so using <command>dsconfig</command> command.</para>
+    <para>
+     If you must stop a server from replicating temporarily,
+     you can do so by using the
+     <link
+      xlink:show="new"
+      xlink:href="admin-guide#dsconfig-1"
+      xlink:role="http://docbook.org/xlink/role/olink"
+     ><command>dsconfig</command></link> command.
+    </para>
     
     <warning>
      <para>Do not allow modifications on the replica for which replication is

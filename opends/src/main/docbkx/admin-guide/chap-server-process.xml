@@ -48,7 +48,14 @@
   <itemizedlist>
    <para>Use one of the following techniques.</para>
    <listitem>
-    <para>Use the <command>start-ds</command> command.</para>
+    <para>
+     Use the
+     <link
+      xlink:show="new"
+      xlink:href="admin-guide#start-ds-1"
+      xlink:role="http://docbook.org/xlink/role/olink"
+     ><command>start-ds</command></link> command.
+    </para>
 
     <screen>
 $ <userinput>start-ds</userinput>
@@ -78,8 +85,16 @@ ubuntu$ <userinput>sudo service opendj start</userinput>
    </listitem>
 
    <listitem>
-    <para>(UNIX) Create an RC script, and then use the script to start
-    the server.</para>
+    <para>
+     (UNIX) Create an RC script by using the
+     <link
+      xlink:show="new"
+      xlink:href="admin-guide#create-rc-script-1"
+      xlink:role="http://docbook.org/xlink/role/olink"
+     ><command>create-rc-script</command></link> command,
+     and then use the script to start the server.
+    </para>
+
     <para>Unless you run OpenDJ as root, use the --userName
     <replaceable>userName</replaceable> option to specify the user
     who installed OpenDJ.</para>
@@ -111,8 +126,15 @@ update-rc.d: see &lt;http://wiki.debian.org/LSBInitScripts&gt;
     </screen>
    </listitem>
    <listitem>
-    <para>(Windows) Register OpenDJ as a Windows Service, and then manage
-    the service through Windows administration tools.</para>
+    <para>
+     (Windows) Register OpenDJ as a Windows Service by using the
+     <link
+      xlink:show="new"
+      xlink:href="admin-guide#windows-service-1"
+      xlink:role="http://docbook.org/xlink/role/olink"
+     ><command>windows-service</command></link> command,
+     and then manage the service through Windows administration tools.
+    </para>
 
     <screen>
 C:\path\to\opendj\bat> <userinput>windows-service.bat --enableService</userinput>
@@ -137,7 +159,15 @@ C:\path\to\opendj\bat> <userinput>windows-service.bat --enableService</userinput
   <itemizedlist>
    <para>Use one of the following techniques.</para>
    <listitem>
-    <para>Use the <command>stop-ds</command> command.</para>
+    <para>
+     Use the
+     <link
+      xlink:show="new"
+      xlink:href="admin-guide#stop-ds-1"
+      xlink:role="http://docbook.org/xlink/role/olink"
+     ><command>stop-ds</command></link> command.
+    </para>
+
     <screen>$ stop-ds</screen>
    </listitem>
 
