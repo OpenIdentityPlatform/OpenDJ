@@ -59,9 +59,17 @@
  
  <section xml:id="generating-ldif">
   <title>Generating Test Data</title>
-  <para>When you install OpenDJ, you have the option of importing sample
-  data generated during the installation. This procedure demonstrates how to
-  generate LDIF using the <command>make-ldif</command> command.</para>
+  <para>
+   When you install OpenDJ,
+   you have the option of importing sample data
+   that is generated during the installation.
+   This procedure demonstrates how to generate LDIF by using the
+   <link
+    xlink:show="new"
+    xlink:href="admin-guide#make-ldif-1"
+    xlink:role="http://docbook.org/xlink/role/olink"
+   ><command>make-ldif</command></link> command.
+  </para>
   
   <procedure xml:id="generate-ldif">
    <title>To Generate Test LDIF Data</title>
@@ -129,11 +137,22 @@ LDIF processing complete.  10003 entries written</computeroutput>
  <section xml:id="importing-exporting-ldif">
   <title>Importing &amp; Exporting Data</title>
   
-  <para>You can use the OpenDJ Control Panel to import data (Directory
-  Data &gt; Import LDIF...) and to export data (Directory Data &gt; Export
-  LDIF...). The following procedures demonstrate how to use the
-  <command>import-ldif</command> and <command>export-ldif</command>
-  commands.</para>
+  <para>
+   You can use OpenDJ Control Panel
+   to import data (Directory Data > Import LDIF)
+   and to export data (Directory Data &gt; Export LDIF).
+   The following procedures demonstrate how to use the
+   <link
+    xlink:show="new"
+    xlink:href="admin-guide#import-ldif-1"
+    xlink:role="http://docbook.org/xlink/role/olink"
+   ><command>import-ldif</command></link> and
+   <link
+    xlink:show="new"
+    xlink:href="admin-guide#export-ldif-1"
+    xlink:role="http://docbook.org/xlink/role/olink"
+   ><command>export-ldif</command></link> commands.
+  </para>
   
   <procedure xml:id="import-ldif">
    <title>To Import LDIF Data</title>
@@ -244,9 +263,25 @@ $ <userinput>export-ldif \
    <primary>LDIF</primary>
    <secondary>Tools</secondary>
   </indexterm>
-  
-  <para>This section demonstrates the <command>ldifsearch</command>,
-  <command>ldifmodify</command>, and <command>ldif-diff</command> tools.</para>
+
+  <para>
+   This section demonstrates the
+   <link
+    xlink:show="new"
+    xlink:href="admin-guide#ldifsearch-1"
+    xlink:role="http://docbook.org/xlink/role/olink"
+   ><command>ldifsearch</command></link>,
+   <link
+    xlink:show="new"
+    xlink:href="admin-guide#ldifmodify-1"
+    xlink:role="http://docbook.org/xlink/role/olink"
+   ><command>ldifmodify</command></link> and
+   <link
+    xlink:show="new"
+    xlink:href="admin-guide#ldif-diff-1"
+    xlink:role="http://docbook.org/xlink/role/olink"
+   ><command>ldif-diff</command></link> commands.
+  </para>
   
   <section xml:id="ldifsearch-example">
    <title>Searching in LDIF With <command>ldifsearch</command></title>
@@ -342,7 +377,12 @@ description: This is the description for Aaccf Amar.
   </para>
 
   <para>
-   You can create new backends using the <command>dsconfig</command> command.
+   You can create new backends using the
+   <link
+    xlink:show="new"
+    xlink:href="admin-guide#dsconfig-create-backend"
+    xlink:role="http://docbook.org/xlink/role/olink"
+   ><command>dsconfig create-backend</command></link> command.
    The following example creates a local backend named <literal>testData</literal>.
   </para>
 
@@ -474,8 +514,14 @@ base-dn  : "dc=example,dc=com", o=example</computeroutput>
    <secondary>Deleting</secondary>
   </indexterm>
 
-  <para>You delete a database backend by using the <command>dsconfig
-  delete-backend</command> command.</para>
+  <para>
+   You delete a database backend by using the
+   <link
+    xlink:show="new"
+    xlink:href="admin-guide#dsconfig-delete-backend"
+    xlink:role="http://docbook.org/xlink/role/olink"
+   ><command>dsconfig delete-backend</command></link> command.
+  </para>
 
   <para>When you delete a database backend by using the <command>dsconfig
   delete-backend</command> command, OpenDJ does not actually remove the

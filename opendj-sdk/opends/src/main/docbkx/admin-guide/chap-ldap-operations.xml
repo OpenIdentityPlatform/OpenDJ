@@ -59,13 +59,22 @@
   example, but potentially in other ways. When searching you therefore also
   specify where in the directory to search.</para>
   
-  <para>The <command>ldapsearch</command> command thus takes at minimum a
-  search base DN option and an LDAP filter. The search base DN identifies
-  where in the directory to search for entries that match the filter.
-  For example, if you are looking for printers, you might specify the base
-  DN as <literal>ou=Printers,dc=example,dc=com</literal>. Perhaps you are
-  visiting the <literal>GNB00</literal> office and are looking for a
-  printer.</para>
+  <para>
+   The
+   <link
+    xlink:show="new"
+    xlink:href="admin-guide#ldapsearch-1"
+    xlink:role="http://docbook.org/xlink/role/olink"
+   ><command>ldapsearch</command></link> command
+   thus takes at minimum a search base DN option and an LDAP filter.
+   The search base DN identifies where in the directory
+   to search for entries that match the filter.
+   For example, if you are looking for printers,
+   you might specify the base DN as
+   <literal>ou=Printers,dc=example,dc=com</literal>.
+   Perhaps you are visiting the <literal>GNB00</literal> office
+   and are looking for a printer.
+  </para>
   
   <screen>
 $ <userinput>ldapsearch --baseDN ou=Printers,dc=example,dc=com "(printerLocation=GNB00)"</userinput>
@@ -424,8 +433,16 @@ $ <userinput>base64 decode -d RnJlZMOpcmlxdWUgRHVwb250</userinput>
   <example xml:id="compare-example">
    <title>Compare: Checking <literal>authPassword</literal></title>
    
-   <para>In this example, Kirsten Vaughan checks whether the hashed password
-   value matches the stored value on <literal>authPassword</literal>.</para>
+   <para>
+    In this example, Kirsten Vaughan uses the
+    <link
+     xlink:show="new"
+     xlink:href="admin-guide#ldapcompare-1"
+     xlink:role="http://docbook.org/xlink/role/olink"
+    ><command>ldapcompare</command></link> command
+    to check whether the hashed password value matches the stored value
+    on <literal>authPassword</literal>.
+   </para>
 
    <screen>
 $ <userinput>ldapcompare \
@@ -447,8 +464,17 @@ Compare operation returned true for entry
   <title>Updating the Directory</title>
   <indexterm><primary>Updating data</primary></indexterm>
   <indexterm><primary>LDIF</primary><secondary>Examples</secondary></indexterm>
-  <para>Authorized users can change directory data using the LDAP add, modify,
-  modify DN, and delete operations.</para>
+
+  <para>
+   Authorized users can change directory data using
+   the LDAP add, modify, modify DN, and delete operations.
+   You can use the
+   <link
+    xlink:show="new"
+    xlink:href="admin-guide#ldapmodify-1"
+    xlink:role="http://docbook.org/xlink/role/olink"
+   ><command>ldapmodify</command></link> command to make changes.
+  </para>
   
   <section xml:id="add-ldap">
    <title>Adding Entries</title>
@@ -990,8 +1016,15 @@ DELETE operation successful for DN ou=Special Users,dc=example,dc=com</computero
   <title>Changing Passwords</title>
   <indexterm><primary>Passwords</primary><secondary>Changing</secondary></indexterm>
   
-  <para>With the <command>ldappasswordmodify</command> command, authorized
-  users can change and reset user passwords.</para>
+  <para>
+   With the
+   <link
+    xlink:show="new"
+    xlink:href="admin-guide#ldappasswordmodify-1"
+    xlink:role="http://docbook.org/xlink/role/olink"
+   ><command>ldappasswordmodify</command></link> command,
+   authorized users can change and reset user passwords.
+  </para>
   
   <example xml:id="password-reset">
    <title>Password Reset</title>
@@ -1045,7 +1078,11 @@ $ <userinput>ldappasswordmodify \
     <para>
      To change the password as the user, you can
      bind as the user whose password should be changed,
-     use the LDAP Password Modify extended operation
+     use the
+     <link
+      xlink:show="new"
+      xlink:href="http://tools.ietf.org/html/rfc3062"
+     >LDAP Password Modify extended operation</link>
      with an authorization ID but without performing a bind,
      or use proxied authorization.
      For instructions on using proxied authorization, see the section on
@@ -1057,9 +1094,16 @@ $ <userinput>ldappasswordmodify \
     </para>
    </tip>
 
-   <para>You could also accomplish password reset with the following command,
-   but <command>set-password-is-reset</command> is a hidden option, supported
-   only for testing.</para>
+   <para>
+    You could also accomplish password reset with the
+    <link
+     xlink:show="new"
+     xlink:href="admin-guide#manage-account-1"
+     xlink:role="http://docbook.org/xlink/role/olink"
+    ><command>manage-account</command></link> command,
+    although <command>set-password-is-reset</command> is a hidden option,
+    supported only for testing.
+   </para>
    
    <screen>
 $ <userinput>manage-account \

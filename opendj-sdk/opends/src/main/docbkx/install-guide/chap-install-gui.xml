@@ -28,6 +28,7 @@
          xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
          xsi:schemaLocation='http://docbook.org/ns/docbook
                              http://docbook.org/xml/5.0/xsd/docbook.xsd'
+         xmlns:xlink='http://www.w3.org/1999/xlink'
          xmlns:xinclude='http://www.w3.org/2001/XInclude'>
  <title>Installing OpenDJ With the QuickSetup Wizard</title>
  <indexterm><primary>Downloading OpenDJ</primary></indexterm>
@@ -71,10 +72,20 @@ $ <userinput>export PATH=/path/to/java/bin:$PATH</userinput>
 $ <userinput>javaws <replaceable>URL-to-QuickSetup-Installer</replaceable></userinput>
  </screen>
 
- <para>The WebStart installer corresponds to what you start if you download
- OpenDJ-<?eval ${docTargetVersion}?>.zip, unzip the file, and then run
- <command>opendj/setup</command> (UNIX), <command>opendj\setup.bat</command>
-  (Windows), or <command>opendj/QuickSetup.app</command> (Mac OS X).</para>
+ <para>
+  The WebStart installer corresponds to what you start
+  if you download OpenDJ-${docTargetVersion}.zip,
+  unzip the file,
+  and then run the
+  <link
+   xlink:show="new"
+   xlink:href="admin-guide#setup-1"
+   xlink:role="http://docbook.org/xlink/role/olink"
+  ><command>setup</command></link> command,
+  <command>opendj/setup</command> (UNIX),
+  <command>opendj\setup.bat</command> (Windows),
+  or <command>opendj/QuickSetup.app</command> (Mac OS X).
+ </para>
 
  <para>Java WebStart launches the the QuickSetup wizard, and soon the
  Welcome screen appears.</para>
@@ -167,8 +178,15 @@ $ <userinput>javaws <replaceable>URL-to-QuickSetup-Installer</replaceable></user
  </mediaobject>
 
  <itemizedlist>
-  <para>To launch OpenDJ Control Panel again later, you can run one of the
-  following, depending on your host system.</para>
+  <para>
+   To launch OpenDJ Control Panel again later, run the
+   <link
+    xlink:show="new"
+    xlink:href="admin-guide#control-panel-1"
+    xlink:role="http://docbook.org/xlink/role/olink"
+   ><command>control-panel</command></link> command.
+   Depending on your host system, this command is one of the following.
+  </para>
 
   <listitem>
    <para>(Mac OS X) <command>/path/to/opendj/bin/ControlPanel.app</command></para>
