@@ -34,11 +34,18 @@
  <indexterm><primary>JSON</primary></indexterm>
  <indexterm><primary>REST</primary></indexterm>
 
- <para>OpenDJ lets you access directory data as JSON resources over HTTP.
- This chapter demonstrates basic RESTful client operations using the
- default configuration and sample directory data imported into OpenDJ from
- <link xlink:show="new" xlink:href="http://opendj.forgerock.org/Example.ldif"
- >Example.ldif</link>.</para>
+ <para>
+  OpenDJ lets you access directory data as
+  <link xlink:show="new" xlink:href="http://json.org">JSON</link>
+  resources over HTTP.
+  This chapter demonstrates basic RESTful client operations
+  by using the default configuration
+  and sample directory data imported into OpenDJ from
+  <link
+   xlink:show="new"
+   xlink:href="http://opendj.forgerock.org/Example.ldif"
+  >Example.ldif</link>.
+ </para>
 
  <para>
   Before trying the examples, enable HTTP access to

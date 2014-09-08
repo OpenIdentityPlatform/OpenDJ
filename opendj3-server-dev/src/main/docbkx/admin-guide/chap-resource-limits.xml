@@ -23,10 +23,11 @@
   !    
 -->
 <chapter xml:id='chap-resource-limits'
- xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
- xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
- xsi:schemaLocation='http://docbook.org/ns/docbook
-                     http://docbook.org/xml/5.0/xsd/docbook.xsd'>
+         xmlns='http://docbook.org/ns/docbook' version='5.0' xml:lang='en'
+         xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+         xsi:schemaLocation='http://docbook.org/ns/docbook
+                             http://docbook.org/xml/5.0/xsd/docbook.xsd'
+         xmlns:xlink='http://www.w3.org/1999/xlink'>
  <title>Setting Resource Limits</title>
  <indexterm><primary>Resource limits</primary></indexterm>
  
@@ -41,52 +42,116 @@
   OpenDJ also only allows users with appropriate privileges to perform
   unindexed searches.</para>
   
-  <para>You can further adjust additional limits on search operations, such
-  as the following.</para>
   <itemizedlist>
+   <para>
+    You can further adjust additional limits on search operations,
+    such as the following.
+   </para>
+
    <listitem>
-    <para>The <firstterm>lookthrough limit</firstterm> defines the maximum
-    number of candidate entries OpenDJ considers when processing a
-    search.</para>
-    <para>The default lookthrough limit, set by using the global server
-    property <literal>lookthrough-limit</literal>, is 5000.</para>
-    <para>You can override the limit for a particular user by changing the
-    operational attribute, <literal>ds-rlim-lookthrough-limit</literal>, on
-    the user's entry.</para>
+    <para>
+     The <firstterm>lookthrough limit</firstterm> defines
+     the maximum number of candidate entries OpenDJ considers
+     when processing a search.
+    </para>
+
+    <para>
+     The default lookthrough limit,
+     set by using the global server property,
+     <link
+      xlink:show="new"
+      xlink:href="${configRefBase}global.html#lookthrough-limit"
+     ><literal>lookthrough-limit</literal></link>,
+     is 5000.
+    </para>
+
+    <para>
+     You can override the limit for a particular user
+     by changing the operational attribute,
+     <literal>ds-rlim-lookthrough-limit</literal>,
+     on the user's entry.
+    </para>
+   </listitem>
+
+   <listitem>
+    <para>
+     The <firstterm>size limit</firstterm> sets
+     the maximum number of entries returned for a search.
+    </para>
+
+    <para>
+     The default size limit, set by using the global server property,
+     <link
+      xlink:show="new"
+      xlink:href="${configRefBase}global.html#size-limit"
+     ><literal>size-limit</literal></link>,
+     is 1000.
+    </para>
+
+    <para>
+     You can override the limit for a particular user
+     by changing the operational attribute,
+     <literal>ds-rlim-size-limit</literal>,
+     on the user's entry.
+    </para>
    </listitem>
    <listitem>
-    <para>The <firstterm>size limit</firstterm> sets the maximum number of
-    entries returned for a search.</para>
-    <para>The default size limit, set by using the global server property
-    <literal>size-limit</literal>, is 1000.</para>
-    <para>You can override the limit for a particular user by changing the
-    operational attribute, <literal>ds-rlim-size-limit</literal>, on
-    the user's entry.</para>
+    <para>
+     The <firstterm>time limit</firstterm> defines
+     the maximum processing time OpenDJ devotes to a search operation.
+    </para>
+
+    <para>
+     The default time limit, set by using the global server property,
+     <link
+      xlink:show="new"
+      xlink:href="${configRefBase}global.html#time-limit"
+     ><literal>time-limit</literal></link>,
+     is 1 minute.
+    </para>
+
+    <para>
+     You can override the limit for a particular user
+     by changing the operational attribute,
+     <literal>ds-rlim-time-limit</literal>,
+     on the user's entry.
+     Times for <literal>ds-rlim-time-limit</literal> are expressed in seconds.
+    </para>
    </listitem>
+
    <listitem>
-    <para>The <firstterm>time limit</firstterm> defines the maximum processing
-    time OpenDJ devotes to a search operation.</para>
-    <para>The default time limit, set by using the global server property
-    <literal>time-limit</literal>, is 1 minute.</para>
-    <para>You can override the limit for a particular user by changing the
-    operational attribute, <literal>ds-rlim-time-limit</literal>, on
-    the user's entry. Times for <literal>ds-rlim-time-limit</literal> are
-    expressed in seconds.</para>
+    <para>
+     The <firstterm>idle time limit</firstterm> defines
+     how long OpenDJ allows idle connections to remain open.
+    </para>
+
+    <para>
+     No default idle time limit is set.
+     You can set an idle time limit by using the global server property,
+     <link
+      xlink:show="new"
+      xlink:href="${configRefBase}global.html#idle-time-limit"
+     ><literal>idle-time-limit</literal></link>.
+    </para>
+
+    <para>
+     You can override the limit for a particular user
+     by changing the operational attribute,
+     <literal>ds-rlim-idle-time-limit</literal>,
+     on the user's entry.
+     Times for <literal>ds-rlim-idle-time-limit</literal> are expressed in seconds.
+    </para>
    </listitem>
+
    <listitem>
-    <para>The <firstterm>idle time limit</firstterm> defines how long OpenDJ
-    allows idle connections to remain open.</para>
-    <para>No default idle time limit is set. You can set an idle time limit
-    by using the global server property
-    <literal>idle-time-limit</literal>.</para>
-    <para>You can override the limit for a particular user by changing the
-    operational attribute, <literal>ds-rlim-idle-time-limit</literal>, on
-    the user's entry. Times for <literal>ds-rlim-idle-time-limit</literal>
-    are expressed in seconds.</para>
-   </listitem>
-   <listitem>
-    <para>The maximum number of persistent searches can be set using the
-    global server property <literal>max-psearches</literal>.</para>
+    <para>
+     The maximum number of persistent searches can be set
+     by using the global server property,
+     <link
+      xlink:show="new"
+      xlink:href="${configRefBase}global.html#max-psearches"
+     ><literal>max-psearches</literal></link>.
+    </para>
    </listitem>
   </itemizedlist>
   

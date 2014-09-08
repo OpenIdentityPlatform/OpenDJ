@@ -908,12 +908,26 @@ aci: (targetattr = "uid")(version 3.0;acl "Search and read uid";
  <section xml:id="configure-privileges">
   <title>Configuring Privileges</title>
   
-  <para>For root directory administrators, by default <literal>cn=Directory
-  Manager</literal>, you configure privileges using the
-  <command>dsconfig</command> command.</para>
+  <para>
+   For root directory administrators,
+   by default <literal>cn=Directory Manager</literal>,
+   you configure privileges using the
+   <link
+    xlink:show="new"
+    xlink:href="admin-guide#dsconfig-1"
+    xlink:role="http://docbook.org/xlink/role/olink"
+   ><command>dsconfig</command></link> command.
+  </para>
   
-  <para>For non-root directory administrators, you add privileges with
-  the <command>ldapmodify</command> command.</para>
+  <para>
+   For non-root directory administrators,
+   you add privileges with the
+   <link
+    xlink:show="new"
+    xlink:href="admin-guide#ldapmodify-1"
+    xlink:role="http://docbook.org/xlink/role/olink"
+   ><command>ldapmodify</command></link> command.
+  </para>
   
   <procedure xml:id="change-root-dn-privileges">
    <title>To Change Root DN Privileges</title>
