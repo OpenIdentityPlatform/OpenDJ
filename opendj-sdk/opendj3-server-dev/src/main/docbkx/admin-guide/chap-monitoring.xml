@@ -252,11 +252,24 @@ $ <userinput>jvisualvm --openpid 3363 &amp;</userinput>
  <section xml:id="monitoring-status-and-tasks">
   <title>Server Operation &amp; Tasks</title>
   
-  <para>OpenDJ comes with two commands for monitoring server processes and
-  tasks. The <command>status</command> command displays basic information
-  about the local server, similar to what is seen in the default window of the
-  Control Panel. The <command>manage-tasks</command> command lets you manage
-  tasks scheduled on a server, such as nightly backup.</para>
+  <para>
+   OpenDJ comes with two commands for monitoring server processes and tasks.
+   The
+   <link
+    xlink:show="new"
+    xlink:href="admin-guide#status-1"
+    xlink:role="http://docbook.org/xlink/role/olink"
+   ><command>status</command></link> command
+   displays basic information about the local server,
+   similar to what is seen in the default window of the Control Panel.
+   The
+   <link
+    xlink:show="new"
+    xlink:href="admin-guide#manage-tasks-1"
+    xlink:role="http://docbook.org/xlink/role/olink"
+   ><command>manage-tasks</command></link> command
+   lets you manage tasks scheduled on a server, such as nightly backup.
+  </para>
   
   <para>The <command>status</command> command takes administrative credentials
   to read the configuration, as does the Control Panel.</para>

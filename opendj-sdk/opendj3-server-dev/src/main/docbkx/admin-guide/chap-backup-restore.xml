@@ -81,9 +81,16 @@
    <literal>backend-backup</literal> privilege, and also setting a start time
    for the task by using the <option>--start</option> option.</para>
 
-   <para>To perform offline backup when OpenDJ is stopped, you run the
-   <command>backup</command> command without connecting to the server,
-   authenticating, or requesting a backup task.</para>
+   <para>
+    To perform offline backup when OpenDJ is stopped,
+    you run the
+    <link
+     xlink:show="new"
+     xlink:href="admin-guide#backup-1"
+     xlink:role="http://docbook.org/xlink/role/olink"
+    ><command>backup</command></link> command
+    without connecting to the server, authenticating, or requesting a backup task.
+   </para>
 
    <step>
     <para>Use one of the following alternatives.</para>
@@ -233,9 +240,16 @@ scheduled successfully</computeroutput>
    the <literal>backend-restore</literal> privilege, and also setting a start
    time for the task by using the <option>--start</option> option.</para>
 
-   <para>To restore data when OpenDJ is stopped, you run the
-   <command>restore</command> command without connecting to the server,
-   authenticating, or requesting a restore task.</para>
+   <para>
+    To restore data when OpenDJ is stopped, you run the
+    <link
+     xlink:show="new"
+     xlink:href="admin-guide#restore-1"
+     xlink:role="http://docbook.org/xlink/role/olink"
+    ><command>restore</command></link> command
+    without connecting to the server, authenticating, or requesting a restore task.
+   </para>
+
    <step>
     <para>Use one of the following alternatives.</para>
     <stepalternatives>

@@ -340,13 +340,21 @@ pwdPolicySubentry: cn=Default Password Policy,cn=Password Policies,cn=config</co
  <section xml:id="configure-pwp">
   <title>Configuring Password Policies</title>
 
-  <para>You configure server based password policies using the
-  <command>dsconfig</command> command. Notice that server based password
-  policies are part of the server configuration, and therefore not replicated.
-  Alternatively, you can configure a subset of password policy features using
-  subentry based password policies that are stored with the replicated
-  server data. This section covers both server based and subentry based
-  password policies.</para>
+  <para>
+   You configure server based password policies by using the
+   <link
+    xlink:show="new"
+    xlink:href="admin-guide#dsconfig-1"
+    xlink:role="http://docbook.org/xlink/role/olink"
+   ><command>dsconfig</command></link> command.
+   Notice that server based password policies are
+   part of the server configuration,
+   and therefore not replicated.
+   Alternatively, you can configure a subset of password policy features
+   by using subentry based password policies
+   that are stored with the replicated server data.
+   This section covers both server based and subentry based password policies.
+  </para>
   
   <procedure xml:id="default-pwp">
    <title>To Adjust the Default Password Policy</title>
@@ -819,10 +827,22 @@ pwdPolicySubentry: cn=People Password Policy,dc=example,dc=com</computeroutput>
    <secondary>Generating</secondary>
   </indexterm>
 
-  <para>Password generators are used by OpenDJ during the LDAP password modify
-  extended operation to construct a new password for the user. In other words,
-  a directory administrator resetting a user's password can have OpenDJ
-  directory server generate the new password.</para>
+  <para>
+   Password generators are used by OpenDJ during the
+   <link
+    xlink:show="new"
+    xlink:href="http://tools.ietf.org/html/rfc3062"
+   >LDAP Password Modify extended operation</link>
+   to construct a new password for the user.
+   In other words, a directory administrator resetting a user's password
+   can have OpenDJ directory server generate the new password
+   by using the
+   <link
+    xlink:show="new"
+    xlink:href="admin-guide#ldappasswordmodify-1"
+    xlink:role="http://docbook.org/xlink/role/olink"
+   ><command>ldappasswordmodify</command></link> command.
+  </para>
 
   <screen>
 $ <userinput>ldappasswordmodify \
@@ -834,8 +854,13 @@ $ <userinput>ldappasswordmodify \
 Generated Password:  eak77qdi</computeroutput>
   </screen>
 
-  <para>The default password policy shown in <xref linkend="default-pwp" /> uses
-  the Random Password Generator.</para>
+  <para>
+   The default password policy shown in <xref linkend="default-pwp" /> uses the
+   <link
+    xlink:show="new"
+    xlink:href="${configRefBase}random-password-generator.html"
+   >Random Password Generator</link>.
+  </para>
 
   <screen>
 $ <userinput>dsconfig \
@@ -919,11 +944,19 @@ Generated Password:  pld^06:)529HTq$'</computeroutput>
     <secondary>Storage schemes</secondary>
    </indexterm>
 
-  <para>Password storage schemes encode new passwords provided by users so that
-  they are stored in an encoded manner. This makes it difficult or impossible
-  for someone to determine the clear-text passwords from the encoded
-  values. Password storage schemes also determine whether a clear-text password
-  provided by a client matches the encoded value stored in the server.</para>
+  <para>
+   <link
+    xlink:show="new"
+    xlink:href="${configRefBase}password-storage-scheme.html"
+   >Password storage schemes</link>
+   encode new passwords provided by users
+   so that they are stored in an encoded manner.
+   This makes it difficult or impossible
+   to determine the clear-text passwords from the encoded values.
+   Password storage schemes also determine whether
+   a clear-text password provided by a client
+   matches the encoded value stored by the server.
+  </para>
 
   <para>OpenDJ offers a variety of both reversible and one-way password storage
   schemes. Some schemes make it easy to recover the clear-text password,
@@ -1078,11 +1111,19 @@ userPassword: {PBKDF2}10000:L4dCYqSsNnf47YZ3a6aC8K2E3DChhHHhpcoUzg==</computerou
    <secondary>Validating</secondary>
   </indexterm>
 
-  <para>Password validators are responsible for determining whether a proposed
-  password is acceptable for use and can run checks like ensuring the password
-  meets minimum length requirements, that it has an appropriate range of
-  characters, or that it is not in the history. OpenDJ directory server
-  provides a variety of password validators.</para>
+  <para>
+   <link
+    xlink:show="new"
+    xlink:href="${configRefBase}password-validator.html"
+   >Password validators</link>
+   are responsible for determining whether a proposed password is
+   acceptable for use.
+   Validators can run checks like ensuring
+   that the password meets minimum length requirements,
+   that it has an appropriate range of characters,
+   or that it is not in the history of recently used passwords.
+   OpenDJ directory server provides a variety of password validators.
+  </para>
 
   <screen>
 $ <userinput>dsconfig \

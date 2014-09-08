@@ -109,9 +109,17 @@
   </step>
 
   <step>
-   <para>Run the <command>upgrade</command> command to bring OpenDJ
-   configuration and application data up to date with the new binary and
-   script files that you copied over the current server files.</para>
+   <para>
+    Run the
+    <link
+     xlink:show="new"
+     xlink:href="admin-guide#upgrade-1"
+     xlink:role="http://docbook.org/xlink/role/olink"
+    ><command>upgrade</command></link> command
+    to bring OpenDJ configuration and application data up to date
+    with the new binary and script files
+    that you copied over the current server files.
+   </para>
 
    <para>By default, the <command>upgrade</command> command requests
    confirmation before making important configuration changes. For some

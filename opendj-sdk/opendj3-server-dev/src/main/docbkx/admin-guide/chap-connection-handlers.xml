@@ -31,10 +31,17 @@
          xmlns:xlink='http://www.w3.org/1999/xlink'>
  <title>Configuring Connection Handlers</title>
  <indexterm><primary>Ports</primary><secondary>Configuring</secondary></indexterm>
- <para>This chapter shows you how to configure OpenDJ directory server to
- listen for directory client requests, using connection handlers. You can view
- information about connection handlers in the OpenDJ Control Panel, and update
- the configuration using the <command>dsconfig</command> command.</para>
+ <para>
+  This chapter shows you how to configure OpenDJ directory server
+  to listen for directory client requests, using connection handlers.
+  You can view information about connection handlers in the OpenDJ Control Panel,
+  and update the configuration using the
+  <link
+   xlink:show="new"
+   xlink:href="admin-guide#dsconfig-1"
+   xlink:role="http://docbook.org/xlink/role/olink"
+  ><command>dsconfig</command></link> command.
+ </para>
  
  <section xml:id="configure-ldap-port">
   <title>LDAP Client Access</title>
@@ -965,7 +972,10 @@ $ <userinput>dsconfig \
    <para>Consider the following global configuration settings.</para>
 
    <varlistentry>
-    <term><literal>bind-with-dn-requires-password</literal></term>
+    <term><link
+     xlink:show="new"
+     xlink:href="${configRefBase}global.html#bind-with-dn-requires-password"
+    ><literal>bind-with-dn-requires-password</literal></link></term>
     <listitem>
      <para>Whether the directory server should reject any simple bind request
      that contains a DN but no password. Default: <literal>true</literal></para>
@@ -985,7 +995,10 @@ $ <userinput>dsconfig \
    </varlistentry>
 
    <varlistentry>
-    <term><literal>max-allowed-client-connections</literal></term>
+    <term><link
+     xlink:show="new"
+     xlink:href="${configRefBase}global.html#max-allowed-client-connections"
+    ><literal>max-allowed-client-connections</literal></link></term>
     <listitem>
      <para>Restricts the number of concurrent client connections to the
      directory server. Default: 0, meaning no limit is set</para>
@@ -1005,7 +1018,10 @@ $ <userinput>dsconfig \
    </varlistentry>
 
    <varlistentry>
-    <term><literal>reject-unauthenticated-requests</literal></term>
+    <term><link
+     xlink:show="new"
+     xlink:href="${configRefBase}global.html#reject-unauthenticated-requests"
+    ><literal>reject-unauthenticated-requests</literal></link></term>
     <listitem>
      <para>Rejects any request (other than bind or StartTLS requests) received
      from a client that has not yet been authenticated, whose last
@@ -1027,7 +1043,10 @@ $ <userinput>dsconfig \
    </varlistentry>
 
    <varlistentry>
-    <term><literal>return-bind-error-messages</literal></term>
+    <term><link
+     xlink:show="new"
+     xlink:href="${configRefBase}global.html#return-bind-error-messages"
+    ><literal>return-bind-error-messages</literal></link></term>
     <listitem>
      <para>Does not restrict access, but by default prevents OpenDJ directory
      server from returning extra information about why a bind failed, as that
