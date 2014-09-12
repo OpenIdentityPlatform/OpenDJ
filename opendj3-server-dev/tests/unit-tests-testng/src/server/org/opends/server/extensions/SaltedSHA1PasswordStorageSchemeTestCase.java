@@ -26,20 +26,11 @@
  */
 package org.opends.server.extensions;
 
-
-
-import org.testng.annotations.Test;
-
 import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.SaltedSHA1PasswordStorageSchemeCfgDefn;
 import org.opends.server.admin.std.server.SaltedSHA1PasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
-import org.opends.server.schema.UserPasswordSyntax;
-import org.forgerock.opendj.ldap.ByteString;
-
-import static org.testng.Assert.*;
-
-
+import org.opends.server.types.DirectoryException;
 
 /**
  * A set of test cases for the salted SHA-1 password storage scheme.
@@ -61,11 +52,10 @@ public class SaltedSHA1PasswordStorageSchemeTestCase
    * Retrieves an initialized instance of this password storage scheme.
    *
    * @return  An initialized instance of this password storage scheme.
-   *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  protected PasswordStorageScheme getScheme()
-         throws Exception
+  @Override
+  protected PasswordStorageScheme<?> getScheme() throws Exception
   {
     SaltedSHA1PasswordStorageScheme scheme =
          new SaltedSHA1PasswordStorageScheme();
@@ -80,35 +70,11 @@ public class SaltedSHA1PasswordStorageSchemeTestCase
     return scheme;
   }
 
-
-
-  /**
-   * Tests the <CODE>encodeOffline</CODE> method.
-   *
-   * @param  plaintext  The plaintext password to use for the test.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
-   */
-  @Test(dataProvider = "testPasswords")
-  public void testEncodeOffline(ByteString plaintext)
-         throws Exception
+  /** {@inheritDoc} */
+  @Override
+  protected String encodeOffline(final byte[] plaintextBytes) throws DirectoryException
   {
-    SaltedSHA1PasswordStorageScheme scheme =
-         new SaltedSHA1PasswordStorageScheme();
-
-    SaltedSHA1PasswordStorageSchemeCfg configuration =
-      AdminTestCaseUtils.getConfiguration(
-          SaltedSHA1PasswordStorageSchemeCfgDefn.getInstance(),
-          configEntry.getEntry()
-          );
-
-    scheme.initializePasswordStorageScheme(configuration);
-
-    String passwordString = SaltedSHA1PasswordStorageScheme.encodeOffline(plaintext.toByteArray());
-    String[] pwComps = UserPasswordSyntax.decodeUserPassword(passwordString);
-    ByteString encodedPassword = ByteString.valueOf(pwComps[1]);
-
-    assertTrue(scheme.passwordMatches(plaintext, encodedPassword));
+    return SaltedSHA1PasswordStorageScheme.encodeOffline(plaintextBytes);
   }
 }
 

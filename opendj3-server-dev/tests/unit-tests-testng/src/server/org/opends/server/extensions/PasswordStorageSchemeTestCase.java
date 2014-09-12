@@ -26,10 +26,6 @@
  */
 package org.opends.server.extensions;
 
-
-
-import static org.testng.Assert.*;
-
 import java.util.ArrayList;
 
 import org.opends.server.TestCaseUtils;
@@ -53,18 +49,22 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.testng.Assert.*;
 
 /**
  * A set of generic test cases for password storage schemes.
  */
+@SuppressWarnings("javadoc")
 public abstract class PasswordStorageSchemeTestCase
        extends ExtensionsTestCase
 {
-  // The configuration entry for this password storage scheme.
+  /** The configuration entry for this password storage scheme. */
   protected ConfigEntry configEntry;
 
-  // The string representation of the DN of the configuration entry for this
-  // password storage scheme.
+  /**
+   * The string representation of the DN of the configuration entry for this
+   * password storage scheme.
+   */
   private String configDNString;
 
 
@@ -91,9 +91,8 @@ public abstract class PasswordStorageSchemeTestCase
    * Ensures that the Directory Server is started before running any of these
    * tests.
    */
-  @BeforeClass()
-  public void startServer()
-         throws Exception
+  @BeforeClass
+  public void startServer() throws Exception
   {
     TestCaseUtils.startServer();
 
@@ -114,6 +113,11 @@ public abstract class PasswordStorageSchemeTestCase
    */
   @DataProvider(name = "testPasswords")
   public Object[][] getTestPasswords()
+  {
+    return getTestPasswordsStatic();
+  }
+
+  static Object[][] getTestPasswordsStatic()
   {
     return new Object[][]
     {
@@ -149,14 +153,18 @@ public abstract class PasswordStorageSchemeTestCase
    * provided password, and ensures that the encoded value is correct.
    *
    * @param  plaintext  The plain-text version of the password to encode.
-   *
    * @throws  Exception  If an unexpected problem occurs.
    */
   @Test(dataProvider = "testPasswords")
   public void testStorageScheme(ByteString plaintext)
          throws Exception
   {
-    PasswordStorageScheme scheme = getScheme();
+    testStorageScheme(plaintext, getScheme());
+  }
+
+  static void testStorageScheme(ByteString plaintext,
+      PasswordStorageScheme<?> scheme) throws Exception
+  {
     assertNotNull(scheme);
     assertNotNull(scheme.getStorageSchemeName());
 
@@ -228,7 +236,7 @@ public abstract class PasswordStorageSchemeTestCase
 
 
   @DataProvider
-  public Object[][] passwordsForBinding()
+  public static Object[][] passwordsForBinding()
   {
     return new Object[][]
     {
@@ -250,21 +258,23 @@ public abstract class PasswordStorageSchemeTestCase
   @Test(dataProvider = "passwordsForBinding")
   public void testSettingEncodedPassword(ByteString plainPassword) throws Exception
   {
+    testSettingEncodedPassword(plainPassword, getScheme());
+  }
+
+  static void testSettingEncodedPassword(ByteString plainPassword,
+      PasswordStorageScheme<?> scheme) throws Exception, DirectoryException
+  {
     // Start/clear-out the memory backend
     TestCaseUtils.initializeTestBackend(true);
 
     boolean allowPreencodedDefault = setAllowPreencodedPasswords(true);
 
     try {
-      PasswordStorageScheme scheme = getScheme();
       ByteString schemeEncodedPassword =
            scheme.encodePasswordWithScheme(plainPassword);
 
-      //
       // This code creates a user with the encoded password,
       // and then verifies that they can bind with the raw password.
-      //
-
       Entry userEntry = TestCaseUtils.makeEntry(
            "dn: uid=test.user,o=test",
            "objectClass: top",
@@ -276,17 +286,16 @@ public abstract class PasswordStorageSchemeTestCase
            "sn: User",
            "cn: Test User",
            "ds-privilege-name: bypass-acl",
-           "userPassword: " + schemeEncodedPassword.toString());
+           "userPassword: " + schemeEncodedPassword);
 
-      // Add the entry
       TestCaseUtils.addEntry(userEntry);
 
       assertTrue(TestCaseUtils.canBind("uid=test.user,o=test",
                  plainPassword.toString()),
                  "Failed to bind when pre-encoded password = \"" +
-                         schemeEncodedPassword.toString() + "\" and " +
+                         schemeEncodedPassword + "\" and " +
                          "plaintext password = \"" +
-                         plainPassword.toString() + "\"");
+                         plainPassword + "\"");
     } finally {
       setAllowPreencodedPasswords(allowPreencodedDefault);
     }
@@ -301,7 +310,7 @@ public abstract class PasswordStorageSchemeTestCase
    * @param allowPreencoded whether or not to allow pre-encoded passwords
    * @return the previous value for the allow preencoded passwords
    */
-  protected boolean setAllowPreencodedPasswords(boolean allowPreencoded)
+  protected static boolean setAllowPreencodedPasswords(boolean allowPreencoded)
           throws Exception
   {
     // This code was borrowed from
@@ -335,14 +344,86 @@ public abstract class PasswordStorageSchemeTestCase
     return previousValue;
   }
 
+  protected static void testAuthPasswords(final String upperName,
+      String plaintextPassword, String encodedPassword) throws Exception
+  {
+    // Start/clear-out the memory backend
+    TestCaseUtils.initializeTestBackend(true);
+
+    boolean allowPreencodedDefault = setAllowPreencodedPasswords(true);
+
+    try
+    {
+      final String lowerName =
+          Character.toLowerCase(upperName.charAt(0)) + upperName.substring(1);
+
+      Entry userEntry = TestCaseUtils.makeEntry(
+          "dn: uid=" + lowerName + ".user,o=test",
+          "objectClass: top",
+          "objectClass: person",
+          "objectClass: organizationalPerson",
+          "objectClass: inetOrgPerson",
+          "uid: " + lowerName + ".user",
+          "givenName: " + upperName,
+          "sn: User",
+          "cn: " + upperName + " User",
+          "userPassword: " + encodedPassword);
+
+      TestCaseUtils.addEntry(userEntry);
+
+      assertTrue(TestCaseUtils.canBind(
+          "uid=" + lowerName + ".user,o=test", plaintextPassword),
+          "Failed to bind when pre-encoded password = \"" + encodedPassword
+          + "\" and " + "plaintext password = \"" + plaintextPassword + "\"");
+    }
+    finally
+    {
+      setAllowPreencodedPasswords(allowPreencodedDefault);
+    }
+  }
+
+  /**
+   * Tests the <CODE>encodeOffline</CODE> method.
+   *
+   * @param plaintext
+   *          The plaintext password to use for the test.
+   * @throws Exception
+   *           If an unexpected problem occurs.
+   */
+  @Test(dataProvider = "testPasswords")
+  public void testEncodeOffline(ByteString plaintext) throws Exception
+  {
+    PasswordStorageScheme<?> scheme = getScheme();
+    String passwordString = encodeOffline(plaintext.toByteArray());
+    if (passwordString != null)
+    {
+      String[] pwComps = UserPasswordSyntax.decodeUserPassword(passwordString);
+      ByteString encodedPassword = ByteString.valueOf(pwComps[1]);
+
+      assertTrue(scheme.passwordMatches(plaintext, encodedPassword));
+    }
+  }
+
   /**
    * Retrieves an initialized instance of this password storage scheme.
    *
-   * @return  An initialized instance of this password storage scheme.
-   *
-   * @throws  Exception  If an unexpected problem occurs.
+   * @return An initialized instance of this password storage scheme.
+   * @throws Exception
+   *           If an unexpected problem occurs.
    */
-  protected abstract PasswordStorageScheme getScheme()
-         throws Exception;
+  protected abstract PasswordStorageScheme<?> getScheme() throws Exception;
+
+  /**
+   * Encodes the provided plaintext password while offline.
+   *
+   * @param plaintextBytes
+   *          The plaintext password in bytes to use for the test.
+   * @throws DirectoryException
+   *           If an unexpected problem occurs.
+   */
+  protected String encodeOffline(byte[] plaintextBytes) throws DirectoryException
+  {
+    return null;
+  }
 }
 
