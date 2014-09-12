@@ -22,11 +22,16 @@
  *
  *
  *      Copyright 2006-2010 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.types;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
@@ -179,7 +184,7 @@ public abstract class AbstractOperation
   private long processingStopNanoTime;
 
   /** The callbacks to be invoked once a response has been sent. */
-  private List<Runnable> postResponseCallbacks = null;
+  private List<Runnable> postResponseCallbacks;
 
   /**
    * Creates a new operation with the provided information.
@@ -560,23 +565,26 @@ public abstract class AbstractOperation
 
   /** {@inheritDoc} */
   @Override
-  public final Object getAttachment(String name)
+  @SuppressWarnings("unchecked")
+  public final <T> T getAttachment(String name)
   {
-    return attachments.get(name);
+    return (T) attachments.get(name);
   }
 
   /** {@inheritDoc} */
   @Override
-  public final Object removeAttachment(String name)
+  @SuppressWarnings("unchecked")
+  public final <T> T removeAttachment(String name)
   {
-    return attachments.remove(name);
+    return (T) attachments.remove(name);
   }
 
   /** {@inheritDoc} */
   @Override
-  public final Object setAttachment(String name, Object value)
+  @SuppressWarnings("unchecked")
+  public final <T> T setAttachment(String name, Object value)
   {
-    return attachments.put(name, value);
+    return (T) attachments.put(name, value);
   }
 
   /** {@inheritDoc} */
@@ -595,8 +603,7 @@ public abstract class AbstractOperation
     abort(cancelRequest);
 
     long stopWaitingTime = System.currentTimeMillis() + 5000;
-    while ((cancelResult == null) &&
-        (System.currentTimeMillis() < stopWaitingTime))
+    while (cancelResult == null && System.currentTimeMillis() < stopWaitingTime)
     {
       try
       {
@@ -635,7 +642,7 @@ public abstract class AbstractOperation
 
   /** {@inheritDoc} */
   @Override
-  final synchronized public void checkIfCanceled(boolean signalTooLate)
+  public final synchronized void checkIfCanceled(boolean signalTooLate)
       throws CanceledOperationException
   {
     if(cancelRequest != null)

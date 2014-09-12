@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.opends.server.core;
 
@@ -33,7 +33,18 @@ import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.controls.ControlDecoder;
-import org.opends.server.types.*;
+import org.opends.server.types.AdditionalLogItem;
+import org.opends.server.types.CancelRequest;
+import org.opends.server.types.CancelResult;
+import org.opends.server.types.CanceledOperationException;
+import org.opends.server.types.Control;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.DisconnectReason;
+import org.opends.server.types.Entry;
+import org.opends.server.types.Operation;
+import org.opends.server.types.OperationType;
+import org.opends.server.types.ResultCode;
 
 /**
  * This abstract class is a generic operation wrapper intended to be subclassed
@@ -58,27 +69,21 @@ public class OperationWrapper<W extends Operation> implements Operation
     this.operation = operation;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void addRequestControl(Control control)
   {
     operation.addRequestControl(control);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void addResponseControl(Control control)
   {
     operation.addResponseControl(control);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void appendErrorMessage(Message message)
   {
@@ -92,27 +97,21 @@ public class OperationWrapper<W extends Operation> implements Operation
     operation.appendMaskedErrorMessage(maskedMessage);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public CancelResult cancel(CancelRequest cancelRequest)
   {
     return operation.cancel(cancelRequest);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void abort(CancelRequest cancelRequest)
   {
     operation.abort(cancelRequest);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void disconnectClient(
           DisconnectReason disconnectReason,
@@ -124,90 +123,70 @@ public class OperationWrapper<W extends Operation> implements Operation
       disconnectReason, sendNotification, message);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean dontSynchronize()
   {
     return operation.dontSynchronize();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
-  public Object getAttachment(String name)
+  public <T> T getAttachment(String name)
   {
     return operation.getAttachment(name);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Map<String, Object> getAttachments()
   {
     return operation.getAttachments();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public DN getAuthorizationDN()
   {
     return operation.getAuthorizationDN();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Entry getAuthorizationEntry()
   {
     return operation.getAuthorizationEntry();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public CancelRequest getCancelRequest()
   {
     return operation.getCancelRequest();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public CancelResult getCancelResult()
   {
     return operation.getCancelResult();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ClientConnection getClientConnection()
   {
     return operation.getClientConnection();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public long getConnectionID()
   {
     return operation.getConnectionID();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public MessageBuilder getErrorMessage()
   {
@@ -228,18 +207,14 @@ public class OperationWrapper<W extends Operation> implements Operation
     return operation.getMaskedResultCode();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public DN getMatchedDN()
   {
     return operation.getMatchedDN();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public int getMessageID()
   {
@@ -256,81 +231,63 @@ public class OperationWrapper<W extends Operation> implements Operation
     return operation;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public long getOperationID()
   {
     return operation.getOperationID();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public OperationType getOperationType()
   {
     return operation.getOperationType();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public long getProcessingStartTime()
   {
     return operation.getProcessingStartTime();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public long getProcessingStopTime()
   {
     return operation.getProcessingStopTime();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public long getProcessingTime()
   {
     return operation.getProcessingTime();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public long getProcessingNanoTime()
   {
     return operation.getProcessingNanoTime();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public List<String> getReferralURLs()
   {
     return operation.getReferralURLs();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public List<Control> getRequestControls()
   {
     return operation.getRequestControls();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public <T extends Control> T getRequestControl(
       ControlDecoder<T> d)throws DirectoryException
@@ -338,135 +295,105 @@ public class OperationWrapper<W extends Operation> implements Operation
     return operation.getRequestControl(d);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public List<Control> getResponseControls()
   {
     return operation.getResponseControls();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ResultCode getResultCode()
   {
     return operation.getResultCode();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isInnerOperation()
   {
     return operation.isInnerOperation();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isInternalOperation()
   {
     return operation.isInternalOperation();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isSynchronizationOperation()
   {
     return operation.isSynchronizationOperation();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void operationCompleted()
   {
     operation.operationCompleted();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
-  public Object removeAttachment(String name)
+  public <T> T removeAttachment(String name)
   {
     return operation.removeAttachment(name);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void removeResponseControl(Control control)
   {
     operation.removeResponseControl(control);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
-  public Object setAttachment(String name, Object value)
+  public <T> T setAttachment(String name, Object value)
   {
     return operation.setAttachment(name, value);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setAttachments(Map<String, Object> attachments)
   {
     operation.setAttachments(attachments);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setAuthorizationEntry(Entry authorizationEntry)
   {
     operation.setAuthorizationEntry(authorizationEntry);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setDontSynchronize(boolean dontSynchronize)
   {
     operation.setDontSynchronize(dontSynchronize);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setErrorMessage(MessageBuilder errorMessage)
   {
     operation.setErrorMessage(errorMessage);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setInnerOperation(boolean isInnerOperation)
   {
     operation.setInnerOperation(isInnerOperation);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setInternalOperation(boolean isInternalOperation)
   {
@@ -487,63 +414,49 @@ public class OperationWrapper<W extends Operation> implements Operation
     operation.setMaskedResultCode(maskedResultCode);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setMatchedDN(DN matchedDN)
   {
     operation.setMatchedDN(matchedDN);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setReferralURLs(List<String> referralURLs)
   {
     operation.setReferralURLs(referralURLs);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setResponseData(DirectoryException directoryException)
   {
     operation.setResponseData(directoryException);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setResultCode(ResultCode resultCode)
   {
     operation.setResultCode(resultCode);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setSynchronizationOperation(boolean isSynchronizationOperation)
   {
     operation.setSynchronizationOperation(isSynchronizationOperation);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final int hashCode()
   {
     return getClientConnection().hashCode() * (int) getOperationID();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final boolean equals(Object obj)
   {
@@ -568,30 +481,24 @@ public class OperationWrapper<W extends Operation> implements Operation
   @Override
   public String toString()
   {
-    return "Wrapped " + operation.toString();
+    return "Wrapped " + operation;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void toString(StringBuilder buffer)
   {
     operation.toString(buffer);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public synchronized final void checkIfCanceled(boolean signalTooLate)
       throws CanceledOperationException {
     operation.checkIfCanceled(signalTooLate);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void registerPostResponseCallback(Runnable callback)
   {
@@ -605,18 +512,14 @@ public class OperationWrapper<W extends Operation> implements Operation
     operation.run();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public List<AdditionalLogItem> getAdditionalLogItems()
   {
     return operation.getAdditionalLogItems();
   }
 
-  /**
-   *{@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void addAdditionalLogItem(AdditionalLogItem item)
   {
