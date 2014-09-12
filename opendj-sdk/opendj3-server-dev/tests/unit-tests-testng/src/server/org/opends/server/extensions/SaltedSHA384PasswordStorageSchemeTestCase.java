@@ -22,29 +22,21 @@
  *
  *
  *      Copyright 2006-2008 Sun Microsystems, Inc.
- *      Portions Copyright 2010 ForgeRock AS.
+ *      Portions Copyright 2010-2014 ForgeRock AS.
  */
 package org.opends.server.extensions;
 
-
-import static org.testng.Assert.*;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
-
-import org.opends.server.TestCaseUtils;
-
 import org.opends.server.admin.server.AdminTestCaseUtils;
-import org.opends.server.admin.std.meta.
-            SaltedSHA384PasswordStorageSchemeCfgDefn;
+import org.opends.server.admin.std.meta.SaltedSHA384PasswordStorageSchemeCfgDefn;
 import org.opends.server.admin.std.server.SaltedSHA384PasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
-import org.opends.server.types.Entry;
-
-
+import org.testng.annotations.DataProvider;
+import org.testng.annotations.Test;
 
 /**
  * A set of test cases for the salted SHA-384 password storage scheme.
  */
+@SuppressWarnings("javadoc")
 public class SaltedSHA384PasswordStorageSchemeTestCase
        extends PasswordStorageSchemeTestCase
 {
@@ -65,8 +57,8 @@ public class SaltedSHA384PasswordStorageSchemeTestCase
    *
    * @throws  Exception  If an unexpected problem occurs.
    */
-  protected PasswordStorageScheme getScheme()
-         throws Exception
+  @Override
+  protected PasswordStorageScheme<?> getScheme() throws Exception
   {
     SaltedSHA384PasswordStorageScheme scheme =
          new SaltedSHA384PasswordStorageScheme();
@@ -90,10 +82,8 @@ public class SaltedSHA384PasswordStorageSchemeTestCase
    * @return  A set of couple (cleartext, encrypted) passwords that
    *          may be used to test the SSHA384 password storage scheme
    */
-
   @DataProvider(name = "testSSHA384Passwords")
-  public Object[][] getTestSSHA384Passwords()
-         throws Exception
+  public Object[][] getTestSSHA384Passwords() throws Exception
   {
     return new Object[][]
     {
@@ -108,38 +98,7 @@ public class SaltedSHA384PasswordStorageSchemeTestCase
           String plaintextPassword,
           String encodedPassword) throws Exception
   {
-    // Start/clear-out the memory backend
-    TestCaseUtils.initializeTestBackend(true);
-
-    boolean allowPreencodedDefault = setAllowPreencodedPasswords(true);
-
-    try {
-
-      Entry userEntry = TestCaseUtils.makeEntry(
-       "dn: uid=testSSHA384.user,o=test",
-       "objectClass: top",
-       "objectClass: person",
-       "objectClass: organizationalPerson",
-       "objectClass: inetOrgPerson",
-       "uid: testSSHA384.user",
-       "givenName: TestSSHA384",
-       "sn: User",
-       "cn: TestSSHA384 User",
-       "userPassword: " + encodedPassword);
-
-
-      // Add the entry
-      TestCaseUtils.addEntry(userEntry);
-
-      assertTrue(TestCaseUtils.canBind("uid=testSSHA384.user,o=test",
-                  plaintextPassword),
-               "Failed to bind when pre-encoded password = \"" +
-               encodedPassword + "\" and " +
-               "plaintext password = \"" +
-               plaintextPassword + "\"" );
-    } finally {
-      setAllowPreencodedPasswords(allowPreencodedDefault);
-    }
+    testAuthPasswords("TestSSHA384", plaintextPassword, encodedPassword);
   }
 
 }

@@ -29,11 +29,13 @@ import org.opends.server.admin.server.AdminTestCaseUtils;
 import org.opends.server.admin.std.meta.PBKDF2PasswordStorageSchemeCfgDefn;
 import org.opends.server.admin.std.server.PBKDF2PasswordStorageSchemeCfg;
 import org.opends.server.api.PasswordStorageScheme;
+import org.opends.server.types.DirectoryException;
 import org.testng.annotations.DataProvider;
 
 /**
  * A set of test cases for the PBKDF2 password storage scheme.
  */
+@SuppressWarnings("javadoc")
 public class PBKDF2PasswordStorageSchemeTestCase
        extends PasswordStorageSchemeTestCase
 {
@@ -84,4 +86,9 @@ public class PBKDF2PasswordStorageSchemeTestCase
     return scheme;
   }
 
+  @Override
+  protected String encodeOffline(final byte[] plaintextBytes) throws DirectoryException
+  {
+    return PBKDF2PasswordStorageScheme.encodeOffline(plaintextBytes);
+  }
 }
