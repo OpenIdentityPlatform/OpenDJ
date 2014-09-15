@@ -543,7 +543,7 @@ public class ChangeNumberIndexer extends DirectoryThread
   protected void notifyEntryAddedToChangelog(DN baseDN, long changeNumber,
       String cookieString, UpdateMsg msg) throws ChangelogException
   {
-    ChangelogBackend.getInstance().notifyEntryAdded(baseDN, changeNumber, cookieString, msg);
+    ChangelogBackend.getInstance().notifyChangeNumberEntryAdded(baseDN, changeNumber, cookieString, msg);
   }
 
   /**
