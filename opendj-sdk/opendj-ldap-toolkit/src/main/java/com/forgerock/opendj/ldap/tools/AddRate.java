@@ -26,10 +26,6 @@
 
 package com.forgerock.opendj.ldap.tools;
 
-import static com.forgerock.opendj.cli.ArgumentConstants.*;
-import static com.forgerock.opendj.cli.Utils.filterExitCode;
-import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
-
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.Arrays;
@@ -42,13 +38,14 @@ import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.ErrorResultException;
-import org.forgerock.opendj.ldap.FutureResult;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.ResultHandler;
 import org.forgerock.opendj.ldap.requests.AddRequest;
 import org.forgerock.opendj.ldap.requests.DeleteRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldif.EntryGenerator;
+import org.forgerock.util.promise.Promise;
 
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
@@ -60,6 +57,10 @@ import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.MultiChoiceArgument;
 import com.forgerock.opendj.cli.StringArgument;
 
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.Utils.*;
+import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
+
 /**
  * A load generation tool that can be used to load a Directory Server with Add
  * and Delete requests using one or more LDAP connections.
@@ -68,7 +69,7 @@ public class AddRate extends ConsoleApplication {
 
     private static final class AddPerformanceRunner extends PerformanceRunner {
         private final class AddStatsHandler extends UpdateStatsResultHandler<Result> {
-            private String entryDN;
+            private final String entryDN;
 
             private AddStatsHandler(final long currentTime, String entryDN) {
                 super(currentTime);
@@ -146,17 +147,19 @@ public class AddRate extends ConsoleApplication {
             }
 
             @Override
-            public FutureResult<?> performOperation(Connection connection,
-                    DataSource[] dataSources, long currentTime) {
+            public Promise<?, ErrorResultException> performOperation(Connection connection, DataSource[] dataSources,
+                    long currentTime) {
                 if (needsDelete(currentTime)) {
                     DeleteRequest dr = Requests.newDeleteRequest(getDNEntryToRemove());
-                    return connection.deleteAsync(dr, null, new DeleteStatsHandler(currentTime));
+                    ResultHandler<Result> deleteHandler = new DeleteStatsHandler(currentTime);
+
+                    return connection.deleteAsync(dr).onSuccess(deleteHandler).onFailure(deleteHandler);
                 } else {
                     return performAddOperation(connection, currentTime);
                 }
             }
 
-            private FutureResult<?> performAddOperation(Connection connection, long currentTime) {
+            private Promise<Result, ErrorResultException> performAddOperation(Connection connection, long currentTime) {
                 try {
                     Entry entry;
                     synchronized (generator) {
@@ -164,12 +167,12 @@ public class AddRate extends ConsoleApplication {
                     }
 
                     AddRequest ar = Requests.newAddRequest(entry);
-                    return connection
-                        .addAsync(ar, null, new AddStatsHandler(currentTime, entry.getName().toString()));
+                    ResultHandler<Result> addHandler = new AddStatsHandler(currentTime, entry.getName().toString());
+                    return connection.addAsync(ar).onSuccess(addHandler).onFailure(addHandler);
                 } catch (IOException e) {
                     // faking an error result by notifying the Handler
                     UpdateStatsResultHandler<Result> resHandler = new UpdateStatsResultHandler<Result>(currentTime);
-                    resHandler.handleErrorResult(ErrorResultException.newErrorResult(ResultCode.OTHER, e));
+                    resHandler.handleError(ErrorResultException.newErrorResult(ResultCode.OTHER, e));
                     return null;
                 }
             }

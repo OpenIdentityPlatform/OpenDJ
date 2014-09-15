@@ -22,19 +22,10 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions copyright 2011-2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.grizzly;
-
-import static org.fest.assertions.Assertions.assertThat;
-import static org.forgerock.opendj.ldap.Connections.*;
-import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
-import static org.forgerock.opendj.ldap.TestCaseUtils.*;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Mockito.*;
-import static org.testng.Assert.*;
 
 import java.net.InetSocketAddress;
 import java.util.Arrays;
@@ -83,6 +74,10 @@ import org.forgerock.opendj.ldap.responses.Responses;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.ldap.schema.SchemaBuilder;
+import org.forgerock.util.promise.FailureHandler;
+import org.forgerock.util.promise.Promise;
+import org.forgerock.util.promise.PromiseImpl;
+import org.forgerock.util.promise.SuccessHandler;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.testng.annotations.AfterClass;
@@ -90,40 +85,23 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import com.forgerock.opendj.util.CompletedFutureResult;
+import static org.fest.assertions.Assertions.*;
+import static org.forgerock.opendj.ldap.Connections.*;
+import static org.forgerock.opendj.ldap.ErrorResultException.*;
+import static org.forgerock.opendj.ldap.FutureResultWrapper.*;
+import static org.forgerock.opendj.ldap.TestCaseUtils.*;
+import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.*;
+import static org.testng.Assert.*;
 
 /**
  * Tests the {@code ConnectionFactory} classes.
  */
 @SuppressWarnings("javadoc")
 public class ConnectionFactoryTestCase extends SdkTestCase {
-    // Test timeout in ms for tests which need to wait for network events.
+    /** Test timeout in ms for tests which need to wait for network events. */
     private static final long TEST_TIMEOUT = 30L;
     private static final long TEST_TIMEOUT_MS = TEST_TIMEOUT * 1000L;
-
-    class MyResultHandler implements ResultHandler<Connection> {
-        // latch.
-        private final CountDownLatch latch;
-        // invalid flag.
-        private volatile ErrorResultException error;
-
-        MyResultHandler(final CountDownLatch latch) {
-            this.latch = latch;
-        }
-
-        @Override
-        public void handleErrorResult(final ErrorResultException error) {
-            // came here.
-            this.error = error;
-            latch.countDown();
-        }
-
-        @Override
-        public void handleResult(final Connection con) {
-            con.close();
-            latch.countDown();
-        }
-    }
 
     /**
      * Ensures that the LDAP Server is running.
@@ -164,7 +142,7 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
         // HeartBeatConnectionFactory
         // Use custom search request.
         SearchRequest request =
-                Requests.newSearchRequest("uid=user.0,ou=people,o=test", SearchScope.BASE_OBJECT,
+            Requests.newSearchRequest("uid=user.0,ou=people,o=test", SearchScope.BASE_OBJECT,
                         "objectclass=*", "cn");
 
         InetSocketAddress serverAddress = getServerSocketAddress();
@@ -284,11 +262,11 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
      */
     @Test(dataProvider = "connectionFactories", timeOut = TEST_TIMEOUT_MS)
     public void testBlockingFutureNoHandler(ConnectionFactory factory) throws Exception {
-        final FutureResult<Connection> future = factory.getConnectionAsync(null);
-        final Connection con = future.get();
+        final Promise<? extends Connection, ErrorResultException> promise = factory.getConnectionAsync();
+        final Connection con = promise.get();
         // quickly check if it is a valid connection.
         // Don't use a result handler.
-        assertNotNull(con.readEntryAsync(DN.rootDN(), null, null).get());
+        assertNotNull(con.readEntryAsync(DN.rootDN(), null).getOrThrow());
         con.close();
     }
 
@@ -300,16 +278,26 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
     @Test(dataProvider = "connectionFactories", timeOut = TEST_TIMEOUT_MS)
     public void testNonBlockingFutureWithHandler(ConnectionFactory factory) throws Exception {
         // Use the handler to get the result asynchronously.
-        final CountDownLatch latch = new CountDownLatch(1);
-        final MyResultHandler handler = new MyResultHandler(latch);
-        factory.getConnectionAsync(handler);
+        final PromiseImpl<Connection, ErrorResultException> promise = PromiseImpl.create();
+
+        factory.getConnectionAsync().onSuccess(new SuccessHandler<Connection>() {
+            @Override
+            public void handleResult(Connection con) {
+                con.close();
+                promise.handleResult(con);
+            }
+        }).onFailure(new FailureHandler<ErrorResultException>() {
+
+            @Override
+            public void handleError(ErrorResultException error) {
+                promise.handleError(error);
+            }
+
+        });
 
         // Since we don't have anything to do, we would rather
-        // be notified by the latch when the other thread calls our handler.
-        latch.await(); // should do a timed wait rather?
-        if (handler.error != null) {
-            throw handler.error;
-        }
+        // be notified by the promise when the other thread calls our handler.
+        promise.getOrThrow(); // should do a timed wait rather?
     }
 
     /**
@@ -379,7 +367,6 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
      * @throws Exception
      *             If an unexpected exception occurred.
      */
-    @SuppressWarnings("unchecked")
     @Test
     public void testConnectionPoolClose() throws Exception {
         // We'll use a pool of 4 connections.
@@ -392,39 +379,30 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
 
         // Mock underlying connection factory which always succeeds.
         final ConnectionFactory mockFactory = mock(ConnectionFactory.class);
-        when(mockFactory.getConnectionAsync(any(ResultHandler.class))).thenAnswer(
-                new Answer<FutureResult<Connection>>() {
+        when(mockFactory.getConnectionAsync()).thenAnswer(new Answer<FutureResult<Connection>>() {
 
+            @Override
+            public FutureResult<Connection> answer(InvocationOnMock invocation) throws Throwable {
+                // Update state.
+                final int connectionID = realConnectionCount.getAndIncrement();
+                realConnectionIsClosed[connectionID] = false;
+
+                // Mock connection decrements counter on close.
+                Connection mockConnection = mock(Connection.class);
+                doAnswer(new Answer<Void>() {
                     @Override
-                    public FutureResult<Connection> answer(InvocationOnMock invocation)
-                            throws Throwable {
-                        // Update state.
-                        final int connectionID = realConnectionCount.getAndIncrement();
-                        realConnectionIsClosed[connectionID] = false;
-
-                        // Mock connection decrements counter on close.
-                        Connection mockConnection = mock(Connection.class);
-                        doAnswer(new Answer<Void>() {
-                            @Override
-                            public Void answer(InvocationOnMock invocation) throws Throwable {
-                                realConnectionCount.decrementAndGet();
-                                realConnectionIsClosed[connectionID] = true;
-                                return null;
-                            }
-                        }).when(mockConnection).close();
-                        when(mockConnection.isValid()).thenReturn(true);
-                        when(mockConnection.toString()).thenReturn(
-                                "Mock connection " + connectionID);
-
-                        // Execute handler and return future.
-                        ResultHandler<? super Connection> handler =
-                                (ResultHandler<? super Connection>) invocation.getArguments()[0];
-                        if (handler != null) {
-                            handler.handleResult(mockConnection);
-                        }
-                        return new CompletedFutureResult<Connection>(mockConnection);
+                    public Void answer(InvocationOnMock invocation) throws Throwable {
+                        realConnectionCount.decrementAndGet();
+                        realConnectionIsClosed[connectionID] = true;
+                        return null;
                     }
-                });
+                }).when(mockConnection).close();
+                when(mockConnection.isValid()).thenReturn(true);
+                when(mockConnection.toString()).thenReturn("Mock connection " + connectionID);
+
+                return newSuccessfulFutureResult(mockConnection);
+            }
+        });
 
         ConnectionPool pool = Connections.newFixedConnectionPool(mockFactory, size);
         Connection[] pooledConnections = new Connection[size];
@@ -483,10 +461,10 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
     }
 
     private static final class CloseNotify {
-        private boolean closeOnAccept;
-        private boolean doBindFirst;
-        private boolean useEventListener;
-        private boolean sendDisconnectNotification;
+        private final boolean closeOnAccept;
+        private final boolean doBindFirst;
+        private final boolean useEventListener;
+        private final boolean sendDisconnectNotification;
 
         private CloseNotify(boolean closeOnAccept, boolean doBindFirst, boolean useEventListener,
                 boolean sendDisconnectNotification) {

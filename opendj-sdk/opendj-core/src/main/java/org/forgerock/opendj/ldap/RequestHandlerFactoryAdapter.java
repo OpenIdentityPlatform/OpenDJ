@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2011-2013 ForgeRock AS
+ *      Copyright 2011-2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -103,7 +103,7 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
                 final R cancelResult =
                         request.getResultDecoder().newExtendedErrorResult(ResultCode.TOO_LATE, "",
                                 "");
-                resultHandler.handleErrorResult(ErrorResultException.newErrorResult(cancelResult));
+                resultHandler.handleError(ErrorResultException.newErrorResult(cancelResult));
             }
         }
 
@@ -238,7 +238,7 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
          * {@inheritDoc}
          */
         @Override
-        public void handleErrorResult(final ErrorResultException error) {
+        public void handleError(final ErrorResultException error) {
             if (clientConnection.removePendingRequest(this)) {
                 if (setResult(error.getResult())) {
                     /*
@@ -248,7 +248,7 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
                      * not be sent to the client.
                      */
                 }
-                resultHandler.handleErrorResult(error);
+                resultHandler.handleError(error);
             }
         }
 
@@ -293,7 +293,7 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
                 if (cancelResultHandler != null) {
                     final Result result =
                             Responses.newGenericExtendedResult(ResultCode.CANNOT_CANCEL);
-                    cancelResultHandler.handleErrorResult(newErrorResult(result));
+                    cancelResultHandler.handleError(newErrorResult(result));
                 }
                 return;
             }
@@ -370,7 +370,7 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
                     cancelResultHandler.handleResult(result);
                 } else {
                     final Result result = Responses.newGenericExtendedResult(ResultCode.TOO_LATE);
-                    cancelResultHandler.handleErrorResult(ErrorResultException
+                    cancelResultHandler.handleError(ErrorResultException
                             .newErrorResult(result));
                 }
             }
@@ -445,13 +445,16 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
     /**
      * Search request context implementation.
      */
-    private final static class SearchRequestContextImpl extends
-            RequestContextImpl<Result, SearchResultHandler> implements SearchResultHandler {
+    private final static class SearchRequestContextImpl extends RequestContextImpl<Result, ResultHandler<Result>>
+        implements SearchResultHandler {
+
+        private final SearchResultHandler entryHandler;
 
         private SearchRequestContextImpl(final ServerConnectionImpl clientConnection,
-                final SearchResultHandler resultHandler, final int messageID,
-                final boolean isCancelSupported) {
+            final SearchResultHandler entryHandler, final ResultHandler<Result> resultHandler, final int messageID,
+            final boolean isCancelSupported) {
             super(clientConnection, resultHandler, messageID, isCancelSupported);
+            this.entryHandler = entryHandler;
         }
 
         /**
@@ -459,7 +462,7 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
          */
         @Override
         public boolean handleEntry(final SearchResultEntry entry) {
-            return resultHandler.handleEntry(entry);
+            return entryHandler.handleEntry(entry);
         }
 
         /**
@@ -467,7 +470,7 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
          */
         @Override
         public boolean handleReference(final SearchResultReference reference) {
-            return resultHandler.handleReference(reference);
+            return entryHandler.handleReference(reference);
         }
     }
 
@@ -604,7 +607,7 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
                                     new DecodeOptions());
                 } catch (final DecodeException e) {
                     // Couldn't decode a cancel request.
-                    resultHandler.handleErrorResult(newErrorResult(ResultCode.PROTOCOL_ERROR, e
+                    resultHandler.handleError(newErrorResult(ResultCode.PROTOCOL_ERROR, e
                             .getLocalizedMessage()));
                     return;
                 }
@@ -630,8 +633,7 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
                          * Couldn't find the request. Invoke on context in order
                          * to remove pending request.
                          */
-                        requestContext
-                                .handleErrorResult(newErrorResult(ResultCode.NO_SUCH_OPERATION));
+                        requestContext.handleError(newErrorResult(ResultCode.NO_SUCH_OPERATION));
                     }
                 }
             } else {
@@ -691,13 +693,13 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
          */
         @Override
         public void handleSearch(final Integer messageID, final SearchRequest request,
-                final IntermediateResponseHandler intermediateResponseHandler,
-                final SearchResultHandler resultHandler) {
+            final IntermediateResponseHandler intermediateResponseHandler, final SearchResultHandler entryHandler,
+            final ResultHandler<Result> resultHandler) {
             final SearchRequestContextImpl requestContext =
-                    new SearchRequestContextImpl(this, resultHandler, messageID, true);
+                new SearchRequestContextImpl(this, entryHandler, resultHandler, messageID, true);
             if (addPendingRequest(requestContext)) {
-                requestHandler.handleSearch(requestContext, request, intermediateResponseHandler,
-                        requestContext);
+                requestHandler.handleSearch(requestContext, request, intermediateResponseHandler, entryHandler,
+                    requestContext);
             }
         }
 
@@ -706,14 +708,13 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
 
             if (isClosed.get()) {
                 final LocalizableMessage message = INFO_CLIENT_CONNECTION_CLOSING.get();
-                requestContext.handleErrorResult(newErrorResult(ResultCode.UNWILLING_TO_PERFORM,
+                requestContext.handleError(newErrorResult(ResultCode.UNWILLING_TO_PERFORM,
                         message.toString()));
                 return false;
             } else if (pendingRequests.putIfAbsent(messageID, requestContext) != null) {
                 final LocalizableMessage message =
                         WARN_CLIENT_DUPLICATE_MESSAGE_ID.get(requestContext.getMessageID());
-                requestContext.handleErrorResult(newErrorResult(ResultCode.PROTOCOL_ERROR, message
-                        .toString()));
+                requestContext.handleError(newErrorResult(ResultCode.PROTOCOL_ERROR, message.toString()));
                 return false;
             } else if (isClosed.get()) {
                 /*
@@ -723,8 +724,7 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
                 pendingRequests.remove(messageID);
 
                 final LocalizableMessage message = INFO_CLIENT_CONNECTION_CLOSING.get();
-                requestContext.handleErrorResult(newErrorResult(ResultCode.UNWILLING_TO_PERFORM,
-                        message.toString()));
+                requestContext.handleError(newErrorResult(ResultCode.UNWILLING_TO_PERFORM, message.toString()));
                 return false;
             } else {
                 /*

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions copyright 2012-2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.grizzly;
@@ -207,7 +207,7 @@ final class LDAPServerFilter extends LDAPBaseFilter {
         }
 
         @Override
-        public void handleErrorResult(final ErrorResultException error) {
+        public void handleError(final ErrorResultException error) {
             handleResult(error.getResult());
         }
 
@@ -224,7 +224,7 @@ final class LDAPServerFilter extends LDAPBaseFilter {
         }
 
         @Override
-        public void handleErrorResult(final ErrorResultException error) {
+        public void handleError(final ErrorResultException error) {
             final Result result = error.getResult();
             if (result instanceof BindResult) {
                 handleResult((BindResult) result);
@@ -458,7 +458,7 @@ final class LDAPServerFilter extends LDAPBaseFilter {
         }
 
         @Override
-        public void handleErrorResult(final ErrorResultException error) {
+        public void handleError(final ErrorResultException error) {
             final Result result = error.getResult();
             if (result instanceof CompareResult) {
                 handleResult((CompareResult) result);
@@ -483,7 +483,7 @@ final class LDAPServerFilter extends LDAPBaseFilter {
         }
 
         @Override
-        public void handleErrorResult(final ErrorResultException error) {
+        public void handleError(final ErrorResultException error) {
             handleResult(error.getResult());
         }
 
@@ -500,7 +500,7 @@ final class LDAPServerFilter extends LDAPBaseFilter {
         }
 
         @Override
-        public void handleErrorResult(final ErrorResultException error) {
+        public void handleError(final ErrorResultException error) {
             final Result result = error.getResult();
             if (result instanceof ExtendedResult) {
                 handleResult((ExtendedResult) result);
@@ -540,7 +540,7 @@ final class LDAPServerFilter extends LDAPBaseFilter {
         }
 
         @Override
-        public void handleErrorResult(final ErrorResultException error) {
+        public void handleError(final ErrorResultException error) {
             handleResult(error.getResult());
         }
 
@@ -557,7 +557,7 @@ final class LDAPServerFilter extends LDAPBaseFilter {
         }
 
         @Override
-        public void handleErrorResult(final ErrorResultException error) {
+        public void handleError(final ErrorResultException error) {
             handleResult(error.getResult());
         }
 
@@ -586,7 +586,7 @@ final class LDAPServerFilter extends LDAPBaseFilter {
         }
 
         @Override
-        public void handleErrorResult(final ErrorResultException error) {
+        public void handleError(final ErrorResultException error) {
             handleResult(error.getResult());
         }
 
@@ -779,7 +779,7 @@ final class LDAPServerFilter extends LDAPBaseFilter {
             if (clientContext != null) {
                 final ServerConnection<Integer> conn = clientContext.getServerConnection();
                 final SearchHandler handler = new SearchHandler(clientContext, messageID);
-                conn.handleSearch(messageID, request, handler, handler);
+                conn.handleSearch(messageID, request, handler, handler, handler);
             }
         }
 

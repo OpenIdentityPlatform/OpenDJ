@@ -36,8 +36,9 @@ import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.schema.CoreSchema;
 
 import com.forgerock.opendj.util.Collections2;
-import com.forgerock.opendj.util.FutureResultTransformer;
+
 import org.forgerock.util.Reject;
+import org.forgerock.util.promise.Function;
 
 /**
  * The root DSE is a DSA-specific Entry (DSE) and not part of any naming context
@@ -151,21 +152,13 @@ public final class RootDSE {
      */
     public static FutureResult<RootDSE> readRootDSEAsync(final Connection connection,
             final ResultHandler<? super RootDSE> handler) {
-        final FutureResultTransformer<SearchResultEntry, RootDSE> future =
-                new FutureResultTransformer<SearchResultEntry, RootDSE>(handler) {
-
-                    @Override
-                    protected RootDSE transformResult(final SearchResultEntry result)
-                            throws ErrorResultException {
-                        return valueOf(result);
-                    }
-
-                };
-
-        final FutureResult<SearchResultEntry> innerFuture =
-                connection.searchSingleEntryAsync(SEARCH_REQUEST, future);
-        future.setFutureResult(innerFuture);
-        return future;
+        return FutureResultWrapper.asFutureResult(connection.searchSingleEntryAsync(SEARCH_REQUEST).then(
+            new Function<SearchResultEntry, RootDSE, ErrorResultException>() {
+                @Override
+                public RootDSE apply(SearchResultEntry result) {
+                    return valueOf(result);
+                }
+            }));
     }
 
     /**
@@ -422,7 +415,7 @@ public final class RootDSE {
 
     private <N> Collection<N> getMultiValuedAttribute(
             final AttributeDescription attributeDescription,
-            final Function<ByteString, N, Void> function) {
+        final org.forgerock.opendj.ldap.Function<ByteString, N, Void> function) {
         // The returned collection is unmodifiable because we may need to
         // return an empty collection if the attribute does not exist in the
         // underlying entry. If a value is then added to the returned empty
@@ -438,7 +431,7 @@ public final class RootDSE {
     }
 
     private <N> N getSingleValuedAttribute(final AttributeDescription attributeDescription,
-            final Function<ByteString, N, Void> function) {
+        final org.forgerock.opendj.ldap.Function<ByteString, N, Void> function) {
         final Attribute attr = entry.getAttribute(attributeDescription);
         if (attr == null || attr.isEmpty()) {
             return null;

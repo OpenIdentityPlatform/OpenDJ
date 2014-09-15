@@ -26,12 +26,6 @@
  */
 package org.forgerock.opendj.ldap;
 
-import static org.fest.assertions.Fail.fail;
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -42,12 +36,17 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.forgerock.util.promise.Promise;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.mockito.stubbing.OngoingStubbing;
 
-import com.forgerock.opendj.util.CompletedFutureResult;
 import com.forgerock.opendj.util.TimeSource;
+
+import static org.fest.assertions.Fail.*;
+import static org.forgerock.opendj.ldap.FutureResultWrapper.*;
+import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.*;
 
 /**
  * This class defines some utility functions which can be used by test cases.
@@ -164,30 +163,20 @@ public final class TestCaseUtils {
      *            The remaining connections to return.
      * @return The connection factory.
      */
-    @SuppressWarnings("unchecked")
-    public static ConnectionFactory mockConnectionFactory(final Connection first,
-            final Connection... remaining) {
+    public static ConnectionFactory mockConnectionFactory(final Connection first, final Connection... remaining) {
         final ConnectionFactory factory = mock(ConnectionFactory.class);
         try {
             when(factory.getConnection()).thenReturn(first, remaining);
         } catch (ErrorResultException ignored) {
             // Cannot happen.
         }
-        when(factory.getConnectionAsync(any(ResultHandler.class))).thenAnswer(
-                new Answer<FutureResult<Connection>>() {
-                    @Override
-                    public FutureResult<Connection> answer(final InvocationOnMock invocation)
-                            throws Throwable {
-                        final Connection connection = factory.getConnection();
-                        // Execute handler and return future.
-                        final ResultHandler<? super Connection> handler =
-                                (ResultHandler<? super Connection>) invocation.getArguments()[0];
-                        if (handler != null) {
-                            handler.handleResult(connection);
-                        }
-                        return new CompletedFutureResult<Connection>(connection);
-                    }
-                });
+        when(factory.getConnectionAsync()).thenAnswer(new Answer<Promise<Connection, ErrorResultException>>() {
+            @Override
+            public Promise<Connection, ErrorResultException> answer(final InvocationOnMock invocation)
+                    throws Throwable {
+                return newSuccessfulFutureResult(factory.getConnection());
+            }
+        });
         return factory;
     }
 

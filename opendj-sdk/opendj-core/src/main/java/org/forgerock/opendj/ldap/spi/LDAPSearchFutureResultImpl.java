@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS.
+ *      Portions copyright 2011-2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.spi;
@@ -64,13 +64,13 @@ public final class LDAPSearchFutureResultImpl extends AbstractLDAPFutureResultIm
      *            the connection to directory server
      */
     public LDAPSearchFutureResultImpl(final int requestID, final SearchRequest request,
-            final SearchResultHandler resultHandler,
-            final IntermediateResponseHandler intermediateResponseHandler,
-            final Connection connection) {
-        super(requestID, resultHandler, intermediateResponseHandler, connection);
+        final SearchResultHandler resultHandler, final IntermediateResponseHandler intermediateResponseHandler,
+        final Connection connection) {
+        super(requestID, intermediateResponseHandler, connection);
         this.request = request;
         this.searchResultHandler = resultHandler;
-        this.isPersistentSearch = request.containsControl(PersistentSearchRequestControl.OID)
+        this.isPersistentSearch =
+            request.containsControl(PersistentSearchRequestControl.OID)
                 || request.containsControl(ADNotificationRequestControl.OID);
     }
 

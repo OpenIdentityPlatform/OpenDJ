@@ -26,15 +26,12 @@
  */
 package org.forgerock.opendj.ldap;
 
-import static com.forgerock.opendj.util.StaticUtils.DEFAULT_SCHEDULER;
-import static com.forgerock.opendj.ldap.CoreMessages.*;
-import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
+
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -65,13 +62,19 @@ import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
 import org.forgerock.opendj.ldap.spi.ConnectionState;
 import org.forgerock.util.Reject;
+import org.forgerock.util.promise.AsyncFunction;
+import org.forgerock.util.promise.FailureHandler;
+import org.forgerock.util.promise.Function;
+import org.forgerock.util.promise.Promise;
+import org.forgerock.util.promise.SuccessHandler;
 
-import com.forgerock.opendj.util.AsynchronousFutureResult;
-import com.forgerock.opendj.util.CompletedFutureResult;
-import com.forgerock.opendj.util.FutureResultTransformer;
-import com.forgerock.opendj.util.RecursiveFutureResult;
 import com.forgerock.opendj.util.ReferenceCountedObject;
 import com.forgerock.opendj.util.TimeSource;
+
+import static org.forgerock.opendj.ldap.ErrorResultException.*;
+
+import static com.forgerock.opendj.ldap.CoreMessages.*;
+import static com.forgerock.opendj.util.StaticUtils.*;
 
 /**
  * An heart beat connection factory can be used to create connections that sends
@@ -109,122 +112,58 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
      * to a {@code ConnectionImpl} and registering it in the table of valid
      * connections.
      */
-    private final class ConnectionFutureResultImpl {
+    private final class ConnectionFutureResultImpl implements Runnable {
+        private Connection connection;
+        private Connection heartBeatConnection;
+        private ErrorResultException heartBeatError;
 
         /**
-         * This class handles the initial heart beat result notification or
-         * timeout. We need to take care to avoid processing multiple results,
-         * which may occur when the heart beat is timed out and a result follows
-         * soon after, or vice versa.
+         * Due to a potential race between the heart beat timing out and the
+         * heart beat completing this atomic ensures that notification only
+         * occurs once.
          */
-        private final class InitialHeartBeatResultHandler implements SearchResultHandler, Runnable {
-            private final ResultHandler<? super Result> handler;
+        private final AtomicBoolean isComplete = new AtomicBoolean();
 
-            /**
-             * Due to a potential race between the heart beat timing out and the
-             * heart beat completing this atomic ensures that notification only
-             * occurs once.
-             */
-            private final AtomicBoolean isComplete = new AtomicBoolean();
+        private final Function<Result, Connection, ErrorResultException> futureSearchSuccess;
+        private final Function<ErrorResultException, Connection, ErrorResultException> futureSearchError;
 
-            private InitialHeartBeatResultHandler(final ResultHandler<? super Result> handler) {
-                this.handler = handler;
-            }
-
-            @Override
-            public boolean handleEntry(final SearchResultEntry entry) {
-                /*
-                 * Depending on the configuration, a heartbeat may return some
-                 * entries. However, we can just ignore them.
-                 */
-                return true;
-            }
-
-            @Override
-            public void handleErrorResult(final ErrorResultException error) {
-                if (isComplete.compareAndSet(false, true)) {
-                    handler.handleErrorResult(error);
-                }
-            }
-
-            @Override
-            public boolean handleReference(final SearchResultReference reference) {
-                /*
-                 * Depending on the configuration, a heartbeat may return some
-                 * references. However, we can just ignore them.
-                 */
-                return true;
-            }
-
-            @Override
-            public void handleResult(final Result result) {
-                if (isComplete.compareAndSet(false, true)) {
-                    handler.handleResult(result);
-                }
-            }
-
-            /*
-             * Invoked by the scheduler when the heart beat times out.
-             */
-            @Override
-            public void run() {
-                handleErrorResult(newHeartBeatTimeoutError());
-            }
-        }
-
-        private Connection connection;
-        private final RecursiveFutureResult<Connection, Result> futureConnectionResult;
-        private final FutureResultTransformer<Result, Connection> futureSearchResult;
-
-        private ConnectionFutureResultImpl(final ResultHandler<? super Connection> handler) {
-            // Create a future which will handle the initial heart beat result.
-            this.futureSearchResult = new FutureResultTransformer<Result, Connection>(handler) {
+        private ConnectionFutureResultImpl() {
+            this.futureSearchSuccess = new Function<Result, Connection, ErrorResultException>() {
 
                 @Override
-                protected ErrorResultException transformErrorResult(
-                        final ErrorResultException errorResult) {
-                    // Ensure that the connection is closed.
-                    if (connection != null) {
-                        connection.close();
-                        connection = null;
+                public Connection apply(Result result) throws ErrorResultException {
+                    if (isComplete.compareAndSet(false, true)) {
+                        heartBeatConnection = adaptConnection(connection);
                     }
-                    releaseScheduler();
-                    return adaptHeartBeatError(errorResult);
-                }
 
-                @Override
-                protected Connection transformResult(final Result result)
-                        throws ErrorResultException {
-                    return adaptConnection(connection);
+                    return heartBeatConnection;
                 }
-
             };
 
-            // Create a future which will handle connection result.
-            this.futureConnectionResult =
-                    new RecursiveFutureResult<Connection, Result>(futureSearchResult) {
-                        @Override
-                        protected FutureResult<? extends Result> chainResult(
-                                final Connection innerResult,
-                                final ResultHandler<? super Result> handler)
-                                throws ErrorResultException {
-                            // Save the connection for later once the heart beat completes.
-                            connection = innerResult;
+            this.futureSearchError = new Function<ErrorResultException, Connection, ErrorResultException>() {
+                @Override
+                public Connection apply(ErrorResultException error) throws ErrorResultException {
+                    manageError(error);
+                    throw heartBeatError;
+                }
+            };
+        }
 
-                            /*
-                             * Send the initial heart beat and schedule a client
-                             * side timeout notification.
-                             */
-                            final InitialHeartBeatResultHandler wrappedHandler =
-                                    new InitialHeartBeatResultHandler(handler);
-                            scheduler.get().schedule(wrappedHandler, timeoutMS,
-                                    TimeUnit.MILLISECONDS);
-                            return connection.searchAsync(heartBeatRequest, null, wrappedHandler);
-                        }
-                    };
+        @Override
+        public void run() {
+            manageError(newHeartBeatTimeoutError());
+        }
 
-            // Link the two futures.
-            futureSearchResult.setFutureResult(futureConnectionResult);
+        private void manageError(ErrorResultException error) {
+            if (isComplete.compareAndSet(false, true)) {
+                // Ensure that the connection is closed.
+                if (connection != null) {
+                    connection.close();
+                    connection = null;
+                }
+                releaseScheduler();
+                heartBeatError = adaptHeartBeatError(error);
+            }
         }
 
     }
@@ -241,105 +180,38 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
          * completed requests are removed from the {@code pendingResults} queue,
          * as well as ensuring that requests are only completed once.
          */
-        private abstract class AbstractWrappedResultHandler<R, H extends ResultHandler<? super R>>
-                implements ResultHandler<R>, FutureResult<R> {
-            /** The user provided result handler. */
-            protected final H handler;
-
-            private final CountDownLatch completed = new CountDownLatch(1);
-            private ErrorResultException error;
-            private FutureResult<R> innerFuture;
-            private R result;
-
-            AbstractWrappedResultHandler(final H handler) {
-                this.handler = handler;
-            }
+        private abstract class AbstractWrappedResultHandler<R> implements ResultHandler<R> {
+            private final AtomicBoolean completed = new AtomicBoolean();
 
             @Override
-            public boolean cancel(final boolean mayInterruptIfRunning) {
-                return innerFuture.cancel(mayInterruptIfRunning);
-            }
-
-            @Override
-            public R get() throws ErrorResultException, InterruptedException {
-                completed.await();
-                return get0();
-            }
-
-            @Override
-            public R get(final long timeout, final TimeUnit unit) throws ErrorResultException,
-                    TimeoutException, InterruptedException {
-                if (completed.await(timeout, unit)) {
-                    return get0();
-                } else {
-                    throw new TimeoutException();
-                }
-            }
-
-            @Override
-            public int getRequestID() {
-                return innerFuture.getRequestID();
-            }
-
-            @Override
-            public void handleErrorResult(final ErrorResultException error) {
-                if (tryComplete(null, error)) {
-                    if (handler != null) {
-                        handler.handleErrorResult(timestamp(error));
-                    } else {
-                        timestamp(error);
-                    }
+            public void handleError(final ErrorResultException error) {
+                if (tryComplete()) {
+                    timestamp(error);
                 }
             }
 
             @Override
             public void handleResult(final R result) {
-                if (tryComplete(result, null)) {
-                    if (handler != null) {
-                        handler.handleResult(timestamp(result));
-                    } else {
-                        timestamp(result);
-                    }
+                if (tryComplete()) {
+                    timestamp(result);
                 }
             }
 
-            @Override
-            public boolean isCancelled() {
-                return innerFuture.isCancelled();
-            }
-
-            @Override
             public boolean isDone() {
-                return completed.getCount() == 0;
+                return completed.get();
             }
 
             abstract void releaseBindOrStartTLSLockIfNeeded();
-
-            FutureResult<R> setInnerFuture(final FutureResult<R> innerFuture) {
-                this.innerFuture = innerFuture;
-                return this;
-            }
-
-            private R get0() throws ErrorResultException {
-                if (result != null) {
-                    return result;
-                } else {
-                    throw error;
-                }
-            }
 
             /**
              * Attempts to complete this request, returning true if successful.
              * This method is synchronized in order to avoid race conditions
              * with search result processing.
              */
-            private synchronized boolean tryComplete(final R result,
-                    final ErrorResultException error) {
+            private synchronized boolean tryComplete() {
                 if (pendingResults.remove(this)) {
-                    this.result = result;
-                    this.error = error;
-                    completed.countDown();
                     releaseBindOrStartTLSLockIfNeeded();
+                    completed.set(true);
                     return true;
                 } else {
                     return false;
@@ -355,13 +227,8 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
          * @param <R>
          *            The type of result returned by the request.
          */
-        private abstract class DelayedFuture<R extends Result> extends
-                AsynchronousFutureResult<R, ResultHandler<? super R>> implements Runnable {
+        private abstract class DelayedFuture<R extends Result> extends FutureResultImpl<R> implements Runnable {
             private volatile FutureResult<R> innerFuture = null;
-
-            protected DelayedFuture(final ResultHandler<? super R> handler) {
-                super(handler);
-            }
 
             @Override
             public final int getRequestID() {
@@ -382,8 +249,7 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
             protected abstract FutureResult<R> dispatch();
 
             @Override
-            protected final ErrorResultException handleCancelRequest(
-                    final boolean mayInterruptIfRunning) {
+            protected final ErrorResultException tryCancel(final boolean mayInterruptIfRunning) {
                 if (innerFuture != null) {
                     innerFuture.cancel(mayInterruptIfRunning);
                 }
@@ -395,12 +261,7 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
          * A result handler wrapper for bind or startTLS requests which releases
          * the bind/startTLS lock on completion.
          */
-        private final class WrappedBindOrStartTLSResultHandler<R> extends
-                AbstractWrappedResultHandler<R, ResultHandler<? super R>> {
-            WrappedBindOrStartTLSResultHandler(final ResultHandler<? super R> handler) {
-                super(handler);
-            }
-
+        private final class WrappedBindOrStartTLSResultHandler<R> extends AbstractWrappedResultHandler<R> {
             @Override
             void releaseBindOrStartTLSLockIfNeeded() {
                 releaseBindOrStartTLSLock();
@@ -411,12 +272,7 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
          * A result handler wrapper for normal requests which does not release
          * the bind/startTLS lock on completion.
          */
-        private final class WrappedResultHandler<R> extends
-                AbstractWrappedResultHandler<R, ResultHandler<? super R>> {
-            WrappedResultHandler(final ResultHandler<? super R> handler) {
-                super(handler);
-            }
-
+        private final class WrappedResultHandler<R> extends AbstractWrappedResultHandler<R> {
             @Override
             void releaseBindOrStartTLSLockIfNeeded() {
                 // No-op for normal operations.
@@ -428,18 +284,19 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
          * results are not sent once the request has been completed (see
          * markComplete()).
          */
-        private final class WrappedSearchResultHandler extends
-                AbstractWrappedResultHandler<Result, SearchResultHandler> implements
+        private final class WrappedSearchResultHandler extends AbstractWrappedResultHandler<Result> implements
                 SearchResultHandler {
+            private final SearchResultHandler entryHandler;
+
             WrappedSearchResultHandler(final SearchResultHandler handler) {
-                super(handler);
+                this.entryHandler = handler;
             }
 
             @Override
             public synchronized boolean handleEntry(final SearchResultEntry entry) {
                 if (!isDone()) {
-                    if (handler != null) {
-                        handler.handleEntry(timestamp(entry));
+                    if (entryHandler != null) {
+                        entryHandler.handleEntry(timestamp(entry));
                     } else {
                         timestamp(entry);
                     }
@@ -452,8 +309,8 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
             @Override
             public synchronized boolean handleReference(final SearchResultReference reference) {
                 if (!isDone()) {
-                    if (handler != null) {
-                        handler.handleReference(timestamp(reference));
+                    if (entryHandler != null) {
+                        entryHandler.handleReference(timestamp(reference));
                     } else {
                         timestamp(reference);
                     }
@@ -475,43 +332,16 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
         /**
          * Search result handler for processing heart beat responses.
          */
-        private final SearchResultHandler heartBeatHandler = new SearchResultHandler() {
+        private final SearchResultHandler heartBeatEntryHandler = new SearchResultHandler() {
             @Override
             public boolean handleEntry(final SearchResultEntry entry) {
                 timestamp(entry);
                 return true;
             }
-
-            @Override
-            public void handleErrorResult(final ErrorResultException error) {
-                /*
-                 * Connection failure will be handled by connection event
-                 * listener. Ignore cancellation errors since these indicate
-                 * that the heart beat was aborted by a client-side close.
-                 */
-                if (!(error instanceof CancelledResultException)) {
-                    /*
-                     * Log at debug level to avoid polluting the logs with
-                     * benign password policy related errors. See OPENDJ-1168
-                     * and OPENDJ-1167.
-                     */
-                    logger.debug(LocalizableMessage.raw("Heartbeat failed for connection factory '%s'", factory,
-                            error));
-                    timestamp(error);
-                }
-                releaseHeartBeatLock();
-            }
-
             @Override
             public boolean handleReference(final SearchResultReference reference) {
                 timestamp(reference);
                 return true;
-            }
-
-            @Override
-            public void handleResult(final Result result) {
-                timestamp(result);
-                releaseHeartBeatLock();
             }
         };
 
@@ -527,8 +357,8 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
          * signalled if no heart beat is detected within the permitted timeout
          * period.
          */
-        private final Queue<AbstractWrappedResultHandler<?, ?>> pendingResults =
-                new ConcurrentLinkedQueue<AbstractWrappedResultHandler<?, ?>>();
+        private final Queue<AbstractWrappedResultHandler<?>> pendingResults =
+                new ConcurrentLinkedQueue<AbstractWrappedResultHandler<?>>();
 
         /** Internal connection state. */
         private final ConnectionState state = new ConnectionState();
@@ -554,11 +384,9 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
 
         @Override
         public FutureResult<Result> addAsync(final AddRequest request,
-                final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<? super Result> resultHandler) {
-            if (checkState(resultHandler)) {
-                final WrappedResultHandler<Result> h = wrap(resultHandler);
-                return checkState(connection.addAsync(request, intermediateResponseHandler, h), h);
+                final IntermediateResponseHandler intermediateResponseHandler) {
+            if (checkState()) {
+                return then(connection.addAsync(request, intermediateResponseHandler), createResultHandler());
             } else {
                 return newConnectionErrorFuture();
             }
@@ -571,31 +399,24 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
 
         @Override
         public FutureResult<BindResult> bindAsync(final BindRequest request,
-                final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<? super BindResult> resultHandler) {
-            if (checkState(resultHandler)) {
+                final IntermediateResponseHandler intermediateResponseHandler) {
+            if (checkState()) {
                 if (sync.tryLockShared()) {
                     // Fast path
-                    final WrappedBindOrStartTLSResultHandler<BindResult> h =
-                            wrapForBindOrStartTLS(resultHandler);
-                    return checkState(
-                            connection.bindAsync(request, intermediateResponseHandler, h), h);
+                    return then(connection.bindAsync(request, intermediateResponseHandler), wrapForBindOrStartTLS());
                 } else {
                     /*
                      * A heart beat must be in progress so create a runnable
                      * task which will be executed when the heart beat
                      * completes.
                      */
-                    final DelayedFuture<BindResult> future =
-                            new DelayedFuture<BindResult>(resultHandler) {
-                                @Override
-                                public FutureResult<BindResult> dispatch() {
-                                    final WrappedBindOrStartTLSResultHandler<BindResult> h =
-                                            wrapForBindOrStartTLS(this);
-                                    return checkState(connection.bindAsync(request,
-                                            intermediateResponseHandler, h), h);
-                                }
-                            };
+                    final DelayedFuture<BindResult> future = new DelayedFuture<BindResult>() {
+                        @Override
+                        public FutureResult<BindResult> dispatch() {
+                            return HeartBeatConnectionFactory.this.then(
+                                connection.bindAsync(request, intermediateResponseHandler), wrapForBindOrStartTLS());
+                        }
+                    };
                     /*
                      * Enqueue and flush if the heart beat has completed in the
                      * mean time.
@@ -623,12 +444,9 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
 
         @Override
         public FutureResult<CompareResult> compareAsync(final CompareRequest request,
-                final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<? super CompareResult> resultHandler) {
-            if (checkState(resultHandler)) {
-                final WrappedResultHandler<CompareResult> h = wrap(resultHandler);
-                return checkState(connection.compareAsync(request, intermediateResponseHandler, h),
-                        h);
+                final IntermediateResponseHandler intermediateResponseHandler) {
+            if (checkState()) {
+                return then(connection.compareAsync(request, intermediateResponseHandler), createResultHandler());
             } else {
                 return newConnectionErrorFuture();
             }
@@ -636,43 +454,35 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
 
         @Override
         public FutureResult<Result> deleteAsync(final DeleteRequest request,
-                final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<? super Result> resultHandler) {
-            if (checkState(resultHandler)) {
-                final WrappedResultHandler<Result> h = wrap(resultHandler);
-                return checkState(connection.deleteAsync(request, intermediateResponseHandler, h),
-                        h);
+                final IntermediateResponseHandler intermediateResponseHandler) {
+            if (checkState()) {
+                return then(connection.deleteAsync(request, intermediateResponseHandler), createResultHandler());
             } else {
                 return newConnectionErrorFuture();
             }
         }
 
         @Override
-        public <R extends ExtendedResult> FutureResult<R> extendedRequestAsync(
-                final ExtendedRequest<R> request,
-                final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<? super R> resultHandler) {
-            if (checkState(resultHandler)) {
+        public <R extends ExtendedResult> FutureResult<R> extendedRequestAsync(final ExtendedRequest<R> request,
+                final IntermediateResponseHandler intermediateResponseHandler) {
+            if (checkState()) {
                 if (isStartTLSRequest(request)) {
                     if (sync.tryLockShared()) {
                         // Fast path
-                        final WrappedBindOrStartTLSResultHandler<R> h =
-                                wrapForBindOrStartTLS(resultHandler);
-                        return checkState(connection.extendedRequestAsync(request,
-                                intermediateResponseHandler, h), h);
+                        return then(connection.extendedRequestAsync(request, intermediateResponseHandler),
+                                wrapForBindOrStartTLS());
                     } else {
                         /*
                          * A heart beat must be in progress so create a runnable
                          * task which will be executed when the heart beat
                          * completes.
                          */
-                        final DelayedFuture<R> future = new DelayedFuture<R>(resultHandler) {
+                        final DelayedFuture<R> future = new DelayedFuture<R>() {
                             @Override
                             public FutureResult<R> dispatch() {
-                                final WrappedBindOrStartTLSResultHandler<R> h =
-                                        wrapForBindOrStartTLS(this);
-                                return checkState(connection.extendedRequestAsync(request,
-                                        intermediateResponseHandler, h), h);
+                                return HeartBeatConnectionFactory.this.then(
+                                        connection.extendedRequestAsync(request, intermediateResponseHandler),
+                                        wrapForBindOrStartTLS());
                             }
                         };
 
@@ -685,9 +495,8 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
                         return future;
                     }
                 } else {
-                    final WrappedResultHandler<R> h = wrap(resultHandler);
-                    return checkState(connection.extendedRequestAsync(request,
-                            intermediateResponseHandler, h), h);
+                    return then(connection.extendedRequestAsync(request, intermediateResponseHandler),
+                            createResultHandler());
                 }
             } else {
                 return newConnectionErrorFuture();
@@ -740,12 +549,9 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
 
         @Override
         public FutureResult<Result> modifyAsync(final ModifyRequest request,
-                final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<? super Result> resultHandler) {
-            if (checkState(resultHandler)) {
-                final WrappedResultHandler<Result> h = wrap(resultHandler);
-                return checkState(connection.modifyAsync(request, intermediateResponseHandler, h),
-                        h);
+                final IntermediateResponseHandler intermediateResponseHandler) {
+            if (checkState()) {
+                return then(connection.modifyAsync(request, intermediateResponseHandler), createResultHandler());
             } else {
                 return newConnectionErrorFuture();
             }
@@ -753,12 +559,9 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
 
         @Override
         public FutureResult<Result> modifyDNAsync(final ModifyDNRequest request,
-                final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<? super Result> resultHandler) {
-            if (checkState(resultHandler)) {
-                final WrappedResultHandler<Result> h = wrap(resultHandler);
-                return checkState(
-                        connection.modifyDNAsync(request, intermediateResponseHandler, h), h);
+                final IntermediateResponseHandler intermediateResponseHandler) {
+            if (checkState()) {
+                return then(connection.modifyDNAsync(request, intermediateResponseHandler), createResultHandler());
             } else {
                 return newConnectionErrorFuture();
             }
@@ -772,11 +575,11 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
         @Override
         public FutureResult<Result> searchAsync(final SearchRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
-                final SearchResultHandler resultHandler) {
-            if (checkState(resultHandler)) {
-                final WrappedSearchResultHandler h = wrap(resultHandler);
-                return checkState(connection.searchAsync(request, intermediateResponseHandler, h),
-                        h);
+                final SearchResultHandler searchHandler) {
+            if (checkState()) {
+                final WrappedSearchResultHandler entryHandler = wrap(searchHandler);
+                return then(connection.searchAsync(request, intermediateResponseHandler, entryHandler),
+                        createResultHandler());
             } else {
                 return newConnectionErrorFuture();
             }
@@ -809,23 +612,8 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
             }
         }
 
-        private <R> FutureResult<R> checkState(final FutureResult<R> future,
-                final AbstractWrappedResultHandler<R, ? extends ResultHandler<? super R>> h) {
-            h.setInnerFuture(future);
-            checkState(h);
-            return h;
-        }
-
-        private boolean checkState(final ResultHandler<?> h) {
-            final ErrorResultException error = state.getConnectionError();
-            if (error != null) {
-                if (h != null) {
-                    h.handleErrorResult(error);
-                }
-                return false;
-            } else {
-                return true;
-            }
+        private boolean checkState() {
+            return state.getConnectionError() == null;
         }
 
         private void failPendingResults(final ErrorResultException error) {
@@ -833,9 +621,9 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
              * Peek instead of pool because notification is responsible for
              * removing the element from the queue.
              */
-            AbstractWrappedResultHandler<?, ?> pendingResult;
+            AbstractWrappedResultHandler<?> pendingResult;
             while ((pendingResult = pendingResults.peek()) != null) {
-                pendingResult.handleErrorResult(error);
+                pendingResult.handleError(error);
             }
         }
 
@@ -864,8 +652,8 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
             return request.getOID().equals(StartTLSExtendedRequest.OID);
         }
 
-        private <R> CompletedFutureResult<R> newConnectionErrorFuture() {
-            return new CompletedFutureResult<R>(state.getConnectionError());
+        private <R> FutureResult<R> newConnectionErrorFuture() {
+            return FutureResultWrapper.newFailedFutureResult(state.getConnectionError());
         }
 
         private void releaseBindOrStartTLSLock() {
@@ -908,7 +696,39 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
              */
             if (sync.tryLockExclusively()) {
                 try {
-                    connection.searchAsync(heartBeatRequest, null, heartBeatHandler);
+                    FutureResult<Result> future = connection.searchAsync(heartBeatRequest, heartBeatEntryHandler);
+                    if (future != null) {
+                        future.onSuccess(new SuccessHandler<Result>() {
+                            @Override
+                            public void handleResult(Result result) {
+                                timestamp(result);
+                                releaseHeartBeatLock();
+                            }
+                        }).onFailure(new FailureHandler<ErrorResultException>() {
+                            @Override
+                            public void handleError(ErrorResultException error) {
+                                /*
+                                 * Connection failure will be handled by
+                                 * connection event listener. Ignore
+                                 * cancellation errors since these indicate that
+                                 * the heart beat was aborted by a client-side
+                                 * close.
+                                 */
+                                if (!(error instanceof CancelledResultException)) {
+                                    /*
+                                     * Log at debug level to avoid polluting the
+                                     * logs with benign password policy related
+                                     * errors. See OPENDJ-1168 and OPENDJ-1167.
+                                     */
+                                    logger.debug(LocalizableMessage.raw("Heartbeat failed for connection factory '%s'",
+                                            factory, error));
+                                    timestamp(error);
+                                }
+                                releaseHeartBeatLock();
+
+                            }
+                        });
+                    }
                 } catch (final IllegalStateException e) {
                     /*
                      * This may happen when we attempt to send the heart beat
@@ -938,8 +758,8 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
             return response;
         }
 
-        private <R> WrappedResultHandler<R> wrap(final ResultHandler<? super R> handler) {
-            final WrappedResultHandler<R> h = new WrappedResultHandler<R>(handler);
+        private <R> WrappedResultHandler<R> createResultHandler() {
+            final WrappedResultHandler<R> h = new WrappedResultHandler<R>();
             pendingResults.add(h);
             return h;
         }
@@ -950,10 +770,8 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
             return h;
         }
 
-        private <R> WrappedBindOrStartTLSResultHandler<R> wrapForBindOrStartTLS(
-                final ResultHandler<? super R> handler) {
-            final WrappedBindOrStartTLSResultHandler<R> h =
-                    new WrappedBindOrStartTLSResultHandler<R>(handler);
+        private <R> WrappedBindOrStartTLSResultHandler<R> wrapForBindOrStartTLS() {
+            final WrappedBindOrStartTLSResultHandler<R> h = new WrappedBindOrStartTLSResultHandler<R>();
             pendingResults.add(h);
             return h;
         }
@@ -1241,7 +1059,7 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
         try {
             final Connection connection = factory.getConnection();
             try {
-                connection.searchAsync(heartBeatRequest, null, null).get(timeoutMS,
+                connection.searchAsync(heartBeatRequest, null).getOrThrow(timeoutMS,
                         TimeUnit.MILLISECONDS);
                 succeeded = true;
                 return adaptConnection(connection);
@@ -1260,22 +1078,24 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
     }
 
     @Override
-    public FutureResult<Connection> getConnectionAsync(
-            final ResultHandler<? super Connection> handler) {
+    public Promise<Connection, ErrorResultException> getConnectionAsync() {
         acquireScheduler(); // Protect scheduler.
 
-        // Create a future responsible for chaining the initial heartbeat search.
-        final ConnectionFutureResultImpl compositeFuture = new ConnectionFutureResultImpl(handler);
+        // Create a future responsible for chaining the initial heartbeat
+        // search.
+        final ConnectionFutureResultImpl compositeFuture = new ConnectionFutureResultImpl();
 
-        // Request a connection.
-        final FutureResult<Connection> connectionFuture =
-                factory.getConnectionAsync(compositeFuture.futureConnectionResult);
-
-        // Set the connection future in the composite so that the returned search future can delegate.
-        compositeFuture.futureConnectionResult.setFutureResult(connectionFuture);
-
-        // Return the future representing the heartbeat.
-        return compositeFuture.futureSearchResult;
+        // Request a connection and return the future representing the
+        // heartbeat.
+        return factory.getConnectionAsync().thenAsync(new AsyncFunction<Connection, Result, ErrorResultException>() {
+            @Override
+            public Promise<Result, ErrorResultException> apply(final Connection connectionResult) {
+                // Save the connection for later once the heart beat completes.
+                compositeFuture.connection = connectionResult;
+                scheduler.get().schedule(compositeFuture, timeoutMS, TimeUnit.MILLISECONDS);
+                return connectionResult.searchAsync(heartBeatRequest, null);
+            }
+        }).then(compositeFuture.futureSearchSuccess, compositeFuture.futureSearchError);
     }
 
     @Override
@@ -1299,6 +1119,11 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
             validConnections.add(heartBeatConnection);
             return heartBeatConnection;
         }
+    }
+
+    private <R extends Result> FutureResult<R> then(FutureResult<R> future,
+            ResultHandler<? super Object> resultHandler) {
+        return (FutureResult<R>) future.onSuccess(resultHandler).onFailure(resultHandler);
     }
 
     private ErrorResultException adaptHeartBeatError(final Exception error) {

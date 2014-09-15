@@ -26,7 +26,19 @@
 package org.forgerock.opendj.ldap.schema;
 
 import static org.fest.assertions.Assertions.assertThat;
+import static org.forgerock.util.promise.Promises.*;
+import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.*;
 
+import org.forgerock.opendj.ldap.Connection;
+import org.forgerock.opendj.ldap.DN;
+import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.FutureResult;
+import org.forgerock.opendj.ldap.FutureResultWrapper;
+import org.forgerock.opendj.ldap.requests.SearchRequest;
+import org.forgerock.opendj.ldap.responses.Responses;
+import org.forgerock.opendj.ldap.responses.SearchResultEntry;
+import org.forgerock.util.promise.Promise;
 import org.testng.annotations.Test;
 
 /**
@@ -50,4 +62,54 @@ public class SchemaTestCase extends AbstractSchemaTestCase {
         final Schema strictSchema2 = schema.asStrictSchema().asNonStrictSchema().asStrictSchema();
         assertThat(strictSchema1).isSameAs(strictSchema2);
     }
+
+    /**
+     * Asynchronously retrieving a simple schema.
+     *
+     * @throws Exception
+     */
+    @Test()
+    public final void testReadSchemaAsyncMethodsMockConnection() throws Exception {
+        Connection connection = mock(Connection.class);
+
+        // @formatter:off
+        final String[] entry = {
+            "# Search result entry: uid=bjensen,ou=People,dc=example,dc=com",
+            "dn: uid=bjensen,ou=People,dc=example,dc=com",
+            "subschemaSubentry: cn=schema",
+            "entryDN: uid=bjensen,ou=people,dc=example,dc=com",
+            "entryUUID: fc252fd9-b982-3ed6-b42a-c76d2546312c"
+            // N.B : also works with previous example but needs the subschemaSubentry line.
+        };
+
+        // Send a search entry result promise :
+        Promise<SearchResultEntry, ErrorResultException> promise =
+                newSuccessfulPromise(Responses.newSearchResultEntry(entry));
+        FutureResult<SearchResultEntry> result = FutureResultWrapper.asFutureResult(promise);
+        when(connection.searchSingleEntryAsync((SearchRequest) any())).thenReturn(result);
+        DN testDN = DN.valueOf("uid=bjensen,ou=People,dc=example,dc=com");
+        // @formatter:on
+        Schema[] schemas = new Schema[] {
+                Schema.readSchemaAsync(connection, testDN).getOrThrow(),
+                Schema.readSchemaForEntryAsync(connection, testDN).getOrThrow()
+        };
+
+        // We retrieve the schemas :
+        for (Schema sc : schemas) {
+            assertThat(sc.getSyntaxes()).isNotNull();
+            assertThat(sc.getAttributeTypes()).isNotNull();
+            assertThat(sc.getObjectClasses()).isNotNull();
+            assertThat(sc.getMatchingRuleUses()).isNotNull();
+            assertThat(sc.getMatchingRuleUses()).isEmpty();
+            assertThat(sc.getMatchingRules()).isNotNull();
+            assertThat(sc.getDITContentRules()).isNotNull();
+            assertThat(sc.getDITContentRules()).isEmpty();
+            assertThat(sc.getDITStuctureRules()).isNotNull();
+            assertThat(sc.getDITStuctureRules()).isEmpty();
+            assertThat(sc.getNameForms()).isNotNull();
+            assertThat(sc.getNameForms()).isEmpty();
+        }
+        connection.close();
+    }
+
 }

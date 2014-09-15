@@ -27,8 +27,6 @@
 
 package org.forgerock.opendj.ldap;
 
-import static org.forgerock.opendj.ldap.TestCaseUtils.findFreeSocketAddress;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.HashMap;
@@ -78,6 +76,8 @@ import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import com.forgerock.opendj.ldap.controls.AccountUsabilityRequestControl;
 import com.forgerock.opendj.ldap.controls.AccountUsabilityResponseControl;
 
+import static org.forgerock.opendj.ldap.TestCaseUtils.*;
+
 /**
  * A simple ldap server that manages 1000 entries and used for running
  * testcases.
@@ -100,19 +100,23 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
             this.isCanceled = new AtomicBoolean(false);
         }
 
+        @Override
         public Request addControl(final Control cntrl) {
             return request.addControl(cntrl);
         }
 
+        @Override
         public boolean containsControl(final String oid) {
             return request.containsControl(oid);
         }
 
+        @Override
         public <C extends Control> C getControl(final ControlDecoder<C> decoder,
                 final DecodeOptions options) throws DecodeException {
             return request.getControl(decoder, options);
         }
 
+        @Override
         public List<Control> getControls() {
             return request.getControls();
         }
@@ -147,6 +151,7 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
             this.clientContext = clientContext;
         }
 
+        @Override
         public void handleAbandon(final Integer context, final AbandonRequest request)
                 throws UnsupportedOperationException {
             // Check if we have any concurrent operation with this message id.
@@ -160,6 +165,7 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
             // No response is needed.
         }
 
+        @Override
         public void handleAdd(final Integer context, final AddRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
                 final ResultHandler<Result> handler) throws UnsupportedOperationException {
@@ -172,7 +178,7 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
                 // duplicate entry.
                 result = Responses.newResult(ResultCode.ENTRY_ALREADY_EXISTS);
                 final ErrorResultException ere = ErrorResultException.newErrorResult(result);
-                handler.handleErrorResult(ere);
+                handler.handleError(ere);
                 // doesn't matter if it was canceled.
                 requestsInProgress.remove(context);
                 return;
@@ -191,7 +197,7 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
             if (abReq.isCanceled()) {
                 result = Responses.newResult(ResultCode.CANCELLED);
                 final ErrorResultException ere = ErrorResultException.newErrorResult(result);
-                handler.handleErrorResult(ere);
+                handler.handleError(ere);
                 requestsInProgress.remove(context);
                 return;
             }
@@ -202,6 +208,7 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
             handler.handleResult(result);
         }
 
+        @Override
         public void handleBind(final Integer context, final int version, final BindRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
                 final ResultHandler<BindResult> resultHandler) throws UnsupportedOperationException {
@@ -229,6 +236,7 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
                                 Sasl.createSaslServer(saslMech, "ldap",
                                         listener.getHostName(), props,
                                         new CallbackHandler() {
+                                            @Override
                                             public void handle(Callback[] callbacks)
                                                     throws IOException,
                                                     UnsupportedCallbackException {
@@ -264,6 +272,7 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
                                 && (qop.equalsIgnoreCase("auth-int") || qop
                                         .equalsIgnoreCase("auth-conf"))) {
                             ConnectionSecurityLayer csl = new ConnectionSecurityLayer() {
+                                @Override
                                 public void dispose() {
                                     try {
                                         saslServer.dispose();
@@ -272,6 +281,7 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
                                     }
                                 }
 
+                                @Override
                                 public byte[] unwrap(byte[] incoming, int offset, int len)
                                         throws ErrorResultException {
                                     try {
@@ -283,6 +293,7 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
                                     }
                                 }
 
+                                @Override
                                 public byte[] wrap(byte[] outgoing, int offset, int len)
                                         throws ErrorResultException {
                                     try {
@@ -304,7 +315,7 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
                                 ByteString.wrap(challenge)));
                     }
                 } catch (Exception e) {
-                    resultHandler.handleErrorResult(ErrorResultException.newErrorResult(Responses
+                    resultHandler.handleError(ErrorResultException.newErrorResult(Responses
                             .newBindResult(ResultCode.OPERATIONS_ERROR).setCause(e)
                             .setDiagnosticMessage(e.toString())));
                 }
@@ -314,6 +325,7 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
             requestsInProgress.remove(context);
         }
 
+        @Override
         public void handleConnectionClosed(final Integer context, final UnbindRequest request) {
             close();
         }
@@ -328,14 +340,17 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
             }
         }
 
+        @Override
         public void handleConnectionDisconnected(ResultCode resultCode, String message) {
             close();
         }
 
+        @Override
         public void handleConnectionError(final Throwable error) {
             close();
         }
 
+        @Override
         public void handleCompare(final Integer context, final CompareRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
                 final ResultHandler<CompareResult> resultHandler)
@@ -349,7 +364,7 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
                 // entry not found.
                 result = Responses.newCompareResult(ResultCode.NO_SUCH_ATTRIBUTE);
                 final ErrorResultException ere = ErrorResultException.newErrorResult(result);
-                resultHandler.handleErrorResult(ere);
+                resultHandler.handleError(ere);
                 // doesn't matter if it was canceled.
                 requestsInProgress.remove(context);
                 return;
@@ -365,7 +380,7 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
                     if (abReq.isCanceled()) {
                         final Result r = Responses.newResult(ResultCode.CANCELLED);
                         final ErrorResultException ere = ErrorResultException.newErrorResult(r);
-                        resultHandler.handleErrorResult(ere);
+                        resultHandler.handleError(ere);
                         requestsInProgress.remove(context);
                         return;
                     }
@@ -382,6 +397,7 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
             requestsInProgress.remove(context);
         }
 
+        @Override
         public void handleDelete(final Integer context, final DeleteRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
                 final ResultHandler<Result> handler) throws UnsupportedOperationException {
@@ -394,7 +410,7 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
                 // entry is not found.
                 result = Responses.newResult(ResultCode.NO_SUCH_OBJECT);
                 final ErrorResultException ere = ErrorResultException.newErrorResult(result);
-                handler.handleErrorResult(ere);
+                handler.handleError(ere);
                 // doesn't matter if it was canceled.
                 requestsInProgress.remove(context);
                 return;
@@ -403,7 +419,7 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
             if (abReq.isCanceled()) {
                 result = Responses.newResult(ResultCode.CANCELLED);
                 final ErrorResultException ere = ErrorResultException.newErrorResult(result);
-                handler.handleErrorResult(ere);
+                handler.handleError(ere);
                 requestsInProgress.remove(context);
                 return;
             }
@@ -414,6 +430,7 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
             handler.handleResult(result);
         }
 
+        @Override
         public <R extends ExtendedResult> void handleExtendedRequest(final Integer context,
                 final ExtendedRequest<R> request,
                 final IntermediateResponseHandler intermediateResponseHandler,
@@ -428,21 +445,24 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
             }
         }
 
+        @Override
         public void handleModify(final Integer context, final ModifyRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
                 final ResultHandler<Result> resultHandler) throws UnsupportedOperationException {
             // TODO:
         }
 
+        @Override
         public void handleModifyDN(final Integer context, final ModifyDNRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
                 final ResultHandler<Result> resultHandler) throws UnsupportedOperationException {
             // TODO
         }
 
+        @Override
         public void handleSearch(final Integer context, final SearchRequest request,
-                final IntermediateResponseHandler intermediateResponseHandler,
-                final SearchResultHandler resultHandler) throws UnsupportedOperationException {
+            final IntermediateResponseHandler intermediateResponseHandler, final SearchResultHandler entryHandler,
+            final ResultHandler<Result> resultHandler) throws UnsupportedOperationException {
             Result result = null;
             final AbandonableRequest abReq = new AbandonableRequest(request);
             requestsInProgress.put(context, abReq);
@@ -452,7 +472,7 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
                 // Entry not found.
                 result = Responses.newResult(ResultCode.NO_SUCH_OBJECT);
                 final ErrorResultException ere = ErrorResultException.newErrorResult(result);
-                resultHandler.handleErrorResult(ere);
+                resultHandler.handleError(ere);
                 // Should searchResultHandler handle anything?
 
                 // doesn't matter if it was canceled.
@@ -463,21 +483,19 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
             if (abReq.isCanceled()) {
                 result = Responses.newResult(ResultCode.CANCELLED);
                 final ErrorResultException ere = ErrorResultException.newErrorResult(result);
-                resultHandler.handleErrorResult(ere);
+                resultHandler.handleError(ere);
                 requestsInProgress.remove(context);
                 return;
             }
 
-            final SearchResultEntry e =
-                    Responses.newSearchResultEntry(new LinkedHashMapEntry(entryMap.get(dn)));
+            final SearchResultEntry e = Responses.newSearchResultEntry(new LinkedHashMapEntry(entryMap.get(dn)));
             // Check we have had any controls in the request.
             for (final Control control : request.getControls()) {
                 if (control.getOID().equals(AccountUsabilityRequestControl.OID)) {
-                    e.addControl(AccountUsabilityResponseControl.newControl(false, false, false,
-                            10, false, 0));
+                    e.addControl(AccountUsabilityResponseControl.newControl(false, false, false, 10, false, 0));
                 }
             }
-            resultHandler.handleEntry(e);
+            entryHandler.handleEntry(e);
             result = Responses.newResult(ResultCode.SUCCESS);
             resultHandler.handleResult(result);
             requestsInProgress.remove(context);
@@ -521,6 +539,7 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
         }
     }
 
+    @Override
     public ServerConnection<Integer> handleAccept(final LDAPClientContext context) {
         return new LDAPServerConnection(context);
     }

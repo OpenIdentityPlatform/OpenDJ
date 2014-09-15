@@ -37,6 +37,7 @@ import java.util.concurrent.TimeUnit;
 import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.util.Reject;
+import org.forgerock.util.promise.Promise;
 
 /**
  * This class contains methods for creating and manipulating connection
@@ -547,9 +548,8 @@ public final class Connections {
             }
 
             @Override
-            public FutureResult<Connection> getConnectionAsync(
-                    final ResultHandler<? super Connection> handler) {
-                return factory.getConnectionAsync(handler);
+            public Promise<Connection, ErrorResultException> getConnectionAsync() {
+                return factory.getConnectionAsync();
             }
 
             @Override
@@ -642,6 +642,7 @@ public final class Connections {
                 // Do nothing.
             }
 
+            @Override
             public void close(org.forgerock.opendj.ldap.requests.UnbindRequest request,
                     String reason) {
                 // Do nothing.
@@ -662,9 +663,8 @@ public final class Connections {
         return new ConnectionFactory() {
 
             @Override
-            public FutureResult<Connection> getConnectionAsync(
-                    ResultHandler<? super Connection> handler) {
-                return factory.getConnectionAsync(handler);
+            public Promise<Connection, ErrorResultException> getConnectionAsync() {
+                return factory.getConnectionAsync();
             }
 
             @Override

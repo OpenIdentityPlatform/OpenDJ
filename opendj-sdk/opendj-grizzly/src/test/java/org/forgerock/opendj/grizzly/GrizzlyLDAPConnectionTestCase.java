@@ -49,6 +49,7 @@ import org.forgerock.opendj.ldap.TimeoutResultException;
 import org.forgerock.opendj.ldap.controls.PersistentSearchRequestControl;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
+import org.forgerock.util.promise.FailureHandler;
 import org.mockito.ArgumentCaptor;
 import org.testng.annotations.Test;
 
@@ -100,17 +101,19 @@ public class GrizzlyLDAPConnectionTestCase extends SdkTestCase {
             if (isPersistentSearch) {
                 request.addControl(PersistentSearchRequestControl.newControl(true, true, true));
             }
-            SearchResultHandler handler = mock(SearchResultHandler.class);
-            connection.searchAsync(request, null, handler);
+            SearchResultHandler searchHandler = mock(SearchResultHandler.class);
+            @SuppressWarnings("unchecked")
+            FailureHandler<ErrorResultException> failureHandler = mock(FailureHandler.class);
+            connection.searchAsync(request, searchHandler).onFailure(failureHandler);
 
             // Pass in a time which is guaranteed to trigger expiration.
             connection.handleTimeout(System.currentTimeMillis() + 1000000);
             if (isPersistentSearch) {
-                verifyZeroInteractions(handler);
+                verifyZeroInteractions(searchHandler);
             } else {
                 ArgumentCaptor<ErrorResultException> arg =
                         ArgumentCaptor.forClass(ErrorResultException.class);
-                verify(handler).handleErrorResult(arg.capture());
+                verify(failureHandler).handleError(arg.capture());
                 assertThat(arg.getValue()).isInstanceOf(TimeoutResultException.class);
                 assertThat(arg.getValue().getResult().getResultCode()).isEqualTo(
                         ResultCode.CLIENT_SIDE_TIMEOUT);

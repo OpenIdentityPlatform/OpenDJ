@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS.
+ *      Copyright 2013-2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -33,7 +33,14 @@ import java.util.logging.Level;
 
 import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
+import org.forgerock.opendj.ldap.responses.BindResult;
+import org.forgerock.opendj.ldap.responses.Responses;
 import org.forgerock.opendj.ldap.responses.Result;
+import org.forgerock.util.promise.FailureHandler;
+import org.forgerock.util.promise.NeverThrowsException;
+import org.forgerock.util.promise.Promise;
+import org.forgerock.util.promise.PromiseImpl;
+import org.forgerock.util.promise.SuccessHandler;
 import org.mockito.ArgumentCaptor;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
@@ -42,11 +49,10 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import com.forgerock.opendj.util.CompletedFutureResult;
-
 import static org.fest.assertions.Assertions.*;
 import static org.fest.assertions.Fail.*;
 import static org.forgerock.opendj.ldap.ErrorResultException.*;
+import static org.forgerock.opendj.ldap.FutureResultWrapper.*;
 import static org.forgerock.opendj.ldap.SearchScope.*;
 import static org.forgerock.opendj.ldap.TestCaseUtils.*;
 import static org.forgerock.opendj.ldap.requests.Requests.*;
@@ -125,43 +131,34 @@ public class HeartBeatConnectionFactoryTestCase extends SdkTestCase {
         }
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void testBindWhileHeartBeatInProgress() throws Exception {
         mockConnectionWithInitialHeartbeatResult(ResultCode.SUCCESS);
-
+        mockBindAsyncResponse();
         hbc = hbcf.getConnection();
 
         /*
          * Send a heartbeat, trapping the search call-back so that we can send
          * the response once we have attempted a bind.
          */
-        when(
-                connection.searchAsync(any(SearchRequest.class),
-                        any(IntermediateResponseHandler.class), any(SearchResultHandler.class)))
-                .thenReturn(null);
+        when(connection.searchAsync(any(SearchRequest.class), any(SearchResultHandler.class))).thenReturn(
+            FutureResultWrapper.newSuccessfulFutureResult(Responses.newResult(ResultCode.SUCCESS)));
         when(hbcf.timeSource.currentTimeMillis()).thenReturn(11000L);
         scheduler.runAllTasks(); // Send the heartbeat.
 
         // Capture the heartbeat search result handler.
-        final ArgumentCaptor<SearchResultHandler> arg =
-                ArgumentCaptor.forClass(SearchResultHandler.class);
-        verify(connection, times(2)).searchAsync(same(HEARTBEAT),
-                any(IntermediateResponseHandler.class), arg.capture());
+        verify(connection, times(2)).searchAsync(same(HEARTBEAT), any(SearchResultHandler.class));
         assertThat(hbc.isValid()).isTrue(); // Not checked yet.
 
         /*
          * Now attempt a bind request, which should be held in a queue until the
          * heart beat completes.
          */
-        hbc.bindAsync(newSimpleBindRequest(), null, null);
-        verify(connection, times(0)).bindAsync(any(BindRequest.class),
-                any(IntermediateResponseHandler.class), any(ResultHandler.class));
+        hbc.bindAsync(newSimpleBindRequest());
+        verify(connection, times(0)).bindAsync(any(BindRequest.class));
 
         // Send fake heartbeat response, releasing the bind request.
-        arg.getValue().handleResult(newResult(ResultCode.SUCCESS));
-        verify(connection, times(1)).bindAsync(any(BindRequest.class),
-                any(IntermediateResponseHandler.class), any(ResultHandler.class));
+        verify(connection, times(1)).bindAsync(any(BindRequest.class), any(IntermediateResponseHandler.class));
     }
 
     @Test
@@ -175,34 +172,42 @@ public class HeartBeatConnectionFactoryTestCase extends SdkTestCase {
     @Test
     public void testGetConnectionAsync() throws Exception {
         @SuppressWarnings("unchecked")
-        final ResultHandler<Connection> mockResultHandler = mock(ResultHandler.class);
+        final SuccessHandler<Connection> mockSuccessHandler = mock(SuccessHandler.class);
 
         mockConnectionWithInitialHeartbeatResult(ResultCode.SUCCESS);
-        hbc = hbcf.getConnectionAsync(mockResultHandler).get();
+        hbc = hbcf.getConnectionAsync().onSuccess(mockSuccessHandler).getOrThrow();
         assertThat(hbc).isNotNull();
         assertThat(hbc.isValid()).isTrue();
 
-        verify(mockResultHandler).handleResult(any(Connection.class));
-        verifyNoMoreInteractions(mockResultHandler);
+        verify(mockSuccessHandler).handleResult(any(Connection.class));
+        verifyNoMoreInteractions(mockSuccessHandler);
     }
 
     @Test
     public void testGetConnectionAsyncWithInitialHeartBeatError() throws Exception {
         @SuppressWarnings("unchecked")
-        final ResultHandler<Connection> mockResultHandler = mock(ResultHandler.class);
-        ErrorResultException expectedException = null;
+        final SuccessHandler<Connection> mockSuccessHandler = mock(SuccessHandler.class);
+        final PromiseImpl<ErrorResultException, NeverThrowsException> promisedError = PromiseImpl.create();
 
         mockConnectionWithInitialHeartbeatResult(ResultCode.BUSY);
+        Promise<? extends Connection, ErrorResultException> promise = hbcf.getConnectionAsync();
+        promise.onSuccess(mockSuccessHandler).onFailure(new FailureHandler<ErrorResultException>() {
+            @Override
+            public void handleError(ErrorResultException error) {
+                promisedError.handleResult(error);
+            }
+        });
+
+        checkInitialHeartBeatFailure(promisedError.getOrThrow());
+
         try {
-            hbcf.getConnectionAsync(mockResultHandler).get();
+            promise.getOrThrow();
             fail("Unexpectedly obtained a connection");
         } catch (final ErrorResultException e) {
             checkInitialHeartBeatFailure(e);
-            expectedException = e;
         }
 
-        verify(mockResultHandler).handleErrorResult(expectedException);
-        verifyNoMoreInteractions(mockResultHandler);
+        verifyNoMoreInteractions(mockSuccessHandler);
     }
 
     @Test
@@ -251,11 +256,11 @@ public class HeartBeatConnectionFactoryTestCase extends SdkTestCase {
 
         // Attempt to send a new request: it should fail immediately.
         @SuppressWarnings("unchecked")
-        final ResultHandler<Result> mockHandler = mock(ResultHandler.class);
-        hbc.modifyAsync(newModifyRequest(DN.rootDN()), null, mockHandler);
+        final FailureHandler<ErrorResultException> mockHandler = mock(FailureHandler.class);
+        hbc.modifyAsync(newModifyRequest(DN.rootDN())).onFailure(mockHandler);
         final ArgumentCaptor<ErrorResultException> arg =
                 ArgumentCaptor.forClass(ErrorResultException.class);
-        verify(mockHandler).handleErrorResult(arg.capture());
+        verify(mockHandler).handleError(arg.capture());
         assertThat(arg.getValue().getResult().getResultCode()).isEqualTo(
                 ResultCode.CLIENT_SIDE_SERVER_DOWN);
 
@@ -282,10 +287,11 @@ public class HeartBeatConnectionFactoryTestCase extends SdkTestCase {
         assertThat(hbc.isClosed()).isFalse();
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     @Test(description = "OPENDJ-1348")
     public void testBindPreventsHeartBeatTimeout() throws Exception {
         mockConnectionWithInitialHeartbeatResult(ResultCode.SUCCESS);
+        mockBindAsyncResponse();
         hbc = hbcf.getConnection();
 
         /*
@@ -293,21 +299,18 @@ public class HeartBeatConnectionFactoryTestCase extends SdkTestCase {
          * the response once we have attempted a heartbeat.
          */
         when(hbcf.timeSource.currentTimeMillis()).thenReturn(11000L);
-        hbc.bindAsync(newSimpleBindRequest(), null, null);
-        @SuppressWarnings("rawtypes")
-        final ArgumentCaptor<ResultHandler> arg = ArgumentCaptor.forClass(ResultHandler.class);
-        verify(connection, times(1)).bindAsync(any(BindRequest.class),
-                any(IntermediateResponseHandler.class), arg.capture());
+        FutureResult<BindResult> future = hbc.bindAsync(newSimpleBindRequest());
+
+        verify(connection, times(1)).bindAsync(any(BindRequest.class), any(IntermediateResponseHandler.class));
 
         // Verify no heartbeat is sent because there is a bind in progress.
         when(hbcf.timeSource.currentTimeMillis()).thenReturn(11001L);
         scheduler.runAllTasks(); // Invokes HBCF.ConnectionImpl.sendHeartBeat()
-        verify(connection, times(1)).searchAsync(same(HEARTBEAT),
-                any(IntermediateResponseHandler.class), any(SearchResultHandler.class));
+        verify(connection, times(1)).searchAsync(same(HEARTBEAT), any(SearchResultHandler.class));
 
         // Send fake bind response, releasing the heartbeat.
         when(hbcf.timeSource.currentTimeMillis()).thenReturn(11099L);
-        arg.getValue().handleResult(newResult(ResultCode.SUCCESS));
+        ((ResultHandler) future).handleResult(newResult(ResultCode.SUCCESS));
 
         // Check that bind response acts as heartbeat.
         assertThat(hbc.isValid()).isTrue();
@@ -316,25 +319,21 @@ public class HeartBeatConnectionFactoryTestCase extends SdkTestCase {
         assertThat(hbc.isValid()).isTrue();
     }
 
-    @SuppressWarnings("unchecked")
     @Test(description = "OPENDJ-1348")
     public void testBindTriggersHeartBeatTimeoutWhenTooSlow() throws Exception {
         mockConnectionWithInitialHeartbeatResult(ResultCode.SUCCESS);
+        mockBindAsyncResponse();
         hbc = hbcf.getConnection();
 
         // Send another bind request which will timeout.
         when(hbcf.timeSource.currentTimeMillis()).thenReturn(20000L);
-        hbc.bindAsync(newSimpleBindRequest(), null, null);
-        @SuppressWarnings("rawtypes")
-        final ArgumentCaptor<ResultHandler> arg = ArgumentCaptor.forClass(ResultHandler.class);
-        verify(connection, times(1)).bindAsync(any(BindRequest.class),
-                any(IntermediateResponseHandler.class), arg.capture());
+        hbc.bindAsync(newSimpleBindRequest());
+        verify(connection, times(1)).bindAsync(any(BindRequest.class), any(IntermediateResponseHandler.class));
 
         // Verify no heartbeat is sent because there is a bind in progress.
         when(hbcf.timeSource.currentTimeMillis()).thenReturn(20001L);
         scheduler.runAllTasks(); // Invokes HBCF.ConnectionImpl.sendHeartBeat()
-        verify(connection, times(1)).searchAsync(same(HEARTBEAT),
-                any(IntermediateResponseHandler.class), any(SearchResultHandler.class));
+        verify(connection, times(1)).searchAsync(same(HEARTBEAT), any(SearchResultHandler.class));
 
         // Check that lack of bind response acts as heartbeat timeout.
         assertThat(hbc.isValid()).isTrue();
@@ -343,41 +342,39 @@ public class HeartBeatConnectionFactoryTestCase extends SdkTestCase {
         assertThat(hbc.isValid()).isFalse();
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     @Test
     public void testHeartBeatWhileBindInProgress() throws Exception {
         mockConnectionWithInitialHeartbeatResult(ResultCode.SUCCESS);
+        mockBindAsyncResponse();
         hbc = hbcf.getConnection();
 
         /*
          * Send a bind request, trapping the bind call-back so that we can send
          * the response once we have attempted a heartbeat.
          */
-        hbc.bindAsync(newSimpleBindRequest(), null, null);
+        FutureResult result = hbc.bindAsync(newSimpleBindRequest());
 
         // Capture the bind result handler.
-        @SuppressWarnings("rawtypes")
-        final ArgumentCaptor<ResultHandler> arg = ArgumentCaptor.forClass(ResultHandler.class);
-        verify(connection, times(1)).bindAsync(any(BindRequest.class),
-                any(IntermediateResponseHandler.class), arg.capture());
+        verify(connection, times(1)).bindAsync(any(BindRequest.class), any(IntermediateResponseHandler.class));
 
         /*
          * Now attempt the heartbeat which should not happen because there is a
          * bind in progress.
          */
         when(hbcf.timeSource.currentTimeMillis()).thenReturn(11000L);
-        scheduler.runAllTasks(); // Attempt to send the heartbeat.
-        verify(connection, times(1)).searchAsync(same(HEARTBEAT),
-                any(IntermediateResponseHandler.class), any(SearchResultHandler.class));
+        // Attempt to send the heartbeat.
+        scheduler.runAllTasks();
+        verify(connection, times(1)).searchAsync(same(HEARTBEAT), any(SearchResultHandler.class));
 
         // Send fake bind response, releasing the heartbeat.
-        arg.getValue().handleResult(newResult(ResultCode.SUCCESS));
+        ((ResultHandler) result).handleResult(newResult(ResultCode.SUCCESS));
 
         // Attempt to send a heartbeat again.
         when(hbcf.timeSource.currentTimeMillis()).thenReturn(16000L);
-        scheduler.runAllTasks(); // Attempt to send the heartbeat.
-        verify(connection, times(2)).searchAsync(same(HEARTBEAT),
-                any(IntermediateResponseHandler.class), any(SearchResultHandler.class));
+        // Attempt to send the heartbeat.
+        scheduler.runAllTasks();
+        verify(connection, times(2)).searchAsync(same(HEARTBEAT), any(SearchResultHandler.class));
     }
 
     @Test
@@ -417,43 +414,46 @@ public class HeartBeatConnectionFactoryTestCase extends SdkTestCase {
         hbcf.timeSource = mockTimeSource(0);
     }
 
-    private Connection mockHeartBeatResponse(final Connection mockConnection,
-            final List<ConnectionEventListener> listeners, final ResultCode resultCode) {
+    private void mockBindAsyncResponse() {
         doAnswer(new Answer<FutureResult<Result>>() {
+            @Override
+            public FutureResult<Result> answer(final InvocationOnMock invocation) throws Throwable {
+                return new FutureResultImpl<Result>();
+            }
+        }).when(connection).bindAsync(any(BindRequest.class), any(IntermediateResponseHandler.class));
+    }
+
+    private Connection mockHeartBeatResponse(final Connection mockConnection,
+        final List<ConnectionEventListener> listeners, final ResultCode resultCode) {
+        Answer<FutureResult<Result>> answer = new Answer<FutureResult<Result>>() {
             @Override
             public FutureResult<Result> answer(final InvocationOnMock invocation) throws Throwable {
                 if (resultCode == null) {
                     return null;
                 }
 
-                final SearchResultHandler handler =
-                        (SearchResultHandler) invocation.getArguments()[2];
                 if (resultCode.isExceptional()) {
                     final ErrorResultException error = newErrorResult(resultCode);
-                    if (handler != null) {
-                        handler.handleErrorResult(error);
-                    }
                     if (error instanceof ConnectionException) {
                         for (final ConnectionEventListener listener : listeners) {
                             listener.handleConnectionError(false, error);
                         }
                     }
-                    return new CompletedFutureResult<Result>(error);
+                    return newFailedFutureResult(error);
                 } else {
-                    final Result result = newResult(resultCode);
-                    if (handler != null) {
-                        handler.handleResult(result);
-                    }
-                    return new CompletedFutureResult<Result>(result);
+                    return newSuccessfulFutureResult(newResult(resultCode));
                 }
             }
-        }).when(mockConnection).searchAsync(any(SearchRequest.class),
-                any(IntermediateResponseHandler.class), any(SearchResultHandler.class));
+        };
+
+        doAnswer(answer).when(mockConnection).searchAsync(any(SearchRequest.class), any(SearchResultHandler.class));
+        doAnswer(answer).when(mockConnection).searchAsync(any(SearchRequest.class),
+            any(IntermediateResponseHandler.class), any(SearchResultHandler.class));
+
         return mockConnection;
     }
 
     private void verifyHeartBeatSent(final Connection connection, final int times) {
-        verify(connection, times(times)).searchAsync(same(HEARTBEAT),
-                any(IntermediateResponseHandler.class), any(SearchResultHandler.class));
+        verify(connection, times(times)).searchAsync(same(HEARTBEAT), any(SearchResultHandler.class));
     }
 }

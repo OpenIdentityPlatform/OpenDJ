@@ -862,16 +862,6 @@ public final class Controls {
     private static class MySearchResultHandler implements SearchResultHandler {
 
         @Override
-        public void handleErrorResult(ErrorResultException error) {
-            // Ignore.
-        }
-
-        @Override
-        public void handleResult(Result result) {
-            // Ignore.
-        }
-
-        @Override
         public boolean handleEntry(SearchResultEntry entry) {
             final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
             try {

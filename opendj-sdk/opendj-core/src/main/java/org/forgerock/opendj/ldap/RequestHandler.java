@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS.
+ *      Portions copyright 2011-2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -213,13 +213,16 @@ public interface RequestHandler<C> {
      * @param intermediateResponseHandler
      *            The handler which should be used to send back any intermediate
      *            responses to the client.
+     * @param entryHandler
+     *            The entry handler which should be used to send back the search
+     *            entries results to the client.
      * @param resultHandler
-     *            The handler which should be used to send back the search
-     *            results to the client.
+     *            The handler which should be used to send back the result to
+     *            the client.
      * @throws UnsupportedOperationException
      *             If this request handler does not handle search requests.
      */
     void handleSearch(C requestContext, SearchRequest request,
-            IntermediateResponseHandler intermediateResponseHandler,
-            SearchResultHandler resultHandler);
+        IntermediateResponseHandler intermediateResponseHandler, SearchResultHandler entryHandler,
+        ResultHandler<Result> resultHandler);
 }

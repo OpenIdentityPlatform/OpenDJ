@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions copyright 2011-2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.examples;
@@ -34,21 +34,23 @@ import java.util.concurrent.CountDownLatch;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.FutureResult;
+import org.forgerock.opendj.ldap.FutureResultWrapper;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ResultHandler;
 import org.forgerock.opendj.ldap.SearchResultHandler;
 import org.forgerock.opendj.ldap.SearchScope;
-import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.opendj.ldap.requests.CancelExtendedRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
-import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.BindResult;
 import org.forgerock.opendj.ldap.responses.ExtendedResult;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
 import org.forgerock.opendj.ldif.LDIFEntryWriter;
+import org.forgerock.util.promise.AsyncFunction;
+import org.forgerock.util.promise.FailureHandler;
+import org.forgerock.util.promise.Promise;
+import org.forgerock.util.promise.SuccessHandler;
 
 /**
  * An example client application which searches a Directory Server using the
@@ -60,79 +62,32 @@ import org.forgerock.opendj.ldif.LDIFEntryWriter;
  * </pre>
  */
 public final class SearchAsync {
-    private static final class BindResultHandlerImpl implements ResultHandler<BindResult> {
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public void handleErrorResult(final ErrorResultException error) {
-            System.err.println(error.getMessage());
-            resultCode = error.getResult().getResultCode().intValue();
-            COMPLETION_LATCH.countDown();
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public void handleResult(final BindResult result) {
-            // Bind succeeded: initiate search.
-            final SearchRequest request =
-                    Requests.newSearchRequest(baseDN, scope, filter, attributes);
-            final FutureResult<Result> futureResult =
-                    connection.searchAsync(request, null, new SearchResultHandlerImpl());
-            requestID = futureResult.getRequestID();
-        }
-
-    }
-
-    private static final class ConnectResultHandlerImpl implements ResultHandler<Connection> {
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public void handleErrorResult(final ErrorResultException error) {
-            System.err.println(error.getMessage());
-            resultCode = error.getResult().getResultCode().intValue();
-            COMPLETION_LATCH.countDown();
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public void handleResult(final Connection connection) {
-            // Connect succeeded: save connection and initiate bind.
-            SearchAsync.connection = connection;
-
-            final BindRequest request =
-                    Requests.newSimpleBindRequest(userName, password.toCharArray());
-            connection.bindAsync(request, null, new BindResultHandlerImpl());
-        }
-
-    }
-
     // --- JCite search result handler ---
     private static final class SearchResultHandlerImpl implements SearchResultHandler {
-
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
         public synchronized boolean handleEntry(final SearchResultEntry entry) {
             try {
                 if (entryCount < 10) {
-                    WRITER.writeComment("Search result entry: "
-                            + entry.getName().toString());
+                    WRITER.writeComment("Search result entry: " + entry.getName().toString());
                     WRITER.writeEntry(entry);
                     ++entryCount;
                 } else { // Cancel the search.
-                    CancelExtendedRequest request =
-                            Requests.newCancelExtendedRequest(requestID);
-                    connection.extendedRequestAsync(request, null,
-                            new CancelResultHandlerImpl());
+                    CancelExtendedRequest request = Requests.newCancelExtendedRequest(requestID);
+                    connection.extendedRequestAsync(request).onSuccess(new SuccessHandler<ExtendedResult>() {
+                        @Override
+                        public void handleResult(ExtendedResult result) {
+                            System.err.println("Cancel request succeeded");
+                            CANCEL_LATCH.countDown();
+                        }
+                    }).onFailure(new FailureHandler<ErrorResultException>() {
+                        @Override
+                        public void handleError(ErrorResultException error) {
+                            System.err.println("Cancel request failed with result code: "
+                                + error.getResult().getResultCode().intValue());
+                            CANCEL_LATCH.countDown();
+                        }
+                    });
                     return false;
                 }
             } catch (final IOException e) {
@@ -144,25 +99,11 @@ public final class SearchAsync {
             return true;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
         @Override
-        public void handleErrorResult(final ErrorResultException error) {
-            System.err.println(error.getMessage());
-            resultCode = error.getResult().getResultCode().intValue();
-            COMPLETION_LATCH.countDown();
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public synchronized boolean handleReference(
-                final SearchResultReference reference) {
+        public synchronized boolean handleReference(final SearchResultReference reference) {
             try {
-                WRITER.writeComment("Search result reference: "
-                        + reference.getURIs().toString());
+                WRITER.writeComment("Search result reference: " + reference.getURIs().toString());
             } catch (final IOException e) {
                 System.err.println(e.getMessage());
                 resultCode = ResultCode.CLIENT_SIDE_LOCAL_ERROR.intValue();
@@ -172,17 +113,9 @@ public final class SearchAsync {
             return true;
         }
 
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public void handleResult(final Result result) {
-            resultCode = result.getResultCode().intValue();
-            COMPLETION_LATCH.countDown();
-        }
-
     }
     // --- JCite search result handler ---
+
 
     // --- JCite decl1 ---
     private static final CountDownLatch COMPLETION_LATCH = new CountDownLatch(1);
@@ -203,26 +136,6 @@ public final class SearchAsync {
     static int entryCount = 0;
     // --- JCite decl2 ---
 
-    // --- JCite cancel result handler ---
-    private static final class CancelResultHandlerImpl
-            implements ResultHandler<ExtendedResult> {
-
-        @Override
-        public void handleErrorResult(final ErrorResultException error) {
-            System.err.println("Cancel request failed with result code: "
-                    + error.getResult().getResultCode().intValue());
-            CANCEL_LATCH.countDown();
-        }
-
-        @Override
-        public void handleResult(final ExtendedResult result) {
-            System.err.println("Cancel request succeeded");
-            CANCEL_LATCH.countDown();
-        }
-
-    }
-    // --- JCite cancel result handler ---
-
     /**
      * Main method.
      *
@@ -233,8 +146,7 @@ public final class SearchAsync {
      */
     public static void main(final String[] args) {
         if (args.length < 7) {
-            System.err.println("Usage: host port username password baseDN scope "
-                    + "filter [attribute ...]");
+            System.err.println("Usage: host port username password baseDN scope " + "filter [attribute ...]");
             System.exit(1);
         }
 
@@ -266,9 +178,38 @@ public final class SearchAsync {
             return;
         }
 
+
         // Initiate the asynchronous connect, bind, and search.
         final LDAPConnectionFactory factory = new LDAPConnectionFactory(hostName, port);
-        factory.getConnectionAsync(new ConnectResultHandlerImpl());
+
+        factory.getConnectionAsync().thenAsync(new AsyncFunction<Connection, BindResult, ErrorResultException>() {
+            @Override
+            public Promise<BindResult, ErrorResultException> apply(Connection connection) throws ErrorResultException {
+                SearchAsync.connection = connection;
+                return connection.bindAsync(Requests.newSimpleBindRequest(userName, password.toCharArray()));
+            }
+        }).thenAsync(new AsyncFunction<BindResult, Result, ErrorResultException>() {
+            @Override
+            public Promise<Result, ErrorResultException> apply(BindResult result) throws ErrorResultException {
+                FutureResult<Result> future = FutureResultWrapper.asFutureResult(connection.searchAsync(
+                        Requests.newSearchRequest(baseDN, scope, filter, attributes), new SearchResultHandlerImpl()));
+                requestID = future.getRequestID();
+                return future;
+            }
+        }).onSuccess(new SuccessHandler<Result>() {
+            @Override
+            public void handleResult(Result result) {
+                resultCode = result.getResultCode().intValue();
+                COMPLETION_LATCH.countDown();
+            }
+        }).onFailure(new FailureHandler<ErrorResultException>() {
+            @Override
+            public void handleError(ErrorResultException error) {
+                System.err.println(error.getMessage());
+                resultCode = error.getResult().getResultCode().intValue();
+                COMPLETION_LATCH.countDown();
+            }
+        });
 
         // Await completion.
         try {

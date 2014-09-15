@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS.
+ *      Copyright 2013-2014 ForgeRock AS.
  */
 package org.forgerock.opendj.adapter.server2x;
 
@@ -37,10 +37,8 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.ErrorResultException;
-import org.forgerock.opendj.ldap.FutureResult;
 import org.forgerock.opendj.ldap.IntermediateResponseHandler;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ResultHandler;
 import org.forgerock.opendj.ldap.SearchResultHandler;
 import org.forgerock.opendj.ldap.controls.Control;
 import org.forgerock.opendj.ldap.requests.AddRequest;
@@ -62,6 +60,7 @@ import org.forgerock.opendj.ldap.responses.ExtendedResult;
 import org.forgerock.opendj.ldap.responses.GenericExtendedResult;
 import org.forgerock.opendj.ldap.responses.Responses;
 import org.forgerock.opendj.ldap.responses.Result;
+import org.forgerock.util.promise.Promise;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.BindOperation;
 import org.opends.server.core.CompareOperation;
@@ -78,10 +77,9 @@ import org.opends.server.types.DirectoryException;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
 
-import com.forgerock.opendj.util.CompletedFutureResult;
-
 import static org.forgerock.opendj.adapter.server2x.Converters.*;
 import static org.forgerock.opendj.ldap.ByteString.*;
+import static org.forgerock.util.promise.Promises.*;
 
 /**
  * This class provides a connection factory and an adapter for the OpenDJ 2.x
@@ -141,8 +139,7 @@ public final class Adapters {
      * @return A new SDK connection factory.
      */
     public static ConnectionFactory newConnectionFactory(final InternalClientConnection icc) {
-        final Connection connection = newConnection(icc);
-        ConnectionFactory factory = new ConnectionFactory() {
+        return new ConnectionFactory() {
 
             @Override
             public void close() {
@@ -150,20 +147,16 @@ public final class Adapters {
             }
 
             @Override
-            public FutureResult<Connection> getConnectionAsync(
-                    ResultHandler<? super Connection> handler) {
-                if (handler != null) {
-                    handler.handleResult(connection);
-                } // TODO change the path...
-                return new CompletedFutureResult<Connection>(connection);
+            public Promise<Connection, ErrorResultException> getConnectionAsync() {
+                // TODO change the path...
+                return newSuccessfulPromise(newConnection(icc));
             }
 
             @Override
             public Connection getConnection() throws ErrorResultException {
-                return connection;
+                return newConnection(icc);
             }
         };
-        return factory;
     }
 
     /**

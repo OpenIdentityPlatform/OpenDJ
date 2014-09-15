@@ -22,12 +22,14 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS.
+ *      Portions copyright 2011-2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
 
 import java.io.Closeable;
+
+import org.forgerock.util.promise.Promise;
 
 /**
  * A connection factory provides an interface for obtaining a connection to a
@@ -75,17 +77,12 @@ public interface ConnectionFactory extends Closeable {
 
     /**
      * Asynchronously obtains a connection to the Directory Server associated
-     * with this connection factory. The returned {@code FutureResult} can be
-     * used to retrieve the completed connection. Alternatively, if a
-     * {@code ResultHandler} is provided, the handler will be notified when the
-     * connection is available and ready for use.
+     * with this connection factory. The returned {@code Promise} can be used to
+     * retrieve the completed connection.
      *
-     * @param handler
-     *            The completion handler, or {@code null} if no handler is to be
-     *            used.
-     * @return A future which can be used to retrieve the connection.
+     * @return A promise which can be used to retrieve the connection.
      */
-    FutureResult<Connection> getConnectionAsync(ResultHandler<? super Connection> handler);
+    Promise<Connection, ErrorResultException> getConnectionAsync();
 
     /**
      * Returns a connection to the Directory Server associated with this

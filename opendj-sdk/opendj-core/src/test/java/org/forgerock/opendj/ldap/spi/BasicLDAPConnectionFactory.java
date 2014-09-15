@@ -26,19 +26,17 @@
 
 package org.forgerock.opendj.ldap.spi;
 
-import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
-import static org.mockito.Mockito.mock;
-
 import java.net.InetSocketAddress;
 
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ErrorResultException;
-import org.forgerock.opendj.ldap.FutureResult;
 import org.forgerock.opendj.ldap.LDAPOptions;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ResultHandler;
+import org.forgerock.util.promise.Promise;
 
-import com.forgerock.opendj.util.AsynchronousFutureResult;
+import static org.forgerock.opendj.ldap.ErrorResultException.*;
+import static org.forgerock.util.promise.Promises.*;
+import static org.mockito.Mockito.*;
 
 /**
  * Basic LDAP connection factory implementation to use for tests only.
@@ -73,19 +71,15 @@ public final class BasicLDAPConnectionFactory implements LDAPConnectionFactoryIm
     @Override
     public Connection getConnection() throws ErrorResultException {
         try {
-            return getConnectionAsync(null).get();
+            return getConnectionAsync().getOrThrow();
         } catch (final InterruptedException e) {
             throw newErrorResult(ResultCode.CLIENT_SIDE_USER_CANCELLED, e);
         }
     }
 
     @Override
-    public FutureResult<Connection> getConnectionAsync(
-            final ResultHandler<? super Connection> handler) {
-        final AsynchronousFutureResult<Connection, ResultHandler<? super Connection>> future =
-                new AsynchronousFutureResult<Connection, ResultHandler<? super Connection>>(handler);
-        future.handleResult(mock(Connection.class));
-        return future;
+    public Promise<Connection, ErrorResultException> getConnectionAsync() {
+        return newSuccessfulPromise(mock(Connection.class));
     }
 
     /**
@@ -93,6 +87,7 @@ public final class BasicLDAPConnectionFactory implements LDAPConnectionFactoryIm
      *
      * @return The address of the Directory Server.
      */
+    @Override
     public InetSocketAddress getSocketAddress() {
         return new InetSocketAddress(host, port);
     }

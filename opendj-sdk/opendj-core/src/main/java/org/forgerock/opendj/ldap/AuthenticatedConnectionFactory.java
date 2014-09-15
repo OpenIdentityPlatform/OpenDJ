@@ -22,16 +22,20 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS.
+ *      Portions copyright 2011-2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
 
+import java.util.concurrent.atomic.AtomicReference;
+
 import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.opendj.ldap.responses.BindResult;
+import org.forgerock.util.promise.AsyncFunction;
+import org.forgerock.util.promise.Function;
+import org.forgerock.util.promise.Promise;
 
-import com.forgerock.opendj.util.FutureResultTransformer;
-import com.forgerock.opendj.util.RecursiveFutureResult;
+import static org.forgerock.util.Utils.*;
 
 /**
  * An authenticated connection factory can be used to create pre-authenticated
@@ -57,80 +61,33 @@ final class AuthenticatedConnectionFactory implements ConnectionFactory {
             super(connection);
         }
 
-        /*
+        /**
          * Bind operations are not supported by pre-authenticated connections.
          * These methods will always throw {@code UnsupportedOperationException}.
          */
-
         public FutureResult<BindResult> bindAsync(final BindRequest request,
                 final IntermediateResponseHandler intermediateResponseHandler,
                 final ResultHandler<? super BindResult> resultHandler) {
             throw new UnsupportedOperationException();
         }
 
-
+        @Override
         public BindResult bind(BindRequest request) throws ErrorResultException {
             throw new UnsupportedOperationException();
         }
 
-
+        @Override
         public BindResult bind(String name, char[] password) throws ErrorResultException {
             throw new UnsupportedOperationException();
         }
 
-
+        @Override
         public String toString() {
             StringBuilder builder = new StringBuilder();
             builder.append("AuthenticatedConnection(");
             builder.append(connection);
             builder.append(')');
             return builder.toString();
-        }
-
-    }
-
-    private static final class FutureResultImpl {
-        private final FutureResultTransformer<BindResult, Connection> futureBindResult;
-        private final RecursiveFutureResult<Connection, BindResult> futureConnectionResult;
-        private final BindRequest bindRequest;
-        private Connection connection;
-
-        private FutureResultImpl(final BindRequest request,
-                final ResultHandler<? super Connection> handler) {
-            this.bindRequest = request;
-            this.futureBindResult = new FutureResultTransformer<BindResult, Connection>(handler) {
-
-                @Override
-                protected ErrorResultException transformErrorResult(
-                        final ErrorResultException errorResult) {
-                    // Ensure that the connection is closed.
-                    if (connection != null) {
-                        connection.close();
-                        connection = null;
-                    }
-                    return errorResult;
-                }
-
-                @Override
-                protected Connection transformResult(final BindResult result)
-                        throws ErrorResultException {
-                    return new AuthenticatedConnection(connection);
-                }
-
-            };
-            this.futureConnectionResult =
-                    new RecursiveFutureResult<Connection, BindResult>(futureBindResult) {
-
-                        @Override
-                        protected FutureResult<? extends BindResult> chainResult(
-                                final Connection innerResult,
-                                final ResultHandler<? super BindResult> handler)
-                                throws ErrorResultException {
-                            connection = innerResult;
-                            return connection.bindAsync(bindRequest, null, handler);
-                        }
-                    };
-            futureBindResult.setFutureResult(futureConnectionResult);
         }
 
     }
@@ -162,6 +119,7 @@ final class AuthenticatedConnectionFactory implements ConnectionFactory {
         parentFactory.close();
     }
 
+    @Override
     public Connection getConnection() throws ErrorResultException {
         final Connection connection = parentFactory.getConnection();
         boolean bindSucceeded = false;
@@ -181,25 +139,44 @@ final class AuthenticatedConnectionFactory implements ConnectionFactory {
         return new AuthenticatedConnection(connection);
     }
 
-
     @Override
-    public FutureResult<Connection> getConnectionAsync(
-            final ResultHandler<? super Connection> handler) {
-        final FutureResultImpl future = new FutureResultImpl(request, handler);
-        future.futureConnectionResult.setFutureResult(parentFactory
-                .getConnectionAsync(future.futureConnectionResult));
-        return future.futureBindResult;
+    public Promise<Connection, ErrorResultException> getConnectionAsync() {
+        final AtomicReference<Connection> connectionHolder = new AtomicReference<Connection>();
+        return parentFactory.getConnectionAsync()
+            .thenAsync(
+                    new AsyncFunction<Connection, BindResult, ErrorResultException>() {
+                        @Override
+                        public Promise<BindResult, ErrorResultException> apply(final Connection connection)
+                                throws ErrorResultException {
+                            connectionHolder.set(connection);
+                            return connection.bindAsync(request);
+                        }
+                    }
+            ).then(
+                    new Function<BindResult, Connection, ErrorResultException>() {
+                        @Override
+                        public Connection apply(BindResult result) throws ErrorResultException {
+                            return new AuthenticatedConnection(connectionHolder.get());
+                        }
+                    },
+                    new Function<ErrorResultException, Connection, ErrorResultException>() {
+                        @Override
+                        public Connection apply(ErrorResultException error) throws ErrorResultException {
+                            closeSilently(connectionHolder.get());
+                            throw error;
+                        }
+                    }
+            );
     }
 
-
+    @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
         builder.append("AuthenticatedConnectionFactory(");
-        builder.append(String.valueOf(parentFactory));
+        builder.append(parentFactory);
         builder.append(", ");
         builder.append(request);
         builder.append(')');
         return builder.toString();
     }
-
 }

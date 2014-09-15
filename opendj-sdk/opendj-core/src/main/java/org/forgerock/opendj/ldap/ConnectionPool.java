@@ -26,6 +26,8 @@
 
 package org.forgerock.opendj.ldap;
 
+import org.forgerock.util.promise.Promise;
+
 /**
  * A connection factory which maintains and re-uses a pool of connections.
  * Connections obtained from a connection pool are returned to the connection
@@ -51,28 +53,25 @@ public interface ConnectionPool extends ConnectionFactory {
      * Calling {@code close} on a connection pool which is already closed has no
      * effect.
      */
+    @Override
     void close();
 
     /**
      * Asynchronously obtains a connection from this connection pool,
      * potentially opening a new connection if needed.
      * <p>
-     * The returned {@code FutureResult} can be used to retrieve the pooled
-     * connection. Alternatively, if a {@code ResultHandler} is provided, the
-     * handler will be notified when the pooled connection is available and
-     * ready for use.
+     * The returned {@code Promise} can be used to retrieve the pooled
+     * connection.
      * <p>
      * Closing the pooled connection will, depending on the connection pool
      * implementation, return the connection to this pool without closing it.
      *
-     * @param handler
-     *            The completion handler, or {@code null} if no handler is to be
-     *            used.
-     * @return A future which can be used to retrieve the pooled connection.
+     * @return A promise which can be used to retrieve the pooled connection.
      * @throws IllegalStateException
      *             If this connection pool has already been closed.
      */
-    FutureResult<Connection> getConnectionAsync(ResultHandler<? super Connection> handler);
+    @Override
+    Promise<Connection, ErrorResultException> getConnectionAsync();
 
     /**
      * Obtains a connection from this connection pool, potentially opening a new
@@ -87,5 +86,6 @@ public interface ConnectionPool extends ConnectionFactory {
      * @throws IllegalStateException
      *             If this connection pool has already been closed.
      */
+    @Override
     Connection getConnection() throws ErrorResultException;
 }

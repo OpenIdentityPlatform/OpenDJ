@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS.
+ *      Portions copyright 2011-2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.spi;
@@ -32,7 +32,6 @@ import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.IntermediateResponseHandler;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ResultHandler;
 import org.forgerock.opendj.ldap.requests.ExtendedRequest;
 import org.forgerock.opendj.ldap.requests.StartTLSExtendedRequest;
 import org.forgerock.opendj.ldap.responses.ExtendedResult;
@@ -54,8 +53,6 @@ public final class LDAPExtendedFutureResultImpl<R extends ExtendedResult> extend
      *            identifier of the request
      * @param request
      *            extended request
-     * @param resultHandler
-     *            handler that consumes result
      * @param intermediateResponseHandler
      *            handler that consumes intermediate responses from extended
      *            operations
@@ -63,10 +60,9 @@ public final class LDAPExtendedFutureResultImpl<R extends ExtendedResult> extend
      *            the connection to directory server
      */
     public LDAPExtendedFutureResultImpl(final int requestID, final ExtendedRequest<R> request,
-            final ResultHandler<? super R> resultHandler,
             final IntermediateResponseHandler intermediateResponseHandler,
             final Connection connection) {
-        super(requestID, resultHandler, intermediateResponseHandler, connection);
+        super(requestID, intermediateResponseHandler, connection);
         this.request = request;
     }
 
@@ -83,7 +79,7 @@ public final class LDAPExtendedFutureResultImpl<R extends ExtendedResult> extend
 
     @Override
     public boolean isBindOrStartTLS() {
-        return request.getOID().equals(StartTLSExtendedRequest.OID);
+        return StartTLSExtendedRequest.OID.equals(request.getOID());
     }
 
     /**
@@ -110,9 +106,7 @@ public final class LDAPExtendedFutureResultImpl<R extends ExtendedResult> extend
         return request;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected R newErrorResult(final ResultCode resultCode, final String diagnosticMessage,
             final Throwable cause) {

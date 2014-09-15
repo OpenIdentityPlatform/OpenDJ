@@ -11,21 +11,10 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2013 ForgeRock AS.
+ * Copyright 2013-2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.rest2ldap.servlet;
-
-import static org.forgerock.json.resource.SecurityContext.AUTHZID_DN;
-import static org.forgerock.json.resource.SecurityContext.AUTHZID_ID;
-import static org.forgerock.json.resource.servlet.SecurityContextFactory.ATTRIBUTE_AUTHCID;
-import static org.forgerock.json.resource.servlet.SecurityContextFactory.ATTRIBUTE_AUTHZID;
-import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
-import static org.forgerock.opendj.ldap.requests.Requests.newPlainSASLBindRequest;
-import static org.forgerock.opendj.ldap.requests.Requests.newSearchRequest;
-import static org.forgerock.opendj.ldap.requests.Requests.newSimpleBindRequest;
-import static org.forgerock.opendj.rest2ldap.Rest2LDAP.asResourceException;
-import static org.forgerock.opendj.rest2ldap.servlet.Rest2LDAPContextFactory.ATTRIBUTE_AUTHN_CONNECTION;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -49,8 +38,8 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.forgerock.json.fluent.JsonValue;
 import org.forgerock.json.fluent.JsonValueException;
 import org.forgerock.json.resource.ResourceException;
-import org.forgerock.json.resource.servlet.ServletSynchronizer;
 import org.forgerock.json.resource.servlet.ServletApiVersionAdapter;
+import org.forgerock.json.resource.servlet.ServletSynchronizer;
 import org.forgerock.opendj.ldap.AuthenticationException;
 import org.forgerock.opendj.ldap.AuthorizationException;
 import org.forgerock.opendj.ldap.ByteString;
@@ -62,7 +51,6 @@ import org.forgerock.opendj.ldap.EntryNotFoundException;
 import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.MultipleEntriesFoundException;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ResultHandler;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
@@ -70,6 +58,17 @@ import org.forgerock.opendj.ldap.responses.BindResult;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.schema.Schema;
 import org.forgerock.opendj.rest2ldap.Rest2LDAP;
+import org.forgerock.util.promise.AsyncFunction;
+import org.forgerock.util.promise.FailureHandler;
+import org.forgerock.util.promise.Promise;
+import org.forgerock.util.promise.SuccessHandler;
+
+import static org.forgerock.json.resource.SecurityContext.*;
+import static org.forgerock.json.resource.servlet.SecurityContextFactory.*;
+import static org.forgerock.opendj.ldap.ErrorResultException.*;
+import static org.forgerock.opendj.ldap.requests.Requests.*;
+import static org.forgerock.opendj.rest2ldap.Rest2LDAP.*;
+import static org.forgerock.opendj.rest2ldap.servlet.Rest2LDAPContextFactory.*;
 
 /**
  * An LDAP based authentication Servlet filter.
@@ -115,8 +114,8 @@ public final class Rest2LDAPAuthnFilter implements Filter {
     }
 
     @Override
-    public void doFilter(final ServletRequest request, final ServletResponse response,
-            final FilterChain chain) throws IOException, ServletException {
+    public void doFilter(final ServletRequest request, final ServletResponse response, final FilterChain chain)
+            throws IOException, ServletException {
         // Skip this filter if authentication has not been configured.
         if (!isEnabled) {
             chain.doFilter(request, response);
@@ -149,14 +148,11 @@ public final class Rest2LDAPAuthnFilter implements Filter {
         });
 
         try {
-            final String headerUsername =
-                    supportAltAuthentication ? req.getHeader(altAuthenticationUsernameHeader)
-                            : null;
-            final String headerPassword =
-                    supportAltAuthentication ? req.getHeader(altAuthenticationPasswordHeader)
-                            : null;
-            final String headerAuthorization =
-                    supportHTTPBasicAuthentication ? req.getHeader("Authorization") : null;
+            final String headerUsername = supportAltAuthentication ? req.getHeader(altAuthenticationUsernameHeader)
+                    : null;
+            final String headerPassword = supportAltAuthentication ? req.getHeader(altAuthenticationPasswordHeader)
+                    : null;
+            final String headerAuthorization = supportHTTPBasicAuthentication ? req.getHeader("Authorization") : null;
 
             final String username;
             final char[] password;
@@ -194,17 +190,15 @@ public final class Rest2LDAPAuthnFilter implements Filter {
                 authzid = new LinkedHashMap<String, Object>(2);
                 authzid.put(AUTHZID_DN, username);
                 authzid.put(AUTHZID_ID, username);
-                doBind(req, res, newSimpleBindRequest(username, password), chain, savedConnection,
-                        sync, username, authzid);
+                doBind(req, res, newSimpleBindRequest(username, password), chain, savedConnection, sync, username,
+                        authzid);
                 break;
             }
             case SASL_PLAIN: {
                 final Map<String, Object> authzid;
                 final String bindId;
                 if (saslAuthzIdTemplate.startsWith("dn:")) {
-                    final String bindDN =
-                            DN.format(saslAuthzIdTemplate.substring(3), schema, username)
-                                    .toString();
+                    final String bindDN = DN.format(saslAuthzIdTemplate.substring(3), schema, username).toString();
                     bindId = "dn:" + bindDN;
                     authzid = new LinkedHashMap<String, Object>(2);
                     authzid.put(AUTHZID_DN, bindDN);
@@ -213,8 +207,8 @@ public final class Rest2LDAPAuthnFilter implements Filter {
                     bindId = String.format(saslAuthzIdTemplate, username);
                     authzid = Collections.singletonMap(AUTHZID_ID, (Object) username);
                 }
-                doBind(req, res, newPlainSASLBindRequest(bindId, password), chain, savedConnection,
-                        sync, username, authzid);
+                doBind(req, res, newPlainSASLBindRequest(bindId, password), chain, savedConnection, sync, username,
+                        authzid);
                 break;
             }
             default: // SEARCH_SIMPLE
@@ -223,61 +217,52 @@ public final class Rest2LDAPAuthnFilter implements Filter {
                  * First do a search to find the user's entry and then perform a
                  * bind request using the user's DN.
                  */
-                final org.forgerock.opendj.ldap.Filter filter =
-                        org.forgerock.opendj.ldap.Filter.format(searchFilterTemplate, username);
-                final SearchRequest searchRequest =
-                        newSearchRequest(searchBaseDN, searchScope, filter, "1.1");
-                searchLDAPConnectionFactory.getConnectionAsync(new ResultHandler<Connection>() {
-                    @Override
-                    public void handleErrorResult(final ErrorResultException error) {
-                        sync.signalAndComplete(asResourceException(error));
-                    }
-
-                    @Override
-                    public void handleResult(final Connection connection) {
-                        // Do the search.
-                        connection.searchSingleEntryAsync(searchRequest,
-                                new ResultHandler<SearchResultEntry>() {
-
-                                    @Override
-                                    public void handleErrorResult(final ErrorResultException error) {
-                                        connection.close();
-                                        /*
-                                         * The search error should not be passed
-                                         * as-is back to the user.
-                                         */
-                                        final ErrorResultException normalizedError;
-                                        if (error instanceof EntryNotFoundException
-                                                || error instanceof MultipleEntriesFoundException) {
-                                            normalizedError =
-                                                    newErrorResult(ResultCode.INVALID_CREDENTIALS,
-                                                            error);
-                                        } else if (error instanceof AuthenticationException
-                                                || error instanceof AuthorizationException) {
-                                            normalizedError =
-                                                    newErrorResult(
-                                                            ResultCode.CLIENT_SIDE_LOCAL_ERROR,
-                                                            error);
-                                        } else {
-                                            normalizedError = error;
-                                        }
-                                        sync.signalAndComplete(asResourceException(normalizedError));
+                final org.forgerock.opendj.ldap.Filter filter = org.forgerock.opendj.ldap.Filter.format(
+                        searchFilterTemplate, username);
+                final SearchRequest searchRequest = newSearchRequest(searchBaseDN, searchScope, filter, "1.1");
+                searchLDAPConnectionFactory.getConnectionAsync()
+                        .thenAsync(new AsyncFunction<Connection, SearchResultEntry, ErrorResultException>() {
+                            @Override
+                            public Promise<SearchResultEntry, ErrorResultException> apply(Connection connection)
+                                    throws ErrorResultException {
+                                savedConnection.set(connection);
+                                // Do the search.
+                                return connection.searchSingleEntryAsync(searchRequest);
+                            }
+                        }).onSuccess(new SuccessHandler<SearchResultEntry>() {
+                            @Override
+                            public void handleResult(final SearchResultEntry result) {
+                                savedConnection.get().close();
+                                final String bindDN = result.getName().toString();
+                                final Map<String, Object> authzid = new LinkedHashMap<String, Object>(2);
+                                authzid.put(AUTHZID_DN, bindDN);
+                                authzid.put(AUTHZID_ID, username);
+                                doBind(req, res, newSimpleBindRequest(bindDN, password), chain, savedConnection, sync,
+                                        username, authzid);
+                            }
+                        }).onFailure(new FailureHandler<ErrorResultException>() {
+                            @Override
+                            public void handleError(final ErrorResultException error) {
+                                ErrorResultException normalizedError = error;
+                                if (savedConnection.get() != null) {
+                                    savedConnection.get().close();
+                                    /*
+                                     * The search error should not be passed
+                                     * as-is back to the user.
+                                     */
+                                    if (error instanceof EntryNotFoundException
+                                            || error instanceof MultipleEntriesFoundException) {
+                                        normalizedError = newErrorResult(ResultCode.INVALID_CREDENTIALS, error);
+                                    } else if (error instanceof AuthenticationException
+                                            || error instanceof AuthorizationException) {
+                                        normalizedError = newErrorResult(ResultCode.CLIENT_SIDE_LOCAL_ERROR, error);
+                                    } else {
+                                        normalizedError = error;
                                     }
-
-                                    @Override
-                                    public void handleResult(final SearchResultEntry result) {
-                                        connection.close();
-                                        final String bindDN = result.getName().toString();
-                                        final Map<String, Object> authzid =
-                                                new LinkedHashMap<String, Object>(2);
-                                        authzid.put(AUTHZID_DN, bindDN);
-                                        authzid.put(AUTHZID_ID, username);
-                                        doBind(req, res, newSimpleBindRequest(bindDN, password),
-                                                chain, savedConnection, sync, username, authzid);
-                                    }
-                                });
-                    }
-                });
+                                }
+                                sync.signalAndComplete(asResourceException(normalizedError));
+                            }
+                        });
                 break;
             }
             }
@@ -406,25 +391,17 @@ public final class Rest2LDAPAuthnFilter implements Filter {
      * cached connection and authorization credentials on completion.
      */
     private void doBind(final HttpServletRequest request, final ServletResponse response,
-            final BindRequest bindRequest, final FilterChain chain,
-            final AtomicReference<Connection> savedConnection, final ServletSynchronizer sync,
-            final String authcid, final Map<String, Object> authzid) {
-        bindLDAPConnectionFactory.getConnectionAsync(new ResultHandler<Connection>() {
-            @Override
-            public void handleErrorResult(final ErrorResultException error) {
-                sync.signalAndComplete(asResourceException(error));
-            }
-
-            @Override
-            public void handleResult(final Connection connection) {
-                savedConnection.set(connection);
-                connection.bindAsync(bindRequest, null, new ResultHandler<BindResult>() {
-
+            final BindRequest bindRequest, final FilterChain chain, final AtomicReference<Connection> savedConnection,
+            final ServletSynchronizer sync, final String authcid, final Map<String, Object> authzid) {
+        bindLDAPConnectionFactory.getConnectionAsync()
+                .thenAsync(new AsyncFunction<Connection, BindResult, ErrorResultException>() {
                     @Override
-                    public void handleErrorResult(final ErrorResultException error) {
-                        sync.signalAndComplete(asResourceException(error));
+                    public Promise<BindResult, ErrorResultException> apply(Connection connection)
+                            throws ErrorResultException {
+                        savedConnection.set(connection);
+                        return connection.bindAsync(bindRequest);
                     }
-
+                }).onSuccess(new SuccessHandler<BindResult>() {
                     @Override
                     public void handleResult(final BindResult result) {
                         /*
@@ -433,8 +410,8 @@ public final class Rest2LDAPAuthnFilter implements Filter {
                          * filter will close it.
                          */
                         if (reuseAuthenticatedConnection) {
-                            request.setAttribute(ATTRIBUTE_AUTHN_CONNECTION, Connections
-                                    .uncloseable(connection));
+                            request.setAttribute(ATTRIBUTE_AUTHN_CONNECTION,
+                                    Connections.uncloseable(savedConnection.get()));
                         }
 
                         // Pass through the authentication ID and authorization principals.
@@ -462,9 +439,12 @@ public final class Rest2LDAPAuthnFilter implements Filter {
                             }
                         }
                     }
+                }).onFailure(new FailureHandler<ErrorResultException>() {
+                    @Override
+                    public void handleError(final ErrorResultException error) {
+                        sync.signalAndComplete(asResourceException(error));
+                    }
                 });
-            }
-        });
     }
 
     private AuthenticationMethod parseAuthenticationMethod(final JsonValue configuration) {

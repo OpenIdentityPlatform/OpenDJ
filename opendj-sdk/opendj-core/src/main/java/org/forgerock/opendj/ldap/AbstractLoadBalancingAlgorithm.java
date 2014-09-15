@@ -26,9 +26,6 @@
  */
 package org.forgerock.opendj.ldap;
 
-import static com.forgerock.opendj.util.StaticUtils.DEFAULT_SCHEDULER;
-import static org.forgerock.opendj.ldap.ErrorResultException.*;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -40,9 +37,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.util.Reject;
+import org.forgerock.util.promise.AsyncFunction;
+import org.forgerock.util.promise.Promise;
 
-import com.forgerock.opendj.util.AsynchronousFutureResult;
 import com.forgerock.opendj.util.ReferenceCountedObject;
+
+import static org.forgerock.opendj.ldap.ErrorResultException.*;
+import static org.forgerock.util.promise.Promises.*;
+
+import static com.forgerock.opendj.util.StaticUtils.*;
 
 /**
  * An abstract load balancing algorithm providing monitoring and failover
@@ -58,7 +61,7 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
 
         private final ConnectionFactory factory;
         private final AtomicBoolean isOperational = new AtomicBoolean(true);
-        private volatile FutureResult<?> pendingConnectFuture = null;
+        private volatile Promise<?, ErrorResultException> pendingConnectPromise;
         private final int index;
 
         private MonitoredConnectionFactory(final ConnectionFactory factory, final int index) {
@@ -90,43 +93,35 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
         }
 
         @Override
-        public FutureResult<Connection> getConnectionAsync(
-                final ResultHandler<? super Connection> resultHandler) {
-            final AsynchronousFutureResult<Connection, ResultHandler<? super Connection>> future =
-                    new AsynchronousFutureResult<Connection, ResultHandler<? super Connection>>(
-                            resultHandler);
-
-            final ResultHandler<Connection> failoverHandler = new ResultHandler<Connection>() {
-                @Override
-                public void handleErrorResult(final ErrorResultException error) {
-                    // Attempt failed - try next factory.
-                    notifyOffline(error);
-                    final int nextIndex = (index + 1) % monitoredFactories.size();
-                    try {
-                        final MonitoredConnectionFactory nextFactory =
-                                getMonitoredConnectionFactory(nextIndex);
-                        nextFactory.getConnectionAsync(future);
-                    } catch (final ErrorResultException e) {
-                        future.handleErrorResult(e);
+        public Promise<Connection, ErrorResultException> getConnectionAsync() {
+            return factory.getConnectionAsync().thenAsync(
+                new AsyncFunction<Connection, Connection, ErrorResultException>() {
+                    @Override
+                    public Promise<Connection, ErrorResultException> apply(Connection value)
+                            throws ErrorResultException {
+                        notifyOnline();
+                        return newSuccessfulPromise(value);
                     }
-                }
-
-                @Override
-                public void handleResult(final Connection result) {
-                    notifyOnline();
-                    future.handleResult(result);
-                }
-            };
-
-            factory.getConnectionAsync(failoverHandler);
-            return future;
+                },
+                new AsyncFunction<ErrorResultException, Connection, ErrorResultException>() {
+                    @Override
+                    public Promise<Connection, ErrorResultException> apply(ErrorResultException error)
+                            throws ErrorResultException {
+                        // Attempt failed - try next factory.
+                        notifyOffline(error);
+                        final int nextIndex = (index + 1) % monitoredFactories.size();
+                        return getMonitoredConnectionFactory(nextIndex).getConnectionAsync();
+                    }
+                });
         }
+
+
 
         /**
          * Handle monitoring connection request failure.
          */
         @Override
-        public void handleErrorResult(final ErrorResultException error) {
+        public void handleError(final ErrorResultException error) {
             notifyOffline(error);
         }
 
@@ -150,10 +145,9 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
          * pending monitoring request.
          */
         private synchronized void checkIfAvailable() {
-            if (!isOperational.get()
-                    && (pendingConnectFuture == null || pendingConnectFuture.isDone())) {
+            if (!isOperational.get() && (pendingConnectPromise == null || pendingConnectPromise.isDone())) {
                 logger.debug(LocalizableMessage.raw("Attempting reconnect to offline factory '%s'", this));
-                pendingConnectFuture = factory.getConnectionAsync(this);
+                pendingConnectPromise = factory.getConnectionAsync().onSuccess(this).onFailure(this);
             }
         }
 
@@ -279,7 +273,7 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
      * Guarded by stateLock.
      */
     private ScheduledFuture<?> monitoringFuture;
-    private AtomicBoolean isClosed = new AtomicBoolean();
+    private final AtomicBoolean isClosed = new AtomicBoolean();
 
     AbstractLoadBalancingAlgorithm(final Collection<? extends ConnectionFactory> factories,
             final LoadBalancerEventListener listener, final long interval, final TimeUnit unit,

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS.
+ *      Portions copyright 2011-2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -51,8 +51,6 @@ import org.forgerock.opendj.ldap.spi.LDAPCompareFutureResultImpl;
 import org.forgerock.opendj.ldap.spi.LDAPExtendedFutureResultImpl;
 import org.forgerock.opendj.ldap.spi.LDAPFutureResultImpl;
 import org.forgerock.opendj.ldap.spi.LDAPSearchFutureResultImpl;
-
-import com.forgerock.opendj.util.CompletedFutureResult;
 import org.forgerock.util.Reject;
 
 /**
@@ -66,10 +64,9 @@ final class InternalConnection extends AbstractAsynchronousConnection {
         private final BindRequest bindRequest;
 
         InternalBindFutureResultImpl(final int messageID, final BindRequest bindRequest,
-                final ResultHandler<? super BindResult> resultHandler,
                 final IntermediateResponseHandler intermediateResponseHandler,
                 final Connection connection) {
-            super(messageID, resultHandler, intermediateResponseHandler, connection);
+            super(messageID, intermediateResponseHandler, connection);
             this.bindRequest = bindRequest;
         }
 
@@ -117,7 +114,7 @@ final class InternalConnection extends AbstractAsynchronousConnection {
     public FutureResult<Void> abandonAsync(final AbandonRequest request) {
         final int i = messageID.getAndIncrement();
         serverConnection.handleAbandon(i, request);
-        return new CompletedFutureResult<Void>((Void) null, i);
+        return FutureResultWrapper.newSuccessfulFutureResult((Void) null, i);
     }
 
     /**
@@ -125,12 +122,9 @@ final class InternalConnection extends AbstractAsynchronousConnection {
      */
     @Override
     public FutureResult<Result> addAsync(final AddRequest request,
-            final IntermediateResponseHandler intermediateResponseHandler,
-            final ResultHandler<? super Result> resultHandler) {
+            final IntermediateResponseHandler intermediateResponseHandler) {
         final int i = messageID.getAndIncrement();
-        final LDAPFutureResultImpl future =
-                new LDAPFutureResultImpl(i, request, resultHandler, intermediateResponseHandler,
-                        this);
+        final LDAPFutureResultImpl future = new LDAPFutureResultImpl(i, request, intermediateResponseHandler, this);
         serverConnection.handleAdd(i, request, future, future);
         return future;
     }
@@ -149,12 +143,10 @@ final class InternalConnection extends AbstractAsynchronousConnection {
      */
     @Override
     public FutureResult<BindResult> bindAsync(final BindRequest request,
-            final IntermediateResponseHandler intermediateResponseHandler,
-            final ResultHandler<? super BindResult> resultHandler) {
+            final IntermediateResponseHandler intermediateResponseHandler) {
         final int i = messageID.getAndIncrement();
-        final InternalBindFutureResultImpl future =
-                new InternalBindFutureResultImpl(i, request, resultHandler,
-                        intermediateResponseHandler, this);
+        final InternalBindFutureResultImpl future = new InternalBindFutureResultImpl(i, request,
+                intermediateResponseHandler, this);
         serverConnection.handleBind(i, 3, request, future, future);
         return future;
     }
@@ -173,12 +165,10 @@ final class InternalConnection extends AbstractAsynchronousConnection {
      */
     @Override
     public FutureResult<CompareResult> compareAsync(final CompareRequest request,
-            final IntermediateResponseHandler intermediateResponseHandler,
-            final ResultHandler<? super CompareResult> resultHandler) {
+            final IntermediateResponseHandler intermediateResponseHandler) {
         final int i = messageID.getAndIncrement();
-        final LDAPCompareFutureResultImpl future =
-                new LDAPCompareFutureResultImpl(i, request, resultHandler,
-                        intermediateResponseHandler, this);
+        final LDAPCompareFutureResultImpl future = new LDAPCompareFutureResultImpl(i, request,
+                intermediateResponseHandler, this);
         serverConnection.handleCompare(i, request, future, future);
         return future;
     }
@@ -188,12 +178,9 @@ final class InternalConnection extends AbstractAsynchronousConnection {
      */
     @Override
     public FutureResult<Result> deleteAsync(final DeleteRequest request,
-            final IntermediateResponseHandler intermediateResponseHandler,
-            final ResultHandler<? super Result> resultHandler) {
+            final IntermediateResponseHandler intermediateResponseHandler) {
         final int i = messageID.getAndIncrement();
-        final LDAPFutureResultImpl future =
-                new LDAPFutureResultImpl(i, request, resultHandler, intermediateResponseHandler,
-                        this);
+        final LDAPFutureResultImpl future = new LDAPFutureResultImpl(i, request, intermediateResponseHandler, this);
         serverConnection.handleDelete(i, request, future, future);
         return future;
     }
@@ -202,14 +189,11 @@ final class InternalConnection extends AbstractAsynchronousConnection {
      * {@inheritDoc}
      */
     @Override
-    public <R extends ExtendedResult> FutureResult<R> extendedRequestAsync(
-            final ExtendedRequest<R> request,
-            final IntermediateResponseHandler intermediateResponseHandler,
-            final ResultHandler<? super R> resultHandler) {
+    public <R extends ExtendedResult> FutureResult<R> extendedRequestAsync(final ExtendedRequest<R> request,
+            final IntermediateResponseHandler intermediateResponseHandler) {
         final int i = messageID.getAndIncrement();
-        final LDAPExtendedFutureResultImpl<R> future =
-                new LDAPExtendedFutureResultImpl<R>(i, request, resultHandler,
-                        intermediateResponseHandler, this);
+        final LDAPExtendedFutureResultImpl<R> future = new LDAPExtendedFutureResultImpl<R>(i, request,
+                intermediateResponseHandler, this);
         serverConnection.handleExtendedRequest(i, request, future, future);
         return future;
     }
@@ -237,12 +221,9 @@ final class InternalConnection extends AbstractAsynchronousConnection {
      */
     @Override
     public FutureResult<Result> modifyAsync(final ModifyRequest request,
-            final IntermediateResponseHandler intermediateResponseHandler,
-            final ResultHandler<? super Result> resultHandler) {
+            final IntermediateResponseHandler intermediateResponseHandler) {
         final int i = messageID.getAndIncrement();
-        final LDAPFutureResultImpl future =
-                new LDAPFutureResultImpl(i, request, resultHandler, intermediateResponseHandler,
-                        this);
+        final LDAPFutureResultImpl future = new LDAPFutureResultImpl(i, request, intermediateResponseHandler, this);
         serverConnection.handleModify(i, request, future, future);
         return future;
     }
@@ -252,12 +233,9 @@ final class InternalConnection extends AbstractAsynchronousConnection {
      */
     @Override
     public FutureResult<Result> modifyDNAsync(final ModifyDNRequest request,
-            final IntermediateResponseHandler intermediateResponseHandler,
-            final ResultHandler<? super Result> resultHandler) {
+            final IntermediateResponseHandler intermediateResponseHandler) {
         final int i = messageID.getAndIncrement();
-        final LDAPFutureResultImpl future =
-                new LDAPFutureResultImpl(i, request, resultHandler, intermediateResponseHandler,
-                        this);
+        final LDAPFutureResultImpl future = new LDAPFutureResultImpl(i, request, intermediateResponseHandler, this);
         serverConnection.handleModifyDN(i, request, future, future);
         return future;
     }
@@ -276,19 +254,18 @@ final class InternalConnection extends AbstractAsynchronousConnection {
      */
     @Override
     public FutureResult<Result> searchAsync(final SearchRequest request,
-            final IntermediateResponseHandler intermediateResponseHandler,
-            final SearchResultHandler resultHandler) {
+            final IntermediateResponseHandler intermediateResponseHandler, final SearchResultHandler entryHandler) {
         final int i = messageID.getAndIncrement();
-        final LDAPSearchFutureResultImpl future =
-                new LDAPSearchFutureResultImpl(i, request, resultHandler,
-                        intermediateResponseHandler, this);
-        serverConnection.handleSearch(i, request, future, future);
+        final LDAPSearchFutureResultImpl future = new LDAPSearchFutureResultImpl(i, request, entryHandler,
+                intermediateResponseHandler, this);
+        serverConnection.handleSearch(i, request, future, future, future);
         return future;
     }
 
     /**
      * {@inheritDoc}
      */
+    @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
         builder.append("InternalConnection(");

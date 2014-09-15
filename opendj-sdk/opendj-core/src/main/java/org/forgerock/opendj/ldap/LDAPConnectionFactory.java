@@ -32,6 +32,7 @@ import static com.forgerock.opendj.util.StaticUtils.getProvider;
 import org.forgerock.opendj.ldap.spi.LDAPConnectionFactoryImpl;
 import org.forgerock.opendj.ldap.spi.TransportProvider;
 import org.forgerock.util.Reject;
+import org.forgerock.util.promise.Promise;
 
 /**
  * A factory class which can be used to obtain connections to an LDAP Directory
@@ -47,7 +48,7 @@ public final class LDAPConnectionFactory implements ConnectionFactory {
     /*
      * Transport provider that provides the implementation of this factory.
      */
-    private TransportProvider provider;
+    private final TransportProvider provider;
 
     /**
      * Creates a new LDAP connection factory which can be used to create LDAP
@@ -96,9 +97,8 @@ public final class LDAPConnectionFactory implements ConnectionFactory {
     }
 
     @Override
-    public FutureResult<Connection> getConnectionAsync(
-            final ResultHandler<? super Connection> handler) {
-        return impl.getConnectionAsync(handler);
+    public Promise<Connection, ErrorResultException> getConnectionAsync() {
+        return impl.getConnectionAsync();
     }
 
     @Override

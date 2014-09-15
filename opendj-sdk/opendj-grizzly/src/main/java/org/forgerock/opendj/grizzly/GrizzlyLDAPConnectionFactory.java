@@ -27,13 +27,6 @@
 
 package org.forgerock.opendj.grizzly;
 
-import static com.forgerock.opendj.grizzly.GrizzlyMessages.LDAP_CONNECTION_CONNECT_TIMEOUT;
-import static org.forgerock.opendj.grizzly.DefaultTCPNIOTransport.DEFAULT_TRANSPORT;
-import static org.forgerock.opendj.grizzly.GrizzlyUtils.buildFilterChain;
-import static org.forgerock.opendj.grizzly.GrizzlyUtils.configureConnection;
-import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
-import static org.forgerock.opendj.ldap.TimeoutChecker.TIMEOUT_CHECKER;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.ExecutionException;
@@ -46,16 +39,18 @@ import javax.net.ssl.SSLEngine;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ErrorResultException;
-import org.forgerock.opendj.ldap.FutureResult;
+import org.forgerock.opendj.ldap.FutureResultImpl;
 import org.forgerock.opendj.ldap.LDAPOptions;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ResultHandler;
 import org.forgerock.opendj.ldap.TimeoutChecker;
 import org.forgerock.opendj.ldap.TimeoutEventListener;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.StartTLSExtendedRequest;
 import org.forgerock.opendj.ldap.responses.ExtendedResult;
 import org.forgerock.opendj.ldap.spi.LDAPConnectionFactoryImpl;
+import org.forgerock.util.promise.FailureHandler;
+import org.forgerock.util.promise.Promise;
+import org.forgerock.util.promise.SuccessHandler;
 import org.glassfish.grizzly.CompletionHandler;
 import org.glassfish.grizzly.EmptyCompletionHandler;
 import org.glassfish.grizzly.SocketConnectorHandler;
@@ -63,8 +58,14 @@ import org.glassfish.grizzly.filterchain.FilterChain;
 import org.glassfish.grizzly.nio.transport.TCPNIOConnectorHandler;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 
-import com.forgerock.opendj.util.AsynchronousFutureResult;
 import com.forgerock.opendj.util.ReferenceCountedObject;
+
+import static org.forgerock.opendj.grizzly.DefaultTCPNIOTransport.*;
+import static org.forgerock.opendj.grizzly.GrizzlyUtils.*;
+import static org.forgerock.opendj.ldap.ErrorResultException.*;
+import static org.forgerock.opendj.ldap.TimeoutChecker.*;
+
+import static com.forgerock.opendj.grizzly.GrizzlyMessages.*;
 
 /**
  * LDAP connection factory implementation using Grizzly for transport.
@@ -79,11 +80,10 @@ public final class GrizzlyLDAPConnectionFactory implements LDAPConnectionFactory
     @SuppressWarnings("rawtypes")
     private final class CompletionHandlerAdapter implements
             CompletionHandler<org.glassfish.grizzly.Connection>, TimeoutEventListener {
-        private final AsynchronousFutureResult<Connection, ResultHandler<? super Connection>> future;
+        private final FutureResultImpl<Connection> future;
         private final long timeoutEndTime;
 
-        private CompletionHandlerAdapter(
-                final AsynchronousFutureResult<Connection, ResultHandler<? super Connection>> future) {
+        private CompletionHandlerAdapter(final FutureResultImpl<Connection> future) {
             this.future = future;
             final long timeoutMS = getTimeout();
             this.timeoutEndTime = timeoutMS > 0 ? System.currentTimeMillis() + timeoutMS : 0;
@@ -120,37 +120,36 @@ public final class GrizzlyLDAPConnectionFactory implements LDAPConnectionFactory
                 final StartTLSExtendedRequest startTLS =
                         Requests.newStartTLSExtendedRequest(options.getSSLContext());
                 startTLS.addEnabledCipherSuite(options.getEnabledCipherSuites().toArray(
-                        new String[options.getEnabledCipherSuites().size()]));
+                    new String[options.getEnabledCipherSuites().size()]));
                 startTLS.addEnabledProtocol(options.getEnabledProtocols().toArray(
-                        new String[options.getEnabledProtocols().size()]));
-                final ResultHandler<ExtendedResult> handler = new ResultHandler<ExtendedResult>() {
-                    @Override
-                    public void handleErrorResult(final ErrorResultException error) {
-                        onFailure(connection, error);
-                    }
+                    new String[options.getEnabledProtocols().size()]));
 
+                connection.extendedRequestAsync(startTLS).onSuccess(new SuccessHandler<ExtendedResult>() {
                     @Override
                     public void handleResult(final ExtendedResult result) {
                         onSuccess(connection);
                     }
-                };
-                connection.extendedRequestAsync(startTLS, null, handler);
+                }).onFailure(new FailureHandler<ErrorResultException>() {
+                    @Override
+                    public void handleError(final ErrorResultException error) {
+                        onFailure(connection, error);
+                    }
+                });
             } else {
                 // Install SSL/TLS layer.
                 try {
                     connection.startTLS(options.getSSLContext(), options.getEnabledProtocols(),
-                            options.getEnabledCipherSuites(),
-                            new EmptyCompletionHandler<SSLEngine>() {
-                                @Override
-                                public void completed(final SSLEngine result) {
-                                    onSuccess(connection);
-                                }
+                        options.getEnabledCipherSuites(), new EmptyCompletionHandler<SSLEngine>() {
+                            @Override
+                            public void completed(final SSLEngine result) {
+                                onSuccess(connection);
+                            }
 
-                                @Override
-                                public void failed(final Throwable throwable) {
-                                    onFailure(connection, throwable);
-                                }
-                            });
+                            @Override
+                            public void failed(final Throwable throwable) {
+                                onFailure(connection, throwable);
+                            }
+                        });
                 } catch (final IOException e) {
                     onFailure(connection, e);
                 }
@@ -161,7 +160,7 @@ public final class GrizzlyLDAPConnectionFactory implements LDAPConnectionFactory
         public void failed(final Throwable throwable) {
             // Adapt and forward.
             timeoutChecker.get().removeListener(this);
-            future.handleErrorResult(adaptConnectionException(throwable));
+            future.handleError(adaptConnectionException(throwable));
             releaseTransportAndTimeoutChecker();
         }
 
@@ -197,7 +196,7 @@ public final class GrizzlyLDAPConnectionFactory implements LDAPConnectionFactory
         private void onFailure(final GrizzlyLDAPConnection connection, final Throwable t) {
             // Abort connection attempt due to error.
             timeoutChecker.get().removeListener(this);
-            future.handleErrorResult(adaptConnectionException(t));
+            future.handleError(adaptConnectionException(t));
             connection.close();
         }
 
@@ -216,7 +215,7 @@ public final class GrizzlyLDAPConnectionFactory implements LDAPConnectionFactory
             } else if (timeoutEndTime > currentTime) {
                 return timeoutEndTime - currentTime;
             } else {
-                future.handleErrorResult(newErrorResult(ResultCode.CLIENT_SIDE_CONNECT_ERROR,
+                future.handleError(newErrorResult(ResultCode.CLIENT_SIDE_CONNECT_ERROR,
                         LDAP_CONNECTION_CONNECT_TIMEOUT.get(getSocketAddress(), getTimeout()).toString()));
                 return 0;
             }
@@ -303,21 +302,19 @@ public final class GrizzlyLDAPConnectionFactory implements LDAPConnectionFactory
     @Override
     public Connection getConnection() throws ErrorResultException {
         try {
-            return getConnectionAsync(null).get();
+            return getConnectionAsync().getOrThrow();
         } catch (final InterruptedException e) {
             throw newErrorResult(ResultCode.CLIENT_SIDE_USER_CANCELLED, e);
         }
     }
 
     @Override
-    public FutureResult<Connection> getConnectionAsync(
-            final ResultHandler<? super Connection> handler) {
+    public Promise<Connection, ErrorResultException> getConnectionAsync() {
         acquireTransportAndTimeoutChecker(); // Protect resources.
         final SocketConnectorHandler connectorHandler =
                 TCPNIOConnectorHandler.builder(transport.get()).processor(defaultFilterChain)
                         .build();
-        final AsynchronousFutureResult<Connection, ResultHandler<? super Connection>> future =
-                new AsynchronousFutureResult<Connection, ResultHandler<? super Connection>>(handler);
+        final FutureResultImpl<Connection> future = new FutureResultImpl<Connection>();
         connectorHandler.connect(getSocketAddress(), new CompletionHandlerAdapter(future));
         return future;
     }

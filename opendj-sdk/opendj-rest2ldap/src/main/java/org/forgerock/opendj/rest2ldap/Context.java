@@ -11,13 +11,9 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions Copyright [year] [name of copyright owner]".
  *
- * Copyright 2013 ForgeRock AS.
+ * Copyright 2013-2014 ForgeRock AS.
  */
 package org.forgerock.opendj.rest2ldap;
-
-import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
-import static org.forgerock.opendj.rest2ldap.Rest2LDAP.asResourceException;
-import static org.forgerock.opendj.rest2ldap.Utils.i18n;
 
 import java.io.Closeable;
 import java.util.LinkedHashMap;
@@ -58,6 +54,11 @@ import org.forgerock.opendj.ldap.responses.ExtendedResult;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
+import org.forgerock.util.promise.FailureHandler;
+import org.forgerock.util.promise.SuccessHandler;
+
+import static org.forgerock.opendj.rest2ldap.Rest2LDAP.*;
+import static org.forgerock.opendj.rest2ldap.Utils.*;
 
 /**
  * Common context information passed to containers and mappers. A new context is
@@ -68,7 +69,7 @@ final class Context implements Closeable {
     /*
      * A cached read request - see cachedReads for more information.
      */
-    private static final class CachedRead implements SearchResultHandler {
+    private static final class CachedRead implements SearchResultHandler, ResultHandler<Result> {
         private SearchResultEntry cachedEntry;
         private final String cachedFilterString;
         private FutureResult<Result> cachedFuture; // Guarded by latch.
@@ -91,7 +92,7 @@ final class Context implements Closeable {
         }
 
         @Override
-        public void handleErrorResult(final ErrorResultException error) {
+        public void handleError(final ErrorResultException error) {
             handleResult(error.getResult());
         }
 
@@ -171,14 +172,9 @@ final class Context implements Closeable {
             }
         }
 
-        private void invokeResultHandler(final SearchResultHandler resultHandler) {
+        private void invokeResultHandler(final SearchResultHandler searchResultHandler) {
             if (cachedEntry != null) {
-                resultHandler.handleEntry(cachedEntry);
-            }
-            if (cachedResult.isSuccess()) {
-                resultHandler.handleResult(cachedResult);
-            } else {
-                resultHandler.handleErrorResult(newErrorResult(cachedResult));
+                searchResultHandler.handleEntry(cachedEntry);
             }
         }
 
@@ -214,9 +210,7 @@ final class Context implements Closeable {
          */
         if (config.getAuthorizationPolicy() != AuthorizationPolicy.NONE
                 && context.containsContext(AuthenticatedConnectionContext.class)) {
-            final Connection connection =
-                    context.asContext(AuthenticatedConnectionContext.class).getConnection();
-            this.connection = wrap(connection);
+            this.connection = wrap(context.asContext(AuthenticatedConnectionContext.class).getConnection());
         } else {
             this.connection = null; // We'll allocate the connection.
         }
@@ -268,11 +262,9 @@ final class Context implements Closeable {
         if (connection == null && config.getAuthorizationPolicy() == AuthorizationPolicy.PROXY) {
             if (context.containsContext(SecurityContext.class)) {
                 try {
-                    final SecurityContext securityContext =
-                            context.asContext(SecurityContext.class);
-                    final String authzId =
-                            config.getProxiedAuthorizationTemplate().formatAsAuthzId(
-                                    securityContext.getAuthorizationId(), config.schema());
+                    final SecurityContext securityContext = context.asContext(SecurityContext.class);
+                    final String authzId = config.getProxiedAuthorizationTemplate().formatAsAuthzId(
+                            securityContext.getAuthorizationId(), config.schema());
                     proxiedAuthzControl = ProxiedAuthV2RequestControl.newControl(authzId);
                 } catch (final ResourceException e) {
                     handler.handleError(e);
@@ -280,8 +272,7 @@ final class Context implements Closeable {
                 }
             } else {
                 handler.handleError(new InternalServerErrorException(
-                        i18n("The request could not be authorized because it did "
-                                + "not contain a security context")));
+                        i18n("The request could not be authorized because it did not contain a security context")));
                 return;
             }
         }
@@ -295,22 +286,21 @@ final class Context implements Closeable {
             // Invoke the handler immediately since a connection is available.
             runnable.run();
         } else if (config.connectionFactory() != null) {
-            config.connectionFactory().getConnectionAsync(new ResultHandler<Connection>() {
-                @Override
-                public final void handleErrorResult(final ErrorResultException error) {
-                    handler.handleError(asResourceException(error));
-                }
-
+            config.connectionFactory().getConnectionAsync().onSuccess(new SuccessHandler<Connection>() {
                 @Override
                 public final void handleResult(final Connection result) {
                     connection = wrap(result);
                     runnable.run();
                 }
+            }).onFailure(new FailureHandler<ErrorResultException>() {
+                @Override
+                public final void handleError(final ErrorResultException error) {
+                    handler.handleError(asResourceException(error));
+                }
             });
         } else {
             handler.handleError(new InternalServerErrorException(
-                    i18n("The request could not be processed because there was no LDAP "
-                            + "connection available for use")));
+                    i18n("The request could not be processed because there was no LDAP connection available for use")));
         }
     }
 
@@ -331,10 +321,8 @@ final class Context implements Closeable {
 
             @Override
             public FutureResult<Result> addAsync(final AddRequest request,
-                    final IntermediateResponseHandler intermediateResponseHandler,
-                    final ResultHandler<? super Result> resultHandler) {
-                return connection.addAsync(withControls(request), intermediateResponseHandler,
-                        resultHandler);
+                final IntermediateResponseHandler intermediateResponseHandler) {
+                return connection.addAsync(withControls(request), intermediateResponseHandler);
             }
 
             @Override
@@ -344,14 +332,13 @@ final class Context implements Closeable {
 
             @Override
             public FutureResult<BindResult> bindAsync(final BindRequest request,
-                    final IntermediateResponseHandler intermediateResponseHandler,
-                    final ResultHandler<? super BindResult> resultHandler) {
+                final IntermediateResponseHandler intermediateResponseHandler) {
                 /*
                  * Simple brute force implementation in case the bind operation
                  * modifies an entry: clear the cachedReads.
                  */
                 evictAll();
-                return connection.bindAsync(request, intermediateResponseHandler, resultHandler);
+                return connection.bindAsync(request, intermediateResponseHandler);
             }
 
             @Override
@@ -366,33 +353,26 @@ final class Context implements Closeable {
 
             @Override
             public FutureResult<CompareResult> compareAsync(final CompareRequest request,
-                    final IntermediateResponseHandler intermediateResponseHandler,
-                    final ResultHandler<? super CompareResult> resultHandler) {
-                return connection.compareAsync(withControls(request), intermediateResponseHandler,
-                        resultHandler);
+                final IntermediateResponseHandler intermediateResponseHandler) {
+                return connection.compareAsync(withControls(request), intermediateResponseHandler);
             }
 
             @Override
             public FutureResult<Result> deleteAsync(final DeleteRequest request,
-                    final IntermediateResponseHandler intermediateResponseHandler,
-                    final ResultHandler<? super Result> resultHandler) {
+                final IntermediateResponseHandler intermediateResponseHandler) {
                 evict(request.getName());
-                return connection.deleteAsync(withControls(request), intermediateResponseHandler,
-                        resultHandler);
+                return connection.deleteAsync(withControls(request), intermediateResponseHandler);
             }
 
             @Override
-            public <R extends ExtendedResult> FutureResult<R> extendedRequestAsync(
-                    final ExtendedRequest<R> request,
-                    final IntermediateResponseHandler intermediateResponseHandler,
-                    final ResultHandler<? super R> resultHandler) {
+            public <R extends ExtendedResult> FutureResult<R> extendedRequestAsync(final ExtendedRequest<R> request,
+                final IntermediateResponseHandler intermediateResponseHandler) {
                 /*
                  * Simple brute force implementation in case the extended
                  * operation modifies an entry: clear the cachedReads.
                  */
                 evictAll();
-                return connection.extendedRequestAsync(withControls(request),
-                        intermediateResponseHandler, resultHandler);
+                return connection.extendedRequestAsync(withControls(request), intermediateResponseHandler);
             }
 
             @Override
@@ -407,21 +387,17 @@ final class Context implements Closeable {
 
             @Override
             public FutureResult<Result> modifyAsync(final ModifyRequest request,
-                    final IntermediateResponseHandler intermediateResponseHandler,
-                    final ResultHandler<? super Result> resultHandler) {
+                final IntermediateResponseHandler intermediateResponseHandler) {
                 evict(request.getName());
-                return connection.modifyAsync(withControls(request), intermediateResponseHandler,
-                        resultHandler);
+                return connection.modifyAsync(withControls(request), intermediateResponseHandler);
             }
 
             @Override
             public FutureResult<Result> modifyDNAsync(final ModifyDNRequest request,
-                    final IntermediateResponseHandler intermediateResponseHandler,
-                    final ResultHandler<? super Result> resultHandler) {
+                final IntermediateResponseHandler intermediateResponseHandler) {
                 // Simple brute force implementation: clear the cachedReads.
                 evictAll();
-                return connection.modifyDNAsync(withControls(request), intermediateResponseHandler,
-                        resultHandler);
+                return connection.modifyDNAsync(withControls(request), intermediateResponseHandler);
             }
 
             @Override
@@ -434,17 +410,14 @@ final class Context implements Closeable {
              */
             @Override
             public FutureResult<Result> searchAsync(final SearchRequest request,
-                    final IntermediateResponseHandler intermediateResponseHandler,
-                    final SearchResultHandler resultHandler) {
+                final IntermediateResponseHandler intermediateResponseHandler, final SearchResultHandler entryHandler) {
                 /*
                  * Don't attempt caching if this search is not a read (base
                  * object), or if the search request passed in an intermediate
                  * response handler.
                  */
-                if (!request.getScope().equals(SearchScope.BASE_OBJECT)
-                        || intermediateResponseHandler != null) {
-                    return connection.searchAsync(withControls(request),
-                            intermediateResponseHandler, resultHandler);
+                if (!request.getScope().equals(SearchScope.BASE_OBJECT) || intermediateResponseHandler != null) {
+                    return connection.searchAsync(withControls(request), intermediateResponseHandler, entryHandler);
                 }
 
                 // This is a read request and a candidate for caching.
@@ -454,17 +427,17 @@ final class Context implements Closeable {
                 }
                 if (cachedRead != null && cachedRead.isMatchingRead(request)) {
                     // The cached read matches this read request.
-                    cachedRead.addResultHandler(resultHandler);
+                    cachedRead.addResultHandler(entryHandler);
                     return cachedRead.getFutureResult();
                 } else {
                     // Cache the read, possibly evicting a non-matching cached read.
-                    final CachedRead pendingCachedRead = new CachedRead(request, resultHandler);
+                    final CachedRead pendingCachedRead = new CachedRead(request, entryHandler);
                     synchronized (cachedReads) {
                         cachedReads.put(request.getName(), pendingCachedRead);
                     }
-                    final FutureResult<Result> future =
-                            connection.searchAsync(withControls(request),
-                                    intermediateResponseHandler, pendingCachedRead);
+                    final FutureResult<Result> future = (FutureResult<Result>) connection
+                            .searchAsync(withControls(request), intermediateResponseHandler, pendingCachedRead)
+                            .onSuccess(pendingCachedRead).onFailure(pendingCachedRead);
                     pendingCachedRead.setFuture(future);
                     return future;
                 }
