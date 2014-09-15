@@ -25,20 +25,10 @@
  */
 package org.forgerock.opendj.grizzly;
 
-import static org.fest.assertions.Assertions.assertThat;
-import static org.fest.assertions.Fail.fail;
-import static org.forgerock.opendj.ldap.TestCaseUtils.findFreeSocketAddress;
-import static org.forgerock.opendj.ldap.requests.Requests.newSimpleBindRequest;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyInt;
-import static org.mockito.Matchers.same;
-import static org.mockito.Mockito.*;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.forgerock.opendj.ldap.Connection;
@@ -69,11 +59,22 @@ import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.requests.UnbindRequest;
 import org.forgerock.opendj.ldap.responses.BindResult;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
+import org.forgerock.util.promise.FailureHandler;
+import org.forgerock.util.promise.NeverThrowsException;
+import org.forgerock.util.promise.Promise;
+import org.forgerock.util.promise.PromiseImpl;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.mockito.stubbing.Stubber;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
+
+import static org.fest.assertions.Assertions.*;
+import static org.fest.assertions.Fail.*;
+import static org.forgerock.opendj.ldap.TestCaseUtils.*;
+import static org.forgerock.opendj.ldap.requests.Requests.*;
+import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.*;
 
 /**
  * Tests the {@link LDAPConnectionFactory} class.
@@ -121,21 +122,22 @@ public class GrizzlyLDAPConnectionFactoryTestCase extends SdkTestCase {
     @Test(description = "OPENDJ-1197")
     public void testClientSideConnectTimeout() throws Exception {
         // Use an non-local unreachable network address.
-        final ConnectionFactory factory =
-                new LDAPConnectionFactory("10.20.30.40", 1389, new LDAPOptions().setConnectTimeout(
-                        1, TimeUnit.MILLISECONDS));
+        final ConnectionFactory factory = new LDAPConnectionFactory("10.20.30.40", 1389,
+                new LDAPOptions().setConnectTimeout(1, TimeUnit.MILLISECONDS));
         try {
             for (int i = 0; i < ITERATIONS; i++) {
-                final ResultHandler<Connection> handler = mock(ResultHandler.class);
-                final FutureResult<Connection> future = factory.getConnectionAsync(handler);
+                final PromiseImpl<ErrorResultException, NeverThrowsException> promise = PromiseImpl.create();
+                final Promise<? extends Connection, ErrorResultException> future = factory.getConnectionAsync();
+                future.onFailure(getFailureHandler(promise));
+
+                ConnectionException e = (ConnectionException) promise.getOrThrow(TEST_TIMEOUT, TimeUnit.SECONDS);
+                assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.CLIENT_SIDE_CONNECT_ERROR);
                 // Wait for the connect to timeout.
                 try {
-                    future.get(TEST_TIMEOUT, TimeUnit.SECONDS);
+                    future.getOrThrow(TEST_TIMEOUT, TimeUnit.SECONDS);
                     fail("The connect request succeeded unexpectedly");
-                } catch (ConnectionException e) {
-                    assertThat(e.getResult().getResultCode()).isEqualTo(
-                            ResultCode.CLIENT_SIDE_CONNECT_ERROR);
-                    verify(handler).handleErrorResult(same(e));
+                } catch (ConnectionException ce) {
+                    assertThat(ce.getResult().getResultCode()).isEqualTo(ResultCode.CLIENT_SIDE_CONNECT_ERROR);
                 }
             }
         } finally {
@@ -161,32 +163,32 @@ public class GrizzlyLDAPConnectionFactoryTestCase extends SdkTestCase {
             waitForConnect();
             final MockConnectionEventListener listener = new MockConnectionEventListener();
             connection.addConnectionEventListener(listener);
-
-            final ResultHandler<BindResult> handler = mock(ResultHandler.class);
-            final FutureResult<BindResult> future =
-                    connection.bindAsync(newSimpleBindRequest(), null, handler);
+            final PromiseImpl<ErrorResultException, NeverThrowsException> promise = PromiseImpl.create();
+            final FutureResult<BindResult> future = connection.bindAsync(newSimpleBindRequest());
+            future.onFailure(getFailureHandler(promise));
             waitForBind();
+
+            TimeoutResultException e = (TimeoutResultException) promise.getOrThrow(TEST_TIMEOUT, TimeUnit.SECONDS);
+            verifyResultCodeIsClientSideTimeout(e);
 
             // Wait for the request to timeout.
             try {
-                future.get(TEST_TIMEOUT, TimeUnit.SECONDS);
+                future.getOrThrow(TEST_TIMEOUT, TimeUnit.SECONDS);
                 fail("The bind request succeeded unexpectedly");
-            } catch (TimeoutResultException e) {
-                verifyResultCodeIsClientSideTimeout(e);
-                verify(handler).handleErrorResult(same(e));
-
-                /*
-                 * The connection should no longer be valid, the event listener
-                 * should have been notified, but no abandon should have been
-                 * sent.
-                 */
-                listener.awaitError(TEST_TIMEOUT, TimeUnit.SECONDS);
-                assertThat(connection.isValid()).isFalse();
-                verifyResultCodeIsClientSideTimeout(listener.getError());
-                connection.close();
-                waitForClose();
-                verifyNoAbandonSent();
+            } catch (TimeoutResultException te) {
+                verifyResultCodeIsClientSideTimeout(te);
             }
+
+            /*
+             * The connection should no longer be valid, the event listener
+             * should have been notified, but no abandon should have been sent.
+             */
+            listener.awaitError(TEST_TIMEOUT, TimeUnit.SECONDS);
+            assertThat(connection.isValid()).isFalse();
+            verifyResultCodeIsClientSideTimeout(listener.getError());
+            connection.close();
+            waitForClose();
+            verifyNoAbandonSent();
         } finally {
             connection.close();
         }
@@ -211,38 +213,40 @@ public class GrizzlyLDAPConnectionFactoryTestCase extends SdkTestCase {
                 connection.addConnectionEventListener(listener);
 
                 // Now bind with timeout.
-                final ResultHandler<BindResult> handler = mock(ResultHandler.class);
-                final FutureResult<BindResult> future =
-                        connection.bindAsync(newSimpleBindRequest(), null, handler);
+                final PromiseImpl<ErrorResultException, NeverThrowsException> promise = PromiseImpl.create();
+                final FutureResult<BindResult> future = connection.bindAsync(newSimpleBindRequest());
+                future.onFailure(getFailureHandler(promise));
                 waitForBind();
 
-                // Wait for the request to timeout.
-                try {
-                    future.get(5, TimeUnit.SECONDS);
-                    fail("The bind request succeeded unexpectedly");
-                } catch (TimeoutException e) {
-                    fail("The bind request future get timed out");
-                } catch (TimeoutResultException e) {
-                    verifyResultCodeIsClientSideTimeout(e);
-                    verify(handler).handleErrorResult(same(e));
+                // Wait for the request to timeout and check the handler was invoked.
+                TimeoutResultException e = (TimeoutResultException) promise.getOrThrow(5, TimeUnit.SECONDS);
+                verifyResultCodeIsClientSideTimeout(e);
 
-                    /*
-                     * The connection should no longer be valid, the event
-                     * listener should have been notified, but no abandon should
-                     * have been sent.
-                     */
-                    listener.awaitError(TEST_TIMEOUT, TimeUnit.SECONDS);
-                    assertThat(connection.isValid()).isFalse();
-                    verifyResultCodeIsClientSideTimeout(listener.getError());
-                    connection.close();
-                    waitForClose();
-                    verifyNoAbandonSent();
+                // Now check the future was completed as expected.
+                try {
+                    future.getOrThrow(5, TimeUnit.SECONDS);
+                    fail("The bind request succeeded unexpectedly");
+                } catch (TimeoutResultException te) {
+                    verifyResultCodeIsClientSideTimeout(te);
                 }
+
+                /*
+                 * The connection should no longer be valid, the event listener
+                 * should have been notified, but no abandon should have been
+                 * sent.
+                 */
+                listener.awaitError(TEST_TIMEOUT, TimeUnit.SECONDS);
+                assertThat(connection.isValid()).isFalse();
+                verifyResultCodeIsClientSideTimeout(listener.getError());
+                connection.close();
+                waitForClose();
+                verifyNoAbandonSent();
             } finally {
                 connection.close();
             }
         }
     }
+
 
     /**
      * Unit test for OPENDJ-1247: a locally timed out request which is not a
@@ -262,30 +266,29 @@ public class GrizzlyLDAPConnectionFactoryTestCase extends SdkTestCase {
                 waitForConnect();
                 final ConnectionEventListener listener = mock(ConnectionEventListener.class);
                 connection.addConnectionEventListener(listener);
-
-                final ResultHandler<SearchResultEntry> handler = mock(ResultHandler.class);
-                final FutureResult<SearchResultEntry> future =
-                        connection.readEntryAsync(DN.valueOf("cn=test"), null, handler);
+                final PromiseImpl<ErrorResultException, NeverThrowsException> promise = PromiseImpl.create();
+                final FutureResult<SearchResultEntry> future = connection.readEntryAsync(DN.valueOf("cn=test"), null);
+                future.onFailure(getFailureHandler(promise));
                 waitForSearch();
 
+                ErrorResultException e = promise.getOrThrow(TEST_TIMEOUT, TimeUnit.SECONDS);
+                verifyResultCodeIsClientSideTimeout(e);
                 // Wait for the request to timeout.
                 try {
-                    future.get(TEST_TIMEOUT, TimeUnit.SECONDS);
+                    future.getOrThrow(TEST_TIMEOUT, TimeUnit.SECONDS);
                     fail("The search request succeeded unexpectedly");
-                } catch (TimeoutResultException e) {
-                    verifyResultCodeIsClientSideTimeout(e);
-                    verify(handler).handleErrorResult(same(e));
-
-                    // The connection should still be valid.
-                    assertThat(connection.isValid()).isTrue();
-                    verifyZeroInteractions(listener);
-
-                    /*
-                     * FIXME: The search should have been abandoned (see comment
-                     * in LDAPConnection for explanation).
-                     */
-                    // waitForAbandon();
+                } catch (TimeoutResultException te) {
+                    verifyResultCodeIsClientSideTimeout(te);
                 }
+
+                // The connection should still be valid.
+                assertThat(connection.isValid()).isTrue();
+                verifyZeroInteractions(listener);
+                /*
+                 * FIXME: The search should have been abandoned (see comment in
+                 * LDAPConnection for explanation).
+                 */
+                // waitForAbandon();
             } finally {
                 connection.close();
             }
@@ -296,8 +299,7 @@ public class GrizzlyLDAPConnectionFactoryTestCase extends SdkTestCase {
     public void testCreateLDAPConnectionFactory() throws Exception {
         // test no exception is thrown, which means transport provider is correctly loaded
         InetSocketAddress socketAddress = findFreeSocketAddress();
-        LDAPConnectionFactory factory = new LDAPConnectionFactory(socketAddress.getHostName(),
-                socketAddress.getPort());
+        LDAPConnectionFactory factory = new LDAPConnectionFactory(socketAddress.getHostName(), socketAddress.getPort());
         factory.close();
     }
 
@@ -314,9 +316,7 @@ public class GrizzlyLDAPConnectionFactoryTestCase extends SdkTestCase {
     @Test
     public void testCreateLDAPConnectionFactoryWithCustomClassLoader() throws Exception {
         // test no exception is thrown, which means transport provider is correctly loaded
-        LDAPOptions options =
-                new LDAPOptions().setProviderClassLoader(Thread.currentThread()
-                        .getContextClassLoader());
+        LDAPOptions options = new LDAPOptions().setProviderClassLoader(Thread.currentThread().getContextClassLoader());
         InetSocketAddress socketAddress = findFreeSocketAddress();
         LDAPConnectionFactory factory = new LDAPConnectionFactory(socketAddress.getHostName(),
                 socketAddress.getPort(), options);
@@ -367,6 +367,16 @@ public class GrizzlyLDAPConnectionFactoryTestCase extends SdkTestCase {
         }
     }
 
+    private FailureHandler<ErrorResultException> getFailureHandler(
+            final PromiseImpl<ErrorResultException, NeverThrowsException> promise) {
+        return new FailureHandler<ErrorResultException>() {
+            @Override
+            public void handleError(ErrorResultException error) {
+                promise.handleResult(error);
+            }
+        };
+    }
+
     private Stubber notifyEvent(final Semaphore latch) {
         return doAnswer(new Answer<Void>() {
             @Override
@@ -394,9 +404,8 @@ public class GrizzlyLDAPConnectionFactoryTestCase extends SdkTestCase {
     }
 
     private void registerSearchEvent() {
-        notifyEvent(searchLatch).when(serverConnection).handleSearch(any(Integer.class),
-                any(SearchRequest.class), any(IntermediateResponseHandler.class),
-                any(SearchResultHandler.class));
+        notifyEvent(searchLatch).when(serverConnection).handleSearch(any(Integer.class), any(SearchRequest.class),
+            any(IntermediateResponseHandler.class), any(SearchResultHandler.class), any(ResultHandler.class));
     }
 
     private void resetState() {

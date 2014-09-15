@@ -26,13 +26,6 @@
  */
 package org.forgerock.opendj.ldap;
 
-import static com.forgerock.opendj.util.StaticUtils.DEBUG_ENABLED;
-import static com.forgerock.opendj.util.StaticUtils.DEFAULT_SCHEDULER;
-import static com.forgerock.opendj.util.StaticUtils.getStackTraceIfDebugEnabled;
-import static com.forgerock.opendj.util.StaticUtils.logIfDebugEnabled;
-import static com.forgerock.opendj.ldap.CoreMessages.ERR_CONNECTION_POOL_CLOSING;
-import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
-
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -66,11 +59,18 @@ import org.forgerock.opendj.ldap.responses.SearchResultReference;
 import org.forgerock.opendj.ldif.ChangeRecord;
 import org.forgerock.opendj.ldif.ConnectionEntryReader;
 import org.forgerock.util.Reject;
+import org.forgerock.util.promise.FailureHandler;
+import org.forgerock.util.promise.Promise;
+import org.forgerock.util.promise.SuccessHandler;
 
-import com.forgerock.opendj.util.AsynchronousFutureResult;
-import com.forgerock.opendj.util.CompletedFutureResult;
 import com.forgerock.opendj.util.ReferenceCountedObject;
 import com.forgerock.opendj.util.TimeSource;
+
+import static org.forgerock.opendj.ldap.ErrorResultException.*;
+import static org.forgerock.util.promise.Promises.*;
+
+import static com.forgerock.opendj.ldap.CoreMessages.*;
+import static com.forgerock.opendj.util.StaticUtils.*;
 
 /**
  * A connection pool implementation which maintains a cache of pooled
@@ -80,13 +80,27 @@ import com.forgerock.opendj.util.TimeSource;
 final class CachedConnectionPool implements ConnectionPool {
 
     /**
-     * This result handler is invoked when an attempt to add a new connection to
-     * the pool completes.
+     * This success handler is invoked when an attempt to add a new connection
+     * to the pool completes.
      */
-    private final class ConnectionResultHandler implements ResultHandler<Connection> {
-
+    private final class ConnectionSuccessHandler implements SuccessHandler<Connection> {
         @Override
-        public void handleErrorResult(final ErrorResultException error) {
+        public void handleResult(final Connection connection) {
+            logger.debug(LocalizableMessage.raw(
+                    "Connection attempt succeeded:  availableConnections=%d, maxPoolSize=%d",
+                     currentPoolSize(), maxPoolSize));
+            pendingConnectionAttempts.decrementAndGet();
+            publishConnection(connection);
+        }
+    }
+
+    /**
+     * This failure handler is invoked when an attempt to add a new connection
+     * to the pool ended in error.
+     */
+    private final class ConnectionFailureHandler implements FailureHandler<ErrorResultException> {
+        @Override
+        public void handleError(final ErrorResultException error) {
             // Connection attempt failed, so decrease the pool size.
             pendingConnectionAttempts.decrementAndGet();
             availableConnections.release();
@@ -114,17 +128,8 @@ final class CachedConnectionPool implements ConnectionPool {
                 }
             }
             for (QueueElement waitingFuture : waitingFutures) {
-                waitingFuture.getWaitingFuture().handleErrorResult(error);
+                waitingFuture.getWaitingFuture().handleError(error);
             }
-        }
-
-        @Override
-        public void handleResult(final Connection connection) {
-            logger.debug(LocalizableMessage.raw(
-                    "Connection attempt succeeded:  availableConnections=%d, maxPoolSize=%d",
-                    currentPoolSize(), maxPoolSize));
-            pendingConnectionAttempts.decrementAndGet();
-            publishConnection(connection);
         }
     }
 
@@ -167,10 +172,14 @@ final class CachedConnectionPool implements ConnectionPool {
         }
 
         @Override
+        public FutureResult<Result> addAsync(AddRequest request) {
+            return addAsync(request, null);
+        }
+
+        @Override
         public FutureResult<Result> addAsync(final AddRequest request,
-                final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<? super Result> resultHandler) {
-            return checkState().addAsync(request, intermediateResponseHandler, resultHandler);
+                final IntermediateResponseHandler intermediateResponseHandler) {
+            return checkState().addAsync(request, intermediateResponseHandler);
         }
 
         @Override
@@ -211,11 +220,14 @@ final class CachedConnectionPool implements ConnectionPool {
         }
 
         @Override
+        public FutureResult<Result> applyChangeAsync(final ChangeRecord request) {
+            return checkState().applyChangeAsync(request, null);
+        }
+
+        @Override
         public FutureResult<Result> applyChangeAsync(final ChangeRecord request,
-                final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<? super Result> resultHandler) {
-            return checkState().applyChangeAsync(request, intermediateResponseHandler,
-                    resultHandler);
+                final IntermediateResponseHandler intermediateResponseHandler) {
+            return checkState().applyChangeAsync(request, intermediateResponseHandler);
         }
 
         @Override
@@ -230,10 +242,14 @@ final class CachedConnectionPool implements ConnectionPool {
         }
 
         @Override
+        public FutureResult<BindResult> bindAsync(BindRequest request) {
+            return bindAsync(request, null);
+        }
+
+        @Override
         public FutureResult<BindResult> bindAsync(final BindRequest request,
-                final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<? super BindResult> resultHandler) {
-            return checkState().bindAsync(request, intermediateResponseHandler, resultHandler);
+                final IntermediateResponseHandler intermediateResponseHandler) {
+            return checkState().bindAsync(request, intermediateResponseHandler);
         }
 
         @Override
@@ -268,7 +284,7 @@ final class CachedConnectionPool implements ConnectionPool {
                  */
                 connection.close();
                 pendingConnectionAttempts.incrementAndGet();
-                factory.getConnectionAsync(connectionResultHandler);
+                factory.getConnectionAsync().onSuccess(connectionSuccessHandler).onFailure(connectionFailureHandler);
 
                 logger.debug(LocalizableMessage.raw(
                         "Connection no longer valid: availableConnections=%d, maxPoolSize=%d",
@@ -300,10 +316,14 @@ final class CachedConnectionPool implements ConnectionPool {
         }
 
         @Override
+        public FutureResult<CompareResult> compareAsync(CompareRequest request) {
+            return compareAsync(request, null);
+        }
+
+        @Override
         public FutureResult<CompareResult> compareAsync(final CompareRequest request,
-                final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<? super CompareResult> resultHandler) {
-            return checkState().compareAsync(request, intermediateResponseHandler, resultHandler);
+                final IntermediateResponseHandler intermediateResponseHandler) {
+            return checkState().compareAsync(request, intermediateResponseHandler);
         }
 
         @Override
@@ -317,10 +337,14 @@ final class CachedConnectionPool implements ConnectionPool {
         }
 
         @Override
+        public FutureResult<Result> deleteAsync(DeleteRequest request) {
+            return deleteAsync(request, null);
+        }
+
+        @Override
         public FutureResult<Result> deleteAsync(final DeleteRequest request,
-                final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<? super Result> resultHandler) {
-            return checkState().deleteAsync(request, intermediateResponseHandler, resultHandler);
+                final IntermediateResponseHandler intermediateResponseHandler) {
+            return checkState().deleteAsync(request, intermediateResponseHandler);
         }
 
         @Override
@@ -347,12 +371,14 @@ final class CachedConnectionPool implements ConnectionPool {
         }
 
         @Override
-        public <R extends ExtendedResult> FutureResult<R> extendedRequestAsync(
-                final ExtendedRequest<R> request,
-                final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<? super R> resultHandler) {
-            return checkState().extendedRequestAsync(request, intermediateResponseHandler,
-                    resultHandler);
+        public <R extends ExtendedResult> FutureResult<R> extendedRequestAsync(ExtendedRequest<R> request) {
+            return extendedRequestAsync(request, null);
+        }
+
+        @Override
+        public <R extends ExtendedResult> FutureResult<R> extendedRequestAsync(final ExtendedRequest<R> request,
+                final IntermediateResponseHandler intermediateResponseHandler) {
+            return checkState().extendedRequestAsync(request, intermediateResponseHandler);
         }
 
         @Override
@@ -367,8 +393,7 @@ final class CachedConnectionPool implements ConnectionPool {
         }
 
         @Override
-        public void handleConnectionError(final boolean isDisconnectNotification,
-                final ErrorResultException error) {
+        public void handleConnectionError(final boolean isDisconnectNotification, final ErrorResultException error) {
             final List<ConnectionEventListener> tmpListeners;
             synchronized (stateLock) {
                 tmpListeners = listeners;
@@ -416,10 +441,14 @@ final class CachedConnectionPool implements ConnectionPool {
         }
 
         @Override
+        public FutureResult<Result> modifyAsync(ModifyRequest request) {
+            return modifyAsync(request, null);
+        }
+
+        @Override
         public FutureResult<Result> modifyAsync(final ModifyRequest request,
-                final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<? super Result> resultHandler) {
-            return checkState().modifyAsync(request, intermediateResponseHandler, resultHandler);
+                final IntermediateResponseHandler intermediateResponseHandler) {
+            return checkState().modifyAsync(request, intermediateResponseHandler);
         }
 
         @Override
@@ -433,10 +462,14 @@ final class CachedConnectionPool implements ConnectionPool {
         }
 
         @Override
+        public FutureResult<Result> modifyDNAsync(ModifyDNRequest request) {
+            return modifyDNAsync(request, null);
+        }
+
+        @Override
         public FutureResult<Result> modifyDNAsync(final ModifyDNRequest request,
-                final IntermediateResponseHandler intermediateResponseHandler,
-                final ResultHandler<? super Result> resultHandler) {
-            return checkState().modifyDNAsync(request, intermediateResponseHandler, resultHandler);
+                final IntermediateResponseHandler intermediateResponseHandler) {
+            return checkState().modifyDNAsync(request, intermediateResponseHandler);
         }
 
         @Override
@@ -453,9 +486,8 @@ final class CachedConnectionPool implements ConnectionPool {
 
         @Override
         public FutureResult<SearchResultEntry> readEntryAsync(final DN name,
-                final Collection<String> attributeDescriptions,
-                final ResultHandler<? super SearchResultEntry> handler) {
-            return checkState().readEntryAsync(name, attributeDescriptions, handler);
+                final Collection<String> attributeDescriptions) {
+            return checkState().readEntryAsync(name, attributeDescriptions);
         }
 
         @Override
@@ -474,16 +506,14 @@ final class CachedConnectionPool implements ConnectionPool {
         }
 
         @Override
-        public Result search(final SearchRequest request,
-                final Collection<? super SearchResultEntry> entries) throws ErrorResultException {
+        public Result search(final SearchRequest request, final Collection<? super SearchResultEntry> entries)
+                throws ErrorResultException {
             return checkState().search(request, entries);
         }
 
         @Override
-        public Result search(final SearchRequest request,
-                final Collection<? super SearchResultEntry> entries,
-                final Collection<? super SearchResultReference> references)
-                throws ErrorResultException {
+        public Result search(final SearchRequest request, final Collection<? super SearchResultEntry> entries,
+                final Collection<? super SearchResultReference> references) throws ErrorResultException {
             return checkState().search(request, entries, references);
         }
 
@@ -494,35 +524,36 @@ final class CachedConnectionPool implements ConnectionPool {
         }
 
         @Override
-        public ConnectionEntryReader search(final String baseObject, final SearchScope scope,
-                final String filter, final String... attributeDescriptions) {
+        public ConnectionEntryReader search(final String baseObject, final SearchScope scope, final String filter,
+                final String... attributeDescriptions) {
             return checkState().search(baseObject, scope, filter, attributeDescriptions);
         }
 
         @Override
-        public FutureResult<Result> searchAsync(final SearchRequest request,
-                final IntermediateResponseHandler intermediateResponseHandler,
-                final SearchResultHandler resultHandler) {
-            return checkState().searchAsync(request, intermediateResponseHandler, resultHandler);
+        public FutureResult<Result> searchAsync(SearchRequest request, SearchResultHandler resultHandler) {
+            return searchAsync(request, null, resultHandler);
         }
 
         @Override
-        public SearchResultEntry searchSingleEntry(final SearchRequest request)
-                throws ErrorResultException {
+        public FutureResult<Result> searchAsync(final SearchRequest request,
+                final IntermediateResponseHandler intermediateResponseHandler, final SearchResultHandler entryHandler) {
+            return checkState().searchAsync(request, intermediateResponseHandler, entryHandler);
+        }
+
+        @Override
+        public SearchResultEntry searchSingleEntry(final SearchRequest request) throws ErrorResultException {
             return checkState().searchSingleEntry(request);
         }
 
         @Override
-        public SearchResultEntry searchSingleEntry(final String baseObject,
-                final SearchScope scope, final String filter, final String... attributeDescriptions)
-                throws ErrorResultException {
+        public SearchResultEntry searchSingleEntry(final String baseObject, final SearchScope scope,
+                final String filter, final String... attributeDescriptions) throws ErrorResultException {
             return checkState().searchSingleEntry(baseObject, scope, filter, attributeDescriptions);
         }
 
         @Override
-        public FutureResult<SearchResultEntry> searchSingleEntryAsync(final SearchRequest request,
-                final ResultHandler<? super SearchResultEntry> handler) {
-            return checkState().searchSingleEntryAsync(request, handler);
+        public FutureResult<SearchResultEntry> searchSingleEntryAsync(final SearchRequest request) {
+            return checkState().searchSingleEntryAsync(request);
         }
 
         @Override
@@ -623,11 +654,9 @@ final class CachedConnectionPool implements ConnectionPool {
             this.stack = null;
         }
 
-        QueueElement(final ResultHandler<? super Connection> handler, final long timestampMillis,
-                final StackTraceElement[] stack) {
-            this.value =
-                    new AsynchronousFutureResult<Connection, ResultHandler<? super Connection>>(
-                            handler);
+        QueueElement(final long timestampMillis,
+            final StackTraceElement[] stack) {
+            this.value = new FutureResultImpl<Connection>();
             this.timestampMillis = timestampMillis;
             this.stack = stack;
         }
@@ -650,8 +679,8 @@ final class CachedConnectionPool implements ConnectionPool {
         }
 
         @SuppressWarnings("unchecked")
-        AsynchronousFutureResult<Connection, ResultHandler<? super Connection>> getWaitingFuture() {
-            return (AsynchronousFutureResult<Connection, ResultHandler<? super Connection>>) value;
+        FutureResultImpl<Connection> getWaitingFuture() {
+            return (FutureResultImpl<Connection>) value;
         }
 
         boolean hasTimedOut(final long timeLimitMillis) {
@@ -659,7 +688,7 @@ final class CachedConnectionPool implements ConnectionPool {
         }
 
         boolean isWaitingFuture() {
-            return value instanceof AsynchronousFutureResult;
+            return value instanceof FutureResultImpl;
         }
     }
 
@@ -672,7 +701,8 @@ final class CachedConnectionPool implements ConnectionPool {
     TimeSource timeSource = TimeSource.DEFAULT;
 
     private final Semaphore availableConnections;
-    private final ResultHandler<Connection> connectionResultHandler = new ConnectionResultHandler();
+    private final SuccessHandler<Connection> connectionSuccessHandler = new ConnectionSuccessHandler();
+    private final FailureHandler<ErrorResultException> connectionFailureHandler = new ConnectionFailureHandler();
     private final int corePoolSize;
     private final ConnectionFactory factory;
     private boolean isClosed = false;
@@ -760,15 +790,14 @@ final class CachedConnectionPool implements ConnectionPool {
     @Override
     public Connection getConnection() throws ErrorResultException {
         try {
-            return getConnectionAsync(null).get();
+            return getConnectionAsync().getOrThrow();
         } catch (final InterruptedException e) {
             throw newErrorResult(ResultCode.CLIENT_SIDE_USER_CANCELLED, e);
         }
     }
 
     @Override
-    public FutureResult<Connection> getConnectionAsync(
-            final ResultHandler<? super Connection> handler) {
+    public Promise<Connection, ErrorResultException> getConnectionAsync() {
         // Loop while iterating through stale connections (see OPENDJ-590).
         for (;;) {
             final QueueElement holder;
@@ -778,9 +807,7 @@ final class CachedConnectionPool implements ConnectionPool {
                 } else if (hasWaitingConnections()) {
                     holder = queue.removeFirst();
                 } else {
-                    holder =
-                            new QueueElement(handler, timeSource.currentTimeMillis(),
-                                    getStackTraceIfDebugEnabled());
+                    holder = new QueueElement(timeSource.currentTimeMillis(), getStackTraceIfDebugEnabled());
                     queue.add(holder);
                 }
             }
@@ -790,7 +817,8 @@ final class CachedConnectionPool implements ConnectionPool {
                 final FutureResult<Connection> future = holder.getWaitingFuture();
                 if (!future.isDone() && availableConnections.tryAcquire()) {
                     pendingConnectionAttempts.incrementAndGet();
-                    factory.getConnectionAsync(connectionResultHandler);
+                    factory.getConnectionAsync().onSuccess(connectionSuccessHandler)
+                                                .onFailure(connectionFailureHandler);
                 }
                 return future;
             }
@@ -798,19 +826,14 @@ final class CachedConnectionPool implements ConnectionPool {
             // There was a completed connection attempt.
             final Connection connection = holder.getWaitingConnection();
             if (connection.isValid()) {
-                final PooledConnection pooledConnection =
-                        newPooledConnection(connection, getStackTraceIfDebugEnabled());
-                if (handler != null) {
-                    handler.handleResult(pooledConnection);
-                }
-                return new CompletedFutureResult<Connection>(pooledConnection);
+                final Connection pooledConnection = newPooledConnection(connection, getStackTraceIfDebugEnabled());
+                return newSuccessfulPromise(pooledConnection);
             } else {
                 // Close the stale connection and try again.
                 connection.close();
                 availableConnections.release();
 
-                logger.debug(LocalizableMessage.raw(
-                        "Connection no longer valid: availableConnections=%d, poolSize=%d",
+                logger.debug(LocalizableMessage.raw("Connection no longer valid: availableConnections=%d, poolSize=%d",
                         currentPoolSize(), maxPoolSize));
             }
         }
@@ -892,7 +915,7 @@ final class CachedConnectionPool implements ConnectionPool {
                 final ErrorResultException e =
                         ErrorResultException.newErrorResult(ResultCode.CLIENT_SIDE_USER_CANCELLED,
                                 ERR_CONNECTION_POOL_CLOSING.get(toString()).toString());
-                holder.getWaitingFuture().handleErrorResult(e);
+                holder.getWaitingFuture().handleError(e);
 
                 logger.debug(LocalizableMessage.raw(
                         "Connection attempt failed: availableConnections=%d, maxPoolSize=%d",

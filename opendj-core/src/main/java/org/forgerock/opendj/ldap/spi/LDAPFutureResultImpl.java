@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS.
+ *      Portions copyright 2011-2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.spi;
@@ -30,7 +30,6 @@ package org.forgerock.opendj.ldap.spi;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.IntermediateResponseHandler;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ResultHandler;
 import org.forgerock.opendj.ldap.requests.Request;
 import org.forgerock.opendj.ldap.responses.Responses;
 import org.forgerock.opendj.ldap.responses.Result;
@@ -48,8 +47,6 @@ public final class LDAPFutureResultImpl extends AbstractLDAPFutureResultImpl<Res
      *            identifier of the request
      * @param request
      *            the request sent to server
-     * @param resultHandler
-     *            handler that consumes the result
      * @param intermediateResponseHandler
      *            handler that consumes intermediate responses from extended
      *            operations
@@ -57,10 +54,9 @@ public final class LDAPFutureResultImpl extends AbstractLDAPFutureResultImpl<Res
      *            the connection to directory server
      */
     public LDAPFutureResultImpl(final int requestID, final Request request,
-            final ResultHandler<? super Result> resultHandler,
             final IntermediateResponseHandler intermediateResponseHandler,
             final Connection connection) {
-        super(requestID, resultHandler, intermediateResponseHandler, connection);
+        super(requestID, intermediateResponseHandler, connection);
         this.request = request;
     }
 

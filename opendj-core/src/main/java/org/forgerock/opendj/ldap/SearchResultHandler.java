@@ -22,12 +22,11 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS.
+ *      Portions copyright 2011-2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
 
-import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
 
@@ -45,7 +44,7 @@ import org.forgerock.opendj.ldap.responses.SearchResultReference;
  * avoid keeping the invoking thread from dispatching to other completion
  * handlers.
  */
-public interface SearchResultHandler extends ResultHandler<Result> {
+public interface SearchResultHandler {
     /**
      * Invoked each time a search result entry is returned from an asynchronous
      * search operation.

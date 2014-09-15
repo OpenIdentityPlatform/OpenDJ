@@ -26,20 +26,24 @@
  */
 package com.forgerock.opendj.cli;
 
-import org.forgerock.opendj.ldap.Connection;
+import java.util.concurrent.atomic.AtomicReference;
+
 import org.forgerock.opendj.ldap.AbstractConnectionWrapper;
+import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.FutureResult;
 import org.forgerock.opendj.ldap.IntermediateResponseHandler;
-import org.forgerock.opendj.ldap.ResultHandler;
 import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.opendj.ldap.responses.BindResult;
 import org.forgerock.util.Reject;
+import org.forgerock.util.promise.AsyncFunction;
+import org.forgerock.util.promise.FailureHandler;
+import org.forgerock.util.promise.Function;
+import org.forgerock.util.promise.Promise;
+import org.forgerock.util.promise.SuccessHandler;
 
-import com.forgerock.opendj.util.FutureResultTransformer;
-import com.forgerock.opendj.util.RecursiveFutureResult;
-
+import static org.forgerock.util.Utils.*;
 /**
  * An authenticated connection factory can be used to create pre-authenticated
  * connections to a Directory Server.
@@ -83,19 +87,21 @@ public final class AuthenticatedConnectionFactory implements ConnectionFactory {
          * These methods will always throw {@code UnsupportedOperationException}.
          */
         /** {@inheritDoc} */
+        @Override
         public BindResult bind(BindRequest request) throws ErrorResultException {
             throw new UnsupportedOperationException();
         }
 
         /** {@inheritDoc} */
+        @Override
         public BindResult bind(String name, char[] password) throws ErrorResultException {
             throw new UnsupportedOperationException();
         }
 
         /** {@inheritDoc} */
+        @Override
         public FutureResult<BindResult> bindAsync(BindRequest request,
-                IntermediateResponseHandler intermediateResponseHandler,
-                ResultHandler<? super BindResult> resultHandler) {
+            IntermediateResponseHandler intermediateResponseHandler) {
             throw new UnsupportedOperationException();
         }
 
@@ -115,10 +121,6 @@ public final class AuthenticatedConnectionFactory implements ConnectionFactory {
          * associated with this connection. If re-authentication fails for some
          * reason then this connection will be automatically closed.
          *
-         * @param handler
-         *            A result handler which can be used to asynchronously
-         *            process the operation result when it is received, may be
-         *            {@code null}.
          * @return A future representing the result of the operation.
          * @throws UnsupportedOperationException
          *             If this connection does not support rebind operations.
@@ -126,45 +128,27 @@ public final class AuthenticatedConnectionFactory implements ConnectionFactory {
          *             If this connection has already been closed, i.e. if
          *             {@code isClosed() == true}.
          */
-        public FutureResult<BindResult> rebindAsync(final ResultHandler<? super BindResult> handler) {
+        public FutureResult<BindResult> rebindAsync() {
             if (request == null) {
                 throw new UnsupportedOperationException();
             }
 
-            /*
-             * Wrap the client handler so that we can update the connection
-             * state.
-             */
-            final ResultHandler<? super BindResult> clientHandler = handler;
-
-            final ResultHandler<BindResult> handlerWrapper = new ResultHandler<BindResult>() {
-
-                /** {@inheritDoc} */
-                public void handleErrorResult(final ErrorResultException error) {
-                    /*
-                     * This connection is now unauthenticated so prevent further
-                     * use.
-                     */
-                    connection.close();
-
-                    if (clientHandler != null) {
-                        clientHandler.handleErrorResult(error);
-                    }
-                }
-
-                /** {@inheritDoc} */
-                public void handleResult(final BindResult result) {
-                    // Save the result.
-                    AuthenticatedConnection.this.result = result;
-
-                    if (clientHandler != null) {
-                        clientHandler.handleResult(result);
-                    }
-                }
-
-            };
-
-            return connection.bindAsync(request, null, handlerWrapper);
+            return (FutureResult<BindResult>) connection.bindAsync(request)
+                    .onSuccess(new SuccessHandler<BindResult>() {
+                        @Override
+                        public void handleResult(final BindResult result) {
+                            // Save the result.
+                            AuthenticatedConnection.this.result = result;
+                        }
+                    }).onFailure(new FailureHandler<ErrorResultException>() {
+                        @Override
+                        public void handleError(final ErrorResultException error) {
+                            /*
+                             * This connection is now unauthenticated so prevent further use.
+                             */
+                            connection.close();
+                        }
+                    });
         }
 
         /**
@@ -172,6 +156,7 @@ public final class AuthenticatedConnectionFactory implements ConnectionFactory {
          *
          * @return The string representation of this authenticated connection factory.
          */
+        @Override
         public String toString() {
             StringBuilder builder = new StringBuilder();
             builder.append("AuthenticatedConnection(");
@@ -182,56 +167,9 @@ public final class AuthenticatedConnectionFactory implements ConnectionFactory {
 
     }
 
-    private static final class FutureResultImpl {
-        private final FutureResultTransformer<BindResult, Connection> futureBindResult;
-        private final RecursiveFutureResult<Connection, BindResult> futureConnectionResult;
-        private final BindRequest bindRequest;
-        private Connection connection;
-
-        private FutureResultImpl(final BindRequest request,
-                final ResultHandler<? super Connection> handler) {
-            this.bindRequest = request;
-            this.futureBindResult = new FutureResultTransformer<BindResult, Connection>(handler) {
-
-                @Override
-                protected ErrorResultException transformErrorResult(
-                        final ErrorResultException errorResult) {
-                    // Ensure that the connection is closed.
-                    if (connection != null) {
-                        connection.close();
-                        connection = null;
-                    }
-                    return errorResult;
-                }
-
-                @Override
-                protected AuthenticatedConnection transformResult(final BindResult result)
-                        throws ErrorResultException {
-                    // FIXME: should make the result unmodifiable.
-                    return new AuthenticatedConnection(connection, bindRequest, result);
-                }
-
-            };
-            this.futureConnectionResult =
-                    new RecursiveFutureResult<Connection, BindResult>(futureBindResult) {
-
-                        @Override
-                        protected FutureResult<? extends BindResult> chainResult(
-                                final Connection innerResult,
-                                final ResultHandler<? super BindResult> handler)
-                                throws ErrorResultException {
-                            connection = innerResult;
-                            return connection.bindAsync(bindRequest, null, handler);
-                        }
-                    };
-            futureBindResult.setFutureResult(futureConnectionResult);
-        }
-
-    }
-
     private final BindRequest request;
     private final ConnectionFactory parentFactory;
-    private boolean allowRebinds = false;
+    private boolean allowRebinds;
 
     /**
      * Creates a new authenticated connection factory which will obtain
@@ -260,6 +198,7 @@ public final class AuthenticatedConnectionFactory implements ConnectionFactory {
     }
 
     /** {@inheritDoc} */
+    @Override
     public Connection getConnection() throws ErrorResultException {
         final Connection connection = parentFactory.getConnection();
         BindResult bindResult = null;
@@ -279,12 +218,35 @@ public final class AuthenticatedConnectionFactory implements ConnectionFactory {
     }
 
     /** {@inheritDoc} */
-    public FutureResult<Connection> getConnectionAsync(
-            final ResultHandler<? super Connection> handler) {
-        final FutureResultImpl future = new FutureResultImpl(request, handler);
-        future.futureConnectionResult.setFutureResult(parentFactory
-                .getConnectionAsync(future.futureConnectionResult));
-        return future.futureBindResult;
+    @Override
+    public Promise<Connection, ErrorResultException> getConnectionAsync() {
+        final AtomicReference<Connection> connectionHolder = new AtomicReference<Connection>();
+        return parentFactory.getConnectionAsync()
+            .thenAsync(
+                    new AsyncFunction<Connection, BindResult, ErrorResultException>() {
+                        @Override
+                        public Promise<BindResult, ErrorResultException> apply(final Connection connection)
+                                throws ErrorResultException {
+                            connectionHolder.set(connection);
+                            return connection.bindAsync(request);
+                        }
+                    }
+            ).then(
+                    new Function<BindResult, Connection, ErrorResultException>() {
+                        @Override
+                        public Connection apply(BindResult result) throws ErrorResultException {
+                            // FIXME: should make the result unmodifiable.
+                            return new AuthenticatedConnection(connectionHolder.get(), request, result);
+                        }
+                    },
+                    new Function<ErrorResultException, Connection, ErrorResultException>() {
+                        @Override
+                        public Connection apply(ErrorResultException errorResult) throws ErrorResultException {
+                            closeSilently(connectionHolder.get());
+                            throw errorResult;
+                        }
+                    }
+            );
     }
 
     /**
@@ -325,10 +287,11 @@ public final class AuthenticatedConnectionFactory implements ConnectionFactory {
      *
      * @return The string representation of this authenticated connection factory.
      */
+    @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
         builder.append("AuthenticatedConnectionFactory(");
-        builder.append(String.valueOf(parentFactory));
+        builder.append(parentFactory);
         builder.append(')');
         return builder.toString();
     }

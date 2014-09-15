@@ -22,21 +22,20 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS.
+ *      Portions copyright 2011-2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.spi;
 
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.FutureResultImpl;
 import org.forgerock.opendj.ldap.IntermediateResponseHandler;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ResultHandler;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.responses.IntermediateResponse;
 import org.forgerock.opendj.ldap.responses.Result;
 
-import com.forgerock.opendj.util.AsynchronousFutureResult;
 
 /**
  * Abstract future result implementation.
@@ -44,9 +43,8 @@ import com.forgerock.opendj.util.AsynchronousFutureResult;
  * @param <S>
  *            The type of result returned by this future.
  */
-public abstract class AbstractLDAPFutureResultImpl<S extends Result> extends
-        AsynchronousFutureResult<S, ResultHandler<? super S>> implements
-        IntermediateResponseHandler {
+public abstract class AbstractLDAPFutureResultImpl<S extends Result> extends FutureResultImpl<S> implements
+    IntermediateResponseHandler {
     private final Connection connection;
     private IntermediateResponseHandler intermediateResponseHandler;
     private volatile long timestamp;
@@ -56,8 +54,6 @@ public abstract class AbstractLDAPFutureResultImpl<S extends Result> extends
      *
      * @param requestID
      *            identifier of the request
-     * @param resultHandler
-     *            handler that consumes the result
      * @param intermediateResponseHandler
      *            handler that consumes intermediate responses from extended
      *            operations
@@ -65,10 +61,8 @@ public abstract class AbstractLDAPFutureResultImpl<S extends Result> extends
      *            the connection to directory server
      */
     protected AbstractLDAPFutureResultImpl(final int requestID,
-            final ResultHandler<? super S> resultHandler,
-            final IntermediateResponseHandler intermediateResponseHandler,
-            final Connection connection) {
-        super(resultHandler, requestID);
+        final IntermediateResponseHandler intermediateResponseHandler, final Connection connection) {
+        super(requestID);
         this.connection = connection;
         this.intermediateResponseHandler = intermediateResponseHandler;
         this.timestamp = System.currentTimeMillis();
@@ -83,39 +77,36 @@ public abstract class AbstractLDAPFutureResultImpl<S extends Result> extends
         // the synchronizer.
         if (!isDone()) {
             updateTimestamp();
-            if (intermediateResponseHandler != null) {
-                if (!intermediateResponseHandler.handleIntermediateResponse(response)) {
-                    intermediateResponseHandler = null;
-                }
+            if (intermediateResponseHandler != null
+                && !intermediateResponseHandler.handleIntermediateResponse(response)) {
+                intermediateResponseHandler = null;
             }
         }
         return true;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
-    protected final ErrorResultException handleCancelRequest(final boolean mayInterruptIfRunning) {
-        /*
-         * This will abandon the request, but will also recursively cancel this
-         * future. There is no risk of an infinite loop because the state of
-         * this future has already been changed.
-         */
-        connection.abandonAsync(Requests.newAbandonRequest(getRequestID()));
-        return null;
-    }
-
-    @Override
-    protected final boolean isCancelable() {
+    protected final ErrorResultException tryCancel(final boolean mayInterruptIfRunning) {
         /*
          * No other operations can be performed while a bind or startTLS
          * operations is active. Therefore it is not possible to cancel bind or
          * startTLS requests, since doing so will leave the connection in a
          * state which prevents other operations from being performed.
          */
-        return !isBindOrStartTLS();
+        if (isBindOrStartTLS()) {
+            return null;
+        }
+
+        /*
+         * This will abandon the request, but will also recursively cancel this
+         * future. There is no risk of an infinite loop because the state of
+         * this future has already been changed.
+         */
+        connection.abandonAsync(Requests.newAbandonRequest(getRequestID()));
+        return ErrorResultException.newErrorResult(ResultCode.CLIENT_SIDE_USER_CANCELLED);
     }
+
 
     /**
      * Returns {@code true} if this future represents the result of a bind or
@@ -128,13 +119,18 @@ public abstract class AbstractLDAPFutureResultImpl<S extends Result> extends
         return false;
     }
 
-    @Override
+    /**
+     * Appends a string representation of this future's state to the provided
+     * builder.
+     *
+     * @param sb
+     *            The string builder.
+     */
     protected void toString(final StringBuilder sb) {
         sb.append(" requestID = ");
         sb.append(getRequestID());
         sb.append(" timestamp = ");
         sb.append(timestamp);
-        super.toString(sb);
     }
 
     /**
@@ -145,8 +141,7 @@ public abstract class AbstractLDAPFutureResultImpl<S extends Result> extends
      */
     public final void adaptErrorResult(final Result result) {
         final S errorResult =
-                newErrorResult(result.getResultCode(), result.getDiagnosticMessage(), result
-                        .getCause());
+            newErrorResult(result.getResultCode(), result.getDiagnosticMessage(), result.getCause());
         setResultOrError(errorResult);
     }
 
@@ -170,8 +165,7 @@ public abstract class AbstractLDAPFutureResultImpl<S extends Result> extends
      *            cause of the error
      * @return the error result
      */
-    protected abstract S newErrorResult(ResultCode resultCode, String diagnosticMessage,
-            Throwable cause);
+    protected abstract S newErrorResult(ResultCode resultCode, String diagnosticMessage, Throwable cause);
 
     /**
      * Sets the result associated to this future.
@@ -181,7 +175,7 @@ public abstract class AbstractLDAPFutureResultImpl<S extends Result> extends
      */
     public final void setResultOrError(final S result) {
         if (result.getResultCode().isExceptional()) {
-            handleErrorResult(ErrorResultException.newErrorResult(result));
+            handleError(ErrorResultException.newErrorResult(result));
         } else {
             handleResult(result);
         }

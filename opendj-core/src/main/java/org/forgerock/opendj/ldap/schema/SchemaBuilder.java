@@ -28,18 +28,6 @@
 
 package org.forgerock.opendj.ldap.schema;
 
-import static com.forgerock.opendj.util.StaticUtils.toLowerCase;
-import static com.forgerock.opendj.ldap.CoreMessages.*;
-import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
-import static org.forgerock.opendj.ldap.schema.Schema.*;
-import static org.forgerock.opendj.ldap.schema.SchemaConstants.EXTENSIBLE_OBJECT_OBJECTCLASS_OID;
-import static org.forgerock.opendj.ldap.schema.SchemaConstants.OMR_GENERIC_ENUM_NAME;
-import static org.forgerock.opendj.ldap.schema.SchemaConstants.SCHEMA_PROPERTY_APPROX_RULE;
-import static org.forgerock.opendj.ldap.schema.SchemaConstants.TOP_OBJECTCLASS_NAME;
-import static org.forgerock.opendj.ldap.schema.SchemaUtils.unmodifiableCopyOfExtraProperties;
-import static org.forgerock.opendj.ldap.schema.SchemaUtils.unmodifiableCopyOfList;
-import static org.forgerock.opendj.ldap.schema.SchemaUtils.unmodifiableCopyOfSet;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -66,17 +54,26 @@ import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.FutureResult;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ResultHandler;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
+import org.forgerock.util.Reject;
+import org.forgerock.util.promise.AsyncFunction;
+import org.forgerock.util.promise.Function;
+import org.forgerock.util.promise.Promise;
 
-import com.forgerock.opendj.util.FutureResultTransformer;
-import com.forgerock.opendj.util.RecursiveFutureResult;
 import com.forgerock.opendj.util.StaticUtils;
 import com.forgerock.opendj.util.SubstringReader;
-import org.forgerock.util.Reject;
+
+import static org.forgerock.opendj.ldap.ErrorResultException.*;
+import static org.forgerock.opendj.ldap.FutureResultWrapper.*;
+import static org.forgerock.opendj.ldap.schema.Schema.*;
+import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
+import static org.forgerock.opendj.ldap.schema.SchemaUtils.*;
+
+import static com.forgerock.opendj.ldap.CoreMessages.*;
+import static com.forgerock.opendj.util.StaticUtils.*;
 
 /**
  * Schema builders should be used for incremental construction of new schemas.
@@ -94,15 +91,19 @@ public final class SchemaBuilder {
     private static final String[] SUBSCHEMA_SUBENTRY_ATTRS =
             new String[] { ATTR_SUBSCHEMA_SUBENTRY };
 
-    // Constructs a search request for retrieving the subschemaSubentry
-    // attribute from the named entry.
+    /**
+     * Constructs a search request for retrieving the subschemaSubentry
+     * attribute from the named entry.
+     */
     private static SearchRequest getReadSchemaForEntrySearchRequest(final DN dn) {
         return Requests.newSearchRequest(dn, SearchScope.BASE_OBJECT, Filter.objectClassPresent(),
                 SUBSCHEMA_SUBENTRY_ATTRS);
     }
 
-    // Constructs a search request for retrieving the named subschema
-    // sub-entry.
+    /**
+     * Constructs a search request for retrieving the named subschema
+     * sub-entry.
+     */
     private static SearchRequest getReadSchemaSearchRequest(final DN dn) {
         return Requests.newSearchRequest(dn, SearchScope.BASE_OBJECT, SUBSCHEMA_FILTER,
                 SUBSCHEMA_ATTRS);
@@ -158,11 +159,13 @@ public final class SchemaBuilder {
     private String defaultSyntaxOID;
     private String defaultMatchingRuleOID;
 
-    // A schema which should be copied into this builder on any mutation.
-    private Schema copyOnWriteSchema = null;
+    /** A schema which should be copied into this builder on any mutation. */
+    private Schema copyOnWriteSchema;
 
-    // A unique ID which can be used to uniquely identify schemas
-    // constructed without a name.
+    /**
+     * A unique ID which can be used to uniquely identify schemas
+     * constructed without a name.
+     */
     private static final AtomicInteger NEXT_SCHEMA_ID = new AtomicInteger();
 
     /**
@@ -256,9 +259,8 @@ public final class SchemaBuilder {
             // then that is an error.
             final char c = reader.read();
             if (c != '(') {
-                final LocalizableMessage message =
-                        ERR_ATTR_SYNTAX_ATTRTYPE_EXPECTED_OPEN_PARENTHESIS.get(definition, (reader
-                                .pos() - 1), String.valueOf(c));
+                final LocalizableMessage message = ERR_ATTR_SYNTAX_ATTRTYPE_EXPECTED_OPEN_PARENTHESIS.get(
+                    definition, reader.pos() - 1, String.valueOf(c));
                 throw new LocalizedIllegalArgumentException(message);
             }
 
@@ -298,39 +300,39 @@ public final class SchemaBuilder {
                 if (tokenName == null) {
                     // No more tokens.
                     break;
-                } else if (tokenName.equalsIgnoreCase("name")) {
+                } else if ("name".equalsIgnoreCase(tokenName)) {
                     names = SchemaUtils.readNameDescriptors(reader, allowMalformedNamesAndOptions);
-                } else if (tokenName.equalsIgnoreCase("desc")) {
+                } else if ("desc".equalsIgnoreCase(tokenName)) {
                     // This specifies the description for the attribute type. It
                     // is an arbitrary string of characters enclosed in single
                     // quotes.
                     description = SchemaUtils.readQuotedString(reader);
-                } else if (tokenName.equalsIgnoreCase("obsolete")) {
+                } else if ("obsolete".equalsIgnoreCase(tokenName)) {
                     // This indicates whether the attribute type should be
                     // considered obsolete. We do not need to do any more
                     // parsing for this token.
                     isObsolete = true;
-                } else if (tokenName.equalsIgnoreCase("sup")) {
+                } else if ("sup".equalsIgnoreCase(tokenName)) {
                     // This specifies the name or OID of the superior attribute
                     // type from which this attribute type should inherit its
                     // properties.
                     superiorType = SchemaUtils.readOID(reader, allowMalformedNamesAndOptions);
-                } else if (tokenName.equalsIgnoreCase("equality")) {
+                } else if ("equality".equalsIgnoreCase(tokenName)) {
                     // This specifies the name or OID of the equality matching
                     // rule to use for this attribute type.
                     equalityMatchingRule =
                             SchemaUtils.readOID(reader, allowMalformedNamesAndOptions);
-                } else if (tokenName.equalsIgnoreCase("ordering")) {
+                } else if ("ordering".equalsIgnoreCase(tokenName)) {
                     // This specifies the name or OID of the ordering matching
                     // rule to use for this attribute type.
                     orderingMatchingRule =
                             SchemaUtils.readOID(reader, allowMalformedNamesAndOptions);
-                } else if (tokenName.equalsIgnoreCase("substr")) {
+                } else if ("substr".equalsIgnoreCase(tokenName)) {
                     // This specifies the name or OID of the substring matching
                     // rule to use for this attribute type.
                     substringMatchingRule =
                             SchemaUtils.readOID(reader, allowMalformedNamesAndOptions);
-                } else if (tokenName.equalsIgnoreCase("syntax")) {
+                } else if ("syntax".equalsIgnoreCase(tokenName)) {
                     // This specifies the numeric OID of the syntax for this
                     // matching rule. It may optionally be immediately followed
                     // by an open curly brace, an integer definition, and a close
@@ -340,28 +342,28 @@ public final class SchemaBuilder {
                     // does not impose any practical limit on the length of attribute
                     // values.
                     syntax = SchemaUtils.readOIDLen(reader, allowMalformedNamesAndOptions);
-                } else if (tokenName.equalsIgnoreCase("single-definition")) {
+                } else if ("single-definition".equalsIgnoreCase(tokenName)) {
                     // This indicates that attributes of this type are allowed
                     // to have at most one definition. We do not need any more
                     // parsing for this token.
                     isSingleValue = true;
-                } else if (tokenName.equalsIgnoreCase("single-value")) {
+                } else if ("single-value".equalsIgnoreCase(tokenName)) {
                     // This indicates that attributes of this type are allowed
                     // to have at most one value. We do not need any more parsing
                     // for this token.
                     isSingleValue = true;
-                } else if (tokenName.equalsIgnoreCase("collective")) {
+                } else if ("collective".equalsIgnoreCase(tokenName)) {
                     // This indicates that attributes of this type are
                     // collective
                     // (i.e., have their values generated dynamically in some
                     // way). We do not need any more parsing for this token.
                     isCollective = true;
-                } else if (tokenName.equalsIgnoreCase("no-user-modification")) {
+                } else if ("no-user-modification".equalsIgnoreCase(tokenName)) {
                     // This indicates that the values of attributes of this type
                     // are not to be modified by end users. We do not need any
                     // more parsing for this token.
                     isNoUserModification = true;
-                } else if (tokenName.equalsIgnoreCase("usage")) {
+                } else if ("usage".equalsIgnoreCase(tokenName)) {
                     // This specifies the usage string for this attribute type.
                     // It should be followed by one of the strings
                     // "userApplications", "directoryOperation",
@@ -377,18 +379,17 @@ public final class SchemaBuilder {
 
                     reader.reset();
                     final String usageStr = reader.read(length);
-                    if (usageStr.equalsIgnoreCase("userapplications")) {
+                    if ("userapplications".equalsIgnoreCase(usageStr)) {
                         attributeUsage = AttributeUsage.USER_APPLICATIONS;
-                    } else if (usageStr.equalsIgnoreCase("directoryoperation")) {
+                    } else if ("directoryoperation".equalsIgnoreCase(usageStr)) {
                         attributeUsage = AttributeUsage.DIRECTORY_OPERATION;
-                    } else if (usageStr.equalsIgnoreCase("distributedoperation")) {
+                    } else if ("distributedoperation".equalsIgnoreCase(usageStr)) {
                         attributeUsage = AttributeUsage.DISTRIBUTED_OPERATION;
-                    } else if (usageStr.equalsIgnoreCase("dsaoperation")) {
+                    } else if ("dsaoperation".equalsIgnoreCase(usageStr)) {
                         attributeUsage = AttributeUsage.DSA_OPERATION;
                     } else {
                         final LocalizableMessage message =
-                                WARN_ATTR_SYNTAX_ATTRTYPE_INVALID_ATTRIBUTE_USAGE1.get(definition,
-                                        usageStr);
+                            WARN_ATTR_SYNTAX_ATTRTYPE_INVALID_ATTRIBUTE_USAGE1.get(definition, usageStr);
                         throw new LocalizedIllegalArgumentException(message);
                     }
                 } else if (tokenName.matches("^X-[A-Za-z_-]+$")) {
@@ -556,9 +557,8 @@ public final class SchemaBuilder {
             // then that is an error.
             final char c = reader.read();
             if (c != '(') {
-                final LocalizableMessage message =
-                        ERR_ATTR_SYNTAX_DCR_EXPECTED_OPEN_PARENTHESIS.get(definition,
-                                (reader.pos() - 1), String.valueOf(c));
+                final LocalizableMessage message = ERR_ATTR_SYNTAX_DCR_EXPECTED_OPEN_PARENTHESIS.get(
+                    definition, reader.pos() - 1, String.valueOf(c));
                 throw new LocalizedIllegalArgumentException(message);
             }
 
@@ -593,27 +593,27 @@ public final class SchemaBuilder {
                 if (tokenName == null) {
                     // No more tokens.
                     break;
-                } else if (tokenName.equalsIgnoreCase("name")) {
+                } else if ("name".equalsIgnoreCase(tokenName)) {
                     names = SchemaUtils.readNameDescriptors(reader, allowMalformedNamesAndOptions);
-                } else if (tokenName.equalsIgnoreCase("desc")) {
+                } else if ("desc".equalsIgnoreCase(tokenName)) {
                     // This specifies the description for the attribute type. It
                     // is an arbitrary string of characters enclosed in single
                     // quotes.
                     description = SchemaUtils.readQuotedString(reader);
-                } else if (tokenName.equalsIgnoreCase("obsolete")) {
+                } else if ("obsolete".equalsIgnoreCase(tokenName)) {
                     // This indicates whether the attribute type should be
                     // considered obsolete. We do not need to do any more
                     // parsing for this token.
                     isObsolete = true;
-                } else if (tokenName.equalsIgnoreCase("aux")) {
+                } else if ("aux".equalsIgnoreCase(tokenName)) {
                     auxiliaryClasses = SchemaUtils.readOIDs(reader, allowMalformedNamesAndOptions);
-                } else if (tokenName.equalsIgnoreCase("must")) {
+                } else if ("must".equalsIgnoreCase(tokenName)) {
                     requiredAttributes =
                             SchemaUtils.readOIDs(reader, allowMalformedNamesAndOptions);
-                } else if (tokenName.equalsIgnoreCase("may")) {
+                } else if ("may".equalsIgnoreCase(tokenName)) {
                     optionalAttributes =
                             SchemaUtils.readOIDs(reader, allowMalformedNamesAndOptions);
-                } else if (tokenName.equalsIgnoreCase("not")) {
+                } else if ("not".equalsIgnoreCase(tokenName)) {
                     prohibitedAttributes =
                             SchemaUtils.readOIDs(reader, allowMalformedNamesAndOptions);
                 } else if (tokenName.matches("^X-[A-Za-z_-]+$")) {
@@ -786,9 +786,8 @@ public final class SchemaBuilder {
             // then that is an error.
             final char c = reader.read();
             if (c != '(') {
-                final LocalizableMessage message =
-                        ERR_ATTR_SYNTAX_DSR_EXPECTED_OPEN_PARENTHESIS.get(definition,
-                                (reader.pos() - 1), String.valueOf(c));
+                final LocalizableMessage message = ERR_ATTR_SYNTAX_DSR_EXPECTED_OPEN_PARENTHESIS.get(
+                    definition, reader.pos() - 1, String.valueOf(c));
                 throw new LocalizedIllegalArgumentException(message);
             }
 
@@ -820,21 +819,21 @@ public final class SchemaBuilder {
                 if (tokenName == null) {
                     // No more tokens.
                     break;
-                } else if (tokenName.equalsIgnoreCase("name")) {
+                } else if ("name".equalsIgnoreCase(tokenName)) {
                     names = SchemaUtils.readNameDescriptors(reader, allowMalformedNamesAndOptions);
-                } else if (tokenName.equalsIgnoreCase("desc")) {
+                } else if ("desc".equalsIgnoreCase(tokenName)) {
                     // This specifies the description for the attribute type. It
                     // is an arbitrary string of characters enclosed in single
                     // quotes.
                     description = SchemaUtils.readQuotedString(reader);
-                } else if (tokenName.equalsIgnoreCase("obsolete")) {
+                } else if ("obsolete".equalsIgnoreCase(tokenName)) {
                     // This indicates whether the attribute type should be
                     // considered obsolete. We do not need to do any more
                     // parsing for this token.
                     isObsolete = true;
-                } else if (tokenName.equalsIgnoreCase("form")) {
+                } else if ("form".equalsIgnoreCase(tokenName)) {
                     nameForm = SchemaUtils.readOID(reader, allowMalformedNamesAndOptions);
-                } else if (tokenName.equalsIgnoreCase("sup")) {
+                } else if ("sup".equalsIgnoreCase(tokenName)) {
                     superiorRules = SchemaUtils.readRuleIDs(reader);
                 } else if (tokenName.matches("^X-[A-Za-z_-]+$")) {
                     // This must be a non-standard property and it must be
@@ -959,9 +958,8 @@ public final class SchemaBuilder {
             // then that is an error.
             final char c = reader.read();
             if (c != '(') {
-                final LocalizableMessage message =
-                        ERR_ATTR_SYNTAX_MR_EXPECTED_OPEN_PARENTHESIS.get(definition,
-                                (reader.pos() - 1), String.valueOf(c));
+                final LocalizableMessage message = ERR_ATTR_SYNTAX_MR_EXPECTED_OPEN_PARENTHESIS.get(
+                    definition, reader.pos() - 1, String.valueOf(c));
                 throw new LocalizedIllegalArgumentException(message);
             }
 
@@ -990,19 +988,19 @@ public final class SchemaBuilder {
                 if (tokenName == null) {
                     // No more tokens.
                     break;
-                } else if (tokenName.equalsIgnoreCase("name")) {
+                } else if ("name".equalsIgnoreCase(tokenName)) {
                     matchingRuleBuilder.names(SchemaUtils.readNameDescriptors(reader, allowMalformedNamesAndOptions));
-                } else if (tokenName.equalsIgnoreCase("desc")) {
+                } else if ("desc".equalsIgnoreCase(tokenName)) {
                     // This specifies the description for the matching rule. It
                     // is an arbitrary string of characters enclosed in single
                     // quotes.
                     matchingRuleBuilder.description(SchemaUtils.readQuotedString(reader));
-                } else if (tokenName.equalsIgnoreCase("obsolete")) {
+                } else if ("obsolete".equalsIgnoreCase(tokenName)) {
                     // This indicates whether the matching rule should be
                     // considered obsolete. We do not need to do any more
                     // parsing for this token.
                     matchingRuleBuilder.obsolete(true);
-                } else if (tokenName.equalsIgnoreCase("syntax")) {
+                } else if ("syntax".equalsIgnoreCase(tokenName)) {
                     syntax = SchemaUtils.readOID(reader, allowMalformedNamesAndOptions);
                     matchingRuleBuilder.syntaxOID(syntax);
                 } else if (tokenName.matches("^X-[A-Za-z_-]+$")) {
@@ -1081,9 +1079,8 @@ public final class SchemaBuilder {
             // then that is an error.
             final char c = reader.read();
             if (c != '(') {
-                final LocalizableMessage message =
-                        ERR_ATTR_SYNTAX_MRUSE_EXPECTED_OPEN_PARENTHESIS.get(definition, (reader
-                                .pos() - 1), String.valueOf(c));
+                final LocalizableMessage message = ERR_ATTR_SYNTAX_MRUSE_EXPECTED_OPEN_PARENTHESIS.get(
+                    definition, reader.pos() - 1, String.valueOf(c));
                 throw new LocalizedIllegalArgumentException(message);
             }
 
@@ -1114,19 +1111,19 @@ public final class SchemaBuilder {
                 if (tokenName == null) {
                     // No more tokens.
                     break;
-                } else if (tokenName.equalsIgnoreCase("name")) {
+                } else if ("name".equalsIgnoreCase(tokenName)) {
                     names = SchemaUtils.readNameDescriptors(reader, allowMalformedNamesAndOptions);
-                } else if (tokenName.equalsIgnoreCase("desc")) {
+                } else if ("desc".equalsIgnoreCase(tokenName)) {
                     // This specifies the description for the attribute type. It
                     // is an arbitrary string of characters enclosed in single
                     // quotes.
                     description = SchemaUtils.readQuotedString(reader);
-                } else if (tokenName.equalsIgnoreCase("obsolete")) {
+                } else if ("obsolete".equalsIgnoreCase(tokenName)) {
                     // This indicates whether the attribute type should be
                     // considered obsolete. We do not need to do any more
                     // parsing for this token.
                     isObsolete = true;
-                } else if (tokenName.equalsIgnoreCase("applies")) {
+                } else if ("applies".equalsIgnoreCase(tokenName)) {
                     attributes = SchemaUtils.readOIDs(reader, allowMalformedNamesAndOptions);
                 } else if (tokenName.matches("^X-[A-Za-z_-]+$")) {
                     // This must be a non-standard property and it must be
@@ -1264,9 +1261,8 @@ public final class SchemaBuilder {
             // then that is an error.
             final char c = reader.read();
             if (c != '(') {
-                final LocalizableMessage message =
-                        ERR_ATTR_SYNTAX_NAME_FORM_EXPECTED_OPEN_PARENTHESIS.get(definition, (reader
-                                .pos() - 1), c);
+                final LocalizableMessage message = ERR_ATTR_SYNTAX_NAME_FORM_EXPECTED_OPEN_PARENTHESIS.get(
+                    definition, reader.pos() - 1, c);
                 throw new LocalizedIllegalArgumentException(message);
             }
 
@@ -1298,27 +1294,27 @@ public final class SchemaBuilder {
                 if (tokenName == null) {
                     // No more tokens.
                     break;
-                } else if (tokenName.equalsIgnoreCase("name")) {
+                } else if ("name".equalsIgnoreCase(tokenName)) {
                     nameFormBuilder.names(SchemaUtils.readNameDescriptors(reader,
                             allowMalformedNamesAndOptions));
-                } else if (tokenName.equalsIgnoreCase("desc")) {
+                } else if ("desc".equalsIgnoreCase(tokenName)) {
                     // This specifies the description for the attribute type. It
                     // is an arbitrary string of characters enclosed in single
                     // quotes.
                     nameFormBuilder.description(SchemaUtils.readQuotedString(reader));
-                } else if (tokenName.equalsIgnoreCase("obsolete")) {
+                } else if ("obsolete".equalsIgnoreCase(tokenName)) {
                     // This indicates whether the attribute type should be
                     // considered obsolete. We do not need to do any more
                     // parsing for this token.
                     nameFormBuilder.obsolete(true);
-                } else if (tokenName.equalsIgnoreCase("oc")) {
+                } else if ("oc".equalsIgnoreCase(tokenName)) {
                     structuralOID = SchemaUtils.readOID(reader, allowMalformedNamesAndOptions);
                     nameFormBuilder.structuralObjectClassOID(structuralOID);
-                } else if (tokenName.equalsIgnoreCase("must")) {
+                } else if ("must".equalsIgnoreCase(tokenName)) {
                     requiredAttributes =
                             SchemaUtils.readOIDs(reader, allowMalformedNamesAndOptions);
                     nameFormBuilder.requiredAttributes(requiredAttributes);
-                } else if (tokenName.equalsIgnoreCase("may")) {
+                } else if ("may".equalsIgnoreCase(tokenName)) {
                     nameFormBuilder.optionalAttributes(SchemaUtils.readOIDs(reader,
                             allowMalformedNamesAndOptions));
                 } else if (tokenName.matches("^X-[A-Za-z_-]+$")) {
@@ -1578,9 +1574,8 @@ public final class SchemaBuilder {
             // then that is an error.
             final char c = reader.read();
             if (c != '(') {
-                final LocalizableMessage message =
-                        ERR_ATTR_SYNTAX_OBJECTCLASS_EXPECTED_OPEN_PARENTHESIS1.get(definition,
-                                (reader.pos() - 1), String.valueOf(c));
+                final LocalizableMessage message =  ERR_ATTR_SYNTAX_OBJECTCLASS_EXPECTED_OPEN_PARENTHESIS1.get(
+                            definition, reader.pos() - 1, String.valueOf(c));
                 throw new LocalizedIllegalArgumentException(message);
             }
 
@@ -1614,38 +1609,38 @@ public final class SchemaBuilder {
                 if (tokenName == null) {
                     // No more tokens.
                     break;
-                } else if (tokenName.equalsIgnoreCase("name")) {
+                } else if ("name".equalsIgnoreCase(tokenName)) {
                     names = SchemaUtils.readNameDescriptors(reader, allowMalformedNamesAndOptions);
-                } else if (tokenName.equalsIgnoreCase("desc")) {
+                } else if ("desc".equalsIgnoreCase(tokenName)) {
                     // This specifies the description for the attribute type. It
                     // is an arbitrary string of characters enclosed in single
                     // quotes.
                     description = SchemaUtils.readQuotedString(reader);
-                } else if (tokenName.equalsIgnoreCase("obsolete")) {
+                } else if ("obsolete".equalsIgnoreCase(tokenName)) {
                     // This indicates whether the attribute type should be
                     // considered obsolete. We do not need to do any more
                     // parsing for this token.
                     isObsolete = true;
-                } else if (tokenName.equalsIgnoreCase("sup")) {
+                } else if ("sup".equalsIgnoreCase(tokenName)) {
                     superiorClasses = SchemaUtils.readOIDs(reader, allowMalformedNamesAndOptions);
-                } else if (tokenName.equalsIgnoreCase("abstract")) {
+                } else if ("abstract".equalsIgnoreCase(tokenName)) {
                     // This indicates that entries must not include this
                     // objectclass unless they also include a non-abstract
                     // objectclass that inherits from this class. We do not need
                     // any more parsing for this token.
                     objectClassType = ObjectClassType.ABSTRACT;
-                } else if (tokenName.equalsIgnoreCase("structural")) {
+                } else if ("structural".equalsIgnoreCase(tokenName)) {
                     // This indicates that this is a structural objectclass. We
                     // do not need any more parsing for this token.
                     objectClassType = ObjectClassType.STRUCTURAL;
-                } else if (tokenName.equalsIgnoreCase("auxiliary")) {
+                } else if ("auxiliary".equalsIgnoreCase(tokenName)) {
                     // This indicates that this is an auxiliary objectclass. We
                     // do not need any more parsing for this token.
                     objectClassType = ObjectClassType.AUXILIARY;
-                } else if (tokenName.equalsIgnoreCase("must")) {
+                } else if ("must".equalsIgnoreCase(tokenName)) {
                     requiredAttributes =
                             SchemaUtils.readOIDs(reader, allowMalformedNamesAndOptions);
-                } else if (tokenName.equalsIgnoreCase("may")) {
+                } else if ("may".equalsIgnoreCase(tokenName)) {
                     optionalAttributes =
                             SchemaUtils.readOIDs(reader, allowMalformedNamesAndOptions);
                 } else if (tokenName.matches("^X-[A-Za-z_-]+$")) {
@@ -1665,7 +1660,7 @@ public final class SchemaBuilder {
                 }
             }
 
-            if (oid.equals(EXTENSIBLE_OBJECT_OBJECTCLASS_OID)) {
+            if (EXTENSIBLE_OBJECT_OBJECTCLASS_OID.equals(oid)) {
                 addObjectClass(new ObjectClass(description, extraProperties), overwrite);
             } else {
                 if (objectClassType == ObjectClassType.STRUCTURAL && superiorClasses.isEmpty()) {
@@ -1726,7 +1721,7 @@ public final class SchemaBuilder {
             final boolean overwrite) {
         lazyInitBuilder();
 
-        if (oid.equals(EXTENSIBLE_OBJECT_OBJECTCLASS_OID)) {
+        if (EXTENSIBLE_OBJECT_OBJECTCLASS_OID.equals(oid)) {
             addObjectClass(new ObjectClass(description,
                     unmodifiableCopyOfExtraProperties(extraProperties)), overwrite);
         } else {
@@ -1958,8 +1953,6 @@ public final class SchemaBuilder {
      *            read.
      * @param name
      *            The distinguished name of the subschema sub-entry.
-     * @param handler
-     *            A result handler which can be used to asynchronously process
      *            the operation result when it is received, may be {@code null}.
      * @param overwrite
      *            {@code true} if existing schema elements with the same
@@ -1974,26 +1967,18 @@ public final class SchemaBuilder {
      *             If the {@code connection} or {@code name} was {@code null}.
      */
     public FutureResult<SchemaBuilder> addSchemaAsync(final Connection connection, final DN name,
-            final ResultHandler<? super SchemaBuilder> handler, final boolean overwrite) {
+        final boolean overwrite) {
         // The call to addSchema will perform copyOnWrite.
         final SearchRequest request = getReadSchemaSearchRequest(name);
 
-        final FutureResultTransformer<SearchResultEntry, SchemaBuilder> future =
-                new FutureResultTransformer<SearchResultEntry, SchemaBuilder>(handler) {
-
+        return asFutureResult(connection.searchSingleEntryAsync(request).then(
+                new Function<SearchResultEntry, SchemaBuilder, ErrorResultException>() {
                     @Override
-                    protected SchemaBuilder transformResult(final SearchResultEntry result)
-                            throws ErrorResultException {
+                    public SchemaBuilder apply(SearchResultEntry result) throws ErrorResultException {
                         addSchema(result, overwrite);
                         return SchemaBuilder.this;
                     }
-
-                };
-
-        final FutureResult<SearchResultEntry> innerFuture =
-                connection.searchSingleEntryAsync(request, future);
-        future.setFutureResult(innerFuture);
-        return future;
+                }));
     }
 
     /**
@@ -2058,9 +2043,6 @@ public final class SchemaBuilder {
      * @param name
      *            The distinguished name of the entry whose schema is to be
      *            located.
-     * @param handler
-     *            A result handler which can be used to asynchronously process
-     *            the operation result when it is received, may be {@code null}.
      * @param overwrite
      *            {@code true} if existing schema elements with the same
      *            conflicting OIDs should be overwritten.
@@ -2073,29 +2055,19 @@ public final class SchemaBuilder {
      * @throws NullPointerException
      *             If the {@code connection} or {@code name} was {@code null}.
      */
-    public FutureResult<SchemaBuilder> addSchemaForEntryAsync(final Connection connection,
-            final DN name, final ResultHandler<? super SchemaBuilder> handler,
-            final boolean overwrite) {
-        // The call to addSchema will perform copyOnWrite.
-        final RecursiveFutureResult<SearchResultEntry, SchemaBuilder> future =
-                new RecursiveFutureResult<SearchResultEntry, SchemaBuilder>(handler) {
-
-                    @Override
-                    protected FutureResult<SchemaBuilder> chainResult(
-                            final SearchResultEntry innerResult,
-                            final ResultHandler<? super SchemaBuilder> handler)
-                            throws ErrorResultException {
-                        final DN subschemaDN = getSubschemaSubentryDN(name, innerResult);
-                        return addSchemaAsync(connection, subschemaDN, handler, overwrite);
-                    }
-
-                };
-
+    public FutureResult<SchemaBuilder> addSchemaForEntryAsync(final Connection connection, final DN name,
+        final boolean overwrite) {
         final SearchRequest request = getReadSchemaForEntrySearchRequest(name);
-        final FutureResult<SearchResultEntry> innerFuture =
-                connection.searchSingleEntryAsync(request, future);
-        future.setFutureResult(innerFuture);
-        return future;
+
+        return asFutureResult(connection.searchSingleEntryAsync(request).thenAsync(
+                new AsyncFunction<SearchResultEntry, SchemaBuilder, ErrorResultException>() {
+                    @Override
+                    public Promise<SchemaBuilder, ErrorResultException> apply(SearchResultEntry result)
+                            throws ErrorResultException {
+                        final DN subschemaDN = getSubschemaSubentryDN(name, result);
+                        return addSchemaAsync(connection, subschemaDN, overwrite);
+                    }
+                }));
     }
 
     /**
@@ -2171,9 +2143,8 @@ public final class SchemaBuilder {
             // then that is an error.
             final char c = reader.read();
             if (c != '(') {
-                final LocalizableMessage message =
-                        ERR_ATTR_SYNTAX_ATTRSYNTAX_EXPECTED_OPEN_PARENTHESIS.get(definition,
-                                (reader.pos() - 1), String.valueOf(c));
+                final LocalizableMessage message = ERR_ATTR_SYNTAX_ATTRSYNTAX_EXPECTED_OPEN_PARENTHESIS.get(
+                    definition, reader.pos() - 1, String.valueOf(c));
                 throw new LocalizedIllegalArgumentException(message);
             }
 
@@ -2199,7 +2170,7 @@ public final class SchemaBuilder {
                 if (tokenName == null) {
                     // No more tokens.
                     break;
-                } else if (tokenName.equalsIgnoreCase("desc")) {
+                } else if ("desc".equalsIgnoreCase(tokenName)) {
                     // This specifies the description for the syntax. It is an
                     // arbitrary string of characters enclosed in single quotes.
                     syntaxBuilder.description(SchemaUtils.readQuotedString(reader));
@@ -2220,7 +2191,7 @@ public final class SchemaBuilder {
 
             // See if it is a enum syntax
             for (final Map.Entry<String, List<String>> property : syntaxBuilder.getExtraProperties().entrySet()) {
-                if (property.getKey().equalsIgnoreCase("x-enum")) {
+                if ("x-enum".equalsIgnoreCase(property.getKey())) {
                     final EnumSyntaxImpl enumImpl = new EnumSyntaxImpl(oid, property.getValue());
                     syntaxBuilder.implementation(enumImpl);
 

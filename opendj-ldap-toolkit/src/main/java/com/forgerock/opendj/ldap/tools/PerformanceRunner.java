@@ -26,9 +26,6 @@
  */
 package com.forgerock.opendj.ldap.tools;
 
-import static org.forgerock.util.Utils.closeSilently;
-import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
-
 import java.io.IOException;
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
@@ -46,20 +43,24 @@ import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ConnectionEventListener;
 import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.ErrorResultException;
-import org.forgerock.opendj.ldap.FutureResult;
 import org.forgerock.opendj.ldap.ResultHandler;
 import org.forgerock.opendj.ldap.responses.ExtendedResult;
 import org.forgerock.opendj.ldap.responses.Result;
+import org.forgerock.util.promise.Promise;
 
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
+import com.forgerock.opendj.cli.AuthenticatedConnectionFactory.AuthenticatedConnection;
 import com.forgerock.opendj.cli.BooleanArgument;
 import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.MultiColumnPrinter;
 import com.forgerock.opendj.cli.StringArgument;
-import com.forgerock.opendj.cli.AuthenticatedConnectionFactory.AuthenticatedConnection;
 import com.forgerock.opendj.util.StaticUtils;
+
+import static org.forgerock.util.Utils.*;
+
+import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 
 /**
  * Benchmark application framework.
@@ -338,7 +339,7 @@ abstract class PerformanceRunner implements ConnectionEventListener {
     }
 
     private class TimerThread extends Thread {
-        private long timeToWait;
+        private final long timeToWait;
 
         public TimerThread(long timeToWait) {
             this.timeToWait = timeToWait;
@@ -370,7 +371,7 @@ abstract class PerformanceRunner implements ConnectionEventListener {
         }
 
         @Override
-        public void handleErrorResult(final ErrorResultException error) {
+        public void handleError(final ErrorResultException error) {
             failedRecentCount.getAndIncrement();
             updateStats();
             app.errPrintVerboseMessage(LocalizableMessage.raw(error.getResult().toString()));
@@ -410,22 +411,21 @@ abstract class PerformanceRunner implements ConnectionEventListener {
             this.connectionFactory = connectionFactory;
         }
 
-        public abstract FutureResult<?> performOperation(Connection connection,
+        public abstract Promise<?, ErrorResultException> performOperation(Connection connection,
                 DataSource[] dataSources, long startTime);
 
         @Override
         public void run() {
-            FutureResult<?> future;
+            Promise<?, ErrorResultException> promise;
             Connection connection;
 
-            final double targetTimeInMS =
-                    1000.0 / (targetThroughput / (double) (numThreads * numConnections));
+            final double targetTimeInMS = 1000.0 / (targetThroughput / (double) (numThreads * numConnections));
             double sleepTimeInMS = 0;
             long start;
             while (!stopRequested && !(maxIterations > 0 && count >= maxIterations)) {
                 if (this.connection == null) {
                     try {
-                        connection = connectionFactory.getConnectionAsync(null).get();
+                        connection = connectionFactory.getConnectionAsync().getOrThrow();
                     } catch (final InterruptedException e) {
                         // Ignore and check stop requested
                         continue;
@@ -442,7 +442,7 @@ abstract class PerformanceRunner implements ConnectionEventListener {
                     if (!noRebind && connection instanceof AuthenticatedConnection) {
                         final AuthenticatedConnection ac = (AuthenticatedConnection) connection;
                         try {
-                            ac.rebindAsync(null).get();
+                            ac.rebindAsync().getOrThrow();
                         } catch (final InterruptedException e) {
                             // Ignore and check stop requested
                             continue;
@@ -458,13 +458,13 @@ abstract class PerformanceRunner implements ConnectionEventListener {
                 }
 
                 start = System.nanoTime();
-                future = performOperation(connection, dataSources.get(), start);
+                promise = performOperation(connection, dataSources.get(), start);
                 operationRecentCount.getAndIncrement();
                 count++;
                 if (!isAsync) {
                     try {
-                        if (future != null) {
-                            future.get();
+                        if (promise != null) {
+                            promise.getOrThrow();
                         }
                     } catch (final InterruptedException e) {
                         // Ignore and check stop requested
@@ -857,7 +857,7 @@ abstract class PerformanceRunner implements ConnectionEventListener {
             isWarmingUp = warmUpDuration > 0;
             for (int i = 0; i < numConnections; i++) {
                 if (keepConnectionsOpen.isPresent() || noRebindArgument.isPresent()) {
-                    connection = connectionFactory.getConnectionAsync(null).get();
+                    connection = connectionFactory.getConnectionAsync().getOrThrow();
                     connection.addConnectionEventListener(this);
                     connections.add(connection);
                 }

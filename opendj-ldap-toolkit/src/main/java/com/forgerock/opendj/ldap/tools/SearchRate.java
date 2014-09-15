@@ -26,10 +26,6 @@
  */
 package com.forgerock.opendj.ldap.tools;
 
-import static com.forgerock.opendj.cli.ArgumentConstants.*;
-import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
-import static com.forgerock.opendj.cli.Utils.filterExitCode;
-
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -39,7 +35,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
-import org.forgerock.opendj.ldap.FutureResult;
+import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchResultHandler;
 import org.forgerock.opendj.ldap.SearchScope;
@@ -48,6 +44,7 @@ import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
+import org.forgerock.util.promise.Promise;
 
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
@@ -57,6 +54,10 @@ import com.forgerock.opendj.cli.ConnectionFactoryProvider;
 import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.MultiChoiceArgument;
 import com.forgerock.opendj.cli.StringArgument;
+
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.Utils.*;
+import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 
 /**
  * A load generation tool that can be used to load a Directory Server with
@@ -117,7 +118,7 @@ public final class SearchRate extends ConsoleApplication {
             }
 
             @Override
-            public FutureResult<?> performOperation(final Connection connection,
+            public Promise<?, ErrorResultException> performOperation(final Connection connection,
                     final DataSource[] dataSources, final long startTime) {
                 if (sr == null) {
                     if (dataSources == null) {
@@ -134,7 +135,10 @@ public final class SearchRate extends ConsoleApplication {
                     sr.setFilter(String.format(filter, data));
                     sr.setName(String.format(baseDN, data));
                 }
-                return connection.searchAsync(sr, null, new SearchStatsHandler(startTime));
+
+                final SearchStatsHandler handler = new SearchStatsHandler(startTime);
+
+                return connection.searchAsync(sr, handler).onSuccess(handler).onFailure(handler);
             }
         }
 

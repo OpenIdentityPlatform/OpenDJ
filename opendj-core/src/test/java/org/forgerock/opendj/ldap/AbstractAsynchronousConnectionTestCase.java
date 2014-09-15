@@ -22,15 +22,10 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS.
+ *      Portions copyright 2011-2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
-
-import static org.fest.assertions.Assertions.assertThat;
-import static org.fest.assertions.Fail.fail;
-import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
-import static org.mockito.Mockito.*;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -44,18 +39,26 @@ import org.forgerock.opendj.ldap.requests.ExtendedRequest;
 import org.forgerock.opendj.ldap.requests.GenericExtendedRequest;
 import org.forgerock.opendj.ldap.requests.ModifyDNRequest;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
-import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.requests.UnbindRequest;
 import org.forgerock.opendj.ldap.responses.BindResult;
 import org.forgerock.opendj.ldap.responses.CompareResult;
 import org.forgerock.opendj.ldap.responses.ExtendedResult;
-import org.forgerock.opendj.ldap.responses.Responses;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
+import org.forgerock.util.promise.FailureHandler;
+import org.forgerock.util.promise.SuccessHandler;
 import org.testng.annotations.Test;
 
-import com.forgerock.opendj.util.CompletedFutureResult;
+import static org.fest.assertions.Assertions.*;
+import static org.fest.assertions.Fail.*;
+import static org.forgerock.opendj.ldap.ErrorResultException.*;
+import static org.forgerock.opendj.ldap.FutureResultWrapper.*;
+import static org.forgerock.opendj.ldap.TestCaseUtils.*;
+import static org.forgerock.opendj.ldap.requests.Requests.*;
+import static org.forgerock.opendj.ldap.responses.Responses.*;
+import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.*;
 
 /**
  * Unit test for AbstractAsynchronousConnection. The tests verify that all
@@ -73,169 +76,116 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
             this.entries = entries;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
+        @Override
         public FutureResult<Void> abandonAsync(AbandonRequest request) {
             if (!resultCode.isExceptional()) {
-                return new CompletedFutureResult<Void>((Void) null);
+                return newSuccessfulFutureResult((Void) null);
             } else {
-                return new CompletedFutureResult<Void>(newErrorResult(resultCode));
+                return newFailedFutureResult(newErrorResult(resultCode));
             }
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
+        @Override
         public FutureResult<Result> addAsync(AddRequest request,
-                IntermediateResponseHandler intermediateResponseHandler,
-                ResultHandler<? super Result> resultHandler) {
-            if (!resultCode.isExceptional()) {
-                return new CompletedFutureResult<Result>(Responses.newResult(resultCode));
-            } else {
-                return new CompletedFutureResult<Result>(newErrorResult(resultCode));
-            }
+                IntermediateResponseHandler intermediateResponseHandler) {
+            return getFutureFromResultCode(newResult(resultCode));
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
+        @Override
         public void addConnectionEventListener(ConnectionEventListener listener) {
             // Do nothing.
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
+        @Override
         public FutureResult<BindResult> bindAsync(BindRequest request,
-                IntermediateResponseHandler intermediateResponseHandler,
-                ResultHandler<? super BindResult> resultHandler) {
-            if (!resultCode.isExceptional()) {
-                return new CompletedFutureResult<BindResult>(Responses.newBindResult(resultCode));
-            } else {
-                return new CompletedFutureResult<BindResult>(newErrorResult(resultCode));
-            }
+                IntermediateResponseHandler intermediateResponseHandler) {
+            return getFutureFromResultCode(newBindResult(resultCode));
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
+        @Override
         public void close(UnbindRequest request, String reason) {
             // Do nothing.
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
+        @Override
         public FutureResult<CompareResult> compareAsync(CompareRequest request,
-                IntermediateResponseHandler intermediateResponseHandler,
-                ResultHandler<? super CompareResult> resultHandler) {
-            if (!resultCode.isExceptional()) {
-                return new CompletedFutureResult<CompareResult>(Responses
-                        .newCompareResult(resultCode));
-            } else {
-                return new CompletedFutureResult<CompareResult>(newErrorResult(resultCode));
-            }
+                IntermediateResponseHandler intermediateResponseHandler) {
+            return getFutureFromResultCode(newCompareResult(resultCode));
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
+        @Override
         public FutureResult<Result> deleteAsync(DeleteRequest request,
-                IntermediateResponseHandler intermediateResponseHandler,
-                ResultHandler<? super Result> resultHandler) {
-            if (!resultCode.isExceptional()) {
-                return new CompletedFutureResult<Result>(Responses.newResult(resultCode));
-            } else {
-                return new CompletedFutureResult<Result>(newErrorResult(resultCode));
-            }
+                IntermediateResponseHandler intermediateResponseHandler) {
+            return getFutureFromResultCode(newResult(resultCode));
         }
 
-        /**
-         * {@inheritDoc}
-         */
-        public <R extends ExtendedResult> FutureResult<R> extendedRequestAsync(
-                ExtendedRequest<R> request,
-                IntermediateResponseHandler intermediateResponseHandler,
-                ResultHandler<? super R> resultHandler) {
-            if (!resultCode.isExceptional()) {
-                return new CompletedFutureResult<R>(request.getResultDecoder()
-                        .newExtendedErrorResult(resultCode, "", ""));
-            } else {
-                return new CompletedFutureResult<R>(newErrorResult(resultCode));
-            }
+        /** {@inheritDoc} */
+        @Override
+        public <R extends ExtendedResult> FutureResult<R> extendedRequestAsync(ExtendedRequest<R> request,
+                IntermediateResponseHandler intermediateResponseHandler) {
+            return getFutureFromResultCode(request.getResultDecoder().newExtendedErrorResult(resultCode, "", ""));
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
+        @Override
         public boolean isClosed() {
             return false;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
+        @Override
         public boolean isValid() {
             return true;
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
+        @Override
         public FutureResult<Result> modifyAsync(ModifyRequest request,
-                IntermediateResponseHandler intermediateResponseHandler,
-                ResultHandler<? super Result> resultHandler) {
-            if (!resultCode.isExceptional()) {
-                return new CompletedFutureResult<Result>(Responses.newResult(resultCode));
-            } else {
-                return new CompletedFutureResult<Result>(newErrorResult(resultCode));
-            }
+                IntermediateResponseHandler intermediateResponseHandler) {
+            return getFutureFromResultCode(newResult(resultCode));
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
+        @Override
         public FutureResult<Result> modifyDNAsync(ModifyDNRequest request,
-                IntermediateResponseHandler intermediateResponseHandler,
-                ResultHandler<? super Result> resultHandler) {
-            if (!resultCode.isExceptional()) {
-                return new CompletedFutureResult<Result>(Responses.newResult(resultCode));
-            } else {
-                return new CompletedFutureResult<Result>(newErrorResult(resultCode));
-            }
+                IntermediateResponseHandler intermediateResponseHandler) {
+            return getFutureFromResultCode(newResult(resultCode));
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
+        @Override
         public void removeConnectionEventListener(ConnectionEventListener listener) {
             // Do nothing.
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
+        @Override
         public FutureResult<Result> searchAsync(SearchRequest request,
-                IntermediateResponseHandler intermediateResponseHandler,
-                SearchResultHandler resultHandler) {
+                IntermediateResponseHandler intermediateResponseHandler, SearchResultHandler entryHandler) {
             for (SearchResultEntry entry : entries) {
-                resultHandler.handleEntry(entry);
+                entryHandler.handleEntry(entry);
             }
+
+            return getFutureFromResultCode(newResult(resultCode));
+        }
+
+        private <T extends Result> FutureResult<T> getFutureFromResultCode(T correctResult) {
             if (resultCode.isExceptional()) {
-                ErrorResultException errorResult = newErrorResult(resultCode);
-                resultHandler.handleErrorResult(errorResult);
-                return new CompletedFutureResult<Result>(errorResult);
+                return newFailedFutureResult(newErrorResult(resultCode));
             } else {
-                Result result = Responses.newResult(resultCode);
-                resultHandler.handleResult(result);
-                return new CompletedFutureResult<Result>(result);
+                return newSuccessfulFutureResult(correctResult);
             }
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        /** {@inheritDoc} */
+        @Override
         public String toString() {
             return "MockConnection";
         }
@@ -245,14 +195,14 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
     @Test()
     public void testAddRequestSuccess() throws Exception {
         final Connection mockConnection = new MockConnection(ResultCode.SUCCESS);
-        final AddRequest addRequest = Requests.newAddRequest("cn=test");
+        final AddRequest addRequest = newAddRequest("cn=test");
         assertThat(mockConnection.add(addRequest).getResultCode()).isEqualTo(ResultCode.SUCCESS);
     }
 
     @Test()
     public void testAddRequestFail() throws Exception {
         final Connection mockConnection = new MockConnection(ResultCode.UNWILLING_TO_PERFORM);
-        final AddRequest addRequest = Requests.newAddRequest("cn=test");
+        final AddRequest addRequest = newAddRequest("cn=test");
         try {
             mockConnection.add(addRequest);
             fail();
@@ -264,14 +214,14 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
     @Test()
     public void testBindRequestSuccess() throws Exception {
         final Connection mockConnection = new MockConnection(ResultCode.SUCCESS);
-        final BindRequest bindRequest = Requests.newSimpleBindRequest();
+        final BindRequest bindRequest = newSimpleBindRequest();
         assertThat(mockConnection.bind(bindRequest).getResultCode()).isEqualTo(ResultCode.SUCCESS);
     }
 
     @Test()
     public void testBindRequestFail() throws Exception {
         final Connection mockConnection = new MockConnection(ResultCode.UNWILLING_TO_PERFORM);
-        final BindRequest bindRequest = Requests.newSimpleBindRequest();
+        final BindRequest bindRequest = newSimpleBindRequest();
         try {
             mockConnection.bind(bindRequest);
             fail();
@@ -283,7 +233,7 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
     @Test()
     public void testCompareRequestSuccess() throws Exception {
         final Connection mockConnection = new MockConnection(ResultCode.SUCCESS);
-        final CompareRequest compareRequest = Requests.newCompareRequest("cn=test", "cn", "test");
+        final CompareRequest compareRequest = newCompareRequest("cn=test", "cn", "test");
         assertThat(mockConnection.compare(compareRequest).getResultCode()).isEqualTo(
                 ResultCode.SUCCESS);
     }
@@ -291,7 +241,7 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
     @Test()
     public void testCompareRequestFail() throws Exception {
         final Connection mockConnection = new MockConnection(ResultCode.UNWILLING_TO_PERFORM);
-        final CompareRequest compareRequest = Requests.newCompareRequest("cn=test", "cn", "test");
+        final CompareRequest compareRequest = newCompareRequest("cn=test", "cn", "test");
         try {
             mockConnection.compare(compareRequest);
             fail();
@@ -303,7 +253,7 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
     @Test()
     public void testDeleteRequestSuccess() throws Exception {
         final Connection mockConnection = new MockConnection(ResultCode.SUCCESS);
-        final DeleteRequest deleteRequest = Requests.newDeleteRequest("cn=test");
+        final DeleteRequest deleteRequest = newDeleteRequest("cn=test");
         assertThat(mockConnection.delete(deleteRequest).getResultCode()).isEqualTo(
                 ResultCode.SUCCESS);
     }
@@ -311,7 +261,7 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
     @Test()
     public void testDeleteRequestFail() throws Exception {
         final Connection mockConnection = new MockConnection(ResultCode.UNWILLING_TO_PERFORM);
-        final DeleteRequest deleteRequest = Requests.newDeleteRequest("cn=test");
+        final DeleteRequest deleteRequest = newDeleteRequest("cn=test");
         try {
             mockConnection.delete(deleteRequest);
             fail();
@@ -323,7 +273,7 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
     @Test()
     public void testExtendedRequestSuccess() throws Exception {
         final Connection mockConnection = new MockConnection(ResultCode.SUCCESS);
-        final GenericExtendedRequest extendedRequest = Requests.newGenericExtendedRequest("test");
+        final GenericExtendedRequest extendedRequest = newGenericExtendedRequest("test");
         assertThat(mockConnection.extendedRequest(extendedRequest).getResultCode()).isEqualTo(
                 ResultCode.SUCCESS);
     }
@@ -331,7 +281,7 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
     @Test()
     public void testExtendedRequestFail() throws Exception {
         final Connection mockConnection = new MockConnection(ResultCode.UNWILLING_TO_PERFORM);
-        final GenericExtendedRequest extendedRequest = Requests.newGenericExtendedRequest("test");
+        final GenericExtendedRequest extendedRequest = newGenericExtendedRequest("test");
         try {
             mockConnection.extendedRequest(extendedRequest);
             fail();
@@ -343,7 +293,7 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
     @Test()
     public void testModifyRequestSuccess() throws Exception {
         final Connection mockConnection = new MockConnection(ResultCode.SUCCESS);
-        final ModifyRequest modifyRequest = Requests.newModifyRequest("cn=test");
+        final ModifyRequest modifyRequest = newModifyRequest("cn=test");
         assertThat(mockConnection.modify(modifyRequest).getResultCode()).isEqualTo(
                 ResultCode.SUCCESS);
     }
@@ -351,7 +301,7 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
     @Test()
     public void testModifyRequestFail() throws Exception {
         final Connection mockConnection = new MockConnection(ResultCode.UNWILLING_TO_PERFORM);
-        final ModifyRequest modifyRequest = Requests.newModifyRequest("cn=test");
+        final ModifyRequest modifyRequest = newModifyRequest("cn=test");
         try {
             mockConnection.modify(modifyRequest);
             fail();
@@ -363,7 +313,7 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
     @Test()
     public void testModifyDNRequestSuccess() throws Exception {
         final Connection mockConnection = new MockConnection(ResultCode.SUCCESS);
-        final ModifyDNRequest modifyDNRequest = Requests.newModifyDNRequest("cn=test", "cn=newrdn");
+        final ModifyDNRequest modifyDNRequest = newModifyDNRequest("cn=test", "cn=newrdn");
         assertThat(mockConnection.modifyDN(modifyDNRequest).getResultCode()).isEqualTo(
                 ResultCode.SUCCESS);
     }
@@ -371,7 +321,7 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
     @Test()
     public void testModifyDNRequestFail() throws Exception {
         final Connection mockConnection = new MockConnection(ResultCode.UNWILLING_TO_PERFORM);
-        final ModifyDNRequest modifyDNRequest = Requests.newModifyDNRequest("cn=test", "cn=newrdn");
+        final ModifyDNRequest modifyDNRequest = newModifyDNRequest("cn=test", "cn=newrdn");
         try {
             mockConnection.modifyDN(modifyDNRequest);
             fail();
@@ -382,10 +332,10 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
 
     @Test()
     public void testSearchRequestSuccess() throws Exception {
-        final SearchResultEntry entry = Responses.newSearchResultEntry("cn=test");
+        final SearchResultEntry entry = newSearchResultEntry("cn=test");
         final Connection mockConnection = new MockConnection(ResultCode.SUCCESS, entry);
         final SearchRequest searchRequest =
-                Requests.newSearchRequest("cn=test", SearchScope.BASE_OBJECT, "(objectClass=*)");
+                newSearchRequest("cn=test", SearchScope.BASE_OBJECT, "(objectClass=*)");
         List<SearchResultEntry> entries = new LinkedList<SearchResultEntry>();
         assertThat(mockConnection.search(searchRequest, entries).getResultCode()).isEqualTo(
                 ResultCode.SUCCESS);
@@ -397,11 +347,11 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
     public void testSearchRequestFail() throws Exception {
         final Connection mockConnection = new MockConnection(ResultCode.UNWILLING_TO_PERFORM);
         final SearchRequest searchRequest =
-                Requests.newSearchRequest("cn=test", SearchScope.BASE_OBJECT, "(objectClass=*)");
+                newSearchRequest("cn=test", SearchScope.BASE_OBJECT, "(objectClass=*)");
         List<SearchResultEntry> entries = new LinkedList<SearchResultEntry>();
         try {
             mockConnection.search(searchRequest, entries);
-            TestCaseUtils.failWasExpected(ErrorResultException.class);
+            failWasExpected(ErrorResultException.class);
         } catch (ErrorResultException e) {
             assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.UNWILLING_TO_PERFORM);
             assertThat(entries.isEmpty());
@@ -410,36 +360,37 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
 
     @Test()
     public void testSingleEntrySearchRequestSuccess() throws Exception {
-        final SearchResultEntry entry = Responses.newSearchResultEntry("cn=test");
+        final SearchResultEntry entry = newSearchResultEntry("cn=test");
         final Connection mockConnection = new MockConnection(ResultCode.SUCCESS, entry);
         final SearchRequest request =
-                Requests.newSingleEntrySearchRequest("cn=test", SearchScope.BASE_OBJECT, "(objectClass=*)");
+                newSingleEntrySearchRequest("cn=test", SearchScope.BASE_OBJECT, "(objectClass=*)");
         assertThat(mockConnection.searchSingleEntry(request)).isEqualTo(entry);
     }
 
     @SuppressWarnings("unchecked")
     @Test()
     public void testSingleEntrySearchAsyncRequestSuccess() throws Exception {
-        final SearchResultEntry entry = Responses.newSearchResultEntry("cn=test");
+        final SearchResultEntry entry = newSearchResultEntry("cn=test");
         final Connection mockConnection = new MockConnection(ResultCode.SUCCESS, entry);
         final SearchRequest request =
-                Requests.newSingleEntrySearchRequest("cn=test", SearchScope.BASE_OBJECT, "(objectClass=*)");
-        ResultHandler<SearchResultEntry> handler = mock(ResultHandler.class);
+                newSingleEntrySearchRequest("cn=test", SearchScope.BASE_OBJECT, "(objectClass=*)");
+        SuccessHandler<SearchResultEntry> successHandler = mock(SuccessHandler.class);
 
-        FutureResult<SearchResultEntry> futureResult = mockConnection.searchSingleEntryAsync(request, handler);
+        FutureResult<SearchResultEntry> futureResult = (FutureResult<SearchResultEntry>) mockConnection
+                .searchSingleEntryAsync(request).onSuccess(successHandler);
 
         assertThat(futureResult.get()).isEqualTo(entry);
-        verify(handler).handleResult(any(SearchResultEntry.class));
+        verify(successHandler).handleResult(any(SearchResultEntry.class));
     }
 
     @Test()
     public void testSingleEntrySearchRequestNoEntryReturned() throws Exception {
         final Connection mockConnection = new MockConnection(ResultCode.SUCCESS);
         final SearchRequest request =
-                Requests.newSingleEntrySearchRequest("cn=test", SearchScope.BASE_OBJECT, "(objectClass=*)");
+                newSingleEntrySearchRequest("cn=test", SearchScope.BASE_OBJECT, "(objectClass=*)");
         try {
             mockConnection.searchSingleEntry(request);
-            TestCaseUtils.failWasExpected(EntryNotFoundException.class);
+            failWasExpected(EntryNotFoundException.class);
         } catch (EntryNotFoundException e) {
             assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED);
         }
@@ -448,12 +399,12 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
     @Test()
     public void testSingleEntrySearchRequestMultipleEntriesToReturn() throws Exception {
         final Connection mockConnection = new MockConnection(ResultCode.SIZE_LIMIT_EXCEEDED,
-                Responses.newSearchResultEntry("cn=test"));
+                newSearchResultEntry("cn=test"));
         final SearchRequest request =
-                Requests.newSingleEntrySearchRequest("cn=test", SearchScope.BASE_OBJECT, "(objectClass=*)");
+                newSingleEntrySearchRequest("cn=test", SearchScope.BASE_OBJECT, "(objectClass=*)");
         try {
             mockConnection.searchSingleEntry(request);
-            TestCaseUtils.failWasExpected(MultipleEntriesFoundException.class);
+            failWasExpected(MultipleEntriesFoundException.class);
         } catch (MultipleEntriesFoundException e) {
             assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED);
         }
@@ -462,14 +413,13 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
     @Test()
     public void testSingleEntrySearchRequestMultipleEntriesReturnedByServer() throws Exception {
         // could happen if server does not enforce size limit
-        final Connection mockConnection = new MockConnection(ResultCode.SUCCESS,
-                Responses.newSearchResultEntry("cn=test"),
-                Responses.newSearchResultEntry("cn=test,ou=org"));
-        final SearchRequest request =
-                Requests.newSingleEntrySearchRequest("cn=test", SearchScope.WHOLE_SUBTREE, "(objectClass=*)");
+        final Connection mockConnection = new MockConnection(ResultCode.SUCCESS, newSearchResultEntry("cn=test"),
+                newSearchResultEntry("cn=test,ou=org"));
+        final SearchRequest request = newSingleEntrySearchRequest("cn=test", SearchScope.WHOLE_SUBTREE,
+                "(objectClass=*)");
         try {
             mockConnection.searchSingleEntry(request);
-            TestCaseUtils.failWasExpected(MultipleEntriesFoundException.class);
+            failWasExpected(MultipleEntriesFoundException.class);
         } catch (MultipleEntriesFoundException e) {
             assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED);
         }
@@ -479,36 +429,35 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
     @Test()
     public void testSingleEntrySearchAsyncRequestMultipleEntriesToReturn() throws Exception {
         final Connection mockConnection = new MockConnection(ResultCode.SIZE_LIMIT_EXCEEDED,
-                Responses.newSearchResultEntry("cn=test"));
+                newSearchResultEntry("cn=test"));
         final SearchRequest request =
-                Requests.newSingleEntrySearchRequest("cn=test", SearchScope.BASE_OBJECT, "(objectClass=*)");
-        ResultHandler<SearchResultEntry> handler = mock(ResultHandler.class);
+                newSingleEntrySearchRequest("cn=test", SearchScope.BASE_OBJECT, "(objectClass=*)");
+        FailureHandler<ErrorResultException> failureHandler = mock(FailureHandler.class);
 
         try {
-            mockConnection.searchSingleEntryAsync(request, handler).get();
-            TestCaseUtils.failWasExpected(MultipleEntriesFoundException.class);
+            mockConnection.searchSingleEntryAsync(request).onFailure(failureHandler).getOrThrow();
+            failWasExpected(MultipleEntriesFoundException.class);
         } catch (MultipleEntriesFoundException e) {
             assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED);
-            verify(handler).handleErrorResult(any(ErrorResultException.class));
+            verify(failureHandler).handleError(any(ErrorResultException.class));
         }
     }
 
     @Test()
     public void testSingleEntrySearchAsyncRequestMultipleEntriesReturnedByServer() throws Exception {
         // could happen if server does not enfore size limit
-        final Connection mockConnection = new MockConnection(ResultCode.SUCCESS,
-                Responses.newSearchResultEntry("cn=test"),
-                Responses.newSearchResultEntry("cn=test,ou=org"));
-        final SearchRequest request = Requests.newSingleEntrySearchRequest("cn=test", SearchScope.BASE_OBJECT,
+        final Connection mockConnection = new MockConnection(ResultCode.SUCCESS, newSearchResultEntry("cn=test"),
+                newSearchResultEntry("cn=test,ou=org"));
+        final SearchRequest request = newSingleEntrySearchRequest("cn=test", SearchScope.BASE_OBJECT,
                 "(objectClass=*)");
         @SuppressWarnings("unchecked")
-        ResultHandler<SearchResultEntry> handler = mock(ResultHandler.class);
+        FailureHandler<ErrorResultException> failureHandler = mock(FailureHandler.class);
         try {
-            mockConnection.searchSingleEntryAsync(request, handler).get();
-            TestCaseUtils.failWasExpected(MultipleEntriesFoundException.class);
+            mockConnection.searchSingleEntryAsync(request).onFailure(failureHandler).getOrThrow();
+            failWasExpected(MultipleEntriesFoundException.class);
         } catch (MultipleEntriesFoundException e) {
             assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED);
-            verify(handler).handleErrorResult(any(ErrorResultException.class));
+            verify(failureHandler).handleError(any(ErrorResultException.class));
         }
     }
 
@@ -516,10 +465,10 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
     public void testSingleEntrySearchRequestFail() throws Exception {
         final Connection mockConnection = new MockConnection(ResultCode.UNWILLING_TO_PERFORM);
         final SearchRequest request =
-                Requests.newSingleEntrySearchRequest("cn=test", SearchScope.BASE_OBJECT, "(objectClass=*)");
+                newSingleEntrySearchRequest("cn=test", SearchScope.BASE_OBJECT, "(objectClass=*)");
         try {
             mockConnection.searchSingleEntry(request);
-            TestCaseUtils.failWasExpected(ErrorResultException.class);
+            failWasExpected(ErrorResultException.class);
         } catch (ErrorResultException e) {
             assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.UNWILLING_TO_PERFORM);
         }
@@ -529,15 +478,15 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
     public void testSingleEntrySearchAsyncRequestFail() throws Exception {
         final Connection mockConnection = new MockConnection(ResultCode.UNWILLING_TO_PERFORM);
         final SearchRequest request =
-                Requests.newSingleEntrySearchRequest("cn=test", SearchScope.BASE_OBJECT, "(objectClass=*)");
+                newSingleEntrySearchRequest("cn=test", SearchScope.BASE_OBJECT, "(objectClass=*)");
         @SuppressWarnings("unchecked")
-        ResultHandler<SearchResultEntry> handler = mock(ResultHandler.class);
+        FailureHandler<ErrorResultException> failureHandler = mock(FailureHandler.class);
         try {
-            mockConnection.searchSingleEntryAsync(request, handler).get();
-            TestCaseUtils.failWasExpected(ErrorResultException.class);
+            mockConnection.searchSingleEntryAsync(request).onFailure(failureHandler).getOrThrow();
+            failWasExpected(ErrorResultException.class);
         } catch (ErrorResultException e) {
             assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.UNWILLING_TO_PERFORM);
-            verify(handler).handleErrorResult(any(ErrorResultException.class));
+            verify(failureHandler).handleError(any(ErrorResultException.class));
         }
     }
 

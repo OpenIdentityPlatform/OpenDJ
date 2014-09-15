@@ -222,5 +222,59 @@ Note: waiting on https://jira.codehaus.org/browse/MCLIRR-62 to be resolved to av
     <method>boolean isIndexingSupported()</method>
     <justification>OPENDJ-1308 Migrate schema support: allows decoupling indexing from a specific backend</justification>
   </difference>
-
+  <difference>
+    <className>org/forgerock/opendj/ldap/*Connection*</className>
+    <differenceType>7004</differenceType>
+    <method>org.forgerock.opendj.ldap.FutureResult *Async(*org.forgerock.opendj.ldap.ResultHandler)</method>
+    <justification>OPENDJ-1285 Migrate SDK from Futures to Promises</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/schema/Schema</className>
+    <differenceType>7004</differenceType>
+    <method>org.forgerock.opendj.ldap.FutureResult readSchema*Async*(org.forgerock.opendj.ldap.Connection, org.forgerock.opendj.ldap.DN, org.forgerock.opendj.ldap.ResultHandler)</method>
+    <justification>OPENDJ-1285 Migrate SDK from Futures to Promises</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/*Connection*</className>
+    <differenceType>7006</differenceType>
+    <method>org.forgerock.opendj.ldap.FutureResult *Async(*org.forgerock.opendj.ldap.ResultHandler)</method>
+    <to>org.forgerock.util.promise.Promise</to>
+    <justification>OPENDJ-1285 Migrate SDK from Futures to Promises</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/Connection</className>
+    <differenceType>7012</differenceType>
+    <method>org.forgerock.opendj.ldap.FutureResult *Async(org.forgerock.opendj.*)</method>
+    <justification>OPENDJ-1285 Migrate SDK from Futures to Promises</justification>
+  </difference>
+  <difference>
+    <className>%regex[org/forgerock/opendj/ldap/(RequestHandler|MemoryBackend)]</className>
+    <differenceType>7004</differenceType>
+    <method>*handleSearch(*)</method>
+    <justification>OPENDJ-1285 Migrate SDK from Futures to Promises</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/ResultHandler</className>
+    <differenceType>7012</differenceType>
+    <method>*handleError(org.forgerock.opendj.ldap.ErrorResultException)</method>
+    <justification>OPENDJ-1285 Migrate SDK from Futures to Promises</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/ResultHandler</className>
+    <differenceType>7002</differenceType>
+    <method>*handleErrorResult(org.forgerock.opendj.ldap.ErrorResultException)</method>
+    <justification>OPENDJ-1285 Migrate SDK from Futures to Promises</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/SearchResultHandler</className>
+    <differenceType>4001</differenceType>
+    <to>org/forgerock/opendj/ldap/ResultHandler</to>
+    <justification>OPENDJ-1285 Migrate SDK from Futures to Promises</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/schema/SchemaBuilder</className>
+    <differenceType>7004</differenceType>
+    <method>org.forgerock.opendj.ldap.FutureResult addSchema*Async(*)</method>
+    <justification>OPENDJ-1285 Migrate SDK from Futures to Promises</justification>
+  </difference>
 </differences>

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS.
+ *      Portions copyright 2011-2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.spi;
@@ -30,7 +30,6 @@ package org.forgerock.opendj.ldap.spi;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.IntermediateResponseHandler;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ResultHandler;
 import org.forgerock.opendj.ldap.requests.BindClient;
 import org.forgerock.opendj.ldap.responses.BindResult;
 import org.forgerock.opendj.ldap.responses.Responses;
@@ -48,8 +47,6 @@ public final class LDAPBindFutureResultImpl extends AbstractLDAPFutureResultImpl
      *            identifier of the request
      * @param bindClient
      *            client that binds to the server
-     * @param resultHandler
-     *            handler that consumes result of bind
      * @param intermediateResponseHandler
      *            handler that consumes intermediate responses from extended
      *            operations
@@ -57,10 +54,9 @@ public final class LDAPBindFutureResultImpl extends AbstractLDAPFutureResultImpl
      *            the connection to directory server
      */
     public LDAPBindFutureResultImpl(final int requestID, final BindClient bindClient,
-            final ResultHandler<? super BindResult> resultHandler,
             final IntermediateResponseHandler intermediateResponseHandler,
             final Connection connection) {
-        super(requestID, resultHandler, intermediateResponseHandler, connection);
+        super(requestID, intermediateResponseHandler, connection);
         this.bindClient = bindClient;
     }
 
@@ -89,9 +85,6 @@ public final class LDAPBindFutureResultImpl extends AbstractLDAPFutureResultImpl
         return bindClient;
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     protected BindResult newErrorResult(final ResultCode resultCode, final String diagnosticMessage,
             final Throwable cause) {

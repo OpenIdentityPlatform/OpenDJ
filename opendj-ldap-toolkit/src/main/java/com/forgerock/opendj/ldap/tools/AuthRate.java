@@ -26,11 +26,6 @@
  */
 package com.forgerock.opendj.ldap.tools;
 
-import static com.forgerock.opendj.cli.ArgumentConstants.*;
-import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
-import static com.forgerock.opendj.ldap.tools.Utils.setDefaultPerfToolProperties;
-import static com.forgerock.opendj.cli.Utils.filterExitCode;
-
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -40,24 +35,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.forgerock.i18n.LocalizableMessage;
-
-import com.forgerock.opendj.cli.BooleanArgument;
-import com.forgerock.opendj.cli.CommonArguments;
-import com.forgerock.opendj.cli.ConnectionFactoryProvider;
-import com.forgerock.opendj.cli.ConsoleApplication;
-import com.forgerock.opendj.cli.ArgumentParser;
-import com.forgerock.opendj.cli.ArgumentException;
-import com.forgerock.opendj.cli.IntegerArgument;
-import com.forgerock.opendj.cli.MultiChoiceArgument;
-import com.forgerock.opendj.cli.StringArgument;
-
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
 import org.forgerock.opendj.ldap.ErrorResultException;
-import org.forgerock.opendj.ldap.FutureResult;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ResultHandler;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.opendj.ldap.requests.CRAMMD5SASLBindRequest;
@@ -70,8 +52,23 @@ import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.requests.SimpleBindRequest;
 import org.forgerock.opendj.ldap.responses.BindResult;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
+import org.forgerock.util.promise.AsyncFunction;
+import org.forgerock.util.promise.Promise;
 
-import com.forgerock.opendj.util.RecursiveFutureResult;
+import com.forgerock.opendj.cli.ArgumentException;
+import com.forgerock.opendj.cli.ArgumentParser;
+import com.forgerock.opendj.cli.BooleanArgument;
+import com.forgerock.opendj.cli.CommonArguments;
+import com.forgerock.opendj.cli.ConnectionFactoryProvider;
+import com.forgerock.opendj.cli.ConsoleApplication;
+import com.forgerock.opendj.cli.IntegerArgument;
+import com.forgerock.opendj.cli.MultiChoiceArgument;
+import com.forgerock.opendj.cli.StringArgument;
+
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.Utils.*;
+import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
+import static com.forgerock.opendj.ldap.tools.Utils.*;
 
 /**
  * A load generation tool that can be used to load a Directory Server with Bind
@@ -107,8 +104,8 @@ public final class AuthRate extends ConsoleApplication {
             }
 
             @Override
-            public void handleErrorResult(final ErrorResultException error) {
-                super.handleErrorResult(error);
+            public void handleError(final ErrorResultException error) {
+                super.handleError(error);
 
                 if (error.getResult().getResultCode() == ResultCode.INVALID_CREDENTIALS) {
                     invalidCredRecentCount.getAndIncrement();
@@ -137,7 +134,7 @@ public final class AuthRate extends ConsoleApplication {
             }
 
             @Override
-            public FutureResult<?> performOperation(final Connection connection,
+            public Promise<?, ErrorResultException> performOperation(final Connection connection,
                     final DataSource[] dataSources, final long startTime) {
                 if (dataSources != null) {
                     data = DataSource.generateData(dataSources, data);
@@ -147,14 +144,15 @@ public final class AuthRate extends ConsoleApplication {
                         data = newData;
                     }
                 }
+
+                Promise<BindResult, ErrorResultException> returnedPromise;
                 if (filter != null && baseDN != null) {
                     if (sr == null) {
                         if (dataSources == null) {
                             sr = Requests.newSearchRequest(baseDN, scope, filter, attributes);
                         } else {
-                            sr =
-                                    Requests.newSearchRequest(String.format(baseDN, data), scope,
-                                            String.format(filter, data), attributes);
+                            sr = Requests.newSearchRequest(String.format(baseDN, data), scope,
+                                    String.format(filter, data), attributes);
                         }
                         sr.setDereferenceAliasesPolicy(dereferencesAliasesPolicy);
                     } else if (dataSources != null) {
@@ -162,32 +160,30 @@ public final class AuthRate extends ConsoleApplication {
                         sr.setName(String.format(baseDN, data));
                     }
 
-                    final RecursiveFutureResult<SearchResultEntry, BindResult> future =
-                            new RecursiveFutureResult<SearchResultEntry, BindResult>(
-                                    new BindUpdateStatsResultHandler(startTime)) {
+                    returnedPromise = connection.searchSingleEntryAsync(sr).thenAsync(
+                            new AsyncFunction<SearchResultEntry, BindResult, ErrorResultException>() {
                                 @Override
-                                protected FutureResult<? extends BindResult> chainResult(
-                                        final SearchResultEntry innerResult,
-                                        final ResultHandler<? super BindResult> resultHandler)
+                                public Promise<BindResult, ErrorResultException> apply(SearchResultEntry result)
                                         throws ErrorResultException {
                                     searchWaitRecentTime.getAndAdd(System.nanoTime() - startTime);
                                     if (data == null) {
                                         data = new Object[1];
                                     }
-                                    data[data.length - 1] = innerResult.getName().toString();
-                                    return performBind(connection, data, resultHandler);
+                                    data[data.length - 1] = result.getName().toString();
+
+                                    return performBind(connection, data);
                                 }
-                            };
-                    connection.searchSingleEntryAsync(sr, future);
-                    return future;
+                            });
                 } else {
-                    return performBind(connection, data,
-                            new BindUpdateStatsResultHandler(startTime));
+                    returnedPromise = performBind(connection, data);
                 }
+
+                return returnedPromise.onSuccess(new UpdateStatsResultHandler<BindResult>(startTime)).onFailure(
+                        new BindUpdateStatsResultHandler(startTime));
             }
 
-            private FutureResult<BindResult> performBind(final Connection connection,
-                    final Object[] data, final ResultHandler<? super BindResult> handler) {
+            private Promise<BindResult, ErrorResultException> performBind(final Connection connection,
+                final Object[] data) {
                 final boolean useInvalidPassword;
 
                 // Avoid rng if possible.
@@ -307,7 +303,7 @@ public final class AuthRate extends ConsoleApplication {
                     }
                 }
 
-                return connection.bindAsync(br, null, handler);
+                return connection.bindAsync(br);
             }
         }
 

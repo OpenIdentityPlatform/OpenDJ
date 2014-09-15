@@ -22,12 +22,16 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS.
+ *      Portions copyright 2011-2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
 
-import com.forgerock.opendj.util.CompletedFutureResult;
+import org.forgerock.util.promise.Promise;
+
+import static org.forgerock.opendj.ldap.FutureResultWrapper.*;
+import static org.forgerock.util.promise.Promises.*;
+
 
 /**
  * A special {@code ConnectionFactory} which waits for internal connection
@@ -63,30 +67,25 @@ final class InternalConnectionFactory<C> implements ConnectionFactory {
         // Nothing to do.
     }
 
+    @Override
     public Connection getConnection() throws ErrorResultException {
         final ServerConnection<Integer> serverConnection = factory.handleAccept(clientContext);
         return new InternalConnection(serverConnection);
     }
 
-    public FutureResult<Connection> getConnectionAsync(
-            final ResultHandler<? super Connection> handler) {
+    @Override
+    public Promise<Connection, ErrorResultException> getConnectionAsync() {
         final ServerConnection<Integer> serverConnection;
         try {
             serverConnection = factory.handleAccept(clientContext);
         } catch (final ErrorResultException e) {
-            if (handler != null) {
-                handler.handleErrorResult(e);
-            }
-            return new CompletedFutureResult<Connection>(e);
+            return newFailedFutureResult(e);
         }
 
-        final InternalConnection connection = new InternalConnection(serverConnection);
-        if (handler != null) {
-            handler.handleResult(connection);
-        }
-        return new CompletedFutureResult<Connection>(connection);
+        return newSuccessfulPromise((Connection) new InternalConnection(serverConnection));
     }
 
+    @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
         builder.append("InternalConnectionFactory(");

@@ -27,18 +27,6 @@
 
 package org.forgerock.opendj.ldap;
 
-import static org.fest.assertions.Assertions.assertThat;
-import static org.forgerock.opendj.ldap.Connections.newFixedConnectionPool;
-import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
-import static org.forgerock.opendj.ldap.TestCaseUtils.mockConnection;
-import static org.forgerock.opendj.ldap.TestCaseUtils.mockConnectionFactory;
-import static org.forgerock.opendj.ldap.TestCaseUtils.mockTimeSource;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Matchers.eq;
-import static org.mockito.Matchers.isA;
-import static org.mockito.Mockito.*;
-
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -48,8 +36,19 @@ import org.forgerock.opendj.ldap.requests.BindRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.responses.ExtendedResult;
 import org.forgerock.opendj.ldap.responses.Responses;
-import org.mockito.ArgumentCaptor;
+import org.forgerock.util.promise.Promise;
+import org.forgerock.util.promise.PromiseImpl;
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
+import org.testng.Assert;
 import org.testng.annotations.Test;
+
+import static org.fest.assertions.Assertions.*;
+import static org.forgerock.opendj.ldap.Connections.*;
+import static org.forgerock.opendj.ldap.ErrorResultException.*;
+import static org.forgerock.opendj.ldap.TestCaseUtils.*;
+import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.*;
 
 /**
  * Tests the connection pool implementation..
@@ -248,7 +247,7 @@ public class ConnectionPoolTestCase extends SdkTestCase {
          * is a connection available immediately then the future will be
          * completed immediately).
          */
-        final FutureResult<Connection> future = pool.getConnectionAsync(null);
+        final Promise<? extends Connection, ErrorResultException> future = pool.getConnectionAsync();
         assertThat(future.isDone()).isFalse();
 
         // Release a connection and verify that it is immediately redeemed by
@@ -521,24 +520,31 @@ public class ConnectionPoolTestCase extends SdkTestCase {
         final ConnectionFactory factory = mock(ConnectionFactory.class);
         final int poolSize = 2;
         final ConnectionPool pool = Connections.newFixedConnectionPool(factory, poolSize);
+        doAnswer(new Answer<Promise<Connection, ErrorResultException>>() {
+            @Override
+            public Promise<Connection, ErrorResultException> answer(final InvocationOnMock invocation)
+                    throws Throwable {
+                return PromiseImpl.create();
+            }
+        }).when(factory).getConnectionAsync();
 
-        List<FutureResult<Connection>> futures = new ArrayList<FutureResult<Connection>>();
+        List<Promise<? extends Connection, ErrorResultException>> futures =
+                new ArrayList<Promise<? extends Connection, ErrorResultException>>();
         for (int i = 0; i < poolSize + 1; i++) {
-            futures.add(pool.getConnectionAsync(null));
+            futures.add(pool.getConnectionAsync());
         }
+        // factory.getConnectionAsync() has been called by the pool poolSize times
+        verify(factory, times(poolSize)).getConnectionAsync();
+        final ErrorResultException connectError = ErrorResultException
+                .newErrorResult(ResultCode.CLIENT_SIDE_CONNECT_ERROR);
+        for (Promise<? extends Connection, ErrorResultException> future : futures) {
+            // Simulate that an error happened with the created connections
+            ((FutureResultImpl) future).handleError(connectError);
 
-        final ArgumentCaptor<ResultHandler> arg = ArgumentCaptor.forClass(ResultHandler.class);
-        verify(factory, times(poolSize)).getConnectionAsync(arg.capture());
-        final ErrorResultException connectError =
-                ErrorResultException.newErrorResult(ResultCode.CLIENT_SIDE_CONNECT_ERROR);
-        for (ResultHandler<Connection> handler : arg.getAllValues()) {
-            handler.handleErrorResult(connectError);
-        }
-
-        for (FutureResult<Connection> future : futures) {
             try {
                 // Before the fix for OPENDJ-1348 the third future.get() would hang.
-                future.get();
+                future.getOrThrow();
+                Assert.fail("ErrorResultException should have been called");
             } catch (ErrorResultException e) {
                 assertThat(e).isSameAs(connectError);
             }

@@ -20,7 +20,7 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2013 ForgeRock AS.
+ *      Copyright 2013-2014 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap;
 
@@ -248,7 +248,7 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
             }
             resultHandler.handleResult(getResult(request, null, request));
         } catch (final ErrorResultException e) {
-            resultHandler.handleErrorResult(e);
+            resultHandler.handleError(e);
         }
     }
 
@@ -279,17 +279,17 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
             }
             resultHandler.handleResult(getBindResult(request, entry, entry));
         } catch (final LocalizedIllegalArgumentException e) {
-            resultHandler.handleErrorResult(newErrorResult(ResultCode.PROTOCOL_ERROR, e));
+            resultHandler.handleError(newErrorResult(ResultCode.PROTOCOL_ERROR, e));
         } catch (final EntryNotFoundException e) {
             /*
              * Usually you would not include a diagnostic message, but we'll add
              * one here because the memory back-end is not intended for
              * production use.
              */
-            resultHandler.handleErrorResult(newErrorResult(ResultCode.INVALID_CREDENTIALS,
+            resultHandler.handleError(newErrorResult(ResultCode.INVALID_CREDENTIALS,
                     "Unknown user"));
         } catch (final ErrorResultException e) {
-            resultHandler.handleErrorResult(e);
+            resultHandler.handleError(e);
         }
     }
 
@@ -310,7 +310,7 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
             resultHandler.handleResult(getCompareResult(request, entry, entry.containsAttribute(
                     assertion, null)));
         } catch (final ErrorResultException e) {
-            resultHandler.handleErrorResult(e);
+            resultHandler.handleError(e);
         }
     }
 
@@ -338,9 +338,9 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
             }
             resultHandler.handleResult(getResult(request, entry, null));
         } catch (final DecodeException e) {
-            resultHandler.handleErrorResult(newErrorResult(ResultCode.PROTOCOL_ERROR, e));
+            resultHandler.handleError(newErrorResult(ResultCode.PROTOCOL_ERROR, e));
         } catch (final ErrorResultException e) {
-            resultHandler.handleErrorResult(e);
+            resultHandler.handleError(e);
         }
     }
 
@@ -349,7 +349,7 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
             final RequestContext requestContext, final ExtendedRequest<R> request,
             final IntermediateResponseHandler intermediateResponseHandler,
             final ResultHandler<R> resultHandler) {
-        resultHandler.handleErrorResult(newErrorResult(ResultCode.UNWILLING_TO_PERFORM,
+        resultHandler.handleError(newErrorResult(ResultCode.UNWILLING_TO_PERFORM,
                 "Extended request operation not supported"));
     }
 
@@ -368,7 +368,7 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
             }
             resultHandler.handleResult(getResult(request, entry, newEntry));
         } catch (final ErrorResultException e) {
-            resultHandler.handleErrorResult(e);
+            resultHandler.handleError(e);
         }
     }
 
@@ -376,42 +376,40 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
     public void handleModifyDN(final RequestContext requestContext, final ModifyDNRequest request,
             final IntermediateResponseHandler intermediateResponseHandler,
             final ResultHandler<Result> resultHandler) {
-        resultHandler.handleErrorResult(newErrorResult(ResultCode.UNWILLING_TO_PERFORM,
+        resultHandler.handleError(newErrorResult(ResultCode.UNWILLING_TO_PERFORM,
                 "ModifyDN request operation not supported"));
     }
 
     @Override
     public void handleSearch(final RequestContext requestContext, final SearchRequest request,
-            final IntermediateResponseHandler intermediateResponseHandler,
-            final SearchResultHandler resultHandler) {
+        final IntermediateResponseHandler intermediateResponseHandler, final SearchResultHandler entryHandler,
+        ResultHandler<Result> resultHandler) {
         try {
             final DN dn = request.getName();
             final SearchScope scope = request.getScope();
             final Filter filter = request.getFilter();
             final Matcher matcher = filter.matcher(schema);
             final AttributeFilter attributeFilter =
-                    new AttributeFilter(request.getAttributes(), schema).typesOnly(request
-                            .isTypesOnly());
+                new AttributeFilter(request.getAttributes(), schema).typesOnly(request.isTypesOnly());
             if (scope.equals(SearchScope.BASE_OBJECT)) {
                 final Entry baseEntry = getRequiredEntry(request, dn);
                 if (matcher.matches(baseEntry).toBoolean()) {
-                    sendEntry(attributeFilter, resultHandler, baseEntry);
+                    sendEntry(attributeFilter, entryHandler, baseEntry);
                 }
                 resultHandler.handleResult(newResult(ResultCode.SUCCESS));
             } else if (scope.equals(SearchScope.SINGLE_LEVEL) || scope.equals(SearchScope.SUBORDINATES)
                 || scope.equals(SearchScope.WHOLE_SUBTREE)) {
-                searchWithSubordinates(requestContext, resultHandler, dn, matcher, attributeFilter,
-                        request.getSizeLimit(), scope, request.getControl(
-                                SimplePagedResultsControl.DECODER, new DecodeOptions()));
+                searchWithSubordinates(requestContext, entryHandler, resultHandler, dn, matcher, attributeFilter,
+                    request.getSizeLimit(), scope,
+                    request.getControl(SimplePagedResultsControl.DECODER, new DecodeOptions()));
             } else {
-                throw newErrorResult(ResultCode.PROTOCOL_ERROR,
-                        "Search request contains an unsupported search scope");
+                throw newErrorResult(ResultCode.PROTOCOL_ERROR, "Search request contains an unsupported search scope");
             }
         } catch (DecodeException e) {
-            resultHandler.handleErrorResult(ErrorResultException.newErrorResult(
-                    ResultCode.PROTOCOL_ERROR, e.getMessage(), e));
+            resultHandler.handleError(ErrorResultException.newErrorResult(ResultCode.PROTOCOL_ERROR, e.getMessage(),
+                e));
         } catch (final ErrorResultException e) {
-            resultHandler.handleErrorResult(e);
+            resultHandler.handleError(e);
         }
     }
 
@@ -490,11 +488,10 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
      * @throws ErrorResultException
      *           If the request is unsuccessful.
      */
-    private void searchWithSubordinates(final RequestContext requestContext,
-            final SearchResultHandler resultHandler, final DN dn, final Matcher matcher,
+    private void searchWithSubordinates(final RequestContext requestContext, final SearchResultHandler entryHandler,
+            final ResultHandler<Result> resultHandler, final DN dn, final Matcher matcher,
             final AttributeFilter attributeFilter, final int sizeLimit, SearchScope scope,
-            SimplePagedResultsControl pagedResults) throws CancelledResultException,
-            ErrorResultException {
+            SimplePagedResultsControl pagedResults) throws CancelledResultException, ErrorResultException {
         final int pageSize = pagedResults != null ? pagedResults.getSize() : 0;
         final int offset = (pagedResults != null && !pagedResults.getCookie().isEmpty())
                 ? Integer.valueOf(pagedResults.getCookie().toString()) : 0;
@@ -504,7 +501,7 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
         for (final Entry entry : subtree.values()) {
             requestContext.checkIfCancelled(false);
             if (scope.equals(SearchScope.WHOLE_SUBTREE) || entry.getName().isChildOf(dn)
-                || (scope.equals(SearchScope.SUBORDINATES) && !entry.getName().equals(dn))) {
+                    || (scope.equals(SearchScope.SUBORDINATES) && !entry.getName().equals(dn))) {
                 if (matcher.matches(entry).toBoolean()) {
                     /*
                      * This entry is going to be returned to the client so it
@@ -522,7 +519,7 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
                     }
 
                     // Send the entry back to the client.
-                    if (!sendEntry(attributeFilter, resultHandler, entry)) {
+                    if (!sendEntry(attributeFilter, entryHandler, entry)) {
                         // Client has disconnected or cancelled.
                         break;
                     }
@@ -538,9 +535,8 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
         }
         final Result result = newResult(ResultCode.SUCCESS);
         if (pageSize > 0) {
-            final ByteString cookie =
-                    numberOfResults == pageSize ? ByteString.valueOf(String.valueOf(position))
-                            : ByteString.empty();
+            final ByteString cookie = numberOfResults == pageSize ? ByteString.valueOf(String.valueOf(position))
+                    : ByteString.empty();
             result.addControl(SimplePagedResultsControl.newControl(true, 0, cookie));
         }
         resultHandler.handleResult(result);

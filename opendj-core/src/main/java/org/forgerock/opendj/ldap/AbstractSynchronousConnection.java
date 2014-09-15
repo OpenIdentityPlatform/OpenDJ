@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2012 ForgeRock AS
+ *      Copyright 2012-2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -40,7 +40,7 @@ import org.forgerock.opendj.ldap.responses.CompareResult;
 import org.forgerock.opendj.ldap.responses.ExtendedResult;
 import org.forgerock.opendj.ldap.responses.Result;
 
-import com.forgerock.opendj.util.CompletedFutureResult;
+import static org.forgerock.opendj.ldap.FutureResultWrapper.*;
 
 /**
  * An abstract connection whose asynchronous methods are implemented in terms of
@@ -74,113 +74,95 @@ public abstract class AbstractSynchronousConnection extends AbstractConnection {
      */
     @Override
     public FutureResult<Void> abandonAsync(final AbandonRequest request) {
-        throw new UnsupportedOperationException(
-                "Abandon requests are not supported for synchronous connections");
+        throw new UnsupportedOperationException("Abandon requests are not supported for synchronous connections");
     }
 
     @Override
     public FutureResult<Result> addAsync(final AddRequest request,
-            final IntermediateResponseHandler intermediateResponseHandler,
-            final ResultHandler<? super Result> resultHandler) {
+            final IntermediateResponseHandler intermediateResponseHandler) {
         try {
-            return onSuccess(add(request), resultHandler);
+            return onSuccess(add(request));
         } catch (final ErrorResultException e) {
-            return onFailure(e, resultHandler);
+            return onFailure(e);
         }
     }
 
     @Override
     public FutureResult<BindResult> bindAsync(final BindRequest request,
-            final IntermediateResponseHandler intermediateResponseHandler,
-            final ResultHandler<? super BindResult> resultHandler) {
+            final IntermediateResponseHandler intermediateResponseHandler) {
         try {
-            return onSuccess(bind(request), resultHandler);
+            return onSuccess(bind(request));
         } catch (final ErrorResultException e) {
-            return onFailure(e, resultHandler);
+            return onFailure(e);
         }
     }
 
     @Override
     public FutureResult<CompareResult> compareAsync(final CompareRequest request,
-            final IntermediateResponseHandler intermediateResponseHandler,
-            final ResultHandler<? super CompareResult> resultHandler) {
+            final IntermediateResponseHandler intermediateResponseHandler) {
         try {
-            return onSuccess(compare(request), resultHandler);
+            return onSuccess(compare(request));
         } catch (final ErrorResultException e) {
-            return onFailure(e, resultHandler);
+            return onFailure(e);
         }
     }
 
     @Override
     public FutureResult<Result> deleteAsync(final DeleteRequest request,
-            final IntermediateResponseHandler intermediateResponseHandler,
-            final ResultHandler<? super Result> resultHandler) {
+            final IntermediateResponseHandler intermediateResponseHandler) {
         try {
-            return onSuccess(delete(request), resultHandler);
+            return onSuccess(delete(request));
         } catch (final ErrorResultException e) {
-            return onFailure(e, resultHandler);
+            return onFailure(e);
         }
     }
 
     @Override
-    public <R extends ExtendedResult> FutureResult<R> extendedRequestAsync(
-            final ExtendedRequest<R> request,
-            final IntermediateResponseHandler intermediateResponseHandler,
-            final ResultHandler<? super R> resultHandler) {
+    public <R extends ExtendedResult> FutureResult<R> extendedRequestAsync(final ExtendedRequest<R> request,
+            final IntermediateResponseHandler intermediateResponseHandler) {
         try {
-            return onSuccess(extendedRequest(request, intermediateResponseHandler), resultHandler);
+            return onSuccess(extendedRequest(request, intermediateResponseHandler));
         } catch (final ErrorResultException e) {
-            return onFailure(e, resultHandler);
+            return onFailure(e);
         }
     }
 
     @Override
     public FutureResult<Result> modifyAsync(final ModifyRequest request,
-            final IntermediateResponseHandler intermediateResponseHandler,
-            final ResultHandler<? super Result> resultHandler) {
+            final IntermediateResponseHandler intermediateResponseHandler) {
         try {
-            return onSuccess(modify(request), resultHandler);
+            return onSuccess(modify(request));
         } catch (final ErrorResultException e) {
-            return onFailure(e, resultHandler);
+            return onFailure(e);
         }
     }
 
     @Override
     public FutureResult<Result> modifyDNAsync(final ModifyDNRequest request,
-            final IntermediateResponseHandler intermediateResponseHandler,
-            final ResultHandler<? super Result> resultHandler) {
+            final IntermediateResponseHandler intermediateResponseHandler) {
         try {
-            return onSuccess(modifyDN(request), resultHandler);
+            return onSuccess(modifyDN(request));
         } catch (final ErrorResultException e) {
-            return onFailure(e, resultHandler);
+            return onFailure(e);
         }
     }
 
     @Override
     public FutureResult<Result> searchAsync(final SearchRequest request,
-            final IntermediateResponseHandler intermediateResponseHandler,
-            final SearchResultHandler resultHandler) {
+            final IntermediateResponseHandler intermediateResponseHandler, final SearchResultHandler entryHandler) {
         try {
-            return onSuccess(search(request, resultHandler), resultHandler);
+            return onSuccess(search(request, entryHandler));
         } catch (final ErrorResultException e) {
-            return onFailure(e, resultHandler);
+            return onFailure(e);
         }
     }
 
-    private <R extends Result> FutureResult<R> onFailure(final ErrorResultException e,
-            final ResultHandler<? super R> resultHandler) {
-        if (resultHandler != null) {
-            resultHandler.handleErrorResult(e);
-        }
-        return new CompletedFutureResult<R>(e);
+    private <R extends Result> FutureResult<R> onFailure(final ErrorResultException e) {
+        return newFailedFutureResult(e);
     }
 
-    private <R extends Result> FutureResult<R> onSuccess(final R result,
-            final ResultHandler<? super R> resultHandler) {
-        if (resultHandler != null) {
-            resultHandler.handleResult(result);
-        }
-        return new CompletedFutureResult<R>(result);
+    private <R extends Result> FutureResult<R> onSuccess(final R result) {
+        return newSuccessfulFutureResult(result);
     }
 
 }

@@ -21,28 +21,26 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS
+ *      Copyright 2014 ForgeRock AS
  */
 package org.forgerock.opendj.ldap;
-
-import static java.util.Arrays.asList;
-import static org.fest.assertions.Assertions.assertThat;
-import static org.fest.assertions.Fail.fail;
-import static org.forgerock.opendj.ldap.Connections.newLoadBalancer;
-import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
 
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
+import org.forgerock.util.promise.Promise;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import com.forgerock.opendj.util.CompletedFutureResult;
+import static java.util.Arrays.*;
+
+import static org.fest.assertions.Assertions.*;
+import static org.fest.assertions.Fail.*;
+import static org.forgerock.opendj.ldap.Connections.*;
+import static org.forgerock.opendj.ldap.ErrorResultException.*;
+import static org.forgerock.util.promise.Promises.*;
+import static org.mockito.Mockito.*;
 
 @SuppressWarnings("javadoc")
 public class AbstractLoadBalancingAlgorithmTestCase extends SdkTestCase {
@@ -59,19 +57,11 @@ public class AbstractLoadBalancingAlgorithmTestCase extends SdkTestCase {
             }
 
             @Override
-            public FutureResult<Connection> getConnectionAsync(
-                    final ResultHandler<? super Connection> handler) {
+            public Promise<Connection, ErrorResultException> getConnectionAsync() {
                 try {
-                    final Connection connection = mock.getConnection();
-                    if (handler != null) {
-                        handler.handleResult(connection);
-                    }
-                    return new CompletedFutureResult<Connection>(connection);
+                    return newSuccessfulPromise(mock.getConnection());
                 } catch (final ErrorResultException e) {
-                    if (handler != null) {
-                        handler.handleErrorResult(e);
-                    }
-                    return new CompletedFutureResult<Connection>(e);
+                    return newFailedPromise(e);
                 }
             }
 

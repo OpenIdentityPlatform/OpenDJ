@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2013 ForgeRock AS.
+ * Copyright 2013-2014 ForgeRock AS.
  */
 package org.forgerock.opendj.rest2ldap;
 
@@ -779,11 +779,11 @@ public final class BasicRequestsTest extends ForgeRockTestCase {
 
             @Override
             public void handleSearch(RequestContext requestContext, SearchRequest request,
-                    IntermediateResponseHandler intermediateResponseHandler,
-                    SearchResultHandler resultHandler) {
+                IntermediateResponseHandler intermediateResponseHandler, SearchResultHandler entryHandler,
+                ResultHandler<Result> resultHandler) {
                 requests.add(request);
-                handler.handleSearch(requestContext, request, intermediateResponseHandler,
-                        resultHandler);
+                handler.handleSearch(requestContext, request, intermediateResponseHandler, entryHandler,
+                    resultHandler);
             }
 
         };

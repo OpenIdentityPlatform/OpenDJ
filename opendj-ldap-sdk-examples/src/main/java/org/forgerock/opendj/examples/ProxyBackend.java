@@ -22,12 +22,12 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions copyright 2011-2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.examples;
 
-import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ConnectionFactory;
@@ -54,8 +54,12 @@ import org.forgerock.opendj.ldap.responses.BindResult;
 import org.forgerock.opendj.ldap.responses.CompareResult;
 import org.forgerock.opendj.ldap.responses.ExtendedResult;
 import org.forgerock.opendj.ldap.responses.Result;
-import org.forgerock.opendj.ldap.responses.SearchResultEntry;
-import org.forgerock.opendj.ldap.responses.SearchResultReference;
+import org.forgerock.util.promise.AsyncFunction;
+import org.forgerock.util.promise.Promise;
+import org.forgerock.util.promise.SuccessHandler;
+
+import static org.forgerock.opendj.ldap.ErrorResultException.*;
+import static org.forgerock.util.Utils.*;
 
 /**
  * A simple proxy back-end which forwards requests to a connection factory using
@@ -75,330 +79,186 @@ import org.forgerock.opendj.ldap.responses.SearchResultReference;
  *
  * <pre>
  * final RequestHandlerFactory&lt;LDAPClientContext, RequestContext&gt; proxyFactory =
- *         new RequestHandlerFactory&lt;LDAPClientContext, RequestContext&gt;() {
- *             &#064;Override
- *             public ProxyBackend handleAccept(LDAPClientContext clientContext)
- *                     throws ErrorResultException {
- *                 return new ProxyBackend(factory, bindFactory);
- *             }
- *         };
+ *     new RequestHandlerFactory&lt;LDAPClientContext, RequestContext&gt;() {
+ *         &#064;Override
+ *         public ProxyBackend handleAccept(LDAPClientContext clientContext) throws ErrorResultException {
+ *             return new ProxyBackend(factory, bindFactory);
+ *         }
+ *     };
  * final ServerConnectionFactory&lt;LDAPClientContext, Integer&gt; connectionHandler = Connections
- *         .newServerConnectionFactory(proxyFactory);
+ *     .newServerConnectionFactory(proxyFactory);
  * </pre>
  */
 final class ProxyBackend implements RequestHandler<RequestContext> {
-    private abstract class AbstractRequestCompletionHandler<R extends Result, H extends ResultHandler<R>>
-            implements ResultHandler<R> {
-        final Connection connection;
-        final H resultHandler;
-
-        AbstractRequestCompletionHandler(final Connection connection, final H resultHandler) {
-            this.connection = connection;
-            this.resultHandler = resultHandler;
-        }
-
-        @Override
-        public final void handleErrorResult(final ErrorResultException error) {
-            connection.close();
-            resultHandler.handleErrorResult(error);
-        }
-
-        @Override
-        public final void handleResult(final R result) {
-            connection.close();
-            resultHandler.handleResult(result);
-        }
-
-    }
-
-    private abstract class ConnectionCompletionHandler<R extends Result> implements
-            ResultHandler<Connection> {
-        private final ResultHandler<R> resultHandler;
-
-        ConnectionCompletionHandler(final ResultHandler<R> resultHandler) {
-            this.resultHandler = resultHandler;
-        }
-
-        @Override
-        public final void handleErrorResult(final ErrorResultException error) {
-            resultHandler.handleErrorResult(error);
-        }
-
-        @Override
-        public abstract void handleResult(Connection connection);
-
-    }
-
-    private final class RequestCompletionHandler<R extends Result> extends
-            AbstractRequestCompletionHandler<R, ResultHandler<R>> {
-        RequestCompletionHandler(final Connection connection, final ResultHandler<R> resultHandler) {
-            super(connection, resultHandler);
-        }
-    }
-
-    private final class SearchRequestCompletionHandler extends
-            AbstractRequestCompletionHandler<Result, SearchResultHandler> implements
-            SearchResultHandler {
-
-        SearchRequestCompletionHandler(final Connection connection,
-                final SearchResultHandler resultHandler) {
-            super(connection, resultHandler);
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public final boolean handleEntry(final SearchResultEntry entry) {
-            return resultHandler.handleEntry(entry);
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public final boolean handleReference(final SearchResultReference reference) {
-            return resultHandler.handleReference(reference);
-        }
-
-    }
 
     private final ConnectionFactory bindFactory;
     private final ConnectionFactory factory;
-    private volatile ProxiedAuthV2RequestControl proxiedAuthControl = null;
+    private volatile ProxiedAuthV2RequestControl proxiedAuthControl;
 
     ProxyBackend(final ConnectionFactory factory, final ConnectionFactory bindFactory) {
         this.factory = factory;
         this.bindFactory = bindFactory;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void handleAdd(final RequestContext requestContext, final AddRequest request,
-            final IntermediateResponseHandler intermediateResponseHandler,
-            final ResultHandler<Result> resultHandler) {
+        final IntermediateResponseHandler intermediateResponseHandler, final ResultHandler<Result> resultHandler) {
+        final AtomicReference<Connection> connectionHolder = new AtomicReference<Connection>();
         addProxiedAuthControl(request);
-        final ConnectionCompletionHandler<Result> outerHandler =
-                new ConnectionCompletionHandler<Result>(resultHandler) {
 
-                    @Override
-                    public void handleResult(final Connection connection) {
-                        final RequestCompletionHandler<Result> innerHandler =
-                                new RequestCompletionHandler<Result>(connection, resultHandler);
-                        connection.addAsync(request, intermediateResponseHandler, innerHandler);
-                    }
-
-                };
-
-        factory.getConnectionAsync(outerHandler);
+        factory.getConnectionAsync().thenAsync(new AsyncFunction<Connection, Result, ErrorResultException>() {
+            @Override
+            public Promise<Result, ErrorResultException> apply(Connection connection) throws ErrorResultException {
+                connectionHolder.set(connection);
+                return connection.addAsync(request, intermediateResponseHandler);
+            }
+        }).onSuccess(resultHandler).onFailure(resultHandler).thenAlways(close(connectionHolder));
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
-    public void handleBind(final RequestContext requestContext, final int version,
-            final BindRequest request,
-            final IntermediateResponseHandler intermediateResponseHandler,
-            final ResultHandler<BindResult> resultHandler) {
+    public void handleBind(final RequestContext requestContext, final int version, final BindRequest request,
+        final IntermediateResponseHandler intermediateResponseHandler, final ResultHandler<BindResult> resultHandler) {
 
         if (request.getAuthenticationType() != BindRequest.AUTHENTICATION_TYPE_SIMPLE) {
             // TODO: SASL authentication not implemented.
-            resultHandler.handleErrorResult(newErrorResult(ResultCode.PROTOCOL_ERROR,
+            resultHandler.handleError(newErrorResult(ResultCode.PROTOCOL_ERROR,
                     "non-SIMPLE authentication not supported: " + request.getAuthenticationType()));
         } else {
             // Authenticate using a separate bind connection pool, because
             // we don't want to change the state of the pooled connection.
-            final ConnectionCompletionHandler<BindResult> outerHandler =
-                    new ConnectionCompletionHandler<BindResult>(resultHandler) {
-
-                        @Override
-                        public void handleResult(final Connection connection) {
-                            final ResultHandler<BindResult> innerHandler =
-                                    new ResultHandler<BindResult>() {
-
-                                        @Override
-                                        public final void handleErrorResult(
-                                                final ErrorResultException error) {
-                                            connection.close();
-                                            resultHandler.handleErrorResult(error);
-
-                                        }
-
-                                        @Override
-                                        public final void handleResult(final BindResult result) {
-                                            connection.close();
-                                            proxiedAuthControl =
-                                                    ProxiedAuthV2RequestControl.newControl("dn:"
-                                                            + request.getName());
-                                            resultHandler.handleResult(result);
-                                        }
-                                    };
-                            connection
-                                    .bindAsync(request, intermediateResponseHandler, innerHandler);
-                        }
-
-                    };
-
+            final AtomicReference<Connection> connectionHolder = new AtomicReference<Connection>();
             proxiedAuthControl = null;
-            bindFactory.getConnectionAsync(outerHandler);
+            bindFactory.getConnectionAsync()
+                    .thenAsync(new AsyncFunction<Connection, BindResult, ErrorResultException>() {
+                        @Override
+                        public Promise<BindResult, ErrorResultException> apply(Connection connection)
+                                throws ErrorResultException {
+                            connectionHolder.set(connection);
+                            return connection.bindAsync(request, intermediateResponseHandler);
+                        }
+                    }).onSuccess(new SuccessHandler<BindResult>() {
+                        @Override
+                        public final void handleResult(final BindResult result) {
+                            proxiedAuthControl = ProxiedAuthV2RequestControl.newControl("dn:" + request.getName());
+                            resultHandler.handleResult(result);
+                        }
+                    }).onFailure(resultHandler).thenAlways(close(connectionHolder));
         }
+
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void handleCompare(final RequestContext requestContext, final CompareRequest request,
             final IntermediateResponseHandler intermediateResponseHandler,
             final ResultHandler<CompareResult> resultHandler) {
         addProxiedAuthControl(request);
-        final ConnectionCompletionHandler<CompareResult> outerHandler =
-                new ConnectionCompletionHandler<CompareResult>(resultHandler) {
 
-                    @Override
-                    public void handleResult(final Connection connection) {
-                        final RequestCompletionHandler<CompareResult> innerHandler =
-                                new RequestCompletionHandler<CompareResult>(connection,
-                                        resultHandler);
-                        connection.compareAsync(request, intermediateResponseHandler, innerHandler);
-                    }
-
-                };
-
-        factory.getConnectionAsync(outerHandler);
+        final AtomicReference<Connection> connectionHolder = new AtomicReference<Connection>();
+        factory.getConnectionAsync().thenAsync(new AsyncFunction<Connection, CompareResult, ErrorResultException>() {
+            @Override
+            public Promise<CompareResult, ErrorResultException> apply(Connection connection)
+                    throws ErrorResultException {
+                connectionHolder.set(connection);
+                return connection.compareAsync(request, intermediateResponseHandler);
+            }
+        }).onSuccess(resultHandler).onFailure(resultHandler).thenAlways(close(connectionHolder));
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void handleDelete(final RequestContext requestContext, final DeleteRequest request,
-            final IntermediateResponseHandler intermediateResponseHandler,
-            final ResultHandler<Result> resultHandler) {
+            final IntermediateResponseHandler intermediateResponseHandler, final ResultHandler<Result> resultHandler) {
         addProxiedAuthControl(request);
-        final ConnectionCompletionHandler<Result> outerHandler =
-                new ConnectionCompletionHandler<Result>(resultHandler) {
 
-                    @Override
-                    public void handleResult(final Connection connection) {
-                        final RequestCompletionHandler<Result> innerHandler =
-                                new RequestCompletionHandler<Result>(connection, resultHandler);
-                        connection.deleteAsync(request, intermediateResponseHandler, innerHandler);
-                    }
-
-                };
-
-        factory.getConnectionAsync(outerHandler);
+        final AtomicReference<Connection> connectionHolder = new AtomicReference<Connection>();
+        factory.getConnectionAsync().thenAsync(new AsyncFunction<Connection, Result, ErrorResultException>() {
+            @Override
+            public Promise<Result, ErrorResultException> apply(Connection connection) throws ErrorResultException {
+                connectionHolder.set(connection);
+                return connection.deleteAsync(request, intermediateResponseHandler);
+            }
+        }).onSuccess(resultHandler).onFailure(resultHandler).thenAlways(close(connectionHolder));
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
-    public <R extends ExtendedResult> void handleExtendedRequest(
-            final RequestContext requestContext, final ExtendedRequest<R> request,
-            final IntermediateResponseHandler intermediateResponseHandler,
-            final ResultHandler<R> resultHandler) {
-        if (request.getOID().equals(CancelExtendedRequest.OID)) {
+    public <R extends ExtendedResult> void handleExtendedRequest(final RequestContext requestContext,
+        final ExtendedRequest<R> request, final IntermediateResponseHandler intermediateResponseHandler,
+        final ResultHandler<R> resultHandler) {
+        if (CancelExtendedRequest.OID.equals(request.getOID())) {
             // TODO: not implemented.
-            resultHandler.handleErrorResult(newErrorResult(ResultCode.PROTOCOL_ERROR,
-                    "Cancel extended request operation not supported"));
-        } else if (request.getOID().equals(StartTLSExtendedRequest.OID)) {
+            resultHandler.handleError(newErrorResult(ResultCode.PROTOCOL_ERROR,
+                "Cancel extended request operation not supported"));
+        } else if (StartTLSExtendedRequest.OID.equals(request.getOID())) {
             // TODO: not implemented.
-            resultHandler.handleErrorResult(newErrorResult(ResultCode.PROTOCOL_ERROR,
-                    "StartTLS extended request operation not supported"));
+            resultHandler.handleError(newErrorResult(ResultCode.PROTOCOL_ERROR,
+                "StartTLS extended request operation not supported"));
         } else {
             // Forward all other extended operations.
             addProxiedAuthControl(request);
 
-            final ConnectionCompletionHandler<R> outerHandler =
-                    new ConnectionCompletionHandler<R>(resultHandler) {
-
-                        @Override
-                        public void handleResult(final Connection connection) {
-                            final RequestCompletionHandler<R> innerHandler =
-                                    new RequestCompletionHandler<R>(connection, resultHandler);
-                            connection.extendedRequestAsync(request, intermediateResponseHandler,
-                                    innerHandler);
-                        }
-
-                    };
-
-            factory.getConnectionAsync(outerHandler);
+            final AtomicReference<Connection> connectionHolder = new AtomicReference<Connection>();
+            factory.getConnectionAsync().thenAsync(new AsyncFunction<Connection, R, ErrorResultException>() {
+                @Override
+                public Promise<R, ErrorResultException> apply(Connection connection) throws ErrorResultException {
+                    connectionHolder.set(connection);
+                    return connection.extendedRequestAsync(request, intermediateResponseHandler);
+                }
+            }).onSuccess(resultHandler).onFailure(resultHandler)
+                .thenAlways(close(connectionHolder));
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void handleModify(final RequestContext requestContext, final ModifyRequest request,
-            final IntermediateResponseHandler intermediateResponseHandler,
-            final ResultHandler<Result> resultHandler) {
+            final IntermediateResponseHandler intermediateResponseHandler, final ResultHandler<Result> resultHandler) {
         addProxiedAuthControl(request);
-        final ConnectionCompletionHandler<Result> outerHandler =
-                new ConnectionCompletionHandler<Result>(resultHandler) {
 
-                    @Override
-                    public void handleResult(final Connection connection) {
-                        final RequestCompletionHandler<Result> innerHandler =
-                                new RequestCompletionHandler<Result>(connection, resultHandler);
-                        connection.modifyAsync(request, intermediateResponseHandler, innerHandler);
-                    }
-
-                };
-
-        factory.getConnectionAsync(outerHandler);
+        final AtomicReference<Connection> connectionHolder = new AtomicReference<Connection>();
+        factory.getConnectionAsync().thenAsync(new AsyncFunction<Connection, Result, ErrorResultException>() {
+            @Override
+            public Promise<Result, ErrorResultException> apply(Connection connection) throws ErrorResultException {
+                connectionHolder.set(connection);
+                return connection.modifyAsync(request, intermediateResponseHandler);
+            }
+        }).onSuccess(resultHandler).onFailure(resultHandler).thenAlways(close(connectionHolder));
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void handleModifyDN(final RequestContext requestContext, final ModifyDNRequest request,
-            final IntermediateResponseHandler intermediateResponseHandler,
-            final ResultHandler<Result> resultHandler) {
+        final IntermediateResponseHandler intermediateResponseHandler, final ResultHandler<Result> resultHandler) {
         addProxiedAuthControl(request);
-        final ConnectionCompletionHandler<Result> outerHandler =
-                new ConnectionCompletionHandler<Result>(resultHandler) {
 
-                    @Override
-                    public void handleResult(final Connection connection) {
-                        final RequestCompletionHandler<Result> innerHandler =
-                                new RequestCompletionHandler<Result>(connection, resultHandler);
-                        connection
-                                .modifyDNAsync(request, intermediateResponseHandler, innerHandler);
-                    }
-
-                };
-
-        factory.getConnectionAsync(outerHandler);
+        final AtomicReference<Connection> connectionHolder = new AtomicReference<Connection>();
+        factory.getConnectionAsync().thenAsync(new AsyncFunction<Connection, Result, ErrorResultException>() {
+            @Override
+            public Promise<Result, ErrorResultException> apply(Connection connection) throws ErrorResultException {
+                connectionHolder.set(connection);
+                return connection.modifyDNAsync(request, intermediateResponseHandler);
+            }
+        }).onSuccess(resultHandler).onFailure(resultHandler).thenAlways(close(connectionHolder));
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public void handleSearch(final RequestContext requestContext, final SearchRequest request,
-            final IntermediateResponseHandler intermediateResponseHandler,
-            final SearchResultHandler resultHandler) {
+            final IntermediateResponseHandler intermediateResponseHandler, final SearchResultHandler entryHandler,
+            final ResultHandler<Result> resultHandler) {
         addProxiedAuthControl(request);
-        final ConnectionCompletionHandler<Result> outerHandler =
-                new ConnectionCompletionHandler<Result>(resultHandler) {
 
-                    @Override
-                    public void handleResult(final Connection connection) {
-                        final SearchRequestCompletionHandler innerHandler =
-                                new SearchRequestCompletionHandler(connection, resultHandler);
-                        connection.searchAsync(request, intermediateResponseHandler, innerHandler);
-                    }
-
-                };
-
-        factory.getConnectionAsync(outerHandler);
+        final AtomicReference<Connection> connectionHolder = new AtomicReference<Connection>();
+        factory.getConnectionAsync().thenAsync(new AsyncFunction<Connection, Result, ErrorResultException>() {
+            @Override
+            public Promise<Result, ErrorResultException> apply(Connection connection) throws ErrorResultException {
+                connectionHolder.set(connection);
+                return connection.searchAsync(request, intermediateResponseHandler, entryHandler);
+            }
+        }).onSuccess(resultHandler).onFailure(resultHandler).thenAlways(close(connectionHolder));
     }
 
     private void addProxiedAuthControl(final Request request) {
@@ -406,5 +266,14 @@ final class ProxyBackend implements RequestHandler<RequestContext> {
         if (control != null) {
             request.addControl(control);
         }
+    }
+
+    private Runnable close(final AtomicReference<Connection> c) {
+        return new Runnable() {
+            @Override
+            public void run() {
+                closeSilently(c.get());
+            }
+        };
     }
 }

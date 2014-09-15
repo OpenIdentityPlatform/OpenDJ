@@ -22,12 +22,10 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions copyright 2011-2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
-
-import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
 
 import org.forgerock.opendj.ldap.requests.AddRequest;
 import org.forgerock.opendj.ldap.requests.BindRequest;
@@ -42,6 +40,8 @@ import org.forgerock.opendj.ldap.responses.CompareResult;
 import org.forgerock.opendj.ldap.responses.ExtendedResult;
 import org.forgerock.opendj.ldap.responses.Result;
 
+import static org.forgerock.opendj.ldap.ErrorResultException.*;
+
 /**
  * An abstract connection whose synchronous methods are implemented in terms of
  * asynchronous methods.
@@ -55,133 +55,61 @@ public abstract class AbstractAsynchronousConnection extends AbstractConnection 
         // No implementation required.
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public Result add(final AddRequest request) throws ErrorResultException {
-        final FutureResult<Result> future = addAsync(request, null, null);
-        try {
-            return future.get();
-        } catch (InterruptedException e) {
-            throw interrupted(e);
-        } finally {
-            // Cancel the request if it hasn't completed.
-            future.cancel(false);
-        }
+        return blockingGetOrThrow(addAsync(request));
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public BindResult bind(final BindRequest request) throws ErrorResultException {
-        final FutureResult<BindResult> future = bindAsync(request, null, null);
-        try {
-            return future.get();
-        } catch (InterruptedException e) {
-            throw interrupted(e);
-        } finally {
-            // Cancel the request if it hasn't completed.
-            future.cancel(false);
-        }
+        return blockingGetOrThrow(bindAsync(request));
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public CompareResult compare(final CompareRequest request) throws ErrorResultException {
-        final FutureResult<CompareResult> future = compareAsync(request, null, null);
-        try {
-            return future.get();
-        } catch (InterruptedException e) {
-            throw interrupted(e);
-        } finally {
-            // Cancel the request if it hasn't completed.
-            future.cancel(false);
-        }
+        return blockingGetOrThrow(compareAsync(request));
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public Result delete(final DeleteRequest request) throws ErrorResultException {
-        final FutureResult<Result> future = deleteAsync(request, null, null);
-        try {
-            return future.get();
-        } catch (InterruptedException e) {
-            throw interrupted(e);
-        } finally {
-            // Cancel the request if it hasn't completed.
-            future.cancel(false);
-        }
+        return blockingGetOrThrow(deleteAsync(request));
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public <R extends ExtendedResult> R extendedRequest(final ExtendedRequest<R> request,
             final IntermediateResponseHandler handler) throws ErrorResultException {
-        final FutureResult<R> future = extendedRequestAsync(request, handler, null);
-        try {
-            return future.get();
-        } catch (InterruptedException e) {
-            throw interrupted(e);
-        } finally {
-            // Cancel the request if it hasn't completed.
-            future.cancel(false);
-        }
+        return blockingGetOrThrow(extendedRequestAsync(request, handler));
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public Result modify(final ModifyRequest request) throws ErrorResultException {
-        final FutureResult<Result> future = modifyAsync(request, null, null);
-        try {
-            return future.get();
-        } catch (InterruptedException e) {
-            throw interrupted(e);
-        } finally {
-            // Cancel the request if it hasn't completed.
-            future.cancel(false);
-        }
+        return blockingGetOrThrow(modifyAsync(request));
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public Result modifyDN(final ModifyDNRequest request) throws ErrorResultException {
-        final FutureResult<Result> future = modifyDNAsync(request, null, null);
-        try {
-            return future.get();
-        } catch (InterruptedException e) {
-            throw interrupted(e);
-        } finally {
-            // Cancel the request if it hasn't completed.
-            future.cancel(false);
-        }
+        return blockingGetOrThrow(modifyDNAsync(request));
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public Result search(final SearchRequest request, final SearchResultHandler handler)
             throws ErrorResultException {
-        final FutureResult<Result> future = searchAsync(request, null, handler);
+        return blockingGetOrThrow(searchAsync(request, handler));
+    }
+
+    private <T extends Result> T blockingGetOrThrow(FutureResult<T> future) throws ErrorResultException {
         try {
-            return future.get();
+            return future.getOrThrow();
         } catch (InterruptedException e) {
             throw interrupted(e);
-        } finally {
-            // Cancel the request if it hasn't completed.
-            future.cancel(false);
         }
     }
 

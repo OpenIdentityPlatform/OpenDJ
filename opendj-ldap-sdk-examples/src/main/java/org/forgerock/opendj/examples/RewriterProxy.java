@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions copyright 2011-2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.examples;
@@ -109,11 +109,11 @@ import org.forgerock.opendj.ldap.schema.AttributeType;
 public final class RewriterProxy {
     private static final class Rewriter implements RequestHandler<RequestContext> {
 
-        // This example hard codes the attribute...
+        /** This example hard codes the attribute... */
         private static final String CLIENT_ATTRIBUTE = "fullname";
         private static final String SERVER_ATTRIBUTE = "cn";
 
-        // ...and DN rewriting configuration.
+        /** ...and DN rewriting configuration. */
         private static final String CLIENT_SUFFIX = "o=example";
         private static final String SERVER_SUFFIX = "dc=example,dc=com";
 
@@ -122,7 +122,7 @@ public final class RewriterProxy {
         private final AttributeDescription serverAttributeDescription = AttributeDescription
                 .valueOf(SERVER_ATTRIBUTE);
 
-        // Next request handler in the chain.
+        /** Next request handler in the chain. */
         private final RequestHandler<RequestContext> nextHandler;
 
         private Rewriter(final RequestHandler<RequestContext> nextHandler) {
@@ -191,32 +191,20 @@ public final class RewriterProxy {
 
         @Override
         public void handleSearch(final RequestContext requestContext, final SearchRequest request,
-                final IntermediateResponseHandler intermediateResponseHandler,
-                final SearchResultHandler resultHandler) {
+            final IntermediateResponseHandler intermediateResponseHandler, final SearchResultHandler entryHandler,
+            final ResultHandler<Result> resultHandler) {
             nextHandler.handleSearch(requestContext, rewrite(request), intermediateResponseHandler,
-                    new SearchResultHandler() {
+                new SearchResultHandler() {
+                    @Override
+                    public boolean handleReference(SearchResultReference reference) {
+                        return entryHandler.handleReference(reference);
+                    }
 
-                        @Override
-                        public boolean handleEntry(final SearchResultEntry entry) {
-                            return resultHandler.handleEntry(rewrite(entry));
-                        }
-
-                        @Override
-                        public void handleErrorResult(final ErrorResultException error) {
-                            resultHandler.handleErrorResult(error);
-                        }
-
-                        @Override
-                        public boolean handleReference(final SearchResultReference reference) {
-                            return resultHandler.handleReference(reference);
-                        }
-
-                        @Override
-                        public void handleResult(final Result result) {
-                            resultHandler.handleResult(result);
-                        }
-
-                    });
+                    @Override
+                    public boolean handleEntry(SearchResultEntry entry) {
+                        return entryHandler.handleEntry(rewrite(entry));
+                    }
+                }, resultHandler);
         }
 
         private AddRequest rewrite(final AddRequest request) {

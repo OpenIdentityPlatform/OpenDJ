@@ -26,12 +26,6 @@
  */
 package com.forgerock.opendj.ldap.tools;
 
-import static com.forgerock.opendj.cli.ArgumentConstants.*;
-import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
-import static com.forgerock.opendj.cli.Utils.filterExitCode;
-import static com.forgerock.opendj.cli.Utils.secondsToTimeString;
-import static org.forgerock.util.Utils.closeSilently;
-
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
@@ -89,6 +83,12 @@ import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.ldap.controls.AccountUsabilityResponseControl;
 import com.forgerock.opendj.util.StaticUtils;
 
+import static org.forgerock.util.Utils.*;
+
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.Utils.*;
+import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
+
 /**
  * A tool that can be used to issue Search requests to the Directory Server.
  */
@@ -97,6 +97,7 @@ public final class LDAPSearch extends ConsoleApplication {
         private int entryCount;
 
         /** {@inheritDoc} */
+        @Override
         public boolean handleEntry(final SearchResultEntry entry) {
             entryCount++;
 
@@ -179,19 +180,10 @@ public final class LDAPSearch extends ConsoleApplication {
         }
 
         /** {@inheritDoc} */
+        @Override
         public boolean handleReference(final SearchResultReference reference) {
             println(LocalizableMessage.raw(reference.toString()));
             return true;
-        }
-
-        /** {@inheritDoc} */
-        public void handleErrorResult(ErrorResultException error) {
-            // Ignore.
-        }
-
-        /** {@inheritDoc} */
-        public void handleResult(Result result) {
-            // Ignore.
         }
     }
 
@@ -226,6 +218,7 @@ public final class LDAPSearch extends ConsoleApplication {
     }
 
     /** {@inheritDoc} */
+    @Override
     public boolean isInteractive() {
         return false;
     }

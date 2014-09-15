@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions copyright 2011-2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -258,13 +258,6 @@ public interface Connection extends Closeable {
      *
      * @param request
      *            The add request.
-     * @param intermediateResponseHandler
-     *            An intermediate response handler which can be used to process
-     *            any intermediate responses as they are received, may be
-     *            {@code null}.
-     * @param resultHandler
-     *            A result handler which can be used to asynchronously process
-     *            the operation result when it is received, may be {@code null}.
      * @return A future representing the result of the operation.
      * @throws UnsupportedOperationException
      *             If this connection does not support add operations.
@@ -274,9 +267,28 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If {@code request} was {@code null}.
      */
-    FutureResult<Result> addAsync(AddRequest request,
-            IntermediateResponseHandler intermediateResponseHandler,
-            ResultHandler<? super Result> resultHandler);
+    FutureResult<Result> addAsync(AddRequest request);
+
+    /**
+     * Asynchronously adds an entry to the Directory Server using the provided
+     * add request.
+     *
+     * @param request
+     *            The add request.
+     * @param intermediateResponseHandler
+     *            An intermediate response handler which can be used to process
+     *            any intermediate responses as they are received, may be
+     *            {@code null}.
+     * @return A future representing the result of the operation.
+     * @throws UnsupportedOperationException
+     *             If this connection does not support add operations.
+     * @throws IllegalStateException
+     *             If this connection has already been closed, i.e. if
+     *             {@code isClosed() == true}.
+     * @throws NullPointerException
+     *             If {@code request} was {@code null}.
+     */
+    FutureResult<Result> addAsync(AddRequest request, IntermediateResponseHandler intermediateResponseHandler);
 
     /**
      * Registers the provided connection event listener so that it will be
@@ -320,13 +332,28 @@ public interface Connection extends Closeable {
      *
      * @param request
      *            The change request.
+     * @return A future representing the result of the operation.
+     * @throws UnsupportedOperationException
+     *             If this connection does not support the provided change
+     *             request.
+     * @throws IllegalStateException
+     *             If this connection has already been closed, i.e. if
+     *             {@code isClosed() == true}.
+     * @throws NullPointerException
+     *             If {@code request} was {@code null}.
+     */
+    FutureResult<Result> applyChangeAsync(ChangeRecord request);
+
+    /**
+     * Asynchronously applies the provided change request to the Directory
+     * Server.
+     *
+     * @param request
+     *            The change request.
      * @param intermediateResponseHandler
      *            An intermediate response handler which can be used to process
      *            any intermediate responses as they are received, may be
      *            {@code null}.
-     * @param resultHandler
-     *            A result handler which can be used to asynchronously process
-     *            the operation result when it is received, may be {@code null}.
      * @return A future representing the result of the operation.
      * @throws UnsupportedOperationException
      *             If this connection does not support the provided change
@@ -338,8 +365,7 @@ public interface Connection extends Closeable {
      *             If {@code request} was {@code null}.
      */
     FutureResult<Result> applyChangeAsync(ChangeRecord request,
-            IntermediateResponseHandler intermediateResponseHandler,
-            ResultHandler<? super Result> resultHandler);
+        IntermediateResponseHandler intermediateResponseHandler);
 
     /**
      * Authenticates to the Directory Server using the provided bind request.
@@ -400,13 +426,6 @@ public interface Connection extends Closeable {
      *
      * @param request
      *            The bind request.
-     * @param intermediateResponseHandler
-     *            An intermediate response handler which can be used to process
-     *            any intermediate responses as they are received, may be
-     *            {@code null}.
-     * @param resultHandler
-     *            A result handler which can be used to asynchronously process
-     *            the operation result when it is received, may be {@code null}.
      * @return A future representing the result of the operation.
      * @throws UnsupportedOperationException
      *             If this connection does not support bind operations.
@@ -416,9 +435,28 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If {@code request} was {@code null}.
      */
-    FutureResult<BindResult> bindAsync(BindRequest request,
-            IntermediateResponseHandler intermediateResponseHandler,
-            ResultHandler<? super BindResult> resultHandler);
+    FutureResult<BindResult> bindAsync(BindRequest request);
+
+    /**
+     * Asynchronously authenticates to the Directory Server using the provided
+     * bind request.
+     *
+     * @param request
+     *            The bind request.
+     * @param intermediateResponseHandler
+     *            An intermediate response handler which can be used to process
+     *            any intermediate responses as they are received, may be
+     *            {@code null}.
+     * @return A future representing the result of the operation.
+     * @throws UnsupportedOperationException
+     *             If this connection does not support bind operations.
+     * @throws IllegalStateException
+     *             If this connection has already been closed, i.e. if
+     *             {@code isClosed() == true}.
+     * @throws NullPointerException
+     *             If {@code request} was {@code null}.
+     */
+    FutureResult<BindResult> bindAsync(BindRequest request, IntermediateResponseHandler intermediateResponseHandler);
 
     /**
      * Releases any resources associated with this connection. For physical
@@ -530,13 +568,27 @@ public interface Connection extends Closeable {
      *
      * @param request
      *            The compare request.
+     * @return A future representing the result of the operation.
+     * @throws UnsupportedOperationException
+     *             If this connection does not support compare operations.
+     * @throws IllegalStateException
+     *             If this connection has already been closed, i.e. if
+     *             {@code isClosed() == true}.
+     * @throws NullPointerException
+     *             If {@code request} was {@code null}.
+     */
+    FutureResult<CompareResult> compareAsync(CompareRequest request);
+
+    /**
+     * Asynchronously compares an entry in the Directory Server using the
+     * provided compare request.
+     *
+     * @param request
+     *            The compare request.
      * @param intermediateResponseHandler
      *            An intermediate response handler which can be used to process
      *            any intermediate responses as they are received, may be
      *            {@code null}.
-     * @param resultHandler
-     *            A result handler which can be used to asynchronously process
-     *            the operation result when it is received, may be {@code null}.
      * @return A future representing the result of the operation.
      * @throws UnsupportedOperationException
      *             If this connection does not support compare operations.
@@ -547,8 +599,7 @@ public interface Connection extends Closeable {
      *             If {@code request} was {@code null}.
      */
     FutureResult<CompareResult> compareAsync(CompareRequest request,
-            IntermediateResponseHandler intermediateResponseHandler,
-            ResultHandler<? super CompareResult> resultHandler);
+        IntermediateResponseHandler intermediateResponseHandler);
 
     /**
      * Deletes an entry from the Directory Server using the provided delete
@@ -636,13 +687,6 @@ public interface Connection extends Closeable {
      *
      * @param request
      *            The delete request.
-     * @param intermediateResponseHandler
-     *            An intermediate response handler which can be used to process
-     *            any intermediate responses as they are received, may be
-     *            {@code null}.
-     * @param resultHandler
-     *            A result handler which can be used to asynchronously process
-     *            the operation result when it is received, may be {@code null}.
      * @return A future representing the result of the operation.
      * @throws UnsupportedOperationException
      *             If this connection does not support delete operations.
@@ -652,9 +696,28 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If {@code request} was {@code null}.
      */
-    FutureResult<Result> deleteAsync(DeleteRequest request,
-            IntermediateResponseHandler intermediateResponseHandler,
-            ResultHandler<? super Result> resultHandler);
+    FutureResult<Result> deleteAsync(DeleteRequest request);
+
+    /**
+     * Asynchronously deletes an entry from the Directory Server using the
+     * provided delete request.
+     *
+     * @param request
+     *            The delete request.
+     * @param intermediateResponseHandler
+     *            An intermediate response handler which can be used to process
+     *            any intermediate responses as they are received, may be
+     *            {@code null}.
+     * @return A future representing the result of the operation.
+     * @throws UnsupportedOperationException
+     *             If this connection does not support delete operations.
+     * @throws IllegalStateException
+     *             If this connection has already been closed, i.e. if
+     *             {@code isClosed() == true}.
+     * @throws NullPointerException
+     *             If {@code request} was {@code null}.
+     */
+    FutureResult<Result> deleteAsync(DeleteRequest request, IntermediateResponseHandler intermediateResponseHandler);
 
     /**
      * Requests that the Directory Server performs the provided extended
@@ -703,8 +766,8 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If {@code request} was {@code null}.
      */
-    <R extends ExtendedResult> R extendedRequest(ExtendedRequest<R> request,
-            IntermediateResponseHandler handler) throws ErrorResultException;
+    <R extends ExtendedResult> R extendedRequest(ExtendedRequest<R> request, IntermediateResponseHandler handler)
+            throws ErrorResultException;
 
     /**
      * Requests that the Directory Server performs the provided extended
@@ -746,13 +809,29 @@ public interface Connection extends Closeable {
      *            The type of result returned by the extended request.
      * @param request
      *            The extended request.
+     * @return A future representing the result of the operation.
+     * @throws UnsupportedOperationException
+     *             If this connection does not support extended operations.
+     * @throws IllegalStateException
+     *             If this connection has already been closed, i.e. if
+     *             {@code isClosed() == true}.
+     * @throws NullPointerException
+     *             If {@code request} was {@code null}.
+     */
+    <R extends ExtendedResult> FutureResult<R> extendedRequestAsync(ExtendedRequest<R> request);
+
+    /**
+     * Asynchronously performs the provided extended request in the Directory
+     * Server.
+     *
+     * @param <R>
+     *            The type of result returned by the extended request.
+     * @param request
+     *            The extended request.
      * @param intermediateResponseHandler
      *            An intermediate response handler which can be used to process
      *            any intermediate responses as they are received, may be
      *            {@code null}.
-     * @param resultHandler
-     *            A result handler which can be used to asynchronously process
-     *            the operation result when it is received, may be {@code null}.
      * @return A future representing the result of the operation.
      * @throws UnsupportedOperationException
      *             If this connection does not support extended operations.
@@ -763,8 +842,7 @@ public interface Connection extends Closeable {
      *             If {@code request} was {@code null}.
      */
     <R extends ExtendedResult> FutureResult<R> extendedRequestAsync(ExtendedRequest<R> request,
-            IntermediateResponseHandler intermediateResponseHandler,
-            ResultHandler<? super R> resultHandler);
+        IntermediateResponseHandler intermediateResponseHandler);
 
     /**
      * Indicates whether or not this connection has been explicitly closed by
@@ -845,13 +923,6 @@ public interface Connection extends Closeable {
      *
      * @param request
      *            The modify request.
-     * @param intermediateResponseHandler
-     *            An intermediate response handler which can be used to process
-     *            any intermediate responses as they are received, may be
-     *            {@code null}.
-     * @param resultHandler
-     *            A result handler which can be used to asynchronously process
-     *            the operation result when it is received, may be {@code null}.
      * @return A future representing the result of the operation.
      * @throws UnsupportedOperationException
      *             If this connection does not support modify operations.
@@ -861,9 +932,28 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If {@code request} was {@code null}.
      */
-    FutureResult<Result> modifyAsync(ModifyRequest request,
-            IntermediateResponseHandler intermediateResponseHandler,
-            ResultHandler<? super Result> resultHandler);
+    FutureResult<Result> modifyAsync(ModifyRequest request);
+
+    /**
+     * Asynchronously modifies an entry in the Directory Server using the
+     * provided modify request.
+     *
+     * @param request
+     *            The modify request.
+     * @param intermediateResponseHandler
+     *            An intermediate response handler which can be used to process
+     *            any intermediate responses as they are received, may be
+     *            {@code null}.
+     * @return A future representing the result of the operation.
+     * @throws UnsupportedOperationException
+     *             If this connection does not support modify operations.
+     * @throws IllegalStateException
+     *             If this connection has already been closed, i.e. if
+     *             {@code isClosed() == true}.
+     * @throws NullPointerException
+     *             If {@code request} was {@code null}.
+     */
+    FutureResult<Result> modifyAsync(ModifyRequest request, IntermediateResponseHandler intermediateResponseHandler);
 
     /**
      * Renames an entry in the Directory Server using the provided modify DN
@@ -923,13 +1013,27 @@ public interface Connection extends Closeable {
      *
      * @param request
      *            The modify DN request.
+     * @return A future representing the result of the operation.
+     * @throws UnsupportedOperationException
+     *             If this connection does not support modify DN operations.
+     * @throws IllegalStateException
+     *             If this connection has already been closed, i.e. if
+     *             {@code isClosed() == true}.
+     * @throws NullPointerException
+     *             If {@code request} was {@code null}.
+     */
+    FutureResult<Result> modifyDNAsync(ModifyDNRequest request);
+
+    /**
+     * Asynchronously renames an entry in the Directory Server using the
+     * provided modify DN request.
+     *
+     * @param request
+     *            The modify DN request.
      * @param intermediateResponseHandler
      *            An intermediate response handler which can be used to process
      *            any intermediate responses as they are received, may be
      *            {@code null}.
-     * @param resultHandler
-     *            A result handler which can be used to asynchronously process
-     *            the operation result when it is received, may be {@code null}.
      * @return A future representing the result of the operation.
      * @throws UnsupportedOperationException
      *             If this connection does not support modify DN operations.
@@ -940,8 +1044,7 @@ public interface Connection extends Closeable {
      *             If {@code request} was {@code null}.
      */
     FutureResult<Result> modifyDNAsync(ModifyDNRequest request,
-            IntermediateResponseHandler intermediateResponseHandler,
-            ResultHandler<? super Result> resultHandler);
+        IntermediateResponseHandler intermediateResponseHandler);
 
     /**
      * Reads the named entry from the Directory Server.
@@ -953,8 +1056,8 @@ public interface Connection extends Closeable {
      * This method is equivalent to the following code:
      *
      * <pre>
-     * SearchRequest request =
-     *         new SearchRequest(name, SearchScope.BASE_OBJECT, &quot;(objectClass=*)&quot;, attributeDescriptions);
+     * SearchRequest request = new SearchRequest(name, SearchScope.BASE_OBJECT,
+     * &quot;(objectClass=*)&quot;, attributeDescriptions);
      * connection.searchSingleEntry(request);
      * </pre>
      *
@@ -1037,9 +1140,6 @@ public interface Connection extends Closeable {
      *            The names of the attributes to be included with the entry,
      *            which may be {@code null} or empty indicating that all user
      *            attributes should be returned.
-     * @param handler
-     *            A result handler which can be used to asynchronously process
-     *            the operation result when it is received, may be {@code null}.
      * @return A future representing the result of the operation.
      * @throws UnsupportedOperationException
      *             If this connection does not support search operations.
@@ -1049,9 +1149,7 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If the {@code name} was {@code null}.
      */
-    FutureResult<SearchResultEntry> readEntryAsync(DN name,
-            Collection<String> attributeDescriptions,
-            ResultHandler<? super SearchResultEntry> handler);
+    FutureResult<SearchResultEntry> readEntryAsync(DN name, Collection<String> attributeDescriptions);
 
     /**
      * Removes the provided connection event listener from this connection so
@@ -1231,11 +1329,7 @@ public interface Connection extends Closeable {
      *
      * @param request
      *            The search request.
-     * @param intermediateResponseHandler
-     *            An intermediate response handler which can be used to process
-     *            any intermediate responses as they are received, may be
-     *            {@code null}.
-     * @param resultHandler
+     * @param entryHandler
      *            A search result handler which can be used to asynchronously
      *            process the search result entries and references as they are
      *            received, may be {@code null}.
@@ -1248,9 +1342,33 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If {@code request} was {@code null}.
      */
-    FutureResult<Result> searchAsync(SearchRequest request,
-            IntermediateResponseHandler intermediateResponseHandler,
-            SearchResultHandler resultHandler);
+    FutureResult<Result> searchAsync(SearchRequest request, SearchResultHandler entryHandler);
+
+    /**
+     * Asynchronously searches the Directory Server using the provided search
+     * request.
+     *
+     * @param request
+     *            The search request.
+     * @param intermediateResponseHandler
+     *            An intermediate response handler which can be used to process
+     *            any intermediate responses as they are received, may be
+     *            {@code null}.
+     * @param entryHandler
+     *            A search result handler which can be used to asynchronously
+     *            process the search result entries and references as they are
+     *            received, may be {@code null}.
+     * @return A future representing the result of the operation.
+     * @throws UnsupportedOperationException
+     *             If this connection does not support search operations.
+     * @throws IllegalStateException
+     *             If this connection has already been closed, i.e. if
+     *             {@code isClosed() == true}.
+     * @throws NullPointerException
+     *             If {@code request} was {@code null}.
+     */
+    FutureResult<Result> searchAsync(SearchRequest request, IntermediateResponseHandler intermediateResponseHandler,
+        SearchResultHandler entryHandler);
 
     /**
      * Searches the Directory Server for a single entry using the provided
@@ -1337,9 +1455,6 @@ public interface Connection extends Closeable {
      *
      * @param request
      *            The search request.
-     * @param handler
-     *            A result handler which can be used to asynchronously process
-     *            the operation result when it is received, may be {@code null}.
      * @return A future representing the result of the operation.
      * @throws UnsupportedOperationException
      *             If this connection does not support search operations.
@@ -1349,6 +1464,5 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If the {@code request} was {@code null}.
      */
-    FutureResult<SearchResultEntry> searchSingleEntryAsync(SearchRequest request,
-            ResultHandler<? super SearchResultEntry> handler);
+    FutureResult<SearchResultEntry> searchSingleEntryAsync(SearchRequest request);
 }

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2011 ForgeRock AS
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions copyright 2012-2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldif;
@@ -34,7 +34,6 @@ import static org.forgerock.opendj.ldap.responses.Responses.newResult;
 import static org.forgerock.opendj.ldap.responses.Responses.newSearchResultEntry;
 import static org.forgerock.opendj.ldap.responses.Responses.newSearchResultReference;
 import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.isNull;
 import static org.mockito.Matchers.same;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -44,7 +43,7 @@ import java.util.NoSuchElementException;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ErrorResultIOException;
 import org.forgerock.opendj.ldap.FutureResult;
-import org.forgerock.opendj.ldap.IntermediateResponseHandler;
+import org.forgerock.opendj.ldap.FutureResultWrapper;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchResultHandler;
 import org.forgerock.opendj.ldap.SearchResultReferenceIOException;
@@ -57,8 +56,6 @@ import org.forgerock.opendj.ldap.responses.SearchResultReference;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.testng.annotations.Test;
-
-import com.forgerock.opendj.util.CompletedFutureResult;
 
 /**
  * This class tests the ConnectionEntryReader functionality.
@@ -254,37 +251,30 @@ public class ConnectionEntryReaderTestCase extends AbstractLDIFTestCase {
     private ConnectionEntryReader newReader(final Object... responses) {
         final Connection connection = mock(Connection.class);
         // @formatter:off
-        when(connection.searchAsync(same(SEARCH), (IntermediateResponseHandler) isNull(),
-                any(SearchResultHandler.class))).thenAnswer(
-                        new Answer<FutureResult<Result>>() {
-                            @Override
-                            public FutureResult<Result> answer(final InvocationOnMock invocation)
-                                    throws Throwable {
-                                // Execute handler and return future.
-                                final SearchResultHandler handler =
-                                        (SearchResultHandler) invocation.getArguments()[2];
-                                if (handler != null) {
-                                    for (int i = 0; i < responses.length; i++) {
-                                        final Object response = responses[i];
-                                        if (response instanceof SearchResultEntry) {
-                                            handler.handleEntry((SearchResultEntry) response);
-                                        } else if (response instanceof SearchResultReference) {
-                                            handler.handleReference((SearchResultReference) response);
-                                        } else if (((Result) response).isSuccess()) {
-                                            handler.handleResult((Result) response);
-                                        } else {
-                                            handler.handleErrorResult(newErrorResult((Result) response));
-                                        }
-                                    }
-                                }
-                                final Result result = (Result) responses[responses.length - 1];
-                                if (result.isSuccess()) {
-                                    return new CompletedFutureResult<Result>(result);
-                                } else {
-                                    return new CompletedFutureResult<Result>(newErrorResult(result));
-                                }
+        when(connection.searchAsync(same(SEARCH), any(SearchResultHandler.class))).thenAnswer(
+            new Answer<FutureResult<Result>>() {
+                @Override
+                public FutureResult<Result> answer(final InvocationOnMock invocation) throws Throwable {
+                    // Execute handler and return future.
+                    final SearchResultHandler handler = (SearchResultHandler) invocation.getArguments()[1];
+                    if (handler != null) {
+                        for (int i = 0; i < responses.length; i++) {
+                            final Object response = responses[i];
+                            if (response instanceof SearchResultEntry) {
+                                handler.handleEntry((SearchResultEntry) response);
+                            } else if (response instanceof SearchResultReference) {
+                                handler.handleReference((SearchResultReference) response);
                             }
-                        });
+                        }
+                    }
+                    final Result result = (Result) responses[responses.length - 1];
+                    if (result.isSuccess()) {
+                        return FutureResultWrapper.newSuccessfulFutureResult(result);
+                    } else {
+                        return FutureResultWrapper.newFailedFutureResult(newErrorResult(result));
+                    }
+                }
+            });
         // @formatter:on
         return new ConnectionEntryReader(connection, SEARCH);
     }

@@ -22,12 +22,10 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS.
+ *      Portions copyright 2011-2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldif;
-
-import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
 
 import java.util.NoSuchElementException;
 import java.util.concurrent.BlockingQueue;
@@ -39,6 +37,7 @@ import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.ErrorResultIOException;
 import org.forgerock.opendj.ldap.FutureResult;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.ResultHandler;
 import org.forgerock.opendj.ldap.SearchResultHandler;
 import org.forgerock.opendj.ldap.SearchResultReferenceIOException;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
@@ -47,8 +46,9 @@ import org.forgerock.opendj.ldap.responses.Responses;
 import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
-
 import org.forgerock.util.Reject;
+
+import static org.forgerock.opendj.ldap.ErrorResultException.*;
 
 /**
  * A {@code ConnectionEntryReader} is a bridge from {@code Connection}s to
@@ -114,7 +114,7 @@ public class ConnectionEntryReader implements EntryReader {
     /**
      * Result handler that places all responses in a queue.
      */
-    private final static class BufferHandler implements SearchResultHandler {
+    private final static class BufferHandler implements SearchResultHandler, ResultHandler<Result> {
         private final BlockingQueue<Response> responses;
         private volatile boolean isInterrupted = false;
 
@@ -137,7 +137,7 @@ public class ConnectionEntryReader implements EntryReader {
         }
 
         @Override
-        public void handleErrorResult(final ErrorResultException error) {
+        public void handleError(final ErrorResultException error) {
             try {
                 responses.put(error.getResult());
             } catch (final InterruptedException e) {
@@ -209,10 +209,11 @@ public class ConnectionEntryReader implements EntryReader {
      *             If {@code connection} was {@code null}.
      */
     public ConnectionEntryReader(final Connection connection, final SearchRequest searchRequest,
-            final BlockingQueue<Response> entries) {
+        final BlockingQueue<Response> entries) {
         Reject.ifNull(connection);
         buffer = new BufferHandler(entries);
-        future = connection.searchAsync(searchRequest, null, buffer);
+        future = (FutureResult<Result>) connection.searchAsync(searchRequest, buffer)
+                .onSuccess(buffer).onFailure(buffer);
     }
 
     /**

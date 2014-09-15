@@ -22,13 +22,15 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS.
+ *      Portions copyright 2011-2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
 
-import com.forgerock.opendj.util.CompletedFutureResult;
 import org.forgerock.util.Reject;
+import org.forgerock.util.promise.Promise;
+
+import static org.forgerock.util.promise.Promises.*;
 
 /**
  * A load balancing connection factory allocates connections using the provided
@@ -54,20 +56,16 @@ final class LoadBalancer implements ConnectionFactory {
     }
 
     @Override
-    public FutureResult<Connection> getConnectionAsync(
-            final ResultHandler<? super Connection> resultHandler) {
+    public Promise<Connection, ErrorResultException> getConnectionAsync() {
         final ConnectionFactory factory;
 
         try {
             factory = algorithm.getConnectionFactory();
         } catch (final ErrorResultException e) {
-            if (resultHandler != null) {
-                resultHandler.handleErrorResult(e);
-            }
-            return new CompletedFutureResult<Connection>(e);
+            return newFailedPromise(e);
         }
 
-        return factory.getConnectionAsync(resultHandler);
+        return factory.getConnectionAsync();
     }
 
     @Override

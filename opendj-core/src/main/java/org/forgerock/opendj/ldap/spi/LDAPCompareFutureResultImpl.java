@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS.
+ *      Portions copyright 2011-2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.spi;
@@ -30,7 +30,6 @@ package org.forgerock.opendj.ldap.spi;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.IntermediateResponseHandler;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ResultHandler;
 import org.forgerock.opendj.ldap.requests.CompareRequest;
 import org.forgerock.opendj.ldap.responses.CompareResult;
 import org.forgerock.opendj.ldap.responses.Responses;
@@ -48,8 +47,6 @@ public final class LDAPCompareFutureResultImpl extends AbstractLDAPFutureResultI
      *            identifier of the request
      * @param request
      *            compare request
-     * @param resultHandler
-     *            handler that consumes compare result
      * @param intermediateResponseHandler
      *            handler that consumes intermediate responses from extended
      *            operations
@@ -57,10 +54,9 @@ public final class LDAPCompareFutureResultImpl extends AbstractLDAPFutureResultI
      *            the connection to directory server
      */
     public LDAPCompareFutureResultImpl(final int requestID, final CompareRequest request,
-            final ResultHandler<? super CompareResult> resultHandler,
             final IntermediateResponseHandler intermediateResponseHandler,
             final Connection connection) {
-        super(requestID, resultHandler, intermediateResponseHandler, connection);
+        super(requestID, intermediateResponseHandler, connection);
         this.request = request;
     }
 
@@ -79,9 +75,7 @@ public final class LDAPCompareFutureResultImpl extends AbstractLDAPFutureResultI
         return request;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     protected CompareResult newErrorResult(final ResultCode resultCode, final String diagnosticMessage,
             final Throwable cause) {

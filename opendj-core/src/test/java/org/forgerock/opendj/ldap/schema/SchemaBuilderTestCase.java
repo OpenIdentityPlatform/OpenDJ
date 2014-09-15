@@ -25,31 +25,33 @@
  */
 package org.forgerock.opendj.ldap.schema;
 
-import static org.fest.assertions.Assertions.assertThat;
-import static org.fest.assertions.Fail.fail;
-import static org.forgerock.opendj.ldap.schema.SchemaConstants.SCHEMA_PROPERTY_ORIGIN;
-import static org.forgerock.opendj.ldap.schema.SchemaConstants.TOP_OBJECTCLASS_NAME;
-
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.ByteString;
+import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.EntryNotFoundException;
+import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.FutureResult;
+import org.forgerock.opendj.ldap.FutureResultWrapper;
 import org.forgerock.opendj.ldap.LinkedHashMapEntry;
-
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import org.testng.annotations.Test;
-import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
 import org.forgerock.opendj.ldap.responses.Responses;
+import org.forgerock.opendj.ldap.responses.SearchResultEntry;
+import org.forgerock.util.promise.Promise;
+import org.testng.annotations.Test;
+
+import static org.fest.assertions.Assertions.*;
+import static org.fest.assertions.Fail.*;
+import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
+import static org.forgerock.util.promise.Promises.*;
+import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.*;
 
 /**
  * Test SchemaBuilder.
@@ -1950,6 +1952,55 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
 
         Schema sc = scBuild.toSchema();
         // We retrieve the schema :
+        assertThat(sc.getSyntaxes()).isNotNull();
+        assertThat(sc.getAttributeTypes()).isNotNull();
+        assertThat(sc.getAttributeTypes()).isNotEmpty();
+        assertThat(sc.getObjectClasses()).isNotNull();
+        assertThat(sc.getObjectClasses()).isNotEmpty();
+        assertThat(sc.getMatchingRuleUses()).isNotNull();
+        assertThat(sc.getMatchingRuleUses()).isEmpty();
+        assertThat(sc.getMatchingRules()).isNotNull();
+        assertThat(sc.getMatchingRules()).isNotEmpty();
+        assertThat(sc.getDITContentRules()).isNotNull();
+        assertThat(sc.getDITContentRules()).isEmpty();
+        assertThat(sc.getDITStuctureRules()).isNotNull();
+        assertThat(sc.getDITStuctureRules()).isEmpty();
+        assertThat(sc.getNameForms()).isNotNull();
+        assertThat(sc.getNameForms()).isEmpty();
+
+        connection.close();
+    }
+
+    /**
+     * Asynchronously retrieving an LDAP Server's schema.
+     *
+     * @throws Exception
+     */
+    @Test()
+    public final void testSchemaBuilderAddSchemaForEntryAsyncMockConnection() throws Exception {
+        Connection connection = mock(Connection.class);
+        final SchemaBuilder scBuild = new SchemaBuilder(Schema.getCoreSchema());
+
+        // @formatter:off
+        final String[] entry = {
+            "# Search result entry: uid=bjensen,ou=People,dc=example,dc=com",
+            "dn: uid=bjensen,ou=People,dc=example,dc=com",
+            "subschemaSubentry: cn=schema",
+            "entryDN: uid=bjensen,ou=people,dc=example,dc=com",
+            "entryUUID: fc252fd9-b982-3ed6-b42a-c76d2546312c"
+            // N.B : also works with previous example but needs the subschemaSubentry line.
+        };
+
+        // Send a search entry result promise :
+        Promise<SearchResultEntry, ErrorResultException> promise =
+                newSuccessfulPromise(Responses.newSearchResultEntry(entry));
+        FutureResult<SearchResultEntry> result = FutureResultWrapper.asFutureResult(promise);
+        when(connection.searchSingleEntryAsync((SearchRequest) any())).thenReturn(result);
+        DN testDN = DN.valueOf("uid=bjensen,ou=People,dc=example,dc=com");
+        // @formatter:on
+        Schema sc = scBuild.addSchemaForEntryAsync(connection, testDN, false).getOrThrow().toSchema();
+
+        // We retrieve the schema
         assertThat(sc.getSyntaxes()).isNotNull();
         assertThat(sc.getAttributeTypes()).isNotNull();
         assertThat(sc.getAttributeTypes()).isNotEmpty();

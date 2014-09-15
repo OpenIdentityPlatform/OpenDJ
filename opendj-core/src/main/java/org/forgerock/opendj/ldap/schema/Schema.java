@@ -27,9 +27,6 @@
  */
 package org.forgerock.opendj.ldap.schema;
 
-import static org.forgerock.opendj.ldap.AttributeDescription.objectClass;
-import static com.forgerock.opendj.ldap.CoreMessages.*;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -51,11 +48,15 @@ import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.FutureResult;
 import org.forgerock.opendj.ldap.LinkedAttribute;
 import org.forgerock.opendj.ldap.RDN;
-import org.forgerock.opendj.ldap.ResultHandler;
-
-import com.forgerock.opendj.util.FutureResultTransformer;
-import com.forgerock.opendj.util.StaticUtils;
 import org.forgerock.util.Reject;
+import org.forgerock.util.promise.Function;
+
+import com.forgerock.opendj.util.StaticUtils;
+
+import static org.forgerock.opendj.ldap.AttributeDescription.*;
+import static org.forgerock.opendj.ldap.FutureResultWrapper.*;
+
+import static com.forgerock.opendj.ldap.CoreMessages.*;
 
 /**
  * This class defines a data structure that holds information about the
@@ -996,8 +997,6 @@ public final class Schema {
      *            read.
      * @param name
      *            The distinguished name of the subschema sub-entry.
-     * @param handler
-     *            A result handler which can be used to asynchronously process
      *            the operation result when it is received, may be {@code null}.
      * @return A future representing the retrieved schema.
      * @throws UnsupportedOperationException
@@ -1008,24 +1007,15 @@ public final class Schema {
      * @throws NullPointerException
      *             If the {@code connection} or {@code name} was {@code null}.
      */
-    public static FutureResult<Schema> readSchemaAsync(final Connection connection, final DN name,
-            final ResultHandler<? super Schema> handler) {
-        final FutureResultTransformer<SchemaBuilder, Schema> future =
-                new FutureResultTransformer<SchemaBuilder, Schema>(handler) {
-
+    public static FutureResult<Schema> readSchemaAsync(final Connection connection, final DN name) {
+        final SchemaBuilder builder = new SchemaBuilder();
+        return asFutureResult(builder.addSchemaAsync(connection, name, true).then(
+                new Function<SchemaBuilder, Schema, ErrorResultException>() {
                     @Override
-                    protected Schema transformResult(final SchemaBuilder builder)
-                            throws ErrorResultException {
+                    public Schema apply(SchemaBuilder builder) throws ErrorResultException {
                         return builder.toSchema();
                     }
-
-                };
-
-        final SchemaBuilder builder = new SchemaBuilder();
-        final FutureResult<SchemaBuilder> innerFuture =
-                builder.addSchemaAsync(connection, name, future, true);
-        future.setFutureResult(innerFuture);
-        return future;
+                }));
     }
 
     /**
@@ -1085,9 +1075,6 @@ public final class Schema {
      * @param name
      *            The distinguished name of the entry whose schema is to be
      *            located.
-     * @param handler
-     *            A result handler which can be used to asynchronously process
-     *            the operation result when it is received, may be {@code null}.
      * @return A future representing the retrieved schema.
      * @throws UnsupportedOperationException
      *             If the connection does not support search operations.
@@ -1097,25 +1084,16 @@ public final class Schema {
      * @throws NullPointerException
      *             If the {@code connection} or {@code name} was {@code null}.
      */
-    public static FutureResult<Schema> readSchemaForEntryAsync(final Connection connection,
-            final DN name, final ResultHandler<? super Schema> handler) {
-        final FutureResultTransformer<SchemaBuilder, Schema> future =
-                new FutureResultTransformer<SchemaBuilder, Schema>(handler) {
-
-                    @Override
-                    protected Schema transformResult(final SchemaBuilder builder)
-                            throws ErrorResultException {
-                        return builder.toSchema();
-                    }
-
-                };
-
+    public static FutureResult<Schema> readSchemaForEntryAsync(final Connection connection, final DN name) {
         final SchemaBuilder builder = new SchemaBuilder();
-        final FutureResult<SchemaBuilder> innerFuture =
-                builder.addSchemaForEntryAsync(connection, name, future, true);
-        future.setFutureResult(innerFuture);
-        return future;
+        return asFutureResult(builder.addSchemaForEntryAsync(connection, name, true).then(
+            new Function<SchemaBuilder, Schema, ErrorResultException>() {
 
+                @Override
+                public Schema apply(SchemaBuilder builder) throws ErrorResultException {
+                    return builder.toSchema();
+                }
+            }));
     }
 
     /**

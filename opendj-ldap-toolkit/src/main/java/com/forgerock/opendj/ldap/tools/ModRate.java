@@ -26,19 +26,17 @@
  */
 package com.forgerock.opendj.ldap.tools;
 
-import static com.forgerock.opendj.cli.ArgumentConstants.*;
-import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
-import static com.forgerock.opendj.cli.Utils.filterExitCode;
-
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ConnectionFactory;
-import org.forgerock.opendj.ldap.FutureResult;
+import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.ResultHandler;
 import org.forgerock.opendj.ldap.requests.ModifyRequest;
 import org.forgerock.opendj.ldap.requests.Requests;
 import org.forgerock.opendj.ldap.responses.Result;
+import org.forgerock.util.promise.Promise;
 
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ArgumentParser;
@@ -47,6 +45,10 @@ import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.ConnectionFactoryProvider;
 import com.forgerock.opendj.cli.ConsoleApplication;
 import com.forgerock.opendj.cli.StringArgument;
+
+import static com.forgerock.opendj.cli.ArgumentConstants.*;
+import static com.forgerock.opendj.cli.Utils.*;
+import static com.forgerock.opendj.ldap.tools.ToolsMessages.*;
 
 /**
  * A load generation tool that can be used to load a Directory Server with
@@ -64,14 +66,15 @@ public final class ModRate extends ConsoleApplication {
             }
 
             @Override
-            public FutureResult<?> performOperation(final Connection connection,
+            public Promise<?, ErrorResultException> performOperation(final Connection connection,
                     final DataSource[] dataSources, final long startTime) {
                 if (dataSources != null) {
                     data = DataSource.generateData(dataSources, data);
                 }
                 mr = newModifyRequest(data);
-                return connection.modifyAsync(mr, null, new UpdateStatsResultHandler<Result>(
-                        startTime));
+                ResultHandler<Result> modRes = new UpdateStatsResultHandler<Result>(startTime);
+
+                return connection.modifyAsync(mr).onSuccess(modRes).onFailure(modRes);
             }
 
             private ModifyRequest newModifyRequest(final Object[] data) {
@@ -139,6 +142,7 @@ public final class ModRate extends ConsoleApplication {
     }
 
     /** {@inheritDoc} */
+    @Override
     public boolean isInteractive() {
         return false;
     }
