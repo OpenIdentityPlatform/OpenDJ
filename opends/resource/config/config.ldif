@@ -192,19 +192,19 @@ ds-cfg-db-txn-no-sync: false
 ds-cfg-db-txn-write-no-sync: true
 ds-cfg-db-run-cleaner: true
 ds-cfg-db-cleaner-min-utilization: 50
-ds-cfg-db-evictor-lru-only: true
+ds-cfg-db-evictor-lru-only: false
 ds-cfg-db-evictor-nodes-per-scan: 10
 ds-cfg-db-evictor-core-threads: 1
 ds-cfg-db-evictor-max-threads: 10
 ds-cfg-db-evictor-keep-alive: 600 seconds
-ds-cfg-db-log-file-max: 10 megabytes
+ds-cfg-db-log-file-max: 100 megabytes
 ds-cfg-db-log-filecache-size: 100
 ds-cfg-db-logging-file-handler-on: true
 ds-cfg-db-logging-level: CONFIG
-ds-cfg-db-checkpointer-bytes-interval: 20 megabytes
+ds-cfg-db-checkpointer-bytes-interval: 500 megabytes
 ds-cfg-db-checkpointer-wakeup-interval: 30 seconds
-ds-cfg-disk-full-threshold: 20 megabytes
-ds-cfg-disk-low-threshold: 100 megabytes
+ds-cfg-disk-full-threshold: 100 megabytes
+ds-cfg-disk-low-threshold: 200 megabytes
 
 dn: cn=Index,ds-cfg-backend-id=userRoot,cn=Backends,cn=config
 objectClass: top
