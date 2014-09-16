@@ -25,6 +25,8 @@
  */
 package org.opends.server.replication.server.changelog.file;
 
+import static com.forgerock.opendj.util.Validator.*;
+
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingStrategy.*;
 import static org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy.*;
@@ -35,7 +37,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
-import org.forgerock.util.Reject;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingStrategy;
 import org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy;
@@ -164,7 +165,7 @@ class BlockLogReader<K extends Comparable<K>, V> implements Closeable
       final PositionStrategy positionStrategy)
           throws ChangelogException
   {
-    Reject.checkNotNull(key);
+    ensureNotNull(key);
     final long markerPosition = searchClosestBlockStartToKey(key);
     if (markerPosition >= 0)
     {
