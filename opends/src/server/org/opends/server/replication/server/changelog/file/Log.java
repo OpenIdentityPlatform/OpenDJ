@@ -25,6 +25,8 @@
  */
 package org.opends.server.replication.server.changelog.file;
 
+import static com.forgerock.opendj.util.Validator.*;
+
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingStrategy.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -46,7 +48,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import org.forgerock.util.Reject;
 import org.opends.messages.Category;
 import org.opends.messages.Message;
 import org.opends.messages.Severity;
@@ -210,7 +211,7 @@ final class Log<K extends Comparable<K>, V> implements Closeable
   static synchronized <K extends Comparable<K>, V> Log<K, V> openLog(final File logPath,
       final RecordParser<K, V> parser, final long sizeLimitPerFileInBytes) throws ChangelogException
   {
-    Reject.ifNull(logPath, parser);
+    ensureNotNull(logPath, parser);
     @SuppressWarnings("unchecked")
     Log<K, V> log = (Log<K, V>) logsCache.get(logPath);
     if (log == null)

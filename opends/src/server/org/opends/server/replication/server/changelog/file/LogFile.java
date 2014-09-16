@@ -25,6 +25,8 @@
  */
 package org.opends.server.replication.server.changelog.file;
 
+import static com.forgerock.opendj.util.Validator.*;
+
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
@@ -37,7 +39,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 
-import org.forgerock.util.Reject;
 import org.opends.messages.Message;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
@@ -103,7 +104,7 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
   private LogFile(final File logFilePath, final RecordParser<K, V> parser, boolean isWriteEnabled)
       throws ChangelogException
   {
-    Reject.ifNull(logFilePath, parser);
+    ensureNotNull(logFilePath, parser);
     this.logfile = logFilePath;
     this.isWriteEnabled = isWriteEnabled;
 

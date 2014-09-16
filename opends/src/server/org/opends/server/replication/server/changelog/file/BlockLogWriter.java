@@ -25,6 +25,8 @@
  */
 package org.opends.server.replication.server.changelog.file;
 
+import static com.forgerock.opendj.util.Validator.*;
+
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.replication.server.changelog.file.BlockLogReader.*;
 
@@ -32,7 +34,6 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.SyncFailedException;
 
-import org.forgerock.util.Reject;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
@@ -112,7 +113,7 @@ class BlockLogWriter<K extends Comparable<K>, V> implements Closeable
    */
   private BlockLogWriter(LogWriter writer, RecordParser<K, V> parser, int blockSize)
   {
-    Reject.ifNull(writer, parser);
+    ensureNotNull(writer, parser);
     this.writer = writer;
     this.parser = parser;
     this.blockSize = blockSize;
