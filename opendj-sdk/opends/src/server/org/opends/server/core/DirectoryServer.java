@@ -1373,7 +1373,7 @@ public final class DirectoryServer
       rootDNConfigManager = new RootDNConfigManager();
       rootDNConfigManager.initializeRootDNs();
 
-      directoryServer.authenticatedUsers = new AuthenticatedUsers();
+      initializeAuthenticatedUsers();
       // initialize both subentry manager and group manager for this backend.
       initializeSubentryManager();
       initializeGroupManager();
@@ -1529,6 +1529,11 @@ public final class DirectoryServer
     }
   }
 
+  /** Initializes authenticated users. */
+  public void initializeAuthenticatedUsers()
+  {
+    directoryServer.authenticatedUsers = new AuthenticatedUsers();
+  }
 
 
   /**
