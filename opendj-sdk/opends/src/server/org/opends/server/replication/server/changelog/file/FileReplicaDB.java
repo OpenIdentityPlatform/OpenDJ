@@ -41,6 +41,7 @@ import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.ReplicationServerDomain;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
+import org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingStrategy;
 import org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy;
 import org.opends.server.replication.server.changelog.file.Log.RepositionableCursor;
 import org.opends.server.types.Attribute;
@@ -202,23 +203,24 @@ class FileReplicaDB
 
   /**
    * Returns a cursor that allows to retrieve the update messages from this DB.
-   * The starting position is defined by the provided CSN and cursor positioning
-   * strategy.
+   * The actual starting position is defined by the provided CSN, the key
+   * matching strategy and the positioning strategy.
    *
    * @param startCSN
    *          The position where the cursor must start. If null, start from the
    *          oldest CSN
+   * @param matchingStrategy
+   *          Cursor key matching strategy
    * @param positionStrategy
-   *          Cursor position strategy, which allow to choose if cursor must
-   *          start from the provided CSN or just after the provided CSN.
+   *          Cursor position strategy
    * @return a new {@link DBCursor} to retrieve update messages.
    * @throws ChangelogException
    *           if a database problem happened
    */
-  DBCursor<UpdateMsg> generateCursorFrom(final CSN startCSN, final PositionStrategy positionStrategy)
-      throws ChangelogException
+  DBCursor<UpdateMsg> generateCursorFrom(final CSN startCSN, final KeyMatchingStrategy matchingStrategy,
+      final PositionStrategy positionStrategy) throws ChangelogException
   {
-    RepositionableCursor<CSN, UpdateMsg> cursor = log.getNearestCursor(startCSN, positionStrategy);
+    RepositionableCursor<CSN, UpdateMsg> cursor = log.getCursor(startCSN, matchingStrategy, positionStrategy);
     return new FileReplicaDBCursor(cursor, startCSN, positionStrategy);
   }
 

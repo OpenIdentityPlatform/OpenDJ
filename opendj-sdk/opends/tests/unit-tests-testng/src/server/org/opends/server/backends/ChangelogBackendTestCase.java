@@ -68,7 +68,6 @@ import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.changelog.api.DBCursor;
-import org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy;
 import org.opends.server.replication.server.changelog.api.ReplicationDomainDB;
 import org.opends.server.replication.server.changelog.je.ECLEnabledDomainPredicate;
 import org.opends.server.replication.service.DSRSShutdownSync;
@@ -107,6 +106,8 @@ import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
 import static org.opends.server.replication.protocol.OperationContext.*;
+import static org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingStrategy.*;
+import static org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy.*;
 import static org.opends.server.types.ResultCode.*;
 import static org.opends.server.util.CollectionUtils.*;
 import static org.opends.server.util.ServerConstants.*;
@@ -473,7 +474,7 @@ public class ChangelogBackendTestCase extends ReplicationTestCase
   {
     final ReplicationDomainDB domainDB = replicationServer.getChangelogDB().getReplicationDomainDB();
     final DBCursor<UpdateMsg> cursor =
-        domainDB.getCursorFrom(baseDN, csn.getServerId(), null, PositionStrategy.ON_MATCHING_KEY);
+        domainDB.getCursorFrom(baseDN, csn.getServerId(), csn, GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY);
     try {
       assertTrue(cursor.next(),
           "Expected to be to find at least one change in replicaDB(" + baseDN + " " + csn.getServerId() + ")");

@@ -135,71 +135,127 @@ public class BlockLogReaderWriterTest extends DirectoryServerTestCase
   Object[][] recordsForSeek()
   {
     Object[][] data = new Object[][] {
-      // records, key, findNearest, expectedRecord, expectedFound
+      // records, key, key matching strategy, position strategy, expectedRecord, should be found ?
 
       // no record
-      { records(), 1, false, null, false },
+      { records(), 1, EQUAL_TO_KEY, ON_MATCHING_KEY, null, false },
+      { records(), 1, GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, null, false },
+      { records(), 1, LESS_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, null, false },
 
-      // 1 record exact find
-      { records(1), 1, false, record(1), true },
+      // 1 record
+      { records(1), 0, EQUAL_TO_KEY, ON_MATCHING_KEY, null, false },
+      { records(1), 1, EQUAL_TO_KEY, ON_MATCHING_KEY, record(1), true },
+      { records(1), 0, EQUAL_TO_KEY, AFTER_MATCHING_KEY, null, false },
+      { records(1), 1, EQUAL_TO_KEY, AFTER_MATCHING_KEY, null, true },
 
-      // 1 record nearest find
-      { records(1), 1, true, null, true },
+      { records(1), 0, GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, record(1), true },
+      { records(1), 1, GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, record(1), true },
+      { records(1), 0, GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, record(1), true },
+      { records(1), 1, GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, null, true },
 
-      // 2 records
-      { records(1,2), 1, false, record(1), true },
-      { records(1,2), 2, false, record(2), true },
-      { records(1,2), 1, true, record(2), true },
-      { records(1,2), 2, true, null, true },
+      // 3 records equal matching
+      { records(1,2,3), 0, EQUAL_TO_KEY, ON_MATCHING_KEY, null, false },
+      { records(1,2,3), 1, EQUAL_TO_KEY, ON_MATCHING_KEY, record(1), true },
+      { records(1,2,3), 2, EQUAL_TO_KEY, ON_MATCHING_KEY, record(2), true },
+      { records(1,2,3), 3, EQUAL_TO_KEY, ON_MATCHING_KEY, record(3), true },
+      { records(1,2,3), 4, EQUAL_TO_KEY, ON_MATCHING_KEY, null, false },
 
-      // 3 records exact find
-      { records(1,2,3), 0, false, null, false },
-      { records(1,2,3), 1, false, record(1), true },
-      { records(1,2,3), 2, false, record(2), true },
-      { records(1,2,3), 3, false, record(3), true },
-      { records(1,2,3), 4, false, null, false },
+      { records(1,2,3), 0, EQUAL_TO_KEY, AFTER_MATCHING_KEY, null, false },
+      { records(1,2,3), 2, EQUAL_TO_KEY, AFTER_MATCHING_KEY, record(3), true },
+      { records(1,2,3), 3, EQUAL_TO_KEY, AFTER_MATCHING_KEY, null, true },
 
-      // 3 records nearest find
-      { records(1,2,3), 0, true, record(1), true },
-      { records(1,2,3), 1, true, record(2), true },
-      { records(1,2,3), 2, true, record(3), true },
-      { records(1,2,3), 3, true, null, true },
-      { records(1,2,3), 4, true, null, false },
+      // 3 records less than or equal matching
+      { records(1,2,3), 0, LESS_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, null, false },
+      { records(1,2,3), 1, LESS_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, record(1), true },
+      { records(1,2,3), 2, LESS_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, record(2), true },
+      { records(1,2,3), 3, LESS_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, record(3), true },
+      { records(1,2,3), 4, LESS_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, record(3), true },
 
-      // 10 records exact find
-      { records(1,2,3,4,5,6,7,8,9,10), 0, false, null, false },
-      { records(1,2,3,4,5,6,7,8,9,10), 1, false, record(1), true },
-      { records(1,2,3,4,5,6,7,8,9,10), 5, false, record(5), true },
-      { records(1,2,3,4,5,6,7,8,9,10), 10, false, record(10), true },
-      { records(1,2,3,4,5,6,7,8,9,10), 11, false, null, false },
+      { records(1,2,3), 0, LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, null, false },
+      { records(1,2,3), 1, LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, record(2), true },
+      { records(1,2,3), 2, LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, record(3), true },
+      { records(1,2,3), 3, LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, null, true },
+      { records(1,2,3), 4, LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, null, true },
 
-      // 10 records nearest find
-      { records(1,2,3,4,5,6,7,8,9,10), 0, true, record(1), true },
-      { records(1,2,3,4,5,6,7,8,9,10), 1, true, record(2), true },
-      { records(1,2,3,4,5,6,7,8,9,10), 5, true, record(6), true },
-      { records(1,2,3,4,5,6,7,8,9,10), 10, true, null, true },
-      { records(1,2,3,4,5,6,7,8,9,10), 11, true, null, false },
+      // 3 records greater or equal matching
+      { records(1,2,3), 0, GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, record(1), true },
+      { records(1,2,3), 2, GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, record(2), true },
+      { records(1,2,3), 3, GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, record(3), true },
+
+      { records(1,2,3), 0, GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, record(1), true },
+      { records(1,2,3), 1, GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, record(2), true },
+      { records(1,2,3), 2, GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, record(3), true },
+      { records(1,2,3), 3, GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, null, true },
+      { records(1,2,3), 4, GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, null, false },
+
+      // 10 records equal matching
+      { records(1,2,3,4,5,6,7,8,9,10), 0, EQUAL_TO_KEY, ON_MATCHING_KEY, null, false },
+      { records(1,2,3,4,5,6,7,8,9,10), 1, EQUAL_TO_KEY, ON_MATCHING_KEY, record(1), true },
+      { records(1,2,3,4,5,6,7,8,9,10), 5, EQUAL_TO_KEY, ON_MATCHING_KEY, record(5), true },
+      { records(1,2,3,4,5,7,8,9,10), 6, EQUAL_TO_KEY, ON_MATCHING_KEY, null, false },
+      { records(1,2,3,4,5,6,7,8,9,10), 10, EQUAL_TO_KEY, ON_MATCHING_KEY, record(10), true },
+      { records(1,2,3,4,5,6,7,8,9,10), 11, EQUAL_TO_KEY, ON_MATCHING_KEY, null, false },
+
+      { records(1,2,3,4,5,6,7,8,9,10), 0, EQUAL_TO_KEY, AFTER_MATCHING_KEY, null, false },
+      { records(1,2,3,4,5,6,7,8,9,10), 1, EQUAL_TO_KEY, AFTER_MATCHING_KEY, record(2), true },
+      { records(1,2,3,4,5,6,7,8,9,10), 5, EQUAL_TO_KEY, AFTER_MATCHING_KEY, record(6), true },
+      { records(1,2,3,4,5,7,8,9,10), 6, EQUAL_TO_KEY, AFTER_MATCHING_KEY, null, false },
+      { records(1,2,3,4,5,6,7,8,9,10), 10, EQUAL_TO_KEY, AFTER_MATCHING_KEY, null, true },
+      { records(1,2,3,4,5,6,7,8,9,10), 11, EQUAL_TO_KEY, AFTER_MATCHING_KEY, null, false },
+
+      // 10 records less than or equal matching
+      { records(1,2,3,4,5,6,7,8,9,10), 0, LESS_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, null, false },
+      { records(1,2,3,4,5,6,7,8,9,10), 1, LESS_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, record(1), true },
+      { records(1,2,3,4,5,6,7,8,9,10), 5, LESS_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, record(5), true },
+      { records(1,2,3,4,5,7,8,9,10), 6, LESS_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, record(5), true },
+      { records(1,2,3,4,5,6,7,8,9,10), 10, LESS_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, record(10), true },
+      { records(1,2,3,4,5,6,7,8,9,10), 11, LESS_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, record(10), true },
+
+      { records(1,2,3,4,5,6,7,8,9,10), 0, LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, null, false },
+      { records(1,2,3,4,5,6,7,8,9,10), 1, LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, record(2), true },
+      { records(1,2,3,4,5,6,7,8,9,10), 5, LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, record(6), true },
+      { records(1,2,3,4,5,7,8,9,10), 6, LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, record(7), true },
+      { records(1,2,3,4,5,6,7,8,9,10), 10, LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, null, true },
+      { records(1,2,3,4,5,6,7,8,9,10), 11, LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, null, true },
+
+      // 10 records greater or equal matching
+      { records(1,2,3,4,5,6,7,8,9,10), 0, GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, record(1), true },
+      { records(1,2,3,4,5,6,7,8,9,10), 1, GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, record(1), true },
+      { records(1,2,3,4,5,6,7,8,9,10), 5, GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, record(5), true },
+      { records(1,2,3,4,5,7,8,9,10), 6, GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, record(7), true },
+      { records(1,2,3,4,5,6,7,8,9,10), 10, GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, record(10), true },
+      { records(1,2,3,4,5,6,7,8,9,10), 11, GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, null, false },
+
+      { records(1,2,3,4,5,6,7,8,9,10), 0, GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, record(1), true },
+      { records(1,2,3,4,5,6,7,8,9,10), 1, GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, record(2), true },
+      { records(1,2,3,4,5,6,7,8,9,10), 5, GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, record(6), true },
+      { records(1,2,3,4,5,7,8,9,10), 6, GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, record(7), true },
+      { records(1,2,3,4,5,6,7,8,9,10), 10, GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, null, true },
+      { records(1,2,3,4,5,6,7,8,9,10), 11, GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, null, false },
+
+
     };
 
     // For each test case, do a test with various block sizes to ensure algorithm is not broken
     // on a given size
     int[] sizes = new int[] { 500, 100, 50, 30, 25, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10 };
-    Object[][] finalData = new Object[sizes.length*data.length][6];
+    Object[][] finalData = new Object[sizes.length * data.length][7];
     for (int i = 0; i < data.length; i++)
     {
       for (int j = 0; j < sizes.length; j++)
       {
         Object[] a = data[i];
         // add the block size at beginning of each test case
-        finalData[sizes.length*i+j] = new Object[] { sizes[j], a[0], a[1], a[2], a[3], a[4]};
+        finalData[sizes.length*i+j] = new Object[] { sizes[j], a[0], a[1], a[2], a[3], a[4], a[5]};
       }
     }
     return finalData;
   }
 
-  @Test(dataProvider="recordsForSeek")
-  public void testSeek(int blockSize, List<Record<Integer, Integer>> records, int key, boolean findNearest,
-      Record<Integer, Integer> expectedRecord, boolean expectedFound) throws Exception
+  @Test(dataProvider = "recordsForSeek")
+  public void testSeekToRecord(int blockSize, List<Record<Integer, Integer>> records, int key,
+      KeyMatchingStrategy matchingStrategy, PositionStrategy positionStrategy, Record<Integer, Integer> expectedRecord,
+      boolean shouldBeFound) throws Exception
   {
     writeRecords(blockSize, records);
 
@@ -207,13 +263,9 @@ public class BlockLogReaderWriterTest extends DirectoryServerTestCase
     try
     {
       reader = newReader(blockSize);
-      KeyMatchingStrategy matchStrategy =
-          findNearest ? KeyMatchingStrategy.GREATER_THAN_OR_EQUAL_TO_KEY : KeyMatchingStrategy.EQUAL_TO_KEY;
-      PositionStrategy posStrategy =
-          findNearest ? PositionStrategy.AFTER_MATCHING_KEY : PositionStrategy.ON_MATCHING_KEY;
-      Pair<Boolean, Record<Integer, Integer>> result = reader.seekToRecord(key, matchStrategy, posStrategy);
+      Pair<Boolean, Record<Integer, Integer>> result = reader.seekToRecord(key, matchingStrategy, positionStrategy);
 
-      assertThat(result.getFirst()).isEqualTo(expectedFound);
+      assertThat(result.getFirst()).isEqualTo(shouldBeFound);
       assertThat(result.getSecond()).isEqualTo(expectedRecord);
     }
     finally
@@ -381,7 +433,7 @@ public class BlockLogReaderWriterTest extends DirectoryServerTestCase
     }
   }
 
-  /** Write provided records. */
+  /** Write provided records with the provided block size. */
   private void writeRecords(int blockSize, List<Record<Integer, Integer>> records) throws ChangelogException
   {
     BlockLogWriter<Integer, Integer> writer = null;

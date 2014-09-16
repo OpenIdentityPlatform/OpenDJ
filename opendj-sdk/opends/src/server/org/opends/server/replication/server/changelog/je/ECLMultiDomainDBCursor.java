@@ -24,10 +24,16 @@
  */
 package org.opends.server.replication.server.changelog.je;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.opends.server.replication.common.MultiDomainServerState;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
 import org.opends.server.types.DN;
+
+import com.forgerock.opendj.util.Pair;
 
 /**
  * Multi domain DB cursor that only returns updates for the domains which have
@@ -109,5 +115,47 @@ public final class ECLMultiDomainDBCursor implements DBCursor<UpdateMsg>
   public String toString()
   {
     return getClass().getSimpleName() + " cursor=[" + cursor + ']';
+  }
+
+  /**
+   * Returns a snapshot of this cursor.
+   *
+   * @return a list of (DN, UpdateMsg) pairs, containing all base DNs enabled
+   *         for the external changelog. The update message may be {@code null}.
+   */
+  List<Pair<DN, UpdateMsg>> getSnapshot()
+  {
+    final List<Pair<DN, UpdateMsg>> snapshot = cursor.getSnapshot();
+    final List<Pair<DN, UpdateMsg>> eclSnapshot = new ArrayList<Pair<DN,UpdateMsg>>();
+    for (Pair<DN, UpdateMsg> pair : snapshot)
+    {
+      DN baseDN = pair.getFirst();
+      if (predicate.isECLEnabledDomain(baseDN))
+      {
+        eclSnapshot.add(pair);
+      }
+    }
+    return eclSnapshot;
+  }
+
+  /**
+   * Returns the cookie corresponding to the state of this cursor.
+   *
+   * @return a valid cookie taking into account only the base DNs enabled for
+   *         the external changelog
+   */
+  public MultiDomainServerState toCookie()
+  {
+    List<Pair<DN, UpdateMsg>> snapshot = getSnapshot();
+    MultiDomainServerState cookie = new MultiDomainServerState();
+    for (Pair<DN, UpdateMsg> pair : snapshot)
+    {
+      // only put base DNs where a CSN is available in the cookie
+      if (pair.getSecond() != null)
+      {
+        cookie.update(pair.getFirst(), pair.getSecond().getCSN());
+      }
+    }
+    return cookie;
   }
 }

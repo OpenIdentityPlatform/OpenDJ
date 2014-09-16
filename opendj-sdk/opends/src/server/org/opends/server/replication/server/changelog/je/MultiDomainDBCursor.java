@@ -47,6 +47,8 @@ public class MultiDomainDBCursor extends CompositeDBCursor<DN>
   private final ConcurrentSkipListMap<DN, ServerState> newDomains =
       new ConcurrentSkipListMap<DN, ServerState>();
 
+  private final KeyMatchingStrategy matchingStrategy;
+
   private final PositionStrategy positionStrategy;
 
   /**
@@ -54,13 +56,16 @@ public class MultiDomainDBCursor extends CompositeDBCursor<DN>
    *
    * @param domainDB
    *          the replication domain management DB
+   * @param matchingStrategy
+   *          Cursor key matching strategy
    * @param positionStrategy
-   *          Cursor position strategy, which allow to indicates at which
-   *          exact position the cursor must start
+   *          Cursor position strategy
    */
-  public MultiDomainDBCursor(ReplicationDomainDB domainDB, PositionStrategy positionStrategy)
+  public MultiDomainDBCursor(final ReplicationDomainDB domainDB, final KeyMatchingStrategy matchingStrategy,
+      final PositionStrategy positionStrategy)
   {
     this.domainDB = domainDB;
+    this.matchingStrategy = matchingStrategy;
     this.positionStrategy = positionStrategy;
   }
 
@@ -75,8 +80,7 @@ public class MultiDomainDBCursor extends CompositeDBCursor<DN>
    */
   public void addDomain(DN baseDN, ServerState startAfterState)
   {
-    newDomains.put(baseDN,
-        startAfterState != null ? startAfterState : new ServerState());
+    newDomains.put(baseDN, startAfterState != null ? startAfterState : new ServerState());
   }
 
   /** {@inheritDoc} */
@@ -89,7 +93,8 @@ public class MultiDomainDBCursor extends CompositeDBCursor<DN>
       final Entry<DN, ServerState> entry = iter.next();
       final DN baseDN = entry.getKey();
       final ServerState serverState = entry.getValue();
-      final DBCursor<UpdateMsg> domainDBCursor = domainDB.getCursorFrom(baseDN, serverState, positionStrategy);
+      final DBCursor<UpdateMsg> domainDBCursor =
+          domainDB.getCursorFrom(baseDN, serverState, matchingStrategy, positionStrategy);
       addCursor(domainDBCursor, baseDN);
       iter.remove();
     }

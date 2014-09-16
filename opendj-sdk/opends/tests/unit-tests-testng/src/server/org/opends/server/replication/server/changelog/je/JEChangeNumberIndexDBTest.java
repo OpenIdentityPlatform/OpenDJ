@@ -58,7 +58,6 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
 {
   private final MultiDomainServerState previousCookie =
       new MultiDomainServerState();
-  private final List<String> cookies = new ArrayList<String>();
 
   private static final ReplicationDBImplementation previousDBImpl = replicationDbImplementation;
 
@@ -72,13 +71,6 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
   public void resetDBImplToPrevious()
   {
     setReplicationDBImplementation(previousDBImpl);
-  }
-
-  @BeforeMethod
-  public void clearCookie()
-  {
-    previousCookie.clear();
-    cookies.clear();
   }
 
   /**
@@ -124,11 +116,11 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
       try
       {
         assertTrue(cursor.next());
-        assertEqualTo(cursor.getRecord(), csns[0], baseDN1, cookies.get(0));
+        assertEqualTo(cursor.getRecord(), csns[0], baseDN1);
         assertTrue(cursor.next());
-        assertEqualTo(cursor.getRecord(), csns[1], baseDN2, cookies.get(1));
+        assertEqualTo(cursor.getRecord(), csns[1], baseDN2);
         assertTrue(cursor.next());
-        assertEqualTo(cursor.getRecord(), csns[2], baseDN3, cookies.get(2));
+        assertEqualTo(cursor.getRecord(), csns[2], baseDN3);
         assertFalse(cursor.next());
       }
       finally
@@ -154,19 +146,13 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
 
   private long addRecord(JEChangeNumberIndexDB cnIndexDB, DN baseDN, CSN csn) throws ChangelogException
   {
-    final String cookie = previousCookie.toString();
-    cookies.add(cookie);
-    final long changeNumber = cnIndexDB.addRecord(
-        new ChangeNumberIndexRecord(cookie, baseDN, csn));
-    previousCookie.update(baseDN, csn);
-    return changeNumber;
+    return cnIndexDB.addRecord(new ChangeNumberIndexRecord(baseDN, csn));
   }
 
-  private void assertEqualTo(ChangeNumberIndexRecord record, CSN csn, DN baseDN, String cookie)
+  private void assertEqualTo(ChangeNumberIndexRecord record, CSN csn, DN baseDN)
   {
     assertEquals(record.getCSN(), csn);
     assertEquals(record.getBaseDN(), baseDN);
-    assertEquals(record.getPreviousCookie(), cookie);
   }
 
   private JEChangeNumberIndexDB getCNIndexDB(ReplicationServer rs) throws ChangelogException
@@ -220,10 +206,6 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
       assertEquals(cnIndexDB.count(), 3, "Db count");
       assertFalse(cnIndexDB.isEmpty());
 
-      assertEquals(getPreviousCookie(cnIndexDB, cn1), cookies.get(0));
-      assertEquals(getPreviousCookie(cnIndexDB, cn2), cookies.get(1));
-      assertEquals(getPreviousCookie(cnIndexDB, cn3), cookies.get(2));
-
       DBCursor<ChangeNumberIndexRecord> cursor = cnIndexDB.getCursorFrom(cn1);
       assertCursorReadsInOrder(cursor, cn1, cn2, cn3);
 
@@ -262,7 +244,6 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
     final ChangeNumberIndexRecord newest = cnIndexDB.getNewestRecord();
     assertEquals(oldest.getChangeNumber(), newestChangeNumber);
     assertEquals(oldest.getChangeNumber(), newest.getChangeNumber());
-    assertEquals(oldest.getPreviousCookie(), newest.getPreviousCookie());
     assertEquals(oldest.getBaseDN(), newest.getBaseDN());
     assertEquals(oldest.getCSN(), newest.getCSN());
   }
@@ -275,21 +256,6 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
         new ReplServerFakeConfiguration(port, null, ReplicationDBImplementation.JE, 0, 2, 0, 100, null);
     cfg.setComputeChangeNumber(true);
     return new ReplicationServer(cfg);
-  }
-
-  private String getPreviousCookie(JEChangeNumberIndexDB cnIndexDB,
-      long changeNumber) throws Exception
-  {
-    DBCursor<ChangeNumberIndexRecord> cursor = cnIndexDB.getCursorFrom(changeNumber);
-    try
-    {
-      cursor.next();
-      return cursor.getRecord().getPreviousCookie();
-    }
-    finally
-    {
-      StaticUtils.close(cursor);
-    }
   }
 
   private void assertCursorReadsInOrder(DBCursor<ChangeNumberIndexRecord> cursor,

@@ -50,6 +50,7 @@ import com.forgerock.opendj.util.Pair;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
+import static org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingStrategy.*;
 import static org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy.*;
 
 /**
@@ -134,7 +135,6 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
   private Map<DN, ServerState> domainNewestCSNs;
   private ECLEnabledDomainPredicate predicate;
   private ChangeNumberIndexer cnIndexer;
-  private MultiDomainServerState initialCookie;
 
   @BeforeClass
   public static void classSetup() throws Exception
@@ -156,17 +156,16 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
   {
     MockitoAnnotations.initMocks(this);
 
-    multiDomainCursor = new MultiDomainDBCursor(domainDB, AFTER_MATCHING_KEY);
+    multiDomainCursor = new MultiDomainDBCursor(domainDB, LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY);
     initialState = new ChangelogState();
-    initialCookie = new MultiDomainServerState();
     replicaDBCursors = new HashMap<Pair<DN, Integer>, SequentialDBCursor>();
     domainDBCursors = new HashMap<DN, DomainDBCursor>();
     domainNewestCSNs = new HashMap<DN, ServerState>();
 
     when(changelogDB.getChangeNumberIndexDB()).thenReturn(cnIndexDB);
     when(changelogDB.getReplicationDomainDB()).thenReturn(domainDB);
-    when(domainDB.getCursorFrom(any(MultiDomainServerState.class), eq(AFTER_MATCHING_KEY)))
-      .thenReturn(multiDomainCursor);
+    when(domainDB.getCursorFrom(any(MultiDomainServerState.class),
+        eq(LESS_THAN_OR_EQUAL_TO_KEY), eq(AFTER_MATCHING_KEY))).thenReturn(multiDomainCursor);
   }
 
   @AfterMethod
@@ -175,18 +174,18 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
     stopCNIndexer();
   }
 
-  private static final String EMPTY_DB_NO_DS = "emptyDBNoDS";
+  private static final String NO_DS = "noDS";
 
   @Test
-  public void emptyDBNoDS() throws Exception
+  public void noDS() throws Exception
   {
     eclEnabledDomains = Arrays.asList(BASE_DN1);
     startCNIndexer();
     assertExternalChangelogContent();
   }
 
-  @Test(dependsOnMethods = { EMPTY_DB_NO_DS })
-  public void emptyDBOneDS() throws Exception
+  @Test(dependsOnMethods = { NO_DS })
+  public void oneDS() throws Exception
   {
     eclEnabledDomains = Arrays.asList(BASE_DN1);
     addReplica(BASE_DN1, serverId1);
@@ -198,23 +197,8 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
     assertExternalChangelogContent(msg1);
   }
 
-  @Test(dependsOnMethods = { EMPTY_DB_NO_DS })
-  public void nonEmptyDBOneDS() throws Exception
-  {
-    eclEnabledDomains = Arrays.asList(BASE_DN1);
-    final ReplicatedUpdateMsg msg1 = msg(BASE_DN1, serverId1, 1);
-    addReplica(BASE_DN1, serverId1);
-    setCNIndexDBInitialRecords(msg1);
-    startCNIndexer();
-    assertExternalChangelogContent();
-
-    final ReplicatedUpdateMsg msg2 = msg(BASE_DN1, serverId1, 2);
-    publishUpdateMsg(msg2);
-    assertExternalChangelogContent(msg2);
-  }
-
-  @Test(dependsOnMethods = { EMPTY_DB_NO_DS })
-  public void emptyDBTwoDSs() throws Exception
+  @Test(dependsOnMethods = { NO_DS })
+  public void twoDSs() throws Exception
   {
     eclEnabledDomains = Arrays.asList(BASE_DN1);
     addReplica(BASE_DN1, serverId1);
@@ -232,8 +216,8 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
     assertExternalChangelogContent(msg1);
   }
 
-  @Test(dependsOnMethods = { EMPTY_DB_NO_DS })
-  public void emptyDBTwoDSsDifferentDomains() throws Exception
+  @Test(dependsOnMethods = { NO_DS })
+  public void twoDSsDifferentDomains() throws Exception
   {
     eclEnabledDomains = Arrays.asList(BASE_DN1, BASE_DN2);
     addReplica(BASE_DN1, serverId1);
@@ -268,8 +252,8 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
    * CompositeDBCursor currentRecord == Upd2.<li>
    * </ol>
    */
-  @Test(dependsOnMethods = { EMPTY_DB_NO_DS })
-  public void emptyDBTwoDSsDoesNotLoseChanges() throws Exception
+  @Test(dependsOnMethods = { NO_DS })
+  public void twoDSsDoesNotLoseChanges() throws Exception
   {
     eclEnabledDomains = Arrays.asList(BASE_DN1);
     addReplica(BASE_DN1, serverId1);
@@ -297,34 +281,8 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
     assertExternalChangelogContent(msg1, msg2, msg3);
   }
 
-  @Test(dependsOnMethods = { EMPTY_DB_NO_DS })
-  public void nonEmptyDBTwoDSs() throws Exception
-  {
-    eclEnabledDomains = Arrays.asList(BASE_DN1);
-    final ReplicatedUpdateMsg msg1 = msg(BASE_DN1, serverId1, 1);
-    final ReplicatedUpdateMsg msg2 = msg(BASE_DN1, serverId2, 2);
-    addReplica(BASE_DN1, serverId1);
-    addReplica(BASE_DN1, serverId2);
-    setCNIndexDBInitialRecords(msg1, msg2);
-    startCNIndexer();
-    assertExternalChangelogContent();
-
-    final ReplicatedUpdateMsg msg3 = msg(BASE_DN1, serverId2, 3);
-    final ReplicatedUpdateMsg msg4 = msg(BASE_DN1, serverId1, 4);
-    publishUpdateMsg(msg3, msg4);
-    assertExternalChangelogContent(msg3);
-
-    final ReplicatedUpdateMsg msg5 = msg(BASE_DN1, serverId1, 5);
-    publishUpdateMsg(msg5);
-    assertExternalChangelogContent(msg3);
-
-    final ReplicatedUpdateMsg msg6 = msg(BASE_DN1, serverId2, 6);
-    publishUpdateMsg(msg6);
-    assertExternalChangelogContent(msg3, msg4, msg5);
-  }
-
-  @Test(dependsOnMethods = { EMPTY_DB_NO_DS })
-  public void emptyDBTwoDSsOneSendsNoUpdatesForSomeTime() throws Exception
+  @Test(dependsOnMethods = { NO_DS })
+  public void twoDSsOneSendsNoUpdatesForSomeTime() throws Exception
   {
     eclEnabledDomains = Arrays.asList(BASE_DN1);
     addReplica(BASE_DN1, serverId1);
@@ -341,8 +299,8 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
     assertExternalChangelogContent(msg1Sid2, msg2Sid1);
   }
 
-  @Test(dependsOnMethods = { EMPTY_DB_NO_DS })
-  public void emptyDBThreeDSsOneIsNotECLEnabledDomain() throws Exception
+  @Test(dependsOnMethods = { NO_DS })
+  public void threeDSsOneIsNotECLEnabledDomain() throws Exception
   {
     eclEnabledDomains = Arrays.asList(BASE_DN1);
     addReplica(ADMIN_DATA_DN, serverId1);
@@ -363,8 +321,8 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
     assertExternalChangelogContent(msg2);
   }
 
-  @Test(dependsOnMethods = { EMPTY_DB_NO_DS })
-  public void emptyDBOneInitialDSAnotherDSJoining() throws Exception
+  @Test(dependsOnMethods = { NO_DS })
+  public void oneInitialDSAnotherDSJoining() throws Exception
   {
     eclEnabledDomains = Arrays.asList(BASE_DN1);
     addReplica(BASE_DN1, serverId1);
@@ -385,8 +343,8 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
     assertExternalChangelogContent(msg1, msg2);
   }
 
-  @Test(dependsOnMethods = { EMPTY_DB_NO_DS })
-  public void emptyDBOneInitialDSAnotherDSJoining2() throws Exception
+  @Test(dependsOnMethods = { NO_DS })
+  public void oneInitialDSAnotherDSJoining2() throws Exception
   {
     eclEnabledDomains = Arrays.asList(BASE_DN1);
     addReplica(BASE_DN1, serverId1);
@@ -405,8 +363,8 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
     assertExternalChangelogContent(msg1, msg2);
   }
 
-  @Test(dependsOnMethods = { EMPTY_DB_NO_DS })
-  public void emptyDBTwoDSsOneSendingHeartbeats() throws Exception
+  @Test(dependsOnMethods = { NO_DS })
+  public void twoDSsOneSendingHeartbeats() throws Exception
   {
     eclEnabledDomains = Arrays.asList(BASE_DN1);
     addReplica(BASE_DN1, serverId1);
@@ -423,8 +381,8 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
     assertExternalChangelogContent(msg1, msg2);
   }
 
-  @Test(dependsOnMethods = { EMPTY_DB_NO_DS })
-  public void emptyDBTwoDSsOneGoingOffline() throws Exception
+  @Test(dependsOnMethods = { NO_DS })
+  public void twoDSsOneGoingOffline() throws Exception
   {
     eclEnabledDomains = Arrays.asList(BASE_DN1);
     addReplica(BASE_DN1, serverId1);
@@ -457,8 +415,8 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
     assertExternalChangelogContent(msg1, msg2, msg4, msg5);
   }
 
-  @Test(dependsOnMethods = { EMPTY_DB_NO_DS })
-  public void emptyDBTwoDSsOneInitiallyOffline() throws Exception
+  @Test(dependsOnMethods = { NO_DS })
+  public void twoDSsOneInitiallyOffline() throws Exception
   {
     eclEnabledDomains = Arrays.asList(BASE_DN1);
     addReplica(BASE_DN1, serverId1);
@@ -491,8 +449,8 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
    * <li>RS starts</li>
    * </ol>
    */
-  @Test(dependsOnMethods = { EMPTY_DB_NO_DS })
-  public void emptyDBTwoDSsOneInitiallyWithChangesThenOffline() throws Exception
+  @Test(dependsOnMethods = { NO_DS })
+  public void twoDSsOneInitiallyWithChangesThenOffline() throws Exception
   {
     eclEnabledDomains = Arrays.asList(BASE_DN1);
     addReplica(BASE_DN1, serverId1);
@@ -536,8 +494,8 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
    * <li>RS starts</li>
    * </ol>
    */
-  @Test(dependsOnMethods = { EMPTY_DB_NO_DS })
-  public void emptyDBTwoDSsOneInitiallyPersistedOfflineThenChanges() throws Exception
+  @Test(dependsOnMethods = { NO_DS })
+  public void twoDSsOneInitiallyPersistedOfflineThenChanges() throws Exception
   {
     eclEnabledDomains = Arrays.asList(BASE_DN1);
     addReplica(BASE_DN1, serverId1);
@@ -560,8 +518,8 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
     assertExternalChangelogContent(msg2, msg3, msg4);
   }
 
-  @Test(dependsOnMethods = { EMPTY_DB_NO_DS })
-  public void emptyDBTwoDSsOneKilled() throws Exception
+  @Test(dependsOnMethods = { NO_DS })
+  public void twoDSsOneKilled() throws Exception
   {
     eclEnabledDomains = Arrays.asList(BASE_DN1);
     addReplica(BASE_DN1, serverId1);
@@ -594,16 +552,16 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
       DomainDBCursor domainDBCursor = domainDBCursors.get(baseDN);
       if (domainDBCursor == null)
       {
-        domainDBCursor = new DomainDBCursor(baseDN, domainDB, AFTER_MATCHING_KEY);
+        domainDBCursor = new DomainDBCursor(baseDN, domainDB, LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY);
         domainDBCursors.put(baseDN, domainDBCursor);
 
         multiDomainCursor.addDomain(baseDN, null);
-        when(domainDB.getCursorFrom(eq(baseDN), any(ServerState.class), eq(AFTER_MATCHING_KEY)))
-            .thenReturn(domainDBCursor);
+        when(domainDB.getCursorFrom(eq(baseDN), any(ServerState.class), eq(LESS_THAN_OR_EQUAL_TO_KEY),
+            eq(AFTER_MATCHING_KEY))).thenReturn(domainDBCursor);
       }
       domainDBCursor.addReplicaDB(serverId, null);
-      when(domainDB.getCursorFrom(eq(baseDN), eq(serverId), any(CSN.class), eq(AFTER_MATCHING_KEY)))
-          .thenReturn(replicaDBCursor);
+      when(domainDB.getCursorFrom(eq(baseDN), eq(serverId), any(CSN.class), eq(LESS_THAN_OR_EQUAL_TO_KEY),
+          eq(AFTER_MATCHING_KEY))).thenReturn(replicaDBCursor);
     }
 
     when(domainDB.getDomainNewestCSNs(baseDN)).thenReturn(
@@ -637,7 +595,7 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
       /** {@inheritDoc} */
       @Override
       protected void notifyEntryAddedToChangelog(DN baseDN, long changeNumber,
-          String previousCookie, UpdateMsg msg) throws ChangelogException
+          MultiDomainServerState previousCookie, UpdateMsg msg) throws ChangelogException
       {
         // avoid problems with ChangelogBackend initialization
       }
@@ -664,28 +622,6 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
   private ReplicatedUpdateMsg emptyCursor(DN baseDN, int serverId)
   {
     return new ReplicatedUpdateMsg(baseDN, new CSN(0, 0, serverId), true);
-  }
-
-  private void setCNIndexDBInitialRecords(ReplicatedUpdateMsg... msgs) throws Exception
-  {
-    // Initialize the previous cookie that will be used to compare the records
-    // added to the CNIndexDB at the end of this test
-    for (int i = 0; i < msgs.length; i++)
-    {
-      ReplicatedUpdateMsg msg = msgs[i];
-      if (i + 1 == msgs.length)
-      {
-        final ReplicatedUpdateMsg newestMsg = msg;
-        final DN baseDN = newestMsg.getBaseDN();
-        final CSN csn = newestMsg.getCSN();
-        when(cnIndexDB.getNewestRecord()).thenReturn(
-            new ChangeNumberIndexRecord(initialCookie.toString(), baseDN, csn));
-        final SequentialDBCursor cursor =
-            replicaDBCursors.get(Pair.of(baseDN, csn.getServerId()));
-        cursor.add(newestMsg);
-      }
-      initialCookie.update(msg.getBaseDN(), msg.getCSN());
-    }
   }
 
   private void publishUpdateMsg(ReplicatedUpdateMsg... msgs) throws Exception
@@ -763,9 +699,6 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
     verify(cnIndexDB, atLeast(0)).addRecord(arg.capture());
     final List<ChangeNumberIndexRecord> allValues = arg.getAllValues();
 
-    // clone initial state to avoid modifying it
-    final MultiDomainServerState previousCookie =
-        new MultiDomainServerState(initialCookie.toString());
     // check it was not called more than expected
     String desc1 = "actual was:<" + allValues + ">, but expected was:<" + Arrays.toString(expectedMsgs) + ">";
     assertThat(allValues).as(desc1).hasSize(expectedMsgs.length);
@@ -777,8 +710,6 @@ public class ChangeNumberIndexerTest extends DirectoryServerTestCase
       String desc2 = "actual was:<" + record + ">, but expected was:<" + expectedMsg + ">";
       assertThat(record.getBaseDN()).as(desc2).isEqualTo(expectedMsg.getBaseDN());
       assertThat(record.getCSN()).as(desc2).isEqualTo(expectedMsg.getCSN());
-      assertThat(record.getPreviousCookie()).as(desc2).isEqualTo(previousCookie.toString());
-      previousCookie.update(expectedMsg.getBaseDN(), expectedMsg.getCSN());
     }
   }
 

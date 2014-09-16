@@ -32,6 +32,7 @@ import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
 import org.opends.server.replication.server.changelog.je.ReplicationDB.ReplServerDBCursor;
 
+import static org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingStrategy.*;
 import static org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy.*;
 
 /**
@@ -42,8 +43,10 @@ import static org.opends.server.replication.server.changelog.api.DBCursor.Positi
 class JEReplicaDBCursor implements DBCursor<UpdateMsg>
 {
   private final ReplicationDB db;
-  private final PositionStrategy positionStrategy;
+  private PositionStrategy positionStrategy;
+  private KeyMatchingStrategy matchingStrategy;
   private JEReplicaDB replicaDB;
+  private final CSN startCSN;
   private CSN lastNonNullCurrentCSN;
   private ReplServerDBCursor cursor;
   private UpdateMsg currentChange;
@@ -57,19 +60,23 @@ class JEReplicaDBCursor implements DBCursor<UpdateMsg>
    * @param startCSN
    *          The CSN after which the cursor must start.If null, start from the
    *          oldest CSN
+   * @param matchingStrategy
+   *          Cursor key matching strategy
    * @param positionStrategy
-   *          indicates at which exact position the cursor must start
+   *          Cursor position strategy
    * @param replicaDB
    *          The associated JEReplicaDB.
    * @throws ChangelogException
    *          if a database problem happened.
    */
-  public JEReplicaDBCursor(ReplicationDB db, CSN startCSN, PositionStrategy positionStrategy,
-      JEReplicaDB replicaDB) throws ChangelogException
+  public JEReplicaDBCursor(ReplicationDB db, CSN startCSN, KeyMatchingStrategy matchingStrategy,
+      PositionStrategy positionStrategy, JEReplicaDB replicaDB) throws ChangelogException
   {
     this.db = db;
+    this.matchingStrategy = matchingStrategy;
     this.positionStrategy = positionStrategy;
     this.replicaDB = replicaDB;
+    this.startCSN = startCSN;
     this.lastNonNullCurrentCSN = startCSN;
   }
 
@@ -94,7 +101,13 @@ class JEReplicaDBCursor implements DBCursor<UpdateMsg>
         // if following code is called while the cursor is closed.
         // It is better to let the deadlock happen to help quickly identifying
         // and fixing such issue with unit tests.
-        cursor = db.openReadCursor(lastNonNullCurrentCSN, positionStrategy);
+        if (lastNonNullCurrentCSN != startCSN)
+        {
+          // re-initialize to further CSN, take care to use appropriate strategies
+          matchingStrategy = GREATER_THAN_OR_EQUAL_TO_KEY;
+          positionStrategy = AFTER_MATCHING_KEY;
+        }
+        cursor = db.openReadCursor(lastNonNullCurrentCSN, matchingStrategy, positionStrategy);
       }
     }
 
