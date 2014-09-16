@@ -45,6 +45,7 @@ import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
+import org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingStrategy;
 import org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DN;
@@ -55,6 +56,7 @@ import org.testng.annotations.Test;
 import static org.assertj.core.api.Assertions.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingStrategy.*;
 import static org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
@@ -236,7 +238,8 @@ public class FileReplicaDBTest extends ReplicationTestCase
 
       CSN[] csns = generateCSNs(1, System.currentTimeMillis(), 5);
 
-      cursor = replicaDB.generateCursorFrom(csns[csnIndexForStartKey], AFTER_MATCHING_KEY);
+      cursor = replicaDB.generateCursorFrom(csns[csnIndexForStartKey],
+          GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY);
       assertFalse(cursor.next());
 
       int[] indicesToAdd = new int[] { 0, 1, 2, 4 };
@@ -353,7 +356,7 @@ public class FileReplicaDBTest extends ReplicationTestCase
       final PositionStrategy positionStrategy, final CSN expectedCSN)
       throws ChangelogException
   {
-    DBCursor<UpdateMsg> cursor = replicaDB.generateCursorFrom(startCSN, positionStrategy);
+    DBCursor<UpdateMsg> cursor = replicaDB.generateCursorFrom(startCSN, GREATER_THAN_OR_EQUAL_TO_KEY, positionStrategy);
     try
     {
       final SoftAssertions softly = new SoftAssertions();
@@ -370,7 +373,7 @@ public class FileReplicaDBTest extends ReplicationTestCase
   private void assertNotFound(FileReplicaDB replicaDB, final CSN startCSN,
       final PositionStrategy positionStrategy) throws ChangelogException
   {
-    DBCursor<UpdateMsg> cursor = replicaDB.generateCursorFrom(startCSN, positionStrategy);
+    DBCursor<UpdateMsg> cursor = replicaDB.generateCursorFrom(startCSN, GREATER_THAN_OR_EQUAL_TO_KEY, positionStrategy);
     try
     {
       final SoftAssertions softly = new SoftAssertions();
@@ -577,7 +580,7 @@ public class FileReplicaDBTest extends ReplicationTestCase
   private void assertFoundInOrder(FileReplicaDB replicaDB,
       final PositionStrategy positionStrategy, CSN... csns) throws ChangelogException
   {
-    DBCursor<UpdateMsg> cursor = replicaDB.generateCursorFrom(csns[0], positionStrategy);
+    DBCursor<UpdateMsg> cursor = replicaDB.generateCursorFrom(csns[0], GREATER_THAN_OR_EQUAL_TO_KEY, positionStrategy);
     try
     {
       assertNull(cursor.getRecord(), "Cursor should point to a null record initially");

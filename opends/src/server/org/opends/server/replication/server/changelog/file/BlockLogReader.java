@@ -449,52 +449,97 @@ class BlockLogReader<K extends Comparable<K>, V> implements Closeable
   }
 
   /**
-   * Position to provided key, starting from provided block start position and
-   * reading sequentially until key is found according to matching and
-   * positioning strategies.
+   * Position before, at or after provided key, starting from provided block
+   * start position and reading sequentially until key is found according to
+   * matching and positioning strategies.
    *
    * @param blockStartPosition
    *          Position of read pointer in the file, expected to be the start of
-   *          a block where a record offset is written.
+   *          a block where a record offset is written
    * @param key
-   *          The key to find.
+   *          The key to find
    * @param matchStrategy
-   *          The key matching strategy.
+   *          The key matching strategy
    * @param positionStrategy
-   *          The positioning strategy.
-   * @return The pair ({@code true}, last record read) if reader is successfully
-   *         positioned (last record may be null if end of file is reached), (
-   *         {@code false}, null) otherwise.
+   *          The positioning strategy
+   * @return The pair ({@code true}, selected record) if reader is successfully
+   *         positioned (selected record may be null if end of file is reached),
+   *         ({@code false}, null) otherwise.
    * @throws ChangelogException
    *           If an error occurs.
    */
-   Pair<Boolean, Record<K,V>> positionToKeySequentially(
-       final long blockStartPosition,
-       final K key,
-       final KeyMatchingStrategy matchStrategy,
-       final PositionStrategy positionStrategy)
-       throws ChangelogException {
+   Pair<Boolean, Record<K,V>> positionToKeySequentially(final long blockStartPosition, final K key,
+       final KeyMatchingStrategy matchStrategy, final PositionStrategy positionStrategy) throws ChangelogException
+   {
     Record<K,V> record = readRecord(blockStartPosition);
-    do {
-      if (record != null)
+    Record<K,V> previousRecord = null;
+    long previousPosition = blockStartPosition;
+    boolean matchingKeyIsLowerThanAnyRecord = true;
+    while (record != null)
+    {
+      final int keysComparison = record.getKey().compareTo(key);
+      if (keysComparison <= 0)
       {
-        final int keysComparison = record.getKey().compareTo(key);
-        final boolean matches = (matchStrategy == EQUAL_TO_KEY && keysComparison == 0)
-            || (matchStrategy == GREATER_THAN_OR_EQUAL_TO_KEY && keysComparison >= 0);
-        if (matches)
-        {
-          if (positionStrategy == AFTER_MATCHING_KEY && keysComparison == 0)
-          {
-            // skip matching key
-            record = readRecord();
-          }
-          return Pair.of(true, record);
-        }
+        matchingKeyIsLowerThanAnyRecord = false;
       }
+      if ((keysComparison == 0 && matchStrategy == EQUAL_TO_KEY)
+          || (keysComparison >= 0 && matchStrategy != EQUAL_TO_KEY))
+      {
+        return getMatchingRecord(matchStrategy, positionStrategy, keysComparison, matchingKeyIsLowerThanAnyRecord,
+            record, previousRecord, previousPosition);
+      }
+      previousRecord = record;
+      previousPosition = getFilePosition();
       record = readRecord();
     }
-    while (record != null);
+
+    if (matchStrategy == LESS_THAN_OR_EQUAL_TO_KEY)
+    {
+      return getRecordNoMatchForLessStrategy(positionStrategy, previousRecord, previousPosition);
+    }
     return Pair.of(false, null);
+  }
+
+  private Pair<Boolean,Record<K,V>> getMatchingRecord(KeyMatchingStrategy matchStrategy,
+      PositionStrategy positionStrategy, int keysComparison, boolean matchKeyIsLowerThanAnyRecord,
+      Record<K, V> currentRecord, Record<K, V> previousRecord, long previousPosition)
+          throws ChangelogException
+  {
+    Record<K, V> record = currentRecord;
+
+    if (positionStrategy == AFTER_MATCHING_KEY)
+    {
+      if (matchStrategy == LESS_THAN_OR_EQUAL_TO_KEY && matchKeyIsLowerThanAnyRecord)
+      {
+        return Pair.of(false, null);
+      }
+      if (keysComparison == 0)
+      {
+        // skip matching key
+        record = readRecord();
+      }
+    }
+    else if (positionStrategy == ON_MATCHING_KEY && matchStrategy == LESS_THAN_OR_EQUAL_TO_KEY && keysComparison > 0)
+    {
+      seekToPosition(previousPosition);
+      return Pair.of(previousRecord != null, previousRecord);
+    }
+    return Pair.of(true, record);
+  }
+
+  private Pair<Boolean, Record<K, V>> getRecordNoMatchForLessStrategy(
+      final PositionStrategy positionStrategy, final Record<K, V> previousRecord, final long previousPosition)
+          throws ChangelogException
+  {
+    if (positionStrategy == ON_MATCHING_KEY)
+    {
+      seekToPosition(previousPosition);
+      return Pair.of(previousRecord != null, previousRecord);
+    }
+    else
+    {
+      return Pair.of(true, null);
+    }
   }
 
   /**

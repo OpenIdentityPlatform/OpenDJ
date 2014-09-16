@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS
+ *      Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.replication.server.changelog.api;
 
@@ -38,8 +38,6 @@ public final class ChangeNumberIndexRecord
 
   /** This is the key used to store this record. */
   private final long changeNumber;
-  /** This is used on startup to recover the medium consistency point. */
-  private final String previousCookie;
   /** The baseDN where the change happened. */
   private final DN baseDN;
   /** The CSN of the change. */
@@ -50,36 +48,30 @@ public final class ChangeNumberIndexRecord
    *
    * @param changeNumber
    *          the change number
-   * @param previousCookie
-   *          the previous cookie
    * @param baseDN
    *          the baseDN
    * @param csn
    *          the replication CSN field
    */
-  public ChangeNumberIndexRecord(long changeNumber, String previousCookie,
-      DN baseDN, CSN csn)
+  public ChangeNumberIndexRecord(long changeNumber, DN baseDN, CSN csn)
   {
     this.changeNumber = changeNumber;
-    this.previousCookie = previousCookie;
     this.baseDN = baseDN;
     this.csn = csn;
   }
 
   /**
    * Builds an instance of this class, with changeNumber equal to 0.
-   *
-   * @param previousCookie
-   *          the previous cookie
    * @param baseDN
    *          the baseDN
    * @param csn
    *          the replication CSN field
-   * @see #ChangeNumberIndexRecord(long, String, DN, CSN)
+   *
+   * @see #ChangeNumberIndexRecord(long, DN, CSN)
    */
-  public ChangeNumberIndexRecord(String previousCookie, DN baseDN, CSN csn)
+  public ChangeNumberIndexRecord(DN baseDN, CSN csn)
   {
-    this(0, previousCookie, baseDN, csn);
+    this(0, baseDN, csn);
   }
 
   /**
@@ -112,21 +104,10 @@ public final class ChangeNumberIndexRecord
     return changeNumber;
   }
 
-  /**
-   * Get the previous cookie field.
-   *
-   * @return the previous cookie.
-   */
-  public String getPreviousCookie()
-  {
-    return previousCookie;
-  }
-
   /** {@inheritDoc} */
   @Override
   public String toString()
   {
-    return "changeNumber=" + changeNumber + " csn=" + csn + " baseDN=" + baseDN
-        + " previousCookie=" + previousCookie;
+    return "changeNumber=" + changeNumber + " csn=" + csn + " baseDN=" + baseDN;
   }
 }

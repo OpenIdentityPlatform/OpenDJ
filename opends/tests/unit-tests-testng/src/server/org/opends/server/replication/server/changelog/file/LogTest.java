@@ -26,6 +26,7 @@
 package org.opends.server.replication.server.changelog.file;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingStrategy.*;
 import static org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy.*;
 import static org.opends.server.replication.server.changelog.file.LogFileTest.*;
 
@@ -36,6 +37,8 @@ import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
+import org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingStrategy;
+import org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy;
 import org.opends.server.replication.server.changelog.file.LogFileTest.FailingStringRecordParser;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.BeforeMethod;
@@ -144,38 +147,84 @@ public class LogTest extends DirectoryServerTestCase
     }
   }
 
-  @Test
-  public void testNearestCursorWhenGivenAnExistingKey() throws Exception
+  @DataProvider
+  Object[][] cursorData()
   {
-    Log<String, String> log = openLog(LogFileTest.RECORD_PARSER);
-    DBCursor<Record<String, String>> cursor1 = null, cursor2 = null, cursor3 = null;
-    try {
-      // this key is the first key of the log file "key1_key2.log"
-      cursor1 = log.getNearestCursor("key001", AFTER_MATCHING_KEY);
-      assertThatCursorCanBeFullyReadFromStart(cursor1, 2, 10);
+    return new Object[][] {
+      // 3 first values are input data : key to position to, key matching strategy, position strategy,
+      // 2 last values are expected output :
+      //    first index of cursor (-1 if cursor should be exhausted), last index of cursor
+      { "key000", EQUAL_TO_KEY, ON_MATCHING_KEY, -1, -1 },
+      { "key001", EQUAL_TO_KEY, ON_MATCHING_KEY, 1, 10 },
+      { "key004", EQUAL_TO_KEY, ON_MATCHING_KEY, 4, 10 },
+      { "key0050", EQUAL_TO_KEY, ON_MATCHING_KEY, -1, -1 },
+      { "key009", EQUAL_TO_KEY, ON_MATCHING_KEY, 9, 10 },
+      { "key010", EQUAL_TO_KEY, ON_MATCHING_KEY, 10, 10 },
+      { "key011", EQUAL_TO_KEY, ON_MATCHING_KEY, -1, -1 },
 
-      // this key is the last key of the log file "key3_key4.log"
-      cursor2 = log.getNearestCursor("key004", AFTER_MATCHING_KEY);
-      assertThatCursorCanBeFullyReadFromStart(cursor2, 5, 10);
+      { "key000", EQUAL_TO_KEY, AFTER_MATCHING_KEY, -1, -1 },
+      { "key001", EQUAL_TO_KEY, AFTER_MATCHING_KEY, 2, 10 },
+      { "key004", EQUAL_TO_KEY, AFTER_MATCHING_KEY, 5, 10 },
+      { "key0050", EQUAL_TO_KEY, AFTER_MATCHING_KEY, -1, -1 },
+      { "key009", EQUAL_TO_KEY, AFTER_MATCHING_KEY, 10, 10 },
+      { "key010", EQUAL_TO_KEY, AFTER_MATCHING_KEY, -1, -1 },
+      { "key011", EQUAL_TO_KEY, AFTER_MATCHING_KEY, -1, -1 },
 
-      cursor3 = log.getNearestCursor("key009", AFTER_MATCHING_KEY);
-      assertThatCursorCanBeFullyReadFromStart(cursor3, 10, 10);
-    }
-    finally {
-      StaticUtils.close(cursor1, cursor2, cursor3, log);
-    }
+      { "key000", LESS_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, -1, -1 },
+      { "key001", LESS_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, 1, 10 },
+      { "key004", LESS_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, 4, 10 },
+      { "key005", LESS_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, 5, 10 },
+      { "key0050", LESS_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, 5, 10 },
+      { "key006", LESS_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, 6, 10 },
+      { "key009", LESS_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, 9, 10 },
+      { "key010", LESS_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, 10, 10 },
+      { "key011", LESS_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, 10, 10 },
+
+      { "key000", LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, -1, -1 },
+      { "key001", LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, 2, 10 },
+      { "key004", LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, 5, 10 },
+      { "key005", LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, 6, 10 },
+      { "key0050", LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, 6, 10 },
+      { "key006", LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, 7, 10 },
+      { "key009", LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, 10, 10 },
+      { "key010", LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, -1, -1 },
+      { "key011", LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, -1, -1 },
+
+      { "key000", GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, 1, 10 },
+      { "key001", GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, 1, 10 },
+      { "key004", GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, 4, 10 },
+      { "key0050", GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, 6, 10 },
+      { "key009", GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, 9, 10 },
+      { "key010", GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, 10, 10 },
+      { "key011", GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, -1, -1 },
+
+      { "key000", GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, 1, 10 },
+      { "key001", GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, 2, 10 },
+      { "key004", GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, 5, 10 },
+      { "key0050", GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, 6, 10 },
+      { "key009", GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, 10, 10 },
+      { "key010", GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, -1, -1 },
+      { "key011", GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, -1, -1 },
+    };
   }
 
-  @Test
-  public void testNearestCursorWhenGivenAnExistingKey_KeyIsTheLastOne() throws Exception
+  @Test(dataProvider="cursorData")
+  public void testCursorWithStrategies(String key, KeyMatchingStrategy matchingStrategy,
+      PositionStrategy positionStrategy, int cursorShouldStartAt, int cursorShouldEndAt) throws Exception
   {
     Log<String, String> log = openLog(LogFileTest.RECORD_PARSER);
     DBCursor<Record<String, String>> cursor = null;
     try {
-      cursor = log.getNearestCursor("key010", AFTER_MATCHING_KEY);
+      cursor = log.getCursor(key, matchingStrategy, positionStrategy);
 
-      // lowest higher key does not exist
-      assertThatCursorIsExhausted(cursor);
+      if (cursorShouldStartAt != -1)
+      {
+        assertThatCursorCanBeFullyReadFromStart(cursor, cursorShouldStartAt, cursorShouldEndAt);
+      }
+      else
+      {
+        assertThatCursorIsExhausted(cursor);
+      }
     }
     finally {
       StaticUtils.close(cursor, log);
@@ -183,28 +232,12 @@ public class LogTest extends DirectoryServerTestCase
   }
 
   @Test
-  public void testNearestCursorWhenGivenAnUnexistingKey() throws Exception
+  public void testCursorMatchingAnyPositioningAnyWhenGivenANullKey() throws Exception
   {
     Log<String, String> log = openLog(LogFileTest.RECORD_PARSER);
     DBCursor<Record<String, String>> cursor = null;
     try {
-      // key is between key005 and key006
-      cursor = log.getNearestCursor("key005000", AFTER_MATCHING_KEY);
-
-      assertThatCursorCanBeFullyReadFromStart(cursor, 6, 10);
-    }
-    finally {
-      StaticUtils.close(cursor, log);
-    }
-  }
-
-  @Test
-  public void testNearestCursorWhenGivenANullKey() throws Exception
-  {
-    Log<String, String> log = openLog(LogFileTest.RECORD_PARSER);
-    DBCursor<Record<String, String>> cursor = null;
-    try {
-      cursor = log.getNearestCursor(null, null);
+      cursor = log.getCursor(null, null, null);
 
       assertThatCursorCanBeFullyReadFromStart(cursor, 1, 10);
     }
@@ -453,23 +486,23 @@ public class LogTest extends DirectoryServerTestCase
     return new Object[][]
     {
       // lowest key of the read-only log file "key005_key006.log"
-      { "key005", Record.from("key005", "value5"), 6, 10},
+      { "key005", Record.from("key005", "value5"), 6, 10 },
       // key that is not the lowest of the read-only log file "key005_key006.log"
-      { "key006", Record.from("key005", "value5"), 6, 10},
+      { "key006", Record.from("key005", "value5"), 6, 10 },
       // lowest key of the ahead log file "ahead.log"
-      { "key009", Record.from("key009", "value9"), 10, 10},
+      { "key009", Record.from("key009", "value9"), 10, 10 },
       // key that is not the lowest of the ahead log file "ahead.log"
-      { "key010", Record.from("key009", "value9"), 10, 10},
+      { "key010", Record.from("key009", "value9"), 10, 10 },
 
       // key not present in log, which is between key005 and key006
-      { "key005a", Record.from("key005", "value5"), 6, 10},
+      { "key005a", Record.from("key005", "value5"), 6, 10 },
       // key not present in log, which is between key006 and key007
-      { "key006a", Record.from("key007", "value7"), 8, 10},
+      { "key006a", Record.from("key007", "value7"), 8, 10 },
       // key not present in log, which is lower than oldest key key001
-      { "key000", Record.from("key001", "value1"), 2, 10},
+      { "key000", Record.from("key001", "value1"), 2, 10 },
       // key not present in log, which is higher than newest key key010
       // should return the lowest key present in ahead log
-      { "key011", Record.from("key009", "value9"), 10, 10},
+      { "key011", Record.from("key009", "value9"), 10, 10 },
     };
   }
 
@@ -524,9 +557,9 @@ public class LogTest extends DirectoryServerTestCase
   /**
    * Read the cursor until exhaustion, beginning at start of cursor.
    */
-  private void assertThatCursorCanBeFullyReadFromStart(DBCursor<Record<String, String>> cursor, int fromIndex, int endIndex)
-      throws Exception
-      {
+  private void assertThatCursorCanBeFullyReadFromStart(DBCursor<Record<String, String>> cursor, int fromIndex,
+      int endIndex) throws Exception
+  {
     assertThat(cursor.getRecord()).isNull();
     assertThatCursorCanBeFullyRead(cursor, fromIndex, endIndex);
   }

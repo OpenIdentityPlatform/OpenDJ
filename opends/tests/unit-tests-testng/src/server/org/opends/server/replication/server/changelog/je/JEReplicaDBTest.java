@@ -30,6 +30,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import org.assertj.core.api.SoftAssertions;
 import org.opends.server.TestCaseUtils;
@@ -46,14 +47,18 @@ import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
+import org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingStrategy;
 import org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy;
 import org.opends.server.types.DN;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.assertj.core.api.Assertions.*;
 import static org.opends.server.TestCaseUtils.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
+import static org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingStrategy.*;
 import static org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy.*;
 import static org.opends.server.util.StaticUtils.*;
 import static org.testng.Assert.*;
@@ -69,6 +74,8 @@ public class JEReplicaDBTest extends ReplicationTestCase
   private DN TEST_ROOT_DN;
 
   private static final ReplicationDBImplementation previousDBImpl = replicationDbImplementation;
+  private ReplicationServer replicationServer;
+  private JEReplicaDB replicaDB;
 
   @BeforeClass
   public void setDBImpl()
@@ -100,47 +107,131 @@ public class JEReplicaDBTest extends ReplicationTestCase
     TEST_ROOT_DN = DN.decode(TEST_ROOT_DN_STRING);
   }
 
-  @Test
-  public void testGenerateCursorFrom() throws Exception
+  @DataProvider
+  Object[][] cursorData()
   {
-    ReplicationServer replicationServer = null;
-    JEReplicaDB replicaDB = null;
+    // create 7 csns
+    final CSN[] sevenCsns = generateCSNs(1, System.currentTimeMillis(), 7);
+    CSN beforeCsn = sevenCsns[0];
+    CSN middleCsn = sevenCsns[3]; // will be between csns[1] and csns[2]
+    CSN afterCsn = sevenCsns[6];
+
+    // but use only 4 of them for update msg
+    // beforeCsn, middleCsn and afterCsn are not used
+    // in order to test cursor generation from a key not present in the log (before, in the middle, after)
+    final List<CSN> usedCsns = new ArrayList<CSN>(Arrays.asList(sevenCsns));
+    usedCsns.remove(beforeCsn);
+    usedCsns.remove(middleCsn);
+    usedCsns.remove(afterCsn);
+    final CSN[] csns = usedCsns.toArray(new CSN[4]);
+
+    return new Object[][] {
+      // equal matching
+      { csns, beforeCsn, EQUAL_TO_KEY, ON_MATCHING_KEY, -1, -1 },
+      { csns, csns[0], EQUAL_TO_KEY, ON_MATCHING_KEY, 0, 3 },
+      { csns, csns[1], EQUAL_TO_KEY, ON_MATCHING_KEY, 1, 3 },
+      { csns, middleCsn, EQUAL_TO_KEY, ON_MATCHING_KEY, -1, -1 },
+      { csns, csns[2], EQUAL_TO_KEY, ON_MATCHING_KEY, 2, 3 },
+      { csns, csns[3], EQUAL_TO_KEY, ON_MATCHING_KEY, 3, 3 },
+      { csns, afterCsn, EQUAL_TO_KEY, ON_MATCHING_KEY, -1, -1 },
+
+      { csns, beforeCsn, EQUAL_TO_KEY, AFTER_MATCHING_KEY, -1, -1 },
+      { csns, csns[0], EQUAL_TO_KEY, AFTER_MATCHING_KEY, 1, 3 },
+      { csns, csns[1], EQUAL_TO_KEY, AFTER_MATCHING_KEY, 2, 3 },
+      { csns, middleCsn, EQUAL_TO_KEY, AFTER_MATCHING_KEY, -1, -1 },
+      { csns, csns[2], EQUAL_TO_KEY, AFTER_MATCHING_KEY, 3, 3 },
+      { csns, csns[3], EQUAL_TO_KEY, AFTER_MATCHING_KEY, -1, -1 },
+      { csns, afterCsn, EQUAL_TO_KEY, AFTER_MATCHING_KEY, -1, -1 },
+
+      // less than or equal matching
+      { csns, beforeCsn, LESS_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, -1, -1 },
+      { csns, csns[0], LESS_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, 0, 3 },
+      { csns, csns[1], LESS_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, 1, 3 },
+      { csns, middleCsn, LESS_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, 1, 3 },
+      { csns, csns[2], LESS_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, 2, 3 },
+      { csns, csns[3], LESS_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, 3, 3 },
+      { csns, afterCsn, LESS_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, 3, 3 },
+
+      { csns, beforeCsn, LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, -1, -1 },
+      { csns, csns[0], LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, 1, 3 },
+      { csns, csns[1], LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, 2, 3 },
+      { csns, middleCsn, LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, 2, 3 },
+      { csns, csns[2], LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, 3, 3 },
+      { csns, csns[3], LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, -1, -1 },
+      { csns, afterCsn, LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, -1, -1 },
+
+      // greater than or equal matching
+      { csns, beforeCsn, GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, 0, 3 },
+      { csns, csns[0], GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, 0, 3 },
+      { csns, csns[1], GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, 1, 3 },
+      { csns, middleCsn, GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, 2, 3 },
+      { csns, csns[2], GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, 2, 3 },
+      { csns, csns[3], GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, 3, 3 },
+      { csns, afterCsn, GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, -1, -1 },
+
+      { csns, beforeCsn, GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, 0, 3 },
+      { csns, csns[0], GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, 1, 3 },
+      { csns, csns[1], GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, 2, 3 },
+      { csns, middleCsn, GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, 2, 3 },
+      { csns, csns[2], GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, 3, 3 },
+      { csns, csns[3], GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, -1, -1 },
+      { csns, afterCsn, GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, -1, -1 },
+      { null, null, null, null, -1, -1 } // stop line
+    };
+  }
+
+  /**
+   * Test the cursor with all acceptable strategies combination.
+   * Creation of a replication server is costly so it is created only once on first test and cleaned after the
+   * last test using the stop line in data to do so.
+   */
+  @Test(dataProvider="cursorData")
+  public void testGenerateCursor(CSN[] csns, CSN startCsn, KeyMatchingStrategy matchingStrategy,
+      PositionStrategy positionStrategy, int startIndex, int endIndex) throws Exception
+  {
+    DBCursor<UpdateMsg> cursor = null;
     try
     {
-      TestCaseUtils.startServer();
-      replicationServer = configureReplicationServer(100000, 10);
-      replicaDB = newReplicaDB(replicationServer);
-
-      final CSN[] csns = generateCSNs(1, System.currentTimeMillis(), 5);
-      final ArrayList<CSN> csns2 = new ArrayList<CSN>(Arrays.asList(csns));
-      csns2.remove(csns[3]);
-
-      for (CSN csn : csns2)
+      if (replicationServer == null)
       {
-        replicaDB.add(new DeleteMsg(TEST_ROOT_DN, csn, "uid"));
+        // initialize only once
+        TestCaseUtils.startServer();
+        replicationServer = configureReplicationServer(100000, 10);
+        replicaDB = newReplicaDB(replicationServer);
+        for (CSN csn : csns)
+        {
+          replicaDB.add(new DeleteMsg(TEST_ROOT_DN, csn, "uid"));
+        }
+      }
+      if (csns == null)
+      {
+        return; // stop line, time to clean replication artefacts
       }
 
-      for (CSN csn : csns2)
+      cursor = replicaDB.generateCursorFrom(startCsn, matchingStrategy, positionStrategy);
+      if (startIndex != -1)
       {
-        assertNextCSN(replicaDB, csn, ON_MATCHING_KEY, csn);
+        assertThatCursorCanBeFullyReadFromStart(cursor, csns, startIndex, endIndex);
       }
-      assertNextCSN(replicaDB, csns[3], ON_MATCHING_KEY, csns[4]);
-
-      for (int i = 0; i < csns2.size() - 1; i++)
+      else
       {
-        assertNextCSN(replicaDB, csns2.get(i), AFTER_MATCHING_KEY, csns2.get(i + 1));
+        assertThatCursorIsExhausted(cursor);
       }
-      assertNotFound(replicaDB, csns[4], AFTER_MATCHING_KEY);
     }
     finally
     {
-      shutdown(replicaDB);
-      remove(replicationServer);
+      close(cursor);
+      if (csns == null)
+      {
+        // stop line, stop and remove replication
+        shutdown(replicaDB);
+        remove(replicationServer);
+      }
     }
   }
 
   @Test
-  void testTrim() throws Exception
+  public void testTrim() throws Exception
   {
     ReplicationServer replicationServer = null;
     JEReplicaDB replicaDB = null;
@@ -240,28 +331,42 @@ public class JEReplicaDBTest extends ReplicationTestCase
     }
   }
 
-  private void assertNextCSN(JEReplicaDB replicaDB, final CSN startCSN,
-      final PositionStrategy positionStrategy, final CSN expectedCSN)
-      throws ChangelogException
+  private void advanceCursorUpTo(DBCursor<UpdateMsg> cursor, CSN[] csns, int startIndex, int endIndex)
+      throws Exception
   {
-    DBCursor<UpdateMsg> cursor = replicaDB.generateCursorFrom(startCSN, positionStrategy);
-    try
+    for (int i = startIndex; i <= endIndex; i++)
     {
-      final SoftAssertions softly = new SoftAssertions();
-      softly.assertThat(cursor.next()).isTrue();
-      softly.assertThat(cursor.getRecord().getCSN()).isEqualTo(expectedCSN);
-      softly.assertAll();
+      assertThat(cursor.next()).as("next() value when i=" + i).isTrue();
+      assertThat(cursor.getRecord().getCSN()).isEqualTo(csns[i]);
     }
-    finally
-    {
-      close(cursor);
-    }
+  }
+
+  private void assertThatCursorIsExhausted(DBCursor<UpdateMsg> cursor) throws Exception
+  {
+    final SoftAssertions softly = new SoftAssertions();
+    softly.assertThat(cursor.next()).isFalse();
+    softly.assertThat(cursor.getRecord()).isNull();
+    softly.assertAll();
+  }
+
+  private void assertThatCursorCanBeFullyRead(DBCursor<UpdateMsg> cursor, CSN[] csns, int startIndex, int endIndex)
+      throws Exception
+  {
+    advanceCursorUpTo(cursor, csns, startIndex, endIndex);
+    assertThatCursorIsExhausted(cursor);
+  }
+
+  private void assertThatCursorCanBeFullyReadFromStart(DBCursor<UpdateMsg> cursor, CSN[] csns, int startIndex,
+      int endIndex) throws Exception
+  {
+    assertThat(cursor.getRecord()).isNull();
+    assertThatCursorCanBeFullyRead(cursor, csns, startIndex, endIndex);
   }
 
   private void assertNotFound(JEReplicaDB replicaDB, final CSN startCSN,
       final PositionStrategy positionStrategy) throws ChangelogException
   {
-    DBCursor<UpdateMsg> cursor = replicaDB.generateCursorFrom(startCSN, positionStrategy);
+    DBCursor<UpdateMsg> cursor = replicaDB.generateCursorFrom(startCSN, GREATER_THAN_OR_EQUAL_TO_KEY, positionStrategy);
     try
     {
       final SoftAssertions softly = new SoftAssertions();
@@ -280,7 +385,7 @@ public class JEReplicaDBTest extends ReplicationTestCase
    * optimize the oldest and newest records in the replication changelog db.
    */
   @Test(groups = { "opendj-256" })
-  void testGetOldestNewestCSNs() throws Exception
+  public void testGetOldestNewestCSNs() throws Exception
   {
     // It's worth testing with 2 different setting for counterRecord
     // - a counter record is put every 10 Update msg in the db - just a unit
@@ -441,7 +546,7 @@ public class JEReplicaDBTest extends ReplicationTestCase
   private void assertFoundInOrder(JEReplicaDB replicaDB,
       final PositionStrategy positionStrategy, CSN... csns) throws ChangelogException
   {
-    DBCursor<UpdateMsg> cursor = replicaDB.generateCursorFrom(csns[0], positionStrategy);
+    DBCursor<UpdateMsg> cursor = replicaDB.generateCursorFrom(csns[0], GREATER_THAN_OR_EQUAL_TO_KEY, positionStrategy);
     try
     {
       assertNull(cursor.getRecord(), "Cursor should point to a null record initially");

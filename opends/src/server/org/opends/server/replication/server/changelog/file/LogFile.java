@@ -30,7 +30,6 @@ import static com.forgerock.opendj.util.Validator.*;
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.loggers.ErrorLogger.*;
 import static org.opends.server.loggers.debug.DebugLogger.*;
-import static org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy.*;
 
 import java.io.BufferedWriter;
 import java.io.Closeable;
@@ -43,8 +42,6 @@ import org.opends.messages.Message;
 import org.opends.server.loggers.debug.DebugTracer;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
-import org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingStrategy;
-import org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy;
 import org.opends.server.replication.server.changelog.file.Log.RepositionableCursor;
 import org.opends.server.types.DebugLogLevel;
 import org.opends.server.util.StaticUtils;
@@ -324,64 +321,6 @@ final class LogFile<K extends Comparable<K>, V> implements Closeable
   LogFileCursor<K, V> getCursor() throws ChangelogException
   {
     return new LogFileCursor<K, V>(this);
-  }
-
-  /**
-   * Returns a cursor that allows to retrieve the records from this log,
-   * starting at the position defined by the provided key.
-   *
-   * @param key
-   *          Key to use as a start position for the cursor. If key is
-   *          {@code null}, cursor will point at the first record of the log.
-   * @return a cursor on the log records, which is never {@code null}
-   * @throws ChangelogException
-   *           If the cursor can't be created.
-   */
-  LogFileCursor<K, V> getCursor(final K key) throws ChangelogException
-  {
-    return getCursor(key, KeyMatchingStrategy.EQUAL_TO_KEY, PositionStrategy.ON_MATCHING_KEY);
-  }
-
-  /**
-   * Returns a cursor that allows to retrieve the records from this log,
-   * starting at the position defined by the smallest key that is higher than
-   * the provided key.
-   *
-   * @param key
-   *          Key to use as a start position for the cursor. If key is
-   *          {@code null}, cursor will point at the first record of the log.
-   * @return a cursor on the log records, which is never {@code null}
-   * @throws ChangelogException
-   *           If the cursor can't be created.
-   */
-  LogFileCursor<K, V> getNearestCursor(final K key) throws ChangelogException
-  {
-    return getCursor(key, KeyMatchingStrategy.GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY);
-  }
-
-  /** Returns a cursor starting from a key, using the strategy corresponding to provided indicator. */
-  private LogFileCursor<K, V> getCursor(
-      final K key,
-      final KeyMatchingStrategy matchingStrategy,
-      final PositionStrategy positionStrategy)
-          throws ChangelogException
-  {
-    if (key == null)
-    {
-      return getCursor();
-    }
-    LogFileCursor<K, V> cursor = null;
-    try
-    {
-      cursor = new LogFileCursor<K, V>(this);
-      cursor.positionTo(key, matchingStrategy, positionStrategy);
-      // if target is not found, cursor is positioned at end of stream
-      return cursor;
-    }
-    catch (ChangelogException e) {
-      StaticUtils.close(cursor);
-      throw e;
-    }
   }
 
   /**

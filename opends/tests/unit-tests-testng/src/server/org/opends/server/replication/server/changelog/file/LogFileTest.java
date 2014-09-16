@@ -33,6 +33,9 @@ import org.opends.server.DirectoryServerTestCase;
 import org.opends.server.TestCaseUtils;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
+import org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingStrategy;
+import org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy;
+import org.opends.server.replication.server.changelog.file.LogFile.LogFileCursor;
 import org.opends.server.types.ByteSequenceReader;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.ByteStringBuilder;
@@ -44,6 +47,8 @@ import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingStrategy.*;
+import static org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy.*;
 
 @SuppressWarnings("javadoc")
 @Test(sequential=true)
@@ -62,7 +67,10 @@ public class LogFileTest extends DirectoryServerTestCase
   }
 
   @BeforeMethod
-  /** Create a new log file with ten records starting from (key1, value1) until (key10, value10). */
+  /**
+   * Create a new log file with ten records starting from (key01, value1) until (key10, value10).
+   * So log contains keys "key01", "key02", ..., "key10"
+   */
   public void initialize() throws Exception
   {
     if (TEST_LOG_FILE.exists())
@@ -111,109 +119,99 @@ public class LogFileTest extends DirectoryServerTestCase
     }
   }
 
-  @Test
-  public void testCursorWhenGivenAnExistingKey() throws Exception
+  @DataProvider
+  Object[][] cursorPositionTo()
+  {
+    return new Object[][] {
+      // key to position to, key matching strategy, position strategy, position is found ?,
+      //    expected start index of cursor (use -1 if cursor should be exhausted), expected end index of cursor
+
+      // equal
+      { "key00", EQUAL_TO_KEY, ON_MATCHING_KEY, false, -1, -1},
+      { "key02", EQUAL_TO_KEY, ON_MATCHING_KEY, true, 2, 10},
+      { "key05", EQUAL_TO_KEY, ON_MATCHING_KEY, true, 5, 10},
+      { "key050", EQUAL_TO_KEY, ON_MATCHING_KEY, false, -1, -1},
+      { "key07", EQUAL_TO_KEY, ON_MATCHING_KEY, true, 7, 10},
+      { "key10", EQUAL_TO_KEY, ON_MATCHING_KEY, true, 10, 10},
+      { "key11", EQUAL_TO_KEY, ON_MATCHING_KEY, false, -1, -1},
+
+      { "key00", EQUAL_TO_KEY, AFTER_MATCHING_KEY, false, -1, -1},
+      { "key02", EQUAL_TO_KEY, AFTER_MATCHING_KEY, true,  3, 10},
+      { "key05", EQUAL_TO_KEY, AFTER_MATCHING_KEY, true,  6, 10},
+      { "key050", EQUAL_TO_KEY, AFTER_MATCHING_KEY, false, -1, -1},
+      { "key07", EQUAL_TO_KEY, AFTER_MATCHING_KEY, true, 8, 10},
+      { "key10", EQUAL_TO_KEY, AFTER_MATCHING_KEY, true, -1, -1},
+      { "key11", EQUAL_TO_KEY, AFTER_MATCHING_KEY, false, -1, -1},
+
+      // less than or equal
+
+      // key00 is a special case : position is not found but cursor is positioned on beginning
+      // so it is possible to iterate on it from start to end
+      { "key00", LESS_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, false, 1, 10},
+      { "key02", LESS_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, true, 2, 10},
+      { "key05", LESS_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, true, 5, 10},
+      { "key050", LESS_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, true, 5, 10},
+      { "key07", LESS_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, true, 7, 10},
+      { "key10", LESS_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, true, 10, 10},
+      { "key11", LESS_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, true, 10, 10},
+
+      // key00 is a special case : position is not found but cursor is positioned on beginning
+      // so it is possible to iterate on it from 2 to end
+      { "key00", LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, false, 2, 10},
+      { "key02", LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, true, 3, 10},
+      { "key05", LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, true, 6, 10},
+      { "key050", LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, true, 6, 10},
+      { "key07", LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, true, 8, 10},
+      { "key10", LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, true, -1, -1},
+      { "key11", LESS_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, true, -1, -1},
+
+      // greater than or equal
+      { "key00", GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, true, 1, 10},
+      { "key02", GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, true, 2, 10},
+      { "key05", GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, true, 5, 10},
+      { "key050", GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, true, 6, 10},
+      { "key07", GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, true, 7, 10},
+      { "key10", GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, true, 10, 10},
+      { "key11", GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY, false, -1, -1},
+
+      { "key00", GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, true, 1, 10},
+      { "key02", GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, true, 3, 10},
+      { "key05", GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, true, 6, 10},
+      { "key050", GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, true, 6, 10},
+      { "key07", GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, true, 8, 10},
+      { "key10", GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, true, -1, -1},
+      { "key11", GREATER_THAN_OR_EQUAL_TO_KEY, AFTER_MATCHING_KEY, false, -1, -1},
+
+    };
+  }
+
+  /**
+   * Test cursor positioning for a given key, matching strategy and position strategy.
+   * Cursor is fully read from the expected starting index to the expected end index, unless it is expected
+   * to be directly exhausted.
+   */
+  @Test(dataProvider="cursorPositionTo")
+  public void testCursorPositionTo(String key, KeyMatchingStrategy matchingStrategy, PositionStrategy positionStrategy,
+      boolean positionShouldBeFound, int cursorShouldStartAt, int cursorShouldEndAt) throws Exception
   {
     LogFile<String, String> changelog = getLogFile(RECORD_PARSER);
-    DBCursor<Record<String, String>> cursor = null;
+    LogFileCursor<String, String> cursor = null;
     try {
-      cursor = changelog.getCursor("key05");
+      cursor = changelog.getCursor();
+      boolean success = cursor.positionTo(key, matchingStrategy, positionStrategy);
 
-      assertThatCursorCanBeFullyRead(cursor, 5, 10);
+      assertThat(success).isEqualTo(positionShouldBeFound);
+      if (cursorShouldStartAt >= 0)
+      {
+        assertThatCursorCanBeFullyRead(cursor, cursorShouldStartAt, cursorShouldEndAt);
+      }
+      else
+      {
+        assertThatCursorIsExhausted(cursor);
+      }
     }
     finally {
       StaticUtils.close(cursor, changelog);
-    }
-  }
-
-  @Test
-  public void testCursorWhenGivenAnUnexistingKey() throws Exception
-  {
-    LogFile<String, String> changelog = getLogFile(RECORD_PARSER);
-    DBCursor<Record<String, String>> cursor = null;
-    try {
-      cursor = changelog.getCursor("key");
-
-      assertThat(cursor).isNotNull();
-      assertThat(cursor.getRecord()).isNull();
-      assertThat(cursor.next()).isFalse();
-    }
-    finally {
-      StaticUtils.close(cursor, changelog);
-    }
-  }
-
-  @Test
-  public void testCursorWhenGivenANullKey() throws Exception
-  {
-    LogFile<String, String> changelog = getLogFile(RECORD_PARSER);
-    DBCursor<Record<String, String>> cursor = null;
-    try {
-      cursor = changelog.getCursor(null);
-
-      assertThatCursorCanBeFullyRead(cursor, 1, 10);
-    }
-    finally {
-      StaticUtils.close(cursor, changelog);
-    }
-  }
-
-  @Test
-  public void testNearestCursorWhenGivenAnExistingKey() throws Exception
-  {
-    LogFile<String, String> changelog = getLogFile(RECORD_PARSER);
-    DBCursor<Record<String, String>> cursor = null;
-    try {
-      cursor = changelog.getNearestCursor("key01");
-
-      assertThatCursorCanBeFullyRead(cursor, 2, 10);
-    }
-    finally {
-      StaticUtils.close(cursor, changelog);
-    }
-  }
-
-  @Test
-  public void testNearestCursorWhenGivenAnUnexistingKey() throws Exception
-  {
-    LogFile<String, String> changelog = getLogFile(RECORD_PARSER);
-    DBCursor<Record<String, String>> cursor = null;
-    try {
-      cursor = changelog.getNearestCursor("key00");
-
-      assertThatCursorCanBeFullyRead(cursor, 1, 10);
-    }
-    finally {
-      StaticUtils.close(cursor, changelog);
-    }
-  }
-
-  @Test
-  public void testNearestCursorWhenGivenANullKey() throws Exception
-  {
-    LogFile<String, String> changelog = getLogFile(RECORD_PARSER);
-    DBCursor<Record<String, String>> cursor = null;
-    try {
-      cursor = changelog.getNearestCursor(null);
-
-      assertThatCursorCanBeFullyRead(cursor, 1, 10);
-    }
-    finally {
-      StaticUtils.close(cursor, changelog);
-    }
-  }
-
-  @Test(expectedExceptions=ChangelogException.class)
-  public void testCursorWhenParserFailsToRead() throws Exception
-  {
-    FailingStringRecordParser parser = new FailingStringRecordParser();
-    LogFile<String, String> changelog = getLogFile(parser);
-    parser.setFailToRead(true);
-    try {
-      changelog.getCursor("key");
-    }
-    finally {
-      StaticUtils.close(changelog);
     }
   }
 
@@ -285,8 +283,8 @@ public class LogFileTest extends DirectoryServerTestCase
       logFile.append(Record.from(String.format("key%02d", 11), "value"+ 11));
 
       // ensure log can be fully read including the new record
-      cursor = logFile.getCursor("key05");
-      assertThatCursorCanBeFullyRead(cursor, 5, 11);
+      cursor = logFile.getCursor();
+      assertThatCursorCanBeFullyRead(cursor, 1, 11);
     }
     finally
     {

@@ -34,6 +34,8 @@ import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
 import org.opends.server.util.StaticUtils;
 
+import com.forgerock.opendj.util.Pair;
+
 /**
  * {@link DBCursor} implementation that iterates across a Collection of
  * {@link DBCursor}s, advancing from the oldest to the newest change cross all
@@ -212,6 +214,35 @@ abstract class CompositeDBCursor<Data> implements DBCursor<UpdateMsg>
       return entry.getValue();
     }
     return null;
+  }
+
+  /**
+   * Returns a snapshot of this cursor.
+   *
+   * @return a list of (Data, UpdateMsg) pairs representing the state of the
+   *         cursor. In each pair, the data or the update message may be
+   *         {@code null}, but at least one of them is non-null.
+   */
+  public List<Pair<Data, UpdateMsg>> getSnapshot()
+  {
+    final List<Pair<Data, UpdateMsg>> snapshot = new ArrayList<Pair<Data, UpdateMsg>>();
+    for (Entry<DBCursor<UpdateMsg>, Data> entry : cursors.entrySet())
+    {
+      final UpdateMsg updateMsg = entry.getKey().getRecord();
+      final Data data = entry.getValue();
+      if (updateMsg != null || data != null)
+      {
+        snapshot.add(Pair.of(data, updateMsg));
+      }
+    }
+    for (Data data : exhaustedCursors.values())
+    {
+      if (data != null)
+      {
+        snapshot.add(Pair.of(data, (UpdateMsg) null));
+      }
+    }
+    return snapshot;
   }
 
   /** {@inheritDoc} */

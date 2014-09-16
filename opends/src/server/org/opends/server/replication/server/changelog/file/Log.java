@@ -29,6 +29,7 @@ import static com.forgerock.opendj.util.Validator.*;
 
 import static org.opends.messages.ReplicationMessages.*;
 import static org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingStrategy.*;
+import static org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy.*;
 import static org.opends.server.util.StaticUtils.*;
 
 import java.io.Closeable;
@@ -471,34 +472,26 @@ final class Log<K extends Comparable<K>, V> implements Closeable
    */
   public RepositionableCursor<K, V> getCursor(final K key) throws ChangelogException
   {
-    return getCursor(key, KeyMatchingStrategy.EQUAL_TO_KEY, null);
+    return getCursor(key, EQUAL_TO_KEY, ON_MATCHING_KEY);
   }
 
   /**
-   * Returns a cursor that allows to retrieve the records from this log.
-   * The starting position is defined by the provided key and cursor
-   * positioning strategy.
+   * Returns a cursor that allows to retrieve the records from this log. The
+   * starting position is defined by the provided key, cursor matching strategy
+   * and cursor positioning strategy.
    *
    * @param key
    *          Key to use as a start position for the cursor. If key is
    *          {@code null}, cursor will point at the first record of the log.
+   * @param matchingStrategy
+   *          Cursor key matching strategy.
    * @param positionStrategy
    *          The cursor positioning strategy.
    * @return a cursor on the log records, which is never {@code null}
    * @throws ChangelogException
    *           If the cursor can't be created.
    */
-  public RepositionableCursor<K, V> getNearestCursor(final K key, PositionStrategy positionStrategy)
-      throws ChangelogException
-  {
-    return getCursor(key, KeyMatchingStrategy.GREATER_THAN_OR_EQUAL_TO_KEY, positionStrategy);
-  }
-
-  /**
-   * Returns a cursor starting from a key, using the provided matching and
-   * position strategies for the cursor.
-   */
-  private RepositionableCursor<K, V> getCursor(final K key, final KeyMatchingStrategy matchingStrategy,
+  public RepositionableCursor<K, V> getCursor(final K key, final KeyMatchingStrategy matchingStrategy,
       final PositionStrategy positionStrategy) throws ChangelogException
   {
     if (key == null)
@@ -514,9 +507,9 @@ final class Log<K extends Comparable<K>, V> implements Closeable
         return new EmptyLogCursor<K, V>();
       }
       cursor = new LogCursor<K, V>(this);
-      final boolean isFound = cursor.positionTo(key, matchingStrategy, positionStrategy);
-      // When not matching the exact key, it is ok if the target is not found
-      if (isFound || matchingStrategy == GREATER_THAN_OR_EQUAL_TO_KEY)
+      final boolean isSuccessfullyPositioned = cursor.positionTo(key, matchingStrategy, positionStrategy);
+      // Allow for cursor re-initialization after exhaustion in case of GREATER_THAN_OR_EQUAL_TO_KEY strategy
+      if (isSuccessfullyPositioned || matchingStrategy == GREATER_THAN_OR_EQUAL_TO_KEY)
       {
         registerCursor(cursor);
         return cursor;

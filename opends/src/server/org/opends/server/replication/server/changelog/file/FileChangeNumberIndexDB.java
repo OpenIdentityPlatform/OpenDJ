@@ -133,7 +133,7 @@ class FileChangeNumberIndexDB implements ChangeNumberIndexDB
   {
     final long changeNumber = nextChangeNumber();
     final ChangeNumberIndexRecord newRecord =
-        new ChangeNumberIndexRecord(changeNumber, record.getPreviousCookie(), record.getBaseDN(), record.getCSN());
+        new ChangeNumberIndexRecord(changeNumber, record.getBaseDN(), record.getCSN());
     log.append(Record.from(newRecord.getChangeNumber(), newRecord));
     newestChangeNumber = changeNumber;
 
@@ -331,8 +331,6 @@ class FileChangeNumberIndexDB implements ChangeNumberIndexDB
       final ChangeNumberIndexRecord cnIndexRecord = record.getValue();
       return new ByteStringBuilder()
         .append(record.getKey())
-        .append(cnIndexRecord.getPreviousCookie())
-        .append(STRING_SEPARATOR)
         .append(cnIndexRecord.getBaseDN().toString())
         .append(STRING_SEPARATOR)
         .append(cnIndexRecord.getCSN().toByteString()).toByteString();
@@ -345,14 +343,11 @@ class FileChangeNumberIndexDB implements ChangeNumberIndexDB
       {
         ByteSequenceReader reader = data.asReader();
         final long changeNumber = reader.getLong();
-        String previousCookie = reader.getString(getNextStringLength(reader));
-        reader.skip(1);
-        final DN baseDN = DN.decode(
-            reader.getString(getNextStringLength(reader)));
+        final DN baseDN = DN.decode(reader.getString(getNextStringLength(reader)));
         reader.skip(1);
         final CSN csn = CSN.valueOf(reader.getByteString(reader.remaining()));
 
-        return Record.from(changeNumber, new ChangeNumberIndexRecord(changeNumber, previousCookie, baseDN, csn));
+        return Record.from(changeNumber, new ChangeNumberIndexRecord(changeNumber, baseDN, csn));
       }
       catch (Exception e)
       {
