@@ -34,7 +34,11 @@ import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.protocols.asn1.ASN1Exception;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.common.CSN;
-import org.opends.server.types.*;
+import org.opends.server.types.ByteString;
+import org.opends.server.types.DN;
+import org.opends.server.types.LDAPException;
+import org.opends.server.types.Modification;
+import org.opends.server.types.RawModification;
 import org.opends.server.types.operation.PostOperationModifyOperation;
 
 import static org.opends.server.replication.protocol.OperationContext.*;
@@ -197,9 +201,9 @@ public class ModifyMsg extends ModifyCommonMsg
     final ByteArrayBuilder builder =
         encodeHeader(MSG_TYPE_MODIFY, protocolVersion);
     builder.appendIntUTF8(encodedMods.length);
-    builder.appendByteArray(encodedMods);
+    builder.appendZeroTerminatedByteArray(encodedMods);
     builder.appendIntUTF8(encodedEclIncludes.length);
-    builder.appendByteArray(encodedEclIncludes);
+    builder.appendZeroTerminatedByteArray(encodedEclIncludes);
     return builder.toByteArray();
   }
 
@@ -218,6 +222,7 @@ public class ModifyMsg extends ModifyCommonMsg
   {
     final int modsLen = scanner.nextIntUTF8();
     this.encodedMods = scanner.nextByteArray(modsLen);
+    scanner.skipZeroSeparator();
 
     final int eclAttrLen = scanner.nextIntUTF8();
     encodedEclIncludes = scanner.nextByteArray(eclAttrLen);
