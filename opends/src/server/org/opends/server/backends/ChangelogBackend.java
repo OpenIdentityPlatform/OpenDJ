@@ -995,7 +995,7 @@ public class ChangelogBackend extends Backend<Configuration>
     }
     else
     {
-      entrySender = new CookieEntrySender(searchOperation);
+      entrySender = new CookieEntrySender(searchOperation, SearchPhase.INITIAL);
     }
 
     if (!sendBaseChangelogEntry(searchOperation))
@@ -1079,11 +1079,11 @@ public class ChangelogBackend extends Backend<Configuration>
         // so we must initialize the cookie here
         searchOp.setAttachment(COOKIE_ATTACHMENT, getNewestCookie(searchOp));
       }
-      searchOp.setAttachment(ENTRY_SENDER_ATTACHMENT, new CookieEntrySender(searchOp));
+      searchOp.setAttachment(ENTRY_SENDER_ATTACHMENT, new CookieEntrySender(searchOp, SearchPhase.PERSISTENT));
     }
     else
     {
-      searchOp.setAttachment(ENTRY_SENDER_ATTACHMENT, new ChangeNumberEntrySender(searchOp));
+      searchOp.setAttachment(ENTRY_SENDER_ATTACHMENT, new ChangeNumberEntrySender(searchOp, SearchPhase.PERSISTENT));
     }
   }
 
@@ -1137,7 +1137,7 @@ public class ChangelogBackend extends Backend<Configuration>
     }
     else
     {
-      entrySender = new ChangeNumberEntrySender(searchOperation);
+      entrySender = new ChangeNumberEntrySender(searchOperation, SearchPhase.INITIAL);
     }
 
     DBCursor<ChangeNumberIndexRecord> cnIndexDBCursor = null;
@@ -1685,6 +1685,11 @@ public class ChangelogBackend extends Backend<Configuration>
     private final Object transitioningLock = new Object();
     private volatile K lastKeySentByInitialSearch;
 
+    private SendEntryData(SearchPhase startPhase)
+    {
+      searchPhase.set(startPhase);
+    }
+
     private void finalizeInitialSearch()
     {
       searchPhase.set(SearchPhase.PERSISTENT);
@@ -1744,11 +1749,12 @@ public class ChangelogBackend extends Backend<Configuration>
   private static class ChangeNumberEntrySender
   {
     private final SearchOperation searchOp;
-    private final SendEntryData<Long> sendEntryData = new SendEntryData<Long>();
+    private final SendEntryData<Long> sendEntryData;
 
-    private ChangeNumberEntrySender(SearchOperation searchOp)
+    private ChangeNumberEntrySender(SearchOperation searchOp, SearchPhase startPhase)
     {
       this.searchOp = searchOp;
+      this.sendEntryData = new SendEntryData<Long>(startPhase);
     }
 
     private void finalizeInitialSearch()
@@ -1785,12 +1791,14 @@ public class ChangelogBackend extends Backend<Configuration>
   /** Sends entries to clients for cookie-based searches. */
   private static class CookieEntrySender {
     private final SearchOperation searchOp;
+    private final SearchPhase startPhase;
     private final ConcurrentSkipListMap<Pair<DN, Integer>, SendEntryData<CSN>> replicaIdToSendEntryData =
         new ConcurrentSkipListMap<Pair<DN, Integer>, SendEntryData<CSN>>(Pair.COMPARATOR);
 
-    private CookieEntrySender(SearchOperation searchOp)
+    private CookieEntrySender(SearchOperation searchOp, SearchPhase startPhase)
     {
       this.searchOp = searchOp;
+      this.startPhase = startPhase;
     }
 
     public void finalizeInitialSearch()
@@ -1815,7 +1823,7 @@ public class ChangelogBackend extends Backend<Configuration>
       SendEntryData<CSN> data = replicaIdToSendEntryData.get(replicaId);
       if (data == null)
       {
-        final SendEntryData<CSN> newData = new SendEntryData<CSN>();
+        final SendEntryData<CSN> newData = new SendEntryData<CSN>(startPhase);
         data = replicaIdToSendEntryData.putIfAbsent(replicaId, newData);
         return data == null ? newData : data;
       }
