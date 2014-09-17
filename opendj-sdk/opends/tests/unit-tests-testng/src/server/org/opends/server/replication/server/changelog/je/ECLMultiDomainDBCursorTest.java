@@ -35,16 +35,15 @@ import org.opends.server.replication.common.ServerState;
 import org.opends.server.replication.protocol.UpdateMsg;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.ReplicationDomainDB;
-import org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingStrategy;
 import org.opends.server.types.DN;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import static org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingStrategy.*;
-import static org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import static org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingStrategy.*;
+import static org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy.*;
 
 @SuppressWarnings("javadoc")
 public class ECLMultiDomainDBCursorTest extends DirectoryServerTestCase

@@ -25,14 +25,10 @@
  */
 package org.opends.server.replication.server.changelog.file;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.ReplicationServerCfgDefn.ReplicationDBImplementation;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.CSN;
-import org.opends.server.replication.common.MultiDomainServerState;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.changelog.api.ChangeNumberIndexRecord;
@@ -42,7 +38,6 @@ import org.opends.server.replication.server.changelog.api.DBCursor;
 import org.opends.server.types.ByteString;
 import org.opends.server.types.DN;
 import org.opends.server.util.StaticUtils;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 

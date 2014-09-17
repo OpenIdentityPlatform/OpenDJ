@@ -26,14 +26,10 @@
  */
 package org.opends.server.replication.server.changelog.je;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.opends.server.TestCaseUtils;
 import org.opends.server.admin.std.meta.ReplicationServerCfgDefn.ReplicationDBImplementation;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.CSN;
-import org.opends.server.replication.common.MultiDomainServerState;
 import org.opends.server.replication.server.ReplServerFakeConfiguration;
 import org.opends.server.replication.server.ReplicationServer;
 import org.opends.server.replication.server.changelog.api.ChangeNumberIndexRecord;
@@ -44,7 +40,6 @@ import org.opends.server.types.DN;
 import org.opends.server.util.StaticUtils;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import static org.opends.server.replication.server.changelog.je.JEReplicaDBTest.*;
@@ -56,9 +51,6 @@ import static org.testng.Assert.*;
 @SuppressWarnings("javadoc")
 public class JEChangeNumberIndexDBTest extends ReplicationTestCase
 {
-  private final MultiDomainServerState previousCookie =
-      new MultiDomainServerState();
-
   private static final ReplicationDBImplementation previousDBImpl = replicationDbImplementation;
 
   @BeforeClass
@@ -263,10 +255,10 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
   {
     try
     {
-      for (int i = 0; i < cns.length; i++)
+      for (long changeNumber : cns)
       {
         assertTrue(cursor.next());
-        assertEquals(cursor.getRecord().getChangeNumber(), cns[i]);
+        assertEquals(cursor.getRecord().getChangeNumber(), changeNumber);
       }
       assertFalse(cursor.next());
     }
