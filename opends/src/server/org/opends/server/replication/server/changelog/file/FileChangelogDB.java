@@ -785,10 +785,13 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
     else if (cursor instanceof ReplicaCursor)
     {
       final ReplicaCursor replicaCursor = (ReplicaCursor) cursor;
-      final List<ReplicaCursor> cursors = replicaCursors.get(replicaCursor.getReplicaID());
-      if (cursors != null)
+      synchronized (replicaCursors)
       {
-        cursors.remove(cursor);
+        final List<ReplicaCursor> cursors = replicaCursors.get(replicaCursor.getReplicaID());
+        if (cursors != null)
+        {
+          cursors.remove(cursor);
+        }
       }
     }
   }
@@ -851,12 +854,15 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
 
   private void updateCursorsWithOfflineCSN(final DN baseDN, final int serverId, final CSN offlineCSN)
   {
-    final List<ReplicaCursor> cursors = replicaCursors.get(Pair.of(baseDN, serverId));
-    if (cursors != null)
+    synchronized (replicaCursors)
     {
-      for (ReplicaCursor cursor : cursors)
+      final List<ReplicaCursor> cursors = replicaCursors.get(Pair.of(baseDN, serverId));
+      if (cursors != null)
       {
-        cursor.setOfflineCSN(offlineCSN);
+        for (ReplicaCursor cursor : cursors)
+        {
+          cursor.setOfflineCSN(offlineCSN);
+        }
       }
     }
   }
