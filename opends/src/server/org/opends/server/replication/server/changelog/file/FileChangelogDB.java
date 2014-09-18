@@ -373,6 +373,24 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
       purger.initiateShutdown();
     }
 
+    // wait for shutdown of the threads holding cursors
+    try
+    {
+      if (indexer != null)
+      {
+        indexer.join();
+      }
+      if (purger != null)
+      {
+        purger.join();
+      }
+    }
+    catch (InterruptedException e)
+    {
+      // do nothing: we are already shutting down
+    }
+
+    // now we can safely shutdown all DBs
     try
     {
       shutdownChangeNumberIndexDB();
@@ -381,7 +399,6 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
     {
       firstException = e;
     }
-
     for (Iterator<ConcurrentMap<Integer, FileReplicaDB>> it =
         this.domainToReplicaDBs.values().iterator(); it.hasNext();)
     {
@@ -395,26 +412,8 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
         }
       }
     }
-
     if (replicationEnv != null)
     {
-      // wait for shutdown of the threads holding cursors
-      try
-      {
-        if (indexer != null)
-        {
-          indexer.join();
-        }
-        if (purger != null)
-        {
-          purger.join();
-        }
-      }
-      catch (InterruptedException e)
-      {
-        // do nothing: we are already shutting down
-      }
-
       replicationEnv.shutdown();
     }
 
