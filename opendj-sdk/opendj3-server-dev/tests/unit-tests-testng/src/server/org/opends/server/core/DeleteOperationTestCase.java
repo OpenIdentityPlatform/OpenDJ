@@ -26,9 +26,6 @@
  */
 package org.opends.server.core;
 
-import static org.opends.server.protocols.ldap.LDAPConstants.*;
-import static org.testng.Assert.*;
-
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
@@ -54,8 +51,12 @@ import org.opends.server.workflowelement.localbackend.LocalBackendDeleteOperatio
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;
 
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
+import static org.opends.server.protocols.ldap.LDAPConstants.*;
+import static org.testng.Assert.*;
+
 /**
- * A set of test cases for delete operations
+ * A set of test cases for delete operations.
  */
 @SuppressWarnings("javadoc")
 public class DeleteOperationTestCase extends OperationTestCase
@@ -64,13 +65,11 @@ public class DeleteOperationTestCase extends OperationTestCase
   /** Some of the tests disable the backends, so we reenable them here. */
   @AfterMethod(alwaysRun=true)
   public void reenableBackend() throws DirectoryException {
-    Backend b = DirectoryServer.getBackend(DN.valueOf("o=test"));
+    Backend<?> b = DirectoryServer.getBackend(DN.valueOf("o=test"));
     b.setWritabilityMode(WritabilityMode.ENABLED);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   protected Operation[] createTestOperations()
          throws Exception
@@ -93,9 +92,7 @@ public class DeleteOperationTestCase extends OperationTestCase
       List<Control> requestControls, ByteString rawEntryDn)
   {
     return new DeleteOperationBasis(
-        InternalClientConnection.getRootConnection(),
-        InternalClientConnection.nextOperationID(),
-        InternalClientConnection.nextMessageID(),
+        getRootConnection(), nextOperationID(), nextMessageID(),
         requestControls, rawEntryDn);
   }
 
@@ -103,9 +100,7 @@ public class DeleteOperationTestCase extends OperationTestCase
       List<Control> requestControls, DN entryDn)
   {
     return new DeleteOperationBasis(
-        InternalClientConnection.getRootConnection(),
-        InternalClientConnection.nextOperationID(),
-        InternalClientConnection.nextMessageID(),
+        getRootConnection(), nextOperationID(), nextMessageID(),
         requestControls, entryDn);
   }
 
@@ -198,10 +193,6 @@ public class DeleteOperationTestCase extends OperationTestCase
     assertTrue(deleteOperation.getProcessingStopTime() >=
                deleteOperation.getProcessingStartTime());
     assertTrue(deleteOperation.getProcessingTime() >= 0);
-
-
-    long changeNumber = deleteOperation.getChangeNumber();
-    deleteOperation.setChangeNumber(changeNumber);
   }
 
 
@@ -222,7 +213,7 @@ public class DeleteOperationTestCase extends OperationTestCase
     assertEquals(deleteOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveCompletedOperationElements(deleteOperation);
     List<LocalBackendDeleteOperation> localOps =
-      (List) (deleteOperation.getAttachment(Operation.LOCALBACKENDOPERATIONS));
+      (List) deleteOperation.getAttachment(Operation.LOCALBACKENDOPERATIONS);
     assertNotNull(localOps);
     for (LocalBackendDeleteOperation curOp : localOps)
     {
@@ -232,26 +223,20 @@ public class DeleteOperationTestCase extends OperationTestCase
 
   private DeleteOperation processDeleteRaw(String entryDN)
   {
-    InternalClientConnection conn =
-        InternalClientConnection.getRootConnection();
+    InternalClientConnection conn =getRootConnection();
     return conn.processDelete(ByteString.valueOf(entryDN));
   }
 
   private DeleteOperation processDelete(String entryDN) throws DirectoryException
   {
-    InternalClientConnection conn =
-        InternalClientConnection.getRootConnection();
+    InternalClientConnection conn =getRootConnection();
     return conn.processDelete(DN.valueOf(entryDN));
   }
 
   private void processAdd(String... entryLines) throws Exception
   {
     Entry e = TestCaseUtils.makeEntry(entryLines);
-    InternalClientConnection conn =
-        InternalClientConnection.getRootConnection();
-    AddOperation addOperation =
-        conn.processAdd(e.getName(), e.getObjectClasses(), e.getUserAttributes(),
-            e.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(e);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
   }
 
@@ -270,7 +255,7 @@ public class DeleteOperationTestCase extends OperationTestCase
     DeleteOperation deleteOperation = processDeleteRaw("ou=People,o=test");
     assertFalse(deleteOperation.getResultCode() == ResultCode.SUCCESS);
     List<LocalBackendDeleteOperation> localOps =
-      (List) (deleteOperation.getAttachment(Operation.LOCALBACKENDOPERATIONS));
+      (List) deleteOperation.getAttachment(Operation.LOCALBACKENDOPERATIONS);
     assertNotNull(localOps);
     for (LocalBackendDeleteOperation curOp : localOps)
     {
@@ -625,7 +610,7 @@ public class DeleteOperationTestCase extends OperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Backend backend = DirectoryServer.getBackend(DN.valueOf("o=test"));
+    Backend<?> backend = DirectoryServer.getBackend(DN.valueOf("o=test"));
     backend.setWritabilityMode(WritabilityMode.DISABLED);
 
     DeleteOperation deleteOperation = processDeleteRaw("o=test");
@@ -648,7 +633,7 @@ public class DeleteOperationTestCase extends OperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Backend backend = DirectoryServer.getBackend(DN.valueOf("o=test"));
+    Backend<?> backend = DirectoryServer.getBackend(DN.valueOf("o=test"));
     backend.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
 
     DeleteOperation deleteOperation = processDeleteRaw("o=test");
@@ -671,7 +656,7 @@ public class DeleteOperationTestCase extends OperationTestCase
   {
     TestCaseUtils.initializeTestBackend(true);
 
-    Backend backend = DirectoryServer.getBackend(DN.valueOf("o=test"));
+    Backend<?> backend = DirectoryServer.getBackend(DN.valueOf("o=test"));
     backend.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
 
     String[] args = getArgs("o=test");

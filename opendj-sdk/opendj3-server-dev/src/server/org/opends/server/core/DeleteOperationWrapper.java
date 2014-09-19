@@ -26,10 +26,8 @@
  */
 package org.opends.server.core;
 
-
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DN;
-
 
 /**
  * This abstract class wraps/decorates a given delete operation.
@@ -50,72 +48,42 @@ public abstract class DeleteOperationWrapper extends
     super(delete);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public DN getEntryDN()
   {
     return getOperation().getEntryDN();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ByteString getRawEntryDN()
   {
     return getOperation().getRawEntryDN();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setRawEntryDN(ByteString rawEntryDN)
   {
     getOperation().setRawEntryDN(rawEntryDN);
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public final long getChangeNumber()
-  {
-    return getOperation().getChangeNumber();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public final void setChangeNumber(long changeNumber)
-  {
-    getOperation().setChangeNumber(changeNumber);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String toString()
   {
     return getOperation().toString();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public DN getProxiedAuthorizationDN()
   {
     return getOperation().getProxiedAuthorizationDN();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setProxiedAuthorizationDN(DN proxiedAuthorizationDN)
   {

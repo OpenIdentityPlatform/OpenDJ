@@ -26,10 +26,6 @@
  */
 package org.opends.server.workflowelement.localbackend;
 
-import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 
@@ -52,6 +48,10 @@ import org.opends.server.types.operation.PostResponseDeleteOperation;
 import org.opends.server.types.operation.PostSynchronizationDeleteOperation;
 import org.opends.server.types.operation.PreOperationDeleteOperation;
 
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
+
 /**
  * This class defines an operation used to delete an entry in a local backend
  * of the Directory Server.
@@ -64,31 +64,19 @@ public class LocalBackendDeleteOperation
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
+  /** The backend in which the operation is to be processed. */
+  private Backend<?> backend;
 
-
-  /**
-   * The backend in which the operation is to be processed.
-   */
-  private Backend backend;
-
-  /**
-   * Indicates whether the LDAP no-op control has been requested.
-   */
+  /** Indicates whether the LDAP no-op control has been requested. */
   private boolean noOp;
 
-  /**
-   * The client connection on which this operation was requested.
-   */
+  /** The client connection on which this operation was requested. */
   private ClientConnection clientConnection;
 
-  /**
-   * The DN of the entry to be deleted.
-   */
+  /** The DN of the entry to be deleted. */
   private DN entryDN;
 
-  /**
-   * The entry to be deleted.
-   */
+  /** The entry to be deleted. */
   private Entry entry;
 
   /** The pre-read request control included in the request, if applicable. */
@@ -189,7 +177,7 @@ public class LocalBackendDeleteOperation
           // Notify persistent searches.
           for (PersistentSearch psearch : wfe.getPersistentSearches())
           {
-            psearch.processDelete(entry, getChangeNumber());
+            psearch.processDelete(entry);
           }
 
           // Notify change listeners.
@@ -198,8 +186,7 @@ public class LocalBackendDeleteOperation
           {
             try
             {
-              changeListener.handleDeleteOperation(
-                  LocalBackendDeleteOperation.this, entry);
+              changeListener.handleDeleteOperation(LocalBackendDeleteOperation.this, entry);
             }
             catch (Exception e)
             {
@@ -320,8 +307,7 @@ public class LocalBackendDeleteOperation
       // handling a subtree delete). But we will need to check if there are
       // any subordinate backends that should stop us from attempting the
       // delete.
-      Backend[] subBackends = backend.getSubordinateBackends();
-      for (Backend b : subBackends)
+      for (Backend<?> b : backend.getSubordinateBackends())
       {
         for (DN dn : b.getBaseDNs())
         {
@@ -429,7 +415,7 @@ public class LocalBackendDeleteOperation
       for (Control c : requestControls)
       {
         final String oid = c.getOID();
-        if (oid.equals(OID_LDAP_ASSERTION))
+        if (OID_LDAP_ASSERTION.equals(oid))
         {
           LDAPAssertionRequestControl assertControl =
                 getRequestControl(LDAPAssertionRequestControl.DECODER);
@@ -478,16 +464,16 @@ public class LocalBackendDeleteOperation
                 ERR_DELETE_CANNOT_PROCESS_ASSERTION_FILTER.get(entryDN, de.getMessageObject()));
           }
         }
-        else if (oid.equals(OID_LDAP_NOOP_OPENLDAP_ASSIGNED))
+        else if (OID_LDAP_NOOP_OPENLDAP_ASSIGNED.equals(oid))
         {
           noOp = true;
         }
-        else if (oid.equals(OID_LDAP_READENTRY_PREREAD))
+        else if (OID_LDAP_READENTRY_PREREAD.equals(oid))
         {
           preReadRequest =
                 getRequestControl(LDAPPreReadRequestControl.DECODER);
         }
-        else if (oid.equals(OID_PROXIED_AUTH_V1))
+        else if (OID_PROXIED_AUTH_V1.equals(oid))
         {
           // Log usage of legacy proxy authz V1 control.
           addAdditionalLogItem(AdditionalLogItem.keyOnly(getClass(),
@@ -506,16 +492,9 @@ public class LocalBackendDeleteOperation
 
           Entry authorizationEntry = proxyControl.getAuthorizationEntry();
           setAuthorizationEntry(authorizationEntry);
-          if (authorizationEntry == null)
-          {
-            setProxiedAuthorizationDN(DN.rootDN());
-          }
-          else
-          {
-            setProxiedAuthorizationDN(authorizationEntry.getName());
-          }
+          setProxiedAuthorizationDN(getName(authorizationEntry));
         }
-        else if (oid.equals(OID_PROXIED_AUTH_V2))
+        else if (OID_PROXIED_AUTH_V2.equals(oid))
         {
           // The requester must have the PROXIED_AUTH privilege in order to
           // be able to use this control.
@@ -530,31 +509,24 @@ public class LocalBackendDeleteOperation
 
           Entry authorizationEntry = proxyControl.getAuthorizationEntry();
           setAuthorizationEntry(authorizationEntry);
-          if (authorizationEntry == null)
-          {
-            setProxiedAuthorizationDN(DN.rootDN());
-          }
-          else
-          {
-            setProxiedAuthorizationDN(authorizationEntry.getName());
-          }
+          setProxiedAuthorizationDN(getName(authorizationEntry));
         }
-
         // NYI -- Add support for additional controls.
-
-        else if (c.isCritical())
+        else if (c.isCritical()
+            && (backend == null || !backend.supportsControl(oid)))
         {
-          if ((backend == null) || (! backend.supportsControl(oid)))
-          {
-            throw newDirectoryException(entry,
-                ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
-                ERR_DELETE_UNSUPPORTED_CRITICAL_CONTROL.get(entryDN, oid));
-          }
+          throw newDirectoryException(entry,
+              ResultCode.UNAVAILABLE_CRITICAL_EXTENSION,
+              ERR_DELETE_UNSUPPORTED_CRITICAL_CONTROL.get(entryDN, oid));
         }
       }
     }
   }
 
+  private DN getName(Entry e)
+  {
+    return e != null ? e.getName() : DN.rootDN();
+  }
 
   /**
    * Handle conflict resolution.

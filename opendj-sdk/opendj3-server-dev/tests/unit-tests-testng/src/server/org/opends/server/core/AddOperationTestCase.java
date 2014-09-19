@@ -51,12 +51,14 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
+import static org.opends.server.protocols.internal.InternalClientConnection.*;
 import static org.opends.server.protocols.ldap.LDAPConstants.*;
 import static org.testng.Assert.*;
 
 /**
- * A set of test cases for add operations
+ * A set of test cases for add operations.
  */
+@SuppressWarnings("javadoc")
 public class AddOperationTestCase
        extends OperationTestCase
 {
@@ -64,7 +66,7 @@ public class AddOperationTestCase
   /** Some of the tests disable the backends, so we reenable them here. */
   @AfterMethod(alwaysRun=true)
   public void reenableBackend() throws DirectoryException {
-    Backend b = DirectoryServer.getBackend(DN.valueOf("o=test"));
+    Backend<?> b = DirectoryServer.getBackend(DN.valueOf("o=test"));
     b.setWritabilityMode(WritabilityMode.ENABLED);
   }
 
@@ -79,9 +81,6 @@ public class AddOperationTestCase
   public Object[][] getAddOperations()
          throws Exception
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
     ArrayList<Control> noControls = new ArrayList<Control>();
 
     ArrayList<RawAttribute> ldapAttrList = new ArrayList<RawAttribute>();
@@ -103,17 +102,17 @@ public class AddOperationTestCase
 
     Operation[] opArray = new Operation[]
     {
-      new AddOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
+      new AddOperationBasis(getRootConnection(), nextOperationID(), nextMessageID(),
                        null, ByteString.valueOf("ou=People,o=test"),
                        ldapAttrList),
-      new AddOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
+      new AddOperationBasis(getRootConnection(), nextOperationID(), nextMessageID(),
                        noControls, ByteString.valueOf("ou=People,o=test"),
                        ldapAttrList),
-      new AddOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
+      new AddOperationBasis(getRootConnection(), nextOperationID(), nextMessageID(),
                        null, entry.getName(), entry.getObjectClasses(),
                        entry.getUserAttributes(),
                        entry.getOperationalAttributes()),
-      new AddOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
+      new AddOperationBasis(getRootConnection(), nextOperationID(), nextMessageID(),
                        noControls, entry.getName(), entry.getObjectClasses(),
                        entry.getUserAttributes(),
                        entry.getOperationalAttributes()),
@@ -131,9 +130,7 @@ public class AddOperationTestCase
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override()
   protected Operation[] createTestOperations()
          throws Exception
@@ -181,9 +178,6 @@ public class AddOperationTestCase
   @Test()
   public void testGetEntryDNInitiallyNull()
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
     ArrayList<RawAttribute> ldapAttrList = new ArrayList<RawAttribute>();
 
     ArrayList<ByteString> values = new ArrayList<ByteString>();
@@ -196,7 +190,7 @@ public class AddOperationTestCase
     ldapAttrList.add(new LDAPAttribute("ou", values));
 
     AddOperationBasis addOperation =
-         new AddOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
+         new AddOperationBasis(getRootConnection(), nextOperationID(), nextMessageID(),
                           null, ByteString.valueOf("ou=People,o=test"),
                           ldapAttrList);
     assertNotNull(addOperation.getEntryDN());
@@ -214,9 +208,6 @@ public class AddOperationTestCase
   public void testGetEntryDNInitiallyNonNull()
          throws Exception
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: ou=People,o=test",
          "objectClass: top",
@@ -224,7 +215,7 @@ public class AddOperationTestCase
          "ou: People");
 
     AddOperationBasis addOperation =
-         new AddOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
+         new AddOperationBasis(getRootConnection(), nextOperationID(), nextMessageID(),
                           null, entry.getName(), entry.getObjectClasses(),
                           entry.getUserAttributes(),
                           entry.getOperationalAttributes());
@@ -244,9 +235,6 @@ public class AddOperationTestCase
   public void testGetEntryDNNonNullChangedToNull()
          throws Exception
   {
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
     Entry entry = TestCaseUtils.makeEntry(
          "dn: ou=People,o=test",
          "objectClass: top",
@@ -254,7 +242,7 @@ public class AddOperationTestCase
          "ou: People");
 
     AddOperationBasis addOperation =
-         new AddOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
+         new AddOperationBasis(getRootConnection(), nextOperationID(), nextMessageID(),
                           null, entry.getName(), entry.getObjectClasses(),
                           entry.getUserAttributes(),
                           entry.getOperationalAttributes());
@@ -287,29 +275,24 @@ public class AddOperationTestCase
     values.add(ByteString.valueOf("foo"));
     addOperation.addRawAttribute(new LDAPAttribute("description", values));
 
-    boolean found = false;
-    for (RawAttribute a : addOperation.getRawAttributes())
-    {
-      if (a.getAttributeType().equalsIgnoreCase("description"))
-      {
-        found = true;
-        break;
-      }
-    }
-    assertTrue(found);
+    assertTrue(find(addOperation));
 
     addOperation.setRawAttributes(rawAttrs);
 
-    found = false;
+    assertFalse(find(addOperation));
+  }
+
+  private boolean find(AddOperation addOperation)
+  {
+    boolean found = false;
     for (RawAttribute a : addOperation.getRawAttributes())
     {
-      if (a.getAttributeType().equalsIgnoreCase("description"))
+      if ("description".equalsIgnoreCase(a.getAttributeType()))
       {
-        found = true;
-        break;
+        return true;
       }
     }
-    assertFalse(found);
+    return found;
   }
 
 
@@ -331,18 +314,12 @@ public class AddOperationTestCase
          "objectClass: organizationalUnit",
          "ou: People");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
     UpdatePreOpPlugin.reset();
 
     ObjectClass oc = DirectoryServer.getObjectClass("extensibleobject", true);
     UpdatePreOpPlugin.addObjectClassToAdd(oc);
 
-    AddOperation addOperation =
-         conn.processAdd(entry.getName(), entry.getObjectClasses(),
-                         entry.getUserAttributes(),
-                         entry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(entry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveCompletedOperationElements(addOperation);
 
@@ -372,18 +349,12 @@ public class AddOperationTestCase
          "objectClass: extensibleObject",
          "ou: People");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
     UpdatePreOpPlugin.reset();
 
     ObjectClass oc = DirectoryServer.getObjectClass("extensibleobject", true);
     UpdatePreOpPlugin.addObjectClassToRemove(oc);
 
-    AddOperation addOperation =
-         conn.processAdd(entry.getName(), entry.getObjectClasses(),
-                         entry.getUserAttributes(),
-                         entry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(entry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveCompletedOperationElements(addOperation);
 
@@ -414,18 +385,12 @@ public class AddOperationTestCase
          "ou: People",
          "description: foo");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
     UpdatePreOpPlugin.reset();
 
     Attribute a = Attributes.create("description", "bar");
     UpdatePreOpPlugin.addAttributeToSet(a);
 
-    AddOperation addOperation =
-         conn.processAdd(entry.getName(), entry.getObjectClasses(),
-                         entry.getUserAttributes(),
-                         entry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(entry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveCompletedOperationElements(addOperation);
 
@@ -475,18 +440,12 @@ public class AddOperationTestCase
          "objectClass: organizationalUnit",
          "ou: People");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
     UpdatePreOpPlugin.reset();
 
     Attribute a = Attributes.create("description", "foo");
     UpdatePreOpPlugin.addAttributeToSet(a);
 
-    AddOperation addOperation =
-         conn.processAdd(entry.getName(), entry.getObjectClasses(),
-                         entry.getUserAttributes(),
-                         entry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(entry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveCompletedOperationElements(addOperation);
 
@@ -518,19 +477,13 @@ public class AddOperationTestCase
          "ou: People",
          "description: foo");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
     UpdatePreOpPlugin.reset();
 
     AttributeType attrType = DirectoryServer.getAttributeType("description",
                                                               true);
     UpdatePreOpPlugin.addAttributeToRemove(attrType);
 
-    AddOperation addOperation =
-         conn.processAdd(entry.getName(), entry.getObjectClasses(),
-                         entry.getUserAttributes(),
-                         entry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(entry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveCompletedOperationElements(addOperation);
 
@@ -556,9 +509,6 @@ public class AddOperationTestCase
     assertTrue(addOperation.getProcessingStopTime() >=
                addOperation.getProcessingStartTime());
     assertTrue(addOperation.getProcessingTime() >= 0);
-
-    long changeNumber = addOperation.getChangeNumber();
-    addOperation.setChangeNumber(changeNumber);
   }
 
 
@@ -586,11 +536,8 @@ public class AddOperationTestCase
     values.add(ByteString.valueOf("People"));
     attrs.add(new LDAPAttribute("ou", values));
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
     AddOperation addOperation =
-         conn.processAdd(ByteString.valueOf("ou=People,o=test"), attrs);
+         getRootConnection().processAdd(ByteString.valueOf("ou=People,o=test"), attrs);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveCompletedOperationElements(addOperation);
   }
@@ -615,13 +562,7 @@ public class AddOperationTestCase
          "objectClass: organizationalUnit",
          "ou: People");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    AddOperation addOperation =
-         conn.processAdd(entry.getName(), entry.getObjectClasses(),
-                         entry.getUserAttributes(),
-                         entry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(entry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveCompletedOperationElements(addOperation);
   }
@@ -651,11 +592,8 @@ public class AddOperationTestCase
     values.add(ByteString.valueOf("People"));
     attrs.add(new LDAPAttribute("ou", values));
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
     AddOperation addOperation =
-         conn.processAdd(ByteString.valueOf("invalid"), attrs);
+         getRootConnection().processAdd(ByteString.valueOf("invalid"), attrs);
     assertFalse(addOperation.getResultCode() == ResultCode.SUCCESS);
   }
 
@@ -684,11 +622,8 @@ public class AddOperationTestCase
     values.add(ByteString.valueOf("test"));
     attrs.add(new LDAPAttribute("o", values));
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
     AddOperation addOperation =
-         conn.processAdd(ByteString.valueOf("o=test"), attrs);
+         getRootConnection().processAdd(ByteString.valueOf("o=test"), attrs);
     assertFalse(addOperation.getResultCode() == ResultCode.SUCCESS);
   }
 
@@ -717,11 +652,8 @@ public class AddOperationTestCase
     values.add(ByteString.valueOf("undefined"));
     attrs.add(new LDAPAttribute("o", values));
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
     AddOperation addOperation =
-         conn.processAdd(ByteString.valueOf("o=undefined"), attrs);
+         getRootConnection().processAdd(ByteString.valueOf("o=undefined"), attrs);
     assertFalse(addOperation.getResultCode() == ResultCode.SUCCESS);
   }
 
@@ -750,8 +682,7 @@ public class AddOperationTestCase
     values.add(ByteString.valueOf("People"));
     attrs.add(new LDAPAttribute("ou", values));
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
 
     AddOperation addOperation =
          conn.processAdd(ByteString.valueOf("ou=People,o=undefined"), attrs);
@@ -783,8 +714,7 @@ public class AddOperationTestCase
     values.add(ByteString.valueOf("People"));
     attrs.add(new LDAPAttribute("ou", values));
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
 
     AddOperation addOperation =
          conn.processAdd(ByteString.valueOf("ou=People,o=missing,o=test"),
@@ -886,8 +816,7 @@ public class AddOperationTestCase
     values.add(ByteString.valueOf("People"));
     attrs.add(new LDAPAttribute("ou", values));
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
 
     AddOperation addOperation =
          conn.processAdd(ByteString.valueOf("ou=People,o=test"),
@@ -923,13 +852,7 @@ public class AddOperationTestCase
          "ds-pwp-password-policy-dn: cn=Clear UserPassword Policy," +
               "cn=Password Policies,cn=config");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    AddOperation addOperation =
-         conn.processAdd(entry.getName(), entry.getObjectClasses(),
-                         entry.getUserAttributes(),
-                         entry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(entry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveCompletedOperationElements(addOperation);
   }
@@ -967,8 +890,7 @@ public class AddOperationTestCase
     values.add(ByteString.valueOf("bar"));
     attrs.add(new LDAPAttribute("description", values));
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
 
     AddOperation addOperation =
          conn.processAdd(ByteString.valueOf("ou=People,o=test"),
@@ -1009,8 +931,7 @@ public class AddOperationTestCase
     values.add(ByteString.valueOf("foo"));
     attrs.add(new LDAPAttribute("description;lang-en-us", values));
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
 
     AddOperation addOperation =
          conn.processAdd(ByteString.valueOf("ou=People,o=test"),
@@ -1047,8 +968,7 @@ public class AddOperationTestCase
     values.add(ByteString.valueOf("foo"));
     attrs.add(new LDAPAttribute("description;lang-en-us", values));
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
 
     AddOperation addOperation =
          conn.processAdd(ByteString.valueOf("ou=People,o=test"),
@@ -1086,13 +1006,7 @@ public class AddOperationTestCase
          "cn;lang-en-us: Test User",
          "userPassword: password");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    AddOperation addOperation =
-         conn.processAdd(entry.getName(), entry.getObjectClasses(),
-                         entry.getUserAttributes(),
-                         entry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(entry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveCompletedOperationElements(addOperation);
   }
@@ -1123,8 +1037,7 @@ public class AddOperationTestCase
     values.add(ByteString.valueOf("Root DSE"));
     attrs.add(new LDAPAttribute("cn", values));
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
 
     AddOperation addOperation =
          conn.processAdd(ByteString.empty(), attrs);
@@ -1149,13 +1062,7 @@ public class AddOperationTestCase
          "objectClass: top",
          "objectClass: organizationalUnit");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    AddOperation addOperation =
-         conn.processAdd(entry.getName(), entry.getObjectClasses(),
-                         entry.getUserAttributes(),
-                         entry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(entry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveCompletedOperationElements(addOperation);
 
@@ -1184,13 +1091,7 @@ public class AddOperationTestCase
          "objectClass: top",
          "objectClass: organizationalUnit");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    AddOperation addOperation =
-         conn.processAdd(entry.getName(), entry.getObjectClasses(),
-                         entry.getUserAttributes(),
-                         entry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(entry);
     assertFalse(addOperation.getResultCode() == ResultCode.SUCCESS);
 
     DirectoryServer.setAddMissingRDNAttributes(true);
@@ -1219,13 +1120,7 @@ public class AddOperationTestCase
          "cn: Test User",
          "userPassword: password");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    AddOperation addOperation =
-         conn.processAdd(entry.getName(), entry.getObjectClasses(),
-                         entry.getUserAttributes(),
-                         entry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(entry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveCompletedOperationElements(addOperation);
 
@@ -1239,7 +1134,7 @@ public class AddOperationTestCase
     {
       for (ByteString v : a)
       {
-        if (v.toString().equalsIgnoreCase("top"))
+        if ("top".equalsIgnoreCase(v.toString()))
         {
           found = true;
           break;
@@ -1266,13 +1161,7 @@ public class AddOperationTestCase
          "dn: ou=People,o=test",
          "ou: People");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    AddOperation addOperation =
-         conn.processAdd(entry.getName(), entry.getObjectClasses(),
-                         entry.getUserAttributes(),
-                         entry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(entry);
     assertFalse(addOperation.getResultCode() == ResultCode.SUCCESS);
   }
 
@@ -1295,13 +1184,7 @@ public class AddOperationTestCase
          "objectClass: top",
          "ou: People");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    AddOperation addOperation =
-         conn.processAdd(entry.getName(), entry.getObjectClasses(),
-                         entry.getUserAttributes(),
-                         entry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(entry);
     assertFalse(addOperation.getResultCode() == ResultCode.SUCCESS);
   }
 
@@ -1325,13 +1208,7 @@ public class AddOperationTestCase
          "objectClass: extensibleObject",
          "ou: People");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    AddOperation addOperation =
-         conn.processAdd(entry.getName(), entry.getObjectClasses(),
-                         entry.getUserAttributes(),
-                         entry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(entry);
     assertFalse(addOperation.getResultCode() == ResultCode.SUCCESS);
   }
 
@@ -1358,13 +1235,7 @@ public class AddOperationTestCase
          "cn: Test User",
          "sn: User");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    AddOperation addOperation =
-         conn.processAdd(entry.getName(), entry.getObjectClasses(),
-                         entry.getUserAttributes(),
-                         entry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(entry);
     assertFalse(addOperation.getResultCode() == ResultCode.SUCCESS);
   }
 
@@ -1392,13 +1263,7 @@ public class AddOperationTestCase
          "sn: User",
          "userPassword: password"); // Missing cn
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    AddOperation addOperation =
-         conn.processAdd(entry.getName(), entry.getObjectClasses(),
-                         entry.getUserAttributes(),
-                         entry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(entry);
     assertFalse(addOperation.getResultCode() == ResultCode.SUCCESS);
   }
 
@@ -1428,13 +1293,7 @@ public class AddOperationTestCase
          "sn: User",
          "userPassword: password"); // Missing cn
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    AddOperation addOperation =
-         conn.processAdd(entry.getName(), entry.getObjectClasses(),
-                         entry.getUserAttributes(),
-                         entry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(entry);
     assertFalse(addOperation.getResultCode() == ResultCode.SUCCESS);
   }
 
@@ -1465,13 +1324,7 @@ public class AddOperationTestCase
          "userPassword: password",
          "dc: Not allowed by inetOrgPerson");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    AddOperation addOperation =
-         conn.processAdd(entry.getName(), entry.getObjectClasses(),
-                         entry.getUserAttributes(),
-                         entry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(entry);
     assertFalse(addOperation.getResultCode() == ResultCode.SUCCESS);
   }
 
@@ -1504,13 +1357,7 @@ public class AddOperationTestCase
          "userPassword: password",
          "dc: Not allowed by inetOrgPerson but allowed by extensibleObject");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    AddOperation addOperation =
-         conn.processAdd(entry.getName(), entry.getObjectClasses(),
-                         entry.getUserAttributes(),
-                         entry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(entry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveCompletedOperationElements(addOperation);
   }
@@ -1543,8 +1390,7 @@ public class AddOperationTestCase
     userAttrs.put(attrType, attrList);
 
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
+    InternalClientConnection conn = getRootConnection();
 
     AddOperation addOperation =
          conn.processAdd(entry.getName(), entry.getObjectClasses(), userAttrs,
@@ -1578,15 +1424,9 @@ public class AddOperationTestCase
          "cn: Test User",
          "userPassword: password");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
     DirectoryServer.setWritabilityMode(WritabilityMode.DISABLED);
 
-    AddOperation addOperation =
-         conn.processAdd(entry.getName(), entry.getObjectClasses(),
-                         entry.getUserAttributes(),
-                         entry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(entry);
     assertFalse(addOperation.getResultCode() == ResultCode.SUCCESS);
 
     DirectoryServer.setWritabilityMode(WritabilityMode.ENABLED);
@@ -1618,15 +1458,9 @@ public class AddOperationTestCase
          "cn: Test User",
          "userPassword: password");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
     DirectoryServer.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
 
-    AddOperation addOperation =
-         conn.processAdd(entry.getName(), entry.getObjectClasses(),
-                         entry.getUserAttributes(),
-                         entry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(entry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveCompletedOperationElements(addOperation);
 
@@ -1724,16 +1558,10 @@ public class AddOperationTestCase
          "cn: Test User",
          "userPassword: password");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    Backend b = DirectoryServer.getBackend(DN.valueOf("o=test"));
+    Backend<?> b = DirectoryServer.getBackend(DN.valueOf("o=test"));
     b.setWritabilityMode(WritabilityMode.DISABLED);
 
-    AddOperation addOperation =
-         conn.processAdd(entry.getName(), entry.getObjectClasses(),
-                         entry.getUserAttributes(),
-                         entry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(entry);
     assertFalse(addOperation.getResultCode() == ResultCode.SUCCESS);
 
     b.setWritabilityMode(WritabilityMode.ENABLED);
@@ -1765,16 +1593,10 @@ public class AddOperationTestCase
          "cn: Test User",
          "userPassword: password");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    Backend b = DirectoryServer.getBackend(DN.valueOf("o=test"));
+    Backend<?> b = DirectoryServer.getBackend(DN.valueOf("o=test"));
     b.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
 
-    AddOperation addOperation =
-         conn.processAdd(entry.getName(), entry.getObjectClasses(),
-                         entry.getUserAttributes(),
-                         entry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(entry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveCompletedOperationElements(addOperation);
 
@@ -1822,7 +1644,7 @@ public class AddOperationTestCase
     values.add(ByteString.valueOf("People"));
     attrs.add(new LDAPAttribute("ou", values));
 
-    Backend b = DirectoryServer.getBackend(DN.valueOf("o=test"));
+    Backend<?> b = DirectoryServer.getBackend(DN.valueOf("o=test"));
     b.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
 
     long addRequests  = ldapStatistics.getAddRequests();
@@ -1872,13 +1694,7 @@ public class AddOperationTestCase
          "objectClass: organizationalUnit",
          "ou: People");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    AddOperation addOperation =
-         conn.processAdd(entry.getName(), entry.getObjectClasses(),
-                         entry.getUserAttributes(),
-                         entry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(entry);
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);
     retrieveCompletedOperationElements(addOperation);
 
@@ -1911,13 +1727,7 @@ public class AddOperationTestCase
          "objectClass: organizationalUnit",
          "ou: People");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
-    AddOperation addOperation =
-         conn.processAdd(entry.getName(), entry.getObjectClasses(),
-                         entry.getUserAttributes(),
-                         entry.getOperationalAttributes());
+    AddOperation addOperation = getRootConnection().processAdd(entry);
     assertFalse(addOperation.getResultCode() == ResultCode.SUCCESS);
 
     assertEquals(changeListener.getAddCount(), 0);
@@ -1943,11 +1753,8 @@ public class AddOperationTestCase
          "objectClass: organizationalUnit",
          "ou: People");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
     AddOperationBasis addOperation =
-         new AddOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
+         new AddOperationBasis(getRootConnection(), nextOperationID(), nextMessageID(),
                           null, entry.getName(), entry.getObjectClasses(),
                           entry.getUserAttributes(),
                           entry.getOperationalAttributes());
@@ -1976,11 +1783,8 @@ public class AddOperationTestCase
          "objectClass: organizationalUnit",
          "ou: People");
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
     AddOperationBasis addOperation =
-         new AddOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
+         new AddOperationBasis(getRootConnection(), nextOperationID(), nextMessageID(),
                           null, entry.getName(), entry.getObjectClasses(),
                           entry.getUserAttributes(),
                           entry.getOperationalAttributes());
@@ -2019,13 +1823,7 @@ public class AddOperationTestCase
            "objectClass: organizationalUnit",
            "ou: People");
 
-      InternalClientConnection conn =
-           InternalClientConnection.getRootConnection();
-
-      AddOperation addOperation =
-           conn.processAdd(entry.getName(), entry.getObjectClasses(),
-                           entry.getUserAttributes(),
-                           entry.getOperationalAttributes());
+      AddOperation addOperation = getRootConnection().processAdd(entry);
       assertEquals(addOperation.getResultCode(), ResultCode.BUSY);
     }
     finally
@@ -2483,9 +2281,6 @@ responseLoop:
   {
     TestCaseUtils.initializeTestBackend(false);
 
-    InternalClientConnection conn =
-         InternalClientConnection.getRootConnection();
-
     List<Control> controls =
          ShortCircuitPlugin.createShortCircuitControlList(0, "PreParse");
 
@@ -2498,7 +2293,7 @@ responseLoop:
     rawAttrs.add(RawAttribute.create("o", "test"));
 
     AddOperationBasis addOperation =
-         new AddOperationBasis(conn, InternalClientConnection.nextOperationID(), InternalClientConnection.nextMessageID(),
+         new AddOperationBasis(getRootConnection(), nextOperationID(), nextMessageID(),
                           controls, ByteString.valueOf("o=test"), rawAttrs);
     addOperation.run();
     assertEquals(addOperation.getResultCode(), ResultCode.SUCCESS);

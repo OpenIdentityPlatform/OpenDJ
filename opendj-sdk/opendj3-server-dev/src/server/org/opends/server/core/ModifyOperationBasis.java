@@ -26,8 +26,6 @@
  */
 package org.opends.server.core;
 
-import static org.opends.messages.CoreMessages.*;
-import static org.opends.server.loggers.AccessLogger.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,7 +41,10 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.operation.PostResponseModifyOperation;
 import org.opends.server.types.operation.PreParseModifyOperation;
-import org.opends.server.workflowelement.localbackend.*;
+import org.opends.server.workflowelement.localbackend.LocalBackendModifyOperation;
+
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.server.loggers.AccessLogger.*;
 
 /**
  * This class defines an operation that may be used to modify an entry in the
@@ -76,9 +77,6 @@ public class ModifyOperationBasis
 
   /** The set of modifications for this modify operation. */
   private List<Modification> modifications;
-
-  /** The change number that has been assigned to this operation. */
-  private long changeNumber;
 
   /**
    * Creates a new modify operation with the provided information.
@@ -150,18 +148,14 @@ public class ModifyOperationBasis
     cancelRequest    = null;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final ByteString getRawEntryDN()
   {
     return rawEntryDN;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void setRawEntryDN(ByteString rawEntryDN)
   {
@@ -170,9 +164,7 @@ public class ModifyOperationBasis
     entryDN = null;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final DN getEntryDN()
   {
@@ -190,18 +182,14 @@ public class ModifyOperationBasis
     return entryDN;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final List<RawModification> getRawModifications()
   {
     return rawModifications;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void addRawModification(RawModification rawModification)
   {
@@ -210,9 +198,7 @@ public class ModifyOperationBasis
     modifications = null;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void setRawModifications(List<RawModification> rawModifications)
   {
@@ -221,9 +207,7 @@ public class ModifyOperationBasis
     modifications = null;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final List<Modification> getModifications()
   {
@@ -248,14 +232,11 @@ public class ModifyOperationBasis
                mod.setAttribute(attr);
              }
            }
-           else
+           else if (attr.hasOption("binary"))
            {
              // binary option is not honored for non-BER-encodable attributes.
-             if(attr.hasOption("binary"))
-             {
-               throw new LDAPException(LDAPResultCode.UNDEFINED_ATTRIBUTE_TYPE,
-                       ERR_ADD_ATTR_IS_INVALID_OPTION.get(entryDN, attr.getName()));
-             }
+             throw new LDAPException(LDAPResultCode.UNDEFINED_ATTRIBUTE_TYPE,
+                 ERR_ADD_ATTR_IS_INVALID_OPTION.get(entryDN, attr.getName()));
            }
 
            modifications.add(mod);
@@ -272,9 +253,7 @@ public class ModifyOperationBasis
     return modifications;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void addModification(Modification modification)
   throws DirectoryException
@@ -282,9 +261,7 @@ public class ModifyOperationBasis
     modifications.add(modification);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final OperationType getOperationType()
   {
@@ -294,45 +271,35 @@ public class ModifyOperationBasis
     return OperationType.MODIFY;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public DN getProxiedAuthorizationDN()
   {
     return proxiedAuthorizationDN;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final List<Control> getResponseControls()
   {
     return responseControls;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void addResponseControl(Control control)
   {
     responseControls.add(control);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void removeResponseControl(Control control)
   {
     responseControls.remove(control);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void toString(StringBuilder buffer)
   {
@@ -345,35 +312,14 @@ public class ModifyOperationBasis
     buffer.append(")");
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public final long getChangeNumber(){
-    return changeNumber;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void setChangeNumber(long changeNumber)
-  {
-    this.changeNumber = changeNumber;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setProxiedAuthorizationDN(DN proxiedAuthorizationDN)
   {
     this.proxiedAuthorizationDN = proxiedAuthorizationDN;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void run()
   {
