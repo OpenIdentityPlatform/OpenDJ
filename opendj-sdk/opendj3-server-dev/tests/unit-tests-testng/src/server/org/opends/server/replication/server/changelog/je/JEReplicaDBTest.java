@@ -33,6 +33,7 @@ import java.util.Arrays;
 
 import org.assertj.core.api.SoftAssertions;
 import org.opends.server.TestCaseUtils;
+import org.opends.server.admin.std.meta.ReplicationServerCfgDefn.ReplicationDBImplementation;
 import org.opends.server.admin.std.server.ReplicationServerCfg;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
@@ -47,6 +48,7 @@ import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
 import org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy;
 import org.opends.server.types.DN;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -64,6 +66,20 @@ public class JEReplicaDBTest extends ReplicationTestCase
   /** The tracer object for the debug logger */
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
   private DN TEST_ROOT_DN;
+
+  private static final ReplicationDBImplementation previousDBImpl = replicationDbImplementation;
+
+  @BeforeClass
+  public void setDBImpl()
+  {
+    setReplicationDBImplementation(ReplicationDBImplementation.JE);
+  }
+
+  @AfterClass
+  public void resetDBImplToPrevious()
+  {
+    setReplicationDBImplementation(previousDBImpl);
+  }
 
   /**
    * Utility - log debug message - highlight it is from the test and not
@@ -182,6 +198,55 @@ public class JEReplicaDBTest extends ReplicationTestCase
       shutdown(replicaDB);
       remove(replicationServer);
     }
+  }
+
+  static CSN[] newCSNs(int serverId, long timestamp, int number)
+  {
+    CSNGenerator gen = new CSNGenerator(serverId, timestamp);
+    CSN[] csns = new CSN[number];
+    for (int i = 0; i < csns.length; i++)
+    {
+      csns[i] = gen.newCSN();
+    }
+    return csns;
+  }
+
+  private ReplicationServer configureReplicationServer(int windowSize, int queueSize)
+      throws IOException, ConfigException
+  {
+    final int changelogPort = findFreePort();
+    final ReplicationServerCfg conf =
+        new ReplServerFakeConfiguration(changelogPort, null, ReplicationDBImplementation.JE, 0, 2, queueSize, windowSize, null);
+    return new ReplicationServer(conf);
+  }
+
+  private JEReplicaDB newReplicaDB(ReplicationServer rs) throws Exception
+  {
+    final JEChangelogDB changelogDB = (JEChangelogDB) rs.getChangelogDB();
+    return changelogDB.getOrCreateReplicaDB(TEST_ROOT_DN, 1, rs).getFirst();
+  }
+
+  private File createCleanDir() throws IOException
+  {
+    String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
+    String path = System.getProperty(TestCaseUtils.PROPERTY_BUILD_DIR, buildRoot
+            + File.separator + "build");
+    path = path + File.separator + "unit-tests" + File.separator + "JEReplicaDB";
+    final File testRoot = new File(path);
+    TestCaseUtils.deleteDirectory(testRoot);
+    testRoot.mkdirs();
+    return testRoot;
+  }
+
+  private void assertFoundInOrder(JEReplicaDB replicaDB, CSN... csns) throws Exception
+  {
+    if (csns.length == 0)
+    {
+      return;
+    }
+
+    assertFoundInOrder(replicaDB, AFTER_MATCHING_KEY, csns);
+    assertFoundInOrder(replicaDB, ON_MATCHING_KEY, csns);
   }
 
   /**
@@ -381,44 +446,6 @@ public class JEReplicaDBTest extends ReplicationTestCase
       csns[i] = gen.newCSN();
     }
     return csns;
-  }
-
-  private ReplicationServer configureReplicationServer(int windowSize, int queueSize)
-      throws IOException, ConfigException
-  {
-    final int changelogPort = findFreePort();
-    final ReplicationServerCfg conf = new ReplServerFakeConfiguration(
-        changelogPort, null, 0, 2, queueSize, windowSize, null);
-    return new ReplicationServer(conf);
-  }
-
-  private JEReplicaDB newReplicaDB(ReplicationServer rs) throws Exception
-  {
-    final JEChangelogDB changelogDB = (JEChangelogDB) rs.getChangelogDB();
-    return changelogDB.getOrCreateReplicaDB(TEST_ROOT_DN, 1, rs).getFirst();
-  }
-
-  private File createCleanDir() throws IOException
-  {
-    String buildRoot = System.getProperty(TestCaseUtils.PROPERTY_BUILD_ROOT);
-    String path = System.getProperty(TestCaseUtils.PROPERTY_BUILD_DIR, buildRoot
-            + File.separator + "build");
-    path = path + File.separator + "unit-tests" + File.separator + "JEReplicaDB";
-    final File testRoot = new File(path);
-    TestCaseUtils.deleteDirectory(testRoot);
-    testRoot.mkdirs();
-    return testRoot;
-  }
-
-  private void assertFoundInOrder(JEReplicaDB replicaDB, CSN... csns) throws Exception
-  {
-    if (csns.length == 0)
-    {
-      return;
-    }
-
-    assertFoundInOrder(replicaDB, AFTER_MATCHING_KEY, csns);
-    assertFoundInOrder(replicaDB, ON_MATCHING_KEY, csns);
   }
 
   private void assertFoundInOrder(JEReplicaDB replicaDB,

@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions Copyright 2013-2014 ForgeRock AS
+ *      Copyright 2013-2014 ForgeRock AS
  */
 package org.opends.server.replication.server.changelog.je;
 
@@ -470,7 +470,6 @@ public class ChangeNumberIndexer extends DirectoryThread
               }
             }
           }
-
 
           // OK, the oldest change is older than the medium consistency point
           // let's publish it to the CNIndexDB.

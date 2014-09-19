@@ -489,11 +489,8 @@ public class InitOnLineTest extends ReplicationTestCase
         new ReplServerFakeConfiguration(
             port,
             "initOnlineTest" + port + testCase + "Db",
-            0,
-            replServerId,
-            0,
-            100,
-            servers);
+            replicationDbImplementation,
+            0, replServerId, 0, 100, servers);
     ReplicationServer replicationServer = new ReplicationServer(conf);
     Thread.sleep(1000);
     return replicationServer;

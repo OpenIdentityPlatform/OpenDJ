@@ -90,6 +90,7 @@ public class SchemaReplicationTest extends ReplicationTestCase
         + "cn: Replication Server\n"
         + "ds-cfg-replication-port: " + replServerPort + "\n"
         + "ds-cfg-replication-db-directory: SchemaReplicationTest\n"
+        + "ds-cfg-replication-db-implementation: " + replicationDbImplementation + "\n"
         + "ds-cfg-replication-server-id: 105\n";
 
     // suffix synchronized

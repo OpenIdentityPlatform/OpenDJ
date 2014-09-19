@@ -359,8 +359,8 @@ public class ReplicationServerFailoverTest extends ReplicationTestCase
 
     String dir = "replicationServerFailoverTest" + serverId + suffix + "Db";
     ReplServerFakeConfiguration conf =
-        new ReplServerFakeConfiguration(port, dir, 0, serverId, 0, 100,
-            replServers);
+        new ReplServerFakeConfiguration(port, dir, replicationDbImplementation, 0, serverId, 0,
+            100, replServers);
     return new ReplicationServer(conf);
   }
 

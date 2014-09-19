@@ -32,6 +32,7 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.testng.annotations.AfterClass;
 import org.forgerock.i18n.LocalizableMessage;
+import org.opends.server.replication.ReplicationTestCase;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -54,6 +55,10 @@ public abstract class DirectoryServerTestCase {
 
   @BeforeSuite
   public final void suppressOutput() {
+    System.out.println("Replication DB implementation used in tests: '" +
+        ReplicationTestCase.replicationDbImplementation + "'.");
+    System.out.flush();
+
     TestCaseUtils.suppressOutput();
   }
 

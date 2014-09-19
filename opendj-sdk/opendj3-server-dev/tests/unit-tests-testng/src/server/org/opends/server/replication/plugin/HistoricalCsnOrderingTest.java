@@ -322,8 +322,8 @@ public class HistoricalCsnOrderingTest extends ReplicationTestCase
     replServers.add("localhost:" + rsPort);
 
     ReplServerFakeConfiguration conf =
-        new ReplServerFakeConfiguration(rsPort, "HistoricalCsnOrdering", 0, 1,
-            0, 100, replServers, 1, 1000, 5000);
+        new ReplServerFakeConfiguration(rsPort, "HistoricalCsnOrdering", replicationDbImplementation, 0,
+            1, 0, 100, replServers, 1, 1000, 5000);
     ReplicationServer replicationServer = new ReplicationServer(conf);
     clearChangelogDB(replicationServer);
     return replicationServer;

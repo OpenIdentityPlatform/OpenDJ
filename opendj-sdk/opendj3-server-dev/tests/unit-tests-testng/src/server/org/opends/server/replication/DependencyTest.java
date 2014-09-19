@@ -135,8 +135,8 @@ public class DependencyTest extends ReplicationTestCase
 
       ReplServerFakeConfiguration conf =
         new ReplServerFakeConfiguration(replServerPort, "dependencyTestAddModDelDependencyTestDb",
-                                        0, replServerId, 0,
-                                        AddSequenceLength*5+100, null);
+                                        replicationDbImplementation, 0, replServerId,
+                                        0, AddSequenceLength*5+100, null);
       replServer = new ReplicationServer(conf);
 
       ReplicationBroker broker = openReplicationSession(
@@ -271,8 +271,8 @@ public class DependencyTest extends ReplicationTestCase
 
       ReplServerFakeConfiguration conf =
         new ReplServerFakeConfiguration(replServerPort, "dependencyTestModdnDelDependencyTestDb",
-                                        0, replServerId, 0,
-                                        200, null);
+                                        replicationDbImplementation, 0, replServerId,
+                                        0, 200, null);
       replServer = new ReplicationServer(conf);
 
       // configure and start replication of TEST_ROOT_DN_STRING on the server
@@ -402,9 +402,8 @@ public class DependencyTest extends ReplicationTestCase
       int replServerPort = TestCaseUtils.findFreePort();
 
       ReplServerFakeConfiguration conf =
-        new ReplServerFakeConfiguration(replServerPort, "dependencyTestAddDelAddDependencyTestDb", 0,
-                                        replServerId,
-                                        0, 5*AddSequenceLength+100, null);
+        new ReplServerFakeConfiguration(replServerPort, "dependencyTestAddDelAddDependencyTestDb", replicationDbImplementation,
+                                        0, replServerId, 0, 5*AddSequenceLength+100, null);
       replServer = new ReplicationServer(conf);
 
       ReplicationBroker broker = openReplicationSession(
@@ -521,9 +520,8 @@ public class DependencyTest extends ReplicationTestCase
       int replServerPort = TestCaseUtils.findFreePort();
 
       ReplServerFakeConfiguration conf =
-        new ReplServerFakeConfiguration(replServerPort, "dependencyTestAddModdnDependencyTestDb", 0,
-                                        replServerId,
-                                        0, 5*AddSequenceLength+100, null);
+        new ReplServerFakeConfiguration(replServerPort, "dependencyTestAddModdnDependencyTestDb", replicationDbImplementation,
+                                        0, replServerId, 0, 5*AddSequenceLength+100, null);
       replServer = new ReplicationServer(conf);
 
       ReplicationBroker broker = openReplicationSession(

@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.opends.server.TestCaseUtils;
+import org.opends.server.admin.std.meta.ReplicationServerCfgDefn.ReplicationDBImplementation;
 import org.opends.server.replication.ReplicationTestCase;
 import org.opends.server.replication.common.CSN;
 import org.opends.server.replication.common.MultiDomainServerState;
@@ -41,6 +42,8 @@ import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
 import org.opends.server.types.DN;
 import org.opends.server.util.StaticUtils;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -56,6 +59,20 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
   private final MultiDomainServerState previousCookie =
       new MultiDomainServerState();
   private final List<String> cookies = new ArrayList<String>();
+
+  private static final ReplicationDBImplementation previousDBImpl = replicationDbImplementation;
+
+  @BeforeClass
+  public void setDBImpl()
+  {
+    setReplicationDBImplementation(ReplicationDBImplementation.JE);
+  }
+
+  @AfterClass
+  public void resetDBImplToPrevious()
+  {
+    setReplicationDBImplementation(previousDBImpl);
+  }
 
   @BeforeMethod
   public void clearCookie()
@@ -254,7 +271,7 @@ public class JEChangeNumberIndexDBTest extends ReplicationTestCase
     TestCaseUtils.startServer();
     final int port = TestCaseUtils.findFreePort();
     final ReplServerFakeConfiguration cfg =
-        new ReplServerFakeConfiguration(port, null, 0, 2, 0, 100, null);
+        new ReplServerFakeConfiguration(port, null, ReplicationDBImplementation.JE, 0, 2, 0, 100, null);
     cfg.setComputeChangeNumber(true);
     return new ReplicationServer(cfg);
   }

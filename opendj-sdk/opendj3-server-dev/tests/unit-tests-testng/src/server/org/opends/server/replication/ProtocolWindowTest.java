@@ -254,8 +254,8 @@ public class ProtocolWindowTest extends ReplicationTestCase
 
     // configure the replication Server.
     replicationServer = new ReplicationServer(new ReplServerFakeConfiguration(
-        replServerPort, "protocolWindowTestDb", 0,
-        1, REPLICATION_QUEUE_SIZE, WINDOW_SIZE, null));
+        replServerPort, "protocolWindowTestDb", replicationDbImplementation,
+        0, 1, REPLICATION_QUEUE_SIZE, WINDOW_SIZE, null));
 
     String personLdif = "dn: uid=user.windowTest," + TEST_ROOT_DN_STRING + "\n"
         + "objectClass: top\n" + "objectClass: person\n"

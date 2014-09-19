@@ -847,6 +847,8 @@ public class ReferentialIntegrityPluginTestCase extends PluginTestCase  {
   @AfterClass
   public void tearDown() throws Exception {
      deleteAttrsEntry(configDN, dsConfigBaseDN);
+     deleteAttrsEntry(configDN, dsConfigEnforceIntegrity);
+     deleteAttrsEntry(configDN, dsConfigAttrFiltMapping);
     //Hopefully put an attribute type there that won't impact the rest of the
     //unit tests.
     replaceAttrEntry(configDN, dsConfigAttrType,"seeAlso");

@@ -388,8 +388,8 @@ public class AssuredReplicationServerTest
 
     String dir = testName + serverId + testCase + "Db";
     ReplServerFakeConfiguration conf =
-        new ReplServerFakeConfiguration(port, dir, 0, serverId, 0, 100,
-            otherRsUrls, groupId, assuredTimeout, 5000);
+        new ReplServerFakeConfiguration(port, dir, replicationDbImplementation, 0, serverId, 0,
+            100, otherRsUrls, groupId, assuredTimeout, 5000);
     // No monitoring publisher to not interfere with some SocketTimeoutException
     // expected at some points in these tests
     conf.setMonitoringPeriod(0L);
@@ -2983,8 +2983,8 @@ public class AssuredReplicationServerTest
       // Create real RS
       String dir = testName + RS1_ID + testCase + "Db";
       ReplServerFakeConfiguration conf =
-          new ReplServerFakeConfiguration(rsPorts[0], dir, 0, RS1_ID, 0, 100,
-              new TreeSet<String>(), DEFAULT_GID, SMALL_TIMEOUT, 1);
+          new ReplServerFakeConfiguration(rsPorts[0], dir, replicationDbImplementation, 0, RS1_ID, 0,
+              100, new TreeSet<String>(), DEFAULT_GID, SMALL_TIMEOUT, 1);
       rs1 = new ReplicationServer(conf);
 
       /*
