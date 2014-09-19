@@ -197,7 +197,8 @@ public class ConfigurationHandler implements ConfigurationRepository
   private static final RequestContext UNCANCELLABLE_REQUEST_CONTEXT =
       new RequestContext()
       {
-        /** {@inheritDoc} */        @Override
+        /** {@inheritDoc} */
+        @Override
         public void removeCancelRequestListener(final CancelRequestListener listener)
         {
           // nothing to do
@@ -228,37 +229,13 @@ public class ConfigurationHandler implements ConfigurationRepository
       };
 
   /** Handler for search results.  */
-  private static final class ConfigSearchResultHandler implements SearchResultHandler
+  private static final class ConfigSearchHandler implements SearchResultHandler
   {
-    private ErrorResultException resultError;
     private final Set<Entry> entries = new HashSet<Entry>();
-
-    ErrorResultException getResultError()
-    {
-      return resultError;
-    }
-
-    boolean hasCompletedSuccessfully() {
-      return resultError == null;
-    }
 
     Set<Entry> getEntries()
     {
       return entries;
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public void handleResult(Result result)
-    {
-      // nothing to do
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public void handleErrorResult(ErrorResultException error)
-    {
-      resultError = error;
     }
 
     /** {@inheritDoc} */
@@ -300,7 +277,7 @@ public class ConfigurationHandler implements ConfigurationRepository
 
     /** {@inheritDoc} */
     @Override
-    public void handleErrorResult(ErrorResultException error)
+    public void handleError(ErrorResultException error)
     {
       resultError = error;
     }
@@ -316,7 +293,7 @@ public class ConfigurationHandler implements ConfigurationRepository
   }
 
   /** {@inheritDoc} */
-  /** {@inheritDoc} */  @Override
+  @Override
   public Entry getEntry(final DN dn) throws ConfigException {
     Entry entry = backend.get(dn);
     if (entry == null)
@@ -329,25 +306,26 @@ public class ConfigurationHandler implements ConfigurationRepository
   }
 
   /** {@inheritDoc} */
-  /** {@inheritDoc} */  @Override
+  @Override
   public boolean hasEntry(final DN dn) throws ConfigException {
     return backend.get(dn) != null;
   }
 
   /** {@inheritDoc} */
-  /** {@inheritDoc} */  @Override
+  @Override
   public Set<DN> getChildren(DN dn) throws ConfigException {
-    final ConfigSearchResultHandler resultHandler = new ConfigSearchResultHandler();
+    final ConfigResultHandler resultHandler = new ConfigResultHandler();
+    final ConfigSearchHandler searchHandler = new ConfigSearchHandler();
+
     backend.handleSearch(
         UNCANCELLABLE_REQUEST_CONTEXT,
         Requests.newSearchRequest(dn, SearchScope.SINGLE_LEVEL, Filter.objectClassPresent()),
-        null,
-        resultHandler);
+        null, searchHandler, resultHandler);
 
     if (resultHandler.hasCompletedSuccessfully())
     {
       final Set<DN> children = new HashSet<DN>();
-      for (final Entry entry : resultHandler.getEntries())
+      for (final Entry entry : searchHandler.getEntries())
       {
         children.add(entry.getName());
       }
@@ -376,17 +354,17 @@ public class ConfigurationHandler implements ConfigurationRepository
    */
   public long numSubordinates(final DN entryDN, final boolean subtree) throws ConfigException
   {
-    final ConfigSearchResultHandler resultHandler = new ConfigSearchResultHandler();
+    final ConfigResultHandler resultHandler = new ConfigResultHandler();
+    final ConfigSearchHandler searchHandler = new ConfigSearchHandler();
     final SearchScope scope = subtree ? SearchScope.SUBORDINATES : SearchScope.SINGLE_LEVEL;
     backend.handleSearch(
         UNCANCELLABLE_REQUEST_CONTEXT,
         Requests.newSearchRequest(entryDN, scope, Filter.objectClassPresent()),
-        null,
-        resultHandler);
+        null, searchHandler, resultHandler);
 
     if (resultHandler.hasCompletedSuccessfully())
     {
-      return resultHandler.getEntries().size();
+      return searchHandler.getEntries().size();
     }
     else {
       // TODO : fix the message

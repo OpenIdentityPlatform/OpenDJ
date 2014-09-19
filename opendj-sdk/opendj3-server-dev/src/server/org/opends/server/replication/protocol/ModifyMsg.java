@@ -34,7 +34,6 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.ModifyOperationBasis;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.replication.common.CSN;
-import org.opends.server.types.ByteString;
 import org.opends.server.types.DN;
 import org.opends.server.types.LDAPException;
 import org.opends.server.types.Modification;

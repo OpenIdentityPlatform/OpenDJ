@@ -25,20 +25,20 @@
  */
 package org.opends.server.protocols.http;
 
-import static org.forgerock.opendj.adapter.server3x.Converters.*;
-import static org.forgerock.opendj.ldap.ByteString.*;
 import java.util.LinkedHashSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.servlet.http.HttpServletResponse;
 
+import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.AbstractAsynchronousConnection;
+import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConnectionEventListener;
 import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.FutureResult;
+import org.forgerock.opendj.ldap.FutureResultImpl;
 import org.forgerock.opendj.ldap.IntermediateResponseHandler;
 import org.forgerock.opendj.ldap.ResultCode;
-import org.forgerock.opendj.ldap.ResultHandler;
 import org.forgerock.opendj.ldap.SearchResultHandler;
 import org.forgerock.opendj.ldap.requests.AbandonRequest;
 import org.forgerock.opendj.ldap.requests.AddRequest;
@@ -77,7 +77,6 @@ import org.opends.server.core.SearchOperation;
 import org.opends.server.core.SearchOperationBasis;
 import org.opends.server.core.UnbindOperation;
 import org.opends.server.core.UnbindOperationBasis;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.ldap.AbandonRequestProtocolOp;
 import org.opends.server.protocols.ldap.AddRequestProtocolOp;
 import org.opends.server.protocols.ldap.BindRequestProtocolOp;
@@ -91,11 +90,11 @@ import org.opends.server.protocols.ldap.ProtocolOp;
 import org.opends.server.protocols.ldap.SearchRequestProtocolOp;
 import org.opends.server.protocols.ldap.UnbindRequestProtocolOp;
 import org.opends.server.types.AuthenticationInfo;
-import org.forgerock.opendj.ldap.ByteString;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.Operation;
 
-import com.forgerock.opendj.util.AsynchronousFutureResult;
+import static org.forgerock.opendj.adapter.server3x.Converters.*;
+import static org.forgerock.opendj.ldap.ByteString.*;
 
 /**
  * Adapter class between LDAP SDK's {@link org.forgerock.opendj.ldap.Connection}
@@ -115,7 +114,7 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
    * The next message ID (and operation ID) that should be used for this
    * connection.
    */
-  private AtomicInteger nextMessageID = new AtomicInteger(0);
+  private final AtomicInteger nextMessageID = new AtomicInteger(0);
 
   /** The queueing strategy used for this connection. */
   private final QueueingStrategy queueingStrategy;
@@ -140,32 +139,30 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
             .getCurrentConfig().getMaxConcurrentOpsPerConnection());
   }
 
-  @SuppressWarnings({ "rawtypes", "unchecked" })
-  private <R> FutureResult<R> enqueueOperation(
-      Operation operation, ResultHandler<? super R> resultHandler)
+  private <R> FutureResult<R> enqueueOperation(Operation operation)
   {
-    final AsynchronousFutureResult<R, ResultHandler<? super R>> futureResult =
-        new AsynchronousFutureResult<R, ResultHandler<? super R>>(
-            resultHandler, operation.getMessageID());
+    return enqueueOperation(operation, null);
+  }
+
+  @SuppressWarnings({ "rawtypes", "unchecked" })
+  private <R> FutureResult<R> enqueueOperation(Operation operation, SearchResultHandler entryHandler)
+  {
+    final FutureResultImpl<R> futureResult = new FutureResultImpl(operation.getMessageID());
 
     try
     {
       operation.setInnerOperation(this.clientConnection.isInnerConnection());
 
-      HTTPConnectionHandler connHandler =
-          this.clientConnection.getConnectionHandler();
+      HTTPConnectionHandler connHandler = this.clientConnection.getConnectionHandler();
       if (connHandler.keepStats())
       {
         connHandler.getStatTracker().updateMessageRead(
-            new LDAPMessage(operation.getMessageID(),
-                toRequestProtocolOp(operation)));
+            new LDAPMessage(operation.getMessageID(), toRequestProtocolOp(operation)));
       }
 
       // need this raw cast here to fool the compiler's generic type safety
       // Problem here is due to the generic type R on enqueueOperation()
-      clientConnection.addOperationInProgress(operation,
-          (AsynchronousFutureResult) futureResult);
-
+      clientConnection.addOperationInProgress(operation, (FutureResultImpl) futureResult, entryHandler);
       queueingStrategy.enqueueRequest(operation);
     }
     catch (Exception e)
@@ -173,9 +170,9 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
       logger.traceException(e);
       clientConnection.removeOperationInProgress(operation.getMessageID());
       // TODO JNR add error message??
-      futureResult.handleErrorResult(ErrorResultException.newErrorResult(
-          ResultCode.OPERATIONS_ERROR, e));
+      futureResult.handleError(ErrorResultException.newErrorResult(ResultCode.OPERATIONS_ERROR, e));
     }
+
     return futureResult;
   }
 
@@ -246,26 +243,17 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
   public FutureResult<Void> abandonAsync(AbandonRequest request)
   {
     final int messageID = nextMessageID.getAndIncrement();
-    AbandonOperationBasis operation =
-        new AbandonOperationBasis(clientConnection, messageID, messageID,
-            to(request.getControls()), request.getRequestID());
-
-    return enqueueOperation(operation, null);
+    return enqueueOperation(new AbandonOperationBasis(clientConnection, messageID, messageID,
+        to(request.getControls()), request.getRequestID()));
   }
 
   /** {@inheritDoc} */
   @Override
-  public FutureResult<Result> addAsync(AddRequest request,
-      IntermediateResponseHandler intermediateResponseHandler,
-      ResultHandler<? super Result> resultHandler)
+  public FutureResult<Result> addAsync(AddRequest request, IntermediateResponseHandler intermediateResponseHandler)
   {
     final int messageID = nextMessageID.getAndIncrement();
-    AddOperationBasis operation =
-        new AddOperationBasis(clientConnection, messageID, messageID,
-            to(request.getControls()), valueOf(request.getName()),
-            to(request.getAllAttributes()));
-
-    return enqueueOperation(operation, resultHandler);
+    return enqueueOperation(new AddOperationBasis(clientConnection, messageID, messageID, to(request.getControls()),
+        valueOf(request.getName()), to(request.getAllAttributes())));
   }
 
   /** {@inheritDoc} */
@@ -278,18 +266,13 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
   /** {@inheritDoc} */
   @Override
   public FutureResult<BindResult> bindAsync(BindRequest request,
-      IntermediateResponseHandler intermediateResponseHandler,
-      ResultHandler<? super BindResult> resultHandler)
+      IntermediateResponseHandler intermediateResponseHandler)
   {
     final int messageID = nextMessageID.getAndIncrement();
     String userName = request.getName();
     byte[] password = ((SimpleBindRequest) request).getPassword();
-    BindOperationBasis operation =
-        new BindOperationBasis(clientConnection, messageID, messageID,
-            to(request.getControls()), "3", ByteString.valueOf(userName),
-            ByteString.wrap(password));
-
-    return enqueueOperation(operation, resultHandler);
+    return enqueueOperation(new BindOperationBasis(clientConnection, messageID, messageID, to(request.getControls()),
+        "3", ByteString.valueOf(userName), ByteString.wrap(password)));
   }
 
   /** {@inheritDoc} */
@@ -323,47 +306,34 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
   /** {@inheritDoc} */
   @Override
   public FutureResult<CompareResult> compareAsync(CompareRequest request,
-      IntermediateResponseHandler intermediateResponseHandler,
-      ResultHandler<? super CompareResult> resultHandler)
+      IntermediateResponseHandler intermediateResponseHandler)
   {
     final int messageID = nextMessageID.getAndIncrement();
-    CompareOperationBasis operation =
-        new CompareOperationBasis(clientConnection, messageID, messageID,
-            to(request.getControls()), valueOf(request.getName()),
-            request.getAttributeDescription().getAttributeType().getOID(),
-            request.getAssertionValue());
-
-    return enqueueOperation(operation, resultHandler);
+    return enqueueOperation(new CompareOperationBasis(clientConnection, messageID, messageID,
+        to(request.getControls()), valueOf(request.getName()),
+        request.getAttributeDescription().getAttributeType().getOID(),
+        request.getAssertionValue()));
   }
 
   /** {@inheritDoc} */
   @Override
   public FutureResult<Result> deleteAsync(DeleteRequest request,
-      IntermediateResponseHandler intermediateResponseHandler,
-      ResultHandler<? super Result> resultHandler)
+      IntermediateResponseHandler intermediateResponseHandler)
   {
     final int messageID = nextMessageID.getAndIncrement();
-    DeleteOperationBasis operation =
-        new DeleteOperationBasis(clientConnection, messageID, messageID,
-            to(request.getControls()), valueOf(request.getName()));
-
-    return enqueueOperation(operation, resultHandler);
+    return enqueueOperation(new DeleteOperationBasis(clientConnection, messageID, messageID,
+        to(request.getControls()), valueOf(request.getName())));
   }
 
   /** {@inheritDoc} */
   @Override
-  public <R extends ExtendedResult> FutureResult<R> extendedRequestAsync(
-      ExtendedRequest<R> request,
-      IntermediateResponseHandler intermediateResponseHandler,
-      ResultHandler<? super R> resultHandler)
+  public <R extends ExtendedResult> FutureResult<R> extendedRequestAsync(ExtendedRequest<R> request,
+      IntermediateResponseHandler intermediateResponseHandler)
   {
     final int messageID = nextMessageID.getAndIncrement();
-    ExtendedOperationBasis operation =
-        new ExtendedOperationBasis(this.clientConnection, messageID, messageID,
-            to(request.getControls()), request.getOID(),
-            request.getValue());
-
-    return enqueueOperation(operation, resultHandler);
+    return enqueueOperation(new ExtendedOperationBasis(this.clientConnection, messageID, messageID,
+        to(request.getControls()), request.getOID(),
+        request.getValue()));
   }
 
   /**
@@ -393,32 +363,24 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
   /** {@inheritDoc} */
   @Override
   public FutureResult<Result> modifyAsync(ModifyRequest request,
-      IntermediateResponseHandler intermediateResponseHandler,
-      ResultHandler<? super Result> resultHandler)
+      IntermediateResponseHandler intermediateResponseHandler)
   {
     final int messageID = nextMessageID.getAndIncrement();
-    ModifyOperationBasis operation =
-        new ModifyOperationBasis(clientConnection, messageID, messageID,
-            to(request.getControls()), to(request.getName()),
-            toModifications(request.getModifications()));
-
-    return enqueueOperation(operation, resultHandler);
+    return enqueueOperation(new ModifyOperationBasis(clientConnection, messageID, messageID,
+        to(request.getControls()), to(request.getName()),
+        toModifications(request.getModifications())));
   }
 
   /** {@inheritDoc} */
   @Override
   public FutureResult<Result> modifyDNAsync(ModifyDNRequest request,
-      IntermediateResponseHandler intermediateResponseHandler,
-      ResultHandler<? super Result> resultHandler)
+      IntermediateResponseHandler intermediateResponseHandler)
   {
     final int messageID = nextMessageID.getAndIncrement();
-    ModifyDNOperationBasis operation =
-        new ModifyDNOperationBasis(clientConnection, messageID, messageID,
-            to(request.getControls()), to(request.getName()), to(request
-                .getNewRDN()), request.isDeleteOldRDN(), to(request
-                .getNewSuperior()));
-
-    return enqueueOperation(operation, resultHandler);
+    return enqueueOperation(new ModifyDNOperationBasis(clientConnection, messageID, messageID,
+        to(request.getControls()), to(request.getName()), to(request
+            .getNewRDN()), request.isDeleteOldRDN(), to(request
+            .getNewSuperior())));
   }
 
   /** {@inheritDoc} */
@@ -431,19 +393,15 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
   /** {@inheritDoc} */
   @Override
   public FutureResult<Result> searchAsync(final SearchRequest request,
-      final IntermediateResponseHandler intermediateResponseHandler,
-      final SearchResultHandler resultHandler)
+      final IntermediateResponseHandler intermediateResponseHandler, final SearchResultHandler entryHandler)
   {
     final int messageID = nextMessageID.getAndIncrement();
-    SearchOperationBasis operation =
-        new SearchOperationBasis(clientConnection, messageID, messageID,
-            to(request.getControls()), valueOf(request.getName()),
-            request.getScope(), request.getDereferenceAliasesPolicy(),
-            request.getSizeLimit(), request.getTimeLimit(),
-            request.isTypesOnly(), to(request.getFilter()),
-            new LinkedHashSet<String>(request.getAttributes()));
-
-    return enqueueOperation(operation, resultHandler);
+    return enqueueOperation(new SearchOperationBasis(clientConnection, messageID, messageID,
+        to(request.getControls()), valueOf(request.getName()),
+        request.getScope(), request.getDereferenceAliasesPolicy(),
+        request.getSizeLimit(), request.getTimeLimit(),
+        request.isTypesOnly(), to(request.getFilter()),
+        new LinkedHashSet<String>(request.getAttributes())), entryHandler);
   }
 
   /** {@inheritDoc} */
