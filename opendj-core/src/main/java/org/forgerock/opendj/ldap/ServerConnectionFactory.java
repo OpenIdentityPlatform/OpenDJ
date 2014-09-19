@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -56,9 +57,9 @@ public interface ServerConnectionFactory<C, R> {
      *            of the client's connection.
      * @return A {@code ServerConnection} which will be used to handle requests
      *         from a client connection.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If this server connection factory cannot accept the client
      *             connection.
      */
-    ServerConnection<R> handleAccept(C clientContext) throws ErrorResultException;
+    ServerConnection<R> handleAccept(C clientContext) throws LdapException;
 }

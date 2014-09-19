@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions Copyright 2012-2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -51,10 +51,10 @@ public interface ConnectionSecurityLayer {
      * @param len
      *            The number of bytes from {@code incoming} to be unwrapped.
      * @return A non-{@code null} byte array containing the unwrapped bytes.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If {@code incoming} cannot be successfully unwrapped.
      */
-    byte[] unwrap(byte[] incoming, int offset, int len) throws ErrorResultException;
+    byte[] unwrap(byte[] incoming, int offset, int len) throws LdapException;
 
     /**
      * Wraps a byte array to be sent to the peer.
@@ -68,8 +68,8 @@ public interface ConnectionSecurityLayer {
      * @param len
      *            The number of bytes from {@code outgoing} to be wrapped.
      * @return A non-{@code null} byte array containing the wrapped bytes.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If {@code outgoing} cannot be successfully wrapped.
      */
-    byte[] wrap(byte[] outgoing, int offset, int len) throws ErrorResultException;
+    byte[] wrap(byte[] outgoing, int offset, int len) throws LdapException;
 }

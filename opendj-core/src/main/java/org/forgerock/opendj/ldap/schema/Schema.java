@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  *      Portions Copyright 2014 Manuel Gaupp
  */
 package org.forgerock.opendj.ldap.schema;
@@ -44,7 +44,7 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entries;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.EntryNotFoundException;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.FutureResult;
 import org.forgerock.opendj.ldap.LinkedAttribute;
 import org.forgerock.opendj.ldap.RDN;
@@ -968,7 +968,7 @@ public final class Schema {
      * @param name
      *            The distinguished name of the subschema sub-entry.
      * @return The schema from the Directory Server.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If the result code indicates that the request failed for some
      *             reason.
      * @throws UnsupportedOperationException
@@ -979,8 +979,7 @@ public final class Schema {
      * @throws NullPointerException
      *             If the {@code connection} or {@code name} was {@code null}.
      */
-    public static Schema readSchema(final Connection connection, final DN name)
-            throws ErrorResultException {
+    public static Schema readSchema(final Connection connection, final DN name) throws LdapException {
         return new SchemaBuilder().addSchema(connection, name, true).toSchema();
     }
 
@@ -1010,9 +1009,9 @@ public final class Schema {
     public static FutureResult<Schema> readSchemaAsync(final Connection connection, final DN name) {
         final SchemaBuilder builder = new SchemaBuilder();
         return asFutureResult(builder.addSchemaAsync(connection, name, true).then(
-                new Function<SchemaBuilder, Schema, ErrorResultException>() {
+                new Function<SchemaBuilder, Schema, LdapException>() {
                     @Override
-                    public Schema apply(SchemaBuilder builder) throws ErrorResultException {
+                    public Schema apply(SchemaBuilder builder) throws LdapException {
                         return builder.toSchema();
                     }
                 }));
@@ -1039,7 +1038,7 @@ public final class Schema {
      *            located.
      * @return The schema from the Directory Server which applies to the named
      *         entry.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If the result code indicates that the request failed for some
      *             reason.
      * @throws UnsupportedOperationException
@@ -1051,7 +1050,7 @@ public final class Schema {
      *             If the {@code connection} or {@code name} was {@code null}.
      */
     public static Schema readSchemaForEntry(final Connection connection, final DN name)
-            throws ErrorResultException {
+            throws LdapException {
         return new SchemaBuilder().addSchemaForEntry(connection, name, true).toSchema();
     }
 
@@ -1087,10 +1086,10 @@ public final class Schema {
     public static FutureResult<Schema> readSchemaForEntryAsync(final Connection connection, final DN name) {
         final SchemaBuilder builder = new SchemaBuilder();
         return asFutureResult(builder.addSchemaForEntryAsync(connection, name, true).then(
-            new Function<SchemaBuilder, Schema, ErrorResultException>() {
+            new Function<SchemaBuilder, Schema, LdapException>() {
 
                 @Override
-                public Schema apply(SchemaBuilder builder) throws ErrorResultException {
+                public Schema apply(SchemaBuilder builder) throws LdapException {
                     return builder.toSchema();
                 }
             }));
@@ -2316,7 +2315,7 @@ public final class Schema {
         try {
             parentEntry =
                     policy.checkDITStructureRulesEntryResolver().getEntry(entry.getName().parent());
-        } catch (final ErrorResultException e) {
+        } catch (final LdapException e) {
             if (ruleWarnings != null) {
                 final LocalizableMessage message =
                         ERR_ENTRY_SCHEMA_DSR_PARENT_NOT_FOUND.get(entry.getName().toString(), e

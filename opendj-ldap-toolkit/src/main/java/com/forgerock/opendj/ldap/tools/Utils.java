@@ -35,7 +35,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.controls.AuthorizationIdentityRequestControl;
 import org.forgerock.opendj.ldap.controls.AuthorizationIdentityResponseControl;
 import org.forgerock.opendj.ldap.controls.GenericControl;
@@ -170,7 +170,7 @@ final class Utils {
      *            The error result.
      * @return The error code.
      */
-    static int printErrorMessage(final ConsoleApplication app, final ErrorResultException ere) {
+    static int printErrorMessage(final ConsoleApplication app, final LdapException ere) {
          /* if ((ere.getMessage() != null) && (ere.getMessage().length() > 0)) {
              app.println(LocalizableMessage.raw(ere.getMessage()));
          }*/

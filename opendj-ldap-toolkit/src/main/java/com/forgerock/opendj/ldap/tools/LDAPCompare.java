@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package com.forgerock.opendj.ldap.tools;
 
@@ -46,7 +46,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.DecodeException;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.controls.AssertionRequestControl;
@@ -121,7 +121,7 @@ public final class LDAPCompare extends ConsoleApplication {
 
                     println(INFO_COMPARE_OPERATION_RESULT_TRUE.get(request.getName().toString()));
                 }
-            } catch (final ErrorResultException ere) {
+            } catch (final LdapException ere) {
                 final LocalizableMessage msg = INFO_OPERATION_FAILED.get("COMPARE");
                 errPrintln(msg);
                 final Result r = ere.getResult();
@@ -362,7 +362,7 @@ public final class LDAPCompare extends ConsoleApplication {
         if (!noop.isPresent()) {
             try {
                 connection = connectionFactory.getConnection();
-            } catch (final ErrorResultException ere) {
+            } catch (final LdapException ere) {
                 errPrintln(LocalizableMessage.raw(ere.getMessage()));
                 return ere.getResult().getResultCode().intValue();
             }

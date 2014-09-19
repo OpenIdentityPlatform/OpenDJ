@@ -20,7 +20,7 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2012-2013 ForgeRock AS
+ *      Copyright 2012-2014 ForgeRock AS
  *
  */
 
@@ -30,7 +30,7 @@ import java.io.Console;
 
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
@@ -89,7 +89,7 @@ public final class SearchBind {
 
             String cn = entry.getAttribute("cn").firstValueAsString();
             System.out.println("Hello, " + cn + "!");
-        } catch (final ErrorResultException e) {
+        } catch (final LdapException e) {
             System.err.println("Failed to bind.");
             System.exit(e.getResult().getResultCode().intValue());
             return;

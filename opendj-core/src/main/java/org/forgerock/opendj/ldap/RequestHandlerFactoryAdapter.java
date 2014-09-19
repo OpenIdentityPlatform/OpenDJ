@@ -33,7 +33,7 @@ import static com.forgerock.opendj.ldap.CoreMessages.INFO_CANCELED_BY_CLIENT_ERR
 import static com.forgerock.opendj.ldap.CoreMessages.INFO_CANCELED_BY_SERVER_DISCONNECT;
 import static com.forgerock.opendj.ldap.CoreMessages.INFO_CLIENT_CONNECTION_CLOSING;
 import static com.forgerock.opendj.ldap.CoreMessages.WARN_CLIENT_DUPLICATE_MESSAGE_ID;
-import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
+import static org.forgerock.opendj.ldap.LdapException.newErrorResult;
 
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -103,7 +103,7 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
                 final R cancelResult =
                         request.getResultDecoder().newExtendedErrorResult(ResultCode.TOO_LATE, "",
                                 "");
-                resultHandler.handleError(ErrorResultException.newErrorResult(cancelResult));
+                resultHandler.handleError(LdapException.newErrorResult(cancelResult));
             }
         }
 
@@ -238,7 +238,7 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
          * {@inheritDoc}
          */
         @Override
-        public void handleError(final ErrorResultException error) {
+        public void handleError(final LdapException error) {
             if (clientConnection.removePendingRequest(this)) {
                 if (setResult(error.getResult())) {
                     /*
@@ -370,8 +370,7 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
                     cancelResultHandler.handleResult(result);
                 } else {
                     final Result result = Responses.newGenericExtendedResult(ResultCode.TOO_LATE);
-                    cancelResultHandler.handleError(ErrorResultException
-                            .newErrorResult(result));
+                    cancelResultHandler.handleError(LdapException.newErrorResult(result));
                 }
             }
         }
@@ -807,8 +806,7 @@ final class RequestHandlerFactoryAdapter<C> implements ServerConnectionFactory<C
      * {@inheritDoc}
      */
     @Override
-    public ServerConnection<Integer> handleAccept(final C clientContext)
-            throws ErrorResultException {
+    public ServerConnection<Integer> handleAccept(final C clientContext) throws LdapException {
         return adaptRequestHandler(factory.handleAccept(clientContext));
     }
 

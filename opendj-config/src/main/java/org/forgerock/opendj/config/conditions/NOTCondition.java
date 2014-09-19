@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.forgerock.opendj.config.conditions;
 
@@ -30,7 +31,7 @@ import org.forgerock.opendj.config.client.ManagedObject;
 import org.forgerock.opendj.config.client.ManagementContext;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.config.server.ServerManagedObject;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.util.Reject;
 
 /**
@@ -57,7 +58,7 @@ public final class NOTCondition implements Condition {
     /**
      * {@inheritDoc}
      */
-    public boolean evaluate(ManagementContext context, ManagedObject<?> managedObject) throws ErrorResultException {
+    public boolean evaluate(ManagementContext context, ManagedObject<?> managedObject) throws LdapException {
         return !condition.evaluate(context, managedObject);
     }
 

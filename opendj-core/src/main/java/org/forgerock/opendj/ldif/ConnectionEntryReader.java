@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS.
+ *      Portions Copyright 2011-2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldif;
@@ -33,8 +33,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import org.forgerock.opendj.ldap.Connection;
-import org.forgerock.opendj.ldap.ErrorResultException;
-import org.forgerock.opendj.ldap.ErrorResultIOException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.FutureResult;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ResultHandler;
@@ -48,7 +47,7 @@ import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.ldap.responses.SearchResultReference;
 import org.forgerock.util.Reject;
 
-import static org.forgerock.opendj.ldap.ErrorResultException.*;
+import static org.forgerock.opendj.ldap.LdapException.*;
 
 /**
  * A {@code ConnectionEntryReader} is a bridge from {@code Connection}s to
@@ -59,7 +58,7 @@ import static org.forgerock.opendj.ldap.ErrorResultException.*;
  * The Search operation is performed synchronously, blocking until a search
  * result entry is received. If a search result indicates that the search
  * operation has failed for some reason then the error result is propagated to
- * the caller using an {@code ErrorResultIOException}. If a search result
+ * the caller using an {@code LdapException}. If a search result
  * reference is returned then it is propagated to the caller using a
  * {@code SearchResultReferenceIOException}.
  * <p>
@@ -137,7 +136,7 @@ public class ConnectionEntryReader implements EntryReader {
         }
 
         @Override
-        public void handleError(final ErrorResultException error) {
+        public void handleError(final LdapException error) {
             try {
                 responses.put(error.getResult());
             } catch (final InterruptedException e) {
@@ -230,7 +229,7 @@ public class ConnectionEntryReader implements EntryReader {
      * {@inheritDoc}
      */
     @Override
-    public boolean hasNext() throws ErrorResultIOException {
+    public boolean hasNext() throws LdapException {
         // Poll for the next response if needed.
         final Response r = getNextResponse();
         if (!(r instanceof Result)) {
@@ -244,7 +243,7 @@ public class ConnectionEntryReader implements EntryReader {
             return false;
         }
 
-        throw new ErrorResultIOException(newErrorResult(result));
+        throw newErrorResult(result);
     }
 
     /**
@@ -254,7 +253,7 @@ public class ConnectionEntryReader implements EntryReader {
      *
      * @return {@code true} if the next search result is an entry, or
      *         {@code false} if it is a reference.
-     * @throws ErrorResultIOException
+     * @throws LdapException
      *             If there are no more search result entries or references and
      *             the search result code indicates that the search operation
      *             failed for some reason.
@@ -263,8 +262,8 @@ public class ConnectionEntryReader implements EntryReader {
      *             the search result code indicates that the search operation
      *             succeeded.
      */
-    public boolean isEntry() throws ErrorResultIOException {
-        // Throws ErrorResultIOException if search returned error.
+    public boolean isEntry() throws LdapException {
+        // Throws LdapException if search returned error.
         if (!hasNext()) {
             // Search has completed successfully.
             throw new NoSuchElementException();
@@ -288,7 +287,7 @@ public class ConnectionEntryReader implements EntryReader {
      *
      * @return {@code true} if the next search result is a reference, or
      *         {@code false} if it is an entry.
-     * @throws ErrorResultIOException
+     * @throws LdapException
      *             If there are no more search result entries or references and
      *             the search result code indicates that the search operation
      *             failed for some reason.
@@ -297,7 +296,7 @@ public class ConnectionEntryReader implements EntryReader {
      *             the search result code indicates that the search operation
      *             succeeded.
      */
-    public boolean isReference() throws ErrorResultIOException {
+    public boolean isReference() throws LdapException {
         return !isEntry();
     }
 
@@ -313,7 +312,7 @@ public class ConnectionEntryReader implements EntryReader {
      *             This connection entry reader may still contain remaining
      *             search results and references which can be retrieved using
      *             additional calls to this method.
-     * @throws ErrorResultIOException
+     * @throws LdapException
      *             If there are no more search result entries or references and
      *             the search result code indicates that the search operation
      *             failed for some reason.
@@ -323,8 +322,7 @@ public class ConnectionEntryReader implements EntryReader {
      *             succeeded.
      */
     @Override
-    public SearchResultEntry readEntry() throws SearchResultReferenceIOException,
-            ErrorResultIOException {
+    public SearchResultEntry readEntry() throws SearchResultReferenceIOException, LdapException {
         if (isEntry()) {
             final SearchResultEntry entry = (SearchResultEntry) nextResponse;
             nextResponse = null;
@@ -344,7 +342,7 @@ public class ConnectionEntryReader implements EntryReader {
      *
      * @return The next search result reference, or {@code null} if the next
      *         response was a search result entry.
-     * @throws ErrorResultIOException
+     * @throws LdapException
      *             If there are no more search result entries or references and
      *             the search result code indicates that the search operation
      *             failed for some reason.
@@ -353,7 +351,7 @@ public class ConnectionEntryReader implements EntryReader {
      *             the search result code indicates that the search operation
      *             succeeded.
      */
-    public SearchResultReference readReference() throws ErrorResultIOException {
+    public SearchResultReference readReference() throws LdapException {
         if (isReference()) {
             final SearchResultReference reference = (SearchResultReference) nextResponse;
             nextResponse = null;
@@ -367,7 +365,7 @@ public class ConnectionEntryReader implements EntryReader {
      * Waits for the next search response to become available and returns it if
      * it is a search result indicating that the search completed successfully.
      * If the search result indicates that the search failed then an
-     * {@link ErrorResultIOException} is thrown. Otherwise, if the search
+     * {@link LdapException} is thrown. Otherwise, if the search
      * response represents an entry or reference then an
      * {@code IllegalStateException} is thrown.
      * <p>
@@ -381,7 +379,7 @@ public class ConnectionEntryReader implements EntryReader {
      * once the current page of results has been processed.
      *
      * @return The search result indicating success.
-     * @throws ErrorResultIOException
+     * @throws LdapException
      *             If the search result indicates that the search operation
      *             failed for some reason.
      * @throws IllegalStateException
@@ -389,7 +387,7 @@ public class ConnectionEntryReader implements EntryReader {
      *             be processed. In other words, if {@link #hasNext()} would
      *             return {@code true}.
      */
-    public Result readResult() throws ErrorResultIOException {
+    public Result readResult() throws LdapException {
         if (hasNext()) {
             throw new IllegalStateException();
         } else {
@@ -397,14 +395,12 @@ public class ConnectionEntryReader implements EntryReader {
         }
     }
 
-    private Response getNextResponse() throws ErrorResultIOException {
+    private Response getNextResponse() throws LdapException {
         while (nextResponse == null) {
             try {
                 nextResponse = buffer.responses.poll(50, TimeUnit.MILLISECONDS);
             } catch (final InterruptedException e) {
-                final ErrorResultException ere =
-                        newErrorResult(ResultCode.CLIENT_SIDE_USER_CANCELLED, e);
-                throw new ErrorResultIOException(ere);
+                throw newErrorResult(ResultCode.CLIENT_SIDE_USER_CANCELLED, e);
             }
 
             if (nextResponse == null && buffer.isInterrupted) {

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.forgerock.opendj.server.core;
 
@@ -32,7 +32,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,7 +61,7 @@ public abstract class AbstractDataProvider implements DataProvider {
      * {@code true} if the entry was successfully retrieved.
      */
     @Override
-    public boolean containsEntry(final DN dn) throws ErrorResultException {
+    public boolean containsEntry(final DN dn) throws LdapException {
         return getEntry(dn) != null;
     }
 
@@ -88,7 +88,7 @@ public abstract class AbstractDataProvider implements DataProvider {
      * that change notification is not supported.
      */
     @Override
-    public boolean supportsChangeNotification(final DN baseDN) throws ErrorResultException {
+    public boolean supportsChangeNotification(final DN baseDN) throws LdapException {
         return false;
     }
 

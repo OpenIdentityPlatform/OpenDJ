@@ -52,7 +52,7 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.Entry;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.Function;
 import org.forgerock.opendj.ldap.Modification;
@@ -476,9 +476,9 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                                         completeIfNecessary(SUCCESS);
                                     }
                                 }
-                            }).onFailure(new FailureHandler<ErrorResultException>() {
+                            }).onFailure(new FailureHandler<LdapException>() {
                                 @Override
-                                public void handleError(ErrorResultException error) {
+                                public void handleError(LdapException error) {
                                     synchronized (sequenceLock) {
                                         completeIfNecessary(asResourceException(error));
                                     }
@@ -537,9 +537,9 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                     public void handleResult(final SearchResultEntry entry) {
                         adaptEntry(c, entry, h);
                     }
-                }).onFailure(new FailureHandler<ErrorResultException>() {
+                }).onFailure(new FailureHandler<LdapException>() {
                     @Override
-                    public void handleError(final ErrorResultException error) {
+                    public void handleError(final LdapException error) {
                         h.handleError(asResourceException(error));
                     }
                 });
@@ -621,9 +621,9 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                                     h.handleError(asResourceException(e));
                                 }
                             }
-                        }).onFailure(new FailureHandler<ErrorResultException>() {
+                        }).onFailure(new FailureHandler<LdapException>() {
                             @Override
-                            public void handleError(final ErrorResultException error) {
+                            public void handleError(final LdapException error) {
                                 h.handleError(asResourceException(error));
                             }
                         });
@@ -681,9 +681,9 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
                                         updateHandler.handleError(asResourceException(e));
                                     }
                                 }
-                            }).onFailure(new FailureHandler<ErrorResultException>() {
+                            }).onFailure(new FailureHandler<LdapException>() {
                                 @Override
-                                public void handleError(final ErrorResultException error) {
+                                public void handleError(final LdapException error) {
                                     updateHandler.handleError(asResourceException(error));
                                 }
                             });
@@ -980,10 +980,10 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
         };
     }
 
-    private FailureHandler<ErrorResultException> postEmptyPatchFailureHandler(final ResultHandler<Resource> h) {
-        return new FailureHandler<ErrorResultException>() {
+    private FailureHandler<LdapException> postEmptyPatchFailureHandler(final ResultHandler<Resource> h) {
+        return new FailureHandler<LdapException>() {
             @Override
-            public void handleError(final ErrorResultException error) {
+            public void handleError(final LdapException error) {
                 h.handleError(asResourceException(error));
             }
         };
@@ -1025,11 +1025,11 @@ final class LDAPCollectionResourceProvider implements CollectionResourceProvider
         };
     }
 
-    private FailureHandler<ErrorResultException> postUpdateFailureHandler(final ResultHandler<Resource> handler) {
+    private FailureHandler<LdapException> postUpdateFailureHandler(final ResultHandler<Resource> handler) {
         // The handler which will be invoked for the LDAP add result.
-        return new FailureHandler<ErrorResultException>() {
+        return new FailureHandler<LdapException>() {
             @Override
-            public void handleError(final ErrorResultException error) {
+            public void handleError(final LdapException error) {
                 handler.handleError(asResourceException(error));
             }
         };

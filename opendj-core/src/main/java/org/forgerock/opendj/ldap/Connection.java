@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -66,7 +66,7 @@ import org.forgerock.opendj.ldif.ConnectionEntryReader;
  * <p>
  * Synchronous methods block until a response is received from the Directory
  * Server, at which point an appropriate {@link Result} object is returned if
- * the operation succeeded, or thrown as an {@link ErrorResultException} if the
+ * the operation succeeded, or thrown as an {@link LdapException} if the
  * operation failed.
  * <p>
  * Since synchronous operations block the calling thread, the only way to
@@ -81,7 +81,7 @@ import org.forgerock.opendj.ldif.ConnectionEntryReader;
  * non-blocking, returning a {@link FutureResult} or sub-type thereof which can
  * be used for retrieving the result using the {@link FutureResult#get} method.
  * Operation failures, for whatever reason, are signalled by the
- * {@link FutureResult#get()} method throwing an {@link ErrorResultException}.
+ * {@link FutureResult#get()} method throwing an {@link LdapException}.
  * <p>
  * In addition to returning a {@code FutureResult}, all asynchronous methods
  * accept a {@link ResultHandler} which will be notified upon completion of the
@@ -135,7 +135,7 @@ import org.forgerock.opendj.ldif.ConnectionEntryReader;
  * {@link IllegalStateException} being thrown. Note that, if a fatal error is
  * encountered on the connection, then the application can continue to use the
  * connection. In this case all requests subsequent to the failure will fail
- * with an appropriate {@link ErrorResultException} when their result is
+ * with an appropriate {@link LdapException} when their result is
  * retrieved.
  * <p>
  * <h3>Event notification</h3>
@@ -183,7 +183,7 @@ public interface Connection extends Closeable {
      * @param request
      *            The add request.
      * @return The result of the operation.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If the result code indicates that the request failed for some
      *             reason.
      * @throws UnsupportedOperationException
@@ -194,7 +194,7 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If {@code request} was {@code null}.
      */
-    Result add(AddRequest request) throws ErrorResultException;
+    Result add(AddRequest request) throws LdapException;
 
     /**
      * Adds the provided entry to the Directory Server.
@@ -209,7 +209,7 @@ public interface Connection extends Closeable {
      * @param entry
      *            The entry to be added.
      * @return The result of the operation.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If the result code indicates that the request failed for some
      *             reason.
      * @throws UnsupportedOperationException
@@ -220,7 +220,7 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If {@code entry} was {@code null} .
      */
-    Result add(Entry entry) throws ErrorResultException;
+    Result add(Entry entry) throws LdapException;
 
     /**
      * Adds an entry to the Directory Server using the provided lines of LDIF.
@@ -236,7 +236,7 @@ public interface Connection extends Closeable {
      *            Lines of LDIF containing the an LDIF add change record or an
      *            LDIF entry record.
      * @return The result of the operation.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If the result code indicates that the request failed for some
      *             reason.
      * @throws UnsupportedOperationException
@@ -250,7 +250,7 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If {@code ldifLines} was {@code null} .
      */
-    Result add(String... ldifLines) throws ErrorResultException;
+    Result add(String... ldifLines) throws LdapException;
 
     /**
      * Asynchronously adds an entry to the Directory Server using the provided
@@ -312,7 +312,7 @@ public interface Connection extends Closeable {
      * @param request
      *            The change request.
      * @return The result of the operation.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If the result code indicates that the request failed for some
      *             reason.
      * @throws UnsupportedOperationException
@@ -324,7 +324,7 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If {@code request} was {@code null}.
      */
-    Result applyChange(ChangeRecord request) throws ErrorResultException;
+    Result applyChange(ChangeRecord request) throws LdapException;
 
     /**
      * Asynchronously applies the provided change request to the Directory
@@ -373,7 +373,7 @@ public interface Connection extends Closeable {
      * @param request
      *            The bind request.
      * @return The result of the operation.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If the result code indicates that the request failed for some
      *             reason.
      * @throws UnsupportedOperationException
@@ -384,7 +384,7 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If {@code request} was {@code null}.
      */
-    BindResult bind(BindRequest request) throws ErrorResultException;
+    BindResult bind(BindRequest request) throws LdapException;
 
     /**
      * Authenticates to the Directory Server using simple authentication and the
@@ -404,7 +404,7 @@ public interface Connection extends Closeable {
      *            The password of the Directory object that the client wishes to
      *            bind as, which may be empty.
      * @return The result of the operation.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If the result code indicates that the request failed for some
      *             reason.
      * @throws LocalizedIllegalArgumentException
@@ -418,7 +418,7 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If {@code name} or {@code password} was {@code null}.
      */
-    BindResult bind(String name, char[] password) throws ErrorResultException;
+    BindResult bind(String name, char[] password) throws LdapException;
 
     /**
      * Asynchronously authenticates to the Directory Server using the provided
@@ -513,7 +513,7 @@ public interface Connection extends Closeable {
      * @param request
      *            The compare request.
      * @return The result of the operation.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If the result code indicates that the request failed for some
      *             reason.
      * @throws UnsupportedOperationException
@@ -524,7 +524,7 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If {@code request} was {@code null}.
      */
-    CompareResult compare(CompareRequest request) throws ErrorResultException;
+    CompareResult compare(CompareRequest request) throws LdapException;
 
     /**
      * Compares the named entry in the Directory Server against the provided
@@ -544,7 +544,7 @@ public interface Connection extends Closeable {
      * @param assertionValue
      *            The assertion value to be compared.
      * @return The result of the operation.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If the result code indicates that the request failed for some
      *             reason.
      * @throws LocalizedIllegalArgumentException
@@ -560,7 +560,7 @@ public interface Connection extends Closeable {
      *             {@code assertionValue} was {@code null}.
      */
     CompareResult compare(String name, String attributeDescription, String assertionValue)
-            throws ErrorResultException;
+            throws LdapException;
 
     /**
      * Asynchronously compares an entry in the Directory Server using the
@@ -608,7 +608,7 @@ public interface Connection extends Closeable {
      * @param request
      *            The delete request.
      * @return The result of the operation.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If the result code indicates that the request failed for some
      *             reason.
      * @throws UnsupportedOperationException
@@ -619,7 +619,7 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If {@code request} was {@code null}.
      */
-    Result delete(DeleteRequest request) throws ErrorResultException;
+    Result delete(DeleteRequest request) throws LdapException;
 
     /**
      * Deletes the named entry from the Directory Server.
@@ -634,7 +634,7 @@ public interface Connection extends Closeable {
      * @param name
      *            The distinguished name of the entry to be deleted.
      * @return The result of the operation.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If the result code indicates that the request failed for some
      *             reason.
      * @throws LocalizedIllegalArgumentException
@@ -648,7 +648,7 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If {@code name} was {@code null}.
      */
-    Result delete(String name) throws ErrorResultException;
+    Result delete(String name) throws LdapException;
 
     /**
      * Deletes the named entry and all of its subordinates from the Directory
@@ -665,7 +665,7 @@ public interface Connection extends Closeable {
      *            The distinguished name of the subtree base entry to be
      *            deleted.
      * @return The result of the operation.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If the result code indicates that the request failed for some
      *             reason.
      * @throws LocalizedIllegalArgumentException
@@ -679,7 +679,7 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If {@code name} was {@code null}.
      */
-    Result deleteSubtree(String name) throws ErrorResultException;
+    Result deleteSubtree(String name) throws LdapException;
 
     /**
      * Asynchronously deletes an entry from the Directory Server using the
@@ -728,7 +728,7 @@ public interface Connection extends Closeable {
      * @param request
      *            The extended request.
      * @return The result of the operation.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If the result code indicates that the request failed for some
      *             reason.
      * @throws UnsupportedOperationException
@@ -739,8 +739,7 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If {@code request} was {@code null}.
      */
-    <R extends ExtendedResult> R extendedRequest(ExtendedRequest<R> request)
-            throws ErrorResultException;
+    <R extends ExtendedResult> R extendedRequest(ExtendedRequest<R> request) throws LdapException;
 
     /**
      * Requests that the Directory Server performs the provided extended
@@ -755,7 +754,7 @@ public interface Connection extends Closeable {
      *            any intermediate responses as they are received, may be
      *            {@code null}.
      * @return The result of the operation.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If the result code indicates that the request failed for some
      *             reason.
      * @throws UnsupportedOperationException
@@ -767,7 +766,7 @@ public interface Connection extends Closeable {
      *             If {@code request} was {@code null}.
      */
     <R extends ExtendedResult> R extendedRequest(ExtendedRequest<R> request, IntermediateResponseHandler handler)
-            throws ErrorResultException;
+            throws LdapException;
 
     /**
      * Requests that the Directory Server performs the provided extended
@@ -787,7 +786,7 @@ public interface Connection extends Closeable {
      *            The content of the extended request in a form defined by the
      *            extended operation, or {@code null} if there is no content.
      * @return The result of the operation.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If the result code indicates that the request failed for some
      *             reason.
      * @throws UnsupportedOperationException
@@ -798,8 +797,7 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If {@code requestName} was {@code null}.
      */
-    GenericExtendedResult extendedRequest(String requestName, ByteString requestValue)
-            throws ErrorResultException;
+    GenericExtendedResult extendedRequest(String requestName, ByteString requestValue) throws LdapException;
 
     /**
      * Asynchronously performs the provided extended request in the Directory
@@ -873,7 +871,7 @@ public interface Connection extends Closeable {
      * @param request
      *            The modify request.
      * @return The result of the operation.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If the result code indicates that the request failed for some
      *             reason.
      * @throws UnsupportedOperationException
@@ -884,7 +882,7 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If {@code request} was {@code null}.
      */
-    Result modify(ModifyRequest request) throws ErrorResultException;
+    Result modify(ModifyRequest request) throws LdapException;
 
     /**
      * Modifies an entry in the Directory Server using the provided lines of
@@ -901,7 +899,7 @@ public interface Connection extends Closeable {
      *            Lines of LDIF containing the a single LDIF modify change
      *            record.
      * @return The result of the operation.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If the result code indicates that the request failed for some
      *             reason.
      * @throws UnsupportedOperationException
@@ -915,7 +913,7 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If {@code ldifLines} was {@code null} .
      */
-    Result modify(String... ldifLines) throws ErrorResultException;
+    Result modify(String... ldifLines) throws LdapException;
 
     /**
      * Asynchronously modifies an entry in the Directory Server using the
@@ -962,7 +960,7 @@ public interface Connection extends Closeable {
      * @param request
      *            The modify DN request.
      * @return The result of the operation.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If the result code indicates that the request failed for some
      *             reason.
      * @throws UnsupportedOperationException
@@ -973,7 +971,7 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If {@code request} was {@code null}.
      */
-    Result modifyDN(ModifyDNRequest request) throws ErrorResultException;
+    Result modifyDN(ModifyDNRequest request) throws LdapException;
 
     /**
      * Renames the named entry in the Directory Server using the provided new
@@ -991,7 +989,7 @@ public interface Connection extends Closeable {
      * @param newRDN
      *            The new RDN of the entry.
      * @return The result of the operation.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If the result code indicates that the request failed for some
      *             reason.
      * @throws LocalizedIllegalArgumentException
@@ -1005,7 +1003,7 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If {@code name} or {@code newRDN} was {@code null}.
      */
-    Result modifyDN(String name, String newRDN) throws ErrorResultException;
+    Result modifyDN(String name, String newRDN) throws LdapException;
 
     /**
      * Asynchronously renames an entry in the Directory Server using the
@@ -1068,7 +1066,7 @@ public interface Connection extends Closeable {
      *            which may be {@code null} or empty indicating that all user
      *            attributes should be returned.
      * @return The single search result entry returned from the search.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If the result code indicates that the request failed for some
      *             reason.
      * @throws UnsupportedOperationException
@@ -1079,8 +1077,7 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If the {@code name} was {@code null}.
      */
-    SearchResultEntry readEntry(DN name, String... attributeDescriptions)
-            throws ErrorResultException;
+    SearchResultEntry readEntry(DN name, String... attributeDescriptions) throws LdapException;
 
     /**
      * Reads the named entry from the Directory Server.
@@ -1102,7 +1099,7 @@ public interface Connection extends Closeable {
      * @param attributeDescriptions
      *            The names of the attributes to be included with the entry.
      * @return The single search result entry returned from the search.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If the result code indicates that the request failed for some
      *             reason.
      * @throws LocalizedIllegalArgumentException
@@ -1116,8 +1113,7 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If the {@code name} was {@code null}.
      */
-    SearchResultEntry readEntry(String name, String... attributeDescriptions)
-            throws ErrorResultException;
+    SearchResultEntry readEntry(String name, String... attributeDescriptions) throws LdapException;
 
     /**
      * Asynchronously reads the named entry from the Directory Server.
@@ -1211,7 +1207,7 @@ public interface Connection extends Closeable {
      * @param entries
      *            The collection to which matching entries should be added.
      * @return The result of the operation.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If the result code indicates that the request failed for some
      *             reason.
      * @throws UnsupportedOperationException
@@ -1222,8 +1218,7 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If {@code request} or {@code entries} was {@code null}.
      */
-    Result search(SearchRequest request, Collection<? super SearchResultEntry> entries)
-            throws ErrorResultException;
+    Result search(SearchRequest request, Collection<? super SearchResultEntry> entries) throws LdapException;
 
     /**
      * Searches the Directory Server using the provided search request. Any
@@ -1245,7 +1240,7 @@ public interface Connection extends Closeable {
      *            The collection to which search result references should be
      *            added, or {@code null} if references are to be discarded.
      * @return The result of the operation.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If the result code indicates that the request failed for some
      *             reason.
      * @throws UnsupportedOperationException
@@ -1257,7 +1252,7 @@ public interface Connection extends Closeable {
      *             If {@code request} or {@code entries} was {@code null}.
      */
     Result search(SearchRequest request, Collection<? super SearchResultEntry> entries,
-            Collection<? super SearchResultReference> references) throws ErrorResultException;
+            Collection<? super SearchResultReference> references) throws LdapException;
 
     /**
      * Searches the Directory Server using the provided search request. Any
@@ -1271,7 +1266,7 @@ public interface Connection extends Closeable {
      *            search result entries and references as they are received, may
      *            be {@code null}.
      * @return The result of the operation.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If the result code indicates that the request failed for some
      *             reason.
      * @throws UnsupportedOperationException
@@ -1282,7 +1277,7 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If {@code request} was {@code null}.
      */
-    Result search(SearchRequest request, SearchResultHandler handler) throws ErrorResultException;
+    Result search(SearchRequest request, SearchResultHandler handler) throws LdapException;
 
     /**
      * Searches the Directory Server using the provided search parameters. Any
@@ -1383,7 +1378,7 @@ public interface Connection extends Closeable {
      * @param request
      *            The search request.
      * @return The single search result entry returned from the search.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If the result code indicates that the request failed for some
      *             reason.
      * @throws UnsupportedOperationException
@@ -1394,7 +1389,7 @@ public interface Connection extends Closeable {
      * @throws NullPointerException
      *             If the {@code request} was {@code null}.
      */
-    SearchResultEntry searchSingleEntry(SearchRequest request) throws ErrorResultException;
+    SearchResultEntry searchSingleEntry(SearchRequest request) throws LdapException;
 
     /**
      * Searches the Directory Server for a single entry using the provided
@@ -1424,7 +1419,7 @@ public interface Connection extends Closeable {
      * @param attributeDescriptions
      *            The names of the attributes to be included with each entry.
      * @return The single search result entry returned from the search.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If the result code indicates that the request failed for some
      *             reason.
      * @throws LocalizedIllegalArgumentException
@@ -1441,7 +1436,7 @@ public interface Connection extends Closeable {
      *             were {@code null}.
      */
     SearchResultEntry searchSingleEntry(String baseObject, SearchScope scope, String filter,
-            String... attributeDescriptions) throws ErrorResultException;
+            String... attributeDescriptions) throws LdapException;
 
     /**
      * Asynchronously searches the Directory Server for a single entry using the

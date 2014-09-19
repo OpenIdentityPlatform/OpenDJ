@@ -22,13 +22,13 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
 
 import org.forgerock.opendj.io.LDAP;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 
 import com.forgerock.opendj.util.StaticUtils;
 import org.forgerock.util.Reject;
@@ -53,7 +53,7 @@ final class SimpleBindRequestImpl extends AbstractBindRequest<SimpleBindRequest>
     }
 
     @Override
-    public BindClient createBindClient(final String serverName) throws ErrorResultException {
+    public BindClient createBindClient(final String serverName) throws LdapException {
         return new BindClientImpl(this).setNextAuthenticationValue(password);
     }
 

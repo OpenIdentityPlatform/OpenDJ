@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.forgerock.opendj.config;
 
@@ -61,7 +62,7 @@ import org.forgerock.opendj.config.server.ServerManagedObject;
 import org.forgerock.opendj.config.server.ServerManagedObjectChangeListener;
 import org.forgerock.opendj.config.server.ServerManagementContext;
 import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ResultCode;
 
 /**
@@ -495,7 +496,7 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
          */
         @Override
         public boolean isAddAcceptable(ManagementContext context, ManagedObject<?> managedObject,
-            Collection<LocalizableMessage> unacceptableReasons) throws ErrorResultException {
+            Collection<LocalizableMessage> unacceptableReasons) throws LdapException {
             // If all of this managed object's "enabled" properties are true
             // then any referenced managed objects must also be enabled.
             boolean needsEnabling = targetNeedsEnablingCondition.evaluate(context, managedObject);
@@ -547,7 +548,7 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
          */
         @Override
         public boolean isModifyAcceptable(ManagementContext context, ManagedObject<?> managedObject,
-            Collection<LocalizableMessage> unacceptableReasons) throws ErrorResultException {
+            Collection<LocalizableMessage> unacceptableReasons) throws LdapException {
             // The same constraint applies as for adds.
             return isAddAcceptable(context, managedObject, unacceptableReasons);
         }
@@ -566,7 +567,7 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
          */
         @Override
         public boolean isDeleteAcceptable(ManagementContext context, ManagedObjectPath<?, ?> path,
-            Collection<LocalizableMessage> unacceptableReasons) throws ErrorResultException {
+            Collection<LocalizableMessage> unacceptableReasons) throws LdapException {
             // Any references to the deleted managed object should cause a
             // constraint violation.
             boolean isAcceptable = true;
@@ -593,7 +594,7 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
          */
         @Override
         public boolean isModifyAcceptable(ManagementContext context, ManagedObject<?> managedObject,
-            Collection<LocalizableMessage> unacceptableReasons) throws ErrorResultException {
+            Collection<LocalizableMessage> unacceptableReasons) throws LdapException {
             // If the modified managed object is disabled and there are some
             // active references then refuse the change.
             if (targetIsEnabledCondition.evaluate(context, managedObject)) {
@@ -630,7 +631,7 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
         // object using this property.
         private <C1 extends ConfigurationClient> List<ManagedObject<? extends C1>> findReferences(
             ManagementContext context, AbstractManagedObjectDefinition<C1, ?> mod, String name)
-                throws ErrorResultException {
+                throws LdapException {
             List<ManagedObject<? extends C1>> instances = findInstances(context, mod);
 
             Iterator<ManagedObject<? extends C1>> i = instances.iterator();
@@ -656,7 +657,7 @@ public final class AggregationPropertyDefinition<C extends ConfigurationClient, 
         // Find all instances of a specific type of managed object.
         @SuppressWarnings("unchecked")
         private <C1 extends ConfigurationClient> List<ManagedObject<? extends C1>> findInstances(
-            ManagementContext context, AbstractManagedObjectDefinition<C1, ?> mod) throws ErrorResultException {
+            ManagementContext context, AbstractManagedObjectDefinition<C1, ?> mod) throws LdapException {
             List<ManagedObject<? extends C1>> instances = new LinkedList<ManagedObject<? extends C1>>();
 
             if (mod == RootCfgDefn.getInstance()) {

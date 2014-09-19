@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2012-2013 ForgeRock AS.
+ *      Copyright 2012-2014 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap;
 
@@ -43,7 +43,7 @@ public final class MockConnectionEventListener implements ConnectionEventListene
     private final CountDownLatch errorLatch = new CountDownLatch(1);
     private final CountDownLatch notificationLatch = new CountDownLatch(1);
     private Boolean isDisconnectNotification = null;
-    private ErrorResultException error = null;
+    private LdapException error;
     private ExtendedResult notification = null;
     private final AtomicInteger invocationCount = new AtomicInteger();
 
@@ -60,7 +60,7 @@ public final class MockConnectionEventListener implements ConnectionEventListene
      * {@inheritDoc}
      */
     @Override
-    public void handleConnectionError(boolean isDisconnectNotification, ErrorResultException error) {
+    public void handleConnectionError(boolean isDisconnectNotification, LdapException error) {
         this.isDisconnectNotification = isDisconnectNotification;
         this.error = error;
         invocationCount.incrementAndGet();
@@ -93,7 +93,7 @@ public final class MockConnectionEventListener implements ConnectionEventListene
         return isDisconnectNotification;
     }
 
-    public ErrorResultException getError() {
+    public LdapException getError() {
         return error;
     }
 

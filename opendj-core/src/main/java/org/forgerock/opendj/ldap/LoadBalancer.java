@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS.
+ *      Portions Copyright 2011-2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -51,17 +51,17 @@ final class LoadBalancer implements ConnectionFactory {
     }
 
     @Override
-    public Connection getConnection() throws ErrorResultException {
+    public Connection getConnection() throws LdapException {
         return algorithm.getConnectionFactory().getConnection();
     }
 
     @Override
-    public Promise<Connection, ErrorResultException> getConnectionAsync() {
+    public Promise<Connection, LdapException> getConnectionAsync() {
         final ConnectionFactory factory;
 
         try {
             factory = algorithm.getConnectionFactory();
-        } catch (final ErrorResultException e) {
+        } catch (final LdapException e) {
             return newFailedPromise(e);
         }
 

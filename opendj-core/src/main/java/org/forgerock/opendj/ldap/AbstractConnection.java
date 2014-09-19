@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -52,7 +52,7 @@ import org.forgerock.opendj.ldif.ConnectionEntryReader;
 import org.forgerock.util.Reject;
 import org.forgerock.util.promise.Function;
 
-import static org.forgerock.opendj.ldap.ErrorResultException.*;
+import static org.forgerock.opendj.ldap.LdapException.*;
 import static org.forgerock.opendj.ldap.requests.Requests.*;
 
 import static com.forgerock.opendj.ldap.CoreMessages.*;
@@ -96,7 +96,7 @@ public abstract class AbstractConnection implements Connection {
          *         error if provided error is
          *         <code>ResultCode.SIZE_LIMIT_EXCEEDED</code>
          */
-        private ErrorResultException filterError(final ErrorResultException error) {
+        private LdapException filterError(final LdapException error) {
             if (error.getResult().getResultCode().equals(ResultCode.SIZE_LIMIT_EXCEEDED)) {
                 return newErrorResult(ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED,
                         ERR_UNEXPECTED_SEARCH_RESULT_ENTRIES_NO_COUNT.get().toString());
@@ -111,10 +111,10 @@ public abstract class AbstractConnection implements Connection {
          * method should be called only after search operation is finished.
          *
          * @return The single search result entry.
-         * @throws ErrorResultException
+         * @throws LdapException
          *             If an error is detected.
          */
-        private SearchResultEntry getSingleEntry() throws ErrorResultException {
+        private SearchResultEntry getSingleEntry() throws LdapException {
             if (entryCount == 0) {
                 // Did not find any entries.
                 throw newErrorResult(ResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED,
@@ -142,7 +142,7 @@ public abstract class AbstractConnection implements Connection {
                 public Object visitChangeRecord(final Connection p, final AddRequest change) {
                     try {
                         return p.add(change);
-                    } catch (final ErrorResultException e) {
+                    } catch (final LdapException e) {
                         return e;
                     }
                 }
@@ -151,7 +151,7 @@ public abstract class AbstractConnection implements Connection {
                 public Object visitChangeRecord(final Connection p, final DeleteRequest change) {
                     try {
                         return p.delete(change);
-                    } catch (final ErrorResultException e) {
+                    } catch (final LdapException e) {
                         return e;
                     }
                 }
@@ -160,7 +160,7 @@ public abstract class AbstractConnection implements Connection {
                 public Object visitChangeRecord(final Connection p, final ModifyDNRequest change) {
                     try {
                         return p.modifyDN(change);
-                    } catch (final ErrorResultException e) {
+                    } catch (final LdapException e) {
                         return e;
                     }
                 }
@@ -169,7 +169,7 @@ public abstract class AbstractConnection implements Connection {
                 public Object visitChangeRecord(final Connection p, final ModifyRequest change) {
                     try {
                         return p.modify(change);
-                    } catch (final ErrorResultException e) {
+                    } catch (final LdapException e) {
                         return e;
                     }
                 }
@@ -183,12 +183,12 @@ public abstract class AbstractConnection implements Connection {
     }
 
     @Override
-    public Result add(final Entry entry) throws ErrorResultException {
+    public Result add(final Entry entry) throws LdapException {
         return add(Requests.newAddRequest(entry));
     }
 
     @Override
-    public Result add(final String... ldifLines) throws ErrorResultException {
+    public Result add(final String... ldifLines) throws LdapException {
         return add(Requests.newAddRequest(ldifLines));
     }
 
@@ -198,12 +198,12 @@ public abstract class AbstractConnection implements Connection {
     }
 
     @Override
-    public Result applyChange(final ChangeRecord request) throws ErrorResultException {
+    public Result applyChange(final ChangeRecord request) throws LdapException {
         final Object result = request.accept(SYNC_VISITOR, this);
         if (result instanceof Result) {
             return (Result) result;
         } else {
-            throw (ErrorResultException) result;
+            throw (LdapException) result;
         }
     }
 
@@ -242,7 +242,7 @@ public abstract class AbstractConnection implements Connection {
     }
 
     @Override
-    public BindResult bind(final String name, final char[] password) throws ErrorResultException {
+    public BindResult bind(final String name, final char[] password) throws LdapException {
         return bind(Requests.newSimpleBindRequest(name, password));
     }
 
@@ -258,7 +258,7 @@ public abstract class AbstractConnection implements Connection {
 
     @Override
     public CompareResult compare(final String name, final String attributeDescription, final String assertionValue)
-            throws ErrorResultException {
+            throws LdapException {
         return compare(Requests.newCompareRequest(name, attributeDescription, assertionValue));
     }
 
@@ -268,7 +268,7 @@ public abstract class AbstractConnection implements Connection {
     }
 
     @Override
-    public Result delete(final String name) throws ErrorResultException {
+    public Result delete(final String name) throws LdapException {
         return delete(Requests.newDeleteRequest(name));
     }
 
@@ -278,18 +278,18 @@ public abstract class AbstractConnection implements Connection {
     }
 
     @Override
-    public Result deleteSubtree(final String name) throws ErrorResultException {
+    public Result deleteSubtree(final String name) throws LdapException {
         return delete(Requests.newDeleteRequest(name).addControl(SubtreeDeleteRequestControl.newControl(true)));
     }
 
     @Override
-    public <R extends ExtendedResult> R extendedRequest(final ExtendedRequest<R> request) throws ErrorResultException {
+    public <R extends ExtendedResult> R extendedRequest(final ExtendedRequest<R> request) throws LdapException {
         return extendedRequest(request, null);
     }
 
     @Override
     public GenericExtendedResult extendedRequest(final String requestName, final ByteString requestValue)
-            throws ErrorResultException {
+            throws LdapException {
         return extendedRequest(Requests.newGenericExtendedRequest(requestName, requestValue));
     }
 
@@ -299,7 +299,7 @@ public abstract class AbstractConnection implements Connection {
     }
 
     @Override
-    public Result modify(final String... ldifLines) throws ErrorResultException {
+    public Result modify(final String... ldifLines) throws LdapException {
         return modify(Requests.newModifyRequest(ldifLines));
     }
 
@@ -309,7 +309,7 @@ public abstract class AbstractConnection implements Connection {
     }
 
     @Override
-    public Result modifyDN(final String name, final String newRDN) throws ErrorResultException {
+    public Result modifyDN(final String name, final String newRDN) throws LdapException {
         return modifyDN(Requests.newModifyDNRequest(name, newRDN));
     }
 
@@ -320,7 +320,7 @@ public abstract class AbstractConnection implements Connection {
 
     @Override
     public SearchResultEntry readEntry(final DN baseObject, final String... attributeDescriptions)
-            throws ErrorResultException {
+            throws LdapException {
         final SearchRequest request =
             Requests.newSingleEntrySearchRequest(baseObject, SearchScope.BASE_OBJECT, Filter.objectClassPresent(),
                 attributeDescriptions);
@@ -329,7 +329,7 @@ public abstract class AbstractConnection implements Connection {
 
     @Override
     public SearchResultEntry readEntry(final String baseObject, final String... attributeDescriptions)
-            throws ErrorResultException {
+            throws LdapException {
         return readEntry(DN.valueOf(baseObject), attributeDescriptions);
     }
 
@@ -351,13 +351,13 @@ public abstract class AbstractConnection implements Connection {
 
     @Override
     public Result search(final SearchRequest request, final Collection<? super SearchResultEntry> entries)
-            throws ErrorResultException {
+            throws LdapException {
         return search(request, entries, null);
     }
 
     @Override
     public Result search(final SearchRequest request, final Collection<? super SearchResultEntry> entries,
-        final Collection<? super SearchResultReference> references) throws ErrorResultException {
+        final Collection<? super SearchResultReference> references) throws LdapException {
         Reject.ifNull(request, entries);
         // FIXME: does this need to be thread safe?
         final SearchResultHandler handler = new SearchResultHandler() {
@@ -391,19 +391,19 @@ public abstract class AbstractConnection implements Connection {
     }
 
     @Override
-    public SearchResultEntry searchSingleEntry(final SearchRequest request) throws ErrorResultException {
+    public SearchResultEntry searchSingleEntry(final SearchRequest request) throws LdapException {
         final SingleEntryHandler handler = new SingleEntryHandler();
         try {
             search(enforceSingleEntrySearchRequest(request), handler);
             return handler.getSingleEntry();
-        } catch (final ErrorResultException e) {
+        } catch (final LdapException e) {
             throw handler.filterError(e);
         }
     }
 
     @Override
     public SearchResultEntry searchSingleEntry(final String baseObject, final SearchScope scope, final String filter,
-        final String... attributeDescriptions) throws ErrorResultException {
+        final String... attributeDescriptions) throws LdapException {
         final SearchRequest request =
             Requests.newSingleEntrySearchRequest(baseObject, scope, filter, attributeDescriptions);
         return searchSingleEntry(request);
@@ -413,14 +413,14 @@ public abstract class AbstractConnection implements Connection {
     public FutureResult<SearchResultEntry> searchSingleEntryAsync(final SearchRequest request) {
         final SingleEntryHandler handler = new SingleEntryHandler();
         return FutureResultWrapper.asFutureResult(searchAsync(enforceSingleEntrySearchRequest(request), handler).then(
-            new Function<Result, SearchResultEntry, ErrorResultException>() {
+            new Function<Result, SearchResultEntry, LdapException>() {
                 @Override
-                public SearchResultEntry apply(final Result value) throws ErrorResultException {
+                public SearchResultEntry apply(final Result value) throws LdapException {
                     return handler.getSingleEntry();
                 }
-            }, new Function<ErrorResultException, SearchResultEntry, ErrorResultException>() {
+            }, new Function<LdapException, SearchResultEntry, LdapException>() {
                 @Override
-                public SearchResultEntry apply(final ErrorResultException error) throws ErrorResultException {
+                public SearchResultEntry apply(final LdapException error) throws LdapException {
                     throw handler.filterError(error);
                 }
             }));

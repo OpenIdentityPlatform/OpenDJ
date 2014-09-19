@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -92,7 +92,7 @@ public abstract class AbstractConnectionWrapper<C extends Connection> implements
      * The default implementation is to delegate.
      */
     @Override
-    public Result add(final AddRequest request) throws ErrorResultException {
+    public Result add(final AddRequest request) throws LdapException {
         return connection.add(request);
     }
 
@@ -102,7 +102,7 @@ public abstract class AbstractConnectionWrapper<C extends Connection> implements
      * The default implementation is to delegate.
      */
     @Override
-    public Result add(final Entry entry) throws ErrorResultException {
+    public Result add(final Entry entry) throws LdapException {
         return connection.add(entry);
     }
 
@@ -112,7 +112,7 @@ public abstract class AbstractConnectionWrapper<C extends Connection> implements
      * The default implementation is to delegate.
      */
     @Override
-    public Result add(final String... ldifLines) throws ErrorResultException {
+    public Result add(final String... ldifLines) throws LdapException {
         return connection.add(ldifLines);
     }
 
@@ -153,7 +153,7 @@ public abstract class AbstractConnectionWrapper<C extends Connection> implements
      * The default implementation is to delegate.
      */
     @Override
-    public Result applyChange(final ChangeRecord request) throws ErrorResultException {
+    public Result applyChange(final ChangeRecord request) throws LdapException {
         return connection.applyChange(request);
     }
 
@@ -184,7 +184,7 @@ public abstract class AbstractConnectionWrapper<C extends Connection> implements
      * The default implementation is to delegate.
      */
     @Override
-    public BindResult bind(final BindRequest request) throws ErrorResultException {
+    public BindResult bind(final BindRequest request) throws LdapException {
         return connection.bind(request);
     }
 
@@ -194,7 +194,7 @@ public abstract class AbstractConnectionWrapper<C extends Connection> implements
      * The default implementation is to delegate.
      */
     @Override
-    public BindResult bind(final String name, final char[] password) throws ErrorResultException {
+    public BindResult bind(final String name, final char[] password) throws LdapException {
         return connection.bind(name, password);
     }
 
@@ -245,7 +245,7 @@ public abstract class AbstractConnectionWrapper<C extends Connection> implements
      * The default implementation is to delegate.
      */
     @Override
-    public CompareResult compare(final CompareRequest request) throws ErrorResultException {
+    public CompareResult compare(final CompareRequest request) throws LdapException {
         return connection.compare(request);
     }
 
@@ -256,7 +256,7 @@ public abstract class AbstractConnectionWrapper<C extends Connection> implements
      */
     @Override
     public CompareResult compare(final String name, final String attributeDescription, final String assertionValue)
-            throws ErrorResultException {
+            throws LdapException {
         return connection.compare(name, attributeDescription, assertionValue);
     }
 
@@ -287,7 +287,7 @@ public abstract class AbstractConnectionWrapper<C extends Connection> implements
      * The default implementation is to delegate.
      */
     @Override
-    public Result delete(final DeleteRequest request) throws ErrorResultException {
+    public Result delete(final DeleteRequest request) throws LdapException {
         return connection.delete(request);
     }
 
@@ -297,7 +297,7 @@ public abstract class AbstractConnectionWrapper<C extends Connection> implements
      * The default implementation is to delegate.
      */
     @Override
-    public Result delete(final String name) throws ErrorResultException {
+    public Result delete(final String name) throws LdapException {
         return connection.delete(name);
     }
 
@@ -328,7 +328,7 @@ public abstract class AbstractConnectionWrapper<C extends Connection> implements
      * The default implementation is to delegate.
      */
     @Override
-    public Result deleteSubtree(final String name) throws ErrorResultException {
+    public Result deleteSubtree(final String name) throws LdapException {
         return connection.deleteSubtree(name);
     }
 
@@ -338,7 +338,7 @@ public abstract class AbstractConnectionWrapper<C extends Connection> implements
      * The default implementation is to delegate.
      */
     @Override
-    public <R extends ExtendedResult> R extendedRequest(final ExtendedRequest<R> request) throws ErrorResultException {
+    public <R extends ExtendedResult> R extendedRequest(final ExtendedRequest<R> request) throws LdapException {
         return connection.extendedRequest(request);
     }
 
@@ -349,7 +349,7 @@ public abstract class AbstractConnectionWrapper<C extends Connection> implements
      */
     @Override
     public <R extends ExtendedResult> R extendedRequest(final ExtendedRequest<R> request,
-            final IntermediateResponseHandler handler) throws ErrorResultException {
+            final IntermediateResponseHandler handler) throws LdapException {
         return connection.extendedRequest(request, handler);
     }
 
@@ -360,7 +360,7 @@ public abstract class AbstractConnectionWrapper<C extends Connection> implements
      */
     @Override
     public GenericExtendedResult extendedRequest(final String requestName, final ByteString requestValue)
-            throws ErrorResultException {
+            throws LdapException {
         return connection.extendedRequest(requestName, requestValue);
     }
 
@@ -411,7 +411,7 @@ public abstract class AbstractConnectionWrapper<C extends Connection> implements
      * The default implementation is to delegate.
      */
     @Override
-    public Result modify(final ModifyRequest request) throws ErrorResultException {
+    public Result modify(final ModifyRequest request) throws LdapException {
         return connection.modify(request);
     }
 
@@ -421,7 +421,7 @@ public abstract class AbstractConnectionWrapper<C extends Connection> implements
      * The default implementation is to delegate.
      */
     @Override
-    public Result modify(final String... ldifLines) throws ErrorResultException {
+    public Result modify(final String... ldifLines) throws LdapException {
         return connection.modify(ldifLines);
     }
 
@@ -452,7 +452,7 @@ public abstract class AbstractConnectionWrapper<C extends Connection> implements
      * The default implementation is to delegate.
      */
     @Override
-    public Result modifyDN(final ModifyDNRequest request) throws ErrorResultException {
+    public Result modifyDN(final ModifyDNRequest request) throws LdapException {
         return connection.modifyDN(request);
     }
 
@@ -462,7 +462,7 @@ public abstract class AbstractConnectionWrapper<C extends Connection> implements
      * The default implementation is to delegate.
      */
     @Override
-    public Result modifyDN(final String name, final String newRDN) throws ErrorResultException {
+    public Result modifyDN(final String name, final String newRDN) throws LdapException {
         return connection.modifyDN(name, newRDN);
     }
 
@@ -493,8 +493,7 @@ public abstract class AbstractConnectionWrapper<C extends Connection> implements
      * The default implementation is to delegate.
      */
     @Override
-    public SearchResultEntry readEntry(final DN name, final String... attributeDescriptions)
-            throws ErrorResultException {
+    public SearchResultEntry readEntry(final DN name, final String... attributeDescriptions) throws LdapException {
         return connection.readEntry(name, attributeDescriptions);
     }
 
@@ -504,8 +503,7 @@ public abstract class AbstractConnectionWrapper<C extends Connection> implements
      * The default implementation is to delegate.
      */
     @Override
-    public SearchResultEntry readEntry(final String name, final String... attributeDescriptions)
-            throws ErrorResultException {
+    public SearchResultEntry readEntry(final String name, final String... attributeDescriptions) throws LdapException {
         return connection.readEntry(name, attributeDescriptions);
     }
 
@@ -547,7 +545,7 @@ public abstract class AbstractConnectionWrapper<C extends Connection> implements
      */
     @Override
     public Result search(final SearchRequest request,
-            final Collection<? super SearchResultEntry> entries) throws ErrorResultException {
+            final Collection<? super SearchResultEntry> entries) throws LdapException {
         return connection.search(request, entries);
     }
 
@@ -559,7 +557,7 @@ public abstract class AbstractConnectionWrapper<C extends Connection> implements
     @Override
     public Result search(final SearchRequest request,
             final Collection<? super SearchResultEntry> entries,
-            final Collection<? super SearchResultReference> references) throws ErrorResultException {
+            final Collection<? super SearchResultReference> references) throws LdapException {
         return connection.search(request, entries, references);
     }
 
@@ -569,8 +567,7 @@ public abstract class AbstractConnectionWrapper<C extends Connection> implements
      * The default implementation is to delegate.
      */
     @Override
-    public Result search(final SearchRequest request, final SearchResultHandler handler)
-            throws ErrorResultException {
+    public Result search(final SearchRequest request, final SearchResultHandler handler) throws LdapException {
         return connection.search(request, handler);
     }
 
@@ -613,7 +610,7 @@ public abstract class AbstractConnectionWrapper<C extends Connection> implements
      * The default implementation is to delegate.
      */
     @Override
-    public SearchResultEntry searchSingleEntry(final SearchRequest request) throws ErrorResultException {
+    public SearchResultEntry searchSingleEntry(final SearchRequest request) throws LdapException {
         return connection.searchSingleEntry(request);
     }
 
@@ -624,7 +621,7 @@ public abstract class AbstractConnectionWrapper<C extends Connection> implements
      */
     @Override
     public SearchResultEntry searchSingleEntry(final String baseObject, final SearchScope scope, final String filter,
-            final String... attributeDescriptions) throws ErrorResultException {
+            final String... attributeDescriptions) throws LdapException {
         return connection.searchSingleEntry(baseObject, scope, filter, attributeDescriptions);
     }
 

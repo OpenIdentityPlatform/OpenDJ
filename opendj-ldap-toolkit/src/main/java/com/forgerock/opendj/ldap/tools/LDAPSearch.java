@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package com.forgerock.opendj.ldap.tools;
 
@@ -45,7 +45,7 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchResultHandler;
@@ -825,7 +825,7 @@ public final class LDAPSearch extends ConsoleApplication {
         Connection connection;
         try {
             connection = connectionFactory.getConnection();
-        } catch (final ErrorResultException ere) {
+        } catch (final LdapException ere) {
             return Utils.printErrorMessage(this, ere);
         }
 
@@ -918,7 +918,7 @@ public final class LDAPSearch extends ConsoleApplication {
                 println(message);
                 println();
             }
-        } catch (final ErrorResultException ere) {
+        } catch (final LdapException ere) {
             return Utils.printErrorMessage(this, ere);
         } finally {
             closeSilently(ldifWriter, connection);

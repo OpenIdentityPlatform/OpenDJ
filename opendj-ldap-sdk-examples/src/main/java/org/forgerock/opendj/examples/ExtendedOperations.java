@@ -20,7 +20,7 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2012 ForgeRock AS
+ *      Copyright 2012-2014 ForgeRock AS
  *
  */
 
@@ -29,7 +29,7 @@ package org.forgerock.opendj.examples;
 import java.util.Collection;
 
 import org.forgerock.opendj.ldap.Connection;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.RootDSE;
 import org.forgerock.opendj.ldap.requests.PasswordModifyExtendedRequest;
@@ -85,7 +85,7 @@ public final class ExtendedOperations {
             // For StartTLS, see the authentication examples.
             useWhoAmIExtendedRequest(connection);
 
-        } catch (ErrorResultException e) {
+        } catch (LdapException e) {
             System.err.println(e.getMessage());
             System.exit(e.getResult().getResultCode().intValue());
             return;
@@ -103,10 +103,10 @@ public final class ExtendedOperations {
      *            Active connection to LDAP server containing <a
      *            href="http://opendj.forgerock.org/Example.ldif"
      *            >Example.ldif</a> content.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             Operation failed.
      */
-    static void usePasswordModifyExtendedRequest(Connection connection) throws ErrorResultException {
+    static void usePasswordModifyExtendedRequest(Connection connection) throws LdapException {
         // --- JCite password modify ---
         if (isSupported(PasswordModifyExtendedRequest.OID)) {
             final String userIdentity = "u:scarter";
@@ -138,10 +138,10 @@ public final class ExtendedOperations {
      * @param connection Active connection to LDAP server containing <a
      *            href="http://opendj.forgerock.org/Example.ldif"
      *            >Example.ldif</a> content.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             Operation failed.
      */
-    static void useWhoAmIExtendedRequest(Connection connection) throws ErrorResultException {
+    static void useWhoAmIExtendedRequest(Connection connection) throws LdapException {
         // --- JCite who am I ---
         if (isSupported(WhoAmIExtendedRequest.OID)) {
 
@@ -177,11 +177,10 @@ public final class ExtendedOperations {
      *
      * @param connection
      *            Active connection to the LDAP server.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             Failed to get list of extended operations.
      */
-    static void checkSupportedExtendedOperations(Connection connection)
-            throws ErrorResultException {
+    static void checkSupportedExtendedOperations(Connection connection) throws LdapException {
         extendedOperations = RootDSE.readRootDSE(connection)
                 .getSupportedExtendedOperations();
     }

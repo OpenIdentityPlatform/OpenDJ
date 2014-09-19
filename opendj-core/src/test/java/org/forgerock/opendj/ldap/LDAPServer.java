@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -177,8 +177,7 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
             if (entryMap.containsKey(dn)) {
                 // duplicate entry.
                 result = Responses.newResult(ResultCode.ENTRY_ALREADY_EXISTS);
-                final ErrorResultException ere = ErrorResultException.newErrorResult(result);
-                handler.handleError(ere);
+                handler.handleError(LdapException.newErrorResult(result));
                 // doesn't matter if it was canceled.
                 requestsInProgress.remove(context);
                 return;
@@ -196,8 +195,7 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
 
             if (abReq.isCanceled()) {
                 result = Responses.newResult(ResultCode.CANCELLED);
-                final ErrorResultException ere = ErrorResultException.newErrorResult(result);
-                handler.handleError(ere);
+                handler.handleError(LdapException.newErrorResult(result));
                 requestsInProgress.remove(context);
                 return;
             }
@@ -282,26 +280,22 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
                                 }
 
                                 @Override
-                                public byte[] unwrap(byte[] incoming, int offset, int len)
-                                        throws ErrorResultException {
+                                public byte[] unwrap(byte[] incoming, int offset, int len) throws LdapException {
                                     try {
                                         return saslServer.unwrap(incoming, offset, len);
                                     } catch (SaslException e) {
-                                        throw ErrorResultException
-                                                .newErrorResult(Responses.newResult(
-                                                        ResultCode.OPERATIONS_ERROR).setCause(e));
+                                        throw LdapException.newErrorResult(
+                                                Responses.newResult(ResultCode.OPERATIONS_ERROR).setCause(e));
                                     }
                                 }
 
                                 @Override
-                                public byte[] wrap(byte[] outgoing, int offset, int len)
-                                        throws ErrorResultException {
+                                public byte[] wrap(byte[] outgoing, int offset, int len) throws LdapException {
                                     try {
                                         return saslServer.wrap(outgoing, offset, len);
                                     } catch (SaslException e) {
-                                        throw ErrorResultException
-                                                .newErrorResult(Responses.newResult(
-                                                        ResultCode.OPERATIONS_ERROR).setCause(e));
+                                        throw LdapException.newErrorResult(
+                                                Responses.newResult(ResultCode.OPERATIONS_ERROR).setCause(e));
                                     }
                                 }
                             };
@@ -315,7 +309,7 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
                                 ByteString.wrap(challenge)));
                     }
                 } catch (Exception e) {
-                    resultHandler.handleError(ErrorResultException.newErrorResult(Responses
+                    resultHandler.handleError(LdapException.newErrorResult(Responses
                             .newBindResult(ResultCode.OPERATIONS_ERROR).setCause(e)
                             .setDiagnosticMessage(e.toString())));
                 }
@@ -363,8 +357,7 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
             if (!entryMap.containsKey(dn)) {
                 // entry not found.
                 result = Responses.newCompareResult(ResultCode.NO_SUCH_ATTRIBUTE);
-                final ErrorResultException ere = ErrorResultException.newErrorResult(result);
-                resultHandler.handleError(ere);
+                resultHandler.handleError(LdapException.newErrorResult(result));
                 // doesn't matter if it was canceled.
                 requestsInProgress.remove(context);
                 return;
@@ -379,8 +372,7 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
                     final ByteString s = it.next();
                     if (abReq.isCanceled()) {
                         final Result r = Responses.newResult(ResultCode.CANCELLED);
-                        final ErrorResultException ere = ErrorResultException.newErrorResult(r);
-                        resultHandler.handleError(ere);
+                        resultHandler.handleError(LdapException.newErrorResult(r));
                         requestsInProgress.remove(context);
                         return;
                     }
@@ -409,8 +401,7 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
             if (!entryMap.containsKey(dn)) {
                 // entry is not found.
                 result = Responses.newResult(ResultCode.NO_SUCH_OBJECT);
-                final ErrorResultException ere = ErrorResultException.newErrorResult(result);
-                handler.handleError(ere);
+                handler.handleError(LdapException.newErrorResult(result));
                 // doesn't matter if it was canceled.
                 requestsInProgress.remove(context);
                 return;
@@ -418,8 +409,7 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
 
             if (abReq.isCanceled()) {
                 result = Responses.newResult(ResultCode.CANCELLED);
-                final ErrorResultException ere = ErrorResultException.newErrorResult(result);
-                handler.handleError(ere);
+                handler.handleError(LdapException.newErrorResult(result));
                 requestsInProgress.remove(context);
                 return;
             }
@@ -471,8 +461,7 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
             if (!entryMap.containsKey(dn)) {
                 // Entry not found.
                 result = Responses.newResult(ResultCode.NO_SUCH_OBJECT);
-                final ErrorResultException ere = ErrorResultException.newErrorResult(result);
-                resultHandler.handleError(ere);
+                resultHandler.handleError(LdapException.newErrorResult(result));
                 // Should searchResultHandler handle anything?
 
                 // doesn't matter if it was canceled.
@@ -482,8 +471,7 @@ public class LDAPServer implements ServerConnectionFactory<LDAPClientContext, In
 
             if (abReq.isCanceled()) {
                 result = Responses.newResult(ResultCode.CANCELLED);
-                final ErrorResultException ere = ErrorResultException.newErrorResult(result);
-                resultHandler.handleError(ere);
+                resultHandler.handleError(LdapException.newErrorResult(result));
                 requestsInProgress.remove(context);
                 return;
             }

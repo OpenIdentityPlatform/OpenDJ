@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -30,7 +30,7 @@ package org.forgerock.opendj.ldap.requests;
 import static com.forgerock.opendj.ldap.CoreMessages.ERR_SASL_PROTOCOL_ERROR;
 import static com.forgerock.opendj.util.StaticUtils.copyOfBytes;
 import static com.forgerock.opendj.util.StaticUtils.getExceptionMessage;
-import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
+import static org.forgerock.opendj.ldap.LdapException.newErrorResult;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -49,7 +49,7 @@ import javax.security.sasl.SaslException;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConnectionSecurityLayer;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.responses.BindResult;
 import org.forgerock.util.Reject;
@@ -69,7 +69,7 @@ final class DigestMD5SASLBindRequestImpl extends AbstractSASLBindRequest<DigestM
         private final SaslClient saslClient;
 
         private Client(final DigestMD5SASLBindRequestImpl initialBindRequest,
-                final String serverName) throws ErrorResultException {
+                final String serverName) throws LdapException {
             super(initialBindRequest);
 
             this.authenticationID = initialBindRequest.getAuthenticationID();
@@ -147,7 +147,7 @@ final class DigestMD5SASLBindRequestImpl extends AbstractSASLBindRequest<DigestM
         }
 
         @Override
-        public boolean evaluateResult(final BindResult result) throws ErrorResultException {
+        public boolean evaluateResult(final BindResult result) throws LdapException {
             if (saslClient.isComplete()) {
                 return true;
             }
@@ -176,8 +176,7 @@ final class DigestMD5SASLBindRequestImpl extends AbstractSASLBindRequest<DigestM
         }
 
         @Override
-        public byte[] unwrap(final byte[] incoming, final int offset, final int len)
-                throws ErrorResultException {
+        public byte[] unwrap(final byte[] incoming, final int offset, final int len) throws LdapException {
             try {
                 return saslClient.unwrap(incoming, offset, len);
             } catch (final SaslException e) {
@@ -188,8 +187,7 @@ final class DigestMD5SASLBindRequestImpl extends AbstractSASLBindRequest<DigestM
         }
 
         @Override
-        public byte[] wrap(final byte[] outgoing, final int offset, final int len)
-                throws ErrorResultException {
+        public byte[] wrap(final byte[] outgoing, final int offset, final int len) throws LdapException {
             try {
                 return saslClient.wrap(outgoing, offset, len);
             } catch (final SaslException e) {
@@ -274,7 +272,7 @@ final class DigestMD5SASLBindRequestImpl extends AbstractSASLBindRequest<DigestM
     }
 
     @Override
-    public BindClient createBindClient(final String serverName) throws ErrorResultException {
+    public BindClient createBindClient(final String serverName) throws LdapException {
         return new Client(this, serverName);
     }
 

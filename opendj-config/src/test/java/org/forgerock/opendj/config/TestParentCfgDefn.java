@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.forgerock.opendj.config;
 
@@ -40,7 +41,7 @@ import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.config.server.ConfigurationDeleteListener;
 import org.forgerock.opendj.config.server.ServerManagedObject;
 import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 
 /**
@@ -320,7 +321,7 @@ public final class TestParentCfgDefn extends ManagedObjectDefinition<TestParentC
         /**
          * {@inheritDoc}
          */
-        public String[] listTestChildren() throws ConcurrentModificationException, ErrorResultException {
+        public String[] listTestChildren() throws ConcurrentModificationException, LdapException {
             return impl.listChildren(INSTANCE.getTestChildrenRelationDefinition());
         }
 
@@ -329,7 +330,7 @@ public final class TestParentCfgDefn extends ManagedObjectDefinition<TestParentC
          */
         public TestChildCfgClient getTestChild(String name) throws DefinitionDecodingException,
                 ManagedObjectDecodingException, ManagedObjectNotFoundException, ConcurrentModificationException,
-                ErrorResultException {
+                LdapException {
             return impl.getChild(INSTANCE.getTestChildrenRelationDefinition(), name).getConfiguration();
         }
 
@@ -346,14 +347,14 @@ public final class TestParentCfgDefn extends ManagedObjectDefinition<TestParentC
          * {@inheritDoc}
          */
         public void removeTestChild(String name) throws ManagedObjectNotFoundException,
-                ConcurrentModificationException, OperationRejectedException, ErrorResultException {
+                ConcurrentModificationException, OperationRejectedException, LdapException {
             impl.removeChild(INSTANCE.getTestChildrenRelationDefinition(), name);
         }
 
         /**
          * {@inheritDoc}
          */
-        public boolean hasOptionalTestChild() throws ConcurrentModificationException, ErrorResultException {
+        public boolean hasOptionalTestChild() throws ConcurrentModificationException, LdapException {
             return impl.hasChild(INSTANCE.getOptionalTestChildRelationDefinition());
         }
 
@@ -362,7 +363,7 @@ public final class TestParentCfgDefn extends ManagedObjectDefinition<TestParentC
          */
         public TestChildCfgClient getOptionalChild() throws DefinitionDecodingException,
                 ManagedObjectDecodingException, ManagedObjectNotFoundException, ConcurrentModificationException,
-                ErrorResultException {
+                LdapException {
             return impl.getChild(INSTANCE.getOptionalTestChildRelationDefinition()).getConfiguration();
         }
 
@@ -379,7 +380,7 @@ public final class TestParentCfgDefn extends ManagedObjectDefinition<TestParentC
          * {@inheritDoc}
          */
         public void removeOptionalTestChild() throws ManagedObjectNotFoundException, ConcurrentModificationException,
-                OperationRejectedException, ErrorResultException {
+                OperationRejectedException, LdapException {
             impl.removeChild(INSTANCE.getOptionalTestChildRelationDefinition());
         }
 
@@ -401,7 +402,7 @@ public final class TestParentCfgDefn extends ManagedObjectDefinition<TestParentC
          * {@inheritDoc}
          */
         public void commit() throws ManagedObjectAlreadyExistsException, MissingMandatoryPropertiesException,
-                ConcurrentModificationException, OperationRejectedException, ErrorResultException {
+                ConcurrentModificationException, OperationRejectedException, LdapException {
             impl.commit();
         }
 

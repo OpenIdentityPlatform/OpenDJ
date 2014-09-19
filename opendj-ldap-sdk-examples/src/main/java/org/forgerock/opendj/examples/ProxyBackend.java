@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.examples;
@@ -31,7 +31,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ConnectionFactory;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.IntermediateResponseHandler;
 import org.forgerock.opendj.ldap.RequestContext;
 import org.forgerock.opendj.ldap.RequestHandler;
@@ -58,7 +58,7 @@ import org.forgerock.util.promise.AsyncFunction;
 import org.forgerock.util.promise.Promise;
 import org.forgerock.util.promise.SuccessHandler;
 
-import static org.forgerock.opendj.ldap.ErrorResultException.*;
+import static org.forgerock.opendj.ldap.LdapException.*;
 import static org.forgerock.util.Utils.*;
 
 /**
@@ -81,7 +81,7 @@ import static org.forgerock.util.Utils.*;
  * final RequestHandlerFactory&lt;LDAPClientContext, RequestContext&gt; proxyFactory =
  *     new RequestHandlerFactory&lt;LDAPClientContext, RequestContext&gt;() {
  *         &#064;Override
- *         public ProxyBackend handleAccept(LDAPClientContext clientContext) throws ErrorResultException {
+ *         public ProxyBackend handleAccept(LDAPClientContext clientContext) throws LdapException {
  *             return new ProxyBackend(factory, bindFactory);
  *         }
  *     };
@@ -107,9 +107,9 @@ final class ProxyBackend implements RequestHandler<RequestContext> {
         final AtomicReference<Connection> connectionHolder = new AtomicReference<Connection>();
         addProxiedAuthControl(request);
 
-        factory.getConnectionAsync().thenAsync(new AsyncFunction<Connection, Result, ErrorResultException>() {
+        factory.getConnectionAsync().thenAsync(new AsyncFunction<Connection, Result, LdapException>() {
             @Override
-            public Promise<Result, ErrorResultException> apply(Connection connection) throws ErrorResultException {
+            public Promise<Result, LdapException> apply(Connection connection) throws LdapException {
                 connectionHolder.set(connection);
                 return connection.addAsync(request, intermediateResponseHandler);
             }
@@ -131,10 +131,9 @@ final class ProxyBackend implements RequestHandler<RequestContext> {
             final AtomicReference<Connection> connectionHolder = new AtomicReference<Connection>();
             proxiedAuthControl = null;
             bindFactory.getConnectionAsync()
-                    .thenAsync(new AsyncFunction<Connection, BindResult, ErrorResultException>() {
+                    .thenAsync(new AsyncFunction<Connection, BindResult, LdapException>() {
                         @Override
-                        public Promise<BindResult, ErrorResultException> apply(Connection connection)
-                                throws ErrorResultException {
+                        public Promise<BindResult, LdapException> apply(Connection connection) throws LdapException {
                             connectionHolder.set(connection);
                             return connection.bindAsync(request, intermediateResponseHandler);
                         }
@@ -157,10 +156,9 @@ final class ProxyBackend implements RequestHandler<RequestContext> {
         addProxiedAuthControl(request);
 
         final AtomicReference<Connection> connectionHolder = new AtomicReference<Connection>();
-        factory.getConnectionAsync().thenAsync(new AsyncFunction<Connection, CompareResult, ErrorResultException>() {
+        factory.getConnectionAsync().thenAsync(new AsyncFunction<Connection, CompareResult, LdapException>() {
             @Override
-            public Promise<CompareResult, ErrorResultException> apply(Connection connection)
-                    throws ErrorResultException {
+            public Promise<CompareResult, LdapException> apply(Connection connection) throws LdapException {
                 connectionHolder.set(connection);
                 return connection.compareAsync(request, intermediateResponseHandler);
             }
@@ -174,9 +172,9 @@ final class ProxyBackend implements RequestHandler<RequestContext> {
         addProxiedAuthControl(request);
 
         final AtomicReference<Connection> connectionHolder = new AtomicReference<Connection>();
-        factory.getConnectionAsync().thenAsync(new AsyncFunction<Connection, Result, ErrorResultException>() {
+        factory.getConnectionAsync().thenAsync(new AsyncFunction<Connection, Result, LdapException>() {
             @Override
-            public Promise<Result, ErrorResultException> apply(Connection connection) throws ErrorResultException {
+            public Promise<Result, LdapException> apply(Connection connection) throws LdapException {
                 connectionHolder.set(connection);
                 return connection.deleteAsync(request, intermediateResponseHandler);
             }
@@ -201,9 +199,9 @@ final class ProxyBackend implements RequestHandler<RequestContext> {
             addProxiedAuthControl(request);
 
             final AtomicReference<Connection> connectionHolder = new AtomicReference<Connection>();
-            factory.getConnectionAsync().thenAsync(new AsyncFunction<Connection, R, ErrorResultException>() {
+            factory.getConnectionAsync().thenAsync(new AsyncFunction<Connection, R, LdapException>() {
                 @Override
-                public Promise<R, ErrorResultException> apply(Connection connection) throws ErrorResultException {
+                public Promise<R, LdapException> apply(Connection connection) throws LdapException {
                     connectionHolder.set(connection);
                     return connection.extendedRequestAsync(request, intermediateResponseHandler);
                 }
@@ -219,9 +217,9 @@ final class ProxyBackend implements RequestHandler<RequestContext> {
         addProxiedAuthControl(request);
 
         final AtomicReference<Connection> connectionHolder = new AtomicReference<Connection>();
-        factory.getConnectionAsync().thenAsync(new AsyncFunction<Connection, Result, ErrorResultException>() {
+        factory.getConnectionAsync().thenAsync(new AsyncFunction<Connection, Result, LdapException>() {
             @Override
-            public Promise<Result, ErrorResultException> apply(Connection connection) throws ErrorResultException {
+            public Promise<Result, LdapException> apply(Connection connection) throws LdapException {
                 connectionHolder.set(connection);
                 return connection.modifyAsync(request, intermediateResponseHandler);
             }
@@ -235,9 +233,9 @@ final class ProxyBackend implements RequestHandler<RequestContext> {
         addProxiedAuthControl(request);
 
         final AtomicReference<Connection> connectionHolder = new AtomicReference<Connection>();
-        factory.getConnectionAsync().thenAsync(new AsyncFunction<Connection, Result, ErrorResultException>() {
+        factory.getConnectionAsync().thenAsync(new AsyncFunction<Connection, Result, LdapException>() {
             @Override
-            public Promise<Result, ErrorResultException> apply(Connection connection) throws ErrorResultException {
+            public Promise<Result, LdapException> apply(Connection connection) throws LdapException {
                 connectionHolder.set(connection);
                 return connection.modifyDNAsync(request, intermediateResponseHandler);
             }
@@ -252,9 +250,9 @@ final class ProxyBackend implements RequestHandler<RequestContext> {
         addProxiedAuthControl(request);
 
         final AtomicReference<Connection> connectionHolder = new AtomicReference<Connection>();
-        factory.getConnectionAsync().thenAsync(new AsyncFunction<Connection, Result, ErrorResultException>() {
+        factory.getConnectionAsync().thenAsync(new AsyncFunction<Connection, Result, LdapException>() {
             @Override
-            public Promise<Result, ErrorResultException> apply(Connection connection) throws ErrorResultException {
+            public Promise<Result, LdapException> apply(Connection connection) throws LdapException {
                 connectionHolder.set(connection);
                 return connection.searchAsync(request, intermediateResponseHandler, entryHandler);
             }

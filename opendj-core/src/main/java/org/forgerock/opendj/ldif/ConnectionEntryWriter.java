@@ -22,15 +22,14 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions Copyright 2012-2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldif;
 
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.Entry;
-import org.forgerock.opendj.ldap.ErrorResultException;
-import org.forgerock.opendj.ldap.ErrorResultIOException;
+import org.forgerock.opendj.ldap.LdapException;
 
 import org.forgerock.util.Reject;
 
@@ -42,7 +41,7 @@ import org.forgerock.util.Reject;
  * All Add requests are performed synchronously, blocking until an Add result is
  * received. If an Add result indicates that an Add request has failed for some
  * reason then the error result is propagated to the caller using an
- * {@code ErrorResultIOException}.
+ * {@code LdapException}.
  * <p>
  * <b>Note:</b> comments are not supported by connection change record writers.
  * Attempts to write comments will be ignored.
@@ -104,19 +103,15 @@ public final class ConnectionEntryWriter implements EntryWriter {
      * @param entry
      *            The {@code Entry} to be written.
      * @return A reference to this connection entry writer.
-     * @throws ErrorResultIOException
+     * @throws LdapException
      *             If the result code indicates that the request failed for some
      *             reason.
      * @throws NullPointerException
      *             If {@code entry} was {@code null}.
      */
-    public ConnectionEntryWriter writeEntry(final Entry entry) throws ErrorResultIOException {
+    public ConnectionEntryWriter writeEntry(final Entry entry) throws LdapException {
         Reject.ifNull(entry);
-        try {
-            connection.add(entry);
-        } catch (final ErrorResultException e) {
-            throw new ErrorResultIOException(e);
-        }
+        connection.add(entry);
         return this;
     }
 

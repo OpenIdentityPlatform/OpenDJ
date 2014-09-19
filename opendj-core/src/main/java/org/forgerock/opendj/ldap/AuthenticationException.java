@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -46,7 +47,7 @@ import org.forgerock.opendj.ldap.responses.Result;
  * </ul>
  */
 @SuppressWarnings("serial")
-public class AuthenticationException extends ErrorResultException {
+public class AuthenticationException extends LdapException {
     AuthenticationException(final Result result) {
         super(result);
     }

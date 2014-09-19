@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.forgerock.opendj.config.client.ldap;
 
@@ -35,7 +36,7 @@ import org.forgerock.opendj.config.client.ClientConstraintHandler;
 import org.forgerock.opendj.config.client.ManagedObject;
 import org.forgerock.opendj.config.client.ManagementContext;
 import org.forgerock.opendj.config.server.ServerConstraintHandler;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 
 /**
  * A mock constraint which can be configured to refuse various types of
@@ -53,7 +54,7 @@ public final class MockConstraint extends Constraint {
          */
         @Override
         public boolean isAddAcceptable(ManagementContext context, ManagedObject<?> managedObject,
-                Collection<LocalizableMessage> unacceptableReasons) throws ErrorResultException {
+                Collection<LocalizableMessage> unacceptableReasons) throws LdapException {
             if (!allowAdds) {
                 unacceptableReasons.add(LocalizableMessage.raw("Adds not allowed"));
             }
@@ -66,7 +67,7 @@ public final class MockConstraint extends Constraint {
          */
         @Override
         public boolean isDeleteAcceptable(ManagementContext context, ManagedObjectPath<?, ?> path,
-                Collection<LocalizableMessage> unacceptableReasons) throws ErrorResultException {
+                Collection<LocalizableMessage> unacceptableReasons) throws LdapException {
             if (!allowDeletes) {
                 unacceptableReasons.add(LocalizableMessage.raw("Deletes not allowed"));
             }
@@ -79,7 +80,7 @@ public final class MockConstraint extends Constraint {
          */
         @Override
         public boolean isModifyAcceptable(ManagementContext context, ManagedObject<?> managedObject,
-                Collection<LocalizableMessage> unacceptableReasons) throws ErrorResultException {
+                Collection<LocalizableMessage> unacceptableReasons) throws LdapException {
             if (!allowModifies) {
                 unacceptableReasons.add(LocalizableMessage.raw("Modifies not allowed"));
             }

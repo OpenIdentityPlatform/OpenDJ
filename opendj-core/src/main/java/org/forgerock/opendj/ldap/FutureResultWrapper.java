@@ -55,10 +55,10 @@ import org.forgerock.util.promise.SuccessHandler;
  */
 public final class FutureResultWrapper<R> {
     private static class LdapPromiseWrapper<R> implements FutureResult<R> {
-        private final Promise<R, ErrorResultException> wrappedPromise;
+        private final Promise<R, LdapException> wrappedPromise;
         private final int requestID;
 
-        LdapPromiseWrapper(Promise<R, ErrorResultException> wrappedPromise, int requestID) {
+        LdapPromiseWrapper(Promise<R, LdapException> wrappedPromise, int requestID) {
             this.wrappedPromise = wrappedPromise;
             this.requestID = requestID;
         }
@@ -85,23 +85,23 @@ public final class FutureResultWrapper<R> {
         }
 
         @Override
-        public R getOrThrow() throws InterruptedException, ErrorResultException {
+        public R getOrThrow() throws InterruptedException, LdapException {
             return wrappedPromise.getOrThrow();
         }
 
         @Override
-        public R getOrThrow(long timeout, TimeUnit unit) throws InterruptedException, ErrorResultException,
+        public R getOrThrow(long timeout, TimeUnit unit) throws InterruptedException, LdapException,
             TimeoutException {
             return wrappedPromise.getOrThrow(timeout, unit);
         }
 
         @Override
-        public R getOrThrowUninterruptibly() throws ErrorResultException {
+        public R getOrThrowUninterruptibly() throws LdapException {
             return wrappedPromise.getOrThrowUninterruptibly();
         }
 
         @Override
-        public R getOrThrowUninterruptibly(long timeout, TimeUnit unit) throws ErrorResultException, TimeoutException {
+        public R getOrThrowUninterruptibly(long timeout, TimeUnit unit) throws LdapException, TimeoutException {
             return wrappedPromise.getOrThrowUninterruptibly(timeout, unit);
         }
 
@@ -116,27 +116,26 @@ public final class FutureResultWrapper<R> {
         }
 
         @Override
-        public Promise<R, ErrorResultException> onFailure(FailureHandler<? super ErrorResultException> onFailure) {
+        public Promise<R, LdapException> onFailure(FailureHandler<? super LdapException> onFailure) {
             wrappedPromise.onFailure(onFailure);
             return this;
         }
 
         @Override
-        public Promise<R, ErrorResultException> onSuccess(SuccessHandler<? super R> onSuccess) {
+        public Promise<R, LdapException> onSuccess(SuccessHandler<? super R> onSuccess) {
             wrappedPromise.onSuccess(onSuccess);
             return this;
         }
 
         @Override
-        public Promise<R, ErrorResultException> onSuccessOrFailure(Runnable onSuccessOrFailure) {
+        public Promise<R, LdapException> onSuccessOrFailure(Runnable onSuccessOrFailure) {
             wrappedPromise.onSuccessOrFailure(onSuccessOrFailure);
             return this;
         }
 
         @Override
         // @Checkstyle:ignore
-        public <VOUT> Promise<VOUT, ErrorResultException> then(
-                Function<? super R, VOUT, ErrorResultException> onSuccess) {
+        public <VOUT> Promise<VOUT, LdapException> then(Function<? super R, VOUT, LdapException> onSuccess) {
             return new LdapPromiseWrapper<VOUT>(wrappedPromise.then(onSuccess), getRequestID());
         }
 
@@ -144,33 +143,32 @@ public final class FutureResultWrapper<R> {
         @Override
         // @Checkstyle:ignore
         public <VOUT, EOUT extends Exception> Promise<VOUT, EOUT> then(Function<? super R, VOUT, EOUT> onSuccess,
-                Function<? super ErrorResultException, VOUT, EOUT> onFailure) {
+                Function<? super LdapException, VOUT, EOUT> onFailure) {
             return new LdapPromiseWrapper(wrappedPromise.then(onSuccess, onFailure), getRequestID());
         }
 
         @Override
-        public Promise<R, ErrorResultException> then(SuccessHandler<? super R> onSuccess) {
+        public Promise<R, LdapException> then(SuccessHandler<? super R> onSuccess) {
             wrappedPromise.then(onSuccess);
             return this;
         }
 
         @Override
-        public Promise<R, ErrorResultException> then(SuccessHandler<? super R> onSuccess,
-            FailureHandler<? super ErrorResultException> onFailure) {
+        public Promise<R, LdapException> then(SuccessHandler<? super R> onSuccess,
+            FailureHandler<? super LdapException> onFailure) {
             wrappedPromise.then(onSuccess, onFailure);
             return this;
         }
 
         @Override
-        public Promise<R, ErrorResultException> thenAlways(Runnable onSuccessOrFailure) {
+        public Promise<R, LdapException> thenAlways(Runnable onSuccessOrFailure) {
             wrappedPromise.thenAlways(onSuccessOrFailure);
             return this;
         }
 
         @Override
         // @Checkstyle:ignore
-        public <VOUT> Promise<VOUT, ErrorResultException> thenAsync(
-                AsyncFunction<? super R, VOUT, ErrorResultException> onSuccess) {
+        public <VOUT> Promise<VOUT, LdapException> thenAsync(AsyncFunction<? super R, VOUT, LdapException> onSuccess) {
             return new LdapPromiseWrapper<VOUT>(wrappedPromise.thenAsync(onSuccess), getRequestID());
         }
 
@@ -179,7 +177,7 @@ public final class FutureResultWrapper<R> {
         // @Checkstyle:ignore
         public <VOUT, EOUT extends Exception> Promise<VOUT, EOUT> thenAsync(
                 AsyncFunction<? super R, VOUT, EOUT> onSuccess,
-                AsyncFunction<? super ErrorResultException, VOUT, EOUT> onFailure) {
+                AsyncFunction<? super LdapException, VOUT, EOUT> onFailure) {
             return new LdapPromiseWrapper(wrappedPromise.thenAsync(onSuccess, onFailure), getRequestID());
         }
     }
@@ -198,7 +196,7 @@ public final class FutureResultWrapper<R> {
      *         has already succeeded with the provided result.
      */
     public static <R> FutureResult<R> newSuccessfulFutureResult(final R result) {
-        return new LdapPromiseWrapper<R>(Promises.<R, ErrorResultException> newSuccessfulPromise(result), -1);
+        return new LdapPromiseWrapper<R>(Promises.<R, LdapException> newSuccessfulPromise(result), -1);
     }
 
     /**
@@ -218,7 +216,7 @@ public final class FutureResultWrapper<R> {
      *         has already succeeded with the provided result.
      */
     public static <R> FutureResult<R> newSuccessfulFutureResult(final R result, int requestID) {
-        return new LdapPromiseWrapper<R>(Promises.<R, ErrorResultException> newSuccessfulPromise(result), requestID);
+        return new LdapPromiseWrapper<R>(Promises.<R, LdapException> newSuccessfulPromise(result), requestID);
     }
 
     /**
@@ -235,8 +233,8 @@ public final class FutureResultWrapper<R> {
      * @return A {@link FutureResult} representing an asynchronous task which
      *         has already failed with the provided error.
      */
-    public static <R, E extends ErrorResultException> FutureResult<R> newFailedFutureResult(final E error) {
-        return new LdapPromiseWrapper<R>(Promises.<R, ErrorResultException> newFailedPromise(error), -1);
+    public static <R, E extends LdapException> FutureResult<R> newFailedFutureResult(final E error) {
+        return new LdapPromiseWrapper<R>(Promises.<R, LdapException> newFailedPromise(error), -1);
     }
 
     /**
@@ -256,9 +254,8 @@ public final class FutureResultWrapper<R> {
      * @return A {@link FutureResult} representing an asynchronous task which
      *         has already failed with the provided error.
      */
-    public static <R, E extends ErrorResultException> FutureResult<R> newFailedFutureResult(final E error,
-            int requestID) {
-        return new LdapPromiseWrapper<R>(Promises.<R, ErrorResultException> newFailedPromise(error), requestID);
+    public static <R, E extends LdapException> FutureResult<R> newFailedFutureResult(final E error, int requestID) {
+        return new LdapPromiseWrapper<R>(Promises.<R, LdapException> newFailedPromise(error), requestID);
     }
 
     /**
@@ -272,7 +269,7 @@ public final class FutureResultWrapper<R> {
      * @return A {@link FutureResult} representing the same asynchronous task as
      *         the {@link Promise} provided.
      */
-    public static <R> FutureResult<R> asFutureResult(Promise<R, ErrorResultException> wrappedPromise) {
+    public static <R> FutureResult<R> asFutureResult(Promise<R, LdapException> wrappedPromise) {
         return new LdapPromiseWrapper<R>(wrappedPromise, -1);
     }
 

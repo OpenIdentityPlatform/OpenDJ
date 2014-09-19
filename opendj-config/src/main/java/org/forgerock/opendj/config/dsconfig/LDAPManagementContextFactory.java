@@ -38,7 +38,7 @@ import org.forgerock.opendj.config.client.ldap.LDAPManagementContext;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ConnectionFactory;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.ClientException;
@@ -115,7 +115,7 @@ public final class LDAPManagementContextFactory {
             try {
                 connection = factory.getConnection();
                 BuildVersion.checkVersionMismatch(connection);
-            } catch (ErrorResultException e) {
+            } catch (LdapException e) {
                 if (e.getCause() instanceof SSLException) {
                     throw new ClientException(ReturnCode.CLIENT_SIDE_CONNECT_ERROR,
                             ERR_FAILED_TO_CONNECT_NOT_TRUSTED.get(hostName, String.valueOf(port)));

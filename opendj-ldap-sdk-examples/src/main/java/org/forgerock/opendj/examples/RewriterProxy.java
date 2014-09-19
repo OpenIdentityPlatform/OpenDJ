@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.examples;
@@ -38,7 +38,7 @@ import org.forgerock.opendj.ldap.Attributes;
 import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.Connections;
 import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.IntermediateResponseHandler;
 import org.forgerock.opendj.ldap.LDAPClientContext;
@@ -413,8 +413,7 @@ public final class RewriterProxy {
         final RequestHandlerFactory<LDAPClientContext, RequestContext> proxyFactory =
                 new RequestHandlerFactory<LDAPClientContext, RequestContext>() {
                     @Override
-                    public Rewriter handleAccept(final LDAPClientContext clientContext)
-                            throws ErrorResultException {
+                    public Rewriter handleAccept(final LDAPClientContext clientContext) throws LdapException {
                         return new Rewriter(new ProxyBackend(factory, bindFactory));
                     }
                 };

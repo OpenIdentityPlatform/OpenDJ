@@ -22,24 +22,17 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions Copyright 2012-2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldif;
-
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.ErrorResultException;
-import org.forgerock.opendj.ldap.ErrorResultIOException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.requests.AddRequest;
 import org.forgerock.opendj.ldap.requests.DeleteRequest;
@@ -51,6 +44,10 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import org.testng.Assert;
 import org.testng.annotations.Test;
+
+import static org.forgerock.opendj.ldap.LdapException.*;
+import static org.mockito.Matchers.*;
+import static org.mockito.Mockito.*;
 
 /**
  * This class tests the ConnectionChangeRecordWriter functionality.
@@ -237,31 +234,28 @@ public class ConnectionChangeRecordWriterTestCase extends AbstractLDIFTestCase {
 
     /**
      * ConnectionChangeRecordWriter writes a ChangeRecord and an
-     * ErrorResultIOException occurs on the ChangeAccept call.
+     * LdapException occurs on the ChangeAccept call.
      *
      * @throws Exception
      */
     @SuppressWarnings("unchecked")
-    @Test(expectedExceptions = ErrorResultIOException.class)
-    public final void testWriteChangeRecordChangeAcceptSendErrorResultIOException()
-            throws Exception {
+    @Test(expectedExceptions = LdapException.class)
+    public final void testWriteChangeRecordChangeAcceptSendLdapException() throws Exception {
         Connection connection = mock(Connection.class);
         ConnectionChangeRecordWriter writer = null;
         ChangeRecord cr = mock(ChangeRecord.class);
 
         when(cr.accept(any(ChangeRecordVisitor.class), any(ConnectionChangeRecordWriter.class)))
-                .thenAnswer(new Answer<ErrorResultIOException>() {
+                .thenAnswer(new Answer<LdapException>() {
                     @Override
-                    public ErrorResultIOException answer(final InvocationOnMock invocation)
-                            throws Throwable {
+                    public LdapException answer(final InvocationOnMock invocation) throws Throwable {
                         // Execute handler and return future.
                         final ChangeRecordVisitor<?, ?> handler =
                                 (ChangeRecordVisitor<?, ?>) invocation.getArguments()[0];
                         if (handler != null) {
                             // Data here if needed.
                         }
-                        return new ErrorResultIOException(ErrorResultException
-                                .newErrorResult(ResultCode.UNAVAILABLE_CRITICAL_EXTENSION));
+                        return newErrorResult(ResultCode.UNAVAILABLE_CRITICAL_EXTENSION);
                     }
                 });
 

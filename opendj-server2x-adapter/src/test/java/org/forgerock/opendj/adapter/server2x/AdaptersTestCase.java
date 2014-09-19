@@ -21,12 +21,9 @@
  * CDDL HEADER END
  *
  *
- *      Portions copyright 2013 ForgeRock AS
+ *      Copyright 2013-2014 ForgeRock AS
  */
 package org.forgerock.opendj.adapter.server2x;
-
-import static org.fest.assertions.Assertions.assertThat;
-import static org.fest.assertions.Fail.fail;
 
 import java.security.GeneralSecurityException;
 import java.util.NoSuchElementException;
@@ -43,9 +40,8 @@ import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.Entries;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.EntryNotFoundException;
-import org.forgerock.opendj.ldap.ErrorResultException;
-import org.forgerock.opendj.ldap.ErrorResultIOException;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LinkedHashMapEntry;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -78,7 +74,9 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import static org.forgerock.opendj.adapter.server2x.EmbeddedServerTestCaseUtils.CONFIG_PROPERTIES;
+import static org.fest.assertions.Assertions.*;
+import static org.fest.assertions.Fail.*;
+import static org.forgerock.opendj.adapter.server2x.EmbeddedServerTestCaseUtils.*;
 
 /**
  * This class defines a set of tests for the Adapters.class.
@@ -211,10 +209,10 @@ public class AdaptersTestCase extends ForgeRockTestCase {
     /**
      * A simple LDAP connection.
      *
-     * @throws ErrorResultException
+     * @throws LdapException
      */
     @Test()
-    public void testSimpleLDAPConnectionFactorySimpleBind() throws ErrorResultException {
+    public void testSimpleLDAPConnectionFactorySimpleBind() throws LdapException {
         final LDAPConnectionFactory factory =
                 new LDAPConnectionFactory("localhost",
                         Integer.valueOf(CONFIG_PROPERTIES.getProperty("listen-port")));
@@ -236,11 +234,10 @@ public class AdaptersTestCase extends ForgeRockTestCase {
      *
      * @throws NumberFormatException
      * @throws GeneralSecurityException
-     * @throws ErrorResultException
+     * @throws LdapException
      */
     @Test()
-    public void testLDAPSASLBind() throws NumberFormatException, GeneralSecurityException,
-            ErrorResultException {
+    public void testLDAPSASLBind() throws NumberFormatException, GeneralSecurityException, LdapException {
         LDAPConnectionFactory factory =
                 new LDAPConnectionFactory("localhost",
                         Integer.valueOf(CONFIG_PROPERTIES.getProperty("listen-port")));
@@ -261,10 +258,10 @@ public class AdaptersTestCase extends ForgeRockTestCase {
     /**
      * Tests an SASL connection with the adapter.
      *
-     * @throws ErrorResultException
+     * @throws LdapException
      */
     @Test()
-    public void testAdapterConnectionSASLBindRequest() throws ErrorResultException,
+    public void testAdapterConnectionSASLBindRequest() throws LdapException,
             GeneralSecurityException {
         final Connection connection = Adapters.newRootConnection();
 
@@ -283,12 +280,10 @@ public class AdaptersTestCase extends ForgeRockTestCase {
      * This type of connection is not supported. Anonymous SASL Mechanisms is
      * disabled in the config.ldif file.
      *
-     * @throws ErrorResultException
+     * @throws LdapException
      */
-    @Test(dataProvider = "anonymousConnectionFactories",
-            expectedExceptions = ErrorResultException.class)
-    public void testConnectionAnonymousSASLBindRequest(final ConnectionFactory factory)
-            throws ErrorResultException {
+    @Test(dataProvider = "anonymousConnectionFactories", expectedExceptions = LdapException.class)
+    public void testConnectionAnonymousSASLBindRequest(final ConnectionFactory factory) throws LdapException {
         final Connection connection = factory.getConnection();
         try {
             connection.bind(Requests.newAnonymousSASLBindRequest("anonymousSASLBindRequest"));
@@ -513,14 +508,13 @@ public class AdaptersTestCase extends ForgeRockTestCase {
      * Performs a search with a sub entries request control. Sub-entries are
      * included and the normal entries are excluded. No result expected.
      *
-     * @throws ErrorResultException
-     * @throws ErrorResultIOException
+     * @throws LdapException
      * @throws SearchResultReferenceIOException
      */
     @Test(dataProvider = "rootConnectionFactories",
             expectedExceptions = NoSuchElementException.class)
     public void testAdapterSearchRequestSubEntriesWithNoResult(final ConnectionFactory factory)
-            throws ErrorResultException, ErrorResultIOException, SearchResultReferenceIOException {
+            throws LdapException, SearchResultReferenceIOException {
         final Connection connection = factory.getConnection();
         try {
             final SearchRequest request =
@@ -542,13 +536,12 @@ public class AdaptersTestCase extends ForgeRockTestCase {
      * Performs a search with a sub entries request control. Sub-entries are
      * excluded this time and the normal entries are included.
      *
-     * @throws ErrorResultException
-     * @throws ErrorResultIOException
+     * @throws LdapException
      * @throws SearchResultReferenceIOException
      */
     @Test(dataProvider = "rootConnectionFactories")
     public void testAdapterSearchRequestSubEntries(final ConnectionFactory factory)
-            throws ErrorResultException, ErrorResultIOException, SearchResultReferenceIOException {
+            throws LdapException, SearchResultReferenceIOException {
         final Connection connection = factory.getConnection();
 
         final SearchRequest request =
@@ -575,12 +568,11 @@ public class AdaptersTestCase extends ForgeRockTestCase {
     /**
      * Deletes an inexistent entry.
      *
-     * @throws ErrorResultException
+     * @throws LdapException
      */
     @Test(dataProvider = "rootConnectionFactories",
             expectedExceptions = EntryNotFoundException.class)
-    public void testAdapterDeleteRequestNoSuchEntry(final ConnectionFactory factory)
-            throws ErrorResultException {
+    public void testAdapterDeleteRequestNoSuchEntry(final ConnectionFactory factory) throws LdapException {
         final DeleteRequest deleteRequest = Requests.newDeleteRequest("cn=test");
         final Connection connection = factory.getConnection();
         try {
@@ -593,11 +585,10 @@ public class AdaptersTestCase extends ForgeRockTestCase {
     /**
      * Deletes an existing entry with the 'no-op' control.
      *
-     * @throws ErrorResultException
+     * @throws LdapException
      */
     @Test(dataProvider = "rootConnectionFactories")
-    public void testAdapterDeleteRequestNoOpControl(final ConnectionFactory factory)
-            throws ErrorResultException {
+    public void testAdapterDeleteRequestNoOpControl(final ConnectionFactory factory) throws LdapException {
         final DeleteRequest deleteRequest =
                 Requests.newDeleteRequest("uid=user.1, dc=example,dc=org")
                 // The no-op control is specified with his OID.
@@ -619,10 +610,10 @@ public class AdaptersTestCase extends ForgeRockTestCase {
     /**
      * Deletes an existing entry.
      *
-     * @throws ErrorResultException
+     * @throws LdapException
      */
     @Test()
-    public void testAdapterDeleteRequest() throws ErrorResultException {
+    public void testAdapterDeleteRequest() throws LdapException {
 
         final Connection connection = Adapters.newRootConnection();
         // Checks if the entry exists.
@@ -651,11 +642,11 @@ public class AdaptersTestCase extends ForgeRockTestCase {
     /**
      * Modifies an existing entry.
      *
-     * @throws ErrorResultException
+     * @throws LdapException
      * @throws DecodeException
      */
     @Test()
-    public void testAdapterModifyRequest() throws ErrorResultException, DecodeException {
+    public void testAdapterModifyRequest() throws LdapException, DecodeException {
 
         final ModifyRequest changeRequest =
                 Requests.newModifyRequest("uid=user.2, dc=example,dc=org").addControl(
@@ -690,11 +681,10 @@ public class AdaptersTestCase extends ForgeRockTestCase {
      * Tries to modify the existing entry with the same values but using the
      * permissive modify control.
      *
-     * @throws ErrorResultException
+     * @throws LdapException
      */
     @Test(dataProvider = "rootConnectionFactories")
-    public void testAdapterUsePermissiveModifyRequest(final ConnectionFactory factory)
-            throws ErrorResultException {
+    public void testAdapterUsePermissiveModifyRequest(final ConnectionFactory factory) throws LdapException {
 
         final ModifyRequest changeRequest =
                 Requests.newModifyRequest("uid=user.2, dc=example,dc=org").addControl(
@@ -714,13 +704,11 @@ public class AdaptersTestCase extends ForgeRockTestCase {
     /**
      * Tries to modify the existing entry with the same values.
      *
-     * @throws ErrorResultException
+     * @throws LdapException
      */
     @Test(dataProvider = "rootConnectionFactories",
             expectedExceptions = ConstraintViolationException.class)
-    public void testAdapterModifyRequestFails(final ConnectionFactory factory)
-            throws ErrorResultException {
-
+    public void testAdapterModifyRequestFails(final ConnectionFactory factory) throws LdapException {
         final ModifyRequest changeRequest =
                 Requests.newModifyRequest("uid=user.2, dc=example,dc=org").addModification(
                         ModificationType.ADD, "uid", "user.2");
@@ -731,11 +719,10 @@ public class AdaptersTestCase extends ForgeRockTestCase {
     /**
      * Modifies the DN.
      *
-     * @throws ErrorResultException
+     * @throws LdapException
      */
     @Test(dataProvider = "rootConnectionFactories")
-    public void testAdapterModifyDNRequest(final ConnectionFactory factory)
-            throws ErrorResultException {
+    public void testAdapterModifyDNRequest(final ConnectionFactory factory) throws LdapException {
         final Connection connection = factory.getConnection();
 
         // Verifies that entry has been correctly modified.
@@ -769,12 +756,10 @@ public class AdaptersTestCase extends ForgeRockTestCase {
     /**
      * Compare request. The comparison returns true.
      *
-     * @throws ErrorResultException
+     * @throws LdapException
      */
     @Test(dataProvider = "rootConnectionFactories")
-    public void testAdapterCompareRequestTrue(final ConnectionFactory factory)
-            throws ErrorResultException {
-
+    public void testAdapterCompareRequestTrue(final ConnectionFactory factory) throws LdapException {
         final CompareRequest compareRequest =
                 Requests.newCompareRequest("uid=user.0,dc=example,dc=org", "uid", "user.0");
 
@@ -789,12 +774,10 @@ public class AdaptersTestCase extends ForgeRockTestCase {
     /**
      * Compare request. The comparison returns false.
      *
-     * @throws ErrorResultException
+     * @throws LdapException
      */
     @Test(dataProvider = "rootConnectionFactories")
-    public void testAdapterCompareRequestFalse(final ConnectionFactory factory)
-            throws ErrorResultException {
-
+    public void testAdapterCompareRequestFalse(final ConnectionFactory factory) throws LdapException {
         final CompareRequest compareRequest =
                 Requests.newCompareRequest("uid=user.0,dc=example,dc=org", "uid", "scarter");
 
@@ -809,11 +792,10 @@ public class AdaptersTestCase extends ForgeRockTestCase {
     /**
      * Use the Who Am I? extended request.
      *
-     * @throws ErrorResultException
+     * @throws LdapException
      */
     @Test(dataProvider = "rootConnectionFactories")
-    public void testAdapterExtendedOperation(final ConnectionFactory factory)
-            throws ErrorResultException {
+    public void testAdapterExtendedOperation(final ConnectionFactory factory) throws LdapException {
         final WhoAmIExtendedRequest request = Requests.newWhoAmIExtendedRequest();
         final Connection connection = factory.getConnection();
         try {
@@ -828,12 +810,12 @@ public class AdaptersTestCase extends ForgeRockTestCase {
      * If an anonymous tries to delete, sends a result code : insufficient
      * access rights.
      *
-     * @throws ErrorResultException
+     * @throws LdapException
      */
     @Test(dataProvider = "anonymousConnectionFactories",
             expectedExceptions = AuthorizationException.class)
     public void testAdapterAsAnonymousCannotPerformDeleteRequest(final ConnectionFactory factory)
-            throws ErrorResultException {
+            throws LdapException {
 
         final DeleteRequest deleteRequest =
                 Requests.newDeleteRequest("uid=user.2,dc=example,dc=org");
@@ -850,12 +832,12 @@ public class AdaptersTestCase extends ForgeRockTestCase {
      * If an anonymous tries to do an add request, sends a result code :
      * insufficient access rights.
      *
-     * @throws ErrorResultException
+     * @throws LdapException
      */
     @Test(dataProvider = "anonymousConnectionFactories",
             expectedExceptions = AuthorizationException.class)
     public void testAdapterAsAnonymousCannotPerformAddRequest(final ConnectionFactory factory)
-            throws ErrorResultException {
+            throws LdapException {
 
         // @formatter:off
         final AddRequest addRequest = Requests.newAddRequest(
@@ -877,12 +859,12 @@ public class AdaptersTestCase extends ForgeRockTestCase {
      * If an anonymous tries to do a modify DN request, sends a result code :
      * insufficient access rights.
      *
-     * @throws ErrorResultException
+     * @throws LdapException
      */
     @Test(dataProvider = "anonymousConnectionFactories",
             expectedExceptions = AuthorizationException.class)
     public void testAdapterAsAnonymousCannotPerformModifyDNRequest(final ConnectionFactory factory)
-            throws ErrorResultException {
+            throws LdapException {
 
         final Connection connection = factory.getConnection();
 
@@ -901,12 +883,12 @@ public class AdaptersTestCase extends ForgeRockTestCase {
      * If an anonymous tries to do a modify request, sends a result code :
      * insufficient access rights.
      *
-     * @throws ErrorResultException
+     * @throws LdapException
      */
     @Test(dataProvider = "anonymousConnectionFactories",
-            expectedExceptions = ErrorResultException.class)
+            expectedExceptions = LdapException.class)
     public void testAdapterAsAnonymousCannotPerformModifyRequest(final ConnectionFactory factory)
-            throws ErrorResultException {
+            throws LdapException {
 
         final ModifyRequest changeRequest =
                 Requests.newModifyRequest("uid=user.2,dc=example,dc=org").addControl(
@@ -924,11 +906,11 @@ public class AdaptersTestCase extends ForgeRockTestCase {
     /**
      * The anonymous connection is allowed to perform compare request.
      *
-     * @throws ErrorResultException
+     * @throws LdapException
      */
     @Test(dataProvider = "anonymousConnectionFactories")
     public void testAdapterAsAnonymousPerformsCompareRequest(final ConnectionFactory factory)
-            throws ErrorResultException {
+            throws LdapException {
 
         final CompareRequest compareRequest =
                 Requests.newCompareRequest("uid=user.0,dc=example,dc=org", "uid", "user.0");
@@ -976,8 +958,7 @@ public class AdaptersTestCase extends ForgeRockTestCase {
      *
      * @throws Exception
      */
-    @Test(dataProvider = "anonymousConnectionFactories",
-            expectedExceptions = ErrorResultIOException.class)
+    @Test(dataProvider = "anonymousConnectionFactories", expectedExceptions = LdapException.class)
     public void testAdapterAsAnonymousCannotPerformSearchRequestWithControl(
             final ConnectionFactory factory) throws Exception {
         final Connection connection = factory.getConnection();
@@ -995,14 +976,11 @@ public class AdaptersTestCase extends ForgeRockTestCase {
      * add/delete/search and compare results with an SDK adapter connection
      * doing the same.
      *
-     * @throws ErrorResultException
-     * @throws ErrorResultIOException
+     * @throws LdapException
      * @throws SearchResultReferenceIOException
      */
     @Test()
-    public void testLDAPConnectionAndAdapterComparison() throws ErrorResultException,
-            ErrorResultIOException, SearchResultReferenceIOException {
-
+    public void testLDAPConnectionAndAdapterComparison() throws LdapException, SearchResultReferenceIOException {
         // @formatter:off
         final AddRequest addRequest = Requests.newAddRequest(
                 "dn: sn=babs,dc=example,dc=org",
@@ -1064,8 +1042,7 @@ public class AdaptersTestCase extends ForgeRockTestCase {
             assertThat(entry.getName().toString()).isEqualTo(sdkEntry.getName().toString());
             assertThat(entry.getAttributeCount()).isEqualTo(sdkEntry.getAttributeCount());
             assertThat(entry.getAllAttributes().iterator().next().getAttributeDescription())
-                    .isEqualTo(
-                            sdkEntry.getAllAttributes().iterator().next().getAttributeDescription());
+                    .isEqualTo(sdkEntry.getAllAttributes().iterator().next().getAttributeDescription());
             assertThat(entry.getControls().size()).isEqualTo(sdkEntry.getControls().size());
         }
     }

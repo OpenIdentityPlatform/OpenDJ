@@ -22,7 +22,7 @@
  *
  *
  *       Copyright 2008 Sun Microsystems, Inc.
- *       Portions copyright 2013 ForgeRock AS.
+ *       Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.forgerock.opendj.server.core;
 
@@ -40,7 +40,7 @@ import org.forgerock.opendj.ldap.ResultHandler;
  * implementation simpler? E.g. initialization, crypto.
  * <p>
  * FIXME: the async APIs used below are a bad fit. We do not want to return an
- * ErrorResultException. We really need a more generic promises API.
+ * {@link LdapException}. We really need a more generic promises API.
  */
 public interface ArchivableDataProvider {
 

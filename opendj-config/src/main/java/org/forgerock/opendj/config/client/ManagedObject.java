@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2007-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.config.client;
@@ -44,7 +45,7 @@ import org.forgerock.opendj.config.PropertyDefinition;
 import org.forgerock.opendj.config.PropertyProvider;
 import org.forgerock.opendj.config.SetRelationDefinition;
 import org.forgerock.opendj.config.SingletonRelationDefinition;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 
 /**
  * A generic interface for accessing client-side managed objects.
@@ -107,11 +108,11 @@ public interface ManagedObject<T extends ConfigurationClient> extends PropertyPr
      *             If this managed object cannot be added or modified due to
      *             some client-side or server-side constraint which cannot be
      *             satisfied.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If any other error occurs.
      */
     void commit() throws ManagedObjectAlreadyExistsException, MissingMandatoryPropertiesException,
-            ConcurrentModificationException, OperationRejectedException, ErrorResultException;
+            ConcurrentModificationException, OperationRejectedException, LdapException;
 
     /**
      * Determines whether or not this managed object has been modified since it
@@ -258,13 +259,13 @@ public interface ManagedObject<T extends ConfigurationClient> extends PropertyPr
      * @throws ConcurrentModificationException
      *             If this managed object has been removed from the server by
      *             another client.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If any other error occurs.
      */
     <C extends ConfigurationClient, S extends Configuration> ManagedObject<? extends C> getChild(
             InstantiableRelationDefinition<C, S> r, String name) throws
             DefinitionDecodingException, ManagedObjectDecodingException, ManagedObjectNotFoundException,
-            ConcurrentModificationException, ErrorResultException;
+            ConcurrentModificationException, LdapException;
 
     /**
      * Retrieves an optional child managed object.
@@ -293,13 +294,13 @@ public interface ManagedObject<T extends ConfigurationClient> extends PropertyPr
      * @throws ConcurrentModificationException
      *             If this managed object has been removed from the server by
      *             another client.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If any other error occurs.
      */
     <C extends ConfigurationClient, S extends Configuration> ManagedObject<? extends C> getChild(
             OptionalRelationDefinition<C, S> r) throws DefinitionDecodingException,
             ManagedObjectDecodingException, ManagedObjectNotFoundException, ConcurrentModificationException,
-            ErrorResultException;
+            LdapException;
 
     /**
      * Retrieves a singleton child managed object.
@@ -328,13 +329,13 @@ public interface ManagedObject<T extends ConfigurationClient> extends PropertyPr
      * @throws ConcurrentModificationException
      *             If this managed object has been removed from the server by
      *             another client.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If any other error occurs.
      */
     <C extends ConfigurationClient, S extends Configuration> ManagedObject<? extends C> getChild(
             SingletonRelationDefinition<C, S> r) throws DefinitionDecodingException,
             ManagedObjectDecodingException, ManagedObjectNotFoundException, ConcurrentModificationException,
-            ErrorResultException;
+            LdapException;
 
     /**
      * Retrieves a set child managed object.
@@ -365,13 +366,13 @@ public interface ManagedObject<T extends ConfigurationClient> extends PropertyPr
      * @throws ConcurrentModificationException
      *             If this managed object has been removed from the server by
      *             another client.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If any other error occurs.
      */
     <C extends ConfigurationClient, S extends Configuration> ManagedObject<? extends C> getChild(
             SetRelationDefinition<C, S> r, String name) throws DefinitionDecodingException,
             ManagedObjectDecodingException, ManagedObjectNotFoundException, ConcurrentModificationException,
-            ErrorResultException;
+            LdapException;
 
     /**
      * Creates a client configuration view of this managed object. Modifications
@@ -482,11 +483,11 @@ public interface ManagedObject<T extends ConfigurationClient> extends PropertyPr
      * @throws ConcurrentModificationException
      *             If this managed object has been removed from the server by
      *             another client.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If there is any other error.
      */
     <C extends ConfigurationClient, S extends Configuration> boolean hasChild(OptionalRelationDefinition<C, S> r)
-            throws ConcurrentModificationException, ErrorResultException;
+            throws ConcurrentModificationException, LdapException;
 
     /**
      * Lists the child managed objects associated with the specified
@@ -507,12 +508,12 @@ public interface ManagedObject<T extends ConfigurationClient> extends PropertyPr
      * @throws ConcurrentModificationException
      *             If this managed object has been removed from the server by
      *             another client.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If any other error occurs.
      */
     <C extends ConfigurationClient, S extends Configuration> String[] listChildren(
             InstantiableRelationDefinition<C, S> r) throws ConcurrentModificationException,
-            ErrorResultException;
+            LdapException;
 
     /**
      * Lists the child managed objects associated with the specified
@@ -534,12 +535,12 @@ public interface ManagedObject<T extends ConfigurationClient> extends PropertyPr
      * @throws ConcurrentModificationException
      *             If this managed object has been removed from the server by
      *             another client.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If any other error occurs.
      */
     <C extends ConfigurationClient, S extends Configuration> String[] listChildren(
             InstantiableRelationDefinition<C, S> r, AbstractManagedObjectDefinition<? extends C, ? extends S> d)
-            throws ConcurrentModificationException, ErrorResultException;
+            throws ConcurrentModificationException, LdapException;
 
     /**
      * Lists the child managed objects associated with the specified set
@@ -558,11 +559,11 @@ public interface ManagedObject<T extends ConfigurationClient> extends PropertyPr
      * @throws ConcurrentModificationException
      *             If this managed object has been removed from the server by
      *             another client.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If any other error occurs.
      */
     <C extends ConfigurationClient, S extends Configuration> String[] listChildren(SetRelationDefinition<C, S> r)
-            throws ConcurrentModificationException, ErrorResultException;
+            throws ConcurrentModificationException, LdapException;
 
     /**
      * Lists the child managed objects associated with the specified set
@@ -586,12 +587,12 @@ public interface ManagedObject<T extends ConfigurationClient> extends PropertyPr
      * @throws ConcurrentModificationException
      *             If this managed object has been removed from the server by
      *             another client.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If any other error occurs.
      */
     <C extends ConfigurationClient, S extends Configuration> String[] listChildren(SetRelationDefinition<C, S> r,
             AbstractManagedObjectDefinition<? extends C, ? extends S> d) throws
-            ConcurrentModificationException, ErrorResultException;
+            ConcurrentModificationException, LdapException;
 
     /**
      * Removes the named instantiable child managed object.
@@ -620,12 +621,12 @@ public interface ManagedObject<T extends ConfigurationClient> extends PropertyPr
      * @throws ConcurrentModificationException
      *             If this managed object has been removed from the server by
      *             another client.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If any other error occurs.
      */
     <C extends ConfigurationClient, S extends Configuration> void removeChild(InstantiableRelationDefinition<C, S> r,
             String name) throws ManagedObjectNotFoundException, OperationRejectedException,
-            ConcurrentModificationException, ErrorResultException;
+            ConcurrentModificationException, LdapException;
 
     /**
      * Removes an optional child managed object.
@@ -649,12 +650,12 @@ public interface ManagedObject<T extends ConfigurationClient> extends PropertyPr
      * @throws ConcurrentModificationException
      *             If this managed object has been removed from the server by
      *             another client.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If any other error occurs.
      */
     <C extends ConfigurationClient, S extends Configuration> void removeChild(OptionalRelationDefinition<C, S> r)
             throws ManagedObjectNotFoundException, OperationRejectedException,
-            ConcurrentModificationException, ErrorResultException;
+            ConcurrentModificationException, LdapException;
 
     /**
      * Removes s set child managed object.
@@ -680,12 +681,12 @@ public interface ManagedObject<T extends ConfigurationClient> extends PropertyPr
      * @throws ConcurrentModificationException
      *             If this managed object has been removed from the server by
      *             another client.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If any other error occurs.
      */
     <C extends ConfigurationClient, S extends Configuration> void removeChild(SetRelationDefinition<C, S> r,
         String name) throws ManagedObjectNotFoundException, OperationRejectedException,
-            ConcurrentModificationException, ErrorResultException;
+            ConcurrentModificationException, LdapException;
 
     /**
      * Sets a new pending value for the specified property.

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS.
+ *      Portions Copyright 2011-2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -68,17 +68,17 @@ final class InternalConnectionFactory<C> implements ConnectionFactory {
     }
 
     @Override
-    public Connection getConnection() throws ErrorResultException {
+    public Connection getConnection() throws LdapException {
         final ServerConnection<Integer> serverConnection = factory.handleAccept(clientContext);
         return new InternalConnection(serverConnection);
     }
 
     @Override
-    public Promise<Connection, ErrorResultException> getConnectionAsync() {
+    public Promise<Connection, LdapException> getConnectionAsync() {
         final ServerConnection<Integer> serverConnection;
         try {
             serverConnection = factory.handleAccept(clientContext);
-        } catch (final ErrorResultException e) {
+        } catch (final LdapException e) {
             return newFailedFutureResult(e);
         }
 

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.grizzly;
@@ -45,7 +45,7 @@ import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.ConnectionPool;
 import org.forgerock.opendj.ldap.Connections;
 import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.FailoverLoadBalancingAlgorithm;
 import org.forgerock.opendj.ldap.FutureResult;
 import org.forgerock.opendj.ldap.IntermediateResponseHandler;
@@ -87,7 +87,7 @@ import org.testng.annotations.Test;
 
 import static org.fest.assertions.Assertions.*;
 import static org.forgerock.opendj.ldap.Connections.*;
-import static org.forgerock.opendj.ldap.ErrorResultException.*;
+import static org.forgerock.opendj.ldap.LdapException.*;
 import static org.forgerock.opendj.ldap.FutureResultWrapper.*;
 import static org.forgerock.opendj.ldap.TestCaseUtils.*;
 import static org.mockito.Matchers.*;
@@ -262,7 +262,7 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
      */
     @Test(dataProvider = "connectionFactories", timeOut = TEST_TIMEOUT_MS)
     public void testBlockingFutureNoHandler(ConnectionFactory factory) throws Exception {
-        final Promise<? extends Connection, ErrorResultException> promise = factory.getConnectionAsync();
+        final Promise<? extends Connection, LdapException> promise = factory.getConnectionAsync();
         final Connection con = promise.get();
         // quickly check if it is a valid connection.
         // Don't use a result handler.
@@ -278,7 +278,7 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
     @Test(dataProvider = "connectionFactories", timeOut = TEST_TIMEOUT_MS)
     public void testNonBlockingFutureWithHandler(ConnectionFactory factory) throws Exception {
         // Use the handler to get the result asynchronously.
-        final PromiseImpl<Connection, ErrorResultException> promise = PromiseImpl.create();
+        final PromiseImpl<Connection, LdapException> promise = PromiseImpl.create();
 
         factory.getConnectionAsync().onSuccess(new SuccessHandler<Connection>() {
             @Override
@@ -286,10 +286,10 @@ public class ConnectionFactoryTestCase extends SdkTestCase {
                 con.close();
                 promise.handleResult(con);
             }
-        }).onFailure(new FailureHandler<ErrorResultException>() {
+        }).onFailure(new FailureHandler<LdapException>() {
 
             @Override
-            public void handleError(ErrorResultException error) {
+            public void handleError(LdapException error) {
                 promise.handleError(error);
             }
 

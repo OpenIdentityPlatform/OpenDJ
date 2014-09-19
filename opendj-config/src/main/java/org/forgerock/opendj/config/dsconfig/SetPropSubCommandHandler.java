@@ -64,7 +64,7 @@ import org.forgerock.opendj.config.client.OperationRejectedException;
 import org.forgerock.opendj.config.conditions.Condition;
 import org.forgerock.opendj.config.conditions.ContainsCondition;
 import org.forgerock.opendj.ldap.AuthorizationException;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
@@ -336,7 +336,7 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
                 } else {
                     throw new ClientException(ReturnCode.CONSTRAINT_VIOLATION, e.getMessageObject(), e);
                 }
-            } catch (ErrorResultException e) {
+            } catch (LdapException e) {
                 LocalizableMessage msg = ERR_DSCFG_ERROR_MODIFY_CE.get(ufn, e.getMessage());
                 throw new ClientException(ReturnCode.OTHER, msg);
             } catch (ManagedObjectAlreadyExistsException e) {
@@ -513,7 +513,7 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
         } catch (AuthorizationException e) {
             LocalizableMessage msg = ERR_DSCFG_ERROR_MODIFY_AUTHZ.get(ufn);
             throw new ClientException(ReturnCode.INSUFFICIENT_ACCESS_RIGHTS, msg);
-        } catch (ErrorResultException e) {
+        } catch (LdapException e) {
             LocalizableMessage msg = ERR_DSCFG_ERROR_MODIFY_CE.get(ufn, e.getMessage());
             throw new ClientException(ReturnCode.OTHER, msg);
         }
@@ -661,7 +661,7 @@ final class SetPropSubCommandHandler extends SubCommandHandler {
             } else {
                 throw except;
             }
-        } catch (ErrorResultException e) {
+        } catch (LdapException e) {
             throw new ClientException(ReturnCode.OTHER, LocalizableMessage.raw(e.getLocalizedMessage()));
         }
 

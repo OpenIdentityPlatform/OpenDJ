@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.forgerock.opendj.config;
 
@@ -33,7 +34,7 @@ import org.forgerock.opendj.config.client.IllegalManagedObjectNameException;
 import org.forgerock.opendj.config.client.ManagedObjectDecodingException;
 import org.forgerock.opendj.config.client.OperationRejectedException;
 import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 
 /**
@@ -153,10 +154,10 @@ public interface TestParentCfgClient extends ConfigurationClient {
      * @throws ConcurrentModificationException
      *             If this Test Parent has been removed from the server by
      *             another client.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If an error occurs
      */
-    String[] listTestChildren() throws ConcurrentModificationException, ErrorResultException;
+    String[] listTestChildren() throws ConcurrentModificationException, LdapException;
 
     /**
      * Gets the named Test Child.
@@ -175,11 +176,11 @@ public interface TestParentCfgClient extends ConfigurationClient {
      * @throws ConcurrentModificationException
      *             If this Test Parent has been removed from the server by
      *             another client.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If an error occurs.
      */
     TestChildCfgClient getTestChild(String name) throws DefinitionDecodingException, ManagedObjectDecodingException,
-            ManagedObjectNotFoundException, ConcurrentModificationException, ErrorResultException;
+            ManagedObjectNotFoundException, ConcurrentModificationException, LdapException;
 
     /**
      * Creates a new Test Child. The new Test Child will initially not contain
@@ -219,11 +220,11 @@ public interface TestParentCfgClient extends ConfigurationClient {
      * @throws ConcurrentModificationException
      *             If this Test Parent has been removed from the server by
      *             another client.
-     * @throws ErrorResultException
+     * @throws LdapException
      *          If an errors occurs.
      */
     void removeTestChild(String name) throws ManagedObjectNotFoundException, OperationRejectedException,
-            ConcurrentModificationException, ErrorResultException;
+            ConcurrentModificationException, LdapException;
 
     /**
      * Determines whether or not the Optional Test Child exists.
@@ -232,10 +233,10 @@ public interface TestParentCfgClient extends ConfigurationClient {
      * @throws ConcurrentModificationException
      *             If this Test Parent has been removed from the server by
      *             another client.
-     * @throws ErrorResultException
+     * @throws LdapException
      *          If an errors occurs.
      */
-    boolean hasOptionalTestChild() throws ConcurrentModificationException, ErrorResultException;
+    boolean hasOptionalTestChild() throws ConcurrentModificationException, LdapException;
 
     /**
      * Gets the Optional Test Child if it is present.
@@ -252,11 +253,11 @@ public interface TestParentCfgClient extends ConfigurationClient {
      * @throws ConcurrentModificationException
      *             If this Test Parent has been removed from the server by
      *             another client.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If an errors occurs.
      */
     TestChildCfgClient getOptionalChild() throws DefinitionDecodingException, ManagedObjectDecodingException,
-            ManagedObjectNotFoundException, ConcurrentModificationException, ErrorResultException;
+            ManagedObjectNotFoundException, ConcurrentModificationException, LdapException;
 
     /**
      * Creates a new Optional Test Child. The new Optional Test Child will
@@ -290,10 +291,10 @@ public interface TestParentCfgClient extends ConfigurationClient {
      * @throws ConcurrentModificationException
      *             If this Test Parent has been removed from the server by
      *             another client.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If an errors occurs.
      */
     void removeOptionalTestChild() throws ManagedObjectNotFoundException, OperationRejectedException,
-            ConcurrentModificationException, ErrorResultException;
+            ConcurrentModificationException, LdapException;
 
 }

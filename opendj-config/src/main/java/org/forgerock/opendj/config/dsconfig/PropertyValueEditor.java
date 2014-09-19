@@ -66,7 +66,7 @@ import org.forgerock.opendj.config.client.ManagedObject;
 import org.forgerock.opendj.config.client.ManagedObjectDecodingException;
 import org.forgerock.opendj.config.client.ManagementContext;
 import org.forgerock.opendj.ldap.AuthorizationException;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.util.Reject;
 
 import com.forgerock.opendj.cli.ClientException;
@@ -125,7 +125,7 @@ final class PropertyValueEditor {
                     LocalizableMessage pufn = path.getManagedObjectDefinition().getUserFriendlyName();
                     LocalizableMessage msg = ERR_DSCFG_ERROR_GET_PARENT_MODE.get(pufn);
                     throw new ClientException(ReturnCode.OTHER, msg, e);
-                } catch (ErrorResultException e) {
+                } catch (LdapException e) {
                     LocalizableMessage msg = ERR_DSCFG_ERROR_CREATE_CE.get(ufn, e.getMessage());
                     throw new ClientException(ReturnCode.CLIENT_SIDE_SERVER_DOWN, msg);
                 } catch (ManagedObjectNotFoundException e) {
@@ -402,7 +402,7 @@ final class PropertyValueEditor {
             } catch (ManagedObjectNotFoundException e) {
                 this.e = new ClientException(ReturnCode.NO_SUCH_OBJECT, e.getMessageObject());
                 return MenuResult.cancel();
-            } catch (ErrorResultException e) {
+            } catch (LdapException e) {
                 this.e = new ClientException(ReturnCode.APPLICATION_ERROR, LocalizableMessage.raw(e.getMessage()));
                 return MenuResult.quit();
             }
@@ -629,7 +629,7 @@ final class PropertyValueEditor {
                 } catch (ManagedObjectNotFoundException e) {
                     this.e = new ClientException(ReturnCode.NO_SUCH_OBJECT, e.getMessageObject());
                     return MenuResult.cancel();
-                } catch (ErrorResultException e) {
+                } catch (LdapException e) {
                     this.e = new ClientException(ReturnCode.APPLICATION_ERROR, LocalizableMessage.raw(e.getMessage()));
                     return MenuResult.quit();
                 }
@@ -1420,7 +1420,7 @@ final class PropertyValueEditor {
             } catch (ManagedObjectNotFoundException e) {
                 this.e = new ClientException(ReturnCode.NO_SUCH_OBJECT, e.getMessageObject());
                 return MenuResult.cancel();
-            } catch (ErrorResultException e) {
+            } catch (LdapException e) {
                 this.e = new ClientException(ReturnCode.APPLICATION_ERROR, LocalizableMessage.raw(e.getMessage()));
                 return MenuResult.quit();
             }

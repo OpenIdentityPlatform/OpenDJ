@@ -22,12 +22,13 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
 
 import org.forgerock.opendj.ldap.ConnectionSecurityLayer;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.responses.BindResult;
 
 /**
@@ -57,11 +58,11 @@ public interface BindClient {
      *            The bind result to be evaluated.
      * @return {@code true} if authentication has completed successfully, of
      *         {@code false} if additional steps are required.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If the evaluation failed for some reason and authentication
      *             cannot continue.
      */
-    boolean evaluateResult(BindResult result) throws ErrorResultException;
+    boolean evaluateResult(BindResult result) throws LdapException;
 
     /**
      * Returns a connection security layer, but only if this bind client has

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS.
+ *      Portions Copyright 2011-2014 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap;
 
@@ -71,7 +71,7 @@ import org.forgerock.util.promise.SuccessHandler;
 import com.forgerock.opendj.util.ReferenceCountedObject;
 import com.forgerock.opendj.util.TimeSource;
 
-import static org.forgerock.opendj.ldap.ErrorResultException.*;
+import static org.forgerock.opendj.ldap.LdapException.*;
 
 import static com.forgerock.opendj.ldap.CoreMessages.*;
 import static com.forgerock.opendj.util.StaticUtils.*;
@@ -115,7 +115,7 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
     private final class ConnectionFutureResultImpl implements Runnable {
         private Connection connection;
         private Connection heartBeatConnection;
-        private ErrorResultException heartBeatError;
+        private LdapException heartBeatError;
 
         /**
          * Due to a potential race between the heart beat timing out and the
@@ -124,14 +124,14 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
          */
         private final AtomicBoolean isComplete = new AtomicBoolean();
 
-        private final Function<Result, Connection, ErrorResultException> futureSearchSuccess;
-        private final Function<ErrorResultException, Connection, ErrorResultException> futureSearchError;
+        private final Function<Result, Connection, LdapException> futureSearchSuccess;
+        private final Function<LdapException, Connection, LdapException> futureSearchError;
 
         private ConnectionFutureResultImpl() {
-            this.futureSearchSuccess = new Function<Result, Connection, ErrorResultException>() {
+            this.futureSearchSuccess = new Function<Result, Connection, LdapException>() {
 
                 @Override
-                public Connection apply(Result result) throws ErrorResultException {
+                public Connection apply(Result result) throws LdapException {
                     if (isComplete.compareAndSet(false, true)) {
                         heartBeatConnection = adaptConnection(connection);
                     }
@@ -140,9 +140,9 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
                 }
             };
 
-            this.futureSearchError = new Function<ErrorResultException, Connection, ErrorResultException>() {
+            this.futureSearchError = new Function<LdapException, Connection, LdapException>() {
                 @Override
-                public Connection apply(ErrorResultException error) throws ErrorResultException {
+                public Connection apply(LdapException error) throws LdapException {
                     manageError(error);
                     throw heartBeatError;
                 }
@@ -154,7 +154,7 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
             manageError(newHeartBeatTimeoutError());
         }
 
-        private void manageError(ErrorResultException error) {
+        private void manageError(LdapException error) {
             if (isComplete.compareAndSet(false, true)) {
                 // Ensure that the connection is closed.
                 if (connection != null) {
@@ -184,7 +184,7 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
             private final AtomicBoolean completed = new AtomicBoolean();
 
             @Override
-            public void handleError(final ErrorResultException error) {
+            public void handleError(final LdapException error) {
                 if (tryComplete()) {
                     timestamp(error);
                 }
@@ -249,7 +249,7 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
             protected abstract FutureResult<R> dispatch();
 
             @Override
-            protected final ErrorResultException tryCancel(final boolean mayInterruptIfRunning) {
+            protected final LdapException tryCancel(final boolean mayInterruptIfRunning) {
                 if (innerFuture != null) {
                     innerFuture.cancel(mayInterruptIfRunning);
                 }
@@ -524,8 +524,7 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
         }
 
         @Override
-        public void handleConnectionError(final boolean isDisconnectNotification,
-                final ErrorResultException error) {
+        public void handleConnectionError(final boolean isDisconnectNotification, final LdapException error) {
             if (state.notifyConnectionError(isDisconnectNotification, error)) {
                 failPendingResults(error);
             }
@@ -616,7 +615,7 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
             return state.getConnectionError() == null;
         }
 
-        private void failPendingResults(final ErrorResultException error) {
+        private void failPendingResults(final LdapException error) {
             /*
              * Peek instead of pool because notification is responsible for
              * removing the element from the queue.
@@ -704,9 +703,9 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
                                 timestamp(result);
                                 releaseHeartBeatLock();
                             }
-                        }).onFailure(new FailureHandler<ErrorResultException>() {
+                        }).onFailure(new FailureHandler<LdapException>() {
                             @Override
-                            public void handleError(ErrorResultException error) {
+                            public void handleError(LdapException error) {
                                 /*
                                  * Connection failure will be handled by
                                  * connection event listener. Ignore
@@ -1049,7 +1048,7 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
     }
 
     @Override
-    public Connection getConnection() throws ErrorResultException {
+    public Connection getConnection() throws LdapException {
         /*
          * Immediately send a heart beat in order to determine if the connected
          * server is responding.
@@ -1078,7 +1077,7 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
     }
 
     @Override
-    public Promise<Connection, ErrorResultException> getConnectionAsync() {
+    public Promise<Connection, LdapException> getConnectionAsync() {
         acquireScheduler(); // Protect scheduler.
 
         // Create a future responsible for chaining the initial heartbeat
@@ -1087,9 +1086,9 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
 
         // Request a connection and return the future representing the
         // heartbeat.
-        return factory.getConnectionAsync().thenAsync(new AsyncFunction<Connection, Result, ErrorResultException>() {
+        return factory.getConnectionAsync().thenAsync(new AsyncFunction<Connection, Result, LdapException>() {
             @Override
-            public Promise<Result, ErrorResultException> apply(final Connection connectionResult) {
+            public Promise<Result, LdapException> apply(final Connection connectionResult) {
                 // Save the connection for later once the heart beat completes.
                 compositeFuture.connection = connectionResult;
                 scheduler.get().schedule(compositeFuture, timeoutMS, TimeUnit.MILLISECONDS);
@@ -1126,9 +1125,9 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
         return (FutureResult<R>) future.onSuccess(resultHandler).onFailure(resultHandler);
     }
 
-    private ErrorResultException adaptHeartBeatError(final Exception error) {
+    private LdapException adaptHeartBeatError(final Exception error) {
         if (error instanceof ConnectionException) {
-            return (ErrorResultException) error;
+            return (LdapException) error;
         } else if (error instanceof TimeoutResultException || error instanceof TimeoutException) {
             return newHeartBeatTimeoutError();
         } else if (error instanceof InterruptedException) {
@@ -1147,7 +1146,7 @@ final class HeartBeatConnectionFactory implements ConnectionFactory {
         return tmp;
     }
 
-    private ErrorResultException newHeartBeatTimeoutError() {
+    private LdapException newHeartBeatTimeoutError() {
         return newErrorResult(ResultCode.CLIENT_SIDE_SERVER_DOWN, HBCF_HEARTBEAT_TIMEOUT
                 .get(timeoutMS));
     }

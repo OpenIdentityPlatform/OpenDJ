@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS.
+ *      Copyright 2013-2014 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.spi;
 
@@ -29,7 +29,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import org.forgerock.opendj.ldap.ConnectionEventListener;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.responses.ExtendedResult;
 
 /**
@@ -49,7 +49,7 @@ import org.forgerock.opendj.ldap.responses.ExtendedResult;
  * All methods are synchronized and container classes may also synchronize on
  * the state where needed. The state transition methods,
  * {@link #notifyConnectionClosed()} and
- * {@link #notifyConnectionError(boolean, ErrorResultException)}, correspond to
+ * {@link #notifyConnectionError(boolean, LdapException)}, correspond to
  * methods in the {@link ConnectionEventListener} interface except that they
  * return a boolean indicating whether the transition was successful or not.
  */
@@ -107,7 +107,7 @@ public final class ConnectionState {
 
             @Override
             boolean notifyConnectionError(final ConnectionState cs,
-                    final boolean isDisconnectNotification, final ErrorResultException error) {
+                    final boolean isDisconnectNotification, final LdapException error) {
                 // Transition from valid to error state.
                 cs.failedDueToDisconnect = isDisconnectNotification;
                 cs.connectionError = error;
@@ -236,7 +236,7 @@ public final class ConnectionState {
         }
 
         boolean notifyConnectionError(final ConnectionState cs,
-                final boolean isDisconnectNotification, final ErrorResultException error) {
+                final boolean isDisconnectNotification, final LdapException error) {
             return false;
         }
 
@@ -250,7 +250,7 @@ public final class ConnectionState {
      * Non-{@code null} once the connection has failed due to a connection
      * error. Volatile so that it can be read without synchronization.
      */
-    private volatile ErrorResultException connectionError = null;
+    private volatile LdapException connectionError;
 
     /**
      * {@code true} if the connection has failed due to a disconnect
@@ -301,7 +301,7 @@ public final class ConnectionState {
      * @return The error that caused the connection to fail, or {@code null} if
      *         the connection has not failed.
      */
-    public ErrorResultException getConnectionError() {
+    public LdapException getConnectionError() {
         return connectionError;
     }
 
@@ -353,10 +353,10 @@ public final class ConnectionState {
      * @return {@code true} if the state changed to error, or {@code false} if
      *         the state was already error or closed.
      * @see ConnectionEventListener#handleConnectionError(boolean,
-     *      ErrorResultException)
+     *      LdapException)
      */
     public synchronized boolean notifyConnectionError(final boolean isDisconnectNotification,
-            final ErrorResultException error) {
+            final LdapException error) {
         return state.notifyConnectionError(this, isDisconnectNotification, error);
     }
 

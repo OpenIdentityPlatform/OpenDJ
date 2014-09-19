@@ -51,7 +51,7 @@ import org.testng.annotations.Test;
 
 import static org.fest.assertions.Assertions.*;
 import static org.fest.assertions.Fail.*;
-import static org.forgerock.opendj.ldap.ErrorResultException.*;
+import static org.forgerock.opendj.ldap.LdapException.*;
 import static org.forgerock.opendj.ldap.FutureResultWrapper.*;
 import static org.forgerock.opendj.ldap.SearchScope.*;
 import static org.forgerock.opendj.ldap.TestCaseUtils.*;
@@ -187,13 +187,13 @@ public class HeartBeatConnectionFactoryTestCase extends SdkTestCase {
     public void testGetConnectionAsyncWithInitialHeartBeatError() throws Exception {
         @SuppressWarnings("unchecked")
         final SuccessHandler<Connection> mockSuccessHandler = mock(SuccessHandler.class);
-        final PromiseImpl<ErrorResultException, NeverThrowsException> promisedError = PromiseImpl.create();
+        final PromiseImpl<LdapException, NeverThrowsException> promisedError = PromiseImpl.create();
 
         mockConnectionWithInitialHeartbeatResult(ResultCode.BUSY);
-        Promise<? extends Connection, ErrorResultException> promise = hbcf.getConnectionAsync();
-        promise.onSuccess(mockSuccessHandler).onFailure(new FailureHandler<ErrorResultException>() {
+        Promise<? extends Connection, LdapException> promise = hbcf.getConnectionAsync();
+        promise.onSuccess(mockSuccessHandler).onFailure(new FailureHandler<LdapException>() {
             @Override
-            public void handleError(ErrorResultException error) {
+            public void handleError(LdapException error) {
                 promisedError.handleResult(error);
             }
         });
@@ -203,7 +203,7 @@ public class HeartBeatConnectionFactoryTestCase extends SdkTestCase {
         try {
             promise.getOrThrow();
             fail("Unexpectedly obtained a connection");
-        } catch (final ErrorResultException e) {
+        } catch (final LdapException e) {
             checkInitialHeartBeatFailure(e);
         }
 
@@ -216,7 +216,7 @@ public class HeartBeatConnectionFactoryTestCase extends SdkTestCase {
         try {
             hbcf.getConnection();
             fail("Unexpectedly obtained a connection");
-        } catch (final ErrorResultException e) {
+        } catch (final LdapException e) {
             checkInitialHeartBeatFailure(e);
         }
     }
@@ -256,10 +256,9 @@ public class HeartBeatConnectionFactoryTestCase extends SdkTestCase {
 
         // Attempt to send a new request: it should fail immediately.
         @SuppressWarnings("unchecked")
-        final FailureHandler<ErrorResultException> mockHandler = mock(FailureHandler.class);
+        final FailureHandler<LdapException> mockHandler = mock(FailureHandler.class);
         hbc.modifyAsync(newModifyRequest(DN.rootDN())).onFailure(mockHandler);
-        final ArgumentCaptor<ErrorResultException> arg =
-                ArgumentCaptor.forClass(ErrorResultException.class);
+        final ArgumentCaptor<LdapException> arg = ArgumentCaptor.forClass(LdapException.class);
         verify(mockHandler).handleError(arg.capture());
         assertThat(arg.getValue().getResult().getResultCode()).isEqualTo(
                 ResultCode.CLIENT_SIDE_SERVER_DOWN);
@@ -383,16 +382,15 @@ public class HeartBeatConnectionFactoryTestCase extends SdkTestCase {
         assertThat(hbcf.toString()).isNotNull();
     }
 
-    private void checkInitialHeartBeatFailure(final ErrorResultException e) {
+    private void checkInitialHeartBeatFailure(final LdapException e) {
         /*
          * Initial heartbeat failure should trigger connection exception with
          * heartbeat cause.
          */
         assertThat(e).isInstanceOf(ConnectionException.class);
         assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.CLIENT_SIDE_SERVER_DOWN);
-        assertThat(e.getCause()).isInstanceOf(ErrorResultException.class);
-        assertThat(((ErrorResultException) e.getCause()).getResult().getResultCode()).isEqualTo(
-                ResultCode.BUSY);
+        assertThat(e.getCause()).isInstanceOf(LdapException.class);
+        assertThat(((LdapException) e.getCause()).getResult().getResultCode()).isEqualTo(ResultCode.BUSY);
     }
 
     private void mockConnectionWithInitialHeartbeatResult(final ResultCode initialHeartBeatResult) {
@@ -433,7 +431,7 @@ public class HeartBeatConnectionFactoryTestCase extends SdkTestCase {
                 }
 
                 if (resultCode.isExceptional()) {
-                    final ErrorResultException error = newErrorResult(resultCode);
+                    final LdapException error = newErrorResult(resultCode);
                     if (error instanceof ConnectionException) {
                         for (final ConnectionEventListener listener : listeners) {
                             listener.handleConnectionError(false, error);

@@ -34,7 +34,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.EntryNotFoundException;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.Function;
 import org.forgerock.opendj.ldap.LinkedAttribute;
@@ -49,7 +49,7 @@ import org.forgerock.opendj.ldap.responses.SearchResultReference;
 import org.forgerock.util.promise.FailureHandler;
 import org.forgerock.util.promise.SuccessHandler;
 
-import static org.forgerock.opendj.ldap.ErrorResultException.*;
+import static org.forgerock.opendj.ldap.LdapException.*;
 import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.forgerock.opendj.rest2ldap.Rest2LDAP.*;
 import static org.forgerock.opendj.rest2ldap.Utils.*;
@@ -140,13 +140,12 @@ public final class ReferenceAttributeMapper extends AbstractLDAPAttributeMapper<
                 final SearchRequest request = createSearchRequest(result);
                 final List<Filter> subFilters = new LinkedList<Filter>();
 
-                final FailureHandler<ErrorResultException> failureHandler =
-                    new FailureHandler<ErrorResultException>() {
-                        @Override
-                        public void handleError(ErrorResultException error) {
-                            h.handleError(asResourceException(error)); // Propagate.
-                        }
-                    };
+                final FailureHandler<LdapException> failureHandler = new FailureHandler<LdapException>() {
+                    @Override
+                    public void handleError(LdapException error) {
+                        h.handleError(asResourceException(error)); // Propagate.
+                    }
+                };
 
                 c.getConnection().searchAsync(request, new SearchResultHandler() {
                     @Override
@@ -237,9 +236,9 @@ public final class ReferenceAttributeMapper extends AbstractLDAPAttributeMapper<
                             }
                             completeIfNecessary();
                         }
-                    }).onFailure(new FailureHandler<ErrorResultException>() {
+                    }).onFailure(new FailureHandler<LdapException>() {
                         @Override
-                        public void handleError(final ErrorResultException error) {
+                        public void handleError(final LdapException error) {
                             ResourceException re;
                             try {
                                 throw error;
@@ -254,7 +253,7 @@ public final class ReferenceAttributeMapper extends AbstractLDAPAttributeMapper<
                                         "The request cannot be processed " + "because the resource '%s' "
                                             + "referenced in field '%s' is " + "ambiguous",
                                         primaryKeyValue.toString(), path));
-                            } catch (final ErrorResultException e) {
+                            } catch (final LdapException e) {
                                 re = asResourceException(e);
                             }
                             exception.compareAndSet(null, re);
@@ -343,9 +342,9 @@ public final class ReferenceAttributeMapper extends AbstractLDAPAttributeMapper<
                     public void handleResult(final SearchResultEntry result) {
                         mapper.read(c, path, result, handler);
                     }
-                }).onFailure(new FailureHandler<ErrorResultException>() {
+                }).onFailure(new FailureHandler<LdapException>() {
                     @Override
-                    public void handleError(final ErrorResultException error) {
+                    public void handleError(final LdapException error) {
                         if (!(error instanceof EntryNotFoundException)) {
                             handler.handleError(asResourceException(error));
                         } else {

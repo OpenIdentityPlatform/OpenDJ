@@ -21,12 +21,12 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS.
+ *      Copyright 2013-2014 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.spi;
 
 import static org.fest.assertions.Assertions.assertThat;
-import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
+import static org.forgerock.opendj.ldap.LdapException.newErrorResult;
 import static org.forgerock.opendj.ldap.responses.Responses.newGenericExtendedResult;
 import static org.mockito.Matchers.same;
 import static org.mockito.Mockito.doAnswer;
@@ -35,7 +35,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import org.forgerock.opendj.ldap.ConnectionEventListener;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.responses.ExtendedResult;
 import org.mockito.invocation.InvocationOnMock;
@@ -48,8 +48,8 @@ import org.testng.annotations.Test;
  */
 @SuppressWarnings("javadoc")
 public class ConnectionStateTest extends LDAPTestCase {
-    private static final ErrorResultException ERROR = newErrorResult(ResultCode.OTHER);
-    private static final ErrorResultException LATE_ERROR = newErrorResult(ResultCode.BUSY);
+    private static final LdapException ERROR = newErrorResult(ResultCode.OTHER);
+    private static final LdapException LATE_ERROR = newErrorResult(ResultCode.BUSY);
     private static final ExtendedResult UNSOLICITED =
             newGenericExtendedResult(ResultCode.OPERATIONS_ERROR);
 

@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -48,7 +49,7 @@ import org.forgerock.util.Reject;
  *
  * try {
  *     connection.bind(DN, password);
- * } catch (ErrorResultException e) {
+ * } catch (LdapException e) {
  *     Result result = e.getResult();
  *     try {
  *         PasswordExpiredResponseControl control =

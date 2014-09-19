@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2013 ForgeRock AS.
+ * Copyright 2013-2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.rest2ldap;
@@ -50,7 +50,7 @@ import org.forgerock.opendj.ldap.ConstraintViolationException;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.EntryNotFoundException;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.FailoverLoadBalancingAlgorithm;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
@@ -794,7 +794,7 @@ public final class Rest2LDAP {
 
     /**
      * Adapts a {@code Throwable} to a {@code ResourceException}. If the
-     * {@code Throwable} is an LDAP {@code ErrorResultException} then an
+     * {@code Throwable} is an LDAP {@link LdapException} then an
      * appropriate {@code ResourceException} is returned, otherwise an
      * {@code InternalServerErrorException} is returned.
      *
@@ -830,7 +830,7 @@ public final class Rest2LDAP {
             resourceResultCode = ResourceException.INTERNAL_ERROR;
         } catch (final TimeoutResultException e) {
             resourceResultCode = 408;
-        } catch (final ErrorResultException e) {
+        } catch (final LdapException e) {
             final ResultCode rc = e.getResult().getResultCode();
             if (rc.equals(ResultCode.ADMIN_LIMIT_EXCEEDED)) {
                 resourceResultCode = 413; // Request Entity Too Large

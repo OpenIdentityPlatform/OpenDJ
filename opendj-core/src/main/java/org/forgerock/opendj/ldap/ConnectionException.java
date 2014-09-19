@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -33,7 +34,7 @@ import org.forgerock.opendj.ldap.responses.Result;
  * was unsuccessful because of a connection failure.
  */
 @SuppressWarnings("serial")
-public class ConnectionException extends ErrorResultException {
+public class ConnectionException extends LdapException {
     ConnectionException(final Result result) {
         super(result);
     }

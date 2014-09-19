@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.examples;
@@ -32,7 +32,7 @@ import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 
 import org.forgerock.opendj.ldap.Connection;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.FutureResult;
 import org.forgerock.opendj.ldap.FutureResultWrapper;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
@@ -80,9 +80,9 @@ public final class SearchAsync {
                             System.err.println("Cancel request succeeded");
                             CANCEL_LATCH.countDown();
                         }
-                    }).onFailure(new FailureHandler<ErrorResultException>() {
+                    }).onFailure(new FailureHandler<LdapException>() {
                         @Override
-                        public void handleError(ErrorResultException error) {
+                        public void handleError(LdapException error) {
                             System.err.println("Cancel request failed with result code: "
                                 + error.getResult().getResultCode().intValue());
                             CANCEL_LATCH.countDown();
@@ -182,15 +182,15 @@ public final class SearchAsync {
         // Initiate the asynchronous connect, bind, and search.
         final LDAPConnectionFactory factory = new LDAPConnectionFactory(hostName, port);
 
-        factory.getConnectionAsync().thenAsync(new AsyncFunction<Connection, BindResult, ErrorResultException>() {
+        factory.getConnectionAsync().thenAsync(new AsyncFunction<Connection, BindResult, LdapException>() {
             @Override
-            public Promise<BindResult, ErrorResultException> apply(Connection connection) throws ErrorResultException {
+            public Promise<BindResult, LdapException> apply(Connection connection) throws LdapException {
                 SearchAsync.connection = connection;
                 return connection.bindAsync(Requests.newSimpleBindRequest(userName, password.toCharArray()));
             }
-        }).thenAsync(new AsyncFunction<BindResult, Result, ErrorResultException>() {
+        }).thenAsync(new AsyncFunction<BindResult, Result, LdapException>() {
             @Override
-            public Promise<Result, ErrorResultException> apply(BindResult result) throws ErrorResultException {
+            public Promise<Result, LdapException> apply(BindResult result) throws LdapException {
                 FutureResult<Result> future = FutureResultWrapper.asFutureResult(connection.searchAsync(
                         Requests.newSearchRequest(baseDN, scope, filter, attributes), new SearchResultHandlerImpl()));
                 requestID = future.getRequestID();
@@ -202,9 +202,9 @@ public final class SearchAsync {
                 resultCode = result.getResultCode().intValue();
                 COMPLETION_LATCH.countDown();
             }
-        }).onFailure(new FailureHandler<ErrorResultException>() {
+        }).onFailure(new FailureHandler<LdapException>() {
             @Override
-            public void handleError(ErrorResultException error) {
+            public void handleError(LdapException error) {
                 System.err.println(error.getMessage());
                 resultCode = error.getResult().getResultCode().intValue();
                 COMPLETION_LATCH.countDown();

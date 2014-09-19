@@ -51,7 +51,7 @@ import org.forgerock.opendj.ldap.AbstractConnectionWrapper;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LinkedHashMapEntry;
 import org.forgerock.opendj.ldap.MemoryBackend;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -193,11 +193,10 @@ public final class LDAPClientTest extends AdminTestCase {
         return new Object[][] {
             // result code corresponding to exception thrown, expected
             // exception, expected code result
-            { ResultCode.PROTOCOL_ERROR, ErrorResultException.class, ResultCode.PROTOCOL_ERROR },
-            { ResultCode.UNAVAILABLE, ErrorResultException.class, ResultCode.UNAVAILABLE },
+            { ResultCode.PROTOCOL_ERROR, LdapException.class, ResultCode.PROTOCOL_ERROR },
+            { ResultCode.UNAVAILABLE, LdapException.class, ResultCode.UNAVAILABLE },
             { ResultCode.ENTRY_ALREADY_EXISTS, ManagedObjectAlreadyExistsException.class, null },
-            { ResultCode.INSUFFICIENT_ACCESS_RIGHTS, ErrorResultException.class,
-                ResultCode.INSUFFICIENT_ACCESS_RIGHTS },
+            { ResultCode.INSUFFICIENT_ACCESS_RIGHTS, LdapException.class, ResultCode.INSUFFICIENT_ACCESS_RIGHTS },
             { ResultCode.UNWILLING_TO_PERFORM, OperationRejectedException.class, null } };
     }
 
@@ -211,13 +210,11 @@ public final class LDAPClientTest extends AdminTestCase {
         return new Object[][] {
             // result code corresponding to exception thrown, expected
             // exception, expected code result
-            { ResultCode.PROTOCOL_ERROR, ErrorResultException.class, ResultCode.PROTOCOL_ERROR },
-            { ResultCode.UNAVAILABLE, ErrorResultException.class, ResultCode.UNAVAILABLE },
+            { ResultCode.PROTOCOL_ERROR, LdapException.class, ResultCode.PROTOCOL_ERROR },
+            { ResultCode.UNAVAILABLE, LdapException.class, ResultCode.UNAVAILABLE },
             { ResultCode.NO_SUCH_OBJECT, ManagedObjectNotFoundException.class, null },
-            { ResultCode.INSUFFICIENT_ACCESS_RIGHTS, ErrorResultException.class,
-                ResultCode.INSUFFICIENT_ACCESS_RIGHTS },
-            { ResultCode.UNWILLING_TO_PERFORM, ErrorResultException.class,
-                ResultCode.UNWILLING_TO_PERFORM } };
+            { ResultCode.INSUFFICIENT_ACCESS_RIGHTS, LdapException.class, ResultCode.INSUFFICIENT_ACCESS_RIGHTS },
+            { ResultCode.UNWILLING_TO_PERFORM, LdapException.class, ResultCode.UNWILLING_TO_PERFORM } };
     }
 
     @BeforeClass
@@ -273,8 +270,8 @@ public final class LDAPClientTest extends AdminTestCase {
         MemoryBackend backend = new MemoryBackend(new LDIFEntryReader(TEST_LDIF));
         Connection c = new AbstractConnectionWrapper<Connection>(newInternalConnection(backend)) {
             @Override
-            public Result add(Entry entry) throws ErrorResultException {
-                throw ErrorResultException.newErrorResult(resultCodeOfThrownException);
+            public Result add(Entry entry) throws LdapException {
+                throw LdapException.newErrorResult(resultCodeOfThrownException);
             }
         };
         ManagementContext ctx =
@@ -285,10 +282,9 @@ public final class LDAPClientTest extends AdminTestCase {
             parent.setMandatoryReadOnlyAttributeTypeProperty(getAttributeType("description"));
             parent.commit();
         } catch (Exception e) {
-            if (expectedExceptionClass.equals(ErrorResultException.class)) {
-                assertThat(e).isInstanceOf(ErrorResultException.class);
-                assertThat(((ErrorResultException) e).getResult().getResultCode()).isEqualTo(
-                        expectedCode);
+            if (expectedExceptionClass.equals(LdapException.class)) {
+                assertThat(e).isInstanceOf(LdapException.class);
+                assertThat(((LdapException) e).getResult().getResultCode()).isEqualTo(expectedCode);
             } else {
                 assertThat(e).isInstanceOf(expectedExceptionClass);
             }
@@ -378,11 +374,9 @@ public final class LDAPClientTest extends AdminTestCase {
 
     /**
      * Tests retrieval of a top-level managed object fails when an underlying
-     * ErrorResultException occurs.
+     * LdapException occurs.
      *
-     * @param cause
-     *            The ErrorResultException cause of the failure.
-     * @param expected
+     * @param expectedExceptionClass
      *            The expected client API exception class.
      */
     @Test(dataProvider = "getManagedObjectExceptions")
@@ -392,9 +386,8 @@ public final class LDAPClientTest extends AdminTestCase {
         MemoryBackend backend = new MemoryBackend(new LDIFEntryReader(TEST_LDIF));
         Connection c = new AbstractConnectionWrapper<Connection>(newInternalConnection(backend)) {
             @Override
-            public SearchResultEntry readEntry(DN name, String... attributeDescriptions)
-                    throws ErrorResultException {
-                throw ErrorResultException.newErrorResult(resultCodeOfThrownException);
+            public SearchResultEntry readEntry(DN name, String... attributeDescriptions) throws LdapException {
+                throw LdapException.newErrorResult(resultCodeOfThrownException);
             }
         };
         ManagementContext ctx =
@@ -402,10 +395,9 @@ public final class LDAPClientTest extends AdminTestCase {
         try {
             getTestParent(ctx, "test parent 2");
         } catch (Exception e) {
-            if (expectedExceptionClass.equals(ErrorResultException.class)) {
-                assertThat(e).isInstanceOf(ErrorResultException.class);
-                assertThat(((ErrorResultException) e).getResult().getResultCode()).isEqualTo(
-                        expectedCode);
+            if (expectedExceptionClass.equals(LdapException.class)) {
+                assertThat(e).isInstanceOf(LdapException.class);
+                assertThat(((LdapException) e).getResult().getResultCode()).isEqualTo(expectedCode);
             } else {
                 assertThat(e).isInstanceOf(expectedExceptionClass);
             }
@@ -656,7 +648,7 @@ public final class LDAPClientTest extends AdminTestCase {
         final AtomicBoolean isModified = new AtomicBoolean();
         Connection c = new AbstractConnectionWrapper<Connection>(newInternalConnection(backend)) {
             @Override
-            public Result modify(ModifyRequest request) throws ErrorResultException {
+            public Result modify(ModifyRequest request) throws LdapException {
                 isModified.set(true);
                 return super.modify(request);
             }
@@ -680,7 +672,7 @@ public final class LDAPClientTest extends AdminTestCase {
         final AtomicBoolean isModified = new AtomicBoolean();
         Connection c = new AbstractConnectionWrapper<Connection>(newInternalConnection(backend)) {
             @Override
-            public Result modify(ModifyRequest request) throws ErrorResultException {
+            public Result modify(ModifyRequest request) throws LdapException {
                 isModified.set(true);
                 return super.modify(request);
             }

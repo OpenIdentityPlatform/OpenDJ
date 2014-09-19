@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  *      Portions Copyright 2014 Manuel Gaupp
  */
 
@@ -50,7 +50,7 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.EntryNotFoundException;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.FutureResult;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -66,7 +66,7 @@ import org.forgerock.util.promise.Promise;
 import com.forgerock.opendj.util.StaticUtils;
 import com.forgerock.opendj.util.SubstringReader;
 
-import static org.forgerock.opendj.ldap.ErrorResultException.*;
+import static org.forgerock.opendj.ldap.LdapException.*;
 import static org.forgerock.opendj.ldap.FutureResultWrapper.*;
 import static org.forgerock.opendj.ldap.schema.Schema.*;
 import static org.forgerock.opendj.ldap.schema.SchemaConstants.*;
@@ -109,8 +109,7 @@ public final class SchemaBuilder {
                 SUBSCHEMA_ATTRS);
     }
 
-    private static DN getSubschemaSubentryDN(final DN name, final Entry entry)
-            throws ErrorResultException {
+    private static DN getSubschemaSubentryDN(final DN name, final Entry entry) throws LdapException {
         final Attribute subentryAttr = entry.getAttribute(ATTR_SUBSCHEMA_SUBENTRY);
 
         if (subentryAttr == null || subentryAttr.isEmpty()) {
@@ -1786,7 +1785,7 @@ public final class SchemaBuilder {
      *            {@code true} if existing schema elements with the same
      *            conflicting OIDs should be overwritten.
      * @return A reference to this schema builder.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If the result code indicates that the request failed for some
      *             reason.
      * @throws UnsupportedOperationException
@@ -1798,7 +1797,7 @@ public final class SchemaBuilder {
      *             If the {@code connection} or {@code name} was {@code null}.
      */
     public SchemaBuilder addSchema(final Connection connection, final DN name,
-            final boolean overwrite) throws ErrorResultException {
+            final boolean overwrite) throws LdapException {
         // The call to addSchema will perform copyOnWrite.
         final SearchRequest request = getReadSchemaSearchRequest(name);
         final Entry entry = connection.searchSingleEntry(request);
@@ -1972,9 +1971,9 @@ public final class SchemaBuilder {
         final SearchRequest request = getReadSchemaSearchRequest(name);
 
         return asFutureResult(connection.searchSingleEntryAsync(request).then(
-                new Function<SearchResultEntry, SchemaBuilder, ErrorResultException>() {
+                new Function<SearchResultEntry, SchemaBuilder, LdapException>() {
                     @Override
-                    public SchemaBuilder apply(SearchResultEntry result) throws ErrorResultException {
+                    public SchemaBuilder apply(SearchResultEntry result) throws LdapException {
                         addSchema(result, overwrite);
                         return SchemaBuilder.this;
                     }
@@ -2003,7 +2002,7 @@ public final class SchemaBuilder {
      *            {@code true} if existing schema elements with the same
      *            conflicting OIDs should be overwritten.
      * @return A reference to this schema builder.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If the result code indicates that the request failed for some
      *             reason.
      * @throws UnsupportedOperationException
@@ -2015,7 +2014,7 @@ public final class SchemaBuilder {
      *             If the {@code connection} or {@code name} was {@code null}.
      */
     public SchemaBuilder addSchemaForEntry(final Connection connection, final DN name,
-            final boolean overwrite) throws ErrorResultException {
+            final boolean overwrite) throws LdapException {
         // The call to addSchema will perform copyOnWrite.
         final SearchRequest request = getReadSchemaForEntrySearchRequest(name);
         final Entry entry = connection.searchSingleEntry(request);
@@ -2060,10 +2059,10 @@ public final class SchemaBuilder {
         final SearchRequest request = getReadSchemaForEntrySearchRequest(name);
 
         return asFutureResult(connection.searchSingleEntryAsync(request).thenAsync(
-                new AsyncFunction<SearchResultEntry, SchemaBuilder, ErrorResultException>() {
+                new AsyncFunction<SearchResultEntry, SchemaBuilder, LdapException>() {
                     @Override
-                    public Promise<SchemaBuilder, ErrorResultException> apply(SearchResultEntry result)
-                            throws ErrorResultException {
+                    public Promise<SchemaBuilder, LdapException> apply(SearchResultEntry result)
+                            throws LdapException {
                         final DN subschemaDN = getSubschemaSubentryDN(name, result);
                         return addSchemaAsync(connection, subschemaDN, overwrite);
                     }

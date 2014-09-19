@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2014 ForgeRock AS.
+ *      Portions Copyright 2012-2014 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.controls;
 
@@ -99,7 +99,7 @@ import org.forgerock.util.Reject;
  * private static class MySearchResultHandler implements SearchResultHandler {
  *
  *     {@literal @}Override
- *     public void handleErrorResult(ErrorResultException error) {
+ *     public void handleErrorResult(LdapException error) {
  *         // Ignore.
  *     }
  *

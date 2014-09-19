@@ -35,7 +35,7 @@ import org.forgerock.util.promise.Promise;
  * @param <S>
  *            The type of result returned by this future result.
  */
-public interface FutureResult<S> extends Promise<S, ErrorResultException> {
+public interface FutureResult<S> extends Promise<S, LdapException> {
     /**
      * Returns the request ID of the request if appropriate.
      *

@@ -37,7 +37,7 @@ import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.IntermediateResponseHandler;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchResultHandler;
@@ -147,13 +147,13 @@ public final class Adapters {
             }
 
             @Override
-            public Promise<Connection, ErrorResultException> getConnectionAsync() {
+            public Promise<Connection, LdapException> getConnectionAsync() {
                 // TODO change the path...
                 return newSuccessfulPromise(newConnection(icc));
             }
 
             @Override
-            public Connection getConnection() throws ErrorResultException {
+            public Connection getConnection() throws LdapException {
                 return newConnection(icc);
             }
         };
@@ -183,15 +183,14 @@ public final class Adapters {
      * @param dn
      *            The DN of the user.
      * @return A new connection for a specified user.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If no such object.
      */
-    public static Connection newConnectionForUser(final DN dn) throws ErrorResultException {
+    public static Connection newConnectionForUser(final DN dn) throws LdapException {
         try {
             return newConnection(new InternalClientConnection(to(dn)));
         } catch (DirectoryException e) {
-            throw ErrorResultException.newErrorResult(Responses
-                    .newResult(ResultCode.NO_SUCH_OBJECT));
+            throw LdapException.newErrorResult(Responses.newResult(ResultCode.NO_SUCH_OBJECT));
         }
     }
 
@@ -200,7 +199,7 @@ public final class Adapters {
 
             @Override
             public Result search(final SearchRequest request, final SearchResultHandler handler)
-                    throws ErrorResultException {
+                    throws LdapException {
                 InternalSearchListener internalSearchListener = new InternalSearchListener() {
 
                     @Override
@@ -233,7 +232,7 @@ public final class Adapters {
             }
 
             @Override
-            public Result modifyDN(final ModifyDNRequest request) throws ErrorResultException {
+            public Result modifyDN(final ModifyDNRequest request) throws LdapException {
                 final ModifyDNOperation modifyDNOperation =
                         icc.processModifyDN(valueOf(request.getName()), valueOf(request.getNewRDN()),
                                 request.isDeleteOldRDN(),
@@ -243,7 +242,7 @@ public final class Adapters {
             }
 
             @Override
-            public Result modify(final ModifyRequest request) throws ErrorResultException {
+            public Result modify(final ModifyRequest request) throws LdapException {
                 final ModifyOperation modifyOperation =
                         icc.processModify(valueOf(request.getName()), toRawModifications(request
                                 .getModifications()), to(request.getControls()));
@@ -263,7 +262,7 @@ public final class Adapters {
 
             @Override
             public <R extends ExtendedResult> R extendedRequest(final ExtendedRequest<R> request,
-                    final IntermediateResponseHandler handler) throws ErrorResultException {
+                    final IntermediateResponseHandler handler) throws LdapException {
 
                 final ExtendedOperation extendedOperation =
                         icc.processExtendedOperation(request.getOID(), request.getValue(),
@@ -294,14 +293,14 @@ public final class Adapters {
             }
 
             @Override
-            public Result delete(final DeleteRequest request) throws ErrorResultException {
+            public Result delete(final DeleteRequest request) throws LdapException {
                 final DeleteOperation deleteOperation =
                         icc.processDelete(valueOf(request.getName()), to(request.getControls()));
                 return getResponseResult(deleteOperation);
             }
 
             @Override
-            public CompareResult compare(final CompareRequest request) throws ErrorResultException {
+            public CompareResult compare(final CompareRequest request) throws LdapException {
                 final CompareOperation compareOperation =
                         icc.processCompare(valueOf(request.getName()),
                                 request.getAttributeDescription().toString(),
@@ -318,7 +317,7 @@ public final class Adapters {
             }
 
             @Override
-            public BindResult bind(final BindRequest request) throws ErrorResultException {
+            public BindResult bind(final BindRequest request) throws LdapException {
                 BindOperation bindOperation = null;
                 if (request instanceof SimpleBindRequest) {
                     bindOperation =
@@ -346,7 +345,7 @@ public final class Adapters {
                     bindClient.dispose();
 
                 } else { // not supported
-                    throw ErrorResultException.newErrorResult(Responses
+                    throw LdapException.newErrorResult(Responses
                             .newResult(ResultCode.AUTH_METHOD_NOT_SUPPORTED));
                 }
                 BindResult result = Responses.newBindResult(bindOperation.getResultCode());
@@ -355,7 +354,7 @@ public final class Adapters {
                 if (result.isSuccess()) {
                     return result;
                 } else {
-                    throw ErrorResultException.newErrorResult(result);
+                    throw LdapException.newErrorResult(result);
                 }
             }
 
@@ -365,7 +364,7 @@ public final class Adapters {
             }
 
             @Override
-            public Result add(final AddRequest request) throws ErrorResultException {
+            public Result add(final AddRequest request) throws LdapException {
                 final AddOperation addOperation =
                         icc.processAdd(valueOf(request.getName()), to(request
                                 .getAllAttributes()), to(request.getControls()));

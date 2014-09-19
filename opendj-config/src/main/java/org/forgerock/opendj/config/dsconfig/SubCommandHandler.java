@@ -70,7 +70,7 @@ import org.forgerock.opendj.config.client.ManagedObject;
 import org.forgerock.opendj.config.client.ManagedObjectDecodingException;
 import org.forgerock.opendj.config.client.ManagementContext;
 import org.forgerock.opendj.ldap.AuthorizationException;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 
 import com.forgerock.opendj.cli.Argument;
 import com.forgerock.opendj.cli.ArgumentException;
@@ -108,7 +108,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
 
         private AuthorizationException authze;
 
-        private ErrorResultException ere;
+        private LdapException ere;
 
         /** Any CLI exception that was caught when attempting to find the managed object. */
         private ClientException clie;
@@ -188,7 +188,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
                 } catch (ConcurrentModificationException e) {
                     cme = e;
                     result = MenuResult.quit();
-                } catch (ErrorResultException e) {
+                } catch (LdapException e) {
                     ere = e;
                     result = MenuResult.quit();
                 }
@@ -226,7 +226,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
                 } catch (ConcurrentModificationException e) {
                     cme = e;
                     result = MenuResult.quit();
-                } catch (ErrorResultException e) {
+                } catch (LdapException e) {
                     ere = e;
                     result = MenuResult.quit();
                 }
@@ -310,7 +310,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
                 } catch (ConcurrentModificationException e) {
                     cme = e;
                     result = MenuResult.quit();
-                } catch (ErrorResultException e) {
+                } catch (LdapException e) {
                     ere = e;
                     result = MenuResult.quit();
                 }
@@ -348,7 +348,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
                 } catch (ConcurrentModificationException e) {
                     cme = e;
                     result = MenuResult.quit();
-                } catch (ErrorResultException e) {
+                } catch (LdapException e) {
                     ere = e;
                     result = MenuResult.quit();
                 }
@@ -382,13 +382,13 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
          * @throws AuthorizationException
          *             If the server refuses to retrieve the managed object because the client does not have the correct
          *             privileges.
-         * @throws ErrorResultException
+         * @throws LdapException
          *             If any other error occurs.
          */
         public MenuResult<ManagedObject<?>> find(ConsoleApplication app, ManagementContext context,
                 ManagedObjectPath<?, ?> path, List<String> args) throws ClientException, AuthorizationException,
                 ConcurrentModificationException, DefinitionDecodingException, ManagedObjectDecodingException,
-                ManagedObjectNotFoundException, ErrorResultException {
+                ManagedObjectNotFoundException, LdapException {
             this.result = MenuResult.<ManagedObject<?>> success(context.getRootConfigurationManagedObject());
             this.app = app;
             this.args = args;
@@ -826,13 +826,13 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
      *             privileges.
      * @throws ClientException
      *             If one of the naming arguments referenced a managed object of the wrong type.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If any other error occurs.
      */
     protected final MenuResult<ManagedObject<?>> getManagedObject(ConsoleApplication app, ManagementContext context,
             ManagedObjectPath<?, ?> path, List<String> args) throws ClientException, AuthorizationException,
             DefinitionDecodingException, ManagedObjectDecodingException, ConcurrentModificationException,
-            ManagedObjectNotFoundException, ErrorResultException {
+            ManagedObjectNotFoundException, LdapException {
         ManagedObjectFinder finder = new ManagedObjectFinder();
         return finder.find(app, context, path, args);
     }
@@ -981,7 +981,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
             } else {
                 childNames = parent.listChildren((SetRelationDefinition<C, S>) r, d);
             }
-        } catch (ErrorResultException e) {
+        } catch (LdapException e) {
             // FIXME check exceptions
             System.out.println(String.format("An error occured %s", e.getMessage()));
         }
@@ -1021,7 +1021,7 @@ abstract class SubCommandHandler implements Comparable<SubCommandHandler> {
                 children.put(childName, childName);
             } catch (ManagedObjectNotFoundException e) {
                 // Skip it - the managed object has been concurrently removed.
-            } catch (ErrorResultException e) {
+            } catch (LdapException e) {
                 // Add it anyway: maybe the user is trying to fix the problem.
                 children.put(childName, childName);
             }

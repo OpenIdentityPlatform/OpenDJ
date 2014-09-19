@@ -22,14 +22,14 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
 
 import static com.forgerock.opendj.ldap.CoreMessages.*;
 import static org.forgerock.opendj.ldap.AttributeDescription.objectClass;
-import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
+import static org.forgerock.opendj.ldap.LdapException.newErrorResult;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -905,13 +905,12 @@ public final class Entries {
      * @param change
      *            The modification to be applied to the entry.
      * @return A reference to the updated entry.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If an error occurred while performing the change such as an
      *             attempt to increment a value which is not a number. The entry
      *             will not have been modified.
      */
-    public static Entry modifyEntry(final Entry entry, final Modification change)
-            throws ErrorResultException {
+    public static Entry modifyEntry(final Entry entry, final Modification change) throws LdapException {
         return modifyEntry(entry, change, null);
     }
 
@@ -930,13 +929,13 @@ public final class Entries {
      *            added, or {@code null} if conflicting values should not be
      *            saved.
      * @return A reference to the updated entry.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If an error occurred while performing the change such as an
      *             attempt to increment a value which is not a number. The entry
      *             will not have been modified.
      */
     public static Entry modifyEntry(final Entry entry, final Modification change,
-            final Collection<? super ByteString> conflictingValues) throws ErrorResultException {
+            final Collection<? super ByteString> conflictingValues) throws LdapException {
         return modifyEntry0(entry, change, conflictingValues, true);
     }
 
@@ -950,14 +949,13 @@ public final class Entries {
      * @param changes
      *            The modification request to be applied to the entry.
      * @return A reference to the updated entry.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If an error occurred while performing the changes such as an
      *             attempt to add duplicate values, remove values which do not
      *             exist, or increment a value which is not a number. The entry
      *             may have been modified.
      */
-    public static Entry modifyEntry(final Entry entry, final ModifyRequest changes)
-            throws ErrorResultException {
+    public static Entry modifyEntry(final Entry entry, final ModifyRequest changes) throws LdapException {
         final boolean isPermissive = changes.containsControl(PermissiveModifyRequestControl.OID);
         return modifyEntry0(entry, changes.getModifications(), isPermissive);
     }
@@ -971,13 +969,13 @@ public final class Entries {
      * @param changes
      *            The modification request to be applied to the entry.
      * @return A reference to the updated entry.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If an error occurred while performing the changes such as an
      *             attempt to increment a value which is not a number. The entry
      *             may have been modified.
      */
     public static Entry modifyEntryPermissive(final Entry entry,
-            final Collection<Modification> changes) throws ErrorResultException {
+            final Collection<Modification> changes) throws LdapException {
         return modifyEntry0(entry, changes, true);
     }
 
@@ -991,14 +989,14 @@ public final class Entries {
      * @param changes
      *            The modification request to be applied to the entry.
      * @return A reference to the updated entry.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If an error occurred while performing the changes such as an
      *             attempt to add duplicate values, remove values which do not
      *             exist, or increment a value which is not a number. The entry
      *             may have been modified.
      */
     public static Entry modifyEntryStrict(final Entry entry, final Collection<Modification> changes)
-            throws ErrorResultException {
+            throws LdapException {
         return modifyEntry0(entry, changes, false);
     }
 
@@ -1082,7 +1080,7 @@ public final class Entries {
     }
 
     private static void incrementAttribute(final Entry entry, final Attribute change)
-            throws ErrorResultException {
+            throws LdapException {
         // First parse the change.
         final AttributeDescription deltaAd = change.getAttributeDescription();
         if (change.size() != 1) {
@@ -1118,7 +1116,7 @@ public final class Entries {
     }
 
     private static Entry modifyEntry0(final Entry entry, final Collection<Modification> changes,
-            final boolean isPermissive) throws ErrorResultException {
+            final boolean isPermissive) throws LdapException {
         final Collection<ByteString> conflictingValues =
                 isPermissive ? null : new ArrayList<ByteString>(0);
         for (final Modification change : changes) {
@@ -1129,7 +1127,7 @@ public final class Entries {
 
     private static Entry modifyEntry0(final Entry entry, final Modification change,
             final Collection<? super ByteString> conflictingValues, final boolean isPermissive)
-            throws ErrorResultException {
+            throws LdapException {
         final ModificationType modType = change.getModificationType();
         if (modType.equals(ModificationType.ADD)) {
             entry.addAttribute(change.getAttribute(), conflictingValues);

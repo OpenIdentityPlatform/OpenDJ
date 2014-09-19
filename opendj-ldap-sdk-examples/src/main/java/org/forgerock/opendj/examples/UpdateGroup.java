@@ -20,7 +20,7 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2012-2013 ForgeRock AS
+ *      Copyright 2012-2014 ForgeRock AS
  *
  */
 
@@ -29,7 +29,7 @@ package org.forgerock.opendj.examples;
 import java.util.Collection;
 
 import org.forgerock.opendj.ldap.Connection;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -147,7 +147,7 @@ public final class UpdateGroup {
             System.out.println("The entry with DN " + memberDN + " has been "
                     + op + " the group with DN " + groupDN + ".");
 
-        } catch (final ErrorResultException e) {
+        } catch (final LdapException e) {
             System.err.println(e.getMessage());
             System.exit(e.getResult().getResultCode().intValue());
             return;

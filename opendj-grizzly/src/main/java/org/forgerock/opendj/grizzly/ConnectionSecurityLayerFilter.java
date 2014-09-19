@@ -22,13 +22,13 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions Copyright 2012-2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.grizzly;
 
 import org.forgerock.opendj.ldap.ConnectionSecurityLayer;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.glassfish.grizzly.AbstractTransformer;
 import org.glassfish.grizzly.Buffer;
 import org.glassfish.grizzly.TransformationResult;
@@ -73,7 +73,7 @@ final class ConnectionSecurityLayerFilter extends AbstractCodecFilter<Buffer, Bu
             try {
                 final Buffer output = Buffers.wrap(memoryManager, layer.unwrap(buffer, 0, len));
                 return TransformationResult.createCompletedResult(output, input);
-            } catch (final ErrorResultException e) {
+            } catch (final LdapException e) {
                 return TransformationResult.createErrorResult(e.getResult().getResultCode()
                         .intValue(), e.getMessage());
             }
@@ -112,7 +112,7 @@ final class ConnectionSecurityLayerFilter extends AbstractCodecFilter<Buffer, Bu
             try {
                 final Buffer output = Buffers.wrap(memoryManager, layer.wrap(buffer, 0, len));
                 return TransformationResult.createCompletedResult(output, input);
-            } catch (final ErrorResultException e) {
+            } catch (final LdapException e) {
                 return TransformationResult.createErrorResult(e.getResult().getResultCode()
                         .intValue(), e.getMessage());
             }

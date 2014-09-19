@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2007-2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.forgerock.opendj.config;
 
@@ -35,7 +36,7 @@ import org.forgerock.opendj.config.client.OperationRejectedException;
 import org.forgerock.opendj.config.server.ConfigurationChangeListener;
 import org.forgerock.opendj.config.server.ServerManagedObject;
 import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.schema.AttributeType;
 import org.forgerock.opendj.server.config.client.ConnectionHandlerCfgClient;
 import org.forgerock.opendj.server.config.server.ConnectionHandlerCfg;
@@ -384,7 +385,7 @@ public final class TestChildCfgDefn extends ManagedObjectDefinition<TestChildCfg
          * {@inheritDoc}
          */
         public void commit() throws ManagedObjectAlreadyExistsException, MissingMandatoryPropertiesException,
-                ConcurrentModificationException, OperationRejectedException, ErrorResultException {
+                ConcurrentModificationException, OperationRejectedException, LdapException {
             impl.commit();
         }
 

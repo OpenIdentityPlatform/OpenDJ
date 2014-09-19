@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2011 ForgeRock AS
+ *      Copyright 2011-2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -48,9 +48,9 @@ public interface RequestHandlerFactory<C, R extends RequestContext> {
      *            of the client's connection.
      * @return A {@code RequestHandler} which will be used to handle requests
      *         from a client connection.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If this request handler factory cannot accept the client
      *             connection.
      */
-    RequestHandler<R> handleAccept(C clientContext) throws ErrorResultException;
+    RequestHandler<R> handleAccept(C clientContext) throws LdapException;
 }

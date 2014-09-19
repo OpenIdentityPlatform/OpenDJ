@@ -38,7 +38,7 @@ import static java.util.Arrays.*;
 import static org.fest.assertions.Assertions.*;
 import static org.fest.assertions.Fail.*;
 import static org.forgerock.opendj.ldap.Connections.*;
-import static org.forgerock.opendj.ldap.ErrorResultException.*;
+import static org.forgerock.opendj.ldap.LdapException.*;
 import static org.forgerock.util.promise.Promises.*;
 import static org.mockito.Mockito.*;
 
@@ -52,15 +52,15 @@ public class AbstractLoadBalancingAlgorithmTestCase extends SdkTestCase {
             }
 
             @Override
-            public Connection getConnection() throws ErrorResultException {
+            public Connection getConnection() throws LdapException {
                 return mock.getConnection();
             }
 
             @Override
-            public Promise<Connection, ErrorResultException> getConnectionAsync() {
+            public Promise<Connection, LdapException> getConnectionAsync() {
                 try {
                     return newSuccessfulPromise(mock.getConnection());
-                } catch (final ErrorResultException e) {
+                } catch (final LdapException e) {
                     return newFailedPromise(e);
                 }
             }
@@ -98,11 +98,11 @@ public class AbstractLoadBalancingAlgorithmTestCase extends SdkTestCase {
          * Create load-balancer with two failed connection factories.
          */
         final ConnectionFactory first = mock(ConnectionFactory.class, "first");
-        final ErrorResultException firstError = newErrorResult(ResultCode.CLIENT_SIDE_SERVER_DOWN);
+        final LdapException firstError = newErrorResult(ResultCode.CLIENT_SIDE_SERVER_DOWN);
         when(first.getConnection()).thenThrow(firstError);
 
         final ConnectionFactory second = mock(ConnectionFactory.class, "second");
-        final ErrorResultException secondError = newErrorResult(ResultCode.CLIENT_SIDE_SERVER_DOWN);
+        final LdapException secondError = newErrorResult(ResultCode.CLIENT_SIDE_SERVER_DOWN);
         when(second.getConnection()).thenThrow(secondError);
 
         final ConnectionFactory loadBalancer =
@@ -117,7 +117,7 @@ public class AbstractLoadBalancingAlgorithmTestCase extends SdkTestCase {
         try {
             loadBalancer.getConnection().close();
             fail("Unexpectedly obtained a connection");
-        } catch (final ErrorResultException e) {
+        } catch (final LdapException e) {
             assertThat(e.getCause()).isSameAs(secondError);
         } finally {
             loadBalancer.close();
@@ -137,12 +137,12 @@ public class AbstractLoadBalancingAlgorithmTestCase extends SdkTestCase {
          */
         final ConnectionFactory first = mock(ConnectionFactory.class, "first");
         final ConnectionFactory firstAsync = mockAsync(first);
-        final ErrorResultException firstError = newErrorResult(ResultCode.CLIENT_SIDE_SERVER_DOWN);
+        final LdapException firstError = newErrorResult(ResultCode.CLIENT_SIDE_SERVER_DOWN);
         when(first.getConnection()).thenThrow(firstError).thenReturn(mock(Connection.class));
 
         final ConnectionFactory second = mock(ConnectionFactory.class, "second");
         final ConnectionFactory secondAsync = mockAsync(second);
-        final ErrorResultException secondError = newErrorResult(ResultCode.CLIENT_SIDE_SERVER_DOWN);
+        final LdapException secondError = newErrorResult(ResultCode.CLIENT_SIDE_SERVER_DOWN);
         when(second.getConnection()).thenThrow(secondError);
 
         final LoadBalancerEventListener listener = mock(LoadBalancerEventListener.class);
@@ -160,7 +160,7 @@ public class AbstractLoadBalancingAlgorithmTestCase extends SdkTestCase {
         try {
             loadBalancer.getConnection().close();
             fail("Unexpectedly obtained a connection");
-        } catch (final ErrorResultException e) {
+        } catch (final LdapException e) {
             // Check that the event listener has been fired for both factories.
             verify(listener).handleConnectionFactoryOffline(firstAsync, firstError);
             verify(listener).handleConnectionFactoryOffline(secondAsync, secondError);

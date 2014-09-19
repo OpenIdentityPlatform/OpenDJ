@@ -37,7 +37,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.Entry;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ResultHandler;
 import org.forgerock.opendj.ldap.requests.AddRequest;
@@ -147,7 +147,7 @@ public class AddRate extends ConsoleApplication {
             }
 
             @Override
-            public Promise<?, ErrorResultException> performOperation(Connection connection, DataSource[] dataSources,
+            public Promise<?, LdapException> performOperation(Connection connection, DataSource[] dataSources,
                     long currentTime) {
                 if (needsDelete(currentTime)) {
                     DeleteRequest dr = Requests.newDeleteRequest(getDNEntryToRemove());
@@ -159,7 +159,7 @@ public class AddRate extends ConsoleApplication {
                 }
             }
 
-            private Promise<Result, ErrorResultException> performAddOperation(Connection connection, long currentTime) {
+            private Promise<Result, LdapException> performAddOperation(Connection connection, long currentTime) {
                 try {
                     Entry entry;
                     synchronized (generator) {
@@ -172,7 +172,7 @@ public class AddRate extends ConsoleApplication {
                 } catch (IOException e) {
                     // faking an error result by notifying the Handler
                     UpdateStatsResultHandler<Result> resHandler = new UpdateStatsResultHandler<Result>(currentTime);
-                    resHandler.handleError(ErrorResultException.newErrorResult(ResultCode.OTHER, e));
+                    resHandler.handleError(LdapException.newErrorResult(ResultCode.OTHER, e));
                     return null;
                 }
             }

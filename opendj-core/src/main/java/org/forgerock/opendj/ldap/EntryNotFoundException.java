@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -46,7 +47,7 @@ import org.forgerock.opendj.ldap.responses.Result;
  * sub-class.
  */
 @SuppressWarnings("serial")
-public class EntryNotFoundException extends ErrorResultException {
+public class EntryNotFoundException extends LdapException {
     EntryNotFoundException(final Result result) {
         super(result);
     }

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2014 ForgeRock AS.
+ *      Portions Copyright 2012-2014 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap;
 
@@ -167,12 +167,12 @@ public final class TestCaseUtils {
         final ConnectionFactory factory = mock(ConnectionFactory.class);
         try {
             when(factory.getConnection()).thenReturn(first, remaining);
-        } catch (ErrorResultException ignored) {
+        } catch (LdapException ignored) {
             // Cannot happen.
         }
-        when(factory.getConnectionAsync()).thenAnswer(new Answer<Promise<Connection, ErrorResultException>>() {
+        when(factory.getConnectionAsync()).thenAnswer(new Answer<Promise<Connection, LdapException>>() {
             @Override
-            public Promise<Connection, ErrorResultException> answer(final InvocationOnMock invocation)
+            public Promise<Connection, LdapException> answer(final InvocationOnMock invocation)
                     throws Throwable {
                 return newSuccessfulFutureResult(factory.getConnection());
             }

@@ -29,12 +29,12 @@ package org.forgerock.opendj.ldap.spi;
 import java.net.InetSocketAddress;
 
 import org.forgerock.opendj.ldap.Connection;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LDAPOptions;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.util.promise.Promise;
 
-import static org.forgerock.opendj.ldap.ErrorResultException.*;
+import static org.forgerock.opendj.ldap.LdapException.*;
 import static org.forgerock.util.promise.Promises.*;
 import static org.mockito.Mockito.*;
 
@@ -69,7 +69,7 @@ public final class BasicLDAPConnectionFactory implements LDAPConnectionFactoryIm
     }
 
     @Override
-    public Connection getConnection() throws ErrorResultException {
+    public Connection getConnection() throws LdapException {
         try {
             return getConnectionAsync().getOrThrow();
         } catch (final InterruptedException e) {
@@ -78,7 +78,7 @@ public final class BasicLDAPConnectionFactory implements LDAPConnectionFactoryIm
     }
 
     @Override
-    public Promise<Connection, ErrorResultException> getConnectionAsync() {
+    public Promise<Connection, LdapException> getConnectionAsync() {
         return newSuccessfulPromise(mock(Connection.class));
     }
 

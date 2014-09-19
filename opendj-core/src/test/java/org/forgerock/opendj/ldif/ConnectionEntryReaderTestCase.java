@@ -21,15 +21,14 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2011 ForgeRock AS
- *      Portions copyright 2012-2014 ForgeRock AS.
+ *      Copyright 2011-2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldif;
 
 import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.assertions.Fail.fail;
-import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
+import static org.forgerock.opendj.ldap.LdapException.newErrorResult;
 import static org.forgerock.opendj.ldap.responses.Responses.newResult;
 import static org.forgerock.opendj.ldap.responses.Responses.newSearchResultEntry;
 import static org.forgerock.opendj.ldap.responses.Responses.newSearchResultReference;
@@ -41,9 +40,9 @@ import static org.mockito.Mockito.when;
 import java.util.NoSuchElementException;
 
 import org.forgerock.opendj.ldap.Connection;
-import org.forgerock.opendj.ldap.ErrorResultIOException;
 import org.forgerock.opendj.ldap.FutureResult;
 import org.forgerock.opendj.ldap.FutureResultWrapper;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchResultHandler;
 import org.forgerock.opendj.ldap.SearchResultReferenceIOException;
@@ -79,8 +78,8 @@ public class ConnectionEntryReaderTestCase extends AbstractLDIFTestCase {
         try {
             reader.hasNext();
             fail();
-        } catch (final ErrorResultIOException e) {
-            assertThat(e.getCause().getResult()).isSameAs(ERROR);
+        } catch (final LdapException e) {
+            assertThat(e.getResult()).isSameAs(ERROR);
         } finally {
             reader.close();
         }
@@ -107,8 +106,8 @@ public class ConnectionEntryReaderTestCase extends AbstractLDIFTestCase {
         try {
             reader.readEntry();
             fail();
-        } catch (final ErrorResultIOException e) {
-            assertThat(e.getCause().getResult()).isSameAs(ERROR);
+        } catch (final LdapException e) {
+            assertThat(e.getResult()).isSameAs(ERROR);
         } finally {
             reader.close();
         }
@@ -197,8 +196,8 @@ public class ConnectionEntryReaderTestCase extends AbstractLDIFTestCase {
         try {
             reader.readReference();
             fail();
-        } catch (final ErrorResultIOException e) {
-            assertThat(e.getCause().getResult()).isSameAs(ERROR);
+        } catch (final LdapException e) {
+            assertThat(e.getResult()).isSameAs(ERROR);
         } finally {
             reader.close();
         }
@@ -231,8 +230,8 @@ public class ConnectionEntryReaderTestCase extends AbstractLDIFTestCase {
         try {
             reader.readResult();
             fail();
-        } catch (final ErrorResultIOException e) {
-            assertThat(e.getCause().getResult()).isSameAs(ERROR);
+        } catch (final LdapException e) {
+            assertThat(e.getResult()).isSameAs(ERROR);
         } finally {
             reader.close();
         }

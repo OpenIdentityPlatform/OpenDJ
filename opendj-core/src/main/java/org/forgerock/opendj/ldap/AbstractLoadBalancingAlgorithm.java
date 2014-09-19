@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS.
+ *      Portions Copyright 2011-2014 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap;
 
@@ -42,7 +42,7 @@ import org.forgerock.util.promise.Promise;
 
 import com.forgerock.opendj.util.ReferenceCountedObject;
 
-import static org.forgerock.opendj.ldap.ErrorResultException.*;
+import static org.forgerock.opendj.ldap.LdapException.*;
 import static org.forgerock.util.promise.Promises.*;
 
 import static com.forgerock.opendj.util.StaticUtils.*;
@@ -61,7 +61,7 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
 
         private final ConnectionFactory factory;
         private final AtomicBoolean isOperational = new AtomicBoolean(true);
-        private volatile Promise<?, ErrorResultException> pendingConnectPromise;
+        private volatile Promise<?, LdapException> pendingConnectPromise;
         private final int index;
 
         private MonitoredConnectionFactory(final ConnectionFactory factory, final int index) {
@@ -76,11 +76,11 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
         }
 
         @Override
-        public Connection getConnection() throws ErrorResultException {
+        public Connection getConnection() throws LdapException {
             final Connection connection;
             try {
                 connection = factory.getConnection();
-            } catch (ErrorResultException e) {
+            } catch (LdapException e) {
                 // Attempt failed - try next factory.
                 notifyOffline(e);
                 final int nextIndex = (index + 1) % monitoredFactories.size();
@@ -93,20 +93,18 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
         }
 
         @Override
-        public Promise<Connection, ErrorResultException> getConnectionAsync() {
+        public Promise<Connection, LdapException> getConnectionAsync() {
             return factory.getConnectionAsync().thenAsync(
-                new AsyncFunction<Connection, Connection, ErrorResultException>() {
+                new AsyncFunction<Connection, Connection, LdapException>() {
                     @Override
-                    public Promise<Connection, ErrorResultException> apply(Connection value)
-                            throws ErrorResultException {
+                    public Promise<Connection, LdapException> apply(Connection value) throws LdapException {
                         notifyOnline();
                         return newSuccessfulPromise(value);
                     }
                 },
-                new AsyncFunction<ErrorResultException, Connection, ErrorResultException>() {
+                new AsyncFunction<LdapException, Connection, LdapException>() {
                     @Override
-                    public Promise<Connection, ErrorResultException> apply(ErrorResultException error)
-                            throws ErrorResultException {
+                    public Promise<Connection, LdapException> apply(LdapException error) throws LdapException {
                         // Attempt failed - try next factory.
                         notifyOffline(error);
                         final int nextIndex = (index + 1) % monitoredFactories.size();
@@ -121,7 +119,7 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
          * Handle monitoring connection request failure.
          */
         @Override
-        public void handleError(final ErrorResultException error) {
+        public void handleError(final LdapException error) {
             notifyOffline(error);
         }
 
@@ -151,7 +149,7 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
             }
         }
 
-        private void notifyOffline(final ErrorResultException error) {
+        private void notifyOffline(final LdapException error) {
             // Save the error in case the load-balancer is exhausted.
             lastFailure = error;
 
@@ -234,7 +232,7 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
         }
 
         @Override
-        public void handleConnectionFactoryOffline(ConnectionFactory factory, ErrorResultException error) {
+        public void handleConnectionFactoryOffline(ConnectionFactory factory, LdapException error) {
             // TODO: I18N
             logger.warn(LocalizableMessage.raw("Connection factory '%s' is no longer operational: %s",
                     factory, error.getMessage()));
@@ -250,7 +248,7 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
      * marked offline. This is used in order to help diagnose problems when the
      * load-balancer has exhausted all of its factories.
      */
-    private volatile ErrorResultException lastFailure = null;
+    private volatile LdapException lastFailure;
 
     /**
      * The event listener which should be notified when connection factories go
@@ -308,7 +306,7 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
     }
 
     @Override
-    public final ConnectionFactory getConnectionFactory() throws ErrorResultException {
+    public final ConnectionFactory getConnectionFactory() throws LdapException {
         final int index = getInitialConnectionFactoryIndex();
         return getMonitoredConnectionFactory(index);
     }
@@ -348,8 +346,7 @@ abstract class AbstractLoadBalancingAlgorithm implements LoadBalancingAlgorithm 
     abstract int getInitialConnectionFactoryIndex();
 
     // Return the first factory after index which is operational.
-    private MonitoredConnectionFactory getMonitoredConnectionFactory(final int initialIndex)
-            throws ErrorResultException {
+    private MonitoredConnectionFactory getMonitoredConnectionFactory(final int initialIndex) throws LdapException {
         int index = initialIndex;
         final int maxIndex = monitoredFactories.size();
         do {
