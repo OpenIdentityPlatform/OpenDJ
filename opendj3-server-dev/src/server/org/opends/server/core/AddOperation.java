@@ -46,7 +46,7 @@ public interface AddOperation extends Operation
    *
    * @return  The DN of the entry in a raw, unparsed form.
    */
-  public abstract ByteString getRawEntryDN();
+  ByteString getRawEntryDN();
 
   /**
    * Specifies the raw entry DN for the entry to add.  This should only be
@@ -57,7 +57,7 @@ public interface AddOperation extends Operation
    *
    * @param  rawEntryDN  The raw entry DN for the entry to add.
    */
-  public abstract void setRawEntryDN(ByteString rawEntryDN);
+  void setRawEntryDN(ByteString rawEntryDN);
 
   /**
    * Retrieves the DN of the entry to add.  This method should not be called
@@ -67,7 +67,7 @@ public interface AddOperation extends Operation
    * @return  The DN of the entry to add, or <CODE>null</CODE> if it has not yet
    *          been parsed from the raw DN.
    */
-  public abstract DN getEntryDN();
+  DN getEntryDN();
 
   /**
    * Retrieves the set of attributes in their raw, unparsed form as read from
@@ -78,7 +78,7 @@ public interface AddOperation extends Operation
    * @return  The set of attributes in their raw, unparsed form as read from the
    *          client request.
    */
-  public abstract List<RawAttribute> getRawAttributes();
+  List<RawAttribute> getRawAttributes();
 
   /**
    * Adds the provided attribute to the set of raw attributes for this add
@@ -87,7 +87,7 @@ public interface AddOperation extends Operation
    * @param  rawAttribute  The attribute to add to the set of raw attributes for
    *                       this add operation.
    */
-  public abstract void addRawAttribute(RawAttribute rawAttribute);
+  void addRawAttribute(RawAttribute rawAttribute);
 
   /**
    * Replaces the set of raw attributes for this add operation.  This should
@@ -95,7 +95,7 @@ public interface AddOperation extends Operation
    *
    * @param  rawAttributes  The set of raw attributes for this add operation.
    */
-  public abstract void setRawAttributes(List<RawAttribute> rawAttributes);
+  void setRawAttributes(List<RawAttribute> rawAttributes);
 
   /**
    * Retrieves the set of processed user attributes for the entry to add.  This
@@ -106,7 +106,7 @@ public interface AddOperation extends Operation
    * @return  The set of processed user attributes for the entry to add, or
    *          <CODE>null</CODE> if that information is not yet available.
    */
-  public abstract Map<AttributeType, List<Attribute>> getUserAttributes();
+  Map<AttributeType, List<Attribute>> getUserAttributes();
 
   /**
    * Sets the specified attribute in the entry to add, overwriting any existing
@@ -119,8 +119,7 @@ public interface AddOperation extends Operation
    * @param  attributeType  The attribute type for the attribute.
    * @param  attributeList  The attribute list for the provided attribute type.
    */
-  public abstract void setAttribute(AttributeType attributeType,
-      List<Attribute> attributeList);
+  void setAttribute(AttributeType attributeType, List<Attribute> attributeList);
 
   /**
    * Removes the specified attribute from the entry to add. This should only be
@@ -131,25 +130,7 @@ public interface AddOperation extends Operation
    *
    * @param  attributeType  The attribute tyep for the attribute to remove.
    */
-  public abstract void removeAttribute(AttributeType attributeType);
-
-  /**
-   * Retrieves the change number that has been assigned to this operation.
-   *
-   * @return  The change number that has been assigned to this operation, or -1
-   *          if none has been assigned yet or if there is no applicable
-   *          synchronization mechanism in place that uses change numbers.
-   */
-  public abstract long getChangeNumber();
-
-  /**
-   * Specifies the change number that has been assigned to this operation by the
-   * synchronization mechanism.
-   *
-   * @param  changeNumber  The change number that has been assigned to this
-   *                       operation by the synchronization mechanism.
-   */
-  public abstract void setChangeNumber(long changeNumber);
+  void removeAttribute(AttributeType attributeType);
 
   /**
    * Retrieves the set of processed objectclasses for the entry to add.  This
@@ -160,7 +141,7 @@ public interface AddOperation extends Operation
    * @return  The set of processed objectclasses for the entry to add, or
    *          <CODE>null</CODE> if that information is not yet available.
    */
-  public abstract Map<ObjectClass,String> getObjectClasses();
+  Map<ObjectClass, String> getObjectClasses();
 
   /**
    * Adds the provided objectclass to the entry to add.  This should only be
@@ -172,7 +153,7 @@ public interface AddOperation extends Operation
    * @param  objectClass  The objectclass to add to the entry.
    * @param  name         The name to use for the objectclass.
    */
-  public abstract void addObjectClass(ObjectClass objectClass, String name);
+  void addObjectClass(ObjectClass objectClass, String name);
 
   /**
    * Removes the provided objectclass from the entry to add.  This should only
@@ -183,7 +164,7 @@ public interface AddOperation extends Operation
    *
    * @param  objectClass  The objectclass to remove from the entry.
    */
-  public abstract void removeObjectClass(ObjectClass objectClass);
+  void removeObjectClass(ObjectClass objectClass);
 
   /**
    * Retrieves the set of processed operational attributes for the entry to add.
@@ -194,7 +175,7 @@ public interface AddOperation extends Operation
    * @return  The set of processed operational attributes for the entry to add,
    *          or <CODE>null</CODE> if that information is not yet available.
    */
-  public abstract Map<AttributeType,List<Attribute>> getOperationalAttributes();
+  Map<AttributeType, List<Attribute>> getOperationalAttributes();
 
   /**
    * Retrieves the proxied authorization DN for this operation if proxied
@@ -204,7 +185,7 @@ public interface AddOperation extends Operation
    *          authorization has been requested, or {@code null} if proxied
    *          authorization has not been requested.
    */
-  public abstract DN getProxiedAuthorizationDN();
+  DN getProxiedAuthorizationDN();
 
   /**
    * Set the proxied authorization DN for this operation if proxied
@@ -215,6 +196,6 @@ public interface AddOperation extends Operation
    *          authorization has been requested, or {@code null} if proxied
    *          authorization has not been requested.
    */
-  public abstract void setProxiedAuthorizationDN(DN proxiedAuthorizationDN);
+  void setProxiedAuthorizationDN(DN proxiedAuthorizationDN);
 
 }

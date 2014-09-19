@@ -90,9 +90,6 @@ public class AddOperationBasis
   /** The set of objectclasses for the entry to add. */
   private Map<ObjectClass,String> objectClasses;
 
-  /** The change number that has been assigned to this operation. */
-  private long changeNumber;
-
   /** The flag indicates if an LDAP error was reported. */
   private boolean ldapError;
 
@@ -128,7 +125,6 @@ public class AddOperationBasis
     operationalAttributes = null;
     objectClasses         = null;
     proxiedAuthorizationDN = null;
-    changeNumber          = -1;
   }
 
 
@@ -194,22 +190,16 @@ public class AddOperationBasis
     responseControls = new ArrayList<Control>();
     proxiedAuthorizationDN = null;
     cancelRequest    = null;
-    changeNumber     = -1;
   }
 
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final ByteString getRawEntryDN()
   {
     return rawEntryDN;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void setRawEntryDN(ByteString rawEntryDN)
   {
@@ -218,10 +208,7 @@ public class AddOperationBasis
     entryDN = null;
   }
 
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final DN getEntryDN()
   {
@@ -244,20 +231,14 @@ public class AddOperationBasis
     return entryDN;
   }
 
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final List<RawAttribute> getRawAttributes()
   {
     return rawAttributes;
   }
 
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void addRawAttribute(RawAttribute rawAttribute)
   {
@@ -268,10 +249,7 @@ public class AddOperationBasis
     operationalAttributes = null;
   }
 
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void setRawAttributes(List<RawAttribute> rawAttributes)
   {
@@ -282,11 +260,7 @@ public class AddOperationBasis
     operationalAttributes = null;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final Map<ObjectClass,String> getObjectClasses()
   {
@@ -296,33 +270,21 @@ public class AddOperationBasis
     return objectClasses;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void addObjectClass(ObjectClass objectClass, String name)
   {
     objectClasses.put(objectClass, name);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void removeObjectClass(ObjectClass objectClass)
   {
     objectClasses.remove(objectClass);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final Map<AttributeType,List<Attribute>> getUserAttributes()
   {
@@ -332,10 +294,7 @@ public class AddOperationBasis
     return userAttributes;
   }
 
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final Map<AttributeType,List<Attribute>> getOperationalAttributes()
   {
@@ -387,14 +346,11 @@ public class AddOperationBasis
               attr = builder.toAttribute();
             }
           }
-          else
+          else if (attr.hasOption("binary"))
           {
             // binary option is not honored for non-BER-encodable attributes.
-            if(attr.hasOption("binary"))
-            {
-              throw new LDAPException(LDAPResultCode.UNDEFINED_ATTRIBUTE_TYPE,
-                  ERR_ADD_ATTR_IS_INVALID_OPTION.get(entryDN, attr.getName()));
-            }
+            throw new LDAPException(LDAPResultCode.UNDEFINED_ATTRIBUTE_TYPE,
+                ERR_ADD_ATTR_IS_INVALID_OPTION.get(entryDN, attr.getName()));
           }
 
           if (attrType.isObjectClass())
@@ -475,9 +431,7 @@ public class AddOperationBasis
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void setAttribute(AttributeType attributeType,
                                  List<Attribute> attributeList)
@@ -494,18 +448,14 @@ public class AddOperationBasis
     }
   }
 
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void removeAttribute(AttributeType attributeType)
   {
     getAttributes(attributeType.isOperational()).remove(attributeType);
   }
 
-  private Map<AttributeType, List<Attribute>> getAttributes(
-      boolean isOperational)
+  private Map<AttributeType, List<Attribute>> getAttributes(boolean isOperational)
   {
     if (isOperational)
     {
@@ -514,29 +464,7 @@ public class AddOperationBasis
     return userAttributes;
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public final long getChangeNumber()
-  {
-    return changeNumber;
-  }
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public final void setChangeNumber(long changeNumber)
-  {
-    this.changeNumber = changeNumber;
-  }
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final OperationType getOperationType()
   {
@@ -546,52 +474,35 @@ public class AddOperationBasis
     return OperationType.ADD;
   }
 
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public DN getProxiedAuthorizationDN()
   {
     return proxiedAuthorizationDN;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final ArrayList<Control> getResponseControls()
   {
     return responseControls;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void addResponseControl(Control control)
   {
     responseControls.add(control);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void removeResponseControl(Control control)
   {
     responseControls.remove(control);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void toString(StringBuilder buffer)
   {
@@ -604,18 +515,14 @@ public class AddOperationBasis
     buffer.append(")");
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setProxiedAuthorizationDN(DN proxiedAuthorizationDN)
   {
     this.proxiedAuthorizationDN = proxiedAuthorizationDN;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void run()
   {

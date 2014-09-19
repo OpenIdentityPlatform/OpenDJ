@@ -26,12 +26,10 @@
  */
 package org.opends.server.core;
 
-
 import java.util.List;
 
 import org.opends.server.types.*;
 import org.forgerock.opendj.ldap.ByteString;
-
 
 /**
  * This abstract class wraps/decorates a given modify operation.
@@ -52,9 +50,7 @@ public abstract class ModifyOperationWrapper extends
     super(modify);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void addModification(Modification modification)
     throws DirectoryException
@@ -62,107 +58,70 @@ public abstract class ModifyOperationWrapper extends
     getOperation().addModification(modification);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void addRawModification(RawModification rawModification)
   {
     getOperation().addRawModification(rawModification);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public DN getEntryDN()
   {
     return getOperation().getEntryDN();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public List<Modification> getModifications()
   {
     return getOperation().getModifications();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ByteString getRawEntryDN()
   {
     return getOperation().getRawEntryDN();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public List<RawModification> getRawModifications()
   {
     return getOperation().getRawModifications();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setRawEntryDN(ByteString rawEntryDN)
   {
     getOperation().setRawEntryDN(rawEntryDN);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setRawModifications(List<RawModification> rawModifications)
   {
     getOperation().setRawModifications(rawModifications);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String toString()
   {
     return getOperation().toString();
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public final long getChangeNumber(){
-    return getOperation().getChangeNumber();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void setChangeNumber(long changeNumber)
-  {
-    getOperation().setChangeNumber(changeNumber);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public DN getProxiedAuthorizationDN()
   {
     return getOperation().getProxiedAuthorizationDN();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setProxiedAuthorizationDN(DN proxiedAuthorizationDN){
     getOperation().setProxiedAuthorizationDN(proxiedAuthorizationDN);

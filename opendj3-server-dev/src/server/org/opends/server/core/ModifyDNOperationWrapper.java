@@ -50,162 +50,110 @@ public abstract class ModifyDNOperationWrapper extends
     super(modifyDN);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void addModification(Modification modification) {
     getOperation().addModification(modification);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean deleteOldRDN() {
     return getOperation().deleteOldRDN();
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public long getChangeNumber() {
-    return getOperation().getChangeNumber();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public DN getEntryDN() {
     return getOperation().getEntryDN();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public List<Modification> getModifications() {
     return getOperation().getModifications();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public RDN getNewRDN() {
     return getOperation().getNewRDN();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public DN getNewSuperior() {
     return getOperation().getNewSuperior();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Entry getOriginalEntry() {
     return getOperation().getOriginalEntry();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public DN getProxiedAuthorizationDN() {
     return getOperation().getProxiedAuthorizationDN();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ByteString getRawEntryDN() {
     return getOperation().getRawEntryDN();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ByteString getRawNewRDN() {
     return getOperation().getRawNewRDN();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ByteString getRawNewSuperior() {
     return getOperation().getRawNewSuperior();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Entry getUpdatedEntry() {
     return getOperation().getUpdatedEntry();
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void setChangeNumber(long changeNumber) {
-    getOperation().setChangeNumber(changeNumber);
-  }
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setDeleteOldRDN(boolean deleteOldRDN) {
     getOperation().setDeleteOldRDN(deleteOldRDN);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setRawEntryDN(ByteString rawEntryDN) {
     getOperation().setRawEntryDN(rawEntryDN);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setRawNewRDN(ByteString rawNewRDN) {
     getOperation().setRawNewRDN(rawNewRDN);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setRawNewSuperior(ByteString rawNewSuperior) {
     getOperation().setRawNewSuperior(rawNewSuperior);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setProxiedAuthorizationDN(DN dn)
   {
     getOperation().setProxiedAuthorizationDN(dn);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public DN getNewDN()
   {
