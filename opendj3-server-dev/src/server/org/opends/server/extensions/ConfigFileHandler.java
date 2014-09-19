@@ -26,7 +26,6 @@
  */
 package org.opends.server.extensions;
 
-import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -53,7 +52,7 @@ import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.util.Utils;
-import org.opends.server.admin.Configuration;
+import org.opends.server.admin.std.server.ConfigFileHandlerBackendCfg;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.ConfigAddListener;
@@ -89,7 +88,7 @@ import static org.opends.server.util.StaticUtils.*;
  * that will read the server configuration from an LDIF file.
  */
 public class ConfigFileHandler
-       extends ConfigHandler
+       extends ConfigHandler<ConfigFileHandlerBackendCfg>
        implements AlertGenerator
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
@@ -101,24 +100,6 @@ public class ConfigFileHandler
    */
   private static final String CLASS_NAME =
        "org.opends.server.extensions.ConfigFileHandler";
-
-
-
-  /**
-   * The set of supported control OIDs for this backend.
-   */
-  private static final Set<String> SUPPORTED_CONTROLS =
-                            new HashSet<String>(0);
-
-
-
-  /**
-   * The set of supported feature OIDs for this backend.
-   */
-  private static final Set<String> SUPPORTED_FEATURES =
-                            new HashSet<String>(0);
-
-
 
   /**
    * The privilege array containing both the CONFIG_READ and CONFIG_WRITE
@@ -185,12 +166,8 @@ public class ConfigFileHandler
     super();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void initializeConfigHandler(String configFile, boolean checkSchema)
          throws InitializationException
   {
@@ -771,12 +748,8 @@ public class ConfigFileHandler
     changesFile.renameTo(newChanges);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void finalizeConfigHandler()
   {
     try
@@ -789,79 +762,53 @@ public class ConfigFileHandler
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void finalizeBackend()
   {
     // No implementation is required.
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public ConfigEntry getConfigRootEntry()
          throws ConfigException
   {
     return configRootEntry;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public ConfigEntry getConfigEntry(DN entryDN)
          throws ConfigException
   {
     return configEntries.get(entryDN);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public String getServerRoot()
   {
     return serverRoot;
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public String getInstanceRoot()
   {
     return instanceRoot;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public void configureBackend(Configuration cfg)
+  /** {@inheritDoc} */
+  @Override
+  public void configureBackend(ConfigFileHandlerBackendCfg cfg)
          throws ConfigException
   {
     // No action is required.
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void initializeBackend()
          throws ConfigException, InitializationException
   {
@@ -869,58 +816,38 @@ public class ConfigFileHandler
     // initializeConfigHandler method.
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public DN[] getBaseDNs()
   {
     return baseDNs;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public long getEntryCount()
   {
     return configEntries.size();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean isLocal()
   {
     // The configuration information will always be local.
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean isIndexed(AttributeType attributeType, IndexType indexType)
   {
     // All searches in this backend will always be considered indexed.
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public ConditionResult hasSubordinates(DN entryDN)
          throws DirectoryException
   {
@@ -932,12 +859,8 @@ public class ConfigFileHandler
     return ConditionResult.UNDEFINED;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public long numSubordinates(DN entryDN, boolean subtree)
       throws DirectoryException
   {
@@ -963,12 +886,8 @@ public class ConfigFileHandler
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public Entry getEntry(DN entryDN)
          throws DirectoryException
   {
@@ -981,24 +900,16 @@ public class ConfigFileHandler
     return configEntry.getEntry().duplicate(true);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean entryExists(DN entryDN)
          throws DirectoryException
   {
     return configEntries.containsKey(entryDN);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void addEntry(Entry entry, AddOperation addOperation)
          throws DirectoryException
   {
@@ -1135,12 +1046,8 @@ public class ConfigFileHandler
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void deleteEntry(DN entryDN, DeleteOperation deleteOperation)
          throws DirectoryException
   {
@@ -1272,12 +1179,8 @@ public class ConfigFileHandler
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void replaceEntry(Entry oldEntry, Entry newEntry,
       ModifyOperation modifyOperation) throws DirectoryException
   {
@@ -1422,12 +1325,8 @@ public class ConfigFileHandler
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void renameEntry(DN currentDN, Entry entry,
                           ModifyDNOperation modifyDNOperation)
          throws DirectoryException
@@ -1454,12 +1353,8 @@ public class ConfigFileHandler
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void search(SearchOperation searchOperation)
          throws DirectoryException
   {
@@ -1596,12 +1491,8 @@ public class ConfigFileHandler
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void writeUpdatedConfig()
          throws DirectoryException
   {
@@ -1882,12 +1773,8 @@ public class ConfigFileHandler
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void writeSuccessfulStartupConfig()
   {
     if (useLastKnownGoodConfig)
@@ -2013,46 +1900,30 @@ public class ConfigFileHandler
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public Set<String> getSupportedControls()
   {
-    return SUPPORTED_CONTROLS;
+    return Collections.emptySet();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public Set<String> getSupportedFeatures()
   {
-    return SUPPORTED_FEATURES;
+    return Collections.emptySet();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean supportsLDIFExport()
   {
     // TODO We would need export-ldif to initialize this backend.
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void exportLDIF(LDIFExportConfig exportConfig)
          throws DirectoryException
   {
@@ -2145,23 +2016,15 @@ public class ConfigFileHandler
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean supportsLDIFImport()
   {
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public LDIFImportResult importLDIF(LDIFImportConfig importConfig)
          throws DirectoryException
   {
@@ -2169,24 +2032,16 @@ public class ConfigFileHandler
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean supportsBackup()
   {
     // We do support an online backup mechanism for the configuration.
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean supportsBackup(BackupConfig backupConfig,
                                 StringBuilder unsupportedReason)
   {
@@ -2197,12 +2052,8 @@ public class ConfigFileHandler
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void createBackup(BackupConfig backupConfig)
          throws DirectoryException
   {
@@ -2549,12 +2400,8 @@ public class ConfigFileHandler
 
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void removeBackup(BackupDirectory backupDirectory,
                            String backupID)
          throws DirectoryException
@@ -2562,24 +2409,16 @@ public class ConfigFileHandler
     // NYI
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean supportsRestore()
   {
     // We will provide a restore, but only for offline operations.
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void restoreBackup(RestoreConfig restoreConfig)
          throws DirectoryException
   {
@@ -3039,33 +2878,21 @@ public class ConfigFileHandler
     logger.info(NOTE_CONFIG_RESTORE_SUCCESSFUL, backupID, backupPath);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public DN getComponentEntryDN()
   {
     return configRootEntry.getDN();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getClassName()
   {
     return CLASS_NAME;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Map<String,String> getAlerts()
   {
@@ -3127,25 +2954,10 @@ public class ConfigFileHandler
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void preloadEntryCache() throws UnsupportedOperationException {
     throw new UnsupportedOperationException("Operation not supported.");
   }
 
-  private void close(Closeable toClose)
-  {
-    try
-    {
-      toClose.close();
-    }
-    catch (Exception e)
-    {
-      logger.traceException(e);
-    }
-  }
 }

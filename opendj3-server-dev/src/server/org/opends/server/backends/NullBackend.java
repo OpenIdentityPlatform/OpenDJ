@@ -26,14 +26,14 @@
  */
 package org.opends.server.backends;
 
-
-
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-
 import java.util.Map;
+import java.util.Set;
+
 import org.forgerock.i18n.LocalizableMessage;
-import org.opends.server.admin.Configuration;
 import org.opends.server.admin.std.server.BackendCfg;
 import org.opends.server.api.Backend;
 import org.forgerock.opendj.config.server.ConfigException;
@@ -63,13 +63,10 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.LDIFWriter;
-import org.forgerock.util.Reject;
 
 import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-
-
 
 /**
  * This class implements /dev/null like backend for development and
@@ -99,25 +96,27 @@ import static org.opends.server.util.StaticUtils.*;
  * not represent a complete and stable API, should be considered private
  * and subject to change without notice.
  */
-public class NullBackend extends Backend
+public class NullBackend extends Backend<BackendCfg>
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
-  // The base DNs for this backend.
+  /** The base DNs for this backend. */
   private DN[] baseDNs;
 
-  // The base DNs for this backend, in a hash set.
+  /** The base DNs for this backend, in a hash set. */
   private HashSet<DN> baseDNSet;
 
-  // The set of supported controls for this backend.
-  private HashSet<String> supportedControls;
+  /** The set of supported controls for this backend. */
+  private final Set<String> supportedControls = new HashSet<String>(Arrays.asList(
+      OID_SUBTREE_DELETE_CONTROL,
+      OID_PAGED_RESULTS_CONTROL,
+      OID_MANAGE_DSAIT_CONTROL,
+      OID_SERVER_SIDE_SORT_REQUEST_CONTROL,
+      OID_VLV_REQUEST_CONTROL));
 
-  // The set of supported features for this backend.
-  private HashSet<String> supportedFeatures;
-
-  // The map of null entry object classes.
+  /** The map of null entry object classes. */
   private Map<ObjectClass,String> objectClasses;
 
 
@@ -145,27 +144,21 @@ public class NullBackend extends Backend
     this.baseDNs = baseDNs;
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public void configureBackend(Configuration config)
-         throws ConfigException
+  /** {@inheritDoc} */
+  @Override
+  public void configureBackend(BackendCfg config) throws ConfigException
   {
     if (config != null)
     {
-      Reject.ifFalse(config instanceof BackendCfg);
-      BackendCfg cfg = (BackendCfg)config;
+      BackendCfg cfg = config;
       DN[] cfgBaseDNs = new DN[cfg.getBaseDN().size()];
       cfg.getBaseDN().toArray(cfgBaseDNs);
       setBaseDNs(cfgBaseDNs);
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public synchronized void initializeBackend()
        throws ConfigException, InitializationException
   {
@@ -174,17 +167,6 @@ public class NullBackend extends Backend
     {
       baseDNSet.add(dn);
     }
-
-    // Add supported controls.
-    supportedControls = new HashSet<String>();
-    supportedControls.add(OID_SUBTREE_DELETE_CONTROL);
-    supportedControls.add(OID_PAGED_RESULTS_CONTROL);
-    supportedControls.add(OID_MANAGE_DSAIT_CONTROL);
-    supportedControls.add(OID_SERVER_SIDE_SORT_REQUEST_CONTROL);
-    supportedControls.add(OID_VLV_REQUEST_CONTROL);
-
-    // Add supported features.
-    supportedFeatures = new HashSet<String>();
 
     // Register base DNs.
     for (DN dn : baseDNs)
@@ -233,10 +215,8 @@ public class NullBackend extends Backend
     objectClasses.put(extOC, extOCName);
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public synchronized void finalizeBackend()
   {
     for (DN dn : baseDNs)
@@ -252,47 +232,37 @@ public class NullBackend extends Backend
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public DN[] getBaseDNs()
   {
     return baseDNs;
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public long getEntryCount()
   {
     return -1;
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean isLocal()
   {
     // For the purposes of this method, this is a local backend.
     return true;
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean isIndexed(AttributeType attributeType, IndexType indexType)
   {
     // All searches in this backend will always be considered indexed.
     return true;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConditionResult hasSubordinates(DN entryDN)
          throws DirectoryException
@@ -300,68 +270,54 @@ public class NullBackend extends Backend
     return ConditionResult.UNDEFINED;
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public long numSubordinates(DN entryDN, boolean subtree)
          throws DirectoryException
   {
     return -1;
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public Entry getEntry(DN entryDN)
   {
     return new Entry(null, objectClasses, null, null);
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean entryExists(DN entryDN)
   {
     return false;
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void addEntry(Entry entry, AddOperation addOperation)
          throws DirectoryException
   {
     return;
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void deleteEntry(DN entryDN, DeleteOperation deleteOperation)
          throws DirectoryException
   {
     return;
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void replaceEntry(Entry oldEntry, Entry newEntry,
       ModifyOperation modifyOperation) throws DirectoryException
   {
     return;
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void renameEntry(DN currentDN, Entry entry,
     ModifyDNOperation modifyDNOperation)
          throws DirectoryException
@@ -369,10 +325,8 @@ public class NullBackend extends Backend
     return;
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void search(SearchOperation searchOperation)
          throws DirectoryException
   {
@@ -390,37 +344,29 @@ public class NullBackend extends Backend
     return;
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public HashSet<String> getSupportedControls()
+  /** {@inheritDoc} */
+  @Override
+  public Set<String> getSupportedControls()
   {
     return supportedControls;
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public HashSet<String> getSupportedFeatures()
+  /** {@inheritDoc} */
+  @Override
+  public Set<String> getSupportedFeatures()
   {
-    return supportedFeatures;
+    return Collections.emptySet();
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean supportsLDIFExport()
   {
     return true;
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void exportLDIF(LDIFExportConfig exportConfig)
          throws DirectoryException
   {
@@ -436,26 +382,18 @@ public class NullBackend extends Backend
         message);
     }
 
-    try {
-      ldifWriter.close();
-    } catch (Exception e) {
-      logger.traceException(e);
-    }
+    close(ldifWriter);
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean supportsLDIFImport()
   {
     return true;
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public LDIFImportResult importLDIF(LDIFImportConfig importConfig)
          throws DirectoryException
   {
@@ -528,31 +466,23 @@ public class NullBackend extends Backend
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean supportsBackup()
   {
-    // This backend does not provide a backup/restore mechanism.
     return false;
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean supportsBackup(BackupConfig backupConfig,
                                 StringBuilder unsupportedReason)
   {
-    // This backend does not provide a backup/restore mechanism.
     return false;
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void createBackup(BackupConfig backupConfig)
          throws DirectoryException
   {
@@ -560,10 +490,8 @@ public class NullBackend extends Backend
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void removeBackup(BackupDirectory backupDirectory,
                            String backupID)
          throws DirectoryException
@@ -572,20 +500,15 @@ public class NullBackend extends Backend
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean supportsRestore()
   {
-    // This backend does not provide a backup/restore mechanism.
     return false;
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void restoreBackup(RestoreConfig restoreConfig)
          throws DirectoryException
   {
@@ -593,9 +516,7 @@ public class NullBackend extends Backend
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void preloadEntryCache() throws UnsupportedOperationException {
     throw new UnsupportedOperationException("Operation not supported.");

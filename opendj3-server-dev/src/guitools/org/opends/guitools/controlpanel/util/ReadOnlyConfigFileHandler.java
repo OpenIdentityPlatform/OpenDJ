@@ -27,16 +27,16 @@
 package org.opends.guitools.controlpanel.util;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Set;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ConditionResult;
-import org.opends.server.admin.Configuration;
+import org.opends.server.admin.std.server.BackendCfg;
 import org.opends.server.api.ConfigHandler;
 import org.opends.server.config.ConfigEntry;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.DeleteOperation;
 import org.opends.server.core.DirectoryServer;
@@ -59,80 +59,68 @@ import org.opends.server.types.LDIFImportResult;
 import org.opends.server.types.RestoreConfig;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
-import org.opends.server.util.StaticUtils;
 
 import static org.opends.messages.ConfigMessages.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * A class used to read the configuration from a file.  This config file
  * handler does not allow to modify the configuration, only to read it.
  */
-public class ReadOnlyConfigFileHandler extends ConfigHandler
+public class ReadOnlyConfigFileHandler extends ConfigHandler<BackendCfg>
 {
-//The mapping that holds all of the configuration entries that have been read
-  // from the LDIF file.
+  /**
+   * The mapping that holds all of the configuration entries that have been read
+   * from the LDIF file.
+   */
   private HashMap<DN,ConfigEntry> configEntries = new HashMap<DN,ConfigEntry>();
 
-//The reference to the configuration root entry.
+  /** The reference to the configuration root entry. */
   private ConfigEntry configRootEntry;
 
-  // The server root
+  /** The server root */
   private String serverRoot;
 
-  // The instance root
+  /** The instance root */
   private String instanceRoot;
-
-  private final Set<String> emptyStringSet = new HashSet<String>();
 
   private DN[] baseDNs;
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void finalizeConfigHandler()
   {
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigEntry getConfigEntry(DN entryDN) throws ConfigException
   {
     return configEntries.get(entryDN);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigEntry getConfigRootEntry() throws ConfigException
   {
     return configRootEntry;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getServerRoot()
   {
     return serverRoot;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String getInstanceRoot()
   {
     return instanceRoot;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public synchronized void initializeConfigHandler(String configFile,
       boolean checkSchema)
@@ -253,133 +241,102 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler
     }
     finally
     {
-      StaticUtils.close(reader);
+      close(reader);
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void writeSuccessfulStartupConfig()
   {
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void writeUpdatedConfig() throws DirectoryException
   {
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
-  public void addEntry(Entry arg0, AddOperation arg1)
+  public void addEntry(Entry entry, AddOperation arg1)
   throws DirectoryException, CanceledOperationException
   {
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
-  public void configureBackend(Configuration arg0) throws ConfigException
+  public void configureBackend(BackendCfg cfg) throws ConfigException
   {
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void createBackup(BackupConfig arg0) throws DirectoryException
   {
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void deleteEntry(DN arg0, DeleteOperation arg1)
   throws DirectoryException, CanceledOperationException
   {
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void exportLDIF(LDIFExportConfig arg0) throws DirectoryException
   {
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void finalizeBackend()
   {
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public DN[] getBaseDNs()
   {
     return baseDNs;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Entry getEntry(DN entryDN)
   throws DirectoryException
   {
     ConfigEntry configEntry = configEntries.get(entryDN);
-    if (configEntry == null)
-    {
-      return null;
-    }
-    else
+    if (configEntry != null)
     {
       return configEntry.getEntry();
     }
+    return null;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public long getEntryCount()
   {
     return configEntries.size();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Set<String> getSupportedControls()
   {
-    return emptyStringSet;
+    return Collections.emptySet();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Set<String> getSupportedFeatures()
   {
-    return emptyStringSet;
+    return Collections.emptySet();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConditionResult hasSubordinates(DN entryDN) throws DirectoryException
   {
@@ -391,9 +348,7 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler
     return ConditionResult.UNDEFINED;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public LDIFImportResult importLDIF(LDIFImportConfig arg0)
   throws DirectoryException
@@ -401,36 +356,28 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler
     return null;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void initializeBackend()
   throws ConfigException, InitializationException
   {
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isIndexed(AttributeType arg0, IndexType arg1)
   {
     return false;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isLocal()
   {
     return true;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public long numSubordinates(DN entryDN, boolean subtree)
   throws DirectoryException
@@ -457,101 +404,78 @@ public class ReadOnlyConfigFileHandler extends ConfigHandler
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void preloadEntryCache() throws UnsupportedOperationException
   {
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
-  public void removeBackup(BackupDirectory arg0, String arg1)
+  public void removeBackup(BackupDirectory backupDirectory, String backupID)
   throws DirectoryException
   {
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
-  public void renameEntry(DN arg0, Entry arg1, ModifyDNOperation arg2)
+  public void renameEntry(DN currentDN, Entry entry, ModifyDNOperation modifyDNOperation)
   throws DirectoryException, CanceledOperationException
   {
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
-  public void replaceEntry(Entry arg0, Entry arg1, ModifyOperation arg2)
+  public void replaceEntry(Entry oldEntry, Entry newEntry, ModifyOperation modifyOperation)
   throws DirectoryException, CanceledOperationException
   {
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
-  public void restoreBackup(RestoreConfig arg0) throws DirectoryException
+  public void restoreBackup(RestoreConfig restoreConfig) throws DirectoryException
   {
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
-  public void search(SearchOperation arg0)
+  public void search(SearchOperation searchOperation)
   throws DirectoryException, CanceledOperationException
   {
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean supportsBackup()
   {
     return false;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean supportsBackup(BackupConfig arg0, StringBuilder arg1)
   {
     return false;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean supportsLDIFExport()
   {
     return false;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean supportsLDIFImport()
   {
     return false;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean supportsRestore()
   {
     return false;
   }
 }
-

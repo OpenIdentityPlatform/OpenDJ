@@ -40,9 +40,10 @@ import java.util.zip.CheckedInputStream;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.ConditionResult;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.util.Reject;
-import org.opends.server.admin.Configuration;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.LocalDBIndexCfgDefn;
 import org.opends.server.admin.std.server.LocalDBBackendCfg;
@@ -51,11 +52,9 @@ import org.opends.server.api.Backend;
 import org.opends.server.api.DiskSpaceMonitorHandler;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.backends.jeb.importLDIF.Importer;
-import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.*;
 import org.opends.server.extensions.DiskSpaceMonitor;
 import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.util.RuntimeInformation;
 
 import com.sleepycat.je.DatabaseException;
@@ -74,8 +73,7 @@ import static org.opends.server.util.StaticUtils.*;
  * This is an implementation of a Directory Server Backend which stores entries
  * locally in a Berkeley DB JE database.
  */
-public class BackendImpl
-    extends Backend
+public class BackendImpl extends Backend<LocalDBBackendCfg>
     implements ConfigurationChangeListener<LocalDBBackendCfg>, AlertGenerator,
     DiskSpaceMonitorHandler
 {
@@ -120,23 +118,12 @@ public class BackendImpl
   /**
    * The controls supported by this backend.
    */
-  private static HashSet<String> supportedControls;
-
-  static
-  {
-    // Set our supported controls.
-    supportedControls = new HashSet<String>();
-    supportedControls.add(OID_SUBTREE_DELETE_CONTROL);
-    supportedControls.add(OID_PAGED_RESULTS_CONTROL);
-    supportedControls.add(OID_MANAGE_DSAIT_CONTROL);
-    supportedControls.add(OID_SERVER_SIDE_SORT_REQUEST_CONTROL);
-    supportedControls.add(OID_VLV_REQUEST_CONTROL);
-  }
-
-  /**
-   * The features supported by this backend.
-   */
-  private static HashSet<String> supportedFeatures = new HashSet<String>();
+  private static final Set<String> supportedControls = new HashSet<String>(Arrays.asList(
+      OID_SUBTREE_DELETE_CONTROL,
+      OID_PAGED_RESULTS_CONTROL,
+      OID_MANAGE_DSAIT_CONTROL,
+      OID_SERVER_SIDE_SORT_REQUEST_CONTROL,
+      OID_VLV_REQUEST_CONTROL));
 
   /**
    * Begin a Backend API method that reads the database.
@@ -247,21 +234,16 @@ public class BackendImpl
 
   /** {@inheritDoc} */
   @Override
-  public void configureBackend(Configuration cfg)
-      throws ConfigException
+  public void configureBackend(LocalDBBackendCfg cfg) throws ConfigException
   {
     Reject.ifNull(cfg);
-    Reject.ifFalse(cfg instanceof LocalDBBackendCfg);
 
-    this.cfg = (LocalDBBackendCfg)cfg;
-
-    Set<DN> dnSet = this.cfg.getBaseDN();
-    baseDNs = new DN[dnSet.size()];
-    dnSet.toArray(baseDNs);
+    this.cfg = cfg;
+    baseDNs = this.cfg.getBaseDN().toArray(new DN[0]);
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public void initializeBackend()
       throws ConfigException, InitializationException
   {
@@ -327,7 +309,7 @@ public class BackendImpl
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public void finalizeBackend()
   {
     // Deregister as a change listener.
@@ -382,7 +364,7 @@ public class BackendImpl
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public boolean isLocal()
   {
     return true;
@@ -391,7 +373,7 @@ public class BackendImpl
 
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public boolean isIndexed(AttributeType attributeType, IndexType indexType)
   {
     try
@@ -439,28 +421,28 @@ public class BackendImpl
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public boolean supportsLDIFExport()
   {
     return true;
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public boolean supportsLDIFImport()
   {
     return true;
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public boolean supportsBackup()
   {
     return true;
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public boolean supportsBackup(BackupConfig backupConfig,
                                 StringBuilder unsupportedReason)
   {
@@ -468,35 +450,35 @@ public class BackendImpl
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public boolean supportsRestore()
   {
     return true;
   }
 
   /** {@inheritDoc} */
-  @Override()
-  public HashSet<String> getSupportedFeatures()
+  @Override
+  public Set<String> getSupportedFeatures()
   {
-    return supportedFeatures;
+    return Collections.emptySet();
   }
 
   /** {@inheritDoc} */
-  @Override()
-  public HashSet<String> getSupportedControls()
+  @Override
+  public Set<String> getSupportedControls()
   {
     return supportedControls;
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public DN[] getBaseDNs()
   {
     return baseDNs;
   }
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public long getEntryCount()
   {
     if (rootContainer != null)
@@ -517,7 +499,7 @@ public class BackendImpl
 
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public ConditionResult hasSubordinates(DN entryDN)
          throws DirectoryException
   {
@@ -532,7 +514,7 @@ public class BackendImpl
 
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public long numSubordinates(DN entryDN, boolean subtree)
       throws DirectoryException
   {
@@ -580,7 +562,7 @@ public class BackendImpl
 
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public Entry getEntry(DN entryDN) throws DirectoryException
   {
     readerBegin();
@@ -620,7 +602,7 @@ public class BackendImpl
 
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public void addEntry(Entry entry, AddOperation addOperation)
       throws DirectoryException, CanceledOperationException
   {
@@ -660,7 +642,7 @@ public class BackendImpl
 
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public void deleteEntry(DN entryDN, DeleteOperation deleteOperation)
       throws DirectoryException, CanceledOperationException
   {
@@ -699,7 +681,7 @@ public class BackendImpl
 
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public void replaceEntry(Entry oldEntry, Entry newEntry,
       ModifyOperation modifyOperation) throws DirectoryException,
       CanceledOperationException
@@ -741,7 +723,7 @@ public class BackendImpl
 
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public void renameEntry(DN currentDN, Entry entry,
                           ModifyDNOperation modifyDNOperation)
       throws DirectoryException, CanceledOperationException
@@ -791,7 +773,7 @@ public class BackendImpl
 
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public void search(SearchOperation searchOperation)
       throws DirectoryException, CanceledOperationException
   {
@@ -829,7 +811,7 @@ public class BackendImpl
 
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public void exportLDIF(LDIFExportConfig exportConfig)
       throws DirectoryException
   {
@@ -881,7 +863,7 @@ public class BackendImpl
 
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public LDIFImportResult importLDIF(LDIFImportConfig importConfig)
       throws DirectoryException
   {
@@ -1161,7 +1143,7 @@ public class BackendImpl
 
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public void createBackup(BackupConfig backupConfig)
       throws DirectoryException
   {
@@ -1175,7 +1157,7 @@ public class BackendImpl
 
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public void removeBackup(BackupDirectory backupDirectory, String backupID)
       throws DirectoryException
   {
@@ -1187,7 +1169,7 @@ public class BackendImpl
 
 
   /** {@inheritDoc} */
-  @Override()
+  @Override
   public void restoreBackup(RestoreConfig restoreConfig)
       throws DirectoryException
   {
@@ -1201,11 +1183,10 @@ public class BackendImpl
 
 
   /** {@inheritDoc} */
-  @Override()
-  public boolean isConfigurationAcceptable(Configuration configuration,
+  @Override
+  public boolean isConfigurationAcceptable(LocalDBBackendCfg config,
                                            List<LocalizableMessage> unacceptableReasons)
   {
-    LocalDBBackendCfg config = (LocalDBBackendCfg) configuration;
     return isConfigurationChangeAcceptable(config, unacceptableReasons);
   }
 

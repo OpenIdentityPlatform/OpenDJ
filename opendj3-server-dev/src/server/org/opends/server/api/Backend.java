@@ -25,6 +25,7 @@
  *      Portions Copyright 2014 ForgeRock AS
  */
 package org.opends.server.api;
+
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -34,12 +35,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.opends.server.admin.Configuration;
 import org.forgerock.opendj.config.server.ConfigException;
-import org.opends.server.core.AddOperation;
-import org.opends.server.core.DeleteOperation;
-import org.opends.server.core.DirectoryServer;
-import org.opends.server.core.ModifyOperation;
-import org.opends.server.core.ModifyDNOperation;
-import org.opends.server.core.SearchOperation;
+import org.opends.server.core.*;
 import org.opends.server.monitors.BackendMonitor;
 import org.opends.server.types.AttributeType;
 import org.opends.server.types.BackupConfig;
@@ -59,38 +55,45 @@ import org.opends.server.types.WritabilityMode;
 
 import static org.opends.messages.BackendMessages.*;
 
-
-
 /**
  * This class defines the set of methods and structures that must be
  * implemented for a Directory Server backend.
+ *
+ * @param <C>
+ *          the type of the BackendCfg for the current backend
  */
 @org.opends.server.types.PublicAPI(
      stability=org.opends.server.types.StabilityLevel.VOLATILE,
      mayInstantiate=false,
      mayExtend=true,
      mayInvoke=false)
-public abstract class Backend
+public abstract class Backend<C extends Configuration>
+// should have been BackendCfg instead of Configuration
 {
-  // The backend that holds a portion of the DIT that is
-  // hierarchically above the information in this backend.
-  private Backend parentBackend;
+  /**
+   * The backend that holds a portion of the DIT that is hierarchically above
+   * the information in this backend.
+   */
+  private Backend<?> parentBackend;
 
-  // The set of backends that hold portions of the DIT that are
-  // hierarchically below the information in this backend.
-  private Backend[] subordinateBackends;
+  /**
+   * The set of backends that hold portions of the DIT that are hierarchically
+   * below the information in this backend.
+   */
+  private Backend<?>[] subordinateBackends;
 
-  // The backend monitor associated with this backend.
+  /** The backend monitor associated with this backend. */
   private BackendMonitor backendMonitor;
 
-  // Indicates whether this is a private backend or one that holds
-  // user data.
+  /**
+   * Indicates whether this is a private backend or one that holds user data.
+   */
   private boolean isPrivateBackend;
 
-  // The unique identifier for this backend.
+  /** The unique identifier for this backend. */
   private String backendID;
 
-  // The writability mode for this backend.
+  /** The writability mode for this backend. */
   private WritabilityMode writabilityMode;
 
 
@@ -121,8 +124,7 @@ public abstract class Backend
    * @throws  ConfigException
    *                      If there is an error in the configuration.
    */
-  public abstract void configureBackend(Configuration cfg)
-         throws ConfigException;
+  public abstract void configureBackend(C cfg) throws ConfigException;
 
 
 
@@ -146,7 +148,7 @@ public abstract class Backend
    *          for this backend, or {@code false} if not.
    */
   public boolean isConfigurationAcceptable(
-                      Configuration configuration,
+                      C configuration,
                       List<LocalizableMessage> unacceptableReasons)
   {
     // This default implementation does not perform any special
@@ -327,7 +329,7 @@ public abstract class Backend
             return false;
           }
         }
-        return (! filter.getFilterComponents().isEmpty());
+        return !filter.getFilterComponents().isEmpty();
 
 
       case NOT:
@@ -387,15 +389,7 @@ public abstract class Backend
         {
           matchingRule = attrType.getEqualityMatchingRule();
         }
-
-        if (matchingRule == null)
-        {
-          return false;
-        }
-        else
-        {
-          return isIndexed(attrType, matchingRule);
-        }
+        return matchingRule != null && isIndexed(attrType, matchingRule);
 
 
       default:
@@ -481,7 +475,7 @@ public abstract class Backend
   public boolean entryExists(DN entryDN)
          throws DirectoryException
   {
-    return (getEntry(entryDN) != null);
+    return getEntry(entryDN) != null;
   }
 
 
@@ -639,8 +633,7 @@ public abstract class Backend
   public final boolean supportsControl(String controlOID)
   {
     Set<String> supportedControls = getSupportedControls();
-    return ((supportedControls != null) &&
-            supportedControls.contains(controlOID));
+    return supportedControls != null && supportedControls.contains(controlOID);
   }
 
 
@@ -668,8 +661,7 @@ public abstract class Backend
   public final boolean supportsFeature(String featureOID)
   {
     Set<String> supportedFeatures = getSupportedFeatures();
-    return ((supportedFeatures != null) &&
-            supportedFeatures.contains(featureOID));
+    return supportedFeatures != null && supportedFeatures.contains(featureOID);
   }
 
 
@@ -962,7 +954,7 @@ public abstract class Backend
    * @return  The parent backend for this backend, or {@code null} if
    *          there is none.
    */
-  public final Backend getParentBackend()
+  public final Backend<?> getParentBackend()
   {
     return parentBackend;
   }
@@ -974,7 +966,7 @@ public abstract class Backend
    *
    * @param  parentBackend  The parent backend for this backend.
    */
-  public final void setParentBackend(Backend parentBackend)
+  public final void setParentBackend(Backend<?> parentBackend)
   {
     synchronized (this)
     {
@@ -990,7 +982,7 @@ public abstract class Backend
    * @return  The set of subordinate backends for this backend, or an
    *          empty array if none exist.
    */
-  public final Backend[] getSubordinateBackends()
+  public final Backend<?>[] getSubordinateBackends()
   {
     return subordinateBackends;
   }
@@ -1004,7 +996,7 @@ public abstract class Backend
    *                              this backend.
    */
   public final void setSubordinateBackends(
-                         Backend[] subordinateBackends)
+                         Backend<?>[] subordinateBackends)
   {
     synchronized (this)
     {
@@ -1028,8 +1020,7 @@ public abstract class Backend
    */
   public final boolean hasSubSuffix(DN subSuffixDN)
   {
-    Backend[] subBackends = subordinateBackends;
-    for (Backend b : subBackends)
+    for (Backend<?> b : subordinateBackends)
     {
       for (DN baseDN : b.getBaseDNs())
       {
@@ -1070,9 +1061,9 @@ public abstract class Backend
     synchronized (this)
     {
       boolean matchFound = false;
-      ArrayList<Backend> subBackendList =
-           new ArrayList<Backend>(subordinateBackends.length);
-      for (Backend b : subordinateBackends)
+      ArrayList<Backend<?>> subBackendList =
+           new ArrayList<Backend<?>>(subordinateBackends.length);
+      for (Backend<?> b : subordinateBackends)
       {
         boolean thisMatches = false;
         DN[] subBaseDNs = b.getBaseDNs();
@@ -1107,7 +1098,7 @@ public abstract class Backend
 
       if (matchFound)
       {
-        Backend[] newSubordinateBackends =
+        Backend<?>[] newSubordinateBackends =
              new Backend[subBackendList.size()];
         subBackendList.toArray(newSubordinateBackends);
         subordinateBackends = newSubordinateBackends;
@@ -1125,21 +1116,20 @@ public abstract class Backend
    *                             subordinate backends for this
    *                             backend.
    */
-  public final void addSubordinateBackend(Backend subordinateBackend)
+  public final void addSubordinateBackend(Backend<?> subordinateBackend)
   {
     synchronized (this)
     {
-      LinkedHashSet<Backend> backendSet =
-           new LinkedHashSet<Backend>();
+      LinkedHashSet<Backend<?>> backendSet = new LinkedHashSet<Backend<?>>();
 
-      for (Backend b : subordinateBackends)
+      for (Backend<?> b : subordinateBackends)
       {
         backendSet.add(b);
       }
 
       if (backendSet.add(subordinateBackend))
       {
-        Backend[] newSubordinateBackends =
+        Backend<?>[] newSubordinateBackends =
              new Backend[backendSet.size()];
         backendSet.toArray(newSubordinateBackends);
         subordinateBackends = newSubordinateBackends;
@@ -1158,15 +1148,15 @@ public abstract class Backend
    *                             backend.
    */
   public final void removeSubordinateBackend(
-                         Backend subordinateBackend)
+                         Backend<?> subordinateBackend)
   {
     synchronized (this)
     {
-      ArrayList<Backend> backendList =
-           new ArrayList<Backend>(subordinateBackends.length);
+      ArrayList<Backend<?>> backendList =
+           new ArrayList<Backend<?>>(subordinateBackends.length);
 
       boolean found = false;
-      for (Backend b : subordinateBackends)
+      for (Backend<?> b : subordinateBackends)
       {
         if (b.equals(subordinateBackend))
         {
@@ -1180,7 +1170,7 @@ public abstract class Backend
 
       if (found)
       {
-        Backend[] newSubordinateBackends =
+        Backend<?>[] newSubordinateBackends =
              new Backend[backendList.size()];
         backendList.toArray(newSubordinateBackends);
         subordinateBackends = newSubordinateBackends;
@@ -1202,13 +1192,11 @@ public abstract class Backend
    */
   public final boolean handlesEntry(DN entryDN)
   {
-    DN[] baseDNs = getBaseDNs();
-    for (DN dn : baseDNs)
+    for (DN dn : getBaseDNs())
     {
       if (entryDN.isDescendantOf(dn))
       {
-        Backend[] subBackends = subordinateBackends;
-        for (Backend b : subBackends)
+        for (Backend<?> b : subordinateBackends)
         {
           if (b.handlesEntry(entryDN))
           {
@@ -1244,7 +1232,7 @@ public abstract class Backend
     {
       if (entryDN.isDescendantOf(baseDN))
       {
-        if ((excludeDNs == null) || excludeDNs.isEmpty())
+        if (excludeDNs == null || excludeDNs.isEmpty())
         {
           return true;
         }

@@ -26,8 +26,7 @@
  */
 package org.opends.server.backends;
 
-
-
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -37,8 +36,6 @@ import java.util.Set;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ConditionResult;
-import org.forgerock.util.Reject;
-import org.opends.server.admin.Configuration;
 import org.opends.server.admin.std.server.MemoryBackendCfg;
 import org.opends.server.api.Backend;
 import org.forgerock.opendj.config.server.ConfigException;
@@ -73,8 +70,6 @@ import static org.opends.messages.BackendMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
 
-
-
 /**
  * This class defines a very simple backend that stores its information in
  * memory.  This is primarily intended for testing purposes with small data
@@ -103,28 +98,26 @@ import static org.opends.server.util.StaticUtils.*;
  * entry has any children (which must not be the case for delete operations).
  */
 public class MemoryBackend
-       extends Backend
+       extends Backend<MemoryBackendCfg>
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
-  // The base DNs for this backend.
+  /** The base DNs for this backend. */
   private DN[] baseDNs;
 
-  // The mapping between parent DNs and their immediate children.
+  /** The mapping between parent DNs and their immediate children. */
   private HashMap<DN,HashSet<DN>> childDNs;
 
-  // The base DNs for this backend, in a hash set.
+  /** The base DNs for this backend, in a hash set. */
   private HashSet<DN> baseDNSet;
 
-  // The set of supported controls for this backend.
-  private HashSet<String> supportedControls;
+  /** The set of supported controls for this backend. */
+  private final Set<String> supportedControls =
+      Collections.singleton(OID_SUBTREE_DELETE_CONTROL);
 
-  // The set of supported features for this backend.
-  private HashSet<String> supportedFeatures;
-
-  // The mapping between entry DNs and the corresponding entries.
+  /** The mapping between entry DNs and the corresponding entries. */
   private LinkedHashMap<DN,Entry> entryMap;
 
 
@@ -153,28 +146,21 @@ public class MemoryBackend
     this.baseDNs = baseDNs;
   }
 
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public void configureBackend(Configuration config)
-         throws ConfigException
+  /** {@inheritDoc} */
+  @Override
+  public void configureBackend(MemoryBackendCfg config) throws ConfigException
   {
     if (config != null)
     {
-      Reject.ifFalse(config instanceof MemoryBackendCfg);
-      MemoryBackendCfg cfg = (MemoryBackendCfg)config;
+      MemoryBackendCfg cfg = config;
       DN[] baseDNs = new DN[cfg.getBaseDN().size()];
       cfg.getBaseDN().toArray(baseDNs);
       setBaseDNs(baseDNs);
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public synchronized void initializeBackend()
        throws ConfigException, InitializationException
   {
@@ -182,7 +168,7 @@ public class MemoryBackend
     // implementation.  If we were to add such support in the future, we would
     // likely want to separate the data for each base DN into a separate entry
     // map.
-    if ((baseDNs == null) || (baseDNs.length != 1))
+    if (baseDNs == null || baseDNs.length != 1)
     {
       LocalizableMessage message = ERR_MEMORYBACKEND_REQUIRE_EXACTLY_ONE_BASE.get();
       throw new ConfigException(message);
@@ -196,11 +182,6 @@ public class MemoryBackend
 
     entryMap = new LinkedHashMap<DN,Entry>();
     childDNs = new HashMap<DN,HashSet<DN>>();
-
-    supportedControls = new HashSet<String>();
-    supportedControls.add(OID_SUBTREE_DELETE_CONTROL);
-
-    supportedFeatures = new HashSet<String>();
 
     for (DN dn : baseDNs)
     {
@@ -230,12 +211,8 @@ public class MemoryBackend
     childDNs.clear();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public synchronized void finalizeBackend()
   {
     clearMemoryBackend();
@@ -253,23 +230,15 @@ public class MemoryBackend
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public DN[] getBaseDNs()
   {
     return baseDNs;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public synchronized long getEntryCount()
   {
     if (entryMap != null)
@@ -280,35 +249,23 @@ public class MemoryBackend
     return -1;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean isLocal()
   {
     // For the purposes of this method, this is a local backend.
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean isIndexed(AttributeType attributeType, IndexType indexType)
   {
     // All searches in this backend will always be considered indexed.
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public synchronized ConditionResult hasSubordinates(DN entryDN)
          throws DirectoryException
@@ -321,10 +278,8 @@ public class MemoryBackend
     return ConditionResult.valueOf(ret != 0);
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public synchronized long numSubordinates(DN entryDN, boolean subtree)
          throws DirectoryException
   {
@@ -356,10 +311,8 @@ public class MemoryBackend
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public synchronized Entry getEntry(DN entryDN)
   {
     Entry entry = entryMap.get(entryDN);
@@ -371,23 +324,15 @@ public class MemoryBackend
     return entry;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public synchronized boolean entryExists(DN entryDN)
   {
     return entryMap.containsKey(entryDN);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public synchronized void addEntry(Entry entry, AddOperation addOperation)
          throws DirectoryException
   {
@@ -434,12 +379,8 @@ public class MemoryBackend
     children.add(entryDN);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public synchronized void deleteEntry(DN entryDN,
                                        DeleteOperation deleteOperation)
          throws DirectoryException
@@ -448,19 +389,13 @@ public class MemoryBackend
     if (! entryMap.containsKey(entryDN))
     {
       throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
-          ERR_MEMORYBACKEND_ENTRY_DOESNT_EXIST.get(entryDN));
+          ERR_BACKEND_ENTRY_DOESNT_EXIST.get(entryDN, getBackendID()));
     }
 
 
     // Check to see if the entry contains a subtree delete control.
-    boolean subtreeDelete = false;
-
-    if (deleteOperation != null
-        && deleteOperation
-            .getRequestControl(SubtreeDeleteControl.DECODER) != null)
-    {
-      subtreeDelete = true;
-    }
+    boolean subtreeDelete = deleteOperation != null
+        && deleteOperation.getRequestControl(SubtreeDeleteControl.DECODER) != null;
 
     HashSet<DN> children = childDNs.get(entryDN);
     if (subtreeDelete)
@@ -487,7 +422,7 @@ public class MemoryBackend
     {
       // Make sure the entry doesn't have any children.  If it does, then throw
       // an exception.
-      if ((children != null) && (! children.isEmpty()))
+      if (children != null && !children.isEmpty())
       {
         throw new DirectoryException(ResultCode.NOT_ALLOWED_ON_NONLEAF,
             ERR_MEMORYBACKEND_CANNOT_DELETE_ENTRY_WITH_CHILDREN.get(entryDN));
@@ -515,12 +450,8 @@ public class MemoryBackend
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public synchronized void replaceEntry(Entry oldEntry, Entry newEntry,
       ModifyOperation modifyOperation) throws DirectoryException
   {
@@ -531,7 +462,7 @@ public class MemoryBackend
     if (! entryMap.containsKey(entryDN))
     {
       throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
-          ERR_MEMORYBACKEND_ENTRY_DOESNT_EXIST.get(entryDN));
+          ERR_BACKEND_ENTRY_DOESNT_EXIST.get(entryDN, getBackendID()));
     }
 
 
@@ -539,12 +470,8 @@ public class MemoryBackend
     entryMap.put(entryDN, e);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public synchronized void renameEntry(DN currentDN, Entry entry,
                                        ModifyDNOperation modifyDNOperation)
          throws DirectoryException
@@ -555,7 +482,7 @@ public class MemoryBackend
     if (! entryMap.containsKey(currentDN))
     {
       throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
-          ERR_MEMORYBACKEND_ENTRY_DOESNT_EXIST.get(currentDN));
+          ERR_BACKEND_ENTRY_DOESNT_EXIST.get(currentDN, getBackendID()));
     }
 
 
@@ -603,7 +530,7 @@ public class MemoryBackend
 
     // Make sure that the parent of the new entry exists.
     DN parentDN = e.getName().getParentDNInSuffix();
-    if ((parentDN == null) || (! entryMap.containsKey(parentDN)))
+    if (parentDN == null || !entryMap.containsKey(parentDN))
     {
       throw new DirectoryException(ResultCode.NO_SUCH_OBJECT,
           ERR_MEMORYBACKEND_RENAME_PARENT_DOESNT_EXIST.get(currentDN, parentDN));
@@ -615,12 +542,8 @@ public class MemoryBackend
     addEntry(e, null);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public synchronized void search(SearchOperation searchOperation)
          throws DirectoryException
   {
@@ -632,7 +555,7 @@ public class MemoryBackend
 
     // Make sure the base entry exists if it's supposed to be in this backend.
     Entry baseEntry = entryMap.get(baseDN);
-    if ((baseEntry == null) && handlesEntry(baseDN))
+    if (baseEntry == null && handlesEntry(baseDN))
     {
       DN matchedDN = baseDN.getParentDNInSuffix();
       while (matchedDN != null)
@@ -645,7 +568,8 @@ public class MemoryBackend
         matchedDN = matchedDN.getParentDNInSuffix();
       }
 
-      LocalizableMessage message = ERR_MEMORYBACKEND_ENTRY_DOESNT_EXIST.get(baseDN);
+      LocalizableMessage message =
+          ERR_BACKEND_ENTRY_DOESNT_EXIST.get(baseDN, getBackendID());
       throw new DirectoryException(
               ResultCode.NO_SUCH_OBJECT, message, matchedDN, null);
     }
@@ -679,45 +603,29 @@ public class MemoryBackend
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public HashSet<String> getSupportedControls()
+  /** {@inheritDoc} */
+  @Override
+  public Set<String> getSupportedControls()
   {
     return supportedControls;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public HashSet<String> getSupportedFeatures()
+  /** {@inheritDoc} */
+  @Override
+  public Set<String> getSupportedFeatures()
   {
-    return supportedFeatures;
+    return Collections.emptySet();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean supportsLDIFExport()
   {
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public synchronized void exportLDIF(LDIFExportConfig exportConfig)
          throws DirectoryException
   {
@@ -753,34 +661,19 @@ public class MemoryBackend
     }
     finally
     {
-      try
-      {
-        ldifWriter.close();
-      }
-      catch (Exception e)
-      {
-        logger.traceException(e);
-      }
+      close(ldifWriter);
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean supportsLDIFImport()
   {
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public synchronized LDIFImportResult importLDIF(LDIFImportConfig importConfig)
          throws DirectoryException
   {
@@ -853,37 +746,23 @@ public class MemoryBackend
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean supportsBackup()
   {
-    // This backend does not provide a backup/restore mechanism.
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean supportsBackup(BackupConfig backupConfig,
                                 StringBuilder unsupportedReason)
   {
-    // This backend does not provide a backup/restore mechanism.
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void createBackup(BackupConfig backupConfig)
          throws DirectoryException
   {
@@ -891,12 +770,8 @@ public class MemoryBackend
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void removeBackup(BackupDirectory backupDirectory,
                            String backupID)
          throws DirectoryException
@@ -905,24 +780,15 @@ public class MemoryBackend
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean supportsRestore()
   {
-    // This backend does not provide a backup/restore mechanism.
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void restoreBackup(RestoreConfig restoreConfig)
          throws DirectoryException
   {
@@ -930,11 +796,7 @@ public class MemoryBackend
     throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void preloadEntryCache() throws UnsupportedOperationException {
     throw new UnsupportedOperationException("Operation not supported.");
