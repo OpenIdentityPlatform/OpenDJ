@@ -39,7 +39,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.FutureResultImpl;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchResultHandler;
@@ -80,7 +80,7 @@ import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
 
 import static org.forgerock.opendj.adapter.server3x.Converters.*;
-import static org.forgerock.opendj.ldap.ErrorResultException.*;
+import static org.forgerock.opendj.ldap.LdapException.*;
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.loggers.AccessLogger.*;
 
@@ -419,7 +419,7 @@ final class HTTPClientConnection extends ClientConnection implements
               .getMessageID(), toResponseProtocolOp(operation)));
         }
       }
-      catch (ErrorResultException e)
+      catch (LdapException e)
       {
         op.futureResult.handleError(e);
       }
@@ -755,7 +755,7 @@ final class HTTPClientConnection extends ClientConnection implements
         {
           try
           {
-            op.futureResult.handleError(ErrorResultException.newErrorResult(ResultCode.CANCELLED));
+            op.futureResult.handleError(newErrorResult(ResultCode.CANCELLED));
             op.operation.abort(cancelRequest);
 
             if (keepStats)

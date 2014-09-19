@@ -22,7 +22,7 @@
  !
  ! CDDL HEADER END
  !
- !      Copyright 2011-2013 ForgeRock AS
+ !      Copyright 2011-2014 ForgeRock AS
  ! -->
 <stax>
   <!-- SDK ldapsearch Function -->
@@ -151,15 +151,11 @@
         
             writer.flush()
 
-          except ErrorResultException, e:
+          except LdapException, e:
             System.err.println(e.getMessage())
             System.exit(e.getResult().getResultCode().intValue())
-        
-          except ErrorResultIOException, e:
-            System.err.println(e.getMessage())
-            System.exit(e.getCause().getResult().getResultCode().intValue())
-        
-          except InterruptedException, e:
+
+       	  except InterruptedException, e:
             System.err.println(e.getMessage())
             System.exit(ResultCode.CLIENT_SIDE_USER_CANCELLED.intValue())
         

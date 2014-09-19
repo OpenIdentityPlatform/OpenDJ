@@ -65,7 +65,7 @@ import org.forgerock.opendj.config.client.ldap.LDAPManagementContext;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.AuthorizationException;
 import org.forgerock.opendj.ldap.Connection;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.LDAPOptions;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -1305,7 +1305,7 @@ class StatusCli extends ConsoleApplication
         connection.bind(bindDN, bindPassword.toCharArray());
         break;
       }
-      catch (ErrorResultException e)
+      catch (LdapException e)
       {
         if (ci.isTrustStoreInMemory() && e.getCause() instanceof SSLException
             && e.getCause().getCause() instanceof CertificateException)
