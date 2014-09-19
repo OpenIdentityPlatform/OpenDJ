@@ -25,9 +25,6 @@
  */
 package org.opends.server.protocols.http;
 
-import static org.forgerock.opendj.adapter.server3x.Converters.*;
-import static org.opends.messages.ProtocolMessages.*;
-import static org.opends.server.loggers.AccessLogger.*;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -39,12 +36,14 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import javax.servlet.http.HttpServletRequest;
 
-import org.forgerock.opendj.ldap.ErrorResultException;
-import org.forgerock.opendj.ldap.ResultHandler;
-import org.forgerock.opendj.ldap.SearchResultHandler;
-import org.forgerock.opendj.ldap.responses.Result;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.LocalizableMessageBuilder;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.FutureResultImpl;
+import org.forgerock.opendj.ldap.ResultCode;
+import org.forgerock.opendj.ldap.SearchResultHandler;
+import org.forgerock.opendj.ldap.responses.Result;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.core.AddOperation;
 import org.opends.server.core.BindOperation;
@@ -57,7 +56,6 @@ import org.opends.server.core.ModifyOperation;
 import org.opends.server.core.SearchOperation;
 import org.opends.server.loggers.HTTPAccessLogger;
 import org.opends.server.loggers.HTTPRequestInfo;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.opends.server.protocols.ldap.AddResponseProtocolOp;
 import org.opends.server.protocols.ldap.BindResponseProtocolOp;
 import org.opends.server.protocols.ldap.CompareResponseProtocolOp;
@@ -78,11 +76,13 @@ import org.opends.server.types.DisconnectReason;
 import org.opends.server.types.IntermediateResponse;
 import org.opends.server.types.Operation;
 import org.opends.server.types.OperationType;
-import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.types.SearchResultEntry;
 import org.opends.server.types.SearchResultReference;
 
-import com.forgerock.opendj.util.AsynchronousFutureResult;
+import static org.forgerock.opendj.adapter.server3x.Converters.*;
+import static org.forgerock.opendj.ldap.ErrorResultException.*;
+import static org.opends.messages.ProtocolMessages.*;
+import static org.opends.server.loggers.AccessLogger.*;
 
 /**
  * This class defines an HTTP client connection, which is a type of client
@@ -99,19 +99,15 @@ final class HTTPClientConnection extends ClientConnection implements
 
   /**
    * Class grouping together an {@link Operation} and its associated
-   * {@link AsynchronousFutureResult} to ensure they are both atomically added
+   * {@link PromiseImpl} to ensure they are both atomically added
    * and removed from the {@link HTTPClientConnection#operationsInProgress} Map.
    */
-  private static final class OperationWithFutureResult
+  private static class OperationWithFutureResult
   {
-
     final Operation operation;
-    final AsynchronousFutureResult<Result, ResultHandler<? super Result>>
-            futureResult;
+    final FutureResultImpl<Result> futureResult;
 
-    public OperationWithFutureResult(Operation operation,
-        AsynchronousFutureResult<Result, ResultHandler<? super Result>>
-        futureResult)
+    public OperationWithFutureResult(Operation operation, FutureResultImpl<Result> futureResult)
     {
       this.operation = operation;
       this.futureResult = futureResult;
@@ -121,6 +117,20 @@ final class HTTPClientConnection extends ClientConnection implements
     public String toString()
     {
       return operation.toString();
+    }
+  }
+
+  /** {@inheritDoc} */
+  private static final class SearchOperationWithFutureResult extends OperationWithFutureResult
+  {
+
+    final SearchResultHandler entryHandler;
+
+    public SearchOperationWithFutureResult(Operation operation, FutureResultImpl<Result> future,
+        SearchResultHandler entryHandler)
+    {
+      super(operation, future);
+      this.entryHandler = entryHandler;
     }
   }
 
@@ -183,10 +193,10 @@ final class HTTPClientConnection extends ClientConnection implements
   private boolean useNanoTime = false;
 
   /** Total execution time for this request. */
-  private AtomicLong totalProcessingTime = new AtomicLong();
+  private final AtomicLong totalProcessingTime = new AtomicLong();
 
   /** The protocol in use for this client connection. */
-  private String protocol;
+  private final String protocol;
 
   /** The HTTP method/verb used for this request. */
   private final String method;
@@ -201,37 +211,37 @@ final class HTTPClientConnection extends ClientConnection implements
    * The HTTP status code returned to the client. Using 0 to say no status code
    * was set since it is not .
    */
-  private AtomicInteger statusCode = new AtomicInteger(0);
+  private final AtomicInteger statusCode = new AtomicInteger(0);
 
   /** The client (remote) address. */
-  private String clientAddress;
+  private final String clientAddress;
 
   /** The client (remote) host name. */
   private String clientHost;
 
   /** The client (remote) port. */
-  private int clientPort;
+  private final int clientPort;
 
   /** The remote (client) address. */
-  private InetAddress remoteAddress;
+  private final InetAddress remoteAddress;
 
   /** The server (local) address. */
-  private String serverAddress;
+  private final String serverAddress;
 
   /** The server (local) host name. */
   private String serverHost;
 
   /** The server (local) port. */
-  private int serverPort;
+  private final int serverPort;
 
   /** The local (server) address. */
-  private InetAddress localAddress;
+  private final InetAddress localAddress;
 
   /** Whether this connection is secure. */
-  private boolean isSecure;
+  private final boolean isSecure;
 
   /** Security-Strength Factor extracted from the request attribute. */
-  private int securityStrengthFactor;
+  private final int securityStrengthFactor;
 
   /**
    * Constructs an instance of this class.
@@ -411,7 +421,7 @@ final class HTTPClientConnection extends ClientConnection implements
       }
       catch (ErrorResultException e)
       {
-        op.futureResult.handleErrorResult(e);
+        op.futureResult.handleError(e);
       }
     }
   }
@@ -468,13 +478,11 @@ final class HTTPClientConnection extends ClientConnection implements
   public void sendSearchEntry(SearchOperation operation,
       SearchResultEntry searchEntry) throws DirectoryException
   {
-    OperationWithFutureResult op =
-        this.operationsInProgress.get(operation.getMessageID());
+    SearchOperationWithFutureResult op =
+        (SearchOperationWithFutureResult) this.operationsInProgress.get(operation.getMessageID());
     if (op != null)
     {
-      ((SearchResultHandler) op.futureResult.getResultHandler())
-          .handleEntry(from(searchEntry));
-
+      op.entryHandler.handleEntry(from(searchEntry));
       if (keepStats)
       {
         this.statTracker.updateMessageWritten(new LDAPMessage(operation
@@ -488,20 +496,19 @@ final class HTTPClientConnection extends ClientConnection implements
   public boolean sendSearchReference(SearchOperation operation,
       SearchResultReference searchReference) throws DirectoryException
   {
-    OperationWithFutureResult op =
-        this.operationsInProgress.get(operation.getMessageID());
+    SearchOperationWithFutureResult op =
+        (SearchOperationWithFutureResult) this.operationsInProgress.get(operation.getMessageID());
+
     if (op != null)
     {
-      ((SearchResultHandler) op.futureResult.getResultHandler())
-          .handleReference(from(searchReference));
-
+      op.entryHandler.handleReference(from(searchReference));
       if (keepStats)
       {
-        this.statTracker.updateMessageWritten(new LDAPMessage(operation
-            .getMessageID(), new SearchResultReferenceProtocolOp(
-            searchReference)));
+        this.statTracker.updateMessageWritten(new LDAPMessage(operation.getMessageID(),
+            new SearchResultReferenceProtocolOp(searchReference)));
       }
     }
+
     return connectionValid;
   }
 
@@ -639,32 +646,43 @@ final class HTTPClientConnection extends ClientConnection implements
   }
 
   /**
-   * Adds the passed in operation to the in progress list along with the
-   * associated future.
+   * Adds the passed in search operation to the in progress list along with the
+   * associated future and the {@code SearchResultHandler}.
    *
    * @param operation
    *          the operation to add to the in progress list
    * @param futureResult
-   *          the future associated to the operation.
+   *          the future associated to the operation
+   * @param searchResultHandler
+   *          the search result handler associated to the future result
    * @throws DirectoryException
    *           If an error occurs
    */
-  void addOperationInProgress(Operation operation,
-      AsynchronousFutureResult<Result, ResultHandler<? super Result>>
-          futureResult) throws DirectoryException
+  void addOperationInProgress(Operation operation, FutureResultImpl<Result> futureResult,
+      SearchResultHandler searchResultHandler) throws DirectoryException
+  {
+    if (searchResultHandler != null)
+    {
+      addOperationWithFutureResult(new SearchOperationWithFutureResult(operation, futureResult, searchResultHandler));
+    }
+    else
+    {
+      addOperationWithFutureResult(new OperationWithFutureResult(operation, futureResult));
+    }
+  }
+
+  private void addOperationWithFutureResult(OperationWithFutureResult opFuture) throws DirectoryException
   {
     synchronized (opsInProgressLock)
     {
-      // If we're already in the process of disconnecting the client,
-      // then reject the operation.
+      // If we're already in the process of disconnecting the client, then reject the operation.
       if (disconnectRequested)
       {
         LocalizableMessage message = WARN_CLIENT_DISCONNECT_IN_PROGRESS.get();
         throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
       }
 
-      operationsInProgress.put(operation.getMessageID(),
-          new OperationWithFutureResult(operation, futureResult));
+      operationsInProgress.put(opFuture.operation.getMessageID(), opFuture);
     }
   }
 
@@ -698,8 +716,7 @@ final class HTTPClientConnection extends ClientConnection implements
     OperationWithFutureResult op = operationsInProgress.remove(messageID);
     if (op != null)
     {
-      op.futureResult.handleErrorResult(ErrorResultException
-          .newErrorResult(org.forgerock.opendj.ldap.ResultCode.CANCELLED));
+      op.futureResult.handleError(newErrorResult(ResultCode.CANCELLED));
       return op.operation.cancel(cancelRequest);
     }
     return new CancelResult(ResultCode.NO_SUCH_OPERATION, null);
@@ -738,8 +755,7 @@ final class HTTPClientConnection extends ClientConnection implements
         {
           try
           {
-            op.futureResult.handleErrorResult(ErrorResultException
-               .newErrorResult(org.forgerock.opendj.ldap.ResultCode.CANCELLED));
+            op.futureResult.handleError(ErrorResultException.newErrorResult(ResultCode.CANCELLED));
             op.operation.abort(cancelRequest);
 
             if (keepStats)

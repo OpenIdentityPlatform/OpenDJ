@@ -40,7 +40,6 @@ import javax.servlet.http.HttpServletResponseWrapper;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.json.resource.ResourceException;
-import org.forgerock.opendj.adapter.server3x.Adapters;
 import org.forgerock.opendj.ldap.*;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.requests.BindRequest;
@@ -50,11 +49,17 @@ import org.forgerock.opendj.ldap.responses.BindResult;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 import org.forgerock.opendj.rest2ldap.Rest2LDAP;
 import org.forgerock.opendj.rest2ldap.servlet.Rest2LDAPContextFactory;
+import org.forgerock.util.promise.AsyncFunction;
+import org.forgerock.util.promise.FailureHandler;
+import org.forgerock.util.promise.Promise;
+import org.forgerock.util.promise.SuccessHandler;
 import org.opends.server.admin.std.server.ConnectionHandlerCfg;
 import org.opends.server.schema.SchemaConstants;
 import org.opends.server.types.DisconnectReason;
 import org.opends.server.util.Base64;
 
+import static org.forgerock.opendj.adapter.server3x.Adapters.*;
+import static org.forgerock.util.promise.Promises.*;
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.loggers.AccessLogger.*;
 import static org.opends.server.util.StaticUtils.*;
@@ -86,98 +91,6 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
      * been used.
      */
     private String password;
-  }
-
-  /**
-   * This result handler invokes a bind after a successful search on the user
-   * name used for authentication.
-   */
-  private final class DoBindResultHandler implements
-      ResultHandler<SearchResultEntry>
-  {
-    private HTTPRequestContext ctx;
-
-    private DoBindResultHandler(HTTPRequestContext ctx)
-    {
-      this.ctx = ctx;
-    }
-
-    @Override
-    public void handleErrorResult(ErrorResultException error)
-    {
-      final ResultCode rc = error.getResult().getResultCode();
-      if (ResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED.equals(rc)
-          || ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED.equals(rc))
-      {
-        // Avoid information leak:
-        // do not hint to the user that it is the username that is invalid
-        sendAuthenticationFailure(ctx);
-      }
-      else
-      {
-        onFailure(error, ctx);
-      }
-    }
-
-    @Override
-    public void handleResult(SearchResultEntry resultEntry)
-    {
-      final DN bindDN = resultEntry.getName();
-      if (bindDN == null)
-      {
-        sendAuthenticationFailure(ctx);
-      }
-      else
-      {
-        final BindRequest bindRequest =
-            Requests.newSimpleBindRequest(bindDN.toString(), ctx.password
-                .getBytes(Charset.forName("UTF-8")));
-        // We are done with the password at this stage,
-        // wipe it from memory for security reasons
-        ctx.password = null;
-        ctx.connection.bindAsync(bindRequest, null,
-            new CallDoFilterResultHandler(ctx));
-      }
-    }
-
-  }
-
-  /**
-   * This result handler calls {@link javax.servlet.Filter#doFilter()} after a
-   * successful bind.
-   */
-  private final class CallDoFilterResultHandler implements
-      ResultHandler<BindResult>
-  {
-
-    private final HTTPRequestContext ctx;
-
-    private CallDoFilterResultHandler(HTTPRequestContext ctx)
-    {
-      this.ctx = ctx;
-    }
-
-    @Override
-    public void handleErrorResult(ErrorResultException error)
-    {
-      onFailure(error, ctx);
-    }
-
-    @Override
-    public void handleResult(BindResult result)
-    {
-      ctx.clientConnection.setAuthUser(ctx.userName);
-
-      try
-      {
-        doFilter(ctx);
-      }
-      catch (Exception e)
-      {
-        onFailure(e, ctx);
-      }
-    }
-
   }
 
   /** HTTP Header sent by the client with HTTP basic authentication. */
@@ -281,11 +194,64 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
       {
         ctx.userName = userPassword[0];
         ctx.password = userPassword[1];
-
         ctx.asyncContext = getAsyncContext(request);
 
-        Adapters.newRootConnection().searchSingleEntryAsync(
-            buildSearchRequest(ctx.userName), new DoBindResultHandler(ctx));
+        newRootConnection().searchSingleEntryAsync(buildSearchRequest(ctx.userName)).thenAsync(
+            new AsyncFunction<SearchResultEntry, BindResult, ErrorResultException>() {
+              @Override
+              public Promise<BindResult, ErrorResultException> apply(SearchResultEntry resultEntry)
+                  throws ErrorResultException
+              {
+                final DN bindDN = resultEntry.getName();
+                if (bindDN == null)
+                {
+                  sendAuthenticationFailure(ctx);
+                  return newFailedPromise(ErrorResultException.newErrorResult(ResultCode.CANCELLED));
+                }
+                else
+                {
+                  final BindRequest bindRequest =
+                      Requests.newSimpleBindRequest(bindDN.toString(), ctx.password.getBytes(Charset.forName("UTF-8")));
+                  // We are done with the password at this stage,
+                  // wipe it from memory for security reasons
+                  ctx.password = null;
+                  return ctx.connection.bindAsync(bindRequest);
+                }
+              }
+
+            }
+        ).onSuccess(new SuccessHandler<BindResult>() {
+          @Override
+          public void handleResult(BindResult result)
+          {
+            ctx.clientConnection.setAuthUser(ctx.userName);
+            try
+            {
+              doFilter(ctx);
+            }
+            catch (Exception e)
+            {
+              onFailure(e, ctx);
+            }
+          }
+        }).onFailure(new FailureHandler<ErrorResultException>(){
+          @Override
+          public void handleError(ErrorResultException error)
+          {
+            final ResultCode rc = error.getResult().getResultCode();
+            if (ResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED.equals(rc)
+                || ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED.equals(rc))
+            {
+              // Avoid information leak:
+              // do not hint to the user that it is the username that is invalid
+              sendAuthenticationFailure(ctx);
+            }
+            else
+            {
+              onFailure(error, ctx);
+            }
+          }
+        });
       }
       else if (this.connectionHandler.acceptUnauthenticatedRequests())
       {
