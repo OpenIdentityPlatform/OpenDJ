@@ -40,12 +40,13 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.cert.Certificate;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Random;
 import java.util.SortedSet;
+import java.util.Set;
 
 import javax.naming.ldap.Rdn;
 import javax.net.ssl.KeyManager;
@@ -59,7 +60,6 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.forgerock.util.Reject;
-import org.opends.server.admin.Configuration;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.TrustStoreBackendCfg;
 import org.opends.server.api.Backend;
@@ -85,42 +85,35 @@ import static org.opends.server.util.StaticUtils.*;
  * This class defines a backend used to provide an LDAP view of public keys
  * stored in a key store.
  */
-public class TrustStoreBackend
-     extends Backend
+public class TrustStoreBackend extends Backend<TrustStoreBackendCfg>
        implements ConfigurationChangeListener<TrustStoreBackendCfg>
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
-  // The current configuration state.
+  /** The current configuration state. */
   private TrustStoreBackendCfg configuration;
 
-  // The DN for the base entry.
+  /** The DN for the base entry. */
   private DN baseDN;
 
-  // The set of base DNs for this backend.
+  /** The set of base DNs for this backend. */
   private DN[] baseDNs;
 
-  // The base entry.
+  /** The base entry. */
   private Entry baseEntry;
 
-  // The set of supported controls for this backend.
-  private HashSet<String> supportedControls;
-
-  // The set of supported features for this backend.
-  private HashSet<String> supportedFeatures;
-
-  // The PIN needed to access the trust store backing file.
+  /** The PIN needed to access the trust store backing file. */
   private char[] trustStorePIN;
 
-  // The path to the trust store backing file.
+  /** The path to the trust store backing file. */
   private String trustStoreFile;
 
-  // The type of trust store backing file to use.
+  /** The type of trust store backing file to use. */
   private String trustStoreType;
 
-  // The certificate manager for the trust store.
+  /** The certificate manager for the trust store. */
   private CertificateManager certificateManager;
 
 
@@ -137,26 +130,16 @@ public class TrustStoreBackend
     // Perform all initialization in initializeBackend.
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public void configureBackend(Configuration config) throws ConfigException
+  /** {@inheritDoc} */
+  @Override
+  public void configureBackend(TrustStoreBackendCfg config) throws ConfigException
   {
     Reject.ifNull(config);
-    Reject.ifFalse(config instanceof TrustStoreBackendCfg);
-
-    configuration = (TrustStoreBackendCfg)config;
+    configuration = config;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void initializeBackend()
          throws ConfigException, InitializationException
   {
@@ -264,12 +247,7 @@ public class TrustStoreBackend
             }
             finally
             {
-              try
-              {
-                br.close();
-              } catch (Exception e) {
-                // ignore
-              }
+              close(br);
             }
 
             if (pinStr == null)
@@ -348,11 +326,6 @@ public class TrustStoreBackend
                                 opAttrs);
 
 
-    // Define empty sets for the supported controls and features.
-    supportedControls = new HashSet<String>(0);
-    supportedFeatures = new HashSet<String>(0);
-
-
     // Register this as a change listener.
     configuration.addTrustStoreChangeListener(this);
 
@@ -369,12 +342,8 @@ public class TrustStoreBackend
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void finalizeBackend()
   {
     configuration.addTrustStoreChangeListener(this);
@@ -389,23 +358,15 @@ public class TrustStoreBackend
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public DN[] getBaseDNs()
   {
     return baseDNs;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public long getEntryCount()
   {
     int numEntries = 1;
@@ -426,45 +387,31 @@ public class TrustStoreBackend
     return numEntries;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean isLocal()
   {
     // For the purposes of this method, this is a local backend.
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean isIndexed(AttributeType attributeType, IndexType indexType)
   {
     // All searches in this backend will always be considered indexed.
     return true;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public Entry getEntry(DN entryDN)
-         throws DirectoryException
+  /** {@inheritDoc} */
+  @Override
+  public Entry getEntry(DN entryDN) throws DirectoryException
   {
     // If the requested entry was null, then throw an exception.
     if (entryDN == null)
     {
-      LocalizableMessage message = ERR_TRUSTSTORE_GET_ENTRY_NULL.get();
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message);
+          ERR_BACKEND_GET_ENTRY_NULL.get(getBackendID()));
     }
 
 
@@ -478,11 +425,7 @@ public class TrustStoreBackend
     // See if the requested entry was one level below the backend base entry.
     // If so, then it must point to a trust store entry.
     DN parentDN = entryDN.getParentDNInSuffix();
-    if (parentDN == null)
-    {
-      return null;
-    }
-    else if (parentDN.equals(baseDN))
+    if (parentDN != null && parentDN.equals(baseDN))
     {
       try
       {
@@ -490,13 +433,10 @@ public class TrustStoreBackend
       }
       catch (DirectoryException e)
       {
-        return null;
+        logger.traceException(e);
       }
     }
-    else
-    {
-      return null;
-    }
+    return null;
   }
 
 
@@ -582,12 +522,8 @@ public class TrustStoreBackend
     return e;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void addEntry(Entry entry, AddOperation addOperation)
          throws DirectoryException
   {
@@ -617,12 +553,8 @@ public class TrustStoreBackend
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void deleteEntry(DN entryDN, DeleteOperation deleteOperation)
          throws DirectoryException
   {
@@ -642,39 +574,27 @@ public class TrustStoreBackend
     deleteCertificate(entryDN);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void replaceEntry(Entry oldEntry, Entry newEntry,
       ModifyOperation modifyOperation) throws DirectoryException
   {
-    LocalizableMessage message = ERR_TRUSTSTORE_MODIFY_NOT_SUPPORTED.get();
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+        ERR_BACKEND_MODIFY_NOT_SUPPORTED.get(oldEntry.getName(), getBackendID()));
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void renameEntry(DN currentDN, Entry entry,
                           ModifyDNOperation modifyDNOperation)
          throws DirectoryException
   {
-    LocalizableMessage message = ERR_TRUSTSTORE_MODIFY_DN_NOT_SUPPORTED.get();
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+        ERR_BACKEND_MODIFY_DN_NOT_SUPPORTED.get(currentDN, getBackendID()));
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void search(SearchOperation searchOperation)
          throws DirectoryException
   {
@@ -690,13 +610,10 @@ public class TrustStoreBackend
     SearchFilter filter = searchOperation.getFilter();
     if (this.baseDN.equals(baseDN))
     {
-      if ((scope == SearchScope.BASE_OBJECT) ||
-          (scope == SearchScope.WHOLE_SUBTREE))
+      if ((scope == SearchScope.BASE_OBJECT || scope == SearchScope.WHOLE_SUBTREE)
+          && filter.matchesEntry(baseEntry))
       {
-        if (filter.matchesEntry(baseEntry))
-        {
-          searchOperation.returnEntry(baseEntry, null);
-        }
+        searchOperation.returnEntry(baseEntry, null);
       }
 
       String[] aliases = null;
@@ -714,7 +631,7 @@ public class TrustStoreBackend
         aliases = new String[0];
       }
 
-      if ((scope != SearchScope.BASE_OBJECT) && (! (aliases.length == 0) ))
+      if (scope != SearchScope.BASE_OBJECT && aliases.length != 0)
       {
         AttributeType certAliasType =
              DirectoryServer.getAttributeType(ATTR_CRYPTO_KEY_ID, true);
@@ -745,13 +662,10 @@ public class TrustStoreBackend
     {
       Entry certEntry = getCertEntry(baseDN);
 
-      if ((scope == SearchScope.BASE_OBJECT) ||
-          (scope == SearchScope.WHOLE_SUBTREE))
+      if ((scope == SearchScope.BASE_OBJECT || scope == SearchScope.WHOLE_SUBTREE)
+          && filter.matchesEntry(certEntry))
       {
-        if (filter.matchesEntry(certEntry))
-        {
-          searchOperation.returnEntry(certEntry, null);
-        }
+        searchOperation.returnEntry(certEntry, null);
       }
     }
     else
@@ -761,165 +675,104 @@ public class TrustStoreBackend
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public HashSet<String> getSupportedControls()
+  /** {@inheritDoc} */
+  @Override
+  public Set<String> getSupportedControls()
   {
-    return supportedControls;
+    return Collections.emptySet();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public HashSet<String> getSupportedFeatures()
+  /** {@inheritDoc} */
+  @Override
+  public Set<String> getSupportedFeatures()
   {
-    return supportedFeatures;
+    return Collections.emptySet();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean supportsLDIFExport()
   {
-    // We do not support LDIF exports.
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void exportLDIF(LDIFExportConfig exportConfig)
          throws DirectoryException
   {
-    LocalizableMessage message = ERR_TRUSTSTORE_IMPORT_AND_EXPORT_NOT_SUPPORTED.get();
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+        ERR_BACKEND_IMPORT_AND_EXPORT_NOT_SUPPORTED.get(getBackendID()));
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean supportsLDIFImport()
   {
-    // This backend does not support LDIF imports.
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public LDIFImportResult importLDIF(LDIFImportConfig importConfig)
          throws DirectoryException
   {
-    // This backend does not support LDIF imports.
-    LocalizableMessage message = ERR_TRUSTSTORE_IMPORT_AND_EXPORT_NOT_SUPPORTED.get();
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+        ERR_BACKEND_IMPORT_AND_EXPORT_NOT_SUPPORTED.get(getBackendID()));
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean supportsBackup()
   {
-    // This backend does not provide a backup/restore mechanism.
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean supportsBackup(BackupConfig backupConfig,
                                 StringBuilder unsupportedReason)
   {
-    // This backend does not provide a backup/restore mechanism.
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void createBackup(BackupConfig backupConfig)
        throws DirectoryException
   {
-    // This backend does not provide a backup/restore mechanism.
-    LocalizableMessage message = ERR_TRUSTSTORE_BACKUP_AND_RESTORE_NOT_SUPPORTED.get();
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+        ERR_BACKEND_BACKUP_AND_RESTORE_NOT_SUPPORTED.get(getBackendID()));
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void removeBackup(BackupDirectory backupDirectory,
                            String backupID)
          throws DirectoryException
   {
-    // This backend does not provide a backup/restore mechanism.
-    LocalizableMessage message = ERR_TRUSTSTORE_BACKUP_AND_RESTORE_NOT_SUPPORTED.get();
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+        ERR_BACKEND_BACKUP_AND_RESTORE_NOT_SUPPORTED.get(getBackendID()));
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean supportsRestore()
   {
-    // This backend does not provide a backup/restore mechanism.
     return false;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void restoreBackup(RestoreConfig restoreConfig)
          throws DirectoryException
   {
-    // This backend does not provide a backup/restore mechanism.
-    LocalizableMessage message = ERR_TRUSTSTORE_BACKUP_AND_RESTORE_NOT_SUPPORTED.get();
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+        ERR_BACKEND_BACKUP_AND_RESTORE_NOT_SUPPORTED.get(getBackendID()));
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public ConditionResult hasSubordinates(DN entryDN)
       throws DirectoryException
   {
@@ -927,12 +780,8 @@ public class TrustStoreBackend
         ERR_HAS_SUBORDINATES_NOT_SUPPORTED.get());
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public long numSubordinates(DN entryDN, boolean subtree)
       throws DirectoryException
   {
@@ -940,11 +789,7 @@ public class TrustStoreBackend
         ERR_NUM_SUBORDINATES_NOT_SUPPORTED.get());
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
        TrustStoreBackendCfg configuration, List<LocalizableMessage> unacceptableReasons)
@@ -995,26 +840,20 @@ public class TrustStoreBackend
     // If there is a PIN property, then make sure the corresponding
     // property is set.
     String pinProp = configuration.getTrustStorePinProperty();
-    if (pinProp != null)
+    if (pinProp != null && System.getProperty(pinProp) == null)
     {
-      if (System.getProperty(pinProp) == null)
-      {
-        unacceptableReasons.add(ERR_TRUSTSTORE_PIN_PROPERTY_NOT_SET.get(pinProp, cfgEntryDN));
-        configAcceptable = false;
-      }
+      unacceptableReasons.add(ERR_TRUSTSTORE_PIN_PROPERTY_NOT_SET.get(pinProp, cfgEntryDN));
+      configAcceptable = false;
     }
 
 
     // If there is a PIN environment variable, then make sure the corresponding
     // environment variable is set.
     String pinEnVar = configuration.getTrustStorePinEnvironmentVariable();
-    if (pinEnVar != null)
+    if (pinEnVar != null && System.getenv(pinEnVar) == null)
     {
-      if (System.getenv(pinEnVar) == null)
-      {
-        unacceptableReasons.add(ERR_TRUSTSTORE_PIN_ENVAR_NOT_SET.get(pinEnVar, cfgEntryDN));
-        configAcceptable = false;
-      }
+      unacceptableReasons.add(ERR_TRUSTSTORE_PIN_ENVAR_NOT_SET.get(pinEnVar, cfgEntryDN));
+      configAcceptable = false;
     }
 
 
@@ -1041,12 +880,7 @@ public class TrustStoreBackend
         }
         finally
         {
-          try
-          {
-            br.close();
-          } catch (Exception e) {
-            // ignore
-          }
+          close(br);
         }
 
         if (pinStr == null)
@@ -1061,11 +895,7 @@ public class TrustStoreBackend
     return configAcceptable;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(TrustStoreBackendCfg cfg)
   {
@@ -1173,12 +1003,7 @@ public class TrustStoreBackend
             }
             finally
             {
-              try
-              {
-                br.close();
-              } catch (Exception e) {
-                // ignore
-              }
+              close(br);
             }
 
             if (pinStr == null)
@@ -1356,14 +1181,7 @@ public class TrustStoreBackend
       TrustManagerFactory trustManagerFactory =
            TrustManagerFactory.getInstance(trustManagerAlgorithm);
       trustManagerFactory.init(trustStore);
-      TrustManager[] trustManagers = trustManagerFactory.getTrustManagers();
-//    TrustManager[] newTrustManagers = new TrustManager[trustManagers.length];
-//    for (int i=0; i < trustManagers.length; i++)
-//    {
-//      newTrustManagers[i] = new ExpirationCheckTrustManager(
-//                                     (X509TrustManager) trustManagers[i]);
-//    }
-      return trustManagers;
+      return trustManagerFactory.getTrustManagers();
     }
     catch (Exception e)
     {
@@ -1645,7 +1463,7 @@ public class TrustStoreBackend
       d = next % 10;
       if (d < 0)
       {
-        d = d * (-1);
+        d = d * -1;
       }
       generatedChar = (char) (d+48);
       break;
@@ -1654,16 +1472,16 @@ public class TrustStoreBackend
       d = next % 26;
       if (d < 0)
       {
-        d = d * (-1);
+        d = d * -1;
       }
       generatedChar =  (char) (d + 97);
       break;
     default:
       // Will return a capital letter
-      d = (next % 26);
+      d = next % 26;
       if (d < 0)
       {
-        d = d * (-1);
+        d = d * -1;
       }
       generatedChar = (char) (d + 65) ;
     }
@@ -1673,7 +1491,7 @@ public class TrustStoreBackend
 
   private static int getRandomInt(Random random,int modulo)
   {
-    return (random.nextInt() & modulo);
+    return random.nextInt() & modulo;
   }
 
   /**
@@ -1748,11 +1566,7 @@ public class TrustStoreBackend
 
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void preloadEntryCache() throws UnsupportedOperationException {
     throw new UnsupportedOperationException("Operation not supported.");

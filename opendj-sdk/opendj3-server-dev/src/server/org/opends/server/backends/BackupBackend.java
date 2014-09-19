@@ -36,8 +36,6 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConditionResult;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
-import org.forgerock.util.Reject;
-import org.opends.server.admin.Configuration;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.server.BackupBackendCfg;
 import org.opends.server.api.Backend;
@@ -65,32 +63,26 @@ import static org.opends.server.util.StaticUtils.*;
  * unknown backup directory is included in the base DN.
  */
 public class BackupBackend
-       extends Backend
+       extends Backend<BackupBackendCfg>
        implements ConfigurationChangeListener<BackupBackendCfg>
 {
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
 
 
-  // The current configuration state.
+  /** The current configuration state. */
   private BackupBackendCfg currentConfig;
 
-  // The DN for the base backup entry.
+  /** The DN for the base backup entry. */
   private DN backupBaseDN;
 
-  // The set of base DNs for this backend.
+  /** The set of base DNs for this backend. */
   private DN[] baseDNs;
 
-  // The backup base entry.
+  /** The backup base entry. */
   private Entry backupBaseEntry;
 
-  // The set of supported controls for this backend.
-  private HashSet<String> supportedControls;
-
-  // The set of supported features for this backend.
-  private HashSet<String> supportedFeatures;
-
-  // The set of predefined backup directories that we will use.
+  /** The set of predefined backup directories that we will use. */
   private LinkedHashSet<File> backupDirectories;
 
 
@@ -109,32 +101,23 @@ public class BackupBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public void configureBackend(Configuration config) throws ConfigException
+  /** {@inheritDoc} */
+  @Override
+  public void configureBackend(BackupBackendCfg config) throws ConfigException
   {
     // Make sure that a configuration entry was provided.  If not, then we will
     // not be able to complete initialization.
     if (config == null)
     {
-      LocalizableMessage message = ERR_BACKUP_CONFIG_ENTRY_NULL.get();
-      throw new ConfigException(message);
+      throw new ConfigException(ERR_BACKEND_CONFIG_ENTRY_NULL.get(getBackendID()));
     }
-
-
-    Reject.ifFalse(config instanceof BackupBackendCfg);
-
-    currentConfig = (BackupBackendCfg)config;
+    currentConfig = config;
   }
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void initializeBackend()
          throws ConfigException, InitializationException
   {
@@ -149,7 +132,7 @@ public class BackupBackend
       logger.traceException(e);
 
       LocalizableMessage message =
-          ERR_BACKUP_CANNOT_DECODE_BACKUP_ROOT_DN.get(getExceptionMessage(e));
+          ERR_BACKEND_CANNOT_DECODE_BACKEND_ROOT_DN.get(getExceptionMessage(e), getBackendID());
       throw new InitializationException(message, e);
     }
 
@@ -195,15 +178,7 @@ public class BackupBackend
     backupBaseEntry = new Entry(backupBaseDN, objectClasses, userAttrs,
                                 opAttrs);
 
-
-    // Define an empty sets for the supported controls and features.
-    supportedControls = new HashSet<String>(0);
-    supportedFeatures = new HashSet<String>(0);
-
-
-    // Register this as a change listener.
     currentConfig.addBackupChangeListener(this);
-
 
     // Register the backup base as a private suffix.
     try
@@ -222,10 +197,8 @@ public class BackupBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void finalizeBackend()
   {
     currentConfig.removeBackupChangeListener(this);
@@ -242,10 +215,8 @@ public class BackupBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public DN[] getBaseDNs()
   {
     return baseDNs;
@@ -253,10 +224,8 @@ public class BackupBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public long getEntryCount()
   {
     int numEntries = 1;
@@ -288,10 +257,8 @@ public class BackupBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean isLocal()
   {
     // For the purposes of this method, this is a local backend.
@@ -300,10 +267,8 @@ public class BackupBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean isIndexed(AttributeType attributeType, IndexType indexType)
   {
     // All searches in this backend will always be considered indexed.
@@ -312,10 +277,8 @@ public class BackupBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public ConditionResult hasSubordinates(DN entryDN) throws DirectoryException
   {
     long ret = numSubordinates(entryDN, false);
@@ -328,10 +291,8 @@ public class BackupBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public long numSubordinates(DN entryDN, boolean subtree)
       throws DirectoryException
   {
@@ -394,7 +355,7 @@ public class BackupBackend
       AttributeType t =
           DirectoryServer.getAttributeType(ATTR_BACKUP_DIRECTORY_PATH, true);
       List<Attribute> attrList = backupDirEntry.getAttribute(t);
-      if ((attrList != null) && (! attrList.isEmpty()))
+      if (attrList != null && !attrList.isEmpty())
       {
         for (ByteString v : attrList.get(0))
         {
@@ -424,19 +385,16 @@ public class BackupBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public Entry getEntry(DN entryDN)
          throws DirectoryException
   {
     // If the requested entry was null, then throw an exception.
     if (entryDN == null)
     {
-      LocalizableMessage message = ERR_BACKUP_GET_ENTRY_NULL.get();
       throw new DirectoryException(DirectoryServer.getServerErrorResultCode(),
-                                   message);
+          ERR_BACKEND_GET_ENTRY_NULL.get(getBackendID()));
     }
 
 
@@ -676,7 +634,7 @@ public class BackupBackend
     userAttrs.put(t, attrList);
 
     HashSet<String> dependencies = backupInfo.getDependencies();
-    if ((dependencies != null) && (!dependencies.isEmpty())) {
+    if (dependencies != null && !dependencies.isEmpty()) {
       t = DirectoryServer.getAttributeType(ATTR_BACKUP_DEPENDENCY, true);
       AttributeBuilder builder = new AttributeBuilder(t);
       for (String s : dependencies) {
@@ -704,7 +662,7 @@ public class BackupBackend
     }
 
     HashMap<String, String> properties = backupInfo.getBackupProperties();
-    if ((properties != null) && (!properties.isEmpty())) {
+    if (properties != null && !properties.isEmpty()) {
       for (Map.Entry<String, String> e : properties.entrySet()) {
         t = DirectoryServer.getAttributeType(toLowerCase(e.getKey()), true);
         attrList = new ArrayList<Attribute>(1);
@@ -720,63 +678,53 @@ public class BackupBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void addEntry(Entry entry, AddOperation addOperation)
          throws DirectoryException
   {
-    LocalizableMessage message = ERR_BACKUP_ADD_NOT_SUPPORTED.get();
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+        ERR_BACKEND_ADD_NOT_SUPPORTED.get(entry.getName(), getBackendID()));
   }
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void deleteEntry(DN entryDN, DeleteOperation deleteOperation)
          throws DirectoryException
   {
-    LocalizableMessage message = ERR_BACKUP_DELETE_NOT_SUPPORTED.get();
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+        ERR_BACKEND_DELETE_NOT_SUPPORTED.get(entryDN, getBackendID()));
   }
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void replaceEntry(Entry oldEntry, Entry newEntry,
       ModifyOperation modifyOperation) throws DirectoryException
   {
-    LocalizableMessage message = ERR_BACKUP_MODIFY_NOT_SUPPORTED.get();
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+        ERR_BACKEND_MODIFY_NOT_SUPPORTED.get(oldEntry.getName(), getBackendID()));
   }
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void renameEntry(DN currentDN, Entry entry,
                                    ModifyDNOperation modifyDNOperation)
          throws DirectoryException
   {
-    LocalizableMessage message = ERR_BACKUP_MODIFY_DN_NOT_SUPPORTED.get();
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+        ERR_BACKEND_MODIFY_DN_NOT_SUPPORTED.get(currentDN, getBackendID()));
   }
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void search(SearchOperation searchOperation)
          throws DirectoryException
   {
@@ -793,16 +741,13 @@ public class BackupBackend
     SearchFilter filter = searchOperation.getFilter();
     if (backupBaseDN.equals(baseDN))
     {
-      if ((scope == SearchScope.BASE_OBJECT) ||
-          (scope == SearchScope.WHOLE_SUBTREE))
+      if ((scope == SearchScope.BASE_OBJECT || scope == SearchScope.WHOLE_SUBTREE)
+          && filter.matchesEntry(baseEntry))
       {
-        if (filter.matchesEntry(baseEntry))
-        {
-          searchOperation.returnEntry(baseEntry, null);
-        }
+        searchOperation.returnEntry(baseEntry, null);
       }
 
-      if ((scope != SearchScope.BASE_OBJECT) && (! backupDirectories.isEmpty()))
+      if (scope != SearchScope.BASE_OBJECT && !backupDirectories.isEmpty())
       {
         AttributeType backupPathType =
              DirectoryServer.getAttributeType(ATTR_BACKUP_DIRECTORY_PATH, true);
@@ -841,7 +786,7 @@ public class BackupBackend
           {
             List<Attribute> attrList =
                  backupDirEntry.getAttribute(backupPathType);
-            if ((attrList != null) && (! attrList.isEmpty()))
+            if (attrList != null && !attrList.isEmpty())
             {
               for (ByteString v : attrList.get(0))
               {
@@ -879,13 +824,10 @@ public class BackupBackend
     {
       Entry backupDirEntry = getBackupDirectoryEntry(baseDN);
 
-      if ((scope == SearchScope.BASE_OBJECT) ||
-          (scope == SearchScope.WHOLE_SUBTREE))
+      if ((scope == SearchScope.BASE_OBJECT || scope == SearchScope.WHOLE_SUBTREE)
+          && filter.matchesEntry(backupDirEntry))
       {
-        if (filter.matchesEntry(backupDirEntry))
-        {
-          searchOperation.returnEntry(backupDirEntry, null);
-        }
+        searchOperation.returnEntry(backupDirEntry, null);
       }
 
 
@@ -894,7 +836,7 @@ public class BackupBackend
         AttributeType t =
              DirectoryServer.getAttributeType(ATTR_BACKUP_DIRECTORY_PATH, true);
         List<Attribute> attrList = backupDirEntry.getAttribute(t);
-        if ((attrList != null) && (! attrList.isEmpty()))
+        if (attrList != null && !attrList.isEmpty())
         {
           for (ByteString v : attrList.get(0))
           {
@@ -928,15 +870,15 @@ public class BackupBackend
     }
     else
     {
-      if ((parentDN == null)
-          || (! backupBaseDN.equals(parentDN.getParentDNInSuffix())))
+      if (parentDN == null
+          || !backupBaseDN.equals(parentDN.getParentDNInSuffix()))
       {
         LocalizableMessage message = ERR_BACKUP_NO_SUCH_ENTRY.get(backupBaseDN);
         throw new DirectoryException(ResultCode.NO_SUCH_OBJECT, message);
       }
 
-      if ((scope == SearchScope.BASE_OBJECT) ||
-          (scope == SearchScope.WHOLE_SUBTREE))
+      if (scope == SearchScope.BASE_OBJECT ||
+          scope == SearchScope.WHOLE_SUBTREE)
       {
         Entry backupEntry = getBackupEntry(baseDN);
         if (backupEntry == null)
@@ -955,32 +897,22 @@ public class BackupBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public HashSet<String> getSupportedControls()
+  /** {@inheritDoc} */
+  @Override
+  public Set<String> getSupportedControls()
   {
-    return supportedControls;
+    return Collections.emptySet();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
-  public HashSet<String> getSupportedFeatures()
+  /** {@inheritDoc} */
+  @Override
+  public Set<String> getSupportedFeatures()
   {
-    return supportedFeatures;
+    return Collections.emptySet();
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean supportsLDIFExport()
   {
     // We do not support LDIF exports.
@@ -989,128 +921,100 @@ public class BackupBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void exportLDIF(LDIFExportConfig exportConfig)
          throws DirectoryException
   {
-    LocalizableMessage message = ERR_BACKUP_EXPORT_NOT_SUPPORTED.get();
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+        ERR_BACKEND_IMPORT_AND_EXPORT_NOT_SUPPORTED.get(getBackendID()));
   }
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean supportsLDIFImport()
   {
-    // This backend does not support LDIF imports.
     return false;
   }
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public LDIFImportResult importLDIF(LDIFImportConfig importConfig)
          throws DirectoryException
   {
-    // This backend does not support LDIF imports.
-    LocalizableMessage message = ERR_BACKUP_IMPORT_NOT_SUPPORTED.get();
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+        ERR_BACKEND_IMPORT_AND_EXPORT_NOT_SUPPORTED.get(getBackendID()));
   }
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean supportsBackup()
   {
-    // This backend does not provide a backup/restore mechanism.
     return false;
   }
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean supportsBackup(BackupConfig backupConfig,
                                 StringBuilder unsupportedReason)
   {
-    // This backend does not provide a backup/restore mechanism.
     return false;
   }
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void createBackup(BackupConfig backupConfig)
   throws DirectoryException
   {
-    // This backend does not provide a backup/restore mechanism.
-    LocalizableMessage message = ERR_BACKUP_BACKUP_AND_RESTORE_NOT_SUPPORTED.get();
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+        ERR_BACKEND_BACKUP_AND_RESTORE_NOT_SUPPORTED.get(getBackendID()));
   }
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void removeBackup(BackupDirectory backupDirectory,
                            String backupID)
          throws DirectoryException
   {
-    // This backend does not provide a backup/restore mechanism.
-    LocalizableMessage message = ERR_BACKUP_BACKUP_AND_RESTORE_NOT_SUPPORTED.get();
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+        ERR_BACKEND_BACKUP_AND_RESTORE_NOT_SUPPORTED.get(getBackendID()));
   }
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public boolean supportsRestore()
   {
-    // This backend does not provide a backup/restore mechanism.
     return false;
   }
 
 
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void restoreBackup(RestoreConfig restoreConfig)
          throws DirectoryException
   {
-    // This backend does not provide a backup/restore mechanism.
-    LocalizableMessage message = ERR_BACKUP_BACKUP_AND_RESTORE_NOT_SUPPORTED.get();
-    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM, message);
+    throw new DirectoryException(ResultCode.UNWILLING_TO_PERFORM,
+        ERR_BACKEND_BACKUP_AND_RESTORE_NOT_SUPPORTED.get(getBackendID()));
   }
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isConfigurationChangeAcceptable(
        BackupBackendCfg cfg, List<LocalizableMessage> unacceptableReasons)
@@ -1123,9 +1027,7 @@ public class BackupBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ConfigChangeResult applyConfigurationChange(BackupBackendCfg cfg)
   {
@@ -1164,9 +1066,7 @@ public class BackupBackend
 
 
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void preloadEntryCache() throws UnsupportedOperationException {
     throw new UnsupportedOperationException("Operation not supported.");
