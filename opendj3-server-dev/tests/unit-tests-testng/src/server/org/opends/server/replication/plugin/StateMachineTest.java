@@ -183,8 +183,8 @@ public class StateMachineTest extends ReplicationTestCase
 
     String dir = "stateMachineTest" + RS1_ID + testCase + "Db";
     ReplServerFakeConfiguration conf =
-        new ReplServerFakeConfiguration(rs1Port, dir, 0, RS1_ID, 0, 100,
-            replServers, 1, 1000, degradedStatusThreshold);
+        new ReplServerFakeConfiguration(rs1Port, dir, replicationDbImplementation, 0, RS1_ID, 0,
+            100, replServers, 1, 1000, degradedStatusThreshold);
     return new ReplicationServer(conf);
   }
 

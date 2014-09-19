@@ -311,8 +311,8 @@ public class ReplicationDomainTest extends ReplicationTestCase
       SortedSet<String> replServers) throws Exception
   {
     ReplServerFakeConfiguration cfg =
-        new ReplServerFakeConfiguration(replicationPort, dirName, 0, serverId,
-            0, windowSize, replServers);
+        new ReplServerFakeConfiguration(replicationPort, dirName, replicationDbImplementation, 0,
+            serverId, 0, windowSize, replServers);
     return new ReplicationServer(cfg);
   }
 

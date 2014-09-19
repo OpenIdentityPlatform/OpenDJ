@@ -28,7 +28,11 @@
 package org.opends.server;
 
 import java.io.*;
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadInfo;
+import java.lang.management.ThreadMXBean;
 import java.net.*;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
@@ -1945,6 +1949,48 @@ public final class TestCaseUtils {
       }
     }
     return pluginTypes;
+  }
+
+  /** Saves a thread dump in a file with the provided id used in file prefix. */
+  public static void generateThreadDump(String id)
+  {
+    String date = new SimpleDateFormat("yyyyMMdd_hhmmss").format(new Date().getTime());
+    BufferedWriter writer = null;
+    try
+    {
+      writer = new BufferedWriter(new FileWriter("/tmp/thread_dump_" + id + "_" + date));
+      writer.write(generateThreadDump());
+    }
+    catch (Exception e)
+    {
+      // do nothing
+    }
+    finally
+    {
+      close(writer);
+    }
+  }
+
+   /** Generates a thread dump programmatically. */
+  public static String generateThreadDump() {
+    final StringBuilder dump = new StringBuilder();
+    final ThreadMXBean threadMXBean = ManagementFactory.getThreadMXBean();
+    final ThreadInfo[] threadInfos = threadMXBean.getThreadInfo(threadMXBean.getAllThreadIds(), 100);
+    for (ThreadInfo threadInfo : threadInfos) {
+        dump.append('"');
+        dump.append(threadInfo.getThreadName());
+        dump.append("\" ");
+        final Thread.State state = threadInfo.getThreadState();
+        dump.append("\n   java.lang.Thread.State: ");
+        dump.append(state);
+        final StackTraceElement[] stackTraceElements = threadInfo.getStackTrace();
+        for (final StackTraceElement stackTraceElement : stackTraceElements) {
+            dump.append("\n        at ");
+            dump.append(stackTraceElement);
+        }
+        dump.append("\n\n");
+    }
+    return dump.toString();
   }
 
 }

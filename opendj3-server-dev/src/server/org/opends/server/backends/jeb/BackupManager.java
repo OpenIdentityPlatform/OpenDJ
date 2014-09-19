@@ -26,10 +26,10 @@
  */
 package org.opends.server.backends.jeb;
 import org.forgerock.i18n.LocalizableMessage;
-
 import org.forgerock.opendj.config.server.ConfigException;
 import org.opends.server.core.DirectoryServer;
 import org.opends.server.util.DynamicConstants;
+import org.opends.server.util.StaticUtils;
 import org.opends.server.types.CryptoManagerException;
 
 import javax.crypto.Mac;
@@ -57,8 +57,6 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import static org.opends.messages.JebMessages.*;
 import static org.opends.server.util.ServerConstants.*;
 import static org.opends.server.util.StaticUtils.*;
-
-
 
 /**
  * A backup manager for JE backends.
@@ -657,8 +655,7 @@ public class BackupManager
     // Delete the current backend directory and rename the restore directory.
     if (!verifyOnly)
     {
-      cleanup(backendDir);
-      backendDir.delete();
+      StaticUtils.recursiveDelete(backendDir);
       if (!restoreDir.renameTo(backendDir))
       {
         LocalizableMessage msg = ERR_JEB_CANNOT_RENAME_RESTORE_DIRECTORY.get(

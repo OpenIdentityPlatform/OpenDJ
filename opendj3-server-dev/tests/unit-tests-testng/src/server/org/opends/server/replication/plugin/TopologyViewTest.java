@@ -365,8 +365,8 @@ public class TopologyViewTest extends ReplicationTestCase
 
     String dir = "topologyViewTest" + rsId + testCase + "Db";
     ReplServerFakeConfiguration conf =
-        new ReplServerFakeConfiguration(rsPort, dir, 0, rsId, 0, 100,
-            replServers, groupId, 1000, 5000);
+        new ReplServerFakeConfiguration(rsPort, dir, replicationDbImplementation, 0, rsId, 0,
+            100, replServers, groupId, 1000, 5000);
     return new ReplicationServer(conf);
   }
 

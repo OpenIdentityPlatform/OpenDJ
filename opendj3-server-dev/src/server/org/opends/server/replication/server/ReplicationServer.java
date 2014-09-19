@@ -40,6 +40,7 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
 import org.opends.server.admin.server.ConfigurationChangeListener;
 import org.opends.server.admin.std.meta.VirtualAttributeCfgDefn.ConflictBehavior;
+import org.opends.server.admin.std.meta.ReplicationServerCfgDefn.ReplicationDBImplementation;
 import org.opends.server.admin.std.server.ReplicationServerCfg;
 import org.opends.server.admin.std.server.UserDefinedVirtualAttributeCfg;
 import org.opends.server.api.VirtualAttributeProvider;
@@ -53,6 +54,7 @@ import org.opends.server.replication.server.changelog.api.ChangeNumberIndexDB;
 import org.opends.server.replication.server.changelog.api.ChangeNumberIndexRecord;
 import org.opends.server.replication.server.changelog.api.ChangelogDB;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
+import org.opends.server.replication.server.changelog.file.FileChangelogDB;
 import org.opends.server.replication.server.changelog.je.JEChangelogDB;
 import org.opends.server.replication.service.DSRSShutdownSync;
 import org.opends.server.types.*;
@@ -89,7 +91,7 @@ public final class ReplicationServer
   private final Map<DN, ReplicationServerDomain> baseDNs =
       new HashMap<DN, ReplicationServerDomain>();
 
-  private final ChangelogDB changelogDB;
+  private ChangelogDB changelogDB;
   private final AtomicBoolean shutdown = new AtomicBoolean();
   private boolean stopListen = false;
   private final ReplSessionSecurity replSessionSecurity;
@@ -145,6 +147,18 @@ public final class ReplicationServer
     this.config = cfg;
     this.changelogDB = new JEChangelogDB(this, cfg);
     this.dsrsShutdownSync = dsrsShutdownSync;
+    this.config = cfg;
+    ReplicationDBImplementation dbImpl = cfg.getReplicationDBImplementation();
+    if (dbImpl == ReplicationDBImplementation.JE)
+    {
+      logger.trace("Using JE as DB implementation for changelog DB");
+      this.changelogDB = new JEChangelogDB(this, cfg);
+    }
+    else
+    {
+      logger.trace("Using LOG FILE as DB implementation for changelog DB");
+      this.changelogDB = new FileChangelogDB(this, cfg);
+    }
 
     replSessionSecurity = new ReplSessionSecurity();
     initialize();

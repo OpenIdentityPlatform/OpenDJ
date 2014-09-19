@@ -168,8 +168,8 @@ public class MonitorTest extends ReplicationTestCase
     int chPort = getChangelogPort(changelogId);
     String chDir = "monitorTest" + changelogId + suffix + "Db";
     ReplServerFakeConfiguration conf =
-        new ReplServerFakeConfiguration(chPort, chDir, 0, changelogId, 0, 100,
-            servers);
+        new ReplServerFakeConfiguration(chPort, chDir, replicationDbImplementation, 0, changelogId, 0,
+            100, servers);
     ReplicationServer replicationServer = new ReplicationServer(conf);
     Thread.sleep(1000);
 
