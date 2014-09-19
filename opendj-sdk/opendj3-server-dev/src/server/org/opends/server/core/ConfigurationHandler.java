@@ -53,7 +53,7 @@ import org.forgerock.opendj.ldap.CancelRequestListener;
 import org.forgerock.opendj.ldap.CancelledResultException;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.MemoryBackend;
 import org.forgerock.opendj.ldap.RequestContext;
@@ -257,9 +257,9 @@ public class ConfigurationHandler implements ConfigurationRepository
   /** Handler for LDAP operations. */
   private static final class ConfigResultHandler implements ResultHandler<Result> {
 
-    private ErrorResultException resultError;
+    private LdapException resultError;
 
-    ErrorResultException getResultError()
+    LdapException getResultError()
     {
       return resultError;
     }
@@ -277,7 +277,7 @@ public class ConfigurationHandler implements ConfigurationRepository
 
     /** {@inheritDoc} */
     @Override
-    public void handleError(ErrorResultException error)
+    public void handleError(LdapException error)
     {
       resultError = error;
     }

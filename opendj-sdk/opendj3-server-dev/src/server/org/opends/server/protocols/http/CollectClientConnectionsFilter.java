@@ -59,6 +59,7 @@ import org.opends.server.types.DisconnectReason;
 import org.opends.server.util.Base64;
 
 import static org.forgerock.opendj.adapter.server3x.Adapters.*;
+import static org.forgerock.opendj.ldap.LdapException.*;
 import static org.forgerock.util.promise.Promises.*;
 import static org.opends.messages.ProtocolMessages.*;
 import static org.opends.server.loggers.AccessLogger.*;
@@ -197,16 +198,15 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
         ctx.asyncContext = getAsyncContext(request);
 
         newRootConnection().searchSingleEntryAsync(buildSearchRequest(ctx.userName)).thenAsync(
-            new AsyncFunction<SearchResultEntry, BindResult, ErrorResultException>() {
+            new AsyncFunction<SearchResultEntry, BindResult, LdapException>() {
               @Override
-              public Promise<BindResult, ErrorResultException> apply(SearchResultEntry resultEntry)
-                  throws ErrorResultException
+              public Promise<BindResult, LdapException> apply(SearchResultEntry resultEntry) throws LdapException
               {
                 final DN bindDN = resultEntry.getName();
                 if (bindDN == null)
                 {
                   sendAuthenticationFailure(ctx);
-                  return newFailedPromise(ErrorResultException.newErrorResult(ResultCode.CANCELLED));
+                  return newFailedPromise(newErrorResult(ResultCode.CANCELLED));
                 }
                 else
                 {
@@ -234,9 +234,9 @@ final class CollectClientConnectionsFilter implements javax.servlet.Filter
               onFailure(e, ctx);
             }
           }
-        }).onFailure(new FailureHandler<ErrorResultException>(){
+        }).onFailure(new FailureHandler<LdapException>(){
           @Override
-          public void handleError(ErrorResultException error)
+          public void handleError(LdapException error)
           {
             final ResultCode rc = error.getResult().getResultCode();
             if (ResultCode.CLIENT_SIDE_NO_RESULTS_RETURNED.equals(rc)

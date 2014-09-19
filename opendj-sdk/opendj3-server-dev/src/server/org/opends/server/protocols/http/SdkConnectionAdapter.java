@@ -34,7 +34,6 @@ import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.AbstractAsynchronousConnection;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConnectionEventListener;
-import org.forgerock.opendj.ldap.ErrorResultException;
 import org.forgerock.opendj.ldap.FutureResult;
 import org.forgerock.opendj.ldap.FutureResultImpl;
 import org.forgerock.opendj.ldap.IntermediateResponseHandler;
@@ -95,6 +94,7 @@ import org.opends.server.types.Operation;
 
 import static org.forgerock.opendj.adapter.server3x.Converters.*;
 import static org.forgerock.opendj.ldap.ByteString.*;
+import static org.forgerock.opendj.ldap.LdapException.*;
 
 /**
  * Adapter class between LDAP SDK's {@link org.forgerock.opendj.ldap.Connection}
@@ -170,7 +170,7 @@ public class SdkConnectionAdapter extends AbstractAsynchronousConnection
       logger.traceException(e);
       clientConnection.removeOperationInProgress(operation.getMessageID());
       // TODO JNR add error message??
-      futureResult.handleError(ErrorResultException.newErrorResult(ResultCode.OPERATIONS_ERROR, e));
+      futureResult.handleError(newErrorResult(ResultCode.OPERATIONS_ERROR, e));
     }
 
     return futureResult;

@@ -128,16 +128,16 @@ class Replace
         'import org.forgerock.opendj.config.\1;',
 
         /import org.forgerock.opendj.config.client.AuthorizationException;/,
-        'import org.forgerock.opendj.ldap.ErrorResultException;',
+        'import org.forgerock.opendj.ldap.LdapException;',
 
         /import org.forgerock.opendj.config.client.CommunicationException;$/,
         '',
 
         /catch \(AuthorizationException e\)/,
-        'catch (ErrorResultException e)',
+        'catch (LdapException e)',
 
         /catch \(CommunicationException e\)/,
-        'catch (ErrorResultException e)',
+        'catch (LdapException e)',
 
         # Now bring back removed imports that have no replacement
         /import org.forgerock.opendj.config.client.ldap.JNDIDirContextAdaptor;/,
