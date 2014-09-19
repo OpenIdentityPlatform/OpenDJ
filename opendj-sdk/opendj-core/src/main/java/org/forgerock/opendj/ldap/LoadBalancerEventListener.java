@@ -20,7 +20,7 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2013 ForgeRock AS.
+ *      Copyright 2013-2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -49,7 +49,7 @@ public interface LoadBalancerEventListener extends EventListener {
      * @param error
      *            The last error that occurred.
      */
-    void handleConnectionFactoryOffline(ConnectionFactory factory, ErrorResultException error);
+    void handleConnectionFactoryOffline(ConnectionFactory factory, LdapException error);
 
     /**
      * Invoked when the load-balancer detects that a previously offline

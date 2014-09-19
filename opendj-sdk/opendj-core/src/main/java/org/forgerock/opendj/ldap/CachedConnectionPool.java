@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package org.forgerock.opendj.ldap;
 
@@ -66,7 +66,7 @@ import org.forgerock.util.promise.SuccessHandler;
 import com.forgerock.opendj.util.ReferenceCountedObject;
 import com.forgerock.opendj.util.TimeSource;
 
-import static org.forgerock.opendj.ldap.ErrorResultException.*;
+import static org.forgerock.opendj.ldap.LdapException.*;
 import static org.forgerock.util.promise.Promises.*;
 
 import static com.forgerock.opendj.ldap.CoreMessages.*;
@@ -98,9 +98,9 @@ final class CachedConnectionPool implements ConnectionPool {
      * This failure handler is invoked when an attempt to add a new connection
      * to the pool ended in error.
      */
-    private final class ConnectionFailureHandler implements FailureHandler<ErrorResultException> {
+    private final class ConnectionFailureHandler implements FailureHandler<LdapException> {
         @Override
-        public void handleError(final ErrorResultException error) {
+        public void handleError(final LdapException error) {
             // Connection attempt failed, so decrease the pool size.
             pendingConnectionAttempts.decrementAndGet();
             availableConnections.release();
@@ -141,7 +141,7 @@ final class CachedConnectionPool implements ConnectionPool {
      */
     class PooledConnection implements Connection, ConnectionEventListener {
         private final Connection connection;
-        private ErrorResultException error = null;
+        private LdapException error;
         private final AtomicBoolean isClosed = new AtomicBoolean(false);
         private boolean isDisconnectNotification = false;
         private List<ConnectionEventListener> listeners = null;
@@ -157,17 +157,17 @@ final class CachedConnectionPool implements ConnectionPool {
         }
 
         @Override
-        public Result add(final AddRequest request) throws ErrorResultException {
+        public Result add(final AddRequest request) throws LdapException {
             return checkState().add(request);
         }
 
         @Override
-        public Result add(final Entry entry) throws ErrorResultException {
+        public Result add(final Entry entry) throws LdapException {
             return checkState().add(entry);
         }
 
         @Override
-        public Result add(final String... ldifLines) throws ErrorResultException {
+        public Result add(final String... ldifLines) throws LdapException {
             return checkState().add(ldifLines);
         }
 
@@ -215,7 +215,7 @@ final class CachedConnectionPool implements ConnectionPool {
         }
 
         @Override
-        public Result applyChange(final ChangeRecord request) throws ErrorResultException {
+        public Result applyChange(final ChangeRecord request) throws LdapException {
             return checkState().applyChange(request);
         }
 
@@ -231,13 +231,12 @@ final class CachedConnectionPool implements ConnectionPool {
         }
 
         @Override
-        public BindResult bind(final BindRequest request) throws ErrorResultException {
+        public BindResult bind(final BindRequest request) throws LdapException {
             return checkState().bind(request);
         }
 
         @Override
-        public BindResult bind(final String name, final char[] password)
-                throws ErrorResultException {
+        public BindResult bind(final String name, final char[] password) throws LdapException {
             return checkState().bind(name, password);
         }
 
@@ -305,13 +304,13 @@ final class CachedConnectionPool implements ConnectionPool {
         }
 
         @Override
-        public CompareResult compare(final CompareRequest request) throws ErrorResultException {
+        public CompareResult compare(final CompareRequest request) throws LdapException {
             return checkState().compare(request);
         }
 
         @Override
         public CompareResult compare(final String name, final String attributeDescription,
-                final String assertionValue) throws ErrorResultException {
+                final String assertionValue) throws LdapException {
             return checkState().compare(name, attributeDescription, assertionValue);
         }
 
@@ -327,12 +326,12 @@ final class CachedConnectionPool implements ConnectionPool {
         }
 
         @Override
-        public Result delete(final DeleteRequest request) throws ErrorResultException {
+        public Result delete(final DeleteRequest request) throws LdapException {
             return checkState().delete(request);
         }
 
         @Override
-        public Result delete(final String name) throws ErrorResultException {
+        public Result delete(final String name) throws LdapException {
             return checkState().delete(name);
         }
 
@@ -348,25 +347,24 @@ final class CachedConnectionPool implements ConnectionPool {
         }
 
         @Override
-        public Result deleteSubtree(final String name) throws ErrorResultException {
+        public Result deleteSubtree(final String name) throws LdapException {
             return checkState().deleteSubtree(name);
         }
 
         @Override
-        public <R extends ExtendedResult> R extendedRequest(final ExtendedRequest<R> request)
-                throws ErrorResultException {
+        public <R extends ExtendedResult> R extendedRequest(final ExtendedRequest<R> request) throws LdapException {
             return checkState().extendedRequest(request);
         }
 
         @Override
         public <R extends ExtendedResult> R extendedRequest(final ExtendedRequest<R> request,
-                final IntermediateResponseHandler handler) throws ErrorResultException {
+                final IntermediateResponseHandler handler) throws LdapException {
             return checkState().extendedRequest(request, handler);
         }
 
         @Override
         public GenericExtendedResult extendedRequest(final String requestName,
-                final ByteString requestValue) throws ErrorResultException {
+                final ByteString requestValue) throws LdapException {
             return checkState().extendedRequest(requestName, requestValue);
         }
 
@@ -393,7 +391,7 @@ final class CachedConnectionPool implements ConnectionPool {
         }
 
         @Override
-        public void handleConnectionError(final boolean isDisconnectNotification, final ErrorResultException error) {
+        public void handleConnectionError(final boolean isDisconnectNotification, final LdapException error) {
             final List<ConnectionEventListener> tmpListeners;
             synchronized (stateLock) {
                 tmpListeners = listeners;
@@ -431,12 +429,12 @@ final class CachedConnectionPool implements ConnectionPool {
         }
 
         @Override
-        public Result modify(final ModifyRequest request) throws ErrorResultException {
+        public Result modify(final ModifyRequest request) throws LdapException {
             return checkState().modify(request);
         }
 
         @Override
-        public Result modify(final String... ldifLines) throws ErrorResultException {
+        public Result modify(final String... ldifLines) throws LdapException {
             return checkState().modify(ldifLines);
         }
 
@@ -452,12 +450,12 @@ final class CachedConnectionPool implements ConnectionPool {
         }
 
         @Override
-        public Result modifyDN(final ModifyDNRequest request) throws ErrorResultException {
+        public Result modifyDN(final ModifyDNRequest request) throws LdapException {
             return checkState().modifyDN(request);
         }
 
         @Override
-        public Result modifyDN(final String name, final String newRDN) throws ErrorResultException {
+        public Result modifyDN(final String name, final String newRDN) throws LdapException {
             return checkState().modifyDN(name, newRDN);
         }
 
@@ -474,13 +472,13 @@ final class CachedConnectionPool implements ConnectionPool {
 
         @Override
         public SearchResultEntry readEntry(final DN name, final String... attributeDescriptions)
-                throws ErrorResultException {
+                throws LdapException {
             return checkState().readEntry(name, attributeDescriptions);
         }
 
         @Override
         public SearchResultEntry readEntry(final String name, final String... attributeDescriptions)
-                throws ErrorResultException {
+                throws LdapException {
             return checkState().readEntry(name, attributeDescriptions);
         }
 
@@ -507,19 +505,19 @@ final class CachedConnectionPool implements ConnectionPool {
 
         @Override
         public Result search(final SearchRequest request, final Collection<? super SearchResultEntry> entries)
-                throws ErrorResultException {
+                throws LdapException {
             return checkState().search(request, entries);
         }
 
         @Override
         public Result search(final SearchRequest request, final Collection<? super SearchResultEntry> entries,
-                final Collection<? super SearchResultReference> references) throws ErrorResultException {
+                final Collection<? super SearchResultReference> references) throws LdapException {
             return checkState().search(request, entries, references);
         }
 
         @Override
         public Result search(final SearchRequest request, final SearchResultHandler handler)
-                throws ErrorResultException {
+                throws LdapException {
             return checkState().search(request, handler);
         }
 
@@ -541,13 +539,13 @@ final class CachedConnectionPool implements ConnectionPool {
         }
 
         @Override
-        public SearchResultEntry searchSingleEntry(final SearchRequest request) throws ErrorResultException {
+        public SearchResultEntry searchSingleEntry(final SearchRequest request) throws LdapException {
             return checkState().searchSingleEntry(request);
         }
 
         @Override
         public SearchResultEntry searchSingleEntry(final String baseObject, final SearchScope scope,
-                final String filter, final String... attributeDescriptions) throws ErrorResultException {
+                final String filter, final String... attributeDescriptions) throws LdapException {
             return checkState().searchSingleEntry(baseObject, scope, filter, attributeDescriptions);
         }
 
@@ -702,7 +700,7 @@ final class CachedConnectionPool implements ConnectionPool {
 
     private final Semaphore availableConnections;
     private final SuccessHandler<Connection> connectionSuccessHandler = new ConnectionSuccessHandler();
-    private final FailureHandler<ErrorResultException> connectionFailureHandler = new ConnectionFailureHandler();
+    private final FailureHandler<LdapException> connectionFailureHandler = new ConnectionFailureHandler();
     private final int corePoolSize;
     private final ConnectionFactory factory;
     private boolean isClosed = false;
@@ -788,7 +786,7 @@ final class CachedConnectionPool implements ConnectionPool {
     }
 
     @Override
-    public Connection getConnection() throws ErrorResultException {
+    public Connection getConnection() throws LdapException {
         try {
             return getConnectionAsync().getOrThrow();
         } catch (final InterruptedException e) {
@@ -797,7 +795,7 @@ final class CachedConnectionPool implements ConnectionPool {
     }
 
     @Override
-    public Promise<Connection, ErrorResultException> getConnectionAsync() {
+    public Promise<Connection, LdapException> getConnectionAsync() {
         // Loop while iterating through stale connections (see OPENDJ-590).
         for (;;) {
             final QueueElement holder;
@@ -912,8 +910,8 @@ final class CachedConnectionPool implements ConnectionPool {
                     currentPoolSize(), maxPoolSize));
 
             if (holder != null) {
-                final ErrorResultException e =
-                        ErrorResultException.newErrorResult(ResultCode.CLIENT_SIDE_USER_CANCELLED,
+                final LdapException e =
+                        LdapException.newErrorResult(ResultCode.CLIENT_SIDE_USER_CANCELLED,
                                 ERR_CONNECTION_POOL_CLOSING.get(toString()).toString());
                 holder.getWaitingFuture().handleError(e);
 

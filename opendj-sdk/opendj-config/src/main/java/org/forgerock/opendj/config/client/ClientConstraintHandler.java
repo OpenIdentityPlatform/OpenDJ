@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.forgerock.opendj.config.client;
 
@@ -29,7 +30,7 @@ import java.util.Collection;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.config.ManagedObjectPath;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 
 /**
  * An interface for performing client-side constraint validation.
@@ -70,11 +71,11 @@ public abstract class ClientConstraintHandler {
      *            A list of messages to which error messages should be added.
      * @return Returns <code>true</code> if this constraint is satisfied, or
      *         <code>false</code> if it is not.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If an error occurs.
      */
     public boolean isAddAcceptable(ManagementContext context, ManagedObject<?> managedObject,
-        Collection<LocalizableMessage> unacceptableReasons) throws ErrorResultException {
+        Collection<LocalizableMessage> unacceptableReasons) throws LdapException {
         return true;
     }
 
@@ -97,11 +98,11 @@ public abstract class ClientConstraintHandler {
      *            A list of messages to which error messages should be added.
      * @return Returns <code>true</code> if this modify is satisfied, or
      *         <code>false</code> if it is not.
-      * @throws ErrorResultException
+      * @throws LdapException
      *             If an error occurs.
      */
     public boolean isModifyAcceptable(ManagementContext context, ManagedObject<?> managedObject,
-        Collection<LocalizableMessage> unacceptableReasons) throws ErrorResultException {
+        Collection<LocalizableMessage> unacceptableReasons) throws LdapException {
         return true;
     }
 
@@ -123,11 +124,11 @@ public abstract class ClientConstraintHandler {
      *            A list of messages to which error messages should be added.
      * @return Returns <code>true</code> if this constraint is satisfied, or
      *         <code>false</code> if it is not.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If an error occurs.
      */
     public boolean isDeleteAcceptable(ManagementContext context, ManagedObjectPath<?, ?> path,
-        Collection<LocalizableMessage> unacceptableReasons) throws ErrorResultException {
+        Collection<LocalizableMessage> unacceptableReasons) throws LdapException {
         return true;
     }
 }

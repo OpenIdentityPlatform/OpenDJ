@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -35,7 +35,7 @@ import javax.security.auth.Subject;
 import org.forgerock.i18n.LocalizedIllegalArgumentException;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.controls.Control;
 import org.forgerock.opendj.ldap.controls.ControlDecoder;
 
@@ -128,7 +128,7 @@ public interface GSSAPISASLBindRequest extends SASLBindRequest {
     GSSAPISASLBindRequest addQOP(String... qopValues);
 
     @Override
-    BindClient createBindClient(String serverName) throws ErrorResultException;
+    BindClient createBindClient(String serverName) throws LdapException;
 
     /**
      * Returns a map containing the provided additional authentication

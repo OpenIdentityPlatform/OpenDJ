@@ -277,4 +277,34 @@ Note: waiting on https://jira.codehaus.org/browse/MCLIRR-62 to be resolved to av
     <method>org.forgerock.opendj.ldap.FutureResult addSchema*Async(*)</method>
     <justification>OPENDJ-1285 Migrate SDK from Futures to Promises</justification>
   </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/*Exception</className>
+    <differenceType>5001</differenceType>
+    <to>org/forgerock/opendj/ldap/ErrorResultException</to>
+    <justification>OPENDJ-1536 Rename FutureResult and ErrorResultException classes hierarchy in the SDK to enhance code consistency</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/*Exception</className>
+    <differenceType>5001</differenceType>
+    <to>java/util/concurrent/ExecutionException</to>
+    <justification>OPENDJ-1536 Rename FutureResult and ErrorResultException classes hierarchy in the SDK to enhance code consistency</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/ConnectionEventListener</className>
+    <differenceType>7005</differenceType>
+    <method>*handleConnectionError(boolean, org.forgerock.opendj.ldap.ErrorResultException)</method>
+    <to>*handleConnectionError(boolean, org.forgerock.opendj.ldap.LdapException)</to>
+    <justification>OPENDJ-1536 Rename FutureResult and ErrorResultException classes hierarchy in the SDK to enhance code consistency</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/ResultHandler</className>
+    <differenceType>7012</differenceType>
+    <method>*handleError(org.forgerock.opendj.ldap.LdapException)</method>
+    <justification>OPENDJ-1536 Rename FutureResult and ErrorResultException classes hierarchy in the SDK to enhance code consistency</justification>
+  </difference>
+  <difference>
+    <className>org/forgerock/opendj/ldap/ErrorResult*Exception</className>
+    <differenceType>8001</differenceType>
+    <justification>OPENDJ-1536 Rename FutureResult and ErrorResultException classes hierarchy in the SDK to enhance code consistency</justification>
+  </difference>
 </differences>

@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2011-2013 ForgeRock AS
+ *      Copyright 2011-2014 ForgeRock AS
  */
 
 /**
@@ -37,7 +37,7 @@ import java.security.GeneralSecurityException;
 import javax.net.ssl.SSLContext;
 
 import org.forgerock.opendj.ldap.Connection;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.LDAPOptions;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -95,7 +95,7 @@ public final class SASLAuth {
                     .setAuthorizationID(authzid);
             connection.bind(request);
             System.out.println("Authenticated as " + authcid + ".");
-        } catch (final ErrorResultException e) {
+        } catch (final LdapException e) {
             System.err.println(e.getMessage());
             System.exit(e.getResult().getResultCode().intValue());
             return;

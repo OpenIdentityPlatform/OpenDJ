@@ -29,7 +29,7 @@ import org.forgerock.opendj.ldap.AbstractAsynchronousConnection;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ConnectionEventListener;
 import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.FutureResult;
 import org.forgerock.opendj.ldap.IntermediateResponseHandler;
 import org.forgerock.opendj.ldap.ResultHandler;
@@ -92,7 +92,7 @@ final class Context implements Closeable {
         }
 
         @Override
-        public void handleError(final ErrorResultException error) {
+        public void handleError(final LdapException error) {
             handleResult(error.getResult());
         }
 
@@ -292,9 +292,9 @@ final class Context implements Closeable {
                     connection = wrap(result);
                     runnable.run();
                 }
-            }).onFailure(new FailureHandler<ErrorResultException>() {
+            }).onFailure(new FailureHandler<LdapException>() {
                 @Override
-                public final void handleError(final ErrorResultException error) {
+                public final void handleError(final LdapException error) {
                     handler.handleError(asResourceException(error));
                 }
             });

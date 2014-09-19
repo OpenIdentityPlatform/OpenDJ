@@ -22,6 +22,7 @@
   !
   !
   !      Copyright 2008-2009 Sun Microsystems, Inc.
+  !      Portions Copyright 2014 ForgeRock AS
   ! -->
 <xsl:stylesheet version="1.0" xmlns:adm="http://opendj.forgerock.org/admin"
   xmlns:admpp="http://opendj.forgerock.org/admin-preprocessor"
@@ -111,14 +112,14 @@
                        '          If the ', $ufn, ' could not be found on the server.&#xa;',
                        '@throws ConcurrentModificationException&#xa;',
                        '          If this ', $this-ufn, ' has been removed from the server by another client.&#xa;',
-                       '@throws ErrorResultException&#xa;',
+                       '@throws LdapException&#xa;',
                        '          If any other error occurs.')" />
         </xsl:call-template>
         <xsl:value-of
           select="concat('  ', $java-class-name, 'CfgClient get', $java-relation-name, '()&#xa;',
                        '      throws DefinitionDecodingException, ManagedObjectDecodingException,&#xa;',
                        '      ManagedObjectNotFoundException, ConcurrentModificationException,&#xa;',
-                       '      ErrorResultException;&#xa;')" />
+                       '      LdapException;&#xa;')" />
       </xsl:when>
       <xsl:when test="adm:one-to-zero-or-one">
         <xsl:call-template name="add-java-comment2">
@@ -129,13 +130,13 @@
                        '@return Returns &lt;true&gt; if the ', $ufn,' exists.&#xa;',
                        '@throws ConcurrentModificationException&#xa;',
                        '          If this ', $this-ufn, ' has been removed from the server by another client.&#xa;',
-                       '@throws ErrorResultException&#xa;',
+                       '@throws LdapException&#xa;',
                        '          If any other error occurs.')" />
         </xsl:call-template>
         <xsl:value-of
           select="concat('  boolean has',
                        $java-relation-name, '() throws ConcurrentModificationException,&#xa;',
-                       '      ErrorResultException;&#xa;')" />
+                       '      LdapException;&#xa;')" />
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
@@ -154,14 +155,14 @@
                        '          If the ', $ufn, ' is not present.&#xa;',
                        '@throws ConcurrentModificationException&#xa;',
                        '          If this ', $this-ufn, ' has been removed from the server by another client.&#xa;',
-                       '@throws ErrorResultException&#xa;',
+                       '@throws LdapException&#xa;',
                        '          If any other error occurs.')" />
         </xsl:call-template>
         <xsl:value-of
           select="concat('  ', $java-class-name, 'CfgClient get', $java-relation-name, '()&#xa;',
                        '      throws DefinitionDecodingException, ManagedObjectDecodingException,&#xa;',
                        '      ManagedObjectNotFoundException, ConcurrentModificationException,&#xa;',
-                       '      ErrorResultException;&#xa;')" />
+                       '      LdapException;&#xa;')" />
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
@@ -204,13 +205,13 @@
                        '          If the server refuses to remove the ', $ufn, ' due to some server-side constraint which cannot be satisfied (for example, if it is referenced by another managed object).&#xa;',
                        '@throws ConcurrentModificationException&#xa;',
                        '          If this ', $this-ufn, ' has been removed from the server by another client.&#xa;',
-                       '@throws ErrorResultException&#xa;',
+                       '@throws LdapException&#xa;',
                        '          If any other error occurs.')" />
         </xsl:call-template>
         <xsl:value-of
           select="concat('  void remove', $java-relation-name, '()&#xa;',
                          '      throws ManagedObjectNotFoundException, OperationRejectedException,&#xa;',
-                         '      ConcurrentModificationException, ErrorResultException;&#xa;')" />
+                         '      ConcurrentModificationException, LdapException;&#xa;')" />
       </xsl:when>
       <xsl:when test="adm:one-to-many">
         <xsl:variable name="plural-name"
@@ -233,13 +234,13 @@
                        '@return Returns an array containing the names of the ', $ufpn,'.&#xa;',
                        '@throws ConcurrentModificationException&#xa;',
                        '          If this ', $this-ufn, ' has been removed from the server by another client.&#xa;',
-                       '@throws ErrorResultException&#xa;',
+                       '@throws LdapException&#xa;',
                        '          If any other error occurs.')" />
         </xsl:call-template>
         <xsl:value-of
           select="concat('  String[] list',
                        $java-relation-plural-name, '() throws ConcurrentModificationException,&#xa;',
-                       '      ErrorResultException;&#xa;')" />
+                       '      LdapException;&#xa;')" />
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
@@ -260,14 +261,14 @@
                        '          If the named ', $ufn, ' was not found on the server.&#xa;',
                        '@throws ConcurrentModificationException&#xa;',
                        '          If this ', $this-ufn, ' has been removed from the server by another client.&#xa;',
-                       '@throws ErrorResultException&#xa;',
+                       '@throws LdapException&#xa;',
                        '          If any other error occurs.')" />
         </xsl:call-template>
         <xsl:value-of
           select="concat('  ', $java-class-name, 'CfgClient get', $java-relation-name, '(String name)&#xa;',
                        '      throws DefinitionDecodingException, ManagedObjectDecodingException,&#xa;',
                        '      ManagedObjectNotFoundException, ConcurrentModificationException,&#xa;',
-                       '      ErrorResultException;&#xa;')" />
+                       '      LdapException;&#xa;')" />
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
         <xsl:text>&#xa;</xsl:text>
@@ -346,13 +347,13 @@
                        '          If the server refuses to remove the ', $ufn, ' due to some server-side constraint which cannot be satisfied (for example, if it is referenced by another managed object).&#xa;',
                        '@throws ConcurrentModificationException&#xa;',
                        '          If this ', $this-ufn, ' has been removed from the server by another client.&#xa;',
-                       '@throws ErrorResultException&#xa;',
+                       '@throws LdapException&#xa;',
                        '          If any other error occurs.')" />
         </xsl:call-template>
         <xsl:value-of
           select="concat('  void remove', $java-relation-name, '(String name)&#xa;',
                          '      throws ManagedObjectNotFoundException, OperationRejectedException,&#xa;',
-                         '      ConcurrentModificationException, ErrorResultException;&#xa;')" />
+                         '      ConcurrentModificationException, LdapException;&#xa;')" />
       </xsl:when>
       <xsl:otherwise>
         <xsl:message terminate="yes">
@@ -408,7 +409,7 @@
             org.forgerock.opendj.config.client.ConcurrentModificationException
           </import>
           <import>
-            org.forgerock.opendj.ldap.ErrorResultException
+            org.forgerock.opendj.ldap.LdapException
           </import>
         </xsl:if>
         <xsl:for-each

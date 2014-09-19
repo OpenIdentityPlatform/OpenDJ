@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -153,7 +153,7 @@ public final class RootDSE {
     public static FutureResult<RootDSE> readRootDSEAsync(final Connection connection,
             final ResultHandler<? super RootDSE> handler) {
         return FutureResultWrapper.asFutureResult(connection.searchSingleEntryAsync(SEARCH_REQUEST).then(
-            new Function<SearchResultEntry, RootDSE, ErrorResultException>() {
+            new Function<SearchResultEntry, RootDSE, LdapException>() {
                 @Override
                 public RootDSE apply(SearchResultEntry result) {
                     return valueOf(result);
@@ -173,7 +173,7 @@ public final class RootDSE {
      *            A connection to the Directory Server whose Root DSE is to be
      *            read.
      * @return The Directory Server's Root DSE.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If the result code indicates that the request failed for some
      *             reason.
      * @throws UnsupportedOperationException
@@ -184,7 +184,7 @@ public final class RootDSE {
      * @throws NullPointerException
      *             If the {@code connection} was {@code null}.
      */
-    public static RootDSE readRootDSE(final Connection connection) throws ErrorResultException {
+    public static RootDSE readRootDSE(final Connection connection) throws LdapException {
         final Entry entry = connection.searchSingleEntry(SEARCH_REQUEST);
         return valueOf(entry);
     }

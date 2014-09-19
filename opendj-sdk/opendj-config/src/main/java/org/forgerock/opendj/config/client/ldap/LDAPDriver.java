@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions Copyright 2013-2014 ForgeRock, AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.forgerock.opendj.config.client.ldap;
 
@@ -69,8 +69,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.EntryNotFoundException;
-import org.forgerock.opendj.ldap.ErrorResultException;
-import org.forgerock.opendj.ldap.ErrorResultIOException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchResultReferenceIOException;
@@ -177,7 +176,7 @@ final class LDAPDriver extends Driver {
     @Override
     public <C extends ConfigurationClient, S extends Configuration> ManagedObject<? extends C> getManagedObject(
         ManagedObjectPath<C, S> path) throws DefinitionDecodingException, ManagedObjectDecodingException,
-        ManagedObjectNotFoundException, ErrorResultException {
+        ManagedObjectNotFoundException, LdapException {
         if (!managedObjectExists(path)) {
             throw new ManagedObjectNotFoundException();
         }
@@ -217,7 +216,7 @@ final class LDAPDriver extends Driver {
             } else {
                 throw new ManagedObjectDecodingException(mo, exceptions);
             }
-        } catch (ErrorResultException e) {
+        } catch (LdapException e) {
             if (e.getResult().getResultCode() == ResultCode.NO_SUCH_OBJECT) {
                 throw new ManagedObjectNotFoundException();
             }
@@ -232,7 +231,7 @@ final class LDAPDriver extends Driver {
     @Override
     public <C extends ConfigurationClient, S extends Configuration, P> SortedSet<P> getPropertyValues(
         ManagedObjectPath<C, S> path, PropertyDefinition<P> propertyDef) throws DefinitionDecodingException,
-        ManagedObjectNotFoundException, ErrorResultException {
+        ManagedObjectNotFoundException, LdapException {
         // Check that the requested property is from the definition
         // associated with the path.
         AbstractManagedObjectDefinition<C, S> d = path.getManagedObjectDefinition();
@@ -284,7 +283,7 @@ final class LDAPDriver extends Driver {
             }
 
             return values;
-        } catch (ErrorResultException e) {
+        } catch (LdapException e) {
             if (e.getResult().getResultCode() == ResultCode.NO_SUCH_OBJECT) {
                 throw new ManagedObjectNotFoundException();
             }
@@ -308,7 +307,7 @@ final class LDAPDriver extends Driver {
     public <C extends ConfigurationClient, S extends Configuration> String[] listManagedObjects(
         ManagedObjectPath<?, ?> parent, InstantiableRelationDefinition<C, S> rd,
         AbstractManagedObjectDefinition<? extends C, ? extends S> d) throws ManagedObjectNotFoundException,
-        ErrorResultException {
+        LdapException {
         validateRelationDefinition(parent, rd);
 
         if (!managedObjectExists(parent)) {
@@ -326,7 +325,7 @@ final class LDAPDriver extends Driver {
             for (DN child : listEntries(dn, filter)) {
                 children.add(child.rdn().getFirstAVA().getAttributeValue().toString());
             }
-        } catch (ErrorResultException e) {
+        } catch (LdapException e) {
             if (e.getResult().getResultCode() == ResultCode.NO_SUCH_OBJECT) {
                 // Ignore this
                 // It means that the base entry does not exist
@@ -345,7 +344,7 @@ final class LDAPDriver extends Driver {
     public <C extends ConfigurationClient, S extends Configuration> String[] listManagedObjects(
         ManagedObjectPath<?, ?> parent, SetRelationDefinition<C, S> rd,
         AbstractManagedObjectDefinition<? extends C, ? extends S> d) throws ManagedObjectNotFoundException,
-        ErrorResultException {
+        LdapException {
         validateRelationDefinition(parent, rd);
 
         if (!managedObjectExists(parent)) {
@@ -363,7 +362,7 @@ final class LDAPDriver extends Driver {
             for (DN child : listEntries(dn, filter)) {
                 children.add(child.rdn().getFirstAVA().getAttributeValue().toString());
             }
-        } catch (ErrorResultException e) {
+        } catch (LdapException e) {
             if (e.getResult().getResultCode() == ResultCode.NO_SUCH_OBJECT) {
                 // Ignore this
                 // It means that the base entry does not exist
@@ -381,7 +380,7 @@ final class LDAPDriver extends Driver {
      */
     @Override
     public boolean managedObjectExists(ManagedObjectPath<?, ?> path) throws ManagedObjectNotFoundException,
-        ErrorResultException {
+        LdapException {
         if (path.isEmpty()) {
             return true;
         }
@@ -401,12 +400,12 @@ final class LDAPDriver extends Driver {
      */
     @Override
     protected <C extends ConfigurationClient, S extends Configuration> void deleteManagedObject(
-        ManagedObjectPath<C, S> path) throws OperationRejectedException, ErrorResultException {
+        ManagedObjectPath<C, S> path) throws OperationRejectedException, LdapException {
         // Delete the entry and any subordinate entries.
         DN dn = DNBuilder.create(path, profile);
         try {
             deleteSubtree(dn);
-        } catch (ErrorResultException e) {
+        } catch (LdapException e) {
             if (e.getResult().getResultCode() == ResultCode.UNWILLING_TO_PERFORM) {
                 AbstractManagedObjectDefinition<?, ?> d = path.getManagedObjectDefinition();
                 LocalizableMessage m = LocalizableMessage.raw("%s", e.getMessage());
@@ -430,10 +429,10 @@ final class LDAPDriver extends Driver {
      * @param dn
      *            The LDAP entry name.
      * @return Returns <code>true</code> if the named LDAP entry exists.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             if a problem occurs.
      */
-    boolean entryExists(DN dn) throws ErrorResultException {
+    boolean entryExists(DN dn) throws LdapException {
         try {
             connection.readEntry(dn, "1.1");
             return true;
@@ -524,7 +523,7 @@ final class LDAPDriver extends Driver {
     // entry.
     // @Checkstyle:off
     private <C extends ConfigurationClient, S extends Configuration> ManagedObjectDefinition<? extends C, ? extends S>
-        getEntryDefinition(AbstractManagedObjectDefinition<C, S> d, DN dn) throws ErrorResultException,
+        getEntryDefinition(AbstractManagedObjectDefinition<C, S> d, DN dn) throws LdapException,
         DefinitionDecodingException {
         // @Checkstyle:on
         SearchResultEntry searchResultEntry = connection.readEntry(dn, "objectclass");
@@ -561,7 +560,7 @@ final class LDAPDriver extends Driver {
      * Delete a subtree of entries. We cannot use the subtree delete control because it is not supported by the config
      * backend.
      */
-    private void deleteSubtree(DN dn) throws ErrorResultException {
+    private void deleteSubtree(DN dn) throws LdapException {
         // Delete the children first.
         for (DN child : listEntries(dn, Filter.objectClassPresent())) {
             deleteSubtree(child);
@@ -571,7 +570,7 @@ final class LDAPDriver extends Driver {
         connection.delete(dn.toString());
     }
 
-    private Collection<DN> listEntries(DN dn, Filter filter) throws ErrorResultException {
+    private Collection<DN> listEntries(DN dn, Filter filter) throws LdapException {
         List<DN> names = new LinkedList<DN>();
         ConnectionEntryReader reader =
                 connection.search(dn.toString(), SearchScope.SINGLE_LEVEL, filter.toString());
@@ -579,8 +578,6 @@ final class LDAPDriver extends Driver {
             while (reader.hasNext()) {
                 names.add(reader.readEntry().getName());
             }
-        } catch (ErrorResultIOException e) {
-            throw e.getCause();
         } catch (SearchResultReferenceIOException e) {
             // Ignore.
         } finally {

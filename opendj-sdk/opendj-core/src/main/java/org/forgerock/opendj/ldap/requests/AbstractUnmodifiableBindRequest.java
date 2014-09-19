@@ -22,11 +22,12 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
 
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 
 /**
  * An abstract unmodifiable Bind request which can be used as the basis for
@@ -43,7 +44,7 @@ abstract class AbstractUnmodifiableBindRequest<R extends BindRequest> extends
     }
 
     @Override
-    public BindClient createBindClient(final String serverName) throws ErrorResultException {
+    public BindClient createBindClient(final String serverName) throws LdapException {
         return impl.createBindClient(serverName);
     }
 

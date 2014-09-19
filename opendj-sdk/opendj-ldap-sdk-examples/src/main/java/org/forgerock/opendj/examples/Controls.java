@@ -34,8 +34,7 @@ import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
 import org.forgerock.opendj.ldap.Entry;
-import org.forgerock.opendj.ldap.ErrorResultException;
-import org.forgerock.opendj.ldap.ErrorResultIOException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.ModificationType;
@@ -146,7 +145,7 @@ public final class Controls {
             //useSubtreeDeleteRequestControl(connection);
             //useVirtualListViewRequestControl(connection);
 
-        } catch (final ErrorResultException e) {
+        } catch (final LdapException e) {
             System.err.println(e.getMessage());
             System.exit(e.getResult().getResultCode().intValue());
             return;
@@ -170,10 +169,9 @@ public final class Controls {
      * and expects entries under {@code dc=example,dc=com}.
      *
      * @param connection Active connection to Active Directory server.
-     * @throws ErrorResultException Operation failed.
+     * @throws LdapException Operation failed.
      */
-    static void useADNotificationRequestControl(Connection connection)
-            throws ErrorResultException {
+    static void useADNotificationRequestControl(Connection connection) throws LdapException {
 
         // --- JCite ADNotification ---
         final String user = "cn=Administrator,cn=users,dc=example,dc=com";
@@ -233,9 +231,9 @@ public final class Controls {
                     reader.readReference(); // Read and ignore reference
                 }
             }
-        } catch (final ErrorResultIOException e) {
+        } catch (final LdapException e) {
             System.err.println(e.getMessage());
-            System.exit(e.getCause().getResult().getResultCode().intValue());
+            System.exit(e.getResult().getResultCode().intValue());
         } catch (final SearchResultReferenceIOException e) {
             System.err.println("Got search reference(s): " + e.getReference()
                     .getURIs().toString());
@@ -254,10 +252,10 @@ public final class Controls {
      *            Active connection to LDAP server containing <a
      *            href="http://opendj.forgerock.org/Example.ldif"
      *            >Example.ldif</a> content.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             Operation failed.
      */
-    static void useAssertionControl(Connection connection) throws ErrorResultException {
+    static void useAssertionControl(Connection connection) throws LdapException {
         // --- JCite assertion ---
         if (isSupported(AssertionRequestControl.OID)) {
             final String dn = "uid=bjensen,ou=People,dc=example,dc=com";
@@ -292,10 +290,10 @@ public final class Controls {
      *            Active connection to LDAP server containing <a
      *            href="http://opendj.forgerock.org/Example.ldif"
      *            >Example.ldif</a> content.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             Operation failed.
      */
-    static void useAuthorizationIdentityRequestControl(Connection connection) throws ErrorResultException {
+    static void useAuthorizationIdentityRequestControl(Connection connection) throws LdapException {
         // --- JCite authzid ---
         if (isSupported(AuthorizationIdentityRequestControl.OID)) {
             final String dn = "uid=bjensen,ou=People,dc=example,dc=com";
@@ -331,10 +329,10 @@ public final class Controls {
      *            Active connection to LDAP server containing <a
      *            href="http://opendj.forgerock.org/Example.ldif"
      *            >Example.ldif</a> content.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             Operation failed.
      */
-    static void useGetEffectiveRightsRequestControl(Connection connection) throws ErrorResultException {
+    static void useGetEffectiveRightsRequestControl(Connection connection) throws LdapException {
         // --- JCite effective rights ---
         if (isSupported(GetEffectiveRightsRequestControl.OID)) {
             final String authDN = "uid=kvaughan,ou=People,dc=example,dc=com";
@@ -356,9 +354,9 @@ public final class Controls {
                     }
                 }
                 writer.close();
-            } catch (final ErrorResultIOException e) {
+            } catch (final LdapException e) {
                 System.err.println(e.getMessage());
-                System.exit(e.getCause().getResult().getResultCode().intValue());
+                System.exit(e.getResult().getResultCode().intValue());
             } catch (final SearchResultReferenceIOException e) {
                 System.err.println("Got search reference(s): " + e.getReference()
                         .getURIs().toString());
@@ -380,10 +378,10 @@ public final class Controls {
      *            Active connection to LDAP server containing <a
      *            href="http://opendj.forgerock.org/Example.ldif"
      *            >Example.ldif</a> content.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             Operation failed.
      */
-    static void useManageDsaITRequestControl(Connection connection) throws ErrorResultException {
+    static void useManageDsaITRequestControl(Connection connection) throws LdapException {
         // --- JCite manage DsaIT ---
         if (isSupported(ManageDsaITRequestControl.OID)) {
             final String dn = "dc=ref,dc=com";
@@ -406,9 +404,9 @@ public final class Controls {
                 final SearchResultEntry entry = connection.searchSingleEntry(request);
                 writer.writeEntry(entry);
                 writer.close();
-            } catch (final ErrorResultIOException e) {
+            } catch (final LdapException e) {
                 System.err.println(e.getMessage());
-                System.exit(e.getCause().getResult().getResultCode().intValue());
+                System.exit(e.getResult().getResultCode().intValue());
             } catch (final SearchResultReferenceIOException e) {
                 System.err.println("Got search reference(s): " + e.getReference()
                         .getURIs().toString());
@@ -430,10 +428,10 @@ public final class Controls {
      *            Active connection to LDAP server containing <a
      *            href="http://opendj.forgerock.org/Example.ldif"
      *            >Example.ldif</a> content.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             Operation failed.
      */
-    static void useMatchedValuesRequestControl(Connection connection) throws ErrorResultException {
+    static void useMatchedValuesRequestControl(Connection connection) throws LdapException {
         // --- JCite matched values ---
         if (isSupported(MatchedValuesRequestControl.OID)) {
             final String dn = "uid=bjensen,ou=People,dc=example,dc=com";
@@ -477,7 +475,7 @@ public final class Controls {
 
             try {
                 connection.bind(dn, pwd);
-            } catch (final ErrorResultException e) {
+            } catch (final LdapException e) {
                 final Result result = e.getResult();
                 try {
                     final PasswordExpiredResponseControl control =
@@ -507,10 +505,10 @@ public final class Controls {
      *            Active connection to LDAP server containing <a
      *            href="http://opendj.forgerock.org/Example.ldif"
      *            >Example.ldif</a> content.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             Operation failed.
      */
-    static void usePasswordExpiringResponseControl(Connection connection) throws ErrorResultException {
+    static void usePasswordExpiringResponseControl(Connection connection) throws LdapException {
         // --- JCite password expiring ---
         if (isSupported(PasswordExpiringResponseControl.OID)) {
             final String dn = "uid=bjensen,ou=People,dc=example,dc=com";
@@ -566,7 +564,7 @@ public final class Controls {
                             + control.getWarningType().toString() + ", value "
                             + control.getWarningValue() + " for " + dn);
                 }
-            } catch (final ErrorResultException e) {
+            } catch (final LdapException e) {
                 final Result result = e.getResult();
                 try {
                     final PasswordPolicyResponseControl control =
@@ -598,10 +596,10 @@ public final class Controls {
      *            Active connection to LDAP server containing <a
      *            href="http://opendj.forgerock.org/Example.ldif"
      *            >Example.ldif</a> content.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             Operation failed.
      */
-    static void usePermissiveModifyRequestControl(Connection connection) throws ErrorResultException {
+    static void usePermissiveModifyRequestControl(Connection connection) throws LdapException {
         // --- JCite permissive modify ---
         if (isSupported(PermissiveModifyRequestControl.OID)) {
             final String dn = "uid=bjensen,ou=People,dc=example,dc=com";
@@ -632,10 +630,10 @@ public final class Controls {
      *            Active connection to LDAP server containing <a
      *            href="http://opendj.forgerock.org/Example.ldif"
      *            >Example.ldif</a> content.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             Operation failed.
      */
-    static void usePersistentSearchRequestControl(Connection connection) throws ErrorResultException {
+    static void usePersistentSearchRequestControl(Connection connection) throws LdapException {
         // --- JCite psearch ---
         if (isSupported(PersistentSearchRequestControl.OID)) {
             final SearchRequest request =
@@ -675,9 +673,9 @@ public final class Controls {
             } catch (final DecodeException e) {
                 System.err.println(e.getMessage());
                 System.exit(ResultCode.CLIENT_SIDE_DECODING_ERROR.intValue());
-            } catch (final ErrorResultIOException e) {
+            } catch (final LdapException e) {
                 System.err.println(e.getMessage());
-                System.exit(e.getCause().getResult().getResultCode().intValue());
+                System.exit(e.getResult().getResultCode().intValue());
             } catch (final SearchResultReferenceIOException e) {
                 System.err.println("Got search reference(s): " + e.getReference()
                         .getURIs().toString());
@@ -696,10 +694,10 @@ public final class Controls {
      *            Active connection to LDAP server containing <a
      *            href="http://opendj.forgerock.org/Example.ldif"
      *            >Example.ldif</a> content.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             Operation failed.
      */
-    static void usePostReadRequestControl(Connection connection) throws ErrorResultException {
+    static void usePostReadRequestControl(Connection connection) throws LdapException {
         // --- JCite post read ---
         if (isSupported(PostReadRequestControl.OID)) {
             final String dn = "uid=bjensen,ou=People,dc=example,dc=com";
@@ -740,10 +738,10 @@ public final class Controls {
      *            Active connection to LDAP server containing <a
      *            href="http://opendj.forgerock.org/Example.ldif"
      *            >Example.ldif</a> content.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             Operation failed.
      */
-    static void usePreReadRequestControl(Connection connection) throws ErrorResultException {
+    static void usePreReadRequestControl(Connection connection) throws LdapException {
         // --- JCite pre read ---
         if (isSupported(PreReadRequestControl.OID)) {
             final String dn = "uid=bjensen,ou=People,dc=example,dc=com";
@@ -784,10 +782,10 @@ public final class Controls {
      *            Active connection to LDAP server containing <a
      *            href="http://opendj.forgerock.org/Example.ldif"
      *            >Example.ldif</a> content.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             Operation failed.
      */
-    static void useProxiedAuthV2RequestControl(Connection connection) throws ErrorResultException {
+    static void useProxiedAuthV2RequestControl(Connection connection) throws LdapException {
         // --- JCite proxied authzv2 ---
         if (isSupported(ProxiedAuthV2RequestControl.OID)) {
             final String bindDN = "cn=My App,ou=Apps,dc=example,dc=com";
@@ -825,12 +823,11 @@ public final class Controls {
      *            Active connection to LDAP server containing <a
      *            href="http://opendj.forgerock.org/Example.ldif"
      *            >Example.ldif</a> content.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             Operation failed.
      */
     // --- JCite server-side sort ---
-    static void useServerSideSortRequestControl(Connection connection)
-            throws ErrorResultException {
+    static void useServerSideSortRequestControl(Connection connection) throws LdapException {
         if (isSupported(ServerSideSortRequestControl.OID)) {
             final SearchRequest request =
                     Requests.newSearchRequest("ou=People,dc=example,dc=com",
@@ -889,10 +886,10 @@ public final class Controls {
      *            Active connection to LDAP server containing <a
      *            href="http://opendj.forgerock.org/Example.ldif"
      *            >Example.ldif</a> content.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             Operation failed.
      */
-    static void useSimplePagedResultsControl(Connection connection) throws ErrorResultException {
+    static void useSimplePagedResultsControl(Connection connection) throws LdapException {
         // --- JCite simple paged results ---
         if (isSupported(SimplePagedResultsControl.OID)) {
             ByteString cookie = ByteString.empty();
@@ -936,10 +933,10 @@ public final class Controls {
      *            Active connection to LDAP server containing <a
      *            href="http://opendj.forgerock.org/Example.ldif"
      *            >Example.ldif</a> content.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             Operation failed.
      */
-    static void useSubentriesRequestControl(Connection connection) throws ErrorResultException {
+    static void useSubentriesRequestControl(Connection connection) throws LdapException {
         // --- JCite subentries ---
         if (isSupported(SubentriesRequestControl.OID)) {
             final SearchRequest request =
@@ -959,9 +956,9 @@ public final class Controls {
                     }
                 }
                 writer.close();
-            } catch (final ErrorResultIOException e) {
+            } catch (final LdapException e) {
                 System.err.println(e.getMessage());
-                System.exit(e.getCause().getResult().getResultCode().intValue());
+                System.exit(e.getResult().getResultCode().intValue());
             } catch (final SearchResultReferenceIOException e) {
                 System.err.println("Got search reference(s): " + e.getReference()
                         .getURIs().toString());
@@ -982,10 +979,10 @@ public final class Controls {
      *            Active connection to LDAP server containing <a
      *            href="http://opendj.forgerock.org/Example.ldif"
      *            >Example.ldif</a> content.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             Operation failed.
      */
-    static void useSubtreeDeleteRequestControl(Connection connection) throws ErrorResultException {
+    static void useSubtreeDeleteRequestControl(Connection connection) throws LdapException {
         // --- JCite tree delete ---
         if (isSupported(SubtreeDeleteRequestControl.OID)) {
 
@@ -1019,10 +1016,10 @@ public final class Controls {
      *            Active connection to LDAP server containing <a
      *            href="http://opendj.forgerock.org/Example.ldif"
      *            >Example.ldif</a> content.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             Operation failed.
      */
-    static void useVirtualListViewRequestControl(Connection connection) throws ErrorResultException {
+    static void useVirtualListViewRequestControl(Connection connection) throws LdapException {
         // --- JCite vlv ---
         if (isSupported(VirtualListViewRequestControl.OID)) {
             ByteString contextID = ByteString.empty();
@@ -1079,11 +1076,10 @@ public final class Controls {
      *
      * @param connection
      *            Active connection to the LDAP server.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             Failed to get list of controls.
      */
-    static void checkSupportedControls(Connection connection)
-            throws ErrorResultException {
+    static void checkSupportedControls(Connection connection) throws LdapException {
         controls = RootDSE.readRootDSE(connection).getSupportedControls();
     }
 

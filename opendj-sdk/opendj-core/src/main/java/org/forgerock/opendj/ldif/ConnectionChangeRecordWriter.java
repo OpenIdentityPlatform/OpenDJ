@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions Copyright 2012-2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldif;
@@ -30,8 +30,7 @@ package org.forgerock.opendj.ldif;
 import java.io.IOException;
 
 import org.forgerock.opendj.ldap.Connection;
-import org.forgerock.opendj.ldap.ErrorResultException;
-import org.forgerock.opendj.ldap.ErrorResultIOException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.requests.AddRequest;
 import org.forgerock.opendj.ldap.requests.DeleteRequest;
 import org.forgerock.opendj.ldap.requests.ModifyDNRequest;
@@ -48,7 +47,7 @@ import org.forgerock.util.Reject;
  * All update requests are performed synchronously, blocking until an update
  * result is received. If an update result indicates that an update request has
  * failed for some reason then the error result is propagated to the caller
- * using an {@code ErrorResultIOException}.
+ * using an {@code LdapException}.
  * <p>
  * <b>Note:</b> comments are not supported by connection change record writers.
  * Attempts to write comments will be ignored.
@@ -94,20 +93,15 @@ public final class ConnectionChangeRecordWriter implements ChangeRecordWriter {
      * @param change
      *            The {@code AddRequest} to be written.
      * @return A reference to this connection change record writer.
-     * @throws ErrorResultIOException
+     * @throws LdapException
      *             If the result code indicates that the request failed for some
      *             reason.
      * @throws NullPointerException
      *             If {@code change} was {@code null}.
      */
-    public ConnectionChangeRecordWriter writeChangeRecord(final AddRequest change)
-            throws ErrorResultIOException {
+    public ConnectionChangeRecordWriter writeChangeRecord(final AddRequest change) throws LdapException {
         Reject.ifNull(change);
-        try {
-            connection.add(change);
-        } catch (final ErrorResultException e) {
-            throw new ErrorResultIOException(e);
-        }
+        connection.add(change);
         return this;
     }
 
@@ -118,14 +112,13 @@ public final class ConnectionChangeRecordWriter implements ChangeRecordWriter {
      * @param change
      *            The change record to be written.
      * @return A reference to this connection change record writer.
-     * @throws ErrorResultIOException
+     * @throws LdapException
      *             If the result code indicates that the request failed for some
      *             reason.
      * @throws NullPointerException
      *             If {@code change} was {@code null}.
      */
-    public ConnectionChangeRecordWriter writeChangeRecord(final ChangeRecord change)
-            throws ErrorResultIOException {
+    public ConnectionChangeRecordWriter writeChangeRecord(final ChangeRecord change) throws LdapException {
         Reject.ifNull(change);
 
         final IOException e = change.accept(ChangeRecordVisitorWriter.getInstance(), this);
@@ -133,7 +126,7 @@ public final class ConnectionChangeRecordWriter implements ChangeRecordWriter {
             if (e != null) {
                 throw e;
             }
-        } catch (final ErrorResultIOException e1) {
+        } catch (final LdapException e1) {
             throw e1;
         } catch (final IOException e1) {
             // Should not happen.
@@ -149,20 +142,15 @@ public final class ConnectionChangeRecordWriter implements ChangeRecordWriter {
      * @param change
      *            The {@code DeleteRequest} to be written.
      * @return A reference to this connection change record writer.
-     * @throws ErrorResultIOException
+     * @throws LdapException
      *             If the result code indicates that the request failed for some
      *             reason.
      * @throws NullPointerException
      *             If {@code change} was {@code null}.
      */
-    public ConnectionChangeRecordWriter writeChangeRecord(final DeleteRequest change)
-            throws ErrorResultIOException {
+    public ConnectionChangeRecordWriter writeChangeRecord(final DeleteRequest change) throws LdapException {
         Reject.ifNull(change);
-        try {
-            connection.delete(change);
-        } catch (final ErrorResultException e) {
-            throw new ErrorResultIOException(e);
-        }
+        connection.delete(change);
         return this;
     }
 
@@ -173,20 +161,15 @@ public final class ConnectionChangeRecordWriter implements ChangeRecordWriter {
      * @param change
      *            The {@code ModifyDNRequest} to be written.
      * @return A reference to this connection change record writer.
-     * @throws ErrorResultIOException
+     * @throws LdapException
      *             If the result code indicates that the request failed for some
      *             reason.
      * @throws NullPointerException
      *             If {@code change} was {@code null}.
      */
-    public ConnectionChangeRecordWriter writeChangeRecord(final ModifyDNRequest change)
-            throws ErrorResultIOException {
+    public ConnectionChangeRecordWriter writeChangeRecord(final ModifyDNRequest change) throws LdapException {
         Reject.ifNull(change);
-        try {
-            connection.modifyDN(change);
-        } catch (final ErrorResultException e) {
-            throw new ErrorResultIOException(e);
-        }
+        connection.modifyDN(change);
         return this;
     }
 
@@ -197,20 +180,15 @@ public final class ConnectionChangeRecordWriter implements ChangeRecordWriter {
      * @param change
      *            The {@code ModifyRequest} to be written.
      * @return A reference to this connection change record writer.
-     * @throws ErrorResultIOException
+     * @throws LdapException
      *             If the result code indicates that the request failed for some
      *             reason.
      * @throws NullPointerException
      *             If {@code change} was {@code null}.
      */
-    public ConnectionChangeRecordWriter writeChangeRecord(final ModifyRequest change)
-            throws ErrorResultIOException {
+    public ConnectionChangeRecordWriter writeChangeRecord(final ModifyRequest change) throws LdapException {
         Reject.ifNull(change);
-        try {
-            connection.modify(change);
-        } catch (final ErrorResultException e) {
-            throw new ErrorResultIOException(e);
-        }
+        connection.modify(change);
         return this;
     }
 

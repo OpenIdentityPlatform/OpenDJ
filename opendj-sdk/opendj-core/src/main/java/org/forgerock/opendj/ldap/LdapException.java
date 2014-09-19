@@ -22,12 +22,12 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS.
+ *      Portions copyright 2011-2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
 
-import java.util.concurrent.ExecutionException;
+import java.io.IOException;
 
 import org.forgerock.opendj.ldap.responses.Responses;
 import org.forgerock.opendj.ldap.responses.Result;
@@ -38,7 +38,7 @@ import org.forgerock.opendj.ldap.responses.Result;
  * application specific exceptions.
  */
 @SuppressWarnings("serial")
-public class ErrorResultException extends ExecutionException {
+public class LdapException extends IOException {
 
     /**
      * Creates a new error result exception with the provided result code and an
@@ -52,7 +52,7 @@ public class ErrorResultException extends ExecutionException {
      * @throws NullPointerException
      *             If {@code resultCode} was {@code null}.
      */
-    public static ErrorResultException newErrorResult(ResultCode resultCode) {
+    public static LdapException newErrorResult(ResultCode resultCode) {
         return newErrorResult(resultCode, null, null);
     }
 
@@ -71,7 +71,7 @@ public class ErrorResultException extends ExecutionException {
      * @throws NullPointerException
      *             If {@code resultCode} was {@code null}.
      */
-    public static ErrorResultException newErrorResult(ResultCode resultCode,
+    public static LdapException newErrorResult(ResultCode resultCode,
             CharSequence diagnosticMessage) {
         return newErrorResult(resultCode, diagnosticMessage, null);
     }
@@ -91,7 +91,7 @@ public class ErrorResultException extends ExecutionException {
      * @throws NullPointerException
      *             If {@code resultCode} was {@code null}.
      */
-    public static ErrorResultException newErrorResult(ResultCode resultCode, Throwable cause) {
+    public static LdapException newErrorResult(ResultCode resultCode, Throwable cause) {
         return newErrorResult(resultCode, null, cause);
     }
 
@@ -113,7 +113,7 @@ public class ErrorResultException extends ExecutionException {
      * @throws NullPointerException
      *             If {@code resultCode} was {@code null}.
      */
-    public static ErrorResultException newErrorResult(ResultCode resultCode,
+    public static LdapException newErrorResult(ResultCode resultCode,
             CharSequence diagnosticMessage, Throwable cause) {
         final Result result = Responses.newResult(resultCode);
         if (diagnosticMessage != null) {
@@ -136,7 +136,7 @@ public class ErrorResultException extends ExecutionException {
      * @throws NullPointerException
      *             If {@code result} was {@code null}.
      */
-    public static ErrorResultException newErrorResult(final Result result) {
+    public static LdapException newErrorResult(final Result result) {
         if (!result.getResultCode().isExceptional()) {
             throw new IllegalArgumentException("Attempted to wrap a successful result: " + result);
         }
@@ -182,7 +182,7 @@ public class ErrorResultException extends ExecutionException {
             return new TimeoutResultException(result);
         }
 
-        return new ErrorResultException(result);
+        return new LdapException(result);
     }
 
     private static String getMessage(final Result result) {
@@ -201,7 +201,7 @@ public class ErrorResultException extends ExecutionException {
      * @param result
      *            The error result.
      */
-    protected ErrorResultException(final Result result) {
+    protected LdapException(final Result result) {
         super(getMessage(result), result.getCause());
         this.result = result;
     }

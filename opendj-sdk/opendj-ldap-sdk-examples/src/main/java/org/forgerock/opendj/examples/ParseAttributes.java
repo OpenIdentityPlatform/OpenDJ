@@ -20,7 +20,7 @@
  *
  * CDDL HEADER END
  *
- *      Copyright 2012-2013 ForgeRock AS
+ *      Copyright 2012-2014 ForgeRock AS
  *
  */
 
@@ -34,7 +34,7 @@ import org.forgerock.opendj.ldap.AttributeDescription;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.LinkedHashMapEntry;
 import org.forgerock.opendj.ldap.ModificationType;
@@ -119,7 +119,7 @@ public final class ParseAttributes {
             final LDIFEntryWriter writer = new LDIFEntryWriter(System.out);
             writer.writeEntry(newEntry);
             writer.close();
-        } catch (final ErrorResultException e) {
+        } catch (final LdapException e) {
             System.err.println(e.getMessage());
             System.exit(e.getResult().getResultCode().intValue());
             return;
@@ -144,11 +144,11 @@ public final class ParseAttributes {
      *            DN of the entry to modify.
      * @param attributeDescription
      *            Attribute to modify. Must take a String value.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             Modify failed.
      */
     private static void updateEntry(final Connection connection, final String name,
-            final String attributeDescription) throws ErrorResultException {
+            final String attributeDescription) throws LdapException {
         ModifyRequest request = Requests.newModifyRequest(name)
                 .addModification(ModificationType.REPLACE, attributeDescription, "This is a String.");
         connection.modify(request);

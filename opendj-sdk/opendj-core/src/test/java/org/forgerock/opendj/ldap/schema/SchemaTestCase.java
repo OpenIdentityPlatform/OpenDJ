@@ -32,7 +32,7 @@ import static org.mockito.Mockito.*;
 
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.DN;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.FutureResult;
 import org.forgerock.opendj.ldap.FutureResultWrapper;
 import org.forgerock.opendj.ldap.requests.SearchRequest;
@@ -83,7 +83,7 @@ public class SchemaTestCase extends AbstractSchemaTestCase {
         };
 
         // Send a search entry result promise :
-        Promise<SearchResultEntry, ErrorResultException> promise =
+        Promise<SearchResultEntry, LdapException> promise =
                 newSuccessfulPromise(Responses.newSearchResultEntry(entry));
         FutureResult<SearchResultEntry> result = FutureResultWrapper.asFutureResult(promise);
         when(connection.searchSingleEntryAsync((SearchRequest) any())).thenReturn(result);

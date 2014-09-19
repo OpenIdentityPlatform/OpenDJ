@@ -11,7 +11,7 @@
  * Header, with the fields enclosed by brackets [] replaced by your own identifying
  * information: "Portions copyright [year] [name of copyright owner]".
  *
- * Copyright 2012 ForgeRock AS.
+ * Copyright 2012-2014 ForgeRock AS.
  */
 package org.forgerock.opendj.rest2ldap.servlet;
 
@@ -50,7 +50,7 @@ import org.forgerock.opendj.rest2ldap.AuthenticatedConnectionContext;
  *     try {
  *         connection.bind(username, password.toCharArray());
  *         request.setAttribute(ATTRIBUTE_AUTHN_CONNECTION, connection);
- *     } catch (ErrorResultException e) {
+ *     } catch (LdapException e) {
  *         // Fail the HTTP request.
  *         response.setStatus(...);
  *         return;

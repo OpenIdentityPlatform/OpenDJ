@@ -22,19 +22,19 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2012 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
 
-import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
+import static org.forgerock.opendj.ldap.LdapException.newErrorResult;
 
 import javax.security.sasl.Sasl;
 import javax.security.sasl.SaslClient;
 import javax.security.sasl.SaslException;
 
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.responses.BindResult;
 import org.forgerock.opendj.ldap.responses.Responses;
@@ -48,7 +48,7 @@ final class ExternalSASLBindRequestImpl extends AbstractSASLBindRequest<External
         private final SaslClient saslClient;
 
         private Client(final ExternalSASLBindRequestImpl initialBindRequest, final String serverName)
-                throws ErrorResultException {
+                throws LdapException {
             super(initialBindRequest);
 
             try {
@@ -76,7 +76,7 @@ final class ExternalSASLBindRequestImpl extends AbstractSASLBindRequest<External
         }
 
         @Override
-        public boolean evaluateResult(final BindResult result) throws ErrorResultException {
+        public boolean evaluateResult(final BindResult result) throws LdapException {
             if (saslClient.isComplete()) {
                 return true;
             }
@@ -89,7 +89,7 @@ final class ExternalSASLBindRequestImpl extends AbstractSASLBindRequest<External
             } catch (final SaslException e) {
                 // FIXME: I18N need to have a better error message.
                 // FIXME: Is this the best result code?
-                throw ErrorResultException.newErrorResult(Responses.newResult(
+                throw LdapException.newErrorResult(Responses.newResult(
                         ResultCode.CLIENT_SIDE_LOCAL_ERROR).setDiagnosticMessage(
                         "An error occurred during multi-stage authentication").setCause(e));
             }
@@ -108,7 +108,7 @@ final class ExternalSASLBindRequestImpl extends AbstractSASLBindRequest<External
     }
 
     @Override
-    public BindClient createBindClient(final String serverName) throws ErrorResultException {
+    public BindClient createBindClient(final String serverName) throws LdapException {
         return new Client(this, serverName);
     }
 

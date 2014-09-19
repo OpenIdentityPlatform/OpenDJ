@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS.
+ *      Copyright 2013-2014 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap;
 
@@ -99,7 +99,7 @@ public class MemoryBackendTestCase extends SdkTestCase {
                 .isEqualTo(newDomain);
     }
 
-    @Test(expectedExceptions = ErrorResultException.class)
+    @Test(expectedExceptions = LdapException.class)
     public void testAddPreRead() throws Exception {
         final Connection connection = getConnection();
         final Entry newDomain =
@@ -169,7 +169,7 @@ public class MemoryBackendTestCase extends SdkTestCase {
         }
     }
 
-    @Test(expectedExceptions = ErrorResultException.class)
+    @Test(expectedExceptions = LdapException.class)
     public void testDeletePostRead() throws Exception {
         final Connection connection = getConnection();
         connection.delete(newDeleteRequest("dc=xxx,dc=com").addControl(
@@ -434,9 +434,9 @@ public class MemoryBackendTestCase extends SdkTestCase {
                         "objectClass: top", "dc: example"));
         try {
             reader.hasNext();
-            TestCaseUtils.failWasExpected(ErrorResultIOException.class);
-        } catch (ErrorResultIOException e) {
-            assertThat(e.getCause().getResult().getResultCode()).isEqualTo(ResultCode.SIZE_LIMIT_EXCEEDED);
+            TestCaseUtils.failWasExpected(LdapException.class);
+        } catch (LdapException e) {
+            assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.SIZE_LIMIT_EXCEEDED);
         }
     }
 
@@ -481,8 +481,8 @@ public class MemoryBackendTestCase extends SdkTestCase {
             connection.search(
                     Requests.newSearchRequest("dc=example,dc=com", SearchScope.WHOLE_SUBTREE, "(objectClass=*)").
                     setSizeLimit(2), entries);
-            TestCaseUtils.failWasExpected(ErrorResultException.class);
-        } catch (ErrorResultException e) {
+            TestCaseUtils.failWasExpected(LdapException.class);
+        } catch (LdapException e) {
             assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.SIZE_LIMIT_EXCEEDED);
             assertThat(entries).hasSize(2);
         }

@@ -26,7 +26,7 @@ package org.forgerock.opendj.ldap;
 
 import static org.forgerock.opendj.ldap.Attributes.singletonAttribute;
 import static org.forgerock.opendj.ldap.Entries.modifyEntry;
-import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
+import static org.forgerock.opendj.ldap.LdapException.newErrorResult;
 import static org.forgerock.opendj.ldap.responses.Responses.newBindResult;
 import static org.forgerock.opendj.ldap.responses.Responses.newCompareResult;
 import static org.forgerock.opendj.ldap.responses.Responses.newResult;
@@ -247,7 +247,7 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
                 }
             }
             resultHandler.handleResult(getResult(request, null, request));
-        } catch (final ErrorResultException e) {
+        } catch (final LdapException e) {
             resultHandler.handleError(e);
         }
     }
@@ -288,7 +288,7 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
              */
             resultHandler.handleError(newErrorResult(ResultCode.INVALID_CREDENTIALS,
                     "Unknown user"));
-        } catch (final ErrorResultException e) {
+        } catch (final LdapException e) {
             resultHandler.handleError(e);
         }
     }
@@ -309,7 +309,7 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
             }
             resultHandler.handleResult(getCompareResult(request, entry, entry.containsAttribute(
                     assertion, null)));
-        } catch (final ErrorResultException e) {
+        } catch (final LdapException e) {
             resultHandler.handleError(e);
         }
     }
@@ -339,7 +339,7 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
             resultHandler.handleResult(getResult(request, entry, null));
         } catch (final DecodeException e) {
             resultHandler.handleError(newErrorResult(ResultCode.PROTOCOL_ERROR, e));
-        } catch (final ErrorResultException e) {
+        } catch (final LdapException e) {
             resultHandler.handleError(e);
         }
     }
@@ -367,7 +367,7 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
                 entries.put(dn, modifyEntry(newEntry, request));
             }
             resultHandler.handleResult(getResult(request, entry, newEntry));
-        } catch (final ErrorResultException e) {
+        } catch (final LdapException e) {
             resultHandler.handleError(e);
         }
     }
@@ -406,9 +406,8 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
                 throw newErrorResult(ResultCode.PROTOCOL_ERROR, "Search request contains an unsupported search scope");
             }
         } catch (DecodeException e) {
-            resultHandler.handleError(ErrorResultException.newErrorResult(ResultCode.PROTOCOL_ERROR, e.getMessage(),
-                e));
-        } catch (final ErrorResultException e) {
+            resultHandler.handleError(LdapException.newErrorResult(ResultCode.PROTOCOL_ERROR, e.getMessage(), e));
+        } catch (final LdapException e) {
             resultHandler.handleError(e);
         }
     }
@@ -446,9 +445,8 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
                         final Entry entry = reader.readEntry();
                         final DN dn = entry.getName();
                         if (!overwrite && entries.containsKey(dn)) {
-                            throw new ErrorResultIOException(newErrorResult(
-                                    ResultCode.ENTRY_ALREADY_EXISTS, "Attempted to add the entry '"
-                                            + dn.toString() + "' multiple times"));
+                            throw newErrorResult(ResultCode.ENTRY_ALREADY_EXISTS,
+                                    "Attempted to add the entry '" + dn + "' multiple times");
                         } else {
                             entries.put(dn, entry);
                         }
@@ -485,13 +483,13 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
      * @throws CancelledResultException
      *           If a cancellation request has been received and processing of
      *           the request should be aborted if possible.
-     * @throws ErrorResultException
+     * @throws LdapException
      *           If the request is unsuccessful.
      */
     private void searchWithSubordinates(final RequestContext requestContext, final SearchResultHandler entryHandler,
             final ResultHandler<Result> resultHandler, final DN dn, final Matcher matcher,
             final AttributeFilter attributeFilter, final int sizeLimit, SearchScope scope,
-            SimplePagedResultsControl pagedResults) throws CancelledResultException, ErrorResultException {
+            SimplePagedResultsControl pagedResults) throws CancelledResultException, LdapException {
         final int pageSize = pagedResults != null ? pagedResults.getSize() : 0;
         final int offset = (pagedResults != null && !pagedResults.getCookie().isEmpty())
                 ? Integer.valueOf(pagedResults.getCookie().toString()) : 0;
@@ -543,7 +541,7 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
     }
 
     private <R extends Result> R addResultControls(final Request request, final Entry before,
-            final Entry after, final R result) throws ErrorResultException {
+            final Entry after, final R result) throws LdapException {
         try {
             // Add pre-read response control if requested.
             final PreReadRequestControl preRead =
@@ -579,12 +577,12 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
     }
 
     private BindResult getBindResult(final BindRequest request, final Entry before,
-            final Entry after) throws ErrorResultException {
+            final Entry after) throws LdapException {
         return addResultControls(request, before, after, newBindResult(ResultCode.SUCCESS));
     }
 
     private CompareResult getCompareResult(final CompareRequest request, final Entry entry,
-            final boolean compareResult) throws ErrorResultException {
+            final boolean compareResult) throws LdapException {
         return addResultControls(
                 request,
                 entry,
@@ -592,7 +590,7 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
                 newCompareResult(compareResult ? ResultCode.COMPARE_TRUE : ResultCode.COMPARE_FALSE));
     }
 
-    private Entry getRequiredEntry(final Request request, final DN dn) throws ErrorResultException {
+    private Entry getRequiredEntry(final Request request, final DN dn) throws LdapException {
         final Entry entry = entries.get(dn);
         if (entry == null) {
             noSuchObject(dn);
@@ -616,12 +614,11 @@ public final class MemoryBackend implements RequestHandler<RequestContext> {
         return entry;
     }
 
-    private Result getResult(final Request request, final Entry before, final Entry after)
-            throws ErrorResultException {
+    private Result getResult(final Request request, final Entry before, final Entry after) throws LdapException {
         return addResultControls(request, before, after, newResult(ResultCode.SUCCESS));
     }
 
-    private void noSuchObject(final DN dn) throws ErrorResultException {
+    private void noSuchObject(final DN dn) throws LdapException {
         throw newErrorResult(ResultCode.NO_SUCH_OBJECT, "The entry '" + dn.toString()
                 + "' does not exist");
     }

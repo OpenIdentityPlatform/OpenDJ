@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package com.forgerock.opendj.ldap.tools;
 
@@ -34,7 +34,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.DecodeException;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.controls.Control;
 import org.forgerock.opendj.ldap.requests.PasswordModifyExtendedRequest;
@@ -245,7 +245,7 @@ public final class LDAPPasswordModify extends ConsoleApplication {
         Connection connection;
         try {
             connection = connectionFactory.getConnection();
-        } catch (final ErrorResultException ere) {
+        } catch (final LdapException ere) {
             return Utils.printErrorMessage(this, ere);
         }
 
@@ -268,7 +268,7 @@ public final class LDAPPasswordModify extends ConsoleApplication {
         PasswordModifyExtendedResult result;
         try {
             result = connection.extendedRequest(request);
-        } catch (final ErrorResultException e) {
+        } catch (final LdapException e) {
             LocalizableMessage message =
                     ERR_LDAPPWMOD_FAILED.get(e.getResult().getResultCode().intValue(), e
                             .getResult().getResultCode().toString());

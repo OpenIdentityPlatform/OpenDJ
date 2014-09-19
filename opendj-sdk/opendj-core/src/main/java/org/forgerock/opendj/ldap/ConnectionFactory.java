@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS.
+ *      Portions Copyright 2011-2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -82,7 +82,7 @@ public interface ConnectionFactory extends Closeable {
      *
      * @return A promise which can be used to retrieve the connection.
      */
-    Promise<Connection, ErrorResultException> getConnectionAsync();
+    Promise<Connection, LdapException> getConnectionAsync();
 
     /**
      * Returns a connection to the Directory Server associated with this
@@ -96,8 +96,8 @@ public interface ConnectionFactory extends Closeable {
      *
      * @return A connection to the Directory Server associated with this
      *         connection factory.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If the connection request failed for some reason.
      */
-    Connection getConnection() throws ErrorResultException;
+    Connection getConnection() throws LdapException;
 }

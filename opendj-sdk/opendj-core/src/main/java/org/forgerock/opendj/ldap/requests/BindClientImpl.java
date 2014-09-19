@@ -22,13 +22,13 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
 
 import org.forgerock.opendj.ldap.ConnectionSecurityLayer;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.controls.Control;
 import org.forgerock.opendj.ldap.responses.BindResult;
 
@@ -59,7 +59,7 @@ class BindClientImpl implements BindClient, ConnectionSecurityLayer {
      * Default implementation does nothing and always returns {@code true}.
      */
     @Override
-    public boolean evaluateResult(final BindResult result) throws ErrorResultException {
+    public boolean evaluateResult(final BindResult result) throws LdapException {
         return true;
     }
 
@@ -83,8 +83,7 @@ class BindClientImpl implements BindClient, ConnectionSecurityLayer {
      * Default implementation just returns the copy of the bytes.
      */
     @Override
-    public byte[] unwrap(final byte[] incoming, final int offset, final int len)
-            throws ErrorResultException {
+    public byte[] unwrap(final byte[] incoming, final int offset, final int len) throws LdapException {
         final byte[] copy = new byte[len];
         System.arraycopy(incoming, offset, copy, 0, len);
         return copy;
@@ -94,8 +93,7 @@ class BindClientImpl implements BindClient, ConnectionSecurityLayer {
      * Default implementation just returns the copy of the bytes.
      */
     @Override
-    public byte[] wrap(final byte[] outgoing, final int offset, final int len)
-            throws ErrorResultException {
+    public byte[] wrap(final byte[] outgoing, final int offset, final int len) throws LdapException {
         final byte[] copy = new byte[len];
         System.arraycopy(outgoing, offset, copy, 0, len);
         return copy;

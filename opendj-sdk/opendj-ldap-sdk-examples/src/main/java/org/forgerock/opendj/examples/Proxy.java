@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.examples;
@@ -33,7 +33,7 @@ import java.util.List;
 
 import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.Connections;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LDAPClientContext;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.LDAPListener;
@@ -122,8 +122,7 @@ public final class Proxy {
         final RequestHandlerFactory<LDAPClientContext, RequestContext> proxyFactory =
                 new RequestHandlerFactory<LDAPClientContext, RequestContext>() {
                     @Override
-                    public ProxyBackend handleAccept(LDAPClientContext clientContext)
-                            throws ErrorResultException {
+                    public ProxyBackend handleAccept(LDAPClientContext clientContext) throws LdapException {
                         return new ProxyBackend(factory, bindFactory);
                     }
                 };

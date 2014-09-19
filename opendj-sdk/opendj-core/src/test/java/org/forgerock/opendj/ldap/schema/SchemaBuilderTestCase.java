@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions Copyright 2012-2014 ForgeRock AS.
  */
 package org.forgerock.opendj.ldap.schema;
 
@@ -36,7 +36,7 @@ import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.Entry;
 import org.forgerock.opendj.ldap.EntryNotFoundException;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.FutureResult;
 import org.forgerock.opendj.ldap.FutureResultWrapper;
 import org.forgerock.opendj.ldap.LinkedHashMapEntry;
@@ -1992,7 +1992,7 @@ public class SchemaBuilderTestCase extends AbstractSchemaTestCase {
         };
 
         // Send a search entry result promise :
-        Promise<SearchResultEntry, ErrorResultException> promise =
+        Promise<SearchResultEntry, LdapException> promise =
                 newSuccessfulPromise(Responses.newSearchResultEntry(entry));
         FutureResult<SearchResultEntry> result = FutureResultWrapper.asFutureResult(promise);
         when(connection.searchSingleEntryAsync((SearchRequest) any())).thenReturn(result);

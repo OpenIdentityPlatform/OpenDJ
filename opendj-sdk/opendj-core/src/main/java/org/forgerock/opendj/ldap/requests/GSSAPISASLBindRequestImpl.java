@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -32,7 +32,7 @@ import static com.forgerock.opendj.ldap.CoreMessages.ERR_SASL_CONTEXT_CREATE_ERR
 import static com.forgerock.opendj.ldap.CoreMessages.ERR_SASL_PROTOCOL_ERROR;
 import static com.forgerock.opendj.util.StaticUtils.copyOfBytes;
 import static com.forgerock.opendj.util.StaticUtils.getExceptionMessage;
-import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
+import static org.forgerock.opendj.ldap.LdapException.newErrorResult;
 
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
@@ -51,7 +51,7 @@ import javax.security.sasl.SaslException;
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.ConnectionSecurityLayer;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.responses.BindResult;
 import org.forgerock.opendj.ldap.responses.Responses;
@@ -70,12 +70,11 @@ final class GSSAPISASLBindRequestImpl extends AbstractSASLBindRequest<GSSAPISASL
         implements GSSAPISASLBindRequest {
     private final static class Client extends SASLBindClientImpl {
         private static Subject kerberos5Login(final String authenticationID,
-                final ByteString password, final String realm, final String kdc)
-                throws ErrorResultException {
+                final ByteString password, final String realm, final String kdc) throws LdapException {
             if (authenticationID == null) {
                 // FIXME: I18N need to have a better error message.
                 // FIXME: Is this the best result code?
-                throw ErrorResultException.newErrorResult(Responses.newResult(
+                throw LdapException.newErrorResult(Responses.newResult(
                         ResultCode.CLIENT_SIDE_LOCAL_ERROR).setDiagnosticMessage(
                         "No authentication ID specified for GSSAPI SASL authentication"));
             }
@@ -83,7 +82,7 @@ final class GSSAPISASLBindRequestImpl extends AbstractSASLBindRequest<GSSAPISASL
             if (password == null) {
                 // FIXME: I18N need to have a better error message.
                 // FIXME: Is this the best result code?
-                throw ErrorResultException.newErrorResult(Responses.newResult(
+                throw LdapException.newErrorResult(Responses.newResult(
                         ResultCode.CLIENT_SIDE_LOCAL_ERROR).setDiagnosticMessage(
                         "No password specified for GSSAPI SASL authentication"));
             }
@@ -114,7 +113,7 @@ final class GSSAPISASLBindRequestImpl extends AbstractSASLBindRequest<GSSAPISASL
                 final LocalizableMessage message =
                         ERR_LDAPAUTH_GSSAPI_LOCAL_AUTHENTICATION_FAILED.get(StaticUtils
                                 .getExceptionMessage(e));
-                throw ErrorResultException.newErrorResult(Responses.newResult(
+                throw LdapException.newErrorResult(Responses.newResult(
                         ResultCode.CLIENT_SIDE_LOCAL_ERROR)
                         .setDiagnosticMessage(message.toString()).setCause(e));
             }
@@ -125,7 +124,7 @@ final class GSSAPISASLBindRequestImpl extends AbstractSASLBindRequest<GSSAPISASL
         private final PrivilegedExceptionAction<Boolean> evaluateAction =
                 new PrivilegedExceptionAction<Boolean>() {
                     @Override
-                    public Boolean run() throws ErrorResultException {
+                    public Boolean run() throws LdapException {
                         if (saslClient.isComplete()) {
                             return true;
                         }
@@ -138,7 +137,7 @@ final class GSSAPISASLBindRequestImpl extends AbstractSASLBindRequest<GSSAPISASL
                         } catch (final SaslException e) {
                             // FIXME: I18N need to have a better error message.
                             // FIXME: Is this the best result code?
-                            throw ErrorResultException.newErrorResult(Responses.newResult(
+                            throw LdapException.newErrorResult(Responses.newResult(
                                     ResultCode.CLIENT_SIDE_LOCAL_ERROR).setDiagnosticMessage(
                                     "An error occurred during multi-stage authentication")
                                     .setCause(e));
@@ -152,7 +151,7 @@ final class GSSAPISASLBindRequestImpl extends AbstractSASLBindRequest<GSSAPISASL
         private final Subject subject;
 
         private Client(final GSSAPISASLBindRequestImpl initialBindRequest, final String serverName)
-                throws ErrorResultException {
+                throws LdapException {
             super(initialBindRequest);
 
             this.authorizationID = initialBindRequest.getAuthorizationID();
@@ -169,7 +168,7 @@ final class GSSAPISASLBindRequestImpl extends AbstractSASLBindRequest<GSSAPISASL
                 this.saslClient =
                         Subject.doAs(subject, new PrivilegedExceptionAction<SaslClient>() {
                             @Override
-                            public SaslClient run() throws ErrorResultException {
+                            public SaslClient run() throws LdapException {
                                 /*
                                  * Create property map containing all the
                                  * parameters.
@@ -221,8 +220,8 @@ final class GSSAPISASLBindRequestImpl extends AbstractSASLBindRequest<GSSAPISASL
                             }
                         });
             } catch (final PrivilegedActionException e) {
-                if (e.getCause() instanceof ErrorResultException) {
-                    throw (ErrorResultException) e.getCause();
+                if (e.getCause() instanceof LdapException) {
+                    throw (LdapException) e.getCause();
                 } else {
                     // This should not happen. Must be a bug.
                     final LocalizableMessage msg =
@@ -243,13 +242,13 @@ final class GSSAPISASLBindRequestImpl extends AbstractSASLBindRequest<GSSAPISASL
         }
 
         @Override
-        public boolean evaluateResult(final BindResult result) throws ErrorResultException {
+        public boolean evaluateResult(final BindResult result) throws LdapException {
             this.lastResult = result;
             try {
                 return Subject.doAs(subject, evaluateAction);
             } catch (final PrivilegedActionException e) {
-                if (e.getCause() instanceof ErrorResultException) {
-                    throw (ErrorResultException) e.getCause();
+                if (e.getCause() instanceof LdapException) {
+                    throw (LdapException) e.getCause();
                 } else {
                     // This should not happen. Must be a bug.
                     final LocalizableMessage msg =
@@ -271,8 +270,7 @@ final class GSSAPISASLBindRequestImpl extends AbstractSASLBindRequest<GSSAPISASL
         }
 
         @Override
-        public byte[] unwrap(final byte[] incoming, final int offset, final int len)
-                throws ErrorResultException {
+        public byte[] unwrap(final byte[] incoming, final int offset, final int len) throws LdapException {
             try {
                 return saslClient.unwrap(incoming, offset, len);
             } catch (final SaslException e) {
@@ -283,8 +281,7 @@ final class GSSAPISASLBindRequestImpl extends AbstractSASLBindRequest<GSSAPISASL
         }
 
         @Override
-        public byte[] wrap(final byte[] outgoing, final int offset, final int len)
-                throws ErrorResultException {
+        public byte[] wrap(final byte[] outgoing, final int offset, final int len) throws LdapException {
             try {
                 return saslClient.wrap(outgoing, offset, len);
             } catch (final SaslException e) {
@@ -365,7 +362,7 @@ final class GSSAPISASLBindRequestImpl extends AbstractSASLBindRequest<GSSAPISASL
     }
 
     @Override
-    public BindClient createBindClient(final String serverName) throws ErrorResultException {
+    public BindClient createBindClient(final String serverName) throws LdapException {
         return new Client(this, serverName);
     }
 

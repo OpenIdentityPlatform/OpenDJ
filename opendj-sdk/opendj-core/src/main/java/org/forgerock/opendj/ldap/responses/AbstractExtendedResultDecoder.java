@@ -22,16 +22,16 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2014 ForgeRock AS.
+ *      Portions Copyright 2012-2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.responses;
 
-import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
+import static org.forgerock.opendj.ldap.LdapException.newErrorResult;
 
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ResultHandler;
 import org.forgerock.opendj.ldap.requests.ExtendedRequest;
@@ -68,7 +68,7 @@ public abstract class AbstractExtendedResultDecoder<S extends ExtendedResult> im
         return new ResultHandler<S>() {
 
             @Override
-            public void handleError(final ErrorResultException error) {
+            public void handleError(final LdapException error) {
                 final Result result = error.getResult();
                 final R adaptedResult =
                         request.getResultDecoder().newExtendedErrorResult(result.getResultCode(),

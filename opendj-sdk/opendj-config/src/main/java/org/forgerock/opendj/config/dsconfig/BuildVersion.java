@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
- *      Portions copyright 2013-2014 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.forgerock.opendj.config.dsconfig;
 
@@ -41,7 +41,7 @@ import java.util.Arrays;
 import org.forgerock.opendj.config.ConfigurationFramework;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.ldap.Connection;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.responses.SearchResultEntry;
 
 /**
@@ -87,7 +87,7 @@ public class BuildVersion implements Comparable<BuildVersion> {
         try {
             final SearchResultEntry entry = connection.readEntry("", "fullVendorVersion");
             return valueOf(entry.getAttribute("fullVendorVersion").firstValueAsString());
-        } catch (ErrorResultException e) {
+        } catch (LdapException e) {
             throw new ConfigException(ERR_CONFIGVERSION_NOT_FOUND.get());
         }
     }

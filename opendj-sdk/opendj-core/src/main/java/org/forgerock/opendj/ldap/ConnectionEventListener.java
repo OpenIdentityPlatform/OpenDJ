@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -48,7 +49,7 @@ public interface ConnectionEventListener extends EventListener {
      * Notifies this connection event listener that a fatal error has occurred
      * and the connection can no longer be used - the server has crashed, for
      * example. The connection implementation makes this notification just
-     * before it throws the provided {@link ErrorResultException} to the
+     * before it throws the provided {@link LdapException} to the
      * application.
      * <p>
      * <b>Note:</b> disconnect notifications are treated as fatal connection
@@ -63,7 +64,7 @@ public interface ConnectionEventListener extends EventListener {
      * @param error
      *            The exception that is about to be thrown to the application.
      */
-    void handleConnectionError(boolean isDisconnectNotification, ErrorResultException error);
+    void handleConnectionError(boolean isDisconnectNotification, LdapException error);
 
     /**
      * Notifies this connection event listener that the connection has just

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -49,8 +49,8 @@ public interface LoadBalancingAlgorithm extends Closeable {
      * next connection request.
      *
      * @return The connection factory.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If no connection factories are available for use.
      */
-    ConnectionFactory getConnectionFactory() throws ErrorResultException;
+    ConnectionFactory getConnectionFactory() throws LdapException;
 }

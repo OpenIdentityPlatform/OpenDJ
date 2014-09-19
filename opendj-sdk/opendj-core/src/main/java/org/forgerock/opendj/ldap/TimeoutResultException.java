@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -33,7 +34,7 @@ import org.forgerock.opendj.ldap.responses.Result;
  * was aborted because it did not complete in the required time out period.
  */
 @SuppressWarnings("serial")
-public class TimeoutResultException extends ErrorResultException {
+public class TimeoutResultException extends LdapException {
     TimeoutResultException(final Result result) {
         super(result);
     }

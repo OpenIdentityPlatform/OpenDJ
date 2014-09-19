@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS.
+ *      Portions Copyright 2011-2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -45,7 +45,7 @@ import org.testng.annotations.Test;
 
 import static org.fest.assertions.Assertions.*;
 import static org.forgerock.opendj.ldap.Connections.*;
-import static org.forgerock.opendj.ldap.ErrorResultException.*;
+import static org.forgerock.opendj.ldap.LdapException.*;
 import static org.forgerock.opendj.ldap.TestCaseUtils.*;
 import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
@@ -76,8 +76,7 @@ public class ConnectionPoolTestCase extends SdkTestCase {
         connection.close();
 
         verify(listener).handleConnectionClosed();
-        verify(listener, times(0)).handleConnectionError(anyBoolean(),
-                any(ErrorResultException.class));
+        verify(listener, times(0)).handleConnectionError(anyBoolean(), any(LdapException.class));
         verify(listener, times(0)).handleUnsolicitedNotification(any(ExtendedResult.class));
 
         // Get a connection again and make sure that the listener is no longer invoked.
@@ -132,8 +131,7 @@ public class ConnectionPoolTestCase extends SdkTestCase {
         listeners.get(0).handleUnsolicitedNotification(
                 Responses.newGenericExtendedResult(ResultCode.OTHER));
         verify(listener, times(0)).handleConnectionClosed();
-        verify(listener, times(0)).handleConnectionError(anyBoolean(),
-                any(ErrorResultException.class));
+        verify(listener, times(0)).handleConnectionError(anyBoolean(), any(LdapException.class));
         verify(listener).handleUnsolicitedNotification(any(ExtendedResult.class));
         connection.close();
         assertThat(listeners).hasSize(0);
@@ -247,7 +245,7 @@ public class ConnectionPoolTestCase extends SdkTestCase {
          * is a connection available immediately then the future will be
          * completed immediately).
          */
-        final Promise<? extends Connection, ErrorResultException> future = pool.getConnectionAsync();
+        final Promise<? extends Connection, LdapException> future = pool.getConnectionAsync();
         assertThat(future.isDone()).isFalse();
 
         // Release a connection and verify that it is immediately redeemed by
@@ -520,32 +518,31 @@ public class ConnectionPoolTestCase extends SdkTestCase {
         final ConnectionFactory factory = mock(ConnectionFactory.class);
         final int poolSize = 2;
         final ConnectionPool pool = Connections.newFixedConnectionPool(factory, poolSize);
-        doAnswer(new Answer<Promise<Connection, ErrorResultException>>() {
+        doAnswer(new Answer<Promise<Connection, LdapException>>() {
             @Override
-            public Promise<Connection, ErrorResultException> answer(final InvocationOnMock invocation)
+            public Promise<Connection, LdapException> answer(final InvocationOnMock invocation)
                     throws Throwable {
                 return PromiseImpl.create();
             }
         }).when(factory).getConnectionAsync();
 
-        List<Promise<? extends Connection, ErrorResultException>> futures =
-                new ArrayList<Promise<? extends Connection, ErrorResultException>>();
+        List<Promise<? extends Connection, LdapException>> futures =
+                new ArrayList<Promise<? extends Connection, LdapException>>();
         for (int i = 0; i < poolSize + 1; i++) {
             futures.add(pool.getConnectionAsync());
         }
         // factory.getConnectionAsync() has been called by the pool poolSize times
         verify(factory, times(poolSize)).getConnectionAsync();
-        final ErrorResultException connectError = ErrorResultException
-                .newErrorResult(ResultCode.CLIENT_SIDE_CONNECT_ERROR);
-        for (Promise<? extends Connection, ErrorResultException> future : futures) {
+        final LdapException connectError = LdapException.newErrorResult(ResultCode.CLIENT_SIDE_CONNECT_ERROR);
+        for (Promise<? extends Connection, LdapException> future : futures) {
             // Simulate that an error happened with the created connections
             ((FutureResultImpl) future).handleError(connectError);
 
             try {
                 // Before the fix for OPENDJ-1348 the third future.get() would hang.
                 future.getOrThrow();
-                Assert.fail("ErrorResultException should have been called");
-            } catch (ErrorResultException e) {
+                Assert.fail("Expected an exception to be thrown");
+            } catch (LdapException e) {
                 assertThat(e).isSameAs(connectError);
             }
         }

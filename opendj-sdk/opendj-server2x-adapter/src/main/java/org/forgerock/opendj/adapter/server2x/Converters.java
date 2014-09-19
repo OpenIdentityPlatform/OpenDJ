@@ -21,7 +21,7 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2013 ForgeRock AS.
+ *      Copyright 2013-2014 ForgeRock AS.
  */
 package org.forgerock.opendj.adapter.server2x;
 
@@ -35,7 +35,7 @@ import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LinkedAttribute;
 import org.forgerock.opendj.ldap.RDN;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -603,7 +603,7 @@ public final class Converters {
     /**
      * Populates the result object with the operation details and return the
      * result object if it was successful. Otherwise, it throws an
-     * {@link ErrorResultException}.
+     * {@link LdapException}.
      *
      * @param <T>
      *          the type of the result object
@@ -611,13 +611,13 @@ public final class Converters {
      *          used to populate the result
      * @param result
      *          the result object to populate from the Operation
-     * @return the result if successful, an {@link ErrorResultException} is thrown
+     * @return the result if successful, an {@link LdapException} is thrown
      *         otherwise
-     * @throws ErrorResultException
+     * @throws LdapException
      *           when an error occurs
      */
     public static <T extends Result> T getResponseResult(final Operation operation, final T result)
-            throws ErrorResultException {
+            throws LdapException {
         if (operation.getReferralURLs() != null) {
             for (String ref : operation.getReferralURLs()) {
                 result.addReferralURI(ref);
@@ -635,7 +635,7 @@ public final class Converters {
         if (result.isSuccess()) {
             return result;
         } else {
-            throw ErrorResultException.newErrorResult(result);
+            throw LdapException.newErrorResult(result);
         }
     }
 
@@ -646,10 +646,10 @@ public final class Converters {
      * @param operation
      *          value to convert
      * @return the converted value
-     * @throws ErrorResultException
+     * @throws LdapException
      *           when an error occurs
      */
-    public static Result getResponseResult(final Operation operation) throws ErrorResultException {
+    public static Result getResponseResult(final Operation operation) throws LdapException {
         return getResponseResult(operation, newSDKResult(operation));
     }
 

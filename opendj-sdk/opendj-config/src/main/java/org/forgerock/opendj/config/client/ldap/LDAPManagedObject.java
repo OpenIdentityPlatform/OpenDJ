@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2007-2009 Sun Microsystems, Inc.
- *      Portions copyright 2014 ForgeRock AS.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.config.client.ldap;
@@ -56,7 +56,7 @@ import org.forgerock.opendj.ldap.Attribute;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LinkedAttribute;
 import org.forgerock.opendj.ldap.LinkedHashMapEntry;
 import org.forgerock.opendj.ldap.ModificationType;
@@ -135,7 +135,7 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends AbstractMan
      * {@inheritDoc}
      */
     @Override
-    protected void addNewManagedObject() throws ErrorResultException, OperationRejectedException,
+    protected void addNewManagedObject() throws LdapException, OperationRejectedException,
             ConcurrentModificationException, ManagedObjectAlreadyExistsException {
         // First make sure that the parent managed object still exists.
         ManagedObjectDefinition<?, ?> d = getManagedObjectDefinition();
@@ -180,7 +180,7 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends AbstractMan
                 // Create the entry.
                 try {
                     driver.getLDAPConnection().add(entry);
-                } catch (ErrorResultException e) {
+                } catch (LdapException e) {
                     if (e.getResult().getResultCode() == ResultCode.UNWILLING_TO_PERFORM) {
                         LocalizableMessage m = LocalizableMessage.raw("%s", e.getLocalizedMessage());
                         throw new OperationRejectedException(OperationType.CREATE, d.getUserFriendlyName(), m);
@@ -219,7 +219,7 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends AbstractMan
         try {
             // Create the entry.
             driver.getLDAPConnection().add(entry);
-        } catch (ErrorResultException e) {
+        } catch (LdapException e) {
             if (e.getResult().getResultCode() == ResultCode.ENTRY_ALREADY_EXISTS) {
                 throw new ManagedObjectAlreadyExistsException();
             } else if (e.getResult().getResultCode() == ResultCode.UNWILLING_TO_PERFORM) {
@@ -252,7 +252,7 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends AbstractMan
      */
     @Override
     protected void modifyExistingManagedObject() throws ConcurrentModificationException, OperationRejectedException,
-            ErrorResultException {
+            LdapException {
         // Build the modify request
         ManagedObjectPath<?, ?> path = getManagedObjectPath();
         DN dn = DNBuilder.create(path, driver.getLDAPProfile());
@@ -273,7 +273,7 @@ final class LDAPManagedObject<T extends ConfigurationClient> extends AbstractMan
         if (!request.getModifications().isEmpty()) {
             try {
                 driver.getLDAPConnection().modify(request);
-            } catch (ErrorResultException e) {
+            } catch (LdapException e) {
                 if (e.getResult().getResultCode() == ResultCode.UNWILLING_TO_PERFORM) {
                     LocalizableMessage m = LocalizableMessage.raw("%s", e.getLocalizedMessage());
                     throw new OperationRejectedException(OperationType.MODIFY, d.getUserFriendlyName(), m);

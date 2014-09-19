@@ -21,14 +21,14 @@
  * CDDL HEADER END
  *
  *
- *      Copyright 2011-2013 ForgeRock AS
+ *      Copyright 2011-2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.schema;
 
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 
 /**
  * This class provides various schema validation policy options for controlling
@@ -46,10 +46,10 @@ public final class SchemaValidationPolicy {
          * @param dn
          *            The name of the entry to be returned.
          * @return The named entry.
-         * @throws ErrorResultException
+         * @throws LdapException
          *             If the entry could not be retrieved.
          */
-        Entry getEntry(DN dn) throws ErrorResultException;
+        Entry getEntry(DN dn) throws LdapException;
     }
 
     /**

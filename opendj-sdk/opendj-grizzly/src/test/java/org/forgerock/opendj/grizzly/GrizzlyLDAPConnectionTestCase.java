@@ -35,7 +35,7 @@ import java.net.InetSocketAddress;
 import java.util.concurrent.TimeUnit;
 
 import org.forgerock.opendj.ldap.Connections;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.LDAPListener;
 import org.forgerock.opendj.ldap.LDAPOptions;
@@ -103,7 +103,7 @@ public class GrizzlyLDAPConnectionTestCase extends SdkTestCase {
             }
             SearchResultHandler searchHandler = mock(SearchResultHandler.class);
             @SuppressWarnings("unchecked")
-            FailureHandler<ErrorResultException> failureHandler = mock(FailureHandler.class);
+            FailureHandler<LdapException> failureHandler = mock(FailureHandler.class);
             connection.searchAsync(request, searchHandler).onFailure(failureHandler);
 
             // Pass in a time which is guaranteed to trigger expiration.
@@ -111,8 +111,7 @@ public class GrizzlyLDAPConnectionTestCase extends SdkTestCase {
             if (isPersistentSearch) {
                 verifyZeroInteractions(searchHandler);
             } else {
-                ArgumentCaptor<ErrorResultException> arg =
-                        ArgumentCaptor.forClass(ErrorResultException.class);
+                ArgumentCaptor<LdapException> arg = ArgumentCaptor.forClass(LdapException.class);
                 verify(failureHandler).handleError(arg.capture());
                 assertThat(arg.getValue()).isInstanceOf(TimeoutResultException.class);
                 assertThat(arg.getValue().getResult().getResultCode()).isEqualTo(

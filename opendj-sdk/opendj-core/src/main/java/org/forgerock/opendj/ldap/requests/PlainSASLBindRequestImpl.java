@@ -22,12 +22,12 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
 
-import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
+import static org.forgerock.opendj.ldap.LdapException.newErrorResult;
 
 import javax.security.auth.callback.NameCallback;
 import javax.security.auth.callback.PasswordCallback;
@@ -37,7 +37,7 @@ import javax.security.sasl.SaslClient;
 import javax.security.sasl.SaslException;
 
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.responses.BindResult;
 import org.forgerock.util.Reject;
@@ -55,7 +55,7 @@ final class PlainSASLBindRequestImpl extends AbstractSASLBindRequest<PlainSASLBi
         private final SaslClient saslClient;
 
         private Client(final PlainSASLBindRequestImpl initialBindRequest, final String serverName)
-                throws ErrorResultException {
+                throws LdapException {
             super(initialBindRequest);
 
             this.authenticationID = initialBindRequest.getAuthenticationID();
@@ -121,7 +121,7 @@ final class PlainSASLBindRequestImpl extends AbstractSASLBindRequest<PlainSASLBi
     }
 
     @Override
-    public BindClient createBindClient(final String serverName) throws ErrorResultException {
+    public BindClient createBindClient(final String serverName) throws LdapException {
         return new Client(this, serverName);
     }
 

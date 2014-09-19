@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -37,7 +38,7 @@ import org.forgerock.opendj.ldap.responses.Result;
  * CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED} error result codes.
  */
 @SuppressWarnings("serial")
-public class MultipleEntriesFoundException extends ErrorResultException {
+public class MultipleEntriesFoundException extends LdapException {
     MultipleEntriesFoundException(final Result result) {
         super(result);
     }

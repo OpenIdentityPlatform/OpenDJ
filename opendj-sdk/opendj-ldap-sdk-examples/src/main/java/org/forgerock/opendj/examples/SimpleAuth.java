@@ -34,7 +34,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 
 import org.forgerock.opendj.ldap.Connection;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.LDAPOptions;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -95,7 +95,7 @@ public final class SimpleAuth {
             connection = factory.getConnection();
             connection.bind(bindDN, bindPassword.toCharArray());
             System.out.println("Authenticated as " + bindDN + ".");
-        } catch (final ErrorResultException e) {
+        } catch (final LdapException e) {
             System.err.println(e.getMessage());
             System.exit(e.getResult().getResultCode().intValue());
             return;
@@ -174,7 +174,7 @@ public final class SimpleAuth {
 
             System.out.println("Authenticated as " + bindDN + ".");
 
-        } catch (final ErrorResultException e) {
+        } catch (final LdapException e) {
             System.err.println(e.getMessage());
             System.exit(e.getResult().getResultCode().intValue());
             return;
@@ -225,7 +225,7 @@ public final class SimpleAuth {
             connection = factory.getConnection();
             connection.bind(bindDN, bindPassword.toCharArray());
             System.out.println("Authenticated as " + bindDN + ".");
-        } catch (final ErrorResultException e) {
+        } catch (final LdapException e) {
             System.err.println(e.getMessage());
             System.exit(e.getResult().getResultCode().intValue());
             return;

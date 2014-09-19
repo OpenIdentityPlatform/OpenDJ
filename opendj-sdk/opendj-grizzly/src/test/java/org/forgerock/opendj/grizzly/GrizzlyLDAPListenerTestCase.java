@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS.
+ *      Portions Copyright 2011-2014 ForgeRock AS.
  */
 package org.forgerock.opendj.grizzly;
 
@@ -37,7 +37,7 @@ import org.forgerock.opendj.ldap.ConnectionException;
 import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.Connections;
 import org.forgerock.opendj.ldap.DecodeException;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.FutureResultImpl;
 import org.forgerock.opendj.ldap.IntermediateResponseHandler;
 import org.forgerock.opendj.ldap.LDAPClientContext;
@@ -175,7 +175,7 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
                 final ExtendedRequest<R> request,
                 final IntermediateResponseHandler intermediateResponseHandler,
                 final ResultHandler<R> resultHandler) throws UnsupportedOperationException {
-            resultHandler.handleError(ErrorResultException.newErrorResult(request
+            resultHandler.handleError(LdapException.newErrorResult(request
                     .getResultDecoder().newExtendedErrorResult(ResultCode.PROTOCOL_ERROR, "",
                             "Extended operation " + request.getOID() + " not supported")));
         }
@@ -225,8 +225,7 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
          * {@inheritDoc}
          */
         @Override
-        public ServerConnection<Integer> handleAccept(final LDAPClientContext clientContext)
-                throws ErrorResultException {
+        public ServerConnection<Integer> handleAccept(final LDAPClientContext clientContext) throws LdapException {
             serverConnection.context.handleResult(clientContext);
             return serverConnection;
         }
@@ -362,7 +361,7 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
 
                         @Override
                         public ServerConnection<Integer> handleAccept(
-                                final LDAPClientContext clientContext) throws ErrorResultException {
+                                final LDAPClientContext clientContext) throws LdapException {
                             // Get connection from load balancer, this should
                             // fail over twice before getting connection to
                             // online server.
@@ -454,7 +453,7 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
                         resultHandler.handleResult(Responses.newBindResult(ResultCode.SUCCESS));
                     } catch (final Exception e) {
                         // Unexpected.
-                        resultHandler.handleError(ErrorResultException.newErrorResult(
+                        resultHandler.handleError(LdapException.newErrorResult(
                                 ResultCode.OTHER,
                                 "Unexpected exception when connecting to load balancer", e));
                     }
@@ -514,7 +513,7 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
 
                         @Override
                         public ServerConnection<Integer> handleAccept(
-                                final LDAPClientContext clientContext) throws ErrorResultException {
+                                final LDAPClientContext clientContext) throws LdapException {
                             // First attempt offline server.
                             InetSocketAddress offlineAddress = findFreeSocketAddress();
                             LDAPConnectionFactory lcf =
@@ -523,7 +522,7 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
                             try {
                                 // This is expected to fail.
                                 lcf.getConnection().close();
-                                throw ErrorResultException.newErrorResult(ResultCode.OTHER,
+                                throw LdapException.newErrorResult(ResultCode.OTHER,
                                         "Connection to offline server succeeded unexpectedly");
                             } catch (final ConnectionException ce) {
                                 // This is expected - so go to online server.
@@ -535,16 +534,14 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
                                     lcf.getConnection().close();
                                 } catch (final Exception e) {
                                     // Unexpected.
-                                    throw ErrorResultException
-                                            .newErrorResult(
+                                    throw LdapException.newErrorResult(
                                                     ResultCode.OTHER,
                                                     "Unexpected exception when connecting to online server",
                                                     e);
                                 }
                             } catch (final Exception e) {
                                 // Unexpected.
-                                throw ErrorResultException
-                                        .newErrorResult(
+                                throw LdapException.newErrorResult(
                                                 ResultCode.OTHER,
                                                 "Unexpected exception when connecting to offline server",
                                                 e);
@@ -611,7 +608,7 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
                     try {
                         // This is expected to fail.
                         lcf.getConnection().close();
-                        resultHandler.handleError(ErrorResultException.newErrorResult(
+                        resultHandler.handleError(LdapException.newErrorResult(
                                 ResultCode.OTHER,
                                 "Connection to offline server succeeded unexpectedly"));
                     } catch (final ConnectionException ce) {
@@ -623,13 +620,13 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
                             resultHandler.handleResult(Responses.newBindResult(ResultCode.SUCCESS));
                         } catch (final Exception e) {
                             // Unexpected.
-                            resultHandler.handleError(ErrorResultException.newErrorResult(
+                            resultHandler.handleError(LdapException.newErrorResult(
                                     ResultCode.OTHER,
                                     "Unexpected exception when connecting to online server", e));
                         }
                     } catch (final Exception e) {
                         // Unexpected.
-                        resultHandler.handleError(ErrorResultException.newErrorResult(
+                        resultHandler.handleError(LdapException.newErrorResult(
                                 ResultCode.OTHER,
                                 "Unexpected exception when connecting to offline server", e));
                     }
@@ -703,7 +700,7 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
             try {
                 connection.bind("cn=test", password2);
                 fail("Big bind unexpectedly succeeded");
-            } catch (final ErrorResultException e) {
+            } catch (final LdapException e) {
                 // Expected exception.
                 assertThat(e.getResult().getResultCode()).isEqualTo(
                         ResultCode.CLIENT_SIDE_SERVER_DOWN);
@@ -743,7 +740,7 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
             connection = new LDAPConnectionFactory(listener.getHostName(), listener.getPort()).getConnection();
             try {
                 connection.bind("cn=test", "password".toCharArray());
-            } catch (final ErrorResultException e) {
+            } catch (final LdapException e) {
                 connection.close();
                 throw e;
             }
@@ -767,7 +764,7 @@ public class GrizzlyLDAPListenerTestCase extends SdkTestCase {
         try {
             connection.bind("cn=test", "password".toCharArray());
             fail("Bind attempt on closed connection succeeded unexpectedly");
-        } catch (final ErrorResultException e) {
+        } catch (final LdapException e) {
             // Expected.
             assertThat(connection.isValid()).isFalse();
             assertThat(connection.isClosed()).isFalse();

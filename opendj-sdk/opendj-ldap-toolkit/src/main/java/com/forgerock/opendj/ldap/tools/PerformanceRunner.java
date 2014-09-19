@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS.
+ *      Portions Copyright 2011-2014 ForgeRock AS.
  */
 package com.forgerock.opendj.ldap.tools;
 
@@ -42,7 +42,7 @@ import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ConnectionEventListener;
 import org.forgerock.opendj.ldap.ConnectionFactory;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ResultHandler;
 import org.forgerock.opendj.ldap.responses.ExtendedResult;
 import org.forgerock.opendj.ldap.responses.Result;
@@ -371,7 +371,7 @@ abstract class PerformanceRunner implements ConnectionEventListener {
         }
 
         @Override
-        public void handleError(final ErrorResultException error) {
+        public void handleError(final LdapException error) {
             failedRecentCount.getAndIncrement();
             updateStats();
             app.errPrintVerboseMessage(LocalizableMessage.raw(error.getResult().toString()));
@@ -411,12 +411,12 @@ abstract class PerformanceRunner implements ConnectionEventListener {
             this.connectionFactory = connectionFactory;
         }
 
-        public abstract Promise<?, ErrorResultException> performOperation(Connection connection,
+        public abstract Promise<?, LdapException> performOperation(Connection connection,
                 DataSource[] dataSources, long startTime);
 
         @Override
         public void run() {
-            Promise<?, ErrorResultException> promise;
+            Promise<?, LdapException> promise;
             Connection connection;
 
             final double targetTimeInMS = 1000.0 / (targetThroughput / (double) (numThreads * numConnections));
@@ -429,7 +429,7 @@ abstract class PerformanceRunner implements ConnectionEventListener {
                     } catch (final InterruptedException e) {
                         // Ignore and check stop requested
                         continue;
-                    } catch (final ErrorResultException e) {
+                    } catch (final LdapException e) {
                         app.errPrintln(LocalizableMessage.raw(e.getResult().getDiagnosticMessage()));
                         if (e.getCause() != null && app.isVerbose()) {
                             e.getCause().printStackTrace(app.getErrorStream());
@@ -446,7 +446,7 @@ abstract class PerformanceRunner implements ConnectionEventListener {
                         } catch (final InterruptedException e) {
                             // Ignore and check stop requested
                             continue;
-                        } catch (final ErrorResultException e) {
+                        } catch (final LdapException e) {
                             app.errPrintln(LocalizableMessage.raw(e.getResult().toString()));
                             if (e.getCause() != null && app.isVerbose()) {
                                 e.getCause().printStackTrace(app.getErrorStream());
@@ -469,7 +469,7 @@ abstract class PerformanceRunner implements ConnectionEventListener {
                     } catch (final InterruptedException e) {
                         // Ignore and check stop requested
                         continue;
-                    } catch (final ErrorResultException e) {
+                    } catch (final LdapException e) {
                         if (e.getCause() instanceof IOException) {
                             e.getCause().printStackTrace(app.getErrorStream());
                             stopRequested = true;
@@ -787,8 +787,7 @@ abstract class PerformanceRunner implements ConnectionEventListener {
     }
 
     @Override
-    public synchronized void handleConnectionError(final boolean isDisconnectNotification,
-            final ErrorResultException error) {
+    public synchronized void handleConnectionError(final boolean isDisconnectNotification, final LdapException error) {
         if (!stopRequested) {
             app.errPrintln(LocalizableMessage.raw("Error occurred on one or more connections: "
                     + error.getResult()));
@@ -891,7 +890,7 @@ abstract class PerformanceRunner implements ConnectionEventListener {
             statsThread.join();
         } catch (final InterruptedException e) {
             stopRequested = true;
-        } catch (final ErrorResultException e) {
+        } catch (final LdapException e) {
             stopRequested = true;
             app.println(LocalizableMessage.raw(e.getResult().getDiagnosticMessage()));
         } finally {

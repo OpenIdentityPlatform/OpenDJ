@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.config;
@@ -29,7 +30,7 @@ package org.forgerock.opendj.config;
 import org.forgerock.opendj.config.client.ConcurrentModificationException;
 import org.forgerock.opendj.config.client.MissingMandatoryPropertiesException;
 import org.forgerock.opendj.config.client.OperationRejectedException;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 
 /**
  * A common base interface for all managed object configuration clients.
@@ -69,10 +70,10 @@ public interface ConfigurationClient {
      * @throws OperationRejectedException
      *             If the server refuses to add or modify this configuration due
      *             to some server-side constraint which cannot be satisfied.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If any other error occurs.
      */
     void commit() throws ManagedObjectAlreadyExistsException, MissingMandatoryPropertiesException,
-        ConcurrentModificationException, OperationRejectedException, ErrorResultException;
+        ConcurrentModificationException, OperationRejectedException, LdapException;
 
 }

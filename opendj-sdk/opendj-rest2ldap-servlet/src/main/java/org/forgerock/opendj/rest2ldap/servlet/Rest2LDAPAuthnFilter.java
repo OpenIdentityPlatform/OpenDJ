@@ -48,7 +48,7 @@ import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.Connections;
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.EntryNotFoundException;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.MultipleEntriesFoundException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
@@ -65,7 +65,7 @@ import org.forgerock.util.promise.SuccessHandler;
 
 import static org.forgerock.json.resource.SecurityContext.*;
 import static org.forgerock.json.resource.servlet.SecurityContextFactory.*;
-import static org.forgerock.opendj.ldap.ErrorResultException.*;
+import static org.forgerock.opendj.ldap.LdapException.*;
 import static org.forgerock.opendj.ldap.requests.Requests.*;
 import static org.forgerock.opendj.rest2ldap.Rest2LDAP.*;
 import static org.forgerock.opendj.rest2ldap.servlet.Rest2LDAPContextFactory.*;
@@ -221,10 +221,10 @@ public final class Rest2LDAPAuthnFilter implements Filter {
                         searchFilterTemplate, username);
                 final SearchRequest searchRequest = newSearchRequest(searchBaseDN, searchScope, filter, "1.1");
                 searchLDAPConnectionFactory.getConnectionAsync()
-                        .thenAsync(new AsyncFunction<Connection, SearchResultEntry, ErrorResultException>() {
+                        .thenAsync(new AsyncFunction<Connection, SearchResultEntry, LdapException>() {
                             @Override
-                            public Promise<SearchResultEntry, ErrorResultException> apply(Connection connection)
-                                    throws ErrorResultException {
+                            public Promise<SearchResultEntry, LdapException> apply(Connection connection)
+                                    throws LdapException {
                                 savedConnection.set(connection);
                                 // Do the search.
                                 return connection.searchSingleEntryAsync(searchRequest);
@@ -240,10 +240,10 @@ public final class Rest2LDAPAuthnFilter implements Filter {
                                 doBind(req, res, newSimpleBindRequest(bindDN, password), chain, savedConnection, sync,
                                         username, authzid);
                             }
-                        }).onFailure(new FailureHandler<ErrorResultException>() {
+                        }).onFailure(new FailureHandler<LdapException>() {
                             @Override
-                            public void handleError(final ErrorResultException error) {
-                                ErrorResultException normalizedError = error;
+                            public void handleError(final LdapException error) {
+                                LdapException normalizedError = error;
                                 if (savedConnection.get() != null) {
                                     savedConnection.get().close();
                                     /*
@@ -394,10 +394,10 @@ public final class Rest2LDAPAuthnFilter implements Filter {
             final BindRequest bindRequest, final FilterChain chain, final AtomicReference<Connection> savedConnection,
             final ServletSynchronizer sync, final String authcid, final Map<String, Object> authzid) {
         bindLDAPConnectionFactory.getConnectionAsync()
-                .thenAsync(new AsyncFunction<Connection, BindResult, ErrorResultException>() {
+                .thenAsync(new AsyncFunction<Connection, BindResult, LdapException>() {
                     @Override
-                    public Promise<BindResult, ErrorResultException> apply(Connection connection)
-                            throws ErrorResultException {
+                    public Promise<BindResult, LdapException> apply(Connection connection)
+                            throws LdapException {
                         savedConnection.set(connection);
                         return connection.bindAsync(bindRequest);
                     }
@@ -439,9 +439,9 @@ public final class Rest2LDAPAuthnFilter implements Filter {
                             }
                         }
                     }
-                }).onFailure(new FailureHandler<ErrorResultException>() {
+                }).onFailure(new FailureHandler<LdapException>() {
                     @Override
-                    public void handleError(final ErrorResultException error) {
+                    public void handleError(final LdapException error) {
                         sync.signalAndComplete(asResourceException(error));
                     }
                 });

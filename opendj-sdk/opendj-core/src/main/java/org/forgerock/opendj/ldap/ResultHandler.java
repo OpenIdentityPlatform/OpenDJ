@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS.
+ *      Portions Copyright 2011-2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -49,7 +49,7 @@ import org.forgerock.util.promise.SuccessHandler;
  * @param <S>
  *            The type of result handled by this result handler.
  */
-public interface ResultHandler<S> extends SuccessHandler<S>, FailureHandler<ErrorResultException> {
+public interface ResultHandler<S> extends SuccessHandler<S>, FailureHandler<LdapException> {
     /**
      * Invoked when the asynchronous operation has failed.
      *
@@ -57,7 +57,7 @@ public interface ResultHandler<S> extends SuccessHandler<S>, FailureHandler<Erro
      *            The error result exception indicating why the asynchronous
      *            operation has failed.
      */
-    void handleError(ErrorResultException error);
+    void handleError(LdapException error);
 
     /**
      * Invoked when the asynchronous operation has completed successfully.

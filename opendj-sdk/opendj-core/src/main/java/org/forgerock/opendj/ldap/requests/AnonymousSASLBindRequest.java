@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012 ForgeRock AS.
+ *      Portions Copyright 2012-2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.requests;
@@ -31,7 +31,7 @@ import java.util.List;
 
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.controls.Control;
 import org.forgerock.opendj.ldap.controls.ControlDecoder;
 
@@ -65,7 +65,7 @@ public interface AnonymousSASLBindRequest extends SASLBindRequest {
     AnonymousSASLBindRequest addControl(Control control);
 
     @Override
-    BindClient createBindClient(String serverName) throws ErrorResultException;
+    BindClient createBindClient(String serverName) throws LdapException;
 
     /**
      * Returns the authentication mechanism identifier for this SASL bind

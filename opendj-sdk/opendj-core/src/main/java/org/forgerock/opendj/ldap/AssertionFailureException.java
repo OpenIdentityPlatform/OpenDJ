@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -35,7 +36,7 @@ import org.forgerock.opendj.ldap.responses.Result;
  * {@link ResultCode#ASSERTION_FAILED ASSERTION_FAILED} result code.
  */
 @SuppressWarnings("serial")
-public class AssertionFailureException extends ErrorResultException {
+public class AssertionFailureException extends LdapException {
     AssertionFailureException(final Result result) {
         super(result);
     }

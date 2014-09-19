@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.examples;
@@ -33,7 +33,7 @@ import java.io.IOException;
 import javax.net.ssl.SSLContext;
 
 import org.forgerock.opendj.ldap.Connections;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.KeyManagers;
 import org.forgerock.opendj.ldap.LDAPClientContext;
 import org.forgerock.opendj.ldap.LDAPListener;
@@ -118,9 +118,8 @@ public final class Server {
                         new ServerConnectionFactory<LDAPClientContext, Integer>() {
 
                             @Override
-                            public ServerConnection<Integer> handleAccept(
-                                    final LDAPClientContext clientContext)
-                                    throws ErrorResultException {
+                            public ServerConnection<Integer> handleAccept(final LDAPClientContext clientContext)
+                                    throws LdapException {
                                 clientContext.enableTLS(sslContext, null, null, false, false);
                                 return connectionHandler.handleAccept(clientContext);
                             }

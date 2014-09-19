@@ -22,13 +22,13 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap.requests;
 
 import static com.forgerock.opendj.util.StaticUtils.copyOfBytes;
-import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
+import static org.forgerock.opendj.ldap.LdapException.newErrorResult;
 
 import javax.security.auth.callback.NameCallback;
 import javax.security.auth.callback.PasswordCallback;
@@ -38,7 +38,7 @@ import javax.security.sasl.SaslClient;
 import javax.security.sasl.SaslException;
 
 import org.forgerock.opendj.ldap.ByteString;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.responses.BindResult;
 import org.forgerock.opendj.ldap.responses.Responses;
@@ -57,7 +57,7 @@ final class CRAMMD5SASLBindRequestImpl extends AbstractSASLBindRequest<CRAMMD5SA
         private final SaslClient saslClient;
 
         private Client(final CRAMMD5SASLBindRequestImpl initialBindRequest, final String serverName)
-                throws ErrorResultException {
+                throws LdapException {
             super(initialBindRequest);
 
             this.authenticationID = initialBindRequest.getAuthenticationID();
@@ -87,7 +87,7 @@ final class CRAMMD5SASLBindRequestImpl extends AbstractSASLBindRequest<CRAMMD5SA
         }
 
         @Override
-        public boolean evaluateResult(final BindResult result) throws ErrorResultException {
+        public boolean evaluateResult(final BindResult result) throws LdapException {
             if (saslClient.isComplete()) {
                 return true;
             }
@@ -100,7 +100,7 @@ final class CRAMMD5SASLBindRequestImpl extends AbstractSASLBindRequest<CRAMMD5SA
             } catch (final SaslException e) {
                 // FIXME: I18N need to have a better error message.
                 // FIXME: Is this the best result code?
-                throw ErrorResultException.newErrorResult(Responses.newResult(
+                throw LdapException.newErrorResult(Responses.newResult(
                         ResultCode.CLIENT_SIDE_LOCAL_ERROR).setDiagnosticMessage(
                         "An error occurred during multi-stage authentication").setCause(e));
             }
@@ -133,7 +133,7 @@ final class CRAMMD5SASLBindRequestImpl extends AbstractSASLBindRequest<CRAMMD5SA
     }
 
     @Override
-    public BindClient createBindClient(final String serverName) throws ErrorResultException {
+    public BindClient createBindClient(final String serverName) throws LdapException {
         return new Client(this, serverName);
     }
 

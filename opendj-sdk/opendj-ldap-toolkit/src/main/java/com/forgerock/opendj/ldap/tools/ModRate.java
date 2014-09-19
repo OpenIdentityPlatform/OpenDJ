@@ -22,14 +22,14 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package com.forgerock.opendj.ldap.tools;
 
 import org.forgerock.i18n.LocalizableMessage;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ConnectionFactory;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ModificationType;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.ResultHandler;
@@ -66,7 +66,7 @@ public final class ModRate extends ConsoleApplication {
             }
 
             @Override
-            public Promise<?, ErrorResultException> performOperation(final Connection connection,
+            public Promise<?, LdapException> performOperation(final Connection connection,
                     final DataSource[] dataSources, final long startTime) {
                 if (dataSources != null) {
                     data = DataSource.generateData(dataSources, data);

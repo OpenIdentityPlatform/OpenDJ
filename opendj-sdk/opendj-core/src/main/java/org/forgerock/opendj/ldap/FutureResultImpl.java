@@ -35,7 +35,7 @@ import org.forgerock.util.promise.PromiseImpl;
  * @see Promise
  * @see Promises
  */
-public class FutureResultImpl<R> extends PromiseImpl<R, ErrorResultException>
+public class FutureResultImpl<R> extends PromiseImpl<R, LdapException>
     implements FutureResult<R>, ResultHandler<R> {
     private final int requestID;
 

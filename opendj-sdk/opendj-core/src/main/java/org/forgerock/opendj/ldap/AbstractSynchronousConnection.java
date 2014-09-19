@@ -82,7 +82,7 @@ public abstract class AbstractSynchronousConnection extends AbstractConnection {
             final IntermediateResponseHandler intermediateResponseHandler) {
         try {
             return onSuccess(add(request));
-        } catch (final ErrorResultException e) {
+        } catch (final LdapException e) {
             return onFailure(e);
         }
     }
@@ -92,7 +92,7 @@ public abstract class AbstractSynchronousConnection extends AbstractConnection {
             final IntermediateResponseHandler intermediateResponseHandler) {
         try {
             return onSuccess(bind(request));
-        } catch (final ErrorResultException e) {
+        } catch (final LdapException e) {
             return onFailure(e);
         }
     }
@@ -102,7 +102,7 @@ public abstract class AbstractSynchronousConnection extends AbstractConnection {
             final IntermediateResponseHandler intermediateResponseHandler) {
         try {
             return onSuccess(compare(request));
-        } catch (final ErrorResultException e) {
+        } catch (final LdapException e) {
             return onFailure(e);
         }
     }
@@ -112,7 +112,7 @@ public abstract class AbstractSynchronousConnection extends AbstractConnection {
             final IntermediateResponseHandler intermediateResponseHandler) {
         try {
             return onSuccess(delete(request));
-        } catch (final ErrorResultException e) {
+        } catch (final LdapException e) {
             return onFailure(e);
         }
     }
@@ -122,7 +122,7 @@ public abstract class AbstractSynchronousConnection extends AbstractConnection {
             final IntermediateResponseHandler intermediateResponseHandler) {
         try {
             return onSuccess(extendedRequest(request, intermediateResponseHandler));
-        } catch (final ErrorResultException e) {
+        } catch (final LdapException e) {
             return onFailure(e);
         }
     }
@@ -132,7 +132,7 @@ public abstract class AbstractSynchronousConnection extends AbstractConnection {
             final IntermediateResponseHandler intermediateResponseHandler) {
         try {
             return onSuccess(modify(request));
-        } catch (final ErrorResultException e) {
+        } catch (final LdapException e) {
             return onFailure(e);
         }
     }
@@ -142,7 +142,7 @@ public abstract class AbstractSynchronousConnection extends AbstractConnection {
             final IntermediateResponseHandler intermediateResponseHandler) {
         try {
             return onSuccess(modifyDN(request));
-        } catch (final ErrorResultException e) {
+        } catch (final LdapException e) {
             return onFailure(e);
         }
     }
@@ -152,12 +152,12 @@ public abstract class AbstractSynchronousConnection extends AbstractConnection {
             final IntermediateResponseHandler intermediateResponseHandler, final SearchResultHandler entryHandler) {
         try {
             return onSuccess(search(request, entryHandler));
-        } catch (final ErrorResultException e) {
+        } catch (final LdapException e) {
             return onFailure(e);
         }
     }
 
-    private <R extends Result> FutureResult<R> onFailure(final ErrorResultException e) {
+    private <R extends Result> FutureResult<R> onFailure(final LdapException e) {
         return newFailedFutureResult(e);
     }
 

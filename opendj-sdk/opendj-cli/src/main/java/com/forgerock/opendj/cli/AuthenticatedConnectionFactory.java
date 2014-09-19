@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS.
+ *      Portions Copyright 2011-2014 ForgeRock AS.
  */
 package com.forgerock.opendj.cli;
 
@@ -31,7 +31,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.forgerock.opendj.ldap.AbstractConnectionWrapper;
 import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ConnectionFactory;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.FutureResult;
 import org.forgerock.opendj.ldap.IntermediateResponseHandler;
 import org.forgerock.opendj.ldap.requests.BindRequest;
@@ -61,8 +61,7 @@ import static org.forgerock.util.Utils.*;
  * {@code rebind} method.
  * <p>
  * If the Bind request fails for some reason (e.g. invalid credentials), then
- * the connection attempt will fail and an {@code ErrorResultException} will be
- * thrown.
+ * the connection attempt will fail and an {@link LdapException} will be thrown.
  */
 public final class AuthenticatedConnectionFactory implements ConnectionFactory {
 
@@ -88,13 +87,13 @@ public final class AuthenticatedConnectionFactory implements ConnectionFactory {
          */
         /** {@inheritDoc} */
         @Override
-        public BindResult bind(BindRequest request) throws ErrorResultException {
+        public BindResult bind(BindRequest request) throws LdapException {
             throw new UnsupportedOperationException();
         }
 
         /** {@inheritDoc} */
         @Override
-        public BindResult bind(String name, char[] password) throws ErrorResultException {
+        public BindResult bind(String name, char[] password) throws LdapException {
             throw new UnsupportedOperationException();
         }
 
@@ -140,9 +139,9 @@ public final class AuthenticatedConnectionFactory implements ConnectionFactory {
                             // Save the result.
                             AuthenticatedConnection.this.result = result;
                         }
-                    }).onFailure(new FailureHandler<ErrorResultException>() {
+                    }).onFailure(new FailureHandler<LdapException>() {
                         @Override
-                        public void handleError(final ErrorResultException error) {
+                        public void handleError(final LdapException error) {
                             /*
                              * This connection is now unauthenticated so prevent further use.
                              */
@@ -199,7 +198,7 @@ public final class AuthenticatedConnectionFactory implements ConnectionFactory {
 
     /** {@inheritDoc} */
     @Override
-    public Connection getConnection() throws ErrorResultException {
+    public Connection getConnection() throws LdapException {
         final Connection connection = parentFactory.getConnection();
         BindResult bindResult = null;
         try {
@@ -219,29 +218,29 @@ public final class AuthenticatedConnectionFactory implements ConnectionFactory {
 
     /** {@inheritDoc} */
     @Override
-    public Promise<Connection, ErrorResultException> getConnectionAsync() {
+    public Promise<Connection, LdapException> getConnectionAsync() {
         final AtomicReference<Connection> connectionHolder = new AtomicReference<Connection>();
         return parentFactory.getConnectionAsync()
             .thenAsync(
-                    new AsyncFunction<Connection, BindResult, ErrorResultException>() {
+                    new AsyncFunction<Connection, BindResult, LdapException>() {
                         @Override
-                        public Promise<BindResult, ErrorResultException> apply(final Connection connection)
-                                throws ErrorResultException {
+                        public Promise<BindResult, LdapException> apply(final Connection connection)
+                                throws LdapException {
                             connectionHolder.set(connection);
                             return connection.bindAsync(request);
                         }
                     }
             ).then(
-                    new Function<BindResult, Connection, ErrorResultException>() {
+                    new Function<BindResult, Connection, LdapException>() {
                         @Override
-                        public Connection apply(BindResult result) throws ErrorResultException {
+                        public Connection apply(BindResult result) throws LdapException {
                             // FIXME: should make the result unmodifiable.
                             return new AuthenticatedConnection(connectionHolder.get(), request, result);
                         }
                     },
-                    new Function<ErrorResultException, Connection, ErrorResultException>() {
+                    new Function<LdapException, Connection, LdapException>() {
                         @Override
-                        public Connection apply(ErrorResultException errorResult) throws ErrorResultException {
+                        public Connection apply(LdapException errorResult) throws LdapException {
                             closeSilently(connectionHolder.get());
                             throw errorResult;
                         }

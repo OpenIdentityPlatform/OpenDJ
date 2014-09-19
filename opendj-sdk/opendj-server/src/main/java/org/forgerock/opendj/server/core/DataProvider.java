@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 package org.forgerock.opendj.server.core;
 
@@ -30,7 +30,7 @@ import java.util.Set;
 
 import org.forgerock.opendj.ldap.DN;
 import org.forgerock.opendj.ldap.Entry;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.RequestHandler;
 
 /**
@@ -81,12 +81,12 @@ public interface DataProvider extends RequestHandler<Operation> {
      *            The DN of the entry.
      * @return {@code true} if this data provider contains the specified entry,
      *         or {@code false} if it does not.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If a problem occurs while trying to make the determination,
      *             or if {@code dn} is not a DN equal to or subordinate to one
      *             of the base DNs managed by this data provider.
      */
-    boolean containsEntry(DN dn) throws ErrorResultException;
+    boolean containsEntry(DN dn) throws LdapException;
 
     /**
      * Deregisters an event listener from this data provider.
@@ -133,12 +133,12 @@ public interface DataProvider extends RequestHandler<Operation> {
      *            The DN of the entry.
      * @return The requested entry, or {@code null} if this data provider does
      *         not contain the specified entry.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If a problem occurs while trying to retrieve the entry, or if
      *             {@code dn} is not a DN equal to or subordinate to one of the
      *             base DNs managed by this data provider.
      */
-    Entry getEntry(DN dn) throws ErrorResultException;
+    Entry getEntry(DN dn) throws LdapException;
 
     /**
      * Returns the current status of the provided base DN in this data provider.
@@ -146,11 +146,11 @@ public interface DataProvider extends RequestHandler<Operation> {
      * @param baseDN
      *            The base DN in this data provider.
      * @return The current status of the provided base DN in this data provider.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If {@code baseDN} is not one of the base DNs managed by this
      *             data provider.
      */
-    DataProviderStatus getStatus(DN baseDN) throws ErrorResultException;
+    DataProviderStatus getStatus(DN baseDN) throws LdapException;
 
     /**
      * Returns an unmodifiable set containing the OIDs of the controls that may
@@ -160,11 +160,11 @@ public interface DataProvider extends RequestHandler<Operation> {
      *            The base DN in this data provider.
      * @return An unmodifiable set containing the OIDs of the controls that may
      *         be supported by the provided base DN in this data provider.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If {@code baseDN} is not one of the base DNs managed by this
      *             data provider.
      */
-    Set<String> getSupportedControls(DN baseDN) throws ErrorResultException;
+    Set<String> getSupportedControls(DN baseDN) throws LdapException;
 
     /**
      * Returns an unmodifiable set containing the OIDs of the features that may
@@ -174,11 +174,11 @@ public interface DataProvider extends RequestHandler<Operation> {
      *            The base DN in this data provider.
      * @return An unmodifiable set containing the OIDs of the features that may
      *         be supported by the provided base DN in this data provider.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If {@code baseDN} is not one of the base DNs managed by this
      *             data provider.
      */
-    Set<String> getSupportedFeatures(DN baseDN) throws ErrorResultException;
+    Set<String> getSupportedFeatures(DN baseDN) throws LdapException;
 
     /**
      * Registers an event listener with this data provider.
@@ -241,10 +241,10 @@ public interface DataProvider extends RequestHandler<Operation> {
      *            The base DN in this data provider.
      * @return {@code true} if the provided base DN in this data provider
      *         supports change notification.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If {@code baseDN} is not one of the base DNs managed by this
      *             data provider.
      */
-    boolean supportsChangeNotification(DN baseDN) throws ErrorResultException;
+    boolean supportsChangeNotification(DN baseDN) throws LdapException;
 
 }

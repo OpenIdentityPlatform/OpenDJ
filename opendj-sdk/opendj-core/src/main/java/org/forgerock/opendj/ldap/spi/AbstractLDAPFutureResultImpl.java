@@ -22,13 +22,13 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS.
+ *      Portions Copyright 2011-2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap.spi;
 
 import org.forgerock.opendj.ldap.Connection;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.FutureResultImpl;
 import org.forgerock.opendj.ldap.IntermediateResponseHandler;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -87,7 +87,7 @@ public abstract class AbstractLDAPFutureResultImpl<S extends Result> extends Fut
 
     /** {@inheritDoc} */
     @Override
-    protected final ErrorResultException tryCancel(final boolean mayInterruptIfRunning) {
+    protected final LdapException tryCancel(final boolean mayInterruptIfRunning) {
         /*
          * No other operations can be performed while a bind or startTLS
          * operations is active. Therefore it is not possible to cancel bind or
@@ -104,7 +104,7 @@ public abstract class AbstractLDAPFutureResultImpl<S extends Result> extends Fut
          * this future has already been changed.
          */
         connection.abandonAsync(Requests.newAbandonRequest(getRequestID()));
-        return ErrorResultException.newErrorResult(ResultCode.CLIENT_SIDE_USER_CANCELLED);
+        return LdapException.newErrorResult(ResultCode.CLIENT_SIDE_USER_CANCELLED);
     }
 
 
@@ -175,7 +175,7 @@ public abstract class AbstractLDAPFutureResultImpl<S extends Result> extends Fut
      */
     public final void setResultOrError(final S result) {
         if (result.getResultCode().isExceptional()) {
-            handleError(ErrorResultException.newErrorResult(result));
+            handleError(LdapException.newErrorResult(result));
         } else {
             handleResult(result);
         }

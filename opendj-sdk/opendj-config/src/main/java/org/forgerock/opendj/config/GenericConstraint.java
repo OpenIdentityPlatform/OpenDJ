@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.forgerock.opendj.config;
 
@@ -37,7 +38,7 @@ import org.forgerock.opendj.config.conditions.Condition;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.config.server.ServerConstraintHandler;
 import org.forgerock.opendj.config.server.ServerManagedObject;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 
 /**
  * A generic constraint which comprises of an underlying condition and a
@@ -61,7 +62,7 @@ public class GenericConstraint extends Constraint {
          */
         @Override
         public boolean isAddAcceptable(ManagementContext context, ManagedObject<?> managedObject,
-            Collection<LocalizableMessage> unacceptableReasons) throws ErrorResultException {
+            Collection<LocalizableMessage> unacceptableReasons) throws LdapException {
             if (!condition.evaluate(context, managedObject)) {
                 unacceptableReasons.add(getSynopsis());
                 return false;
@@ -75,7 +76,7 @@ public class GenericConstraint extends Constraint {
          */
         @Override
         public boolean isModifyAcceptable(ManagementContext context, ManagedObject<?> managedObject,
-            Collection<LocalizableMessage> unacceptableReasons) throws ErrorResultException {
+            Collection<LocalizableMessage> unacceptableReasons) throws LdapException {
             if (!condition.evaluate(context, managedObject)) {
                 unacceptableReasons.add(getSynopsis());
                 return false;

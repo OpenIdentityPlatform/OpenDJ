@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2012-2013 ForgeRock AS.
+ *      Portions Copyright 2012-2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.grizzly;
@@ -39,7 +39,7 @@ import org.forgerock.opendj.io.LDAPWriter;
 import org.forgerock.opendj.ldap.ConnectionSecurityLayer;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.requests.AddRequest;
 import org.forgerock.opendj.ldap.requests.BindClient;
@@ -163,7 +163,7 @@ final class LDAPClientFilter extends LDAPBaseFilter {
                                 }
                                 return;
                             }
-                        } catch (final ErrorResultException e) {
+                        } catch (final LdapException e) {
                             ldapConnection.setBindOrStartTLSInProgress(false);
                             future.adaptErrorResult(e.getResult());
                             return;

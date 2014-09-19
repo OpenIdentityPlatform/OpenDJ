@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS.
+ *      Portions Copyright 2011-2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -52,7 +52,7 @@ import org.testng.annotations.Test;
 
 import static org.fest.assertions.Assertions.*;
 import static org.fest.assertions.Fail.*;
-import static org.forgerock.opendj.ldap.ErrorResultException.*;
+import static org.forgerock.opendj.ldap.LdapException.*;
 import static org.forgerock.opendj.ldap.FutureResultWrapper.*;
 import static org.forgerock.opendj.ldap.TestCaseUtils.*;
 import static org.forgerock.opendj.ldap.requests.Requests.*;
@@ -206,7 +206,7 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
         try {
             mockConnection.add(addRequest);
             fail();
-        } catch (ErrorResultException e) {
+        } catch (LdapException e) {
             assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.UNWILLING_TO_PERFORM);
         }
     }
@@ -225,7 +225,7 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
         try {
             mockConnection.bind(bindRequest);
             fail();
-        } catch (ErrorResultException e) {
+        } catch (LdapException e) {
             assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.UNWILLING_TO_PERFORM);
         }
     }
@@ -245,7 +245,7 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
         try {
             mockConnection.compare(compareRequest);
             fail();
-        } catch (ErrorResultException e) {
+        } catch (LdapException e) {
             assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.UNWILLING_TO_PERFORM);
         }
     }
@@ -265,7 +265,7 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
         try {
             mockConnection.delete(deleteRequest);
             fail();
-        } catch (ErrorResultException e) {
+        } catch (LdapException e) {
             assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.UNWILLING_TO_PERFORM);
         }
     }
@@ -285,7 +285,7 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
         try {
             mockConnection.extendedRequest(extendedRequest);
             fail();
-        } catch (ErrorResultException e) {
+        } catch (LdapException e) {
             assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.UNWILLING_TO_PERFORM);
         }
     }
@@ -305,7 +305,7 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
         try {
             mockConnection.modify(modifyRequest);
             fail();
-        } catch (ErrorResultException e) {
+        } catch (LdapException e) {
             assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.UNWILLING_TO_PERFORM);
         }
     }
@@ -325,7 +325,7 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
         try {
             mockConnection.modifyDN(modifyDNRequest);
             fail();
-        } catch (ErrorResultException e) {
+        } catch (LdapException e) {
             assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.UNWILLING_TO_PERFORM);
         }
     }
@@ -351,8 +351,8 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
         List<SearchResultEntry> entries = new LinkedList<SearchResultEntry>();
         try {
             mockConnection.search(searchRequest, entries);
-            failWasExpected(ErrorResultException.class);
-        } catch (ErrorResultException e) {
+            failWasExpected(LdapException.class);
+        } catch (LdapException e) {
             assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.UNWILLING_TO_PERFORM);
             assertThat(entries.isEmpty());
         }
@@ -432,14 +432,14 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
                 newSearchResultEntry("cn=test"));
         final SearchRequest request =
                 newSingleEntrySearchRequest("cn=test", SearchScope.BASE_OBJECT, "(objectClass=*)");
-        FailureHandler<ErrorResultException> failureHandler = mock(FailureHandler.class);
+        FailureHandler<LdapException> failureHandler = mock(FailureHandler.class);
 
         try {
             mockConnection.searchSingleEntryAsync(request).onFailure(failureHandler).getOrThrow();
             failWasExpected(MultipleEntriesFoundException.class);
         } catch (MultipleEntriesFoundException e) {
             assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED);
-            verify(failureHandler).handleError(any(ErrorResultException.class));
+            verify(failureHandler).handleError(any(LdapException.class));
         }
     }
 
@@ -451,13 +451,13 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
         final SearchRequest request = newSingleEntrySearchRequest("cn=test", SearchScope.BASE_OBJECT,
                 "(objectClass=*)");
         @SuppressWarnings("unchecked")
-        FailureHandler<ErrorResultException> failureHandler = mock(FailureHandler.class);
+        FailureHandler<LdapException> failureHandler = mock(FailureHandler.class);
         try {
             mockConnection.searchSingleEntryAsync(request).onFailure(failureHandler).getOrThrow();
             failWasExpected(MultipleEntriesFoundException.class);
         } catch (MultipleEntriesFoundException e) {
             assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.CLIENT_SIDE_UNEXPECTED_RESULTS_RETURNED);
-            verify(failureHandler).handleError(any(ErrorResultException.class));
+            verify(failureHandler).handleError(any(LdapException.class));
         }
     }
 
@@ -468,8 +468,8 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
                 newSingleEntrySearchRequest("cn=test", SearchScope.BASE_OBJECT, "(objectClass=*)");
         try {
             mockConnection.searchSingleEntry(request);
-            failWasExpected(ErrorResultException.class);
-        } catch (ErrorResultException e) {
+            failWasExpected(LdapException.class);
+        } catch (LdapException e) {
             assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.UNWILLING_TO_PERFORM);
         }
     }
@@ -480,13 +480,13 @@ public class AbstractAsynchronousConnectionTestCase extends SdkTestCase {
         final SearchRequest request =
                 newSingleEntrySearchRequest("cn=test", SearchScope.BASE_OBJECT, "(objectClass=*)");
         @SuppressWarnings("unchecked")
-        FailureHandler<ErrorResultException> failureHandler = mock(FailureHandler.class);
+        FailureHandler<LdapException> failureHandler = mock(FailureHandler.class);
         try {
             mockConnection.searchSingleEntryAsync(request).onFailure(failureHandler).getOrThrow();
-            failWasExpected(ErrorResultException.class);
-        } catch (ErrorResultException e) {
+            failWasExpected(LdapException.class);
+        } catch (LdapException e) {
             assertThat(e.getResult().getResultCode()).isEqualTo(ResultCode.UNWILLING_TO_PERFORM);
-            verify(failureHandler).handleError(any(ErrorResultException.class));
+            verify(failureHandler).handleError(any(LdapException.class));
         }
     }
 

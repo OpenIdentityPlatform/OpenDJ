@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.forgerock.opendj.config.conditions;
 
@@ -30,7 +31,7 @@ import org.forgerock.opendj.config.client.ManagedObject;
 import org.forgerock.opendj.config.client.ManagementContext;
 import org.forgerock.opendj.config.server.ConfigException;
 import org.forgerock.opendj.config.server.ServerManagedObject;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 
 /**
  * An interface for evaluating conditions.
@@ -56,10 +57,10 @@ public interface Condition {
      * @param managedObject
      *            The client managed object.
      * @return Returns <code>true</code> if this condition is satisfied.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If the condition could not be evaluated.
      */
-    boolean evaluate(ManagementContext context, ManagedObject<?> managedObject) throws ErrorResultException;
+    boolean evaluate(ManagementContext context, ManagedObject<?> managedObject) throws LdapException;
 
     /**
      * Evaluates this condition against the provided server managed object.

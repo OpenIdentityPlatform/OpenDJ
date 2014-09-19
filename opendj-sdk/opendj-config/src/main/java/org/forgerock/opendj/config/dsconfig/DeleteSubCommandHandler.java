@@ -46,7 +46,7 @@ import org.forgerock.opendj.config.client.ManagedObjectDecodingException;
 import org.forgerock.opendj.config.client.ManagementContext;
 import org.forgerock.opendj.config.client.OperationRejectedException;
 import org.forgerock.opendj.ldap.AuthorizationException;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 
 import com.forgerock.opendj.cli.ArgumentException;
 import com.forgerock.opendj.cli.BooleanArgument;
@@ -233,7 +233,7 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
             } else {
                 return MenuResult.success(0);
             }
-        } catch (ErrorResultException e) {
+        } catch (LdapException e) {
             throw new ClientException(ReturnCode.OTHER, LocalizableMessage.raw(e.getLocalizedMessage()));
         }
 
@@ -347,7 +347,7 @@ final class DeleteSubCommandHandler extends SubCommandHandler {
         } catch (ConcurrentModificationException e) {
             LocalizableMessage msg = ERR_DSCFG_ERROR_DELETE_CME.get(ufn);
             throw new ClientException(ReturnCode.CONSTRAINT_VIOLATION, msg);
-        } catch (ErrorResultException e) {
+        } catch (LdapException e) {
             LocalizableMessage msg = ERR_DSCFG_ERROR_DELETE_CE.get(ufn, e.getMessage());
             throw new ClientException(ReturnCode.CLIENT_SIDE_SERVER_DOWN, msg);
         }

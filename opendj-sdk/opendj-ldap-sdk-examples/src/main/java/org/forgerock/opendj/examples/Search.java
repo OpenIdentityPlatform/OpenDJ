@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2013 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.examples;
@@ -31,8 +31,7 @@ import java.io.IOException;
 import java.util.Arrays;
 
 import org.forgerock.opendj.ldap.Connection;
-import org.forgerock.opendj.ldap.ErrorResultException;
-import org.forgerock.opendj.ldap.ErrorResultIOException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.LDAPConnectionFactory;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
@@ -126,13 +125,9 @@ public final class Search {
                 }
             }
             writer.flush();
-        } catch (final ErrorResultException e) {
+        } catch (final LdapException e) {
             System.err.println(e.getMessage());
             System.exit(e.getResult().getResultCode().intValue());
-            return;
-        } catch (final ErrorResultIOException e) {
-            System.err.println(e.getMessage());
-            System.exit(e.getCause().getResult().getResultCode().intValue());
             return;
         } catch (final IOException e) {
             System.err.println(e.getMessage());

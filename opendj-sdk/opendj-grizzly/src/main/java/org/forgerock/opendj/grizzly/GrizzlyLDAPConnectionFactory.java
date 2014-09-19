@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.grizzly;
@@ -38,7 +38,7 @@ import javax.net.ssl.SSLEngine;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.Connection;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.FutureResultImpl;
 import org.forgerock.opendj.ldap.LDAPOptions;
 import org.forgerock.opendj.ldap.ResultCode;
@@ -62,7 +62,7 @@ import com.forgerock.opendj.util.ReferenceCountedObject;
 
 import static org.forgerock.opendj.grizzly.DefaultTCPNIOTransport.*;
 import static org.forgerock.opendj.grizzly.GrizzlyUtils.*;
-import static org.forgerock.opendj.ldap.ErrorResultException.*;
+import static org.forgerock.opendj.ldap.LdapException.*;
 import static org.forgerock.opendj.ldap.TimeoutChecker.*;
 
 import static com.forgerock.opendj.grizzly.GrizzlyMessages.*;
@@ -129,9 +129,9 @@ public final class GrizzlyLDAPConnectionFactory implements LDAPConnectionFactory
                     public void handleResult(final ExtendedResult result) {
                         onSuccess(connection);
                     }
-                }).onFailure(new FailureHandler<ErrorResultException>() {
+                }).onFailure(new FailureHandler<LdapException>() {
                     @Override
-                    public void handleError(final ErrorResultException error) {
+                    public void handleError(final LdapException error) {
                         onFailure(connection, error);
                     }
                 });
@@ -181,13 +181,13 @@ public final class GrizzlyLDAPConnectionFactory implements LDAPConnectionFactory
             return ldapConnection;
         }
 
-        private ErrorResultException adaptConnectionException(Throwable t) {
-            if (!(t instanceof ErrorResultException) && t instanceof ExecutionException) {
+        private LdapException adaptConnectionException(Throwable t) {
+            if (!(t instanceof LdapException) && t instanceof ExecutionException) {
                 t = t.getCause() != null ? t.getCause() : t;
             }
 
-            if (t instanceof ErrorResultException) {
-                return (ErrorResultException) t;
+            if (t instanceof LdapException) {
+                return (LdapException) t;
             } else {
                 return newErrorResult(ResultCode.CLIENT_SIDE_CONNECT_ERROR, t.getMessage(), t);
             }
@@ -300,7 +300,7 @@ public final class GrizzlyLDAPConnectionFactory implements LDAPConnectionFactory
     }
 
     @Override
-    public Connection getConnection() throws ErrorResultException {
+    public Connection getConnection() throws LdapException {
         try {
             return getConnectionAsync().getOrThrow();
         } catch (final InterruptedException e) {
@@ -309,7 +309,7 @@ public final class GrizzlyLDAPConnectionFactory implements LDAPConnectionFactory
     }
 
     @Override
-    public Promise<Connection, ErrorResultException> getConnectionAsync() {
+    public Promise<Connection, LdapException> getConnectionAsync() {
         acquireTransportAndTimeoutChecker(); // Protect resources.
         final SocketConnectorHandler connectorHandler =
                 TCPNIOConnectorHandler.builder(transport.get()).processor(defaultFilterChain)

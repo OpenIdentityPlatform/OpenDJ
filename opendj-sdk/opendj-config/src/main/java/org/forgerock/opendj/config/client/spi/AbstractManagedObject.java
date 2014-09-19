@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.forgerock.opendj.config.client.spi;
 
@@ -63,7 +64,7 @@ import org.forgerock.opendj.config.client.ManagementContext;
 import org.forgerock.opendj.config.client.MissingMandatoryPropertiesException;
 import org.forgerock.opendj.config.client.OperationRejectedException;
 import org.forgerock.opendj.config.client.OperationRejectedException.OperationType;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 
 /**
  * An abstract managed object implementation.
@@ -89,7 +90,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
 
         private OperationRejectedException ore = null;
 
-        private ErrorResultException ere = null;
+        private LdapException ere = null;
 
         /**
          * {@inheritDoc}
@@ -170,7 +171,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
                 cme = e;
             } catch (OperationRejectedException e) {
                 ore = e;
-            } catch (ErrorResultException e) {
+            } catch (LdapException e) {
                 ere = e;
             }
         }
@@ -182,7 +183,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
          * @param rd
          *            The relation definition.
          */
-        private void createDefaultManagedObjects(RelationDefinition<?, ?> rd) throws ErrorResultException,
+        private void createDefaultManagedObjects(RelationDefinition<?, ?> rd) throws LdapException,
             ConcurrentModificationException, MissingMandatoryPropertiesException,
             ManagedObjectAlreadyExistsException, OperationRejectedException {
             rd.accept(this, null);
@@ -256,7 +257,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
      */
     @Override
     public final void commit() throws ManagedObjectAlreadyExistsException, MissingMandatoryPropertiesException,
-        ConcurrentModificationException, OperationRejectedException, ErrorResultException {
+        ConcurrentModificationException, OperationRejectedException, LdapException {
         // First make sure all mandatory properties are defined.
         List<PropertyException> exceptions = new LinkedList<PropertyException>();
 
@@ -385,7 +386,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
     public final <C extends ConfigurationClient, S extends Configuration> ManagedObject<? extends C> getChild(
         InstantiableRelationDefinition<C, S> r, String name) throws DefinitionDecodingException,
         ManagedObjectDecodingException, ManagedObjectNotFoundException, ConcurrentModificationException,
-        ErrorResultException {
+        LdapException {
         validateRelationDefinition(r);
         ensureThisManagedObjectExists();
         Driver ctx = getDriver();
@@ -398,7 +399,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
     @Override
     public final <C extends ConfigurationClient, S extends Configuration> ManagedObject<? extends C> getChild(
         OptionalRelationDefinition<C, S> r) throws DefinitionDecodingException, ManagedObjectDecodingException,
-        ManagedObjectNotFoundException, ConcurrentModificationException, ErrorResultException {
+        ManagedObjectNotFoundException, ConcurrentModificationException, LdapException {
         validateRelationDefinition(r);
         ensureThisManagedObjectExists();
         Driver ctx = getDriver();
@@ -411,7 +412,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
     @Override
     public final <C extends ConfigurationClient, S extends Configuration> ManagedObject<? extends C> getChild(
         SingletonRelationDefinition<C, S> r) throws DefinitionDecodingException, ManagedObjectDecodingException,
-        ManagedObjectNotFoundException, ConcurrentModificationException, ErrorResultException {
+        ManagedObjectNotFoundException, ConcurrentModificationException, LdapException {
         validateRelationDefinition(r);
         ensureThisManagedObjectExists();
         Driver ctx = getDriver();
@@ -425,7 +426,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
     public final <C extends ConfigurationClient, S extends Configuration> ManagedObject<? extends C> getChild(
         SetRelationDefinition<C, S> r, String name) throws DefinitionDecodingException,
         ManagedObjectDecodingException, ManagedObjectNotFoundException, ConcurrentModificationException,
-        ErrorResultException {
+        LdapException {
         validateRelationDefinition(r);
         ensureThisManagedObjectExists();
         Driver ctx = getDriver();
@@ -502,7 +503,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
      */
     @Override
     public final <C extends ConfigurationClient, S extends Configuration> boolean hasChild(
-        OptionalRelationDefinition<C, S> r) throws ConcurrentModificationException, ErrorResultException {
+        OptionalRelationDefinition<C, S> r) throws ConcurrentModificationException, LdapException {
         validateRelationDefinition(r);
         Driver ctx = getDriver();
         try {
@@ -525,7 +526,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
      */
     @Override
     public final <C extends ConfigurationClient, S extends Configuration> String[] listChildren(
-        InstantiableRelationDefinition<C, S> r) throws ConcurrentModificationException, ErrorResultException {
+        InstantiableRelationDefinition<C, S> r) throws ConcurrentModificationException, LdapException {
         return listChildren(r, r.getChildDefinition());
     }
 
@@ -535,7 +536,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
     @Override
     public final <C extends ConfigurationClient, S extends Configuration> String[] listChildren(
         InstantiableRelationDefinition<C, S> r, AbstractManagedObjectDefinition<? extends C, ? extends S> d)
-            throws ConcurrentModificationException, ErrorResultException {
+            throws ConcurrentModificationException, LdapException {
         validateRelationDefinition(r);
         Driver ctx = getDriver();
         try {
@@ -550,7 +551,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
      */
     @Override
     public final <C extends ConfigurationClient, S extends Configuration> String[] listChildren(
-        SetRelationDefinition<C, S> r) throws ConcurrentModificationException, ErrorResultException {
+        SetRelationDefinition<C, S> r) throws ConcurrentModificationException, LdapException {
         return listChildren(r, r.getChildDefinition());
     }
 
@@ -560,7 +561,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
     @Override
     public final <C extends ConfigurationClient, S extends Configuration> String[] listChildren(
         SetRelationDefinition<C, S> r, AbstractManagedObjectDefinition<? extends C, ? extends S> d)
-            throws ConcurrentModificationException, ErrorResultException {
+            throws ConcurrentModificationException, LdapException {
         validateRelationDefinition(r);
         Driver ctx = getDriver();
         try {
@@ -576,7 +577,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
     @Override
     public final <C extends ConfigurationClient, S extends Configuration> void removeChild(
         InstantiableRelationDefinition<C, S> r, String name) throws ManagedObjectNotFoundException,
-        OperationRejectedException, ConcurrentModificationException, ErrorResultException {
+        OperationRejectedException, ConcurrentModificationException, LdapException {
         validateRelationDefinition(r);
         Driver ctx = getDriver();
         boolean found;
@@ -598,7 +599,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
     @Override
     public final <C extends ConfigurationClient, S extends Configuration> void removeChild(
         OptionalRelationDefinition<C, S> r) throws ManagedObjectNotFoundException, OperationRejectedException,
-        ConcurrentModificationException, ErrorResultException {
+        ConcurrentModificationException, LdapException {
         validateRelationDefinition(r);
         Driver ctx = getDriver();
         boolean found;
@@ -620,7 +621,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
     @Override
     public final <C extends ConfigurationClient, S extends Configuration> void removeChild(
         SetRelationDefinition<C, S> r, String name) throws ManagedObjectNotFoundException,
-        OperationRejectedException, ConcurrentModificationException, ErrorResultException {
+        OperationRejectedException, ConcurrentModificationException, LdapException {
         validateRelationDefinition(r);
         Driver ctx = getDriver();
         boolean found;
@@ -706,10 +707,10 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
      * @throws OperationRejectedException
      *             If the managed object cannot be added due to some client-side
      *             or server-side constraint which cannot be satisfied.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If any other error occurs.
      */
-    protected abstract void addNewManagedObject() throws ErrorResultException, OperationRejectedException,
+    protected abstract void addNewManagedObject() throws LdapException, OperationRejectedException,
         ConcurrentModificationException, ManagedObjectAlreadyExistsException;
 
     /**
@@ -757,11 +758,11 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
      * @throws OperationRejectedException
      *             If the managed object cannot be added due to some client-side
      *             or server-side constraint which cannot be satisfied.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If any other error occurs.
      */
     protected abstract void modifyExistingManagedObject() throws ConcurrentModificationException,
-        OperationRejectedException, ErrorResultException;
+        OperationRejectedException, LdapException;
 
     /**
      * Creates a new managed object.
@@ -827,7 +828,7 @@ public abstract class AbstractManagedObject<T extends ConfigurationClient> imple
     }
 
     // Makes sure that this managed object exists.
-    private void ensureThisManagedObjectExists() throws ConcurrentModificationException, ErrorResultException {
+    private void ensureThisManagedObjectExists() throws ConcurrentModificationException, LdapException {
         if (!path.isEmpty()) {
             Driver ctx = getDriver();
 

@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 package com.forgerock.opendj.ldap.tools;
 
@@ -45,7 +45,7 @@ import org.forgerock.opendj.ldap.Connection;
 import org.forgerock.opendj.ldap.ConnectionFactory;
 import org.forgerock.opendj.ldap.DecodeException;
 import org.forgerock.opendj.ldap.DecodeOptions;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.Filter;
 import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.controls.AssertionRequestControl;
@@ -93,7 +93,7 @@ public final class LDAPModify extends ConsoleApplication {
                     Result r = connection.add(change);
                     printResult(opType, change.getName().toString(), r);
                     return r.getResultCode().intValue();
-                } catch (final ErrorResultException ere) {
+                } catch (final LdapException ere) {
                     return Utils.printErrorMessage(LDAPModify.this, ere);
                 }
             }
@@ -111,7 +111,7 @@ public final class LDAPModify extends ConsoleApplication {
                     Result r = connection.delete(change);
                     printResult(opType, change.getName().toString(), r);
                     return r.getResultCode().intValue();
-                } catch (final ErrorResultException ere) {
+                } catch (final LdapException ere) {
                     return printErrorMessage(LDAPModify.this, ere);
                 }
             }
@@ -129,7 +129,7 @@ public final class LDAPModify extends ConsoleApplication {
                     Result r = connection.modifyDN(change);
                     printResult(opType, change.getName().toString(), r);
                     return r.getResultCode().intValue();
-                } catch (final ErrorResultException ere) {
+                } catch (final LdapException ere) {
                     return Utils.printErrorMessage(LDAPModify.this, ere);
                 }
             }
@@ -147,7 +147,7 @@ public final class LDAPModify extends ConsoleApplication {
                     Result r = connection.modify(change);
                     printResult(opType, change.getName().toString(), r);
                     return r.getResultCode().intValue();
-                } catch (final ErrorResultException ere) {
+                } catch (final LdapException ere) {
                     return Utils.printErrorMessage(LDAPModify.this, ere);
                 }
             }
@@ -456,7 +456,7 @@ public final class LDAPModify extends ConsoleApplication {
         if (!noop.isPresent()) {
             try {
                 connection = connectionFactory.getConnection();
-            } catch (final ErrorResultException ere) {
+            } catch (final LdapException ere) {
                 return Utils.printErrorMessage(this, ere);
             }
         }

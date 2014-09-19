@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -54,7 +54,7 @@ public final class Connections {
      * Bind will result in an {@code UnsupportedOperationException}.
      * <p>
      * If the Bind request fails for some reason (e.g. invalid credentials),
-     * then the connection attempt will fail and an {@code ErrorResultException}
+     * then the connection attempt will fail and an {@link LdapException}
      * will be thrown.
      *
      * @param factory
@@ -543,12 +543,12 @@ public final class Connections {
             }
 
             @Override
-            public Connection getConnection() throws ErrorResultException {
+            public Connection getConnection() throws LdapException {
                 return factory.getConnection();
             }
 
             @Override
-            public Promise<Connection, ErrorResultException> getConnectionAsync() {
+            public Promise<Connection, LdapException> getConnectionAsync() {
                 return factory.getConnectionAsync();
             }
 
@@ -663,12 +663,12 @@ public final class Connections {
         return new ConnectionFactory() {
 
             @Override
-            public Promise<Connection, ErrorResultException> getConnectionAsync() {
+            public Promise<Connection, LdapException> getConnectionAsync() {
                 return factory.getConnectionAsync();
             }
 
             @Override
-            public Connection getConnection() throws ErrorResultException {
+            public Connection getConnection() throws LdapException {
                 return factory.getConnection();
             }
 

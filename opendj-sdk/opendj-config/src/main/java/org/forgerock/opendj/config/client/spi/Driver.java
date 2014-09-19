@@ -22,6 +22,7 @@
  *
  *
  *      Copyright 2008-2009 Sun Microsystems, Inc.
+ *      Portions Copyright 2014 ForgeRock AS
  */
 package org.forgerock.opendj.config.client.spi;
 
@@ -65,7 +66,7 @@ import org.forgerock.opendj.config.client.ManagedObjectDecodingException;
 import org.forgerock.opendj.config.client.ManagementContext;
 import org.forgerock.opendj.config.client.OperationRejectedException;
 import org.forgerock.opendj.config.client.OperationRejectedException.OperationType;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 
 /**
  * An abstract management connection context driver which should form the basis
@@ -244,7 +245,7 @@ public abstract class Driver {
                 throw PropertyException.defaultBehaviorException(pd1, e);
             } catch (PropertyNotFoundException e) {
                 throw PropertyException.defaultBehaviorException(pd1, e);
-            } catch (ErrorResultException e) {
+            } catch (LdapException e) {
                 throw PropertyException.defaultBehaviorException(pd1, e);
             } catch (ManagedObjectNotFoundException e) {
                 throw PropertyException.defaultBehaviorException(pd1, e);
@@ -294,12 +295,12 @@ public abstract class Driver {
      *             client-side or server-side constraint which cannot be
      *             satisfied (for example, if it is referenced by another
      *             managed object).
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If any other error occurs.
      */
     public final <C extends ConfigurationClient, S extends Configuration> boolean deleteManagedObject(
         ManagedObjectPath<?, ?> parent, InstantiableRelationDefinition<C, S> rd, String name)
-            throws ManagedObjectNotFoundException, OperationRejectedException, ErrorResultException {
+            throws ManagedObjectNotFoundException, OperationRejectedException, LdapException {
         validateRelationDefinition(parent, rd);
         ManagedObjectPath<?, ?> child = parent.child(rd, name);
         return doDeleteManagedObject(child);
@@ -331,12 +332,12 @@ public abstract class Driver {
      *             client-side or server-side constraint which cannot be
      *             satisfied (for example, if it is referenced by another
      *             managed object).
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If any other error occurs.
      */
     public final <C extends ConfigurationClient, S extends Configuration> boolean deleteManagedObject(
         ManagedObjectPath<?, ?> parent, OptionalRelationDefinition<C, S> rd) throws ManagedObjectNotFoundException,
-        OperationRejectedException, ErrorResultException {
+        OperationRejectedException, LdapException {
         validateRelationDefinition(parent, rd);
         ManagedObjectPath<?, ?> child = parent.child(rd);
         return doDeleteManagedObject(child);
@@ -370,12 +371,12 @@ public abstract class Driver {
      *             client-side or server-side constraint which cannot be
      *             satisfied (for example, if it is referenced by another
      *             managed object).
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If any other error occurs.
      */
     public final <C extends ConfigurationClient, S extends Configuration> boolean deleteManagedObject(
         ManagedObjectPath<?, ?> parent, SetRelationDefinition<C, S> rd, String name)
-            throws ManagedObjectNotFoundException, OperationRejectedException, ErrorResultException {
+            throws ManagedObjectNotFoundException, OperationRejectedException, LdapException {
         validateRelationDefinition(parent, rd);
         ManagedObjectPath<?, ?> child = parent.child(rd, name);
         return doDeleteManagedObject(child);
@@ -403,13 +404,13 @@ public abstract class Driver {
      * @throws ManagedObjectNotFoundException
      *             If the requested managed object could not be found on the
      *             server.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If any other error occurs.
      */
     // @Checkstyle:ignore
     public abstract <C extends ConfigurationClient, S extends Configuration> ManagedObject<? extends C> getManagedObject(
         ManagedObjectPath<C, S> path) throws DefinitionDecodingException, ManagedObjectDecodingException,
-        ManagedObjectNotFoundException, ErrorResultException;
+        ManagedObjectNotFoundException, LdapException;
 
     /**
      * Gets the effective values of a property in the named managed object.
@@ -448,12 +449,12 @@ public abstract class Driver {
      * @throws ManagedObjectNotFoundException
      *             If the requested managed object could not be found on the
      *             server.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If any other error occurs.
      */
     public abstract <C extends ConfigurationClient, S extends Configuration, P> SortedSet<P> getPropertyValues(
         ManagedObjectPath<C, S> path, PropertyDefinition<P> pd) throws DefinitionDecodingException,
-        ManagedObjectNotFoundException, ErrorResultException;
+        ManagedObjectNotFoundException, LdapException;
 
     /**
      * Gets the root configuration managed object associated with this
@@ -487,13 +488,13 @@ public abstract class Driver {
      *             managed object's definition.
      * @throws ManagedObjectNotFoundException
      *             If the parent managed object could not be found.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If any other error occurs.
      */
     public abstract <C extends ConfigurationClient, S extends Configuration> String[] listManagedObjects(
         ManagedObjectPath<?, ?> parent, InstantiableRelationDefinition<C, S> rd,
         AbstractManagedObjectDefinition<? extends C, ? extends S> d) throws ManagedObjectNotFoundException,
-        ErrorResultException;
+        LdapException;
 
     /**
      * Lists the child managed objects of the named parent managed object which
@@ -518,13 +519,13 @@ public abstract class Driver {
      *             managed object's definition.
      * @throws ManagedObjectNotFoundException
      *             If the parent managed object could not be found.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If any other error occurs.
      */
     public abstract <C extends ConfigurationClient, S extends Configuration> String[] listManagedObjects(
         ManagedObjectPath<?, ?> parent, SetRelationDefinition<C, S> rd,
         AbstractManagedObjectDefinition<? extends C, ? extends S> d) throws ManagedObjectNotFoundException,
-        ErrorResultException;
+        LdapException;
 
     /**
      * Determines whether or not the named managed object exists.
@@ -538,11 +539,11 @@ public abstract class Driver {
      *         <code>false</code> otherwise.
      * @throws ManagedObjectNotFoundException
      *             If the parent managed object could not be found.
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If any other error occurs.
      */
     public abstract boolean managedObjectExists(ManagedObjectPath<?, ?> path) throws ManagedObjectNotFoundException,
-        ErrorResultException;
+        LdapException;
 
     /**
      * Deletes the named managed object.
@@ -562,11 +563,11 @@ public abstract class Driver {
      *             If the managed object cannot be removed due to some
      *             server-side constraint which cannot be satisfied (for
      *             example, if it is referenced by another managed object).
-     * @throws ErrorResultException
+     * @throws LdapException
      *             If any other error occurs.
      */
     protected abstract <C extends ConfigurationClient, S extends Configuration> void deleteManagedObject(
-        ManagedObjectPath<C, S> path) throws OperationRejectedException, ErrorResultException;
+        ManagedObjectPath<C, S> path) throws OperationRejectedException, LdapException;
 
     /**
      * Gets the default values for the specified property.
@@ -623,7 +624,7 @@ public abstract class Driver {
     // constraints are satisfied.
     private <C extends ConfigurationClient, S extends Configuration> boolean doDeleteManagedObject(
         ManagedObjectPath<C, S> path) throws ManagedObjectNotFoundException, OperationRejectedException,
-        ErrorResultException {
+        LdapException {
         // First make sure that the parent exists.
         if (!managedObjectExists(path.parent())) {
             throw new ManagedObjectNotFoundException();

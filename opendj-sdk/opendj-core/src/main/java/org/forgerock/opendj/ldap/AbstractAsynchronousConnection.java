@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS
+ *      Portions Copyright 2011-2014 ForgeRock AS
  */
 
 package org.forgerock.opendj.ldap;
@@ -40,7 +40,7 @@ import org.forgerock.opendj.ldap.responses.CompareResult;
 import org.forgerock.opendj.ldap.responses.ExtendedResult;
 import org.forgerock.opendj.ldap.responses.Result;
 
-import static org.forgerock.opendj.ldap.ErrorResultException.*;
+import static org.forgerock.opendj.ldap.LdapException.*;
 
 /**
  * An abstract connection whose synchronous methods are implemented in terms of
@@ -57,55 +57,54 @@ public abstract class AbstractAsynchronousConnection extends AbstractConnection 
 
     /** {@inheritDoc} */
     @Override
-    public Result add(final AddRequest request) throws ErrorResultException {
+    public Result add(final AddRequest request) throws LdapException {
         return blockingGetOrThrow(addAsync(request));
     }
 
     /** {@inheritDoc} */
     @Override
-    public BindResult bind(final BindRequest request) throws ErrorResultException {
+    public BindResult bind(final BindRequest request) throws LdapException {
         return blockingGetOrThrow(bindAsync(request));
     }
 
     /** {@inheritDoc} */
     @Override
-    public CompareResult compare(final CompareRequest request) throws ErrorResultException {
+    public CompareResult compare(final CompareRequest request) throws LdapException {
         return blockingGetOrThrow(compareAsync(request));
     }
 
     /** {@inheritDoc} */
     @Override
-    public Result delete(final DeleteRequest request) throws ErrorResultException {
+    public Result delete(final DeleteRequest request) throws LdapException {
         return blockingGetOrThrow(deleteAsync(request));
     }
 
     /** {@inheritDoc} */
     @Override
     public <R extends ExtendedResult> R extendedRequest(final ExtendedRequest<R> request,
-            final IntermediateResponseHandler handler) throws ErrorResultException {
+            final IntermediateResponseHandler handler) throws LdapException {
         return blockingGetOrThrow(extendedRequestAsync(request, handler));
     }
 
     /** {@inheritDoc} */
     @Override
-    public Result modify(final ModifyRequest request) throws ErrorResultException {
+    public Result modify(final ModifyRequest request) throws LdapException {
         return blockingGetOrThrow(modifyAsync(request));
     }
 
     /** {@inheritDoc} */
     @Override
-    public Result modifyDN(final ModifyDNRequest request) throws ErrorResultException {
+    public Result modifyDN(final ModifyDNRequest request) throws LdapException {
         return blockingGetOrThrow(modifyDNAsync(request));
     }
 
     /** {@inheritDoc} */
     @Override
-    public Result search(final SearchRequest request, final SearchResultHandler handler)
-            throws ErrorResultException {
+    public Result search(final SearchRequest request, final SearchResultHandler handler) throws LdapException {
         return blockingGetOrThrow(searchAsync(request, handler));
     }
 
-    private <T extends Result> T blockingGetOrThrow(FutureResult<T> future) throws ErrorResultException {
+    private <T extends Result> T blockingGetOrThrow(FutureResult<T> future) throws LdapException {
         try {
             return future.getOrThrow();
         } catch (InterruptedException e) {
@@ -114,7 +113,7 @@ public abstract class AbstractAsynchronousConnection extends AbstractConnection 
     }
 
     // Handle thread interruption.
-    private ErrorResultException interrupted(InterruptedException e) {
+    private LdapException interrupted(InterruptedException e) {
         return newErrorResult(ResultCode.CLIENT_SIDE_USER_CANCELLED, e);
     }
 }

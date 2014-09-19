@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2010 Sun Microsystems, Inc.
- *      Portions copyright 2013 ForgeRock AS.
+ *      Portions Copyright 2013-2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -70,7 +70,7 @@ import org.forgerock.opendj.ldap.responses.Result;
  * </ul>
  */
 @SuppressWarnings("serial")
-public class ConstraintViolationException extends ErrorResultException {
+public class ConstraintViolationException extends LdapException {
     ConstraintViolationException(final Result result) {
         super(result);
     }

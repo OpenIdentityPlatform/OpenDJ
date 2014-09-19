@@ -22,7 +22,7 @@
  *
  *
  *      Copyright 2009-2010 Sun Microsystems, Inc.
- *      Portions copyright 2011-2014 ForgeRock AS.
+ *      Portions Copyright 2011-2014 ForgeRock AS.
  */
 
 package org.forgerock.opendj.ldap;
@@ -46,8 +46,7 @@ import static org.forgerock.util.Utils.*;
  * will result in an {@code UnsupportedOperationException}.
  * <p>
  * If the Bind request fails for some reason (e.g. invalid credentials), then
- * the connection attempt will fail and an {@code ErrorResultException} will be
- * thrown.
+ * the connection attempt will fail and an {@link LdapException} will be thrown.
  */
 final class AuthenticatedConnectionFactory implements ConnectionFactory {
 
@@ -72,12 +71,12 @@ final class AuthenticatedConnectionFactory implements ConnectionFactory {
         }
 
         @Override
-        public BindResult bind(BindRequest request) throws ErrorResultException {
+        public BindResult bind(BindRequest request) throws LdapException {
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public BindResult bind(String name, char[] password) throws ErrorResultException {
+        public BindResult bind(String name, char[] password) throws LdapException {
             throw new UnsupportedOperationException();
         }
 
@@ -120,7 +119,7 @@ final class AuthenticatedConnectionFactory implements ConnectionFactory {
     }
 
     @Override
-    public Connection getConnection() throws ErrorResultException {
+    public Connection getConnection() throws LdapException {
         final Connection connection = parentFactory.getConnection();
         boolean bindSucceeded = false;
         try {
@@ -140,28 +139,28 @@ final class AuthenticatedConnectionFactory implements ConnectionFactory {
     }
 
     @Override
-    public Promise<Connection, ErrorResultException> getConnectionAsync() {
+    public Promise<Connection, LdapException> getConnectionAsync() {
         final AtomicReference<Connection> connectionHolder = new AtomicReference<Connection>();
         return parentFactory.getConnectionAsync()
             .thenAsync(
-                    new AsyncFunction<Connection, BindResult, ErrorResultException>() {
+                    new AsyncFunction<Connection, BindResult, LdapException>() {
                         @Override
-                        public Promise<BindResult, ErrorResultException> apply(final Connection connection)
-                                throws ErrorResultException {
+                        public Promise<BindResult, LdapException> apply(final Connection connection)
+                                throws LdapException {
                             connectionHolder.set(connection);
                             return connection.bindAsync(request);
                         }
                     }
             ).then(
-                    new Function<BindResult, Connection, ErrorResultException>() {
+                    new Function<BindResult, Connection, LdapException>() {
                         @Override
-                        public Connection apply(BindResult result) throws ErrorResultException {
+                        public Connection apply(BindResult result) throws LdapException {
                             return new AuthenticatedConnection(connectionHolder.get());
                         }
                     },
-                    new Function<ErrorResultException, Connection, ErrorResultException>() {
+                    new Function<LdapException, Connection, LdapException>() {
                         @Override
-                        public Connection apply(ErrorResultException error) throws ErrorResultException {
+                        public Connection apply(LdapException error) throws LdapException {
                             closeSilently(connectionHolder.get());
                             throw error;
                         }

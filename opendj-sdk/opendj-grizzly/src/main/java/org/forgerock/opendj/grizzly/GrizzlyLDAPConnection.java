@@ -44,7 +44,7 @@ import org.forgerock.opendj.io.LDAPWriter;
 import org.forgerock.opendj.ldap.AbstractAsynchronousConnection;
 import org.forgerock.opendj.ldap.ConnectionEventListener;
 import org.forgerock.opendj.ldap.Connections;
-import org.forgerock.opendj.ldap.ErrorResultException;
+import org.forgerock.opendj.ldap.LdapException;
 import org.forgerock.opendj.ldap.FutureResult;
 import org.forgerock.opendj.ldap.IntermediateResponseHandler;
 import org.forgerock.opendj.ldap.LDAPOptions;
@@ -84,7 +84,7 @@ import org.glassfish.grizzly.filterchain.FilterChain;
 import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
 import org.glassfish.grizzly.ssl.SSLFilter;
 
-import static org.forgerock.opendj.ldap.ErrorResultException.newErrorResult;
+import static org.forgerock.opendj.ldap.LdapException.newErrorResult;
 import static org.forgerock.opendj.ldap.FutureResultWrapper.*;
 
 import static com.forgerock.opendj.grizzly.GrizzlyMessages.*;
@@ -159,7 +159,7 @@ final class GrizzlyLDAPConnection extends AbstractAsynchronousConnection impleme
                  */
                 checkBindOrStartTLSInProgress();
             }
-        } catch (final ErrorResultException e) {
+        } catch (final LdapException e) {
             return newFailedFutureResult(e);
         }
 
@@ -226,7 +226,7 @@ final class GrizzlyLDAPConnection extends AbstractAsynchronousConnection impleme
                 pendingRequests.remove(messageID);
                 throw adaptRequestIOException(e);
             }
-        } catch (final ErrorResultException e) {
+        } catch (final LdapException e) {
             future.adaptErrorResult(e.getResult());
         }
         return future;
@@ -269,7 +269,7 @@ final class GrizzlyLDAPConnection extends AbstractAsynchronousConnection impleme
             // FIXME: Is this the best result code?
             final Result errorResult = Responses.newResult(ResultCode.CLIENT_SIDE_LOCAL_ERROR)
                     .setDiagnosticMessage("An error occurred while creating a bind context").setCause(e);
-            final ErrorResultException error = ErrorResultException.newErrorResult(errorResult);
+            final LdapException error = LdapException.newErrorResult(errorResult);
 
             return newFailedFutureResult(error, messageID);
         }
@@ -309,7 +309,7 @@ final class GrizzlyLDAPConnection extends AbstractAsynchronousConnection impleme
                 bindOrStartTLSInProgress.set(false);
                 throw adaptRequestIOException(e);
             }
-        } catch (final ErrorResultException e) {
+        } catch (final LdapException e) {
             future.adaptErrorResult(e.getResult());
         }
 
@@ -348,7 +348,7 @@ final class GrizzlyLDAPConnection extends AbstractAsynchronousConnection impleme
                 pendingRequests.remove(messageID);
                 throw adaptRequestIOException(e);
             }
-        } catch (final ErrorResultException e) {
+        } catch (final LdapException e) {
             future.adaptErrorResult(e.getResult());
         }
         return future;
@@ -378,7 +378,7 @@ final class GrizzlyLDAPConnection extends AbstractAsynchronousConnection impleme
                 pendingRequests.remove(messageID);
                 throw adaptRequestIOException(e);
             }
-        } catch (final ErrorResultException e) {
+        } catch (final LdapException e) {
             future.adaptErrorResult(e.getResult());
         }
         return future;
@@ -425,7 +425,7 @@ final class GrizzlyLDAPConnection extends AbstractAsynchronousConnection impleme
                 bindOrStartTLSInProgress.set(false);
                 throw adaptRequestIOException(e);
             }
-        } catch (final ErrorResultException e) {
+        } catch (final LdapException e) {
             future.adaptErrorResult(e.getResult());
         }
         return future;
@@ -469,7 +469,7 @@ final class GrizzlyLDAPConnection extends AbstractAsynchronousConnection impleme
                 pendingRequests.remove(messageID);
                 throw adaptRequestIOException(e);
             }
-        } catch (final ErrorResultException e) {
+        } catch (final LdapException e) {
             future.adaptErrorResult(e.getResult());
         }
         return future;
@@ -499,7 +499,7 @@ final class GrizzlyLDAPConnection extends AbstractAsynchronousConnection impleme
                 pendingRequests.remove(messageID);
                 throw adaptRequestIOException(e);
             }
-        } catch (final ErrorResultException e) {
+        } catch (final LdapException e) {
             future.adaptErrorResult(e.getResult());
         }
         return future;
@@ -540,7 +540,7 @@ final class GrizzlyLDAPConnection extends AbstractAsynchronousConnection impleme
                 pendingRequests.remove(messageID);
                 throw adaptRequestIOException(e);
             }
-        } catch (final ErrorResultException e) {
+        } catch (final LdapException e) {
             future.adaptErrorResult(e.getResult());
         }
         return future;
@@ -712,8 +712,7 @@ final class GrizzlyLDAPConnection extends AbstractAsynchronousConnection impleme
         }
     }
 
-    int continuePendingBindRequest(final LDAPBindFutureResultImpl future)
-            throws ErrorResultException {
+    int continuePendingBindRequest(final LDAPBindFutureResultImpl future) throws LdapException {
         final int newMsgID = nextMsgID.getAndIncrement();
         synchronized (stateLock) {
             checkConnectionIsValid();
@@ -800,7 +799,7 @@ final class GrizzlyLDAPConnection extends AbstractAsynchronousConnection impleme
         }
     }
 
-    private ErrorResultException adaptRequestIOException(final IOException e) {
+    private LdapException adaptRequestIOException(final IOException e) {
         // FIXME: what other sort of IOExceptions can be thrown?
         // FIXME: Is this the best result code?
         final Result errorResult = Responses.newResult(ResultCode.CLIENT_SIDE_ENCODING_ERROR).setCause(e);
@@ -808,13 +807,13 @@ final class GrizzlyLDAPConnection extends AbstractAsynchronousConnection impleme
         return newErrorResult(errorResult);
     }
 
-    private void checkBindOrStartTLSInProgress() throws ErrorResultException {
+    private void checkBindOrStartTLSInProgress() throws LdapException {
         if (bindOrStartTLSInProgress.get()) {
             throw newErrorResult(ResultCode.OPERATIONS_ERROR, "Bind or Start TLS operation in progress");
         }
     }
 
-    private void checkConnectionIsValid() throws ErrorResultException {
+    private void checkConnectionIsValid() throws LdapException {
         if (!isValid0()) {
             if (failedDueToDisconnect) {
                 /*
