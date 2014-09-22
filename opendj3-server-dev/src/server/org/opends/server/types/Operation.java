@@ -35,7 +35,6 @@ import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.controls.ControlDecoder;
 
-
 /**
  * This interface defines a generic operation that may be processed by
  * the Directory Server.  Specific subclasses should implement
@@ -57,15 +56,14 @@ public interface Operation extends Runnable
    * Identifier used to get the local operation [if any] in the
    * attachments.
    */
-  public static final String LOCALBACKENDOPERATIONS =
-    "LocalBackendOperations";
+  String LOCALBACKENDOPERATIONS = "LocalBackendOperations";
 
   /**
    * Retrieves the operation type for this operation.
    *
    * @return  The operation type for this operation.
    */
-  public abstract OperationType getOperationType();
+  OperationType getOperationType();
 
   /**
    * Terminates the client connection being used to process this
@@ -83,10 +81,7 @@ public interface Operation extends Runnable
    *                           may be {@code null} if no notification
    *                           is to be sent.
    */
-  public abstract void disconnectClient(
-          DisconnectReason disconnectReason,
-          boolean sendNotification, LocalizableMessage message
-  );
+  void disconnectClient(DisconnectReason disconnectReason, boolean sendNotification, LocalizableMessage message);
 
   /**
    * Retrieves the client connection with which this operation is
@@ -95,7 +90,7 @@ public interface Operation extends Runnable
    * @return  The client connection with which this operation is
    *          associated.
    */
-  public abstract ClientConnection getClientConnection();
+  ClientConnection getClientConnection();
 
   /**
    * Retrieves the unique identifier that is assigned to the client
@@ -104,21 +99,21 @@ public interface Operation extends Runnable
    * @return  The unique identifier that is assigned to the client
    *          connection that submitted this operation.
    */
-  public abstract long getConnectionID();
+  long getConnectionID();
 
   /**
    * Retrieves the operation ID for this operation.
    *
    * @return  The operation ID for this operation.
    */
-  public abstract long getOperationID();
+  long getOperationID();
 
   /**
    * Retrieves the message ID assigned to this operation.
    *
    * @return  The message ID assigned to this operation.
    */
-  public abstract int getMessageID();
+  int getMessageID();
 
   /**
    * Retrieves the set of controls included in the request from the
@@ -127,7 +122,7 @@ public interface Operation extends Runnable
    * @return  The set of controls included in the request from the
    *          client.
    */
-  public abstract List<Control> getRequestControls();
+  List<Control> getRequestControls();
 
   /**
    * Retrieves a control included in the request from the client.
@@ -142,8 +137,7 @@ public interface Operation extends Runnable
    * @throws DirectoryException
    *           if an error occurs while decoding the control.
    */
-  public abstract <T extends Control> T getRequestControl(
-      ControlDecoder<T> d) throws DirectoryException;
+  <T extends Control> T getRequestControl(ControlDecoder<T> d) throws DirectoryException;
 
   /**
    * Adds the provided control to the set of request controls for this
@@ -152,7 +146,7 @@ public interface Operation extends Runnable
    * @param  control  The control to add to the set of request
    *                  controls for this operation.
    */
-  public abstract void addRequestControl(Control control);
+  void addRequestControl(Control control);
 
   /**
    * Retrieves the set of controls to include in the response to the
@@ -161,7 +155,7 @@ public interface Operation extends Runnable
    * @return  The set of controls to include in the response to the
    *          client.
    */
-  public abstract List<Control> getResponseControls();
+  List<Control> getResponseControls();
 
   /**
    * Adds the provided control to the set of controls to include in
@@ -171,7 +165,7 @@ public interface Operation extends Runnable
    * @param  control  The control to add to the set of controls to
    *                  include in the response to the client.
    */
-  public abstract void addResponseControl(Control control);
+  void addResponseControl(Control control);
 
   /**
    * Removes the provided control from the set of controls to include
@@ -181,7 +175,7 @@ public interface Operation extends Runnable
    * @param  control  The control to remove from the set of controls
    *                  to include in the response to the client.
    */
-  public abstract void removeResponseControl(Control control);
+  void removeResponseControl(Control control);
 
   /**
    * Retrieves the result code for this operation.
@@ -190,7 +184,7 @@ public interface Operation extends Runnable
    *          {@code UNDEFINED} if the operation has not yet
    *          completed.
    */
-  public abstract ResultCode getResultCode();
+  ResultCode getResultCode();
 
   /**
    * Specifies the result code for this operation.  This method may
@@ -198,7 +192,7 @@ public interface Operation extends Runnable
    *
    * @param  resultCode  The result code for this operation.
    */
-  public abstract void setResultCode(ResultCode resultCode);
+  void setResultCode(ResultCode resultCode);
 
   /**
    * Retrieves the real, masked result code for this operation.
@@ -224,7 +218,7 @@ public interface Operation extends Runnable
    *
    * @return  The error message for this operation.
    */
-  public abstract LocalizableMessageBuilder getErrorMessage();
+  LocalizableMessageBuilder getErrorMessage();
 
   /**
    * Specifies the error message for this operation.  This method may
@@ -232,7 +226,7 @@ public interface Operation extends Runnable
    *
    * @param  errorMessage  The error message for this operation.
    */
-  public abstract void setErrorMessage(LocalizableMessageBuilder errorMessage);
+  void setErrorMessage(LocalizableMessageBuilder errorMessage);
 
   /**
    * Appends the provided message to the error message buffer.  If the
@@ -242,7 +236,7 @@ public interface Operation extends Runnable
    *
    * @param  message  The message to append to the error message
    */
-  public abstract void appendErrorMessage(LocalizableMessage message);
+  void appendErrorMessage(LocalizableMessage message);
 
   /**
    * Retrieves the real, masked error message for this operation. Its contents
@@ -281,7 +275,7 @@ public interface Operation extends Runnable
    * @return An unmodifiable list containing the additional log items for this
    *         operation.
    */
-  public abstract List<AdditionalLogItem> getAdditionalLogItems();
+  List<AdditionalLogItem> getAdditionalLogItems();
 
   /**
    * Adds an additional log item to this operation, which should be written to
@@ -291,7 +285,7 @@ public interface Operation extends Runnable
    * @param item
    *          The additional log item for this operation.
    */
-  public abstract void addAdditionalLogItem(AdditionalLogItem item);
+  void addAdditionalLogItem(AdditionalLogItem item);
 
   /**
    * Retrieves the matched DN for this operation.
@@ -300,7 +294,7 @@ public interface Operation extends Runnable
    *          the operation has not yet completed or does not have a
    *          matched DN.
    */
-  public abstract DN getMatchedDN();
+  DN getMatchedDN();
 
   /**
    * Specifies the matched DN for this operation.  This may not be
@@ -308,7 +302,7 @@ public interface Operation extends Runnable
    *
    * @param  matchedDN  The matched DN for this operation.
    */
-  public abstract void setMatchedDN(DN matchedDN);
+  void setMatchedDN(DN matchedDN);
 
   /**
    * Retrieves the set of referral URLs for this operation.  Its
@@ -318,7 +312,7 @@ public interface Operation extends Runnable
    *          {@code null} if the operation is not yet complete or
    *          does not have a set of referral URLs.
    */
-  public abstract List<String> getReferralURLs();
+  List<String> getReferralURLs();
 
   /**
    * Specifies the set of referral URLs for this operation.  This may
@@ -327,7 +321,7 @@ public interface Operation extends Runnable
    * @param  referralURLs  The set of referral URLs for this
    *                       operation.
    */
-  public abstract void setReferralURLs(List<String> referralURLs);
+  void setReferralURLs(List<String> referralURLs);
 
   /**
    * Sets the response elements for this operation based on the
@@ -338,8 +332,7 @@ public interface Operation extends Runnable
    *                             information to use for the response
    *                             elements.
    */
-  public abstract void setResponseData(
-      DirectoryException directoryException);
+  void setResponseData(DirectoryException directoryException);
 
   /**
    * Indicates whether this is an internal operation rather than one
@@ -348,7 +341,7 @@ public interface Operation extends Runnable
    * @return  {@code true} if this is an internal operation, or
    *          {@code false} if it is not.
    */
-  public abstract boolean isInternalOperation();
+  boolean isInternalOperation();
 
   /**
    * Specifies whether this is an internal operation rather than one
@@ -360,8 +353,7 @@ public interface Operation extends Runnable
    *                              that was requested by an external
    *                              client.
    */
-  public abstract void setInternalOperation(boolean
-      isInternalOperation);
+  void setInternalOperation(boolean isInternalOperation);
 
   /**
    * Indicates whether this is an inner operation rather than one that was
@@ -395,7 +387,7 @@ public interface Operation extends Runnable
    * @return  {@code true} if this is a data synchronization
    *          operation, or {@code false} if it is not.
    */
-  public abstract boolean isSynchronizationOperation();
+  boolean isSynchronizationOperation();
 
   /**
    * Specifies whether this is a synchronization operation rather than
@@ -408,8 +400,7 @@ public interface Operation extends Runnable
    *                                     requested by an external
    *                                     client.
    */
-  public abstract void setSynchronizationOperation(
-      boolean isSynchronizationOperation);
+  void setSynchronizationOperation(boolean isSynchronizationOperation);
 
   /**
    * Specifies whether this operation must be synchronized to other
@@ -419,7 +410,7 @@ public interface Operation extends Runnable
    *                          synchronized to other copies
    *                          of the data.
    */
-  public abstract void setDontSynchronize(boolean dontSynchronize);
+  void setDontSynchronize(boolean dontSynchronize);
 
   /**
    * Retrieves the entry for the user that should be considered the
@@ -437,7 +428,7 @@ public interface Operation extends Runnable
    *          {@code null} if the authorization identity should be the
    *          unauthenticated  user.
    */
-  public abstract Entry getAuthorizationEntry();
+  Entry getAuthorizationEntry();
 
   /**
    * Provides the entry for the user that should be considered the
@@ -450,8 +441,7 @@ public interface Operation extends Runnable
    *                             if it should be the unauthenticated
    *                             user.
    */
-  public abstract void setAuthorizationEntry(Entry
-      authorizationEntry);
+  void setAuthorizationEntry(Entry authorizationEntry);
 
   /**
    * Retrieves the authorization DN for this operation.  In many
@@ -466,7 +456,7 @@ public interface Operation extends Runnable
    * @return  The authorization DN for this operation, or the null DN
    *          if it should be the unauthenticated user..
    */
-  public abstract DN getAuthorizationDN();
+  DN getAuthorizationDN();
 
   /**
    * Retrieves the set of attachments defined for this operation, as a
@@ -474,35 +464,38 @@ public interface Operation extends Runnable
    *
    * @return  The set of attachments defined for this operation.
    */
-  public abstract Map<String, Object> getAttachments();
+  Map<String, Object> getAttachments();
 
   /**
    * Retrieves the attachment with the specified name.
    *
+   * @param <T> the type of the attached object
    * @param  name  The name for the attachment to retrieve.  It will
    *               be treated in a case-sensitive manner.
    *
    * @return  The requested attachment object, or {@code null} if it
    *          does not exist.
    */
-  public abstract Object getAttachment(String name);
+  <T> T getAttachment(String name);
 
   /**
    * Removes the attachment with the specified name.
    *
+   * @param <T> the type of the attached object
    * @param  name  The name for the attachment to remove.  It will be
    *               treated in a case-sensitive manner.
    *
    * @return  The attachment that was removed, or {@code null} if it
    *          does not exist.
    */
-  public abstract Object removeAttachment(String name);
+  <T> T removeAttachment(String name);
 
   /**
    * Sets the value of the specified attachment.  If an attachment
    * already exists with the same name, it will be replaced.
    * Otherwise, a new attachment will be added.
    *
+   * @param <T> the type of the attached object
    * @param  name   The name to use for the attachment.
    * @param  value  The value to use for the attachment.
    *
@@ -510,14 +503,14 @@ public interface Operation extends Runnable
    *          name, or {@code null} if there was previously no such
    *          attachment.
    */
-  public abstract Object setAttachment(String name, Object value);
+  <T> T setAttachment(String name, Object value);
 
   /**
    * Retrieves the time that processing started for this operation.
    *
    * @return  The time that processing started for this operation.
    */
-  public abstract long getProcessingStartTime();
+  long getProcessingStartTime();
 
   /**
    * Retrieves the time that processing stopped for this operation.
@@ -526,7 +519,7 @@ public interface Operation extends Runnable
    *
    * @return  The time that processing stopped for this operation.
    */
-  public abstract long getProcessingStopTime();
+  long getProcessingStopTime();
 
   /**
    * Retrieves the length of time in milliseconds that the server
@@ -536,7 +529,7 @@ public interface Operation extends Runnable
    * @return  The length of time in milliseconds that the server spent
    *          processing this operation.
    */
-  public abstract long getProcessingTime();
+  long getProcessingTime();
 
   /**
    * Retrieves the length of time in nanoseconds that
@@ -548,14 +541,14 @@ public interface Operation extends Runnable
    *          spent processing this operation or -1 if its not
    *          available.
    */
-  public abstract long getProcessingNanoTime();
+  long getProcessingNanoTime();
 
   /**
    * Indicates that processing on this operation has completed
    * successfully and that the client should perform any associated
    * cleanup work.
    */
-  public abstract void operationCompleted();
+  void operationCompleted();
 
   /**
    * Attempts to cancel this operation before processing has
@@ -567,7 +560,7 @@ public interface Operation extends Runnable
    * @return  A code providing information on the result of the
    *          cancellation.
    */
-  public abstract CancelResult cancel(CancelRequest cancelRequest);
+  CancelResult cancel(CancelRequest cancelRequest);
 
   /**
    * Attempts to abort this operation before processing has
@@ -576,8 +569,7 @@ public interface Operation extends Runnable
    * @param  cancelRequest  Information about the way in which the
    *                        operation should be canceled.
    */
-  public abstract void abort(CancelRequest cancelRequest);
-
+  void abort(CancelRequest cancelRequest);
 
   /**
    * Retrieves the cancel request that has been issued for this
@@ -588,7 +580,7 @@ public interface Operation extends Runnable
    *          operation, or {@code null} if there has not been any
    *          request to cancel.
    */
-  public abstract CancelRequest getCancelRequest();
+  CancelRequest getCancelRequest();
 
   /**
    * Retrieves the cancel result for this operation.
@@ -597,15 +589,14 @@ public interface Operation extends Runnable
    *          {@code null} if the operation has not seen and reacted
    *          to a cancel request.
    */
-  public abstract CancelResult getCancelResult();
+  CancelResult getCancelResult();
 
   /**
    * Retrieves a string representation of this operation.
    *
    * @return  A string representation of this operation.
    */
-  @Override
-  public abstract String toString();
+  @Override String toString();
 
   /**
    * Appends a string representation of this operation to the provided
@@ -614,7 +605,7 @@ public interface Operation extends Runnable
    * @param  buffer  The buffer into which a string representation of
    *                 this operation should be appended.
    */
-  public abstract void toString(StringBuilder buffer);
+  void toString(StringBuilder buffer);
 
   /**
    * Indicates whether this operation needs to be synchronized to
@@ -624,7 +615,7 @@ public interface Operation extends Runnable
    *          synchronized, or {@code false} if it should be
    *          synchronized.
    */
-  public abstract boolean dontSynchronize();
+  boolean dontSynchronize();
 
   /**
    * Set the attachments to the operation.
@@ -632,8 +623,7 @@ public interface Operation extends Runnable
    * @param attachments - Attachments to register within the
    *                      operation
    */
-  public abstract void setAttachments(Map<String,
-      Object> attachments);
+  void setAttachments(Map<String, Object> attachments);
 
   /**
    * Checks to see if this operation requested to cancel in which case
@@ -647,8 +637,7 @@ public interface Operation extends Runnable
    * @throws CanceledOperationException if this operation should
    * be cancelled.
    */
-  public void checkIfCanceled(boolean signalTooLate)
-      throws CanceledOperationException;
+  void checkIfCanceled(boolean signalTooLate) throws CanceledOperationException;
 
   /**
    * Registers a callback which should be run once this operation has
@@ -658,7 +647,7 @@ public interface Operation extends Runnable
    *          The callback to be run once this operation has completed
    *          and the response sent back to the client.
    */
-  public void registerPostResponseCallback(Runnable callback);
+  void registerPostResponseCallback(Runnable callback);
 
   /**
    * Performs the work of actually processing this operation. This should
