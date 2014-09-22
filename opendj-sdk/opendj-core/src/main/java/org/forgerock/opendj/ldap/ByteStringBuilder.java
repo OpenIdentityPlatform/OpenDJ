@@ -26,6 +26,8 @@
  */
 package org.forgerock.opendj.ldap;
 
+import java.io.DataInput;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -466,7 +468,33 @@ public final class ByteStringBuilder implements ByteSequence {
         // The 1 byte char assumption was correct
         this.length += len;
         return this;
+    }
 
+    /**
+     * Appends the provided {@code DataInput} to this byte string
+     * builder.
+     *
+     * @param stream
+     *          The data input stream to be appended to this byte string
+     *          builder.
+     * @param length
+     *          The maximum number of bytes to be appended from {@code
+     *          input}.
+     * @throws IndexOutOfBoundsException
+     *           If {@code length} is less than zero.
+     * @throws EOFException
+     *           If this stream reaches the end before reading all the bytes.
+     * @throws IOException
+     *           If an I/O error occurs.
+     */
+    public void append(DataInput stream, int length) throws EOFException, IOException {
+        if (length < 0) {
+            throw new IndexOutOfBoundsException();
+        }
+
+        ensureAdditionalCapacity(length);
+        stream.readFully(buffer, this.length, length);
+        this.length = length;
     }
 
     /**
