@@ -26,13 +26,21 @@
  */
 package org.opends.server.core;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.forgerock.i18n.slf4j.LocalizedLogger;
 import org.forgerock.opendj.ldap.ByteString;
 import org.forgerock.opendj.ldap.DereferenceAliasesPolicy;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.forgerock.opendj.ldap.SearchScope;
+import org.opends.server.api.AccessControlHandler;
 import org.opends.server.api.AuthenticationPolicyState;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.plugin.PluginResult;
@@ -40,8 +48,22 @@ import org.opends.server.controls.AccountUsableResponseControl;
 import org.opends.server.controls.MatchedValuesControl;
 import org.opends.server.core.networkgroups.NetworkGroup;
 import org.opends.server.protocols.ldap.LDAPFilter;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.types.AbstractOperation;
+import org.opends.server.types.Attribute;
+import org.opends.server.types.AttributeBuilder;
+import org.opends.server.types.AttributeType;
+import org.opends.server.types.CancelRequest;
+import org.opends.server.types.CancelResult;
+import org.opends.server.types.CanceledOperationException;
+import org.opends.server.types.Control;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.OperationType;
+import org.opends.server.types.RawFilter;
+import org.opends.server.types.SearchFilter;
+import org.opends.server.types.SearchResultEntry;
+import org.opends.server.types.SearchResultReference;
 import org.opends.server.types.operation.PostResponseSearchOperation;
 import org.opends.server.types.operation.PreParseSearchOperation;
 import org.opends.server.types.operation.SearchEntrySearchOperation;
@@ -71,10 +93,10 @@ public class SearchOperationBasis
    * Indicates whether a search result done response has been sent to the
    * client.
    */
-  private AtomicBoolean responseSent;
+  private final AtomicBoolean responseSent = new AtomicBoolean(false);
 
   /** Indicates whether the client is able to handle referrals. */
-  private boolean clientAcceptsReferrals;
+  private boolean clientAcceptsReferrals = true;
 
   /**
    * Indicates whether to include the account usable control with search result
@@ -118,12 +140,12 @@ public class SearchOperationBasis
   private DN proxiedAuthorizationDN;
 
   /** The number of entries that have been sent to the client. */
-  private int entriesSent;
+  private final AtomicInteger entriesSent = new AtomicInteger();
 
   /**
    * The number of search result references that have been sent to the client.
    */
-  private int referencesSent;
+  private final AtomicInteger referencesSent = new AtomicInteger();
 
   /** The size limit for the search operation. */
   private int sizeLimit;
@@ -138,13 +160,7 @@ public class SearchOperationBasis
   private Set<String> attributes;
 
   /** The set of response controls for this search operation. */
-  private List<Control> responseControls;
-
-  /** The time that processing started on this operation. */
-  private long processingStartTime;
-
-  /** The time that processing ended on this operation. */
-  private long processingStopTime;
+  private final List<Control> responseControls = new ArrayList<Control>();
 
   /** The time that the search time limit has expired. */
   private long timeLimitExpiration;
@@ -193,7 +209,6 @@ public class SearchOperationBasis
   {
     super(clientConnection, operationID, messageID, requestControls);
 
-
     this.rawBaseDN   = rawBaseDN;
     this.scope       = scope;
     this.derefPolicy = derefPolicy;
@@ -201,32 +216,10 @@ public class SearchOperationBasis
     this.timeLimit   = timeLimit;
     this.typesOnly   = typesOnly;
     this.rawFilter   = rawFilter;
-
-    if (attributes == null)
-    {
-      this.attributes  = new LinkedHashSet<String>(0);
-    }
-    else
-    {
-      this.attributes  = attributes;
-    }
+    this.attributes  = attributes != null ? attributes : new LinkedHashSet<String>(0);
 
     this.sizeLimit = getSizeLimit(sizeLimit, clientConnection);
     this.timeLimit = getTimeLimit(timeLimit, clientConnection);
-
-    baseDN                 = null;
-    filter                 = null;
-    entriesSent            = 0;
-    referencesSent         = 0;
-    responseControls       = new ArrayList<Control>();
-    cancelRequest          = null;
-    clientAcceptsReferrals = true;
-    includeUsableControl   = false;
-    responseSent           = new AtomicBoolean(false);
-    returnSubentriesOnly   = false;
-    matchedValuesControl   = null;
-    realAttributesOnly     = false;
-    virtualAttributesOnly  = false;
   }
 
   /**
@@ -258,7 +251,6 @@ public class SearchOperationBasis
   {
     super(clientConnection, operationID, messageID, requestControls);
 
-
     this.baseDN      = baseDN;
     this.scope       = scope;
     this.derefPolicy = derefPolicy;
@@ -266,31 +258,13 @@ public class SearchOperationBasis
     this.timeLimit   = timeLimit;
     this.typesOnly   = typesOnly;
     this.filter      = filter;
-
-    if (attributes == null)
-    {
-      this.attributes = new LinkedHashSet<String>(0);
-    }
-    else
-    {
-      this.attributes  = attributes;
-    }
+    this.attributes  = attributes != null ? attributes : new LinkedHashSet<String>(0);
 
     rawBaseDN = ByteString.valueOf(baseDN.toString());
     rawFilter = new LDAPFilter(filter);
 
     this.sizeLimit = getSizeLimit(sizeLimit, clientConnection);
     this.timeLimit = getTimeLimit(timeLimit, clientConnection);
-
-    entriesSent            = 0;
-    referencesSent         = 0;
-    responseControls       = new ArrayList<Control>();
-    cancelRequest          = null;
-    clientAcceptsReferrals = true;
-    includeUsableControl   = false;
-    responseSent           = new AtomicBoolean(false);
-    returnSubentriesOnly   = false;
-    matchedValuesControl   = null;
   }
 
 
@@ -320,21 +294,14 @@ public class SearchOperationBasis
     return Math.min(timeLimit, clientConnection.getTimeLimit());
   }
 
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final ByteString getRawBaseDN()
   {
     return rawBaseDN;
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void setRawBaseDN(ByteString rawBaseDN)
   {
@@ -343,10 +310,7 @@ public class SearchOperationBasis
     baseDN = null;
   }
 
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final DN getBaseDN()
   {
@@ -369,118 +333,91 @@ public class SearchOperationBasis
     return baseDN;
   }
 
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void setBaseDN(DN baseDN)
   {
     this.baseDN = baseDN;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final SearchScope getScope()
   {
     return scope;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void setScope(SearchScope scope)
   {
     this.scope = scope;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final DereferenceAliasesPolicy getDerefPolicy()
   {
     return derefPolicy;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void setDerefPolicy(DereferenceAliasesPolicy derefPolicy)
   {
     this.derefPolicy = derefPolicy;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final int getSizeLimit()
   {
     return sizeLimit;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void setSizeLimit(int sizeLimit)
   {
     this.sizeLimit = sizeLimit;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final int getTimeLimit()
   {
     return timeLimit;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void setTimeLimit(int timeLimit)
   {
     this.timeLimit = timeLimit;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final boolean getTypesOnly()
   {
     return typesOnly;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void setTypesOnly(boolean typesOnly)
   {
     this.typesOnly = typesOnly;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final RawFilter getRawFilter()
   {
     return rawFilter;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void setRawFilter(RawFilter rawFilter)
   {
@@ -489,9 +426,7 @@ public class SearchOperationBasis
     filter = null;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final SearchFilter getFilter()
   {
@@ -514,18 +449,14 @@ public class SearchOperationBasis
     return filter;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final Set<String> getAttributes()
   {
     return attributes;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void setAttributes(Set<String> attributes)
   {
@@ -539,36 +470,28 @@ public class SearchOperationBasis
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final int getEntriesSent()
   {
-    return entriesSent;
+    return entriesSent.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final int getReferencesSent()
   {
-    return referencesSent;
+    return referencesSent.get();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final boolean returnEntry(Entry entry, List<Control> controls)
   {
     return returnEntry(entry, controls, true);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final boolean returnEntry(Entry entry, List<Control> controls,
                                    boolean evaluateAci)
@@ -577,7 +500,7 @@ public class SearchOperationBasis
 
     // See if the size limit has been exceeded.  If so, then don't send the
     // entry and indicate that the search should end.
-    if ((getSizeLimit() > 0) && (getEntriesSent() >= getSizeLimit()))
+    if (getSizeLimit() > 0 && getEntriesSent() >= getSizeLimit())
     {
       setResultCode(ResultCode.SIZE_LIMIT_EXCEEDED);
       appendErrorMessage(ERR_SEARCH_SIZE_LIMIT_EXCEEDED.get(getSizeLimit()));
@@ -586,8 +509,8 @@ public class SearchOperationBasis
 
     // See if the time limit has expired.  If so, then don't send the entry and
     // indicate that the search should end.
-    if ((getTimeLimit() > 0) && (TimeThread.getTime() >=
-                                                getTimeLimitExpiration()))
+    if (getTimeLimit() > 0
+        && TimeThread.getTime() >= getTimeLimitExpiration())
     {
       setResultCode(ResultCode.TIME_LIMIT_EXCEEDED);
       appendErrorMessage(ERR_SEARCH_TIME_LIMIT_EXCEEDED.get(getTimeLimit()));
@@ -598,26 +521,23 @@ public class SearchOperationBasis
     // should be returned.
     if (entry.isSubentry() || entry.isLDAPSubentry())
     {
-      if (filterNeedsCheckingForSubentries == true)
+      if (filterNeedsCheckingForSubentries)
       {
         filterIncludesSubentries = checkFilterForLDAPSubEntry(filter, 0);
         filterNeedsCheckingForSubentries = false;
       }
 
-      if ((getScope() != SearchScope.BASE_OBJECT)
+      if (getScope() != SearchScope.BASE_OBJECT
           && !filterIncludesSubentries
           && !isReturnSubentriesOnly())
       {
         return true;
       }
     }
-    else
+    else if (isReturnSubentriesOnly())
     {
-      if (isReturnSubentriesOnly())
-      {
-        // Subentries are visible and normal entries are not.
-        return true;
-      }
+      // Subentries are visible and normal entries are not.
+      return true;
     }
 
     // Determine whether to include the account usable control. If so, then
@@ -662,18 +582,15 @@ public class SearchOperationBasis
                 secondsBeforeExpiration));
           }
         }
+        // Another type of authentication policy (e.g. PTA).
+        else if (state.isDisabled())
+        {
+          controls.add(new AccountUsableResponseControl(false, false, false,
+              -1, true, -1));
+        }
         else
         {
-          // Another type of authentication policy (e.g. PTA).
-          if (state.isDisabled())
-          {
-            controls.add(new AccountUsableResponseControl(false, false, false,
-                -1, true, -1));
-          }
-          else
-          {
-            controls.add(new AccountUsableResponseControl(-1));
-          }
+          controls.add(new AccountUsableResponseControl(-1));
         }
       }
       catch (Exception e)
@@ -683,15 +600,10 @@ public class SearchOperationBasis
     }
 
     // Check to see if the entry can be read by the client.
-    SearchResultEntry unfilteredSearchEntry = new SearchResultEntry(entry,
-        controls);
-    if (evaluateAci)
+    SearchResultEntry unfilteredSearchEntry = new SearchResultEntry(entry, controls);
+    if (evaluateAci && !getACIHandler().maySend(this, unfilteredSearchEntry))
     {
-      if (AccessControlConfigManager.getInstance().getAccessControlHandler()
-          .maySend(this, unfilteredSearchEntry) == false)
-      {
-        return true;
-      }
+      return true;
     }
 
     // Make a copy of the entry and pare it down to only include the set
@@ -706,7 +618,7 @@ public class SearchOperationBasis
     // If there is a matched values control, then further pare down the entry
     // based on the filters that it contains.
     MatchedValuesControl matchedValuesControl = getMatchedValuesControl();
-    if ((matchedValuesControl != null) && (! typesOnly))
+    if (matchedValuesControl != null && !typesOnly)
     {
       // First, look at the set of objectclasses.
 
@@ -790,8 +702,7 @@ public class SearchOperationBasis
     // values that the client is not permitted to see.
     if (evaluateAci)
     {
-      AccessControlConfigManager.getInstance().getAccessControlHandler()
-          .filterEntry(this, unfilteredSearchEntry, filteredSearchEntry);
+      getACIHandler().filterEntry(this, unfilteredSearchEntry, filteredSearchEntry);
     }
 
     // Invoke any search entry plugins that may be registered with the server.
@@ -809,7 +720,7 @@ public class SearchOperationBasis
       {
         sendSearchEntry(filteredSearchEntry);
 
-        incrementEntriesSent();
+        entriesSent.incrementAndGet();
       }
       catch (DirectoryException de)
       {
@@ -823,26 +734,27 @@ public class SearchOperationBasis
     return pluginResult.continueProcessing();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  private AccessControlHandler<?> getACIHandler()
+  {
+    return AccessControlConfigManager.getInstance().getAccessControlHandler();
+  }
+
+  /** {@inheritDoc} */
   @Override
   public final boolean returnReference(DN dn, SearchResultReference reference)
   {
     return returnReference(dn, reference, true);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final boolean returnReference(DN dn, SearchResultReference reference,
                                        boolean evaluateAci)
   {
     // See if the time limit has expired.  If so, then don't send the entry and
     // indicate that the search should end.
-    if ((getTimeLimit() > 0) && (TimeThread.getTime() >=
-                                                getTimeLimitExpiration()))
+    if (getTimeLimit() > 0
+        && TimeThread.getTime() >= getTimeLimitExpiration())
     {
       setResultCode(ResultCode.TIME_LIMIT_EXCEEDED);
       appendErrorMessage(ERR_SEARCH_TIME_LIMIT_EXCEEDED.get(getTimeLimit()));
@@ -852,19 +764,11 @@ public class SearchOperationBasis
 
     // See if we know that this client can't handle referrals.  If so, then
     // don't even try to send it.
-    if (! isClientAcceptsReferrals())
+    if (!isClientAcceptsReferrals()
+        // See if the client has permission to read this reference.
+        || (evaluateAci && !getACIHandler().maySend(dn, this, reference)))
     {
       return true;
-    }
-
-
-    // See if the client has permission to read this reference.
-    if (evaluateAci)
-    {
-      if (AccessControlConfigManager.getInstance()
-        .getAccessControlHandler().maySend(dn, this, reference) == false) {
-        return true;
-      }
     }
 
 
@@ -887,7 +791,7 @@ public class SearchOperationBasis
       {
         if (sendSearchReference(reference))
         {
-          incrementReferencesSent();
+          referencesSent.incrementAndGet();
 
           // FIXME -- Should the size limit apply here?
         }
@@ -910,9 +814,7 @@ public class SearchOperationBasis
     return pluginResult.continueProcessing();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void sendSearchResultDone()
   {
@@ -921,21 +823,16 @@ public class SearchOperationBasis
     // multithreaded in the event of a persistent search, so do it safely.
     if (responseSent.compareAndSet(false, true))
     {
-      // Log the search result.
       logSearchResultDone(this);
 
-      // Send the response to the client.
       clientConnection.sendResponse(this);
 
-      // Invoke the post-response search plugins.
       invokePostResponsePlugins();
     }
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public final OperationType getOperationType()
   {
     // Note that no debugging will be done in this method because it is a likely
@@ -943,48 +840,36 @@ public class SearchOperationBasis
     return OperationType.SEARCH;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public DN getProxiedAuthorizationDN()
   {
     return proxiedAuthorizationDN;
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public final List<Control> getResponseControls()
   {
     return responseControls;
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public final void addResponseControl(Control control)
   {
     responseControls.add(control);
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public final void removeResponseControl(Control control)
   {
     responseControls.remove(control);
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public void abort(CancelRequest cancelRequest)
   {
     if(cancelResult == null && this.cancelRequest == null)
@@ -993,12 +878,8 @@ public class SearchOperationBasis
     }
   }
 
-
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override()
+  /** {@inheritDoc} */
+  @Override
   public final void toString(StringBuilder buffer)
   {
     buffer.append("SearchOperation(connID=");
@@ -1014,171 +895,119 @@ public class SearchOperationBasis
     buffer.append(")");
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setTimeLimitExpiration(long timeLimitExpiration)
   {
     this.timeLimitExpiration = timeLimitExpiration;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isReturnSubentriesOnly()
   {
     return returnSubentriesOnly;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setReturnSubentriesOnly(boolean returnLDAPSubentries)
   {
     this.returnSubentriesOnly = returnLDAPSubentries;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public MatchedValuesControl getMatchedValuesControl()
   {
     return matchedValuesControl;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setMatchedValuesControl(MatchedValuesControl controls)
   {
     this.matchedValuesControl = controls;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isIncludeUsableControl()
   {
     return includeUsableControl;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setIncludeUsableControl(boolean includeUsableControl)
   {
     this.includeUsableControl = includeUsableControl;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public long getTimeLimitExpiration()
   {
     return timeLimitExpiration;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isClientAcceptsReferrals()
   {
     return clientAcceptsReferrals;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setClientAcceptsReferrals(boolean clientAcceptReferrals)
   {
     this.clientAcceptsReferrals = clientAcceptReferrals;
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void incrementEntriesSent()
-  {
-    entriesSent++;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void incrementReferencesSent()
-  {
-    referencesSent++;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isSendResponse()
   {
     return sendResponse;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setSendResponse(boolean sendResponse)
   {
     this.sendResponse = sendResponse;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isRealAttributesOnly()
   {
     return this.realAttributesOnly;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isVirtualAttributesOnly()
   {
     return this.virtualAttributesOnly;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setRealAttributesOnly(boolean realAttributesOnly)
   {
     this.realAttributesOnly = realAttributesOnly;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setVirtualAttributesOnly(boolean virtualAttributesOnly)
   {
     this.virtualAttributesOnly = virtualAttributesOnly;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void sendSearchEntry(SearchResultEntry searchEntry)
       throws DirectoryException
@@ -1186,9 +1015,7 @@ public class SearchOperationBasis
     getClientConnection().sendSearchEntry(this, searchEntry);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean sendSearchReference(SearchResultReference searchReference)
       throws DirectoryException
@@ -1196,18 +1023,14 @@ public class SearchOperationBasis
     return getClientConnection().sendSearchReference(this, searchReference);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setProxiedAuthorizationDN(DN proxiedAuthorizationDN)
   {
     this.proxiedAuthorizationDN = proxiedAuthorizationDN;
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public final void run()
   {
@@ -1394,8 +1217,8 @@ public class SearchOperationBasis
         // FIXME : technically this is not correct since the presence
         // of draft oc would trigger rfc oc visibility and visa versa.
         String stringValueLC = toLowerCase(v.toString());
-        if (stringValueLC.equals(OC_LDAP_SUBENTRY_LC) ||
-            stringValueLC.equals(OC_SUBENTRY))
+        if (OC_LDAP_SUBENTRY_LC.equals(stringValueLC) ||
+            OC_SUBENTRY.equals(stringValueLC))
         {
           return true;
         }

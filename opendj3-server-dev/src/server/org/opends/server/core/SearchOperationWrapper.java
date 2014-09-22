@@ -54,18 +54,14 @@ public abstract class SearchOperationWrapper extends
     super(search);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean returnEntry(Entry entry, List<Control> controls)
   {
     return getOperation().returnEntry(entry, controls);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean returnEntry(Entry entry, List<Control> controls,
                              boolean evaluateAci)
@@ -73,18 +69,14 @@ public abstract class SearchOperationWrapper extends
     return getOperation().returnEntry(entry, controls, evaluateAci);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean returnReference(DN dn, SearchResultReference reference)
   {
     return getOperation().returnReference(dn, reference);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean returnReference(DN dn, SearchResultReference reference,
                                  boolean evaluateAci)
@@ -92,375 +84,277 @@ public abstract class SearchOperationWrapper extends
     return getOperation().returnReference(dn, reference, evaluateAci);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public String toString()
   {
     return getOperation().toString();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public Set<String> getAttributes()
   {
     return getOperation().getAttributes();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public DN getBaseDN()
   {
     return getOperation().getBaseDN();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public DereferenceAliasesPolicy getDerefPolicy()
   {
     return getOperation().getDerefPolicy();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public int getEntriesSent()
   {
     return getOperation().getEntriesSent();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public SearchFilter getFilter()
   {
     return getOperation().getFilter();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public ByteString getRawBaseDN()
   {
     return getOperation().getRawBaseDN();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public RawFilter getRawFilter()
   {
     return getOperation().getRawFilter();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public int getReferencesSent()
   {
     return getOperation().getReferencesSent();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public SearchScope getScope()
   {
     return getOperation().getScope();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public int getSizeLimit()
   {
     return getOperation().getSizeLimit();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public int getTimeLimit()
   {
     return getOperation().getTimeLimit();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean getTypesOnly()
   {
     return getOperation().getTypesOnly();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void sendSearchResultDone()
   {
     getOperation().sendSearchResultDone();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setAttributes(Set<String> attributes)
   {
     getOperation().setAttributes(attributes);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setBaseDN(DN baseDN)
   {
     getOperation().setBaseDN(baseDN);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setDerefPolicy(DereferenceAliasesPolicy derefPolicy)
   {
     getOperation().setDerefPolicy(derefPolicy);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setRawBaseDN(ByteString rawBaseDN)
   {
     getOperation().setRawBaseDN(rawBaseDN);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setRawFilter(RawFilter rawFilter)
   {
     getOperation().setRawFilter(rawFilter);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setScope(SearchScope scope)
   {
     getOperation().setScope(scope);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setSizeLimit(int sizeLimit)
   {
     getOperation().setSizeLimit(sizeLimit);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setTimeLimit(int timeLimit)
   {
     getOperation().setTimeLimit(timeLimit);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setTypesOnly(boolean typesOnly)
   {
     getOperation().setTypesOnly(typesOnly);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setTimeLimitExpiration(long timeLimitExpiration)
   {
     getOperation().setTimeLimitExpiration(timeLimitExpiration);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isReturnSubentriesOnly()
   {
     return getOperation().isReturnSubentriesOnly();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setReturnSubentriesOnly(boolean returnLDAPSubentries)
   {
     getOperation().setReturnSubentriesOnly(returnLDAPSubentries);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public MatchedValuesControl getMatchedValuesControl()
   {
     return getOperation().getMatchedValuesControl();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setMatchedValuesControl(MatchedValuesControl controls)
   {
     getOperation().setMatchedValuesControl(controls);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isIncludeUsableControl()
   {
     return getOperation().isIncludeUsableControl();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setIncludeUsableControl(boolean includeUsableControl)
   {
     getOperation().setIncludeUsableControl(includeUsableControl);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public long getTimeLimitExpiration()
   {
     return getOperation().getTimeLimitExpiration();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isClientAcceptsReferrals()
   {
     return getOperation().isClientAcceptsReferrals();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setClientAcceptsReferrals(boolean clientAcceptReferrals)
   {
     getOperation().setClientAcceptsReferrals(clientAcceptReferrals);
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void incrementEntriesSent()
-  {
-    getOperation().incrementEntriesSent();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void incrementReferencesSent()
-  {
-    getOperation().incrementReferencesSent();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isSendResponse()
   {
     return getOperation().isSendResponse();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setSendResponse(boolean sendResponse)
   {
     getOperation().setSendResponse(sendResponse);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isRealAttributesOnly(){
     return getOperation().isRealAttributesOnly();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setRealAttributesOnly(boolean realAttributesOnly){
     getOperation().setRealAttributesOnly(realAttributesOnly);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean isVirtualAttributesOnly()
   {
     return getOperation().isVirtualAttributesOnly();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setVirtualAttributesOnly(boolean virtualAttributesOnly){
     getOperation().setVirtualAttributesOnly(virtualAttributesOnly);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void sendSearchEntry(SearchResultEntry entry)
       throws DirectoryException
@@ -468,9 +362,7 @@ public abstract class SearchOperationWrapper extends
     getOperation().sendSearchEntry(entry);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public boolean sendSearchReference(SearchResultReference reference)
       throws DirectoryException
@@ -478,18 +370,14 @@ public abstract class SearchOperationWrapper extends
     return getOperation().sendSearchReference(reference);
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public DN getProxiedAuthorizationDN()
   {
     return getOperation().getProxiedAuthorizationDN();
   }
 
-  /**
-   * {@inheritDoc}
-   */
+  /** {@inheritDoc} */
   @Override
   public void setProxiedAuthorizationDN(DN proxiedAuthorizationDN){
     getOperation().setProxiedAuthorizationDN(proxiedAuthorizationDN);
