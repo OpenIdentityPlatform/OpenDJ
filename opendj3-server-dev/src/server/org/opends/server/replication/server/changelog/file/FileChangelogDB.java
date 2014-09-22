@@ -37,6 +37,7 @@ import org.opends.server.replication.server.changelog.api.ChangeNumberIndexDB;
 import org.opends.server.replication.server.changelog.api.ChangelogDB;
 import org.opends.server.replication.server.changelog.api.ChangelogException;
 import org.opends.server.replication.server.changelog.api.DBCursor;
+import org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingStrategy;
 import org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy;
 import org.opends.server.replication.server.changelog.api.ReplicationDomainDB;
 import org.opends.server.replication.server.changelog.je.MultiDomainDBCursor;
@@ -93,7 +94,8 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
   /** {@inheritDoc} */
   @Override
   public MultiDomainDBCursor getCursorFrom(MultiDomainServerState startState,
-      PositionStrategy positionStrategy) throws ChangelogException
+      KeyMatchingStrategy matchingStrategy, PositionStrategy positionStrategy)
+      throws ChangelogException
   {
     throw new RuntimeException("Not implemented");
   }
@@ -101,8 +103,8 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
   /** {@inheritDoc} */
   @Override
   public MultiDomainDBCursor getCursorFrom(MultiDomainServerState startState,
-      PositionStrategy positionStrategy, Set<DN> excludedDomainDns)
-      throws ChangelogException
+      KeyMatchingStrategy matchingStrategy, PositionStrategy positionStrategy,
+      Set<DN> excludedDomainDns) throws ChangelogException
   {
     throw new RuntimeException("Not implemented");
   }
@@ -110,7 +112,8 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
   /** {@inheritDoc} */
   @Override
   public DBCursor<UpdateMsg> getCursorFrom(DN baseDN, ServerState startState,
-      PositionStrategy positionStrategy) throws ChangelogException
+      KeyMatchingStrategy matchingStrategy, PositionStrategy positionStrategy)
+      throws ChangelogException
   {
     throw new RuntimeException("Not implemented");
   }
@@ -118,8 +121,8 @@ public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
   /** {@inheritDoc} */
   @Override
   public DBCursor<UpdateMsg> getCursorFrom(DN baseDN, int serverId,
-      CSN startCSN, PositionStrategy positionStrategy)
-      throws ChangelogException
+      CSN startCSN, KeyMatchingStrategy matchingStrategy,
+      PositionStrategy positionStrategy) throws ChangelogException
   {
     throw new RuntimeException("Not implemented");
   }

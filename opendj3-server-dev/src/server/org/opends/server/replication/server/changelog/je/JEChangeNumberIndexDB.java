@@ -117,8 +117,7 @@ public class JEChangeNumberIndexDB implements ChangeNumberIndexDB
   {
     long changeNumber = nextChangeNumber();
     final ChangeNumberIndexRecord newRecord =
-        new ChangeNumberIndexRecord(changeNumber, record.getPreviousCookie(),
-            record.getBaseDN(), record.getCSN());
+        new ChangeNumberIndexRecord(changeNumber, record.getBaseDN(), record.getCSN());
     db.addRecord(newRecord);
     newestChangeNumber = changeNumber;
 

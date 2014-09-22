@@ -45,6 +45,8 @@ public class DraftCNData extends DatabaseEntry
 {
   private static final String FIELD_SEPARATOR = "!";
 
+  private static final String EMPTY_STRING_PREVIOUS_COOKIE = "";
+
   private static final long serialVersionUID = 1L;
 
   private long changeNumber;
@@ -55,19 +57,17 @@ public class DraftCNData extends DatabaseEntry
    *
    * @param changeNumber
    *          the change number
-   * @param previousCookie
-   *          The previous cookie
    * @param baseDN
    *          The baseDN (domain DN)
    * @param csn
    *          The replication CSN
    */
-  public DraftCNData(long changeNumber, String previousCookie, String baseDN,
-      CSN csn)
+  public DraftCNData(long changeNumber, String baseDN, CSN csn)
   {
     this.changeNumber = changeNumber;
-    String record =
-        previousCookie + FIELD_SEPARATOR + baseDN + FIELD_SEPARATOR + csn;
+    // Although the previous cookie is not used any more, we need
+    // to keep it in database for compatibility with previous versions
+    String record = EMPTY_STRING_PREVIOUS_COOKIE + FIELD_SEPARATOR + baseDN + FIELD_SEPARATOR + csn;
     setData(getBytes(record));
   }
 
@@ -102,11 +102,14 @@ public class DraftCNData extends DatabaseEntry
   {
     try
     {
+      // Although the previous cookie is not used any more, we need
+      // to keep it in database for compatibility with previous versions
       String stringData = new String(data, "UTF-8");
       String[] str = stringData.split(FIELD_SEPARATOR, 3);
+      // str[0] contains previous cookie and is ignored
       final DN baseDN = DN.valueOf(str[1]);
       final CSN csn = new CSN(str[2]);
-      return new ChangeNumberIndexRecord(changeNumber, str[0], baseDN, csn);
+      return new ChangeNumberIndexRecord(changeNumber, baseDN, csn);
     }
     catch (UnsupportedEncodingException e)
     {
@@ -130,7 +133,9 @@ public class DraftCNData extends DatabaseEntry
   public ChangeNumberIndexRecord getRecord() throws ChangelogException
   {
     if (record == null)
+    {
       record = decodeData(changeNumber, getData());
+    }
     return record;
   }
 

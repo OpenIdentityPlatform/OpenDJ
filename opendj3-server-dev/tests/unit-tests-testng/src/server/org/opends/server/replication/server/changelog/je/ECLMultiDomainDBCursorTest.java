@@ -40,9 +40,10 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import static org.opends.server.replication.server.changelog.api.DBCursor.KeyMatchingStrategy.*;
+import static org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy.*;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import static org.opends.server.replication.server.changelog.api.DBCursor.PositionStrategy.*;
 
 @SuppressWarnings("javadoc")
 public class ECLMultiDomainDBCursorTest extends DirectoryServerTestCase
@@ -67,7 +68,7 @@ public class ECLMultiDomainDBCursorTest extends DirectoryServerTestCase
   {
     TestCaseUtils.startFakeServer();
     MockitoAnnotations.initMocks(this);
-    multiDomainCursor = new MultiDomainDBCursor(domainDB, ON_MATCHING_KEY);
+    multiDomainCursor = new MultiDomainDBCursor(domainDB, GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY);
     eclCursor = new ECLMultiDomainDBCursor(predicate, multiDomainCursor);
   }
 
@@ -164,7 +165,7 @@ public class ECLMultiDomainDBCursorTest extends DirectoryServerTestCase
   private void addDomainCursorToCursor(DN baseDN, SequentialDBCursor cursor) throws ChangelogException
   {
     final ServerState state = new ServerState();
-    when(domainDB.getCursorFrom(baseDN, state, ON_MATCHING_KEY)).thenReturn(cursor);
+    when(domainDB.getCursorFrom(baseDN, state, GREATER_THAN_OR_EQUAL_TO_KEY, ON_MATCHING_KEY)).thenReturn(cursor);
     multiDomainCursor.addDomain(baseDN, state);
   }
 }
