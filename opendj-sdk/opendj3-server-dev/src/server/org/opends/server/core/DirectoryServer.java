@@ -26,16 +26,6 @@
  */
 package org.opends.server.core;
 
-import static org.forgerock.util.Reject.*;
-import static org.opends.messages.ConfigMessages.*;
-import static org.opends.messages.CoreMessages.*;
-import static org.opends.messages.ToolMessages.*;
-import static org.opends.server.config.ConfigConstants.*;
-import static org.opends.server.schema.SchemaConstants.*;
-import static org.opends.server.util.DynamicConstants.*;
-import static org.opends.server.util.ServerConstants.*;
-import static org.opends.server.util.StaticUtils.*;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -93,14 +83,12 @@ import org.opends.server.api.AccessControlHandler;
 import org.opends.server.api.AccountStatusNotificationHandler;
 import org.opends.server.api.AlertGenerator;
 import org.opends.server.api.AlertHandler;
-import org.opends.server.api.MatchingRule;
 import org.opends.server.api.AttributeSyntax;
 import org.opends.server.api.AuthenticationPolicy;
 import org.opends.server.api.Backend;
 import org.opends.server.api.BackendInitializationListener;
 import org.opends.server.api.BackupTaskListener;
 import org.opends.server.api.CertificateMapper;
-import org.opends.server.api.ChangeNotificationListener;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.CompressedSchema;
 import org.opends.server.api.ConfigAddListener;
@@ -119,6 +107,7 @@ import org.opends.server.api.ImportTaskListener;
 import org.opends.server.api.InitializationCompletedListener;
 import org.opends.server.api.InvokableComponent;
 import org.opends.server.api.KeyManagerProvider;
+import org.opends.server.api.MatchingRule;
 import org.opends.server.api.MatchingRuleFactory;
 import org.opends.server.api.MonitorProvider;
 import org.opends.server.api.PasswordGenerator;
@@ -237,6 +226,16 @@ import com.forgerock.opendj.cli.CommonArguments;
 import com.forgerock.opendj.cli.IntegerArgument;
 import com.forgerock.opendj.cli.StringArgument;
 import com.forgerock.opendj.util.OperatingSystem;
+
+import static org.forgerock.util.Reject.*;
+import static org.opends.messages.ConfigMessages.*;
+import static org.opends.messages.CoreMessages.*;
+import static org.opends.messages.ToolMessages.*;
+import static org.opends.server.config.ConfigConstants.*;
+import static org.opends.server.schema.SchemaConstants.*;
+import static org.opends.server.util.DynamicConstants.*;
+import static org.opends.server.util.ServerConstants.*;
+import static org.opends.server.util.StaticUtils.*;
 
 /**
  * This class defines the core of the Directory Server.  It manages the startup
@@ -546,13 +545,6 @@ public final class DirectoryServer
 
   /** The set of backup task listeners registered with the Directory Server. */
   private CopyOnWriteArrayList<BackupTaskListener> backupTaskListeners;
-
-  /**
-   * The set of change notification listeners registered with the Directory
-   * Server.
-   */
-  private List<ChangeNotificationListener>
-               changeNotificationListeners;
 
   /** The set of connection handlers registered with the Directory Server. */
   private List<ConnectionHandler> connectionHandlers;
@@ -1145,8 +1137,6 @@ public final class DirectoryServer
       directoryServer.backendInitializationListeners =
            new CopyOnWriteArraySet<BackendInitializationListener>();
       directoryServer.baseDnRegistry = new BaseDnRegistry();
-      directoryServer.changeNotificationListeners =
-           new CopyOnWriteArrayList<ChangeNotificationListener>();
       directoryServer.initializationCompletedListeners =
            new CopyOnWriteArrayList<InitializationCompletedListener>();
       directoryServer.shutdownListeners =
@@ -1164,7 +1154,6 @@ public final class DirectoryServer
            new ConcurrentHashMap<String,ExtendedOperationHandler>();
       directoryServer.saslMechanismHandlers =
            new ConcurrentHashMap<String,SASLMechanismHandler>();
-      directoryServer.authenticatedUsers = new AuthenticatedUsers();
       directoryServer.offlineSchemaChanges = new LinkedList<Modification>();
       directoryServer.backupTaskListeners =
            new CopyOnWriteArrayList<BackupTaskListener>();
@@ -1586,8 +1575,9 @@ public final class DirectoryServer
 
       initializeRootDNConfigManager();
 
+      initializeAuthenticatedUsers();
+      // initialize both subentry manager and group manager for this backend.
       initializeSubentryManager();
-
       initializeGroupManager();
 
       // Initialize both subentry manager and group manager
@@ -1622,7 +1612,6 @@ public final class DirectoryServer
       directoryServer.offlineBackendsStateIDs.clear();
 
       initializeExtendedOperations();
-
       initializeSASLMechanisms();
 
       if (startConnectionHandlers)
@@ -1718,6 +1707,12 @@ public final class DirectoryServer
     {
       hostNameFile.delete();
     }
+  }
+
+  /** Initializes authenticated users. */
+  public void initializeAuthenticatedUsers()
+  {
+    directoryServer.authenticatedUsers = new AuthenticatedUsers();
   }
 
   /**
@@ -6823,54 +6818,6 @@ public final class DirectoryServer
     checkCanEnqueueRequest(operation);
     return directoryServer.workQueue.trySubmitOperation(operation);
   }
-
-
-  /**
-   * Retrieves the set of change notification listeners registered with the
-   * Directory Server.
-   *
-   * @return  The set of change notification listeners registered with the
-   *          Directory Server.
-   */
-  public static List<ChangeNotificationListener>
-                     getChangeNotificationListeners()
-  {
-    return directoryServer.changeNotificationListeners;
-  }
-
-
-
-  /**
-   * Registers the provided change notification listener with the Directory
-   * Server so that it will be notified of any add, delete, modify, or modify DN
-   * operations that are performed.
-   *
-   * @param  changeListener  The change notification listener to register with
-   *                         the Directory Server.
-   */
-  public static void registerChangeNotificationListener(
-                          ChangeNotificationListener changeListener)
-  {
-    directoryServer.changeNotificationListeners.add(changeListener);
-  }
-
-
-
-  /**
-   * Deregisters the provided change notification listener with the Directory
-   * Server so that it will no longer be notified of any add, delete, modify, or
-   * modify DN operations that are performed.
-   *
-   * @param  changeListener  The change notification listener to deregister with
-   *                         the Directory Server.
-   */
-  public static void deregisterChangeNotificationListener(
-                          ChangeNotificationListener changeListener)
-  {
-    directoryServer.changeNotificationListeners.remove(changeListener);
-  }
-
-
 
   /**
    * Retrieves the set of synchronization providers that have been registered

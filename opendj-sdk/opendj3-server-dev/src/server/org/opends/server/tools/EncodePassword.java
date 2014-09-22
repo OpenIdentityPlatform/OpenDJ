@@ -31,8 +31,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.forgerock.i18n.LocalizableMessage;
@@ -43,7 +42,6 @@ import org.opends.server.admin.std.server.RootCfg;
 import org.opends.server.admin.std.server.TrustStoreBackendCfg;
 import org.opends.server.api.Backend;
 import org.opends.server.api.PasswordStorageScheme;
-import org.opends.server.api.plugin.PluginType;
 import org.opends.server.config.ConfigConstants;
 import org.opends.server.config.ConfigEntry;
 import org.forgerock.opendj.config.server.ConfigException;
@@ -334,18 +332,15 @@ public class EncodePassword
     // If we are not going to just list the storage schemes, then the clear-text
     // password must have been provided.  If we're going to encode a password,
     // then the scheme must have also been provided.
-    ByteString clearPW = null;
-    if (! listSchemes.isPresent())
+    if (!listSchemes.isPresent()
+        && !encodedPassword.isPresent()
+        && !encodedPasswordFile.isPresent()
+        && !schemeName.isPresent())
     {
-      if ((! encodedPassword.isPresent()) && (! encodedPasswordFile.isPresent())
-           && (! schemeName.isPresent()))
-      {
-        LocalizableMessage message =
-                ERR_ENCPW_NO_SCHEME.get(schemeName.getLongIdentifier());
-        err.println(wrapText(message, MAX_LINE_WIDTH));
-        err.println(argParser.getUsage());
-        return OPERATIONS_ERROR;
-      }
+      LocalizableMessage message = ERR_ENCPW_NO_SCHEME.get(schemeName.getLongIdentifier());
+      err.println(wrapText(message, MAX_LINE_WIDTH));
+      err.println(argParser.getUsage());
+      return OPERATIONS_ERROR;
     }
 
 
@@ -463,7 +458,9 @@ public class EncodePassword
 
 
       if(!initializeServerComponents(directoryServer, err))
-          return -1;
+      {
+        return -1;
+      }
 
       // Initialize the password storage schemes.
       try
@@ -502,71 +499,19 @@ public class EncodePassword
     {
       if (authPasswordSyntax.isPresent())
       {
-        ConcurrentHashMap<String,PasswordStorageScheme> storageSchemes =
-             DirectoryServer.getAuthPasswordStorageSchemes();
-        if (storageSchemes.isEmpty())
-        {
-          LocalizableMessage message = ERR_ENCPW_NO_STORAGE_SCHEMES.get();
-          err.println(wrapText(message, MAX_LINE_WIDTH));
-        }
-        else
-        {
-          int size = storageSchemes.size();
-
-          ArrayList<String> nameList = new ArrayList<String>(size);
-          for (PasswordStorageScheme s : storageSchemes.values())
-          {
-            nameList.add(s.getAuthPasswordSchemeName());
-          }
-
-          String[] nameArray = new String[size];
-          nameList.toArray(nameArray);
-          Arrays.sort(nameArray);
-
-          for (String storageSchemeName : nameArray)
-          {
-            out.println(storageSchemeName);
-          }
-        }
-
-        return SUCCESS;
+        listPasswordStorageSchemes(out, err, DirectoryServer.getAuthPasswordStorageSchemes(), true);
       }
       else
       {
-        ConcurrentHashMap<String,PasswordStorageScheme> storageSchemes =
-             DirectoryServer.getPasswordStorageSchemes();
-        if (storageSchemes.isEmpty())
-        {
-          LocalizableMessage message = ERR_ENCPW_NO_STORAGE_SCHEMES.get();
-          err.println(wrapText(message, MAX_LINE_WIDTH));
-        }
-        else
-        {
-          int size = storageSchemes.size();
-
-          ArrayList<String> nameList = new ArrayList<String>(size);
-          for (PasswordStorageScheme s : storageSchemes.values())
-          {
-            nameList.add(s.getStorageSchemeName());
-          }
-
-          String[] nameArray = new String[size];
-          nameList.toArray(nameArray);
-          Arrays.sort(nameArray);
-
-          for (String storageSchemeName : nameArray)
-          {
-            out.println(storageSchemeName);
-          }
-        }
-
-        return SUCCESS;
+        listPasswordStorageSchemes(out, err, DirectoryServer.getPasswordStorageSchemes(), false);
       }
+      return SUCCESS;
     }
 
 
     // Either encode the clear-text password using the provided scheme, or
     // compare the clear-text password against the encoded password.
+    ByteString clearPW = null;
     if (compareMode)
     {
       // Check to see if the provided password value was encoded.  If so, then
@@ -798,6 +743,37 @@ public class EncodePassword
     return SUCCESS;
   }
 
+  private static void listPasswordStorageSchemes(PrintStream out, PrintStream err,
+      ConcurrentHashMap<String, PasswordStorageScheme> storageSchemes, boolean authPasswordSchemeName)
+  {
+    if (storageSchemes.isEmpty())
+    {
+      LocalizableMessage message = ERR_ENCPW_NO_STORAGE_SCHEMES.get();
+      err.println(wrapText(message, MAX_LINE_WIDTH));
+    }
+    else
+    {
+      ArrayList<String> nameList = new ArrayList<String>(storageSchemes.size());
+      for (PasswordStorageScheme<?> s : storageSchemes.values())
+      {
+        if (authPasswordSchemeName)
+        {
+          nameList.add(s.getAuthPasswordSchemeName());
+        }
+        else
+        {
+          nameList.add(s.getStorageSchemeName());
+        }
+      }
+      Collections.sort(nameList);
+
+      for (String storageSchemeName : nameList)
+      {
+        out.println(storageSchemeName);
+      }
+    }
+  }
+
   private static LocalizableMessage getOutputMessage(boolean passwordMatches)
   {
     if (passwordMatches)
@@ -809,10 +785,8 @@ public class EncodePassword
 
 
 
-  private static boolean
-          initializeServerComponents(DirectoryServer directoryServer,
-                                     PrintStream err) {
-
+  private static boolean initializeServerComponents(DirectoryServer directoryServer, PrintStream err)
+  {
       // Initialize the Directory Server crypto manager.
       try
       {
@@ -843,19 +817,13 @@ public class EncodePassword
       //secret keys from the trust store backend (3DES, BLOWFISH, AES, RC4) via
       //the crypto-manager.
       try {
-          // Initialize the root DNs.
           directoryServer.initializeRootDNConfigManager();
-          //Initialize plugins.
-          HashSet<PluginType> pluginTypes = new HashSet<PluginType>(1);
-          directoryServer.initializePlugins(pluginTypes);
-          //Initialize Trust Backend.
+          directoryServer.initializePlugins(Collections.EMPTY_SET);
           initializeServerBackends(directoryServer, err);
-          // Initialize the subentry manager.
           directoryServer.initializeSubentryManager();
-          //Initialize PWD policy components.
           directoryServer.initializeAuthenticationPolicyComponents();
-          //Load the crypto-manager key cache among other things.
-         new CryptoManagerSync();
+          directoryServer.initializeAuthenticatedUsers();
+          new CryptoManagerSync();
     } catch (InitializationException ie) {
         LocalizableMessage message = ERR_ENCPW_CANNOT_INITIALIZE_SERVER_COMPONENTS.get(
                 getExceptionMessage(ie));
@@ -891,39 +859,39 @@ public class EncodePassword
     for (String name : root.listBackends()) {
       BackendCfg backendCfg = root.getBackend(name);
       String backendID = backendCfg.getBackendId();
-      if(backendCfg instanceof TrustStoreBackendCfg ||
-          backendCfg instanceof LDIFBackendCfg) {
-        if(backendCfg.isEnabled()) {
-          String className = backendCfg.getJavaClass();
-          Class backendClass;
-          Backend backend;
-          try {
-            backendClass = DirectoryServer.loadClass(className);
-            backend = (Backend) backendClass.newInstance();
-          } catch (Exception e) {
-            LocalizableMessage msg = ERR_CONFIG_BACKEND_CANNOT_INSTANTIATE.get(className, backendCfg.dn(),
-                stackTraceToSingleLineString(e));
-            err.println(wrapText(msg, MAX_LINE_WIDTH));
-            continue;
-          }
-          backend.setBackendID(backendID);
-          backend.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
-          try {
-            backend.configureBackend(backendCfg);
-            backend.initializeBackend();
-          } catch (Exception e) {
-            LocalizableMessage msg = ERR_CONFIG_BACKEND_CANNOT_INITIALIZE.get(className, backendCfg.dn(),
-                  stackTraceToSingleLineString(e));
-            err.println(wrapText(msg, MAX_LINE_WIDTH));
-          }
-          try {
-            DirectoryServer.registerBackend(backend);
-          } catch (Exception e)
-          {
-            LocalizableMessage msg = WARN_CONFIG_BACKEND_CANNOT_REGISTER_BACKEND.get(backendCfg.getBackendId(),
-                  getExceptionMessage(e));
-            err.println(wrapText(msg, MAX_LINE_WIDTH));
-          }
+      if((backendCfg instanceof TrustStoreBackendCfg
+          || backendCfg instanceof LDIFBackendCfg)
+          && backendCfg.isEnabled())
+      {
+        String className = backendCfg.getJavaClass();
+        Class<?> backendClass;
+        Backend<BackendCfg> backend;
+        try {
+          backendClass = DirectoryServer.loadClass(className);
+          backend = (Backend<BackendCfg>) backendClass.newInstance();
+        } catch (Exception e) {
+          LocalizableMessage msg = ERR_CONFIG_BACKEND_CANNOT_INSTANTIATE.get(className, backendCfg.dn(),
+              stackTraceToSingleLineString(e));
+          err.println(wrapText(msg, MAX_LINE_WIDTH));
+          continue;
+        }
+        backend.setBackendID(backendID);
+        backend.setWritabilityMode(WritabilityMode.INTERNAL_ONLY);
+        try {
+          backend.configureBackend(backendCfg);
+          backend.initializeBackend();
+        } catch (Exception e) {
+          LocalizableMessage msg = ERR_CONFIG_BACKEND_CANNOT_INITIALIZE.get(className, backendCfg.dn(),
+              stackTraceToSingleLineString(e));
+          err.println(wrapText(msg, MAX_LINE_WIDTH));
+        }
+        try {
+          DirectoryServer.registerBackend(backend);
+        } catch (Exception e)
+        {
+          LocalizableMessage msg = WARN_CONFIG_BACKEND_CANNOT_REGISTER_BACKEND.get(backendCfg.getBackendId(),
+              getExceptionMessage(e));
+          err.println(wrapText(msg, MAX_LINE_WIDTH));
         }
       }
     }
@@ -935,7 +903,7 @@ public class EncodePassword
    * @param err The error output.
    * @param argParser The argument parser.
    * @param clearPassword the clear password
-   * @param clearPasswordFile the fil in which the password in stored
+   * @param clearPasswordFile the file in which the password in stored
    * @param interactivePassword indicate if the password should be asked
    *        interactively.
    * @return the password or null if an error occurs.
@@ -944,29 +912,24 @@ public class EncodePassword
       ArgumentParser argParser, StringArgument clearPassword,
       FileBasedArgument clearPasswordFile, BooleanArgument interactivePassword)
   {
-    ByteString clearPW = null;
     if (clearPassword.hasValue())
     {
-      clearPW = ByteString.valueOf(clearPassword.getValue());
+      return ByteString.valueOf(clearPassword.getValue());
     }
     else if (clearPasswordFile.hasValue())
     {
-      clearPW = ByteString.valueOf(clearPasswordFile.getValue());
+      return ByteString.valueOf(clearPasswordFile.getValue());
     }
     else if (interactivePassword.isPresent())
     {
-      EncodePassword encodePassword = new EncodePassword() ;
       try
       {
-        String pwd1, pwd2;
-        LocalizableMessage msg = INFO_ENCPW_INPUT_PWD_1.get();
-        pwd1 = encodePassword.getPassword(out, msg.toString());
-
-        msg = INFO_ENCPW_INPUT_PWD_2.get();
-        pwd2 = encodePassword.getPassword(out,msg.toString());
+        EncodePassword encodePassword = new EncodePassword();
+        String pwd1 = encodePassword.getPassword(INFO_ENCPW_INPUT_PWD_1.get().toString());
+        String pwd2 = encodePassword.getPassword(INFO_ENCPW_INPUT_PWD_2.get().toString());
         if (pwd1.equals(pwd2))
         {
-          clearPW = ByteString.valueOf(pwd1);
+          return ByteString.valueOf(pwd1);
         }
         else
         {
@@ -981,7 +944,6 @@ public class EncodePassword
         err.println(wrapText(message, MAX_LINE_WIDTH));
         return null;
       }
-
     }
     else
     {
@@ -992,38 +954,32 @@ public class EncodePassword
       err.println(argParser.getUsage());
       return null;
     }
-    return clearPW;
   }
 
   /**
    * Get the password from JDK6 console or from masked password.
-   * @param out The output
    * @param prompt The message to print out.
    * @return the password
    * @throws IOException if an issue occurs when reading the password
    *         from the input
    */
-  private String getPassword(PrintStream out, String prompt)
-      throws IOException
+  private String getPassword(String prompt) throws IOException
   {
     String password;
     try
     {
       Console console = System.console();
-      if (console != null)
-      {
-        password = new String(console.readPassword(prompt));
-      }
-      else
+      if (console == null)
       {
         throw new IOException("No console");
       }
+      password = new String(console.readPassword(prompt));
     }
     catch (Exception e)
     {
       // Try the fallback to the old trick method.
       // Create the thread that will erase chars
-      ErasingThread erasingThread = new ErasingThread(out, prompt);
+      ErasingThread erasingThread = new ErasingThread(prompt);
       erasingThread.start();
 
       password = "";
@@ -1040,10 +996,6 @@ public class EncodePassword
           if (c == '\n')
           {
             break;
-          }
-          else
-          {
-            continue;
           }
         }
         else if (c == '\n')
@@ -1063,22 +1015,19 @@ public class EncodePassword
 
   /**
    * Thread that mask user input.
-   *
    */
   private class ErasingThread extends Thread
   {
 
-    private boolean stop = false;
+    private boolean stop;
     private String prompt;
 
     /**
      * The class will mask the user input.
-     * @param out
-     *          the output
      * @param prompt
      *          The prompt displayed to the user
      */
-    public ErasingThread(PrintStream out, String prompt)
+    public ErasingThread(String prompt)
     {
       this.prompt = prompt;
     }
@@ -1115,7 +1064,6 @@ public class EncodePassword
     {
       this.stop = true;
     }
-
   }
 
 }

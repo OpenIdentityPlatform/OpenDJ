@@ -30,8 +30,9 @@ import java.util.List;
 import java.util.concurrent.locks.Lock;
 
 import org.forgerock.i18n.LocalizableMessage;
+import org.forgerock.i18n.slf4j.LocalizedLogger;
+import org.forgerock.opendj.ldap.ResultCode;
 import org.opends.server.api.Backend;
-import org.opends.server.api.ChangeNotificationListener;
 import org.opends.server.api.ClientConnection;
 import org.opends.server.api.SynchronizationProvider;
 import org.opends.server.api.plugin.PluginResult;
@@ -39,10 +40,22 @@ import org.opends.server.controls.LDAPAssertionRequestControl;
 import org.opends.server.controls.LDAPPreReadRequestControl;
 import org.opends.server.controls.ProxiedAuthV1Control;
 import org.opends.server.controls.ProxiedAuthV2Control;
-import org.opends.server.core.*;
-import org.forgerock.i18n.slf4j.LocalizedLogger;
-import org.opends.server.types.*;
-import org.forgerock.opendj.ldap.ResultCode;
+import org.opends.server.core.AccessControlConfigManager;
+import org.opends.server.core.DeleteOperation;
+import org.opends.server.core.DeleteOperationWrapper;
+import org.opends.server.core.DirectoryServer;
+import org.opends.server.core.PersistentSearch;
+import org.opends.server.core.PluginConfigManager;
+import org.opends.server.types.AdditionalLogItem;
+import org.opends.server.types.CanceledOperationException;
+import org.opends.server.types.Control;
+import org.opends.server.types.DN;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.Entry;
+import org.opends.server.types.LockManager;
+import org.opends.server.types.Privilege;
+import org.opends.server.types.SearchFilter;
+import org.opends.server.types.SynchronizationProviderResult;
 import org.opends.server.types.operation.PostOperationDeleteOperation;
 import org.opends.server.types.operation.PostResponseDeleteOperation;
 import org.opends.server.types.operation.PostSynchronizationDeleteOperation;
@@ -170,30 +183,12 @@ public class LocalBackendDeleteOperation
     {
       registerPostResponseCallback(new Runnable()
       {
-
         @Override
         public void run()
         {
-          // Notify persistent searches.
           for (PersistentSearch psearch : wfe.getPersistentSearches())
           {
             psearch.processDelete(entry);
-          }
-
-          // Notify change listeners.
-          for (ChangeNotificationListener changeListener : DirectoryServer
-              .getChangeNotificationListeners())
-          {
-            try
-            {
-              changeListener.handleDeleteOperation(LocalBackendDeleteOperation.this, entry);
-            }
-            catch (Exception e)
-            {
-              logger.traceException(e);
-
-              logger.error(ERR_DELETE_ERROR_NOTIFYING_CHANGE_LISTENER, getExceptionMessage(e));
-            }
           }
         }
       });
