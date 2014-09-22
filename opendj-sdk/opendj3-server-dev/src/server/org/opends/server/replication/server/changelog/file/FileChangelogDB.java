@@ -78,12 +78,6 @@ import static org.opends.server.util.StaticUtils.*;
  */
 public class FileChangelogDB implements ChangelogDB, ReplicationDomainDB
 {
-  /** {@inheritDoc} */
-  @Override
-  public long getDomainLatestTrimDate(DN baseDN)
-  {
-    throw new RuntimeException("Not implemented");
-  }
 
   private static final LocalizedLogger logger = LocalizedLogger.getLoggerForThisClass();
 
